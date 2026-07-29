@@ -274,6 +274,15 @@
 .sp-row:hover {
   background: var(--sp-hover);
 }
+/* A row that does not go anywhere must not look like it does. Reported from
+ * Settings, where read-only receipt rows wore a pointer and invited a click
+ * that did nothing. Affordance is a promise. */
+.sp-row:not(button) {
+  cursor: default;
+}
+.sp-row:not(button):hover {
+  background: transparent;
+}
 .sp-row + .sp-row {
   border-top: 1px solid var(--sp-line-soft);
 }
@@ -607,6 +616,71 @@
   margin-top: 1px;
 }
 
+/* ---------- the commit receipt ----------
+ * THE SIGNATURE MOMENT (agents/FINAL-agent-presence.md R10, §9). An approval
+ * must not vanish into a toast. A toast confirms that your click registered;
+ * a receipt renders what your click CAUSED, and that difference is the whole
+ * product thesis expressed as an interaction. An approval that erases itself
+ * teaches you that your judgment left no trace, and judgment is the product.
+ *
+ * It has the same anatomy as every other receipt in the product, so a person
+ * learns one shape. It arrives in place, it does not fly in from a corner. */
+@keyframes sp-receipt-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sp-receipt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-body);
+  animation: sp-receipt-in var(--sp-dur-slow) var(--sp-ease);
+}
+.sp-receipt + .sp-receipt {
+  border-top: 1px solid var(--sp-line-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-receipt {
+    animation: none;
+  }
+}
+.sp-receipt-what {
+  min-width: 0;
+  flex: 1;
+}
+.sp-receipt-verb {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-medium);
+}
+/* The handoff arrow. It is drawn ONLY when something real picks the work up.
+ * Never an arrow to nowhere: where nothing follows, the line says what changed
+ * instead, which is the honest version of the same fact. */
+.sp-receipt-arrow {
+  color: var(--sp-mute);
+  flex: none;
+}
+.sp-receipt-time {
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data);
+  color: var(--sp-mute);
+  flex: none;
+}
+/* A write that failed still writes a receipt, and the receipt goes honest
+ * immediately. Never a success animation over a failed write: that is the one
+ * thing that makes the successful animation trustworthy. */
+.sp-receipt[data-failed="true"] .sp-receipt-verb {
+  color: var(--sp-fail);
+}
+
 /* ---------- form controls ----------
  * Added 2026-07-29 after the first parallel port pass: six surfaces each
  * hand-rolled an <input> or <select> from raw tokens with inline styles,
@@ -665,6 +739,87 @@
   font-weight: var(--sp-weight-medium);
   color: var(--sp-mute);
   margin-bottom: 6px;
+}
+
+/* ---------- the setting line ----------
+ * Label left, control right, one per line, divided. Reported from Settings as
+ * the single most-used shape on that surface and hand-rolled there, which is
+ * how a system drifts. A boundary you set is a sentence with a switch at the
+ * end of it, not a card. */
+.sp-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 0;
+  min-height: var(--sp-row-h);
+}
+.sp-line + .sp-line {
+  border-top: 1px solid var(--sp-line-soft);
+}
+.sp-line-label {
+  min-width: 0;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-ink);
+}
+/* The second line carries WHY this boundary matters, or what it currently
+ * lets through. Never a restatement of the label (hard ban 10). */
+.sp-line-sub {
+  display: block;
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  margin-top: 2px;
+  max-width: 56ch;
+}
+.sp-line-control {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-2);
+}
+
+/* ---------- switch ----------
+ * A boundary is on or it is off. Monochrome when off; green when on, because
+ * green carries status and a live boundary is a status. */
+.sp-switch {
+  width: 36px;
+  height: 21px;
+  border-radius: 11px;
+  background: var(--sp-line);
+  position: relative;
+  flex: none;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  transition: background var(--sp-dur-mid) var(--sp-ease);
+}
+.sp-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--sp-ink);
+  transition: transform var(--sp-dur-mid) var(--sp-ease);
+}
+.sp-switch[aria-checked="true"] {
+  background: var(--sp-pass);
+}
+.sp-switch[aria-checked="true"]::after {
+  transform: translateX(15px);
+  background: var(--sp-bg);
+}
+.sp-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-switch,
+  .sp-switch::after {
+    transition: none;
+  }
 }
 
 /* ---------- preformatted ----------

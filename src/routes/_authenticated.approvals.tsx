@@ -41,9 +41,18 @@
  *
  * Every behaviour is preserved: optimistic decide with rollback, a/r, the
  * workspace-scoped query key shared with the rail badge and Today, the
- * unscoped other-workspaces read, the per-kind toasts, and the live-activity
- * receipt line on an empty queue.
+ * unscoped other-workspaces read, and the live-activity line on an empty queue.
  *
+ * THE COMMIT (agents/FINAL-agent-presence.md R10, which named this surface and
+ * this line as the defect). Settling a call used to fire a toast saying
+ * "Approved." and the card vanished. A toast confirms that your click
+ * REGISTERED; a receipt renders what your click CAUSED. An approval that
+ * erases itself teaches you that your judgment left no trace, and judgment is
+ * the product, so it now leaves a mark at the moment it is made. The per-item
+ * approveConsequence is real, per-kind copy that already existed, so the
+ * receipt says the true thing rather than a generic confirmation. No arrow is
+ * drawn to a receiving agent, because nothing in decideApprovalItem's response
+ * tells us who picks the work up: an arrow to nowhere is worse than no arrow.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -69,6 +78,7 @@ import {
   Gate,
   Num,
   PageHead,
+  Receipt,
   Row,
   Surface,
 } from "@/components/shell/primitives";
@@ -127,6 +137,15 @@ function ApprovalsSurface() {
 
   const [filter, setFilter] = useState<ApprovalFilter>("all");
   const [focusedId, setFocusedId] = useState<string | null>(null);
+  // THE COMMIT (agents/FINAL-agent-presence.md R10). A settled call does not
+  // vanish into a toast: it collapses in place into a receipt that stays on
+  // the surface for the rest of the session, so your judgment leaves a visible
+  // trace at the moment you make it. Session-local on purpose; the durable
+  // record is the trust ledger, and duplicating it here would be a second
+  // source of the same truth.
+  const [receipts, setReceipts] = useState<
+    { id: string; verb: string; consequence: string; at: string; failed?: boolean }[]
+  >([]);
 
   // ONE COUNT, ONE SOURCE (2026-07-18): the same query key the rail badge and
   // Today read, scoped to the active workspace, so this page's own count can
@@ -198,13 +217,36 @@ function ApprovalsSurface() {
       return { prev };
     },
     onSuccess: (_res, vars) => {
-      toast.success(vars.verdict === "approve" ? TOAST_APPROVE[vars.item.kindKey] : TOAST_REJECT, {
-        critical: true,
-      });
+      // No toast. The receipt IS the confirmation, and it says what the click
+      // CAUSED rather than that it registered.
+      setReceipts((r) => [
+        {
+          id: vars.item.id,
+          verb: vars.verdict === "approve" ? "You approved" : "You declined",
+          consequence:
+            vars.verdict === "approve"
+              ? (vars.item.approveConsequence ?? TOAST_APPROVE[vars.item.kindKey])
+              : (vars.item.rejectConsequence ?? TOAST_REJECT),
+          at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+        },
+        ...r,
+      ]);
     },
-    onError: (e: Error, _vars, ctx) => {
+    onError: (e: Error, vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(queueKey, ctx.prev);
-      toast.error(e.message);
+      // A failed write still writes a receipt, and the receipt goes honest
+      // immediately. Never a success shape over a failed write: that is the one
+      // thing that makes the successful ones trustworthy.
+      setReceipts((r) => [
+        {
+          id: vars.item.id,
+          verb: "Nothing was recorded",
+          consequence: e.message,
+          at: new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+          failed: true,
+        },
+        ...r,
+      ]);
     },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ["approvals", "queue"] });
@@ -355,6 +397,20 @@ function ApprovalsSurface() {
           ) : null}
         </Gate>
       )}
+
+      {receipts.length > 0 ? (
+        <Block title="What you settled">
+          {receipts.map((r, i) => (
+            <Receipt
+              key={`${r.id}-${i}`}
+              verb={r.verb}
+              consequence={r.consequence}
+              time={r.at}
+              failed={r.failed}
+            />
+          ))}
+        </Block>
+      ) : null}
 
       {groups.map((group) => (
         <Block key={group.name} title={group.name}>

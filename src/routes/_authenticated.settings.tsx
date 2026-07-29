@@ -1,35 +1,114 @@
-// Settings — screen 5 wave B of the Ember Editorial migration, ported from
-// design-reference/supaprod/loop.jsx (SettingsScreen, lines 966–1071): mono
-// kicker "Workspace", serif h1, hairline TabRow. Production functionality
-// rides the reference layout: the ?section= search-param contract (legacy
-// brief→workspace, calendar→connections deep links keep landing), the
-// OAuth-only AccountConnectionsSection (founder law 2026-06-12 — Connect-
-// button OAuth only, no key paste for connectors), profile/brief/voice-anchor
-// saves, and BYO AI keys (not connectors — they stay under Models).
-// Reference Digest tab omitted: no digest-routing backend (no-filler law).
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+/**
+ * SETTINGS. Redesigned, not ported (SURFACE-JUSTIFICATION.md, founder-directed
+ * 2026-07-29). The prototype does not draw this surface, so it does not get a
+ * re-skin. The five questions, answered before a line was written:
+ *
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
+ *    The person who owns this workspace, here to change ONE boundary the crew
+ *    will obey from now on, and then leave. Not to browse. The real sentence in
+ *    their head is "stop asking me before it edits code" or "cap what a top-up
+ *    can cost me". Nobody has ever opened Settings to look at things.
+ *
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE:
+ *    Setting policy in advance so it never has to be asked for in the moment.
+ *    That is the governance canon's own split (GOVERNANCE-PRINCIPLE.md): policy
+ *    is set ahead and does not block, permission is asked live and does. Every
+ *    element here earns its place by being a boundary that, once set, removes
+ *    an interruption later. A number that only REPORTS is not a boundary, and
+ *    that single test decided most of the verdicts below.
+ *
+ * 3. KEEP / MOVE / KILL, every element:
+ *    KEEP - profile identity + working hours (working hours ARE quiet hours: a
+ *      boundary the digest obeys) · appearance and density (a preference set
+ *      once) · notifications (when the product may interrupt you) · the brief
+ *      and voice anchor (the policy injected into every agent's prompt, and the
+ *      most load-bearing thing on this surface) · brand · autonomy · models and
+ *      BYO keys · sources · sync · agent access · your data · plan · the credit
+ *      cap and buying a top-up · per-agent tool reach.
+ *    MOVE - the legal and trust links: OUT of Profile, INTO "Your data", beside
+ *      the subprocessor list and the export they actually belong with. Done
+ *      here, in this file.
+ *    MOVE (needs another agent to receive it, see the report) -
+ *      · the agent roster's run ledger and its lessons -> /crew and the agent
+ *        detail. A 7-column table with an expander holding three sub-cards was
+ *        the clearest evidence on this page of things put where they had
+ *        nowhere else to go, and it is the horizontal scroll the founder named
+ *        twice. What stayed is the one control that is genuinely policy: how
+ *        far each agent's tools may reach.
+ *      · the credit debit ledger and the per-product attribution bars ->
+ *        Engine room, Spend. Those are a report on what happened; the Engine
+ *        room is the surface whose whole job is reports on what happened. The
+ *        purchase receipts stayed, because the purchase is made here.
+ *      · Members and Team duplicate /admin ("members, roles, audit, billing").
+ *        Left rendering for now because /admin is gated behind being an admin;
+ *        they want their own People section once settings-sections.ts can move.
+ *    KILL - the per-agent on/off switch. It called no server function; it
+ *      opened a toast saying the real control is somewhere else. A control that
+ *      cannot do the thing it draws is the definition of slop.
+ *    KILL - the workspace-bindings summary under Sources. It rendered the same
+ *      bindings the Sync section one nav row below renders in full, plus /sync.
+ *      Three places, one fact.
+ *    KILL - the avatar identity header (name + role + workspace) that sat
+ *      directly above the fields holding the same name and role. Ban 10.
+ *    KILL - every animate-pulse skeleton. Motion that carries no information.
+ *    DEAD DOOR, flagged - "Memory" is a nav row whose entire content is "it
+ *      moved to Brain". It should be deleted from settings-sections.ts, which
+ *      this agent does not own. Same shape of question hangs over Diagnostics,
+ *      which is a health REPORT and belongs in the Engine room; it still
+ *      renders here because removing it before the destination exists would
+ *      leave a second dead door.
+ *
+ * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE:
+ *    Each agent's lessons and run history (/crew) · the credit debit ledger and
+ *    who spent it (Engine room, Spend) · sync conflicts and per-product
+ *    bindings (/sync) · members, roles and audit (/admin) · the memory ledger
+ *    (/brain). Depth is a click away, never on the list.
+ *
+ * 5. DELIGHT, AND CONFUSION:
+ *    The delight available here is honest and cheap: every section opens by
+ *    stating the boundary CURRENTLY IN FORCE, derived from real data, before
+ *    offering to change it. The Agents section says "9 run alone, 3 ask first"
+ *    rather than making you read a table to work it out. Nothing is invented:
+ *    where the number is not stored, the line says what the section governs
+ *    instead. What would confuse: a control that does nothing (killed), the
+ *    same bindings in three places (killed), and a pane that scrolls sideways
+ *    (killed with the table).
+ *
+ * LAYOUT. The founder liked the left-hand settings navigation and said the
+ * right-hand pane still needed work, so the nav shape survives verbatim and the
+ * pane was rebuilt: one section at a time, sections are Blocks, and a setting
+ * is a label on the left with its control on the right, one per line, dividers
+ * rather than a card each. The page-level header, breadcrumb and room chrome
+ * are gone; AppFrame already draws the header, the workspace scope, the live
+ * line and Ask.
+ *
+ * UNCHANGED: the ?section= / ?tab= / ?connector= / ?checkout= contract, every
+ * legacy deep link, and every server function, mutation and query key still
+ * rendered. Destructive actions keep their confirmation.
+ */
+
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { agentBlurb, agentDisplayName, catalogEntry, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
-import { cloneElement, isValidElement, useEffect, useRef, useState } from "react";
-import { toast } from "@/lib/notify";
-import { RoomChromeShell } from "@/components/mission/RoomChrome";
-import { SurfaceHeader } from "@/components/mission/primitives";
-import { MonoLabel } from "@/components/supaprod/Primitives";
+import { Children, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+
 import {
-  Avatar,
-  orbBackground,
-  AVATAR_VARIANTS,
-  defaultAvatarVariant,
-} from "@/components/supaprod/Avatar";
-import { useAvatarChoice } from "@/hooks/use-avatar-choice";
-import { MonoLabel as ObsidianMonoLabel, Button as ObsidianButton } from "@/components/obsidian";
+  agentBlurb,
+  agentDisplayName,
+  catalogEntry,
+  SPECIALIST_CATALOG,
+} from "@/lib/agent-vocabulary";
+import { toast } from "@/lib/notify";
+import { supabase } from "@/integrations/supabase/client";
 import { useDensity } from "@/hooks/use-density";
 import { useTheme, type Theme } from "@/hooks/use-theme";
-import { Sun, Moon, Monitor, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { useConfirm } from "@/hooks/use-confirm";
+import { useAvatarChoice } from "@/hooks/use-avatar-choice";
+import { orbBackground, AVATAR_VARIANTS, defaultAvatarVariant } from "@/components/supaprod/Avatar";
+
 import { getProfile, updateProfile } from "@/lib/profile.functions";
-import { listAgents, listAgentRuns, listAgentReflections, setAgentToolCap } from "@/lib/agents.functions";
+import { listAgents, setAgentToolCap } from "@/lib/agents.functions";
 import { MODELS, AUTO_MODEL } from "@/lib/ai/models";
 import {
   listApiKeys,
@@ -38,15 +117,7 @@ import {
   testApiKey,
   BYO_PROVIDERS,
 } from "@/lib/byokeys.functions";
-import { getActiveBrief, upsertBrief, type WorkspaceBrief } from "@/lib/briefs.functions";
-import { useWorkspace } from "@/hooks/use-workspace";
-import {
-  AccountConnectionsSection,
-  ConnectorDetail,
-} from "@/components/connections/AccountConnectionsSection";
-import { listWorkspaceBindings } from "@/lib/connections.functions";
-import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
-import { relTimeCaps } from "@/components/discover/format";
+import { getActiveBrief, upsertBrief } from "@/lib/briefs.functions";
 import { getBillingState, type BillingState } from "@/lib/billing.functions";
 import {
   getMySubscription,
@@ -54,18 +125,28 @@ import {
   resumeMySubscription,
   createPortalSession,
   getMyCreditsView,
-  getCreditAttribution,
 } from "@/lib/payments.functions";
 import { planPresentation, type PlanTier } from "@/lib/entitlements";
-import { amIAdmin } from "@/lib/pricing.functions";
+import { amIAdmin, getPricingCatalog } from "@/lib/pricing.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
+import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
+import {
+  PRIMARY_GROUPS,
+  normalizeSection,
+  sectionLabel,
+  type SectionId,
+} from "@/lib/settings-sections";
+
+import {
+  AccountConnectionsSection,
+  ConnectorDetail,
+} from "@/components/connections/AccountConnectionsSection";
+import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
 import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheckout";
 import { PaymentTestModeBanner } from "@/components/billing/PaymentTestModeBanner";
-import { getStripeEnvironment } from "@/lib/stripe";
-import { useConfirm } from "@/hooks/use-confirm";
-import { PlanTable, TIER_ICON } from "@/components/billing/PlanPicker";
+import { PlanTable } from "@/components/billing/PlanPicker";
 import { CreditCapsCard } from "@/components/billing/CreditCapsCard";
 import { UsageIndicator } from "@/components/billing/UsageIndicator";
-import { getPricingCatalog } from "@/lib/pricing.functions";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
 import { DataExportCard } from "@/components/settings/DataExportCard";
@@ -80,24 +161,196 @@ import { MembersCard } from "@/components/settings/MembersCard";
 import { TeamCard } from "@/components/settings/TeamCard";
 import { ControlsPanel } from "@/components/governance/ControlsPanel";
 import { DesignMemoryPanel } from "@/components/knowledge/DesignMemoryPanel";
-import { WorkspaceBindingsSection } from "@/components/connections/WorkspaceBindingsSection";
-import {
-  PRIMARY_GROUPS,
-  normalizeSection,
-  sectionLabel,
-  type SectionId,
-} from "@/lib/settings-sections";
 
-// The section ids, grouping, legacy deep-link map, and normalizeSection now live
-// in the pure, unit-tested @/lib/settings-sections module (SETTINGS-SEGREGATE,
-// v11 #13): the 11 flat tabs are presented as 5 calm groups + a recessed
-// Advanced group, while every ?section= id is preserved unchanged so existing
-// deep links keep landing. "ai" stays the id behind the Models label; Workspace
-// is production-only; "connections" is the account-level OAuth surface
-// (deliberately not "Connectors", to not collide with the /sync surface).
+import { AgentMark, Block, Button, Empty, Num, PageHead, Row } from "@/components/shell/primitives";
 
-// ?connector= drill param (screen 6) — only registry keys for user-facing
-// providers open the detail; anything else falls back to the normal list.
+/* ================================================================== *
+ * The pieces this surface is built from.
+ *
+ * The rebuild has no field, select, textarea or setting-line primitive
+ * yet, so they live here as token-only style objects rather than as new
+ * css classes (which this agent does not own). Reported as a gap.
+ * ================================================================== */
+
+const CONTROL: CSSProperties = {
+  font: "inherit",
+  fontSize: "var(--sp-text-body)",
+  color: "var(--sp-ink)",
+  background: "var(--sp-lift)",
+  border: "1px solid var(--sp-line)",
+  borderRadius: "var(--sp-radius-ctl)",
+  height: "var(--sp-ctl-lg)",
+  padding: "0 var(--sp-space-3)",
+  outline: "none",
+  minWidth: 0,
+};
+
+const AREA: CSSProperties = {
+  ...CONTROL,
+  width: "100%",
+  height: "auto",
+  padding: "10px var(--sp-space-3)",
+  lineHeight: "var(--sp-leading-body)",
+  resize: "vertical",
+};
+
+/** A setting: what it is on the left, the control that changes it on the
+ *  right, one per line. Dividers, never a card each. */
+const LINE: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "var(--sp-space-5)",
+  minHeight: "var(--sp-row-h)",
+  padding: "10px 0",
+};
+const LINE_DIVIDED: CSSProperties = { ...LINE, borderTop: "1px solid var(--sp-line-soft)" };
+
+const LABEL: CSSProperties = {
+  display: "block",
+  fontSize: "var(--sp-text-body)",
+  color: "var(--sp-ink)",
+  lineHeight: "var(--sp-leading-row)",
+};
+const NOTE: CSSProperties = {
+  display: "block",
+  fontSize: "var(--sp-text-meta)",
+  color: "var(--sp-mute)",
+  marginTop: 2,
+  lineHeight: "var(--sp-leading-row)",
+};
+const ACTS: CSSProperties = {
+  flex: "none",
+  display: "flex",
+  alignItems: "center",
+  gap: "var(--sp-space-2)",
+};
+
+function Lines({ children }: { children: ReactNode }) {
+  const items = Children.toArray(children).filter(Boolean);
+  return (
+    <div>
+      {items.map((child, i) => (
+        <div key={i} style={i === 0 ? LINE : LINE_DIVIDED}>
+          {child}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Line({
+  label,
+  note,
+  htmlFor,
+  children,
+}: {
+  label: ReactNode;
+  /** The second line carries DIFFERENT information, or it is absent. */
+  note?: ReactNode;
+  htmlFor?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <>
+      <label htmlFor={htmlFor} style={{ flex: 1, minWidth: 0 }}>
+        <span style={LABEL}>{label}</span>
+        {note ? <span style={NOTE}>{note}</span> : null}
+      </label>
+      {children ? <span style={ACTS}>{children}</span> : null}
+    </>
+  );
+}
+
+/** A field whose control wants the full measure: the label sits above it. */
+function Stack({
+  id,
+  label,
+  note,
+  trailing,
+  children,
+}: {
+  id: string;
+  label: string;
+  note?: string;
+  trailing?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div style={{ marginTop: "var(--sp-space-4)" }}>
+      <label htmlFor={id} style={{ display: "block" }}>
+        <span
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: "var(--sp-space-3)",
+          }}
+        >
+          <span style={LABEL}>{label}</span>
+          {trailing}
+        </span>
+        {note ? <span style={NOTE}>{note}</span> : null}
+      </label>
+      <div style={{ marginTop: "var(--sp-space-2)" }}>{children}</div>
+    </div>
+  );
+}
+
+/** One or more actions under a block. */
+function Acts({ children }: { children: ReactNode }) {
+  return <div className="sp-acts">{children}</div>;
+}
+
+/** A read that failed says so and offers one retry. It never wears a healthy
+ *  state's clothes. */
+function Failed({ what, error, onRetry }: { what: string; error?: unknown; onRetry: () => void }) {
+  return (
+    <>
+      <Empty>
+        <span className="sp-fail">{what}</span> {(error as Error)?.message ?? "The read failed."}
+      </Empty>
+      <Acts>
+        <Button onClick={onRetry}>Try again</Button>
+      </Acts>
+    </>
+  );
+}
+
+/** A choice made of two or three named options. */
+function Choice<T extends string>({
+  value,
+  options,
+  onPick,
+  label,
+}: {
+  value: T;
+  options: { id: T; label: string }[];
+  onPick: (id: T) => void;
+  label: string;
+}) {
+  return (
+    <span role="group" aria-label={label} style={{ display: "flex", gap: "var(--sp-space-1)" }}>
+      {options.map((o) => (
+        <Button
+          key={o.id}
+          variant={o.id === value ? "default" : "ghost"}
+          aria-pressed={o.id === value}
+          onClick={() => onPick(o.id)}
+        >
+          {o.label}
+        </Button>
+      ))}
+    </span>
+  );
+}
+
+/* ================================================================== *
+ * Route
+ * ================================================================== */
+
+// ?connector= drill param - only registry keys for user-facing providers open
+// the detail; anything else falls back to the normal list.
 function normalizeConnector(raw: string | undefined): ProviderId | undefined {
   if (!raw) return undefined;
   const spec = (CONNECTOR_REGISTRY as Record<string, ProviderSpec | undefined>)[raw];
@@ -106,8 +359,7 @@ function normalizeConnector(raw: string | undefined): ProviderId | undefined {
 
 export const Route = createFileRoute("/_authenticated/settings")({
   // The canonical param is ?section=; ?tab= is a legacy alias that older links
-  // and external deep links still send (audit D-20: ?tab=plan was silently
-  // ignored). Both are accepted; section wins when both arrive.
+  // and external deep links still send. Both are accepted; section wins.
   validateSearch: (
     search: Record<string, unknown>,
   ): { section?: string; tab?: string; connector?: string; checkout?: string } => ({
@@ -119,195 +371,692 @@ export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
   head: () => ({ meta: [{ title: "Settings · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
-    <>
-      <div style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}>
-        <div className="bento" style={{ padding: 24 }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load Settings
-          </div>
-          <p style={{ fontSize: 14, color: "var(--ink-muted)", marginTop: 8, maxWidth: 480 }}>
-            {(error as Error)?.message ?? "Unknown error"}
-          </p>
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={reset}>
-            Retry
-          </button>
-        </div>
+    <div className="sp-inner">
+      <div className="sp-main">
+        <PageHead
+          title="Settings did not open."
+          sub={(error as Error)?.message ?? "The read failed."}
+        />
+        <Block>
+          <Acts>
+            <Button variant="primary" onClick={reset}>
+              Try again
+            </Button>
+          </Acts>
+        </Block>
       </div>
-    </>
+    </div>
   ),
 });
 
-// The reimagined Settings nav (screen-7 `set-nav`): five named groups, every
-// door visible at once (no numbered index, no Advanced fold), ink tokens. The
-// active section wears the raised wash; a group label sits above its sections.
-// Memory now lives in Brain, echoed as a footer note like the mockup.
-function SettingsNav({
-  active,
-  onSet,
-}: {
-  active: SectionId;
-  onSet: (id: SectionId) => void;
-}) {
+/** The left-hand index. The founder liked this shape, so it keeps it: five
+ *  named groups, every door visible at once, no numbering and no fold. */
+function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
   return (
-    <aside
-      className="flex flex-col gap-5 border-r px-4 py-5"
-      style={{ width: 220, flexShrink: 0, borderColor: "var(--ink-hairline)" }}
+    <nav
+      aria-label="Settings"
+      style={{
+        flex: "0 1 200px",
+        maxWidth: 220,
+        minWidth: 168,
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--sp-space-5)",
+        position: "sticky",
+        top: 0,
+      }}
     >
       {PRIMARY_GROUPS.map((g) => (
-        <div key={g.id} className="flex flex-col gap-0.5">
-          <div
-            className="mb-1 px-2 font-mono uppercase"
-            style={{
-              fontSize: "10px",
-              letterSpacing: "0.1em",
-              color: "var(--ink-faint)",
-            }}
-          >
+        <div key={g.id}>
+          <div className="sp-ctx-head" style={{ marginBottom: "var(--sp-space-2)" }}>
             {g.label}
           </div>
-          {g.sections.map((s) => {
-            const isActive = s.id === active;
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => onSet(s.id)}
-                aria-current={isActive ? "page" : undefined}
-                className={`ink-focus flex items-center rounded-lg text-left transition-colors ${
-                  isActive ? "" : "hover:bg-[var(--ink-raised)]"
-                }`}
-                style={{
-                  padding: "6px 10px",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "13px",
-                  background: isActive ? "var(--ink-raised)" : undefined,
-                  color: isActive ? "var(--ink-text)" : "var(--ink-body)",
-                }}
-              >
-                {s.label}
-              </button>
-            );
-          })}
+          <div style={{ display: "flex", flexDirection: "column", gap: 1, margin: "0 -10px" }}>
+            {g.sections.map((s) => {
+              const here = s.id === active;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  // A nav, not a tablist: aria-current says where you are, so
+                  // the active look is set here rather than by sp-tab's
+                  // aria-selected rule.
+                  className="sp-tab"
+                  aria-current={here ? "page" : undefined}
+                  onClick={() => onSet(s.id)}
+                  style={{
+                    textAlign: "left",
+                    ...(here
+                      ? {
+                          background: "var(--sp-lift)",
+                          color: "var(--sp-ink)",
+                          fontWeight: "var(--sp-weight-medium)",
+                        }
+                      : null),
+                  }}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       ))}
-      <div
-        className="px-2 pt-1"
-        style={{ fontSize: "11.5px", lineHeight: 1.5, color: "var(--ink-faint)" }}
-      >
-        Looking for Memory? It lives in{" "}
-        <Link to="/brain" style={{ color: "var(--ink-body)", textDecoration: "underline" }}>
-          Brain
-        </Link>{" "}
-        now.
-      </div>
-    </aside>
+    </nav>
   );
 }
 
-function DensityToggle() {
-  const [density, setDensity] = useDensity();
+function SettingsPage() {
+  const { section, tab, connector, checkout } = Route.useSearch();
+  // ?section= is canonical; legacy ?tab= keeps landing.
+  const rawSection = section ?? tab;
+  const active = normalizeSection(rawSection);
+  const activeConnector = active === "connections" ? normalizeConnector(connector) : undefined;
+  const navigate = useNavigate({ from: "/settings" });
+  const { activeWorkspace } = useWorkspace();
+  const setTab = (id: SectionId) => navigate({ search: { section: id } });
+
   return (
-    <div style={{ marginBottom: 20 }}>
-      <ObsidianMonoLabel tone="muted">Density</ObsidianMonoLabel>
-      <div
-        className="flex items-center"
-        role="group"
-        aria-label="Density"
-        style={{ gap: 6, marginTop: 8 }}
-      >
-        {(["comfortable", "compact"] as const).map((d) => (
-          <button
-            key={d}
-            type="button"
-            onClick={() => setDensity(d)}
-            aria-pressed={density === d}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 12.5,
-              height: 32,
-              padding: "0 12px",
-              borderRadius: "var(--radius-control)",
-              border: "1px solid var(--hairline)",
-              background: density === d ? "var(--raised)" : undefined,
-              color: density === d ? "var(--text-primary)" : "var(--text-subtle)",
-              textTransform: "capitalize",
-              cursor: "pointer",
-            }}
-          >
-            {d}
-          </button>
-        ))}
+    // The ported layout, with the index on the LEFT rather than the context
+    // column on the right: the founder's own ruling on this surface. It wraps
+    // rather than hides when the work region is narrow, because a nav that
+    // disappears is a door that disappears.
+    <div
+      className="sp-inner"
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "flex-start",
+        gap: "var(--sp-space-6) var(--sp-ctx-gap)",
+      }}
+      data-screen-label="Settings"
+    >
+      <SettingsIndex active={active} onSet={setTab} />
+      <div className="sp-main" style={{ flex: "1 1 420px" }}>
+        {active === "profile" && <ProfileSection />}
+        {active === "notifications" && (
+          <>
+            <PageHead title="Notifications" sub="When the product may interrupt you, and where." />
+            <Block>
+              <NotificationsTab />
+            </Block>
+          </>
+        )}
+
+        {active === "workspace" && <WorkspaceSection scrollToBrief={rawSection === "brief"} />}
+        {active === "brand" && (
+          <>
+            <PageHead
+              title="Brand"
+              sub="What the design crew treats as settled before it draws anything."
+            />
+            <DesignMemoryPanel />
+          </>
+        )}
+        {active === "products" && (
+          <>
+            <PageHead title="Products" sub="What this workspace ships. Missions attach to one." />
+            <ProductsTab />
+          </>
+        )}
+        {active === "memory" && <MemorySection onOpen={() => navigate({ to: "/brain" })} />}
+
+        {active === "staff" && <RosterSection />}
+        {active === "autonomy" && (
+          <>
+            <PageHead
+              title="Autonomy and approvals"
+              sub="Set the boundary once here, and the crew stops asking inside every run."
+            />
+            <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
+          </>
+        )}
+        {active === "ai" && <ModelsSection />}
+
+        {active === "connections" && (
+          <ConnectionsSection
+            connector={activeConnector}
+            onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
+            onCloseDetail={() => navigate({ search: { section: "connections" } })}
+          />
+        )}
+        {active === "sync" && (
+          <>
+            <PageHead
+              title="Sync and bindings"
+              sub="Which repo, team or database the agents in this workspace act on."
+            />
+            <WorkspaceBindingsSection />
+            <Acts>
+              <Button variant="ghost" onClick={() => navigate({ to: "/sync" })}>
+                Open sync and conflicts
+              </Button>
+            </Acts>
+          </>
+        )}
+        {active === "interop" && (
+          <>
+            <PageHead
+              title="Agent access"
+              sub="What an agent outside Supaprod may read, and on whose key."
+            />
+            <IntegrationsTab />
+          </>
+        )}
+        {active === "data" && <DataSection workspaceId={activeWorkspace?.id} />}
+
+        {active === "billing" && <PlanSection checkout={checkout} />}
+        {active === "credits" && <CreditsSection />}
+        {active === "health" && (
+          <>
+            <PageHead
+              title="Diagnostics"
+              sub="Whether the parts this workspace depends on are answering."
+            />
+            <HealthCard />
+          </>
+        )}
       </div>
-      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
-        Compact drops one row of breathing room · type stays the same
-      </p>
     </div>
   );
 }
 
-// THEME GETS A HOME (founder ask, 2026-07-11): the Light / Dark / System choice
-// finally has UI. Consumes the already-shipped useTheme() trio; dark stays the
-// default (Tempo v5 law), light derives from the same tokens.
-const THEME_CHOICES: { id: Theme; label: string; Icon: typeof Sun }[] = [
-  { id: "light", label: "Light", Icon: Sun },
-  { id: "dark", label: "Dark", Icon: Moon },
-  { id: "system", label: "System", Icon: Monitor },
+/* ================================================================== *
+ * You - profile, appearance, hours
+ * ================================================================== */
+
+const THEME_CHOICES: { id: Theme; label: string }[] = [
+  { id: "light", label: "Light" },
+  { id: "dark", label: "Dark" },
+  { id: "system", label: "System" },
 ];
 
-function AppearanceSection() {
+const DENSITY_CHOICES = [
+  { id: "comfortable" as const, label: "Comfortable" },
+  { id: "compact" as const, label: "Compact" },
+];
+
+function ProfileSection() {
+  const qc = useQueryClient();
+  const fProfile = useServerFn(getProfile);
+  const mUpdate = useServerFn(updateProfile);
+  const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
+
   const { theme, setTheme } = useTheme();
+  const [density, setDensity] = useDensity();
+
+  const [fullName, setFullName] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [role, setRole] = useState("");
+  const [timezone, setTimezone] = useState("");
+  const [whStart, setWhStart] = useState(9);
+  const [whEnd, setWhEnd] = useState(18);
+  const [avatarChoice, chooseAvatar] = useAvatarChoice();
+
+  useEffect(() => {
+    const p = profile.data?.profile as {
+      full_name?: string;
+      display_name?: string;
+      role?: string;
+      timezone?: string;
+      working_hours_start?: number;
+      working_hours_end?: number;
+    } | null;
+    if (!p) return;
+    setFullName(p.full_name ?? "");
+    setDisplayName(p.display_name ?? "");
+    setRole(p.role ?? "AI Product Manager");
+    setTimezone(p.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
+    setWhStart(p.working_hours_start ?? 9);
+    setWhEnd(p.working_hours_end ?? 18);
+  }, [profile.data]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      await mUpdate({
+        data: {
+          full_name: fullName || undefined,
+          display_name: displayName || undefined,
+          role: role || undefined,
+          timezone: timezone || undefined,
+          working_hours_start: whStart,
+          working_hours_end: whEnd,
+          onboarded: true,
+        },
+      });
+      // Also write auth user_metadata so surfaces that read the session (not
+      // the profiles row) reflect the new name on the next load. Best effort;
+      // the profiles row is the system of record and it is already saved.
+      try {
+        await supabase.auth.updateUser({
+          data: { display_name: displayName || undefined, full_name: fullName || undefined },
+        });
+      } catch {
+        /* auth metadata is a display convenience */
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Profile saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const name = displayName || fullName;
+
+  const head = (
+    <PageHead
+      title="Profile"
+      sub={`Anything scheduled waits for your window, ${whStart}:00 to ${whEnd}:00 in ${timezone || "your timezone"}.`}
+    />
+  );
+
+  if (profile.isLoading) {
+    return (
+      <>
+        <PageHead title="Profile" sub="How you are named, and when you are reachable." />
+        <Empty>Reading your profile.</Empty>
+      </>
+    );
+  }
+
+  // A failed read must not render an empty identity form whose save would
+  // overwrite the real thing.
+  if (profile.isError) {
+    return (
+      <>
+        <PageHead title="Profile" sub="How you are named, and when you are reachable." />
+        <Block>
+          <Failed
+            what="Your profile did not load."
+            error={profile.error}
+            onRetry={() => profile.refetch()}
+          />
+        </Block>
+      </>
+    );
+  }
+
   return (
-    <div style={{ marginBottom: 20 }}>
-      <ObsidianMonoLabel tone="muted">Appearance</ObsidianMonoLabel>
-      <div
-        className="flex items-center"
-        role="group"
-        aria-label="Theme"
-        style={{ gap: 6, marginTop: 8 }}
-      >
-        {THEME_CHOICES.map(({ id, label, Icon }) => {
-          const isActive = theme === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTheme(id)}
-              aria-pressed={isActive}
-              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)] hover:[background-color:var(--hover)]"
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate();
+      }}
+    >
+      {head}
+
+      <Block title="Identity">
+        <Lines>
+          <Line
+            label="Full name"
+            note="Signs documents, briefs and stakeholder updates."
+            htmlFor="p-full"
+          >
+            <input
+              id="p-full"
+              style={{ ...CONTROL, width: 240 }}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Jane Q. Doe"
+            />
+          </Line>
+          <Line label="Display name" note="What the agents call you." htmlFor="p-display">
+            <input
+              id="p-display"
+              style={{ ...CONTROL, width: 240 }}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Jane"
+            />
+          </Line>
+          <Line label="Role" htmlFor="p-role">
+            <input
+              id="p-role"
+              style={{ ...CONTROL, width: 240 }}
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              placeholder="AI Product Manager"
+            />
+          </Line>
+          <Line label="Timezone" note="Every time on every surface is read in it." htmlFor="p-tz">
+            <input
+              id="p-tz"
+              style={{ ...CONTROL, width: 240 }}
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              placeholder="America/New_York"
+            />
+          </Line>
+          <Line
+            label="Mark"
+            note={name ? `Stands in for ${name} wherever you acted.` : "Stands in for you."}
+          >
+            <span style={{ display: "flex", flexWrap: "wrap", gap: 6, maxWidth: 240 }}>
+              {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
+                const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => chooseAvatar(i)}
+                    aria-label={`Mark ${i + 1}`}
+                    aria-pressed={selected}
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      padding: 0,
+                      background: orbBackground(i),
+                      border: selected ? "1.5px solid var(--sp-ink)" : "1px solid var(--sp-line)",
+                      cursor: "pointer",
+                    }}
+                  />
+                );
+              })}
+            </span>
+          </Line>
+        </Lines>
+      </Block>
+
+      <Block title="Working hours">
+        <Lines>
+          <Line
+            label="Reachable from"
+            note="Outside it, a scheduled digest waits rather than pinging you."
+            htmlFor="p-wh-start"
+          >
+            <input
+              id="p-wh-start"
+              type="number"
+              min={0}
+              max={23}
+              style={{ ...CONTROL, width: 88 }}
+              value={whStart}
+              onChange={(e) => setWhStart(Number(e.target.value))}
+            />
+          </Line>
+          <Line label="Until" htmlFor="p-wh-end">
+            <input
+              id="p-wh-end"
+              type="number"
+              min={1}
+              max={24}
+              style={{ ...CONTROL, width: 88 }}
+              value={whEnd}
+              onChange={(e) => setWhEnd(Number(e.target.value))}
+            />
+          </Line>
+        </Lines>
+        <Acts>
+          <Button variant="primary" type="submit" disabled={save.isPending}>
+            {save.isPending ? "Saving" : "Save profile"}
+          </Button>
+        </Acts>
+      </Block>
+
+      <Block title="Appearance">
+        <Lines>
+          <Line label="Theme" note="System follows your device. Dark is the default.">
+            <Choice value={theme} options={THEME_CHOICES} onPick={setTheme} label="Theme" />
+          </Line>
+          <Line label="Density" note="Compact drops a row of breathing room. Type stays the same.">
+            <Choice value={density} options={DENSITY_CHOICES} onPick={setDensity} label="Density" />
+          </Line>
+        </Lines>
+      </Block>
+    </form>
+  );
+}
+
+/* ================================================================== *
+ * Workspace - the brief, the voice, the people
+ * ================================================================== */
+
+type BriefFieldKey = "mission" | "target_user" | "current_focus" | "anti_goals" | "notes";
+
+const BRIEF_FIELDS: {
+  key: BriefFieldKey;
+  label: string;
+  hint: string;
+  placeholder: string;
+  rows: number;
+}[] = [
+  {
+    key: "mission",
+    label: "Mission",
+    hint: "One paragraph. What this workspace exists to do.",
+    placeholder: "We help solo PMs run the work of a 10-person product org.",
+    rows: 3,
+  },
+  {
+    key: "target_user",
+    label: "Target user",
+    hint: "Who you are building for. Every agent anchors on this.",
+    placeholder: "Lead or solo PM at a 10 to 100 person B2B SaaS team. Ships weekly.",
+    rows: 3,
+  },
+  {
+    key: "current_focus",
+    label: "Current focus",
+    hint: "What to prioritise this quarter. Cut, do not expand.",
+    placeholder: "Q3 2026: close the Discover, Plan, Build loop on real signals.",
+    rows: 4,
+  },
+  {
+    key: "anti_goals",
+    label: "Anti-goals",
+    hint: "What the crew refuses, even when it looks reasonable.",
+    placeholder: "No new dashboards. No mocked data. No feature whose value cannot be measured.",
+    rows: 3,
+  },
+  {
+    key: "notes",
+    label: "Notes",
+    hint: "Constraints, decisions and references that do not fit above.",
+    placeholder: "Speak in product terms. Lean concise over verbose. Always cite evidence.",
+    rows: 4,
+  },
+];
+
+const EMPTY_BRIEF: Record<BriefFieldKey, string> = {
+  mission: "",
+  target_user: "",
+  current_focus: "",
+  anti_goals: "",
+  notes: "",
+};
+
+function WorkspaceSection({ scrollToBrief }: { scrollToBrief: boolean }) {
+  const briefRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (scrollToBrief && briefRef.current) {
+      briefRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [scrollToBrief]);
+
+  const qc = useQueryClient();
+  const { activeWorkspaceId, activeWorkspace, refreshWorkspaces } = useWorkspace();
+  const getFn = useServerFn(getActiveBrief);
+  const upsertFn = useServerFn(upsertBrief);
+  const fProfile = useServerFn(getProfile);
+  const mUpdate = useServerFn(updateProfile);
+
+  const brief = useQuery({
+    queryKey: ["workspace-brief", activeWorkspaceId],
+    queryFn: () => getFn({ data: { workspaceId: activeWorkspaceId ?? null } }),
+  });
+  const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
+
+  const effectiveWorkspaceId = activeWorkspaceId ?? brief.data?.workspace_id ?? null;
+
+  const [form, setForm] = useState<Record<BriefFieldKey, string>>(EMPTY_BRIEF);
+  const [voiceAnchor, setVoiceAnchor] = useState("");
+  const [briefDirty, setBriefDirty] = useState(false);
+  const [voiceDirty, setVoiceDirty] = useState(false);
+
+  useEffect(() => {
+    const d = brief.data;
+    if (!d) return;
+    setForm({
+      mission: d.mission ?? "",
+      target_user: d.target_user ?? "",
+      current_focus: d.current_focus ?? "",
+      anti_goals: d.anti_goals ?? "",
+      notes: d.notes ?? "",
+    });
+    setBriefDirty(false);
+  }, [brief.data]);
+
+  useEffect(() => {
+    const p = profile.data?.profile as { voice_anchor_text?: string | null } | null;
+    if (p) {
+      setVoiceAnchor(p.voice_anchor_text ?? "");
+      setVoiceDirty(false);
+    }
+  }, [profile.data]);
+
+  // ONE SAVE, because the brief and the voice anchor are one instrument: what
+  // the crew reads before it acts. Two cards with two Save buttons meant two
+  // primary actions on a surface entitled to one. Both server functions are
+  // still called, and only for what actually changed.
+  const save = useMutation({
+    mutationFn: async () => {
+      if (briefDirty) {
+        const row = await upsertFn({ data: { workspaceId: effectiveWorkspaceId, ...form } });
+        qc.setQueryData(["workspace-brief", activeWorkspaceId], row);
+        qc.setQueryData(["workspace-brief", null], row);
+        void refreshWorkspaces();
+      }
+      if (voiceDirty) {
+        await mUpdate({ data: { voice_anchor_text: voiceAnchor } });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      setBriefDirty(false);
+      setVoiceDirty(false);
+      toast.success("Saved. The next mission reads it.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const dirty = briefDirty || voiceDirty;
+  const filled = BRIEF_FIELDS.filter((f) => form[f.key].trim().length > 0).length;
+
+  return (
+    <div ref={briefRef}>
+      <PageHead
+        title="Brief and voice"
+        sub={
+          brief.isLoading
+            ? "Reading the brief."
+            : brief.isError
+              ? "The brief did not load, so nothing here is safe to save yet."
+              : filled === 0
+                ? "Nothing set. Every mission currently starts with no standing instruction."
+                : `Every mission starts by reading these ${filled} of ${BRIEF_FIELDS.length} answers${activeWorkspace?.name ? `, for ${activeWorkspace.name}` : ""}.`
+        }
+      />
+
+      <Block title="What the crew reads before it acts">
+        {brief.isLoading ? (
+          <Empty>Reading the brief.</Empty>
+        ) : brief.isError ? (
+          // A failed read must never render blank fields whose save would wipe
+          // the real brief.
+          <Failed
+            what="The brief did not load."
+            error={brief.error}
+            onRetry={() => brief.refetch()}
+          />
+        ) : (
+          <>
+            <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
-                height: 32,
-                padding: "0 12px",
-                borderRadius: "var(--radius-control)",
-                border: "1px solid var(--hairline)",
-                background: isActive ? "var(--raised)" : undefined,
-                color: isActive ? "var(--text-primary)" : "var(--text-subtle)",
-                cursor: "pointer",
-                transitionProperty: "background-color, color",
-                transitionDuration: "var(--dur-press, 140ms)",
+                boxShadow: scrollToBrief
+                  ? "0 0 0 1px color-mix(in oklab, var(--sp-gate) 35%, transparent)"
+                  : undefined,
+                borderRadius: "var(--sp-radius-panel)",
               }}
             >
-              <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
-              {label}
-            </button>
-          );
-        })}
-      </div>
-      <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
-        System follows your device. Dark is the default.
-      </p>
+              {BRIEF_FIELDS.map((f) => (
+                <Stack
+                  key={f.key}
+                  id={`brief-${f.key}`}
+                  label={f.label}
+                  note={f.hint}
+                  trailing={
+                    form[f.key].length > 0 ? (
+                      <span className="sp-num" style={{ color: "var(--sp-mute)" }}>
+                        {form[f.key].length}
+                      </span>
+                    ) : undefined
+                  }
+                >
+                  <textarea
+                    id={`brief-${f.key}`}
+                    style={AREA}
+                    value={form[f.key]}
+                    rows={f.rows}
+                    placeholder={f.placeholder}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm((prev) => ({ ...prev, [f.key]: val }));
+                      setBriefDirty(true);
+                    }}
+                  />
+                </Stack>
+              ))}
+
+              <Stack
+                id="voice-anchor"
+                label="Voice"
+                note="The tone and stance every agent writes in. Leave it empty to skip."
+              >
+                <textarea
+                  id="voice-anchor"
+                  style={AREA}
+                  value={voiceAnchor}
+                  rows={3}
+                  maxLength={2000}
+                  placeholder="Direct, evidence first, no hype. Challenge weak assumptions. Short declarative sentences."
+                  onChange={(e) => {
+                    setVoiceAnchor(e.target.value);
+                    setVoiceDirty(true);
+                  }}
+                />
+              </Stack>
+            </div>
+
+            <Acts>
+              <Button
+                variant="primary"
+                disabled={!dirty || save.isPending || profile.isLoading}
+                onClick={() => save.mutate()}
+              >
+                {save.isPending ? "Saving" : dirty ? "Save the brief" : "Saved"}
+              </Button>
+            </Acts>
+          </>
+        )}
+      </Block>
+
+      {/* People. Duplicated by /admin, which is gated on being an admin, so it
+          stays until it has a section of its own. */}
+      <Block title="People">
+        <MembersCard />
+        <TeamCard />
+      </Block>
+
+      <AdminDoor />
     </div>
   );
 }
 
-// IA SPINE (2026-07-11): the claim-admin affordance moved OUT of the rail
-// (the rail shows Admin console only to actual admins) and lives here as a
-// dismissible card on Settings > Workspace.
+// The claim-admin affordance lives here rather than in the rail: the rail shows
+// the Admin console only to actual admins.
 const CLAIM_ADMIN_DISMISS_KEY = "supaprod:claim-admin-dismissed";
 
 function AdminDoor() {
@@ -324,19 +1073,21 @@ function AdminDoor() {
 
   if (q.data?.isAdmin) {
     return (
-      <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--hairline)" }}>
-        {/* Router navigation, not a full page reload (audit D-20). */}
-        <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
-          Admin console →
-        </ObsidianButton>
-        <p style={{ fontSize: 11.5, color: "var(--text-faint)", marginTop: 6 }}>
-          Members, roles, audit, and billing for the whole workspace
-        </p>
-      </div>
+      <Block>
+        <Lines>
+          <Line
+            label="Admin console"
+            note="Members, roles, the audit trail and billing for the whole workspace."
+          >
+            <Button variant="ghost" onClick={() => navigate({ to: "/admin" })}>
+              Open
+            </Button>
+          </Line>
+        </Lines>
+      </Block>
     );
   }
 
-  // No admin exists yet: offer the claim, dismissibly.
   if (q.data && !q.data.anyAdminExists && !dismissed) {
     const dismiss = () => {
       setDismissed(true);
@@ -347,1488 +1098,235 @@ function AdminDoor() {
       }
     };
     return (
-      <div
-        role="note"
-        aria-label="Claim admin"
-        style={{
-          marginTop: 24,
-          padding: "14px 16px",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card, 10px)",
-          background: "var(--card)",
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 12,
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, color: "var(--text-primary)", margin: 0, fontWeight: 500 }}>
-            This workspace has no admin yet
-          </p>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0 10px" }}>
-            Claim the admin console to manage members, roles, audit, and billing.
-          </p>
-          <ObsidianButton variant="quiet" onClick={() => navigate({ to: "/admin" })}>
-            Claim admin →
-          </ObsidianButton>
-        </div>
-        <button
-          type="button"
-          onClick={dismiss}
-          aria-label="Dismiss the claim admin card"
-          className="loom-press outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ember)] hover:[background-color:var(--hover)] hover:[color:var(--text-primary)]"
-          style={{
-            flexShrink: 0,
-            border: "none",
-            color: "var(--text-subtle)",
-            fontSize: 14,
-            lineHeight: 1,
-            padding: 4,
-            cursor: "pointer",
-            borderRadius: 6,
-          }}
-        >
-          <X size={16} strokeWidth={1.5} aria-hidden="true" />
-        </button>
-      </div>
+      <Block>
+        <Lines>
+          <Line
+            label="This workspace has no admin yet"
+            note="Claiming it puts members, roles, the audit trail and billing under one person."
+          >
+            <Button onClick={() => navigate({ to: "/admin" })}>Claim admin</Button>
+            <Button variant="ghost" onClick={dismiss}>
+              Not now
+            </Button>
+          </Line>
+        </Lines>
+      </Block>
     );
   }
 
   return null;
 }
 
-function SettingsPage() {
-  const { section, tab, connector, checkout } = Route.useSearch();
-  // ?section= is canonical; legacy ?tab= keeps landing (audit D-20).
-  const rawSection = section ?? tab;
-  const active = normalizeSection(rawSection);
-  const activeConnector = active === "connections" ? normalizeConnector(connector) : undefined;
-  const navigate = useNavigate({ from: "/settings" });
-  const { activeWorkspace, activeProduct } = useWorkspace();
-  const setTab = (id: string) => navigate({ search: { section: id } });
-
-  // Pane grouping (SETTINGS-SEGREGATE / OBS-13): which pane owns the active
-  // section, its member sections (for the tier-2 sub-row), and a pane-click
-  // handler that lands on the pane's primary section. The ?section= id stays
-  // the routing key.
-  // screen-7: Settings wears the room shell (the four doors, Settings lit),
-  // its own five-group set-nav, and the surface header - no old AppShell rail,
-  // so it no longer bounces to the retired 10-rail chrome.
+function MemorySection({ onOpen }: { onOpen: () => void }) {
   return (
-    <RoomChromeShell activeDoor="settings">
-      <div className="flex min-h-full" data-screen-label="Settings">
-        <SettingsNav active={active} onSet={setTab} />
-        <section className="min-w-0 flex-1">
-          <SurfaceHeader stageMarker="Settings" title={sectionLabel(active)} />
-          <h1 className="sr-only">Settings</h1>
-          <div style={{ padding: "26px 30px 72px", maxWidth: 980, margin: "0 auto" }}>
-            {active === "connections" && (
-              <ConnectionsTab
-                connector={activeConnector}
-                onOpenDetail={(p) => navigate({ search: { section: "connections", connector: p } })}
-                onCloseDetail={() => navigate({ search: { section: "connections" } })}
-              />
-            )}
-            {active === "ai" && <ModelsTab />}
-            {active === "staff" && <StaffTab />}
-            {active === "autonomy" && (
-              <ControlsPanel onOpenQueue={() => navigate({ to: "/approvals" })} />
-            )}
-            {active === "products" && <ProductsTab />}
-            {active === "brand" && <DesignMemoryPanel />}
-            {active === "workspace" && (
-              <>
-                <WorkspaceTab scrollToBrief={rawSection === "brief"} />
-                <AdminDoor />
-              </>
-            )}
-            {active === "billing" && <BillingTab checkout={checkout} />}
-            {active === "credits" && <CreditsTab />}
-            {active === "interop" && <IntegrationsTab />}
-            {active === "sync" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <WorkspaceBindingsSection />
-                <Link
-                  to="/sync"
-                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{ fontSize: 12.5, color: "var(--link)" }}
-                >
-                  Open sync, per-product bindings, and conflicts →
-                </Link>
-              </div>
-            )}
-            {active === "profile" && (
-              <>
-                <ProfileTab />
-                <AppearanceSection />
-                <DensityToggle />
-              </>
-            )}
-            {active === "notifications" && <NotificationsTab />}
-            {active === "memory" && (
-              <div
-                className="rounded-xl border p-5"
-                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-              >
-                {/* The one Geist Pixel moment on Settings (DESIGN-TEMPO.md §3/§8):
-                    the Memory brand moment, never more than once per surface. */}
-                <h2
-                  style={{
-                    fontFamily: "var(--font-pixel)",
-                    fontSize: 18,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Memory lives in Brain
-                </h2>
-                <p
-                  style={{
-                    marginTop: 6,
-                    maxWidth: 460,
-                    fontSize: 14,
-                    lineHeight: 1.55,
-                    color: "var(--text-body)",
-                  }}
-                >
-                  The ledger of what the loop knows (its decisions, what it learned, and the review
-                  gate for new memories) now has one home in Brain. Manage it there.
-                </p>
-                <Link
-                  to="/brain"
-                  className="loom-press mt-3 inline-block outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{ fontSize: 14, color: "var(--link)" }}
-                >
-                  Open Brain →
-                </Link>
-              </div>
-            )}
-            {active === "health" && <HealthCard />}
-            {active === "data" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                <DataSubstrateCard />
-                <ValueReceiptsCard />
-                <DataExportCard workspaceId={activeWorkspace?.id} />
-                <SkillsFileExportCard />
-                <SubprocessorsCard />
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-    </RoomChromeShell>
+    <>
+      <PageHead title="Memory" sub="It is not set here any more." />
+      <Block>
+        <Empty>
+          What the loop knows, what it learned, and the gate that reviews a new memory all live in
+          Brain now.
+        </Empty>
+        <Acts>
+          <Button onClick={onOpen}>Open Brain</Button>
+        </Acts>
+      </Block>
+    </>
   );
 }
 
-/* ---- Plan — M-C billing: the current plan, the three tiers, and an upgrade CTA.
-   getBillingState reads workspaces.plan_tier (set only by the Stripe webhook);
-   "Upgrade" starts a Stripe Checkout via createCheckoutSession. Degrades to an
-   honest "billing not connected yet" until the founder wires Stripe keys, so the
-   surface ships now and charges nothing. ---- */
+/* ================================================================== *
+ * Agents - roster reach, models, keys
+ * ================================================================== */
 
-function BillingTab({ checkout }: { checkout?: string }) {
+type AgentRow = {
+  id: string;
+  slug: string;
+  name: string;
+  role: string;
+  enabled: boolean;
+  max_tool_risk?: string | null;
+};
+
+// Per-agent blast-radius cap. Sets agents.max_tool_risk; the loop then drops
+// any tool whose tier exceeds the cap. Unrestricted (null) is the default.
+const TOOL_CAP_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Anything" },
+  { value: "low", label: "Low reach" },
+  { value: "medium", label: "Medium reach" },
+  { value: "high", label: "High reach" },
+];
+
+/** The DEFAULT oversight for the role, which is real product behaviour: agents
+ *  that read or analyse run alone, agents that draft an artifact ask first, and
+ *  agents that change code or deploy need review. A cap of "high" forces
+ *  review. Never a fabricated per-tool state: the exact runtime mode is still
+ *  resolved per tool by resolveApprovalMode. */
+function defaultPosture(entry: ReturnType<typeof catalogEntry>): "alone" | "asks" | "review" {
+  if (!entry) return "alone";
+  if (entry.conductor) return "alone";
+  if (entry.face === "critic") return "alone";
+  if (entry.station === "sense" || entry.station === "learn") return "alone";
+  if (entry.station === "build") return "review";
+  return "asks";
+}
+
+function approvalForAgent(
+  agent: AgentRow,
+  entry: ReturnType<typeof catalogEntry>,
+): { label: string; review: boolean } {
+  const posture = agent.max_tool_risk === "high" ? "review" : defaultPosture(entry);
+  if (posture === "review") return { label: "needs review", review: true };
+  if (posture === "asks") return { label: "asks first", review: false };
+  return { label: "runs alone", review: false };
+}
+
+function AgentReach({ agent }: { agent: AgentRow }) {
   const qc = useQueryClient();
-  const navigate = useNavigate({ from: "/settings" });
-  const fGetBilling = useServerFn(getBillingState);
-  const fGetSub = useServerFn(getMySubscription);
-  const fCancelSub = useServerFn(cancelMySubscription);
-  const fResumeSub = useServerFn(resumeMySubscription);
-  const fPortal = useServerFn(createPortalSession);
-  const confirm = useConfirm();
-
-  const billing = useQuery({
-    queryKey: ["billing"],
-    queryFn: () => fGetBilling({ data: {} }),
-  });
-
-  // Resolve env lazily so a missing payments token doesn't crash render.
-  let envSafe: ReturnType<typeof getStripeEnvironment> | null = null;
-  try {
-    envSafe = getStripeEnvironment();
-  } catch {
-    envSafe = null;
-  }
-
-  // getMySubscription is a pure Supabase read — no Stripe key needed.
-  // Fall back to 'sandbox' so local dev without VITE_PAYMENTS_CLIENT_TOKEN still loads sub data.
-  const subEnv: "sandbox" | "live" = envSafe ?? "sandbox";
-  const mySub = useQuery({
-    queryKey: ["my-subscription", subEnv],
-    queryFn: () => fGetSub({ data: { environment: subEnv } }),
-  });
-
-  useEffect(() => {
-    if (checkout === "success") {
-      toast.success("Payment received. Your plan will reflect within a minute.");
-      qc.invalidateQueries({ queryKey: ["billing"] });
-      qc.invalidateQueries({ queryKey: ["my-subscription"] });
-    } else if (checkout === "cancel") {
-      toast("Checkout canceled. You are still on your current plan.");
-    } else if (checkout === "pending") {
-      toast("Still confirming with the payment provider. This usually clears in a minute.");
-    }
-  }, [checkout, qc]);
-
-  const cancelSub = useMutation({
-    mutationFn: () => fCancelSub({ data: { environment: subEnv } }),
-    onSuccess: (res) => {
-      if ("error" in res) {
-        toast.error(res.error);
-        return;
-      }
-      toast.success("Subscription set to cancel at the end of the current period.");
-      qc.invalidateQueries({ queryKey: ["my-subscription"] });
-      qc.invalidateQueries({ queryKey: ["billing"] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not cancel."),
-  });
-
-  const resumeSub = useMutation({
-    mutationFn: () => fResumeSub({ data: { environment: subEnv } }),
-    onSuccess: (res) => {
-      if ("error" in res) {
-        toast.error(res.error);
-        return;
-      }
-      toast.success("Subscription resumed. Renews on the next billing date.");
-      qc.invalidateQueries({ queryKey: ["my-subscription"] });
-      qc.invalidateQueries({ queryKey: ["billing"] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not resume."),
-  });
-
-  const openPortal = useMutation({
-    mutationFn: () =>
-      fPortal({
+  const fSet = useServerFn(setAgentToolCap);
+  const m = useMutation({
+    mutationFn: (v: string) =>
+      fSet({
         data: {
-          environment: subEnv,
-          returnUrl: window.location.href,
+          agentId: agent.id,
+          maxToolRisk: v === "" ? null : (v as "low" | "medium" | "high"),
         },
       }),
-    onSuccess: (res) => {
-      if ("error" in res) {
-        toast.error(res.error);
-        return;
-      }
-      if ("url" in res && res.url) {
-        window.location.href = res.url;
-      }
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["agents"] });
+      toast(`${agent.name}: tool reach updated`);
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not open billing portal."),
+    onError: (e) => toast((e as Error).message),
   });
-
-  async function onCancelClick() {
-    const renews = mySub.data?.currentPeriodEnd
-      ? new Date(mySub.data.currentPeriodEnd).toLocaleDateString()
-      : "the end of the current period";
-    const ok = await confirm({
-      title: "Cancel subscription?",
-      body: `You'll keep full access until ${renews}. After that, the plan drops to Free. You can resume anytime before then.`,
-      confirmLabel: "Cancel plan",
-      cancelLabel: "Keep plan",
-      destructive: true,
-    });
-    if (ok) cancelSub.mutate();
-  }
-
-  const state: BillingState | undefined = billing.data;
-  const currentTier: PlanTier = state?.planTier ?? "free";
-  const current = planPresentation(currentTier);
-  const TierGlyph = TIER_ICON[currentTier];
-  const sub = mySub.data;
-  const hasSub = !!sub?.hasSubscription;
-  const renews = sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null;
-  const renewsLabel = renews
-    ? renews.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    : null;
-
-  // Status read — same three states drive both the pill and the "Manage
-  // billing" action below. Ember is reserved for the one action that is
-  // genuinely required right now (a broken payment method); everything
-  // else on this pane stays quiet.
-  const isPastDue = sub?.status === "past_due";
-  const subStatusWord = sub?.cancelAtPeriodEnd
-    ? "CANCELS AT PERIOD END"
-    : isPastDue
-      ? "PAYMENT ISSUE"
-      : "ACTIVE";
-  const subStatusTone = sub?.cancelAtPeriodEnd ? "marigold" : isPastDue ? "madder" : "moss";
-  const subStatusColor = sub?.cancelAtPeriodEnd
-    ? "var(--marigold)"
-    : isPastDue
-      ? "var(--ds-red-600)"
-      : "var(--ds-green-600)";
-  const subStatusGlow = sub?.cancelAtPeriodEnd
-    ? "0 0 8px rgba(232, 180, 76, 0.5)"
-    : isPastDue
-      ? "0 0 8px rgba(224, 101, 87, 0.5)"
-      : "0 0 8px rgba(127, 191, 142, 0.5)";
-
-  // Loading: a skeleton, not a misleading flash of the "Free" plan card
-  // (checklist point 5).
-  if (billing.isLoading) {
-    return (
-      <div style={{ display: "grid", gap: "var(--space-4)" }} aria-hidden="true">
-        <div style={cardStyle()}>
-          <div style={{ display: "grid", gap: 10 }}>
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse"
-                style={{
-                  height: 14,
-                  width: `${68 - i * 16}%`,
-                  borderRadius: 4,
-                  background: "var(--raised)",
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // An error never wears an empty state's clothes: a failed billing read must
-  // not render as a silent "Free" plan (checklist point 7).
-  if (billing.isError) {
-    return (
-      <div style={{ display: "grid", gap: "var(--space-4)" }}>
-        <div style={cardStyle()}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load your billing state
-          </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
-            {(billing.error as Error)?.message ?? "Unknown error"}
-          </p>
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 12 }}
-            onClick={() => billing.refetch()}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ display: "grid", gap: "var(--space-4)" }}>
-      <PaymentTestModeBanner />
-      {/* ── Current plan card ────────────────────────────────────────── */}
-      <div style={cardStyle()}>
-        {/* Top row: plan identity + status pill */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: "var(--space-3)",
-          }}
-        >
-          <div>
-            <ObsidianMonoLabel style={{ marginBottom: "var(--space-1)" }}>
-              Current plan
-            </ObsidianMonoLabel>
-            <div
-              style={{
-                ...cardTitleStyle(),
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--space-2)",
-              }}
-            >
-              <TierGlyph size={20} />
-              {current.name}
-            </div>
-          </div>
-          {/* Status pill — only when subscription data is loaded */}
-          {hasSub && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "var(--space-2)",
-                marginTop: 4,
-                flexShrink: 0,
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "var(--radius-pill)",
-                  background: subStatusColor,
-                  boxShadow: subStatusGlow,
-                  flexShrink: 0,
-                }}
-              />
-              <ObsidianMonoLabel tone={subStatusTone}>{subStatusWord}</ObsidianMonoLabel>
-            </span>
-          )}
-        </div>
-
-        {/* Tagline */}
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontSize: "var(--tempo-text-base)",
-            color: "var(--text-body)",
-            margin: "var(--space-2) 0 0",
-            lineHeight: "var(--leading-body)",
-          }}
-        >
-          {current.tagline}
-        </p>
-
-        {/* Renewal date — only when available */}
-        {hasSub && renewsLabel && (
-          <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-label)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--text-subtle)",
-              margin: "10px 0 0",
-            }}
-          >
-            {sub?.cancelAtPeriodEnd ? "Access until" : "Renews on"}{" "}
-            <span style={{ color: "var(--text-primary)" }}>{renewsLabel}</span>
-          </p>
-        )}
-
-        {/* Non-owner notice */}
-        {state && !state.isOwner && (
-          <p
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "var(--text-helper)",
-              color: "var(--text-subtle)",
-              margin: "var(--space-3) 0 0",
-            }}
-          >
-            Only the workspace owner can change or cancel the plan.
-          </p>
-        )}
-
-        {/* ── Action row — always visible for workspace owner ── */}
-        {(!state || state.isOwner) && (
-          <div
-            style={{
-              marginTop: "var(--space-4)",
-              paddingTop: "var(--space-3)",
-              borderTop: "1px solid var(--hairline)",
-              display: "flex",
-              gap: "var(--space-2)",
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            {/* Manage billing → Stripe portal for payment/invoice management.
-                Ember only when a payment issue genuinely needs fixing now. */}
-            {hasSub && (
-              <ObsidianButton
-                variant={isPastDue ? "primary" : "secondary"}
-                disabled={openPortal.isPending}
-                onClick={() => openPortal.mutate()}
-              >
-                {openPortal.isPending ? "Opening…" : "Manage billing"}
-              </ObsidianButton>
-            )}
-
-            {/* Cancel / Resume — only when subscription exists */}
-            {hasSub &&
-              (sub?.cancelAtPeriodEnd ? (
-                <ObsidianButton
-                  variant="quiet"
-                  disabled={resumeSub.isPending}
-                  onClick={() => resumeSub.mutate()}
-                >
-                  {resumeSub.isPending ? "Resuming…" : "Resume plan"}
-                </ObsidianButton>
-              ) : (
-                <ObsidianButton
-                  variant="quiet"
-                  disabled={cancelSub.isPending}
-                  onClick={onCancelClick}
-                >
-                  {cancelSub.isPending ? "Canceling…" : "Cancel plan"}
-                </ObsidianButton>
-              ))}
-
-            {/* Top-up always available (navigates in-app, no Stripe needed) */}
-            {currentTier !== "free" && (
-              <ObsidianButton
-                variant="quiet"
-                onClick={() => navigate({ search: { section: "credits" } })}
-              >
-                Buy a credit top-up
-              </ObsidianButton>
-            )}
-
-            {/* Free tier: nudge toward upgrading */}
-            {currentTier === "free" && (
-              <span
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--text-helper)",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                Pick a plan below to upgrade.
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Horizontal plan table: free · 3 paid · enterprise.
-          Per-card credits dropdown drives the live price. */}
-      <PlanTable currentTier={currentTier} canSelect={state?.isOwner ?? false} />
-    </div>
-  );
-}
-
-/* ---- Credits — Phase 7 surface (G12). Isolated from Plan so subscription
-   changes and credit top-ups never get visually entangled (the Anthropic
-   pattern). Reads balance + cycle + last 20 ledger rows + last 10 top-ups via
-   RLS; top-ups route through the cap-guarded `createTopUpCheckout`. When the
-   metering engine is still dormant (`credits_enabled() = false`), the balance
-   block honestly says so instead of pretending a 0 is meaningful. ---- */
-
-function CreditsTab() {
-  return <CreditsTabInner />;
-}
-
-// Shared card chrome for the Plan pane (OBS-13): var(--card) + hairline +
-// radius-card, Newsreader section titles — the same pattern already shipped
-// on the Admin > Spend surface (_authenticated.admin.ai-costs.tsx).
-function cardStyle(): React.CSSProperties {
-  return {
-    background: "var(--card)",
-    border: "1px solid var(--hairline)",
-    borderRadius: "var(--radius-card)",
-    padding: "var(--space-4)",
-    // v4 §2: the card catches the ambient light from above.
-    boxShadow: "var(--top-light)",
-  };
-}
-
-function cardTitleStyle(): React.CSSProperties {
-  return {
-    fontFamily: "var(--font-sans)",
-    fontWeight: 460,
-    fontSize: "var(--text-card-title)",
-    lineHeight: 1.3,
-    color: "var(--text-primary)",
-  };
-}
-
-function helperTextStyle(): React.CSSProperties {
-  return {
-    fontFamily: "var(--font-sans)",
-    fontSize: "var(--text-helper)",
-    color: "var(--text-subtle)",
-    margin: "var(--space-3) 0 0",
-  };
-}
-
-function BundleGrid({
-  bundles,
-  selectedKey,
-  onSelect,
-  remainingTopupRoom,
-  bestPerCredit,
-  fmtPrice,
-  fmtCreditsShort,
-}: {
-  bundles: { key: string; credits: number; priceCents: number }[];
-  selectedKey: string;
-  onSelect: (key: string) => void;
-  remainingTopupRoom: number | null;
-  bestPerCredit: number;
-  fmtPrice: (c: number) => string;
-  fmtCreditsShort: (n: number) => string;
-}) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gap: "var(--space-2)",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-      }}
+    <select
+      value={agent.max_tool_risk ?? ""}
+      disabled={m.isPending}
+      onChange={(e) => m.mutate(e.target.value)}
+      aria-label={`How far ${agent.name} may reach`}
+      style={{ ...CONTROL, height: "var(--sp-ctl-md)", width: 150 }}
     >
-      {bundles.map((b) => {
-        const wouldExceed = remainingTopupRoom !== null && b.credits > remainingTopupRoom;
-        const perCredit = b.priceCents / b.credits;
-        const isBest = Math.abs(perCredit - bestPerCredit) < 1e-9;
-        const selected = b.key === selectedKey;
-        const vsStarter = bundles[0] ? bundles[0].priceCents / bundles[0].credits : perCredit;
-        const savedVsStarter = Math.max(0, Math.round((1 - perCredit / vsStarter) * 100));
-        return (
-          <button
-            key={b.key}
-            type="button"
-            disabled={wouldExceed}
-            onClick={() => onSelect(b.key)}
-            title={wouldExceed ? "Exceeds your per-cycle top-up limit." : undefined}
-            aria-pressed={selected}
-            className={`outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]${
-              // Border color lives in classes (not inline) so hover can win;
-              // inline styles would beat the hover utility.
-              selected
-                ? " border [border-color:var(--hairline-strong)]"
-                : " border [border-color:var(--hairline)] enabled:hover:[border-color:var(--hairline-strong)]"
-            }`}
-            style={{
-              textAlign: "left",
-              padding: "var(--space-3)",
-              borderRadius: "var(--radius-control)",
-              cursor: wouldExceed ? "not-allowed" : "pointer",
-              opacity: wouldExceed ? 0.5 : 1,
-              // Selected reads with a neutral high-contrast border + wash,
-              // never ember, which stays reserved for the Buy action below.
-              background: selected ? "var(--surface-active)" : "var(--raised)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "var(--space-1)",
-              position: "relative",
-              transitionProperty: "background-color, border-color",
-              transitionDuration: "var(--dur-control)",
-              transitionTimingFunction: "var(--ease)",
-            }}
-          >
-            {isBest && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: -8,
-                  right: 10,
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-micro)",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  background: "var(--card)",
-                  color: "var(--text-subtle)",
-                  border: "1px solid var(--hairline-strong)",
-                  padding: "2px 6px",
-                  borderRadius: "var(--radius-pill)",
-                }}
-              >
-                Best value
-              </span>
-            )}
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 16,
-                lineHeight: 1.1,
-                color: "var(--text-primary)",
-              }}
-            >
-              {fmtCreditsShort(b.credits)} credits
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--tempo-text-base)",
-                color: "var(--text-body)",
-              }}
-            >
-              {fmtPrice(b.priceCents)}
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--text-mono-micro)",
-                color: "var(--text-subtle)",
-              }}
-            >
-              {(perCredit / 100).toFixed(3)} $/credit
-              {savedVsStarter > 0 ? ` · save ${savedVsStarter}%` : ""}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+      {TOOL_CAP_OPTIONS.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
   );
 }
 
-function CreditsTabInner() {
-  const fGetCredits = useServerFn(getMyCreditsView);
-  const fGetCatalog = useServerFn(getPricingCatalog);
-  const fGetAttribution = useServerFn(getCreditAttribution);
+function RosterSection() {
+  const fAgents = useServerFn(listAgents);
+  const agentsQ = useQuery({ queryKey: ["agents"], queryFn: () => fAgents() });
 
-  // Resolve env lazily so a missing payments token doesn't crash render.
-  let envSafe: ReturnType<typeof getStripeEnvironment> | null = null;
-  try {
-    envSafe = getStripeEnvironment();
-  } catch {
-    envSafe = null;
+  if (agentsQ.isLoading) {
+    return (
+      <>
+        <PageHead title="Roster" sub="How far each agent's tools may reach." />
+        <Empty>Reading the roster.</Empty>
+      </>
+    );
   }
 
-  // getMyCreditsView is a pure Supabase read (balance/ledger/enabled flag) -
-  // `environment` only scopes the recent-topups filter, so a missing Stripe
-  // client token must never block the balance itself from loading (it used
-  // to, via `enabled: !!envSafe`, which left the card stuck on an
-  // unexplained "--" forever instead of the dormant-metering message below).
-  // Same fallback idiom as `mySub` above.
-  const creditsEnv: "sandbox" | "live" = envSafe ?? "sandbox";
-  const credits = useQuery({
-    queryKey: ["my-credits", creditsEnv],
-    queryFn: () => fGetCredits({ data: { environment: creditsEnv } }),
-  });
-  const catalog = useQuery({
-    queryKey: ["pricing-catalog"],
-    queryFn: () => fGetCatalog(),
-  });
-  const attribution = useQuery({
-    queryKey: ["credit-attribution"],
-    queryFn: () => fGetAttribution({ data: {} }),
-  });
-
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [checkoutKey, setCheckoutKey] = useState<string | null>(null);
-  const [checkoutTitle, setCheckoutTitle] = useState("Buy credits");
-
-  function openTopUp(key: string, label: string) {
-    try {
-      getStripeEnvironment();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Payments are not configured.");
-      return;
-    }
-    setCheckoutKey(key);
-    setCheckoutTitle(label);
-    setCheckoutOpen(true);
+  if (agentsQ.error) {
+    return (
+      <>
+        <PageHead title="Roster" sub="How far each agent's tools may reach." />
+        <Block>
+          <Failed
+            what="The roster did not load."
+            error={agentsQ.error}
+            onRetry={() => agentsQ.refetch()}
+          />
+        </Block>
+      </>
+    );
   }
 
-  const data = credits.data;
-  const cycleLabel = data?.cycleAnchor
-    ? new Date(data.cycleAnchor).toLocaleDateString(undefined, {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : null;
-  const remainingTopupRoom = data
-    ? Math.max(0, data.cycleTopupCapCredits - data.cycleTopupCredits)
-    : null;
-
-  // Bundles come from the admin-managed catalog ONLY (honesty law, audit
-  // D-20): the old hardcoded 9-bundle fallback ladder rendered clickable
-  // prices no backend would honor. No catalog rows means no bundle grid.
-  // Convention: lookup_key = "topup_<credits>" or "topup_<k>k".
-  const catalogBundles = (catalog.data?.topups ?? []).filter((b) => b.active);
-  type Bundle = { key: string; credits: number; priceCents: number };
-  const BUNDLES: Bundle[] = [...catalogBundles]
-    .sort((a, b) => a.credits - b.credits)
-    .map((b) => ({
-      key:
-        b.credits >= 1000 && b.credits % 1000 === 0
-          ? `topup_${b.credits / 1000}k`
-          : `topup_${b.credits}`,
-      credits: b.credits,
-      priceCents: b.price_cents,
-    }));
-  const fmtPrice = (c: number) => `$${Math.round(c / 100).toLocaleString()}`;
-  const fmtCreditsShort = (n: number) =>
-    n >= 1000 && n % 1000 === 0 ? `${n / 1000}k` : n.toLocaleString();
-
-  const STARTER_MAX = 5000;
-  const starterBundles = BUNDLES.filter((b) => b.credits <= STARTER_MAX);
-  const scaleBundles = BUNDLES.filter((b) => b.credits > STARTER_MAX);
-  const [selectedKey, setSelectedKey] = useState<string>(
-    () => BUNDLES.find((b) => b.credits === 2500)?.key ?? BUNDLES[0]?.key ?? "",
+  const rows = ((agentsQ.data?.agents ?? []) as AgentRow[]).filter(
+    (a) => catalogEntry(a.slug)?.status !== "deprecated",
   );
-  const selectedBundle = BUNDLES.find((b) => b.key === selectedKey) ?? BUNDLES[0];
-  const bestPerCredit = BUNDLES.reduce(
-    (min, b) => Math.min(min, b.priceCents / b.credits),
-    Infinity,
+
+  if (rows.length === 0) {
+    return (
+      <>
+        <PageHead title="Roster" sub="How far each agent's tools may reach." />
+        <Empty>No agents in this workspace yet. They arrive with your first mission.</Empty>
+      </>
+    );
+  }
+
+  // Read down the loop (station order, cast then conductor), not by insert
+  // order.
+  const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
+  const ordered = [...rows].sort(
+    (a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999),
   );
-  // Presentational only — chooses the top-up CTA's color, never gates any
-  // query/mutation: ember only when you are genuinely out of headroom now.
-  const isOutOfCredits = !!data && data.enabled && data.balanceCredits + data.topupCredits <= 0;
+
+  // The boundary currently in force, derived from the same rule each row shows.
+  const modes = ordered.map((a) => approvalForAgent(a, catalogEntry(a.slug)));
+  const alone = modes.filter((m) => m.label === "runs alone").length;
+  const asks = modes.filter((m) => m.label === "asks first").length;
+  const review = modes.filter((m) => m.review).length;
 
   return (
-    <div style={{ display: "grid", gap: "var(--space-4)" }}>
-      <PaymentTestModeBanner />
-      {/* Voucher redeem entry point (the user-facing caller for redeemVoucher). */}
-      <RedeemCodeCard />
-
-      <div style={cardStyle()}>
-        <ObsidianMonoLabel>Balance</ObsidianMonoLabel>
-        {/* Error is its own state: a failed balance read must not sit behind
-            an eternal unexplained "--" (checklist point 7). */}
-        {credits.isError && (
-          <div style={{ marginTop: "var(--space-2)" }}>
-            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
-              Couldn't load your balance. {(credits.error as Error)?.message ?? "Unknown error"}
-            </p>
-            <div style={{ marginTop: "var(--space-2)" }}>
-              <ObsidianButton variant="quiet" onClick={() => credits.refetch()}>
-                Retry
-              </ObsidianButton>
-            </div>
-          </div>
-        )}
-        {!credits.isError && (
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 28,
-              fontWeight: 500,
-              color: "var(--text-primary)",
-              marginTop: "var(--space-1)",
-            }}
-          >
-            {data ? (data.balanceCredits + data.topupCredits).toLocaleString() : "--"}
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--tempo-text-sm)",
-                color: "var(--text-subtle)",
-                marginLeft: "var(--space-2)",
-              }}
-            >
-              credits
-            </span>
-          </div>
-        )}
-        {data && (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "var(--space-6)",
-              marginTop: "var(--space-3)",
-            }}
-          >
-            <div>
-              <ObsidianMonoLabel>Monthly grant</ObsidianMonoLabel>
-              <div
-                style={{
-                  marginTop: "var(--space-1)",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--tempo-text-base)",
-                  color: "var(--text-body)",
-                }}
-              >
-                {data.monthlyGrantCredits.toLocaleString()}
-              </div>
-            </div>
-            <div>
-              <ObsidianMonoLabel>Purchased top-ups</ObsidianMonoLabel>
-              <div
-                style={{
-                  marginTop: "var(--space-1)",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--tempo-text-base)",
-                  color: "var(--text-body)",
-                }}
-              >
-                {data.topupCredits.toLocaleString()}
-              </div>
-            </div>
-            {cycleLabel && (
-              <div>
-                <ObsidianMonoLabel>Cycle started</ObsidianMonoLabel>
-                <div
-                  style={{
-                    marginTop: "var(--space-1)",
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "var(--tempo-text-base)",
-                    color: "var(--text-body)",
-                  }}
-                >
-                  {cycleLabel}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        {data && data.enabled && data.monthlyGrantCredits > 0 && (
-          <div style={{ marginTop: "var(--space-3)", maxWidth: 260 }}>
-            <UsageIndicator
-              used={Math.max(0, data.monthlyGrantCredits - data.balanceCredits)}
-              allowance={data.monthlyGrantCredits}
-            />
-          </div>
-        )}
-        {data && !data.enabled && (
-          <p style={helperTextStyle()}>
-            Metering is off while we finish the credits rollout. Top-ups are recorded and will count
-            once metering turns on.
-          </p>
-        )}
-      </div>
-
-      {/* ===== Where your credits go (WM-M16 usage attribution) ===== */}
-      <div style={cardStyle()}>
-        <ObsidianMonoLabel>Where your credits go</ObsidianMonoLabel>
-        {(() => {
-          const a = attribution.data;
-          if (attribution.isLoading) {
-            return <p style={helperTextStyle()}>Loading…</p>;
-          }
-          // Error never wears the empty state's clothes (checklist point 7).
-          if (attribution.isError) {
-            return (
-              <div style={{ marginTop: "var(--space-2)" }}>
-                <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
-                  Couldn't load the usage breakdown.{" "}
-                  {(attribution.error as Error)?.message ?? "Unknown error"}
-                </p>
-                <div style={{ marginTop: "var(--space-2)" }}>
-                  <ObsidianButton variant="quiet" onClick={() => attribution.refetch()}>
-                    Retry
-                  </ObsidianButton>
-                </div>
-              </div>
-            );
-          }
-          if (!a || a.totalDebited <= 0) {
-            return (
-              <p style={helperTextStyle()}>
-                {data && !data.enabled
-                  ? "Usage breakdown appears once metering is on. You'll see which products and teammates spent credits this cycle."
-                  : "No credits spent this cycle yet. Usage by product and teammate will appear here."}
-              </p>
-            );
-          }
-          const max = Math.max(...a.byProduct.map((p) => p.credits), 1);
-          return (
-            <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-2)" }}>
-              <div
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--tempo-text-base)",
-                  color: "var(--text-subtle)",
-                }}
-              >
-                {a.totalDebited.toLocaleString()} credits spent this cycle
-              </div>
-              {a.byProduct.slice(0, 8).map((p) => (
-                <div
-                  key={p.id ?? "unattributed"}
-                  style={{ display: "grid", gap: "var(--space-1)" }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "var(--tempo-text-base)",
-                    }}
-                  >
-                    <span style={{ color: "var(--text-primary)" }}>{p.name}</span>
-                    <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-subtle)" }}>
-                      {p.credits.toLocaleString()}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: 6,
-                      borderRadius: "var(--radius-pill)",
-                      background: "var(--raised)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${Math.round((p.credits / max) * 100)}%`,
-                        height: "100%",
-                        background: "var(--tangerine)",
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-              {a.byMember.length > 1 && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-micro)",
-                    color: "var(--text-faint)",
-                    marginTop: "var(--space-1)",
-                  }}
-                >
-                  Across {a.byMember.length} teammates this cycle.
-                </div>
-              )}
-            </div>
-          );
-        })()}
-      </div>
-
-      <CreditCapsCard />
-
-      {/* ===== Pick a bundle ===== */}
-      <div style={cardStyle()}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "var(--space-3)",
-            flexWrap: "wrap",
-          }}
-        >
-          <div>
-            <ObsidianMonoLabel>One-time top-ups</ObsidianMonoLabel>
-            <div style={{ ...cardTitleStyle(), marginTop: "var(--space-1)" }}>
-              Buy credits without changing your plan
-            </div>
-            <p
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "var(--tempo-text-sm)",
-                color: "var(--text-body)",
-                margin: "var(--space-1) 0 0",
-                lineHeight: "var(--leading-body)",
-              }}
-            >
-              Credits land in your balance and stay until used. Higher bundles get a better
-              per-credit rate.
-            </p>
-          </div>
-          {selectedBundle && (
-            <div style={{ textAlign: "right" }}>
-              <ObsidianMonoLabel>Your selection</ObsidianMonoLabel>
-              <div
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 24,
-                  lineHeight: 1,
-                  marginTop: "var(--space-1)",
-                  color: "var(--text-primary)",
-                }}
-              >
-                {fmtPrice(selectedBundle.priceCents)}
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-micro)",
-                  color: "var(--text-subtle)",
-                  marginTop: "var(--space-1)",
-                }}
-              >
-                {selectedBundle.credits.toLocaleString()} credits &middot;{" "}
-                {(selectedBundle.priceCents / selectedBundle.credits / 100).toFixed(3)} $/credit
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Four states (DESIGN-LOOM §9): skeleton while the catalog loads,
-            error with retry (never empty-state clothes), honest instruction
-            when no bundles are published, loaded grid otherwise. */}
-        {catalog.isLoading ? (
-          <div
-            aria-hidden="true"
-            style={{
-              display: "grid",
-              gap: "var(--space-2)",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-              marginTop: "var(--space-4)",
-            }}
-          >
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse"
-                style={{
-                  height: 84,
-                  borderRadius: "var(--radius-control)",
-                  background: "var(--raised)",
-                }}
-              />
-            ))}
-          </div>
-        ) : catalog.error ? (
-          <div style={{ marginTop: "var(--space-4)" }}>
-            <p style={{ ...helperTextStyle(), margin: 0, color: "var(--ds-red-600)" }}>
-              Couldn't load the top-up catalog.{" "}
-              {(catalog.error as Error)?.message ?? "Unknown error"}
-            </p>
-            <div style={{ marginTop: "var(--space-2)" }}>
-              <ObsidianButton variant="quiet" onClick={() => catalog.refetch()}>
-                Retry
-              </ObsidianButton>
-            </div>
-          </div>
-        ) : BUNDLES.length === 0 ? (
-          <p style={helperTextStyle()}>
-            No top-up bundles are published yet. When they are, they appear here with live prices.
-          </p>
-        ) : (
+    <>
+      <PageHead
+        title="Roster"
+        sub={
           <>
-            {/* Starter tiers */}
-            {starterBundles.length > 0 && (
-              <div style={{ marginTop: "var(--space-4)" }}>
-                <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
-                  Starter packs
-                </ObsidianMonoLabel>
-                <BundleGrid
-                  bundles={starterBundles}
-                  selectedKey={selectedKey}
-                  onSelect={setSelectedKey}
-                  remainingTopupRoom={remainingTopupRoom}
-                  bestPerCredit={bestPerCredit}
-                  fmtPrice={fmtPrice}
-                  fmtCreditsShort={fmtCreditsShort}
-                />
-              </div>
-            )}
-
-            {/* Scale tiers */}
-            {scaleBundles.length > 0 && (
-              <div style={{ marginTop: "var(--space-4)" }}>
-                <ObsidianMonoLabel style={{ marginBottom: "var(--space-2)" }}>
-                  At scale &middot; better per-credit rate
-                </ObsidianMonoLabel>
-                <BundleGrid
-                  bundles={scaleBundles}
-                  selectedKey={selectedKey}
-                  onSelect={setSelectedKey}
-                  remainingTopupRoom={remainingTopupRoom}
-                  bestPerCredit={bestPerCredit}
-                  fmtPrice={fmtPrice}
-                  fmtCreditsShort={fmtCreditsShort}
-                />
-              </div>
-            )}
-
-            {/* Honest checkout: while payments are dormant there is no Buy
-                button at all (a disabled buy is still a dead promise). */}
-            {selectedBundle && envSafe ? (
-              <div
-                style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-4)" }}
-              >
-                <ObsidianButton
-                  variant={isOutOfCredits ? "primary" : "secondary"}
-                  disabled={
-                    remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom
-                  }
-                  onClick={() =>
-                    openTopUp(
-                      selectedBundle.key,
-                      `Top-up: ${selectedBundle.credits.toLocaleString()} credits`,
-                    )
-                  }
-                >
-                  Buy {selectedBundle.credits.toLocaleString()} credits &middot;{" "}
-                  {fmtPrice(selectedBundle.priceCents)}
-                </ObsidianButton>
-              </div>
-            ) : selectedBundle ? (
-              <p style={helperTextStyle()}>
-                Checkout isn't switched on in this build yet. Prices are live for planning; buying
-                opens once payments go live.
-              </p>
-            ) : null}
+            <Num>{alone}</Num> run alone, <Num>{asks}</Num> ask first, and <Num>{review}</Num> wait
+            for you on anything risky.
           </>
-        )}
+        }
+      />
 
-        {data && (
-          <p style={helperTextStyle()}>
-            This cycle: {data.cycleTopupCredits.toLocaleString()} of{" "}
-            {data.cycleTopupCapCredits.toLocaleString()} top-up credits used. Need more?{" "}
-            <a
-              href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
-              className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ color: "var(--link)" }}
-            >
-              Talk to sales for volume pricing
-            </a>
-            .
-          </p>
-        )}
-      </div>
-
-      <div style={cardStyle()}>
-        <ObsidianMonoLabel>Recent activity</ObsidianMonoLabel>
-        {credits.isLoading ? (
-          <p style={helperTextStyle()}>Loading…</p>
-        ) : credits.isError ? (
-          <p style={{ ...helperTextStyle(), color: "var(--ds-red-600)" }}>
-            Couldn't load recent activity. Use Retry above to reload.
-          </p>
-        ) : data && data.ledger.length === 0 && data.topups.length === 0 ? (
-          <p style={helperTextStyle()}>
-            No activity yet. Your grants, debits, and top-ups will appear here.
-          </p>
-        ) : (
-          <ul
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: "var(--space-3) 0 0",
-              display: "grid",
-              gap: "var(--space-1)",
-            }}
-          >
-            {data?.topups.map((t) => (
-              <li
-                key={`top-${t.id}`}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "var(--space-3)",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--tempo-text-base)",
-                  padding: "var(--space-2) 0",
-                  borderBottom: "1px solid var(--hairline)",
-                }}
-              >
-                {/* Human words, not the raw price_lookup_key enum (copy audit). */}
-                <span style={{ color: "var(--text-primary)" }}>Credit top-up</span>
-                <span style={{ fontFamily: "var(--font-mono)", color: "var(--ds-green-600)" }}>
-                  +{Number(t.credits_added).toLocaleString()} credits
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-micro)",
-                    color: "var(--text-faint)",
-                    minWidth: 90,
-                    textAlign: "right",
-                  }}
-                >
-                  {new Date(t.created_at).toLocaleDateString()}
-                </span>
-              </li>
-            ))}
-            {data?.ledger.map((row) => (
-              <li
-                key={`led-${row.id}`}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "var(--space-3)",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "var(--tempo-text-base)",
-                  padding: "var(--space-2) 0",
-                  borderBottom: "1px solid var(--hairline)",
-                }}
-              >
-                <span style={{ color: "var(--text-primary)" }}>
-                  {/* Ledger reasons are enum slugs; read them as words. */}
-                  {String(row.reason).replace(/_/g, " ")}
-                  {row.surface ? ` · ${String(row.surface).replace(/_/g, " ")}` : ""}
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    color: row.delta_credits >= 0 ? "var(--ds-green-600)" : "var(--text-body)",
-                  }}
-                >
-                  {row.delta_credits >= 0 ? "+" : ""}
-                  {Number(row.delta_credits).toLocaleString()} credits
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "var(--text-mono-micro)",
-                    color: "var(--text-faint)",
-                    minWidth: 90,
-                    textAlign: "right",
-                  }}
-                >
-                  {new Date(row.created_at).toLocaleDateString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {checkoutKey ? (
-        <StripeEmbeddedCheckout
-          open={checkoutOpen}
-          onOpenChange={setCheckoutOpen}
-          priceLookupKey={checkoutKey}
-          title={checkoutTitle}
-          mode="topup"
-        />
-      ) : null}
-    </div>
-  );
-}
-
-/* ---- Connections — Connected accounts (OAuth-only). Screen 6 ships the
-   ConnectorDetail drill-down: ?connector= (optional search param) replaces
-   this whole tab body with the per-provider detail; "details →" on every
-   account row opens it, DrillHeader's back link and any tab switch clear it
-   (fresh search object).
-
-   Loom W2 (2026-07-04): the old "Workspace tool sync" card grid is GONE — its
-   Connect button upserted status:'connected' with no OAuth behind it (audit
-   D-04, claim-outruns-wiring). Every provider row in Connected accounts is
-   already honest: a real connect flow when the OAuth app is configured, a
-   quiet "coming soon" disabled state when it is not. One-home rule (§9b):
-   workspace bindings render fully on /sync (Connections, the bindings home);
-   here they appear as a read-only summary that links there. ---- */
-
-function ConnectionsTab({
-  connector,
-  onOpenDetail,
-  onCloseDetail,
-}: {
-  connector?: ProviderId;
-  onOpenDetail: (provider: ProviderId) => void;
-  onCloseDetail: () => void;
-}) {
-  // Drill-down: the detail replaces the entire tab body (SurfaceHeader +
-  // TabRow stay above us in SettingsPage).
-  if (connector) {
-    return <ConnectorDetail provider={connector} onBack={onCloseDetail} />;
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <ObsidianMonoLabel tone="muted">Yours</ObsidianMonoLabel>
-      <AccountConnectionsSection onOpenDetail={onOpenDetail} />
-
-      <div style={{ marginTop: 8 }}>
-        <ObsidianMonoLabel tone="muted">This workspace's</ObsidianMonoLabel>
-        <div style={{ marginTop: 8 }}>
-          <WorkspaceBindingsSummary />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* One-home rule: /sync is the bindings home; Settings shows the summary and
-   links there. Four states: skeleton / instruction / error-with-retry /
-   loaded (DESIGN-LOOM §9). */
-function WorkspaceBindingsSummary() {
-  const fBindings = useServerFn(listWorkspaceBindings);
-  const q = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
-
-  if (q.isLoading) {
-    return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <div style={{ display: "grid", gap: 10 }} aria-hidden="true">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{
-                height: 14,
-                width: `${72 - i * 14}%`,
-                borderRadius: 4,
-                background: "var(--raised)",
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (q.error) {
-    return (
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load workspace bindings
-        </div>
-        <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
-          {(q.error as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 12 }}
-          onClick={() => q.refetch()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  const bindings = q.data?.bindings ?? [];
-
-  return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      {bindings.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--ink-subtle)", margin: 0 }}>
-          Nothing bound yet. Pick which repo, team, or database this workspace's agents act on.
-        </p>
-      ) : (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
-          {bindings.map((b) => {
-            const healthy = b.connection_status === "connected";
+      <Block title="How far each one may reach">
+        <Lines>
+          {ordered.map((a) => {
+            const entry = catalogEntry(a.slug);
+            const approval = approvalForAgent(a, entry);
+            const off = a.enabled === false;
             return (
-              <li
-                key={b.id}
-                style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5 }}
+              <Line
+                key={a.slug}
+                label={
+                  <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-3)" }}>
+                    <AgentMark slug={a.slug} name={a.name} state={off ? "quiet" : "idle"} />
+                    {agentDisplayName(a.slug, a.name)}
+                  </span>
+                }
+                note={
+                  off ? (
+                    "Off. Turning an agent back on is set in Autonomy and approvals."
+                  ) : (
+                    <>
+                      <span className={approval.review ? "sp-warn" : undefined}>
+                        {approval.label}
+                      </span>
+                      {" · "}
+                      {agentBlurb(a.slug) ?? a.role}
+                    </>
+                  )
+                }
               >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 99,
-                    background: healthy ? "var(--ds-green-600)" : "var(--ds-red-600)",
-                    flexShrink: 0,
-                  }}
-                />
-                <span style={{ color: "var(--ink)", minWidth: 0 }}>
-                  {CONNECTOR_REGISTRY[b.provider as ProviderId]?.label ?? b.provider}
-                  <span style={{ color: "var(--ink-subtle)" }}>
-                    {" "}
-                    · {b.resource_label ?? b.resource_id}
-                    {healthy ? "" : " · reconnect needed"}
-                  </span>
-                </span>
-                {b.updated_at ? (
-                  <span
-                    className="mono-label tabular-nums"
-                    style={{ fontSize: 9, color: "var(--ink-faint)", marginLeft: "auto" }}
-                  >
-                    {relTimeCaps(b.updated_at)}
-                  </span>
-                ) : null}
-              </li>
+                <AgentReach agent={a} />
+              </Line>
             );
           })}
-        </ul>
-      )}
-      <div style={{ marginTop: 12 }}>
-        <Link
-          to="/sync"
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{ fontSize: 12.5, color: "var(--link)" }}
-        >
-          {bindings.length === 0
-            ? "Set up workspace sync and bindings →"
-            : "Manage workspace sync and bindings →"}
-        </Link>
-      </div>
-    </div>
+        </Lines>
+      </Block>
+
+      <Block>
+        <Empty>
+          A new tool asks for permission the moment it is first needed, inside the run. What each
+          agent has learned, and every run it has taken, live on Crew.
+        </Empty>
+      </Block>
+    </>
   );
 }
 
-/* ---- Models — the reference table anatomy (role · model mono · via mono ·
-   Change ghost) rendered from REAL data: the profile's default model.
-   "Change" is real here — it reveals the model select. BYO AI keys stay
-   (they are not connectors), restyled quiet-Ember. ---- */
-
-function ModelsTab() {
+function ModelsSection() {
   const qc = useQueryClient();
   const fProfile = useServerFn(getProfile);
   const mUpdate = useServerFn(updateProfile);
@@ -1860,7 +1358,6 @@ function ModelsTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // MA-2: save agentic model for automatic/background runs
   const saveAgenticModel = useMutation({
     mutationFn: () => mUpdate({ data: { agentic_model: agenticModel } }),
     onSuccess: () => {
@@ -1874,210 +1371,175 @@ function ModelsTab() {
   const current = MODELS.find((m) => m.id === defaultModel);
   const currentAgentic = agenticModel ? MODELS.find((m) => m.id === agenticModel) : null;
 
-  // A failed profile read must not render the model rows with silent defaults
-  // (checklist point 7). BYO keys load independently, so they stay.
+  const defaultName = defaultModel === AUTO_MODEL ? "Auto" : (current?.label ?? defaultModel);
+  const agenticName = !agenticModel ? "Auto" : (currentAgentic?.label ?? agenticModel);
+  const via = (model: string | null, m: (typeof MODELS)[number] | null | undefined) =>
+    !model || model === AUTO_MODEL
+      ? "routed per task"
+      : m
+        ? m.live
+          ? "our key"
+          : "your key"
+        : "unknown";
+
+  // A failed profile read must not render the model rows with silent defaults.
+  // BYO keys load independently, so they stay.
   if (profile.isError) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div className="bento" style={{ padding: 24 }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load your model settings
-          </div>
-          <p style={{ fontSize: 14, color: "var(--ink-muted)", marginTop: 8 }}>
-            {(profile.error as Error)?.message ?? "Unknown error"}
-          </p>
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 14 }}
-            onClick={() => profile.refetch()}
-          >
-            Retry
-          </button>
-        </div>
-        <ByoKeysSection />
-      </div>
+      <>
+        <PageHead title="Models and keys" sub="Which model runs your work, and whose key pays." />
+        <Block>
+          <Failed
+            what="Your model settings did not load."
+            error={profile.error}
+            onRetry={() => profile.refetch()}
+          />
+        </Block>
+        <ByoKeysBlock />
+      </>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
-        {profile.isLoading ? (
-          <div style={{ padding: "13px 18px" }} aria-hidden="true">
-            <div
-              className="animate-pulse"
-              style={{ height: 14, width: "58%", borderRadius: 4, background: "var(--raised)" }}
-            />
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "13px 18px",
-              borderBottom: editing ? "1px solid var(--hairline)" : "none",
-              fontSize: 14,
-            }}
-          >
-            <span style={{ flex: 1, color: "var(--ink-muted)" }}>
-              Default · chat and agent runs
-            </span>
-            <span className="mono-label" style={{ color: "var(--ink)" }}>
-              {defaultModel === AUTO_MODEL ? "Auto" : (current?.label ?? defaultModel)}
-            </span>
-            <span className="mono-label" style={{ fontSize: 9 }}>
-              {defaultModel === AUTO_MODEL
-                ? "routed"
-                : current
-                  ? current.live
-                    ? "gateway"
-                    : "byo"
-                  : "unknown"}
-            </span>
-            <button
-              className="btn btn-ghost btn-sm"
-              aria-expanded={editing}
-              onClick={() => setEditing((v) => !v)}
-            >
-              Change
-            </button>
-          </div>
-        )}
-        {editing ? (
-          <div className="fade-up" style={{ display: "flex", gap: 8, padding: "13px 18px" }}>
-            <select
-              className="input"
-              value={defaultModel}
-              onChange={(e) => setDefaultModel(e.target.value)}
-              aria-label="Default AI model"
-            >
-              <optgroup label="Recommended">
-                <option value={AUTO_MODEL}>
-                  Auto: best model per task, optimized automatically
-                </option>
-              </optgroup>
-              <optgroup label="Live (Lovable AI Gateway)">
-                {MODELS.filter((m) => m.live).map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}: {m.desc}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Adapter-ready (platform / enterprise key)">
-                {MODELS.filter((m) => !m.live).map((m) => (
-                  <option key={m.id} value={m.id} disabled>
-                    {m.label}: {m.desc}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-            <button
-              className="btn btn-primary btn-sm"
-              style={{ flexShrink: 0 }}
-              disabled={saveModel.isPending}
-              onClick={() => saveModel.mutate()}
-            >
-              {saveModel.isPending ? "Saving…" : "Save · chat and agent runs use it"}
-            </button>
-          </div>
-        ) : null}
-      </div>
+    <>
+      <PageHead
+        title="Models and keys"
+        sub={
+          profile.isLoading
+            ? "Reading your model settings."
+            : `Everything you start runs on ${defaultName}. Everything the loop starts by itself runs on ${agenticName}.`
+        }
+      />
 
-      {/* MA-2: agentic model for automatic/background runs (researcher-tick, cluster-tick, etc) */}
-      <div className="bento" style={{ padding: 0, overflow: "hidden" }}>
+      <Block title="Which model runs the work">
         {profile.isLoading ? (
-          <div style={{ padding: "13px 18px" }} aria-hidden="true">
-            <div
-              className="animate-pulse"
-              style={{ height: 14, width: "58%", borderRadius: 4, background: "var(--raised)" }}
-            />
-          </div>
+          <Empty>Reading your model settings.</Empty>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "13px 18px",
-              borderBottom: editingAgentic ? "1px solid var(--hairline)" : "none",
-              fontSize: 14,
-            }}
-          >
-            <span style={{ flex: 1, color: "var(--ink-muted)" }}>
-              Agentic · automatic runs (researcher, cluster, reflection)
-            </span>
-            <span className="mono-label" style={{ color: "var(--ink)" }}>
-              {!agenticModel ? "Auto" : currentAgentic ? currentAgentic.label : agenticModel}
-            </span>
-            <span className="mono-label" style={{ fontSize: 9 }}>
-              {!agenticModel
-                ? "routed"
-                : currentAgentic
-                  ? currentAgentic.live
-                    ? "gateway"
-                    : "byo"
-                  : "unknown"}
-            </span>
-            <button
-              className="btn btn-ghost btn-sm"
-              aria-expanded={editingAgentic}
-              onClick={() => setEditingAgentic((v) => !v)}
-            >
-              Change
-            </button>
-          </div>
-        )}
-        {editingAgentic ? (
-          <div className="fade-up" style={{ display: "flex", gap: 8, padding: "13px 18px" }}>
-            <select
-              className="input"
-              value={agenticModel ?? ""}
-              onChange={(e) => setAgenticModel(e.target.value || null)}
-              aria-label="Agentic model for automatic runs"
-            >
-              <option value="">Auto: best model per task</option>
-              <optgroup label="Live (Lovable AI Gateway)">
-                {MODELS.filter((m) => m.live).map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}: {m.desc}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Adapter-ready (platform / enterprise key)">
-                {MODELS.filter((m) => !m.live).map((m) => (
-                  <option key={m.id} value={m.id} disabled>
-                    {m.label}: {m.desc}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-            <button
-              className="btn btn-primary btn-sm"
-              style={{ flexShrink: 0 }}
-              disabled={saveAgenticModel.isPending}
-              onClick={() => saveAgenticModel.mutate()}
-            >
-              {saveAgenticModel.isPending ? "Saving…" : "Save"}
-            </button>
-          </div>
-        ) : null}
-      </div>
+          <>
+            <Lines>
+              <Line
+                label="Work you start"
+                note={`Chat and any run you kick off · ${via(defaultModel, current)}`}
+              >
+                <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                  {defaultName}
+                </span>
+                <Button
+                  variant="ghost"
+                  aria-expanded={editing}
+                  onClick={() => setEditing((v) => !v)}
+                >
+                  Change
+                </Button>
+              </Line>
+              <Line
+                label="Work the loop starts"
+                note={`Research, clustering and reflection ticks · ${via(agenticModel, currentAgentic)}`}
+              >
+                <span style={{ color: "var(--sp-mute)", fontSize: "var(--sp-text-meta)" }}>
+                  {agenticName}
+                </span>
+                <Button
+                  variant="ghost"
+                  aria-expanded={editingAgentic}
+                  onClick={() => setEditingAgentic((v) => !v)}
+                >
+                  Change
+                </Button>
+              </Line>
+            </Lines>
 
-      <ByoKeysSection />
-    </div>
+            {editing ? (
+              <Stack id="model-default" label="Work you start">
+                <div style={{ display: "flex", gap: "var(--sp-space-2)" }}>
+                  <select
+                    id="model-default"
+                    style={{ ...CONTROL, flex: 1 }}
+                    value={defaultModel}
+                    onChange={(e) => setDefaultModel(e.target.value)}
+                  >
+                    <optgroup label="Recommended">
+                      <option value={AUTO_MODEL}>Auto: the best model per task</option>
+                    </optgroup>
+                    <optgroup label="On our key">
+                      {MODELS.filter((m) => m.live).map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.label}: {m.desc}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Needs your own key">
+                      {MODELS.filter((m) => !m.live).map((m) => (
+                        <option key={m.id} value={m.id} disabled>
+                          {m.label}: {m.desc}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  <Button
+                    variant="primary"
+                    disabled={saveModel.isPending}
+                    onClick={() => saveModel.mutate()}
+                  >
+                    {saveModel.isPending ? "Saving" : "Save"}
+                  </Button>
+                </div>
+              </Stack>
+            ) : null}
+
+            {editingAgentic ? (
+              <Stack id="model-agentic" label="Work the loop starts">
+                <div style={{ display: "flex", gap: "var(--sp-space-2)" }}>
+                  <select
+                    id="model-agentic"
+                    style={{ ...CONTROL, flex: 1 }}
+                    value={agenticModel ?? ""}
+                    onChange={(e) => setAgenticModel(e.target.value || null)}
+                  >
+                    <option value="">Auto: the best model per task</option>
+                    <optgroup label="On our key">
+                      {MODELS.filter((m) => m.live).map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.label}: {m.desc}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Needs your own key">
+                      {MODELS.filter((m) => !m.live).map((m) => (
+                        <option key={m.id} value={m.id} disabled>
+                          {m.label}: {m.desc}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  <Button
+                    variant="primary"
+                    disabled={saveAgenticModel.isPending}
+                    onClick={() => saveAgenticModel.mutate()}
+                  >
+                    {saveAgenticModel.isPending ? "Saving" : "Save"}
+                  </Button>
+                </div>
+              </Stack>
+            ) : null}
+          </>
+        )}
+      </Block>
+
+      <ByoKeysBlock />
+    </>
   );
 }
 
-function ByoKeysSection() {
+function ByoKeysBlock() {
   const qc = useQueryClient();
   const fKeys = useServerFn(listApiKeys);
   const fSaveKey = useServerFn(saveApiKey);
   const fDelKey = useServerFn(deleteApiKey);
   const fTestKey = useServerFn(testApiKey);
   const keys = useQuery({ queryKey: ["api-keys"], queryFn: () => fKeys() });
-  // WM-M9: bring-your-own AI keys are enterprise-only. Same ["billing"] queryKey as
-  // BillingTab, so this dedupes with it rather than firing a second fetch.
+  // Bring-your-own AI keys are enterprise only. Same ["billing"] key as the
+  // Plan section, so this dedupes with it rather than firing a second fetch.
   const fGetBilling = useServerFn(getBillingState);
   const billing = useQuery({ queryKey: ["billing"], queryFn: () => fGetBilling({ data: {} }) });
   const isEnterprise = (billing.data?.planTier ?? "free") === "enterprise";
@@ -2147,18 +1609,17 @@ function ByoKeysSection() {
   const keyList = keys.data?.keys ?? [];
 
   return (
-    <div className="bento" style={{ padding: "var(--card-pad)" }}>
-      <MonoLabel style={{ marginBottom: 4 }}>Bring your own AI keys</MonoLabel>
+    <Block title="Your own provider keys">
       {isEnterprise ? (
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-          Connect any AI provider: Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot,
-          OpenRouter, and more. Stored encrypted per user. Add a Base URL for providers with custom
-          endpoints (Qwen, Ollama, custom).
+        <p style={{ ...NOTE, marginTop: 0, maxWidth: "62ch" }}>
+          Claude, OpenAI, Qwen, DeepSeek, Groq, Mistral, Moonshot, OpenRouter and anything with a
+          compatible endpoint. Stored encrypted, per user. A base URL is only needed for providers
+          that host their own.
         </p>
       ) : (
-        <p style={{ fontSize: 12, color: "var(--ink-subtle)", marginBottom: 12 }}>
-          An Enterprise feature. Every other plan runs on Supaprod credits. Model-agnostic provider
-          routing still applies, it just uses our keys instead of your own.
+        <p style={{ ...NOTE, marginTop: 0, maxWidth: "62ch" }}>
+          An Enterprise boundary. Every other plan runs on Supaprod credits, and the same
+          model-agnostic routing applies. It just uses our keys.
         </p>
       )}
 
@@ -2172,15 +1633,16 @@ function ByoKeysSection() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-              gap: 8,
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "var(--sp-space-2)",
+              marginTop: "var(--sp-space-4)",
             }}
           >
             <select
-              className="input"
+              style={CONTROL}
               value={keyProv}
               onChange={(e) => setKeyProv(e.target.value)}
-              aria-label="Key provider"
+              aria-label="Provider"
             >
               {BYO_PROVIDERS.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -2189,14 +1651,14 @@ function ByoKeysSection() {
               ))}
             </select>
             <input
-              className="input"
+              style={CONTROL}
               value={keyLabel}
               onChange={(e) => setKeyLabel(e.target.value)}
-              aria-label="Key label"
-              placeholder="Label (optional)"
+              aria-label="Label"
+              placeholder="Label, optional"
             />
             <input
-              className="input"
+              style={CONTROL}
               value={keyValue}
               onChange={(e) => setKeyValue(e.target.value)}
               type="password"
@@ -2204,1230 +1666,686 @@ function ByoKeysSection() {
               placeholder={BYO_PROVIDERS.find((p) => p.id === keyProv)?.placeholder}
             />
             <input
-              className="input"
+              style={CONTROL}
               value={keyBase}
               onChange={(e) => setKeyBase(e.target.value)}
               aria-label="Base URL"
-              placeholder="Base URL (Qwen, Ollama, custom…)"
+              placeholder="Base URL, self-hosted only"
             />
           </div>
           {keyProv === "custom" || keyBase.trim() ? (
             <input
-              className="input"
-              style={{ marginTop: 4, width: "100%" }}
+              style={{ ...CONTROL, width: "100%", marginTop: "var(--sp-space-2)" }}
               value={keyModelId}
               onChange={(e) => setKeyModelId(e.target.value)}
-              aria-label="Model ID"
-              placeholder="Model ID: the exact model to use with this key (e.g. qwen/qwen-max, ollama/llama3.2, custom/my-model)"
+              aria-label="Model id"
+              placeholder="Model id, exactly as the provider names it"
             />
           ) : null}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: 8,
-              marginTop: 8,
-            }}
-          >
-            {testResult ? (
-              <span
-                className="mono-label"
-                style={{
-                  fontSize: 8.5,
-                  color: testResult.ok ? "var(--emerald)" : "var(--rose)",
-                }}
-              >
-                {testResult.ok ? `ok · ${testResult.latency_ms}ms` : testResult.error?.slice(0, 80)}
-              </span>
-            ) : null}
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
+          <Acts>
+            {/* Not primary: the primary on this section is the model save. */}
+            <Button type="submit" disabled={mSaveKey.isPending || !keyValue.trim()}>
+              {mSaveKey.isPending ? "Saving" : "Add key"}
+            </Button>
+            <Button
               disabled={mTestKey.isPending || !keyValue.trim()}
               onClick={() => mTestKey.mutate()}
             >
-              {mTestKey.isPending ? (
-                <>
-                  <span className="spinner" style={{ width: 11, height: 11 }} />
-                  Testing…
-                </>
-              ) : (
-                "Test · calls the provider"
-              )}
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary btn-sm"
-              disabled={mSaveKey.isPending || !keyValue.trim()}
-            >
-              {mSaveKey.isPending ? "Saving…" : "Add key · stored encrypted"}
-            </button>
-          </div>
+              {mTestKey.isPending ? "Testing" : "Test it first"}
+            </Button>
+            {testResult ? (
+              <span
+                className={testResult.ok ? "sp-pass" : "sp-fail"}
+                style={{ fontSize: "var(--sp-text-meta)" }}
+              >
+                {testResult.ok ? (
+                  <>
+                    Answered in <Num>{testResult.latency_ms}ms</Num>
+                  </>
+                ) : (
+                  (testResult.error ?? "Test failed").slice(0, 90)
+                )}
+              </span>
+            ) : null}
+          </Acts>
         </form>
       ) : null}
 
       {isEnterprise || keyList.length > 0 ? (
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: "var(--sp-space-4)" }}>
           {keys.isLoading ? (
-            <div style={{ display: "grid", gap: 8 }} aria-hidden="true">
-              {[0, 1].map((i) => (
-                <div
-                  key={i}
-                  className="animate-pulse"
-                  style={{
-                    height: 14,
-                    width: `${64 - i * 14}%`,
-                    borderRadius: 4,
-                    background: "var(--raised)",
-                  }}
-                />
-              ))}
-            </div>
+            <Empty>Reading your keys.</Empty>
           ) : keys.isError ? (
-            <div>
-              <div className="mono-label" style={{ color: "var(--rose)" }}>
-                Couldn't load your keys
-              </div>
-              <p style={{ fontSize: 12, color: "var(--ink-muted)", margin: "6px 0 0" }}>
-                {(keys.error as Error)?.message ?? "Unknown error"}
-              </p>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ marginTop: 10 }}
-                onClick={() => keys.refetch()}
-              >
-                Retry
-              </button>
-            </div>
+            <Failed
+              what="Your keys did not load."
+              error={keys.error}
+              onRetry={() => keys.refetch()}
+            />
           ) : keyList.length === 0 ? (
-            <div style={{ fontSize: 12, color: "var(--ink-faint)" }}>No BYO keys saved yet.</div>
+            <Empty>No key of your own yet. Until there is one, runs use ours.</Empty>
           ) : (
-            keyList.map((k, i) => (
-              <div
-                key={k.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "10px 0",
-                  borderTop: i === 0 ? "1px solid var(--hairline)" : undefined,
-                  borderBottom: "1px solid var(--hairline)",
-                  fontSize: 14,
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div>
-                    {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
-                    {k.label ? (
-                      <span style={{ color: "var(--ink-subtle)" }}> · {k.label}</span>
-                    ) : null}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 11,
-                      color: "var(--ink-subtle)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {k.preview}
-                    {k.model_id ? ` · ${k.model_id}` : ""}
-                    {k.base_url ? ` · ${k.base_url}` : ""}
-                  </div>
-                </div>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  aria-label="Remove key"
-                  style={{ color: "var(--rose)", fontFamily: "var(--font-mono)", fontSize: 11 }}
-                  disabled={mDelKey.isPending && mDelKey.variables === k.id}
-                  onClick={() => mDelKey.mutate(k.id)}
+            <Lines>
+              {keyList.map((k) => (
+                <Line
+                  key={k.id}
+                  label={
+                    <>
+                      {BYO_PROVIDERS.find((p) => p.id === k.provider)?.label ?? k.provider}
+                      {k.label ? (
+                        <span style={{ color: "var(--sp-mute)" }}> · {k.label}</span>
+                      ) : null}
+                    </>
+                  }
+                  note={
+                    <span className="sp-num">
+                      {k.preview}
+                      {k.model_id ? ` · ${k.model_id}` : ""}
+                      {k.base_url ? ` · ${k.base_url}` : ""}
+                    </span>
+                  }
                 >
-                  Remove
-                </button>
-              </div>
-            ))
+                  <Button
+                    variant="ghost"
+                    disabled={mDelKey.isPending && mDelKey.variables === k.id}
+                    onClick={() => mDelKey.mutate(k.id)}
+                  >
+                    Remove
+                  </Button>
+                </Line>
+              ))}
+            </Lines>
           )}
         </div>
       ) : null}
-    </div>
+    </Block>
   );
 }
 
-/* ---- Staff — the real agent registry (agents table via listAgents):
-   4-col bento cards, serif 15 name + mono 8.5 role, 30×17 switch.
-   Production has no disable-agent capability — the toggle states the truth
-   (gated in Govern), exactly the reference's honest toast. ---- */
+/* ================================================================== *
+ * Connections and data
+ * ================================================================== */
 
-type AgentRow = {
-  id: string;
-  slug: string;
-  name: string;
-  role: string;
-  enabled: boolean;
-  max_tool_risk?: string | null;
-};
+function ConnectionsSection({
+  connector,
+  onOpenDetail,
+  onCloseDetail,
+}: {
+  connector?: ProviderId;
+  onOpenDetail: (provider: ProviderId) => void;
+  onCloseDetail: () => void;
+}) {
+  // The detail replaces the whole pane; the index stays beside it.
+  if (connector) {
+    return <ConnectorDetail provider={connector} onBack={onCloseDetail} />;
+  }
 
-// FND-0.5 per-agent blast-radius cap control. Sets agents.max_tool_risk; the agent loop then drops
-// any tool whose blast-radius tier exceeds the cap. "Unrestricted" (null) is the default.
-const TOOL_CAP_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "Unrestricted" },
-  { value: "low", label: "Low reach" },
-  { value: "medium", label: "Medium reach" },
-  { value: "high", label: "High reach" },
+  return (
+    <>
+      <PageHead
+        title="Sources"
+        sub="What the crew is allowed to read, connected once and under your account."
+      />
+      <Block>
+        <AccountConnectionsSection onOpenDetail={onOpenDetail} />
+      </Block>
+    </>
+  );
+}
+
+const LEGAL_LINKS = [
+  { href: "/security", label: "Security" },
+  { href: "/privacy", label: "Privacy policy" },
+  { href: "/terms", label: "Terms of service" },
+  { href: "/updates", label: "Changelog" },
 ];
 
-function AgentToolCap({ agent }: { agent: AgentRow }) {
-  const qc = useQueryClient();
-  const fSet = useServerFn(setAgentToolCap);
-  const m = useMutation({
-    mutationFn: (v: string) =>
-      fSet({
-        data: {
-          agentId: agent.id,
-          maxToolRisk: v === "" ? null : (v as "low" | "medium" | "high"),
-        },
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["agents"] });
-      toast(`${agent.name}: tool reach updated`);
-    },
-    onError: (e) => toast((e as Error).message),
-  });
+function DataSection({ workspaceId }: { workspaceId?: string }) {
   return (
-    <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span
-        className="mono-label"
-        style={{ fontSize: 8.5, color: "var(--ink-faint)", flexShrink: 0 }}
-      >
-        Tool reach
-      </span>
-      <select
-        value={agent.max_tool_risk ?? ""}
-        disabled={m.isPending}
-        onChange={(e) => m.mutate(e.target.value)}
-        title="Cap the blast radius of the tools this agent can call"
-        aria-label={`Tool reach for ${agent.name}`}
-        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          flex: 1,
-          minWidth: 0,
-          fontSize: 11,
-          padding: "3px 6px",
-          borderRadius: 6,
-          border: "1px solid var(--hairline)",
-          background: "var(--canvas)",
-          color: "var(--ink)",
-        }}
-      >
-        {TOOL_CAP_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-// screen-7 roster: a TABLE (Agent / Job / Stage / Approval / Last activity /
-// On) with an expandable agent revealing three ledgers (Skills / Tool access /
-// Knowledge & instructions). Real data only: the 13-agent catalog (name/job/
-// stage), the agents table (enabled + tool-reach cap), agent_runs (last
-// activity), and the reflections RPC (skills). Values we do not store yet
-// (a per-product knowledge note) are shown honestly, never faked.
-
-const STATION_STAGE: Record<string, string> = {
-  sense: "01",
-  decide: "02",
-  define: "03",
-  design: "04",
-  build: "05",
-  ship: "06",
-  learn: "07",
-};
-
-// The per-agent approval posture. This is the DEFAULT oversight for the role
-// (real product behavior: read/analyze agents run alone, agents that draft an
-// artifact ask first, and agents that change code or deploy need review). The
-// operator tightens it in Autonomy & approvals - a set blast-radius cap of
-// "high" forces review. Never a fabricated per-tool state; the exact runtime
-// mode is still resolved per tool by resolveApprovalMode.
-function defaultPosture(entry: ReturnType<typeof catalogEntry>): "alone" | "asks" | "review" {
-  if (!entry) return "alone";
-  if (entry.conductor) return "alone";
-  if (entry.face === "critic") return "alone"; // red-teams / checks, does not mutate
-  if (entry.station === "sense" || entry.station === "learn") return "alone"; // read / analyze
-  if (entry.station === "build") return "review"; // touches code, deploys
-  return "asks"; // decide / define / design / ship: produces something for your call
-}
-
-function approvalForAgent(
-  agent: AgentRow,
-  entry: ReturnType<typeof catalogEntry>,
-): { label: string; review: boolean } {
-  const posture = agent.max_tool_risk === "high" ? "review" : defaultPosture(entry);
-  if (posture === "review") return { label: "needs review", review: true };
-  if (posture === "asks") return { label: "asks first", review: false };
-  return { label: "runs alone", review: false };
-}
-
-type RunRow = {
-  agent_slug: string | null;
-  status: string | null;
-  created_at: string;
-  input?: string | null;
-};
-
-function lastActivityFor(slug: string, runs: RunRow[]): { text: string; live: boolean } | null {
-  const run = runs.find((r) => r.agent_slug === slug);
-  if (!run) return null;
-  if (run.status === "running") return { text: "working now", live: true };
-  if (run.status === "queued") return { text: "queued", live: true };
-  const verb = run.status === "failed" ? "stopped" : "ran";
-  return { text: `${verb} · ${relTimeCaps(run.created_at)}`, live: false };
-}
-
-function StaffTab() {
-  const fAgents = useServerFn(listAgents);
-  const fRuns = useServerFn(listAgentRuns);
-  const agentsQ = useQuery({ queryKey: ["agents"], queryFn: () => fAgents() });
-  const runsQ = useQuery({ queryKey: ["agent-runs"], queryFn: () => fRuns() });
-  const [openSlug, setOpenSlug] = useState<string | null>(null);
-
-  if (agentsQ.error) {
-    return (
-      <div
-        className="rounded-xl border p-6"
-        style={{ borderColor: "var(--ink-hairline)", background: "var(--ink-raised)" }}
-      >
-        <div className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--voice-human)" }}>
-          Couldn't load agents
-        </div>
-        <p style={{ fontSize: 14, color: "var(--ink-subtle)", marginTop: 8 }}>
-          {(agentsQ.error as Error)?.message}
-        </p>
-        <button
-          className="ink-focus mt-3 rounded-lg border px-3 py-1.5 text-[12.5px]"
-          style={{ borderColor: "var(--ink-hairline)", color: "var(--ink-body)" }}
-          onClick={() => agentsQ.refetch()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (agentsQ.isLoading) {
-    return (
-      <div aria-hidden="true" style={{ display: "grid", gap: 8 }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="animate-pulse"
-            style={{ height: 40, borderRadius: 8, background: "var(--ink-raised)" }}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  const rows = ((agentsQ.data?.agents ?? []) as AgentRow[]).filter(
-    (a) => catalogEntry(a.slug)?.status !== "deprecated",
-  );
-  if (rows.length === 0) {
-    return (
-      <p style={{ fontSize: 12.5, color: "var(--ink-faint)", padding: "24px 0" }}>
-        No agents in this workspace yet.
-      </p>
-    );
-  }
-
-  // Order by the catalog (station order, cast then conductor), so the roster
-  // reads down the loop like the mockup, not by DB insert order.
-  const catOrder = new Map(SPECIALIST_CATALOG.map((c, i) => [c.slug, i]));
-  const ordered = [...rows].sort(
-    (a, b) => (catOrder.get(a.slug) ?? 999) - (catOrder.get(b.slug) ?? 999),
-  );
-  const runs = (runsQ.data?.runs ?? []) as RunRow[];
-
-  // The lede counts: how many run alone / ask first / need review, from the
-  // same derivation each row shows.
-  const modes = ordered.map((a) => approvalForAgent(a, catalogEntry(a.slug)));
-  const alone = modes.filter((m) => m.label === "runs alone").length;
-  const asks = modes.filter((m) => m.label === "asks first").length;
-  const review = modes.filter((m) => m.review).length;
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-body)" }}>
-          Your AI staff: what they may do, and on whose approval.{" "}
-          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
-            {ordered.length}
-          </span>{" "}
-          agents:{" "}
-          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
-            {alone}
-          </span>{" "}
-          run alone,{" "}
-          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
-            {asks}
-          </span>{" "}
-          ask first,{" "}
-          <span className="font-mono" style={{ color: "var(--ink-text)" }}>
-            {review}
-          </span>{" "}
-          need review on risky tools.
-        </p>
-        <p style={{ fontSize: 12, color: "var(--ink-faint)", marginTop: 6, maxWidth: "70ch" }}>
-          New tools ask for permission the moment they are first needed, inside the run. This page is
-          the ledger; the dials live in Autonomy & approvals.
-        </p>
-      </div>
-
-      <div
-        className="overflow-hidden rounded-xl border"
-        style={{ borderColor: "var(--ink-hairline)" }}
-      >
-        {/* Column header */}
-        <div
-          className="grid items-center gap-3 border-b px-4 py-2.5 font-mono text-[9.5px] uppercase tracking-[0.08em]"
-          style={{
-            gridTemplateColumns: "132px minmax(0,1fr) 46px 104px 132px 40px 22px",
-            borderColor: "var(--ink-hairline)",
-            color: "var(--ink-faint)",
-            background: "var(--ink-raised)",
-          }}
-        >
-          <span>Agent</span>
-          <span>Job</span>
-          <span>Stage</span>
-          <span>Approval</span>
-          <span>Last activity</span>
-          <span>On</span>
-          <span />
-        </div>
-        {ordered.map((a) => (
-          <AgentRosterRow
-            key={a.slug}
-            agent={a}
-            lastActivity={lastActivityFor(a.slug, runs)}
-            open={openSlug === a.slug}
-            onToggleOpen={() => setOpenSlug((cur) => (cur === a.slug ? null : a.slug))}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AgentRosterRow({
-  agent,
-  lastActivity,
-  open,
-  onToggleOpen,
-}: {
-  agent: AgentRow;
-  lastActivity: { text: string; live: boolean } | null;
-  open: boolean;
-  onToggleOpen: () => void;
-}) {
-  const entry = catalogEntry(agent.slug);
-  const stage = entry?.conductor ? "all" : (STATION_STAGE[entry?.station ?? ""] ?? "--");
-  const approval = approvalForAgent(agent, entry);
-  const off = agent.enabled === false;
-
-  return (
-    <div style={{ borderBottom: "1px solid var(--ink-hairline)" }}>
-      <div
-        className="grid items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--ink-raised)]"
-        style={{
-          gridTemplateColumns: "132px minmax(0,1fr) 46px 104px 132px 40px 22px",
-          opacity: off ? 0.5 : 1,
-        }}
-      >
-        <span
-          className="w-fit whitespace-nowrap rounded-[5px] px-[7px] py-[2px] font-mono text-[10px]"
-          style={{ background: "var(--ink-raised)", color: "var(--ink-text)" }}
-        >
-          {agentDisplayName(agent.slug, agent.name)}
-        </span>
-        <span className="truncate text-[12.5px]" style={{ color: "var(--ink-body)" }} title={agentBlurb(agent.slug) ?? agent.role}>
-          {agentBlurb(agent.slug) ?? agent.role}
-        </span>
-        <span className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
-          {stage}
-        </span>
-        <span
-          className="text-[12px]"
-          style={{ color: approval.review ? "var(--voice-human)" : "var(--ink-subtle)" }}
-        >
-          {approval.label}
-        </span>
-        <span
-          className="flex items-center gap-1.5 truncate text-[12px]"
-          style={{ color: "var(--ink-subtle)" }}
-        >
-          {lastActivity ? (
-            <>
-              {lastActivity.live ? (
-                <span
-                  aria-hidden
-                  className="ink-working h-1.5 w-1.5 flex-none rounded-full"
-                  style={{ background: "var(--voice-machine)" }}
-                />
-              ) : null}
-              {lastActivity.text}
-            </>
-          ) : (
-            <span style={{ color: "var(--ink-faint)" }}>quiet</span>
-          )}
-        </span>
-        <button
-          role="switch"
-          aria-checked={!off}
-          aria-label={`${agent.name} ${off ? "off" : "on"}. Changing this is gated in Autonomy & approvals.`}
-          title={`${agent.name} ${off ? "off" : "on"}`}
-          onClick={() =>
-            toast(
-              off
-                ? `${agent.name} stays off. Enabling agents is gated in Autonomy & approvals.`
-                : `${agent.name} stays on. Disabling agents is gated in Autonomy & approvals.`,
-            )
-          }
-          className="ink-focus relative cursor-pointer"
-          style={{
-            width: 28,
-            height: 16,
-            borderRadius: 99,
-            background: off ? "var(--ink-hairline)" : "var(--voice-machine)",
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              ...(off ? { left: 2 } : { right: 2 }),
-              top: 2,
-              width: 12,
-              height: 12,
-              borderRadius: 99,
-              background: "var(--ink-bg)",
-            }}
-          />
-        </button>
-        <button
-          type="button"
-          onClick={onToggleOpen}
-          aria-expanded={open}
-          aria-label={open ? "Collapse agent" : "Expand agent"}
-          className="ink-focus flex h-6 w-6 items-center justify-center rounded-md text-[11px] transition-colors hover:bg-[var(--ink-panel)]"
-          style={{ color: "var(--ink-subtle)" }}
-        >
-          {open ? "▾" : "▸"}
-        </button>
-      </div>
-      {open ? <AgentExpand agent={agent} /> : null}
-    </div>
-  );
-}
-
-// The three-ledger agent home (screen-7 set-expand): Skills (the lessons the
-// agent learned, from the reflections RPC), Tool access (the blast-radius reach
-// control, real), and Knowledge & instructions (the workspace brief/voice it
-// reads, real; per-product notes are an honest, not-yet-wired slot).
-function AgentExpand({ agent }: { agent: AgentRow }) {
-  const fReflect = useServerFn(listAgentReflections);
-  const reflectQ = useQuery({
-    queryKey: ["agent-reflections", agent.slug],
-    queryFn: () => fReflect({ data: { agentSlug: agent.slug, limit: 6 } }),
-  });
-  const lessons = reflectQ.data?.reflections ?? [];
-
-  const panelStyle: React.CSSProperties = {
-    background: "var(--ink-bg)",
-    border: "1px solid var(--ink-hairline)",
-    borderRadius: 10,
-    padding: 14,
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    minWidth: 0,
-  };
-  const titleStyle: React.CSSProperties = {
-    fontFamily: "var(--font-mono)",
-    fontSize: "10px",
-    letterSpacing: "0.06em",
-    textTransform: "uppercase",
-    color: "var(--ink-subtle)",
-  };
-
-  return (
-    <div style={{ background: "var(--ink-raised)", padding: "14px 16px 18px" }}>
+    <>
+      <PageHead
+        title="Your data"
+        sub="Where it sits, who else touches it, and how to take it out."
+      />
       <div
         style={{
-          display: "grid",
-          gap: 12,
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--sp-space-3)",
+          marginTop: "var(--sp-space-6)",
         }}
       >
-        {/* Skills */}
-        <div style={panelStyle}>
-          <div style={titleStyle}>
-            Skills{lessons.length ? ` · ${lessons.length} lessons learned` : ""}
-          </div>
-          {reflectQ.isLoading ? (
-            <p style={{ fontSize: 12, color: "var(--ink-faint)" }}>Loading…</p>
-          ) : lessons.length === 0 ? (
-            <p style={{ fontSize: 12, color: "var(--ink-faint)", lineHeight: 1.5 }}>
-              No lessons yet. They accrue from real runs and your corrections.
-            </p>
-          ) : (
-            lessons.slice(0, 5).map((l) => (
-              <div key={l.id} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.45 }}>
-                <span
-                  className="font-mono"
-                  style={{ color: "var(--ink-faint)", flexShrink: 0, fontSize: 10 }}
-                >
-                  {relTimeCaps(l.created_at)}
-                </span>
-                <span style={{ color: "var(--ink-body)" }}>
-                  {l.metadata?.what_worked || l.content}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Tool access (the reach control, real) */}
-        <div style={panelStyle}>
-          <div style={titleStyle}>Tool access</div>
-          <p style={{ fontSize: 12, color: "var(--ink-body)", lineHeight: 1.5 }}>
-            Cap the blast radius of the tools this agent may call. New tools ask for permission
-            inline the first time they are needed.
-          </p>
-          <AgentToolCap agent={agent} />
-          <p style={{ fontSize: 11, color: "var(--ink-faint)" }}>
-            The per-tool grant matrix lands with the agent-access work.
-          </p>
-        </div>
-
-        {/* Knowledge & instructions */}
-        <div style={panelStyle}>
-          <div style={titleStyle}>Knowledge &amp; instructions</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
-              Workspace
-            </span>
-            <span style={{ fontSize: 12, color: "var(--ink-body)", lineHeight: 1.5 }}>
-              Reads the company brief and voice anchor, like every agent. Edit those in Workspace.
-            </span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span className="font-mono text-[10px] uppercase" style={{ color: "var(--ink-subtle)" }}>
-              Per product
-            </span>
-            <span style={{ fontSize: 12, color: "var(--ink-faint)", lineHeight: 1.5 }}>
-              Per-product instructions the agent reads before each mission are not wired yet.
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---- Workspace (production-only tab) — strategic brief + voice anchor,
-   restyled quiet-Ember. ---- */
-
-function WorkspaceTab({ scrollToBrief }: { scrollToBrief: boolean }) {
-  const qc = useQueryClient();
-  const briefRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (scrollToBrief && briefRef.current) {
-      briefRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [scrollToBrief]);
-
-  const fProfile = useServerFn(getProfile);
-  const mUpdate = useServerFn(updateProfile);
-  const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
-
-  const [voiceAnchor, setVoiceAnchor] = useState("");
-  useEffect(() => {
-    const p = profile.data?.profile as { voice_anchor_text?: string | null } | null;
-    if (p) setVoiceAnchor(p.voice_anchor_text ?? "");
-  }, [profile.data]);
-
-  const saveVoice = useMutation({
-    mutationFn: () => mUpdate({ data: { voice_anchor_text: voiceAnchor } }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile"] });
-      toast.success("Voice anchor saved");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <WorkspaceBriefSection scrollRef={briefRef} highlight={scrollToBrief} />
-
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-          <div style={{ flex: 1 }}>
-            <MonoLabel style={{ marginBottom: 4 }}>Voice anchor</MonoLabel>
-            <p style={{ fontSize: 12, color: "var(--ink-subtle)", maxWidth: 520 }}>
-              Operator-set tone and stance, injected into every agent mission's system prompt. Leave
-              empty to skip.
-            </p>
-          </div>
-          {/* Quiet, not solid: the brief's Save is this screen's one primary
-              CTA (v4 §3 ember discipline). */}
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ flexShrink: 0 }}
-            disabled={saveVoice.isPending || profile.isLoading}
-            onClick={() => saveVoice.mutate()}
-          >
-            {saveVoice.isPending ? "Saving…" : "Save voice anchor"}
-          </button>
-        </div>
-        <textarea
-          className="input"
-          value={voiceAnchor}
-          onChange={(e) => setVoiceAnchor(e.target.value)}
-          rows={4}
-          maxLength={2000}
-          aria-label="Voice anchor"
-          placeholder="Direct, evidence-first, no hype. Challenge weak assumptions. Prefer short declarative sentences."
-          style={{ resize: "vertical" }}
-        />
-        <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 6 }}>
-          How your agents should sound and what stance they should take.
-        </p>
+        <DataSubstrateCard />
+        <ValueReceiptsCard />
+        <DataExportCard workspaceId={workspaceId} />
+        <SkillsFileExportCard />
+        <SubprocessorsCard />
       </div>
 
-      <MembersCard />
-      <TeamCard />
-    </div>
-  );
-}
-
-type BriefFieldKey = "mission" | "target_user" | "current_focus" | "anti_goals" | "notes";
-
-const BRIEF_FIELDS: {
-  key: BriefFieldKey;
-  label: string;
-  hint: string;
-  placeholder: string;
-  rows: number;
-}[] = [
-  {
-    key: "mission",
-    label: "Mission",
-    hint: "One paragraph. What this workspace exists to do.",
-    placeholder: "We help solo PMs run the work of a 10-person product org.",
-    rows: 3,
-  },
-  {
-    key: "target_user",
-    label: "Target user (ICP)",
-    hint: "Who you're building for. Agents anchor on this.",
-    placeholder: "Lead/solo PM at a 10 to 100 person B2B SaaS team. Ships weekly.",
-    rows: 3,
-  },
-  {
-    key: "current_focus",
-    label: "Current focus",
-    hint: "What Supaprod should prioritize this quarter. Cut, don't expand.",
-    placeholder: "Q3 2026: close the Discover, Plan, Build loop on real signals.",
-    rows: 4,
-  },
-  {
-    key: "anti_goals",
-    label: "Anti-goals",
-    hint: "Things agents should refuse, even when they look reasonable.",
-    placeholder: "No new dashboards. No mocked data. No features whose value can't be measured.",
-    rows: 3,
-  },
-  {
-    key: "notes",
-    label: "Notes for Supaprod",
-    hint: "Tone, constraints, decisions, references.",
-    placeholder: "Speak in product terms. Lean concise over verbose. Always cite evidence.",
-    rows: 4,
-  },
-];
-
-const EMPTY_BRIEF: Record<BriefFieldKey, string> = {
-  mission: "",
-  target_user: "",
-  current_focus: "",
-  anti_goals: "",
-  notes: "",
-};
-
-function WorkspaceBriefSection({
-  scrollRef,
-  highlight,
-}: {
-  scrollRef: React.RefObject<HTMLDivElement | null>;
-  highlight: boolean;
-}) {
-  const { activeWorkspaceId, activeWorkspace, refreshWorkspaces } = useWorkspace();
-  const qc = useQueryClient();
-  const getFn = useServerFn(getActiveBrief);
-  const upsertFn = useServerFn(upsertBrief);
-
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["workspace-brief", activeWorkspaceId],
-    queryFn: () => getFn({ data: { workspaceId: activeWorkspaceId ?? null } }),
-  });
-
-  const effectiveWorkspaceId = activeWorkspaceId ?? data?.workspace_id ?? null;
-
-  const [form, setForm] = useState<Record<BriefFieldKey, string>>(EMPTY_BRIEF);
-  const [dirty, setDirty] = useState(false);
-
-  useEffect(() => {
-    if (data) {
-      setForm({
-        mission: data.mission ?? "",
-        target_user: data.target_user ?? "",
-        current_focus: data.current_focus ?? "",
-        anti_goals: data.anti_goals ?? "",
-        notes: data.notes ?? "",
-      });
-      setDirty(false);
-    }
-  }, [data]);
-
-  const save = useMutation({
-    mutationFn: () => upsertFn({ data: { workspaceId: effectiveWorkspaceId, ...form } }),
-    onSuccess: (row: WorkspaceBrief) => {
-      qc.setQueryData(["workspace-brief", activeWorkspaceId], row);
-      qc.setQueryData(["workspace-brief", null], row);
-      void refreshWorkspaces();
-      setDirty(false);
-      toast.success("Brief saved, next mission uses the new context");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  function update(key: BriefFieldKey, val: string) {
-    setForm((f) => ({ ...f, [key]: val }));
-    setDirty(true);
-  }
-
-  return (
-    <div
-      ref={scrollRef}
-      className="bento"
-      style={{
-        padding: "var(--card-pad)",
-        boxShadow: highlight
-          ? "0 0 0 1px color-mix(in oklab, var(--ember) 35%, transparent)"
-          : undefined,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-        <div style={{ flex: 1 }}>
-          <MonoLabel style={{ marginBottom: 4 }}>
-            Strategic brief
-            {activeWorkspace?.name ? ` · ${activeWorkspace.name}` : ""}
-          </MonoLabel>
-          <p style={{ fontSize: 12, color: "var(--ink-subtle)", maxWidth: 520 }}>
-            This brief is injected into every agent mission's system prompt. Changing it visibly
-            changes what Discovery surfaces and what the Strategist writes. Keep it tight.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          style={{ flexShrink: 0 }}
-          disabled={!dirty || save.isPending || isLoading}
-          onClick={() => save.mutate()}
-        >
-          {save.isPending ? "Saving…" : dirty ? "Save brief · next mission uses it" : "Saved"}
-        </button>
-      </div>
-
-      {isLoading ? (
-        <div style={{ display: "grid", gap: 10, padding: "16px 0" }} aria-hidden="true">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{
-                height: 14,
-                width: `${76 - i * 18}%`,
-                borderRadius: 4,
-                background: "var(--raised)",
-              }}
-            />
-          ))}
-        </div>
-      ) : isError ? (
-        // A failed brief read must not render blank fields whose Save would
-        // wipe the real brief (checklist point 7).
-        <div style={{ padding: "8px 0" }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load the brief
-          </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
-            {(error as Error)?.message ?? "Unknown error"}
-          </p>
-          <button
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 12 }}
-            onClick={() => refetch()}
-          >
-            Retry
-          </button>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {BRIEF_FIELDS.map((f) => (
-            <div key={f.key}>
-              <label htmlFor={`brief-${f.key}`} style={{ display: "block" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                    gap: 12,
-                  }}
-                >
-                  <span style={{ fontSize: 12.5, fontWeight: 500 }}>{f.label}</span>
-                  <span
-                    className="mono-label tabular-nums"
-                    style={{ fontSize: 8.5, color: "var(--ink-faint)" }}
-                  >
-                    {form[f.key].length} chars
-                  </span>
-                </div>
-                <p style={{ fontSize: 11, color: "var(--ink-faint)", marginTop: 2 }}>{f.hint}</p>
-              </label>
-              <textarea
-                id={`brief-${f.key}`}
-                className="input"
-                value={form[f.key]}
-                onChange={(e) => update(f.key, e.target.value)}
-                rows={f.rows}
-                placeholder={f.placeholder}
-                style={{ marginTop: 8, resize: "vertical" }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ---- Profile — the reference avatar header (initials chip + name +
-   role · workspace) from real profile data, then the production identity
-   form + working hours. The reference's notification-pref rows (gate
-   alerts / daily brief / quiet hours / weekends) have no backend — omitted
-   per the no-filler law. ---- */
-
-function ProfileTab() {
-  const qc = useQueryClient();
-  const { activeWorkspace } = useWorkspace();
-  const fProfile = useServerFn(getProfile);
-  const mUpdate = useServerFn(updateProfile);
-  const profile = useQuery({ queryKey: ["profile"], queryFn: () => fProfile() });
-
-  const [fullName, setFullName] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState("");
-  const [timezone, setTimezone] = useState("");
-  const [whStart, setWhStart] = useState(9);
-  const [whEnd, setWhEnd] = useState(18);
-  const [avatarChoice, chooseAvatar] = useAvatarChoice();
-
-  useEffect(() => {
-    const p = profile.data?.profile as {
-      full_name?: string;
-      display_name?: string;
-      role?: string;
-      timezone?: string;
-      working_hours_start?: number;
-      working_hours_end?: number;
-    } | null;
-    if (!p) return;
-    setFullName(p.full_name ?? "");
-    setDisplayName(p.display_name ?? "");
-    setRole(p.role ?? "AI Product Manager");
-    setTimezone(p.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
-    setWhStart(p.working_hours_start ?? 9);
-    setWhEnd(p.working_hours_end ?? 18);
-  }, [profile.data]);
-
-  const save = useMutation({
-    mutationFn: async () => {
-      await mUpdate({
-        data: {
-          full_name: fullName || undefined,
-          display_name: displayName || undefined,
-          role: role || undefined,
-          timezone: timezone || undefined,
-          working_hours_start: whStart,
-          working_hours_end: whEnd,
-          onboarded: true,
-        },
-      });
-      // Also write to Supabase auth user_metadata so the rail + Today greeting
-      // (which read the auth session, not the profiles table) reflect the new
-      // name immediately on the next load. Best-effort; the profiles row is the
-      // system of record and its write above already succeeded.
-      try {
-        await supabase.auth.updateUser({
-          data: { display_name: displayName || undefined, full_name: fullName || undefined },
-        });
-      } catch {
-        /* auth metadata is a display convenience; the profile row is saved */
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["profile"] });
-      qc.invalidateQueries({ queryKey: ["dashboard"] });
-      toast.success("Profile saved");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const name = displayName || fullName;
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-
-  if (profile.isLoading) {
-    return (
-      <div
-        className="bento"
-        style={{ padding: "var(--card-pad)", display: "grid", gap: 10, maxWidth: 480 }}
-        aria-hidden="true"
-      >
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="animate-pulse"
-            style={{
-              height: 14,
-              width: `${72 - i * 16}%`,
-              borderRadius: 4,
-              background: "var(--raised)",
-            }}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  // A failed profile read must not render an empty identity form that would
-  // overwrite real data on save (checklist point 7).
-  if (profile.isError) {
-    return (
-      <div className="bento" style={{ padding: 24 }}>
-        <div className="mono-label" style={{ color: "var(--rose)" }}>
-          Couldn't load your profile
-        </div>
-        <p style={{ fontSize: 14, color: "var(--ink-muted)", marginTop: 8 }}>
-          {(profile.error as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 14 }}
-          onClick={() => profile.refetch()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        save.mutate();
-      }}
-      style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 480 }}
-    >
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        {name ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-            <Avatar seed={name} variant={avatarChoice} initials={initials} size={38} />
-            <div>
-              <div style={{ fontWeight: 550 }}>{name}</div>
-              <div style={{ fontSize: 12, color: "var(--ink-subtle)" }}>
-                {role || "Member"}
-                {activeWorkspace?.name ? ` · ${activeWorkspace.name}` : ""}
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {/* Avatar library — a default is assigned; the user picks their own. */}
-        <MonoLabel style={{ marginBottom: 8 }}>Avatar</MonoLabel>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginBottom: 16 }}>
-          {Array.from({ length: AVATAR_VARIANTS }).map((_, i) => {
-            const selected = (avatarChoice ?? defaultAvatarVariant(name)) === i;
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => chooseAvatar(i)}
-                aria-label={`Avatar option ${i + 1}`}
-                aria-pressed={selected}
-                title={`Avatar option ${i + 1}`}
-                className="loom-press outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 99,
-                  background: orbBackground(i),
-                  border: selected ? "2px solid var(--ember)" : "1px solid var(--hairline-strong)",
-                  boxShadow: selected
-                    ? "0 0 0 3px color-mix(in oklab, var(--ember) 26%, transparent)"
-                    : "inset 0 1px 0 0 color-mix(in oklab, #fff 12%, transparent)",
-                  cursor: "pointer",
-                }}
-              />
-            );
-          })}
-        </div>
-
-        <MonoLabel style={{ marginBottom: 12 }}>Identity</MonoLabel>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Field label="Full name" hint="Used on documents, briefs, and stakeholder updates.">
-            <input
-              className="input"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jane Q. Doe"
-            />
-          </Field>
-          <Field label="Preferred display name" hint="How Supaprod and your agents will greet you.">
-            <input
-              className="input"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Jane"
-            />
-          </Field>
-          <Field label="Role">
-            <input
-              className="input"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              placeholder="AI Product Manager"
-            />
-          </Field>
-          <Field label="Timezone">
-            <input
-              className="input"
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              placeholder="America/New_York"
-            />
-          </Field>
-        </div>
-      </div>
-
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 12 }}>Working hours</MonoLabel>
-        <p style={{ fontSize: 11, color: "var(--ink-faint)", margin: "0 0 12px" }}>
-          Also your quiet hours: your scheduled digest waits until this window opens.
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Field label="Start (24h)">
-            <input
-              className="input"
-              type="number"
-              min={0}
-              max={23}
-              value={whStart}
-              onChange={(e) => setWhStart(Number(e.target.value))}
-            />
-          </Field>
-          <Field label="End (24h)">
-            <input
-              className="input"
-              type="number"
-              min={1}
-              max={24}
-              value={whEnd}
-              onChange={(e) => setWhEnd(Number(e.target.value))}
-            />
-          </Field>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button type="submit" className="btn btn-primary btn-sm" disabled={save.isPending}>
-          {save.isPending ? "Saving…" : "Save · agents greet you by it"}
-        </button>
-      </div>
-
-      <div className="bento" style={{ padding: "var(--card-pad)" }}>
-        <MonoLabel style={{ marginBottom: 12 }}>Legal & trust</MonoLabel>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
-          {[
-            { href: "/security", label: "Security" },
-            { href: "/privacy", label: "Privacy policy" },
-            { href: "/terms", label: "Terms of service" },
-            { href: "/updates", label: "Changelog" },
-          ].map((l) => (
+      {/* MOVED here from Profile: the trust documents belong beside the
+          subprocessor list and the export, not beside your display name. */}
+      <Block title="The terms this runs under">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--sp-space-5)" }}>
+          {LEGAL_LINKS.map((l) => (
             <a
               key={l.href}
               href={l.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="outline-none [color:var(--ink-subtle)] hover:underline hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ fontSize: 12, textDecoration: "none" }}
+              style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}
             >
-              {l.label} ↗
+              {l.label}
             </a>
           ))}
         </div>
-      </div>
-    </form>
+      </Block>
+    </>
   );
 }
 
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  // Create a stable ID for label association - use the label text as a base
-  const fieldId = `field-${label.toLowerCase().replace(/\s+/g, "-")}`;
+/* ================================================================== *
+ * Plan and usage
+ * ================================================================== */
+
+function PlanSection({ checkout }: { checkout?: string }) {
+  const qc = useQueryClient();
+  const navigate = useNavigate({ from: "/settings" });
+  const fGetBilling = useServerFn(getBillingState);
+  const fGetSub = useServerFn(getMySubscription);
+  const fCancelSub = useServerFn(cancelMySubscription);
+  const fResumeSub = useServerFn(resumeMySubscription);
+  const fPortal = useServerFn(createPortalSession);
+  const confirm = useConfirm();
+
+  const billing = useQuery({ queryKey: ["billing"], queryFn: () => fGetBilling({ data: {} }) });
+
+  // Resolve env lazily so a missing payments token does not crash render.
+  let envSafe: ReturnType<typeof getStripeEnvironment> | null = null;
+  try {
+    envSafe = getStripeEnvironment();
+  } catch {
+    envSafe = null;
+  }
+
+  // getMySubscription is a pure Supabase read, so local dev without a payments
+  // token still loads it.
+  const subEnv: "sandbox" | "live" = envSafe ?? "sandbox";
+  const mySub = useQuery({
+    queryKey: ["my-subscription", subEnv],
+    queryFn: () => fGetSub({ data: { environment: subEnv } }),
+  });
+
+  useEffect(() => {
+    if (checkout === "success") {
+      toast.success("Payment received. Your plan will reflect within a minute.");
+      qc.invalidateQueries({ queryKey: ["billing"] });
+      qc.invalidateQueries({ queryKey: ["my-subscription"] });
+    } else if (checkout === "cancel") {
+      toast("Checkout canceled. You are still on your current plan.");
+    } else if (checkout === "pending") {
+      toast("Still confirming with the payment provider. This usually clears in a minute.");
+    }
+  }, [checkout, qc]);
+
+  const cancelSub = useMutation({
+    mutationFn: () => fCancelSub({ data: { environment: subEnv } }),
+    onSuccess: (res) => {
+      if ("error" in res) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Subscription set to cancel at the end of the current period.");
+      qc.invalidateQueries({ queryKey: ["my-subscription"] });
+      qc.invalidateQueries({ queryKey: ["billing"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not cancel."),
+  });
+
+  const resumeSub = useMutation({
+    mutationFn: () => fResumeSub({ data: { environment: subEnv } }),
+    onSuccess: (res) => {
+      if ("error" in res) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Subscription resumed. Renews on the next billing date.");
+      qc.invalidateQueries({ queryKey: ["my-subscription"] });
+      qc.invalidateQueries({ queryKey: ["billing"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not resume."),
+  });
+
+  const openPortal = useMutation({
+    mutationFn: () => fPortal({ data: { environment: subEnv, returnUrl: window.location.href } }),
+    onSuccess: (res) => {
+      if ("error" in res) {
+        toast.error(res.error);
+        return;
+      }
+      if ("url" in res && res.url) {
+        window.location.href = res.url;
+      }
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not open billing portal."),
+  });
+
+  // The one irreversible confirmation this surface is allowed.
+  async function onCancelClick() {
+    const renews = mySub.data?.currentPeriodEnd
+      ? new Date(mySub.data.currentPeriodEnd).toLocaleDateString()
+      : "the end of the current period";
+    const ok = await confirm({
+      title: "Cancel subscription?",
+      body: `You'll keep full access until ${renews}. After that, the plan drops to Free. You can resume anytime before then.`,
+      confirmLabel: "Cancel plan",
+      cancelLabel: "Keep plan",
+      destructive: true,
+    });
+    if (ok) cancelSub.mutate();
+  }
+
+  const state: BillingState | undefined = billing.data;
+  const currentTier: PlanTier = state?.planTier ?? "free";
+  const current = planPresentation(currentTier);
+  const sub = mySub.data;
+  const hasSub = !!sub?.hasSubscription;
+  const renews = sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null;
+  const renewsLabel = renews
+    ? renews.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+    : null;
+
+  const isPastDue = sub?.status === "past_due";
+  const statusWord = sub?.cancelAtPeriodEnd
+    ? "Cancels at the end of this period"
+    : isPastDue
+      ? "The payment method failed"
+      : "Active";
+  const statusClass = sub?.cancelAtPeriodEnd ? "sp-warn" : isPastDue ? "sp-fail" : undefined;
+
+  if (billing.isLoading) {
+    return (
+      <>
+        <PageHead title="Plan" sub="What this workspace is entitled to." />
+        <Empty>Reading your plan.</Empty>
+      </>
+    );
+  }
+
+  // An error never wears an empty state's clothes: a failed read must not
+  // render as a silent "Free".
+  if (billing.isError) {
+    return (
+      <>
+        <PageHead title="Plan" sub="What this workspace is entitled to." />
+        <Block>
+          <Failed
+            what="Your plan did not load."
+            error={billing.error}
+            onRetry={() => billing.refetch()}
+          />
+        </Block>
+      </>
+    );
+  }
 
   return (
-    <div style={{ display: "block" }}>
-      <label
-        htmlFor={fieldId}
-        style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 6, display: "block" }}
-      >
-        {label}
-      </label>
-      {isValidElement(children) ? cloneElement(children, { id: fieldId } as any) : children}
-      {hint ? (
-        <div style={{ marginTop: 4, fontSize: 11, color: "var(--ink-faint)" }}>{hint}</div>
+    <>
+      <PageHead
+        title="Plan"
+        sub={
+          hasSub && renewsLabel
+            ? `${current.name}, ${sub?.cancelAtPeriodEnd ? "open until" : "renewing"} ${renewsLabel}.`
+            : `${current.name}. ${current.tagline}`
+        }
+      />
+      <PaymentTestModeBanner />
+
+      <Block title="What you are on">
+        <Lines>
+          <Line label={current.name} note={current.tagline}>
+            {hasSub ? (
+              <span className={statusClass} style={{ fontSize: "var(--sp-text-meta)" }}>
+                {statusWord}
+              </span>
+            ) : null}
+          </Line>
+          {hasSub && renewsLabel ? (
+            <Line label={sub?.cancelAtPeriodEnd ? "Access until" : "Renews on"}>
+              <Num>{renewsLabel}</Num>
+            </Line>
+          ) : null}
+        </Lines>
+
+        {state && !state.isOwner ? (
+          <Empty>Only the workspace owner can change or cancel the plan.</Empty>
+        ) : (
+          <Acts>
+            {hasSub ? (
+              <Button
+                variant={isPastDue ? "primary" : "default"}
+                disabled={openPortal.isPending}
+                onClick={() => openPortal.mutate()}
+              >
+                {openPortal.isPending ? "Opening" : "Manage billing"}
+              </Button>
+            ) : null}
+            {hasSub ? (
+              sub?.cancelAtPeriodEnd ? (
+                <Button disabled={resumeSub.isPending} onClick={() => resumeSub.mutate()}>
+                  {resumeSub.isPending ? "Resuming" : "Resume the plan"}
+                </Button>
+              ) : (
+                <Button variant="ghost" disabled={cancelSub.isPending} onClick={onCancelClick}>
+                  {cancelSub.isPending ? "Canceling" : "Cancel the plan"}
+                </Button>
+              )
+            ) : null}
+            {currentTier !== "free" ? (
+              <Button variant="ghost" onClick={() => navigate({ search: { section: "credits" } })}>
+                Buy a credit top-up
+              </Button>
+            ) : null}
+          </Acts>
+        )}
+      </Block>
+
+      <Block title="What else you could be on">
+        <PlanTable currentTier={currentTier} canSelect={state?.isOwner ?? false} />
+      </Block>
+    </>
+  );
+}
+
+function CreditsSection() {
+  const fGetCredits = useServerFn(getMyCreditsView);
+  const fGetCatalog = useServerFn(getPricingCatalog);
+
+  let envSafe: ReturnType<typeof getStripeEnvironment> | null = null;
+  try {
+    envSafe = getStripeEnvironment();
+  } catch {
+    envSafe = null;
+  }
+
+  // getMyCreditsView is a pure Supabase read; `environment` only scopes the
+  // recent-topups filter, so a missing Stripe token must never block the
+  // balance from loading.
+  const creditsEnv: "sandbox" | "live" = envSafe ?? "sandbox";
+  const credits = useQuery({
+    queryKey: ["my-credits", creditsEnv],
+    queryFn: () => fGetCredits({ data: { environment: creditsEnv } }),
+  });
+  const catalog = useQuery({ queryKey: ["pricing-catalog"], queryFn: () => fGetCatalog() });
+
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutKey, setCheckoutKey] = useState<string | null>(null);
+  const [checkoutTitle, setCheckoutTitle] = useState("Buy credits");
+
+  function openTopUp(key: string, label: string) {
+    try {
+      getStripeEnvironment();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Payments are not configured.");
+      return;
+    }
+    setCheckoutKey(key);
+    setCheckoutTitle(label);
+    setCheckoutOpen(true);
+  }
+
+  const data = credits.data;
+  const cycleLabel = data?.cycleAnchor
+    ? new Date(data.cycleAnchor).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+  const remainingTopupRoom = data
+    ? Math.max(0, data.cycleTopupCapCredits - data.cycleTopupCredits)
+    : null;
+
+  // Bundles come from the admin-managed catalog ONLY: a hardcoded ladder
+  // renders clickable prices no backend would honour. No catalog rows, no grid.
+  const catalogBundles = (catalog.data?.topups ?? []).filter((b) => b.active);
+  type Bundle = { key: string; credits: number; priceCents: number };
+  const BUNDLES: Bundle[] = [...catalogBundles]
+    .sort((a, b) => a.credits - b.credits)
+    .map((b) => ({
+      key:
+        b.credits >= 1000 && b.credits % 1000 === 0
+          ? `topup_${b.credits / 1000}k`
+          : `topup_${b.credits}`,
+      credits: b.credits,
+      priceCents: b.price_cents,
+    }));
+  const fmtPrice = (c: number) => `$${Math.round(c / 100).toLocaleString()}`;
+
+  const [selectedKey, setSelectedKey] = useState<string>("");
+  const selectedBundle = BUNDLES.find((b) => b.key === selectedKey) ?? BUNDLES[0];
+  const bestPerCredit = BUNDLES.reduce(
+    (min, b) => Math.min(min, b.priceCents / b.credits),
+    Infinity,
+  );
+
+  const balance = data ? data.balanceCredits + data.topupCredits : null;
+
+  return (
+    <>
+      <PageHead
+        title="Credits"
+        sub={
+          credits.isLoading
+            ? "Reading your balance."
+            : credits.isError
+              ? "Your balance did not load."
+              : data && !data.enabled
+                ? "Metering is off while the rollout finishes. Top-ups are recorded and count once it turns on."
+                : balance !== null
+                  ? `${balance.toLocaleString()} credits left in this cycle.`
+                  : "What the crew spends when it works."
+        }
+      />
+      <PaymentTestModeBanner />
+
+      <Block title="Balance">
+        {credits.isError ? (
+          <Failed
+            what="Your balance did not load."
+            error={credits.error}
+            onRetry={() => credits.refetch()}
+          />
+        ) : credits.isLoading ? (
+          <Empty>Reading your balance.</Empty>
+        ) : (
+          <>
+            <div
+              style={{
+                fontFamily: "var(--sp-font-mono)",
+                fontVariantNumeric: "tabular-nums",
+                fontSize: "var(--sp-text-title)",
+                color: "var(--sp-ink)",
+              }}
+            >
+              {balance !== null ? balance.toLocaleString() : "--"}
+            </div>
+            {data ? (
+              <div style={{ marginTop: "var(--sp-space-3)" }}>
+                <Lines>
+                  <Line
+                    label="Granted this cycle"
+                    note={cycleLabel ? `Since ${cycleLabel}` : undefined}
+                  >
+                    <Num>{data.monthlyGrantCredits.toLocaleString()}</Num>
+                  </Line>
+                  <Line label="Bought on top">
+                    <Num>{data.topupCredits.toLocaleString()}</Num>
+                  </Line>
+                </Lines>
+                {data.enabled && data.monthlyGrantCredits > 0 ? (
+                  <div style={{ marginTop: "var(--sp-space-3)", maxWidth: 260 }}>
+                    <UsageIndicator
+                      used={Math.max(0, data.monthlyGrantCredits - data.balanceCredits)}
+                      allowance={data.monthlyGrantCredits}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </>
+        )}
+      </Block>
+
+      <CreditCapsCard />
+
+      <Block title="Buy more">
+        {catalog.isLoading ? (
+          <Empty>Reading the price list.</Empty>
+        ) : catalog.error ? (
+          <Failed
+            what="The price list did not load."
+            error={catalog.error}
+            onRetry={() => catalog.refetch()}
+          />
+        ) : BUNDLES.length === 0 ? (
+          <Empty>
+            No top-up is published yet. When one is, it appears here at the price that will actually
+            be charged.
+          </Empty>
+        ) : (
+          <>
+            <div
+              style={{
+                display: "grid",
+                gap: "var(--sp-space-2)",
+                gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))",
+              }}
+            >
+              {BUNDLES.map((b) => {
+                const wouldExceed = remainingTopupRoom !== null && b.credits > remainingTopupRoom;
+                const perCredit = b.priceCents / b.credits;
+                const isBest = Math.abs(perCredit - bestPerCredit) < 1e-9;
+                const selected = selectedBundle?.key === b.key;
+                return (
+                  <button
+                    key={b.key}
+                    type="button"
+                    disabled={wouldExceed}
+                    aria-pressed={selected}
+                    title={wouldExceed ? "Past your per-cycle top-up limit." : undefined}
+                    onClick={() => setSelectedKey(b.key)}
+                    style={{
+                      textAlign: "left",
+                      font: "inherit",
+                      padding: "var(--sp-space-3)",
+                      borderRadius: "var(--sp-radius-ctl)",
+                      border: `1px solid ${selected ? "var(--sp-ink)" : "var(--sp-line)"}`,
+                      background: selected ? "var(--sp-lift)" : "transparent",
+                      color: "var(--sp-ink)",
+                      cursor: wouldExceed ? "not-allowed" : "pointer",
+                      opacity: wouldExceed ? 0.45 : 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 3,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "var(--sp-font-mono)",
+                        fontVariantNumeric: "tabular-nums",
+                        fontSize: "var(--sp-text-body)",
+                      }}
+                    >
+                      {b.credits.toLocaleString()}
+                    </span>
+                    <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-body)" }}>
+                      {fmtPrice(b.priceCents)}
+                    </span>
+                    <span style={{ fontSize: "var(--sp-text-data)", color: "var(--sp-mute)" }}>
+                      {(perCredit / 100).toFixed(3)} each{isBest ? " · best rate" : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Honest checkout: while payments are dormant there is no Buy
+                button at all, because a disabled buy is still a dead promise. */}
+            {selectedBundle && envSafe ? (
+              <Acts>
+                <Button
+                  variant="primary"
+                  disabled={
+                    remainingTopupRoom !== null && selectedBundle.credits > remainingTopupRoom
+                  }
+                  onClick={() =>
+                    openTopUp(
+                      selectedBundle.key,
+                      `Top-up: ${selectedBundle.credits.toLocaleString()} credits`,
+                    )
+                  }
+                >
+                  Buy {selectedBundle.credits.toLocaleString()} credits ·{" "}
+                  {fmtPrice(selectedBundle.priceCents)}
+                </Button>
+              </Acts>
+            ) : selectedBundle ? (
+              <Empty>
+                Buying is not switched on in this build. The prices are live so you can plan against
+                them.
+              </Empty>
+            ) : null}
+          </>
+        )}
+
+        {data ? (
+          <Empty>
+            <Num>{data.cycleTopupCredits.toLocaleString()}</Num> of{" "}
+            <Num>{data.cycleTopupCapCredits.toLocaleString()}</Num> top-up credits used this cycle.{" "}
+            <a
+              href="mailto:sales@supaprod.ai?subject=Enterprise%20credits"
+              style={{ color: "var(--sp-ink)" }}
+            >
+              Ask about volume pricing
+            </a>{" "}
+            if you need past the cap.
+          </Empty>
+        ) : null}
+      </Block>
+
+      <RedeemCodeCard />
+
+      {/* The receipts for purchases made HERE. What the credits were SPENT on
+          is a report, and it lives in the Engine room's Spend view. */}
+      <Block title="What you bought">
+        {credits.isLoading ? (
+          <Empty>Reading your purchases.</Empty>
+        ) : credits.isError ? (
+          <Empty>Your purchases did not load. Use the retry above.</Empty>
+        ) : !data || data.topups.length === 0 ? (
+          <Empty>Nothing bought yet. Your monthly grant is covering the work.</Empty>
+        ) : (
+          data.topups.map((t) => (
+            <Row
+              key={`top-${t.id}`}
+              lead="Credit top-up"
+              sub={
+                <span className="sp-pass">+{Number(t.credits_added).toLocaleString()} credits</span>
+              }
+              time={new Date(t.created_at).toLocaleDateString()}
+            />
+          ))
+        )}
+      </Block>
+
+      {checkoutKey ? (
+        <StripeEmbeddedCheckout
+          open={checkoutOpen}
+          onOpenChange={setCheckoutOpen}
+          priceLookupKey={checkoutKey}
+          title={checkoutTitle}
+          mode="topup"
+        />
       ) : null}
-    </div>
+    </>
   );
 }

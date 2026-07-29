@@ -1,18 +1,42 @@
-// Build · OBS-05: ported to the Obsidian v3 design system (the one cockpit).
-// Mission rows (OBS-03 MissionRow anatomy) open a slide-over (?mission=) instead
-// of navigating to the full-page /build/$missionId route (which stays as depth-3,
-// reached from the slide-over's "Open full view" link). User-facing name is
-// Build; internal identifiers intentionally stay studio.* (CLAUDE.md rename
-// disclaimer). Functionality kept exactly: dispatch mutation, 5s session
-// polling, PRD picker mechanics, ModelSwitcher, Enter dispatch.
+/**
+ * Build. The spine, ported onto the rebuild primitives (step 4), same idiom as
+ * Today and Ship.
+ *
+ * WHAT THE RETIRED VERSION WAS: a page-level TopBar with its own breadcrumb (a
+ * second header, on top of the shell's), a two-tone PageHeader with an accent
+ * word and a "usp" line, an ambient glow field, a presence chip, an inline
+ * relay, three self-drawing "glance" cards, a card composer, a card list of
+ * card rows each carrying its own badge, chip, marker and overflow menu, a
+ * hand-drawn skeleton, a constellation motif and two pill rails. Nine skins on
+ * one screen.
+ *
+ * WHAT IT IS NOW: one surface that reads top to bottom and says four things:
+ *   what is running  ·  what needs you  ·  what to build next  ·  what shipped
+ *
+ * The one human decision here is a run that has stopped and is waiting on a
+ * person, so that is the gate and it is the biggest thing on the screen. The
+ * composer is the action, not the gate: it only takes the primary button when
+ * nothing is waiting.
+ *
+ * VOICE: never greet, always report. "Mission" is a mechanism word and stays
+ * out of every user-facing string on this surface; these are runs. Internal
+ * identifiers (studio.*, mission_id, agent_slug 'builder') are unchanged, per
+ * the standing rename convention.
+ *
+ * Every server function, mutation and query key is preserved: listStudioSessions
+ * ["studio-sessions", showArchived] on its 5s poll, dispatchStudioSession,
+ * startOrchestratedMission, listPrds ["prds"], canDispatchToRepo
+ * ["repo-dispatch-check"], setStudioSessionArchived, deleteStudioSession, the
+ * repo pre-check gate, the ?mission= slide-over and the ?view= lenses.
+ */
+
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, type CSSProperties, type RefObject } from "react";
+import * as React from "react";
 import { z } from "zod";
+
 import { toast } from "@/lib/notify";
-import { TopBar } from "@/components/supaprod/TopBar";
-import { PageHeader } from "@/components/supaprod/PageHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +54,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { buttonVariants } from "@/components/ui/button";
-import { useWorkspace } from "@/hooks/use-workspace";
 import { listPrds } from "@/lib/discovery.functions";
 import {
   dispatchStudioSession,
@@ -43,22 +66,173 @@ import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
+import {
+  completionEvidence,
+  COMPLETION_EVIDENCE_LABEL,
+  COMPLETION_EVIDENCE_REASON,
+} from "@/lib/build/verification";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
-import { BuildMissionRow } from "@/components/obsidian/BuildMissionRow";
-import { ProductMasthead } from "@/components/obsidian/ProductMasthead";
-import { PresenceChip } from "@/components/obsidian/PresenceChip";
-import { AgentRelay } from "@/components/agents/AgentRelay";
 import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { FleetView } from "@/components/obsidian/FleetView";
 import { DelegateBoard } from "@/components/obsidian/DelegateBoard";
+import { stripAutoPrefix } from "@/components/plan/format";
+import {
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Gate,
+  Num,
+  PageHead,
+  Record as RecordRecess,
+  Row,
+  Surface,
+  Who,
+  type MarkState,
+} from "@/components/shell/primitives";
 
-import { LoopHealthBanner } from "@/components/cockpit/LoopHealthBanner";
-import { MissionsCostGlance } from "@/components/cockpit/MissionsCostGlance";
-import { ReliabilityGlance } from "@/components/cockpit/ReliabilityGlance";
-import { getAgentFleet } from "@/lib/agent-fleet.functions";
+/* ------------------------------------------------------------------ *
+ * Formatting and mapping. Local on purpose: nothing here reaches into
+ * another surface's folder, so a parallel port cannot break this one.
+ * ------------------------------------------------------------------ */
 
-/** PC-29 layer 2: Build's station agent. */
-const BUILD_STATION_AGENTS = ["builder"];
+/** Plain-words relative time. Mono is applied by the row, not here. */
+function ago(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  const ms = Date.now() - t;
+  if (ms < 0) return null;
+  if (ms < 60_000) return "now";
+  const m = Math.floor(ms / 60_000);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function onDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+
+function usd(n: number | null | undefined): string | null {
+  const v = n ?? 0;
+  if (!v || Number.isNaN(v)) return null;
+  return v < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(2)}`;
+}
+
+/** The first real sentence of a goal, for the gate's evidence line. */
+function firstLine(text: string | null | undefined, max = 150): string | null {
+  const line = (text ?? "")
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^#+\s*/, "").trim())
+    .find((l) => l.length > 0);
+  if (!line) return null;
+  return line.length > max ? `${line.slice(0, max - 1)}…` : line;
+}
+
+/**
+ * Two disjoint status vocabularies feed a row: `agent_runs.status` (queued /
+ * running / waiting_approval / halted / completed / failed / cancelled / done)
+ * and `missions.status` (proposed / queued / running / blocked / halted /
+ * cancelled / completed / completed_with_failures / failed). `blocked` is the
+ * mission table's word for waiting on a human gate, and answering a gate only
+ * updates the approvals table until the next resume tick, so a pending count
+ * outranks every status string. An unrecognised string falls to the neutral
+ * "queued", never to "done": a false Done is the one reading that lies.
+ */
+type RunState = "gate" | "working" | "queued" | "stopped" | "done";
+
+const STOPPED = new Set(["failed", "halted", "cancelled", "completed_with_failures"]);
+
+function runState(s: StudioSessionListItem): RunState {
+  const status = s.run_status ?? s.status;
+  if (s.pending_approvals > 0) return "gate";
+  if (status === "waiting_approval" || status === "blocked" || status === "proposed") return "gate";
+  if (status === "running") return "working";
+  if (status === "queued") return "queued";
+  if (STOPPED.has(status)) return "stopped";
+  if (status === "completed" || status === "done") return "done";
+  return "queued";
+}
+
+const STATE_WORD: Record<RunState, string> = {
+  gate: "Waiting on you",
+  working: "Building",
+  queued: "Queued",
+  stopped: "Stopped",
+  done: "Done",
+};
+
+/** State is never a hue: the mark carries it, and the mark owns the colour. */
+const MARK_STATE: Record<RunState, MarkState> = {
+  gate: "gate",
+  working: "running",
+  queued: "quiet",
+  stopped: "failed",
+  done: "idle",
+};
+
+/** Rows dispatched through Build carry a real builder run, so the mark is the
+ *  Engineer's. A goal run has no single author, so it stays the plain mark
+ *  rather than borrowing another agent's identity. */
+function markSlug(s: StudioSessionListItem): string | null {
+  return s.kind === "build" ? "builder" : null;
+}
+
+/** No field primitive exists yet, so the composer's fields are styled from the
+ *  same tokens rather than a new shared class (a new class would collide with
+ *  every other surface being ported in parallel). */
+const FIELD: React.CSSProperties = {
+  width: "100%",
+  background: "var(--sp-sink)",
+  border: "1px solid var(--sp-line)",
+  borderRadius: "var(--sp-radius-ctl)",
+  padding: "10px 12px",
+  color: "var(--sp-ink)",
+  font: "inherit",
+  fontSize: "var(--sp-text-body)",
+  outline: "none",
+};
+
+const HINT: React.CSSProperties = {
+  fontSize: "var(--sp-text-meta)",
+  color: "var(--sp-mute)",
+  lineHeight: "var(--sp-leading-body)",
+};
+
+/** A text action small enough to sit on a row's second line, where a full
+ *  control would tower over it. */
+const INLINE_ACTION: React.CSSProperties = {
+  font: "inherit",
+  background: "none",
+  border: 0,
+  padding: 0,
+  color: "var(--sp-ink)",
+  textDecoration: "underline",
+  cursor: "pointer",
+};
+
+const STACK: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--sp-space-2)",
+};
+
+const ACTIONS: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "var(--sp-space-2)",
+  flexWrap: "wrap",
+};
+
+/** Anti-scroll: the list opens short and expands on demand. */
+const VISIBLE = 8;
 
 export const Route = createFileRoute("/_authenticated/build/")({
   component: BuildPage,
@@ -71,143 +245,46 @@ export const Route = createFileRoute("/_authenticated/build/")({
       })
       .parse(search),
   errorComponent: ({ error, reset }) => (
-    <div
-      style={{
-        padding: "30px 44px 56px",
-        maxWidth: "var(--container-work)",
-        width: "100%",
-        margin: "0 auto",
-      }}
-    >
-      <div
-        style={{
-          padding: 24,
-          maxWidth: 560,
-          background: "var(--surface-card)",
-          borderRadius: "var(--radius-panel)",
-          boxShadow: "var(--top-light), var(--shadow-ambient)",
-        }}
-      >
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}>
-          COULDN'T LOAD BUILD
-        </div>
-        <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
-          {(error as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          onClick={reset}
-          className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            marginTop: 14,
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            color: "var(--text-subtle)",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Retry · reloads Build
-        </button>
-      </div>
-    </div>
+    <Surface>
+      <PageHead
+        title="Build did not load."
+        sub={(error as Error)?.message ?? "The reason did not come back with the error."}
+      />
+      <Block>
+        <Button variant="primary" onClick={reset}>
+          Try again
+        </Button>
+      </Block>
+    </Surface>
   ),
 });
 
-const MODE_PILL: CSSProperties = {
-  fontFamily: "var(--font-sans)",
-  fontSize: "12.5px",
-  fontWeight: 500,
-  padding: "5px 12px",
-  borderRadius: "var(--radius-control)",
-  border: "1px solid var(--hairline-strong)",
-  cursor: "pointer",
-};
+/* ------------------------------------------------------------------ *
+ * The composer: two doors into the same crew.
+ * ------------------------------------------------------------------ */
 
-/** §9: empty states whisper the moat — a faint, static constellation motif. */
-function ConstellationMotif() {
-  return (
-    <svg
-      aria-hidden="true"
-      width="120"
-      height="44"
-      viewBox="0 0 120 44"
-      style={{ display: "block", margin: "0 auto 12px", opacity: 0.3 }}
-    >
-      <g stroke="var(--text-faint)" strokeWidth="0.6" opacity="0.5">
-        <line x1="14" y1="30" x2="42" y2="12" />
-        <line x1="42" y1="12" x2="70" y2="26" />
-        <line x1="70" y1="26" x2="102" y2="14" />
-        <line x1="42" y1="12" x2="88" y2="36" />
-      </g>
-      <g fill="var(--text-faint)">
-        <circle cx="14" cy="30" r="2" />
-        <circle cx="42" cy="12" r="2.5" />
-        <circle cx="70" cy="26" r="2" />
-        <circle cx="102" cy="14" r="2" />
-        <circle cx="88" cy="36" r="1.5" />
-      </g>
-    </svg>
-  );
-}
-
-/** Loading skeleton matching the loaded list layout (§9: never bare text). */
-function MissionListSkeleton() {
-  return (
-    <div aria-hidden="true">
-      <div
-        style={{
-          height: 12,
-          width: 88,
-          borderRadius: 4,
-          background: "var(--surface-raised)",
-          marginBottom: 12,
-          animation: "cadGlow 1.8s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          background: "var(--surface-card)",
-          borderRadius: "var(--radius-panel)",
-          boxShadow: "var(--top-light), var(--shadow-ambient)",
-          padding: "6px 0",
-        }}
-      >
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            style={{
-              height: 52,
-              margin: "6px 16px",
-              borderRadius: "var(--radius-control)",
-              background: "var(--surface-raised)",
-              animation: "cadGlow 1.8s ease-in-out infinite",
-              animationDelay: `${i * 120}ms`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement | null> }) {
+function Composer({
+  textareaRef,
+  startIsPrimary,
+}: {
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  /** One primary per screen. When a run is waiting, the gate owns it. */
+  startIsPrimary: boolean;
+}) {
   const navigate = useNavigate();
   const fDispatch = useServerFn(dispatchStudioSession);
   const fCanDispatch = useServerFn(canDispatchToRepo);
   const fStartMission = useServerFn(startOrchestratedMission);
   const fPrds = useServerFn(listPrds);
 
-  // OBS-10: two entry points into the one true missions home. "Build from a
-  // spec" dispatches Studio's code-gen loop (unchanged). "Give the agents a
-  // goal" is the orchestrator's goal-driven multi-agent DAG, ported from the
-  // retired /missions composer so starting one is still reachable after the
-  // fold. Outcome-first (2026-07-11): goal is the default first-run mode.
-  const [mode, setMode] = useState<"ship" | "goal">("goal");
-  const [prompt, setPrompt] = useState("");
-  const [prdId, setPrdId] = useState<string | null>(null);
-  const [model] = useState(DEFAULT_MODEL);
-  const [goalTitle, setGoalTitle] = useState("");
+  // Two entry points into the one list below. "From a spec" dispatches the
+  // code-gen loop; "From a goal" is the goal-driven multi-agent run. Outcome
+  // first: the goal door is the default.
+  const [mode, setMode] = React.useState<"ship" | "goal">("goal");
+  const [prompt, setPrompt] = React.useState("");
+  const [prdId, setPrdId] = React.useState<string | null>(null);
+  const [goalTitle, setGoalTitle] = React.useState("");
+  const model = DEFAULT_MODEL;
 
   const prds = useQuery({ queryKey: ["prds"], queryFn: () => fPrds() });
   const approvedPrds = (
@@ -215,10 +292,9 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
   ).filter((p) => p.status === "approved");
   const selectedPrd = approvedPrds.find((p) => p.id === prdId) ?? null;
 
-  // W5b: the dispatch repo gate. Set when a ship dispatch cannot resolve a
-  // repo; the dialog offers /sync or (with a spec picked) provision-a-starter
-  // -repo + auto retry.
-  const [repoGate, setRepoGate] = useState<{ reason: string | null } | null>(null);
+  // The dispatch repo gate. Set when a dispatch cannot resolve a repo; the
+  // dialog offers /sync or (with a spec picked) a starter repo plus auto retry.
+  const [repoGate, setRepoGate] = React.useState<{ reason: string | null } | null>(null);
 
   const dispatch = useMutation({
     mutationFn: () =>
@@ -230,7 +306,7 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         },
       }),
     onSuccess: (r) => {
-      toast.success("Build started");
+      toast.success("Build started.");
       navigate({ to: "/build/$missionId", params: { missionId: r.missionId } });
     },
     onError: (e: Error) => {
@@ -239,10 +315,10 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
       else toast.error(e.message);
     },
   });
-  // Feedback ruling 2026-07-08: the repo pre-check is a real network wait, so
-  // it shows the same pending state as the dispatch itself and blocks a
-  // second Start click from double-dispatching.
-  const [checking, setChecking] = useState(false);
+
+  // The repo pre-check is a real network wait, so it shows the same pending
+  // state as the dispatch itself and blocks a second click from double-firing.
+  const [checking, setChecking] = React.useState(false);
   const gatedDispatch = async () => {
     setChecking(true);
     try {
@@ -256,191 +332,125 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
     }
   };
 
-  const startMission = useMutation({
+  const startRun = useMutation({
     mutationFn: () =>
       fStartMission({ data: { goal: prompt.trim(), title: goalTitle.trim() || undefined } }),
     onSuccess: (r) => {
       const queued = r.approvals_queued ?? 0;
       toast.success(
         queued === 0
-          ? "Mission running."
+          ? "Running."
           : queued === 1
-            ? "Mission running · 1 approval waits for you."
-            : `Mission running · ${queued} approvals wait for you.`,
+            ? "Running. One call waits for you."
+            : `Running. ${queued} calls wait for you.`,
       );
       navigate({ to: "/build/$missionId", params: { missionId: r.mission_id } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const isPending = mode === "ship" ? checking || dispatch.isPending : startMission.isPending;
+  const isPending = mode === "ship" ? checking || dispatch.isPending : startRun.isPending;
   const canStart =
     mode === "ship"
       ? (prompt.trim().length >= 4 || !!prdId) && !isPending
       : prompt.trim().length >= 4 && !isPending;
-  const runStart = () => (mode === "ship" ? void gatedDispatch() : startMission.mutate());
-
-  // The quiet repo-status chip: the connection state is visible BEFORE Start,
-  // so "not connected" is never discovered as a dispatch failure. Silent while
-  // loading or on a check error (calm front; the dispatch gate still catches it).
-  const repoStatus = useQuery({
-    queryKey: ["repo-dispatch-check"],
-    queryFn: () => fCanDispatch({ data: {} }),
-    staleTime: 60_000,
-  });
+  const run = () => (mode === "ship" ? void gatedDispatch() : startRun.mutate());
 
   return (
-    <section
-      style={{
-        background: "var(--surface-card)",
-        borderRadius: "var(--radius-panel)",
-        boxShadow: "var(--top-light), var(--shadow-ambient)",
-        padding: 16,
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        marginBottom: 18,
-      }}
-    >
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {(
-          [
-            {
-              id: "ship",
-              label: "Build from a spec",
-              explainer: "An approved spec from Plan becomes a pull request on your repo.",
-            },
-            {
-              id: "goal",
-              label: "Give the agents a goal",
-              explainer: "Plain language in. The agents plan the steps and run them.",
-            },
-          ] as const
-        ).map((opt) => {
-          const active = mode === opt.id;
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setMode(opt.id)}
-              aria-pressed={active}
-              className="loom-press outline-none transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                flex: "1 1 220px",
-                minWidth: 0,
-                textAlign: "left",
-                padding: "9px 12px",
-                borderRadius: "var(--radius-control)",
-                border: active ? "1px solid var(--hairline-strong)" : "1px solid var(--hairline)",
-                // Inline background only when active, so the hover class can
-                // resolve on inactive pills (inline style beats a class).
-                background: active ? "var(--surface-raised)" : undefined,
-                cursor: "pointer",
-              }}
-            >
-              <span
-                style={{
-                  display: "block",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: active ? "var(--text-primary)" : "var(--text-body)",
-                }}
-              >
-                {opt.label}
-              </span>
-              <span
-                style={{
-                  display: "block",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 11.5,
-                  lineHeight: 1.45,
-                  color: "var(--text-subtle)",
-                  marginTop: 2,
-                }}
-              >
-                {opt.explainer}
-              </span>
-            </button>
-          );
-        })}
+    <>
+      <div className="sp-tabs" role="tablist" aria-label="How to start">
+        <button
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={mode === "goal"}
+          onClick={() => setMode("goal")}
+        >
+          From a goal
+        </button>
+        <button
+          type="button"
+          role="tab"
+          className="sp-tab"
+          aria-selected={mode === "ship"}
+          onClick={() => setMode("ship")}
+        >
+          From a spec
+        </button>
       </div>
-      {mode === "goal" && (
-        <input
-          value={goalTitle}
-          onChange={(e) => setGoalTitle(e.target.value)}
-          placeholder="Mission title (optional)"
-          aria-label="Mission title (optional)"
-          maxLength={200}
-          className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            minHeight: 36,
-            background: "var(--surface-hover)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            padding: "8px 10px",
-            fontSize: 14,
-            color: "var(--text-primary)",
+
+      <p style={{ ...HINT, margin: "var(--sp-space-3) 0" }}>
+        {mode === "goal"
+          ? "Plain language in. The crew plans the steps and runs them."
+          : "An approved spec becomes a pull request on your repo."}
+      </p>
+
+      <div style={STACK}>
+        {mode === "goal" ? (
+          <input
+            value={goalTitle}
+            onChange={(e) => setGoalTitle(e.target.value)}
+            placeholder="Title (optional)"
+            aria-label="Title (optional)"
+            maxLength={200}
+            style={FIELD}
+          />
+        ) : null}
+        <textarea
+          ref={textareaRef}
+          aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canStart) {
+              e.preventDefault();
+              run();
+            }
           }}
-        />
-      )}
-      <textarea
-        ref={textareaRef}
-        aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canStart) {
-            e.preventDefault();
-            runStart();
+          rows={3}
+          placeholder={
+            mode === "ship"
+              ? "Describe what to ship. It plans against the connected repo."
+              : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
           }
-        }}
-        rows={3}
-        className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        placeholder={
-          mode === "ship"
-            ? "Describe what to ship. Build plans against the connected repo."
-            : "Describe the goal, e.g. 'Investigate top 3 churn signals this week, draft a spec for the highest-impact fix, and queue the engineering plan.'"
-        }
-        style={{
-          resize: "none",
-          background: "var(--surface-hover)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-control)",
-          padding: 10,
-          fontSize: 14,
-          color: "var(--text-primary)",
-        }}
-      />
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        {mode === "ship" && (
+          style={{ ...FIELD, resize: "vertical", lineHeight: "var(--sp-leading-body)" }}
+        />
+      </div>
+
+      <div style={{ ...ACTIONS, marginTop: "var(--sp-space-3)" }}>
+        <Button
+          variant={startIsPrimary ? "primary" : "default"}
+          disabled={!canStart}
+          onClick={run}
+          // A disabled control pairs with an explanation: a dim button on its
+          // own says nothing about what would unlock it.
+          title={
+            canStart || isPending
+              ? undefined
+              : mode === "ship"
+                ? "Describe the work in a few words, or pick an approved spec"
+                : "Describe the goal in a few words"
+          }
+        >
+          {isPending ? "Starting" : "Start the build"}
+        </Button>
+        {mode === "ship" ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
                 aria-label="Pick an approved spec"
-                className="loom-press outline-none transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
                 style={{
+                  ...INLINE_ACTION,
+                  fontSize: "var(--sp-text-meta)",
+                  color: "var(--sp-mute)",
                   maxWidth: 260,
-                  minHeight: 32,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
-                  color: "var(--text-subtle)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: "var(--radius-control)",
-                  padding: "6px 10px",
-                  cursor: "pointer",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
-                <span
-                  style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                >
-                  {selectedPrd ? selectedPrd.title : "No spec"}
-                </span>
-                <span aria-hidden="true">↓</span>
+                {selectedPrd ? selectedPrd.title : "No spec picked"}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -457,130 +467,38 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
                   </span>
                 </DropdownMenuItem>
               ))}
-              {/* State audit 2026-07-12: loading and error each speak for
-                  themselves; the empty state no longer wears their clothes. */}
+              {/* Loading, error and empty each speak for themselves rather than
+                  one of them wearing another's clothes. */}
               {prds.isLoading ? (
-                <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-subtle)" }}>
-                  Loading approved specs…
-                </div>
+                <div style={{ ...HINT, padding: "6px 8px" }}>Reading approved specs</div>
               ) : prds.isError ? (
-                <div style={{ padding: "6px 8px", fontSize: 12 }}>
-                  <span style={{ color: "var(--madder)" }}>Couldn't load specs.</span>{" "}
+                <div style={{ ...HINT, padding: "6px 8px" }}>
+                  <span className="sp-fail">The specs did not load.</span>{" "}
                   <button
                     type="button"
-                    onClick={() => prds.refetch()}
-                    className="outline-none [color:var(--text-subtle)] transition-colors hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      fontSize: 12,
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                    }}
+                    onClick={() => void prds.refetch()}
+                    style={{ ...INLINE_ACTION, fontSize: "var(--sp-text-meta)" }}
                   >
-                    Retry
+                    Try again
                   </button>
                 </div>
               ) : approvedPrds.length === 0 ? (
-                // Not a dead end (audit D-42): the way to get an approved spec
-                // is /plan, so say so and link there.
-                <div style={{ padding: "6px 8px", fontSize: 12, color: "var(--text-subtle)" }}>
-                  No approved specs yet.{" "}
-                  <Link to="/plan" style={{ color: "var(--link)" }}>
-                    Approve one in Plan →
+                <div style={{ ...HINT, padding: "6px 8px" }}>
+                  No spec is approved yet.{" "}
+                  <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
+                    Approve one in Plan
                   </Link>
                 </div>
               ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
-        {/* The quiet repo-status chip, visible before Start. */}
-        {repoStatus.data ? (
-          <span
-            className="mono-label"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              maxWidth: 260,
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
-              color: "var(--text-subtle)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-control)",
-              padding: "5px 10px",
-            }}
-          >
-            {repoStatus.data.repoResolvable ? (
-              <span
-                style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                title={repoStatus.data.repo ?? undefined}
-              >
-                repo: {repoStatus.data.repo ?? "connected"}
-              </span>
-            ) : (
-              <>
-                <span style={{ whiteSpace: "nowrap" }}>repo: not connected</span>
-                <span aria-hidden="true">-</span>
-                <Link
-                  to="/sync"
-                  className="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{ color: "var(--glacier)", whiteSpace: "nowrap" }}
-                >
-                  connect
-                </Link>
-              </>
-            )}
-          </span>
         ) : null}
-        <button
-          type="button"
-          onClick={runStart}
-          disabled={!canStart}
-          // Disabled pairs with an explanation (component-contract law): the
-          // title says what unlocks Start, since a bare dim button explains nothing.
-          title={
-            canStart || isPending
-              ? undefined
-              : mode === "ship"
-                ? "Describe the work (a few words) or pick an approved spec first"
-                : "Describe the goal in a few words first"
-          }
-          className="loom-press outline-none transition-colors [background:var(--surface-raised)] hover:enabled:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            marginLeft: "auto",
-            flexShrink: 0,
-            fontFamily: "var(--font-sans)",
-            fontSize: 14,
-            fontWeight: 600,
-            // Neutral, not ember: Start is the user's own initiating click, not a
-            // needs-a-human gate. The restraint budget reserves ember for the ONE
-            // gate CTA per screen (the slide-over's Approve), and Composer + a
-            // gate can both be visible at once (adversarial review finding).
-            // Base background lives in the class so hover can resolve
-            // (inline style would beat the hover class).
-            color: "var(--text-primary)",
-            opacity: canStart ? 1 : 0.5,
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            padding: "8px 16px",
-            cursor: canStart ? "pointer" : "default",
-          }}
-        >
-          {isPending ? "Starting…" : "Start"}
-        </button>
       </div>
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "var(--text-mono-floor)",
-          letterSpacing: "0.1em",
-          color: "var(--text-subtle)",
-        }}
-      >
-        ⌘Enter to start. Anything risky comes back to you first.
-      </div>
+
+      <p style={{ ...HINT, marginTop: "var(--sp-space-3)" }}>
+        Command and Enter starts it. Anything risky comes back to you first.
+      </p>
+
       <RepoGateDialog
         open={repoGate !== null}
         prdId={prdId}
@@ -590,41 +508,42 @@ function Composer({ textareaRef }: { textareaRef: RefObject<HTMLTextAreaElement 
         }}
         onRetry={() => dispatch.mutate()}
       />
-    </section>
+    </>
   );
 }
+
+/* ------------------------------------------------------------------ *
+ * The surface
+ * ------------------------------------------------------------------ */
 
 function BuildPage() {
   const fList = useServerFn(listStudioSessions);
   const fArchive = useServerFn(setStudioSessionArchived);
   const fDelete = useServerFn(deleteStudioSession);
+  const fCanDispatch = useServerFn(canDispatchToRepo);
   const qc = useQueryClient();
-  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
   const navigate = useNavigate({ from: "/build/" });
   const search = Route.useSearch();
-  const [showArchived, setShowArchived] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<StudioSessionListItem | null>(null);
-  // PC-32 (super light, engine underneath): the missions list shows the top
-  // few and expands on demand, same idiom as SignalFeed/AutoClustered, so
-  // Build's calm front never becomes an unbounded wall of rows.
-  const [showAllMissions, setShowAllMissions] = useState(false);
-  const VISIBLE_MISSIONS = 8;
+
+  const [showArchived, setShowArchived] = React.useState(false);
+  const [managing, setManaging] = React.useState(false);
+  const [showAll, setShowAll] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] = React.useState<StudioSessionListItem | null>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+
   const sessions = useQuery({
     queryKey: ["studio-sessions", showArchived],
     queryFn: () => fList({ data: { includeArchived: showArchived } }),
     refetchInterval: 5000,
   });
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  // PC-29 layer 2: shared cache with the "By Agent" tab's FleetView (same
-  // queryKey) - a cache read here, not a second network call, on the same
-  // workspace. Scoped by workspaceId so switching workspaces doesn't show
-  // another workspace's agent activity.
-  const fFleet = useServerFn(getAgentFleet);
-  const fleet = useQuery({
-    queryKey: ["agent-fleet", activeWorkspaceId],
-    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+
+  // The connection state is visible before Start, so "not connected" is never
+  // discovered as a dispatch failure. Same cache key the composer's gate uses.
+  const repoStatus = useQuery({
+    queryKey: ["repo-dispatch-check"],
+    queryFn: () => fCanDispatch({ data: {} }),
+    staleTime: 60_000,
   });
-  const presenceAgent = fleet.data?.fleet.agents.find((a) => BUILD_STATION_AGENTS.includes(a.slug));
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["studio-sessions"] });
   const archive = useMutation({
@@ -632,8 +551,8 @@ function BuildPage() {
     onSuccess: (_d, v) => {
       toast.success(
         v.archived
-          ? "Mission archived. Its decisions stay in Memory."
-          : "Mission restored. Its decisions stay in Memory.",
+          ? "Archived. What it decided stays on the record."
+          : "Restored. What it decided stays on the record.",
       );
       invalidate();
     },
@@ -642,348 +561,404 @@ function BuildPage() {
   const del = useMutation({
     mutationFn: (missionId: string) => fDelete({ data: { missionId } }),
     onSuccess: () => {
-      toast.success("Mission deleted. Its decisions stay in Memory.");
+      toast.success("Deleted. What it decided stays on the record.");
       setDeleteTarget(null);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const rows = sessions.data?.sessions ?? [];
-  const isEmpty = !sessions.isLoading && !sessions.isError && rows.length === 0;
-  // Calm first run (2026-07-11): fleet glances, the loop-health strip, and the
-  // By Agent / By Lane lenses appear only once the workspace has shipped at
-  // least one mission. Until then the surface is just the composer.
-  // Orchestrator goal-runs finish as 'done', Studio sessions as 'completed';
-  // both count as a completed mission for the calm-first-run gate.
-  const hasCompletedMission = rows.some((s) => s.status === "completed" || s.status === "done");
+  const rows = React.useMemo(() => sessions.data?.sessions ?? [], [sessions.data]);
+  const loading = sessions.isLoading;
 
-  // Functional form (not a plain object) so this doesn't clobber the `view`
-  // param when opening/closing a mission from the "By Lane" tab (adversarial
-  // review finding: navigate({ search: {...} }) discards all prior search
-  // state instead of merging it).
-  const openMission = (missionId: string) =>
+  const waiting = React.useMemo(
+    () =>
+      rows
+        .filter((s) => runState(s) === "gate")
+        .sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? "")),
+    [rows],
+  );
+  const call = waiting[0] ?? null;
+  const running = React.useMemo(() => rows.filter((s) => runState(s) === "working").length, [rows]);
+  const merged = React.useMemo(
+    () => rows.filter((s) => s.changeset?.status === "merged").length,
+    [rows],
+  );
+  const spend = React.useMemo(() => rows.reduce((sum, s) => sum + (s.cost_usd ?? 0), 0), [rows]);
+  /** The one receipt on this surface: a claim a person can open and check. */
+  const receipt = React.useMemo(
+    () => rows.find((s) => s.changeset?.status === "merged" && s.changeset?.pr_url) ?? null,
+    [rows],
+  );
+
+  // The lenses and their tabs appear only once the workspace has finished a
+  // run. Until then the surface is the gate and the composer, nothing else.
+  const hasFinished = rows.some((s) => s.status === "completed" || s.status === "done");
+
+  // Functional form, so opening a run from the lane lens does not discard the
+  // view param (a plain object replaces the whole search state).
+  const openRun = (missionId: string) =>
     navigate({ search: (prev) => ({ ...prev, mission: missionId }) });
-  const closeMission = () => navigate({ search: (prev) => ({ ...prev, mission: undefined }) });
-  // Deep links to ?view=agent|lane fall back to the missions lens until the
-  // workspace has a completed mission (the lens tabs are hidden until then).
-  const viewMode = hasCompletedMission ? (search.view ?? "missions") : "missions";
+  const closeRun = () => navigate({ search: (prev) => ({ ...prev, mission: undefined }) });
+  const viewMode = hasFinished ? (search.view ?? "missions") : "missions";
+
+  const focusComposer = () => {
+    textareaRef.current?.focus();
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    textareaRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  };
+
+  // The headline is a fact assembled from real counts. It never claims a
+  // number it does not have.
+  const headline = React.useMemo(() => {
+    if (loading) return "Reading the record.";
+    if (sessions.isError) return "The runs did not load.";
+    const ran =
+      running === 0
+        ? "Nothing is building"
+        : running === 1
+          ? "One run is building"
+          : `${running} runs are building`;
+    const needs =
+      waiting.length === 0
+        ? "Nothing needs you."
+        : waiting.length === 1
+          ? "One needs you."
+          : `${waiting.length} need you.`;
+    return `${ran}. ${needs}`;
+  }, [loading, sessions.isError, running, waiting.length]);
+
+  const visible = showAll ? rows : rows.slice(0, VISIBLE);
 
   return (
-    <>
-      <TopBar crumbs={[activeWorkspace?.name ?? "Workspace", "Build"]} />
-      <div
-        data-screen-label="Build"
-        className="cadRise"
-        style={{
-          padding: "30px 44px 56px",
-          maxWidth: "var(--container-work)",
-          width: "100%",
-          margin: "0 auto",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Loom §2b glow field: the one ambient wash behind the hero. */}
-        <div aria-hidden="true" className="loom-glow-field" />
-        <div style={{ marginBottom: 22 }}>
-          <PageHeader
-            title="Approved specs in,"
-            accent="merged PRs out."
-            subtitle="Agents pick up approved specs, write the code, run the tests, and open the pull request. You appear only at the gates."
-            usp="Agents build, test, and open the PR autonomously, so your team ships without hand-coding every change."
-          />
-          {presenceAgent ? (
-            <div style={{ marginTop: 10 }}>
-              <PresenceChip
-                agentSlug={presenceAgent.slug}
-                station="build"
-                state={presenceAgent.state === "working" ? "working" : "idle"}
-                lastActedAt={presenceAgent.lastActiveAt}
-              />
-            </div>
-          ) : null}
-          {/* PC-29 layer 4: the inline relay, live only while Build has a run
-              going. */}
-          <div style={{ marginTop: 10 }}>
-            <AgentRelay variant="station" station="build" workspaceId={activeWorkspaceId} />
-          </div>
-          {/* OBS-10: fleet-wide glances, ported from the retired /missions page —
-              genuinely about the whole agent mesh (code-gen + orchestrator goal-runs
-              alike), not Build-specific, so they belong on Build's calm front now
-              that it is the one true missions home. Each stays silent when healthy,
-              and none appear before the first completed mission. */}
-          {hasCompletedMission ? (
+    <Surface
+      context={
+        <>
+          {repoStatus.data ? (
             <>
-              <MissionsCostGlance />
-              <ReliabilityGlance />
+              <div className="sp-ctx-head">Where builds land</div>
+              <div className="sp-ctx-body">
+                {repoStatus.data.repoResolvable ? (
+                  (repoStatus.data.repo ?? "A connected repo.")
+                ) : (
+                  <>
+                    No repo is connected, so a build has nowhere to open a pull request.{" "}
+                    <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
+                      Connect one
+                    </Link>
+                    .
+                  </>
+                )}
+              </div>
             </>
           ) : null}
+
+          {waiting.length > 1 ? (
+            <>
+              <div className="sp-ctx-head">Behind this one</div>
+              <div className="sp-ctx-body">
+                <Num>{waiting.length - 1}</Num> more waiting. They keep their order until this one
+                is settled.
+              </div>
+            </>
+          ) : null}
+
+          {spend > 0 ? (
+            <>
+              <div className="sp-ctx-head">What these runs cost</div>
+              <div className="sp-ctx-body">
+                <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
+                {rows.length === 1 ? "run" : "runs"}.
+              </div>
+            </>
+          ) : null}
+        </>
+      }
+    >
+      <PageHead
+        title={headline}
+        sub={
+          rows.length > 0 ? (
+            <>
+              <Num>{rows.length}</Num> {rows.length === 1 ? "run" : "runs"} on the record
+              {merged > 0 ? (
+                <>
+                  {" · "}
+                  <Num>{merged}</Num> merged
+                </>
+              ) : null}
+            </>
+          ) : null
+        }
+      />
+
+      {loading ? null : sessions.isError ? (
+        <Gate question="The runs did not load.">
+          <Button variant="primary" onClick={() => void sessions.refetch()}>
+            Try again
+          </Button>
+        </Gate>
+      ) : call ? (
+        <Gate
+          // The stored title carries a machine "[auto]" origin prefix when the
+          // loop raised it. That is provenance, not copy, and it never reaches
+          // the sentence a person is asked to judge.
+          question={`${stripAutoPrefix(call.title)} is waiting on you.`}
+          lines={
+            [
+              call.pending_approvals > 0 ? (
+                <span key="calls">
+                  <Num>{call.pending_approvals}</Num>{" "}
+                  {call.pending_approvals === 1 ? "call" : "calls"} to settle before it goes on.
+                </span>
+              ) : (
+                <span key="calls">It stopped and cannot go on until a person answers.</span>
+              ),
+              firstLine(call.goal) ? <span key="goal">{firstLine(call.goal)}</span> : null,
+              call.changeset ? (
+                <span key="repo">
+                  {call.changeset.repo}
+                  {call.changeset.branch ? ` · ${call.changeset.branch}` : ""}
+                </span>
+              ) : null,
+            ].filter(Boolean) as React.ReactNode[]
+          }
+        >
+          <Button variant="primary" onClick={() => openRun(call.mission_id)}>
+            Open the run
+          </Button>
+          <Button variant="ghost" onClick={() => navigate({ to: "/approvals" })}>
+            See everything waiting
+          </Button>
+        </Gate>
+      ) : (
+        <Gate question="Nothing is waiting on you.">
+          <Button variant="ghost" onClick={focusComposer}>
+            Describe the next build
+          </Button>
+        </Gate>
+      )}
+
+      <Block title="Start a build">
+        <Composer textareaRef={textareaRef} startIsPrimary={!call && !sessions.isError} />
+      </Block>
+
+      {hasFinished ? (
+        <div className="sp-tabs" role="tablist" aria-label="How to read the work">
+          {(
+            [
+              { id: "missions", label: "Runs" },
+              { id: "agent", label: "By agent" },
+              { id: "lane", label: "By lane" },
+            ] as const
+          ).map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              className="sp-tab"
+              aria-selected={viewMode === id}
+              onClick={() =>
+                navigate({
+                  search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
+                })
+              }
+            >
+              {label}
+            </button>
+          ))}
         </div>
+      ) : null}
 
-        {hasCompletedMission ? <LoopHealthBanner /> : null}
+      {viewMode === "missions" ? (
+        <Block
+          title={hasFinished ? undefined : "Runs"}
+          more={
+            rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length} runs`) : undefined
+          }
+          onMore={() => setShowAll((v) => !v)}
+        >
+          {loading ? null : sessions.isError ? (
+            <Empty>The runs did not load, so this list is not the whole picture.</Empty>
+          ) : rows.length === 0 ? (
+            <Empty>
+              {showArchived
+                ? "Nothing here, archived or not. Describe the work above and the crew takes it from there."
+                : "Nothing has been built here yet. Describe the work above and the crew plans the steps, writes the change, and opens the pull request."}
+            </Empty>
+          ) : (
+            visible.map((s) => {
+              const state = runState(s);
+              const evidence = completionEvidence({
+                claimsDone: state === "done",
+                kind: s.kind,
+                changesetStatus: s.changeset?.status ?? null,
+                prUrl: s.changeset?.pr_url ?? null,
+              });
+              const files = s.changeset?.file_count ?? 0;
+              const cost = usd(s.cost_usd);
+              const mark = (
+                <AgentMark slug={markSlug(s)} state={MARK_STATE[state]} name={s.title} />
+              );
+              const detail = (
+                <>
+                  {STATE_WORD[state]}
+                  {files > 0 ? (
+                    <>
+                      {" · "}
+                      <Num>{files}</Num> {files === 1 ? "file" : "files"}
+                    </>
+                  ) : null}
+                  {cost ? (
+                    <>
+                      {" · "}
+                      <Num>{cost}</Num>
+                    </>
+                  ) : null}
+                  {evidence ? (
+                    <>
+                      {" · "}
+                      <span
+                        className={
+                          evidence === "verified"
+                            ? "sp-pass"
+                            : evidence === "needs-verification"
+                              ? "sp-warn"
+                              : undefined
+                        }
+                        title={COMPLETION_EVIDENCE_REASON[evidence]}
+                      >
+                        {COMPLETION_EVIDENCE_LABEL[evidence]}
+                      </span>
+                    </>
+                  ) : null}
+                  {s.archived ? " · Archived" : null}
+                </>
+              );
 
-        <Composer textareaRef={textareaRef} />
+              // Managing turns the row from a link into a shelf: it stops
+              // being a button, so its two real actions can live inside it
+              // without one control nested in another.
+              return (
+                <Row
+                  key={s.mission_id}
+                  marks={mark}
+                  lead={<Who>{stripAutoPrefix(s.title)}</Who>}
+                  sub={
+                    managing ? (
+                      <>
+                        {detail}
+                        {" · "}
+                        <button
+                          type="button"
+                          style={INLINE_ACTION}
+                          disabled={archive.isPending}
+                          onClick={() =>
+                            archive.mutate({ missionId: s.mission_id, archived: !s.archived })
+                          }
+                        >
+                          {s.archived ? "Restore" : "Archive"}
+                        </button>
+                        {" · "}
+                        <button
+                          type="button"
+                          style={INLINE_ACTION}
+                          onClick={() => setDeleteTarget(s)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : (
+                      detail
+                    )
+                  }
+                  time={ago(s.updated_at)}
+                  onClick={managing ? undefined : () => openRun(s.mission_id)}
+                />
+              );
+            })
+          )}
 
-        {/* OBS-10: Fleet and Delegate folded in as two orthogonal lenses on the
-            same agent-mesh activity: by mission (default), by agent, by lane.
-            Not merged into one view; each keeps its own model and layout.
-            Hidden until the first mission completes (calm first run). */}
-        {hasCompletedMission ? (
-          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-            {(
-              [
-                { id: "missions", label: "Missions" },
-                { id: "agent", label: "By Agent" },
-                { id: "lane", label: "By Lane" },
-              ] as const
-            ).map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={viewMode === id}
-                onClick={() =>
-                  navigate({
-                    search: (prev) => ({ ...prev, view: id === "missions" ? undefined : id }),
-                  })
-                }
-                className="loom-press outline-none transition-colors hover:[background:var(--surface-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{
-                  ...MODE_PILL,
-                  color: viewMode === id ? "var(--text-primary)" : "var(--text-subtle)",
-                  // Inline background only on the active pill so hover resolves.
-                  background: viewMode === id ? "var(--surface-raised)" : undefined,
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        ) : null}
+          {loading || sessions.isError ? null : (
+            <div style={{ ...ACTIONS, marginTop: "var(--sp-space-3)" }}>
+              <Button variant="ghost" onClick={() => setShowArchived((v) => !v)}>
+                {showArchived ? "Hide archived" : "Show archived"}
+              </Button>
+              {rows.length > 0 ? (
+                <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
+                  {managing ? "Done managing" : "Manage the list"}
+                </Button>
+              ) : null}
+            </div>
+          )}
+        </Block>
+      ) : null}
 
-        {viewMode === "missions" && (
-          <>
-            {sessions.isLoading ? (
-              <MissionListSkeleton />
-            ) : sessions.isError ? (
-              <div
-                style={{
-                  padding: 24,
-                  background: "var(--surface-card)",
-                  borderRadius: "var(--radius-panel)",
-                  boxShadow: "var(--top-light), var(--shadow-ambient)",
-                }}
-              >
-                <div
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--madder)" }}
-                >
-                  COULDN'T LOAD MISSIONS
-                </div>
-                <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
-                  {(sessions.error as Error)?.message?.slice(0, 160)}
-                </p>
-                <button
-                  onClick={() => sessions.refetch()}
-                  className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                  style={{
-                    marginTop: 14,
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 11,
-                    color: "var(--text-subtle)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Retry · reloads missions
-                </button>
-              </div>
-            ) : isEmpty ? (
-              <div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowArchived((v) => !v)}
-                    className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-mono-floor)",
-                      color: "var(--text-subtle)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {showArchived ? "Hide archived" : "Show archived"}
-                  </button>
-                </div>
-                <div
-                  style={{
-                    padding: 32,
-                    textAlign: "center",
-                    background: "var(--surface-card)",
-                    borderRadius: "var(--radius-panel)",
-                    boxShadow: "var(--top-light), var(--shadow-ambient)",
-                  }}
-                >
-                  <ConstellationMotif />
-                  {/* The one Geist Pixel moment on this screen (DESIGN-TEMPO.md SS3/SS8):
-                      the empty-state headline, never more than once per surface. */}
-                  <p
-                    style={{
-                      fontFamily: "var(--font-pixel)",
-                      fontSize: 18,
-                      color: "var(--text-primary)",
-                      margin: 0,
-                    }}
-                  >
-                    Nothing building yet
-                  </p>
-                  <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 8 }}>
-                    Agents dispatch builds from approved specs, or describe the work above in plain
-                    language. A first build usually starts within a minute.
-                  </p>
-                  <button
-                    type="button"
-                    className="loom-press outline-none transition-colors [color:var(--text-subtle)] hover:[color:var(--text-body)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    onClick={() => {
-                      textareaRef.current?.focus();
-                      // Smooth scroll is motion: gate it on prefers-reduced-motion.
-                      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-                      textareaRef.current?.scrollIntoView({
-                        behavior: reduce ? "auto" : "smooth",
-                        block: "center",
-                      });
-                    }}
-                    style={{
-                      marginTop: 14,
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 11,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Describe the work · Build takes it from there
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div
-                  style={{
-                    marginBottom: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  {/* Real heading (quality register: no h2 under the lone h1). */}
-                  <h2
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-mono-floor)",
-                      fontWeight: 500,
-                      letterSpacing: "0.11em",
-                      color: "var(--text-subtle)",
-                      margin: 0,
-                    }}
-                  >
-                    MISSIONS
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setShowArchived((v) => !v)}
-                    className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "var(--text-mono-floor)",
-                      color: "var(--text-subtle)",
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {showArchived ? "Hide archived" : "Show archived"}
-                  </button>
-                </div>
-                <div
-                  style={{
-                    background: "var(--surface-card)",
-                    borderRadius: "var(--radius-panel)",
-                    boxShadow: "var(--top-light), var(--shadow-ambient)",
-                  }}
-                >
-                  {(showAllMissions ? rows : rows.slice(0, VISIBLE_MISSIONS)).map((s) => (
-                    <BuildMissionRow
-                      key={s.mission_id}
-                      session={s}
-                      onOpen={() => openMission(s.mission_id)}
-                      onArchive={(archived) =>
-                        archive.mutate({ missionId: s.mission_id, archived })
-                      }
-                      onDelete={() => setDeleteTarget(s)}
-                    />
-                  ))}
-                </div>
-                {rows.length > VISIBLE_MISSIONS ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowAllMissions((v) => !v)}
-                    className="loom-press w-full outline-none transition-colors hover:[color:var(--text-body)] hover:[border-color:var(--text-faint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                    style={{
-                      marginTop: 10,
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 12.5,
-                      fontWeight: 500,
-                      color: "var(--text-muted)",
-                      background: "transparent",
-                      border: "1px solid var(--hairline-strong)",
-                      borderRadius: "var(--radius-control)",
-                      padding: "8px 14px",
-                    }}
-                  >
-                    {showAllMissions
-                      ? "Show fewer"
-                      : `Show ${rows.length - VISIBLE_MISSIONS} more missions`}
-                  </button>
+      {viewMode === "agent" ? (
+        <Block>
+          <FleetView />
+        </Block>
+      ) : null}
+
+      {viewMode === "lane" ? (
+        <Block>
+          <DelegateBoard onOpenMission={openRun} />
+        </Block>
+      ) : null}
+
+      {receipt?.changeset ? (
+        <Block title="The last thing that shipped">
+          <RecordRecess
+            evidence={
+              <>
+                {receipt.changeset.repo}
+                {receipt.changeset.pr_number ? (
+                  <>
+                    {" · "}
+                    <a
+                      href={receipt.changeset.pr_url ?? undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "inherit" }}
+                    >
+                      #{receipt.changeset.pr_number}
+                    </a>
+                  </>
                 ) : null}
-              </div>
-            )}
-          </>
-        )}
+                {onDate(receipt.updated_at) ? ` · ${onDate(receipt.updated_at)}` : ""}
+              </>
+            }
+          >
+            {stripAutoPrefix(receipt.title)} is merged. A pull request anyone can open backs the
+            claim, so the record does not rest on a status word.
+          </RecordRecess>
+        </Block>
+      ) : null}
 
-        {viewMode === "agent" && <FleetView />}
-        {viewMode === "lane" && <DelegateBoard onOpenMission={openMission} />}
-      </div>
-
-      <MissionSlideOver missionId={search.mission ?? null} onClose={closeMission} />
+      <MissionSlideOver missionId={search.mission ?? null} onClose={closeRun} />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this mission?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this run?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the mission's working log and any staged files for{" "}
-              <strong>{deleteTarget?.title}</strong>. Its decisions stay in Memory. To just tidy the
-              list, Archive instead.
+              This removes the working log and any staged files for{" "}
+              <strong>{deleteTarget ? stripAutoPrefix(deleteTarget.title) : ""}</strong>. What it
+              decided stays on the record. To just tidy the list, archive it instead.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteTarget && del.mutate(deleteTarget.mission_id)}
               disabled={del.isPending}
-              // Destructive variant, not an inline madder background: the
-              // inline style was killing the variant's hover/active/disabled
-              // states (state audit 2026-07-12).
               className={buttonVariants({ variant: "destructive" })}
             >
-              {del.isPending ? "Deleting…" : "Delete mission"}
+              {del.isPending ? "Deleting" : "Delete the run"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </Surface>
   );
 }

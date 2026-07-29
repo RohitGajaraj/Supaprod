@@ -263,6 +263,62 @@ export function Button({
 }
 
 /* ------------------------------------------------------------------ *
+ * The Commit receipt: the signature moment
+ * ------------------------------------------------------------------ */
+
+/** What a judgment left behind.
+ *
+ *  Doctrine: agents/FINAL-agent-presence.md R10 and §9, which names the defect
+ *  by file and line. An approval must NOT vanish into a toast. A toast confirms
+ *  that your click registered; a receipt renders what your click CAUSED, and
+ *  that difference is the product thesis expressed as an interaction. An
+ *  approval that erases itself teaches you that your judgment left no trace,
+ *  and judgment is the product.
+ *
+ *  `handoff` draws the arrow to whoever picks the work up, and is drawn ONLY
+ *  when something real does. Where nothing follows, pass nothing and let
+ *  `consequence` say what changed instead. Never an arrow to nowhere.
+ */
+export function Receipt({
+  verb,
+  consequence,
+  handoff,
+  time,
+  failed = false,
+  initials,
+}: {
+  /** What you did, in your own voice: "You approved", "You sent it back". */
+  verb: string;
+  /** What it caused. Real, per-item, never a generic confirmation. */
+  consequence: React.ReactNode;
+  /** The agent that picked it up, if one genuinely did. */
+  handoff?: { slug: string | null | undefined; name?: string | null } | null;
+  time?: string | null;
+  failed?: boolean;
+  initials?: string;
+}) {
+  return (
+    <div className="sp-receipt" data-failed={failed}>
+      {initials ? <YouMark initials={initials} mine /> : null}
+      <span className="sp-receipt-what">
+        <span className="sp-receipt-verb">{verb}</span>
+        {" · "}
+        {consequence}
+      </span>
+      {handoff ? (
+        <>
+          <span className="sp-receipt-arrow" aria-hidden="true">
+            &rarr;
+          </span>
+          <AgentMark slug={handoff.slug} name={handoff.name} state="running" />
+        </>
+      ) : null}
+      {time ? <span className="sp-receipt-time">{time}</span> : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
  * The record speaking: the one lit surface in the product
  * ------------------------------------------------------------------ */
 
@@ -391,6 +447,60 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
  *  never scrolls sideways. */
 export function Pre({ children }: { children: React.ReactNode }) {
   return <pre className="sp-pre">{children}</pre>;
+}
+
+/** One boundary you set: label left, control right, one per line.
+ *
+ *  Reported from Settings as the most-used shape on that surface. The
+ *  governance canon is the reason it is a line and not a card: policy is set
+ *  in advance and does not block, so a boundary reads as a sentence with a
+ *  switch at the end of it, not as a panel demanding attention. `sub` says
+ *  WHY it matters or what it currently lets through, never a restatement. */
+export function Line({
+  label,
+  sub,
+  children,
+}: {
+  label: React.ReactNode;
+  sub?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="sp-line">
+      <span className="sp-line-label">
+        {label}
+        {sub ? <span className="sp-line-sub">{sub}</span> : null}
+      </span>
+      {children ? <span className="sp-line-control">{children}</span> : null}
+    </div>
+  );
+}
+
+/** On or off. Green when on, because green carries status and a live boundary
+ *  is a status. Never ember: ember marks the human, not a setting. */
+export function Switch({
+  checked,
+  onChange,
+  label,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  /** Required: a bare switch is unreadable to a screen reader. */
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      className="sp-switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+    />
+  );
 }
 
 /** A row of actions. One primary among them, and only one. */

@@ -21,7 +21,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { useWorkspace } from "@/hooks/use-workspace";
-import { toast } from "@/lib/notify";
 import {
   getApprovalsQueue,
   decideApprovalItem,
@@ -41,6 +40,7 @@ import {
   Gate,
   Num,
   PageHead,
+  Receipt,
   Record as RecordRecess,
   Row,
   Surface,
@@ -124,17 +124,42 @@ function Today() {
   );
   const onRecord = daysSince(oldest);
 
+  // THE COMMIT (agents/FINAL-agent-presence.md R10). A settled call leaves a
+  // receipt on the surface, never a toast. A toast confirms that your click
+  // registered; a receipt renders what your click CAUSED, and judgment leaving
+  // no trace is the thing the doctrine calls out by name.
+  const [receipts, setReceipts] = React.useState<
+    { verb: string; consequence: string; at: string; failed?: boolean }[]
+  >([]);
+  const stamp = () =>
+    new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+
   const settle = useMutation({
     mutationFn: async (verdict: "approve" | "reject") => {
       if (!call) return;
       await decide({ data: { id: call.sourceId, kind: call.kindKey, verdict } });
     },
     onSuccess: (_r, verdict) => {
-      toast.success(verdict === "approve" ? "Approved." : "Declined.");
+      setReceipts((r) => [
+        {
+          verb: verdict === "approve" ? "You approved" : "You declined",
+          consequence:
+            verdict === "approve"
+              ? (call?.approveConsequence ?? "The decision is on the record.")
+              : (call?.rejectConsequence ?? "Noted for next time."),
+          at: stamp(),
+        },
+        ...r,
+      ]);
       void qc.invalidateQueries({ queryKey: ["today"] });
       void qc.invalidateQueries({ queryKey: ["shell"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    // A failed write still writes a receipt, and it goes honest immediately.
+    onError: (e: Error) =>
+      setReceipts((r) => [
+        { verb: "Nothing was recorded", consequence: e.message, at: stamp(), failed: true },
+        ...r,
+      ]),
   });
 
   const defer = useMutation({
@@ -143,10 +168,21 @@ function Today() {
       await snooze({ data: { id: call.sourceId, kind: call.kindKey } });
     },
     onSuccess: () => {
-      toast.success("Back tomorrow.");
+      setReceipts((r) => [
+        {
+          verb: "You snoozed it",
+          consequence: "It comes back with tomorrow's brief.",
+          at: stamp(),
+        },
+        ...r,
+      ]);
       void qc.invalidateQueries({ queryKey: ["today"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipts((r) => [
+        { verb: "Nothing was recorded", consequence: e.message, at: stamp(), failed: true },
+        ...r,
+      ]),
   });
 
   const busy = settle.isPending || defer.isPending;
@@ -284,6 +320,20 @@ function Today() {
           </Button>
         </Gate>
       )}
+
+      {receipts.length > 0 ? (
+        <Block title="What you settled">
+          {receipts.map((r, i) => (
+            <Receipt
+              key={i}
+              verb={r.verb}
+              consequence={r.consequence}
+              time={r.at}
+              failed={r.failed}
+            />
+          ))}
+        </Block>
+      ) : null}
 
       <Block
         title="Done without you"

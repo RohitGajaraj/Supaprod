@@ -64,6 +64,43 @@ The closing standard: *"every single functionality, every single feature does it
 completely... always give the moment and surprise element to the users."* Name the moment this
 surface can genuinely offer. If there is none, say so rather than inventing one.
 
+**6. Where does the crew appear on this surface, and what does it prove?**
+Founder standing requirement, restated 2026-07-29: *"our platform is all about AI-native,
+agentic-first, so most of the things need to be done by agents itself. We need to design the user
+experience that way, and agent-friendly, so that it's not just in the backend but proven and
+working in the frontend as well."*
+
+His original form of the same complaint, which is the reason
+[`agents/FINAL-agent-presence.md`](./agents/FINAL-agent-presence.md) exists and is top priority:
+
+> *"We are saying Supaprod is built for product managers who ship with agents. And where is that
+> agents part coming into picture for us? Nowhere."*
+
+The override that doctrine settles on, and it decides this question everywhere:
+
+> **Mechanism is machinery and stays behind the door. Labour is not machinery. Who did the work
+> is chrome.**
+
+So a surface passes this question only if all four hold:
+
+- **Attribution is present.** Every artifact, row and change says who made it. An unattributed
+  row is a surface pretending the work did itself. Engine-Room doctrine hides the *mechanism*
+  (dispatch, fan-out, checkpoints); it never hid the *worker*, and applying it to the workforce
+  was the original error.
+- **Work in motion is visible while it happens**, not only after. A running agent wears its stage
+  hue and stops the moment the run does; a quiet crew reads as quiet rather than absent.
+- **Judgment leaves a trace.** R10, the Commit: an approval must not vanish into a toast. *"A
+  toast confirms that your click registered; the Commit renders what your click caused, and that
+  difference is the product thesis expressed as an interaction."* Where something real picks the
+  work up, draw the handoff; where nothing does, say what changed instead. **Never an arrow to
+  nowhere.**
+- **Nothing overclaims.** R12: no surface may imply a capability the wiring lacks. An honest
+  state beats a flattering animation, and a fake success is worse than a visible failure.
+
+**The test:** if you removed every agent from this product, would this surface look any
+different? If the answer is no, the surface is a filing cabinet with the agents in the basement,
+and it fails.
+
 ---
 
 ## The standing rulings every surface obeys

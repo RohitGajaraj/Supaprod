@@ -1,31 +1,59 @@
-// Trace replay — screen 7 of the Ember Editorial migration, ported 1:1 from
-// design-reference/supaprod/govern-detail.jsx (TraceDetail): DrillHeader with
-// the "Trace · N hops · tokens · cost" kicker, mission title + "Open mission"
-// ghost CTA when the trace resolves to a mission, and the hop table (status
-// dot / Agent / Tool call / What happened / Dur / Tokens / Cost). Production
-// functionality rides the reference layout: real ai_events spans interleaved
-// with tool_calls by created_at, wall time + failure counts in the kicker,
-// quiet per-row timing bars with parent-chain indentation, the strategic-brief
-// block, and the row-click inspector (model/via/tokens/cost, guardrail hits,
-// eval scores, input/system/output previews). The reference's planned/running
-// hop states and fabricated narrative prose are omitted — events are written
-// post-hoc and every string on screen is a real DB field.
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+/**
+ * One trace, in detail. The record room's drill layer, ported onto the
+ * rebuild primitives (step 4).
+ *
+ * WHAT THE RETIRED VERSION WAS: a page-level TopBar with its own four-part
+ * breadcrumb (a second header, on top of the shell's), a DrillHeader with a
+ * back button and a kicker, then a seven-column CSS grid table drawn by hand
+ * inside a `bento` card, each row carrying a hand-positioned waterfall bar,
+ * and a second `bento` card underneath holding the inspector, which drew its
+ * own bordered cards for guardrail hits and its own bordered tiles for eval
+ * scores. Four levels of container, three separate skins, and every colour
+ * literal written at the call site.
+ *
+ * WHAT IT IS NOW: one surface that reads top to bottom and says three things:
+ *   what ran  ·  the hop you picked  ·  the brief it was given
+ *
+ * The hop table is an attribution list, because that is what it always was:
+ * who did what, and how long it took. The seven columns collapse into the
+ * row's own three slots, and the numbers an engineer came for ride the
+ * "Show timing and cost" disclosure rather than being permanently on screen.
+ *
+ * MECHANISM WORDS ARE ALLOWED HERE and almost nowhere else: this is the
+ * engine room's drill layer, the reader is an engineer, and trace / span /
+ * hop / guardrail / eval are what a stack trace calls them.
+ *
+ * Nothing about the read changed: getTrace on ["trace", id], the same
+ * interleave of ai_events spans with tool_calls by created_at, the same
+ * parent-chain depth, the same brief extraction, and the same /build and
+ * /engine-room targets.
+ */
+
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect, useMemo, type CSSProperties } from "react";
-import { ChevronDown, ChevronRight, ExternalLink, FileText, Shield } from "lucide-react";
-import { TopBar } from "@/components/supaprod/TopBar";
-import { DrillHeader, MonoLabel } from "@/components/supaprod/Primitives";
-import { EvalScoreChips } from "@/components/observe/EvalScoreChips";
+import * as React from "react";
+
 import { getTrace } from "@/lib/traces.functions";
-import { relTime } from "@/components/product/format";
+import { evalScoreVerdict } from "@/components/observe/EvalScoreChips";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { stripAutoPrefix } from "@/components/plan/format";
-import { useWorkspace } from "@/hooks/use-workspace";
+import {
+  AgentMark,
+  Block,
+  Button,
+  Empty,
+  Num,
+  PageHead,
+  Row,
+  Surface,
+  Who,
+  type MarkState,
+} from "@/components/shell/primitives";
 
 export const Route = createFileRoute("/_authenticated/traces/$traceId")({
   component: TraceReplayPage,
-  head: () => ({ meta: [{ title: "Activity · Supaprod" }] }),
+  head: () => ({ meta: [{ title: "Trace · Supaprod" }] }),
 });
 
 type EventRow = {
@@ -73,23 +101,49 @@ type EvalRow = {
 };
 type Selected = { kind: "event" | "tool"; id: string };
 
+/* ------------------------------------------------------------------ *
+ * Formatting. Local on purpose: nothing here reaches into another
+ * surface's folder, so a parallel port cannot break this one.
+ * ------------------------------------------------------------------ */
+
 function fmtMs(ms: number) {
   if (ms < 1) return "0ms";
   if (ms < 1000) return `${Math.round(ms)}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
 }
-// Real money — keep the <$0.0001 floor; never round a real cost to a fake $0.
+
+/** Real money. Keep the <$0.0001 floor; never round a real cost to a fake $0. */
 function fmtUsd(n: number) {
   if (n === 0) return "$0";
   if (n < 0.0001) return `<$0.0001`;
   if (n < 0.01) return `$${n.toFixed(4)}`;
   return `$${n.toFixed(3)}`;
 }
+
 function clip(s: string, n = 180) {
   return s.length > n ? `${s.slice(0, n)}…` : s;
 }
 
-/** Depth via the ai_events parent chain — drives the quiet row indentation. */
+/** Plain-words clock, so the context column reads as a sentence. */
+function since(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  const ms = Date.now() - t;
+  if (ms < 0) return null;
+  if (ms < 60_000) return "just now";
+  const m = Math.floor(ms / 60_000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return `on ${new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+}
+
+/** Depth via the ai_events parent chain. The retired table drew it as row
+ *  indentation; a nested row inside a list reads as a card in a card, so the
+ *  number rides the inspector instead. */
 function withDepth(events: EventRow[]): Span[] {
   const byId = new Map(events.map((e) => [e.id, e]));
   const cache = new Map<string, number>();
@@ -107,44 +161,92 @@ function withDepth(events: EventRow[]): Span[] {
   return events.map((e) => ({ ...e, depth: depthOf(e.id) }));
 }
 
-// ai_events.status is written post-hoc: only ok / error / blocked exist.
-// The reference's planned + running dots have no production counterpart.
-const EVENT_DOT: Record<string, string> = {
-  ok: "dot-completed",
-  error: "dot-failed",
-  blocked: "dot-gate",
+/** ai_events.status is written post-hoc: only ok / error / blocked exist.
+ *  A blocked call is NOT a gate: ember marks the human and nothing else, and
+ *  nobody is being asked anything here. It fails soft on the mark and says so
+ *  in words on the row's second line. */
+function markState(status: string): MarkState {
+  if (status === "error") return "failed";
+  return "idle";
+}
+
+/* ------------------------------------------------------------------ *
+ * Local presentation atoms. Deliberately not added to the shared
+ * primitives: they are this surface's shape, not the system's.
+ * ------------------------------------------------------------------ */
+
+const factGrid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))",
+  gap: "16px 20px",
 };
 
-// The hop table leads with the narrative columns; Dur / Tokens / Cost ride
-// behind the "Timing + cost" disclosure (IA 2026-07-11) so replay reads as a
-// story first and an invoice only on request.
-const GRID = "26px 90px 130px 1fr 60px 56px 56px";
-const GRID_LEAN = "26px 90px 130px 1fr";
-
-const preStyle: CSSProperties = {
-  margin: 0,
-  marginTop: 6,
-  padding: 10,
-  borderRadius: 8,
-  background: "var(--surface-2)",
-  fontSize: 11,
-  fontFamily: "var(--font-mono)",
-  whiteSpace: "pre-wrap",
-  maxHeight: 220,
-  overflow: "auto",
-  color: "var(--ink-muted)",
-};
-
-const cellEllipsis: CSSProperties = {
+const factValue: React.CSSProperties = {
+  fontSize: "var(--sp-text-meta)",
+  color: "var(--sp-ink)",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
 };
 
-/* ---------- Selected-hop inspector (production retainer — the reference has
-   no inspector; this is the row-click detail pane, restyled quiet Ember). ---------- */
+const paneStyle: React.CSSProperties = {
+  margin: 0,
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-word",
+  fontFamily: "var(--sp-font-mono)",
+  fontSize: "var(--sp-text-data)",
+  lineHeight: 1.6,
+  color: "var(--sp-body)",
+  background: "var(--sp-sink)",
+  borderRadius: "var(--sp-radius-panel)",
+  padding: "14px 16px",
+  maxHeight: 260,
+  overflow: "auto",
+};
 
-function SpanInspector({
+const noteStyle: React.CSSProperties = {
+  marginTop: 16,
+  fontSize: "var(--sp-text-meta)",
+};
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="sp-ctx-head" style={{ marginBottom: 6 }}>
+      {children}
+    </div>
+  );
+}
+
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ minWidth: 0 }}>
+      <Label>{label}</Label>
+      <div style={factValue}>{children}</div>
+    </div>
+  );
+}
+
+function Pane({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginTop: 20 }}>
+      <Label>{label}</Label>
+      <pre style={paneStyle}>{children}</pre>
+    </div>
+  );
+}
+
+/** One honest verdict word for a call's outcome, in the outcome colours. */
+function Outcome({ status }: { status: string }) {
+  if (status === "ok") return <span className="sp-pass">ok</span>;
+  if (status === "blocked") return <span className="sp-warn">stopped by a guardrail</span>;
+  return <span className="sp-fail">{status}</span>;
+}
+
+/* ------------------------------------------------------------------ *
+ * The hop you picked
+ * ------------------------------------------------------------------ */
+
+function SpanDetail({
   span,
   hits,
   evalRow,
@@ -153,227 +255,150 @@ function SpanInspector({
   hits: GuardrailHit[];
   evalRow?: EvalRow;
 }) {
-  const statusColor =
-    span.status === "ok"
-      ? "var(--emerald)"
-      : span.status === "blocked"
-        ? "var(--ember)"
-        : "var(--rose)";
-  const meta: [string, string][] = [
-    ["Model", span.model],
-    ["Via", `${span.provider} · ${span.via}${span.fallback ? " · fallback" : ""}`],
-    ["Latency", fmtMs(span.latency_ms)],
-    ["Tokens", `${span.prompt_tokens} → ${span.completion_tokens}`],
-    ["Cost", fmtUsd(Number(span.est_cost_usd))],
-  ];
-  // Every score wears a pass/watch/fail verdict (eval-health cutoffs) with
-  // the raw number as a mono tail; risk-shaped metrics invert (low is good).
-  const evalScores = evalRow
-    ? [
-        { label: "Relevance", value: evalRow.relevance, higherIsBetter: true },
-        { label: "Grounded", value: evalRow.groundedness, higherIsBetter: true },
-        { label: "Coherence", value: evalRow.coherence, higherIsBetter: true },
-        { label: "Halluc.", value: evalRow.hallucination_score, higherIsBetter: false },
-        { label: "Toxicity", value: evalRow.toxicity, higherIsBetter: false },
-        { label: "PII risk", value: evalRow.pii_risk, higherIsBetter: false },
-      ]
-    : [];
+  const scores = (
+    evalRow
+      ? [
+          { label: "Relevance", value: evalRow.relevance, higherIsBetter: true },
+          { label: "Grounded", value: evalRow.groundedness, higherIsBetter: true },
+          { label: "Coherence", value: evalRow.coherence, higherIsBetter: true },
+          { label: "Hallucination", value: evalRow.hallucination_score, higherIsBetter: false },
+          { label: "Toxicity", value: evalRow.toxicity, higherIsBetter: false },
+          { label: "PII risk", value: evalRow.pii_risk, higherIsBetter: false },
+        ]
+      : []
+  ).filter((s): s is { label: string; value: number; higherIsBetter: boolean } => {
+    return s.value != null && Number.isFinite(s.value);
+  });
+
   return (
-    <div className="fade-up">
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <MonoLabel>Span · {span.surface}</MonoLabel>
-        <code style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--ink-faint)" }}>
-          {span.id}
-        </code>
-      </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 12,
-          marginTop: 12,
-          fontSize: 12.5,
-        }}
-      >
-        {meta.map(([l, v]) => (
-          <div key={l} style={{ minWidth: 0 }}>
-            <MonoLabel style={{ marginBottom: 3 }}>{l}</MonoLabel>
-            <div style={{ ...cellEllipsis, fontFamily: "var(--font-mono)", fontSize: 11.5 }}>
-              {v}
-            </div>
-          </div>
-        ))}
-        <div>
-          <MonoLabel style={{ marginBottom: 3 }}>Status</MonoLabel>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span className={`dot ${EVENT_DOT[span.status] ?? "dot-failed"}`}></span>
-            <span style={{ color: statusColor, fontSize: 12.5 }}>{span.status}</span>
-          </span>
-        </div>
+    <>
+      <div style={factGrid}>
+        <Fact label="Outcome">
+          <Outcome status={span.status} />
+        </Fact>
+        <Fact label="Model">
+          <Num>{span.model}</Num>
+        </Fact>
+        <Fact label="Via">
+          <Num>{`${span.provider} · ${span.via}${span.fallback ? " · fallback" : ""}`}</Num>
+        </Fact>
+        <Fact label="Took">
+          <Num>{fmtMs(span.latency_ms)}</Num>
+        </Fact>
+        <Fact label="Tokens">
+          <Num>{span.prompt_tokens.toLocaleString()}</Num> in,{" "}
+          <Num>{span.completion_tokens.toLocaleString()}</Num> out
+        </Fact>
+        <Fact label="Cost">
+          <Num>{fmtUsd(Number(span.est_cost_usd))}</Num>
+        </Fact>
+        <Fact label="Surface">
+          <Num>{span.surface}</Num>
+        </Fact>
+        {span.depth > 0 ? (
+          <Fact label="Nested">
+            <Num>{span.depth}</Num> deep
+          </Fact>
+        ) : null}
+        <Fact label="Span id">
+          <Num>{span.id}</Num>
+        </Fact>
       </div>
 
-      {span.error_message && (
-        <div
-          style={{
-            marginTop: 12,
-            padding: "8px 10px",
-            borderRadius: 8,
-            border: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
-            color: "var(--rose)",
-            fontSize: 12,
-          }}
-        >
+      {span.error_message ? (
+        <div style={{ ...noteStyle }} className="sp-fail">
           {span.error_message}
         </div>
-      )}
+      ) : null}
 
-      {hits.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel icon={Shield} style={{ marginBottom: 6 }}>
-            Guardrail hits
-          </MonoLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {hits.map((h, i) => (
-              <div
-                key={i}
-                style={{
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 8,
-                  padding: "7px 10px",
-                  fontSize: 12.5,
-                }}
-              >
-                <span style={{ fontWeight: 500 }}>{h.rule_name}</span>
-                <span className="mono-label" style={{ marginLeft: 8 }}>
+      {hits.length > 0 ? (
+        <div style={{ marginTop: 22 }}>
+          <Label>{hits.length === 1 ? "Guardrail hit" : "Guardrail hits"}</Label>
+          {hits.map((h, i) => (
+            <Row
+              key={`${h.rule_name}-${i}`}
+              tight
+              lead={<Who>{h.rule_name}</Who>}
+              sub={
+                <>
                   {h.side} · {h.action}
-                </span>
-                {h.matched && (
-                  <code
-                    style={{
-                      display: "block",
-                      marginTop: 3,
-                      fontSize: 10,
-                      fontFamily: "var(--font-mono)",
-                      color: "var(--ink-subtle)",
-                      ...cellEllipsis,
-                    }}
-                  >
-                    {h.matched}
-                  </code>
-                )}
-              </div>
-            ))}
+                  {h.matched ? (
+                    <>
+                      {" · "}
+                      <Num>{h.matched}</Num>
+                    </>
+                  ) : null}
+                </>
+              }
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {scores.length > 0 ? (
+        <div style={{ marginTop: 22 }}>
+          <Label>Judged</Label>
+          <div style={factGrid}>
+            {scores.map((s) => {
+              const verdict = evalScoreVerdict(s.value, s.higherIsBetter);
+              const tone =
+                verdict === "pass" ? "sp-pass" : verdict === "watch" ? "sp-warn" : "sp-fail";
+              return (
+                <div key={s.label} style={{ minWidth: 0 }}>
+                  <Label>{s.label}</Label>
+                  <div style={factValue}>
+                    <span className={tone}>{verdict}</span> <Num>{s.value.toFixed(2)}</Num>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {evalScores.some((s) => s.value != null) && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel style={{ marginBottom: 6 }}>Eval scores</MonoLabel>
-          <EvalScoreChips scores={evalScores} />
-        </div>
-      )}
-
-      {span.input_preview && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel>Input</MonoLabel>
-          <pre className="scrollbar-thin" style={preStyle}>
-            {span.input_preview}
-          </pre>
-        </div>
-      )}
-      {span.system_preview && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel>System prompt</MonoLabel>
-          <pre className="scrollbar-thin" style={preStyle}>
-            {span.system_preview}
-          </pre>
-        </div>
-      )}
-      {span.output_preview && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel>Output</MonoLabel>
-          <pre className="scrollbar-thin" style={preStyle}>
-            {span.output_preview}
-          </pre>
-        </div>
-      )}
-    </div>
+      {span.input_preview ? <Pane label="Input">{span.input_preview}</Pane> : null}
+      {span.system_preview ? <Pane label="System prompt">{span.system_preview}</Pane> : null}
+      {span.output_preview ? <Pane label="Output">{span.output_preview}</Pane> : null}
+    </>
   );
 }
 
-function ToolInspector({ tool }: { tool: ToolCallRow }) {
+function ToolDetail({ tool }: { tool: ToolCallRow }) {
   return (
-    <div className="fade-up">
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <MonoLabel>Tool call · {tool.tool_name}</MonoLabel>
-        <code style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--ink-faint)" }}>
-          {tool.id}
-        </code>
+    <>
+      <div style={factGrid}>
+        <Fact label="Outcome">
+          {tool.ok ? <span className="sp-pass">ok</span> : <span className="sp-fail">failed</span>}
+        </Fact>
+        <Fact label="Took">
+          <Num>{fmtMs(tool.latency_ms)}</Num>
+        </Fact>
+        {since(tool.created_at) ? <Fact label="Ran">{since(tool.created_at)}</Fact> : null}
+        <Fact label="Call id">
+          <Num>{tool.id}</Num>
+        </Fact>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 12,
-          marginTop: 12,
-          fontSize: 12.5,
-        }}
-      >
-        <div>
-          <MonoLabel style={{ marginBottom: 3 }}>Status</MonoLabel>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span className={`dot ${tool.ok ? "dot-completed" : "dot-failed"}`}></span>
-            <span style={{ color: tool.ok ? "var(--emerald)" : "var(--rose)", fontSize: 12.5 }}>
-              {tool.ok ? "ok" : "failed"}
-            </span>
-          </span>
-        </div>
-        <div>
-          <MonoLabel style={{ marginBottom: 3 }}>Latency</MonoLabel>
-          <div className="tabular-nums">{fmtMs(tool.latency_ms)}</div>
-        </div>
-        <div>
-          <MonoLabel style={{ marginBottom: 3 }}>When</MonoLabel>
-          <div>{relTime(tool.created_at)}</div>
-        </div>
-      </div>
-      {tool.error && (
-        <div
-          style={{
-            marginTop: 12,
-            padding: "8px 10px",
-            borderRadius: 8,
-            border: "1px solid color-mix(in oklab, var(--rose) 35%, transparent)",
-            color: "var(--rose)",
-            fontSize: 12,
-          }}
-        >
+
+      {tool.error ? (
+        <div style={{ ...noteStyle }} className="sp-fail">
           {tool.error}
         </div>
-      )}
-      {tool.args != null && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel>Args</MonoLabel>
-          <pre className="scrollbar-thin" style={preStyle}>
-            {JSON.stringify(tool.args, null, 2)}
-          </pre>
-        </div>
-      )}
-      {tool.result != null && (
-        <div style={{ marginTop: 14 }}>
-          <MonoLabel>Result</MonoLabel>
-          <pre className="scrollbar-thin" style={preStyle}>
-            {JSON.stringify(tool.result, null, 2)}
-          </pre>
-        </div>
-      )}
-    </div>
+      ) : null}
+
+      {tool.args != null ? (
+        <Pane label="Arguments">{JSON.stringify(tool.args, null, 2)}</Pane>
+      ) : null}
+      {tool.result != null ? (
+        <Pane label="Result">{JSON.stringify(tool.result, null, 2)}</Pane>
+      ) : null}
+    </>
   );
 }
 
-/* ---------- TraceDetail — the drill body (reference anatomy). Takes { id }
-   per the screen-6/7 drill contract: the route passes the id. ---------- */
+/* ------------------------------------------------------------------ *
+ * The drill body. Takes { id } per the drill contract: the route
+ * passes the param.
+ * ------------------------------------------------------------------ */
 
 export function TraceDetail({ id }: { id: string }) {
   const navigate = useNavigate();
@@ -383,18 +408,24 @@ export function TraceDetail({ id }: { id: string }) {
     queryFn: () => fGet({ data: { traceId: id } }),
   });
 
-  const [selected, setSelected] = useState<Selected | null>(null);
-  // Dur / Tokens / Cost columns hide until asked for; the header kicker keeps
-  // the trace-level totals either way, so nothing real disappears.
-  const [showTiming, setShowTiming] = useState(false);
-  const hopGrid = showTiming ? GRID : GRID_LEAN;
+  const [selected, setSelected] = React.useState<Selected | null>(null);
+  // Tokens and cost per hop hide until asked for; the head and the context
+  // column keep the trace-level totals either way, so nothing real vanishes.
+  const [showCost, setShowCost] = React.useState(false);
+  const [showBrief, setShowBrief] = React.useState(false);
 
-  const spans = useMemo(() => withDepth((trace.data?.events ?? []) as EventRow[]), [trace.data]);
-  const toolCalls = useMemo(() => (trace.data?.toolCalls ?? []) as ToolCallRow[], [trace.data]);
+  const spans = React.useMemo(
+    () => withDepth((trace.data?.events ?? []) as EventRow[]),
+    [trace.data],
+  );
+  const toolCalls = React.useMemo(
+    () => (trace.data?.toolCalls ?? []) as ToolCallRow[],
+    [trace.data],
+  );
 
-  // Interleave LLM spans and tool calls strictly by created_at — the loop
+  // Interleave LLM spans and tool calls strictly by created_at: the loop
   // never writes tool_calls.event_id, so time order is the only honest join.
-  const hopRows = useMemo<HopRow[]>(() => {
+  const hopRows = React.useMemo<HopRow[]>(() => {
     const rows: HopRow[] = [
       ...spans.map((s) => ({
         kind: "event" as const,
@@ -411,7 +442,7 @@ export function TraceDetail({ id }: { id: string }) {
     return rows;
   }, [spans, toolCalls]);
 
-  // Wall-clock timeline across both row kinds — drives the quiet timing bars.
+  // Wall clock across both row kinds.
   const t0 = hopRows.length ? Math.min(...hopRows.map((r) => r.at)) : 0;
   const tEnd = hopRows.length
     ? Math.max(
@@ -422,13 +453,13 @@ export function TraceDetail({ id }: { id: string }) {
     : 0;
   const totalMs = Math.max(1, tEnd - t0);
 
-  // Auto-select the root span once events load so the inspector isn't empty.
-  useEffect(() => {
+  // Auto-select the root span once events load, so the detail is never empty.
+  React.useEffect(() => {
     if (!selected && spans.length > 0) setSelected({ kind: "event", id: spans[0].id });
   }, [spans, selected]);
 
   // Pull the brief block out of the first agent system prompt, if present.
-  const briefBlock = useMemo(() => {
+  const briefBlock = React.useMemo(() => {
     const root = spans.find((s) => s.system_preview);
     const sys = root?.system_preview ?? "";
     const m = sys.match(/--- Workspace Strategic Brief[\s\S]*?--- End brief ---/);
@@ -448,78 +479,70 @@ export function TraceDetail({ id }: { id: string }) {
     cost: spans.reduce((n, s) => n + Number(s.est_cost_usd || 0), 0),
     failed:
       spans.filter((s) => s.status === "error").length + toolCalls.filter((t) => !t.ok).length,
-    gated: spans.filter((s) => s.status === "blocked").length,
+    blocked: spans.filter((s) => s.status === "blocked").length,
   };
 
   const mission = trace.data?.mission ?? null;
   const rootSurface = spans[0]?.surface ?? null;
-  // Only agent-surface spans carry an agent slug in surface_ref; tool rows
-  // (agent_id uuid only) ride under the trace's agent slug.
+  // Only agent-surface spans carry a slug in surface_ref; tool rows (agent_id
+  // uuid only) ride under the trace's agent slug.
   const traceAgentSlug =
     spans.find((s) => s.surface === "agent" && s.surface_ref)?.surface_ref ?? null;
 
-  // IA SPINE (2026-07-11): the record room's traces view is the canonical
-  // home for this drill layer (the old /govern back target is gone; the
-  // TopBar crumbs Engine Room > Record > trace carry the wayfinding).
-  const back = () => navigate({ to: "/engine-room", search: { room: "record", view: "traces" } });
+  // IA spine: the record room's traces view is the canonical home for this
+  // drill layer, and the shell header no longer carries a crumb trail.
+  const back = React.useCallback(
+    () => void navigate({ to: "/engine-room", search: { room: "record", view: "traces" } }),
+    [navigate],
+  );
 
   if (trace.isLoading) {
     return (
-      <div
-        className="mono-label"
-        style={{ padding: "48px 0", textAlign: "center", color: "var(--ink-faint)" }}
-      >
-        Loading trace…
-      </div>
+      <Surface>
+        <PageHead title="Reading the trace." />
+      </Surface>
     );
   }
 
   if (trace.error) {
     return (
-      <div className="fade-up">
-        <DrillHeader onBack={back} backLabel="All traces" kicker="Trace" title={id.slice(0, 8)} />
-        <div className="bento" style={{ padding: "var(--card-pad)" }}>
-          <div className="mono-label" style={{ color: "var(--rose)" }}>
-            Couldn't load this trace
+      <Surface>
+        <PageHead
+          title="This trace did not load."
+          sub={<span className="sp-fail">{(trace.error as Error).message}</span>}
+        />
+        <Block>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
+            <Button onClick={() => void trace.refetch()}>Try again</Button>
+            <Button variant="ghost" onClick={back}>
+              All traces
+            </Button>
           </div>
-          <p style={{ fontSize: 12.5, color: "var(--ink-muted)", margin: "8px 0 0" }}>
-            {(trace.error as Error).message}
-          </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            style={{ marginTop: 14 }}
-            onClick={() => trace.refetch()}
-          >
-            Retry · reloads the trace
-          </button>
-        </div>
-      </div>
+        </Block>
+      </Surface>
     );
   }
 
   if (hopRows.length === 0) {
     return (
-      <div className="fade-up">
-        <DrillHeader onBack={back} backLabel="All traces" kicker="Trace" title={id.slice(0, 8)} />
-        <div
-          className="bento"
-          style={{
-            padding: "var(--card-pad)",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexWrap: "wrap",
-          }}
-        >
-          <span className="mono-label" style={{ flex: 1 }}>
-            No spans recorded for this trace. It may have expired or belong to another account.
-          </span>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={back}>
-            Back · all traces
-          </button>
-        </div>
-      </div>
+      <Surface>
+        <PageHead
+          title={
+            <>
+              Trace <Num>{id.slice(0, 8)}</Num>
+            </>
+          }
+        />
+        <Block>
+          <Empty>
+            No model calls or tool calls were recorded on this trace. It may have expired, or it
+            belongs to another account.
+          </Empty>
+          <Button variant="ghost" onClick={back}>
+            All traces
+          </Button>
+        </Block>
+      </Surface>
     );
   }
 
@@ -531,331 +554,256 @@ export function TraceDetail({ id }: { id: string }) {
       ) ?? null)
     : null;
 
+  const startedAt = hopRows.length ? new Date(t0).toISOString() : null;
+
   return (
-    <div className="fade-up">
-      <DrillHeader
-        onBack={back}
-        backLabel="All traces"
-        kicker={
-          <>
-            Trace · {hopRows.length} {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
-            {totals.tokens.toLocaleString()} tokens · {fmtUsd(totals.cost)} · {fmtMs(totalMs)} wall
-            {totals.failed > 0 && (
-              <span style={{ color: "var(--rose)" }}> · {totals.failed} failed</span>
-            )}
-            {totals.gated > 0 && (
-              <span style={{ color: "var(--ember)" }}> · {totals.gated} gated</span>
-            )}
-          </>
-        }
+    <Surface
+      context={
+        <>
+          <div className="sp-ctx-head">Who ran it</div>
+          <div className="sp-ctx-row">
+            <AgentMark
+              slug={traceAgentSlug}
+              name={rootSurface}
+              state={totals.failed > 0 ? "failed" : "idle"}
+            />
+            <span>
+              <span className="sp-ctx-name">
+                {traceAgentSlug ? agentDisplayName(traceAgentSlug) : (rootSurface ?? "The engine")}
+              </span>
+              {spans[0]?.model ? (
+                <span className="sp-ctx-sub">
+                  <Num>{spans[0].model}</Num>
+                </span>
+              ) : null}
+            </span>
+          </div>
+
+          <div className="sp-ctx-head">What it cost</div>
+          <div className="sp-ctx-body">
+            <Num>{totals.tokens.toLocaleString()}</Num> tokens · <Num>{fmtUsd(totals.cost)}</Num>
+          </div>
+
+          {since(startedAt) ? (
+            <>
+              <div className="sp-ctx-head">When it ran</div>
+              <div className="sp-ctx-body">{since(startedAt)}</div>
+            </>
+          ) : null}
+
+          <div className="sp-ctx-head">Trace id</div>
+          <div className="sp-ctx-body" style={{ wordBreak: "break-all" }}>
+            <Num>{id}</Num>
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 24 }}>
+            {mission ? (
+              <Button
+                onClick={() =>
+                  void navigate({ to: "/build/$missionId", params: { missionId: mission.id } })
+                }
+              >
+                Open the run
+              </Button>
+            ) : null}
+            <Button variant="ghost" onClick={back}>
+              All traces
+            </Button>
+          </div>
+        </>
+      }
+    >
+      <PageHead
         title={
-          mission ? stripAutoPrefix(mission.title) : `${rootSurface ?? "trace"} · ${id.slice(0, 8)}`
-        }
-        right={
           mission ? (
-            <Link
-              to="/build/$missionId"
-              params={{ missionId: mission.id }}
-              className="btn btn-ghost btn-sm"
-            >
-              <ExternalLink size={16} />
-              Open mission
-            </Link>
-          ) : null
+            stripAutoPrefix(mission.title)
+          ) : (
+            <>
+              Trace <Num>{id.slice(0, 8)}</Num>
+            </>
+          )
+        }
+        sub={
+          <>
+            <Num>{hopRows.length}</Num> {hopRows.length === 1 ? "hop" : "hops"} ·{" "}
+            <Num>{fmtMs(totalMs)}</Num> wall
+            {totals.failed > 0 ? (
+              <>
+                {" · "}
+                <span className="sp-fail">
+                  <Num>{totals.failed}</Num> failed
+                </span>
+              </>
+            ) : null}
+            {totals.blocked > 0 ? (
+              <>
+                {" · "}
+                <span className="sp-warn">
+                  <Num>{totals.blocked}</Num> stopped by a guardrail
+                </span>
+              </>
+            ) : null}
+          </>
         }
       />
 
-      {briefBlock && (
-        <div className="bento" style={{ padding: "var(--card-pad)", marginBottom: 14 }}>
-          <MonoLabel icon={FileText} style={{ marginBottom: 4 }}>
-            Workspace strategic brief · injected into system prompt
-          </MonoLabel>
-          <pre className="scrollbar-thin" style={{ ...preStyle, maxHeight: 180 }}>
-            {briefBlock}
-          </pre>
-        </div>
-      )}
-
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          aria-expanded={showTiming}
-          aria-controls="trace-hop-table"
-          onClick={() => setShowTiming((v) => !v)}
-        >
-          {showTiming ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          Timing + cost
-        </button>
-      </div>
-
-      <div id="trace-hop-table" className="bento" style={{ padding: 0, overflow: "hidden" }}>
-        <div
-          className="mono-label"
-          style={{
-            display: "grid",
-            gridTemplateColumns: hopGrid,
-            gap: 10,
-            padding: "10px 18px",
-            borderBottom: "1px solid var(--hairline)",
-          }}
-        >
-          <span></span>
-          <span>Agent</span>
-          <span>Tool call</span>
-          <span>What happened</span>
-          {showTiming && (
-            <>
-              <span>Dur</span>
-              <span>Tokens</span>
-              <span>Cost</span>
-            </>
-          )}
-        </div>
-        {hopRows.map((r, i) => {
-          const isLast = i === hopRows.length - 1;
+      <Block
+        title="What ran"
+        more={showCost ? "Hide timing and cost" : "Show timing and cost"}
+        onMore={() => setShowCost((v) => !v)}
+      >
+        {hopRows.map((r) => {
           const isSel =
             selected != null &&
             (r.kind === "event"
               ? selected.kind === "event" && r.span.id === selected.id
               : selected.kind === "tool" && r.tool.id === selected.id);
+          const rowId = r.kind === "event" ? r.span.id : r.tool.id;
           const latency = (r.kind === "event" ? r.span.latency_ms : r.tool.latency_ms) || 0;
-          const left = ((r.at - t0) / totalMs) * 100;
-          const width = Math.max(0.5, (latency / totalMs) * 100);
-          const hits = r.kind === "event" ? (hitsByEvent.get(r.span.id) ?? []) : [];
-          return (
-            <button
-              key={r.kind === "event" ? r.span.id : r.tool.id}
-              type="button"
-              aria-pressed={isSel}
-              className="hover:[background-color:var(--surface-2)]"
-              onClick={() =>
-                setSelected({ kind: r.kind, id: r.kind === "event" ? r.span.id : r.tool.id })
-              }
-              style={{
-                display: "grid",
-                gridTemplateColumns: hopGrid,
-                gap: 10,
-                padding: "12px 18px",
-                alignItems: "center",
-                width: "100%",
-                textAlign: "left",
-                fontSize: 12.5,
-                borderBottom: isLast ? "none" : "1px solid var(--hairline)",
-                background: isSel ? "var(--surface-2)" : "transparent",
-              }}
-            >
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span
-                  className={`dot ${
-                    r.kind === "event"
-                      ? (EVENT_DOT[r.span.status] ?? "dot-failed")
-                      : r.tool.ok
-                        ? "dot-completed"
-                        : "dot-failed"
-                  }`}
-                ></span>
-              </span>
-              {r.kind === "event" ? (
-                <>
-                  <span
-                    className="mono-label"
-                    style={{
-                      ...cellEllipsis,
-                      paddingLeft: r.span.depth * 10,
-                      // Gray for every surface (accent restraint 2026-07-11):
-                      // machine blue marks agent actions, not attribution columns.
-                      color: "var(--ink-muted)",
-                    }}
-                  >
-                    {r.span.surface === "agent" && r.span.surface_ref
-                      ? r.span.surface_ref
-                      : `${r.span.surface}${r.span.surface_ref ? `·${r.span.surface_ref.slice(0, 8)}` : ""}`}
-                  </span>
-                  <span
-                    className="mono-label"
-                    style={{ ...cellEllipsis, color: "var(--ink-muted)" }}
-                  >
-                    {r.span.model}
-                  </span>
-                  <span
-                    style={{
-                      ...cellEllipsis,
-                      color:
-                        r.span.status === "error"
-                          ? "var(--rose)"
-                          : r.span.status === "blocked"
-                            ? "var(--ember)"
-                            : r.span.output_preview
-                              ? "var(--ink-muted)"
-                              : "var(--ink-faint)",
-                      fontWeight: r.span.status === "blocked" ? 550 : 400,
-                    }}
-                  >
-                    {r.span.status !== "ok" && r.span.error_message
-                      ? clip(r.span.error_message)
-                      : r.span.output_preview
-                        ? clip(r.span.output_preview)
-                        : "-"}
-                    {hits.length > 0 && (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 3,
-                          marginLeft: 8,
-                          color: "var(--saffron)",
-                        }}
-                      >
-                        <Shield size={16} /> {hits.length}
-                      </span>
-                    )}
-                  </span>
-                  {showTiming && (
-                    <>
-                      <span className="mono-label tabular-nums">{fmtMs(r.span.latency_ms)}</span>
-                      <span className="mono-label tabular-nums">
-                        {(r.span.total_tokens || 0).toLocaleString()}
-                      </span>
-                      <span className="mono-label tabular-nums" style={{ color: "var(--ink)" }}>
-                        {fmtUsd(Number(r.span.est_cost_usd))}
-                      </span>
-                    </>
-                  )}
-                </>
+          const offset = r.at - t0;
+
+          if (r.kind === "event") {
+            const s = r.span;
+            const actor =
+              s.surface === "agent" && s.surface_ref ? agentDisplayName(s.surface_ref) : s.surface;
+            const hits = hitsByEvent.get(s.id) ?? [];
+            const outcome =
+              s.status === "error" && s.error_message ? (
+                <span className="sp-fail">{clip(s.error_message)}</span>
+              ) : s.status === "blocked" ? (
+                <span className="sp-warn">
+                  {s.error_message ? clip(s.error_message) : "Stopped by a guardrail"}
+                </span>
+              ) : s.output_preview ? (
+                clip(s.output_preview)
               ) : (
+                "No output recorded"
+              );
+            return (
+              <Row
+                key={rowId}
+                tight
+                focused={isSel}
+                marks={
+                  <AgentMark
+                    slug={s.surface === "agent" ? s.surface_ref : traceAgentSlug}
+                    name={s.surface}
+                    state={markState(s.status)}
+                  />
+                }
+                lead={
+                  <>
+                    <Who>{actor}</Who> called <Num>{s.model}</Num>
+                  </>
+                }
+                sub={
+                  <>
+                    {showCost ? (
+                      <>
+                        <Num>{(s.total_tokens || 0).toLocaleString()}</Num> tokens ·{" "}
+                        <Num>{fmtUsd(Number(s.est_cost_usd))}</Num> · +<Num>{fmtMs(offset)}</Num>{" "}
+                        ·{" "}
+                      </>
+                    ) : null}
+                    {hits.length > 0 ? (
+                      <>
+                        <span className="sp-warn">
+                          <Num>{hits.length}</Num>{" "}
+                          {hits.length === 1 ? "guardrail hit" : "guardrail hits"}
+                        </span>
+                        {" · "}
+                      </>
+                    ) : null}
+                    {outcome}
+                  </>
+                }
+                time={fmtMs(latency)}
+                onClick={() => setSelected({ kind: "event", id: s.id })}
+              />
+            );
+          }
+
+          const t = r.tool;
+          const actor = traceAgentSlug ? agentDisplayName(traceAgentSlug) : "The engine";
+          return (
+            <Row
+              key={rowId}
+              tight
+              focused={isSel}
+              marks={
+                <AgentMark slug={traceAgentSlug} name="Tool" state={t.ok ? "idle" : "failed"} />
+              }
+              lead={
                 <>
-                  <span
-                    className="mono-label"
-                    style={{
-                      ...cellEllipsis,
-                      // Gray slug column (accent restraint 2026-07-11); faint
-                      // only for the empty placeholder.
-                      color: traceAgentSlug ? "var(--ink-muted)" : "var(--ink-faint)",
-                    }}
-                  >
-                    {traceAgentSlug ?? "-"}
-                  </span>
-                  <span
-                    className="mono-label"
-                    style={{ ...cellEllipsis, color: "var(--ink-muted)" }}
-                  >
-                    {r.tool.tool_name}
-                  </span>
-                  <span
-                    style={{
-                      ...cellEllipsis,
-                      color: r.tool.ok ? "var(--ink-muted)" : "var(--rose)",
-                    }}
-                  >
-                    {!r.tool.ok && r.tool.error
-                      ? clip(r.tool.error)
-                      : (r.tool.result ?? r.tool.args) != null
-                        ? clip(JSON.stringify(r.tool.result ?? r.tool.args))
-                        : "-"}
-                  </span>
-                  {showTiming && (
+                  <Who>{actor}</Who> ran <Num>{t.tool_name}</Num>
+                </>
+              }
+              sub={
+                <>
+                  {showCost ? (
                     <>
-                      <span className="mono-label tabular-nums">{fmtMs(r.tool.latency_ms)}</span>
-                      <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                        -
-                      </span>
-                      <span className="mono-label" style={{ color: "var(--ink-faint)" }}>
-                        -
-                      </span>
+                      +<Num>{fmtMs(offset)}</Num>
+                      {" · "}
                     </>
+                  ) : null}
+                  {!t.ok && t.error ? (
+                    <span className="sp-fail">{clip(t.error)}</span>
+                  ) : (t.result ?? t.args) != null ? (
+                    clip(JSON.stringify(t.result ?? t.args))
+                  ) : (
+                    "No result recorded"
                   )}
                 </>
-              )}
-              {/* Quiet wall-clock timing bar — production waterfall retainer. */}
-              <span
-                aria-hidden="true"
-                style={{
-                  gridColumn: "1 / -1",
-                  position: "relative",
-                  display: "block",
-                  height: 2,
-                  marginTop: 6,
-                }}
-              >
-                <span
-                  title={`+${fmtMs(r.at - t0)} · ${fmtMs(latency)}`}
-                  style={{
-                    position: "absolute",
-                    left: `${left}%`,
-                    width: `${width}%`,
-                    top: 0,
-                    height: "100%",
-                    borderRadius: 99,
-                    background: "var(--ink-faint)",
-                    opacity: 0.45,
-                  }}
-                ></span>
-              </span>
-            </button>
+              }
+              time={fmtMs(latency)}
+              onClick={() => setSelected({ kind: "tool", id: t.id })}
+            />
           );
         })}
-      </div>
 
-      <p style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 10 }}>
-        Showing every LLM span and tool call on this trace, in wall-clock order. Previews are
-        truncated. Select a hop for the full input, system prompt, and output.
-        {mission && (
-          <>
-            {" "}
-            Reasoning steps between calls live on{" "}
-            <Link
-              to="/build/$missionId"
-              params={{ missionId: mission.id }}
-              className="hover:underline"
-              style={{ color: "var(--action-blue)" }}
-            >
-              the mission transcript
-            </Link>
-            .
-          </>
-        )}
-      </p>
+        <div className="sp-subtitle" style={noteStyle}>
+          Every model call and tool call on this trace, in the order they ran. Previews are cut
+          short; pick a hop for its full input, prompt and output.
+          {mission ? " The reasoning between calls lives on the run." : null}
+        </div>
+      </Block>
 
-      {selRow && (
-        <div className="bento" style={{ padding: "var(--card-pad)", marginTop: 14 }}>
+      {selRow ? (
+        <Block title={selRow.kind === "event" ? "The call you picked" : "The tool call you picked"}>
           {selRow.kind === "event" ? (
-            <SpanInspector
+            <SpanDetail
               span={selRow.span}
               hits={hitsByEvent.get(selRow.span.id) ?? []}
               evalRow={evalsByEvent.get(selRow.span.id)}
             />
           ) : (
-            <ToolInspector tool={selRow.tool} />
+            <ToolDetail tool={selRow.tool} />
           )}
-        </div>
-      )}
-    </div>
+        </Block>
+      ) : null}
+
+      {briefBlock ? (
+        <Block
+          title="The brief it was given"
+          more={showBrief ? "Hide it" : "Read it"}
+          onMore={() => setShowBrief((v) => !v)}
+        >
+          {showBrief ? (
+            <pre style={paneStyle}>{briefBlock}</pre>
+          ) : (
+            <div className="sp-subtitle" style={{ marginTop: 0 }}>
+              The workspace brief was injected into the system prompt for this run.
+            </div>
+          )}
+        </Block>
+      ) : null}
+    </Surface>
   );
 }
 
-/* ---------- Route shell — TopBar around the drill body (rail is hoisted). ---------- */
+/* ---------- Route shell. No TopBar: the app frame draws the header. ---------- */
 
 function TraceReplayPage() {
   const { traceId } = Route.useParams();
-  const { activeWorkspace } = useWorkspace();
-
-  return (
-    <>
-      <TopBar
-        crumbs={[
-          activeWorkspace?.name ?? "Workspace",
-          { label: "Engine Room", to: "/engine-room" },
-          { label: "Record", to: "/engine-room", search: { room: "record", view: "traces" } },
-          traceId.slice(0, 8),
-        ]}
-      />
-      <div
-        data-screen-label="Trace replay"
-        style={{ padding: "30px 44px 56px", maxWidth: 980, margin: "0 auto" }}
-      >
-        <TraceDetail id={traceId} />
-      </div>
-    </>
-  );
+  return <TraceDetail id={traceId} />;
 }

@@ -1,69 +1,117 @@
-// Memory. The product's ledger of record: one substrate of everything it
-// knows. Route stays /brain (deep-link honesty); the surface label is Memory
-// (Tempo revamp, 2026-07-11).
-//
-// Four flat tabs: Decisions, Learnings, Docs, Graph. The PC-34 lens layer
-// (front door + lens doors + within-lens sub-nav) is retired as navigation;
-// the tab bar is the navigation again. Insights and the impact ledger fold
-// into Decisions as the outcome record; agent recall and its review gate fold
-// into Learnings; the Brief folds into Docs. Calendar left this surface
-// entirely (meetings live on Today's PM Desk now).
-//
-// Every tab id that ever existed still resolves: LEGACY_TABS maps each old
-// value onto one of the four tabs, and validateSearch normalizes at parse
-// time, so old links land somewhere true. The legacy ids stay in the search
-// TYPE union so out-of-surface links and redirect stubs keep compiling.
-//
-// Drill contract unchanged: detail state rides optional search params
-// (?decision= -> DecisionDetail, ?learning= -> LearningDetail). The detail
-// replaces ONLY the tab body; the hero and count strip stay in every state.
-// setTab navigates with a fresh search object so every drill param clears on
-// a tab switch.
-import { lazy, Suspense, useState } from "react";
+/**
+ * Brain. What the record already knows.
+ *
+ * The prototype does not draw this surface, so it is not a re-skin. It is
+ * redesigned from the person standing on it, per
+ * docs/planning/rebuild-2026-07/SURFACE-JUSTIFICATION.md. The five answers,
+ * written before the code, so the next session reads a decision and not an
+ * assembly:
+ *
+ * 1. WHO IS HERE, AND WHAT DID THEY COME TO DO.
+ *    A PM about to make a call, or about to defend one they made, who wants to
+ *    know what this workspace already settled: was this decided before, what
+ *    happened the last time we tried it, where is the standing brief. One task:
+ *    recall, with the receipt attached.
+ *
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE.
+ *    Finding what the workspace already knows before you decide again. Without
+ *    it you ask people, or you re-derive it, or you repeat a miss. Everything
+ *    else on this page either serves that or was removed.
+ *
+ * 3. EVERY ELEMENT, KEEP / MOVE / KILL.
+ *    KEPT, because the recall happens here:
+ *      DecisionsPanel + DecisionDetail  the ledger of calls, and its drill.
+ *      CompoundingPanel + LearningDetail  what the outcome taught, with cause.
+ *      MemoryList  what the crew will recall on the next run. /memory redirects
+ *        here, so this is its only home.
+ *      MemoryReviewQueue  behind a click ("Add to the record"). Its queue half
+ *        duplicates Approvals, but its composer is the ONLY way a human writes
+ *        to memory by hand, and this is where you would look for it.
+ *      BriefPanel, DocsPanel  the standing written record.
+ *      GraphPanel  how it all connects, with the focus drill intact.
+ *      MemoryUpgradeNudge  free memory fades; that is a real constraint on the
+ *        very thing you are reading, stated where it bites. Free tier only.
+ *      The substrate counts  behind one disclosure, because they are inventory,
+ *        not recall.
+ *    MOVED, and NOT moved by this file (another agent owns the destination):
+ *      InsightsPanel        -> /analytics. Charts over getBrainInsights. A
+ *                              dashboard, not recall.
+ *      ImpactLedgerPanel    -> /learn, which already renders getImpactLedger
+ *                              with the same copy and download. The /impact
+ *                              stub currently redirects to /brain?tab=insights
+ *                              and must be re-pointed.
+ *      ChangelogPanel       -> /ship. The /changelog stub redirects here and
+ *                              must be re-pointed.
+ *      AnnouncementsPanel   -> /ship. Authoring and publishing outbound is an
+ *                              act, not a record.
+ *      ShipHistoryPanel     -> /ship or Runs. Completed runs are Runs' subject.
+ *      CapabilitiesPanel    -> /crew or Settings. It edits agent instructions
+ *                              and toggles skills: configuration, not memory.
+ *    KILLED:
+ *      The PageHeader hero  sold the surface ("Your product's brain.", plus a
+ *        marketing line) and put ember on a heading. Ember marks the human.
+ *      BrainStatTrio  the same getImpactLedger read as ImpactLedgerPanel, in
+ *        retired Geist Pixel, headed by a raw ICE number.
+ *      PlaybookProposalsPanel  a pending human decision. approvals-queue
+ *        already sources playbook_proposals; a decision belongs to one place.
+ *      PresenceChip and AgentRelay  a live line for one agent on a surface
+ *        about the past. The shell draws the live line now.
+ *      The seven-count card, the pulsing dot, "Ask reads all of this when it
+ *        answers you"  a boast and a duplicate. Three counts that map to the
+ *        three doors stay in the head; the other six are one click down.
+ *      The four tab descriptions  a third paragraph explaining four one-word
+ *        labels.
+ *
+ * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
+ *    The rest of the substrate (chat threads, signals, meetings, specs, saved
+ *    notes, live connections), the memory composer and its pending queue, every
+ *    decision's evidence (?decision=), every learning's full record
+ *    (?learning=), and every graph node's history. The surface itself is a
+ *    title, one thing the record has to say, four doors, and one list.
+ *
+ * 5. DELIGHT, AND CONFUSION.
+ *    The moment: you open Brain and the record speaks first. The newest
+ *    re-scored call sits in the lit recess, in its own words, with the priority
+ *    it moved and the day it moved, and one click opens the whole learning.
+ *    That is the product's claim made literal, and it is drawn only when it is
+ *    true. The confusion this avoided: twenty stacked panels across four tabs,
+ *    where every answer looked equally important and none of them was the one
+ *    you came for.
+ *
+ * UNCHANGED: the route contract. Four tabs, every legacy tab id still resolving
+ * through LEGACY_TABS, the ?decision= / ?learning= / ?focusKind= / ?focusId=
+ * drills, and every query key, which are shared caches with Today, Learn and
+ * the panels themselves.
+ */
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { RoomChromeShell } from "@/components/mission/RoomChrome";
-import { PageHeader } from "@/components/supaprod/PageHeader";
-import { MonoLabel } from "@/components/obsidian/primitives";
-import { FlashlightTabs } from "@/components/obsidian/flashlight-tabs";
 import { MemoryUpgradeNudge } from "@/components/billing/MemoryUpgradeNudge";
-import { PresenceChip } from "@/components/obsidian/PresenceChip";
-import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
-import { getAgentFleet } from "@/lib/agent-fleet.functions";
-import { BrainStatTrio } from "@/components/knowledge/BrainStatTrio";
-
-/** PC-29 layer 2: Memory's station agent. */
-const MEMORY_STATION_AGENTS = ["data-analyst"];
+import { getCompounding } from "@/lib/today.functions";
+import {
+  Block,
+  Button,
+  Empty,
+  Num,
+  PageHead,
+  Record as RecordRecess,
+  Surface,
+} from "@/components/shell/primitives";
 
 // Every tab panel is code-split: only the active tab's module loads.
-const InsightsPanel = lazy(() =>
-  import("@/components/knowledge/InsightsPanel").then((m) => ({ default: m.InsightsPanel })),
-);
-const ImpactLedgerPanel = lazy(() =>
-  import("@/components/knowledge/ImpactLedgerPanel").then((m) => ({
-    default: m.ImpactLedgerPanel,
-  })),
-);
 const MemoryList = lazy(() =>
   import("@/components/memory/MemoryList").then((m) => ({ default: m.MemoryList })),
 );
-// RPT-28: the write review gate sits above the recall list. Nothing enters
-// agent_memory without an approval here.
 const MemoryReviewQueue = lazy(() =>
   import("@/components/memory/MemoryReviewQueue").then((m) => ({ default: m.MemoryReviewQueue })),
 );
 const CompoundingPanel = lazy(() =>
   import("@/components/knowledge/CompoundingPanel").then((m) => ({
     default: m.CompoundingPanel,
-  })),
-);
-const PlaybookProposalsPanel = lazy(() =>
-  import("@/components/knowledge/PlaybookProposalsPanel").then((m) => ({
-    default: m.PlaybookProposalsPanel,
   })),
 );
 const LearningDetail = lazy(() =>
@@ -83,24 +131,6 @@ const GraphPanel = lazy(() =>
 );
 const DocsPanel = lazy(() =>
   import("@/components/knowledge/DocsPanel").then((m) => ({ default: m.DocsPanel })),
-);
-const CapabilitiesPanel = lazy(() =>
-  import("@/components/knowledge/CapabilitiesPanel").then((m) => ({
-    default: m.CapabilitiesPanel,
-  })),
-);
-const AnnouncementsPanel = lazy(() =>
-  import("@/components/knowledge/AnnouncementsPanel").then((m) => ({
-    default: m.AnnouncementsPanel,
-  })),
-);
-const ChangelogPanel = lazy(() =>
-  import("@/components/knowledge/ChangelogPanel").then((m) => ({ default: m.ChangelogPanel })),
-);
-const ShipHistoryPanel = lazy(() =>
-  import("@/components/knowledge/ShipHistoryPanel").then((m) => ({
-    default: m.ShipHistoryPanel,
-  })),
 );
 
 type Tab = "decisions" | "learnings" | "docs" | "graph";
@@ -142,196 +172,59 @@ const TAB_LABEL: Record<Tab, string> = {
   graph: "Graph",
 };
 
-const TAB_DESC: Record<Tab, string> = {
-  decisions:
-    "The ledger of record: every call your team made, captured once, and the outcome each one produced.",
-  learnings:
-    "What your team recorded and what the loop recalls: outcome memos with verdicts, playbook proposals, and agent memory behind its review gate.",
-  docs: "The standing record: your brief, workspace pages, announcements, the changelog, and ship history.",
-  graph:
-    "The living map of how signals, specs, and decisions connect. Watch it grow; click a node to walk its history.",
-};
-
-// The tab row: FlashlightTabs (the standard bar) plus the active tab's
-// one-line description in muted ink.
-function MemoryTabRow({ active, onSet }: { active: Tab; onSet: (id: Tab) => void }) {
-  return (
-    <div className="mb-5">
-      <FlashlightTabs
-        tabs={TABS.map((id) => ({ id, label: TAB_LABEL[id] }))}
-        active={active}
-        onSelect={(id) => onSet(id as Tab)}
-        ariaLabel="Memory sections"
-      />
-      <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>{TAB_DESC[active]}</p>
-    </div>
-  );
-}
-
-/** The recessed door. Raw substrate counts an agent cares about far more
- *  than a human does, behind one collapsed disclosure (the same idiom as
- *  EngineRoomDisclosure on Build). Never a new room, never hidden entirely.
- *  Only ever shows numbers already fetched for the count strip; never
- *  fabricates a decay or embedding figure the codebase can't back yet. */
-function MemoryMachineryDisclosure({
-  counts,
-}: {
-  counts: { label: string; value: string }[] | null;
-}) {
+/** One collapsed door. Depth is a click away, never stacked on the surface. */
+function Disclosure({ label, id, children }: { label: string; id: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  if (!counts) return null;
+  const Chevron = open ? ChevronDown : ChevronRight;
   return (
-    <div className="mt-5">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
+    <Block>
+      <Button
+        variant="ghost"
         aria-expanded={open}
-        aria-controls="memory-machinery-panel"
-        className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          width: "100%",
-          textAlign: "left",
-          padding: "6px 0",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-        }}
+        aria-controls={id}
+        onClick={() => setOpen((o) => !o)}
+        style={{ marginLeft: "calc(var(--sp-space-4) * -1)" }}
       >
-        {open ? (
-          <ChevronDown
-            size={16}
-            strokeWidth={1.5}
-            aria-hidden="true"
-            style={{ color: "var(--text-subtle)", flexShrink: 0 }}
-          />
-        ) : (
-          <ChevronRight
-            size={16}
-            strokeWidth={1.5}
-            aria-hidden="true"
-            style={{ color: "var(--text-subtle)", flexShrink: 0 }}
-          />
-        )}
-        <MonoLabel>Under the hood</MonoLabel>
-        {!open && (
-          <span
-            className="mono-label"
-            style={{
-              marginLeft: "auto",
-              fontSize: "var(--text-mono-floor)",
-              color: "var(--text-faint)",
-            }}
-          >
-            the raw substrate
-          </span>
-        )}
-      </button>
-      {open && (
-        <div
-          id="memory-machinery-panel"
-          className="fade-up"
-          style={{
-            marginTop: 8,
-            borderRadius: "var(--radius-panel)",
-            overflow: "hidden",
-            background: "var(--surface-recessed)",
-            boxShadow: "var(--top-light)",
-            padding: "12px 16px",
-          }}
-        >
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 10px" }}>
-            The counts every agent reads before it acts. You never need these to use Memory; they
-            exist so a curious eye can see the substrate is real.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            {counts.map((c) => (
-              <span
-                key={c.label}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-mono-floor)",
-                  color: "var(--text-muted)",
-                }}
-              >
-                <strong className="tabular-nums" style={{ color: "var(--text-primary)" }}>
-                  {c.value}
-                </strong>{" "}
-                {c.label}
-              </span>
-            ))}
-          </div>
+        <Chevron
+          size={15}
+          strokeWidth={1.6}
+          aria-hidden="true"
+          style={{ marginRight: 7, flexShrink: 0 }}
+        />
+        {label}
+      </Button>
+      {open ? (
+        <div id={id} style={{ marginTop: "var(--sp-space-3)" }}>
+          {children}
         </div>
-      )}
-    </div>
+      ) : null}
+    </Block>
   );
 }
 
-/** v4 work surface: Memory earns the working width (container-work, 1520px). */
-function MemorySurface({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        maxWidth: "var(--container-work, 1520px)",
-        width: "100%",
-        margin: "0 auto",
-        padding: "var(--page-inset-v) var(--page-inset-h) 64px",
-        animation: "cadRise 260ms var(--ease) both",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* The one ambient wash behind the hero. */}
-      <div aria-hidden="true" className="loom-glow-field" />
-      {children}
-    </div>
-  );
-}
-
-/** Real h2 headings (navigable outline), styled as the mono-caps voice. */
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h2
-      style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
-        letterSpacing: "0.11em",
-        textTransform: "uppercase",
-        fontWeight: 500,
-        color: "var(--text-body)",
-        margin: "0 0 10px",
-      }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-/** The Suspense fallback: shimmer rows matching a tab's list layout. */
+/** The Suspense fallback. Static, not a shimmer: it holds the height so the
+ *  page does not jump, and motion in this system confirms rather than fills. */
 function TabSkeleton() {
   const bar = (h: number, w?: string) => (
     <div
+      aria-hidden="true"
       style={{
         width: w ?? "100%",
         height: h,
-        borderRadius: "var(--radius-card)",
-        background:
-          "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
-        animation: "cadShimmer 1.6s linear infinite",
+        borderRadius: "var(--sp-radius-card)",
+        background: "var(--sp-lift)",
       }}
     />
   );
   return (
-    <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <span className="sr-only">Loading this section…</span>
-      <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {bar(64)}
-        {bar(120)}
-        {bar(120)}
-        {bar(64, "70%")}
-      </div>
+    <div
+      role="status"
+      style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-3)" }}
+    >
+      <span className="sr-only">Reading the record.</span>
+      {bar(56)}
+      {bar(96)}
+      {bar(96, "72%")}
     </div>
   );
 }
@@ -367,117 +260,61 @@ export const Route = createFileRoute("/_authenticated/brain")({
   component: MemoryPage,
   head: () => ({ meta: [{ title: "Brain · Supaprod" }] }),
   errorComponent: ({ error, reset }) => (
-    <MemorySurface>
-      <div
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--radius-card)",
-          boxShadow: "var(--top-light)",
-          padding: "16px 18px",
-        }}
-      >
-        <MonoLabel style={{ marginBottom: 8, display: "block" }}>Brain · failed to load</MonoLabel>
-        <p style={{ fontSize: 12.5, color: "var(--text-muted)", marginBottom: 12 }}>
-          {(error as Error)?.message ?? "Unknown error"}
-        </p>
-        <button
-          type="button"
-          onClick={reset}
-          className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            color: "var(--text-subtle)",
-            background: "transparent",
-            border: "none",
-            padding: 0,
-          }}
-        >
-          Retry · reloads this surface
-        </button>
-      </div>
-    </MemorySurface>
+    <Surface wide>
+      <PageHead title="The record did not load." sub="Nothing it holds is lost." />
+      <Block>
+        <Empty>{(error as Error)?.message ?? "The read failed."}</Empty>
+        <Button variant="primary" onClick={reset}>
+          Try again
+        </Button>
+      </Block>
+    </Surface>
   ),
   notFoundComponent: () => (
-    <MemorySurface>
-      <p style={{ fontSize: 14, color: "var(--text-subtle)", margin: 0 }}>
-        This record doesn't exist or was removed. Everything Memory holds is on its four tabs.
-      </p>
-      <a
-        href="/brain"
-        className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-        style={{
-          display: "inline-block",
-          marginTop: 12,
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          color: "var(--glacier)",
-        }}
-      >
-        Go to Memory
-      </a>
-    </MemorySurface>
+    <Surface wide>
+      <PageHead
+        title="That record is not here."
+        sub="It was removed, or the link points at something that never existed."
+      />
+      <Block>
+        <Empty>Everything the record holds is behind the four doors on Brain.</Empty>
+        <Button variant="primary" onClick={() => window.location.assign("/brain")}>
+          Open the record
+        </Button>
+      </Block>
+    </Surface>
   ),
 });
 
-/** One count in the strip; fixed line height so loading never reflows. */
-function StripStat({ label, value, live }: { label: string; value: string; live?: boolean }) {
-  return (
-    <span
-      className="flex items-center"
-      style={{
-        gap: 5,
-        fontFamily: "var(--font-mono)",
-        fontSize: "var(--text-mono-floor)",
-        color: "var(--text-muted)",
-        lineHeight: "16px",
-      }}
-    >
-      {live ? (
-        <span
-          aria-hidden="true"
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: "var(--glacier)",
-            // Token-traced glow (was a hardcoded rgba of the retired chalky blue).
-            boxShadow: "0 0 10px color-mix(in srgb, var(--glacier) 60%, transparent)",
-            animation: "cadPulse 2s ease-in-out infinite",
-          }}
-        />
-      ) : null}
-      <strong
-        className="tabular-nums"
-        style={{ color: live ? "var(--glacier)" : "var(--text-primary)", fontWeight: 600 }}
-      >
-        {value}
-      </strong>{" "}
-      {label}
-    </span>
-  );
+/** The first line is a fact, assembled from counts that are real or absent.
+ *  A count that did not load contributes no clause, and never a zero. */
+function recordHeadline(calls: number | null, learnings: number | null, loading: boolean): string {
+  if (calls === null && learnings === null) {
+    return loading ? "Reading the record." : "The record did not load.";
+  }
+  const clauses: string[] = [];
+  if (calls) clauses.push(calls === 1 ? "one call" : `${calls} calls`);
+  if (learnings) clauses.push(learnings === 1 ? "one learning" : `${learnings} learnings`);
+  if (clauses.length === 0) return "Nothing is on the record yet.";
+  const verb = clauses.length === 1 && clauses[0].startsWith("one ") ? "is" : "are";
+  const sentence = `${clauses.join(" and ")} ${verb} on the record.`;
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
-function StripSkeleton() {
-  return (
-    <>
-      {[52, 44, 58, 62, 56, 40, 66].map((w, i) => (
-        <span
-          key={i}
-          aria-hidden="true"
-          style={{
-            width: w,
-            height: 16,
-            borderRadius: 6,
-            background:
-              "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
-            animation: "cadShimmer 1.6s linear infinite",
-          }}
-        />
-      ))}
-    </>
-  );
+/** "9 Jun 2026". Absent rather than guessed when the stamp is unreadable. */
+function day(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** What the record says about the newest call an outcome re-ranked. A claim in
+ *  the record's own words, never a statistic dressed as one. */
+function verdictLine(verdict: "validated" | "missed" | "mixed", subject: string): string {
+  if (verdict === "validated") return `${subject} paid off.`;
+  if (verdict === "missed") return `${subject} did not pay off.`;
+  return `${subject} came back mixed.`;
 }
 
 function MemoryPage() {
@@ -487,7 +324,8 @@ function MemoryPage() {
   const tab: Tab = (search.tab as Tab | undefined) ?? "decisions";
   const { decision, learning, focusKind, focusId } = search;
   const navigate = useNavigate({ from: "/brain" });
-  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
+  const { activeWorkspaceId } = useWorkspace();
+
   const fBrain = useServerFn(getBrainStatus);
   const brain = useQuery({
     // Workspace-scoped counts: the key carries the workspace so a switch
@@ -500,199 +338,220 @@ function MemoryPage() {
     queryKey: ["company-brain-stats", activeWorkspaceId],
     queryFn: () => fStats({ data: { workspaceId: activeWorkspaceId } }),
   });
-  // PC-29 layer 2: shared cache with Build's "By Agent" tab (same queryKey).
-  // A cache read here, not a second network call, on the same workspace.
-  const fFleet = useServerFn(getAgentFleet);
-  const fleet = useQuery({
-    queryKey: ["agent-fleet", activeWorkspaceId],
-    queryFn: () => fFleet({ data: { workspaceId: activeWorkspaceId } }),
+  // The record speaking. Same key as CompoundingPanel and Today, so this is a
+  // cache read on any session that has touched either, not a second call.
+  const fCompounding = useServerFn(getCompounding);
+  const compounding = useQuery({
+    queryKey: ["compounding"],
+    queryFn: () => fCompounding(),
   });
-  const presenceAgent = fleet.data?.fleet.agents.find((a) =>
-    MEMORY_STATION_AGENTS.includes(a.slug),
-  );
 
   // Fresh search object: every drill param clears on a tab switch.
   const setTab = (next: Tab) => navigate({ search: { tab: next } });
 
-  // The count strip: every number is a real head count for THIS workspace.
-  const strip: { label: string; value: string; live?: boolean }[] | null =
-    brain.data && stats.data
+  const counts = brain.data?.counts ?? null;
+  const learningCount = stats.data?.learnings ?? null;
+  const countsLoading = brain.isLoading || stats.isLoading;
+  const countsFailed = (brain.isError || stats.isError) && !counts && learningCount === null;
+  const headline = recordHeadline(counts?.decisions ?? null, learningCount, countsLoading);
+  const lastAdded = day(brain.data?.latest);
+  const emptyRecord =
+    counts !== null &&
+    learningCount !== null &&
+    counts.decisions === 0 &&
+    learningCount === 0 &&
+    counts.docs === 0;
+
+  // The rest of the substrate: real numbers already fetched, none of them on
+  // the surface, all of them one click down.
+  const substrate: { label: string; value: number }[] | null =
+    counts && stats.data
       ? [
-          { label: "chat threads", value: String(stats.data.conversations) },
-          { label: "signals", value: String(brain.data.counts.signals) },
-          { label: "meetings", value: String(brain.data.counts.meetings) },
-          { label: "decisions", value: String(brain.data.counts.decisions) },
-          { label: "learnings", value: String(stats.data.learnings) },
-          { label: "docs", value: String(brain.data.counts.docs) },
-          { label: "live", value: String(stats.data.connectorsLive), live: true },
+          { label: "chat threads", value: stats.data.conversations },
+          { label: "signals", value: counts.signals },
+          { label: "meetings", value: counts.meetings },
+          { label: "specs", value: counts.prds },
+          { label: "saved notes", value: counts.findings },
+          { label: "live connections", value: stats.data.connectorsLive },
         ]
       : null;
-  const stripFailed = brain.isError || stats.isError;
+
+  // The newest call an outcome re-ranked. Drawn only when it is real, and not
+  // on the Learnings tab, where the feed below already leads with it.
+  const latest = compounding.data?.summary.latest ?? null;
+  const showRecord = !decision && !learning && tab !== "learnings" && latest !== null;
+
+  // The second line carries what the title does not: how much standing writing
+  // there is, and how fresh the record is. Absent entirely when neither is
+  // known, so the head never draws an empty line.
+  const showDocs = counts !== null && counts.docs > 0;
+  const sub: ReactNode = emptyRecord ? (
+    "The first call you settle lands here, with what it was based on."
+  ) : showDocs || lastAdded ? (
+    <>
+      {showDocs && counts ? (
+        <>
+          <Num>{counts.docs}</Num> docs
+        </>
+      ) : null}
+      {showDocs && lastAdded ? " · " : null}
+      {lastAdded ? (
+        <>
+          last added <Num>{lastAdded}</Num>
+        </>
+      ) : null}
+    </>
+  ) : undefined;
 
   return (
-    <RoomChromeShell activeDoor="brain">
-      <MemorySurface>
-        {/* The hero: Tempo PageHeader (retires the Loom serif/italic hero). */}
-        <PageHeader
-          title="Your product's"
-          accent="brain."
-          subtitle="Every call you made, what it became, and how belief moved, on one substrate the whole loop reads from and reasons over."
-          usp="The brain compounds: every decision and outcome makes the next call faster and better-cited."
-        >
-          {presenceAgent ? (
-            <PresenceChip
-              agentSlug={presenceAgent.slug}
-              station="brain"
-              state={presenceAgent.state === "working" ? "working" : "idle"}
-              lastActedAt={presenceAgent.lastActiveAt}
-            />
-          ) : null}
-          {/* PC-29 layer 4: the inline relay, live only while Measure/Learn
-              has a run going. */}
-          <div style={{ marginTop: 12 }}>
-            <AgentRelay variant="station" station="learn" workspaceId={activeWorkspaceId} />
-          </div>
-        </PageHeader>
+    <Surface wide>
+      <PageHead title={headline} sub={sub} />
 
-        <BrainStatTrio />
-
-        {/* The count strip: one consolidated substrate, queryable from Ask. */}
-        <div
-          className="flex flex-wrap items-center"
-          style={{
-            gap: 16,
-            background: "var(--surface-card-deep)",
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-card)",
-            boxShadow: "var(--top-light)",
-            padding: "12px 18px",
-            marginBottom: 18,
-            minHeight: 41,
-          }}
-        >
-          <MonoLabel>Product memory</MonoLabel>
-          {strip ? (
-            strip.map((s) => <StripStat key={s.label} {...s} />)
-          ) : stripFailed ? (
-            <span
-              className="flex items-center"
-              style={{ gap: 8, fontFamily: "var(--font-mono)", fontSize: "var(--text-mono-floor)" }}
-            >
-              <span style={{ color: "var(--text-muted)" }}>counts unavailable right now</span>
-              <button
-                type="button"
-                className="loom-press outline-none hover:[color:var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{
-                  color: "var(--text-subtle)",
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  font: "inherit",
-                }}
-                onClick={() => {
-                  void brain.refetch();
-                  void stats.refetch();
-                }}
-              >
-                Retry
-              </button>
-            </span>
-          ) : (
-            <StripSkeleton />
-          )}
-          <span style={{ flex: 1 }} />
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-mono-floor)",
-              color: "var(--text-subtle)",
+      {countsFailed ? (
+        <div style={{ marginTop: "var(--sp-space-3)" }}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              void brain.refetch();
+              void stats.refetch();
             }}
           >
-            Ask reads all of this when it answers you
-          </span>
+            Try again
+          </Button>
         </div>
+      ) : null}
 
-        <MemoryUpgradeNudge />
+      {showRecord && latest ? (
+        <button
+          type="button"
+          onClick={() => navigate({ search: { tab: "learnings", learning: latest.id } })}
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: "var(--sp-space-5)",
+            padding: 0,
+            border: 0,
+            background: "none",
+            font: "inherit",
+            color: "inherit",
+            textAlign: "left",
+            cursor: "pointer",
+          }}
+        >
+          <RecordRecess
+            evidence={
+              <>
+                priority {latest.delta > 0 ? "+" : ""}
+                {latest.delta}
+                {day(latest.created_at) ? ` · ${day(latest.created_at)}` : ""}
+              </>
+            }
+          >
+            {verdictLine(latest.verdict, latest.opportunity_title ?? "A call you shipped")}{" "}
+            {latest.summary}
+          </RecordRecess>
+        </button>
+      ) : null}
 
-        <MemoryTabRow active={tab} onSet={setTab} />
-        <Suspense fallback={<TabSkeleton />}>
-          {tab === "decisions" &&
-            (decision ? (
-              <DecisionDetail id={decision} />
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                <section>
-                  <DecisionsPanel />
-                </section>
-                {/* The outcome record: what each call produced. Folds the
-                    retired Insights and Impact tabs into the ledger. */}
-                <section>
-                  <SectionTitle>Outcomes</SectionTitle>
-                  <InsightsPanel />
-                </section>
-                <section>
-                  <SectionTitle>Your impact record</SectionTitle>
-                  <ImpactLedgerPanel />
-                </section>
-              </div>
-            ))}
-          {tab === "learnings" &&
-            (learning ? (
+      <MemoryUpgradeNudge />
+
+      <div className="sp-tabs" role="tablist" aria-label="What the record holds">
+        {TABS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+          >
+            {TAB_LABEL[id]}
+          </button>
+        ))}
+      </div>
+
+      <Suspense
+        fallback={
+          <Block>
+            <TabSkeleton />
+          </Block>
+        }
+      >
+        {tab === "decisions" && (
+          <Block>{decision ? <DecisionDetail id={decision} /> : <DecisionsPanel />}</Block>
+        )}
+
+        {tab === "learnings" &&
+          (learning ? (
+            <Block>
               <LearningDetail id={learning} />
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                <section>
-                  {/* SW-3: open playbook proposals render above the feed they
-                      compound from; the panel is invisible when none wait. */}
-                  <PlaybookProposalsPanel />
-                  <CompoundingPanel />
-                </section>
-                {/* The retired agent-memory tab folds in here: the write
-                    review gate first, then what the loop recalls. */}
-                <section>
-                  <SectionTitle>Review gate</SectionTitle>
-                  <MemoryReviewQueue />
-                </section>
-                <section>
-                  <SectionTitle>What the loop recalls</SectionTitle>
-                  <MemoryList />
-                </section>
-              </div>
+            </Block>
+          ) : (
+            <>
+              <Block>
+                <CompoundingPanel />
+              </Block>
+              <Block title="What the crew recalls">
+                <MemoryList />
+              </Block>
+              {/* The composer that writes to memory by hand, and whatever is
+                  waiting on you. Closed by default: the reading comes first. */}
+              <Disclosure label="Add to the record" id="brain-memory-composer">
+                <MemoryReviewQueue />
+              </Disclosure>
+            </>
+          ))}
+
+        {tab === "docs" && (
+          <>
+            <Block title="Brief">
+              <BriefPanel />
+            </Block>
+            <Block title="Documents">
+              <DocsPanel />
+            </Block>
+          </>
+        )}
+
+        {tab === "graph" && (
+          <Block>
+            <GraphPanel focusKind={focusKind} focusId={focusId} />
+          </Block>
+        )}
+      </Suspense>
+
+      {substrate ? (
+        <Disclosure label="The rest of the substrate" id="brain-substrate">
+          <p
+            style={{
+              fontSize: "var(--sp-text-meta)",
+              color: "var(--sp-mute)",
+              marginBottom: "var(--sp-space-3)",
+            }}
+          >
+            What the crew reads before it acts, beyond the four doors above.
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "var(--sp-space-2) var(--sp-space-5)",
+            }}
+          >
+            {substrate.map((s) => (
+              <span
+                key={s.label}
+                style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}
+              >
+                <span style={{ color: "var(--sp-ink)" }}>
+                  <Num>{s.value}</Num>
+                </span>{" "}
+                {s.label}
+              </span>
             ))}
-          {tab === "docs" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-              {/* The retired Brief tab folds in as the standing record's
-                  first section: versioned strategic calls, never lost. */}
-              <section>
-                <SectionTitle>Brief</SectionTitle>
-                <BriefPanel />
-              </section>
-              <section>
-                <SectionTitle>Capabilities</SectionTitle>
-                <CapabilitiesPanel />
-              </section>
-              <section>
-                <SectionTitle>Docs</SectionTitle>
-                <DocsPanel />
-              </section>
-              <section>
-                <SectionTitle>Announcements</SectionTitle>
-                <AnnouncementsPanel />
-              </section>
-              <section>
-                <SectionTitle>Changelog</SectionTitle>
-                <ChangelogPanel />
-              </section>
-              <section>
-                <SectionTitle>Ship history</SectionTitle>
-                <ShipHistoryPanel />
-              </section>
-            </div>
-          )}
-          {tab === "graph" && <GraphPanel focusKind={focusKind} focusId={focusId} />}
-        </Suspense>
-        <MemoryMachineryDisclosure counts={strip} />
-      </MemorySurface>
-    </RoomChromeShell>
+          </div>
+        </Disclosure>
+      ) : null}
+    </Surface>
   );
 }
