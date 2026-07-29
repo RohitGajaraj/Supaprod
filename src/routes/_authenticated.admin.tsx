@@ -1,15 +1,46 @@
 /**
- * Admin layout. Gated by `has_role(auth.uid(),'admin')`. Non-admins see a
- * locked card with a one-time "claim admin" button that only succeeds when
- * the user_roles table has zero admins (the bootstrap path).
+ * Admin. The operator's door, ported onto the rebuild primitives (step 4).
  *
- * OBS-13 - re-skinned to the room pattern (a role-gated door reached only
- * from the Settings > Workspace pane, never a nav item): the question-style
- * header, mono sub-tabs with an underline as the active signal, no lucide.
- * The 7 sub-page bodies keep their existing data/logic unchanged; only this
- * layout's chrome + labels change (Engine-Room Test: Observability -> Health,
- * AI Costs -> Spend; Pricing/People/Workspaces/Platform/Proof already read
- * as plain-words answers to "what does this room show").
+ * 1. WHO IS HERE, AND WHY. Not a product lead. Whoever runs this workspace,
+ *    arriving because someone needs access, a bill looks wrong, or something
+ *    is down. They came to change one thing for other people and leave.
+ *
+ * 2. THE ONE THING IT EXISTS FOR. To change what OTHER people can do and what
+ *    the workspace costs. That is the whole of it, and it is why this is a
+ *    role-gated door and not a rail row: every other surface in the product
+ *    changes your own work, and this one changes someone else's.
+ *
+ * 3. KEEP / MOVE / KILL.
+ *    KEEP  the nine sub-pages and the role gate. Each answers a different
+ *          question an operator arrives with, and none is answerable elsewhere.
+ *    KEEP  the bootstrap claim path. A workspace with zero admins is
+ *          unadministrable, and this is the only way out of it.
+ *    KILL  the TopBar. It was the LAST duplicate header in the product: this
+ *          route renders inside AppFrame, which already draws the brand, the
+ *          workspace scope, the live line and Ask.
+ *    KILL  the styled <p> at weight 460 that carried the page question. It did
+ *          an h1's job without being one, so screen readers and the type scale
+ *          both lost. It is a PageHead now.
+ *
+ * 4. ONE CLICK AWAY. The nine bodies. The layout answers "which question are
+ *    you here with" and nothing more; every number lives one tab in.
+ *
+ * 5. DELIGHT AND CONFUSION. What would confuse: an operator cannot tell a
+ *    failed permission CHECK from a "you are not an admin" VERDICT. That
+ *    distinction is already honoured below (register D-11) and must stay:
+ *    an error must never wear another state's clothes.
+ *
+ * 6. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Deliberately almost nowhere,
+ *    and that is the correct answer here rather than a gap. This surface
+ *    governs HUMANS: who has a role, what a seat costs, which workspace is
+ *    over its cap. The crew appears only where it genuinely spends, under
+ *    Spend, which reads real per-agent cost. Putting agent marks on a page
+ *    about human access would be decoration, and the agentic-first test asks
+ *    whether the crew's presence PROVES something, not whether it is visible.
+ *
+ * The nine sub-page bodies keep their data and logic unchanged; only this
+ * layout's chrome changes. Engine-Room Test on the labels: Observability ->
+ * Health, AI Costs -> Spend.
  */
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
