@@ -4941,6 +4941,8 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          metadata: Json
+          mission_id: string | null
           model: string | null
           role: string
           user_id: string
@@ -4951,6 +4953,8 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          metadata?: Json
+          mission_id?: string | null
           model?: string | null
           role: string
           user_id: string
@@ -4961,6 +4965,8 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          metadata?: Json
+          mission_id?: string | null
           model?: string | null
           role?: string
           user_id?: string
