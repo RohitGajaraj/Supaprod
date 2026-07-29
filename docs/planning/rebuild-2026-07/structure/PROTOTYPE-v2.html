@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supaprod prototype v2</title>
+<style>
+/* ============================================================
+   FONTS. Mona Sans for everything a person reads. IBM Plex Mono
+   for data only, never for labels. Geist Pixel at the door only.
+   All three SIL OFL 1.1, self hosted, no CDN request.
+   ============================================================ */
+@font-face{font-family:Mona;src:url("../../../../public/fonts/mona/MonaSans-400.woff2")format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Mona;src:url("../../../../public/fonts/mona/MonaSans-500.woff2")format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Mona;src:url("../../../../public/fonts/mona/MonaSans-600.woff2")format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:Mona;src:url("../../../../public/fonts/mona/MonaSans-700.woff2")format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Plex;src:url("../../../../public/fonts/plex/IBMPlexMono-Regular.woff2")format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Plex;src:url("../../../../public/fonts/plex/IBMPlexMono-Medium.woff2")format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Px;src:url("../../../../public/fonts/geist/GeistPixel-Square.woff2")format("woff2");font-weight:400;font-display:swap}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --sans:Mona,ui-sans-serif,system-ui,sans-serif;
+  --mono:Plex,ui-monospace,SFMono-Regular,Menlo,monospace;
+  --px:Px,var(--mono);
+
+  /* the seven stage families. hue says which stage, monogram says which agent. */
+  --discover:#4ec9b0; --decide:#e8b44c; --plan:#a9cc55; --design:#d97fc9;
+  --build:#5aa9e6;   --ship:#e884b0;   --learn:#d1c95a;
+
+  /* outcomes and gates. never on an agent mark. */
+  --pass:#4fc47a; --fail:#ef6a5f; --warn:#e8b44c; --gate:#ff6b2c;
+  --radius-panel:12px; --radius-ctl:8px; --radius-mark:7px;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* dark: the design target */
+[data-theme="dark"]{
+  --bg:#0b0b0d; --sheet:#111114; --lift:#17171b; --sink:#0d0d10; --float:#1c1c21;
+  --ink:#f4f4f7; --body:#b4b4bd; --mute:#8e8e99; --line:rgba(255,255,255,.10);
+  --line2:rgba(255,255,255,.055); --hover:rgba(255,255,255,.045);
+  --shadow:0 14px 34px -6px rgba(0,0,0,.7),0 4px 10px -3px rgba(0,0,0,.5);
+  --star:rgba(255,255,255,.62); --grid:rgba(255,255,255,.045);
+}
+/* light: a working sheet with real elevation, not an inverted dark theme
+   and deliberately not cream */
+[data-theme="light"]{
+  --bg:#eef0f4; --sheet:#ffffff; --lift:#f7f8fa; --sink:#f0f2f6; --float:#ffffff;
+  --ink:#14161a; --body:#4a4e57; --mute:#6b7078; --line:rgba(17,20,26,.11);
+  --line2:rgba(17,20,26,.06); --hover:rgba(17,20,26,.035);
+  --shadow:0 12px 30px -8px rgba(17,20,26,.18),0 2px 6px -2px rgba(17,20,26,.10);
+  --star:rgba(40,50,70,.34); --grid:rgba(17,20,26,.038);
+  --discover:#0f9e85; --decide:#b6801a; --plan:#6f9226; --design:#b0499b;
+  --build:#2276c4;   --ship:#c0507c;   --learn:#8f861f;
+  --pass:#1d8f4e; --fail:#c93a2e; --warn:#b6801a; --gate:#dd5410;
+}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;
+  line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.92em;letter-spacing:-.01em}
+
+/* ---------- the switcher. not part of the product. ---------- */
+.deck{position:fixed;top:0;left:0;right:0;height:46px;z-index:80;display:flex;align-items:center;
+  gap:6px;padding:0 16px;background:var(--float);border-bottom:1px solid var(--line)}
+.deck .dt{font-size:12.5px;color:var(--mute);margin-right:10px;font-weight:500}
+.tab{font:inherit;font-size:13px;color:var(--body);background:none;border:0;cursor:pointer;
+  padding:6px 11px;border-radius:7px;transition:background .14s var(--ease),color .14s var(--ease)}
+.tab:hover{background:var(--hover);color:var(--ink)}
+.tab[aria-current="true"]{background:var(--ink);color:var(--bg);font-weight:550}
+.deck .sp{flex:1}
+.tgl{font:inherit;font-size:13px;color:var(--body);background:none;border:1px solid var(--line);
+  cursor:pointer;padding:6px 11px;border-radius:7px}
+.tgl:hover{color:var(--ink);background:var(--hover)}
+
+.stage{padding:46px 0 0;min-height:100vh}
+.screen{display:none}
+.screen.on{display:block}
+
+/* ============================================================
+   THE APP SHELL
+   ============================================================ */
+.app{height:calc(100vh - 46px);display:flex;flex-direction:column;background:var(--bg)}
+
+/* header 56px. real presence, sans labels, icons not checkboxes. */
+.top{height:56px;flex:none;display:flex;align-items:center;gap:14px;padding:0 18px;
+  background:var(--sheet);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.logo{width:22px;height:22px;flex:none;color:var(--ink)}
+.scope{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:550;color:var(--ink);
+  padding:5px 8px;border-radius:7px;cursor:pointer}
+.scope:hover{background:var(--hover)}
+.scope .sl{color:var(--mute);font-weight:400}
+.chev{width:13px;height:13px;color:var(--mute);flex:none}
+
+/* the live line. one line, drops facts rather than truncating. */
+.live{flex:1;min-width:0;display:flex;align-items:center;gap:9px;justify-content:center;
+  font-size:13.5px;color:var(--body);cursor:pointer;padding:7px 12px;border-radius:8px;
+  max-width:680px;margin:0 auto}
+.live:hover{background:var(--hover)}
+.live .lt{color:var(--ink);font-weight:550;flex:none}
+.live .sep{color:var(--line);flex:none}
+.live .lf{color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:clip}
+@media (max-width:1100px){.live .drop1{display:none}}
+@media (max-width:860px){.live .drop2{display:none}}
+
+.tools{display:flex;align-items:center;gap:4px;flex:none}
+.ibtn{width:34px;height:34px;border:0;background:none;border-radius:8px;cursor:pointer;
+  display:grid;place-items:center;color:var(--mute);transition:background .14s var(--ease),color .14s var(--ease)}
+.ibtn:hover{background:var(--hover);color:var(--ink)}
+.ibtn svg{width:17px;height:17px}
+.askb{display:flex;align-items:center;gap:7px;height:34px;padding:0 12px;font:inherit;font-size:13px;
+  font-weight:500;color:var(--ink);background:var(--lift);border:1px solid var(--line);
+  border-radius:8px;cursor:pointer;transition:background .14s var(--ease)}
+.askb:hover{background:var(--float)}
+.askb .k{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.me{width:28px;height:28px;border-radius:50%;flex:none;border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11.5px;font-weight:600;color:var(--ink);
+  background:var(--lift);cursor:pointer}
+
+.mid{flex:1;display:flex;min-height:0}
+
+/* ---------- rail ---------- */
+.rail{width:236px;flex:none;background:var(--sheet);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;transition:width .22s var(--ease)}
+.app.narrow .rail{width:64px}
+.railtop{padding:14px 12px 10px}
+.crewline{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.crewlab{font-size:12.5px;color:var(--mute);font-weight:500}
+.app.narrow .crewlab,.app.narrow .rlabel,.app.narrow .rcount,.app.narrow .crewlink{display:none}
+/* 7 x 22 + 6 x 5 = 184. an explicit width is deterministic where auto-placement was not. */
+.crewgrid{display:flex;flex-wrap:wrap;gap:5px;width:190px;align-items:flex-start}
+.app.narrow .crewgrid{width:49px;margin:0 auto}
+
+/* agent mark: hue = stage family, monogram = the agent, shape = state */
+.am{width:22px;height:22px;flex:none;border-radius:var(--radius-mark);
+  display:flex;align-items:center;justify-content:center;line-height:1;
+  font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:-.03em;
+  color:#0b0b0d;position:relative;cursor:pointer;
+  transition:transform .16s var(--ease)}
+[data-theme="light"] .am{color:#fff}
+.am:hover{transform:translateY(-1px)}
+.am.quiet{opacity:.34}
+.am.run{box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px currentColor}
+.am.gate::after{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;
+  background:var(--gate);transform:rotate(45deg);border:1.5px solid var(--sheet)}
+.am.fail{box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--fail)}
+.am.d1{background:var(--discover)} .am.d2{background:var(--discover);filter:hue-rotate(-14deg)}
+.am.d3{background:var(--discover);filter:hue-rotate(12deg) saturate(1.1)}
+.am.de1{background:var(--decide)} .am.de2{background:var(--decide);filter:hue-rotate(-16deg)}
+.am.de3{background:var(--decide);filter:brightness(1.12) saturate(.8)}
+.am.p1{background:var(--plan)} .am.p2{background:var(--plan);filter:hue-rotate(14deg)}
+.am.ds{background:var(--design)}
+.am.b1{background:var(--build)} .am.b2{background:var(--build);filter:brightness(1.18) saturate(.85)}
+.am.shp{background:var(--ship)}
+.am.le{background:var(--learn)}
+
+.nav{padding:6px 8px;flex:1;overflow-y:auto}
+.nrow{display:flex;align-items:center;gap:11px;height:38px;padding:0 10px;border-radius:9px;
+  color:var(--body);cursor:pointer;text-decoration:none;font-size:14px;
+  transition:background .13s var(--ease),color .13s var(--ease)}
+.app.narrow .nrow{justify-content:center;padding:0}
+.nrow:hover{background:var(--hover);color:var(--ink)}
+.nrow.on{background:var(--lift);color:var(--ink);font-weight:550}
+.nrow svg{width:17px;height:17px;flex:none;stroke-width:1.5}
+.rlabel{flex:1;white-space:nowrap}
+.rcount{font-family:var(--mono);font-size:11.5px;color:var(--mute);flex:none}
+.nrow.on .rcount{color:var(--ink)}
+.rcount.hot{color:var(--gate)}
+.railfoot{padding:10px 12px;border-top:1px solid var(--line2);display:flex;align-items:center;
+  justify-content:space-between}
+.collapse{width:30px;height:30px;border:0;background:none;color:var(--mute);cursor:pointer;
+  border-radius:7px;display:grid;place-items:center}
+.collapse:hover{background:var(--hover);color:var(--ink)}
+.collapse svg{width:15px;height:15px}
+
+/* ---------- work ----------
+   the region asks its OWN width, not the window's. that is the whole
+   adaptive rule, and it is why a context column appears here and never
+   inside a narrow drawer that happens to sit on a wide screen. */
+.work{flex:1;min-width:0;overflow-y:auto;background:var(--bg);container-type:inline-size}
+.inner{max-width:1400px;padding:34px 40px 72px;display:grid;grid-template-columns:minmax(0,1fr);
+  gap:0 52px;align-items:start}
+.main{min-width:0;max-width:74ch}
+.ctx{display:none;min-width:0;padding-top:6px}
+@container (min-width:1240px){
+  .inner:has(.ctx){grid-template-columns:minmax(0,1fr) 296px}
+  .ctx{display:block}
+}
+@media (max-width:900px){.inner{padding:24px 22px 60px}}
+
+/* context column: quiet, and never a second navigation */
+.ctxh{font-size:12.5px;font-weight:600;color:var(--mute);margin-bottom:11px}
+.ctxb + .ctxh,.ctxr + .ctxh{margin-top:28px;padding-top:22px;border-top:1px solid var(--line2)}
+.ctxb{font-size:13px;color:var(--body);line-height:1.55}
+.ctxr{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
+.ctxr + .ctxr{border-top:1px solid var(--line2)}
+.ctxn{font-size:13px;color:var(--ink)}
+.ctxs{font-size:12.5px;color:var(--mute);margin-top:1px}
+h1.wt{font-size:25px;font-weight:600;letter-spacing:-.028em;line-height:1.24;max-width:34ch}
+.wsub{font-size:13.5px;color:var(--mute);margin-top:8px}
+
+.block{margin-top:38px}
+.bh{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-bottom:14px}
+.bt{font-size:13.5px;font-weight:600;color:var(--ink)}
+.bmore{font-size:13px;color:var(--mute);cursor:pointer}
+.bmore:hover{color:var(--ink)}
+
+/* rows. 44px, no card, dividers only */
+.r{display:flex;align-items:center;gap:13px;min-height:44px;padding:9px 10px;margin:0 -10px;
+  border-radius:9px;cursor:pointer;transition:background .13s var(--ease)}
+.r:hover{background:var(--hover)}
+.r + .r{border-top:1px solid var(--line2)}
+.rc{flex:1;min-width:0}
+.rl1{font-size:14px;color:var(--ink);line-height:1.4}
+.rl1 .who{font-weight:550}
+.rl2{font-size:13px;color:var(--mute);margin-top:2px;line-height:1.4}
+.rt{font-family:var(--mono);font-size:12px;color:var(--mute);flex:none}
+.mkw{flex:none;display:flex;align-items:center;gap:-4px}
+.you{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--ink);
+  border:1.5px solid var(--gate)}
+.pair{display:flex;align-items:center}
+.pair .you{margin-left:-6px;background:var(--bg)}
+.g{color:var(--pass)}.b{color:var(--fail)}.w{color:var(--warn)}
+
+/* the gate. the biggest thing on the surface, and not a card in a card. */
+.callb{margin-top:34px;padding-top:26px;border-top:1px solid var(--line2)}
+.gq{font-size:19px;font-weight:600;letter-spacing:-.019em;line-height:1.32;max-width:36ch}
+.gwhat{margin-top:14px;background:var(--sink);border-radius:var(--radius-panel);padding:16px 18px}
+.gline{display:flex;gap:11px;padding:5px 0;font-size:13.5px;color:var(--body);align-items:baseline}
+.gline .dot{width:5px;height:5px;border-radius:50%;background:var(--mute);flex:none;margin-top:7px}
+.gline b{color:var(--ink);font-weight:550}
+.acts{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
+.btn{font:inherit;font-size:13.5px;font-weight:500;height:38px;padding:0 16px;border-radius:var(--radius-ctl);
+  border:1px solid var(--line);background:var(--lift);color:var(--ink);cursor:pointer;
+  transition:background .14s var(--ease),transform .1s var(--ease)}
+.btn:hover{background:var(--float)}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.btn.pri:hover{filter:brightness(.93)}
+.btn.ghost{border-color:transparent;background:none;color:var(--mute)}
+.btn.ghost:hover{color:var(--ink);background:var(--hover)}
+.keys{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin-top:11px}
+
+/* the record. a recess and a mark. no stripe, no glow, no hue. */
+.rec{background:var(--sink);border-radius:var(--radius-panel);padding:15px 17px;display:flex;gap:13px;
+  margin-top:4px}
+.recd{width:9px;height:9px;background:var(--body);transform:rotate(45deg);flex:none;margin-top:6px}
+.rect{font-size:13.5px;color:var(--ink);line-height:1.5}
+.rece{font-family:var(--mono);font-size:12px;color:var(--mute);margin-top:6px}
+
+/* ---------- the door ---------- */
+.door{height:calc(100vh - 46px);position:relative;display:grid;place-items:center;overflow:hidden;
+  background:var(--bg)}
+.field{position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(115% 95% at 50% 42%,#000 20%,transparent 76%);
+  -webkit-mask-image:radial-gradient(115% 95% at 50% 42%,#000 20%,transparent 76%)}
+.stars{position:absolute;inset:0}
+.stars i{position:absolute;border-radius:50%;background:var(--star)}
+.sh{position:absolute;height:1px;width:150px;transform-origin:left center;opacity:0;
+  background:linear-gradient(90deg,transparent,var(--star))}
+.sh::after{content:"";position:absolute;right:0;top:-1px;width:3px;height:3px;border-radius:50%;
+  background:var(--star)}
+@keyframes shoot{
+  0%{opacity:0;transform:rotate(16deg) translateX(0) scaleX(.2)}
+  8%{opacity:1}
+  62%{opacity:1}
+  100%{opacity:0;transform:rotate(16deg) translateX(560px) scaleX(1)}
+}
+.sh.a{top:19%;left:6%;animation:shoot 2.1s var(--ease) 4s infinite}
+.sh.b{top:64%;left:-4%;animation:shoot 2.4s var(--ease) 23s infinite}
+.sh.c{top:36%;left:52%;animation:shoot 1.9s var(--ease) 41s infinite}
+@media (prefers-reduced-motion:reduce){.sh{animation:none!important;opacity:0}}
+
+.card{position:relative;z-index:2;width:352px;text-align:center}
+.greet{font-family:var(--px);font-size:29px;color:var(--ink);line-height:1.15}
+.tagline{font-size:13.5px;color:var(--mute);margin:14px 0 28px;line-height:1.5}
+.gbtn{width:100%;height:42px;border-radius:var(--radius-ctl);border:1px solid var(--line);
+  background:var(--sheet);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:background .15s var(--ease),border-color .15s var(--ease)}
+.gbtn:hover{background:var(--lift);border-color:var(--mute)}
+.gbtn svg{width:17px;height:17px}
+
+/* the divider line stays. the word "or" goes. and it is interactive. */
+.orline{display:flex;align-items:center;gap:0;margin:20px 0;height:20px}
+.orline .ln{flex:1;height:1px;background:var(--line)}
+.orline .knob{width:26px;height:20px;display:grid;place-items:center;cursor:pointer;flex:none}
+.orline .knob svg{width:13px;height:13px;color:var(--mute);transition:transform .24s var(--ease),
+  color .16s var(--ease)}
+.orline .knob:hover svg{color:var(--ink)}
+.door.open .orline .knob svg{transform:rotate(180deg)}
+
+.emailwrap{max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .3s var(--ease),opacity .22s var(--ease)}
+.door.open .emailwrap{max-height:190px;opacity:1}
+.fieldrow{text-align:left;margin-bottom:10px}
+.flab{display:block;font-size:12.5px;color:var(--mute);margin-bottom:6px;font-weight:500}
+.inp{width:100%;height:40px;border-radius:var(--radius-ctl);border:1px solid var(--line);
+  background:var(--sink);color:var(--ink);font:inherit;font-size:14px;padding:0 12px;outline:none;
+  transition:border-color .15s var(--ease),background .15s var(--ease)}
+.inp:focus{border-color:var(--mute);background:var(--sheet)}
+.inp::placeholder{color:var(--mute)}
+.submit{width:100%;height:42px;border-radius:var(--radius-ctl);border:0;background:var(--ink);
+  color:var(--bg);font:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+.submit:hover{filter:brightness(.93)}
+.dfoot{margin-top:24px;font-size:13px;color:var(--mute)}
+.dfoot a{color:var(--body);text-decoration:none;border-bottom:1px solid var(--line)}
+.dfoot a:hover{color:var(--ink)}
+.status{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:12.5px;
+  color:var(--mute);z-index:2;display:flex;align-items:center;justify-content:center;gap:8px}
+.status .pip{width:6px;height:6px;border-radius:50%;background:var(--pass);flex:none}
+
+/* ---------- crew ---------- */
+.crewhead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.stagegrp{margin-top:30px}
+.sgh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sgbar{width:22px;height:3px;border-radius:2px;flex:none}
+.sgn{font-size:13.5px;font-weight:600;color:var(--ink)}
+.sgc{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:8px}
+.acard{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;cursor:pointer;
+  transition:background .13s var(--ease)}
+.acard:hover{background:var(--hover)}
+.am.lg{width:30px;height:30px;font-size:12px;border-radius:9px}
+.an{font-size:14px;font-weight:550;color:var(--ink)}
+.as{font-size:12.5px;color:var(--mute);margin-top:1px}
+
+/* ---------- ask panel: shadow, no border. it floats. ---------- */
+.askpane{position:fixed;top:102px;right:22px;bottom:22px;width:392px;z-index:60;
+  background:var(--float);border-radius:16px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateX(calc(100% + 30px));transition:transform .3s var(--ease)}
+.askpane.on{transform:none}
+.aph{height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;border-bottom:1px solid var(--line2)}
+.apt{font-size:14px;font-weight:600}
+.apscope{font-size:12.5px;color:var(--mute);margin-left:8px;font-weight:400}
+.apb{flex:1;overflow-y:auto;padding:16px}
+.m{margin-bottom:18px}
+.mf{font-size:12.5px;color:var(--mute);margin-bottom:5px;font-weight:500}
+.mb{font-size:13.5px;color:var(--ink);line-height:1.55}
+.apf{flex:none;padding:14px 16px;border-top:1px solid var(--line2)}
+.apin{width:100%;min-height:40px;border-radius:10px;border:1px solid var(--line);background:var(--sink);
+  color:var(--ink);font:inherit;font-size:13.5px;padding:10px 12px;outline:none;resize:none}
+.apin:focus{border-color:var(--mute)}
+.scrim{position:fixed;inset:46px 0 0;background:rgba(0,0,0,.34);z-index:50;opacity:0;
+  pointer-events:none;transition:opacity .26s var(--ease)}
+.scrim.on{opacity:1;pointer-events:auto}
+
+/* ---------- settings: a panel, never a crammed modal ---------- */
+.setpane{position:fixed;top:102px;right:22px;bottom:22px;width:352px;z-index:60;
+  background:var(--float);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;
+  display:flex;flex-direction:column;transform:translateX(calc(100% + 30px));
+  transition:transform .3s var(--ease)}
+.setpane.on{transform:none}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;
+  font-size:13.5px}
+.srow + .srow{border-top:1px solid var(--line2)}
+.sk{color:var(--ink)}
+.sv{color:var(--mute);font-size:13px}
+.sw{width:36px;height:21px;border-radius:11px;background:var(--line);position:relative;flex:none;
+  cursor:pointer;transition:background .18s var(--ease)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;
+  background:var(--ink);transition:transform .2s var(--ease)}
+.sw.on{background:var(--pass)}
+.sw.on::after{transform:translateX(15px);background:#fff}
+.setfoot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--line2)}
+.setfoot a{font-size:13px;color:var(--body);text-decoration:none}
+.setfoot a:hover{color:var(--ink)}
+
+/* ---------- stage strip, revealed from the live line ---------- */
+.strip{display:none;background:var(--sheet);border-bottom:1px solid var(--line);padding:14px 18px}
+.app.stages .strip{display:flex;gap:0}
+.sst{flex:1;padding:0 14px 0 0}
+.sst + .sst{border-left:1px solid var(--line2);padding-left:14px}
+.sstn{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.sstl{font-size:13.5px;color:var(--body);margin:3px 0 3px;font-weight:500}
+.sstr{font-size:12.5px;color:var(--mute)}
+.sst.done .sstl{color:var(--mute)}
+.sst.now .sstl{color:var(--ink)} .sst.now .sstr{color:var(--build)}
+.sst.gt .sstl{color:var(--ink)} .sst.gt .sstr{color:var(--gate)}
+
+.note{max-width:760px;padding:16px 18px;margin:0 auto 40px;background:var(--sheet);
+  border-radius:12px;font-size:13.5px;color:var(--body);line-height:1.6}
+.note b{color:var(--ink);font-weight:600}
+.note + .note{margin-top:-24px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-logo" viewBox="0 0 100 100"><path d="M50 8 A42 42 0 1 1 49.9 8" fill="none" stroke="currentColor" stroke-width="0"/>
+  <path d="M50,14 C64,14 76,26 76,40 C76,58 62,68 50,86 C38,68 24,58 24,40 C24,26 36,14 50,14 Z" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linejoin="round"/>
+  <circle cx="50" cy="41" r="9" fill="currentColor"/></symbol>
+<symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M4 6h16M4 12h11M4 18h7"/></symbol>
+<symbol id="i-runs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 12h3.5l2.5-6 3 12 2.5-6H21"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+  <circle cx="7" cy="7" r="2.4"/><circle cx="17.5" cy="10" r="2.4"/><circle cx="9" cy="17.5" r="2.4"/>
+  <path d="M8.9 8.6 15.6 9M8.1 9.3l.5 5.9M15.9 12l-5.2 4.1"/></symbol>
+<symbol id="i-crew" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+  <circle cx="9" cy="8" r="3.1"/><path d="M3.4 19.4c.6-3.2 2.9-5 5.6-5s5 1.8 5.6 5"/>
+  <path d="M16 5.6a3.1 3.1 0 0 1 0 4.9M18.2 14.9c1.5.8 2.5 2.4 2.8 4.5"/></symbol>
+<symbol id="i-engine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h13M21 17h-1"/>
+  <circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="19" cy="17" r="2"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="3.1"/>
+  <path d="M12 3.2v2.4M12 18.4v2.4M4.8 4.8l1.7 1.7M17.5 17.5l1.7 1.7M3.2 12h2.4M18.4 12h2.4M4.8 19.2l1.7-1.7M17.5 6.5l1.7-1.7"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+  <rect x="3.2" y="4.2" width="17.6" height="15.6" rx="2.4"/><path d="M9.6 4.4v15.2"/></symbol>
+<symbol id="i-ask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M20.5 12c0 4.3-3.8 7.7-8.5 7.7-1.1 0-2.2-.2-3.2-.6L4 20.5l1.5-4.2A7.4 7.4 0 0 1 3.5 12C3.5 7.7 7.3 4.3 12 4.3s8.5 3.4 8.5 7.7Z"/></symbol>
+<symbol id="i-google" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.96h5.3c-.25 1.5-1.72 4.4-5.3 4.4-3.2 0-5.8-2.65-5.8-5.9s2.6-5.9 5.8-5.9c1.82 0 3.04.78 3.74 1.44l2.55-2.45C16.9 4.1 14.72 3.1 12.18 3.1 6.9 3.1 2.6 7.37 2.6 12.6s4.3 9.5 9.58 9.5c5.53 0 9.18-3.88 9.18-9.35 0-.63-.07-1.1-.16-1.65Z"/></symbol>
+</defs></svg>
+
+<nav class="deck">
+  <span class="dt">Prototype v2</span>
+  <button class="tab" data-s="door" aria-current="true">The door</button>
+  <button class="tab" data-s="today">Today</button>
+  <button class="tab" data-s="run">A run, live</button>
+  <button class="tab" data-s="crew">The crew</button>
+  <span class="sp"></span>
+  <button class="tgl" id="themeb">Light</button>
+</nav>
+
+<div class="stage">
+
+<!-- ============ THE DOOR ============ -->
+<section class="screen on" id="s-door">
+  <div class="door" id="door">
+    <div class="field"></div>
+    <div class="stars" id="stars"></div>
+    <div class="sh a"></div><div class="sh b"></div><div class="sh c"></div>
+
+    <div class="card">
+      <div class="greet" id="greet">Still up.</div>
+      <div class="tagline">You make the calls.<br>Your crew does the work between them.</div>
+
+      <button class="gbtn"><svg><use href="#i-google"/></svg>Continue with Google</button>
+
+      <div class="orline">
+        <span class="ln"></span>
+        <span class="knob" id="knob" title="Sign in with email"><svg><use href="#i-chev"/></svg></span>
+        <span class="ln"></span>
+      </div>
+
+      <div class="emailwrap">
+        <div class="fieldrow"><label class="flab">Work email</label>
+          <input class="inp" type="email" placeholder="you@company.com"></div>
+        <div class="fieldrow"><label class="flab">Password</label>
+          <input class="inp" type="password" placeholder="your password"></div>
+        <button class="submit">Sign in</button>
+      </div>
+
+      <div class="dfoot">No account yet? <a href="#">Create a workspace</a></div>
+    </div>
+
+    <div class="status"><span class="pip"></span>All systems normal
+      <span style="color:var(--line)">&middot;</span>
+      <span class="num">last release 4h ago</span></div>
+  </div>
+</section>
+
+<!-- ============ TODAY ============ -->
+<section class="screen" id="s-today">
+  <div class="app" id="appToday">
+    <header class="top">
+      <div class="brand"><svg class="logo"><use href="#i-logo"/></svg></div>
+      <div class="scope">helio&#8209;labs <span class="sl">/</span> relay <svg class="chev"><use href="#i-chev"/></svg></div>
+      <div class="live">
+        <span class="dot" style="width:7px;height:7px;border-radius:50%;background:var(--mute);flex:none"></span>
+        <span class="lt">Nothing running</span>
+        <span class="sep drop2">&middot;</span>
+        <span class="lf drop2">last: Engineer shipped the autofill fix</span>
+        <span class="sep drop1">&middot;</span>
+        <span class="lf drop1 num">2h ago</span>
+      </div>
+      <div class="tools">
+        <button class="askb">Ask <span class="k">&#8984;J</span></button>
+        <button class="ibtn" id="setb1" title="Settings"><svg><use href="#i-gear"/></svg></button>
+        <span class="me">RG</span>
+      </div>
+    </header>
+    <div class="mid">
+      <aside class="rail">
+        <div class="railtop">
+          <div class="crewline"><span class="crewlab">Your crew</span>
+            <span class="crewlink" style="font-size:12.5px;color:var(--mute)">1 waiting</span></div>
+          <div class="crewgrid">
+            <span class="am d1 quiet">SC</span><span class="am d2 quiet">RS</span><span class="am d3 quiet">LI</span>
+            <span class="am de1 quiet">ST</span><span class="am de2 quiet">CR</span><span class="am de3 quiet">CS</span>
+            <span class="am p1 gate">WR</span><span class="am p2 quiet">PL</span><span class="am ds quiet">DS</span>
+            <span class="am b1 quiet">EN</span><span class="am b2 quiet">RV</span><span class="am shp quiet">PB</span>
+            <span class="am le quiet">AN</span>
+          </div>
+        </div>
+        <nav class="nav">
+          <a class="nrow on"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span><span class="rcount hot">1</span></a>
+          <a class="nrow"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span><span class="rcount">4</span></a>
+          <a class="nrow"><svg><use href="#i-brain"/></svg><span class="rlabel">Brain</span></a>
+          <a class="nrow"><svg><use href="#i-crew"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
+          <a class="nrow"><svg><use href="#i-engine"/></svg><span class="rlabel">Engine room</span></a>
+        </nav>
+        <div class="railfoot">
+          <button class="collapse" title="Collapse"><svg><use href="#i-panel"/></svg></button>
+        </div>
+      </aside>
+      <main class="work">
+        <div class="inner">
+        <div class="main">
+          <h1 class="wt">Four runs finished while you were gone. One needs you.</h1>
+          <div class="wsub">Tuesday 29 July &middot; <span class="num">41 days</span> on the record</div>
+
+          <div class="callb">
+            <div class="gq">Writer wants to ship the pricing spec</div>
+            <div class="gwhat">
+              <div class="gline"><span class="dot"></span><span><b class="g">Three sections added</b>,
+                one removed, and four open questions close.</span></div>
+              <div class="gline"><span class="dot"></span><span>Critic reviewed it and did not object.
+                <b>Second read in a row with no changes.</b></span></div>
+              <div class="gline"><span class="dot"></span><span>Nothing ships from this. The spec becomes
+                the brief Engineer builds from.</span></div>
+            </div>
+            <div class="acts">
+              <button class="btn pri">Approve</button>
+              <button class="btn">Send back</button>
+              <button class="btn">Decline</button>
+              <button class="btn ghost">Snooze</button>
+            </div>
+            <div class="keys">a &nbsp; s &nbsp; d &nbsp;&nbsp; z to snooze</div>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="bt">Done without you</span>
+              <span class="bmore">All 4 runs</span></div>
+            <div class="r">
+              <span class="mkw"><span class="am b1">EN</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Engineer</span> shipped the autofill fix</span>
+                <span class="rl2"><span class="num">12 files</span>, tests pass, <span class="num">run 41</span></span></span>
+              <span class="rt">2h</span></div>
+            <div class="r">
+              <span class="mkw"><span class="am de2">CR</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Critic</span> dropped the referral bet</span>
+                <span class="rl2">for the reason you gave in March</span></span>
+              <span class="rt">5h</span></div>
+            <div class="r">
+              <span class="mkw pair"><span class="am p1">WR</span><span class="you">RG</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Writer</span> drafted the onboarding spec, and you edited it</span>
+                <span class="rl2">you rewrote the second section</span></span>
+              <span class="rt">6h</span></div>
+            <div class="r">
+              <span class="mkw"><span class="am b2">RV</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Reviewer</span> sent the migration back to Engineer</span>
+                <span class="rl2 b">no rollback path</span></span>
+              <span class="rt">8h</span></div>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="bt">It learned one thing</span></div>
+            <div class="rec">
+              <span class="recd"></span>
+              <span><span class="rect">Checkout changes ship twice as fast when Critic reviews before
+                Engineer starts.</span>
+                <span class="rece">6 of 6 runs since 12 June &middot; open the evidence</span></span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="ctx">
+          <div class="ctxh">Where this call came from</div>
+          <div class="ctxr"><span class="am d3">LI</span>
+            <span><span class="ctxn">Listener heard it four times</span>
+            <span class="ctxs">pricing confusion, three accounts</span></span></div>
+          <div class="ctxr"><span class="am de1">ST</span>
+            <span><span class="ctxn">Strategist ranked it second</span>
+            <span class="ctxs">behind the checkout fix</span></span></div>
+          <div class="ctxr"><span class="am p1">WR</span>
+            <span><span class="ctxn">Writer drafted the spec</span>
+            <span class="ctxs">in <span class="num">6 minutes</span>, from 11 sources</span></span></div>
+
+          <div class="ctxh">What it costs</div>
+          <div class="ctxb">This run has used <span class="num">$2.10</span> of the
+            <span class="num">$40</span> a run may reach.</div>
+
+          <div class="ctxh">Nothing else is waiting</div>
+          <div class="ctxb">You have approved <span class="num">27 of 30</span> without changing
+            anything. Writer could do this alone.</div>
+        </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim1"></div>
+  <aside class="setpane" id="setpane">
+    <div class="aph"><span class="apt">Settings</span>
+      <button class="ibtn" id="setclose"><svg style="width:15px;height:15px"><use href="#i-chev"/></svg></button></div>
+    <div class="srow"><span class="sk">Theme</span><span class="sv">Follows your system</span></div>
+    <div class="srow"><span class="sk">Let Writer draft specs alone</span><span class="sw on"></span></div>
+    <div class="srow"><span class="sk">Let Engineer merge its own work</span><span class="sw"></span></div>
+    <div class="srow"><span class="sk">Spend ceiling a run may reach</span><span class="sv num">$40</span></div>
+    <div class="srow"><span class="sk">Interface density</span><span class="sv">Standard</span></div>
+    <div class="setfoot"><a href="#">Everything else, on its own page</a></div>
+  </aside>
+</section>
+
+<!-- ============ A RUN ============ -->
+<section class="screen" id="s-run">
+  <div class="app stages" id="appRun">
+    <header class="top">
+      <div class="brand"><svg class="logo"><use href="#i-logo"/></svg></div>
+      <div class="scope">relay <span class="sl">/</span> <span class="num" style="font-weight:550">Run 41</span> <svg class="chev"><use href="#i-chev"/></svg></div>
+      <div class="live" id="liveRun">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--build);flex:none"></span>
+        <span class="lt">Engineer is writing the change</span>
+        <span class="sep drop2">&middot;</span>
+        <span class="lf drop2 num">autofill.tsx</span>
+        <span class="sep drop1">&middot;</span>
+        <span class="lf drop1 num">4m 20s, step 6 of up to 24</span>
+        <svg class="chev" style="transform:rotate(180deg)"><use href="#i-chev"/></svg>
+      </div>
+      <div class="tools">
+        <button class="askb" id="askopen">Ask <span class="k">&#8984;J</span></button>
+        <button class="ibtn"><svg><use href="#i-gear"/></svg></button>
+        <span class="me">RG</span>
+      </div>
+    </header>
+
+    <div class="strip">
+      <div class="sst done"><div class="sstn">01</div><div class="sstl">Discover</div><div class="sstr">4 signals</div></div>
+      <div class="sst done"><div class="sstn">02</div><div class="sstl">Decide</div><div class="sstr">you kept it</div></div>
+      <div class="sst done"><div class="sstn">03</div><div class="sstl">Plan</div><div class="sstr">spec 12</div></div>
+      <div class="sst done"><div class="sstn">04</div><div class="sstl">Design</div><div class="sstr">no surface to change</div></div>
+      <div class="sst now"><div class="sstn">05</div><div class="sstl">Build</div><div class="sstr">writing the change</div></div>
+      <div class="sst gt"><div class="sstn">06</div><div class="sstl">Ship</div><div class="sstr">your call, next</div></div>
+      <div class="sst"><div class="sstn">07</div><div class="sstl">Learn</div><div class="sstr">not yet</div></div>
+    </div>
+
+    <div class="mid">
+      <aside class="rail">
+        <div class="railtop">
+          <div class="crewline"><span class="crewlab">Your crew</span>
+            <span class="crewlink" style="font-size:12.5px;color:var(--mute)">1 running</span></div>
+          <div class="crewgrid">
+            <span class="am d1 quiet">SC</span><span class="am d2 quiet">RS</span><span class="am d3 quiet">LI</span>
+            <span class="am de1 quiet">ST</span><span class="am de2 quiet">CR</span><span class="am de3 quiet">CS</span>
+            <span class="am p1 quiet">WR</span><span class="am p2 quiet">PL</span><span class="am ds quiet">DS</span>
+            <span class="am b1 run">EN</span><span class="am b2 quiet">RV</span><span class="am shp quiet">PB</span>
+            <span class="am le quiet">AN</span>
+          </div>
+        </div>
+        <nav class="nav">
+          <a class="nrow"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span></a>
+          <a class="nrow on"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span><span class="rcount">1</span></a>
+          <a class="nrow"><svg><use href="#i-brain"/></svg><span class="rlabel">Brain</span></a>
+          <a class="nrow"><svg><use href="#i-crew"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
+          <a class="nrow"><svg><use href="#i-engine"/></svg><span class="rlabel">Engine room</span></a>
+        </nav>
+        <div class="railfoot"><button class="collapse"><svg><use href="#i-panel"/></svg></button></div>
+      </aside>
+      <main class="work">
+        <div class="inner">
+        <div class="main">
+          <h1 class="wt">Fix the checkout redirect</h1>
+          <div class="wsub">you asked for this at <span class="num">09:02</span> &middot;
+            a human merges it</div>
+
+          <div class="block">
+            <div class="bh"><span class="bt">What happened, in order</span></div>
+            <div class="r"><span class="mkw"><span class="you">RG</span></span>
+              <span class="rc"><span class="rl1">You asked for it</span>
+                <span class="rl2">"the redirect drops the query string"</span></span>
+              <span class="rt num">09:02</span></div>
+            <div class="r"><span class="mkw"><span class="am d2">RS</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Researcher</span> read four files and the last three reports</span>
+                <span class="rl2">found the same bug closed in March, fixed differently</span></span>
+              <span class="rt num">09:03</span></div>
+            <div class="r"><span class="mkw"><span class="am b1">EN</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Engineer</span> wrote the test first</span>
+                <span class="rl2">it failed, which is what a test is for</span></span>
+              <span class="rt num">09:06</span></div>
+            <div class="r"><span class="mkw"><span class="am b1 run">EN</span></span>
+              <span class="rc"><span class="rl1"><span class="who">Engineer</span> is writing the change</span>
+                <span class="rl2 num">autofill.tsx &middot; no step for 12s</span></span>
+              <span class="rt num" style="color:var(--build)">4m 20s</span></div>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="bt">The change, so far</span>
+              <span class="bmore">Open the diff</span></div>
+            <div class="gwhat" style="margin-top:0">
+              <div class="gline" style="padding-bottom:9px"><span class="dot"></span>
+                <span><b class="g num">+24</b> and <b class="b num">6 removed</b> across
+                <span class="num">3 files</span>, and the new test passes.</span></div>
+              <div class="gline"><span class="dot"></span>
+                <span class="num" style="color:var(--body)">autofill.tsx &nbsp; redirect.ts &nbsp; redirect.test.ts</span></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="bh"><span class="bt">The record has something</span></div>
+            <div class="rec"><span class="recd"></span>
+              <span><span class="rect">In March you fixed this by changing the caller instead, and that
+                decision is still standing.</span>
+                <span class="rece">decision 88, you wrote it, 14 March &middot; open it</span></span></div>
+          </div>
+        </div>
+
+        <aside class="ctx">
+          <div class="ctxh">This run</div>
+          <div class="ctxb">Started <span class="num">09:02</span>, <span class="num">4m 20s</span> in.
+            Six steps of up to twenty four. It has used <span class="num">$0.62</span>.</div>
+
+          <div class="ctxh">What happens next</div>
+          <div class="ctxr"><span class="am b2">RV</span>
+            <span><span class="ctxn">Reviewer reads it</span>
+            <span class="ctxs">on its own, you allowed that</span></span></div>
+          <div class="ctxr"><span class="you">RG</span>
+            <span><span class="ctxn">Then you merge it</span>
+            <span class="ctxs">the one call in this run</span></span></div>
+
+          <div class="ctxh">If it fails</div>
+          <div class="ctxb">The branch is thrown away and the run costs you nothing. Nothing has
+            reached Preview yet.</div>
+        </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim2"></div>
+  <aside class="askpane" id="askpane">
+    <div class="aph"><span><span class="apt">Ask</span><span class="apscope">this run</span></span>
+      <button class="ibtn" id="askclose"><svg style="width:15px;height:15px"><use href="#i-chev"/></svg></button></div>
+    <div class="apb">
+      <div class="m"><div class="mf">You</div>
+        <div class="mb">what is Engineer waiting on?</div></div>
+      <div class="m"><div class="mf">Answer</div>
+        <div class="mb">Nothing. It is writing <span class="num">autofill.tsx</span> and has not
+        checkpointed for <span class="num">12 seconds</span>. Step <span class="num">6</span> of up to
+        <span class="num">24</span>.</div></div>
+      <div class="m"><div class="mf">From the record</div>
+        <div class="rec" style="margin-top:6px;padding:13px 15px"><span class="recd"></span>
+          <span class="rect" style="font-size:13px">The last three runs touching this file finished
+          under nine minutes.</span></div></div>
+    </div>
+    <div class="apf"><textarea class="apin" rows="1" placeholder="Ask about this run"></textarea></div>
+  </aside>
+</section>
+
+<!-- ============ CREW ============ -->
+<section class="screen" id="s-crew">
+  <div class="app">
+    <header class="top">
+      <div class="brand"><svg class="logo"><use href="#i-logo"/></svg></div>
+      <div class="scope">helio&#8209;labs <span class="sl">/</span> relay <svg class="chev"><use href="#i-chev"/></svg></div>
+      <div class="live"><span style="width:7px;height:7px;border-radius:50%;background:var(--mute);flex:none"></span>
+        <span class="lt">Nothing running</span></div>
+      <div class="tools"><button class="askb">Ask <span class="k">&#8984;J</span></button>
+        <button class="ibtn"><svg><use href="#i-gear"/></svg></button><span class="me">RG</span></div>
+    </header>
+    <div class="mid">
+      <aside class="rail">
+        <div class="railtop">
+          <div class="crewline"><span class="crewlab">Your crew</span></div>
+          <div class="crewgrid">
+            <span class="am d1 quiet">SC</span><span class="am d2 quiet">RS</span><span class="am d3 quiet">LI</span>
+            <span class="am de1 quiet">ST</span><span class="am de2 quiet">CR</span><span class="am de3 quiet">CS</span>
+            <span class="am p1 quiet">WR</span><span class="am p2 quiet">PL</span><span class="am ds quiet">DS</span>
+            <span class="am b1 quiet">EN</span><span class="am b2 quiet">RV</span><span class="am shp quiet">PB</span>
+            <span class="am le quiet">AN</span>
+          </div>
+        </div>
+        <nav class="nav">
+          <a class="nrow"><svg><use href="#i-today"/></svg><span class="rlabel">Today</span></a>
+          <a class="nrow"><svg><use href="#i-runs"/></svg><span class="rlabel">Runs</span></a>
+          <a class="nrow"><svg><use href="#i-brain"/></svg><span class="rlabel">Brain</span></a>
+          <a class="nrow on"><svg><use href="#i-crew"/></svg><span class="rlabel">Crew</span><span class="rcount">13</span></a>
+          <a class="nrow"><svg><use href="#i-engine"/></svg><span class="rlabel">Engine room</span></a>
+        </nav>
+        <div class="railfoot"><button class="collapse"><svg><use href="#i-panel"/></svg></button></div>
+      </aside>
+      <main class="work">
+        <div class="inner">
+          <div class="crewhead">
+            <div><h1 class="wt">Thirteen work here.</h1>
+              <div class="wsub">colour tells you which stage they belong to, the letters tell you
+                which one they are</div></div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--discover)"></span>
+              <span class="sgn">Discover</span><span class="sgc">3</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg d1">SC</span><span><div class="an">Scout</div>
+                <div class="as">reads your sources at 2am</div></span></div>
+              <div class="acard"><span class="am lg d2">RS</span><span><div class="an">Researcher</div>
+                <div class="as">goes and finds out</div></span></div>
+              <div class="acard"><span class="am lg d3">LI</span><span><div class="an">Listener</div>
+                <div class="as">watches what customers say</div></span></div>
+            </div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--decide)"></span>
+              <span class="sgn">Decide</span><span class="sgc">3</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg de1">ST</span><span><div class="an">Strategist</div>
+                <div class="as">ranks the bets</div></span></div>
+              <div class="acard"><span class="am lg de2">CR</span><span><div class="an">Critic</div>
+                <div class="as">argues against them</div></span></div>
+              <div class="acard"><span class="am lg de3">CS</span><span><div class="an">Chief of Staff</div>
+                <div class="as">runs the others</div></span></div>
+            </div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--plan)"></span>
+              <span class="sgn">Plan</span><span class="sgc">2</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg p1 gate">WR</span><span><div class="an">Writer</div>
+                <div class="as">waiting on you, since 09:14</div></span></div>
+              <div class="acard"><span class="am lg p2">PL</span><span><div class="an">Planner</div>
+                <div class="as">sequences the work</div></span></div>
+            </div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--design)"></span>
+              <span class="sgn">Design</span><span class="sgc">1</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg ds">DS</span><span><div class="an">Designer</div>
+                <div class="as">draws what it will look like</div></span></div>
+            </div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--build)"></span>
+              <span class="sgn">Build</span><span class="sgc">2</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg b1 run">EN</span><span><div class="an">Engineer</div>
+                <div class="as">writing the change, 4m 20s</div></span></div>
+              <div class="acard"><span class="am lg b2">RV</span><span><div class="an">Reviewer</div>
+                <div class="as">reads it before you do</div></span></div>
+            </div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--ship)"></span>
+              <span class="sgn">Ship</span><span class="sgc">1</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg shp">PB</span><span><div class="an">Publisher</div>
+                <div class="as">tells people it changed</div></span></div>
+            </div>
+          </div>
+
+          <div class="stagegrp">
+            <div class="sgh"><span class="sgbar" style="background:var(--learn)"></span>
+              <span class="sgn">Learn</span><span class="sgc">1</span></div>
+            <div class="agrid">
+              <div class="acard"><span class="am lg le">AN</span><span><div class="an">Analyst</div>
+                <div class="as">says whether it worked</div></span></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="rec"><span class="recd"></span>
+              <span><span class="rect">Below 24 pixels the hue stops being identity and the shape
+                carries state: a ring means running, low opacity means quiet, an ember diamond means
+                it needs you, a red ring means it failed.</span>
+              <span class="rece">so thirteen hues never compete with the four status colours</span></span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* screens */
+$$('.tab').forEach(t=>t.addEventListener('click',()=>{
+  $$('.tab').forEach(x=>x.setAttribute('aria-current','false'));
+  t.setAttribute('aria-current','true');
+  $$('.screen').forEach(s=>s.classList.remove('on'));
+  $('#s-'+t.dataset.s).classList.add('on');
+}));
+
+/* theme */
+$('#themeb').addEventListener('click',()=>{
+  const r=document.documentElement, next=r.dataset.theme==='dark'?'light':'dark';
+  r.dataset.theme=next; $('#themeb').textContent = next==='dark'?'Light':'Dark';
+});
+
+/* the door: the divider knob reveals email. the line stays, the word "or" is gone. */
+$('#knob').addEventListener('click',()=>$('#door').classList.toggle('open'));
+
+/* greeting is a fact, chosen from the hour and the day */
+(function(){
+  const h=new Date().getHours(), d=new Date().getDay();
+  let g='Morning.';
+  if(h>=23||h<4) g='Still up.';
+  else if(h<7) g='Early.';
+  else if(h>=20) g='Late one.';
+  else if(d===1) g='New week.';
+  else if(d===5) g='Friday.';
+  else if(h>=12&&h<17) g='Afternoon.';
+  $('#greet').textContent=g;
+})();
+
+/* stars, deterministic so it never reshuffles */
+(function(){
+  let seed=20260729, rnd=()=>((seed=seed*1103515245%2147483647)/2147483647);
+  const box=$('#stars'); let html='';
+  for(let i=0;i<64;i++){
+    const s=rnd()<.16?2:1, o=(.2+rnd()*.7).toFixed(2);
+    html+=`<i style="left:${(rnd()*100).toFixed(2)}%;top:${(rnd()*100).toFixed(2)}%;
+      width:${s}px;height:${s}px;opacity:${o}"></i>`;
+  }
+  box.innerHTML=html;
+})();
+
+/* rail collapse */
+$$('.collapse').forEach(b=>b.addEventListener('click',e=>
+  e.target.closest('.app').classList.toggle('narrow')));
+
+/* the live line reveals the seven stages */
+$('#liveRun').addEventListener('click',()=>$('#appRun').classList.toggle('stages'));
+
+/* ask + settings panels. they float on shadow, and they are never a crammed modal. */
+const open=(p,s)=>{$(p).classList.add('on');$(s).classList.add('on')};
+const shut=(p,s)=>{$(p).classList.remove('on');$(s).classList.remove('on')};
+$('#askopen').addEventListener('click',()=>open('#askpane','#scrim2'));
+$('#askclose').addEventListener('click',()=>shut('#askpane','#scrim2'));
+$('#scrim2').addEventListener('click',()=>shut('#askpane','#scrim2'));
+$('#setb1').addEventListener('click',()=>open('#setpane','#scrim1'));
+$('#setclose').addEventListener('click',()=>shut('#setpane','#scrim1'));
+$('#scrim1').addEventListener('click',()=>shut('#setpane','#scrim1'));
+$$('.sw').forEach(s=>s.addEventListener('click',()=>s.classList.toggle('on')));
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){shut('#askpane','#scrim2');shut('#setpane','#scrim1')}
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='j'){e.preventDefault();
+    if($('#s-run').classList.contains('on')) open('#askpane','#scrim2')}
+});
+</script>
+</body>
+</html>
