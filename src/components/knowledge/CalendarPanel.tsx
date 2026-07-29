@@ -17,7 +17,6 @@ import {
   Plus,
 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "@/lib/notify";
 import {
   listCalendarEvents,
   syncCalendar,
@@ -124,6 +123,20 @@ export function CalendarPanel({
   const fCreate = useServerFn(createCalendarEvent);
   const fPropose = useServerFn(proposeSlots);
   const fMeetings = useServerFn(listMeetings);
+
+  // THE COMMIT (agents/FINAL-agent-presence.md R10). Every write here reaches
+  // OUT of the product and changes the user's real calendar, which is the
+  // largest blast radius on this surface, and every one of them used to end in
+  // a toast that erased itself. Session local: the durable record is the
+  // calendar itself, one region below.
+  const [settled, setSettled] = useState<
+    { id: string; verb: string; consequence: string; failed?: boolean }[]
+  >([]);
+  const commit = (verb: string, consequence: string, failed = false) =>
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed },
+      ...prev,
+    ]);
   const fListConns = useServerFn(listMySuiteConnections);
   const fStartConnect = useServerFn(startSuiteConnect);
   const fDisconnect = useServerFn(disconnectSuiteConnection);
@@ -190,10 +203,16 @@ export function CalendarPanel({
   const mSync = useMutation({
     mutationFn: () => fSync({ data: { calendarId: "primary", daysAhead: 14 } }),
     onSuccess: ({ count }) => {
-      toast.success(`Synced ${count} events`);
+      commit(
+        "You pulled your calendar in",
+        count === 0
+          ? "Nothing new in the next fourteen days. What was already here is unchanged."
+          : `${count} event${count === 1 ? "" : "s"} from the next fourteen days are on the record, and the crew reads them before it plans your week.`,
+      );
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to pull your calendar in", e.message || "Nothing was read.", true),
   });
 
   // H3 · propose deep-work blocks, then add a chosen block to the calendar.
@@ -203,17 +222,30 @@ export function CalendarPanel({
       setBlocks(b);
       setPlanned(true);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit(
+        "You asked for a deep-work plan",
+        e.message || "No plan came back, and nothing was put on your calendar.",
+        true,
+      ),
   });
   const mAddBlock = useMutation({
     mutationFn: (b: WorkBlock) =>
       fCreate({ data: { summary: b.title, start_at: b.start_at, end_at: b.end_at } }),
     onSuccess: (_r, b) => {
       setAddedTasks((prev) => new Set(prev).add(b.task_id));
-      toast.success("Block added to calendar");
+      commit(
+        "You held time for deep work",
+        `"${b.title}" is on your real calendar. Anyone who can see your availability now sees you as busy then.`,
+      );
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, b) =>
+      commit(
+        "You tried to hold time for deep work",
+        `"${b.title}" was not added. ${e.message || "The write failed."}`,
+        true,
+      ),
   });
 
   // SW-7: native OAuth, new-tab + poll (Google/Microsoft's own consent
@@ -226,16 +258,21 @@ export function CalendarPanel({
       window.open(authorizeUrl, "_blank", "noopener");
       startCalendarPoll();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to connect a calendar", e.message || "Nothing was connected.", true),
   });
 
   const mDisconnect = useMutation({
     mutationFn: (id: string) => fDisconnect({ data: { id } }),
     onSuccess: () => {
-      toast.success("Disconnected");
+      commit(
+        "You disconnected the calendar",
+        "Supaprod stops reading it and stops writing to it. Events it already added stay on your calendar.",
+      );
       qc.invalidateQueries({ queryKey: ["calendar-connections"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to disconnect the calendar", e.message || "It is still connected.", true),
   });
 
   const mUpdateEvt = useMutation({
@@ -253,11 +290,15 @@ export function CalendarPanel({
       });
     },
     onSuccess: () => {
-      toast.success("Event updated · synced back to your calendar");
+      commit(
+        "You changed an event",
+        `"${editTitle}" is updated on your real calendar, and every attendee sees the new time.`,
+      );
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
       setEditing(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to change an event", e.message || "Your calendar is unchanged.", true),
   });
 
   const mDeleteEvt = useMutation({
@@ -266,11 +307,15 @@ export function CalendarPanel({
       return fDelete({ data: { calendarId: "primary", externalId: editing.id } });
     },
     onSuccess: () => {
-      toast.success("Event deleted · removed from your calendar");
+      commit(
+        "You deleted an event",
+        "It is off your real calendar, and every attendee was told it was cancelled.",
+      );
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
       setEditing(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to delete an event", e.message || "It is still on your calendar.", true),
   });
 
   const mPropose = useMutation({
@@ -279,7 +324,12 @@ export function CalendarPanel({
       setSlots(r.slots);
       if (r.slots[0]) setPicked(r.slots[0].start_at);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit(
+        "You asked for open time",
+        e.message || "No slots came back, and nothing was scheduled.",
+        true,
+      ),
   });
 
   const mCreate = useMutation({
@@ -288,15 +338,19 @@ export function CalendarPanel({
       if (!slot || !title.trim()) throw new Error("Pick a slot and add a title");
       return fCreate({ data: { summary: title, start_at: slot.start_at, end_at: slot.end_at } });
     },
-    onSuccess: () => {
-      toast.success("Event created · synced back to your calendar");
+    onSuccess: (_r, _v) => {
+      commit(
+        "You scheduled it",
+        `"${title}" is on your real calendar, and it is held against anyone else booking that time.`,
+      );
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
       setShowNew(false);
       setTitle("");
       setSlots([]);
       setPicked(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to schedule it", e.message || "Nothing was added to your calendar.", true),
   });
 
   /* "+ Add · syncs back" — a real focus-block hold on the selected day
@@ -315,11 +369,15 @@ export function CalendarPanel({
         },
       });
     },
-    onSuccess: () => {
-      toast.success("Added here · syncs to your calendar");
+    onSuccess: (_r, day) => {
+      commit(
+        "You held an hour",
+        `9am on ${day.toLocaleDateString([], { month: "short", day: "numeric" })} is blocked on your real calendar.`,
+      );
       qc.invalidateQueries({ queryKey: ["calendar-events"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      commit("You tried to hold an hour", e.message || "Nothing was added.", true),
   });
 
   // Memoize the quick-add callback to support React.memo on MonthGrid
@@ -489,6 +547,13 @@ export function CalendarPanel({
           ))}
         </div>
       </div>
+
+      {/* What each write actually CAUSED. Every one of these reaches out of the
+          product and changes the user's real calendar, so it leaves a trace
+          rather than a toast that erases itself. */}
+      {settled.map((r) => (
+        <Receipt key={r.id} verb={r.verb} consequence={r.consequence} failed={r.failed} />
+      ))}
 
       {showNew && (
         <div className="bento fade-up" style={{ padding: "var(--card-pad)", marginBottom: 14 }}>

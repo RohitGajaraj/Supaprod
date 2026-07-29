@@ -331,8 +331,8 @@ describe("RESOLVED_LINE mapping", () => {
   test("no line carries a dash or a middot: plain words, and never AI punctuation", () => {
     Object.values(RESOLVED_LINE).forEach((line) => {
       if (line) {
-        expect(line.text).not.toContain("—");
-        expect(line.text).not.toContain("–");
+        expect(line.text).not.toContain("\u2014");
+        expect(line.text).not.toContain("\u2013");
         expect(line.text).not.toContain("·");
       }
     });
