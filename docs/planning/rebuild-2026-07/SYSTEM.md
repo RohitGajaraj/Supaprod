@@ -54,11 +54,12 @@ One primary per screen. `trailing` separates a destructive action by DISTANCE, n
 **The crew** `AgentMark({slug, state, size})` · `MarkStack` · `YouMark` · `PairMark`
 
 `state`: `quiet | idle | running | gate | waiting | failed`. **`gate` blinks and is the only
-blink in the system, so exactly one mark on a screen may wear it** — the one thing actually
+blink in the system, so exactly one mark on a screen may wear it**: the one thing actually
 asking. `waiting` is the same ember without the animation, for everything queued behind it. A
 list that gave every pending row `gate` blinked a dozen marks at once and spent the whole
-restraint budget. Hue resolves from the agent's station
-automatically. Never pass a colour. The human is a solid filled disc, so you are a different KIND
+restraint budget.
+
+Hue resolves from the agent's station automatically. Never pass a colour. The human is a solid filled disc, so you are a different KIND
 of thing from an agent rather than a different colour of the same thing.
 
 **The record** `Row({marks, lead, sub, time, tight, focused})` · `Who` · `Diffstat` ·
@@ -101,7 +102,7 @@ product. So a settled call writes a `Receipt` carrying the item's own real conse
 - A failed write **still** writes a receipt and goes honest immediately. Never a success shape
   over a failed write: that is the one thing that makes the successful ones trustworthy.
 - Draw the handoff arrow only when real data says who picks the work up. **Never an arrow to
-  nowhere** — where nothing follows, say what changed instead.
+  nowhere**. Where nothing follows, say what changed instead.
 
 ## Two things that are true and easy to get wrong
 
