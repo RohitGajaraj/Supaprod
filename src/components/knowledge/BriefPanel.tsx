@@ -159,7 +159,10 @@ export function BriefPanel() {
     { id: string; verb: string; consequence: string; failed?: boolean }[]
   >([]);
   const commit = (verb: string, consequence: string, failed = false) =>
-    setSettled((prev) => [{ id: `${Date.now()}-${prev.length}`, verb, consequence, failed }, ...prev]);
+    setSettled((prev) => [
+      { id: `${Date.now()}-${prev.length}`, verb, consequence, failed },
+      ...prev,
+    ]);
 
   const save = useMutation({
     mutationFn: (v: {

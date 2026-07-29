@@ -120,8 +120,10 @@ function renderPanel(
   );
 }
 
-/** The loading state is the only thing that paints the cadShimmer gradient. */
-const shimmer = (c: HTMLElement) => c.querySelector('[style*="cadShimmer"]');
+/** The loading state. The shimmer went with the port (2026-07-29): loading is
+ *  the THIRD fact and it says so in words, so the probe is the live region the
+ *  Loading primitive renders rather than a gradient. */
+const shimmer = (c: HTMLElement) => c.querySelector(".sp-loading[aria-live]");
 
 /**
  * Assert an element is absent. Never write expect(node).toBeNull(): when that
@@ -360,12 +362,15 @@ describe("CalendarPanel · list view", () => {
     );
   });
 
-  it("marks a processed meeting as extracted", async () => {
+  it("says a processed meeting has been read", async () => {
+    // The VerdictChip is retired. A completed outcome is a WORD carried by the
+    // one class that means it.
     meetingsResult = async () => ({
       meetings: [makeMeeting({ processed_at: new Date().toISOString() })],
     });
     const { container } = await renderLoaded();
-    await waitFor(() => expect(container.textContent).toContain("extracted"));
+    await waitFor(() => expect(container.querySelector(".sp-pass")).toBeTruthy());
+    expect(container.querySelector(".sp-pass")!.textContent).toBe("read");
   });
 
   it("expands a meeting that carries a Historian capture", async () => {
@@ -582,9 +587,10 @@ describe("CalendarPanel · month view", () => {
     expect(start.getHours()).toBe(9);
     expect(end.getHours()).toBe(10);
     expect(start.getDate()).toBe(new Date().getDate());
-    await waitFor(() =>
-      expect(toastSuccessSpy).toHaveBeenCalledWith("Added here · syncs to your calendar"),
-    );
+    // THE COMMIT: a write that reaches the user's real calendar leaves a
+    // receipt naming the consequence, never a toast confirming the click.
+    await waitFor(() => expect(screen.getByText("You held an hour")).toBeTruthy());
+    expect(toastSuccessSpy).not.toHaveBeenCalled();
   });
 
   it("toggles the selected day off when its cell is clicked again", async () => {
@@ -680,11 +686,12 @@ describe("CalendarPanel · event editor", () => {
     expect(arg.data.summary).toBe("Design review v2");
   });
 
-  it("closes the editor and reports the two-way sync after a save", async () => {
+  it("closes the editor and leaves a receipt naming what the save reached", async () => {
     await openEditor();
     fireEvent.click(screen.getByText("Save · syncs back"));
     await waitFor(() => expectGone(screen.queryByRole("dialog")));
-    expect(toastSuccessSpy).toHaveBeenCalledWith("Event updated · synced back to your calendar");
+    await waitFor(() => expect(screen.getByText("You changed an event")).toBeTruthy());
+    expect(toastSuccessSpy).not.toHaveBeenCalled();
   });
 
   it("asks for confirmation before deleting, then deletes", async () => {
@@ -712,13 +719,17 @@ describe("CalendarPanel · event editor", () => {
     expect(updateSpy).not.toHaveBeenCalled();
   });
 
-  it("surfaces a failed save as an error toast and leaves the editor open", async () => {
+  it("leaves a FAILED receipt and keeps the editor open when the save is rejected", async () => {
     updateSpy.mockImplementationOnce(async () => {
       throw new Error("Provider rejected the update");
     });
     await openEditor();
     fireEvent.click(screen.getByText("Save · syncs back"));
-    await waitFor(() => expect(toastErrorSpy).toHaveBeenCalledWith("Provider rejected the update"));
+    await waitFor(() => expect(screen.getByText("You tried to change an event")).toBeTruthy());
+    // The cause survives, and the receipt is marked failed rather than
+    // flashing red and erasing itself.
+    expect(document.body.textContent).toContain("Provider rejected the update");
+    expect(document.querySelector('.sp-receipt[data-failed="true"]')).toBeTruthy();
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 });
@@ -734,19 +745,24 @@ describe("CalendarPanel · sync and connections", () => {
     expect(arg.data).toEqual({ calendarId: "primary", daysAhead: 14 });
   });
 
-  it("reports the synced count", async () => {
+  it("reports the synced count on a receipt, with the real number", async () => {
     await renderLoaded();
     fireEvent.click(screen.getAllByText("Sync · pulls 14 days")[0]);
-    await waitFor(() => expect(toastSuccessSpy).toHaveBeenCalledWith("Synced 3 events"));
+    await waitFor(() => expect(screen.getByText("You pulled your calendar in")).toBeTruthy());
+    // The count is the server's, never invented.
+    expect(document.body.textContent).toContain("3 events");
   });
 
-  it("surfaces a failed sync as an error toast", async () => {
+  it("leaves a FAILED receipt when the sync is rejected", async () => {
     syncSpy.mockImplementationOnce(async () => {
       throw new Error("Calendar is not connected");
     });
     await renderLoaded();
     fireEvent.click(screen.getAllByText("Sync · pulls 14 days")[0]);
-    await waitFor(() => expect(toastErrorSpy).toHaveBeenCalledWith("Calendar is not connected"));
+    await waitFor(() =>
+      expect(screen.getByText("You tried to pull your calendar in")).toBeTruthy(),
+    );
+    expect(document.body.textContent).toContain("Calendar is not connected");
   });
 
   it("marks the connections button live once a calendar account exists", async () => {
@@ -923,10 +939,12 @@ describe("CalendarPanel · deep-work planning", () => {
 /* ---- Loading and failure ---- */
 
 describe("CalendarPanel · loading and failure", () => {
-  it("shows the shimmer skeleton while the feed queries are in flight", () => {
+  it("says it is reading, in words, while the feed queries are in flight", () => {
     eventsResult = () => new Promise(() => {});
     const { container } = renderPanel();
     expect(shimmer(container)).toBeTruthy();
+    expect(container.textContent).toContain("Reading your next fourteen days.");
+    // Loading is not emptiness, and must never be mistaken for it.
     expect(container.textContent).not.toContain("Nothing in the next 14 days");
   });
 
@@ -935,9 +953,11 @@ describe("CalendarPanel · loading and failure", () => {
       throw new Error("Calendar service unavailable");
     };
     const { container } = await renderLoaded();
-    await waitFor(() => expect(container.textContent).toContain("calendar · failed to load"));
+    // A failed read must refuse to wear the empty state's clothes.
+    await waitFor(() => expect(container.textContent).toContain("The calendar did not load"));
     expect(container.textContent).toContain("Calendar service unavailable");
-    expect(screen.getByText("Retry · reloads the feed")).toBeTruthy();
+    expect(container.textContent).not.toContain("Nothing in the next 14 days");
+    expect(screen.getByText("Try again")).toBeTruthy();
   });
 
   it("refetches both feed queries on retry", async () => {
@@ -947,10 +967,10 @@ describe("CalendarPanel · loading and failure", () => {
       return { events: [makeEvent()] };
     };
     const { container } = await renderLoaded();
-    await waitFor(() => expect(container.textContent).toContain("calendar · failed to load"));
+    await waitFor(() => expect(container.textContent).toContain("The calendar did not load"));
 
     fail = false;
-    fireEvent.click(screen.getByText("Retry · reloads the feed"));
+    fireEvent.click(screen.getByText("Try again"));
     await waitFor(() => expect(container.textContent).toContain("Design review"));
   });
 

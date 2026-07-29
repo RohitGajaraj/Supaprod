@@ -224,7 +224,7 @@ describe("DecisionsPanel data states", () => {
   test.todo("opens LogDecisionDialog when 'Log decision' button is clicked");
   test.todo("invokes create mutation on dialog submit");
   test.todo("invalidates decisions query on successful create (refetch trigger)");
-  test.todo("shows success toast on create mutation success (via toast.success)");
+  test.todo("leaves a Receipt naming what the logged call causes (never a toast)");
   test.todo("shows error toast on create mutation error (via toast.error)");
   test.todo("disables dialog buttons while create.isPending is true");
   test.todo("closes dialog on successful create");

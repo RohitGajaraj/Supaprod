@@ -100,7 +100,15 @@ export function GraphNodeStory({
           </>
         }
       >
-        <Actions trailing={onClose ? <Button variant="ghost" onClick={onClose}>Close</Button> : undefined}>
+        <Actions
+          trailing={
+            onClose ? (
+              <Button variant="ghost" onClick={onClose}>
+                Close
+              </Button>
+            ) : undefined
+          }
+        >
           <Button onClick={() => onFocus(node.kind, node.id)}>Centre the graph here</Button>
         </Actions>
 
@@ -147,9 +155,9 @@ function StorySection({
       {rows.length === 0 ? (
         <Empty>{emptyText}</Empty>
       ) : (
-        rows.slice(0, 8).map((r) => (
-          <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />
-        ))
+        rows
+          .slice(0, 8)
+          .map((r) => <Row key={r.id} tight lead={r.peer_title || "Untitled"} sub={r.relation} />)
       )}
     </Block>
   );

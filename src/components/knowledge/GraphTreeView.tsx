@@ -96,8 +96,8 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
   if (!enabled) {
     return (
       <Empty>
-        Nothing is centred yet. Open the Graph view and choose &ldquo;Centre the graph here&rdquo; on
-        a node, and everything downstream of it is outlined here.
+        Nothing is centred yet. Open the Graph view and choose &ldquo;Centre the graph here&rdquo;
+        on a node, and everything downstream of it is outlined here.
       </Empty>
     );
   }

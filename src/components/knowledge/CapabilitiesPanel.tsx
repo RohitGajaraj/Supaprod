@@ -316,7 +316,10 @@ function CapabilityRow({
               </Line>
             ) : null}
             {a.suggestedArc && a.suggestedArc !== a.arc ? (
-              <Line label="It is asking for more" sub="It proposed this itself, from its own record">
+              <Line
+                label="It is asking for more"
+                sub="It proposed this itself, from its own record"
+              >
                 <Value tone="warn">{a.suggestedArc}</Value>
               </Line>
             ) : null}

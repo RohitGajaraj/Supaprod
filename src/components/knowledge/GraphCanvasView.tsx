@@ -195,7 +195,9 @@ export function GraphCanvasView({
     (graph.nodes.length === 1 && graph.edges.length === 0)
   ) {
     return (
-      <Empty action={<Button onClick={() => navigate({ to: "/discover" })}>Capture a signal</Button>}>
+      <Empty
+        action={<Button onClick={() => navigate({ to: "/discover" })}>Capture a signal</Button>}
+      >
         Nothing is connected yet. The map draws itself as you work: promote a signal, approve a
         spec, or record a decision, and the connections appear here on their own.
       </Empty>
@@ -275,8 +277,8 @@ export function GraphCanvasView({
           high confidence
           {confidence.tentative > 0 ? (
             <>
-              , and <Num>{confidence.tentative}</Num>{" "}
-              {confidence.tentative === 1 ? "is" : "are"} tentative
+              , and <Num>{confidence.tentative}</Num> {confidence.tentative === 1 ? "is" : "are"}{" "}
+              tentative
             </>
           ) : null}
           .

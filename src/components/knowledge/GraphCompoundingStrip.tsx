@@ -104,8 +104,7 @@ export function GraphCompoundingStrip({
           }}
         >
           These numbers did not load, so nothing here is a claim about how much the record has
-          learned.{" "}
-          {((memQ.error ?? liftQ.error ?? calibrationQ.error) as Error)?.message ?? ""}
+          learned. {((memQ.error ?? liftQ.error ?? calibrationQ.error) as Error)?.message ?? ""}
         </Failed>
       ) : (
         <>

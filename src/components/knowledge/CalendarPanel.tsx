@@ -38,14 +38,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useConfirm } from "@/hooks/use-confirm";
 import { useConnectPoll } from "@/hooks/use-connect-poll";
 import { useWorkspace } from "@/hooks/use-workspace";
-import {
-  Actions,
-  Block,
-  Button,
-  Failed,
-  Loading,
-  Receipt,
-} from "@/components/shell/primitives";
+import { Actions, Block, Button, Failed, Loading, Receipt } from "@/components/shell/primitives";
 
 type View = "list" | "month" | "year";
 const VIEW_KEY = "supaprod.calendar.view";
@@ -567,13 +560,9 @@ export function CalendarPanel({
             }}
           >
             <span className="sp-block-title">Schedule it. The crew finds open time.</span>
-            <button
-              className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ color: "var(--ink-subtle)" }}
-              onClick={() => setShowNew(false)}
-            >
-              cancel
-            </button>
+            <Button variant="ghost" onClick={() => setShowNew(false)}>
+              Cancel
+            </Button>
           </div>
           <input
             className="input"
@@ -582,14 +571,11 @@ export function CalendarPanel({
             placeholder="Event title · e.g. Deep-work block"
           />
           <div style={{ marginTop: 10 }}>
-            <div
-              className="mono-label"
-              style={{ marginBottom: 6 }}
-            >
+            <div className="mono-label" style={{ marginBottom: 6 }}>
               suggested slots · inside your working hours, no conflicts
             </div>
             {mPropose.isPending ? (
-              <span className="mono-label" style={{ }}>
+              <span className="mono-label" style={{}}>
                 finding open time…
               </span>
             ) : null}
@@ -612,7 +598,14 @@ export function CalendarPanel({
               ))}
             </div>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--geist-space-2x)", marginTop: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: "var(--geist-space-2x)",
+              marginTop: 12,
+            }}
+          >
             <button className="btn btn-ghost btn-sm" onClick={() => mPropose.mutate()}>
               Re-suggest · new slots
             </button>
@@ -641,21 +634,18 @@ export function CalendarPanel({
             }}
           >
             <span className="sp-block-title">Plan deep work, inside your working hours.</span>
-            <button
-              className="mono-label outline-none transition-colors hover:[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ color: "var(--ink-subtle)" }}
+            <Button
+              variant="ghost"
               onClick={() => {
                 setShowPlan(false);
                 setPlanned(false);
               }}
             >
-              cancel
-            </button>
+              Cancel
+            </Button>
           </div>
           {mPlan.isPending ? (
-            <span style={{ color: "var(--ink-subtle)" }}>
-              fitting your deep-work tasks around your calendar…
-            </span>
+            <Loading>Fitting your deep-work tasks around what is already booked.</Loading>
           ) : blocks.length === 0 ? (
             <p style={{ color: "var(--ink-muted)" }}>
               {planned
@@ -719,22 +709,10 @@ export function CalendarPanel({
       )}
 
       {loading ? (
-        // Shimmer skeleton matching the loaded layout (view row, then day cards).
-        <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {[34, 96, 96, 64].map((h, i) => (
-            <div
-              key={i}
-              style={{
-                width: i === 0 ? "45%" : "100%",
-                height: h,
-                borderRadius: "var(--radius-card)",
-                background:
-                  "linear-gradient(90deg, var(--raised), var(--hover), var(--raised)) 0 0 / 280% 100%",
-                animation: "cadShimmer 1.6s linear infinite",
-              }}
-            />
-          ))}
-        </div>
+        // Loading is the THIRD fact: not "nothing here", not "we could not find
+        // out". It says so in words. No shimmer, because motion confirms and
+        // this has nothing to confirm yet.
+        <Loading>Reading your next fourteen days.</Loading>
       ) : loadError ? (
         <Failed
           onRetry={() => {
@@ -742,8 +720,8 @@ export function CalendarPanel({
             void meetings.refetch();
           }}
         >
-          The calendar did not load, so this is not a claim that your next fourteen days are
-          empty. {loadError.message}
+          The calendar did not load, so this is not a claim that your next fourteen days are empty.{" "}
+          {loadError.message}
         </Failed>
       ) : view === "list" && feed.length === 0 ? (
         // Window-named empty state (the honesty law): the list only shows the
@@ -768,7 +746,7 @@ export function CalendarPanel({
           >
             <CalIcon size={16} />
           </span>
-          <h3 className="font-display" style={{ }}>
+          <h3 className="font-display" style={{}}>
             Nothing in the next 14 days
           </h3>
           <p
@@ -878,10 +856,7 @@ export function CalendarPanel({
                        chip it used to wear is retired. */
                     <span className="sp-pass">read</span>
                   ) : null}
-                  <span
-                    className="mono-label"
-                    style={{ color: "var(--ink-subtle)" }}
-                  >
+                  <span className="mono-label" style={{ color: "var(--ink-subtle)" }}>
                     {it.kind}
                   </span>
                   {it.kind === "event" && it.event?.html_link ? (
@@ -916,10 +891,7 @@ export function CalendarPanel({
                       background: "var(--surface-1)",
                     }}
                   >
-                    <div
-                      className="mono-label"
-                      style={{ marginBottom: 6 }}
-                    >
+                    <div className="mono-label" style={{ marginBottom: 6 }}>
                       capture · extracted by Historian
                     </div>
                     <p
@@ -1057,7 +1029,7 @@ const MonthGrid = React.memo(function MonthGrid({
         </button>
         <button
           className="btn btn-ghost btn-sm"
-          style={{ }}
+          style={{}}
           onClick={() => {
             const d = new Date();
             const day = d.getDate();
@@ -1176,7 +1148,7 @@ const MonthGrid = React.memo(function MonthGrid({
       <div
         style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, padding: "0 2px" }}
       >
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           free
         </span>
         {SHADES.map((c) => (
@@ -1192,11 +1164,11 @@ const MonthGrid = React.memo(function MonthGrid({
             }}
           ></span>
         ))}
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           occupied
         </span>
         <span style={{ flex: 1 }}></span>
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           synced two-way with your calendar · weekends: Settings → Profile
         </span>
       </div>
@@ -1219,10 +1191,7 @@ const MonthGrid = React.memo(function MonthGrid({
               marginBottom: selItems.length ? 6 : 0,
             }}
           >
-            <span
-              className="mono-label"
-              style={{ color: "var(--ink)" }}
-            >
+            <span className="mono-label" style={{ color: "var(--ink)" }}>
               {monthName} {selDay}
               {isThisMonth && selDay === today.getDate() ? (
                 <span style={{ color: "var(--ember)" }}> · today</span>
@@ -1231,7 +1200,7 @@ const MonthGrid = React.memo(function MonthGrid({
             <span style={{ flex: 1 }}></span>
             <button
               className="btn btn-ghost btn-sm"
-              style={{ }}
+              style={{}}
               disabled={quickAddPending}
               onClick={() => onQuickAdd(new Date(year, month, selDay))}
             >
@@ -1313,7 +1282,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
         <span className="font-display" style={{ flex: 1 }}>
           {year} · occupancy
         </span>
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           like a contribution graph · but for your time
         </span>
       </div>
@@ -1427,7 +1396,7 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
       <div
         style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, padding: "0 2px" }}
       >
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           free
         </span>
         {SHADES.map((c) => (
@@ -1443,11 +1412,11 @@ const YearGrid = React.memo(function YearGrid({ buckets }: { buckets: Record<str
             }}
           ></span>
         ))}
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           occupied
         </span>
         <span style={{ flex: 1 }}></span>
-        <span className="mono-label" style={{ }}>
+        <span className="mono-label" style={{}}>
           today ringed ember · the year fills in as it happens
         </span>
       </div>
@@ -1525,20 +1494,13 @@ function EventEditor({
         >
           <span className="sp-block-title">Edit the event. It syncs back.</span>
           <span style={{ flex: 1 }}></span>
-          <button
-            className="mono-label"
-            style={{ color: "var(--ink-subtle)" }}
-            onClick={onClose}
-          >
+          <button className="mono-label" style={{ color: "var(--ink-subtle)" }} onClick={onClose}>
             close
           </button>
         </div>
         <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <div
-              className="mono-label"
-              style={{ marginBottom: 4 }}
-            >
+            <div className="mono-label" style={{ marginBottom: 4 }}>
               title
             </div>
             <input
@@ -1549,10 +1511,7 @@ function EventEditor({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div>
-              <div
-                className="mono-label"
-                style={{ marginBottom: 4 }}
-              >
+              <div className="mono-label" style={{ marginBottom: 4 }}>
                 start
               </div>
               <input
@@ -1563,10 +1522,7 @@ function EventEditor({
               />
             </div>
             <div>
-              <div
-                className="mono-label"
-                style={{ marginBottom: 4 }}
-              >
+              <div className="mono-label" style={{ marginBottom: 4 }}>
                 end
               </div>
               <input
@@ -1578,10 +1534,7 @@ function EventEditor({
             </div>
           </div>
           <div>
-            <div
-              className="mono-label"
-              style={{ marginBottom: 4 }}
-            >
+            <div className="mono-label" style={{ marginBottom: 4 }}>
               notes
             </div>
             <textarea
@@ -1608,7 +1561,14 @@ function EventEditor({
               <ExternalLink size={16} /> open in provider
             </a>
           ) : null}
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--geist-space-2x)",
+              marginTop: 4,
+            }}
+          >
             <button
               className="btn btn-reject btn-sm"
               onClick={onDelete}
