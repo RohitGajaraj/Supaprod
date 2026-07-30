@@ -10,22 +10,31 @@
 
 ## THE FOUNDER'S OPEN CALLS (do these first)
 
+0. **RESOLVED 20:35 IST, but read it: the demo-id scatter (20260730150000) was
+   REVERTED by 20260730203000, applied live.** It broke cloning outright.
+   `clone_demo_workspace` does NOT clone the `projects` table (verified:
+   `pg_get_functiondef` contains no `into public.projects`), so the four demo
+   products already exist per workspace with PASTED ids. Under the scatter,
+   every product foreign key pointed at a derived row nothing ever creates, and
+   the clone died on `themes_product_id_fkey`. Transactional, so nothing was
+   left half-built, but every clone failed while it was live. `harbor@` has
+   since been re-cloned successfully and is whole (22 opps, 20 missions, 25
+   decisions, 16 themes, 4 projects, 3 pending approvals). **Demo tags still
+   collide, and that is the accepted trade**, because the collision is already
+   neutralised in code: `getEntityLineage` returns `ambiguous` and refuses to
+   pick. To revive the scatter, first make the clone own `projects`.
+   `demo_derive_id` is left in place for that.
 1. **`AI_PROVIDER_FALLBACK=1` is set locally and OFF in production.** With it, a
    hard-failed model degrades to the next candidate; without it the whole Ask
    fails as "I hit a snag". Recommendation: set it in production rather than
    pinning a model, because pinning goes stale the next time a vendor retires
    something, which is exactly what happened to `gemini-2.5-pro` today.
-2. **The demo-clone migration is APPLIED but only affects FUTURE clones.**
-   Existing demo workspaces keep their colliding ids until re-cloned, and
-   re-cloning wipes that workspace and resets its approval queue. Do not
-   re-clone `explore@` before a YC look.
-3. **`research.server.ts:220` reads `opportunities.status` while
-   `roadmap.functions.ts` writes lanes to `roadmap_bucket`.** Different columns.
-   That chat snapshot surfaces one row and would not reflect the roadmap even
-   once it is filled in. Live bug, scoped and not started.
-4. **`architecture/data.md:30` documents `roadmap_items` as a real table.** It
-   has never existed in any migration. That doc line is almost certainly where
-   four broken code maps came from. One-line fix, prevents recurrence.
+2. **Do not re-clone `explore@` before a YC look.** Cloning works again, but it
+   wipes and rebuilds a workspace and resets its pending approval queue, which
+   is the demo's signature beat. `harbor@` is the disposable rehearsal account.
+3. FIXED (02ced1aa): the roadmap snapshot now reads `roadmap_bucket`, and
+   `architecture/data.md` no longer lists a `roadmap_items` table that never
+   existed. That doc line was the source of four broken code maps.
 
 ## THE DISEASE, and it is the most useful thing to carry forward
 
@@ -121,6 +130,18 @@ scrollbars, and Cmd+J removed so one box has one key.
   looking like it worked. Truth now lives once in `lib/artifact-tables.ts`.
 - **`activeModelId` runs BEFORE capability routing**, so a dead model id must be
   removed from `capability.ts` too or the deprecation mechanism never sees it.
+
+## READING A DIFF IS NOT RUNNING IT
+
+The scatter above is the sharpest example of the day. The migration was
+reviewed, its arithmetic verified, and its FK claim reasoned about in writing.
+It still could not work, for a reason invisible in the diff: a table the clone
+does not touch. Diagnosing it from the code produced a plausible cause
+(predicate mismatch between the two remappers, which was real and which I
+fixed) that was NOT the cause. Only running the clone produced the true one.
+
+Anything that writes to a database gets executed against real data before it is
+believed, and a founder-applied migration is not evidence it works.
 
 ## ON VERIFICATION, learned the hard way
 
