@@ -160,3 +160,37 @@ and claiming admin is a real write on a shared account.
   `role="tablist"` markup.
 - `Field` has no second line; `Empty` is drifting into a general quiet-note slot; `Row`'s
   `time` prop is now carrying trailing metrics its name does not describe.
+
+## Parked, founder's call, 2026-07-30: PM language beyond Ask's starters
+
+The founder asked for product-manager vocabulary in Ask's starter templates: impact,
+quarter, roadmap, bets, what the agent is doing, "slightly on the business side", so a
+power user feels the platform was built for them. He then scoped it deliberately:
+
+> "Whatever I've said, that is only from a starter perspective of task panel, what we are
+> giving you starter template messages, what to pick. Only from that perspective, not
+> across the entire product surface. If you're not touched upon, let's not pick that right
+> now. But anyways, make a note of it. Later on, we'll come back."
+
+**Done, and confined to Ask.** `src/lib/ask-starters.ts` (plus its consumer `AskPane.tsx`
+and its test) is the ONLY place this landed. Verified by grep: nothing else in the tree
+references `contextualStarters` or the prompt sets. No other surface's copy was touched.
+
+**The open question, for later.** The same two rulings would apply to every surface that
+speaks to a PM in the product's own vocabulary rather than theirs: empty states, gate
+questions, run summaries, Today's headline. Two things to carry over when we do:
+
+1. **Business framing, workspace facts.** PM language pulls hard toward metrics we do not
+   store (revenue, ARR, NPS, MAU, conversion, LTV). A line promising one teaches a PM in a
+   single press that the product talks a good game and cannot answer. `ask-starters.test.ts`
+   has the banned-metric guard; whatever comes next should inherit it rather than reinvent
+   it. What we CAN settle: decisions and rationale, outcome verdicts (VALIDATED / MISSED via
+   `loadDecisionPrecedent`, which is what makes "did this bet pay off" a real question),
+   ICE-ranked opportunities, signal clusters, specs, runs with steps and metered cost, the
+   approvals queue.
+2. **Never a static message.** His stronger ruling, and it is architectural rather than
+   editorial: copy must derive from the surface the person is standing on. Ask does this by
+   deriving its offers from the same scope resolution that feeds the header chip
+   (`contextualStarters({ scopeKind, scopeLabel })`), so the chip and the suggestions are one
+   fact said twice. Any surface that adopts PM voice should adopt that shape too, or it will
+   drift back into a hand-written constant within a release.
