@@ -9092,6 +9092,10 @@ export type Database = {
         Returns: undefined
       }
       demo_account_emails: { Args: never; Returns: string[] }
+      demo_derive_id: {
+        Args: { p_id: string; p_prefix: string }
+        Returns: string
+      }
       demo_remap: { Args: { p_id: string; p_prefix: string }; Returns: string }
       demo_remap_pk: {
         Args: { p_id: string; p_prefix: string }
