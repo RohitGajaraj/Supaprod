@@ -124,6 +124,13 @@
 .sp-mark[data-state="failed"] {
   color: var(--sp-fail);
 }
+/* Shipped, and provable. The counterpart to `failed`, and the second half of
+ * "green and red carry outcomes" (SYSTEM.md rule 1). Static: an outcome has
+ * already happened, so it never animates. Only a merged change with a real
+ * pull request behind it earns this, see MarkState in primitives.tsx. */
+.sp-mark[data-state="verified"] {
+  color: var(--sp-pass);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .sp-mark svg {

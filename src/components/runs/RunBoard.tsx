@@ -200,12 +200,33 @@ const BOARD_CSS = `
   gap: var(--sp-space-2);
   min-height: 26px;
 }
+/* The count of what is hidden IS the control that reveals it. */
 .rb-rest {
   font-family: var(--sp-font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--sp-text-data-sm);
   color: var(--sp-mute);
-  padding: 2px 2px 0;
+  padding: 4px 6px;
+  margin-top: 2px;
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  border-radius: var(--sp-radius-sm);
+  cursor: pointer;
+  font-weight: inherit;
+  transition: color var(--sp-dur-fast) var(--sp-ease);
+}
+.rb-rest:hover {
+  color: var(--sp-ink);
+  background: var(--sp-hover);
+}
+/* An opened column scrolls inside itself. Eighteen cards in one column while
+ * the other four are empty would make the board a mile of whitespace, and a
+ * board that has to be scrolled past is a list. The shape is the value. */
+.rb-cards {
+  max-height: min(62vh, 620px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 `;
 
@@ -360,6 +381,30 @@ export function RunBoard({
   onShowAll: () => void;
   onOpen: (missionId: string) => void;
 }) {
+  /**
+   * Which columns the person has opened, one at a time.
+   *
+   * FOUNDER REPORT 2026-07-30: "at the bottom it says plus twelve, but as a
+   * user if I want to take a look at what are those plus twelve, there is no
+   * option, it is just a static number." Exactly right, and the expand control
+   * did exist: "Every run", in the opposite corner of the board, expanding
+   * every column at once. A number that names a hidden set should BE the door
+   * to that set, not a label pointing at a button somewhere else.
+   *
+   * Per column rather than global, because "+12" is a question about THOSE
+   * twelve. Opening the gate column should not also unfold Done. The global
+   * "Every run" still works and still wins, so nothing that relied on it broke.
+   */
+  const [expanded, setExpanded] = React.useState<ReadonlySet<RunState>>(new Set());
+  const toggleColumn = React.useCallback((state: RunState) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(state)) next.delete(state);
+      else next.add(state);
+      return next;
+    });
+  }, []);
+
   const columns = React.useMemo(() => {
     // Archived runs are a list-view concern: Manage reveals them there so they
     // can be restored or deleted. On the board they would inflate every count
@@ -382,9 +427,10 @@ export function RunBoard({
           ? (ka ?? "").localeCompare(kb ?? "")
           : (kb ?? "").localeCompare(ka ?? "");
       });
-      return { ...c, all, shown: showAll ? all : all.slice(0, PER_COLUMN) };
+      const open = showAll || expanded.has(c.state);
+      return { ...c, all, shown: open ? all : all.slice(0, PER_COLUMN), open };
     });
-  }, [rows, showAll]);
+  }, [rows, showAll, expanded]);
 
   const truncated = columns.some((c) => c.all.length > c.shown.length);
 
@@ -435,8 +481,34 @@ export function RunBoard({
                   // The one blink in the system, spent on the run that has
                   // been waiting longest. Everything behind it wears the same
                   // ember without the animation.
+                  /* COLOUR BY STATUS, on this board only (founder ruling
+                   * 2026-07-30: "should we also change the colors for already
+                   * done, the agent color... only in this dashboard").
+                   *
+                   * Green is NOT "the Done column". It is "done and we can
+                   * prove it": a merged changeset with a real pull request,
+                   * which is what completionEvidence already calls verified.
+                   * A run that claims done with nothing behind it keeps the
+                   * neutral mark, because the board already flags that case
+                   * and painting it green would assert a success nobody
+                   * checked. The colour and the flag now agree instead of the
+                   * colour overruling the flag. */
+                  const proven =
+                    c.state === "done" &&
+                    completionEvidence({
+                      claimsDone: true,
+                      kind: s.kind,
+                      changesetStatus: s.changeset?.status ?? null,
+                      prUrl: s.changeset?.pr_url ?? null,
+                    }) === "verified";
                   const mark: MarkState =
-                    c.state === "gate" ? (i === 0 ? "gate" : "waiting") : MARK_STATE[c.state];
+                    c.state === "gate"
+                      ? i === 0
+                        ? "gate"
+                        : "waiting"
+                      : proven
+                        ? "verified"
+                        : MARK_STATE[c.state];
                   const title = stripAutoPrefix(s.title);
                   return (
                     <Cell
@@ -450,7 +522,27 @@ export function RunBoard({
                   );
                 })}
                 {c.all.length > c.shown.length ? (
-                  <span className="rb-rest">+{c.all.length - c.shown.length}</span>
+                  <button
+                    type="button"
+                    className="rb-rest"
+                    onClick={() => toggleColumn(c.state)}
+                    aria-expanded={false}
+                  >
+                    +{c.all.length - c.shown.length} more
+                  </button>
+                ) : c.open && c.all.length > PER_COLUMN && !showAll ? (
+                  // A column you opened has to be closable from where you
+                  // opened it. Without this the only way back is the global
+                  // control in the other corner, which is the same complaint
+                  // one step later.
+                  <button
+                    type="button"
+                    className="rb-rest"
+                    onClick={() => toggleColumn(c.state)}
+                    aria-expanded
+                  >
+                    Show fewer
+                  </button>
                 ) : null}
               </div>
             </section>

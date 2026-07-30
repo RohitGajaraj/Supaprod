@@ -48,7 +48,22 @@ import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
  *  the receipts room, where every pending row took the gate state and a
  *  workspace with many open decisions blinked a dozen marks at once, which
  *  spends the whole restraint budget and stops the blink meaning "look here". */
-export type MarkState = "quiet" | "idle" | "running" | "gate" | "waiting" | "failed";
+/**
+ * `verified` completes the outcome pair the system already declares.
+ *
+ * SYSTEM.md rule 1 says "Green and red carry outcomes", and only red existed:
+ * `failed`. So a run that succeeded and a run that merely stopped looked
+ * identical, both wearing the neutral `idle` grey, while a failure was loud.
+ * The product could shout at you about a loss and had no way to show a win.
+ *
+ * IT IS NOT "DONE". It is "done AND we can prove it": reserved for a merged
+ * changeset with a real clickable pull request behind it, which is exactly
+ * what `completionEvidence` already means by "verified". A run that claims
+ * done with nothing behind it stays neutral, because painting every finished
+ * run green would be the product asserting success it never checked, which is
+ * the one thing it is careful never to do.
+ */
+export type MarkState = "quiet" | "idle" | "running" | "gate" | "waiting" | "failed" | "verified";
 
 export function AgentMark({
   slug,
