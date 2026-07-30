@@ -56,6 +56,8 @@
  *                      This is "next time it tells you what is right", wired,
  *                      dated, and citing the outcomes it came from. It had no
  *                      reader on this surface at all.
+ *      ArtifactsView   the Artifacts tab. See THE ARTIFACTS MOVE below; the
+ *                      view's own six answers live in its file header.
  *      CrewCarries     one line over the memory list: how many of those
  *                      memories a run has actually read back, and how many a
  *                      human's later rating marked as having helped or as
@@ -122,10 +124,29 @@
  *    parts that still would not survive the test are named in the report, and
  *    the Docs tab is the clearest of them.
  *
- * UNCHANGED: the route contract. Four tabs, every legacy tab id still resolving
- * through LEGACY_TABS, the ?decision= / ?learning= / ?focusKind= / ?focusId=
- * drills, and every query key, which are shared caches with Today, Learn and
- * the panels themselves.
+ * THE ARTIFACTS MOVE (founder ruling 2026-07-30). A reachability audit found
+ * /artifacts orphaned: its only inbound link was MissionShell's Artifacts door,
+ * and MissionShell is the retired Mission Control chrome AppFrame replaced, so
+ * nothing live reached a fully redesigned 575-line surface. The approved fix is
+ * a fifth tab here rather than a sixth rail item:
+ *
+ *   Brain holds what we DECIDED and LEARNED. Artifacts holds what we MADE.
+ *   Two halves of one record, and only one of them had a door. "Where is that
+ *   spec from March" and "what did we decide in March" are the same question
+ *   with different nouns; splitting them across two rail items makes a person
+ *   choose before they know which half they want. The rail is five items, and
+ *   a sixth costs every user forever to serve an occasional need. Agent-native
+ *   cuts the same way: an agent citing its own work needs ONE addressable
+ *   record, not two.
+ *
+ * So /artifacts is a permanent redirect to /brain?tab=artifacts (URLs never
+ * die), and the tab renders <ArtifactsView />, which draws no Surface and no
+ * h1 because this page owns both.
+ *
+ * UNCHANGED: the route contract. Every legacy tab id still resolves through
+ * LEGACY_TABS, the ?decision= / ?learning= / ?focusKind= / ?focusId= drills
+ * still work, and every query key is untouched, which matters because they are
+ * shared caches with Today, Learn and the panels themselves.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -178,9 +199,12 @@ const GraphPanel = lazy(() =>
 const DocsPanel = lazy(() =>
   import("@/components/knowledge/DocsPanel").then((m) => ({ default: m.DocsPanel })),
 );
+const ArtifactsView = lazy(() =>
+  import("@/components/brain/ArtifactsView").then((m) => ({ default: m.ArtifactsView })),
+);
 
-type Tab = "decisions" | "learnings" | "docs" | "graph";
-const TABS: Tab[] = ["decisions", "learnings", "docs", "graph"];
+type Tab = "decisions" | "learnings" | "artifacts" | "docs" | "graph";
+const TABS: Tab[] = ["decisions", "learnings", "artifacts", "docs", "graph"];
 
 // Deep-link honesty: every tab id that ever existed still lands somewhere
 // true. Insights, impact, judgment, recall and calendar fold into Decisions
@@ -216,6 +240,11 @@ const LEGACY_TABS: Record<LegacyTab, Tab> = {
 const TAB_LABEL: Record<Tab, string> = {
   decisions: "Decisions",
   learnings: "Outcomes",
+  // Keeps its name for the same reason Decisions and Graph do: /artifacts was
+  // a founder-named door with inbound links and a registry entry, so renaming
+  // it here would break the one word people already use for the thing. The
+  // region heading under it says it in plain words.
+  artifacts: "Artifacts",
   docs: "Written",
   graph: "Graph",
 };
@@ -325,7 +354,7 @@ export const Route = createFileRoute("/_authenticated/brain")({
         sub="It was removed, or the link points at something that never existed."
       />
       <Block>
-        <Empty>Everything the record holds is behind the four doors on Brain.</Empty>
+        <Empty>Everything the record holds is behind the five doors on Brain.</Empty>
         <Button variant="primary" onClick={() => window.location.assign("/brain")}>
           Open the record
         </Button>
@@ -604,6 +633,12 @@ function MemoryPage() {
             </>
           ))}
 
+        {/* What we MADE, next to what we decided and learned. This tab draws
+            its own regions rather than one Block, because its first region is
+            the shelf's own claim plus the scoping control and its second is
+            the one item in focus. */}
+        {tab === "artifacts" && <ArtifactsView />}
+
         {tab === "docs" && (
           <>
             <Block title="Brief">
@@ -631,7 +666,7 @@ function MemoryPage() {
               marginBottom: "var(--sp-space-3)",
             }}
           >
-            What the crew reads before it acts, beyond the four doors above.
+            What the crew reads before it acts, beyond the five doors above.
           </p>
           <div
             style={{

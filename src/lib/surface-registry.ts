@@ -715,14 +715,17 @@ export const SURFACE_REGISTRY = {
     opensFrom: "room-topbar-threads-door",
     status: "live",
   },
-  // Artifacts home: the workspace view of what the loop has made (prototypes,
-  // specs, docs today). Founder-approved 2026-07-19, named "Artifacts", reached
-  // from the room's Artifacts door and /artifacts. Backed by artifacts.functions.ts;
-  // versions + rename/delete follow with their migration (gap K6-K9).
+  // Artifacts: what the loop has MADE (prototypes, specs, docs today).
+  // Founder-approved 2026-07-19 and named "Artifacts"; MOVED into Brain by the
+  // 2026-07-30 ruling after a reachability audit found /artifacts orphaned, its
+  // only inbound link being the retired Mission Control chrome. It is now the
+  // Artifacts tab on Brain, so the door is the tab, not a rail item and not the
+  // room's top bar. /artifacts is a permanent redirect to /brain?tab=artifacts.
+  // Backed by artifacts.functions.ts; versions follow with their migration (K7).
   artifacts: {
     kind: "route",
-    home: "route:/artifacts",
-    opensFrom: "room-topbar-artifacts-door",
+    home: "brain",
+    opensFrom: "brain-tab-artifacts",
     status: "live",
   },
 
