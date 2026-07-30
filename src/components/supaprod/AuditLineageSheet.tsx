@@ -40,6 +40,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 
 import { getEntityLineage } from "@/lib/audit-lineage.functions";
+import { getLineageGraph, type LineageNodeView } from "@/lib/lineage-graph.functions";
+import type { LineageStep } from "@/lib/lineage-graph";
 import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
 import { Empty, Failed, Loading } from "@/components/shell/primitives";
@@ -64,6 +66,109 @@ function fmt(iso: string | null): string {
   } catch {
     return "";
   }
+}
+
+/**
+ * One node in the chain, in the record's own words.
+ *
+ * `resolved` is a separate fact from `title` and the distinction is the whole
+ * honesty of this row. `deployments` has no title-like column, so a perfectly
+ * readable deployment yields `title: null`. Without `resolved` that is
+ * indistinguishable from "a kind we cannot name" and from "RLS hid it": three
+ * different facts collapsing into one blank. Each gets its own sentence.
+ */
+/** Find a walked node's resolved view. */
+function nodeOf(
+  graph: { nodes: LineageNodeView[] },
+  ref: { kind: string; id: string },
+): LineageNodeView | null {
+  return graph.nodes.find((n) => n.kind === ref.kind && n.id === ref.id) ?? null;
+}
+
+type ChainEntry = { node: LineageNodeView; relation: string | null; focus: boolean };
+
+/**
+ * The two walks, flattened into ONE story: origin at the top, time running down
+ * through the focus.
+ *
+ * DE-DUPLICATED, and that is not tidiness. This graph has cycles by design (a
+ * learning re-opens the decision that produced it, which is the loop closing
+ * and the most valuable edge in the product), so the same node is legitimately
+ * reachable in both directions. Rendering both hits shows a person the same
+ * spec twice in one column and reads as a bug. Upstream wins the tie, because
+ * a thing's origin is the more surprising fact about it.
+ */
+export function chainOf(graph: {
+  focus: LineageNodeView;
+  upstream: LineageStep[];
+  downstream: LineageStep[];
+  nodes: LineageNodeView[];
+}): ChainEntry[] {
+  const seen = new Set<string>([`${graph.focus.kind}:${graph.focus.id}`]);
+  const take = (ref: { kind: string; id: string }, relation: string | null): ChainEntry | null => {
+    const key = `${ref.kind}:${ref.id}`;
+    if (seen.has(key)) return null;
+    const node = nodeOf(graph, ref);
+    if (!node) return null;
+    seen.add(key);
+    return { node, relation, focus: false };
+  };
+
+  // Furthest ancestor first: the walk reports nearest-first, and reading a
+  // cause after its effect is backwards.
+  const up = [...graph.upstream]
+    .sort((a, b) => b.distance - a.distance)
+    .map((step) => take(step.from, step.relation))
+    .filter((e): e is ChainEntry => e !== null);
+
+  const down = [...graph.downstream]
+    .sort((a, b) => a.distance - b.distance)
+    .map((step) => take(step.to, step.relation))
+    .filter((e): e is ChainEntry => e !== null);
+
+  if (up.length === 0 && down.length === 0) return [];
+  return [...up, { node: graph.focus, relation: null, focus: true }, ...down];
+}
+
+function ChainNode({
+  node,
+  relation,
+  onFollow,
+}: {
+  node: LineageNodeView;
+  relation: string | null;
+  onFollow: (ref: string) => void;
+}) {
+  const label = node.title
+    ? stripAutoPrefix(node.title)
+    : node.resolved
+      ? `A ${node.kind} with no title on the record`
+      : `A ${node.kind} we could not read`;
+  return (
+    <li className="sp-chain-node" data-resolved={node.resolved ? "true" : "false"}>
+      <span className="sp-chain-mark" aria-hidden="true" />
+      <div className="sp-chain-body">
+        <div className="sp-chain-kind">
+          {node.kind}
+          {relation ? <span className="sp-chain-rel"> · {relation}</span> : null}
+        </div>
+        <div className="sp-chain-title">{label}</div>
+        <div className="sp-chain-meta">
+          {node.status ? <span>{node.status}</span> : null}
+          {node.ref ? (
+            <button
+              type="button"
+              className="sp-trail-ref"
+              onClick={() => onFollow(node.ref as string)}
+              title={`Trace ${node.ref}`}
+            >
+              {node.ref}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  );
 }
 
 export function AuditLineageSheet() {
@@ -107,6 +212,42 @@ export function AuditLineageSheet() {
   // A mission's real lineage IS its trust chain (signal to outcome), so when
   // the resolved entity is a mission that nine-link chain renders beneath the
   // generic walk rather than duplicating it.
+  /* THE FORWARD HALF, which is the reason any of this was built.
+   *
+   * `getEntityLineage` above follows FK columns on the entity's own row: one
+   * hop, outward only. It can say what a thing points AT and never what it
+   * CAUSED. The founder asked for both directions explicitly: "it has come
+   * from this design spec, from this PRD, and this originated from this
+   * signal. And past that, what has happened after this build."
+   *
+   * `getLineageGraph` walks `artifact_lineage` both ways. Its own module
+   * documents why it refuses to validate kinds: the forward half of a real
+   * chain is `changeset` and `deployment`, which appear in NEITHER kind
+   * vocabulary, so a validating walk answers "this caused nothing" about a
+   * mission that shipped. */
+  const fGraph = useServerFn(getLineageGraph);
+  const graphQ = useQuery({
+    queryKey: ["lineage-graph", d?.kind ?? null, d?.entityId ?? null],
+    /* DEPTH 3, and this is a rendering decision the live data forced.
+     *
+     * At the default depth 6 the founder's own chain came back with 24 nodes,
+     * duplicated, and a CHANGESET presented as the mission's ancestor. Both
+     * are the loop: walking up from the mission eventually re-enters the
+     * forward half through `learning -> decision`, so "where did this come
+     * from" wraps around into "what it caused". The data is right and the
+     * story is nonsense.
+     *
+     * Three hops is what the founder actually described: "it came from this
+     * design spec, from this PRD, and this originated from this signal", and
+     * "what happened after this build". That is the causal neighbourhood, and
+     * it is shallow enough that the loop cannot close inside it. The walk
+     * still reports `truncated`, so the pane says the chain continues rather
+     * than implying it ends. */
+    queryFn: () =>
+      fGraph({ data: { kind: d?.kind as string, id: d?.entityId as string, maxDepth: 3 } }),
+    enabled: Boolean(d?.found && d?.kind && d?.entityId),
+  });
+
   const fChain = useServerFn(getMissionChain);
   const chainQ = useQuery({
     queryKey: ["audit-lineage-chain", d?.entityId ?? null],
@@ -198,6 +339,44 @@ export function AuditLineageSheet() {
                 </li>
               ))}
             </ol>
+
+            {/* THE CHAIN, read as one story rather than two lists.
+              The founder described it in one breath: "it has come from this
+              design spec, from this PRD, and this originated from this signal,
+              and past that, what has happened after this build." So the origin
+              is at the top and time runs downward THROUGH the focus, which is
+              how a person narrates causation. Two headed lists would make the
+              reader assemble that order themselves. */}
+            {graphQ.data?.found && chainOf(graphQ.data).length > 0 ? (
+              <div className="sp-lineage-chain">
+                <div className="sp-trail-label">The chain</div>
+                <ol className="sp-chain">
+                  {chainOf(graphQ.data).map((entry) =>
+                    entry.focus ? (
+                      <li className="sp-chain-node" data-focus="true" key="focus">
+                        <span className="sp-chain-mark" aria-hidden="true" />
+                        <div className="sp-chain-body">
+                          <div className="sp-chain-kind">{entry.node.kind} · you are here</div>
+                          <div className="sp-chain-title">{stripAutoPrefix(d.title)}</div>
+                        </div>
+                      </li>
+                    ) : (
+                      <ChainNode
+                        key={`${entry.node.kind}-${entry.node.id}`}
+                        node={entry.node}
+                        relation={entry.relation}
+                        onFollow={follow}
+                      />
+                    ),
+                  )}
+                </ol>
+                {graphQ.data.truncated ? (
+                  <p className="sp-chain-more">
+                    The chain continues past this. Follow an id above to keep walking.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             {d.kind === "mission" && chainQ.data ? (
               <div className="sp-lineage-chain">

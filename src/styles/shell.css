@@ -1175,3 +1175,94 @@ button.sp-me {
 .sp-lineage-chain {
   margin-top: 24px;
 }
+
+/* ---------- the chain ----------
+ * Where a thing came from and what it caused, read as ONE story: origin at the
+ * top, time running down THROUGH the focus. The founder described it in one
+ * breath, so it renders in one column; two headed lists would make the reader
+ * assemble the order themselves. */
+.sp-chain {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+.sp-chain-node {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 14px;
+}
+.sp-chain-node:last-child {
+  padding-bottom: 0;
+}
+.sp-chain-node:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 14px;
+  bottom: 0;
+  width: 1px;
+  background: var(--sp-line-soft);
+}
+.sp-chain-mark {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sp-line);
+  margin-top: 5px;
+  flex: none;
+}
+/* Where you are, marked by weight rather than colour: the focus is a position
+ * in the story, not a status, and colour in this system carries status. */
+.sp-chain-node[data-focus="true"] .sp-chain-mark {
+  background: var(--sp-ink);
+  width: 9px;
+  height: 9px;
+  margin-left: -1px;
+}
+.sp-chain-node[data-focus="true"] .sp-chain-title {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-medium);
+}
+/* A node we could not read is dimmed, never hidden. A missing node silently
+ * shortens the chain and nobody can tell; a dim one says so. */
+.sp-chain-node[data-resolved="false"] .sp-chain-title {
+  color: var(--sp-mute);
+  font-style: italic;
+}
+.sp-chain-body {
+  min-width: 0;
+  flex: 1;
+}
+.sp-chain-kind {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-mute);
+}
+.sp-chain-rel {
+  color: var(--sp-faint, var(--sp-mute));
+}
+.sp-chain-title {
+  font-size: var(--sp-text-prose);
+  color: var(--sp-body);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.sp-chain-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  margin-top: 4px;
+}
+/* Never a silent stop: a chain that merely hit a depth cap must not read as a
+ * chain that ended. */
+.sp-chain-more {
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  margin: 10px 0 0;
+}
