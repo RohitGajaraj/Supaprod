@@ -117,6 +117,7 @@ mock.module("@/hooks/use-ask-stream", () => ({
   }),
 }));
 
+const { WORKING_EFFORT_WORDS } = await import("../Working");
 const { AskPane } = await import("../AskPane");
 const { AskProvider } = await import("@/lib/ask-context");
 
@@ -659,14 +660,15 @@ describe("AskPane: the working line", () => {
     r.unmount();
   });
 
-  test("with no status event it says Working, and invents nothing", async () => {
+  // With no server event the verb is a flavour word that names no operation.
+  // The vocabulary itself is guarded in Working.test.ts; this asserts the line
+  // renders one of them and never a claim about something we did not do.
+  test("with no status event it still says something, and invents no operation", async () => {
     streaming = true;
     messages = inFlight;
     const r = await open();
-    const text = screen.getByTestId("ask-pane").textContent ?? "";
-    expect(text).toContain("Working");
-    expect(text).not.toContain("Discovering");
-    expect(text).not.toContain("Thinking");
+    const say = screen.getByTestId("ask-pane").querySelector(".sp-working-say");
+    expect(WORKING_EFFORT_WORDS).toContain(say?.textContent ?? "");
     r.unmount();
   });
 
@@ -678,6 +680,89 @@ describe("AskPane: the working line", () => {
     ];
     const r = await open();
     expect(screen.getByTestId("ask-pane").querySelector(".sp-working")).toBe(null);
+    r.unmount();
+  });
+});
+
+/**
+ * THE SUGGESTION STRIP. Founder ruling 2026-07-30: the two headed lists became
+ * three travelling rows, "so that the user would see all the possible use
+ * cases. And when he clicks, that comes into the chat and continues from there."
+ */
+describe("AskPane: the suggestion marquee", () => {
+  async function openWithRuns() {
+    missionRows = [{ title: "Ship SSO login for Beacon", status: "running", completed_at: null }];
+    const r = mount();
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      await new Promise((res) => setTimeout(res, 10));
+    });
+    return r;
+  }
+
+  test("three rows, each one travelling, and they alternate direction", async () => {
+    const r = await openWithRuns();
+    const tracks = screen
+      .getByTestId("ask-pane")
+      .querySelectorAll<HTMLElement>(".sp-marquee-track");
+    expect(tracks.length).toBe(3);
+    expect([...tracks].map((t) => t.dataset.dir)).toEqual(["ltr", "rtl", "ltr"]);
+    r.unmount();
+  });
+
+  /**
+   * THE ACCESSIBILITY TRAP a marquee sets. A seamless loop needs the content
+   * rendered several times over; every copy after the first must be hidden, or
+   * a screen reader is read thirty-nine buttons where there are thirteen.
+   */
+  test("the loop's duplicate copies are hidden from the tree, so nothing is read twice", async () => {
+    const r = await openWithRuns();
+    const pane = screen.getByTestId("ask-pane");
+    const copies = pane.querySelectorAll(".sp-marquee-copy");
+    expect(copies.length).toBeGreaterThan(3);
+    const visible = [...copies].filter((c) => !c.hasAttribute("aria-hidden"));
+    // Exactly one visible copy per row.
+    expect(visible.length).toBe(3);
+    // And every suggestion is reachable exactly once. A ROLE query is the
+    // point of this assertion: it walks the accessibility tree and so honours
+    // the aria-hidden that a plain text query would sail straight past, which
+    // is exactly the difference a screen reader experiences.
+    const chips = screen.getAllByRole("button", {
+      name: /What is the crew doing on Ship SSO login for Beacon/,
+    });
+    expect(chips.length).toBe(1);
+    r.unmount();
+  });
+
+  // A press does not send: it lands the whole sentence in the composer, where
+  // the person can edit it and continue. "That comes into the chat."
+  test("a press lands the whole sentence in the composer, and does not send it", async () => {
+    const r = await openWithRuns();
+    await act(async () => {
+      screen
+        .getAllByRole("button", { name: /What is the crew doing on Ship SSO login for Beacon/ })[0]
+        .click();
+    });
+    const box = screen.getByLabelText("Ask about Helio Labs") as HTMLTextAreaElement;
+    expect(box.value).toBe("What is the crew doing on Ship SSO login for Beacon?");
+    expect(sendIntent).not.toHaveBeenCalled();
+    r.unmount();
+  });
+
+  // The use cases name nothing, so they survive a workspace read that failed:
+  // a person on day one needs them more than anyone.
+  test("a failed workspace read still leaves the use cases standing", async () => {
+    missionsThrow = true;
+    const r = mount();
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      await new Promise((res) => setTimeout(res, 10));
+    });
+    const pane = screen.getByTestId("ask-pane");
+    expect(pane.textContent).toContain("could not read what is running");
+    expect(
+      screen.getAllByRole("button", { name: "What needs my call before it can move?" }).length,
+    ).toBe(1);
     r.unmount();
   });
 });

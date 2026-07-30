@@ -184,8 +184,36 @@
   border: 0;
   background: none;
   border-radius: var(--sp-radius-ctl);
-  max-width: 680px;
+  /* WIDE ENOUGH FOR A REAL TITLE. This was `max-width: 680px`, and measuring
+   * the founder's own screen showed what that cost: the header was 1600px, the
+   * line was pinned to exactly 680, the title needed 553 and got 386, and 446
+   * pixels sat EMPTY beside it. The title clipped mid-word while there was
+   * room for all of it.
+   *
+   * That is not the no-wrap rule doing its job, it is a cap fighting the
+   * layout. `flex: 1` was already asking for the space and the max-width was
+   * refusing it. 1100 fits the longest real title with headroom and still
+   * stops the line sprawling across an ultrawide, which is what the original
+   * cap was reaching for. `margin: 0 auto` keeps it centred either way. */
+  max-width: 1100px;
   margin: 0 auto;
+}
+
+/* The provenance chip. `[auto]` is a dedup marker from the trigger pipeline and
+ * must never render as raw text (stripAutoPrefix's own rule); the FACT that the
+ * crew raised something itself is worth keeping, so it becomes a quiet chip.
+ * Deliberately not ember: nothing is waiting on you because a mission was
+ * self-proposed, and ember means exactly that one thing. */
+.sp-auto {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.04em;
+  color: var(--sp-mute);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-sm);
+  padding: 1px 5px;
+  margin-right: 6px;
+  vertical-align: 1px;
 }
 .sp-live:hover {
   background: var(--sp-hover);

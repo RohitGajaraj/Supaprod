@@ -115,7 +115,7 @@ import { listMissions } from "@/lib/missions.functions";
 import {
   starterPrompts,
   starterStateIsKnownEmpty,
-  USE_CASES,
+  contextualStarters,
   type Starter,
 } from "@/lib/ask-starters";
 import {
@@ -128,6 +128,7 @@ import {
   Textarea,
 } from "@/components/shell/primitives";
 import { IconMic } from "@/components/shell/icons";
+import { SuggestionMarquee } from "./SuggestionMarquee";
 import { AskSwitcher } from "./AskSwitcher";
 import { AskTurn, toTurns } from "./AskTurn";
 
@@ -314,6 +315,13 @@ function AskPaneOpen() {
     missions: missions.isError ? null : (missions.data?.missions ?? null),
   };
   const starters = starterPrompts(starterSource);
+  // Derived from the surface you are standing on, every time the pane opens.
+  // The scope chip in the header and these questions are the same fact said
+  // twice, which is what "connected to what they're working on" has to mean.
+  const contextual = contextualStarters({
+    scopeKind: ask.scope?.kinds?.[0] ?? null,
+    scopeLabel,
+  });
 
   return (
     <aside
@@ -426,6 +434,7 @@ function AskPaneOpen() {
           <Opening
             scopeLabel={scopeLabel}
             starters={starters}
+            contextual={contextual}
             loading={missions.isLoading}
             failed={missions.isError}
             knownEmpty={starterStateIsKnownEmpty(starterSource)}
@@ -663,6 +672,7 @@ function Suggestion({ subject, question }: { subject: string | null; question: s
 function Opening({
   scopeLabel,
   starters,
+  contextual,
   loading,
   failed,
   knownEmpty,
@@ -672,6 +682,10 @@ function Opening({
   scopeLabel: string;
   /** Already grounded. This component never invents one and never pads. */
   starters: Starter[];
+  /** The offered questions for THIS surface. Derived from the scope on every
+   *  open, never a constant: founder ruling, "never going to be a static
+   *  message ever". */
+  contextual: Starter[];
   loading: boolean;
   failed: boolean;
   /** The read LANDED and this workspace has run nothing. Different from both
@@ -693,49 +707,48 @@ function Opening({
         workspace's own record, and cites what it read.
       </div>
 
-      {/* GROUP ONE: what is really happening here, named. Absent entirely when
-          we have no fact to name, rather than padded with a generic line. */}
-      <div style={{ marginTop: "var(--sp-space-6)" }}>
-        {failed ? (
-          // Never silently. A generic suggestion here would be indistinguishable
-          // from a grounded one, so the honest move is to say the read broke.
-          <Failed onRetry={onRetry}>
-            We could not read what is running, so there is nothing to suggest yet.
-          </Failed>
-        ) : loading ? (
-          <Loading>Reading what is running.</Loading>
-        ) : knownEmpty ? (
-          <SectionLabel>Nothing has run here yet</SectionLabel>
-        ) : starters.length > 0 ? (
-          <>
-            <SectionLabel>In this workspace</SectionLabel>
-            <Actions stack>
-              {starters.map((s) => (
-                <Button key={s.prompt} variant="ghost" onClick={() => onPick(s.prompt)}>
-                  <Suggestion subject={s.subject} question={s.question} />
-                </Button>
-              ))}
-            </Actions>
-          </>
-        ) : null}
-      </div>
+      {/* ONE STRIP, NOT TWO HEADED LISTS. Founder ruling 2026-07-30: "in
+          workspace you have two messages, in what you can do you have three.
+          Instead of this, can we have two or three lines maximum combining
+          everything... three rows should be good enough."
 
-      {/* GROUP TWO: what this surface can DO, which the workspace's contents
-          cannot teach. Founder ruling: show a few use cases "like how Perplexity
-          shows... so that the user knows exactly what he should be asking on".
-          These name nothing, so they are constant and cannot be wrong; the
-          three are one per mode (a call to settle, the record, the hand-over)
-          rather than three flavours of one. */}
-      <div style={{ marginTop: "var(--sp-space-6)" }}>
-        <SectionLabel>What you can do here</SectionLabel>
-        <Actions stack>
-          {USE_CASES.map((u) => (
-            <Button key={u.prompt} variant="ghost" onClick={() => onPick(u.prompt)}>
-              <Suggestion subject={u.subject} question={u.question} />
-            </Button>
-          ))}
-        </Actions>
-      </div>
+          The two groups were right about CONTENT and wrong about cost: they
+          spent most of a 392px pane on five suggestions and read as a third
+          conversation stacked above the composer. Combined into three
+          travelling rows they show thirteen in a fifth of the room, and the
+          grounded ones still come first so they are dealt into the front of
+          each row. The two kinds stay distinguishable without a heading each:
+          a grounded chip names its subject and a live one carries the dot. */}
+      {failed ? (
+        // Never silently. A generic suggestion here would be indistinguishable
+        // from a grounded one, so the honest move is to say the read broke.
+        <div style={{ marginTop: "var(--sp-space-5)" }}>
+          <Failed onRetry={onRetry}>
+            We could not read what is running, so the suggestions below are general ones.
+          </Failed>
+        </div>
+      ) : loading ? (
+        <div style={{ marginTop: "var(--sp-space-5)" }}>
+          <Loading>Reading what is running.</Loading>
+        </div>
+      ) : null}
+
+      {/* The use cases ride along even when the workspace read failed or came
+          back empty: they name nothing, so they cannot be wrong, and a person
+          on day one needs them more than anyone. */}
+      <SuggestionMarquee items={[...starters, ...contextual]} onPick={onPick} />
+
+      {knownEmpty ? (
+        <div
+          style={{
+            marginTop: "var(--sp-space-3)",
+            fontSize: "var(--sp-text-data)",
+            color: "var(--sp-mute)",
+          }}
+        >
+          Nothing has run in this workspace yet.
+        </div>
+      ) : null}
 
       {/* THE SENTENCE, AND NOT A SECOND DOOR. This used to carry the only live
           link to the archive in the whole app, which is how the founder came to

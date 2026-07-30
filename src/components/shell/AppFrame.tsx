@@ -133,6 +133,7 @@ import { stageHueForStation } from "./agent-glyphs";
 import { MarkStack } from "./primitives";
 import { RunStripProvider, STAGE_LABEL, type RunStripSpec } from "./run-strip";
 import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
+import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
@@ -206,6 +207,36 @@ const CREW = "The crew";
  *
  *  `queued` is deliberately NOT here. A queued run has nobody turning on it
  *  yet, and the live line's whole claim is that somebody is working. */
+/**
+ * A title as a person should read it, and never as the pipeline stored it.
+ *
+ * `[auto]` is `AUTO_TITLE_PREFIX` from `sensing/trigger.ts`, a dedup marker the
+ * tick writes so it can find its own proposals. `stripAutoPrefix`'s own doc has
+ * said "it must never reach the user, call this on ANY title that may have come
+ * from the trigger pipeline" the whole time, and this header did not call it.
+ * The founder has now reported the leak twice.
+ *
+ * The provenance itself is worth keeping, and `isAutoTitle`'s doc already
+ * prescribed the shape: strip the prefix from the visible text, then show a
+ * small chip. That reading is better than the raw prefix in both directions.
+ * It is quieter, and it says something truer: the crew raised this by itself,
+ * which is the product's whole argument rather than a piece of debris in a
+ * string.
+ */
+function TitleFact({ title }: { title: string }) {
+  const clean = stripAutoPrefix(title);
+  return (
+    <>
+      {isAutoTitle(title) ? (
+        <span className="sp-auto" title="The crew raised this on its own">
+          auto
+        </span>
+      ) : null}
+      {clean}
+    </>
+  );
+}
+
 const WORKING = new Set(["running", "in_progress"]);
 
 /**
@@ -501,7 +532,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       const only = running.length === 1 ? running[0] : null;
       out.push(
         only ? (
-          only.title
+          <TitleFact title={only.title} />
         ) : (
           <>
             across <span className="sp-num">{running.length}</span> runs
@@ -524,13 +555,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       // The one in front. Today opens on the same item, so the header is
       // naming the call you will actually land on.
       const first = queue.data?.items[0];
-      if (first?.title) out.push(first.title);
+      if (first?.title) out.push(<TitleFact title={first.title} />);
       const at = first?.timestamp ? since(first.timestamp) : null;
       if (at) out.push(<span className="sp-num">{at}</span>);
       return out;
     }
     if (lastDone) {
-      out.push(<>last: {lastDone.title}</>);
+      out.push(
+        <>
+          last: <TitleFact title={lastDone.title} />
+        </>,
+      );
       const at = since(lastDone.completed_at);
       if (at) out.push(<span className="sp-num">{at}</span>);
     }
@@ -540,14 +575,78 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // The marks, and the colour law in three lines: a working agent wears its
   // stage hue, an agent waiting on you wears ember without blinking, and a
   // chrome with nothing happening wears a grey dot and no colour at all.
+  /**
+   * WHO IS ON IT, and the one case where this header may blink.
+   *
+   * Founder, 2026-07-30: "if something is waiting for me it should be blinking.
+   * If you just keep it that way, how would a user even know that something he
+   * needs to act on?" Fair, and the answer is not simply to turn the blink on,
+   * because SYSTEM.md rations it: "`gate` blinks and is the only blink in the
+   * system, so exactly one mark on a screen may wear it: THE ONE THING ACTUALLY
+   * ASKING."
+   *
+   * Read that rule literally and it decides this. On Today and Approvals the
+   * real gate card is on screen, it is the thing actually asking, and it owns
+   * the blink; a second one in the header beside it would be the dozen-blinking
+   * -marks failure the rule was written after. Everywhere else, this header is
+   * the ONLY thing on screen that knows a call is waiting, so it IS the thing
+   * asking, and blanket-suppressing it was me applying the letter of the rule
+   * against its purpose.
+   *
+   * So the blink follows the rule rather than a surface list: it lands on
+   * whichever mark is genuinely the only one asking, and there is never more
+   * than one, on any screen.
+   */
+  const gateSurfaceOnScreen = pathname.startsWith("/today") || pathname.startsWith("/approvals");
   const liveMarks =
     running.length > 0 && workers.length > 0 ? (
       <MarkStack agents={workers} state="running" />
     ) : running.length === 0 && waiting.length > 0 ? (
-      <MarkStack agents={waiting} state="waiting" />
+      <MarkStack agents={waiting} state={gateSurfaceOnScreen ? "waiting" : "gate"} />
     ) : null;
 
   const liveState = running.length ? "running" : gateCount ? "gate" : "idle";
+
+  /**
+   * WHERE THE LINE TAKES YOU, and it follows what the line SAYS.
+   *
+   * It used to go to /runs from every state. The founder pressed it while it
+   * read "21 calls need you", landed on a list of runs, and reported that
+   * nothing happened. He was right in the way that matters: something did
+   * happen, and it was useless, which is indistinguishable from nothing. A
+   * control that reports a fact and then takes you somewhere unrelated to that
+   * fact is worse than one that does nothing, because you also have to work
+   * out where you are.
+   *
+   * So the destination is derived from the same state the sentence is. Calls
+   * need you goes where calls are answered. One run is working goes to that
+   * run. Nothing running goes to the last finished one, because that is the
+   * only thing the sentence names.
+   */
+  const liveTarget = React.useMemo(() => {
+    const go = (to: string, params?: Record<string, string>) => () =>
+      void navigate({ to, params } as never);
+    if (gateCount > 0) {
+      // Today is where a call is settled, and the header already names the
+      // item Today opens on, so the sentence and the landing agree.
+      return { go: go("/today"), title: "Go to the calls waiting on you" };
+    }
+    if (running.length === 1) {
+      const only = running[0];
+      return {
+        go: go("/runs/$missionId", { missionId: only.id }),
+        title: "Open the run that is working",
+      };
+    }
+    if (running.length > 1) return { go: go("/runs"), title: "See every run" };
+    if (lastDone) {
+      return {
+        go: go("/runs/$missionId", { missionId: lastDone.id }),
+        title: "Open the last run that finished",
+      };
+    }
+    return { go: go("/runs"), title: "See every run" };
+  }, [gateCount, running, lastDone, navigate]);
 
   /* THE ONE THING ON THE STRIP THAT MOVES.
    * A gate outranks a run in progress, because the gate is the one asking for a
@@ -609,8 +708,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               : {
                   className: "sp-live",
                   type: "button",
-                  onClick: () => void navigate({ to: "/runs" }),
-                  title: "Go to Runs",
+                  onClick: liveTarget.go,
+                  title: liveTarget.title,
                 },
             <>
               {/* WHO, before how many. A fixed-height slot, so swapping the

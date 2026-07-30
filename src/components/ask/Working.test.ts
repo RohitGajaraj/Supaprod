@@ -12,7 +12,7 @@
  * to delete a test that explains why it must not.
  */
 import { describe, test, expect } from "bun:test";
-import { workingLabel } from "./Working";
+import { workingLabel, WORKING_EFFORT_WORDS } from "./Working";
 
 describe("workingLabel: the server's words win", () => {
   test("a real progress event is shown verbatim", () => {
@@ -32,19 +32,65 @@ describe("workingLabel: the server's words win", () => {
 });
 
 describe("workingLabel: with no event, only what it can see", () => {
-  test("nothing has come back yet", () => {
-    expect(workingLabel(null, false)).toBe("Working");
-  });
-
-  test("tokens are arriving, which is a fact and not a guess", () => {
+  test("tokens arriving beats any flavour word, because it is specific and true", () => {
     expect(workingLabel(null, true)).toBe("Writing the answer");
+    expect(workingLabel(null, true, 5)).toBe("Writing the answer");
   });
 
-  test("the whole vocabulary is two words wide, and no verb is invented", () => {
-    const everything = [workingLabel(null, false), workingLabel(null, true)];
-    expect(everything).toEqual(["Working", "Writing the answer"]);
-    for (const invented of ["Discovering", "Thinking", "Consulting the record", "Analyzing"]) {
-      expect(everything).not.toContain(invented);
+  test("nothing back yet cycles the effort words, so the line is never frozen", () => {
+    const seen = new Set<string>();
+    for (let t = 0; t < WORKING_EFFORT_WORDS.length; t++) seen.add(workingLabel(null, false, t));
+    expect(seen.size).toBe(WORKING_EFFORT_WORDS.length);
+    // It wraps rather than running off the end of the list.
+    expect(workingLabel(null, false, WORKING_EFFORT_WORDS.length)).toBe(
+      workingLabel(null, false, 0),
+    );
+  });
+});
+
+/**
+ * THE LINE THE FLAVOUR WORDS MAY NOT CROSS, and the reason this file exists.
+ *
+ * The founder asked for character ("something is brewing in the background"),
+ * which is granted. What is NOT granted is a word that names a capability we
+ * cannot prove ran: on the plain chat path no retrieval and no web search
+ * happen, so "Searching" or "Reading your workspace" in the FALLBACK would be a
+ * straight lie, and a reader cannot tell a flavour word from a claim.
+ *
+ * An effort word is intransitive and asserts nothing. An operation word does.
+ */
+describe("the effort words describe effort, never an operation", () => {
+  const OPERATION_WORDS = [
+    "search",
+    "read",
+    "consult",
+    "analyz",
+    "analys",
+    "discover",
+    "scan",
+    "fetch",
+    "query",
+    "retriev",
+    "check",
+    "look",
+    "index",
+    "crawl",
+  ];
+
+  test("no word in the list names something we might not be doing", () => {
+    for (const word of WORKING_EFFORT_WORDS) {
+      for (const banned of OPERATION_WORDS) {
+        expect(word.toLowerCase()).not.toContain(banned);
+      }
     }
+  });
+
+  test("they are short enough not to wrap a 392px pane", () => {
+    for (const word of WORKING_EFFORT_WORDS) expect(word.length).toBeLessThanOrEqual(24);
+  });
+
+  test("there are enough of them that the cycle is not obvious", () => {
+    expect(WORKING_EFFORT_WORDS.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(WORKING_EFFORT_WORDS).size).toBe(WORKING_EFFORT_WORDS.length);
   });
 });

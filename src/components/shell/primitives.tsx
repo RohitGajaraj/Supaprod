@@ -99,7 +99,23 @@ export function AgentMark({
   );
 }
 
-/** Two or more at once read as one crew doing one job. */
+/**
+ * Two or more at once read as one crew doing one job.
+ *
+ * THE STACK ENFORCES THE ONE BLINK, because a caller cannot. `gate` is the only
+ * animated state in the system and SYSTEM.md allows exactly one mark on a
+ * screen to wear it, but this component takes ONE state and applied it to every
+ * agent, so a stack of four asked for `gate` blinked four marks in unison. That
+ * is the precise failure the rule was written after ("a list that gave every
+ * pending row `gate` blinked a dozen marks at once and spent the whole
+ * restraint budget"), reproduced by the component meant to be governed by it.
+ *
+ * So a stack asked for `gate` gives it to the FIRST mark and dresses the rest
+ * as `waiting`, which is the same ember without the animation and is exactly
+ * what the rule prescribes for everything queued behind the one asking. Held
+ * here rather than at each call site: a rule every caller must remember is a
+ * rule that gets forgotten, and this one already was.
+ */
 export function MarkStack({
   agents,
   state = "running",
@@ -114,7 +130,13 @@ export function MarkStack({
   return (
     <span className="sp-stack">
       {agents.slice(0, 4).map((a, i) => (
-        <AgentMark key={`${a.slug ?? "x"}-${i}`} slug={a.slug} name={a.name} state={state} />
+        <AgentMark
+          key={`${a.slug ?? "x"}-${i}`}
+          slug={a.slug}
+          name={a.name}
+          // Only the first may blink. See the note above.
+          state={state === "gate" && i > 0 ? "waiting" : state}
+        />
       ))}
     </span>
   );

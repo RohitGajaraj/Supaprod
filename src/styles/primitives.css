@@ -1651,3 +1651,146 @@ button.sp-cell:disabled {
   color: var(--sp-mute);
   text-align: right;
 }
+
+/* ---------- the suggestion marquee ----------
+ * Three rows of chips that travel, alternating direction. Founder ruling
+ * 2026-07-30; the reasoning, and the four rules this motion obeys, are on
+ * src/components/ask/SuggestionMarquee.tsx.
+ *
+ * THE BOX HE ASKED FOR: a hairline enclosure with the rows inside it, so the
+ * strip reads as one object rather than as three loose ribbons crossing the
+ * pane. Edges fade to nothing via a mask, which is what makes a chip look like
+ * it is travelling THROUGH a window instead of being clipped by a border. */
+.sp-marquee {
+  margin-top: var(--sp-space-4);
+  padding: var(--sp-space-3) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-space-2);
+  /* A real enclosure, not two rules. Founder: "enclosed in a box and
+   * highlighted with some very thin hairline border colours." Two horizontal
+   * rules made a band that read as a page division; a bordered, rounded, very
+   * slightly sunk panel reads as ONE object that the chips are travelling
+   * inside, which is what makes the movement legible instead of loose. */
+  border: 1px solid var(--sp-line-soft);
+  border-radius: var(--sp-radius-panel);
+  background: var(--sp-sink);
+  overflow: hidden;
+}
+.sp-marquee-row {
+  overflow: hidden;
+  /* Fade both ends. Without this the chips hard-clip at the pane edge, which
+   * reads as a layout bug rather than as motion. */
+  mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent
+  );
+}
+.sp-marquee-track {
+  display: flex;
+  width: max-content;
+  animation-name: sp-marquee-ltr;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+/* Exactly one copy of three, so the seam lands where the content repeats. */
+@keyframes sp-marquee-ltr {
+  to {
+    transform: translateX(-33.3333%);
+  }
+}
+@keyframes sp-marquee-rtl {
+  from {
+    transform: translateX(-33.3333%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.sp-marquee-track[data-dir="rtl"] {
+  animation-name: sp-marquee-rtl;
+}
+.sp-marquee-copy {
+  display: flex;
+  gap: var(--sp-space-2);
+  padding-right: var(--sp-space-2);
+}
+/* IT STOPS WHEN YOU REACH FOR IT. Asking someone to click a moving target is
+ * the worst thing this pattern does, so hovering anywhere in the strip, or
+ * tabbing into it, halts every row at once. */
+.sp-marquee:hover .sp-marquee-track,
+.sp-marquee:focus-within .sp-marquee-track {
+  animation-play-state: paused;
+}
+
+/* One suggestion. A hairline capsule: thin, quiet, and it only brightens when
+ * you are on it. The strip is under a composer someone is reading, so thirteen
+ * of these must sum to texture rather than to thirteen buttons. */
+.sp-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 300px;
+  padding: 6px 11px;
+  border: 1px solid var(--sp-line);
+  border-radius: 999px;
+  background: var(--sp-lift);
+  color: var(--sp-body);
+  font: inherit;
+  font-size: var(--sp-text-meta);
+  line-height: var(--sp-leading-tight);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color var(--sp-dur-fast) var(--sp-ease),
+    background var(--sp-dur-fast) var(--sp-ease),
+    color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-chip:hover {
+  border-color: var(--sp-mute);
+  background: var(--sp-float);
+  color: var(--sp-ink);
+}
+/* The subject of a grounded chip is the thing itself, so it takes the ink and
+ * the question beside it stays support. Both on ONE line here: a chip is a
+ * capsule, and the two-line treatment belongs to a stacked list. */
+.sp-chip-subject {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-chip-q {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sp-chip[data-kind="running"] .sp-chip-q {
+  color: var(--sp-mute);
+}
+/* The one dot, in the live blue the shell already uses for work in motion.
+ * Static: the rows are already moving, and a pulsing dot on a travelling chip
+ * would be two animations arguing inside 8px. */
+.sp-chip-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sp-stage-build);
+}
+
+/* REDUCED MOTION GETS A REAL STRIP, not a frozen one. The rows stop and become
+ * ordinary horizontal scrollers, so every suggestion is still reachable by
+ * anyone who asked the system to stop moving things. */
+@media (prefers-reduced-motion: reduce) {
+  .sp-marquee-track {
+    animation: none;
+  }
+  .sp-marquee-row {
+    overflow-x: auto;
+  }
+}

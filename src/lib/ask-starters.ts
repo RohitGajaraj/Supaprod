@@ -57,6 +57,16 @@ export type Starter = {
   question: string;
   /** What lands in the composer on a press. Always a complete sentence. */
   prompt: string;
+  /**
+   * WHICH KIND, so the chip can carry an honest dot.
+   *
+   * `running` earns the live blue the shell already uses for work in motion
+   * (`.sp-live-dot[data-state="running"]`), because that is literally what it
+   * means there; reusing it keeps one meaning for one colour instead of
+   * inventing a decorative palette for a suggestion strip. `done` and
+   * `use-case` carry no dot: nothing is happening, so nothing should glow.
+   */
+  kind: "running" | "done" | "use-case";
 };
 
 /** The fields this module needs off a mission row. Structurally satisfied by
@@ -72,9 +82,10 @@ export type StarterMission = {
  *  "what is the crew doing on it" would have no answer. */
 const WORKING = new Set(["running", "in_progress"]);
 
-/** Small on purpose. This is a way in, not a menu, and a fourth line pushes the
- *  composer under the fold in a 392px pane. */
-const MAX = 3;
+/** How many grounded chips at most. Raised from 3 when the two stacked lists
+ *  became a three-row marquee: a scrolling strip has room for more than a
+ *  static column did, and the grounded ones are the valuable half. */
+const MAX = 6;
 
 /** A title is going into a sentence a person will read and then send. Model and
  *  user text both land in `missions.title`, so it can be long, empty, or carry
@@ -101,76 +112,212 @@ export type StarterSource = {
 export function starterPrompts(source: StarterSource): Starter[] {
   const out: Starter[] = [];
   const seen = new Set<string>();
-  const add = (subject: string, question: string, prompt: string) => {
+  const add = (subject: string, question: string, prompt: string, kind: Starter["kind"]) => {
     const key = subject.toLowerCase();
     if (out.length >= MAX || seen.has(key)) return;
     seen.add(key);
-    out.push({ subject, question, prompt });
+    out.push({ subject, question, prompt, kind });
   };
 
   // 1. Work in motion, NAMED. The rail says "Runs 1"; this says which one.
   for (const m of source.missions ?? []) {
     if (!WORKING.has(m.status)) continue;
     const title = clean(m.title);
-    if (title) add(title, "What is the crew doing on it?", `What is the crew doing on ${title}?`);
+    if (title) {
+      add(title, "What is the crew doing on it?", `What is the crew doing on ${title}?`, "running");
+    }
   }
 
-  // 2. The most recent thing that finished, which is the other half of "what
+  // 2. The most recent things that finished, which is the other half of "what
   //    changed" and the half a person can act on.
-  const done = (source.missions ?? [])
+  const finished = (source.missions ?? [])
     .filter((m) => !WORKING.has(m.status) && !!m.completed_at)
-    .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""))[0];
-  const doneTitle = clean(done?.title);
-  if (doneTitle) {
-    add(doneTitle, "What changed when it finished?", `What changed when ${doneTitle} finished?`);
+    .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
+  for (const m of finished) {
+    const title = clean(m.title);
+    if (title)
+      add(title, "What changed when it finished?", `What changed when ${title} finished?`, "done");
   }
 
   return out;
 }
 
 /**
- * WHAT THIS SURFACE CAN DO, which is a different question from what is
- * happening in the workspace, and the founder asked for both.
+ * WHAT YOU COULD ASK, IN A PRODUCT MANAGER'S WORDS, AND NEVER THE SAME LIST.
  *
- * *"We need to give something more of a use case here, like how Perplexity
- * shows. It just crawls down all the use cases so that user knows. Or you can
- * have two, three examples on the use cases more so that the user knows exactly
- * what he should be asking on."*
+ * Two founder rulings, 2026-07-30, and the second one is the harder of the two.
  *
- * THESE NAME NOTHING, AND THAT IS WHY THEY ARE ALLOWED TO BE CONSTANT. The
- * grounded list above may not invent a run title; this list has no titles to
- * invent. Each line is a CAPABILITY that is wired in this pane today, and the
- * three are deliberately one per mode rather than three flavours of one:
+ * ONE, THE VOCABULARY. *"Product managers would be my primary users and power
+ * users of this platform. The language should be in the product manager's
+ * language: what impact it's going to get, what happened in this Q3, what is
+ * the next feature in roadmap, what is the agent doing, and slightly on the
+ * business side as well. By that way we will connect more to the users, so that
+ * power users will feel this platform is built for me."*
  *
- *   1. the approvals capability. Asking this is exactly the moment the founder
- *      said the real gate cards should appear, settleable inline, and it is now
- *      the only way they appear, so this line is also the door to them.
- *   2. the record. The thing that makes this a company brain rather than a chat
- *      box: it answers from the workspace's own history and cites what it read.
- *   3. the fork. Ask does not only answer, it can hand the work over and start a
- *      real run, which is the half of the composer nobody discovers unaided.
+ * TWO, AND IT GOVERNS THE SHAPE OF THIS WHOLE MODULE. *"This is not a one time
+ * template. It should be revising based on the context what they're working on,
+ * and it should be really connected with what they're working on. So you should
+ * design the system in that way. Never going to be a static message ever."*
  *
- * Kept to three. Perplexity can crawl a long list because its subject is the
- * entire web; this pane is 392px wide and a fourth line pushes the composer
- * under the fold, which costs more than a fourth example is worth.
+ * So there is NO constant list any more. What a person is offered is derived
+ * from the surface they are standing on, every time the pane opens. Standing on
+ * a run you are asked run questions and the word "run" is in them; standing on
+ * a spec you are asked whether it is ready to build; standing on a decision you
+ * are asked whether the bet paid off. The scope chip in the header and these
+ * lines are now the same fact said twice, which is what "connected to what
+ * they're working on" has to mean if it is going to mean anything.
+ *
+ * THE GUARDRAIL, and it is the reason this list is shorter than it could be.
+ * PM language pulls hard toward metrics: revenue, ARR, NPS, MAU, conversion.
+ * This workspace does not hold any of those, so a chip promising them would
+ * teach a PM in one press that the product talks a good game and cannot answer.
+ * Every line below is answerable from something the record genuinely stores:
+ * decisions and their rationale, outcome verdicts (`loadDecisionPrecedent`
+ * grades a past bet VALIDATED or MISSED, which is what makes "did it land" a
+ * real question), opportunities and their ICE ranking, signal clusters, specs,
+ * runs with their steps and metered cost, and the approvals queue. Business
+ * FRAMING, workspace FACTS. That is the line, and it is not a compromise: "did
+ * this bet pay off" is a better PM question than "what was our ARR" anyway,
+ * because it is the one the record can actually settle.
  */
-export const USE_CASES: readonly Starter[] = [
-  {
-    subject: null,
-    question: "What needs my call, and why?",
-    prompt: "What needs my call, and why?",
-  },
-  {
-    subject: null,
-    question: "Why did we decide this?",
-    prompt: "Why did we decide this?",
-  },
-  {
-    subject: null,
-    question: "Draft a spec for this and hand it to the crew",
-    prompt: "Draft a spec for this and hand it to the crew",
-  },
-] as const;
+
+/** A capability line. Named `capability` and not `useCase` because a helper
+ *  called `useCase` reads as a React hook to the linter, and to a person. */
+const capability = (text: string): Starter => ({
+  subject: null,
+  question: text,
+  prompt: text,
+  kind: "use-case",
+});
+
+/**
+ * The questions a PM has about ONE RUN. Delivery and cost, because that is what
+ * you want from work already in flight: where is it, what is left, what did it
+ * cost me, and is anything of mine holding it up.
+ */
+const RUN_PROMPTS = [
+  "Where is this, and what is left?",
+  "What is holding this up?",
+  "What has this cost so far?",
+  "What did this change, and who does it affect?",
+];
+
+/**
+ * The questions a PM has about A SPEC. Readiness and evidence: is it buildable,
+ * who actually asked for it, what did we deliberately leave out.
+ */
+const SPEC_PROMPTS = [
+  "Is this ready to build?",
+  "Who asked for this, and how strong is the signal?",
+  "What did we cut from this, and why?",
+  "Turn this into a run and start it",
+];
+
+/**
+ * The questions a PM has about A DECISION. This is the company brain's home
+ * ground: not what we chose, but what we knew, whether it worked, and what
+ * would change our mind.
+ */
+const DECISION_PROMPTS = [
+  "Why did we decide this, and what did we know then?",
+  "Did this bet pay off?",
+  "What would change our mind?",
+  "What did we learn the last time we tried this?",
+];
+
+/** Standing on the record itself: precedent, and what it adds up to. */
+const BRAIN_PROMPTS = [
+  "Which bets paid off, and which missed?",
+  "What did we learn the last time we tried this?",
+  "What do we believe that we have not tested?",
+];
+
+/** Standing on discovery: demand, and what it is worth building. */
+const SIGNAL_PROMPTS = [
+  "What are users asking for most right now?",
+  "Which of these is worth building, and why that one?",
+  "Draft the spec for the top one and hand it to the crew",
+];
+
+/**
+ * The default, and the broadest: a PM standing in their own workspace with no
+ * one object in front of them. Quarter, roadmap, bets, and the crew, which is
+ * the four-word summary of the job.
+ */
+const WORKSPACE_PROMPTS = [
+  "What should we build next, and why that?",
+  "What shipped this quarter, and did it land?",
+  "Which bets paid off, and which missed?",
+  "What is the crew working on right now?",
+  "What needs my call before it can move?",
+  "What are users asking for most right now?",
+  "What is at risk of slipping?",
+  "Draft the spec for our next bet and hand it to the crew",
+];
+
+/** What the pane knows about where the person is standing. */
+export type StarterContext = {
+  /** `scope.kinds?.[0]`: mission, prd, decision, doc, note, finding, or null. */
+  scopeKind: string | null;
+  /** What the chip calls it: "this run", "your specs", "Discover". Used to tell
+   *  ONE object ("this run") from a LIST of them ("your runs"), which want
+   *  different questions. */
+  scopeLabel: string;
+};
+
+/**
+ * The offered questions for the surface in front of you.
+ *
+ * Never a constant. The scope chip and this list are derived from the same
+ * resolution, so walking from Today to a run to a spec changes what Ask offers
+ * on each arrival, and the pane stops looking like it was written once.
+ */
+export function contextualStarters(ctx: StarterContext): Starter[] {
+  const one = ctx.scopeLabel.startsWith("this ");
+  switch (ctx.scopeKind) {
+    // A single run wants delivery questions; a LIST of runs is really a
+    // workspace question wearing a narrower label, so it falls through.
+    case "mission":
+      return (one ? RUN_PROMPTS : WORKSPACE_PROMPTS).map(capability);
+    case "prd":
+      return (one ? SPEC_PROMPTS : SPEC_PROMPTS).map(capability);
+    case "decision":
+      return DECISION_PROMPTS.map(capability);
+    case "doc":
+    case "note":
+    case "finding":
+      return BRAIN_PROMPTS.map(capability);
+    default:
+      // Discover carries a label and no kinds on purpose (see resolveScope), so
+      // it is recognised by its label rather than by a kind it does not have.
+      if (ctx.scopeLabel === "Discover") return SIGNAL_PROMPTS.map(capability);
+      return WORKSPACE_PROMPTS.map(capability);
+  }
+}
+
+/* ------------------------- the marquee ---------------------------- */
+
+/** Three, fixed. Founder ruling: "two or three rows we fix in. Three rows
+ *  should be good enough." */
+export const MARQUEE_ROWS = 3;
+
+/**
+ * Deal every chip into one of three rows, round robin.
+ *
+ * ROUND ROBIN RATHER THAN IN BLOCKS, so the grounded chips (which come first
+ * and are the ones actually worth reading) end up spread one per row instead of
+ * all three crowded into the top row while the other two carry only generic
+ * lines. Each chip appears in exactly ONE row: the repetition a marquee needs
+ * to loop is done at render time, not here, so nothing is duplicated in the
+ * accessibility tree.
+ */
+export function marqueeRows(items: readonly Starter[], rows = MARQUEE_ROWS): Starter[][] {
+  const out: Starter[][] = Array.from({ length: rows }, () => []);
+  items.forEach((item, i) => out[i % rows].push(item));
+  // A row with nothing in it would animate an empty strip, which reads as a
+  // rendering fault. Drop it and let the surface show two rows, or one.
+  return out.filter((row) => row.length > 0);
+}
 
 /**
  * Whether we are entitled to say "nothing has run here yet".
