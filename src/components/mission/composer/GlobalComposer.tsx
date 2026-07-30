@@ -47,12 +47,21 @@ export function GlobalComposer() {
       s.matches.some((m) => (ROOM_PRODUCT_ROUTE_IDS as readonly string[]).includes(m.routeId)),
   });
   if (inRoom) return null;
-  return (
-    <>
-      <AskPane />
-      <GlobalComposerHost />
-    </>
-  );
+  // THE OVERLAY IS GONE, and this is now only Ask's mount point.
+  //
+  // Founder ruling 2026-07-30: *"if I click on Ask or the shortcut Cmd+K, it
+  // still opens me that old section... You need to ensure that old one is gone
+  // and it redirects me. Or if I click Ask, it should open me this Ask panel
+  // which we are working on."*
+  //
+  // `GlobalComposerHost` below is therefore no longer rendered. It is left in
+  // the file rather than deleted, per the standing rule that retired UI stays
+  // in the tree unmounted (Addendum 1.1 rule 8): its journey chips are the only
+  // remaining door into the legacy Mission Control room, and retiring that room
+  // is a separate call from retiring this overlay. Nothing dispatches
+  // `supaprod:open-cmdk` on a rebuilt surface any more, and Cmd+K belongs to
+  // AskProvider, so the overlay is unreachable rather than merely discouraged.
+  return <AskPane />;
 }
 
 function GlobalComposerHost() {

@@ -158,6 +158,40 @@ export function IconPanel({ className }: IconProps) {
   );
 }
 
+/** More. Three dots, which is the one glyph every interface agrees means
+ *  "there is more here than fits", so it needs no label to be understood.
+ *  Filled rather than stroked: three 1.5px rings at this size read as mush. */
+export function IconMore({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} fill="currentColor" stroke="none">
+      <circle cx="5.5" cy="12" r="1.55" />
+      <circle cx="12" cy="12" r="1.55" />
+      <circle cx="18.5" cy="12" r="1.55" />
+    </svg>
+  );
+}
+
+/**
+ * Dictation. A capsule on a stand, which is the shape every microphone
+ * affordance on earth has, so it needs no label to be read.
+ *
+ * It replaces the word "Dictate" in Ask's footer (founder ruling 2026-07-30).
+ * The word was the right instinct for a surface whose every other control is a
+ * word, and the wrong one for this control: the footer already carries the
+ * send button, the intent fork and a hint line, and a fourth run of words made
+ * the one non-verbal action in the product hide among them. The accessible name
+ * survives on the button as an aria-label, so nothing is lost to a screen
+ * reader, and it says which way the next press goes rather than where you are.
+ */
+export function IconMic({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2.8" width="6" height="11" rx="3" />
+      <path d="M5.5 11.2a6.5 6.5 0 0 0 13 0M12 17.7V21.2M8.6 21.2h6.8" />
+    </svg>
+  );
+}
+
 export function IconAsk({ className }: IconProps) {
   return (
     <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">

@@ -24,6 +24,7 @@ import {
   askScopeKey,
   parseConversationMap,
   withConversationId,
+  writeSessionConversationId,
 } from "@/lib/ask-stream-core";
 import type { AskOpenDetail } from "@/lib/ask-context";
 
@@ -41,6 +42,19 @@ export function openAskConversation(args: {
 }): void {
   if (typeof window === "undefined") return;
   const scopeKey = askScopeKey(args.productId, args.workspaceId);
+  // BOTH stores, because they answer different questions.
+  //
+  // The session map is the ASK PANE's pointer: the pane opens on a new
+  // conversation after every page load (founder ruling 2026-07-30), so it no
+  // longer reads the durable map at all and a localStorage-only write would
+  // leave this click doing nothing visible. It is written to the WORKSPACE
+  // bucket rather than the thread's product, because the pane now holds one
+  // live conversation per session; filing it under the thread's product would
+  // put it somewhere the pane never looks the moment it closes.
+  //
+  // The durable map is the Mission Control room's, it still files a thread
+  // under the thread's own product, and it is left exactly as it was.
+  writeSessionConversationId(askScopeKey(null, args.workspaceId), args.conversationId);
   try {
     const map = parseConversationMap(window.localStorage.getItem(ASK_CONVERSATION_MAP_KEY));
     window.localStorage.setItem(

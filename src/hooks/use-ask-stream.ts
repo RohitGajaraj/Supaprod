@@ -31,9 +31,11 @@ import {
   parseConversationMap,
   patchMessage,
   prependHydrated,
+  readSessionConversationId,
   removeExchange,
   seedPromoted,
   withConversationId,
+  writeSessionConversationId,
   type AskStreamMsg,
   type PromotedRecords,
 } from "@/lib/ask-stream-core";
@@ -86,6 +88,25 @@ function writeScopedConversationId(scopeKey: string, id: string | null): void {
   }
 }
 
+/**
+ * Where the "which conversation is live" pointer lives. See the note on
+ * `readSessionConversationId` for the ruling: a summoned pane opens fresh on
+ * every page load and keeps its thread across a close and reopen, and those
+ * two facts are the same storage choice.
+ */
+export type AskPointer = "durable" | "session";
+
+function readPointer(pointer: AskPointer, scopeKey: string): string | null {
+  return pointer === "session"
+    ? readSessionConversationId(scopeKey)
+    : readScopedConversationId(scopeKey);
+}
+
+function writePointer(pointer: AskPointer, scopeKey: string, id: string | null): void {
+  if (pointer === "session") writeSessionConversationId(scopeKey, id);
+  else writeScopedConversationId(scopeKey, id);
+}
+
 /* ------------------------------ hook ------------------------------ */
 
 export type UseAskStreamOptions = {
@@ -102,6 +123,14 @@ export type UseAskStreamOptions = {
   productId?: string | null;
   /** Final dictation transcripts land here (append into your composer draft). */
   onDictation?: (text: string) => void;
+  /**
+   * Which pointer store resolves this surface's live conversation. Default
+   * `durable` is the per-scope localStorage map and is unchanged behaviour
+   * (the Mission Control room). `session` is the in-memory map: the surface
+   * opens on a new conversation after every page load, and keeps the one it
+   * is on across an unmount and remount.
+   */
+  pointer?: AskPointer;
 };
 
 export type AskStreamState = {
@@ -130,6 +159,7 @@ export type AskStreamState = {
 
 export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState {
   const enabled = options.enabled ?? true;
+  const pointer = options.pointer ?? "durable";
   const { activeProductId, activeWorkspaceId } = useWorkspace();
   const productId = options.productId === undefined ? activeProductId : options.productId;
   const scopeKey = askScopeKey(productId, activeWorkspaceId);
@@ -159,14 +189,14 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
   const readAloud = useReadAloud();
 
   const [storedConvId, setStoredConvId] = React.useState<string | null>(() =>
-    readScopedConversationId(scopeKey),
+    readPointer(pointer, scopeKey),
   );
   const rememberConversationId = React.useCallback(
     (id: string | null) => {
       setStoredConvId(id);
-      writeScopedConversationId(scopeKey, id);
+      writePointer(pointer, scopeKey, id);
     },
-    [scopeKey],
+    [pointer, scopeKey],
   );
 
   // Hydrate once per stored conversation (same contract as AskPanel).
@@ -189,8 +219,8 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     hydratedRef.current = null;
     setMessages([]);
     setPromotedByMsg({});
-    setStoredConvId(readScopedConversationId(scopeKey));
-  }, [scopeKey]);
+    setStoredConvId(readPointer(pointer, scopeKey));
+  }, [scopeKey, pointer]);
 
   const ensureConversation = React.useCallback(async (): Promise<string> => {
     if (conversationIdRef.current) return conversationIdRef.current;

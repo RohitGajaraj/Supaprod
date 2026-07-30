@@ -18,6 +18,68 @@
  * every surface is inside `.sp-inner` and this note goes.
  * =================================================================== */
 
+/* ---------- scrollbars: thin and quiet, everywhere ----------
+ * FOUNDER RULING 2026-07-30: "In the Ask pane there is a vertical scrollbar,
+ * and also for the main app there is another. It damages the experience. Make
+ * it very thin, or invisible."
+ *
+ * THIN, AND NOT INVISIBLE, which is the one place this stops short of what was
+ * asked. `scrollbar-width: none` would have been a line of CSS, and it deletes
+ * the only standing signal that a surface has more content below the fold. On a
+ * long thread that is a real loss: with no bar there is nothing on screen that
+ * says an answer continues, and a person who does not know to scroll simply
+ * does not read the rest. So the bar survives and stops SHOUTING instead.
+ *
+ * The complaint was never that a scrollbar existed, it was that two of them
+ * were drawing bright chrome down the middle of the work: the app's own and the
+ * Ask pane's, side by side, both at the platform's default width and contrast.
+ * At 8px with a hairline thumb they read as an edge, and the second one stops
+ * competing with the first.
+ *
+ * QUIETER WHEN IDLE. The thumb sits at --sp-line (the same hairline every real
+ * edge in this system uses) and steps up to --sp-mute on hover, so it is
+ * present when scanned, findable when reached for, and never a feature.
+ *
+ * :root, AND NOT .sp-app, WHICH IS THE WHOLE POINT OF THE RULING. The two bars
+ * he saw belong to two elements that are NOT nested: the work region lives
+ * inside AppFrame's .sp-app, and the Ask pane is a fixed sibling of it mounted
+ * by GlobalComposer (_authenticated.tsx). Scoping this to the shell would have
+ * styled the one he could live with and missed the one he named first. There is
+ * no shared ancestor below the document, so the document is the scope, and that
+ * is also what "app-wide" in the ruling means.
+ *
+ * BOTH SYNTAXES, ON PURPOSE. `scrollbar-width`/`scrollbar-color` is the
+ * standard and is what Firefox honours; the `::-webkit-scrollbar` block is what
+ * Chrome and Safari honour, and it is the one that can be styled properly. */
+:root,
+:root * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-line) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sp-line);
+  border-radius: 4px;
+  /* Inset by a transparent border so an 8px channel carries a 4px thumb: the
+   * hit target stays comfortable while the mark stays a hairline. */
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sp-mute);
+  background-clip: content-box;
+}
+/* The corner where two bars meet is chrome nobody asked for. */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .sp-app {
   height: 100dvh;
   display: flex;

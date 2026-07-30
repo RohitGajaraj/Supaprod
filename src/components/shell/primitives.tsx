@@ -34,6 +34,7 @@
 import * as React from "react";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
+import { IconMore } from "./icons";
 
 /* ------------------------------------------------------------------ *
  * Agent mark
@@ -437,14 +438,26 @@ export function Gate({
 export function Button({
   variant = "default",
   shortcut,
+  icon = false,
   children,
   ...rest
 }: {
   variant?: "default" | "primary" | "ghost";
   shortcut?: string;
+  /** The child is a glyph, not a word. Squares the box (the padding that gives
+   *  a word room draws a lozenge around a 17px mark) and makes `aria-label`
+   *  mandatory in spirit: a wordless control with no accessible name is a
+   *  control only sighted mouse users have. */
+  icon?: boolean;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button type="button" className="sp-btn" data-variant={variant} {...rest}>
+    <button
+      type="button"
+      className="sp-btn"
+      data-variant={variant}
+      data-icon={icon ? "true" : undefined}
+      {...rest}
+    >
       {children}
       {shortcut ? <kbd>{shortcut}</kbd> : null}
     </button>
@@ -661,15 +674,124 @@ export function Loading({ children = "Reading." }: { children?: React.ReactNode 
 
 /** Agent-written prose: release notes, a launch draft, a rationale. Pre is for
  *  code and holds its whitespace; this is a document a person reads, so it
- *  keeps the measure. */
-export function Prose({ children }: { children: React.ReactNode }) {
-  return <div className="sp-prose">{children}</div>;
+ *  keeps the measure.
+ *
+ *  `markdown` is the SAME prose in a different container, and it is a flag
+ *  rather than a second primitive so that the size, the leading and the ink can
+ *  never fork. Pass it when the children are parsed Markdown elements rather
+ *  than a raw string: it drops the panel (a tint behind every answer in a
+ *  thread is wallpaper, and the one recessed surface here belongs to the
+ *  record), drops `pre-wrap` (parsed blocks carry their own breaks, so keeping
+ *  it doubles every gap) and drops the 68ch measure (inside Ask the pane IS the
+ *  measure). Element rules live in primitives.css under `.sp-prose`. */
+export function Prose({
+  children,
+  markdown = false,
+}: {
+  children: React.ReactNode;
+  markdown?: boolean;
+}) {
+  return (
+    <div className="sp-prose" data-markdown={markdown ? "true" : undefined}>
+      {children}
+    </div>
+  );
 }
 
 /** Logs, diffs, exported documents. Scrolls inside its own box so the page
  *  never scrolls sideways. */
 export function Pre({ children }: { children: React.ReactNode }) {
   return <pre className="sp-pre">{children}</pre>;
+}
+
+/**
+ * WHAT ELSE YOU COULD DO WITH THIS ONE THING.
+ *
+ * Founder ruling 2026-07-30, about the model-and-cost line that used to sit
+ * under every Ask answer: *"it looks like a message itself... probably we can
+ * give it like a Lovable model, three dots after each item, and if I click
+ * three dots there are a couple of action items there."*
+ *
+ * The rule it encodes is worth more than the menu: SECONDARY FACTS ARE NOT
+ * CONTENT. A cost figure printed in the reading column is read as part of the
+ * answer, and reading it is not optional; behind a control it is available to
+ * anyone who wants it and silent for everyone who does not. That is the same
+ * argument the Engine Room doctrine makes about machinery, applied to one line.
+ *
+ * DELIBERATELY NOT A LIBRARY MENU. No portal, no floating-ui, no roving
+ * listbox: this opens downward inside a pane that already scrolls, and the
+ * items are plain buttons in document order, so the keyboard gets Tab and
+ * Escape for free and a screen reader gets a real expanded/collapsed state.
+ * A popover that escapes its scroll container would need all of that machinery
+ * back to stay attached to the row it belongs to.
+ */
+export function MoreMenu({
+  label = "More",
+  children,
+}: {
+  /** Names the thing the menu belongs to, for anyone who cannot see it. */
+  label?: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const box = React.useRef<HTMLDivElement | null>(null);
+
+  // Click away and Escape both close it. A menu with no way out but a second
+  // press on the same 38px target is a trap on a touch screen.
+  React.useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    // Capture, so closing the menu happens before Ask's own Escape handler
+    // hears the key and closes the whole pane out from under it.
+    document.addEventListener("keydown", onKey, true);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey, true);
+    };
+  }, [open]);
+
+  return (
+    <div className="sp-more" ref={box}>
+      <button
+        type="button"
+        className="sp-more-btn"
+        aria-label={label}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <IconMore />
+      </button>
+      {open ? (
+        <div className="sp-more-menu" role="group" aria-label={label}>
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** One line in a MoreMenu. A word, and what it does when pressed. */
+export function MoreItem({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" className="sp-more-item" onClick={onClick}>
+      {children}
+    </button>
+  );
 }
 
 /** One boundary you set: label left, control right, one per line.
@@ -938,12 +1060,21 @@ export function Choices<T extends string>(
 export function Actions({
   children,
   trailing,
+  stack = false,
 }: {
   children: React.ReactNode;
   trailing?: React.ReactNode;
+  /** A COLUMN of full sentences rather than a row of short verbs.
+   *
+   *  For the case where the label is a whole question and not a word: Ask's
+   *  grounded suggestions carry real run titles, and a wrapping sentence inside
+   *  a centred inline-flex button reads as a ransom note. Stacked, each one is
+   *  a full-width line that starts where the eye already is. Still buttons,
+   *  because they still do something on one press. */
+  stack?: boolean;
 }) {
   return (
-    <div className="sp-acts">
+    <div className="sp-acts" data-stack={stack ? "true" : undefined}>
       {children}
       {trailing ? <span className="sp-acts-trailing">{trailing}</span> : null}
     </div>

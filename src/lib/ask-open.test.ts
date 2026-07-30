@@ -6,7 +6,12 @@ import { describe, expect, it, beforeEach } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { openAskConversation } from "./ask-open";
-import { ASK_CONVERSATION_MAP_KEY, parseConversationMap } from "./ask-stream-core";
+import {
+  ASK_CONVERSATION_MAP_KEY,
+  clearSessionConversations,
+  parseConversationMap,
+  readSessionConversationId,
+} from "./ask-stream-core";
 
 const CONV = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 
@@ -67,6 +72,21 @@ describe("Ask conversations are findable in Threads", () => {
 describe("openAskConversation", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    clearSessionConversations();
+  });
+
+  // The pane stopped reading the durable map when Ask was made to open fresh on
+  // every page load (founder ruling 2026-07-30). A localStorage-only write
+  // would leave the click doing nothing visible, which is the exact defect the
+  // switcher exists to remove.
+  //
+  // And it lands in the WORKSPACE bucket even for a product-scoped thread: the
+  // pane holds one live conversation per session, so filing this under p-9
+  // would survive exactly until the first Escape and then vanish.
+  it("points the ASK PANE at it, which is the store the pane actually reads", () => {
+    openAskConversation({ conversationId: CONV, productId: "p-9", workspaceId: "w-1" });
+    expect(readSessionConversationId("workspace:w-1")).toBe(CONV);
+    expect(readSessionConversationId("product:p-9")).toBeNull();
   });
 
   it("files the conversation under the THREAD's product, not the active one", () => {

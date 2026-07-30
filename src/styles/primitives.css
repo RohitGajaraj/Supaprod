@@ -452,6 +452,29 @@
   margin-top: var(--sp-space-4);
   flex-wrap: wrap;
 }
+/* A column of SENTENCES, not a row of verbs. The default above assumes a label
+ * is a word or two, which is true of "Approve" and false of a suggestion
+ * carrying a real run title. Wrapped inside a centred, fixed-height button,
+ * such a label centres both of its lines and clips; stacked, it reads as a list
+ * of questions you could ask, which is what it is. Height goes auto for the
+ * same reason: the sentence decides how tall the control is. */
+.sp-acts[data-stack="true"] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+.sp-acts[data-stack="true"] .sp-btn {
+  justify-content: flex-start;
+  text-align: left;
+  height: auto;
+  min-height: var(--sp-ctl-md);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: var(--sp-space-2);
+  padding-right: var(--sp-space-2);
+  margin-left: calc(var(--sp-space-2) * -1);
+  line-height: var(--sp-leading-row);
+}
 
 /* ---------- button ---------- one primary per screen */
 .sp-btn {
@@ -494,6 +517,27 @@
 .sp-btn[data-variant="ghost"]:hover {
   color: var(--sp-ink);
   background: var(--sp-hover);
+}
+/* An icon-only control. The horizontal padding exists to give a WORD room; on a
+ * glyph it draws a lozenge around a 17px mark and makes it read as a chip. So
+ * the box goes square and the name moves to aria-label, which is where the name
+ * of a wordless control belongs anyway. */
+.sp-btn[data-icon="true"] {
+  padding: 0;
+  width: var(--sp-ctl-md);
+  justify-content: center;
+}
+.sp-btn[data-icon="true"] svg {
+  width: var(--sp-icon);
+  height: var(--sp-icon);
+}
+/* Pressed, and it has to survive greyscale: a mic that is listening is a state
+ * you must be able to see at a glance to stop it. Ink on lift, which is the
+ * same "this one is on" the Choices row uses. */
+.sp-btn[data-variant="ghost"][aria-pressed="true"] {
+  color: var(--sp-ink);
+  background: var(--sp-lift);
+  border-color: var(--sp-line);
 }
 .sp-btn:disabled {
   opacity: 0.45;
@@ -760,6 +804,37 @@
   border-color: var(--sp-mute);
   background: var(--sp-sheet);
 }
+/* ONE LINE ON FOCUS, NOT TWO.
+ *
+ * Founder, 2026-07-30, on Ask's composer: "the double ember line in the chat
+ * text". He was reading it exactly right, and at 4x it is unmistakable: two
+ * concentric rings around the box, a thick ember one outside and a second line
+ * just inside it. They come from two different places that never knew about
+ * each other. The inner one is ours, three rules up: focus moves the border
+ * from --sp-line to --sp-mute and lifts the ground, which is a complete, quiet,
+ * designed focus state. The outer one is the legacy app-wide
+ * `[data-obsidian] :focus-visible { outline: 2px solid var(--focus-ring) }` in
+ * styles.css, whose --focus-ring is aliased to ember.
+ *
+ * DELETING THE EMBER ONE IS THE FIX, not softening it: ember means WAITING ON
+ * YOU in this system, and a text box you just clicked into is not waiting on
+ * anyone. It was ember by accident of an alias, and it spends the signal that
+ * makes a real gate register.
+ *
+ * SCOPED, AND ONLY BECAUSE IT HAS TO BE. The legacy rule is the app-wide focus
+ * indicator for every surface that has not been rebuilt yet, so it cannot be
+ * removed at the source without leaving those surfaces with no visible focus at
+ * all. This turns it off for the three rebuilt text controls, which have their
+ * own, and nothing else. `[data-obsidian]` is in the selector to WIN, not to
+ * decorate: the legacy rule scores (0,2,0) and sits later in the cascade, so
+ * `.sp-textarea:focus-visible` alone would tie and silently lose. When
+ * styles.css is purged, this whole block goes with it. */
+[data-obsidian] .sp-input:focus-visible,
+[data-obsidian] .sp-select:focus-visible,
+[data-obsidian] .sp-textarea:focus-visible {
+  outline: none;
+}
+
 .sp-input::placeholder,
 .sp-textarea::placeholder {
   color: var(--sp-mute);
@@ -897,6 +972,296 @@
 }
 .sp-prose > * + * {
   margin-top: var(--sp-space-3);
+}
+
+/* ---------- the same prose, rendered from Markdown ----------
+ * ONE PROSE STYLE, TWO CONTAINERS. Ask's answers are Markdown parsed into real
+ * elements (src/components/ask/Answer.tsx), which changes two things about the
+ * box and NOTHING about the typography: the size, the leading and the ink above
+ * still govern, so a heading in an Ask answer and a heading in a release note
+ * can never drift apart.
+ *
+ * What changes:
+ *   · no panel. A tinted recess behind every answer is the wallpaper AskTurn
+ *     exists to remove, and the one recessed surface in this product is
+ *     reserved for the record.
+ *   · no `pre-wrap`. That rule is there to keep the newlines in a raw string;
+ *     parsed Markdown carries its breaks as real blocks, so leaving it on
+ *     doubles every gap.
+ *   · no 68ch measure. The pane IS the measure at 392px. */
+.sp-prose[data-markdown="true"] {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 0;
+  max-width: none;
+  white-space: normal;
+}
+.sp-prose > :first-child {
+  margin-top: 0;
+}
+
+/* A HEADER HAS TO LOOK LIKE A HEADER, which was the founder's actual complaint:
+ * `###` printed literally, so nothing on screen said "this is the top of a
+ * section". Ink rather than body, strong rather than medium, and real air above
+ * it. Six Markdown levels arrive; Answer.tsx flattens them to three, because a
+ * page-title-sized h1 inside a floating 392px pane would outrank the page it is
+ * floating over. */
+.sp-prose h3 {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-strong);
+  font-size: var(--sp-text-body);
+  line-height: var(--sp-leading-tight);
+  margin-top: var(--sp-space-5);
+}
+.sp-prose h3[data-level="1"] {
+  font-size: var(--sp-text-gate);
+  letter-spacing: var(--sp-track-gate);
+  line-height: var(--sp-leading-gate);
+}
+.sp-prose h3[data-level="2"] {
+  font-size: var(--sp-text-body);
+}
+.sp-prose h3[data-level="3"] {
+  font-size: var(--sp-text-prose);
+}
+
+/* THE HIGHLIGHT, the other half of what he was reading as asterisks. Emphasis
+ * is a STEP UP THE INK RAMP, not a colour: the prose sits on --sp-body and the
+ * emphasised words sit on --sp-ink, so the contrast survives greyscale and
+ * spends none of the colour budget. */
+.sp-prose strong,
+.sp-prose b {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-strong);
+}
+.sp-prose em,
+.sp-prose i {
+  font-style: italic;
+}
+
+.sp-prose ul,
+.sp-prose ol {
+  padding-left: 18px;
+  margin-top: var(--sp-space-2);
+}
+.sp-prose ul {
+  list-style: disc;
+}
+.sp-prose ol {
+  list-style: decimal;
+}
+/* Tight inside the list, generous around it: THE LAW (anti-slop.md 3). A model
+ * writing eight bullets at 12px of separation each would push the answer's
+ * conclusion off the bottom of the pane. */
+.sp-prose li {
+  margin-top: var(--sp-space-1);
+}
+.sp-prose li::marker {
+  color: var(--sp-mute);
+}
+.sp-prose li > ul,
+.sp-prose li > ol {
+  margin-top: var(--sp-space-1);
+}
+
+/* Inline code is a TOKEN, not a box: a column name, a flag, a file. Just enough
+ * ground under it to separate it from the sentence. */
+.sp-prose code {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data);
+  color: var(--sp-ink);
+  background: color-mix(in oklab, var(--sp-ink) 8%, transparent);
+  border-radius: var(--sp-radius-xs);
+  padding: 1px 5px;
+  /* A pasted path must break inside a 392px column rather than push it wide. */
+  overflow-wrap: anywhere;
+}
+/* A block of code scrolls inside its own box, so the pane never scrolls
+ * sideways, and it drops the inline chip's ground and padding. */
+.sp-prose pre {
+  background: var(--sp-sink);
+  border-radius: var(--sp-radius-panel);
+  padding: var(--sp-space-3);
+  overflow-x: auto;
+  margin-top: var(--sp-space-3);
+}
+.sp-prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  overflow-wrap: normal;
+  white-space: pre;
+}
+
+.sp-prose a {
+  color: var(--sp-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--sp-mute);
+  overflow-wrap: anywhere;
+}
+.sp-prose a:hover {
+  text-decoration-color: var(--sp-ink);
+}
+
+.sp-prose blockquote {
+  padding-left: var(--sp-space-3);
+  border-left: 2px solid var(--sp-line);
+  color: var(--sp-mute);
+}
+.sp-prose hr {
+  border: 0;
+  border-top: 1px solid var(--sp-line-soft);
+  margin-top: var(--sp-space-4);
+}
+
+/* ---------- something is happening, and it is not finished ----------
+ * The fourth fact, after Empty, Failed and Loading: a request that is genuinely
+ * mid-flight, reporting what it is doing while it does it.
+ *
+ * ================= THE EMBER EXCEPTION, AND ITS FENCE =================
+ * SYSTEM.md is unambiguous: ember (--sp-gate) means WAITING ON YOU, marks the
+ * human, and marks nothing else. This rule breaks that, once, on the founder's
+ * explicit ruling of 2026-07-30: "only for this section you can use the orange
+ * text, with a gradient flow from left to right."
+ *
+ * THE EXCEPTION IS THIS SELECTOR AND NOTHING ELSE. It is not "ember is allowed
+ * for AI states", it is not a token, and it is not a variant of anything. If a
+ * second surface wants a shimmering ember line, that is a new ruling and not a
+ * precedent to cite, because the reason ember still means something on the
+ * gates is that it appears nowhere near them. A live indicator is also the one
+ * place the exception costs nothing: it exists for a few seconds, it is gone
+ * the moment the answer lands, and while it is on screen the composer is
+ * disabled and no gate is being drawn, so it is never ember's rival.
+ * ======================================================================
+ *
+ * IT SWEEPS, IT DOES NOT BLINK. `gate` blinks and is the only blink in the
+ * system. A sweep is a different channel: it travels, it never reaches zero
+ * opacity, and it cannot be mistaken for something demanding a decision. */
+.sp-working {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-2);
+  margin-top: var(--sp-space-2);
+}
+/* The brand mark, turning. It carries no information and is not trying to:
+ * this is the "something is alive" channel, and the founder asked for it to be
+ * our logo rather than a generic spinner. Its own rules (rotation, the energy
+ * comet, the pulsing ember core) live with the mark in styles.css, including
+ * its reduced-motion stop. */
+.sp-working-mark {
+  flex: none;
+  display: inline-flex;
+  line-height: 0;
+}
+/* How long it has been. Mono and tabular so a two-digit second does not shove
+ * the verb sideways every ten seconds. Quiet: it is the least important of the
+ * three things on this line. */
+.sp-working-since {
+  flex: none;
+  font-family: var(--sp-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--sp-text-data-sm);
+  color: var(--sp-mute);
+}
+.sp-working-say {
+  min-width: 0;
+  font-size: var(--sp-text-prose);
+  line-height: var(--sp-leading-body);
+  color: var(--sp-gate);
+  /* The sweep: a bright band travelling left to right through the ember, laid
+   * over the text itself rather than behind it. 300% wide so the highlight is
+   * a narrow moving band and not the whole line brightening at once. */
+  background-image: linear-gradient(
+    100deg,
+    var(--sp-gate) 20%,
+    color-mix(in oklab, var(--sp-gate) 45%, var(--sp-ink)) 42%,
+    var(--sp-gate) 64%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: sp-working-sweep 2600ms linear infinite;
+}
+@keyframes sp-working-sweep {
+  to {
+    background-position: -100% 0;
+  }
+}
+/* Reduced motion: the line still says what is happening, in plain ember, with
+ * nothing travelling. The information was never in the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .sp-working-say {
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+    animation: none;
+  }
+}
+
+/* ---------- more ----------
+ * The secondary facts about one thing, behind one press. See MoreMenu.
+ * Anchored, not portalled: it opens inside the column it belongs to, so it
+ * travels with the row when the thread scrolls. */
+.sp-more {
+  position: relative;
+  display: inline-flex;
+}
+.sp-more-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--sp-radius-ctl);
+  background: none;
+  color: var(--sp-mute);
+  cursor: pointer;
+  transition: color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-more-btn:hover,
+.sp-more-btn[aria-expanded="true"] {
+  color: var(--sp-ink);
+  background: var(--sp-hover);
+}
+.sp-more-btn svg {
+  width: var(--sp-icon-sm);
+  height: var(--sp-icon-sm);
+}
+.sp-more-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  /* Right-anchored: the control sits at the trailing edge of a 392px pane, so
+   * a left-anchored menu would open off the edge of it. */
+  right: 0;
+  z-index: 5;
+  min-width: 168px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  background: var(--sp-float);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-panel);
+  box-shadow: var(--sp-shadow);
+}
+.sp-more-item {
+  text-align: left;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--sp-radius-ctl);
+  background: none;
+  color: var(--sp-body);
+  font: inherit;
+  font-size: var(--sp-text-meta);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sp-more-item:hover {
+  background: var(--sp-hover);
+  color: var(--sp-ink);
 }
 
 /* A row that carries its own control. The control sits at the trailing edge,
@@ -1265,4 +1630,24 @@ button.sp-cell:disabled {
 }
 .sp-empty .sp-acts {
   margin-top: var(--sp-space-3);
+}
+
+/* ---------- the foot of one exchange ----------
+ * Where an answer's provenance hides. Trailing edge, so it reads as chrome
+ * belonging to the turn rather than as a next line of the answer. */
+/* A COLUMN, not a row: the control and the fact it reveals stack under each
+ * other at the same edge. Laid out as a row first, the 26px button and a
+ * full-width cost line ended up at opposite sides of the pane, reading as two
+ * unrelated things rather than as a disclosure and its content. */
+.sp-turn-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: var(--sp-space-1);
+}
+.sp-turn-cost {
+  margin-top: var(--sp-space-1);
+  font-size: var(--sp-text-data);
+  color: var(--sp-mute);
+  text-align: right;
 }

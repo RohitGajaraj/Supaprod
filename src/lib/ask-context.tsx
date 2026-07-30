@@ -136,6 +136,11 @@ type AskState = {
   toggle: () => void;
   runIntent: (intent: string) => void;
   clearPendingIntent: () => void;
+  /** Let go of the handed-back conversation WITHOUT closing the pane. The one
+   *  caller is "New conversation" in the switcher: the pane is keyed on the
+   *  resumed id, so starting over has to drop the key as well as the thread,
+   *  or the next remount would hydrate the conversation you just left. */
+  clearResume: () => void;
 };
 
 const AskContext = React.createContext<AskState | null>(null);
@@ -192,10 +197,33 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
   const clearPendingIntent = React.useCallback(() => {
     setPendingIntent(null);
   }, []);
+  const clearResume = React.useCallback(() => {
+    setResume(null);
+  }, []);
 
+  /* ONE BOX, ONE KEY, AND IT OPENS ASK.
+   *
+   * Ask owned Cmd+J and the palette owned Cmd+K, which meant a person had to
+   * decide whether the thought in their head was a "question" or a "command"
+   * before they could press a key. Intent is exactly what they came to express,
+   * so that was the product asking the user to do the product's job. The
+   * founder hit it himself on 2026-07-30: "if I'm going to type anything in
+   * ask, how is this different? I myself as a founder am confused now, so why
+   * wouldn't a user be?"
+   *
+   * Cmd+J is REMOVED rather than kept as an alias: there is no muscle memory to
+   * protect yet, and an alias would preserve the ambiguity being deleted.
+   *
+   * CMD+K LANDS HERE, NOT IN THE PALETTE. An intermediate version pointed the
+   * one key at the legacy overlay, which would hand free text on to this pane.
+   * The founder rejected it on sight: "it still opens me that old section... it
+   * does not open me the Ask panel." A door labelled Ask that opens something
+   * else is a lie about itself, and the handoff was one press between a person
+   * and the thing they came for. The binding lives HERE, beside the open state
+   * it toggles, rather than in a component that happens to mount nearby. */
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         toggle();
       }
@@ -239,6 +267,7 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
       toggle,
       runIntent,
       clearPendingIntent,
+      clearResume,
     }),
     [
       isOpen,
@@ -251,6 +280,7 @@ export function AskProvider({ children }: { children: React.ReactNode }) {
       toggle,
       runIntent,
       clearPendingIntent,
+      clearResume,
     ],
   );
 

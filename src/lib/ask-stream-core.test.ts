@@ -1,14 +1,17 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, beforeEach } from "bun:test";
 import {
   appendExchange,
   askScopeKey,
+  clearSessionConversations,
   conversationIdForScope,
   parseConversationMap,
   patchMessage,
   prependHydrated,
+  readSessionConversationId,
   removeExchange,
   seedPromoted,
   withConversationId,
+  writeSessionConversationId,
   type AskStreamMsg,
 } from "./ask-stream-core";
 import type { HydratedMsg } from "./ask-thread";
@@ -181,5 +184,46 @@ describe("withConversationId", () => {
   it("clears a scope's conversation with null", () => {
     const map = { "product:p1": UUID_A, "workspace:w1": UUID_B };
     expect(withConversationId(map, "product:p1", null)).toEqual({ "workspace:w1": UUID_B });
+  });
+});
+
+/**
+ * NEW PER SESSION, KEPT WITHIN ONE. The durable map above is what handed a
+ * fresh login a months-old thread; this store is the other half of the same
+ * ruling. There is no test that can reload a page, so what is asserted is the
+ * property that makes the reload correct: nothing here reaches storage, so a
+ * new JS context starts empty, while every read inside one context agrees.
+ */
+describe("the session conversation pointer", () => {
+  beforeEach(() => clearSessionConversations());
+
+  it("starts empty, which is what a fresh page load sees", () => {
+    expect(readSessionConversationId("product:p1")).toBeNull();
+  });
+
+  it("keeps the scope's conversation for as long as the page lives", () => {
+    writeSessionConversationId("product:p1", UUID_A);
+    expect(readSessionConversationId("product:p1")).toBe(UUID_A);
+    // Read twice: a pane closes and reopens, and must land back in the same one.
+    expect(readSessionConversationId("product:p1")).toBe(UUID_A);
+  });
+
+  it("holds one conversation per scope and never leaks across them", () => {
+    writeSessionConversationId("product:p1", UUID_A);
+    writeSessionConversationId("workspace:w1", UUID_B);
+    expect(readSessionConversationId("product:p1")).toBe(UUID_A);
+    expect(readSessionConversationId("workspace:w1")).toBe(UUID_B);
+  });
+
+  it("clears with null, which is how starting over is stored", () => {
+    writeSessionConversationId("product:p1", UUID_A);
+    writeSessionConversationId("product:p1", null);
+    expect(readSessionConversationId("product:p1")).toBeNull();
+  });
+
+  it("never writes to localStorage, or a reload would resurrect the thread", () => {
+    window.localStorage.clear();
+    writeSessionConversationId("product:p1", UUID_A);
+    expect(window.localStorage.length).toBe(0);
   });
 });

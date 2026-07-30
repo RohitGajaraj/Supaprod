@@ -101,36 +101,44 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-describe("GlobalComposer: two summons, two surfaces", () => {
+describe("GlobalComposer: one door, and it is Ask", () => {
   test("mounts the Ask pane on an old-app route", () => {
     mount();
     expect(screen.getByTestId("ask-pane-stub")).toBeTruthy();
   });
 
-  test("the palette door (supaprod:open-cmdk) opens the palette overlay", () => {
+  /**
+   * THE PALETTE IS RETIRED, and these are the assertions that keep it retired.
+   *
+   * This file used to assert the opposite: that Cmd+K opened the palette
+   * overlay and handed free text on to Ask. The founder rejected that on sight,
+   * 2026-07-30: *"if I click on Ask or the shortcut Cmd+K, it still opens me
+   * that old section... It does not open me the Ask panel. You need to ensure
+   * that old one is gone."*
+   *
+   * A door labelled Ask that opens something that is not Ask is a lie about
+   * itself, and the handoff was one extra press between a person and the thing
+   * they came for. So the overlay is no longer rendered at all, and the only
+   * summon on a rebuilt surface is Ask's own.
+   */
+  test("Cmd+K never opens the old overlay", () => {
     mount();
+    act(() => {
+      fireEvent.keyDown(window, { key: "k", metaKey: true });
+    });
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
+  });
+
+  // Belt and braces: even the palette's own legacy summon event finds nothing
+  // to open, so a stale dispatcher somewhere cannot resurrect it.
+  test("even the legacy palette event opens nothing", () => {
+    mount();
     act(() => {
       window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
     });
-    expect(screen.getByTestId("composer-overlay")).toBeTruthy();
-    expect(screen.getByLabelText("Ask Supaprod anything")).toBeTruthy();
-  });
-
-  test("Cmd+K toggles the palette", () => {
-    mount();
-    act(() => {
-      fireEvent.keyDown(window, { key: "k", ctrlKey: true });
-    });
-    expect(screen.getByTestId("composer-overlay")).toBeTruthy();
-    act(() => {
-      fireEvent.keyDown(window, { key: "k", ctrlKey: true });
-    });
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
-  // The regression this file exists to prevent from coming back: one key press
-  // must not open two panels, and Ask's door must not land on the palette.
   test("Ask's door does NOT open the palette", () => {
     mount();
     act(() => {
@@ -147,13 +155,12 @@ describe("GlobalComposer: two summons, two surfaces", () => {
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
+  // The room owns its own composer and Thread; a second stream on the same
+  // conversation would go stale mid-answer, so Ask stands down in there.
   test("stands down inside the room at its readable URL", () => {
     pathname = "/helio-labs/relay";
     routeId = "/_authenticated/$workspaceSlug/$productSlug";
     mount();
-    act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
-    });
     expect(screen.queryByTestId("ask-pane-stub")).toBe(null);
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
@@ -162,64 +169,7 @@ describe("GlobalComposer: two summons, two surfaces", () => {
     pathname = "/m/p-1";
     routeId = "/_authenticated/m/$productId";
     mount();
-    act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
-    });
-    expect(screen.queryByTestId("composer-overlay")).toBe(null);
-  });
-
-  test("a journey chip navigates into the room with the journey and its first stage", () => {
-    mount();
-    act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
-    });
-    fireEvent.click(document.querySelector('button[data-journey="j3"]')!);
-    expect(navigateSpy).toHaveBeenCalledWith({
-      to: "/$workspaceSlug/$productSlug",
-      params: { workspaceSlug: "helio-labs", productSlug: "relay" },
-      search: { stage: "plan", journey: "j3" },
-    });
-    expect(screen.queryByTestId("composer-overlay")).toBe(null);
-  });
-
-  test("a product with no slug yet still opens, through the legacy uuid URL", () => {
-    workspaceState = {
-      activeProductId: "p-1",
-      activeWorkspaceId: "w-1",
-      workspaces: [{ id: "w-1", slug: "helio-labs" }],
-      products: [{ id: "p-1", workspace_id: "w-1", slug: null }],
-    };
-    mount();
-    act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
-    });
-    fireEvent.click(document.querySelector('button[data-journey="j3"]')!);
-    expect(navigateSpy).toHaveBeenCalledWith({
-      to: "/m/$productId",
-      params: { productId: "p-1" },
-      search: { stage: "plan", journey: "j3" },
-    });
-  });
-
-  // Free text in the palette is a QUESTION, and Ask is the surface that answers
-  // one. The palette used to stream it itself, which is how two surfaces became
-  // one box. It hands it over now, carrying the text.
-  test("free text leaves the palette and lands in Ask, carrying the question", () => {
-    mount();
-    act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
-    });
-    const handed: string[] = [];
-    const onAsk = (e: Event) => {
-      const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent;
-      if (intent) handed.push(intent);
-    };
-    window.addEventListener("supaprod:open-ask", onAsk);
-    const box = screen.getByLabelText("Ask Supaprod anything");
-    fireEvent.change(box, { target: { value: "why did churn spike" } });
-    fireEvent.keyDown(box, { key: "Enter" });
-    window.removeEventListener("supaprod:open-ask", onAsk);
-    expect(handed).toEqual(["why did churn spike"]);
+    expect(screen.queryByTestId("ask-pane-stub")).toBe(null);
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 });

@@ -411,6 +411,20 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   const counts: Record<string, number> = { gates: gateCount, runs: running.length };
 
+  /* ONE BOX, ONE KEY, AND THE BOX IS ASK.
+   *
+   * This briefly opened the legacy palette instead, on the theory that the
+   * palette was the front door and would hand free text through to Ask. The
+   * founder found it immediately and it was the wrong call: *"if I click on Ask
+   * or the shortcut Cmd+K, it still opens me that old section... It does not
+   * open me the Ask panel. You need to ensure that old one is gone."*
+   *
+   * He is right, and the reason is worth keeping. A door labelled Ask that
+   * opens something that is not Ask is a lie about itself, and the handoff was
+   * an extra press between a person and the thing they came for. Ask is the
+   * front door now: the button and Cmd+K both land in the pane, which is where
+   * a conversation lives. The keybind itself is in AskProvider, next to the
+   * open state it toggles. */
   const openAsk = React.useCallback(() => {
     window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
   }, []);
@@ -563,7 +577,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               defect on the auth door (session-handoff.md), so it is not
               carried into the chrome. */}
             <span className="sp-logo">
-              <SupaprodMark size={21} mono glow={false} />
+              {/* THE REAL MARK, not the watermark. `mono` was set here and it
+                  is a documented switch that REPLACES the Brain+Pulse core with
+                  a grey circle ("silver/gray spiral + core, no ember/gold").
+                  So the wordmark in the top left was the brand with its centre
+                  removed. The founder caught it: "on the logo which is used
+                  across our platform, top left, there also it is the same
+                  thing... it needs to be the real one, not just a mockup."
+                  The ember core is the ONE piece of brand colour the rebuild's
+                  monochrome default does not govern: a logo's own colour is
+                  identity, not interface state. */}
+              <SupaprodMark size={21} glow={false} />
             </span>
             <span className="sp-wordmark">Supaprod</span>
           </Link>
@@ -618,7 +642,9 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <button type="button" className="sp-askbtn" onClick={openAsk}>
               <IconAsk className="sp-askbtn-icon" />
               Ask
-              <span className="sp-askbtn-key">&#8984;J</span>
+              {/* The one key. Cmd+J is gone: it was Ask's half of a split that
+                only ever made people guess which box they wanted. */}
+              <span className="sp-askbtn-key">&#8984;K</span>
             </button>
             {/* The account disc owns who you are, including the way out. Sign
               out was reachable from exactly one component in the repo and that

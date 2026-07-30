@@ -29,9 +29,13 @@ import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import { recordCitationFor } from "@/lib/ask-record";
 import { gatesForAnswer, policyProposal } from "@/lib/ask-actions";
-import { Failed, Loading, Num, Record } from "@/components/shell/primitives";
+import type { ResearchStatus } from "@/components/chat/ResearchActivity";
+import { modelLabel, spendLabel } from "@/lib/model-label";
+import { Failed, MoreItem, MoreMenu, Num, Record } from "@/components/shell/primitives";
+import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
 import { AskRunCard } from "./AskRunCard";
+import { Working } from "./Working";
 
 export type Turn = { key: string; question: AskStreamMsg | null; answer: AskStreamMsg | null };
 
@@ -71,6 +75,16 @@ function Register({ name, children }: { name: string; children: React.ReactNode 
   );
 }
 
+/**
+ * WHAT A PERSON TYPED, and it stays verbatim.
+ *
+ * This is the register the answer does NOT use any more. Your question goes
+ * through unparsed on purpose: a `#` you typed is a `#` you meant, `**` inside
+ * a filename is part of the filename, and quietly reformatting somebody's own
+ * words back at them is the surest way to make them distrust the transcript.
+ * Markdown belongs to the crew's prose, which is written to be read; yours was
+ * written to be sent. See `Answer` for the other side of that line.
+ */
 function Said({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -89,41 +103,63 @@ function Said({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** What the exchange cost, on the record.
+/**
+ * WHAT THE EXCHANGE COST, AND IT IS NO LONGER PRINTED IN THE READING COLUMN.
  *
- *  "One agentic operating system, every call on the record" is the product's
- *  own line, and every Ask exchange spends real money through a chokepoint that
- *  already meters it. It is one quiet line in the thread, never a warning, and
- *  never in the header: a running total in the chrome would make the panel
- *  about money, and this makes the ANSWER about what it cost. */
-function Cost({ msg }: { msg: AskStreamMsg }) {
+ * "One agentic operating system, every call on the record" is the product's own
+ * line, and every Ask exchange spends real money through a chokepoint that
+ * already meters it. That fact is kept. What changed is where it sits.
+ *
+ * Founder ruling 2026-07-30, reading `google/gemini-3-flash-preview · under a
+ * cent` under an answer: *"it looks like a message itself... probably we can
+ * give it like a Lovable model, three dots, and if I click three dots there are
+ * a couple of action items there. In that, one of the action items is view
+ * credits, and if I click it shows how many credits."*
+ *
+ * Two separate defects, both real:
+ *   1. A metered fact set in the reading column is read as part of the answer.
+ *      It is not; it is provenance. Behind a control it is one press away for
+ *      anyone who wants it and silent for everyone who does not.
+ *   2. The model was a ROUTING SLUG. `google/gemini-3-flash-preview` is
+ *      addressed to a gateway, not to a person. `modelLabel` turns it into
+ *      "Google Gemini 3 Flash" without a lookup table, so it can be reformatted
+ *      but never fabricated.
+ *
+ * Still never in the header: a running total in the chrome would make the panel
+ * about money. This keeps it about what THIS answer cost, when asked.
+ */
+function Provenance({ msg }: { msg: AskStreamMsg }) {
+  const [shown, setShown] = React.useState(false);
   const meta = msg.meta;
-  if (!meta) return null;
-  const cents = meta.cost_usd;
-  const money =
-    typeof cents === "number" && cents > 0
-      ? cents < 0.01
-        ? "under a cent"
-        : `$${cents.toFixed(2)}`
-      : null;
-  if (!money && !meta.model) return null;
+  const model = modelLabel(meta?.model);
+  const money = spendLabel(meta?.cost_usd);
+  const read = meta?.workspace_chunks ?? 0;
+  // Nothing metered, nothing to offer. An empty menu is worse than no menu.
+  if (!meta || (!model && !money && read === 0)) return null;
+
   return (
-    <div
-      style={{
-        marginTop: "var(--sp-space-2)",
-        fontSize: "var(--sp-text-data)",
-        color: "var(--sp-mute)",
-      }}
-    >
-      {meta.model ? <Num>{meta.model}</Num> : null}
-      {meta.model && money ? " · " : null}
-      {money ? <Num>{money}</Num> : null}
-      {meta.workspace_chunks > 0 ? (
-        <>
-          {" · read "}
-          <Num>{meta.workspace_chunks}</Num>
-          {meta.workspace_chunks === 1 ? " record" : " records"}
-        </>
+    <div className="sp-turn-foot">
+      <MoreMenu label="About this answer">
+        <MoreItem onClick={() => setShown((v) => !v)}>
+          {shown ? "Hide credits" : "View credits"}
+        </MoreItem>
+      </MoreMenu>
+      {shown ? (
+        <div className="sp-turn-cost">
+          {model ? <Num>{model}</Num> : null}
+          {model && money ? " · " : null}
+          {/* An unknown cost is ABSENT, never rendered as $0.00: on a surface
+              whose argument is that every call is on the record, printing a
+              zero we did not measure is the one unaffordable rounding. */}
+          {money ? <Num>{money}</Num> : null}
+          {read > 0 ? (
+            <>
+              {" · read "}
+              <Num>{read}</Num>
+              {read === 1 ? " record" : " records"}
+            </>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
@@ -132,6 +168,7 @@ function Cost({ msg }: { msg: AskStreamMsg }) {
 export function AskTurn({
   turn,
   streaming,
+  liveStatus,
   queue,
   initials,
   onRetry,
@@ -139,6 +176,10 @@ export function AskTurn({
   turn: Turn;
   /** True only for the message genuinely in flight. */
   streaming: boolean;
+  /** The last real progress event off the stream, or null on the plain chat
+   *  path where the server emits none. Passed straight through: inventing one
+   *  here is the failure mode `Working` exists to prevent. */
+  liveStatus: ResearchStatus | null;
   queue: ApprovalQueueItem[];
   initials: string;
   onRetry: (msgId: string, content: string) => void;
@@ -181,9 +222,20 @@ export function AskTurn({
           </Register>
         ) : (
           <Register name="Answer">
-            {answer.content ? <Said>{answer.content}</Said> : null}
-            {streaming && !answer.content ? <Loading>Reading the record.</Loading> : null}
-            {!streaming ? <Cost msg={answer} /> : null}
+            {/* THE ONE PLACE THE CREW'S WORDS BECOME PIXELS, streaming and
+                settled alike. There is deliberately no second branch for the
+                in-flight case: the stream patches `content` on this same
+                message, so the half-written answer and the finished one are
+                the same JSX and cannot render differently. A separate
+                "streaming text" path is exactly how a surface ends up showing
+                raw hashes for the eight seconds a person is actually watching
+                it, and then tidying itself up once they have stopped. */}
+            {answer.content ? <Answer>{answer.content}</Answer> : null}
+            {/* WHAT IS HAPPENING, while it happens. It sits UNDER the words so
+                a growing answer does not shove the line it is reading, and it
+                is gone the instant the stream ends. */}
+            {streaming ? <Working status={liveStatus} hasContent={!!answer.content} /> : null}
+            {!streaming ? <Provenance msg={answer} /> : null}
           </Register>
         )
       ) : null}

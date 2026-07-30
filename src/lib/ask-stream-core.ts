@@ -154,3 +154,41 @@ export function withConversationId(
   else delete next[scopeKey];
   return next;
 }
+
+/* ------------- the session pointer: fresh on every load ----------- */
+
+/**
+ * WHICH CONVERSATION IS LIVE, for a surface that must open FRESH.
+ *
+ * Founder ruling, 2026-07-30: *"every single time when a user logs in,
+ * shouldn't it be a new window where a fresh screen appears? If you show me
+ * threads of a hundred plus messages, it would become too humongous to
+ * grasp."* And the nuance that makes it right rather than merely new: closing
+ * a pane is not ending a conversation, so Escape and reopen must land back in
+ * the same one. Getting either half backwards is a bug.
+ *
+ * Both halves are one storage decision. The map above lives in localStorage,
+ * so it outlives the tab and hands a fresh login a months-old thread. This map
+ * is a module variable, so it dies with the page and survives everything
+ * shorter than that: the Ask pane unmounts on every close and remounts on
+ * every open, and a module does not.
+ *
+ * It is a SECOND store rather than a replacement because the Mission Control
+ * room keeps the durable one. That room is one long-lived workspace per URL
+ * rather than a summoned pane, and nothing about it asked to be reset.
+ */
+const sessionConversations: Record<string, string> = {};
+
+export function readSessionConversationId(scopeKey: string): string | null {
+  return sessionConversations[scopeKey] ?? null;
+}
+
+export function writeSessionConversationId(scopeKey: string, id: string | null): void {
+  if (id) sessionConversations[scopeKey] = id;
+  else delete sessionConversations[scopeKey];
+}
+
+/** Tests only. A module map outlives a test case the way it outlives a pane. */
+export function clearSessionConversations(): void {
+  for (const key of Object.keys(sessionConversations)) delete sessionConversations[key];
+}

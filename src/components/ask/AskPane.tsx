@@ -46,8 +46,25 @@
  *          nav surface. Cmd+K still opens the palette and still has them.
  *    KILL  the answer toolbar of chips. Two actions survive as words.
  *
- * 4. ONE CLICK AWAY. Everything before this conversation: `/threads`, named in
- *    the footer of the pane rather than duplicated as a list inside it.
+ * 4. ONE CLICK AWAY. Everything before this conversation, and it is a CONTROL
+ *    in the chrome rather than a word in a paragraph. Until 2026-07-30 the only
+ *    live way into `/threads` in the whole app was a bare link buried in this
+ *    pane's footer sentence, and the founder could not find the surface at all.
+ *    The fix is not a rail item. Nobody wakes up wanting to browse
+ *    conversations; they want the answer they already got, mid-thought, which
+ *    makes the archive ASK'S OWN HISTORY rather than a destination. So
+ *    `Conversations` sits in the header, opens the switcher in place, and the
+ *    switcher's own last row is the way down to the full archive. Two depths of
+ *    one idea. There is exactly ONE door and it does not appear twice.
+ *
+ * 4b. AND IT OPENS FRESH. Founder ruling, same day: *"every single time when a
+ *    user logs in, shouldn't it be a new window where a fresh screen appears?
+ *    If you show me threads of a hundred plus messages, it would become too
+ *    humongous to grasp."* The pointer is NEW PER SESSION AND KEPT WITHIN ONE:
+ *    a page load opens an empty conversation, and closing the pane with Escape
+ *    is not ending a conversation, so reopening comes back to it. That is one
+ *    storage decision, `pointer: "session"` below, and the reasoning lives on
+ *    `readSessionConversationId` in ask-stream-core.ts.
  *
  * 5. THE MOMENT, AND WHAT WOULD CONFUSE. The moment is asking what happened,
  *    and being told, and then approving the thing that was waiting, without the
@@ -72,10 +89,19 @@
  *    WHAT A STRANGER DOES NOT UNDERSTAND: "PRD" is gone (the chip says "your
  *    specs"). "Steer" is explained by its own placeholder. "Hand it over" is
  *    plain English for dispatch, and the line under it says what it costs you.
+ *    "Threads" is gone from this surface too: the control says `Conversations`,
+ *    which is the word the founder used and the word a stranger has.
+ *
+ * 8. THE MIC, which existed and was never drawn. `useDictation` has been a
+ *    complete Web Speech wrapper since PC-36 and `use-ask-stream` has been
+ *    handing it to the UI the whole time; the only surface rendering it was the
+ *    legacy palette that is being retired. It is here now, it HIDES ITSELF
+ *    where the browser has no speech recognition rather than offering a dead
+ *    button, and listening is a WORD plus the live transcript, never a pulse:
+ *    `gate` blinks and is the only blink in the system.
  */
 
 import * as React from "react";
-import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,20 +109,26 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { useAskStream } from "@/hooks/use-ask-stream";
 import { useAsk, chipLabel } from "@/lib/ask-context";
 import { defaultIntent, contentForIntent, type AskIntent } from "@/lib/ask-intent";
-import { openingGates, policyProposal } from "@/lib/ask-actions";
+import { openAskConversation } from "@/lib/ask-open";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { listMissions } from "@/lib/missions.functions";
+import {
+  starterPrompts,
+  starterStateIsKnownEmpty,
+  USE_CASES,
+  type Starter,
+} from "@/lib/ask-starters";
 import {
   AgentMark,
   Actions,
   Button,
   Choices,
-  Empty,
   Failed,
   Loading,
   Textarea,
 } from "@/components/shell/primitives";
-import { AskGateCard } from "./AskGateCard";
+import { IconMic } from "@/components/shell/icons";
+import { AskSwitcher } from "./AskSwitcher";
 import { AskTurn, toTurns } from "./AskTurn";
 
 /** The seat that answers. `api/chat.ts` runs the loop as `orchestrator`, so
@@ -132,6 +164,10 @@ function AskPaneOpen() {
   const [draft, setDraft] = React.useState("");
   const [intentOverride, setIntentOverride] = React.useState<AskIntent | null>(null);
   const [shown, setShown] = React.useState(false);
+  // The switcher takes the BODY, not a layer over it. A pane 392px wide has
+  // room for one thing at a time, and the composer stays put underneath so a
+  // question that arrives while you are looking still has somewhere to go.
+  const [browsing, setBrowsing] = React.useState(false);
   // The Textarea primitive takes no ref, so the wrapper owns it. Cheaper than
   // forking the primitive for one focus call.
   const boxWrap = React.useRef<HTMLDivElement | null>(null);
@@ -144,10 +180,36 @@ function AskPaneOpen() {
   const stream = useAskStream({
     enabled: true,
     scope: ask.scope,
-    productId: resume ? resume.productId : undefined,
+    // ONE LIVE CONVERSATION PER SESSION, in the workspace bucket, and this used
+    // to be the thread's own product. The switcher is why it changed. Ask kept
+    // an INVISIBLE thread per product, which is a second answer to a question
+    // the person now answers out loud by picking a conversation, and it broke
+    // the moment the two disagreed: reopening a thread from another product
+    // moved the pane's bucket, so the first Escape dropped it and reopening
+    // showed an empty pane. Closing a pane is not ending a conversation. One
+    // bucket cannot disagree with itself, and walking to another product now
+    // keeps the conversation you are in rather than silently swapping it.
+    // Retrieval is UNAFFECTED: `scope` above is what narrows an answer, and it
+    // still follows the screen.
+    productId: null,
+    // New per session, kept within one. See 4b in the header.
+    pointer: "session",
     onDictation: (text) => setDraft((d) => (d ? `${d} ${text}` : text)),
   });
 
+  // THE QUEUE IS READ, AND IT IS NOT DRAWN ON ARRIVAL. Founder ruling
+  // 2026-07-30: *"approval should not go under Ask... If I click Ask, it should
+  // open a fresh window, no approvals waiting for me, nothing like that. But
+  // when some conversation happens, user triggers conversation asking about
+  // certain things, what is waiting for me, where the action needs to be taken,
+  // then you can display those cards."*
+  //
+  // So Ask ANSWERS ABOUT approvals and never CARRIES them. `/approvals` and
+  // Today own that inbox; a second one behind this door would make the count in
+  // the rail mean two different things. The read stays because the answer needs
+  // it: `gatesForAnswer` (AskTurn) matches these rows to a turn BY ID, or draws
+  // the head of the queue when the question was literally "what is waiting on
+  // me", and settles them inline. Nothing reads it before a question exists.
   const fetchQueue = useServerFn(getApprovalsQueue);
   const queue = useQuery({
     // The SAME key the shell's rail count uses, so one truth has one cache and
@@ -157,6 +219,16 @@ function AskPaneOpen() {
     staleTime: 30_000,
   });
   const items = queue.data?.items ?? [];
+
+  // What the workspace is actually doing, for the way in. The SAME key AppFrame
+  // reads for the rail's run count, so on every authenticated surface this is
+  // already resolved and Ask pays nothing for it.
+  const fetchMissions = useServerFn(listMissions);
+  const missions = useQuery({
+    queryKey: ["shell", "missions", activeWorkspace?.id ?? null],
+    queryFn: () => fetchMissions({ data: {} }),
+    staleTime: 30_000,
+  });
 
   React.useEffect(() => {
     let alive = true;
@@ -220,16 +292,28 @@ function AskPaneOpen() {
   const scopeLabel = chipLabel(ask.scope, activeWorkspace?.name ?? null);
   const intent: AskIntent = intentOverride ?? defaultIntent(draft);
 
+  const dictation = stream.dictation;
+
   function send() {
     const text = draft.trim();
     if (!text || stream.streaming) return;
+    // Sending is the end of dictating. The box goes read-only while an answer
+    // streams, so a mic still running would be talking into a locked door.
+    if (dictation.listening) dictation.stop();
     stream.sendIntent(contentForIntent(text, intent));
     setDraft("");
     setIntentOverride(null);
+    // The answer is the thing to look at now, not the list you came from.
+    setBrowsing(false);
   }
 
-  const openingItems = openingGates(items, ask.scope?.sourceId ?? null);
-  const openingPolicy = policyProposal(openingItems);
+  // A read that FAILED contributes nothing rather than an invented prompt, so
+  // the error case and the not-yet case both arrive here as null. See
+  // ask-starters.ts for why that distinction is load bearing.
+  const starterSource = {
+    missions: missions.isError ? null : (missions.data?.missions ?? null),
+  };
+  const starters = starterPrompts(starterSource);
 
   return (
     <aside
@@ -291,21 +375,61 @@ function AskPaneOpen() {
             {scopeLabel}
           </span>
         </span>
-        <Button variant="ghost" aria-label="Close Ask" onClick={ask.close}>
-          Close
-        </Button>
+        <span style={{ display: "flex", alignItems: "center", flex: "none" }}>
+          {/* THE DOOR, and there is only one of it. Not ghost while open: the
+              switcher has taken the body, and the control that did it has to
+              look pressed without borrowing a colour to say so. */}
+          <Button
+            variant={browsing ? "default" : "ghost"}
+            aria-expanded={browsing}
+            onClick={() => setBrowsing((v) => !v)}
+          >
+            Conversations
+          </Button>
+          <Button variant="ghost" aria-label="Close Ask" onClick={ask.close}>
+            Close
+          </Button>
+        </span>
       </header>
 
       <div ref={bodyRef} style={{ flex: 1, overflowY: "auto", padding: "var(--sp-space-4)" }}>
-        {stream.messages.length === 0 ? (
+        {browsing ? (
+          <AskSwitcher
+            answeredBy={ANSWERED_BY}
+            initials={initials}
+            currentId={stream.conversationId}
+            busy={stream.streaming}
+            onNew={() => {
+              if (stream.streaming) return;
+              setBrowsing(false);
+              // Order matters. `startNewConversation` clears the thread AND the
+              // session pointer; clearing the resume then drops the key the
+              // pane is mounted on, so the remount reads nothing and lands on
+              // an empty conversation rather than rehydrating the old one.
+              stream.startNewConversation();
+              ask.clearResume();
+              focusBox();
+            }}
+            onPick={(t) => {
+              setBrowsing(false);
+              // The SAME motion Threads uses: write the pointer, summon. The
+              // pane is keyed on the conversation, so it remounts and hydrates.
+              openAskConversation({
+                conversationId: t.id,
+                productId: t.productId,
+                workspaceId: activeWorkspace?.id ?? null,
+              });
+            }}
+            onLeave={ask.close}
+          />
+        ) : stream.messages.length === 0 ? (
           <Opening
             scopeLabel={scopeLabel}
-            gates={openingItems}
-            policyId={openingPolicy?.id ?? null}
-            initials={initials}
-            queueFailed={queue.isError}
-            queueLoading={queue.isLoading}
-            onRetryQueue={() => void queue.refetch()}
+            starters={starters}
+            loading={missions.isLoading}
+            failed={missions.isError}
+            knownEmpty={starterStateIsKnownEmpty(starterSource)}
+            onRetry={() => void missions.refetch()}
             onPick={(q) => {
               setDraft(q);
               focusBox();
@@ -317,6 +441,7 @@ function AskPaneOpen() {
               key={t.key}
               turn={t}
               streaming={stream.streaming && t.answer?.id === lastId}
+              liveStatus={stream.liveStatus}
               queue={items}
               initials={initials}
               onRetry={stream.retry}
@@ -372,6 +497,24 @@ function AskPaneOpen() {
           />
         </div>
 
+        {dictation.listening ? (
+          // THE LISTENING STATE, and it does not pulse. `gate` blinks and is the
+          // only blink in the system, so a breathing mic would be a second one
+          // competing with the thing that actually needs a decision. What it
+          // shows instead is the words as they arrive, which is better evidence
+          // that the mic is live than any amount of motion.
+          <div
+            style={{
+              marginTop: "var(--sp-space-2)",
+              fontSize: "var(--sp-text-meta)",
+              color: "var(--sp-mute)",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {dictation.interim || "Listening."}
+          </div>
+        ) : null}
+
         <div
           style={{
             display: "flex",
@@ -382,26 +525,49 @@ function AskPaneOpen() {
           }}
         >
           <span style={{ fontSize: "var(--sp-text-data)", color: "var(--sp-mute)", minWidth: 0 }}>
-            {stream.streaming ? (
-              "Answering. Escape leaves it running."
-            ) : draft.trim() && intent === "instruction" ? (
-              "This starts a run and spends credits."
-            ) : stream.messages.length > 0 ? (
-              <Link to="/threads" onClick={ask.close} style={{ color: "inherit" }}>
-                Kept in Threads
-              </Link>
-            ) : (
-              "Enter sends. Shift and Enter for a new line."
-            )}
+            {stream.streaming
+              ? "Answering. Escape leaves it running."
+              : draft.trim() && intent === "instruction"
+                ? "This starts a run and spends credits."
+                : stream.messages.length > 0
+                  ? "Kept. Conversations reopens it."
+                  : "Enter sends. Shift and Enter for a new line."}
           </span>
-          <Button
-            variant="primary"
-            disabled={!draft.trim() || stream.streaming}
-            onClick={send}
-            shortcut="Enter"
-          >
-            {intent === "instruction" ? "Hand it over" : "Ask"}
-          </Button>
+          <span style={{ display: "flex", alignItems: "center", flex: "none" }}>
+            {/* THE MIC, and it is absent rather than dead where the browser has
+                no speech recognition. `supported` is the hook's own answer, so
+                this is a fact about the browser in front of the person, not a
+                guess.
+                A GLYPH, NOT A WORD (founder ruling 2026-07-30). An earlier pass
+                argued for the word on the grounds that every other control in
+                this pane is one, and that was the wrong read: the footer
+                already carries the send button, the intent fork and a hint
+                line, so a fourth run of words buried the one non-verbal action
+                in the product among them. The name survives on `aria-label`,
+                where it says which way the NEXT press goes rather than where
+                you already are, and the pressed state is drawn rather than
+                spelled, so it still survives greyscale. */}
+            {dictation.supported ? (
+              <Button
+                variant="ghost"
+                icon
+                aria-label={dictation.listening ? "Stop dictation" : "Start dictation"}
+                aria-pressed={dictation.listening}
+                disabled={stream.streaming}
+                onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}
+              >
+                <IconMic />
+              </Button>
+            ) : null}
+            <Button
+              variant="primary"
+              disabled={!draft.trim() || stream.streaming}
+              onClick={send}
+              shortcut="Enter"
+            >
+              {intent === "instruction" ? "Hand it over" : "Ask"}
+            </Button>
+          </span>
         </div>
       </footer>
     </aside>
@@ -419,43 +585,101 @@ function AskPaneOpen() {
  * illustration: there is nothing to illustrate. No invented sample answer: a
  * pretend citation here would teach people to distrust the real ones.
  *
- * What it says instead is true and useful at exactly this moment:
+ * AND, SINCE 2026-07-30, IT REFUSES A FOURTH: THE APPROVALS QUEUE.
+ * This used to open with a "Waiting on you" section drawing real gate cards.
+ * The founder, on seeing it: *"If I'm not asked anything, why are you showing me
+ * those approval windows at all?"*, and then the rule, which is about ownership
+ * rather than clutter: *"approval should not go under Ask... But when some
+ * conversation happens, user triggers conversation asking about certain things,
+ * what is waiting for me, where the action needs to be taken, then you can
+ * display those cards."*
+ *
+ * So a fresh conversation shows ZERO of it: no cards, no count, no banner, not
+ * an "all clear" line either, because "nothing needs your call" is still Ask
+ * answering a question nobody asked. The capability is untouched and one turn
+ * away: ask what is waiting on you and `gatesForAnswer` renders the real cards,
+ * settleable inline, which is the thing that makes this not a chat box. A queue
+ * has one home and it is `/approvals`; a second one behind this door would make
+ * the number in the rail mean two different things.
+ *
+ * WHAT IT SAYS INSTEAD is true, and specific to this workspace at this moment:
  *  - what this conversation is scoped to, so the chip is explained the first
  *    time and never again,
- *  - what is genuinely waiting on you IN THAT SCOPE, settleable right here.
- *    On day one that list is usually empty and it says so plainly,
- *  - three questions that fit this scope, as a way in rather than as filler,
+ *  - up to three questions built out of runs that genuinely exist, which is the
+ *    other founder ruling of the day: the suggestions must "know the knowledge
+ *    about the product", and the honest floor is FEWER of them rather than
+ *    invented ones (see ask-starters.ts),
  *  - where the conversation goes afterwards, because "is this a chat window or
  *    is this Threads" was the founder's actual question.
  *
  * A returning user rarely sees this at all: the pane opens holding the running
  * conversation for this scope, hydrated from the same table Threads reads.
  */
+/** The quiet heading over a group. One line, one job, and it never restates
+ *  what the rows under it already say. */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: "var(--sp-text-label)",
+        color: "var(--sp-mute)",
+        fontWeight: 500,
+        marginBottom: "var(--sp-space-2)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * ONE SUGGESTION, AND THE SUBJECT COMES FIRST.
+ *
+ * Founder, on the first cut: the prompts were "not logically put" and did not
+ * read well. The sourcing was right and the SHAPE was wrong: "What is the crew
+ * doing on Ship SSO login for Beacon?" buries a nine-word proper noun mid
+ * sentence, so the eye has to finish the line before it knows what the line is
+ * about. Subject on top in ink, question under it in mute, and the whole
+ * sentence is what gets sent. A use case has no subject and is one line.
+ */
+function Suggestion({ subject, question }: { subject: string | null; question: string }) {
+  if (!subject) return <span>{question}</span>;
+  return (
+    <span style={{ display: "block", minWidth: 0 }}>
+      <span style={{ display: "block", color: "var(--sp-ink)" }}>{subject}</span>
+      <span
+        style={{
+          display: "block",
+          color: "var(--sp-mute)",
+          fontSize: "var(--sp-text-meta)",
+        }}
+      >
+        {question}
+      </span>
+    </span>
+  );
+}
+
 function Opening({
   scopeLabel,
-  gates,
-  policyId,
-  initials,
-  queueFailed,
-  queueLoading,
-  onRetryQueue,
+  starters,
+  loading,
+  failed,
+  knownEmpty,
+  onRetry,
   onPick,
 }: {
   scopeLabel: string;
-  gates: ReturnType<typeof openingGates>;
-  policyId: string | null;
-  initials: string;
-  queueFailed: boolean;
-  queueLoading: boolean;
-  onRetryQueue: () => void;
+  /** Already grounded. This component never invents one and never pads. */
+  starters: Starter[];
+  loading: boolean;
+  failed: boolean;
+  /** The read LANDED and this workspace has run nothing. Different from both
+   *  "still reading" and "could not read", and only this one may be said. */
+  knownEmpty: boolean;
+  onRetry: () => void;
   onPick: (q: string) => void;
 }) {
-  const starters = [
-    `What changed in ${scopeLabel}?`,
-    "What is waiting on me?",
-    "Why did we decide this?",
-  ];
-
   return (
     <>
       <div
@@ -469,52 +693,54 @@ function Opening({
         workspace's own record, and cites what it read.
       </div>
 
-      <div style={{ marginTop: "var(--sp-space-5)" }}>
-        <div
-          style={{
-            fontSize: "var(--sp-text-label)",
-            color: "var(--sp-mute)",
-            fontWeight: 500,
-            marginBottom: "var(--sp-space-2)",
-          }}
-        >
-          Waiting on you
-        </div>
-        {queueFailed ? (
-          <Failed onRetry={onRetryQueue}>
-            We could not read what is waiting. That is not the same as nothing waiting.
+      {/* GROUP ONE: what is really happening here, named. Absent entirely when
+          we have no fact to name, rather than padded with a generic line. */}
+      <div style={{ marginTop: "var(--sp-space-6)" }}>
+        {failed ? (
+          // Never silently. A generic suggestion here would be indistinguishable
+          // from a grounded one, so the honest move is to say the read broke.
+          <Failed onRetry={onRetry}>
+            We could not read what is running, so there is nothing to suggest yet.
           </Failed>
-        ) : queueLoading ? (
-          <Loading>Reading what is waiting.</Loading>
-        ) : gates.length === 0 ? (
-          <Empty>Nothing needs your call here. The crew is not blocked.</Empty>
-        ) : (
-          gates.map((g) => (
-            <AskGateCard key={g.id} item={g} initials={initials} asPolicy={g.id === policyId} />
-          ))
-        )}
+        ) : loading ? (
+          <Loading>Reading what is running.</Loading>
+        ) : knownEmpty ? (
+          <SectionLabel>Nothing has run here yet</SectionLabel>
+        ) : starters.length > 0 ? (
+          <>
+            <SectionLabel>In this workspace</SectionLabel>
+            <Actions stack>
+              {starters.map((s) => (
+                <Button key={s.prompt} variant="ghost" onClick={() => onPick(s.prompt)}>
+                  <Suggestion subject={s.subject} question={s.question} />
+                </Button>
+              ))}
+            </Actions>
+          </>
+        ) : null}
       </div>
 
+      {/* GROUP TWO: what this surface can DO, which the workspace's contents
+          cannot teach. Founder ruling: show a few use cases "like how Perplexity
+          shows... so that the user knows exactly what he should be asking on".
+          These name nothing, so they are constant and cannot be wrong; the
+          three are one per mode (a call to settle, the record, the hand-over)
+          rather than three flavours of one. */}
       <div style={{ marginTop: "var(--sp-space-6)" }}>
-        <div
-          style={{
-            fontSize: "var(--sp-text-label)",
-            color: "var(--sp-mute)",
-            fontWeight: 500,
-            marginBottom: "var(--sp-space-2)",
-          }}
-        >
-          A way in
-        </div>
-        <Actions>
-          {starters.map((s) => (
-            <Button key={s} variant="ghost" onClick={() => onPick(s)}>
-              {s}
+        <SectionLabel>What you can do here</SectionLabel>
+        <Actions stack>
+          {USE_CASES.map((u) => (
+            <Button key={u.prompt} variant="ghost" onClick={() => onPick(u.prompt)}>
+              <Suggestion subject={u.subject} question={u.question} />
             </Button>
           ))}
         </Actions>
       </div>
 
+      {/* THE SENTENCE, AND NOT A SECOND DOOR. This used to carry the only live
+          link to the archive in the whole app, which is how the founder came to
+          believe the surface did not exist. The door is `Conversations` in the
+          header now; this only has to say where the words go, once. */}
       <div
         style={{
           marginTop: "var(--sp-space-6)",
@@ -522,11 +748,7 @@ function Opening({
           color: "var(--sp-mute)",
         }}
       >
-        Every conversation here is kept.{" "}
-        <Link to="/threads" style={{ color: "inherit", textDecoration: "underline" }}>
-          Threads
-        </Link>{" "}
-        has every one of them, searchable by anything that was said.
+        Every conversation here is kept. Conversations, above, reopens one or starts a new one.
       </div>
     </>
   );
