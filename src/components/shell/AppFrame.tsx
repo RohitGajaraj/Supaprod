@@ -137,13 +137,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { useTheme } from "@/hooks/use-theme";
+import { BoardPanel } from "./BoardPanel";
+import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import {
   IconAsk,
   IconBrain,
-  IconChevron,
   IconCrew,
   IconEngine,
+  IconBoard,
   IconGear,
+  IconMoon,
+  IconSun,
+  IconSystem,
   IconPanel,
   IconRuns,
   IconToday,
@@ -202,6 +208,20 @@ const CREW = "The crew";
  *  yet, and the live line's whole claim is that somebody is working. */
 const WORKING = new Set(["running", "in_progress"]);
 
+/**
+ * What the NEXT press does, not what the current state is.
+ *
+ * A control's label is a promise about the click. "Light" on a button that is
+ * currently light tells you where you are, which the icon already does, and
+ * leaves you guessing what pressing it will get you. The cycle is
+ * light -> dark -> system, set by use-theme.tsx.
+ */
+const THEME_TITLE: Record<"light" | "dark" | "system", string> = {
+  light: "Switch to dark",
+  dark: "Follow the system",
+  system: "Switch to light",
+};
+
 /** Plain-words relative time. Mono digits are applied by the caller. */
 function since(iso: string | null): string | null {
   if (!iso) return null;
@@ -218,7 +238,9 @@ function since(iso: string | null): string | null {
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const { activeWorkspace, activeProduct } = useWorkspace();
+  // Only the id. The NAME and the product moved to ScopeMenu, which owns the
+  // scope control now; keeping a second copy here is how two headers drift.
+  const { activeWorkspace } = useWorkspace();
 
   // The rail's collapsed state is the user's, so it survives a reload.
   const [narrow, setNarrow] = React.useState(false);
@@ -236,6 +258,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // whatever surface is mounted publishes its stages through run-strip.tsx, and
   // only a run does. See that file's header for the founder ruling this obeys.
   const [strip, setStrip] = React.useState<RunStripSpec | null>(null);
+  const [boardOpen, setBoardOpen] = React.useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // THE STRIP DOES NOT COLLAPSE. Founder, 2026-07-29, revising the earlier
   // "if it has to be collapsed" allowance:
@@ -511,8 +535,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   const liveState = running.length ? "running" : gateCount ? "gate" : "idle";
 
-  const scopeLabel = activeWorkspace?.name ?? null;
-
   /* THE ONE THING ON THE STRIP THAT MOVES.
    * A gate outranks a run in progress, because the gate is the one asking for a
    * person. If nothing is gated, the running stage gets the motion, which is
@@ -546,18 +568,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <span className="sp-wordmark">Supaprod</span>
           </Link>
 
-          {scopeLabel ? (
-            <Link to="/settings" className="sp-scope" title="Workspace and product">
-              {scopeLabel}
-              {activeProduct?.name ? (
-                <>
-                  <span className="sp-scope-sep">/</span>
-                  {activeProduct.name}
-                </>
-              ) : null}
-              <IconChevron className="sp-chev" />
-            </Link>
-          ) : null}
+          {/* The chevron is a menu now. It was a Link to /settings wearing a
+            chevron, which promises a menu and delivers a navigation. See
+            ScopeMenu.tsx for where the switching went and why it was missing. */}
+          <ScopeMenu />
 
           {/* A button only where pressing it does something. On a run the strip
               is already on screen and permanent, so this is a status line and
@@ -606,14 +620,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               Ask
               <span className="sp-askbtn-key">&#8984;J</span>
             </button>
-            <Link
-              to="/settings"
-              className="sp-me"
-              title={me.email ?? "Account"}
-              aria-label="Account and settings"
-            >
-              {initialsFrom(me.email, me.name)}
-            </Link>
+            {/* The account disc owns who you are, including the way out. Sign
+              out was reachable from exactly one component in the repo and that
+              component only renders in the retired Mission Control chrome, so
+              the shipped shell had no way to log out at all. */}
+            <AccountMenu initials={initialsFrom(me.email, me.name)} />
           </div>
         </header>
 
@@ -700,6 +711,38 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               })}
             </nav>
             <div className="sp-railfoot">
+              {/* THE BOARD, one click from anywhere (founder ruling
+                2026-07-30). It opens the same board /runs draws, over the page
+                you are on, so glancing at every run never costs you your
+                place. It deliberately does NOT repeat the live line above:
+                that says who is working, this says where all the work stands. */}
+              <button
+                type="button"
+                className="sp-setbtn"
+                onClick={() => setBoardOpen(true)}
+                title="Every run"
+                aria-label="Every run"
+                aria-haspopup="dialog"
+                aria-expanded={boardOpen}
+              >
+                <IconBoard />
+              </button>
+              {/* THE THEME, which was reported broken and was in fact absent.
+                `use-theme.tsx` has been a complete light/dark/system system the
+                whole time with no control anywhere in the shell, and the
+                Settings link beside it was drawn as a SUN, in the corner every
+                application puts a theme toggle. So the founder pressed the
+                theme switcher, got Settings, and reported it as not working.
+                He was reading the icon correctly; the icon was wrong. */}
+              <button
+                type="button"
+                className="sp-setbtn"
+                onClick={toggleTheme}
+                title={THEME_TITLE[theme]}
+                aria-label={THEME_TITLE[theme]}
+              >
+                {theme === "light" ? <IconSun /> : theme === "dark" ? <IconMoon /> : <IconSystem />}
+              </button>
               <Link
                 to="/settings"
                 className="sp-setbtn"
@@ -729,6 +772,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
+        <BoardPanel open={boardOpen} onClose={() => setBoardOpen(false)} />
       </div>
     </RunStripProvider>
   );

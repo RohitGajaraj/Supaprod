@@ -70,11 +70,66 @@ export function IconEngine({ className }: IconProps) {
   );
 }
 
+/**
+ * Settings. A COG, with teeth.
+ *
+ * What this used to draw was a circle with eight straight radiating spokes,
+ * which is a SUN, and it sat in the bottom-left corner of the rail where every
+ * application on earth puts a theme toggle. The founder read it as the theme
+ * switcher and reported it as broken: "there is a theme switcher button, it's
+ * not working, if I click that it opens up the settings page." He was reading
+ * it exactly right. The icon was wrong, not him.
+ *
+ * The sun glyph moved to IconSun below, where it is a sun on purpose.
+ */
 export function IconGear({ className }: IconProps) {
   return (
     <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3.1" />
-      <path d="M12 3.2v2.4M12 18.4v2.4M4.8 4.8l1.7 1.7M17.5 17.5l1.7 1.7M3.2 12h2.4M18.4 12h2.4M4.8 19.2l1.7-1.7M17.5 6.5l1.7-1.7" />
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+/** Light. The glyph IconGear used to wear by mistake, now doing its own job. */
+export function IconSun({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3.6" />
+      <path d="M12 2.4v2.6M12 19v2.6M4.4 4.4l1.9 1.9M17.7 17.7l1.9 1.9M2.4 12H5M19 12h2.6M4.4 19.6l1.9-1.9M17.7 6.3l1.9-1.9" />
+    </svg>
+  );
+}
+
+/** Dark. */
+export function IconMoon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z" />
+    </svg>
+  );
+}
+
+/**
+ * Follow the system. A display, because that is what it is following: not a
+ * third brightness, but a deferral to the machine.
+ */
+export function IconSystem({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.8" y="4.2" width="18.4" height="12.4" rx="1.6" />
+      <path d="M8.6 20.2h6.8M12 16.6v3.6" />
+    </svg>
+  );
+}
+
+/** The board: work in columns. */
+export function IconBoard({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="4.6" height="16" rx="1.2" />
+      <rect x="9.7" y="4" width="4.6" height="10.6" rx="1.2" />
+      <rect x="16.4" y="4" width="4.6" height="13.4" rx="1.2" />
     </svg>
   );
 }

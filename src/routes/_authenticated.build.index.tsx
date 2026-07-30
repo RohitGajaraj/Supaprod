@@ -279,8 +279,8 @@ function BuildEngine() {
                   </>
                 ) : (
                   <>
-                    We could not read where builds land, so this is not a statement about
-                    your setup. A build will still try, and will say what went wrong.
+                    We could not read where builds land, so this is not a statement about your
+                    setup. A build will still try, and will say what went wrong.
                   </>
                 )}
               </CtxBody>
