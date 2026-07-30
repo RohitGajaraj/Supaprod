@@ -86,9 +86,7 @@ export const listBuildWork = createServerFn({ method: "GET" })
     // rows at the top of the one surface that answers "what is being written".
     const { data: csRows, error } = await db
       .from("studio_changesets")
-      .select(
-        "id,mission_id,title,status,repo,branch,pr_url,pr_number,updated_at,created_at",
-      )
+      .select("id,mission_id,title,status,repo,branch,pr_url,pr_number,updated_at,created_at")
       .eq("user_id", userId)
       .neq("status", "abandoned")
       .order("updated_at", { ascending: false })

@@ -130,6 +130,13 @@ export type MissionListRow = {
   /** Summed ai_events est_cost_usd over the mission's traces; null = unknown
    * (no checkpointed traces yet) — render "—", never a fake $0.00. */
   cost_usd: number | null;
+  /**
+   * The slug of the agent on this mission's most recent run, so a reader can
+   * NAME the agent. `current_agent_id` is a uuid, needs the roster to resolve,
+   * and is not reliably set: the live workspace's one running mission has none.
+   * Null only when the mission has never run.
+   */
+  current_agent_slug: string | null;
   /** Which build engine ran this mission (missions.build_driver), or null.
    * Named honestly for the user via buildDriverLabel (Gate #1 B3). */
   build_driver: string | null;
@@ -198,6 +205,22 @@ export const listMissions = createServerFn({ method: "GET" })
     // any failure degrades to empty dots / unknown cost.
     const stepsByMission = new Map<string, { status: string }[]>();
     const runsByMission = new Map<string, { status: string }[]>();
+    /**
+     * The slug of the agent on a mission's MOST RECENT run.
+     *
+     * WHY THIS IS NOT `missions.current_agent_id`. That column is a uuid and it
+     * is not reliably maintained: on the live workspace the one running mission
+     * has none, so the shell header could not name the agent working on it and
+     * fell back to "1 run working" with the generic crew mark. The product's
+     * whole claim is that named agents do the work, and the most-seen line in
+     * it could not name one.
+     *
+     * `agent_runs.agent_slug` is NOT NULL and is written by the thing that
+     * actually runs. It is already fetched here for the step dots, so this
+     * costs one extra column and no extra query. Same lesson as the seven-stage
+     * strip: the fact existed, the reader was looking in the wrong place.
+     */
+    const slugByMission = new Map<string, string>();
     const costByMission = new Map<string, number>();
     try {
       const [{ data: planSteps }, { data: runs }] = await Promise.all([
@@ -208,7 +231,7 @@ export const listMissions = createServerFn({ method: "GET" })
           .order("idx", { ascending: true }),
         supabase
           .from("agent_runs")
-          .select("id,mission_id,status,created_at")
+          .select("id,mission_id,status,created_at,agent_slug")
           .in("mission_id", ids)
           .order("created_at", { ascending: true }),
       ]);
@@ -224,6 +247,10 @@ export const listMissions = createServerFn({ method: "GET" })
         const arr = runsByMission.get(r.mission_id) ?? [];
         arr.push({ status: r.status });
         runsByMission.set(r.mission_id, arr);
+        // Ascending by created_at, so each row overwrites the one before it and
+        // the last write per mission is its latest run. Reversing the order
+        // here would silently pin every mission to its FIRST agent.
+        if (r.agent_slug) slugByMission.set(r.mission_id, r.agent_slug);
       }
       const runIds = [...missionByRun.keys()];
       if (runIds.length) {
@@ -266,6 +293,7 @@ export const listMissions = createServerFn({ method: "GET" })
         ...m,
         steps: stepsByMission.get(m.id) ?? runsByMission.get(m.id) ?? [],
         cost_usd: costByMission.has(m.id) ? costByMission.get(m.id)! : null,
+        current_agent_slug: slugByMission.get(m.id) ?? null,
       })),
     };
   });

@@ -132,7 +132,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { stageHueForStation } from "./agent-glyphs";
 import { MarkStack } from "./primitives";
 import { RunStripProvider, STAGE_LABEL, type RunStripSpec } from "./run-strip";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
@@ -292,7 +292,8 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // deferred: it fires the first time work with an agent on it appears, and a
   // workspace sitting idle (the common case) never pays for it at all.
   const fetchAgents = useServerFn(listAgents);
-  const needRoster = running.some((m) => !!m.current_agent_id);
+  // Only for the fallback path: a mission that carries a uuid and no slug.
+  const needRoster = running.some((m) => !m.current_agent_slug && !!m.current_agent_id);
   const roster = useQuery({
     queryKey: ["shell", "roster"],
     queryFn: () => fetchAgents(),
@@ -316,7 +317,17 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     const slugs: string[] = [];
     let unresolved = 0;
     for (const m of running) {
-      const slug = m.current_agent_id ? (slugById.get(m.current_agent_id) ?? null) : null;
+      // THE SLUG FIRST, the uuid second. `agent_runs.agent_slug` is NOT NULL
+      // and written by the thing that actually runs; `current_agent_id` is a
+      // uuid that needs the roster and is not reliably maintained. On the live
+      // workspace the one running mission had no uuid, so this header showed
+      // "1 run working" and a generic crew mark for work an agent was visibly
+      // doing. The uuid path stays as the fallback rather than being deleted,
+      // because a mission whose runs predate the slug column still resolves
+      // through it.
+      const slug =
+        m.current_agent_slug ??
+        (m.current_agent_id ? (slugById.get(m.current_agent_id) ?? null) : null);
       if (!slug) unresolved += 1;
       else if (!slugs.includes(slug)) slugs.push(slug);
     }
@@ -324,6 +335,30 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     if (unresolved > 0) list.push({ slug: null, name: CREW });
     return { workers: list, unnamedRuns: unresolved };
   }, [running, slugById]);
+
+  /**
+   * WHICH STAGE the crew is at, for the surfaces that do not draw the strip.
+   *
+   * Founder, 2026-07-30: "should we put it on other surfaces as well as we say
+   * this is our spine of our product?" The strip is 97px, 11% of the viewport,
+   * and it answers "where am I in the lifecycle", which is a question Today,
+   * Brain and Crew do not have. So the strip stays on the spine and the global
+   * signal stays where it already is: this one line.
+   *
+   * What the line could not say before is the stage. It can now, and only when
+   * it is unambiguously true: EVERY working agent has to resolve to the SAME
+   * station. Two agents at two stations get nothing rather than one of the two
+   * picked arbitrarily, and an unnamed worker (the CREW fallback, slug null)
+   * fails the test on its own, which is the same honesty rule the lead already
+   * applies when it counts runs instead of agents.
+   */
+  const workingStation = React.useMemo(() => {
+    if (unnamedRuns > 0 || workers.length === 0) return null;
+    const stations = new Set(workers.map((w) => agentStation(w.slug)));
+    if (stations.size !== 1) return null;
+    const only = [...stations][0];
+    return only ?? null;
+  }, [workers, unnamedRuns]);
 
   // Who is waiting on YOU. The queue names its own owner (a real slug on a
   // tool-call gate, else the owning station's specialist), which is the same
@@ -377,13 +412,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     // Every running run resolved to a named worker, so the agents are
     // countable and the count is the thing worth saying.
     if (unnamedRuns === 0) {
-      if (workers.length === 1) return `${agentDisplayName(workers[0].slug)} is working`;
-      return `${workers.length} agents are working`;
+      // The stage is appended only when the strip is NOT on screen. On a run or
+      // a station the strip is already saying it two rows down, and this file's
+      // own rule bans the third statement of one fact inside 100 pixels.
+      const at = !strip && workingStation ? ` at ${STAGE_LABEL[workingStation]}` : "";
+      if (workers.length === 1) return `${agentDisplayName(workers[0].slug)} is working${at}`;
+      return `${workers.length} agents are working${at}`;
     }
     // At least one run's worker is unknown, so the number of agents is unknown.
     // Runs are still countable, so it counts those instead of guessing.
     return running.length === 1 ? "1 run working" : `${running.length} runs working`;
-  }, [missions.isError, missions.isLoading, running.length, gateCount, workers, unnamedRuns]);
+  }, [
+    missions.isError,
+    missions.isLoading,
+    running.length,
+    gateCount,
+    workers,
+    unnamedRuns,
+    workingStation,
+    strip,
+  ]);
 
   // The two trailing facts, in importance order: the first survives to 860px,
   // the second goes at 1100px. Positional, so a state that has only one fact

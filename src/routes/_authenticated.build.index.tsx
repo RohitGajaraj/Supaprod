@@ -291,7 +291,9 @@ function BuildEngine() {
         make the record incomplete in order to save a repetition, which is the
         wrong side of that trade: the list is the build's history and history
         does not skip the present. */}
-      {live.length > 0 ? <Block title="Being written now">{live.map((i) => rowFor(i, "live"))}</Block> : null}
+      {live.length > 0 ? (
+        <Block title="Being written now">{live.map((i) => rowFor(i, "live"))}</Block>
+      ) : null}
 
       {gated.length > 0 ? (
         <Block title="Waiting on you">{gated.map((i) => rowFor(i, "gate"))}</Block>
