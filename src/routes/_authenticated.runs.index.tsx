@@ -217,6 +217,7 @@ import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { listMissions } from "@/lib/missions.functions";
 import { missionProgress } from "@/lib/delegate-desk";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { gateDispatch, isRepoNotConnectedError } from "@/lib/build/repo-gate";
 import {
   completionEvidence,
@@ -593,6 +594,9 @@ function BuildPage() {
   const fArchive = useServerFn(setStudioSessionArchived);
   const fDelete = useServerFn(deleteStudioSession);
   const fCanDispatch = useServerFn(canDispatchToRepo);
+  // The active product: a repo can be bound to a PRODUCT, and the dispatch
+  // check is blind to that binding without it. See canDispatchToRepo.
+  const { activeProductId } = useWorkspace();
   const qc = useQueryClient();
   const navigate = useNavigate({ from: "/runs/" });
   const search = Route.useSearch();
@@ -614,7 +618,7 @@ function BuildPage() {
   // never discovered as a dispatch failure. Same cache key the composer's gate uses.
   const repoStatus = useQuery({
     queryKey: ["repo-dispatch-check"],
-    queryFn: () => fCanDispatch({ data: {} }),
+    queryFn: () => fCanDispatch({ data: { productId: activeProductId ?? undefined } }),
     staleTime: 60_000,
   });
 
@@ -783,15 +787,24 @@ function BuildPage() {
               <>
                 <div className="sp-ctx-head">Where builds land</div>
                 <div className="sp-ctx-body">
-                  {repoStatus.data.repoResolvable ? (
+                  {/* Three states. "Not connected" and "could not tell" send a
+                    person to two different places, and saying the first when
+                    the truth is the second sends them to connect a repo they
+                    already have. See repo-gate.ts. */}
+                  {repoStatus.data.resolution === "connected" ? (
                     (repoStatus.data.repo ?? "A connected repo.")
-                  ) : (
+                  ) : repoStatus.data.resolution === "not_connected" ? (
                     <>
                       No repo is connected, so a build has nowhere to open a pull request.{" "}
                       <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
                         Connect one
                       </Link>
                       .
+                    </>
+                  ) : (
+                    <>
+                      We could not read where builds land, so this is not a statement about
+                      your setup. A build will still try, and will say what went wrong.
                     </>
                   )}
                 </div>

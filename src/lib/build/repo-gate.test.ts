@@ -14,7 +14,7 @@ const NOT_CONNECTED =
 describe("classifyRepoResolution", () => {
   it("reports resolvable with the repo when the resolver resolves", async () => {
     const verdict = await classifyRepoResolution(async () => ({ repo: "acme/notes" }));
-    expect(verdict).toEqual({ repoResolvable: true, repo: "acme/notes" });
+    expect(verdict).toEqual({ repoResolvable: true, resolution: "connected", repo: "acme/notes" });
   });
 
   it("reports not resolvable with the resolver's own message when it throws", async () => {
@@ -30,7 +30,39 @@ describe("classifyRepoResolution", () => {
     const verdict = await classifyRepoResolution(async () => {
       throw "no binding";
     });
-    expect(verdict).toEqual({ repoResolvable: false, reason: "no binding" });
+    expect(verdict).toEqual({ repoResolvable: false, resolution: "unknown", reason: "no binding" });
+  });
+
+  // THE DEFECT THIS SPLIT EXISTS FOR (2026-07-30). The workspace-binding branch
+  // resolves the bound connection through the service-role client, so a missing
+  // SUPABASE_SERVICE_ROLE_KEY made resolution throw an INFRASTRUCTURE error.
+  // Everything used to classify as "not resolvable", which every surface
+  // rendered as "No repo is connected. Connect one." The founder had a repo
+  // connected and bound, and the product sent him to connect one.
+  it("only resolveGitHub's own refusal reads as not connected", async () => {
+    const verdict = await classifyRepoResolution(async () => {
+      throw new Error(NOT_CONNECTED);
+    });
+    expect(verdict.resolution).toBe("not_connected");
+  });
+
+  it("an infrastructure failure reads as unknown, never as not connected", async () => {
+    const verdict = await classifyRepoResolution(async () => {
+      throw new Error(
+        "Missing Supabase environment variable(s): SUPABASE_SERVICE_ROLE_KEY. Connect Supabase in Lovable Cloud.",
+      );
+    });
+    expect(verdict.resolution).toBe("unknown");
+    expect(verdict.repoResolvable).toBe(false);
+  });
+
+  it("a network blip reads as unknown, so nobody is told to reconnect a working repo", async () => {
+    for (const msg of ["fetch failed", "timeout", "500 Internal Server Error"]) {
+      const verdict = await classifyRepoResolution(async () => {
+        throw new Error(msg);
+      });
+      expect(verdict.resolution).toBe("unknown");
+    }
   });
 });
 
@@ -50,7 +82,7 @@ describe("gateDispatch", () => {
   it("dispatches when the pre-check says resolvable", async () => {
     const calls: string[] = [];
     await gateDispatch({
-      check: async () => ({ repoResolvable: true, repo: "acme/notes" }),
+      check: async () => ({ repoResolvable: true, resolution: "connected" as const, repo: "acme/notes" }),
       dispatch: () => calls.push("dispatch"),
       openGate: () => calls.push("gate"),
     });
@@ -61,7 +93,11 @@ describe("gateDispatch", () => {
     const calls: string[] = [];
     let gateReason: string | null = "unset";
     await gateDispatch({
-      check: async () => ({ repoResolvable: false, reason: NOT_CONNECTED }),
+      check: async () => ({
+        repoResolvable: false,
+        resolution: "not_connected" as const,
+        reason: NOT_CONNECTED,
+      }),
       dispatch: () => calls.push("dispatch"),
       openGate: (reason) => {
         calls.push("gate");
@@ -75,13 +111,31 @@ describe("gateDispatch", () => {
   it("opens the gate with a null reason when the verdict carries none", async () => {
     let gateReason: string | null = "unset";
     await gateDispatch({
-      check: async () => ({ repoResolvable: false }),
+      check: async () => ({ repoResolvable: false, resolution: "not_connected" as const }),
       dispatch: () => {},
       openGate: (reason) => {
         gateReason = reason;
       },
     });
     expect(gateReason).toBeNull();
+  });
+
+  // An "unknown" verdict is the CHECK failing, not a finding about the repo, so
+  // it gets the same treatment as the check throwing outright: dispatch, and let
+  // the real error surface through the mutation. Opening the connect-a-repo gate
+  // here would block a dispatch that would probably have worked.
+  it("dispatches on an unknown verdict rather than blocking on a guess", async () => {
+    const calls: string[] = [];
+    await gateDispatch({
+      check: async () => ({
+        repoResolvable: false,
+        resolution: "unknown" as const,
+        reason: "SUPABASE_SERVICE_ROLE_KEY missing",
+      }),
+      dispatch: () => calls.push("dispatch"),
+      openGate: () => calls.push("gate"),
+    });
+    expect(calls).toEqual(["dispatch"]);
   });
 
   it("dispatches anyway when the pre-check itself fails (advisory only)", async () => {

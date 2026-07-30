@@ -43,6 +43,24 @@ export const canDispatchToRepo = createServerFn({ method: "GET" })
       .object({
         prdId: z.string().uuid().optional(),
         workspaceId: z.string().uuid().optional(),
+        /**
+         * The product the caller is looking at.
+         *
+         * WITHOUT THIS THE CHECK LIED. `resolveGitHub` documents productId as
+         * the "product-scoped repo binding override; most specific, wins over
+         * workspace", and this pre-check never passed it and did not even
+         * accept it. So a repo bound to a PRODUCT was invisible here: the
+         * founder's own workspace had GitHub connected and
+         * RohitGajaraj/relay-homeowner-app bound to Relay, and every surface
+         * running this check told him "No repo is connected, so a build has
+         * nowhere to open a pull request."
+         *
+         * That is the worst shape a pre-flight check can take. It does not
+         * merely fail to help, it contradicts the truth and talks a person out
+         * of an action that would have worked. Optional, because the workspace
+         * fallback below is still correct when there is no active product.
+         */
+        productId: z.string().uuid().optional(),
       })
       .parse(i),
   )
@@ -50,21 +68,34 @@ export const canDispatchToRepo = createServerFn({ method: "GET" })
     const db = context.supabase as unknown as SupabaseClient;
 
     let workspaceId: string | null = data.workspaceId ?? null;
+    // The spec's OWN product, not whatever the UI happens to have selected.
+    // A caller that names a spec is asking "can THIS ship", and the spec knows
+    // which product it belongs to better than the client does.
+    let productId: string | null = data.productId ?? null;
     if (data.prdId) {
       const { data: row } = await db
         .from("prds")
-        .select("id,workspace_id")
+        .select("id,workspace_id,product_id")
         .eq("id", data.prdId)
         .maybeSingle();
-      workspaceId = (row as { workspace_id: string | null } | null)?.workspace_id ?? workspaceId;
+      const prd = row as { workspace_id: string | null; product_id: string | null } | null;
+      workspaceId = prd?.workspace_id ?? workspaceId;
+      productId = prd?.product_id ?? productId;
     }
     if (!workspaceId) {
       const { data: ws } = await db.rpc("current_user_default_workspace");
       workspaceId = (ws as string | null) ?? null;
     }
 
+    // productId first, exactly as the dispatch path resolves it. A check that
+    // resolves differently from the thing it is checking is not a check.
     return classifyRepoResolution(() =>
-      resolveGitHub({ userId: context.userId, workspaceId, userClient: db }),
+      resolveGitHub({
+        userId: context.userId,
+        workspaceId,
+        productId,
+        userClient: db,
+      }),
     );
   });
 

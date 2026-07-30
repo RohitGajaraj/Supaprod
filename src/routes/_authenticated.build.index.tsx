@@ -80,6 +80,7 @@ import * as React from "react";
 
 import { listBuildWork, type BuildWorkItem } from "@/lib/build-engine.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { ago } from "@/components/runs/run-state";
 import {
@@ -132,6 +133,9 @@ function BuildEngine() {
   const navigate = useNavigate();
   const fWork = useServerFn(listBuildWork);
   const fCanDispatch = useServerFn(canDispatchToRepo);
+  // The active product, because a repo can be bound to a PRODUCT and the check
+  // is blind to that binding without it. See canDispatchToRepo.
+  const { activeProductId } = useWorkspace();
 
   // The spine, lit on Build. Same hook and same cache the other six use, so
   // seven surfaces cost one query rather than seven.
@@ -144,7 +148,7 @@ function BuildEngine() {
   });
   const repoStatus = useQuery({
     queryKey: ["repo-dispatch-check"],
-    queryFn: () => fCanDispatch({ data: {} }),
+    queryFn: () => fCanDispatch({ data: { productId: activeProductId ?? undefined } }),
     staleTime: 60_000,
   });
 
@@ -259,15 +263,24 @@ function BuildEngine() {
             <>
               <CtxHead>Where the next build lands</CtxHead>
               <CtxBody>
-                {repoStatus.data.repoResolvable ? (
+                {/* Three states, because "not connected" and "could not tell"
+                  send a person to two different places. Saying the first when
+                  the truth is the second sends them to connect a repo they
+                  already have. See repo-gate.ts. */}
+                {repoStatus.data.resolution === "connected" ? (
                   (repoStatus.data.repo ?? "A connected repo.")
-                ) : (
+                ) : repoStatus.data.resolution === "not_connected" ? (
                   <>
                     No repo is connected, so a build has nowhere to open a pull request.{" "}
                     <Link to="/sync" style={{ color: "var(--sp-ink)" }}>
                       Connect one
                     </Link>
                     .
+                  </>
+                ) : (
+                  <>
+                    We could not read where builds land, so this is not a statement about
+                    your setup. A build will still try, and will say what went wrong.
                   </>
                 )}
               </CtxBody>
