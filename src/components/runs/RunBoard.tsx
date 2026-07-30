@@ -220,13 +220,24 @@ const BOARD_CSS = `
   color: var(--sp-ink);
   background: var(--sp-hover);
 }
-/* An opened column scrolls inside itself. Eighteen cards in one column while
- * the other four are empty would make the board a mile of whitespace, and a
- * board that has to be scrolled past is a list. The shape is the value. */
+/* NO INNER SCROLL. An opened column grows and the page scrolls, one scroll
+ * context for the whole surface.
+ *
+ * The first version of this capped the column and scrolled inside it, to stop
+ * eighteen cards making the board tall while four columns sat empty. The
+ * founder caught it immediately: "can we avoid a scroll and just give the
+ * seamless experience rather than having the scroll." He is right, and the
+ * reason is worse than the whitespace it was avoiding. A scroll container
+ * inside a scrolling page means the wheel does two different things depending
+ * on which pixel the pointer is over, and inside the summoned panel the sheet
+ * already scrolls, so it was a scroll inside a scroll inside a page. Someone
+ * reaching the bottom of a column would have found the page had not moved.
+ *
+ * The tall column is the honest shape: you asked to see eighteen things, and
+ * eighteen things are tall. The columns still narrow when empty (--rb-cols),
+ * so the board keeps its shape rather than turning into one wide list. */
 .rb-cards {
-  max-height: min(62vh, 620px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  min-width: 0;
 }
 `;
 
