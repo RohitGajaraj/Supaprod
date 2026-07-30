@@ -419,9 +419,27 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       if (workers.length === 1) return `${agentDisplayName(workers[0].slug)} is working${at}`;
       return `${workers.length} agents are working${at}`;
     }
-    // At least one run's worker is unknown, so the number of agents is unknown.
-    // Runs are still countable, so it counts those instead of guessing.
-    return running.length === 1 ? "1 run working" : `${running.length} runs working`;
+    /* AN AGENT IS ALWAYS THE ACTOR. The count is only ever of what we can count.
+     *
+     * Founder, 2026-07-30: should "1 run working" say "agents" instead, since
+     * this is an agentic-first product? The vocabulary yes, the NUMBER no, and
+     * the two have to be separated or this line starts lying.
+     *
+     * This branch is reached when at least one running run's worker could not
+     * be named, which means the number of AGENTS is unknown: the named path
+     * above deduplicates deliberately, because two runs held by Engineer are
+     * ONE working agent. So "3 agents are working" over three unresolved runs
+     * could be three agents or one agent doing three things, and inventing the
+     * distinction is the same class of fabrication as a made-up diffstat.
+     *
+     * The fix is to move the agent into the SUBJECT and leave the count on the
+     * thing that is genuinely countable. The crew is who is working, which is
+     * also exactly what the mark beside this line already says, so the words
+     * and the drawing finally agree. "Run" survives only as the object of the
+     * sentence, where it is a true noun for a true number. */
+    return running.length === 1
+      ? `${CREW} is working`
+      : `${CREW} is working on ${running.length} runs`;
   }, [
     missions.isError,
     missions.isLoading,
