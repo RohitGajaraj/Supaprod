@@ -58,6 +58,31 @@ describe("buildSuggestionRows: ranking", () => {
   });
 });
 
+describe("buildSuggestionRows: a typed id", () => {
+  test("an audit tag ranks first and carries the canonical ref", () => {
+    const rows = buildSuggestionRows("mis-7e7d59");
+    expect(rows[0].kind).toBe("trace");
+    if (rows[0].kind === "trace") {
+      expect(rows[0].ref).toBe("MIS·7E7D59");
+      expect(rows[0].label).toContain("MIS·7E7D59");
+    }
+    // The Ask door survives: an id is an offer, never a hijack.
+    expect(rows[rows.length - 1].kind).toBe("ask");
+  });
+
+  test("a bare uuid is offered without naming a kind it cannot know", () => {
+    const uuid = "7e7d59a1-0f2b-4c3d-8e9f-0123456789ab";
+    const rows = buildSuggestionRows(uuid);
+    expect(rows[0].kind).toBe("trace");
+    if (rows[0].kind === "trace") expect(rows[0].ref).toBe(uuid);
+  });
+
+  test("prose that merely mentions an id does not light the row", () => {
+    const rows = buildSuggestionRows("what happened on MIS·7E7D59");
+    expect(rows.some((r) => r.kind === "trace")).toBe(false);
+  });
+});
+
 describe("SuggestionPopover: rendering and pick", () => {
   test("renders the rows, marks the active one, and reports a pick", () => {
     const rows = buildSuggestionRows("brain");

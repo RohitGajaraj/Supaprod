@@ -3,19 +3,26 @@
 // palette data the command palette reads (palette-sections + palette-catalog),
 // so the composer can never drift from the rail or grow a dead link.
 //
-// Ranking law (behavior contract): typed matches (Jump, then Act, then
-// Catalog, each capped) rank ABOVE the final row, and the final row is always
-// Ask Supaprod: "<query>" - free text always has a door into the Thread.
+// Ranking law (behavior contract): typed matches (Trace, then Jump, then Act,
+// then Catalog, each capped) rank ABOVE the final row, and the final row is
+// always Ask Supaprod: "<query>" - free text always has a door into the Thread.
 // Pure builder (buildSuggestionRows) is exported for unit tests.
+//
+// TRACE RANKS FIRST because it is the only row that can be exactly right. A
+// typed audit tag names ONE record, so nothing matched by substring deserves
+// to sit above it (founder ruling 2026-07-30: "if I give the ID it should show
+// me the details and the connected lineages"). Detection is
+// `detectReference`, which is pure and tested separately.
 //
 // Craft: plain ink surfaces, token vars only, no edge strips (Addendum 1.1).
 
 import { cn } from "@/lib/utils";
 import { ACT_VERBS, JUMP_DESTINATIONS, type PaletteRun } from "@/lib/palette-sections";
 import { filterCatalog } from "@/lib/palette-catalog";
+import { detectReference } from "@/lib/palette-reference";
 import { Kbd } from "@/components/mission/primitives";
 
-export type SuggestionSection = "JUMP" | "ACT" | "CATALOG";
+export type SuggestionSection = "TRACE" | "JUMP" | "ACT" | "CATALOG";
 
 export type SuggestionRow =
   | {
@@ -27,10 +34,14 @@ export type SuggestionRow =
       hint?: string;
       run: PaletteRun;
     }
+  /** An id the person typed. Opens the record's lineage rather than
+   *  navigating, so it carries a ref instead of a PaletteRun. */
+  | { kind: "trace"; id: "trace"; section: "TRACE"; label: string; ref: string }
   | { kind: "ask"; id: "ask"; label: string; query: string };
 
 /** Visible eyebrow per section, matching the command palette's grammar. */
 const SECTION_LABEL: Record<SuggestionSection, string> = {
+  TRACE: "Trace",
   JUMP: "Jump",
   ACT: "Act",
   CATALOG: "Catalog",
@@ -52,6 +63,22 @@ export function buildSuggestionRows(query: string): SuggestionRow[] {
   const seenLabels = new Set<string>();
 
   if (q.length > 0) {
+    // An exact id beats every substring match under it.
+    const reference = detectReference(trimmed);
+    if (reference) {
+      rows.push({
+        kind: "trace",
+        id: "trace",
+        section: "TRACE",
+        // The kind is named when we know it. A bare uuid names a row and not
+        // a table, so the label says what it is rather than inventing one.
+        label: reference.kind
+          ? `Open ${reference.ref} and what it is connected to`
+          : `Open the record for ${reference.ref}`,
+        ref: reference.ref,
+      });
+    }
+
     let jumpCount = 0;
     for (const d of JUMP_DESTINATIONS) {
       if (jumpCount >= PER_SECTION) break;
@@ -134,9 +161,10 @@ export function SuggestionPopover({
     >
       {rows.map((row, index) => {
         const active = index === activeIndex;
+        const sectioned = row.kind === "run" || row.kind === "trace";
         const eyebrow =
-          row.kind === "run" && row.section !== lastSection ? SECTION_LABEL[row.section] : null;
-        if (row.kind === "run") lastSection = row.section;
+          sectioned && row.section !== lastSection ? SECTION_LABEL[row.section] : null;
+        if (sectioned) lastSection = row.section;
         return (
           <div key={row.id}>
             {eyebrow ? (

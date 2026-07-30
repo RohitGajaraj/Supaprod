@@ -23,6 +23,7 @@ import type { PaletteRun } from "@/lib/palette-sections";
 import { journeyForIntent, type JourneyId } from "@/lib/journeys";
 import type { DictationState } from "@/hooks/use-voice";
 import { Kbd } from "@/components/mission/primitives";
+import { openLineage } from "@/components/supaprod/AuditLineageSheet";
 import { SuggestionPopover, buildSuggestionRows, type SuggestionRow } from "./SuggestionPopover";
 import { JourneyChips } from "./JourneyChips";
 
@@ -79,6 +80,15 @@ export function ComposerSurface({
       if (row.kind === "ask") {
         if (!row.query || streaming) return;
         onSubmitIntent(row.query);
+        onDraftChange("");
+        return;
+      }
+      if (row.kind === "trace") {
+        // The lineage pane opens BESIDE the work rather than replacing it, so
+        // a trace does not go through onRun's navigate. It also does not close
+        // the composer here: the shell owns that, and the pane is
+        // complementary, not a destination.
+        openLineage(row.ref);
         onDraftChange("");
         return;
       }

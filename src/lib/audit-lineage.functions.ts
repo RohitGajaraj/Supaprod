@@ -16,7 +16,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { parseAuditId, auditShort, formatAuditId, type AuditKind } from "@/lib/audit-id";
+import {
+  AUDIT_KINDS,
+  parseAuditId,
+  auditShort,
+  formatAuditId,
+  type AuditKind,
+  type AuditKindMeta,
+} from "@/lib/audit-id";
 
 export type AuditLineageStep = {
   label: string;
@@ -89,23 +96,72 @@ function emptyLineage(ref: string): AuditLineage {
   };
 }
 
+/** A uuid as it arrives from a URL bar, a log line or a paste. */
+const BARE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Which table owns this uuid.
+ *
+ * A tag carries its own kind in the prefix; a bare uuid carries nothing, so the
+ * only way to say what it IS is to ask. Twelve primary-key lookups, issued at
+ * once and RLS-scoped like everything else here, which is cheap because each
+ * one is an index hit returning at most one row. It runs only when someone
+ * pastes a uuid, never on the tag path.
+ *
+ * Before this existed the pane answered a real, visible, RLS-readable uuid with
+ * "no record for it in this workspace ... an id from somewhere else, or a
+ * mistyped one", which is not merely unhelpful: it is a false statement about
+ * why, and it blames the person holding a correct id.
+ */
+async function kindForUuid(db: SupabaseClient, id: string): Promise<AuditKindMeta | null> {
+  const hits = await Promise.all(
+    AUDIT_KINDS.map(async (meta) => {
+      const res = await db.from(meta.table).select("id").eq("id", id).limit(1);
+      return res.data && res.data.length > 0 ? meta : null;
+    }),
+  );
+  return hits.find((m): m is AuditKindMeta => m !== null) ?? null;
+}
+
 export const getEntityLineage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ ref: z.string().min(2).max(80) }).parse(i))
   .handler(async ({ context, data }): Promise<AuditLineage> => {
-    const parsed = parseAuditId(data.ref);
-    if (!parsed) return emptyLineage(data.ref.trim());
+    const db = context.supabase as unknown as SupabaseClient;
+
+    let parsed = parseAuditId(data.ref);
+    // Not a tag. It may still be a reference: a uuid is what a person has when
+    // they copied it out of a URL rather than off a card.
+    let exactId: string | null = null;
+    if (!parsed) {
+      const uuid = data.ref.trim().toLowerCase();
+      if (!BARE_UUID.test(uuid)) return emptyLineage(data.ref.trim());
+      const found = await kindForUuid(db, uuid);
+      if (!found) return emptyLineage(data.ref.trim());
+      exactId = uuid;
+      parsed = { kind: found.kind, meta: found, short: auditShort(uuid) };
+    }
+
     const { meta, short } = parsed;
     const canonical = `${meta.prefix}·${short}`;
-    const db = context.supabase as unknown as SupabaseClient;
 
     // RLS-scoped, no column assumptions: pull a bounded recent window and match
     // by the same short trace the tag shows. (A future computed-column index
     // can make this an exact server-side prefix match; the tag→row contract is
     // identical either way.)
-    const res = await db.from(meta.table).select("*").limit(2000);
+    //
+    // A UUID SKIPS THE WINDOW AND THE SHORT ENTIRELY, and that is not an
+    // optimisation. Six hex characters collide (every seeded opportunity in the
+    // demo workspace shares `600000`), so matching a pasted uuid by its short
+    // would hand back a SIBLING ROW while looking perfectly correct. Someone
+    // who gave an exact id gets exactly that row or nothing.
+    const res = exactId
+      ? await db.from(meta.table).select("*").eq("id", exactId).limit(1)
+      : await db.from(meta.table).select("*").limit(2000);
     const rows = (res.data ?? []) as Array<Record<string, unknown>>;
-    const row = rows.find((r) => typeof r.id === "string" && auditShort(r.id as string) === short);
+    const row = exactId
+      ? rows[0]
+      : rows.find((r) => typeof r.id === "string" && auditShort(r.id as string) === short);
     if (!row) {
       return { ...emptyLineage(canonical), kind: meta.kind, label: meta.label, stage: meta.stage };
     }

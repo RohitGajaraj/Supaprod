@@ -43,7 +43,17 @@
  *          people INTO the old design.
  *    KILL  the Jump and Catalog suggestion rows here. They are the command
  *          palette's rows, and a navigation menu inside Ask makes Ask a second
- *          nav surface. Cmd+K still opens the palette and still has them.
+ *          nav surface.
+ *    KEEP, and it is the one exception to the line above: A TYPED ID.
+ *          Founder ruling 2026-07-30, *"if I give the ID it should show me the
+ *          details and the connected lineages"*. This is not a menu and not
+ *          navigation: it appears only when the whole typed line IS a
+ *          reference to one record (`detectReference`, pure and tested), it
+ *          names that record, and it opens the record BESIDE the work like
+ *          everything else in this pane. The alternative was leaving it in the
+ *          palette alone, and the palette is no longer reachable: ask-context
+ *          took Cmd+K the same day, so an id door built only there would have
+ *          been the second dead control in this feature.
  *    KILL  the answer toolbar of chips. Two actions survive as words.
  *
  * 4. ONE CLICK AWAY. Everything before this conversation, and it is a CONTROL
@@ -110,6 +120,8 @@ import { useAskStream } from "@/hooks/use-ask-stream";
 import { useAsk, chipLabel } from "@/lib/ask-context";
 import { defaultIntent, contentForIntent, type AskIntent } from "@/lib/ask-intent";
 import { openAskConversation } from "@/lib/ask-open";
+import { detectReference } from "@/lib/palette-reference";
+import { openLineage } from "@/components/supaprod/AuditLineageSheet";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { listMissions } from "@/lib/missions.functions";
 import {
@@ -125,6 +137,7 @@ import {
   Choices,
   Failed,
   Loading,
+  Row,
   Textarea,
 } from "@/components/shell/primitives";
 import { IconMic } from "@/components/shell/icons";
@@ -292,6 +305,12 @@ function AskPaneOpen() {
 
   const scopeLabel = chipLabel(ask.scope, activeWorkspace?.name ?? null);
   const intent: AskIntent = intentOverride ?? defaultIntent(draft);
+
+  // AN ID IS NOT A QUESTION. When the whole box is a reference to one record,
+  // the honest reply is the record, not a paragraph about it: the model would
+  // be guessing at a row it has not read. Null for anything else, including a
+  // sentence that merely mentions a tag, so no row appears while typing prose.
+  const reference = React.useMemo(() => detectReference(draft), [draft]);
 
   const dictation = stream.dictation;
 
@@ -468,6 +487,31 @@ function AskPaneOpen() {
           borderTopColor: "var(--sp-line-soft)",
         }}
       >
+        {reference ? (
+          // THE ID YOU PASTED, READ BACK TO YOU. It sits above the fork because
+          // it is more specific than either branch of it: those two ask what
+          // should happen to a sentence, and this already knows what the line
+          // IS. No ember: the lineage pane is the record, already settled, and
+          // ember means one thing in this system and it is "waiting on you".
+          <div style={{ marginBottom: "var(--sp-space-2)" }}>
+            <Row
+              tight
+              lead={
+                reference.kind ? `Open ${reference.ref}` : `Open the record for ${reference.ref}`
+              }
+              sub="Its details, and what it is connected to."
+              onClick={() => {
+                // The lineage pane takes this pane's own geometry, so tracing
+                // covers Ask rather than moving it, and closing the trail puts
+                // the conversation back exactly where it was.
+                openLineage(reference.ref);
+                setDraft("");
+                setIntentOverride(null);
+              }}
+            />
+          </div>
+        ) : null}
+
         {draft.trim() ? (
           // THE FORK, VISIBLE BEFORE YOU COMMIT. One box used to do two very
           // different things and only the server knew which. Now the person
