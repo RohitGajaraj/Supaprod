@@ -1,40 +1,56 @@
-// Audit-ID system — P3: the lineage viewer (founder ruling 2026-07-13).
-//
-// A single global sheet, opened by the `supaprod:open-lineage` event (detail
-// { ref }) from any audit tag OR from Ask when a question names an id. It
-// fetches getEntityLineage and walks the record: what it is, when it entered,
-// its status, who acted, and the connected entities — each of which is itself
-// a tag you can click to walk further. Mount once at the app root.
+/**
+ * The lineage pane: where a thing came from, and what it caused.
+ *
+ * WHY IT LOOKS COMPLETELY DIFFERENT NOW. This shipped on 2026-07-13 and was
+ * never mounted. `grep '<AuditLineageSheet'` returned nothing, in any file, for
+ * seventeen days, which means `openLineage()` has been firing a window event
+ * with no listener the entire time and `BetCard`'s audit tag has been a control
+ * that does nothing when pressed. A previous session found that and recorded it
+ * rather than fixing it.
+ *
+ * It could not simply be mounted, either. It was built in the Loom v4 system
+ * the rebuild replaced: `loom-press`, the shadcn `Sheet`, Geist Pixel (retired
+ * by founder ruling), and twelve legacy tokens (`--text-body`, `--hairline`,
+ * `--raised`, `--ember`, `--madder`). Mounting it as it stood would have
+ * dragged the old design into the new shell, which is the one thing the founder
+ * has said must never happen again.
+ *
+ * TWO THINGS THE PORT CHANGED ON PURPOSE, beyond tokens:
+ *
+ * 1. NO EMBER. The original painted the ref and every timeline dot ember.
+ *    Ember means "waiting on you" and nothing else in this system, and a
+ *    lineage trail is not waiting on you: it is the record, already settled.
+ *    The trail reads in ink and rule, which is what the record deserves.
+ *
+ * 2. THE PANE, NOT A MODAL SHEET. Same geometry as Ask, because it is the same
+ *    kind of thing: a column you consult beside the work rather than a dialog
+ *    that takes the screen. A person tracing provenance is comparing it against
+ *    what they were already looking at, and a modal makes that impossible.
+ *
+ * WHAT IT STILL CANNOT DO, and it is the interesting half. `getEntityLineage`
+ * follows FOREIGN-KEY COLUMNS on the entity's own row, so it walks one hop
+ * outward and cannot answer "what did this cause". The bidirectional walk over
+ * `artifact_lineage` lives in `lib/lineage-graph.ts` and a parallel lane is
+ * building its server layer. This pane renders what resolves today and gains
+ * the forward chain when that lands; it does not pretend to have it now.
+ */
+
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+
 import { getEntityLineage } from "@/lib/audit-lineage.functions";
 import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
+import { Empty, Failed, Loading } from "@/components/shell/primitives";
+import { stripAutoPrefix } from "@/components/plan/format";
 
 export const OPEN_LINEAGE_EVENT = "supaprod:open-lineage";
 
-/** Open the lineage sheet for an audit id from anywhere. */
+/** Open the lineage pane for an audit id from anywhere. */
 export function openLineage(ref: string) {
   window.dispatchEvent(new CustomEvent(OPEN_LINEAGE_EVENT, { detail: { ref } }));
 }
-
-const tagStyle: React.CSSProperties = {
-  fontFamily: "var(--font-mono)",
-  letterSpacing: "0.06em",
-  color: "var(--text-body)",
-  border: "1px solid var(--hairline)",
-  borderRadius: 6,
-  padding: "2px 7px",
-  background: "var(--raised)",
-};
 
 function fmt(iso: string | null): string {
   if (!iso) return "";
@@ -52,15 +68,33 @@ function fmt(iso: string | null): string {
 
 export function AuditLineageSheet() {
   const [ref, setRef] = useState<string | null>(null);
+  /** Where the walk started, so a person can get back after following links. */
+  const [trail, setTrail] = useState<string[]>([]);
 
   useEffect(() => {
     const onOpen = (e: Event) => {
       const r = (e as CustomEvent<{ ref?: string }>).detail?.ref;
-      if (r) setRef(r);
+      if (r) {
+        setRef(r);
+        setTrail([]);
+      }
     };
     window.addEventListener(OPEN_LINEAGE_EVENT, onOpen);
     return () => window.removeEventListener(OPEN_LINEAGE_EVENT, onOpen);
   }, []);
+
+  // Escape closes, like every other summoned surface in the shell.
+  useEffect(() => {
+    if (ref === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setRef(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [ref]);
 
   const fLineage = useServerFn(getEntityLineage);
   const q = useQuery({
@@ -70,9 +104,9 @@ export function AuditLineageSheet() {
   });
   const d = q.data;
 
-  // A mission's real lineage IS its trust chain (signal → … → outcome). When
-  // the resolved entity is a mission, fetch and render that nine-link chain
-  // inline beneath the generic record walk.
+  // A mission's real lineage IS its trust chain (signal to outcome), so when
+  // the resolved entity is a mission that nine-link chain renders beneath the
+  // generic walk rather than duplicating it.
   const fChain = useServerFn(getMissionChain);
   const chainQ = useQuery({
     queryKey: ["audit-lineage-chain", d?.entityId ?? null],
@@ -80,160 +114,100 @@ export function AuditLineageSheet() {
     enabled: Boolean(d?.found && d?.kind === "mission" && d?.entityId),
   });
 
-  const open = ref !== null;
+  if (ref === null) return null;
+
+  /** Follow a connected entity, remembering where we came from. */
+  const follow = (next: string) => {
+    setTrail((t) => [...t, ref]);
+    setRef(next);
+  };
+  const back = () => {
+    setTrail((t) => {
+      const prev = t[t.length - 1];
+      if (prev) setRef(prev);
+      return t.slice(0, -1);
+    });
+  };
 
   return (
-    <Sheet open={open} onOpenChange={(o) => (!o ? setRef(null) : undefined)}>
-      <SheetContent side="right" style={{ width: 460, maxWidth: "92vw" }}>
-        <SheetHeader>
-          <SheetTitle style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
-              style={{
-                fontFamily: "var(--font-pixel)",
-                letterSpacing: "0.04em",
-                color: "var(--ember)",
-              }}
-            >
-              {(d?.ref ?? ref ?? "").replace("·", " · ")}
-            </span>
-            {d?.found ? (
-              <span style={{ color: "var(--text-subtle)", fontWeight: 400 }}>
-                {d.label} · {d.stage}
-              </span>
-            ) : null}
-          </SheetTitle>
-          <SheetDescription>The verifiable audit trail for this id.</SheetDescription>
-        </SheetHeader>
+    <aside className="sp-lineage" role="complementary" aria-label="Lineage">
+      <header className="sp-lineage-head">
+        <span className="sp-lineage-ref">{(d?.ref ?? ref).replace("·", " · ")}</span>
+        {d?.found ? (
+          <span className="sp-lineage-kind">
+            {d.label} · {d.stage}
+          </span>
+        ) : null}
+        <span className="sp-lineage-spacer" />
+        {trail.length > 0 ? (
+          <button type="button" className="sp-lineage-btn" onClick={back}>
+            Back
+          </button>
+        ) : null}
+        <button type="button" className="sp-lineage-btn" onClick={() => setRef(null)}>
+          Close
+        </button>
+      </header>
 
-        <div style={{ padding: "8px 4px 24px" }}>
-          {q.isLoading ? (
-            <p style={{ color: "var(--text-muted)" }}>Tracing the record…</p>
-          ) : q.isError ? (
-            <p style={{ color: "var(--madder)" }}>
-              Could not trace this id. {(q.error as Error)?.message}
-            </p>
-          ) : !d || !d.found ? (
-            <p style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
-              No record found for <strong>{d?.ref ?? ref}</strong> in this workspace. Audit ids are
-              scoped to your workspaces, so a foreign or mistyped id shows nothing.
-            </p>
-          ) : (
-            <div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 600,
-                  color: "var(--text-primary)",
-                  margin: "4px 0 4px",
-                  lineHeight: 1.3,
-                }}
-              >
-                {d.title}
-              </h3>
-              <div style={{ color: "var(--text-subtle)", marginBottom: 18 }}>
-                {d.status ? <span>Status: {d.status}</span> : null}
-                {d.status && d.createdAt ? " · " : ""}
-                {d.createdAt ? <span>Recorded {fmt(d.createdAt)}</span> : null}
-              </div>
+      <div className="sp-lineage-body">
+        {q.isLoading ? (
+          <Loading>Tracing the record.</Loading>
+        ) : q.isError ? (
+          <Failed onRetry={() => void q.refetch()}>
+            Could not trace this id. {(q.error as Error)?.message}
+          </Failed>
+        ) : !d || !d.found ? (
+          <Empty>
+            No record for {d?.ref ?? ref} in this workspace. Audit ids are scoped to your
+            workspaces, so an id from somewhere else, or a mistyped one, shows nothing.
+          </Empty>
+        ) : (
+          <>
+            <h3 className="sp-lineage-title">{stripAutoPrefix(d.title)}</h3>
+            <div className="sp-lineage-meta">
+              {d.status ? <span>{d.status}</span> : null}
+              {d.status && d.createdAt ? <span aria-hidden="true"> · </span> : null}
+              {d.createdAt ? <span>recorded {fmt(d.createdAt)}</span> : null}
+            </div>
 
-              {/* The walk: created → connections → status → last change. Each
-                  connected entity is a live tag you can click to walk on. */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {d.steps.map((s, i) => (
-                  <div key={i} style={{ display: "flex", gap: "var(--geist-space-3x)", alignItems: "stretch" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        width: 12,
-                      }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 99,
-                          marginTop: 4,
-                          background: "var(--ember)",
-                          flexShrink: 0,
-                        }}
-                      />
-                      {i < d.steps.length - 1 ? (
-                        <span
-                          aria-hidden="true"
-                          style={{ flex: 1, width: 1, background: "var(--hairline)", marginTop: 2 }}
-                        />
+            {/* The walk. Every connected entity is itself a tag you can follow,
+              which is the whole point: the record is a graph, not a row. */}
+            <ol className="sp-trail">
+              {d.steps.map((s, i) => (
+                <li className="sp-trail-step" key={`${s.label}-${i}`}>
+                  <span className="sp-trail-mark" aria-hidden="true" />
+                  <div className="sp-trail-body">
+                    <div className="sp-trail-label">
+                      {s.label}
+                      {s.at ? <span className="sp-trail-at"> · {fmt(s.at)}</span> : null}
+                    </div>
+                    <div className="sp-trail-detail">
+                      <span>{stripAutoPrefix(s.detail)}</span>
+                      {s.ref ? (
+                        <button
+                          type="button"
+                          className="sp-trail-ref"
+                          onClick={() => follow(s.ref as string)}
+                          title={`Trace ${s.ref}`}
+                        >
+                          {s.ref}
+                        </button>
                       ) : null}
                     </div>
-                    <div
-                      style={{
-                        paddingBottom: i < d.steps.length - 1 ? 16 : 0,
-                        minWidth: 0,
-                        flex: 1,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                          color: "var(--text-subtle)",
-                        }}
-                      >
-                        {s.label}
-                        {s.at ? (
-                          <span style={{ color: "var(--text-faint)" }}> · {fmt(s.at)}</span>
-                        ) : null}
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--geist-space-2x)",
-                          color: "var(--text-body)",
-                          marginTop: 3,
-                        }}
-                      >
-                        <span>{s.detail}</span>
-                        {s.ref ? (
-                          <button
-                            type="button"
-                            onClick={() => setRef(s.ref)}
-                            title={`Trace ${s.ref}`}
-                            className="loom-press outline-none hover:[border-color:var(--ember-line)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                            style={{ ...tagStyle, cursor: "pointer" }}
-                          >
-                            {s.ref}
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
                   </div>
-                ))}
-              </div>
+                </li>
+              ))}
+            </ol>
 
-              {d.kind === "mission" && chainQ.data ? (
-                <div style={{ marginTop: 24 }}>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-mono)",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: "var(--text-subtle)",
-                      marginBottom: 10,
-                    }}
-                  >
-                    Trust chain
-                  </div>
-                  <MissionChain chain={chainQ.data} />
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+            {d.kind === "mission" && chainQ.data ? (
+              <div className="sp-lineage-chain">
+                <div className="sp-trail-label">Trust chain</div>
+                <MissionChain chain={chainQ.data} />
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    </aside>
   );
 }

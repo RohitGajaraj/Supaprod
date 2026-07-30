@@ -1015,3 +1015,163 @@ button.sp-me {
   font: inherit;
   cursor: pointer;
 }
+
+/* ---------- the lineage pane ----------
+ * Where a thing came from, and what it caused. Same geometry as Ask, because
+ * it is the same kind of thing: a column you consult BESIDE the work, not a
+ * dialog that takes the screen. Someone tracing provenance is comparing it
+ * against what they were already looking at, and a modal makes that impossible.
+ *
+ * NO EMBER ANYWHERE IN HERE. The Loom-era version painted the ref and every
+ * timeline dot ember. Ember means "waiting on you" and nothing else in this
+ * system, and a lineage trail is the opposite of that: it is the record,
+ * already settled. See AuditLineageSheet.tsx. */
+.sp-lineage {
+  position: fixed;
+  top: calc(var(--sp-header-h) + var(--sp-pane-inset));
+  right: var(--sp-pane-inset);
+  bottom: var(--sp-pane-inset);
+  width: min(var(--sp-pane-ask-w), calc(100vw - var(--sp-pane-inset) * 2));
+  z-index: 62;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--sp-float);
+  border-radius: var(--sp-radius-pane);
+  box-shadow: var(--sp-shadow);
+}
+.sp-lineage-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--sp-line-soft);
+  flex: none;
+}
+/* The id is mono because it is an identifier, and identifiers are read
+ * character by character. It is NOT Geist Pixel: that face was retired, and it
+ * was doing brand work in a slot that needs legibility. */
+.sp-lineage-ref {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  color: var(--sp-ink);
+}
+.sp-lineage-kind {
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+}
+.sp-lineage-spacer {
+  flex: 1;
+}
+.sp-lineage-btn {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--sp-radius-sm);
+}
+.sp-lineage-btn:hover {
+  color: var(--sp-ink);
+  background: var(--sp-hover);
+}
+.sp-lineage-body {
+  padding: 16px;
+  overflow: auto;
+  flex: 1;
+}
+.sp-lineage-title {
+  font-size: var(--sp-text-prose);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-ink);
+  line-height: 1.35;
+  margin: 0 0 4px;
+}
+.sp-lineage-meta {
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+  margin-bottom: 18px;
+}
+
+/* The trail. A rule joins the steps because provenance is a sequence, and the
+ * rule is the cheapest way to say so without drawing a diagram. */
+.sp-trail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sp-trail-step {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 16px;
+}
+.sp-trail-step:last-child {
+  padding-bottom: 0;
+}
+.sp-trail-mark {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sp-line);
+  margin-top: 6px;
+  flex: none;
+}
+/* The connecting rule, drawn from each step except the last. */
+.sp-trail-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 15px;
+  bottom: 2px;
+  width: 1px;
+  background: var(--sp-line-soft);
+}
+.sp-trail-body {
+  min-width: 0;
+  flex: 1;
+}
+.sp-trail-label {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-mute);
+}
+.sp-trail-at {
+  color: var(--sp-faint, var(--sp-mute));
+}
+.sp-trail-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--sp-body);
+  font-size: var(--sp-text-prose);
+  margin-top: 3px;
+}
+/* A connected id is a door, so it looks like one. */
+.sp-trail-ref {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  color: var(--sp-body);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-sm);
+  padding: 1px 6px;
+  background: none;
+  cursor: pointer;
+  transition:
+    color var(--sp-dur-fast) var(--sp-ease),
+    border-color var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-trail-ref:hover {
+  color: var(--sp-ink);
+  border-color: var(--sp-ink);
+}
+.sp-lineage-chain {
+  margin-top: 24px;
+}

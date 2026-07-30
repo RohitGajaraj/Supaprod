@@ -141,6 +141,7 @@ import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { useTheme } from "@/hooks/use-theme";
 import { BoardPanel } from "./BoardPanel";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
+import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import {
   IconAsk,
   IconBrain,
@@ -898,6 +899,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <BoardPanel open={boardOpen} onClose={() => setBoardOpen(false)} />
+        {/* THE MOUNT THAT WAS MISSING. `openLineage()` has fired a window event
+        with no listener since 2026-07-13, because this component was written,
+        tested and never rendered anywhere. That is why BetCard's audit tag has
+        been a control that does nothing when pressed. It renders null until
+        something opens it, so mounting it costs nothing until it is used. */}
+        <AuditLineageSheet />
       </div>
     </RunStripProvider>
   );
