@@ -914,8 +914,19 @@ You must output a JSON object EXACTLY in this format:
             // them. Skipped for pure-web answers (no workspace grounding to
             // receipt). resolveAnswerBlocks never throws; a failure just
             // means a plain prose answer.
+            //
+            // A NAMED TAG OVERRIDES THE WEB SKIP, and it has to. The classifier
+            // reads "what happened with DEC·6416AD" as a web question and
+            // searches for "DEC·6416AD market status", which is nonsense: an
+            // audit tag is this workspace's own id and can only be answered
+            // from the record. That routing miss is not this lane's to fix, but
+            // its consequence is: the skip meant the one question that most
+            // obviously has a receipt was the one that rendered none, so the
+            // pane said "the record has nothing on this" about a row it had
+            // just read and put in front of the model. A resolved tag IS
+            // workspace grounding, whatever the classifier guessed.
             let answerBlocks: AnswerBlock[] = [];
-            if (researchMode !== "web") {
+            if (researchMode !== "web" || namedRefs.length > 0) {
               answerBlocks = await resolveAnswerBlocks(supabase, {
                 question: body.content,
                 chunkRefs,
