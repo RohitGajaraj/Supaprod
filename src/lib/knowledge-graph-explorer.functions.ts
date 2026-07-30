@@ -2,43 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { artifactTable } from "@/lib/artifact-tables";
 import { ARTIFACT_KINDS, type ArtifactKind } from "./lineage.functions";
 import { buildLineageTree, hydrateTreeTitles, type LineageNode } from "./knowledge-graph-explorer";
 import { resolveLineageCols } from "./knowledge-graph-view.functions";
 
 const KindSchema = z.enum(ARTIFACT_KINDS);
 
-const TITLE_COLUMN: Record<ArtifactKind, string> = {
-  signal: "title",
-  theme: "title",
-  opportunity: "title",
-  prd: "title",
-  roadmap_item: "title",
-  task: "title",
-  meeting: "title",
-  decision: "title",
-  mission: "title",
-  house_rule: "rule_text",
-  design_memory: "title",
-  prototype: "name",
-  capability_change: "description",
-};
-
-const TABLE: Record<ArtifactKind, string> = {
-  signal: "signals",
-  theme: "themes",
-  opportunity: "opportunities",
-  prd: "prds",
-  roadmap_item: "roadmap_items",
-  task: "tasks",
-  meeting: "meetings",
-  decision: "decisions",
-  mission: "missions",
-  house_rule: "house_rules",
-  design_memory: "design_memory",
-  prototype: "prototypes",
-  capability_change: "capability_changes",
-};
+/* Kind -> table + title column comes from the one shared map (`@/lib/artifact-tables`).
+   A kind with no entry there (today: `roadmap_item`, which has no backing table) hydrates
+   to an empty title map, so the node renders unresolved rather than silently empty. */
 
 /**
  * Fetch the lineage tree rooted at a given artifact.
@@ -84,12 +57,12 @@ export const getLineageTree = createServerFn({ method: "GET" })
 
     // Hydrate titles by batch-querying target tables
     await hydrateTreeTitles(tree, async (kind, ids) => {
-      const table = TABLE[kind];
-      const col = TITLE_COLUMN[kind];
+      const spec = artifactTable(kind);
 
-      if (!table || !col) {
+      if (!spec) {
         return new Map();
       }
+      const col = spec.titleCol;
 
       const { data: rows } = await (
         supabase as unknown as {
@@ -98,7 +71,7 @@ export const getLineageTree = createServerFn({ method: "GET" })
           };
         }
       )
-        .from(table)
+        .from(spec.table)
         .select(`id, ${col}`)
         .in("id", ids);
 

@@ -86,11 +86,14 @@ export type KindTarget = { table: string; audit: AuditKind | null };
  * not typecheck a `.select()` string, so a wrong table or column compiles
  * clean and fails at runtime.
  *
- * Absent on purpose: `roadmap_item`. `lineage.functions.ts` and
- * `knowledge-graph-view.functions.ts` both map it to a `roadmap_items` table
- * that does not exist in the schema; roadmap items are `opportunities` carrying
- * a `roadmap_bucket`. Rather than copy a broken mapping, a `roadmap_item` node
- * comes back unresolved, which is the truth until that is settled.
+ * Absent on purpose: `roadmap_item`. It has no table. Four other files used to
+ * map it to a `roadmap_items` table that has never existed in any migration,
+ * and all four were fixed to drop the kind on 2026-07-30; the shared truth now
+ * lives in `@/lib/artifact-tables`. Remapping it to `opportunities` was
+ * considered and rejected there for a reason worth keeping: `roadmap_bucket` is
+ * null on every opportunity in the live workspace, so the remap would have
+ * resolved 100% of hits to non-roadmap rows while looking like it worked.
+ * A `roadmap_item` node comes back unresolved, which is the truth until that is settled.
  */
 export const KIND_TARGETS: Readonly<Record<string, KindTarget>> = {
   // The audit vocabulary, by its own names (signal, opportunity, decision,

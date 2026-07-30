@@ -274,7 +274,7 @@ export function AuditLineageSheet() {
     <aside className="sp-lineage" role="complementary" aria-label="Lineage">
       <header className="sp-lineage-head">
         <span className="sp-lineage-ref">{(d?.ref ?? ref).replace("·", " · ")}</span>
-        {d?.found ? (
+        {d?.found || d?.ambiguous ? (
           <span className="sp-lineage-kind">
             {d.label} · {d.stage}
           </span>
@@ -297,6 +297,55 @@ export function AuditLineageSheet() {
           <Failed onRetry={() => void q.refetch()}>
             Could not trace this id. {(q.error as Error)?.message}
           </Failed>
+        ) : d?.ambiguous ? (
+          /* SIX CHARACTERS ARE NOT ENOUGH TO NAME ONE ROW, and until now this
+           * branch did not exist, so the pane fell through to "no record for
+           * this tag" while SIX rows matched it. That copy was not merely
+           * unhelpful, it was false, and it sent a person to check an id that
+           * was correct.
+           *
+           * Worse, before the resolver was fixed the pane did not even get
+           * here: it silently rendered whichever colliding row came back
+           * first, with a real title and a real chain, and nothing on screen
+           * said it had chosen. I verified this pane earlier in the session
+           * against MIS·600000 and reported it resolved to "Ship the checkout
+           * and notification pass". That tag matches THREE missions. My
+           * verification was true about the rendering and wrong about the
+           * resolution.
+           *
+           * Choosing re-enters on the uuid, never on the tag, because the uuid
+           * path is exact and the tag path is what collided. */
+          <>
+            <p className="sp-lineage-ambig">
+              This tag matches <strong>{d.candidateCount}</strong> records. Six characters are not
+              enough to name one, so nothing has been chosen.
+            </p>
+            <ol className="sp-chain">
+              {d.candidates.map((c) => (
+                <li className="sp-chain-node" key={c.entityId}>
+                  <span className="sp-chain-mark" aria-hidden="true" />
+                  <div className="sp-chain-body">
+                    <button
+                      type="button"
+                      className="sp-lineage-pick"
+                      onClick={() => follow(c.entityId)}
+                    >
+                      {c.title ? stripAutoPrefix(c.title) : "Untitled"}
+                    </button>
+                    <div className="sp-chain-meta">
+                      {c.status ? <span>{c.status}</span> : null}
+                      {c.createdAt ? <span>{fmt(c.createdAt)}</span> : null}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {d.candidateCount > d.candidates.length ? (
+              <p className="sp-chain-more">
+                Showing the first {d.candidates.length} of {d.candidateCount}.
+              </p>
+            ) : null}
+          </>
         ) : !d || !d.found ? (
           <Empty>
             No record for {d?.ref ?? ref} in this workspace. Audit ids are scoped to your

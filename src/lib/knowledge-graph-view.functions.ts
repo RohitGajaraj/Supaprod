@@ -7,6 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { artifactTable } from "@/lib/artifact-tables";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   projectGraph,
@@ -37,19 +38,10 @@ function emptyGraph(): KnowledgeGraph {
   };
 }
 
-/** Artifact-kind -> (table, title column). Mirrors lineage.functions.ts. */
-const TITLE_TABLE: Record<GraphNodeKind, { table: string; col: string }> = {
-  signal: { table: "signals", col: "title" },
-  theme: { table: "themes", col: "title" },
-  opportunity: { table: "opportunities", col: "title" },
-  prd: { table: "prds", col: "title" },
-  roadmap_item: { table: "roadmap_items", col: "title" },
-  task: { table: "tasks", col: "title" },
-  meeting: { table: "meetings", col: "title" },
-  decision: { table: "decisions", col: "title" },
-  mission: { table: "missions", col: "title" },
-  design_memory: { table: "design_memory", col: "title" },
-};
+/* Kind -> table + title column comes from the one shared map (`@/lib/artifact-tables`),
+   the same one lineage.functions.ts reads. A kind with no entry there (today:
+   `roadmap_item`, which has no backing table) is skipped, so the node keeps its id-derived
+   label on the canvas instead of claiming a title it could not read. */
 
 const LINEAGE_COLS = "id,parent_kind,parent_id,child_kind,child_id,relation,rationale,created_at";
 /**
@@ -220,7 +212,7 @@ async function hydrateTitles(
   }
   const titleMap = new Map<string, string>();
   for (const [kind, ids] of byKind) {
-    const spec = TITLE_TABLE[kind];
+    const spec = artifactTable(kind);
     if (!spec) continue;
     // Dynamic table name needs a cast (the typed client can't infer it), the
     // same pattern lineage.functions.ts uses for title hydration.
@@ -232,11 +224,11 @@ async function hydrateTitles(
       }
     )
       .from(spec.table)
-      .select(`id, ${spec.col}`)
+      .select(`id, ${spec.titleCol}`)
       .in("id", ids);
     for (const row of (data as Array<Record<string, unknown>> | null) ?? []) {
       const id = row.id as string | undefined;
-      const title = row[spec.col];
+      const title = row[spec.titleCol];
       if (id) titleMap.set(nodeKey(kind, id), typeof title === "string" ? title : "");
     }
   }

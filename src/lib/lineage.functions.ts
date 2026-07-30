@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
+import { artifactTable } from "@/lib/artifact-tables";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const ARTIFACT_KINDS = [
@@ -90,37 +91,9 @@ type LineageEdge = {
   peer_title?: string | null;
 };
 
-const TITLE_COLUMN: Record<ArtifactKind, string> = {
-  signal: "title",
-  theme: "title",
-  opportunity: "title",
-  prd: "title",
-  roadmap_item: "title",
-  task: "title",
-  meeting: "title",
-  decision: "title",
-  mission: "title",
-  house_rule: "rule_text",
-  design_memory: "title",
-  prototype: "name",
-  capability_change: "description",
-};
-
-const TABLE: Record<ArtifactKind, string> = {
-  signal: "signals",
-  theme: "themes",
-  opportunity: "opportunities",
-  prd: "prds",
-  roadmap_item: "roadmap_items",
-  task: "tasks",
-  meeting: "meetings",
-  decision: "decisions",
-  mission: "missions",
-  house_rule: "house_rules",
-  design_memory: "design_memory",
-  prototype: "prototypes",
-  capability_change: "capability_changes",
-};
+/* Kind -> table + title column comes from the one shared map (`@/lib/artifact-tables`).
+   A kind with no entry there (today: `roadmap_item`, which has no backing table) is
+   skipped below and its edge keeps a null `peer_title`. */
 
 async function hydrateTitles(
   supabase: SupabaseClient,
@@ -137,9 +110,9 @@ async function hydrateTitles(
   }
   const titleByKey = new Map<string, string>();
   for (const [kind, ids] of grouped) {
-    const table = TABLE[kind];
-    const col = TITLE_COLUMN[kind];
-    if (!table) continue;
+    const spec = artifactTable(kind);
+    if (!spec) continue;
+    const col = spec.titleCol;
     const { data } = await (
       supabase as unknown as {
         from: (t: string) => {
@@ -147,7 +120,7 @@ async function hydrateTitles(
         };
       }
     )
-      .from(table)
+      .from(spec.table)
       .select(`id, ${col}`)
       .in("id", ids);
     for (const row of (data as Array<Record<string, unknown>> | null) ?? []) {
@@ -364,11 +337,9 @@ Each title must be a concrete verb-led action under 80 chars. Order by build seq
         created_by_agent: "prd-writer",
         ai_event_id: null,
       }));
-      const { error: lineageErr } = await supabase
-        .from("artifact_lineage")
-        .upsert(lineageEdges, {
-          onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
-        });
+      const { error: lineageErr } = await supabase.from("artifact_lineage").upsert(lineageEdges, {
+        onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+      });
       if (lineageErr) {
         console.error("promotePrdToTasks: batch lineage upsert failed:", lineageErr.message);
       }

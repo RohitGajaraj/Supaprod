@@ -26,6 +26,7 @@ import {
   type SharedPremisePrecedentItem,
 } from "@/lib/ai/shared-premise";
 import { canonicalNodeId, type DecisionNode } from "@/lib/ai/entity-resolution";
+import { artifactTable } from "@/lib/artifact-tables";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -134,19 +135,21 @@ async function loadOutcomes(
   }
 }
 
-/** Tables backing each premise node kind, for resolving a premise's human title. Mirrors the
- * lineage TABLE map; a premise is usually a signal/theme/opportunity but any kind resolves. */
-const PREMISE_TABLE: Record<string, string> = {
-  signal: "signals",
-  theme: "themes",
-  opportunity: "opportunities",
-  prd: "prds",
-  roadmap_item: "roadmap_items",
-  task: "tasks",
-  meeting: "meetings",
-  decision: "decisions",
-  mission: "missions",
-};
+/**
+ * Table backing a premise node kind, for resolving a premise's human title. Reads the one
+ * shared kind -> table map instead of keeping a private copy of it; a premise is usually a
+ * signal/theme/opportunity but any kind with a table resolves.
+ *
+ * Narrowed to kinds whose title lives in a column literally named `title`, because both
+ * readers below issue a fixed `.select("id,title")`. That drops `house_rule` (rule_text),
+ * `prototype` (name) and `capability_change` (description), which were never in this map
+ * either. `roadmap_item` has no table at all, so it returns undefined and the premise
+ * keeps the generic "the same upstream premise" phrasing; see `@/lib/artifact-tables`.
+ */
+function premiseTable(kind: string): string | undefined {
+  const spec = artifactTable(kind);
+  return spec?.titleCol === "title" ? spec.table : undefined;
+}
 
 /**
  * Resolve the human TITLE of each precedent's SHARED premise so a surface can name it ("the
@@ -163,7 +166,7 @@ async function attachPremiseTitles(
   const byKind = new Map<string, Set<string>>();
   for (const it of items) {
     if (!it.premiseKind || !it.premiseId || !UUID_RE.test(it.premiseId)) continue;
-    if (!PREMISE_TABLE[it.premiseKind]) continue;
+    if (!premiseTable(it.premiseKind)) continue;
     const set = byKind.get(it.premiseKind) ?? new Set<string>();
     set.add(it.premiseId);
     byKind.set(it.premiseKind, set);
@@ -173,9 +176,11 @@ async function attachPremiseTitles(
   try {
     const queries: PromiseLike<void>[] = [];
     for (const [kind, idSet] of byKind) {
+      const table = premiseTable(kind);
+      if (!table) continue;
       queries.push(
         supabase
-          .from(PREMISE_TABLE[kind])
+          .from(table)
           .select("id,title")
           .eq("user_id", userId)
           .in("id", Array.from(idSet))
@@ -246,7 +251,7 @@ async function buildPremiseCanonicalId(
   if (!kindOf.size) return new Map();
   const byKind = new Map<string, string[]>();
   for (const [id, kind] of kindOf) {
-    if (!PREMISE_TABLE[kind]) continue;
+    if (!premiseTable(kind)) continue;
     const arr = byKind.get(kind) ?? [];
     arr.push(id);
     byKind.set(kind, arr);
@@ -256,11 +261,13 @@ async function buildPremiseCanonicalId(
   try {
     const queries: PromiseLike<void>[] = [];
     for (const [kind, ids] of byKind) {
+      const table = premiseTable(kind);
+      if (!table) continue;
       for (let i = 0; i < ids.length; i += TITLE_IN_BATCH) {
         const batch = ids.slice(i, i + TITLE_IN_BATCH);
         queries.push(
           supabase
-            .from(PREMISE_TABLE[kind])
+            .from(table)
             .select("id,title")
             .eq("user_id", userId)
             .in("id", batch)
