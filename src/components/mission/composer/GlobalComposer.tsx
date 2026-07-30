@@ -1,36 +1,41 @@
-// GlobalComposer (front-end reimagining, Phase 2 wiring): the ONE summon on
-// the old-app surfaces. The two shortcut keys that used to open the command
-// palette (Cmd/Ctrl+K) and the Ask panel (Cmd/Ctrl+J) now open this single
-// ComposerOverlay, and the shared supaprod:open-ask / supaprod:open-cmdk
-// events land here too (the TopBar Ask button, the /m index WarmSlot, and
-// the AppShell palette button all dispatch those events already).
+// GlobalComposer: the mount point for the two summons on old-app surfaces.
 //
-// Self-contained on purpose: it owns its own draft, useAskStream (the same
-// /api/chat contract, per-scope thread persistence), and renders the answer
-// messages INSIDE the overlay with ThreadMessage, so read-aloud, retry, and
-// the promote chips survive the Ask panel's retirement (Addendum 1.1 rule 8).
-// Mic dictation appends into the draft through the hook's onDictation seam.
+// THEY ARE TWO SURFACES AGAIN, and that is the change. Cmd/Ctrl+J and Cmd/Ctrl+K
+// used to open the same centred overlay, so Ask and the command palette were
+// one box doing two jobs. The founder's complaint on 2026-07-30 was that Ask
+// "looks very bare and very lean", and the reason is that it was never designed
+// as Ask: it was a palette with a thread stapled above it.
+//
+//   Cmd/Ctrl+J and supaprod:open-ask  ->  AskPane, a right-hand pane scoped to
+//     what you are looking at, with the record register and the action cards.
+//     The open state and the resolved scope live in AskProvider, so this file
+//     no longer binds that key at all.
+//   Cmd/Ctrl+K and supaprod:open-cmdk ->  ComposerOverlay, unchanged. It is the
+//     palette: Jump, Act, Catalog, journeys.
 //
 // The Mission Control room is excluded: the room's shell owns the composer and
 // the Thread there, and a second stream on the same conversation would go stale
-// mid-answer. Journey chips here activate by navigating INTO the room with the
-// journey and its first stage in the URL.
+// mid-answer. Journey chips activate by navigating INTO the room with the
+// journey and its first stage in the URL. NOTE, reported not worked around:
+// that navigation is a live door into the one unported legacy surface. It is
+// gone from Ask, where it was actively routing people into the old design, and
+// it survives in the palette because retiring the room is not this lane's call.
 
 import * as React from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useOpenRoom } from "@/hooks/use-open-room";
 import { ROOM_PRODUCT_ROUTE_IDS } from "@/lib/room-url";
-import { useAskStream } from "@/hooks/use-ask-stream";
+import { useDictation } from "@/hooks/use-voice";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { journeyById, type JourneyId } from "@/lib/journeys";
 import type { PaletteRun } from "@/lib/palette-sections";
 import type { StageId } from "@/components/mission/Spine";
+import { AskPane } from "@/components/ask/AskPane";
 import { ComposerOverlay } from "./ComposerOverlay";
-import { ThreadMessage } from "./Thread";
 
-/** The summon events the overlay answers (the old palette + Ask doors). */
-export const OPEN_COMPOSER_EVENTS = ["supaprod:open-ask", "supaprod:open-cmdk"] as const;
+/** The summon events the PALETTE overlay answers. Ask has its own door now. */
+export const OPEN_COMPOSER_EVENTS = ["supaprod:open-cmdk"] as const;
 
 export function GlobalComposer() {
   // The room owns its composer and Thread; never a second stream there.
@@ -42,7 +47,12 @@ export function GlobalComposer() {
       s.matches.some((m) => (ROOM_PRODUCT_ROUTE_IDS as readonly string[]).includes(m.routeId)),
   });
   if (inRoom) return null;
-  return <GlobalComposerHost />;
+  return (
+    <>
+      <AskPane />
+      <GlobalComposerHost />
+    </>
+  );
 }
 
 function GlobalComposerHost() {
@@ -52,29 +62,30 @@ function GlobalComposerHost() {
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState("");
 
-  const ask = useAskStream({
-    enabled: open,
-    onDictation: (text) => setDraft((d) => (d ? `${d} ${text}` : text)),
-  });
+  // NO STREAM HERE ANY MORE. The palette used to own a second useAskStream and
+  // render the answers above its own input, which is how Ask ended up being a
+  // palette with a thread stapled to it. Free text now goes to Ask, which is
+  // the surface built to answer one. Dictation stays, because the palette input
+  // still takes speech.
+  const dictation = useDictation((text) => setDraft((d) => (d ? `${d} ${text}` : text)));
 
-  // The summon listeners ride refs so the window bindings mount once.
-  const sendIntentRef = React.useRef(ask.sendIntent);
-  sendIntentRef.current = ask.sendIntent;
+  /** Free text leaves the palette and lands in Ask, carrying the question. */
+  const handOffToAsk = (text: string) => {
+    setOpen(false);
+    setDraft("");
+    window.dispatchEvent(new CustomEvent("supaprod:open-ask", { detail: { intent: text } }));
+  };
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if ((e.metaKey || e.ctrlKey) && (key === "j" || key === "k")) {
+      // Cmd/Ctrl+J belongs to AskProvider now. Binding it here as well would
+      // toggle two surfaces on one press, or cancel itself out.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((v) => !v);
       }
     };
-    const onSummon = (e: Event) => {
-      setOpen(true);
-      // A palette ASK row arrives with an intent: run it straight away.
-      const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent?.trim();
-      if (intent) sendIntentRef.current(intent);
-    };
+    const onSummon = () => setOpen(true);
     window.addEventListener("keydown", onKey);
     for (const ev of OPEN_COMPOSER_EVENTS) window.addEventListener(ev, onSummon);
     return () => {
@@ -92,7 +103,11 @@ function GlobalComposerHost() {
         void navigate({ to: run.to, search: run.search as never });
         return;
       }
-      if (run.event === "supaprod:open-ask") return; // this IS the Ask surface
+      if (run.event === "supaprod:open-ask") {
+        // The palette's own ASK row: open Ask with whatever is typed.
+        handOffToAsk(draft.trim());
+        return;
+      }
       window.dispatchEvent(new CustomEvent(run.event, { detail: {} }));
       setOpen(false);
       // The focus composer opens in place; navigating away would defeat it.
@@ -125,39 +140,17 @@ function GlobalComposerHost() {
     }
   };
 
-  const lastId = ask.messages.length > 0 ? ask.messages[ask.messages.length - 1].id : null;
-
   return (
     <ComposerOverlay
       open={open}
       onClose={() => setOpen(false)}
       draft={draft}
       onDraftChange={setDraft}
-      onSubmitIntent={(text) => ask.sendIntent(text)}
+      onSubmitIntent={handOffToAsk}
       onActivateJourney={onActivateJourney}
       onRun={onRun}
-      streaming={ask.streaming}
-      dictation={ask.dictation}
-    >
-      {ask.messages.length > 0 ? (
-        <div
-          data-testid="overlay-thread"
-          className="mb-2 flex max-h-[45vh] flex-col gap-3 overflow-y-auto"
-        >
-          {ask.messages.map((msg) => (
-            <ThreadMessage
-              key={msg.id}
-              msg={msg}
-              isStreamingThis={ask.streaming && msg.id === lastId && msg.role === "assistant"}
-              liveStatus={ask.liveStatus}
-              promoted={ask.promotedByMsg[msg.id]}
-              onPromote={ask.promote}
-              onRetry={ask.retry}
-              readAloud={ask.readAloud}
-            />
-          ))}
-        </div>
-      ) : null}
-    </ComposerOverlay>
+      streaming={false}
+      dictation={dictation}
+    />
   );
 }

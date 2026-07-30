@@ -135,6 +135,7 @@ import {
 } from "@/lib/threads.functions";
 import { renameConversation } from "@/lib/conversations.functions";
 import { proposeMemoryCandidate } from "@/lib/memory-candidates.functions";
+import { openAskConversation } from "@/lib/ask-open";
 import {
   Actions,
   AgentMark,
@@ -275,7 +276,7 @@ function ThreadsSurface() {
   const { c } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { activeProductId, activeProduct } = useWorkspace();
+  const { activeProductId, activeProduct, activeWorkspaceId } = useWorkspace();
 
   const fetchThreads = useServerFn(listThreads);
   const fetchThread = useServerFn(getThread);
@@ -427,6 +428,23 @@ function ThreadsSurface() {
 
   const open = (id: string) => void navigate({ to: "/threads", search: { c: id }, replace: true });
 
+  /** Hand this conversation back to Ask, where it can be continued.
+   *
+   *  The thread's OWN product decides the bucket, not whichever product happens
+   *  to be selected: filing a workspace thread under the active product would
+   *  quietly move it. A thread reached by deep link that is not in this list
+   *  falls back to the workspace bucket, which still opens the right
+   *  conversation because the pane is keyed on its id. */
+  function reopenInAsk() {
+    if (!selectedId) return;
+    const known = [...threads, ...searchHits].find((t) => t.id === selectedId);
+    openAskConversation({
+      conversationId: selectedId,
+      productId: known?.productId ?? null,
+      workspaceId: activeWorkspaceId,
+    });
+  }
+
   const headline = thread.isLoading
     ? "Reading the thread."
     : selectedId
@@ -443,7 +461,7 @@ function ThreadsSurface() {
       </>
     ) : undefined
   ) : (
-    "Ask is top right. Whatever the crew answers lands here, saved."
+    "Ask is top right, or Cmd J. Every conversation it has lands here, saved."
   );
 
   return (
@@ -576,10 +594,22 @@ function ThreadsSurface() {
             </>
           ) : (
             <>
+              {/* THE WAY BACK INTO ASK, and the reason it is the primary here.
+                  Ask and Threads are ONE OBJECT AT TWO MOMENTS: Ask is the
+                  conversation happening, this is the same conversation
+                  remembered. Both read `conversations`. Without this control the
+                  second half of that claim is a description of the schema rather
+                  than something a person can do, so re-reading and continuing
+                  become one motion and this is the forward action on the
+                  surface. "Keep the last answer" steps down to default: one
+                  primary per screen, and keeping is the side errand. */}
+              <Button variant="primary" onClick={reopenInAsk}>
+                Continue in Ask
+              </Button>
               {/* Rendered only when there IS a crew answer to keep. A control
                   that cannot act teaches people the controls are decorative. */}
               {canKeep ? (
-                <Button variant="primary" disabled={keep.isPending} onClick={() => keep.mutate()}>
+                <Button disabled={keep.isPending} onClick={() => keep.mutate()}>
                   Keep the last answer
                 </Button>
               ) : null}

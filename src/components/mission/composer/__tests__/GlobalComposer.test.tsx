@@ -1,15 +1,25 @@
-// GlobalComposer: the ONE summon on old-app surfaces. The overlay must open
-// from the shared supaprod:open-ask / supaprod:open-cmdk events and from the
-// Cmd/Ctrl+J and Cmd/Ctrl+K keys, must stand down inside the Mission Control
-// room (/m/$productId owns its composer), and a journey chip must navigate
-// into the room with the journey and its first stage.
+// GlobalComposer: the mount point for the two summons on old-app surfaces.
 //
-// mock.module isolates the live seams (router, workspace, ask stream) the
-// way DecisionsPanel.test.tsx established for query-backed components.
+// THE CONTRACT CHANGED, and these tests changed with it. Cmd/Ctrl+J and
+// Cmd/Ctrl+K used to open the SAME centred overlay, which is why Ask was "very
+// bare": it was the command palette with a thread stapled above it. They are
+// two surfaces again:
+//
+//   Cmd/Ctrl+K and supaprod:open-cmdk -> the palette overlay, tested here.
+//   Cmd/Ctrl+J and supaprod:open-ask  -> AskPane, which owns its open state in
+//     AskProvider. GlobalComposer only mounts it, so the cases that used to
+//     assert "open-ask opens the overlay" now assert the opposite: the palette
+//     must NOT answer Ask's door, or one key press opens two panels.
+//
+// AskPane is MOCKED here on purpose, and not only for isolation: it imports the
+// approvals queue's server functions, which transitively load the Supabase
+// modules that `-_auth.server.test.ts` mocks at import time. Pulling that graph
+// in from this file broke six unrelated tests in the full run. A stub keeps this
+// file about GlobalComposer, which is what it is for.
 import * as React from "react";
 import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
-import type { DictationState, ReadAloudState } from "@/hooks/use-voice";
+import type { DictationState } from "@/hooks/use-voice";
 
 let pathname = "/today";
 // The room is identified by its MATCHED ROUTE ID, never by a path prefix: the
@@ -20,13 +30,19 @@ let pathname = "/today";
 let routeId = "/_authenticated/today";
 const navigateSpy = mock((_: unknown) => {});
 
-type RouterStateShape = { location: { pathname: string }; matches: { routeId: string }[] };
+type RouterStateShape = {
+  location: { pathname: string; search: Record<string, unknown> };
+  matches: { routeId: string }[];
+};
 
 const routerActual = await import("@tanstack/react-router");
 mock.module("@tanstack/react-router", () => ({
   ...routerActual,
   useRouterState: ({ select }: { select: (s: RouterStateShape) => unknown }) =>
-    select({ location: { pathname }, matches: [{ routeId: "/_authenticated" }, { routeId }] }),
+    select({
+      location: { pathname, search: {} },
+      matches: [{ routeId: "/_authenticated" }, { routeId }],
+    }),
   useNavigate: () => navigateSpy,
 }));
 
@@ -50,34 +66,26 @@ const dictation: DictationState = {
   start: mock(() => {}),
   stop: mock(() => {}),
 };
-const readAloud: ReadAloudState = {
-  supported: false,
-  speakingId: null,
-  toggle: mock(() => {}),
-  stop: mock(() => {}),
-};
-const sendIntent = mock((_: string) => {});
+mock.module("@/hooks/use-voice", () => ({
+  useDictation: () => dictation,
+  useReadAloud: () => ({ supported: false, speakingId: null, toggle: () => {}, stop: () => {} }),
+}));
 
-mock.module("@/hooks/use-ask-stream", () => ({
-  useAskStream: () => ({
-    messages: [],
-    streaming: false,
-    liveStatus: null,
-    sendIntent,
-    retry: mock(() => {}),
-    startNewConversation: mock(() => {}),
-    promote: mock(() => {}),
-    promotedByMsg: {},
-    startProjectFromIntent: mock(async () => {}),
-    startingProject: false,
-    dictation,
-    readAloud,
-    scopeKey: "product:p-1",
-    conversationId: null,
-  }),
+// The pane has its own tests. Here it only has to be mountable.
+mock.module("@/components/ask/AskPane", () => ({
+  AskPane: () => <div data-testid="ask-pane-stub" />,
 }));
 
 const { GlobalComposer } = await import("../GlobalComposer");
+const { AskProvider } = await import("@/lib/ask-context");
+
+function mount() {
+  return render(
+    <AskProvider>
+      <GlobalComposer />
+    </AskProvider>,
+  );
+}
 
 beforeEach(() => {
   pathname = "/today";
@@ -89,83 +97,81 @@ beforeEach(() => {
     products: [{ id: "p-1", workspace_id: "w-1", slug: "relay" }],
   };
   navigateSpy.mockClear();
-  sendIntent.mockClear();
 });
 
 afterEach(cleanup);
 
-describe("GlobalComposer: the global summon on old-app surfaces", () => {
-  test("the supaprod:open-ask event opens the overlay on an old-app route", () => {
-    render(<GlobalComposer />);
+describe("GlobalComposer: two summons, two surfaces", () => {
+  test("mounts the Ask pane on an old-app route", () => {
+    mount();
+    expect(screen.getByTestId("ask-pane-stub")).toBeTruthy();
+  });
+
+  test("the palette door (supaprod:open-cmdk) opens the palette overlay", () => {
+    mount();
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
-    act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
-    });
-    expect(screen.getByTestId("composer-overlay")).toBeTruthy();
-    // The overlay holds THE one input box.
-    expect(screen.getByLabelText("Ask Supaprod anything")).toBeTruthy();
-  });
-
-  test("an event that carries an intent streams it right away", () => {
-    render(<GlobalComposer />);
-    act(() => {
-      window.dispatchEvent(
-        new CustomEvent("supaprod:open-ask", { detail: { intent: "why did churn spike" } }),
-      );
-    });
-    expect(sendIntent).toHaveBeenCalledWith("why did churn spike");
-    expect(screen.getByTestId("composer-overlay")).toBeTruthy();
-  });
-
-  test("the old palette door (supaprod:open-cmdk) opens the same overlay", () => {
-    render(<GlobalComposer />);
     act(() => {
       window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
     });
     expect(screen.getByTestId("composer-overlay")).toBeTruthy();
+    expect(screen.getByLabelText("Ask Supaprod anything")).toBeTruthy();
   });
 
-  test("Cmd+J and Cmd+K both toggle the overlay", () => {
-    render(<GlobalComposer />);
-    act(() => {
-      fireEvent.keyDown(window, { key: "j", metaKey: true });
-    });
-    expect(screen.getByTestId("composer-overlay")).toBeTruthy();
-    act(() => {
-      fireEvent.keyDown(window, { key: "j", metaKey: true });
-    });
-    expect(screen.queryByTestId("composer-overlay")).toBe(null);
+  test("Cmd+K toggles the palette", () => {
+    mount();
     act(() => {
       fireEvent.keyDown(window, { key: "k", ctrlKey: true });
     });
     expect(screen.getByTestId("composer-overlay")).toBeTruthy();
+    act(() => {
+      fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    });
+    expect(screen.queryByTestId("composer-overlay")).toBe(null);
+  });
+
+  // The regression this file exists to prevent from coming back: one key press
+  // must not open two panels, and Ask's door must not land on the palette.
+  test("Ask's door does NOT open the palette", () => {
+    mount();
+    act(() => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+    });
+    expect(screen.queryByTestId("composer-overlay")).toBe(null);
+  });
+
+  test("Cmd+J does NOT open the palette", () => {
+    mount();
+    act(() => {
+      fireEvent.keyDown(window, { key: "j", metaKey: true });
+    });
+    expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
   test("stands down inside the room at its readable URL", () => {
     pathname = "/helio-labs/relay";
     routeId = "/_authenticated/$workspaceSlug/$productSlug";
-    const { container } = render(<GlobalComposer />);
+    mount();
     act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
     });
-    expect(container.firstChild).toBe(null);
+    expect(screen.queryByTestId("ask-pane-stub")).toBe(null);
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
   test("stands down inside the room at its legacy uuid URL too", () => {
     pathname = "/m/p-1";
     routeId = "/_authenticated/m/$productId";
-    const { container } = render(<GlobalComposer />);
+    mount();
     act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
     });
-    expect(container.firstChild).toBe(null);
+    expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
   test("a journey chip navigates into the room with the journey and its first stage", () => {
-    render(<GlobalComposer />);
+    mount();
     act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
     });
     fireEvent.click(document.querySelector('button[data-journey="j3"]')!);
     expect(navigateSpy).toHaveBeenCalledWith({
@@ -173,7 +179,6 @@ describe("GlobalComposer: the global summon on old-app surfaces", () => {
       params: { workspaceSlug: "helio-labs", productSlug: "relay" },
       search: { stage: "plan", journey: "j3" },
     });
-    // Activation closes the overlay; the room takes over.
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
@@ -184,9 +189,9 @@ describe("GlobalComposer: the global summon on old-app surfaces", () => {
       workspaces: [{ id: "w-1", slug: "helio-labs" }],
       products: [{ id: "p-1", workspace_id: "w-1", slug: null }],
     };
-    render(<GlobalComposer />);
+    mount();
     act(() => {
-      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
     });
     fireEvent.click(document.querySelector('button[data-journey="j3"]')!);
     expect(navigateSpy).toHaveBeenCalledWith({
@@ -194,5 +199,27 @@ describe("GlobalComposer: the global summon on old-app surfaces", () => {
       params: { productId: "p-1" },
       search: { stage: "plan", journey: "j3" },
     });
+  });
+
+  // Free text in the palette is a QUESTION, and Ask is the surface that answers
+  // one. The palette used to stream it itself, which is how two surfaces became
+  // one box. It hands it over now, carrying the text.
+  test("free text leaves the palette and lands in Ask, carrying the question", () => {
+    mount();
+    act(() => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"));
+    });
+    const handed: string[] = [];
+    const onAsk = (e: Event) => {
+      const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent;
+      if (intent) handed.push(intent);
+    };
+    window.addEventListener("supaprod:open-ask", onAsk);
+    const box = screen.getByLabelText("Ask Supaprod anything");
+    fireEvent.change(box, { target: { value: "why did churn spike" } });
+    fireEvent.keyDown(box, { key: "Enter" });
+    window.removeEventListener("supaprod:open-ask", onAsk);
+    expect(handed).toEqual(["why did churn spike"]);
+    expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 });
