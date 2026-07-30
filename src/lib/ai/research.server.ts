@@ -11,7 +11,7 @@
  * src/components/chat/MessageMeta.tsx, which must stay in lockstep).
  *
  * NOTE: there is no roadmap_items table — the "roadmap" is just opportunities
- * grouped by status lane, so the "roadmap" snapshot reads opportunities in the
+ * grouped by roadmap lane, so the "roadmap" snapshot reads opportunities in the
  * now/next/later/shipped lanes. (The RoadmapPanel UI was deleted in v6 Phase 0;
  * this lane-grouping query lives inline here now.)
  */
@@ -214,10 +214,22 @@ async function gatherInternal(
         .limit(5),
     ),
     withProduct(
+      /* THE ROADMAP LANE LIVES IN `roadmap_bucket`, NOT `status`.
+       *
+       * This read filtered `status in (now, next, later, shipped)` while
+       * `roadmap.functions.ts` writes the lanes to `roadmap_bucket`. Two
+       * different columns, so the snapshot could not reflect the roadmap even
+       * once someone filled it in. It happened to return anything at all only
+       * because `status` carries a separate pipeline vocabulary that overlaps
+       * on the word "now".
+       *
+       * `roadmap_bucket` holds now/next/later (roadmap.functions.ts:102).
+       * "shipped" is NOT one of its values, so it is dropped here rather than
+       * kept as a filter that can never match. */
       supabase
         .from("opportunities")
-        .select("title,status")
-        .in("status", ["now", "next", "later", "shipped"])
+        .select("title,roadmap_bucket")
+        .in("roadmap_bucket", ["now", "next", "later"])
         .order("updated_at", { ascending: false })
         .limit(8),
     ),
@@ -283,13 +295,17 @@ async function gatherInternal(
   const lanes = lanesRes.data ?? [];
   if (lanes.length > 0) {
     const byLane = new Map<string, string[]>();
-    for (const r of lanes) byLane.set(r.status, [...(byLane.get(r.status) ?? []), r.title]);
+    for (const r of lanes) {
+      const lane = (r as { roadmap_bucket?: string | null }).roadmap_bucket;
+      if (!lane) continue;
+      byLane.set(lane, [...(byLane.get(lane) ?? []), r.title]);
+    }
     snapshots.push({
       kind: "roadmap",
       title: "Roadmap (by lane)",
       // OBS-10: the Now/Next/Later roadmap now lives on Plan.
       href: "/plan",
-      lines: ["now", "next", "later", "shipped"]
+      lines: ["now", "next", "later"]
         .filter((l) => byLane.has(l))
         .map((l) => `- ${l}: ${byLane.get(l)!.join("; ")}`),
     });

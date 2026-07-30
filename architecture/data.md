@@ -27,7 +27,8 @@ Every signed-in profile must have at least one workspace membership. `current_us
 - **Identity/workspace:** `profiles`, `workspaces`, `workspace_members`, `workspace_briefs`, `projects` (vision, problem, target_users, metrics_json, stage, workspace_id).
 - **Conversations:** `conversations`, `messages` (tokens, cost_usd, event_id).
 - **Discovery:** `signals`, `themes` (evidence_ids[]), `opportunities` (ICE: impact·confidence·ease).
-- **Reasoning/planning:** `prds`, `prd_versions`, `roadmap_items`, `tasks`, `meetings`, `decisions` (supersedes), `experiments`.
+- **Reasoning/planning:** `prds`, `prd_versions`, `tasks`, `meetings`, `decisions` (supersedes), `experiments`.
+  - There is **no `roadmap_items` table** and there never has been in any migration. The roadmap is `opportunities` carrying a `roadmap_bucket` of `now` / `next` / `later` (written by `src/lib/roadmap.functions.ts`, audited into `roadmap_audit.from_bucket`/`to_bucket`). This line used to list `roadmap_items` as real, and four code files copied it into kind-to-table maps that silently failed to hydrate. The shared truth now lives in `src/lib/artifact-tables.ts`; if a real `roadmap_items` ever ships, add one entry there and every surface resolves again.
 - **Studio:** `studio_projects`, `studio_files`, `studio_revisions`.
 - **Integrations:** `docs_links`, `calendar_events`, `user_api_keys` (pgsodium-encrypted), agent `schedule_cron`.
 - **AI trust stack:** `ai_events`, `ai_traces`, `ai_evals`, `ai_feedback`, `tool_calls`, `guardrail_rules`, `guardrail_hits`, `eval_suites`/`eval_cases`/`eval_runs`/`eval_case_results`, `prompt_templates`/`prompt_versions`, `agent_memory`, `rag_chunks`, `ai_budgets`, `model_pricing`.
