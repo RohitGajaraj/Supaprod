@@ -682,6 +682,16 @@ export const SURFACE_REGISTRY = {
     opensFrom: "receipt-kebab",
     status: "planned",
   },
+  // The bidirectional walk over artifact_lineage (what this came from AND what
+  // it caused), rendered in the same drawer as audit-lineage. Its door is the
+  // AuditTag chip: every `MIS·7E7D59` on screen is a <span role="button"> that
+  // calls openLineage, so the entry point is the tag itself, not a kebab menu.
+  "lineage-graph": {
+    kind: "drawer",
+    home: "receipt-details",
+    opensFrom: "audit-tag",
+    status: "planned",
+  },
   traces: {
     kind: "drawer",
     home: "receipt-details",
