@@ -279,8 +279,10 @@ export function contextualStarters(ctx: StarterContext): Starter[] {
     // workspace question wearing a narrower label, so it falls through.
     case "mission":
       return (one ? RUN_PROMPTS : WORKSPACE_PROMPTS).map(capability);
+    // A spec asks the same readiness questions whether you are on one or on the
+    // list: "is this ready to build" is a fair question of a backlog too.
     case "prd":
-      return (one ? SPEC_PROMPTS : SPEC_PROMPTS).map(capability);
+      return SPEC_PROMPTS.map(capability);
     case "decision":
       return DECISION_PROMPTS.map(capability);
     case "doc":
