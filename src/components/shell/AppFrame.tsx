@@ -11,6 +11,115 @@
  *
  * Anatomy: PROTOTYPE-v2.html. Styles: src/styles/shell.css. Tokens:
  * src/styles/ink.css. Nothing here carries a literal colour or size.
+ *
+ * ==================================================================
+ * THE SEVEN QUESTIONS (SURFACE-JUSTIFICATION.md), answered for the
+ * chrome. Re-answered 2026-07-30 after the founder's complaint:
+ *
+ *   "In our current prototype, on top we have a number of agents
+ *    running, there is a status bar, all those things. So those
+ *    things are getting missed as of now."
+ *
+ * He was right and it was measurable: this file rendered ZERO agent
+ * marks. The live line was a coloured dot and a sentence. The product
+ * claims agents do the work, and the most-seen surface in it showed
+ * none of them.
+ *
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO?
+ *    Nobody comes to the chrome. It is what a person reads on the way
+ *    to somewhere else, roughly once a minute, all day. So it owes
+ *    them one thing on arrival: is anything happening, and does any
+ *    of it involve me. Anything beyond that is furniture asking to be
+ *    read, and the header is the worst place in the product to put a
+ *    thing that has to be read.
+ *
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE.
+ *    Knowing what the workspace is doing without going to look. The
+ *    live line is the whole answer; the brand, the scope, the rail
+ *    and Ask are doors, not information.
+ *
+ * 3. KEEP / MOVE / KILL.
+ *    KEEP  brand, scope, rail, Ask, the account disc. All doors, each
+ *          one the only route to somewhere.
+ *    KEEP  the live line's fact grammar: lead, then two facts that
+ *          drop at 1100 and 860 rather than truncating, so what
+ *          remains is always a whole true statement.
+ *    NEW   the agent marks. The prototype's #liveRun draws three
+ *          overlapping marks before it says "3 agents are working",
+ *          and that ordering is the point: WHO first, count second.
+ *          This is the founder's complaint, and it is the only thing
+ *          the chrome was genuinely missing.
+ *    KILL  the run chip the prototype's run screen carries ("Run 41").
+ *          Three reasons, and any one of them is enough. The run's
+ *          identity is already the page headline AND the seven-stage
+ *          strip immediately under this header, so a chip is the
+ *          third statement of the same fact inside 100 pixels (hard
+ *          ban 10). It would need a per-route branch or a second
+ *          publish channel, and "no per-route branch" is the disease
+ *          this file was written to cure. And the app has no run
+ *          NUMBER: a mission is a uuid with a title, so the chip
+ *          could only be drawn by inventing a sequence, which is the
+ *          one thing never allowed.
+ *    KILL  the chevron the prototype puts at the end of the run
+ *          screen's live line. It meant "this collapses the strip",
+ *          and the founder ruled on 2026-07-29 that the strip is
+ *          permanent. An affordance for an action that no longer
+ *          exists is worse than no affordance.
+ *
+ * 4. WHAT IS ONE CLICK AWAY INSTEAD OF ON THE SURFACE.
+ *    Everything. Off a run the live line IS the click, to /runs. The
+ *    count of things waiting on you stays in the rail as a hot number
+ *    beside Today rather than being spelled out here twice.
+ *
+ * 5. WHAT WOULD DELIGHT, AND WHAT WOULD CONFUSE.
+ *    The moment: you glance up and see Engineer's own silhouette
+ *    turning, in the Build hue, and the header says "Engineer is
+ *    working". The machine has a face and it is at work. What would
+ *    confuse, and is refused: a mark for an agent we cannot name.
+ *
+ * 6. WHERE DOES THE CREW APPEAR, AND WHAT DOES IT PROVE?
+ *    Here, permanently, which is the strongest available answer:
+ *    remove the agents and this header has nothing to say. Attribution
+ *    is a drawn silhouette per worker, not a word. Work in motion is
+ *    visible while it happens and stops the moment it does. Nothing
+ *    overclaims: see the honesty rule below.
+ *
+ * 7. WOULD A STRANGER RECOGNISE WHAT THEY ARE LOOKING AT?
+ *    IDENTITY, AND IT IS DRAWN. Thirteen silhouettes (agent-glyphs),
+ *    shape saying which agent and hue saying which of the seven loop
+ *    stages, so a stranger learns the encoding here and reads it
+ *    everywhere else. SCANNING PATH: the marks win, because they are
+ *    the only drawn thing in a line of words and the only coloured
+ *    thing in a monochrome header. THE EMPTIEST REALISTIC STATE is
+ *    the one most users see most of the time: nothing running. It
+ *    reads "Nothing running", in a quiet grey dot, with the last
+ *    finished run named beside it. Calm, and unmistakably not broken:
+ *    a header that reported nothing at all would look broken, and one
+ *    that invented activity would be lying. A brand-new workspace
+ *    with no history at all drops the trailing facts and says
+ *    "Nothing running" on its own, which is true on day one.
+ *
+ * THE HONESTY RULE, and it is the whole reason this is not simply
+ * "draw a mark per running mission". `missions.current_agent_id` is a
+ * UUID, not a slug (run-state.ts records the same finding), so the
+ * catalog cannot name it and a raw uuid fed to agentDisplayName would
+ * be title-cased onto the screen. So the shell resolves the uuid
+ * through the account's own roster, and draws:
+ *   · a NAMED agent's own silhouette where the roster resolves it;
+ *   · the generic circle labelled "The crew" where it does not, which
+ *     is the fallback the Build surface already uses. Unspecific and
+ *     true beats specific and invented.
+ * And the LEAD only counts agents when every running run resolved.
+ * The moment one did not, it counts runs instead, because the number
+ * of agents is then unknown and a header may not guess.
+ *
+ * COLOUR, and ONE BLINK. A working mark takes its stage hue. A mark
+ * waiting on you takes ember, in the `waiting` state and never `gate`:
+ * `gate` blinks, exactly one thing in the product may blink, and that
+ * one thing is the call actually in front of you on Today or on
+ * /approvals, never a persistent header that is mounted beside it. A
+ * chrome with nothing happening stays monochrome.
+ * ==================================================================
  */
 
 import * as React from "react";
@@ -21,9 +130,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { stageHueForStation } from "./agent-glyphs";
+import { MarkStack } from "./primitives";
 import { RunStripProvider, STAGE_LABEL, type RunStripSpec } from "./run-strip";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { supabase } from "@/integrations/supabase/client";
 import { listMissions } from "@/lib/missions.functions";
+import { listAgents } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import {
   IconAsk,
@@ -63,6 +175,32 @@ function initialsFrom(email: string | null | undefined, name?: string | null): s
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+/** What the shell needs off the account's roster: a uuid, and the slug the
+ *  agent catalog can actually draw and name. `listAgents` selects the whole
+ *  row; the shell reads two columns of it and nothing else. */
+type RosterRow = { id: string; slug: string };
+
+/** One drawable worker. `slug` null is the honest unknown: the generic circle
+ *  glyph, labelled by `name`, never a fabricated identity. */
+type Worker = { slug: string | null; name?: string | null };
+
+/** The name for work whose worker we cannot resolve. Matches the Build
+ *  surface (runs/run-state.ts), so the product says one thing everywhere. */
+const CREW = "The crew";
+
+/** What "working" means for a mission, and it is not one string.
+ *
+ *  This line used to test `status === "running"` alone, and that is half the
+ *  truth: `in_progress` is a real status a mission takes in production
+ *  (recorded in ask-blocks.server.ts, and mission-advance.server.ts advances
+ *  both), so a workspace with live work read as "Nothing running" in the
+ *  chrome while every other surface showed it moving. Under-reporting your own
+ *  workspace is the same class of error as inventing a count.
+ *
+ *  `queued` is deliberately NOT here. A queued run has nobody turning on it
+ *  yet, and the live line's whole claim is that somebody is working. */
+const WORKING = new Set(["running", "in_progress"]);
 
 /** Plain-words relative time. Mono digits are applied by the caller. */
 function since(iso: string | null): string | null {
@@ -144,14 +282,70 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
   });
 
-  const rows = missions.data?.missions ?? [];
-  const running = rows.filter((m) => m.status === "running");
+  const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
+  const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
   const gateCount = queue.data?.items.length ?? 0;
+
+  // WHO is working. `missions.current_agent_id` is a uuid, so the roster is the
+  // only way to turn it into a slug the catalog can draw and name; without it
+  // every running agent would be an unnamed circle. The read is deliberately
+  // deferred: it fires the first time work with an agent on it appears, and a
+  // workspace sitting idle (the common case) never pays for it at all.
+  const fetchAgents = useServerFn(listAgents);
+  const needRoster = running.some((m) => !!m.current_agent_id);
+  const roster = useQuery({
+    queryKey: ["shell", "roster"],
+    queryFn: () => fetchAgents(),
+    enabled: needRoster,
+    // The roster is a fixed catalog of thirteen. It does not change during a
+    // session, so it is read once and not polled with the missions.
+    staleTime: 10 * 60_000,
+  });
+  const slugById = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const a of (roster.data?.agents ?? []) as RosterRow[]) {
+      if (a?.id && a?.slug) map.set(a.id, a.slug);
+    }
+    return map;
+  }, [roster.data]);
+
+  // Distinct workers holding a running run, plus a count of the runs whose
+  // worker we could not name. Two runs held by Engineer are ONE working agent,
+  // so the marks are deduplicated and the count follows the marks.
+  const { workers, unnamedRuns } = React.useMemo(() => {
+    const slugs: string[] = [];
+    let unresolved = 0;
+    for (const m of running) {
+      const slug = m.current_agent_id ? (slugById.get(m.current_agent_id) ?? null) : null;
+      if (!slug) unresolved += 1;
+      else if (!slugs.includes(slug)) slugs.push(slug);
+    }
+    const list: Worker[] = slugs.map((slug) => ({ slug }));
+    if (unresolved > 0) list.push({ slug: null, name: CREW });
+    return { workers: list, unnamedRuns: unresolved };
+  }, [running, slugById]);
+
+  // Who is waiting on YOU. The queue names its own owner (a real slug on a
+  // tool-call gate, else the owning station's specialist), which is the same
+  // attribution Today and /approvals draw, so the header cannot disagree with
+  // the surface you land on.
+  const waiting = React.useMemo(() => {
+    const seen = new Set<string>();
+    const list: Worker[] = [];
+    for (const item of queue.data?.items ?? []) {
+      const slug = item.agentSlug ?? null;
+      const key = slug ?? CREW;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push(slug ? { slug } : { slug: null, name: CREW });
+    }
+    return list;
+  }, [queue.data]);
 
   // The most recently touched finished run, for the live line's second fact.
   const lastDone = React.useMemo(() => {
     const done = rows
-      .filter((m) => m.status !== "running" && m.completed_at)
+      .filter((m) => !WORKING.has(m.status) && m.completed_at)
       .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
     return done[0] ?? null;
   }, [rows]);
@@ -166,12 +360,89 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // or withdrawn, which is exactly when a consumer needs to re-render.
   const stripCtx = React.useMemo(() => ({ spec: strip, publish: setStrip }), [strip]);
 
-  // Voice: never greet, always report. The first line is a fact.
-  const liveLead = running.length
-    ? running.length === 1
-      ? "1 run working"
-      : `${running.length} runs working`
-    : "Nothing running";
+  // Voice: never greet, always report. The lead is a fact, and it is a fact we
+  // can prove. Five states, in the order a person cares about them.
+  //
+  // "Reading" and "Cannot see" are not decoration. A header that says "Nothing
+  // running" while the read is still in flight, or after it failed, has told
+  // you something false about your own workspace, which is the same class of
+  // error as a fabricated count.
+  const liveLead = React.useMemo(() => {
+    if (missions.isError) return "Cannot see what is running";
+    if (missions.isLoading) return "Reading";
+    if (running.length === 0) {
+      if (gateCount === 0) return "Nothing running";
+      return gateCount === 1 ? "1 call needs you" : `${gateCount} calls need you`;
+    }
+    // Every running run resolved to a named worker, so the agents are
+    // countable and the count is the thing worth saying.
+    if (unnamedRuns === 0) {
+      if (workers.length === 1) return `${agentDisplayName(workers[0].slug)} is working`;
+      return `${workers.length} agents are working`;
+    }
+    // At least one run's worker is unknown, so the number of agents is unknown.
+    // Runs are still countable, so it counts those instead of guessing.
+    return running.length === 1 ? "1 run working" : `${running.length} runs working`;
+  }, [missions.isError, missions.isLoading, running.length, gateCount, workers, unnamedRuns]);
+
+  // The two trailing facts, in importance order: the first survives to 860px,
+  // the second goes at 1100px. Positional, so a state that has only one fact
+  // still gives it the slot that lasts longest.
+  const liveFacts = React.useMemo(() => {
+    const out: React.ReactNode[] = [];
+    if (missions.isError || missions.isLoading) return out;
+    if (running.length > 0) {
+      // One run: name it. Several: naming one of them would be arbitrary, so it
+      // says how many there are, which pairs with the agent count in the lead.
+      const only = running.length === 1 ? running[0] : null;
+      out.push(
+        only ? (
+          only.title
+        ) : (
+          <>
+            across <span className="sp-num">{running.length}</span> runs
+          </>
+        ),
+      );
+      // `created_at` is when the mission was opened and dispatched, which is
+      // the only start instant the list read carries. Said in those words
+      // rather than as an elapsed working time we do not have.
+      const started = only ? since(only.created_at) : null;
+      if (started)
+        out.push(
+          <>
+            started <span className="sp-num">{started}</span>
+          </>,
+        );
+      return out;
+    }
+    if (gateCount > 0) {
+      // The one in front. Today opens on the same item, so the header is
+      // naming the call you will actually land on.
+      const first = queue.data?.items[0];
+      if (first?.title) out.push(first.title);
+      const at = first?.timestamp ? since(first.timestamp) : null;
+      if (at) out.push(<span className="sp-num">{at}</span>);
+      return out;
+    }
+    if (lastDone) {
+      out.push(<>last: {lastDone.title}</>);
+      const at = since(lastDone.completed_at);
+      if (at) out.push(<span className="sp-num">{at}</span>);
+    }
+    return out;
+  }, [missions.isError, missions.isLoading, running, gateCount, queue.data, lastDone]);
+
+  // The marks, and the colour law in three lines: a working agent wears its
+  // stage hue, an agent waiting on you wears ember without blinking, and a
+  // chrome with nothing happening wears a grey dot and no colour at all.
+  const liveMarks =
+    running.length > 0 && workers.length > 0 ? (
+      <MarkStack agents={workers} state="running" />
+    ) : running.length === 0 && waiting.length > 0 ? (
+      <MarkStack agents={waiting} state="waiting" />
+    ) : null;
+
   const liveState = running.length ? "running" : gateCount ? "gate" : "idle";
 
   const scopeLabel = activeWorkspace?.name ?? null;
@@ -224,28 +495,28 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   title: "Go to Runs",
                 },
             <>
-              <span className="sp-live-dot" data-state={liveState} />
+              {/* WHO, before how many. A fixed-height slot, so swapping the
+                  quiet dot for a mark stack cannot move the line, and the
+                  header stays 56px in every state. */}
+              <span className="sp-live-who">
+                {liveMarks ?? <span className="sp-live-dot" data-state={liveState} />}
+              </span>
               <span className="sp-live-lead">{liveLead}</span>
-              {lastDone ? (
-                <>
-                  <span className="sp-live-sep" data-drop="2" aria-hidden="true">
-                    &middot;
-                  </span>
-                  <span className="sp-live-fact" data-drop="2">
-                    last: {lastDone.title}
-                  </span>
-                  {since(lastDone.completed_at) ? (
-                    <>
-                      <span className="sp-live-sep" data-drop="1" aria-hidden="true">
-                        &middot;
-                      </span>
-                      <span className="sp-live-fact sp-num" data-drop="1">
-                        {since(lastDone.completed_at)}
-                      </span>
-                    </>
-                  ) : null}
-                </>
-              ) : null}
+              {liveFacts.map((fact, i) => {
+                // Position decides which fact dies first: index 0 is the more
+                // important one and survives to 860px, index 1 goes at 1100px.
+                const drop = i === 0 ? "2" : "1";
+                return (
+                  <React.Fragment key={drop}>
+                    <span className="sp-live-sep" data-drop={drop} aria-hidden="true">
+                      &middot;
+                    </span>
+                    <span className="sp-live-fact" data-drop={drop}>
+                      {fact}
+                    </span>
+                  </React.Fragment>
+                );
+              })}
             </>,
           )}
 
