@@ -37,6 +37,7 @@ import { humanizeText } from "@/lib/ai/humanize";
 import { revertChangesetToRevision } from "@/lib/ai/studio-revert.server";
 import { runRollbackRelease, ghHeaders } from "@/lib/studio-rollbacks";
 import { pickChangesetForPrd } from "@/lib/studio-ship";
+import { agentStation, AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { execGateFromChecks, type ExecGate } from "@/lib/exec/provider";
 import { formatDesignMemoryContext } from "@/lib/design-memory.functions";
@@ -92,6 +93,19 @@ export type StudioSessionListItem = {
   cost_usd: number;
   /** SESSION-ORG: soft-archived (hidden from the default Build list). */
   archived: boolean;
+  /**
+   * Which of the seven stages this run is at, from the station of the agent on
+   * its most recent run. Null when nothing has run yet, which is the true state
+   * of a `proposed` mission: a trigger asked for it and no agent has touched it.
+   *
+   * This is the LIVE stage, not the furthest one reached. It is derived from
+   * the same `agentStation(slug)` catalog the shell header and the run's own
+   * strip use, so the board and the run agree on what "05 Build" means rather
+   * than each inventing a rule. The full seven-stage walk (`getRunStages`) is
+   * far too heavy to run per row and answers a different question anyway: what
+   * this run has DONE, versus where it is standing.
+   */
+  station: AgentStation | null;
 };
 
 export type StudioRunDetail = {
@@ -424,20 +438,26 @@ export const listStudioSessions = createServerFn({ method: "GET" })
     // session's run out of the fetched window (a single shared limit could).
     const { data: runs, error } = await db
       .from("agent_runs")
-      .select("id,mission_id,status,created_at")
+      .select("id,mission_id,status,created_at,agent_slug")
       .eq("user_id", userId)
       .eq("agent_slug", "builder")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
-    const runRows = (runs ?? []) as { id: string; mission_id: string | null; status: string }[];
+    const runRows = (runs ?? []) as {
+      id: string;
+      mission_id: string | null;
+      status: string;
+      created_at: string;
+      agent_slug: string | null;
+    }[];
     const builderMissionIds = [
       ...new Set(runRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
     ];
 
     const { data: otherRuns, error: otherError } = await db
       .from("agent_runs")
-      .select("id,mission_id,status,created_at")
+      .select("id,mission_id,status,created_at,agent_slug")
       .eq("user_id", userId)
       .neq("agent_slug", "builder")
       .order("created_at", { ascending: false })
@@ -447,7 +467,33 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       id: string;
       mission_id: string | null;
       status: string;
+      created_at: string;
+      agent_slug: string | null;
     }[];
+
+    /**
+     * The stage each mission is standing at: the station of the agent on its
+     * MOST RECENT run.
+     *
+     * The re-sort is load-bearing and not tidiness. Each query is ordered
+     * created_at desc on its own, but they are two queries, so concatenating
+     * them puts EVERY builder run ahead of EVERY other-agent run regardless of
+     * time. A mission that built and then handed off to a shipper would read as
+     * still building, which is the exact class of "further along than it is"
+     * lie the strip's own state vocabulary was written to avoid. Merging by
+     * timestamp is what makes "most recent" mean most recent.
+     *
+     * An unrecognised slug maps to null rather than to a guess. A run whose
+     * agent is not in the catalog is at no stage we can name, and naming one
+     * anyway would file a run under a heading it does not belong to.
+     */
+    const stationByMission = new Map<string, AgentStation | null>();
+    for (const r of [...runRows, ...otherRunRows].sort((a, b) =>
+      a.created_at < b.created_at ? 1 : -1,
+    )) {
+      if (!r.mission_id || stationByMission.has(r.mission_id)) continue;
+      stationByMission.set(r.mission_id, agentStation(r.agent_slug));
+    }
     const otherMissionIds = [
       ...new Set(otherRunRows.map((r) => r.mission_id).filter((m): m is string => !!m)),
     ].filter((id) => !builderMissionIds.includes(id));
@@ -476,7 +522,7 @@ export const listStudioSessions = createServerFn({ method: "GET" })
       await Promise.all([
         db
           .from("missions")
-          .select("id,title,goal,status,created_at,updated_at,archived_at")
+          .select("id,title,goal,status,created_at,updated_at,archived_at,current_agent_id")
           .in("id", missionIds),
         db
           .from("studio_changesets")
@@ -582,6 +628,63 @@ export const listStudioSessions = createServerFn({ method: "GET" })
     const builder = await costAndStatusByMission(runRows);
     const other = await costAndStatusByMission(otherRunRows);
 
+    /**
+     * The stage a mission that has NOT RUN YET is standing at.
+     *
+     * A `proposed` mission has zero agent_runs by design (the trigger tick's own
+     * HITL gate: nothing runs until a human launches it), so the station derived
+     * from runs above is null for every one of them. Dropping them would leave
+     * the board's strip reading "none" seven times while the list underneath is
+     * full, which looks broken and is not what the record says: the trigger
+     * pre-routes these, `sensing/trigger.ts` sets `current_agent_id` so the
+     * mission "arrives pre-routed to the right Sense agent".
+     *
+     * This is a FALLBACK, never an override. A mission that has run is at the
+     * stage it ran at, because where an agent actually went beats where it was
+     * once addressed.
+     *
+     * AND THE LAST RESORT, which is a derivation and not a guess. Cluster and
+     * missed-outcome proposals carry no assignment at all (documented in
+     * trigger.ts), and on a real workspace they are the majority: 17 of 19 runs
+     * on the founder's board resolved to nothing, so the seven-stage strip read
+     * "none" six times over a full list. That is not honesty, it is a broken
+     * instrument.
+     *
+     * A `proposed` mission stands at the FIRST stage of the spine, because it
+     * has not entered the lifecycle: nothing has been decided, planned,
+     * designed, built, shipped or learned. Position zero in an ordered spine is
+     * where a thing that has not moved is, which is a fact about the ordering
+     * rather than a claim about the work.
+     *
+     * Two things keep this from drifting into a lie. It reads the ORDER rather
+     * than hard-coding "sense", so re-ordering the spine moves it. And it is
+     * scoped to `status === 'proposed'` rather than to "station came back
+     * null", so it can never quietly absorb some other station-less case: an
+     * uncatalogued agent slug still resolves to null and is still counted
+     * nowhere. The trigger tick is the only writer of that status in the
+     * product (`api/public/hooks/trigger-tick.ts`), and every proposal it
+     * writes is sense-stage work.
+     *
+     * Deliberately NOT used: the stage event the tick records alongside, whose
+     * actor falls back to "strategist". That agent's station is `decide`, so
+     * taking it would file every unassigned cluster investigation one stage too
+     * far along. It names who logged the proposal, not who will do it.
+     */
+    const routedIds = [
+      ...new Set(
+        ((missions ?? []) as Array<{ id: string; current_agent_id: string | null }>)
+          .filter((m) => !stationByMission.get(m.id) && m.current_agent_id)
+          .map((m) => m.current_agent_id as string),
+      ),
+    ];
+    const slugByAgentId = new Map<string, string>();
+    if (routedIds.length) {
+      const { data: agentRows } = await db.from("agents").select("id,slug").in("id", routedIds);
+      for (const a of (agentRows ?? []) as { id: string; slug: string }[]) {
+        slugByAgentId.set(a.id, a.slug);
+      }
+    }
+
     const sessions = (
       (missions ?? []) as Array<{
         id: string;
@@ -591,6 +694,7 @@ export const listStudioSessions = createServerFn({ method: "GET" })
         created_at: string;
         updated_at: string;
         archived_at: string | null;
+        current_agent_id: string | null;
       }>
     )
       // SESSION-ORG: hide archived sessions unless explicitly requested.
@@ -614,6 +718,10 @@ export const listStudioSessions = createServerFn({ method: "GET" })
           pending_approvals: pendingByMission.get(m.id) ?? 0,
           cost_usd: Number((costByMission.get(m.id) ?? 0).toFixed(4)),
           archived: !!m.archived_at,
+          station:
+            stationByMission.get(m.id) ??
+            (m.current_agent_id ? agentStation(slugByAgentId.get(m.current_agent_id)) : null) ??
+            (m.status === "proposed" ? AGENT_STATION_ORDER[0] : null),
         };
       })
       .sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));

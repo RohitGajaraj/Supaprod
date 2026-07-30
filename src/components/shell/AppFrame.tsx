@@ -447,6 +447,20 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   const scopeLabel = activeWorkspace?.name ?? null;
 
+  /* THE ONE THING ON THE STRIP THAT MOVES.
+   * A gate outranks a run in progress, because the gate is the one asking for a
+   * person. If nothing is gated, the running stage gets the motion, which is
+   * what makes progress visible as it walks the spine. If neither, nothing
+   * moves, and a still strip is the honest picture of a still workspace. */
+  const blinkStation = React.useMemo(() => {
+    if (!strip) return null;
+    return (
+      strip.stages.find((s) => s.state === "gate")?.station ??
+      strip.stages.find((s) => s.state === "working")?.station ??
+      null
+    );
+  }, [strip]);
+
   return (
     <RunStripProvider value={stripCtx}>
       <div
@@ -537,17 +551,37 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Permanent whenever a run published one. No collapse, by ruling. */}
+        {/* Permanent whenever a run surface published one. No collapse, by
+          ruling. Two modes, and the ARIA is not cosmetic: a tablist promises
+          exactly one selection at all times, which is a lie on the board,
+          where opening unfiltered is the normal state. So the board is a group
+          of toggles and says so. See run-strip.tsx. */}
         {strip ? (
-          <div className="sp-strip" role="tablist" aria-label="The seven stages of this run">
+          <div
+            className="sp-strip"
+            role={(strip.mode ?? "tab") === "tab" ? "tablist" : "group"}
+            aria-label={strip.label ?? "The seven stages of this run"}
+          >
             {strip.stages.map((stage, i) => {
               const on = stage.station === strip.active;
+              const asTab = (strip.mode ?? "tab") === "tab";
+              // THE ONE BLINK, enforced here rather than trusted to callers.
+              // SYSTEM.md: "`gate` blinks and is the only blink in the system,
+              // so exactly one mark on a screen may wear it... A list that gave
+              // every pending row `gate` blinked a dozen marks at once and
+              // spent the whole restraint budget." Every gated stage still
+              // wears its ember dot so you can see all of them without opening
+              // anything; only the first one moves. This component is the only
+              // place that can see all seven at once, so it is the only place
+              // that can hold the rule.
+              const moving = stage.station === blinkStation;
               return (
                 <button
                   key={stage.station}
                   type="button"
-                  role="tab"
-                  aria-selected={on}
+                  role={asTab ? "tab" : undefined}
+                  aria-selected={asTab ? on : undefined}
+                  aria-pressed={asTab ? undefined : on}
                   className="sp-stage"
                   data-state={stage.state}
                   data-on={on ? "true" : "false"}
@@ -557,6 +591,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   <span className="sp-stage-n">{String(i + 1).padStart(2, "0")}</span>
                   <span className="sp-stage-name">{STAGE_LABEL[stage.station]}</span>
                   <span className="sp-stage-state">{stage.note}</span>
+                  {/* The dot repeats what the note already says in words, for
+                    the glance that does not read. It is aria-hidden for the
+                    same reason: a screen reader gets "2 waiting on you" and
+                    does not need "dot" after it. */}
+                  {stage.state === "gate" || stage.state === "working" ? (
+                    <span
+                      className="sp-stage-dot"
+                      data-kind={stage.state}
+                      data-moving={moving ? "true" : "false"}
+                      aria-hidden="true"
+                    />
+                  ) : null}
                 </button>
               );
             })}

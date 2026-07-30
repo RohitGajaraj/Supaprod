@@ -596,7 +596,10 @@ export function OpportunityDetailSheet({
     },
     onSuccess: (res) => {
       onOpenChange(false);
-      navigate({ to: "/build", search: { mission: res.mission_id } });
+      // Straight to the run's own surface, which is where the seven-stage
+      // strip lives. This used to go to /build?mission=, a URL that now only
+      // redirects, so it cost the person an extra hop on the way in.
+      navigate({ to: "/runs/$missionId", params: { missionId: res.mission_id } });
     },
     onError: (e: Error) => toast.error(e.message),
   });

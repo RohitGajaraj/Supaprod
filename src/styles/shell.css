@@ -396,6 +396,11 @@
 .sp-stage-state {
   font-size: var(--sp-text-label);
   color: var(--sp-mute);
+  /* The line keeps its height when it has no words. A quiet stage says nothing
+   * (founder ruling 2026-07-30, "cant it be empty?") and the strip must not
+   * change height as stages go quiet and busy, or the whole page nudges under
+   * the reader every few seconds. */
+  min-height: 1.2em;
 }
 /* State, never decoration: quiet stages stay grey, the working one takes its
  * own stage hue, and only a stage waiting on you wears ember.
@@ -421,6 +426,65 @@
 }
 .sp-stage[data-state="gate"] .sp-stage-state {
   color: var(--sp-gate);
+}
+
+/* ---------- the glance ----------
+ * FOUNDER RULING 2026-07-30: "some sort of small status while agents is
+ * running, small blue dot in pulsing, and if something is gated for human, some
+ * ember dot on the top right of the station in that 7 stage strip, so that user
+ * will know even without opening each tab."
+ *
+ * The dot repeats what the note already says in words. That redundancy is the
+ * point and is not the redundant-writing ban: one is for reading, one is for
+ * the glance that does not read, and they are in different channels.
+ *
+ * MOTION IS RATIONED TO ONE. SYSTEM.md: "`gate` blinks and is the only blink in
+ * the system, so exactly one mark on a screen may wear it... A list that gave
+ * every pending row `gate` blinked a dozen marks at once and spent the whole
+ * restraint budget." So every gated stage wears its ember dot (you see all of
+ * them without opening anything, which is what was asked for) and exactly one
+ * of them moves. AppFrame picks it, because it is the only place that can see
+ * all seven at once. */
+.sp-stage-dot {
+  position: absolute;
+  top: 2px;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sp-hue, var(--sp-stage-build));
+}
+.sp-stage-dot[data-kind="gate"] {
+  background: var(--sp-gate);
+}
+/* A slow breathe, not a strobe: this sits in permanent chrome that a person
+ * reads all day, so it has to be catchable in peripheral vision without ever
+ * becoming the thing you are trying to ignore. */
+@keyframes sp-stage-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+.sp-stage-dot[data-moving="true"] {
+  animation: sp-stage-breathe 2s var(--sp-ease) infinite;
+}
+/* Motion is the one channel some people cannot use, and it is never the only
+ * carrier of a fact here: the note beside it already says "2 waiting on you" in
+ * words. So it is safe to simply stop. */
+@media (prefers-reduced-motion: reduce) {
+  .sp-stage-dot[data-moving="true"] {
+    animation: none;
+  }
+}
+/* The dot sits where the number is, so the number yields the corner. */
+.sp-stage-n {
+  padding-right: 10px;
 }
 
 /* ---------- the two lower regions ---------- */

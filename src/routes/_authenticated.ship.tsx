@@ -102,6 +102,7 @@ import {
   Surface,
   Textarea,
 } from "@/components/shell/primitives";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** Anti-scroll: each list opens short and expands on demand. */
 const VISIBLE = 6;
@@ -173,6 +174,9 @@ function stateLine(a: AnnouncementRow): string {
 type Mode = { kind: "idle" } | { kind: "new" } | { kind: "edit"; id: string };
 
 function Ship() {
+  // The spine, lit on this station. One shared query across all seven
+  // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
+  useSpineStrip("ship");
   const qc = useQueryClient();
   const { activeWorkspace, activeWorkspaceId } = useWorkspace();
   const wid = activeWorkspaceId ?? "";

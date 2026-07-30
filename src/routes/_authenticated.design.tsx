@@ -135,6 +135,7 @@ import {
   Value,
   Who,
 } from "@/components/shell/primitives";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** One fetch, unfiltered: this surface needs the pending queue and the
  *  in-force count, and both come off the same list. */
@@ -195,6 +196,9 @@ function rowSub(r: DesignWorkRow, gateOn: boolean): string {
 }
 
 function Design() {
+  // The spine, lit on this station. One shared query across all seven
+  // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
+  useSpineStrip("design");
   const qc = useQueryClient();
   const navigate = useNavigate();
 

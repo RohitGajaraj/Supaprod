@@ -224,9 +224,9 @@ import {
   COMPLETION_EVIDENCE_REASON,
 } from "@/lib/build/verification";
 import { RepoGateDialog } from "@/components/studio/RepoGateDialog";
-import { MissionSlideOver } from "@/components/obsidian/MissionSlideOver";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import {
   Actions,
   AgentMark,
@@ -338,6 +338,10 @@ export const Route = createFileRoute("/_authenticated/runs/")({
   validateSearch: (search: Record<string, unknown>) =>
     z
       .object({
+        // Kept, and now only a redirect input. Runs used to open a run in a
+        // slide-over at /runs?mission=<id>; it opens the run's own surface now.
+        // Old bookmarks and the two in-product "go and look at it" hand-offs
+        // still arrive here, so the value is still parsed and then forwarded.
         mission: z.string().optional(),
         view: z.enum(["missions", "agent", "lane", "list", "board"]).optional(),
       })
@@ -677,10 +681,30 @@ function BuildPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Functional form, so opening a run does not discard the rest of the search.
+  /* ---- opening a run ----
+   * A row goes to the run's own surface. It used to open MissionSlideOver, a
+   * component from the retired Obsidian system, over the top of this list.
+   *
+   * That one choice is why the founder could not find the seven-stage strip on
+   * 2026-07-30: /runs/$missionId is the surface that publishes it, and nothing
+   * on this board linked there, so the spine was unreachable by clicking. The
+   * panel also showed less than the run's own surface does (no strip, no stage
+   * panels, a truncated title) while costing a second copy of the same
+   * queries, and it turned every error into a success toast, twice.
+   *
+   * `replace: true` on the redirect keeps Back working: without it, going back
+   * from the run would land on the URL that redirects, and bounce forward. */
   const openRun = (missionId: string) =>
-    navigate({ search: (prev) => ({ ...prev, mission: missionId }) });
-  const closeRun = () => navigate({ search: (prev) => ({ ...prev, mission: undefined }) });
+    navigate({ to: "/runs/$missionId", params: { missionId } });
+
+  React.useEffect(() => {
+    if (!search.mission) return;
+    void navigate({
+      to: "/runs/$missionId",
+      params: { missionId: search.mission },
+      replace: true,
+    });
+  }, [search.mission, navigate]);
 
   const focusComposer = () => {
     const el = document.getElementById(PROMPT_ID);
@@ -716,6 +740,23 @@ function BuildPage() {
           : `${waiting.length} need you.`;
     return `${ran}. ${needs}`;
   }, [loading, sessions.isError, running, waiting.length]);
+
+  /* ---- THE SPINE ----
+   * FOUNDER RULING 2026-07-30: "if you click on the run section, why is that
+   * seven section bar not showing? 01 to 07, Discover to Learn. That needs to
+   * be constantly shown. That needs to be interactive, if I click something
+   * should happen. That is the spine of the model."
+   *
+   * `null` because THIS BOARD IS NOT A STATION. It lists runs, and a run is one
+   * piece of work walking all seven stages. Lighting a chip here would claim
+   * otherwise, which is the same confusion that once put Build's engine at this
+   * route and left the real one unbuilt. The seven chips are on screen with
+   * their live counts, and clicking one opens that station's engine.
+   *
+   * An earlier draft of this made the chips filter this list instead. The
+   * founder replaced that with the stronger reading: a chip is a door into the
+   * stage, not a lens on a list. One gesture, one meaning, everywhere. */
+  useSpineStrip(null);
 
   const visible = showAll ? rows : rows.slice(0, VISIBLE);
 
@@ -958,8 +999,8 @@ function BuildPage() {
             </Failed>
           ) : rows.length === 0 ? (
             <Empty>
-              Nothing has been built here yet. Describe the work above and the crew plans the steps,
-              writes the change, and opens the pull request.
+              Nothing has been built here yet. Describe the work above and the crew plans the
+              steps, writes the change, and opens the pull request.
             </Empty>
           ) : (
             visible.map((s) => {
@@ -1079,8 +1120,6 @@ function BuildPage() {
           )}
         </Block>
       )}
-
-      <MissionSlideOver missionId={search.mission ?? null} onClose={closeRun} />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <AlertDialogContent>

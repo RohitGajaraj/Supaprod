@@ -119,6 +119,7 @@ import {
   Row,
   Surface,
 } from "@/components/shell/primitives";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 export const Route = createFileRoute("/_authenticated/learn")({
   component: Learn,
@@ -145,6 +146,9 @@ function signed(n: number): string {
 }
 
 function Learn() {
+  // The spine, lit on this station. One shared query across all seven
+  // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
+  useSpineStrip("learn");
   const navigate = useNavigate();
   const [name, setName] = React.useState("");
   // Which learning holds the recess. The list is short (the ledger caps

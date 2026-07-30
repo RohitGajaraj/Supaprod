@@ -803,6 +803,13 @@ export const SURFACE_REGISTRY = {
   // the nav rail (AppFrame.tsx).
   "run-stages": { kind: "route", home: "runs", opensFrom: "nav-rail-runs", status: "live" },
 
+  // 05 Build's own engine at /build: every change the crew has written, across
+  // every run. Reached by clicking Build on the seven-stage strip, which is the
+  // only door it has and is the point of it. Build was the one station whose
+  // route was a redirect to /runs (a different axis entirely), so the engine
+  // did not exist until 2026-07-30.
+  "build-engine": { kind: "route", home: "build", opensFrom: "spine-strip", status: "live" },
+
   // ---- Mission Control shell and remaining routes ----
   dashboard: {
     kind: "route",

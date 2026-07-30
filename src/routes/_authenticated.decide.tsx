@@ -100,6 +100,7 @@ import {
   Row,
   Surface,
 } from "@/components/shell/primitives";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** The agent that red-teams a call, named from the one catalog so this page
  *  never hard-codes a display name that the catalog can rename. */
@@ -129,6 +130,9 @@ function verdictSentence(verdict: VerdictWord, name: string): string {
 }
 
 function DecideSurface() {
+  // The spine, lit on this station. One shared query across all seven
+  // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
+  useSpineStrip("decide");
   const navigate = useNavigate();
   const qc = useQueryClient();
   const confirm = useConfirm();

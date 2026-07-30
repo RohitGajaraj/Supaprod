@@ -110,6 +110,7 @@ import {
   type MarkState,
 } from "@/components/shell/primitives";
 import { signalPreview, withTimeout } from "./format";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** The crew that reads for this desk, most relevant first. The fleet already
  * comes back attention-first, so the first one present is the one worth
@@ -144,6 +145,9 @@ function markState(state: string): MarkState {
 const plural = (n: number) => (n === 1 ? "" : "s");
 
 export function DiscoverSurface() {
+  // The spine, lit on this station. One shared query across all seven
+  // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
+  useSpineStrip("sense");
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { activeProductId, activeWorkspaceId, setActiveWorkspaceId, refreshWorkspaces } =

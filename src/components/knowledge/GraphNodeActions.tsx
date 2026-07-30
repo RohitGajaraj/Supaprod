@@ -163,7 +163,10 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
         consequence: `The crew is working on "${node.title || `this ${node.kind}`}" and it spends credits until it finishes or you stop it.`,
         handoff: { slug: "orchestrator", name: "Orchestrator" },
       });
-      navigate({ to: "/build", search: { mission: res.mission_id } });
+      // Straight to the run's own surface, which is where the seven-stage
+      // strip lives. This used to go to /build?mission=, a URL that now only
+      // redirects, so it cost the person an extra hop on the way in.
+      navigate({ to: "/runs/$missionId", params: { missionId: res.mission_id } });
     },
     onError: (e: Error) =>
       commit({

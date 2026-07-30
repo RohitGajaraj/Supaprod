@@ -105,6 +105,7 @@ import {
   Surface,
   type MarkState,
 } from "@/components/shell/primitives";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** The deep-linkable values. The union is a contract with the legacy redirects
  *  (/prds, /roadmap, /stakeholder), so it never shrinks even when a section
@@ -180,6 +181,9 @@ export const Route = createFileRoute("/_authenticated/plan/")({
 });
 
 function PlanPage() {
+  // The spine, lit on this station. One shared query across all seven
+  // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
+  useSpineStrip("define");
   const { view } = Route.useSearch();
   const { activeWorkspaceId } = useWorkspace();
   const navigate = useNavigate();
