@@ -32,7 +32,10 @@ export const CAPABILITY_PREFERENCES: Record<Capability, string[]> = {
     "deepseek/deepseek-v3",
     "qwen/qwen-2.5-coder-32b",
     "openai/gpt-5.5-pro",
-    "google/gemini-2.5-pro",
+    // The retired google/gemini-2.5-pro sat here as the tail fallback until
+    // 2026-07-30. See the note in `reasoning` for why a dead id in a candidate
+    // list is worse than one in the catalog.
+    "google/gemini-3-flash-preview",
   ],
   reasoning: [
     // BYO-key providers first: when the platform operator has configured a key, these win
@@ -48,27 +51,22 @@ export const CAPABILITY_PREFERENCES: Record<Capability, string[]> = {
     "xai/grok-2-1212",
     "xai/grok-4",
     // Managed-gateway fallbacks (no key needed, but shared quota; Gemini is the free floor).
-    "google/gemini-2.5-pro",
-    "google/gemini-2.5-flash",
-  ],
-  vision: [
-    "google/gemini-2.5-pro",
+    // `google/gemini-2.5-pro` used to head this floor and was removed 2026-07-30:
+    // Google retired it ("no longer available to new users") and it is now
+    // `deprecated` in the catalog. The chokepoint's `activeModelId` hop runs
+    // BEFORE capability routing, so a dead id chosen here would not be
+    // rerouted; a candidate list is the wrong place to leave one.
     "google/gemini-3-flash-preview",
-    "openai/gpt-5",
     "google/gemini-2.5-flash",
   ],
+  vision: ["google/gemini-3-flash-preview", "openai/gpt-5", "google/gemini-2.5-flash"],
   "fast-chat": [
     "google/gemini-2.5-flash-lite",
     "google/gemini-2.5-flash",
     "openai/gpt-5-nano",
     "google/gemini-3-flash-preview",
   ],
-  "long-context": [
-    "google/gemini-2.5-pro",
-    "google/gemini-3-flash-preview",
-    "minimax/minimax-text-01",
-    "moonshot/kimi-k2",
-  ],
+  "long-context": ["google/gemini-3-flash-preview", "minimax/minimax-text-01", "moonshot/kimi-k2"],
   // No dedicated image-generation model in the chat catalog yet; an image-gen route
   // currently has no candidate and falls back to the caller's default (extensible).
   "image-gen": [],

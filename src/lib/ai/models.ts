@@ -77,14 +77,34 @@ export const MODELS: Model[] = [
     capabilities: ["fast-chat", "vision", "long-context"],
   },
   {
+    // RETIRED BY GOOGLE, verified 2026-07-30 against the live endpoint:
+    //   404 "This model models/gemini-2.5-pro is no longer available to new
+    //   users. Please update your code to use a newer model."
+    // It was still flagged live here and still first in the `reasoning`,
+    // `vision` and `long-context` capability lists, so every hard-surface call
+    // that capability routing sent here 404'd. This is the first real use of
+    // the deprecation playbook the catalog was built with: `activeModelId`
+    // reroutes the traffic at the chokepoint, and the entry stays so an old
+    // conversation or a saved default still resolves instead of erroring.
+    //
+    // The replacement is Gemini 3 Flash, which is already the product default
+    // and therefore proven reachable on BOTH paths (the managed gateway and
+    // the direct Google endpoint used in local dev). `gemini-3.1-pro-preview`
+    // is the closer successor by tier and answers on the direct endpoint, but
+    // whether the managed gateway exposes it is unverified from here, and
+    // `live: true` on a model the gateway does not carry would trade a 404 in
+    // one place for a 404 in another. Promote it once someone can check.
     id: "google/gemini-2.5-pro",
     label: "Gemini 2.5 Pro",
     provider: "google",
     tier: "reasoning",
     contextK: 2000,
-    desc: "Deep reasoning, vision, long context.",
-    live: true,
+    desc: "Retired by Google. Calls route to Gemini 3 Flash.",
+    live: false,
     capabilities: ["reasoning", "vision", "long-context"],
+    deprecated: true,
+    replacement: "google/gemini-3-flash-preview",
+    sunset: "2026-07-30",
   },
   {
     id: "google/gemini-2.5-flash",
@@ -389,6 +409,12 @@ export function activeModelId(id: string, catalog: Model[] = MODELS): string {
 
 /**
  * Lightweight task-aware router. Picks an appropriate live model.
+ *
+ * Every branch returns through `activeModelId`, so the docstring stays true as
+ * the catalog ages: when a provider retires a model the deprecation entry moves
+ * this router with it, instead of leaving a hardcoded id here that quietly
+ * became a 404. (Which is exactly what happened to `google/gemini-2.5-pro` on
+ * the reasoning and vision branches, retired by Google on 2026-07-30.)
  */
 export function routeModel(opts: {
   task?: "chat" | "code" | "reasoning" | "summarize" | "vision";
@@ -399,17 +425,17 @@ export function routeModel(opts: {
     const m = MODELS.find((x) => x.id === opts.preferred && x.live);
     if (m) return m.id;
   }
-  if (opts.costSensitive) return "google/gemini-2.5-flash-lite";
+  if (opts.costSensitive) return activeModelId("google/gemini-2.5-flash-lite");
   switch (opts.task) {
     case "code":
-      return "openai/gpt-5.4";
+      return activeModelId("openai/gpt-5.4");
     case "reasoning":
-      return "google/gemini-2.5-pro";
+      return activeModelId("google/gemini-2.5-pro");
     case "vision":
-      return "google/gemini-2.5-pro";
+      return activeModelId("google/gemini-2.5-pro");
     case "summarize":
-      return "google/gemini-2.5-flash";
+      return activeModelId("google/gemini-2.5-flash");
     default:
-      return DEFAULT_MODEL;
+      return activeModelId(DEFAULT_MODEL);
   }
 }

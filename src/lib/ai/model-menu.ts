@@ -13,6 +13,7 @@
  * mechanism (3 named classes -> a model id, gated Pro+) is final.
  */
 import type { PlanTier } from "../entitlements";
+import { activeModelId } from "./models";
 
 export type ModelMenuClass = "fast" | "balanced" | "deep";
 
@@ -64,6 +65,12 @@ export function modelMenuAvailable(tier: PlanTier): boolean {
  * to. Falls back to "balanced" for an unset/unknown class, and refuses to apply the
  * dial at all for a tier that does not have the menu (Free) — callers on Free ignore
  * this and stay on pure Auto routing. Pure.
+ *
+ * The id goes through `activeModelId` so the menu cannot outlive the catalog: "Deep"
+ * still names google/gemini-2.5-pro, which Google retired on 2026-07-30, and a person
+ * paying for the deep dial should get the model that replaced it rather than a 404. The
+ * three classes are a promise about EFFORT, not about a specific vendor id, so following
+ * the deprecation is what keeps the promise.
  */
 export function resolveModelMenuChoice(
   tier: PlanTier,
@@ -71,7 +78,7 @@ export function resolveModelMenuChoice(
 ): string | null {
   if (!modelMenuAvailable(tier)) return null;
   if (!choice) return null;
-  return modelMenuOption(choice).modelId;
+  return activeModelId(modelMenuOption(choice).modelId);
 }
 
 /** Re-exported for callers that want the entitlement check alongside the menu. */

@@ -109,8 +109,25 @@ function capabilityRoutingEnabled(): boolean {
 
 // A model is reachable when it is gateway-live OR the platform operator has configured a key
 // for its provider (AI_PROVIDER_<P>_KEY). Used to keep capability routing to callable models.
+//
+// "GATEWAY-LIVE" IS A CLAIM ABOUT THE GATEWAY, so it is only true when there is a gateway.
+// `resolveGateway` has two modes: with LOVABLE_API_KEY every `live` model is reachable, and
+// without it only `google/*` is, via the GEMINI_API_KEY local-dev route. This predicate
+// asserted the first unconditionally, so on a machine with GEMINI_API_KEY and no
+// LOVABLE_API_KEY, Auto mode would resolve "reasoning" to `openai/gpt-5` (live: true) and
+// `resolveGateway` would then throw "AI is not configured for openai/gpt-5". Auto picked a
+// model the runtime had already decided it could not call.
+//
+// Read per call, like every other env flag here, so a key added to .env takes effect on the
+// next request rather than at process start. In the deployed Worker LOVABLE_API_KEY is always
+// injected, so this branch is a no-op there and behaviour is unchanged.
 function modelAvailability(): (m: Model) => boolean {
-  return (m) => m.live || isPlatformProviderConfigured(m.provider);
+  const gatewayCarriesEveryLiveModel = !!process.env.LOVABLE_API_KEY;
+  return (m) => {
+    if (isPlatformProviderConfigured(m.provider)) return true;
+    if (!m.live) return false;
+    return gatewayCarriesEveryLiveModel || m.provider === "google";
+  };
 }
 
 // PROVIDER-FALLBACK: an opt-in (AI_PROVIDER_FALLBACK, default OFF) cross-model degrade. When

@@ -12,6 +12,7 @@ import { indexFinding } from "@/lib/rag/findings.server";
 import { resolveAnswerBlocks, type ChunkRef } from "@/lib/ask-blocks.server";
 import type { AnswerBlock } from "@/lib/ask-blocks";
 import { resolveAuditTagContext, type AuditTagContext } from "@/lib/ask-audit-tags.server";
+import { findAuditIds } from "@/lib/audit-id";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { estimateCostUsd } from "@/lib/ai/pricing";
@@ -454,6 +455,25 @@ You must output a JSON object EXACTLY in this format:
           } catch (e) {
             console.error("[chat] intent classification failed (falling back to chat):", e);
           }
+        }
+
+        // A NAMED AUDIT TAG IS NEVER A WEB QUESTION, and the classifier does not
+        // know it. Asked "what happened with DEC·6416AD" it returned mode "web"
+        // with the sub-queries "DEC·6416AD rune news" and "DEC·6416AD market
+        // status", then spent a real web round trip looking for a page that
+        // cannot exist, because a trace tag is an id this workspace minted and
+        // only the record can answer it. It is not deterministic either: the
+        // same question came back "internal" on a later run, so the failure was
+        // intermittent, which is the worst kind to leave in.
+        //
+        // Only the pure-web verdict is overruled. "both" survives untouched: a
+        // question can legitimately compare our own record against the outside
+        // world ("how does MIS·X compare to what Vercel shipped"), and the tag
+        // being present is not a reason to stop looking outward. "chat" and
+        // "internal" already read the workspace, so neither needs a nudge.
+        if (researchMode === "web" && findAuditIds(body.content).length > 0) {
+          researchMode = "internal";
+          subQueries = [];
         }
 
         // 2. Resolve default workspace & check pre-flight constraints

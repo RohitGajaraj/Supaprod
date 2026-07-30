@@ -32,12 +32,31 @@ describe("selectModelForCapability", () => {
   });
 
   test("an explicit, capable, available requested model is respected", () => {
+    // Deliberately NOT the model the preference list would pick on its own
+    // (that is openai/gpt-5, asserted above), so this proves the request won
+    // rather than coinciding with policy. It used to name google/gemini-2.5-pro,
+    // which stopped being a valid example on 2026-07-30 when Google retired it
+    // and the catalog marked it non-live: the test then passed or failed on the
+    // model's availability instead of on the behaviour it is describing.
+    const id = selectModelForCapability({
+      capability: "reasoning",
+      requested: "openai/gpt-5.5-pro",
+      isAvailable: liveOnly,
+    });
+    expect(id).toBe("openai/gpt-5.5-pro");
+  });
+
+  test("a RETIRED requested model is not respected, however explicit the pick", () => {
+    // The catalog's guarantee, and the reason `live` is load-bearing: an id a
+    // provider has switched off must never come back from the router, even when
+    // the caller asks for it by name. gemini-2.5-pro is the real retired entry.
     const id = selectModelForCapability({
       capability: "reasoning",
       requested: "google/gemini-2.5-pro",
       isAvailable: liveOnly,
     });
-    expect(id).toBe("google/gemini-2.5-pro");
+    expect(id).not.toBe("google/gemini-2.5-pro");
+    expect(id).toBe("openai/gpt-5");
   });
 
   test("an explicit but INCAPABLE requested model is NOT respected (falls to policy)", () => {

@@ -6,6 +6,7 @@ import {
   resolveModelMenuChoice,
   planAllowsModelMenu,
 } from "./model-menu";
+import { activeModelId } from "./models";
 
 describe("MODEL_MENU (PR-B2 Balanced/Deep/Fast)", () => {
   it("has exactly the three named classes", () => {
@@ -51,6 +52,16 @@ describe("resolveModelMenuChoice", () => {
 
   it("resolves a valid choice to its model id on a paid tier", () => {
     expect(resolveModelMenuChoice("pro", "fast")).toBe(modelMenuOption("fast").modelId);
-    expect(resolveModelMenuChoice("team", "deep")).toBe(modelMenuOption("deep").modelId);
+  });
+
+  it("follows the catalog when a class points at a model the provider retired", () => {
+    // "Deep" still names google/gemini-2.5-pro, retired by Google 2026-07-30 and
+    // marked deprecated in the catalog. The dial is a promise about effort, not
+    // about a vendor id, so it must resolve to the live replacement rather than
+    // hand the chokepoint a 404. Asserted against activeModelId, not a hardcoded
+    // id, so this keeps testing the behaviour after the next retirement too.
+    const deep = resolveModelMenuChoice("team", "deep");
+    expect(deep).toBe(activeModelId(modelMenuOption("deep").modelId));
+    expect(deep).not.toBe("google/gemini-2.5-pro");
   });
 });
