@@ -11,6 +11,7 @@ import { retrieve } from "@/lib/rag/retriever.server";
 import { indexFinding } from "@/lib/rag/findings.server";
 import { resolveAnswerBlocks, type ChunkRef } from "@/lib/ask-blocks.server";
 import type { AnswerBlock } from "@/lib/ask-blocks";
+import { resolveAuditTagContext, type AuditTagContext } from "@/lib/ask-audit-tags.server";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { estimateCostUsd } from "@/lib/ai/pricing";
@@ -799,6 +800,26 @@ You must output a JSON object EXACTLY in this format:
             streamAbort.abort();
           });
         }
+        // AN ID IN THE QUESTION IS A LOOKUP, NOT A GUESS. `findAuditIds` could
+        // pull "MIS·600000" out of a sentence since 2026-07-13 and nothing ever
+        // called it, so a person naming a trace id got a model with no record:
+        // it either invented a plausible mission or said it did not know, with
+        // the row one query away. This resolves the named tags against the
+        // record BEFORE synthesis, so the model reads facts instead of
+        // guessing, and reads an explicit miss instead of filling one in.
+        //
+        // Kicked off here so it runs in parallel with research, which is the
+        // expensive phase, and the lookup is usually free in wall time. It gets
+        // the same RLS-scoped client as everything else on this path, so a tag
+        // from another workspace resolves to not-found and never to a title.
+        const auditTagsPromise: Promise<AuditTagContext> = resolveAuditTagContext(
+          supabase,
+          body.content,
+        ).catch((e) => {
+          console.error("[chat] audit tag lookup failed (skipping):", e);
+          return { block: "", resolved: [] };
+        });
+
         const stream = new ReadableStream<Uint8Array>({
           cancel() {
             streamAbort.abort();
@@ -871,6 +892,21 @@ You must output a JSON object EXACTLY in this format:
               }
             }
 
+            // The named records, resolved. Awaited here rather than earlier so
+            // the lookup overlapped the research phase instead of queueing
+            // behind it. It never rejects, so there is no branch to take.
+            const auditTags = await auditTagsPromise;
+            // An entity the person NAMED outranks one retrieval merely brushed,
+            // so its card claims a slot first: collectEntityRefs keeps
+            // first-seen order and caps at three. Kinds with no card shape
+            // (a learning, a meeting) are dropped there, so passing all twelve
+            // traceable kinds through is safe and stays correct if the card
+            // vocabulary grows.
+            const namedRefs: ChunkRef[] = auditTags.resolved
+              .filter((t) => t.state === "found" && !!t.kind && !!t.entityId)
+              .map((t) => ({ source_kind: t.kind as string, source_id: t.entityId }));
+            if (namedRefs.length > 0) chunkRefs = [...namedRefs, ...chunkRefs];
+
             // PC-36 C: receipts-first typed answer blocks. Resolved
             // deterministically from what retrieval actually touched (plus
             // temporal/status intent), fetched RLS-scoped, and emitted BEFORE
@@ -931,6 +967,10 @@ ${grounding}`,
 - Cite sources inline as [n] for every claim drawn from a numbered source below. Web and workspace sources share ONE numbering space.
 - Only use citation numbers that exist below — never fabricate citations. Do not print raw URLs for cited sources.
 - If sources conflict, say so and prefer the most recent or most authoritative one.`);
+            // Ahead of retrieval and precedent on purpose: those are passages
+            // the system chose, this is the record the PERSON named, and it is
+            // the only block here that can contradict the answer outright.
+            if (auditTags.block) systemParts.push(auditTags.block);
             if (ragBlock) systemParts.push(ragBlock);
             if (precedentBlock) systemParts.push(precedentBlock);
             if (webBlock) systemParts.push(webBlock);
