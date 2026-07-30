@@ -7,6 +7,7 @@ import { advanceMissionCore, type MissionLite } from "@/lib/ai/mission-advance.s
 import { classifyMissionGate } from "@/lib/reliability/gate-state";
 import { withJobRun } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { DEFAULT_STUCK_MS, isRunStuck, stuckReason } from "@/lib/reliability/stuck-runs";
 
 // agent_approvals.run_id is new in the f_studio_engine migration — not in the
 // generated types until they regenerate post-apply (F-V5 untyped-cast pattern).
@@ -49,6 +50,23 @@ const REPLAN_BATCH = 2;
 // 'halted' so it can never permanently monopolize the fixed REPLAN_BATCH slots
 // and starve fresh dispatches behind it. Env-tunable; 20 minutes by default.
 const ABANDON_MS = Math.max(60_000, Number(process.env.REPLAN_ABANDON_MS) || 20 * 60 * 1000);
+/**
+ * The ceiling on a RUN that claims to be in flight and shows no sign of life.
+ *
+ * ABANDON_MS above is not this, and the difference is the founder's 2026-07-30
+ * finding: it only fires when `stepCount === 0 && activeRuns === 0`, so it
+ * gives up on missions that never PLANNED and has nothing to say about a
+ * planned mission whose worker died mid-step. That shape had no ceiling at all,
+ * which is how a run sat at status='running' for fifteen days on his own
+ * workspace while the header reported it as live.
+ *
+ * Floored well above STALE_MS so resume gets roughly sixty attempts to rescue a
+ * run before anything is given up on. See lib/reliability/stuck-runs.ts for the
+ * rule, and in particular for why waiting_approval is never swept.
+ */
+const STUCK_MS = Math.max(10 * 60_000, Number(process.env.RUN_STUCK_MS) || DEFAULT_STUCK_MS);
+/** Bounded per tick, so a bad day cannot turn one cron pass into a mass halt. */
+const STUCK_BATCH = 20;
 
 export const Route = createFileRoute("/api/public/hooks/resume-runs")({
   server: {
@@ -87,6 +105,93 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               }
               return { runsByMission, pendingByMission };
             };
+
+            /* ---- THE STUCK-RUN CEILING ----
+             * Runs at running/queued that have shown no sign of life past the
+             * ceiling. Nothing is coming back for these: resume has had ~60
+             * attempts by now, and one of them either never reached a model or
+             * lost its worker mid-flight.
+             *
+             * The halt is written with a REASON in plain words, which serves
+             * two readers. A person sees it on the stopped run. The next agent
+             * sees it too, because advanceMissionCore copies halted_reason onto
+             * the failed step, so the mission's own plan carries the cause
+             * forward instead of a bare "failed" and the DAG can terminalize
+             * rather than waiting on a worker that is gone.
+             *
+             * Best-effort throughout: this is a janitor, and a janitor that
+             * throws takes the whole sweep down with it. */
+            const halted: string[] = [];
+            try {
+              const stuckCutoff = new Date(Date.now() - STUCK_MS).toISOString();
+              const { data: candidates } = await admin
+                .from("agent_runs")
+                .select("id,mission_id,status,agent_slug,created_at,last_checkpoint_at,user_id")
+                // waiting_approval is deliberately absent: it is waiting on a
+                // HUMAN and never expires. stuck-runs.ts refuses it again in
+                // the pure rule, so the exclusion survives an edit here.
+                .in("status", ["running", "queued"])
+                // A cheap pre-filter only. A run that checkpointed recently is
+                // still excluded by the rule below, whatever created_at says.
+                .lt("created_at", stuckCutoff)
+                .order("created_at", { ascending: true })
+                .limit(STUCK_BATCH * 4);
+
+              const now = Date.now();
+              const dead = (
+                (candidates ?? []) as Array<{
+                  id: string;
+                  mission_id: string | null;
+                  status: string;
+                  agent_slug: string | null;
+                  created_at: string;
+                  last_checkpoint_at: string | null;
+                  user_id: string | null;
+                }>
+              )
+                .filter((r) => isRunStuck(r, now, STUCK_MS))
+                .slice(0, STUCK_BATCH);
+
+              for (const r of dead) {
+                const reason = stuckReason(r, now);
+                // Guarded on status so a run that woke up between the read and
+                // this write is not halted out from under itself.
+                const { error } = await admin
+                  .from("agent_runs")
+                  .update({ status: "halted", halted_reason: reason })
+                  .eq("id", r.id)
+                  .in("status", ["running", "queued"]);
+                if (error) continue;
+                halted.push(r.id);
+
+                // The step that was waiting on it, so the mission can move.
+                await admin
+                  .from("mission_steps")
+                  .update({ status: "failed", error: reason })
+                  // The real vocabulary: planned | dispatched | running | done
+                  // | failed | skipped. A `planned` step is deliberately left
+                  // alone, because it never started and is not what died.
+                  .eq("run_id", r.id)
+                  .in("status", ["running", "dispatched"]);
+
+                /* NO STAGE EVENT HERE, and that is a decision rather than an
+                 * omission. `stage_events.entity_type` is a closed vocabulary
+                 * with a DB CHECK behind it and no member for a run, and the
+                 * nearest one, `mission`, would have to be written as
+                 * to:"halted", claiming the MISSION halted when only one of its
+                 * runs did. The run's halted_reason and the step's error are
+                 * already the record, both are read by the UI, and
+                 * advanceMissionCore carries the reason onto the plan. A third
+                 * copy is not worth distorting a typed vocabulary for. */
+              }
+              if (halted.length) {
+                console.warn(
+                  `[resume-runs] halted ${halted.length} run(s) with no sign of life past ${Math.round(STUCK_MS / 60000)}m`,
+                );
+              }
+            } catch (e) {
+              console.error("[resume-runs] stuck-run sweep failed (degrading):", e);
+            }
 
             // BLD-GATE-SYNC un-block pass — run FIRST so a mission whose gate was just decided is
             // back to 'running' before its run resumes/completes below (maybeCompleteMission only
@@ -242,7 +347,7 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               .limit(REPLAN_BATCH * 8);
 
             // Batch fetch counts for all candidates instead of per-candidate queries (N+1 fix)
-            const missionIds = (unplannedCandidates ?? []).map((m: any) => m.id);
+            const missionIds = ((unplannedCandidates ?? []) as { id: string }[]).map((m) => m.id);
             const { data: allSteps } = await admin
               .from("mission_steps")
               .select("mission_id")
