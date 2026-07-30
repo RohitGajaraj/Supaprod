@@ -78,3 +78,48 @@ describe("toArdDesignSection", () => {
     expect(section!.scaffold_html!.length).toBe(ARD_SCAFFOLD_HTML_CAP);
   });
 });
+
+describe("designGateBlocksDispatch: a gate judges a drawing", () => {
+  // The product-wide block found 2026-07-30. design_gate_status is NOT NULL
+  // DEFAULT 'pending' and design_stage_enabled is NOT NULL DEFAULT true, so
+  // before this rule every spec in every workspace failed the check from the
+  // moment it was created, including specs where nothing had been drawn.
+  test("an unmade drawing does not block", () => {
+    expect(
+      designGateBlocksDispatch({ stageEnabled: true, status: "pending", hasDrawing: false }),
+    ).toBe(false);
+  });
+
+  test("a drawing that exists and is still pending blocks, as before", () => {
+    expect(
+      designGateBlocksDispatch({ stageEnabled: true, status: "pending", hasDrawing: true }),
+    ).toBe(true);
+  });
+
+  test("an approved drawing never blocks", () => {
+    expect(
+      designGateBlocksDispatch({ stageEnabled: true, status: "approved", hasDrawing: true }),
+    ).toBe(false);
+  });
+
+  test("a rejected drawing blocks", () => {
+    expect(
+      designGateBlocksDispatch({ stageEnabled: true, status: "rejected", hasDrawing: true }),
+    ).toBe(true);
+  });
+
+  test("the stage being off still wins over everything", () => {
+    expect(
+      designGateBlocksDispatch({ stageEnabled: false, status: "pending", hasDrawing: true }),
+    ).toBe(false);
+  });
+
+  // Unknown must not open the gate. A failed count is not evidence of absence,
+  // and this check exists to hold work back.
+  test("an unknown drawing count keeps the previous behaviour", () => {
+    expect(designGateBlocksDispatch({ stageEnabled: true, status: "pending" })).toBe(true);
+    expect(
+      designGateBlocksDispatch({ stageEnabled: true, status: "pending", hasDrawing: undefined }),
+    ).toBe(true);
+  });
+});

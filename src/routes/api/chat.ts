@@ -259,6 +259,23 @@ export const Route = createFileRoute("/api/chat")({
           // src/lib/ask-context.tsx's scopeForPath. productId narrows to one
           // product (the panel's opt-in product chip).
           scope?: { kinds?: string[]; sourceId?: string | null; productId?: string | null };
+          /**
+           * What the person actually chose, when they chose. Ask's visible fork
+           * sends this; anything that does not send it behaves exactly as before.
+           *
+           * "ask" means answer me and do not start anything. Until this existed,
+           * the classifier below could decide a question was an instruction and
+           * dispatch a mission the person never asked for, which spends real
+           * money and starts agents. An explicit choice outranking a guess is
+           * not a new idea here: the @slug path a few lines down already skips
+           * the classifier entirely on the grounds that "a resolved mention is
+           * an unambiguous command". A person pressing Ask is equally
+           * unambiguous, and was the only one of the two being ignored.
+           *
+           * This is a REQUEST field. The locked contract (OBS-12 section 3) is
+           * the SSE response stream, which is untouched.
+           */
+          intent?: "ask" | "do";
         };
         try {
           body = await request.json();
@@ -374,6 +391,12 @@ export const Route = createFileRoute("/api/chat")({
           }
         }
 
+        // An explicit choice beats a guess, and costs nothing to honour: "ask"
+        // skips the classifier call entirely, so it is also one model call
+        // cheaper than letting it decide something the person already decided.
+        const forcedAsk = body.intent === "ask";
+        const forcedDo = body.intent === "do";
+
         // 1. Classifier v3 (one call): mission gating + research-mode routing.
         const classificationSystem = `You are the intent classifier for Supaprod, an agent-native product operating system.
 Your job is to analyze the user's latest input and decide if it is a request to perform a multi-agent execution mission (e.g. drafting a PRD, building code, doing research, running analyses, creating tasks, generating syncs) or a general chat query (e.g. explaining a concept, asking for info, chatting, greeting).
@@ -397,7 +420,7 @@ You must output a JSON object EXACTLY in this format:
   "sub_queries": ["search query", ...]
 }`;
 
-        if (!mentionedAgent) {
+        if (!mentionedAgent && !forcedAsk) {
           try {
             const classResult = await callModel(supabase, userId, {
               surface: "chat",
@@ -495,6 +518,11 @@ You must output a JSON object EXACTLY in this format:
             isMission = false;
           }
         }
+
+        // "do" is the other half of the fork: the person said this is work, so
+        // it dispatches even if the classifier read it as chat. The classifier
+        // still ran, because it is what fills in the mission's title and goal.
+        if (forcedDo && startingAgent && workspaceId) isMission = true;
 
         // 3. Dispatch orchestrated mission and exit if classified as mission
         if (isMission && startingAgent && workspaceId) {

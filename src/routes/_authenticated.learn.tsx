@@ -1,84 +1,98 @@
 /**
- * Learn. Redesigned, not re-skinned (SURFACE-JUSTIFICATION.md).
+ * Learn. Redesigned, not re-skinned (SURFACE-JUSTIFICATION.md, all seven).
  *
- * The prototype does not draw this surface, so it owes the five answers. Pass
- * one ported it onto the primitives and deleted the second header; that work
- * stands. This pass decides what is allowed to be on it.
+ * THE FINDING THIS PASS ANSWERS. An audit of the 01..07 spine asked which
+ * server functions each stage's surface actually calls. Learn called two, and
+ * both were reads: `getOutcomeData` and `getImpactLedger`. So stage 07 was a
+ * report. You could not record an outcome from it. `recordOutcome` had been
+ * built, in this surface's own domain module, and the only caller in the whole
+ * product was a pre-rebuild card inside a tab of `/plan/spec/$id` that fired a
+ * success toast and rendered nothing of what the write caused.
  *
- * 1. WHO IS HERE, AND WHY. A product lead who shipped a bet and has come back
- *    to find out whether it worked. Not to browse the loop's last stage: to
- *    read one verdict and leave believing something different.
+ * That matters more than any other stage being thin, because the investor
+ * canon is binding on it: "The brain is never storage. It compounds; next time
+ * it tells you what is right, and warns before you repeat what was wrong." A
+ * loop whose last stage cannot capture what happened does not compound.
  *
- * 2. THE ONE THING IT EXISTS FOR. To let the record contradict you. A bet
- *    shipped, the world answered, and the answer is on file with the number
- *    that settles it. Nothing else here earns its place unless it serves that,
- *    which is why the Record recess is the top of the page and the only lit
- *    thing on it.
+ * 1. WHO IS HERE, AND WHAT DID THEY COME TO DO. A product lead whose bet has
+ *    shipped, come to settle it: to put on the record what the world actually
+ *    did, and to be told what that costs.
  *
- * 3. KEEP / MOVE / KILL, on what pass one left standing:
- *    KEEP  the Record recess and the learnings list. This IS the surface. Made
- *          switchable: any learning can take the recess, so the surface stops
- *          choosing for you and every one of them can be read in full.
- *    KEEP  the headline. A count that is true or it is not drawn.
- *    KEEP  "Take the record with you". Brain's own pass moved ImpactLedgerPanel
- *          here and killed its copy, so this is now its only home. Reduced to
- *          one field and two buttons, and the field now does something: it was
- *          sent to the server on a query key that never carried it, so typing a
- *          name refetched nothing and never reached the document. The header is
- *          retitled on the client instead, which is all the server did with it.
- *    KEEP  two context facts, and only two: how far priority moved, and how
- *          many calls you later replaced. Neither appears anywhere else on the
- *          page and both are about learning rather than about volume.
- *    MOVE  "What came back from people" -> /discover, the signals desk. A
- *          support note is the INPUT to a learning, not a learning. The old
- *          empty state admitted it: "the crew reads them against the bets you
- *          have open", which is Discover's job. Eight dead rows here become one
- *          line with a count and a door.
- *    KILL  the "Should this go out?" gate. It was the biggest thing on a
- *          surface whose subject is the past, it decided nothing, it navigated
- *          away, and /ship owns announcements completely: draft, submit,
- *          approve, publish, off the same ["outcome"] read. Three surfaces
- *          half-doing one job.
- *    KILL  the "Announcements" block. What we told people is not what the world
- *          told us. /ship already draws it from the same query.
- *    KILL  "Priorities it changed". Its rows were opportunities where
- *          updated_at - created_at > 60s, which the server itself calls a
- *          proxy: it means somebody edited the row, not that an outcome moved
- *          the priority. It then showed the CURRENT score, not the shift, so
- *          the title claimed a causation the data never carried. On the one
- *          surface whose whole authority is that the record is true, that is
- *          the worst thing that can be on it. The honest version of the same
- *          fact is already here twice: the per-learning shift, and the net
- *          shift in the context column.
- *    KILL  the inline markdown dump behind "Read it". It re-rendered the page
- *          you are already looking at, in raw form, and was the single biggest
- *          contributor to the vertical scroll named twice as a pain point. Copy
- *          and Download deliver the same bytes.
- *    KILL  the "N calls on the record, X yours, Y from the crew" context row.
- *          The human-versus-crew split is a track record, and the export exists
- *          precisely to carry it out of the product.
- *    KILL  the "N outcomes recorded" context row. It restated the headline
- *          almost word for word (hard ban 10).
- *    KILL  the hand-styled input and the hand-styled <pre>, 32 lines of inline
- *          CSS between them. Field, Input and Actions exist.
+ * 2. THE ONE THING THIS SURFACE EXISTS FOR. To settle an outcome, and to show
+ *    what settling it changed. Everything else here is the record that
+ *    settling produces, or a door out of it.
  *
- * 4. ONE CLICK AWAY. Every learning that is not the one in focus. The support
- *    notes, on Discover. The announcements, on Ship. The full document, by Copy
- *    or Download rather than dumped on the page.
+ * 3. KEEP / MOVE / KILL, against what the previous pass left standing:
+ *    ADD   the settle Gate, the verdict form and the waiting queue
+ *          (`SettlePanel`). The surface's whole reason to exist, and the write
+ *          that was already built and unreachable from the spine.
+ *    ADD   the projection. Before you click, the Gate says what the verdict
+ *          would move the linked bet's priority to, computed by the server
+ *          from the same arithmetic the write runs, so the promise and the
+ *          write cannot drift.
+ *    ADD   the consequence beyond the score. A missed verdict against an agent
+ *          still earning its autonomy holds its promotion, because
+ *          `auto_advance_agent_arc` returns early on exactly that row. Warned
+ *          before, recorded after.
+ *    ADD   the receipt. A settled outcome renders what it caused; a failed one
+ *          says so and says nothing was written (anti-slop.md section 5).
+ *    KEEP  the record recess and the paid-off list. Made switchable last pass,
+ *          and still the only place a learning can be read in full here.
+ *    KEEP  the headline, now leading with what is WAITING, because that is the
+ *          job. The record so far moves to the sub, which is a different fact.
+ *    KEEP  "Take the record with you". Brain's own pass moved the impact
+ *          ledger here and killed its copy, so this is its only home.
+ *    KEEP  two context facts and only two: how far priority moved, and how
+ *          many calls you later replaced.
+ *    KEEP  the one-line door to the signals desk. A support note is the INPUT
+ *          to a learning; Discover triages it against the bets you have open.
+ *    KILL  nothing further. The previous pass already removed the announcement
+ *          gate, the announcements block, the false "Priorities it changed"
+ *          list, the inline markdown dump and two restating context rows, and
+ *          every one of those verdicts still holds.
  *
- * 5. DELIGHT, AND CONFUSION. The moment is the record disagreeing with you:
- *    a bet you were sure of, and a number underneath it that says otherwise.
- *    "N calls you later replaced" is the other one, because nothing else in a
- *    product lead's working life ever counts the times they changed their mind
- *    on evidence.
- *    The confusion this surface shipped with: `highlights` is built only from
- *    POSITIVE verdicts, so a block titled "What it learned" silently showed
- *    wins and hid every miss. The title now says what it is, and the misses are
- *    counted out loud above the list instead of being quietly absent.
+ * 4. ONE CLICK AWAY. Every waiting bet that is not the one in focus, as a
+ *    two-line row. Every learning that is not the one in focus. The support
+ *    notes, on Discover. The full document, by Copy or Download.
+ *
+ * 5. DELIGHT, AND CONFUSION. The moment is the sentence that appears before
+ *    you commit: "Checkout retry moves from 6.3 to 7.0", and under a miss,
+ *    "Engineer made this call, so its promotion is held". Nothing else in a
+ *    product lead's working life prices a verdict before they give it. The
+ *    confusion the surface shipped with, and still guards against: the ledger
+ *    only ever writes up WINS, so the paid-off block names itself honestly and
+ *    counts the misses out loud above the list.
+ *
+ * 6. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Measure drafts the verdict
+ *    from real usage deltas and the merged change, and the draft is attributed
+ *    and confidence-tiered rather than presented as fact. Every waiting row
+ *    wears the mark of the agent that made the call being judged. A miss
+ *    against an agent still on the observing or proving arc holds its
+ *    promotion. Remove every agent and this surface loses the draft, the
+ *    attribution and the consequence, and becomes a manual form. It passes.
+ *
+ * 7. WOULD A STRANGER RECOGNISE IT.
+ *    IDENTITY DRAWN: the agent that decided each waiting bet wears its own
+ *      glyph, shape first so it survives greyscale. Nothing else on this
+ *      surface has an identity a reader already carries.
+ *    SCANNING PATH: the Gate question. It is the largest type on the page and
+ *      it is a question with a name in it, so the eye lands on WHICH bet is
+ *      being judged before anything else. Nothing competes: the headline is a
+ *      count, the form is labels, the record below is a recess.
+ *    EMPTIEST REALISTIC STATE: a month-old workspace with one shipped spec, no
+ *      linked opportunity, no analytics event and no merged changeset. The
+ *      Gate then says there is no draft, names exactly what was missing when
+ *      you ask for one, and says settling moves no priority because no bet is
+ *      linked. Every one of those is a fact, and none of them is a zero.
+ *    WHAT A STRANGER DOES NOT UNDERSTAND, and what was done about it: ICE is
+ *      never printed, the word is "priority" and the number is a score; the
+ *      trust arc is never named, it is "promotion"; the verdicts are "it
+ *      worked", "mixed", "it did not", the same three words the run screen's
+ *      stage 07 panel uses.
  *
  * VOICE: never greet, always report. The first line is a count that is true or
- * it is not drawn at all. Same server functions, same query keys ["outcome"]
- * and ["impact-ledger"], so the cache stays shared with Ship and Brain.
+ * it is not drawn at all. Query keys ["outcome"] and ["impact-ledger"] are
+ * unchanged, so the cache stays shared with Ship and Brain.
  */
 
 import * as React from "react";
@@ -86,12 +100,15 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 
-import { getOutcomeData } from "@/lib/outcome.functions";
+import { getOutcomeData, listPendingOutcomes } from "@/lib/outcome.functions";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
+import { SettlePanel } from "@/components/learn/SettlePanel";
 import {
   Actions,
   Block,
   Button,
+  CtxHead,
+  CtxRow,
   Empty,
   Failed,
   Field,
@@ -144,6 +161,7 @@ function Learn() {
 
   const fOutcome = useServerFn(getOutcomeData);
   const fLedger = useServerFn(getImpactLedger);
+  const fPending = useServerFn(listPendingOutcomes);
 
   // Same query keys the retired panels used, so the cache stays shared with
   // Ship and Brain rather than fetching the same rows twice.
@@ -156,11 +174,15 @@ function Learn() {
     queryKey: ["impact-ledger"],
     queryFn: () => fLedger({ data: {} }),
   });
+  // The same key SettlePanel reads, so the count in the headline and the queue
+  // below it are one fetch and can never disagree.
+  const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
 
   const ledger = ledgerQ.data?.ledger ?? null;
   const markdown = ledgerQ.data?.markdown ?? "";
   const outcomes = ledger?.outcomes ?? null;
   const support = outcome.data?.support ?? [];
+  const waiting = pendingQ.data?.pending.length ?? 0;
 
   const highlights = ledger?.highlights ?? [];
   const focusIdx = highlights.length > 0 ? Math.min(focus, highlights.length - 1) : 0;
@@ -168,9 +190,16 @@ function Learn() {
 
   const loading = ledgerQ.isLoading || outcome.isLoading;
 
-  // A fact, assembled from real counts. Never a number we do not have.
+  // A fact, assembled from real counts. Never a number we do not have. What is
+  // WAITING leads, because settling it is the job; what came back so far is a
+  // different fact and goes in the sub.
   const headline = React.useMemo(() => {
-    if (ledgerQ.isLoading) return "Reading the record.";
+    if (ledgerQ.isLoading || pendingQ.isLoading) return "Reading the record.";
+    if (waiting > 0) {
+      return waiting === 1
+        ? "One shipped bet is waiting on your verdict."
+        : `${waiting} shipped bets are waiting on your verdict.`;
+    }
     if (!outcomes) return "The record is not readable right now.";
     if (outcomes.total === 0) return "No outcome has come back yet.";
     const back =
@@ -181,11 +210,32 @@ function Learn() {
         ? `${outcomes.validated} of ${decisive} paid off.`
         : "None of them decisive yet.";
     return `${back}. ${verdict}`;
-  }, [ledgerQ.isLoading, outcomes]);
+  }, [ledgerQ.isLoading, pendingQ.isLoading, waiting, outcomes]);
 
   const since = day(ledger?.span.firstAt ?? null);
   const movedPriority = (ledger?.measuredOutcomes ?? 0) > 0;
   const revisedBeliefs = (ledger?.beliefsRevised ?? 0) > 0;
+  const decisive = outcomes ? outcomes.validated + outcomes.missed : 0;
+
+  // The sub carries the OTHER fact, never a restatement of the title (hard ban
+  // 10). With bets waiting, that is the record so far; with none waiting, it is
+  // how far back the record goes.
+  const sub: React.ReactNode =
+    waiting > 0 && outcomes && decisive > 0 ? (
+      <>
+        <Num>{outcomes.validated}</Num> of <Num>{decisive}</Num> already settled paid off
+      </>
+    ) : since ? (
+      <>
+        Since <Num>{since}</Num>
+        {movedPriority ? (
+          <>
+            {" · "}
+            <Num>{ledger?.measuredOutcomes}</Num> measured
+          </>
+        ) : null}
+      </>
+    ) : null;
 
   // What backs the one in focus. Assembled as a string so a learning carrying
   // neither a metric nor a shift draws no evidence line at all, rather than an
@@ -237,49 +287,40 @@ function Learn() {
       context={
         ledger && (movedPriority || revisedBeliefs) ? (
           <>
-            <div className="sp-ctx-head">What the record moved</div>
+            <CtxHead>What the record moved</CtxHead>
             {movedPriority ? (
-              <div className="sp-ctx-row">
-                <span>
-                  <span className="sp-ctx-name">
+              <CtxRow
+                name={
+                  <>
                     Priority moved <Num>{signed(ledger.iceShiftTotal)}</Num>
-                  </span>
-                  <span className="sp-ctx-sub">
+                  </>
+                }
+                sub={
+                  <>
                     across <Num>{ledger.measuredOutcomes}</Num> measured outcomes
-                  </span>
-                </span>
-              </div>
+                  </>
+                }
+              />
             ) : null}
             {revisedBeliefs ? (
-              <div className="sp-ctx-row">
-                <span>
-                  <span className="sp-ctx-name">
+              <CtxRow
+                name={
+                  <>
                     <Num>{ledger.beliefsRevised}</Num> calls later replaced
-                  </span>
-                  <span className="sp-ctx-sub">you changed your mind on evidence</span>
-                </span>
-              </div>
+                  </>
+                }
+                sub="you changed your mind on evidence"
+              />
             ) : null}
           </>
         ) : null
       }
     >
-      <PageHead
-        title={headline}
-        sub={
-          since ? (
-            <>
-              Since <Num>{since}</Num>
-              {movedPriority ? (
-                <>
-                  {" · "}
-                  <Num>{ledger?.measuredOutcomes}</Num> measured
-                </>
-              ) : null}
-            </>
-          ) : null
-        }
-      />
+      <PageHead title={headline} sub={sub} />
+
+      {/* The write this stage exists for. It owns its own reads, its own
+          receipts and the queue it drains. */}
+      <SettlePanel />
 
       {/* The sub carries different information from the title, not a
           restatement: the ledger only ever writes up wins, so without this line

@@ -252,7 +252,13 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
   }, [streaming, rememberConversationId]);
 
   const send = React.useCallback(
-    async (content: string) => {
+    /**
+     * `intent` is what the person chose in Ask's visible fork, forwarded so the
+     * server stops guessing. Omitting it is exactly today's behaviour: the
+     * classifier decides. See the field's note in src/routes/api/chat.ts. This
+     * is a request field; the locked SSE response contract is untouched.
+     */
+    async (content: string, intent?: "ask" | "do") => {
       if (streaming) return;
       setStreaming(true);
       setLiveStatus(null);
@@ -295,6 +301,7 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
           body: JSON.stringify({
             conversationId: convId,
             content,
+            ...(intent ? { intent } : {}),
             ...(scope || retrievalProductId
               ? {
                   scope: {

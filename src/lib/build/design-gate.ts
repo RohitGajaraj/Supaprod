@@ -18,11 +18,36 @@ export interface DesignGateState {
   stageEnabled: boolean;
   /** prds.design_gate_status; null pre-migration. */
   status: string | null;
+  /**
+   * Whether a drawing actually exists for this spec (a `prd_scaffolds` row).
+   * Undefined is read as "unknown, assume there is one", so an older caller
+   * that does not pass it keeps the previous behaviour rather than silently
+   * opening the gate.
+   */
+  hasDrawing?: boolean;
 }
 
-/** The one blocking rule both dispatch paths enforce. */
+/** The one blocking rule both dispatch paths enforce.
+ *
+ * A GATE JUDGES A DRAWING. It does not gate the absence of one, and that
+ * distinction is the fix for a product-wide block found 2026-07-30:
+ * `prds.design_gate_status` is NOT NULL DEFAULT 'pending' and
+ * `workspaces.design_stage_enabled` is NOT NULL DEFAULT true
+ * (20260708170000_sw4_design_station.sql), so every spec in every workspace
+ * failed this check from the moment it was created, including specs where
+ * nothing had ever been drawn. Build dispatch was refused with a message
+ * pointing at "the spec page", which meant an unsignposted tab. Nobody chose
+ * that: it is two column defaults meeting.
+ *
+ * The governance canon settles which way to fix it. Its fourth floor is that
+ * "a default the user never set is our choice, not their policy", and its
+ * first principle is that the gate is the exception rather than the loop. So
+ * an unmade drawing does not block. A drawing that EXISTS and is still pending
+ * blocks exactly as before, because that is a real call a human owes.
+ */
 export function designGateBlocksDispatch(state: DesignGateState): boolean {
   if (!state.stageEnabled) return false;
+  if (state.hasDrawing === false) return false;
   return state.status !== "approved";
 }
 

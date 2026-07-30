@@ -15,6 +15,12 @@ import {
   shouldPublishChangelog,
   type ChangesetForChangelog,
 } from "@/lib/changelog";
+import { outcomeSupportFromCounts } from "@/components/discover/ranking";
+// Type only, so nothing is imported at runtime and the cycle this file would
+// otherwise close with outcome-suggestion.server (which imports
+// draftOutcomeVerdict from here) never exists. The runtime call is a dynamic
+// import inside draftOutcomeSuggestion's handler.
+import type { OutcomeSuggestion } from "@/lib/outcome-suggestion.server";
 
 // Outcome surface: read-only roll-ups over existing tables.
 // No new agent logic; surfaces the right-half of the loop (Ship · Launch · Support · Learn)
@@ -171,11 +177,56 @@ export const checkPrdShipped = createServerFn({ method: "POST" })
     return { shipped: true, issueState: "closed" as const, shippedAt };
   });
 
+/* ------------------------------------------------------------------------ *
+ * The verdict arithmetic, in ONE place.
+ *
+ * `recordOutcome` moves the linked opportunity's confidence and `/learn`
+ * PROMISES that move before you click. Two copies of this sum would let the
+ * promise and the write drift, on the one surface whose entire authority is
+ * that the record is true, so both read these.
+ * ------------------------------------------------------------------------ */
+
+// `OutcomeVerdict` is declared further down with the Historian; TS hoists the
+// type, so this stays next to the write it governs.
+const VERDICT_CONFIDENCE_DELTA: Record<OutcomeVerdict, number> = {
+  validated: 2,
+  missed: -2,
+  mixed: 0,
+};
+
+/** confidence is a 1..10 axis; a verdict may push it out and it clamps back. */
+function clampConfidence(n: number): number {
+  return Math.min(10, Math.max(1, n));
+}
+
+/** ICE is the mean of the three axes. `ice_score` is a GENERATED column, so a
+ *  caller that has just changed confidence computes the new value rather than
+ *  re-reading a row Postgres has not recomputed for it yet. */
+function iceOf(impact: number | null, confidence: number, ease: number | null): number {
+  return ((impact ?? 5) + confidence + (ease ?? 5)) / 3;
+}
+
 /**
  * Record a shipped PRD's real-world outcome: write prds.outcome, adjust the
  * linked opportunity's confidence by verdict (validated +2 / missed -2 /
  * mixed 0, clamped 1..10; ice_score is DB-generated), and append a learnings
  * row carrying the prior/new ICE for the audit trail.
+ *
+ * Returns the CONSEQUENCE, not just the row, because `/learn` renders a
+ * receipt rather than a toast (anti-slop.md section 5) and a receipt has to
+ * carry what the write actually caused:
+ *   · `opportunity` + `opportunityTitle`: the priority that moved, and by how
+ *     much.
+ *   · `arcHold`: the agent whose promotion this verdict now blocks. Real:
+ *     `auto_advance_agent_arc` returns early on any 'missed' learning joined to
+ *     a decision that agent made, so an agent still on the observing/proving
+ *     arc stops advancing. Null unless that is genuinely true.
+ *   · `themeMoved`: the reinforcement seam. `/decide` folds each theme's
+ *     decisive outcome record into the ORDER of new bets on the same evidence
+ *     (outcomeSupportFromCounts). Null unless the support number actually
+ *     changed and there is another bet on the theme for it to move.
+ * All three are best-effort: a lookup failure never breaks the recorded
+ * outcome, it just reports less.
  */
 export const recordOutcome = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -200,6 +251,7 @@ export const recordOutcome = createServerFn({ method: "POST" })
       .eq("id", data.prdId)
       .single();
     if (prdErr) throw new Error(prdErr.message);
+    const prdTitle = (prd.title as string | null) ?? null;
 
     const now = new Date().toISOString();
 
@@ -246,19 +298,22 @@ export const recordOutcome = createServerFn({ method: "POST" })
     let priorIce: number | null = null;
     let newIce: number | null = null;
     let oppTitle: string | null = null;
+    let oppThemeId: string | null = null;
     let opportunity: { id: string; prior_ice: number | null; new_ice: number | null } | null = null;
 
     if (prd.opportunity_id) {
       const { data: opp } = await db
         .from("opportunities")
-        .select("id,impact,confidence,ease,ice_score,title")
+        .select("id,impact,confidence,ease,ice_score,title,theme_id")
         .eq("id", prd.opportunity_id)
         .maybeSingle();
       if (opp) {
         oppTitle = (opp.title as string | null) ?? null;
+        oppThemeId = (opp.theme_id as string | null) ?? null;
         priorIce = opp.ice_score == null ? null : Number(opp.ice_score);
-        const delta = data.verdict === "validated" ? 2 : data.verdict === "missed" ? -2 : 0;
-        const newConfidence = Math.min(10, Math.max(1, (opp.confidence ?? 5) + delta));
+        const newConfidence = clampConfidence(
+          (opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA[data.verdict],
+        );
         const { error: oppErr } = await db
           .from("opportunities")
           .update({ confidence: newConfidence, updated_at: now })
@@ -266,7 +321,7 @@ export const recordOutcome = createServerFn({ method: "POST" })
         if (oppErr) throw new Error(oppErr.message);
         // ice_score is a GENERATED column — recompute here for the return value
         // and the learning row rather than re-reading.
-        newIce = ((opp.impact ?? 5) + newConfidence + (opp.ease ?? 5)) / 3;
+        newIce = iceOf(opp.impact, newConfidence, opp.ease);
         opportunity = { id: opp.id, prior_ice: priorIce, new_ice: newIce };
       }
     }
@@ -372,7 +427,301 @@ export const recordOutcome = createServerFn({ method: "POST" })
       console.error("inferDirectEdge failed (non-fatal):", e);
     }
 
-    return { learning, opportunity, memory_id: memory?.id ?? null };
+    // ---- What this verdict cost the crew. -------------------------------
+    // auto_advance_agent_arc (20260708150000, canonical body) counts learnings
+    // with verdict='missed' joined to a decision this agent made and returns
+    // EARLY when there is one, so the agent stops advancing. It only advances
+    // an arc of 'observing' or 'proving' in the first place, so an agent
+    // already 'trusted' loses nothing and we claim nothing.
+    let arcHold: { slug: string; arc: string } | null = null;
+    if (data.verdict === "missed") {
+      try {
+        const decidedBy = await decidingAgentSlug(db, prd.id as string);
+        if (decidedBy) {
+          const arc = await agentArc(db, userId, decidedBy);
+          if (arc === "observing" || arc === "proving") arcHold = { slug: decidedBy, arc };
+        }
+      } catch (e) {
+        console.error("recordOutcome arc lookup failed (non-fatal):", e);
+      }
+    }
+
+    // ---- What this verdict did to the NEXT bet. -------------------------
+    // The reinforcement seam, read the same way /decide reads it: decisive
+    // outcomes on a theme move the rank of new bets on the same evidence. The
+    // count runs AFTER the insert above, so it includes this verdict; the
+    // "before" is this row's own contribution removed. Reported only when the
+    // support number genuinely changed and another bet exists to be re-ranked.
+    let themeMoved: {
+      themeId: string;
+      before: number;
+      after: number;
+      otherBets: number;
+    } | null = null;
+    if (oppThemeId) {
+      try {
+        const { data: themeOpps } = await db
+          .from("opportunities")
+          .select("id")
+          .eq("theme_id", oppThemeId);
+        const themeOppIds = ((themeOpps ?? []) as Array<{ id: string }>).map((o) => o.id);
+        if (themeOppIds.length > 0) {
+          const { data: decisive } = await db
+            .from("learnings")
+            .select("verdict")
+            .in("opportunity_id", themeOppIds)
+            .in("verdict", ["validated", "missed"]);
+          const rows = (decisive ?? []) as Array<{ verdict: string }>;
+          const validated = rows.filter((r) => r.verdict === "validated").length;
+          const missed = rows.filter((r) => r.verdict === "missed").length;
+          const after = outcomeSupportFromCounts(validated, missed);
+          const before = outcomeSupportFromCounts(
+            data.verdict === "validated" ? validated - 1 : validated,
+            data.verdict === "missed" ? missed - 1 : missed,
+          );
+          const otherBets = themeOppIds.filter((id) => id !== prd.opportunity_id).length;
+          if (before !== after && otherBets > 0) {
+            themeMoved = { themeId: oppThemeId, before, after, otherBets };
+          }
+        }
+      } catch (e) {
+        console.error("recordOutcome theme-support lookup failed (non-fatal):", e);
+      }
+    }
+
+    return {
+      learning,
+      opportunity,
+      memory_id: memory?.id ?? null,
+      prdTitle,
+      opportunityTitle: oppTitle,
+      arcHold,
+      themeMoved,
+    };
+  });
+
+/* ------------------------------------------------------------------------ *
+ * Stage 07 can SETTLE. The queue, the projection, the on-demand draft.
+ *
+ * Before this, `/learn` called exactly two server functions and both were
+ * reads, so the last stage of the loop could report an outcome and never
+ * capture one. `recordOutcome` was built and no surface in the spine called
+ * it. These three close that: what is waiting, what a verdict would cost, and
+ * a draft on demand from the agent whose whole job is reading the outcome.
+ * ------------------------------------------------------------------------ */
+
+/** The most recent decision on this spec that an AGENT made, if any. Null when
+ *  a human made every call, which is the honest answer and not a gap. */
+async function decidingAgentSlug(db: SupabaseClient, prdId: string): Promise<string | null> {
+  const { data } = await db
+    .from("decisions")
+    .select("decided_by_agent_slug,created_at")
+    .eq("prd_id", prdId)
+    .not("decided_by_agent_slug", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const row = (data ?? [])[0] as { decided_by_agent_slug?: string | null } | undefined;
+  const slug = row?.decided_by_agent_slug;
+  return typeof slug === "string" && slug.trim() ? slug : null;
+}
+
+/** Where this agent sits on the trust arc, by slug. Null when the workspace has
+ *  no agent by that slug or no arc row for it, and a missing arc row means
+ *  autonomous by default (SW-7), which is not a hold. */
+async function agentArc(db: SupabaseClient, userId: string, slug: string): Promise<string | null> {
+  const { data: agent } = await db
+    .from("agents")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("slug", slug)
+    .maybeSingle();
+  const agentId = (agent as { id?: string } | null)?.id;
+  if (!agentId) return null;
+  const { data: row } = await db
+    .from("agent_autonomy")
+    .select("arc")
+    .eq("user_id", userId)
+    .eq("agent_id", agentId)
+    .maybeSingle();
+  return ((row as { arc?: string } | null)?.arc as string | null) ?? null;
+}
+
+export type PendingOutcome = {
+  prdId: string;
+  title: string;
+  shippedAt: string | null;
+  opportunity: {
+    id: string;
+    title: string | null;
+    /** Today's score. Null when the row carries none; never printed as zero. */
+    priorIce: number | null;
+    /** What each verdict WOULD move it to, from the same arithmetic the write
+     *  runs. Null when the linked opportunity could not be read. */
+    projected: { validated: number; mixed: number; missed: number } | null;
+  } | null;
+  /** The agent that made the call being judged. Attribution, and the reason a
+   *  missed verdict has a cost beyond the score. */
+  decidedBy: { slug: string; arc: string | null; holdsPromotion: boolean } | null;
+  suggestion: OutcomeSuggestion | null;
+};
+
+/** Shipped specs with no outcome on file, newest ship first. This is the queue
+ *  stage 07 exists to drain. */
+export const listPendingOutcomes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ pending: PendingOutcome[] }> => {
+    const { userId } = context;
+    const db = context.supabase as unknown as SupabaseClient;
+
+    type PrdRow = {
+      id: string;
+      title: string | null;
+      shipped_at: string | null;
+      opportunity_id: string | null;
+      outcome_suggestion: OutcomeSuggestion | null;
+    };
+    const { data: prdRows, error } = await db
+      .from("prds")
+      .select("id,title,shipped_at,opportunity_id,outcome_suggestion")
+      .is("outcome", null)
+      .not("shipped_at", "is", null)
+      .order("shipped_at", { ascending: false })
+      .limit(12);
+    if (error) throw new Error(error.message);
+    const prds = (prdRows ?? []) as PrdRow[];
+    if (prds.length === 0) return { pending: [] };
+
+    const prdIds = prds.map((p) => p.id);
+    const oppIds = [...new Set(prds.map((p) => p.opportunity_id).filter((v): v is string => !!v))];
+
+    type OppRow = {
+      id: string;
+      title: string | null;
+      impact: number | null;
+      confidence: number | null;
+      ease: number | null;
+      ice_score: number | string | null;
+    };
+    const oppById = new Map<string, OppRow>();
+    if (oppIds.length > 0) {
+      const { data } = await db
+        .from("opportunities")
+        .select("id,title,impact,confidence,ease,ice_score")
+        .in("id", oppIds);
+      for (const o of (data ?? []) as OppRow[]) oppById.set(o.id, o);
+    }
+
+    // Newest agent-made decision per spec. Ordered newest first, so the first
+    // row seen for a spec wins.
+    const slugByPrd = new Map<string, string>();
+    {
+      const { data } = await db
+        .from("decisions")
+        .select("prd_id,decided_by_agent_slug,created_at")
+        .in("prd_id", prdIds)
+        .not("decided_by_agent_slug", "is", null)
+        .order("created_at", { ascending: false });
+      for (const d of (data ?? []) as Array<{
+        prd_id: string | null;
+        decided_by_agent_slug: string | null;
+      }>) {
+        if (!d.prd_id || !d.decided_by_agent_slug) continue;
+        if (!slugByPrd.has(d.prd_id)) slugByPrd.set(d.prd_id, d.decided_by_agent_slug);
+      }
+    }
+
+    const arcBySlug = new Map<string, string>();
+    const slugs = [...new Set(slugByPrd.values())];
+    if (slugs.length > 0) {
+      const { data: agentRows } = await db
+        .from("agents")
+        .select("id,slug")
+        .eq("user_id", userId)
+        .in("slug", slugs);
+      const agents = (agentRows ?? []) as Array<{ id: string; slug: string }>;
+      if (agents.length > 0) {
+        const { data: arcRows } = await db
+          .from("agent_autonomy")
+          .select("agent_id,arc")
+          .eq("user_id", userId)
+          .in(
+            "agent_id",
+            agents.map((a) => a.id),
+          );
+        const arcByAgentId = new Map(
+          ((arcRows ?? []) as Array<{ agent_id: string; arc: string }>).map((r) => [
+            r.agent_id,
+            r.arc,
+          ]),
+        );
+        for (const a of agents) {
+          const arc = arcByAgentId.get(a.id);
+          if (arc) arcBySlug.set(a.slug, arc);
+        }
+      }
+    }
+
+    const pending: PendingOutcome[] = prds.map((p) => {
+      const opp = p.opportunity_id ? (oppById.get(p.opportunity_id) ?? null) : null;
+      const slug = slugByPrd.get(p.id) ?? null;
+      const arc = slug ? (arcBySlug.get(slug) ?? null) : null;
+      return {
+        prdId: p.id,
+        title: (p.title ?? "").trim() || "Untitled spec",
+        shippedAt: p.shipped_at,
+        opportunity: opp
+          ? {
+              id: opp.id,
+              title: opp.title,
+              priorIce: opp.ice_score == null ? null : Number(opp.ice_score),
+              projected: {
+                validated: iceOf(
+                  opp.impact,
+                  clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.validated),
+                  opp.ease,
+                ),
+                mixed: iceOf(
+                  opp.impact,
+                  clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.mixed),
+                  opp.ease,
+                ),
+                missed: iceOf(
+                  opp.impact,
+                  clampConfidence((opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA.missed),
+                  opp.ease,
+                ),
+              },
+            }
+          : null,
+        decidedBy: slug
+          ? { slug, arc, holdsPromotion: arc === "observing" || arc === "proving" }
+          : null,
+        suggestion: p.outcome_suggestion ?? null,
+      };
+    });
+
+    return { pending };
+  });
+
+/**
+ * Draft (or refresh) the provisional outcome suggestion for one shipped spec,
+ * on demand. Same chain the hourly outcome-tick runs: ship detection is the
+ * trigger, the Historian is the AI half, and SEN-05 usage deltas plus the
+ * BYO-P3 changeset join set the confidence tier. Persists to
+ * `prds.outcome_suggestion`, never overwrites a human-recorded outcome, and
+ * returns null rather than inventing a verdict when there is no signal.
+ *
+ * Dynamically imported so `outcome-suggestion.server` (which imports
+ * `draftOutcomeVerdict` from this module) never forms an eval-time cycle.
+ */
+export const draftOutcomeSuggestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ prdId: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }): Promise<{ suggestion: OutcomeSuggestion | null }> => {
+    const db = context.supabase as unknown as SupabaseClient;
+    const { generateOutcomeSuggestion } = await import("@/lib/outcome-suggestion.server");
+    const suggestion = await generateOutcomeSuggestion(db, context.userId, data.prdId);
+    return { suggestion };
   });
 
 // LRN-02 · Historian verdict. The outcome card was purely manual (the human

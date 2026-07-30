@@ -15,9 +15,12 @@ export async function loadDesignGateState(
   prd: { id: string; workspace_id: string | null } | null,
 ): Promise<DesignGateState> {
   if (!prd?.workspace_id) return { stageEnabled: false, status: null };
-  const [wsRes, prdRes] = await Promise.all([
+  const [wsRes, prdRes, drawingRes] = await Promise.all([
     db.from("workspaces").select("design_stage_enabled").eq("id", prd.workspace_id).maybeSingle(),
     db.from("prds").select("design_gate_status").eq("id", prd.id).maybeSingle(),
+    // Does a drawing exist to judge? head+count, so this asks the question
+    // without reading a scaffold's HTML on every dispatch.
+    db.from("prd_scaffolds").select("id", { count: "exact", head: true }).eq("prd_id", prd.id),
   ]);
   if (wsRes.error || prdRes.error) return { stageEnabled: false, status: null };
   return {
@@ -26,6 +29,9 @@ export async function loadDesignGateState(
     ),
     status:
       (prdRes.data as { design_gate_status?: string | null } | null)?.design_gate_status ?? null,
+    // An unreadable count is NOT "no drawing": that would open the gate on an
+    // error, and this check exists to hold work back. Unknown keeps the gate shut.
+    hasDrawing: drawingRes.error ? undefined : (drawingRes.count ?? 0) > 0,
   };
 }
 

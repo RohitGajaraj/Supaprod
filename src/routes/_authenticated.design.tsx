@@ -1,72 +1,84 @@
 /**
- * Design. REDESIGNED, not re-skinned (SURFACE-JUSTIFICATION.md).
+ * Design. REDESIGNED, not re-skinned (SURFACE-JUSTIFICATION.md, all seven).
  *
- * The prototype does not draw this surface, so it owes the five answers. The
- * first pass ported it onto the primitives, which was real work and is kept.
- * This pass answers what belongs here at all.
+ * WHY THIS PASS EXISTS. An audit of the 01..07 spine by the server functions
+ * each surface actually calls found Design the thinnest stage in the product:
+ * four calls, so you could settle a brand rule and toggle a share link, and
+ * that was the entire stage. Meanwhile `generateDesignScaffold` existed,
+ * `prd_scaffolds` held real HTML, `getDesignGate`/`decideDesignGate` existed
+ * and gated every dispatch in the product, and this surface called none of it.
+ * `publishPrototypeFromPrd` had no caller ANYWHERE, so the prototype list here
+ * listed rows nothing in the product could create. The previous header claimed
+ * the publish control had MOVED to the spec page. It had not; it was deleted.
  *
- * 1. WHO IS HERE, AND WHY. A product lead whose design crew has stopped and
- *    asked. It proposed a rule it wants to follow from now on, and until that
- *    is settled every mockup it draws is drawn on unsettled ground. They came
- *    to say yes or no, not to read a brand library.
+ * 1. WHO IS STANDING HERE, AND WHAT DID THEY COME TO DO. A product lead whose
+ *    crew has drawn a screen. They came to look at it and say what happens to
+ *    it next.
  *
- * 2. THE ONE THING IT EXISTS FOR. To settle a proposed brand rule. It is the
- *    only irreversible, judgment-requiring call on this surface: approve it
- *    and it binds into every mockup the crew draws after this, and nowhere
- *    else in the product is it a first-class decision (the approvals queue
- *    carries design_gate, never design memory). The prototype list below is
- *    what settled rules produced, and the one other action here, handing a
- *    mockup to someone as a link, hangs off that.
+ * 2. THE ONE THING THIS SURFACE EXISTS TO MAKE POSSIBLE. To judge a drawn
+ *    screen: see it running, learn what letting it through costs, and let it
+ *    through or send it back. Nowhere else in the product can you do that. The
+ *    spec page can, for exactly one spec, under a tab called "flow"; a person
+ *    holding a design review has no idea that is where the drawings live, and
+ *    the block message the dispatch throws sends them there by name. This is
+ *    the stage view: every drawing in the workspace, and the gate on each.
  *
- * 3. KEEP / MOVE / KILL, on what was here before:
- *    KEEP  the Gate. It is the decision and it is the biggest thing on the
- *          page, which is the whole point of the shape.
- *    KEEP  provenance and "behind this one" in the context column. Depth about
- *          the ONE item in focus is exactly what that column is for.
- *    KEEP  the prototype list and the share and copy actions. Nothing else in
- *          the product lists prototypes or hands one out as a link.
- *    KILL  <DesignMemoryPanel />, the entire "Your brand" block. Three
- *          reasons, any one sufficient. It duplicates something one click
- *          away: Settings -> Brand renders the identical panel under an
- *          identical heading. It half-did the job the Gate does completely,
- *          because its expanded rows carry their own approve and reject pair,
- *          so a single pending rule had two approve buttons on one page and
- *          the second was three clicks down. And it is built entirely from the
- *          retired system: --card, --hairline, --moss, --madder,
- *          --geist-space-*, uppercase mono used as chrome, a card nested
- *          inside the Block, and a fixed 1fr/110/110/90 grid that overflows
- *          sideways on a laptop, which is the pain point named twice.
- *    KILL  the "Who works this stage" context block and the agent-fleet query
- *          behind it. It spent a network round trip to print one agent's name
- *          and blurb. Nothing depends on it, it is not the rule's author (a
- *          rule's provenance is its source_kind, not an agent), and the crew
- *          roster owns agent identity completely, one click away.
- *    KILL  the composed "N rules in force, M prototypes published" headline.
- *          It reported two subjects at once and neither was the call in front
- *          of you. The headline now says what needs you. The standing count
- *          moved to the context column, where a standing fact belongs.
- *    MOVE  the spec picker and the "Publish prototype" button. DESTINATION:
- *          src/routes/_authenticated.plan.spec.$id.tsx, beside
- *          <DesignScaffoldPanel>, which already generated the very mockup
- *          being published. It needed a picker here only because the spec is
- *          not in focus here; there it is one button with nothing to choose.
- *          Going with it: the listPrds query, the triple-duty placeholder
- *          string, and its own error and retry line, which existed only to
- *          feed it. Also gone with it: a hand-rolled <select> carrying
- *          thirteen inline style properties.
+ * 3. KEEP / MOVE / KILL.
+ *    KEEP the brand-rule Gate. Nothing binds into a drawing until it is
+ *         settled, so it is still the first call when one is waiting, and it
+ *         is still the biggest thing on the page.
+ *    KEEP the rule's provenance and "behind this one" in the context column.
+ *    KILL the workspace-wide prototype list. `/artifacts` already lists every
+ *         prototype, with rename, delete and lineage, one click away, so this
+ *         was a duplicate of a better surface (question 3's own test). The
+ *         share machinery is not lost, it moved to the drawing it belongs to:
+ *         a link is a fact ABOUT one drawn screen, not a category of thing.
+ *    KILL the "Prototypes" empty state that told you to go and publish from a
+ *         spec page. The control it pointed at did not exist.
+ *    ADD  the drawings, the gate on each, the fidelity spectrum, the
+ *         consequence panel, the Critic and the publish action. All of it was
+ *         already built. None of it had a reader here.
  *
- * 4. ONE CLICK AWAY. The brand ledger itself, every rule with its category and
- *    source plus the import, paste and defaults machinery, lives in
- *    Settings -> Brand and is linked from the context column. A prototype row
- *    is one line plus a second line carrying a different fact, and its
- *    address, its share switch and its copy action appear only for the one you
- *    put in focus.
+ * 4. WHAT IS ONE CLICK AWAY. The brand ledger with its import, paste and
+ *    defaults machinery stays in Settings. Every prototype ever made stays on
+ *    /artifacts. The spec's own text stays on /plan. A row in the list is two
+ *    lines; the drawing, its blast radius, its links and the Critic's findings
+ *    belong to the ONE spec in focus and are drawn only for it.
  *
- * 5. THE MOMENT, AND THE CONFUSION. The moment is approving a rule and
- *    watching the surface go quiet: the crew now has one more thing it never
- *    has to ask about again. The confusion this surface used to invite was two
- *    approve buttons for the same rule, one loud and one buried, which is why
- *    the panel is gone rather than restyled.
+ * 5. THE MOMENT, AND THE CONFUSION. The moment is the consequence panel the
+ *    instant before you approve: a mockup with no blast radius is a drawing,
+ *    and one that says it holds a spec out of Build and was made before two
+ *    rules that are now in force is a decision. The confusion this surface
+ *    could invite is two things asking at once, so there is exactly one Gate,
+ *    the pending rule owns it, and the drawing's own verdict sits WITH the
+ *    drawing because the drawing is the evidence for it.
+ *
+ * 6. WHERE THE CREW IS. Design draws every screen in the list and the row
+ *    carries its mark; the mark runs while a redraw runs and stops when it
+ *    stops. The Critic is a second, differently-marked worker you can call on
+ *    the drawing, and its findings can be turned into standing rules the crew
+ *    then follows. Remove the agents and this surface has nothing in it: no
+ *    drawings, no findings, no rules, and a gate over an empty frame.
+ *
+ * 7. RECOGNITION. The identity on this surface is the AGENT (Design draws,
+ *    Critic reviews) and the ARTIFACT (a spec, its drawing, its links), and
+ *    both are marked. Scanning path: the Gate wins when a rule is waiting,
+ *    because it is a 19px question against 14px rows; otherwise the eye lands
+ *    on the drawing, which is a 460px lit rectangle in a monochrome page and
+ *    is the only thing on the surface that could win. The emptiest REALISTIC
+ *    state is a first-month workspace: a couple of specs, one drawing that got
+ *    prepped speculatively, no brand rules, no lineage. Every panel here has a
+ *    sentence for that state and none of them says "no results". Internal
+ *    words a stranger would not survive are all translated at the edge:
+ *    `prd` reads "spec", `mission` reads "run", `prototype` reads "shared
+ *    link", `design_gate_status` never appears, and the fidelities say what
+ *    question they answer rather than assuming the reader knows.
+ *
+ * HONESTY. Nothing on this surface is inferred. The blast radius is read out
+ * of `artifact_lineage` and a failed read says "not known" rather than
+ * "nothing", the same distinction run-stages.functions.ts draws between "no
+ * link from this run back to a signal" and "no signals". A drawing whose
+ * fidelity was never recorded says so instead of being called a mockup.
  */
 
 import * as React from "react";
@@ -74,30 +86,64 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { toast } from "@/lib/notify";
 import {
   decideDesignMemory,
+  importDesignMemoryFromText,
   listDesignMemory,
+  recordDesignScaffoldFeedback,
   type DesignMemoryRow,
 } from "@/lib/design-memory.functions";
-import { listPrototypes, togglePrototypeShare } from "@/lib/prototypes.functions";
-import { CATEGORY_LABEL, SOURCE_LABEL } from "@/components/knowledge/design-memory-shared";
 import {
+  DESIGN_FIDELITIES,
+  decideDesignGate,
+  getDesignWorkItem,
+  listDesignWork,
+  redrawDesignScaffold,
+  runScaffoldDesignCritic,
+  toggleDesignStage,
+  type DesignFidelity,
+  type DesignWorkRow,
+} from "@/lib/design-scaffold.functions";
+import { publishPrototypeFromPrd, togglePrototypeShare } from "@/lib/prototypes.functions";
+import type { DesignCriticFinding } from "@/lib/ai/design-critic";
+import { CATEGORY_LABEL, SOURCE_LABEL } from "@/components/knowledge/design-memory-shared";
+import { Consequence, DrawingStage, Findings } from "@/components/design/drawing";
+import {
+  FIDELITY_QUESTION,
+  FIDELITY_WORD,
+  GATE_WORD,
+  fidelityWord,
+  ruleTextFor,
+} from "@/components/design/vocabulary";
+import {
+  Actions,
+  AgentMark,
   Block,
   Button,
+  Choices,
   Empty,
   Failed,
   Gate,
+  Line,
+  Loading,
   Num,
   PageHead,
+  Receipt,
   Row,
   Surface,
+  Switch,
+  Value,
   Who,
 } from "@/components/shell/primitives";
 
 /** One fetch, unfiltered: this surface needs the pending queue and the
  *  in-force count, and both come off the same list. */
 const ALL_RULES = { category: undefined, status: undefined };
+
+/** The agent that draws, and the agent that reviews what was drawn. Both are
+ *  the design and decide stations' own cast entries, not labels invented here. */
+const DRAWS = "ux-architect";
+const REVIEWS = "critic";
 
 function shareUrl(slug: string): string {
   return `${typeof window !== "undefined" ? window.location.origin : ""}/p/${slug}`;
@@ -116,65 +162,374 @@ function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
+/** A receipt renders NEXT TO the control that caused it. This page is taller
+ *  than a screen once a drawing is open, so one fixed receipt region would put
+ *  half of them off screen, which is a receipt nobody reads. `at` is the only
+ *  placement rule: writes made at the page level render under the Gate, writes
+ *  made on the drawing render under the drawing's own actions. */
+type Trace = {
+  id: number;
+  at: "page" | "focus";
+  verb: string;
+  consequence: React.ReactNode;
+  failed?: boolean;
+};
+
+/** The row's SECOND line carries one different fact, and which fact that is
+ *  depends on the row. A drawing made before rules that are now in force is
+ *  the exception worth surfacing in a list; everything else describes itself. */
+function rowSub(r: DesignWorkRow, gateOn: boolean): string {
+  if (!r.drawing) {
+    return gateOn && r.gateStatus === "approved"
+      ? "Nothing drawn. The gate is already approved"
+      : "Nothing drawn yet";
+  }
+  if (r.rulesSince > 0) {
+    return `Drawn before ${r.rulesSince} ${r.rulesSince === 1 ? "rule" : "rules"} now in force`;
+  }
+  const shape = `${r.drawing.screenCount} ${r.drawing.screenCount === 1 ? "screen" : "screens"}`;
+  const facts = [fidelityWord(r.drawing.fidelity), shape];
+  // The gate word is only a fact while there IS a gate.
+  if (gateOn) facts.push(GATE_WORD[r.gateStatus]);
+  return facts.join(" · ");
+}
+
 function Design() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
   const fetchRules = useServerFn(listDesignMemory);
-  const fetchPrototypes = useServerFn(listPrototypes);
   const decide = useServerFn(decideDesignMemory);
+  const draftRule = useServerFn(importDesignMemoryFromText);
+  const fetchWork = useServerFn(listDesignWork);
+  const fetchItem = useServerFn(getDesignWorkItem);
+  const redraw = useServerFn(redrawDesignScaffold);
+  const decideGate = useServerFn(decideDesignGate);
+  const recordTaste = useServerFn(recordDesignScaffoldFeedback);
+  const askCritic = useServerFn(runScaffoldDesignCritic);
+  const flipStage = useServerFn(toggleDesignStage);
+  const publish = useServerFn(publishPrototypeFromPrd);
   const share = useServerFn(togglePrototypeShare);
 
   const rules = useQuery({
     queryKey: ["design-memory", ALL_RULES],
     queryFn: () => fetchRules({ data: ALL_RULES }),
   });
-  const prototypes = useQuery({ queryKey: ["prototypes"], queryFn: () => fetchPrototypes() });
+  const work = useQuery({ queryKey: ["design-work"], queryFn: () => fetchWork() });
 
   const entries = rules.data?.items ?? [];
   const waiting = entries.filter((r) => r.status === "pending");
   const inForce = entries.filter((r) => r.status === "approved").length;
   const call: DesignMemoryRow | null = waiting[0] ?? null;
-  const protos = prototypes.data ?? [];
 
-  const [openId, setOpenId] = React.useState<string | null>(null);
-  const selected = protos.find((p) => p.id === openId) ?? null;
+  const items = work.data?.items ?? [];
+  // `prds.design_gate_status` defaults to 'pending' for every spec ever
+  // written, so it only MEANS "waiting on you" while the workspace's gate is
+  // on. With the gate off nothing is waiting, and saying otherwise would be
+  // the surface inventing a queue out of a column default.
+  const gateOn = Boolean(work.data?.stageEnabled);
+  const drawnAndWaiting = gateOn
+    ? items.filter((i) => i.drawing && i.gateStatus === "pending")
+    : [];
+
+  // Derived, never an effect: the surface opens on the thing you came to judge,
+  // and a click just overrides it. An effect would fight the query on refetch.
+  const [picked, setPicked] = React.useState<string | null>(null);
+  // A pick that is no longer in the list falls back rather than opening a
+  // detail view of something that is gone.
+  const focusId =
+    (picked && items.some((i) => i.prdId === picked) ? picked : items[0]?.prdId) ?? null;
+
+  const item = useQuery({
+    queryKey: ["design-work-item", focusId],
+    queryFn: () => fetchItem({ data: { prdId: focusId as string } }),
+    enabled: !!focusId,
+  });
+  const focus = item.data ?? null;
+
+  // Receipts, not toasts (anti-slop.md §5). A write renders what it CAUSED.
+  const [trace, setTrace] = React.useState<Trace[]>([]);
+  const nextId = React.useRef(1);
+  const note = React.useCallback(
+    (at: Trace["at"], verb: string, consequence: React.ReactNode, failed = false) => {
+      setTrace((t) => [{ id: nextId.current++, at, verb, consequence, failed }, ...t].slice(0, 4));
+    },
+    [],
+  );
+  const pageTrace = trace.filter((t) => t.at === "page").slice(0, 2);
+  const focusTrace = trace.filter((t) => t.at === "focus").slice(0, 2);
+
+  const [findings, setFindings] = React.useState<DesignCriticFinding[] | null>(null);
+  const [ruling, setRuling] = React.useState<string | null>(null);
+
+  const refreshWork = () => {
+    void qc.invalidateQueries({ queryKey: ["design-work"] });
+    void qc.invalidateQueries({ queryKey: ["design-work-item"] });
+  };
 
   const settle = useMutation({
     mutationFn: async (decision: "approve" | "reject") => {
-      if (!call) return;
+      if (!call) throw new Error("Nothing to settle.");
       await decide({ data: { id: call.id, decision } });
+      return decision;
     },
-    onSuccess: (_r, decision) => {
-      toast.success(decision === "approve" ? "In force from now on." : "Declined.");
+    onSuccess: (decision) => {
+      // The real blast radius of settling a rule, counted from what is on the
+      // surface: a rule that comes into force now post-dates every drawing
+      // already made, so none of them follow it.
+      const drawn = items.filter((i) => i.drawing).length;
+      note(
+        "page",
+        decision === "approve" ? "You approved a brand rule" : "You declined a brand rule",
+        decision === "approve" ? (
+          drawn > 0 ? (
+            <>
+              Every drawing from now on follows it. The <Num>{drawn}</Num> already drawn do not.
+            </>
+          ) : (
+            "Every drawing from now on follows it."
+          )
+        ) : (
+          "It binds nothing. The crew will not follow it."
+        ),
+      );
       void qc.invalidateQueries({ queryKey: ["design-memory"] });
+      refreshWork();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => note("page", "Your call did not save", e.message, true),
   });
 
-  const toggle = useMutation({
-    mutationFn: (v: { id: string; isPublic: boolean }) => share({ data: v }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ["prototypes"] }),
-    onError: (e: Error) => toast.error(e.message),
+  const drawAt = useMutation({
+    mutationFn: (fidelity: DesignFidelity) => {
+      if (!focus) throw new Error("Nothing is in focus.");
+      return redraw({ data: { prdId: focus.prdId, fidelity } });
+    },
+    onSuccess: (res) => {
+      setFindings(null);
+      note(
+        "focus",
+        `Design drew a ${FIDELITY_WORD[res.fidelity].toLowerCase()}`,
+        <>
+          <Num>{res.screenCount}</Num> screens, <Num>{res.controlCount}</Num> controls. The drawing
+          before it is gone.
+        </>,
+      );
+      refreshWork();
+    },
+    onError: (e: Error) => note("focus", "Nothing was drawn", e.message, true),
+  });
+
+  const verdict = useMutation({
+    mutationFn: async (decision: "approve" | "reject") => {
+      if (!focus) throw new Error("Nothing is in focus.");
+      const res = await decideGate({ data: { prdId: focus.prdId, decision } });
+      // The same pairing the spec page makes: one judgment, and the taste loop
+      // learns from it. Never allowed to fail the verdict.
+      try {
+        await recordTaste({
+          data: {
+            prdId: focus.prdId,
+            specExcerpt: focus.specExcerpt || focus.title,
+            approved: decision === "approve",
+          },
+        });
+      } catch {
+        /* the verdict already landed; the learning is best effort */
+      }
+      return res;
+    },
+    onSuccess: (res) => {
+      note(
+        "focus",
+        res.status === "approved" ? "You approved the design" : "You sent the design back",
+        res.status === "approved"
+          ? "This spec can reach Build."
+          : "The gate stays shut. It needs another drawing.",
+        // Draw a handoff only where something real picks the work up. Nothing
+        // in this product auto-dispatches on a design approval, so there is no
+        // arrow here rather than an arrow to nowhere.
+      );
+      refreshWork();
+    },
+    onError: (e: Error) => note("focus", "The verdict did not save", e.message, true),
+  });
+
+  /** The gate off means there is no gate to move, so the verdict has nowhere to
+   *  land except the taste loop. Saying "Approve the design" when nothing is
+   *  being approved would claim a capability the wiring does not have (R12), so
+   *  the words change with what the click actually does. */
+  const taste = useMutation({
+    mutationFn: (approved: boolean) => {
+      if (!focus) throw new Error("Nothing is in focus.");
+      return recordTaste({
+        data: {
+          prdId: focus.prdId,
+          specExcerpt: focus.specExcerpt || focus.title,
+          approved,
+        },
+      });
+    },
+    onSuccess: (res, approved) => {
+      note(
+        "focus",
+        approved ? "You called it a good fit" : "You called it a poor fit",
+        res.learned > 0 ? (
+          <>
+            <Num>{res.learned}</Num> brand rules drafted from it, waiting at the top of this page.
+          </>
+        ) : (
+          "Nothing concrete enough to become a rule came out of it."
+        ),
+      );
+      void qc.invalidateQueries({ queryKey: ["design-memory"] });
+    },
+    onError: (e: Error) => note("focus", "Nothing was recorded", e.message, true),
+  });
+
+  const critic = useMutation({
+    mutationFn: () => {
+      if (!focus?.drawing) throw new Error("Nothing is drawn.");
+      // The validator caps the payload at 60000. Slicing here means a long
+      // document gets reviewed on its first 60000 characters rather than
+      // failing the request outright.
+      return askCritic({ data: { prdId: focus.prdId, html: focus.drawing.html.slice(0, 60000) } });
+    },
+    onSuccess: (res) => {
+      if (!res.review) {
+        setFindings(null);
+        note(
+          "focus",
+          "The Critic could not review it",
+          "Nothing was written down. Try again.",
+          true,
+        );
+        return;
+      }
+      setFindings(res.review.findings);
+      note(
+        "focus",
+        "The Critic reviewed the drawing",
+        res.review.findings.length === 0 ? (
+          "It found nothing against your rules or the accessibility floors."
+        ) : (
+          <>
+            <Num>{res.review.findings.length}</Num> findings, below.
+          </>
+        ),
+      );
+    },
+    onError: (e: Error) => note("focus", "The Critic could not review it", e.message, true),
+  });
+
+  const makeRule = useMutation({
+    mutationFn: async (f: DesignCriticFinding) => {
+      setRuling(f.issue);
+      return draftRule({ data: { text: ruleTextFor(f) } });
+    },
+    onSuccess: (res) => {
+      setRuling(null);
+      note(
+        "focus",
+        "You turned a finding into a rule",
+        res.inserted > 0 ? (
+          <>
+            <Num>{res.inserted}</Num> drafted. They are waiting at the top of this page.
+          </>
+        ) : (
+          "Nothing concrete enough to stand as a rule came out of it. Nothing was added."
+        ),
+      );
+      void qc.invalidateQueries({ queryKey: ["design-memory"] });
+    },
+    onError: (e: Error) => {
+      setRuling(null);
+      note("focus", "No rule was drafted", e.message, true);
+    },
+  });
+
+  const hand = useMutation({
+    mutationFn: () => {
+      if (!focus) throw new Error("Nothing is in focus.");
+      return publish({ data: { prdId: focus.prdId } });
+    },
+    onSuccess: (p) => {
+      note(
+        "focus",
+        "You made a link for this drawing",
+        <>
+          It is private. Switch it on below to hand out <Num>/p/{p.shareSlug}</Num>.
+        </>,
+      );
+      refreshWork();
+    },
+    onError: (e: Error) => note("focus", "No link was made", e.message, true),
+  });
+
+  const flipShare = useMutation({
+    mutationFn: (v: { id: string; isPublic: boolean; slug: string }) =>
+      share({ data: { id: v.id, isPublic: v.isPublic } }),
+    onSuccess: (_r, v) => {
+      note(
+        "focus",
+        v.isPublic ? "You opened a link" : "You closed a link",
+        v.isPublic ? (
+          <>
+            Anyone with <Num>/p/{v.slug}</Num> can open the drawing.
+          </>
+        ) : (
+          "The address stops working. Nobody outside can open it."
+        ),
+      );
+      refreshWork();
+    },
+    onError: (e: Error) => note("focus", "The link did not change", e.message, true),
+  });
+
+  const stage = useMutation({
+    mutationFn: (enabled: boolean) => flipStage({ data: { enabled } }),
+    onSuccess: (res) => {
+      note(
+        "page",
+        res.enabled ? "You turned the design gate on" : "You turned the design gate off",
+        res.enabled
+          ? "A spec now needs an approved design before it can reach Build."
+          : "A spec can now reach Build without a design being approved.",
+      );
+      refreshWork();
+    },
+    onError: (e: Error) => note("page", "The gate setting did not change", e.message, true),
   });
 
   const openBrandRules = () =>
     void navigate({ to: "/settings", search: { section: "brand" } as never });
 
-  // The headline says what needs YOU. The standing counts are standing facts
-  // and live in the context column.
-  const headline = rules.isLoading
-    ? "Reading the record."
-    : waiting.length === 0
-      ? "Nothing needs you."
-      : waiting.length === 1
-        ? "One brand rule needs you."
-        : `${waiting.length} brand rules need you.`;
+  const busy =
+    drawAt.isPending ||
+    verdict.isPending ||
+    taste.isPending ||
+    critic.isPending ||
+    hand.isPending ||
+    makeRule.isPending;
 
-  // An empty aside is a column of nothing, so the surface drops it entirely
-  // rather than reserving room for it. Anything narrower than this and the
-  // main column gets the width back.
-  const hasContext = !!call || !!selected || (rules.isSuccess && entries.length > 0);
+  // The headline says what needs YOU, and it tells the truth about which queue
+  // is asking. Standing counts are standing facts and live in the context column.
+  const headline =
+    rules.isLoading || work.isLoading
+      ? "Reading the record."
+      : waiting.length > 0
+        ? waiting.length === 1
+          ? "One brand rule needs you."
+          : `${waiting.length} brand rules need you.`
+        : drawnAndWaiting.length === 1
+          ? "One drawn screen is waiting on your call."
+          : drawnAndWaiting.length > 1
+            ? `${drawnAndWaiting.length} drawn screens are waiting on your call.`
+            : "Nothing needs you.";
+
+  const dayOne = rules.isSuccess && entries.length === 0 && work.isSuccess && items.length === 0;
+
+  const hasContext =
+    !!call || (rules.isSuccess && entries.length > 0) || Boolean(work.data?.isOwner);
 
   const context = (
     <>
@@ -203,43 +558,6 @@ function Design() {
         </>
       ) : null}
 
-      {selected ? (
-        <>
-          <div className="sp-ctx-head">This prototype</div>
-          <div className="sp-ctx-row">
-            <span>
-              <span className="sp-ctx-name">{selected.name}</span>
-              <span className="sp-ctx-sub">
-                {selected.isPublic ? shareUrl(selected.shareSlug) : "Not shared"}
-              </span>
-            </span>
-          </div>
-          <div className="sp-acts">
-            <Button
-              disabled={toggle.isPending}
-              onClick={() => toggle.mutate({ id: selected.id, isPublic: !selected.isPublic })}
-            >
-              {selected.isPublic ? "Make private" : "Share by link"}
-            </Button>
-            {selected.isPublic ? (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  void navigator.clipboard?.writeText(shareUrl(selected.shareSlug));
-                  toast.success("Share link copied");
-                }}
-              >
-                Copy link
-              </Button>
-            ) : null}
-          </div>
-        </>
-      ) : null}
-
-      {/* Suppressed on day one and on a failed read: the Gate already carries
-          the invitation in the first case and the count would be a lie in the
-          second, and two buttons pointing at the same place is the duplication
-          this pass exists to remove. */}
       {rules.isSuccess && entries.length > 0 ? (
         <>
           <div className="sp-ctx-head">The rules themselves</div>
@@ -253,6 +571,29 @@ function Design() {
           </div>
         </>
       ) : null}
+
+      {/* A boundary, not a decision: policy is set in advance and does not
+          block. Owner only, because only the owner can write it. */}
+      {work.data?.isOwner ? (
+        <>
+          <div className="sp-ctx-head">The gate itself</div>
+          <Line
+            label="Design gates Build"
+            sub={
+              work.data.stageEnabled
+                ? "A spec waits here until you approve its design."
+                : "Specs reach Build without passing through here."
+            }
+          >
+            <Switch
+              label="Require an approved design before a spec reaches Build"
+              checked={work.data.stageEnabled}
+              disabled={stage.isPending}
+              onChange={(next) => stage.mutate(next)}
+            />
+          </Line>
+        </>
+      ) : null}
     </>
   );
 
@@ -260,10 +601,13 @@ function Design() {
     <Surface context={hasContext ? context : undefined}>
       <PageHead
         title={headline}
-        sub={call ? "Nothing binds into a mockup until you approve it." : undefined}
+        sub={call ? "Nothing binds into a drawing until you settle it." : undefined}
       />
 
-      {rules.isLoading ? null : rules.isError ? (
+      {/* ONE Gate. The pending rule owns it because nothing the crew draws is
+          on settled ground until it is answered. A drawing's own verdict is
+          not here: it sits with the drawing, which is its evidence. */}
+      {rules.isError ? (
         <Gate question="The brand rules did not load.">
           <Button variant="primary" onClick={() => void rules.refetch()}>
             Try again
@@ -288,52 +632,280 @@ function Design() {
             Decline
           </Button>
         </Gate>
-      ) : entries.length === 0 ? (
-        // Day one is the only day every user has, and it is a different fact
-        // from "nothing is waiting": the crew has nothing to follow at all.
+      ) : dayOne ? (
         <Gate
-          question="The crew has no brand rules to follow."
+          question="The crew has no brand rules and nothing to draw."
           lines={[
             <span key="w">
-              Until it does, it draws from generic defaults rather than from your product.
+              Give it your design language and it draws in your product's voice. Without one it
+              draws from generic defaults.
             </span>,
           ]}
         >
           <Button variant="primary" onClick={openBrandRules}>
             Add design language
           </Button>
+          <Button onClick={() => void navigate({ to: "/plan" })}>Open specs</Button>
         </Gate>
-      ) : (
-        <Gate question="No brand rules are waiting on you." />
-      )}
+      ) : null}
 
-      <Block title="Prototypes" more="Open specs" onMore={() => void navigate({ to: "/plan" })}>
-        {prototypes.isLoading ? null : prototypes.isError ? (
-          <Failed onRetry={() => void prototypes.refetch()}>
-            Could not read your prototypes. {(prototypes.error as Error).message}
+      {pageTrace.map((t) => (
+        <Receipt
+          key={t.id}
+          verb={t.verb}
+          consequence={t.consequence}
+          failed={t.failed}
+          time="now"
+        />
+      ))}
+
+      <Block
+        title="Screens the crew drew"
+        sub={
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <AgentMark slug={DRAWS} state={drawAt.isPending ? "running" : "quiet"} />
+            {drawAt.isPending
+              ? "Design is drawing."
+              : "Design renders a spec as a screen, in your brand."}
+          </span>
+        }
+      >
+        {work.isLoading ? (
+          <Loading>Reading the drawings.</Loading>
+        ) : work.isError ? (
+          <Failed onRetry={() => void work.refetch()}>
+            Could not read the drawings. {(work.error as Error).message}
           </Failed>
-        ) : protos.length === 0 ? (
-          <Empty>
-            Nothing to hand anyone yet. Generate a mockup on a spec, then publish it from that spec
-            and it gets a link you can send.
+        ) : items.length === 0 ? (
+          <Empty
+            action={<Button onClick={() => void navigate({ to: "/plan" })}>Open specs</Button>}
+          >
+            Nothing to look at. A spec gets a screen drawn from it once it says enough for Design to
+            read, and every drawing in this workspace lands here.
           </Empty>
         ) : (
-          protos.map((p) => (
+          items.map((r) => (
             <Row
-              key={p.id}
+              key={r.prdId}
               tight
-              focused={openId === p.id}
-              lead={<Who>{p.name}</Who>}
-              // A different fact, not the name continued: whether it is out in
-              // the world, and at what address. The switch itself belongs to
-              // the one in focus, in the context column.
-              sub={p.isPublic ? `Shared · /p/${p.shareSlug}` : "Private"}
-              time={ago(p.updatedAt)}
-              onClick={() => setOpenId(openId === p.id ? null : p.id)}
+              focused={focusId === r.prdId}
+              marks={
+                <AgentMark
+                  slug={DRAWS}
+                  // Exactly one mark may blink, and only when it is genuinely
+                  // the first call. A pending rule outranks it and takes the
+                  // Gate, so nothing blinks underneath it.
+                  state={
+                    !gateOn || !r.drawing || r.gateStatus !== "pending"
+                      ? "quiet"
+                      : waiting.length === 0 && drawnAndWaiting[0]?.prdId === r.prdId
+                        ? "gate"
+                        : "waiting"
+                  }
+                />
+              }
+              lead={<Who>{r.title}</Who>}
+              sub={rowSub(r, gateOn)}
+              time={ago(r.drawing?.drawnAt ?? r.gateDecidedAt)}
+              onClick={() => setPicked(r.prdId)}
             />
           ))
         )}
       </Block>
+
+      {focusId ? (
+        <Block title={focus?.title ?? "The screen in focus"}>
+          {item.isLoading ? (
+            <Loading>Opening it.</Loading>
+          ) : item.isError ? (
+            <Failed onRetry={() => void item.refetch()}>
+              Could not open it. {(item.error as Error).message}
+            </Failed>
+          ) : !focus ? (
+            <Empty>That spec is no longer readable from this workspace.</Empty>
+          ) : (
+            <>
+              {focus.drawing ? (
+                <DrawingStage html={focus.drawing.html} title={focus.title} />
+              ) : focus.specTooThin ? (
+                <Empty
+                  action={
+                    <Button
+                      onClick={() =>
+                        void navigate({
+                          to: "/plan/spec/$id",
+                          params: { id: focus.prdId },
+                        })
+                      }
+                    >
+                      Write the spec
+                    </Button>
+                  }
+                >
+                  Design has nothing to read. This spec is still shorter than a paragraph, and a
+                  screen drawn from it would be invention rather than a reading of your intent.
+                </Empty>
+              ) : (
+                <Empty>
+                  Nothing is drawn for this spec yet. Pick how finished you want it and Design draws
+                  it from the spec's own words.
+                </Empty>
+              )}
+
+              {/* THE SPECTRUM. Three real generations, not three labels: each
+                  changes the prompt AND the stylesheet the document ships
+                  with, and the stored drawing carries which one it is.
+                  A drawing made before the fidelity was recorded selects
+                  NOTHING, because calling it a mockup would be a guess. */}
+              {!focus.specTooThin ? (
+                <Line
+                  label="How finished"
+                  sub={
+                    focus.drawing
+                      ? "Drawing again replaces this one. Only the latest is kept."
+                      : "Picking one draws it now, from the spec's own words."
+                  }
+                >
+                  <Choices<DesignFidelity | "">
+                    label="How finished the drawing should be"
+                    value={focus.drawing?.fidelity ?? ""}
+                    options={DESIGN_FIDELITIES.map((f) => ({
+                      id: f,
+                      label: FIDELITY_WORD[f],
+                      title: FIDELITY_QUESTION[f],
+                      disabled: drawAt.isPending,
+                    }))}
+                    onPick={(f) => {
+                      if (f) drawAt.mutate(f);
+                    }}
+                  />
+                </Line>
+              ) : null}
+
+              {/* Drawn or not. With nothing drawn, "what it replaces" drops out
+                  but "what it holds up" is the most important fact on the page:
+                  an undecided gate blocks this spec's dispatch whether or not
+                  anyone has drawn the screen it is waiting on. */}
+              <Consequence
+                consequence={focus.consequence}
+                redrawn={focus.drawing?.redrawn ?? false}
+                hasDrawing={!!focus.drawing}
+                gateStatus={focus.gateStatus}
+                stageEnabled={focus.stageEnabled}
+              />
+
+              <Actions
+                trailing={
+                  focus.drawing ? (
+                    <Button variant="ghost" disabled={busy} onClick={() => hand.mutate()}>
+                      Make a link
+                    </Button>
+                  ) : undefined
+                }
+              >
+                {focus.stageEnabled ? (
+                  <>
+                    <Button
+                      variant="primary"
+                      disabled={busy || focus.gateStatus === "approved"}
+                      onClick={() => verdict.mutate("approve")}
+                    >
+                      {focus.gateStatus === "approved" ? "Approved" : "Approve the design"}
+                    </Button>
+                    <Button disabled={busy} onClick={() => verdict.mutate("reject")}>
+                      Send it back
+                    </Button>
+                  </>
+                ) : focus.drawing ? (
+                  <>
+                    <Button variant="primary" disabled={busy} onClick={() => taste.mutate(true)}>
+                      Good fit
+                    </Button>
+                    <Button disabled={busy} onClick={() => taste.mutate(false)}>
+                      Not a fit
+                    </Button>
+                  </>
+                ) : null}
+                {focus.drawing ? (
+                  <Button disabled={busy} onClick={() => critic.mutate()}>
+                    {critic.isPending ? "The Critic is reading" : "Ask the Critic"}
+                  </Button>
+                ) : null}
+              </Actions>
+
+              {focusTrace.map((t) => (
+                <Receipt
+                  key={t.id}
+                  verb={t.verb}
+                  consequence={t.consequence}
+                  failed={t.failed}
+                  time="now"
+                />
+              ))}
+
+              {findings && findings.length === 0 ? (
+                <Empty>
+                  The Critic found nothing against your rules or the accessibility floors.
+                </Empty>
+              ) : null}
+            </>
+          )}
+        </Block>
+      ) : null}
+
+      {/* Its own region, not a Block nested in a Block: the section rule is a
+          rule between sections and never appears inside one. Same for the
+          links below. WHAT YOU CAN DO ABOUT IT, in place: a finding you cannot
+          act on is a complaint. */}
+      {focus && findings && findings.length > 0 ? (
+        <Block
+          title="What the Critic found"
+          sub={
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <AgentMark slug={REVIEWS} state={critic.isPending ? "running" : "quiet"} />
+              Making one a rule stops the crew repeating it.
+            </span>
+          }
+        >
+          <Findings
+            findings={findings}
+            pendingIssue={ruling}
+            onMakeRule={(f) => makeRule.mutate(f)}
+          />
+        </Block>
+      ) : null}
+
+      {focus && focus.consequence.shares.length > 0 ? (
+        <Block title="Links to this drawing">
+          {focus.consequence.shares.map((s) => (
+            <Line
+              key={s.id}
+              label={s.name}
+              sub={s.isPublic ? shareUrl(s.slug) : "Nobody outside can open it"}
+            >
+              {s.isPublic ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(shareUrl(s.slug));
+                    note("focus", "You copied a link", `${shareUrl(s.slug)} is on your clipboard.`);
+                  }}
+                >
+                  Copy
+                </Button>
+              ) : (
+                <Value>Private</Value>
+              )}
+              <Switch
+                label={`Let anyone with the link open ${s.name}`}
+                checked={s.isPublic}
+                disabled={flipShare.isPending}
+                onChange={(next) => flipShare.mutate({ id: s.id, isPublic: next, slug: s.slug })}
+              />
+            </Line>
+          ))}
+        </Block>
+      ) : null}
     </Surface>
   );
 }
