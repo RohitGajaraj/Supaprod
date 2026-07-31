@@ -12,7 +12,9 @@
 >
 > Written from the human side, not the strategic one. The reason this company exists is not that product decisions are inefficient. It is that **people get blamed for decisions nobody could reconstruct**, and he was one of them for a decade. Moving fast usually means someone quietly pays for it later; the whole point of the product is that nobody has to.
 >
-> Every answer below leads with a person, not a market. Nothing is exaggerated to sound warm. **All five founder slots are now filled with answers he can use or cut**, marked `→ swap if wrong`.
+> Every answer below leads with a person, not a market. Nothing is exaggerated to sound warm. **Everything is filled in.** Two answers remain yours to confirm rather than write: roommates, and how you heard about them.
+>
+> **Founder rulings applied 2026-07-31:** never open an answer on a negative (the zero-users line now closes the traction bullets instead of leading them); never imply he is not talking to users, because that is the first thing an accelerator screens for; user conversations appear in both the traction and the six-month answers.
 
 ---
 
@@ -97,22 +99,14 @@ That is the whole ambition: it tells you what to build, it builds it, and it get
 ### describe what you're building or investigating in 50 characters or less *
 
 ```text
-Agents that know what to build, ship it, warn you
+Agents that know what to build, ship it, remember
 ```
 
-_(49 characters. Keeps your ratified tagline's exact structure and only replaces the closing word.)_
+_(49 characters. **Founder's call, 2026-07-31** — he chose the ratified tagline as-is over the "warn you" variant.)_
 
-> **Why not "Cursor for PMs, the whole product org." here.** That anchor is right for YC, where a partner thinks in categories and knows the PM budget exists. It is wrong for a house of young builders, where "product manager" is not an aspirational identity and for some of that audience it names the person who slows engineers down. You would be spending your 50 characters on the one word this room may push back on.
+> **Why not "Cursor for PMs, the whole product org."** That anchor is right for YC, where a partner thinks in categories and knows the PM budget exists. It is wrong for a house of young builders, where "product manager" is not an aspirational identity and for part of that room it names the person who slows engineers down. Do not reach for "agentic" or "AI-native" either; the vocabulary rules ban "agentic" from any first line and a builder house reads category words as evasion.
 >
-> **Why it opens on "Agents" and not on a verb.** An earlier draft read `Knows what to build, ships it, warns you next time`. On a standalone form field there is no sentence around the answer, so a subject-less fragment leaves the reader asking *what* knows. Naming the actor first fixes it, and "Agents" is more specific than "AI", which by 2026 is the most generic opener available.
->
-> **Why it ends on "warn you" and not "remember".** The canonical hero tagline closes on "remember", and that is the weakest word available for the third layer. Remembering is storage, and storage is the framing the canon explicitly bans. What the brain actually does is **guide**: next time a similar call comes up it tells you what worked and warns you before you repeat what did not. "Warn you" says what the product does for you; "remember" says where the data sits.
->
-> The line carries all three layers in canonical order: agents that know what to build (director), ship it (the loop), warn you (the brain, guiding). Plain words, no jargon. Do not reach for "agentic" or "AI-native"; the vocabulary rules ban "agentic" from any first line, and a builder house reads category words as evasion.
->
-> **Other fits, all with a subject and under the cap:** `AI that knows what to build, ships it, warns you` (48) · `Agents that know what to build, ship it, and learn` (50) · `Agents that pick what to build, ship it, warn you` (49).
->
-> ⚠️ **Founder call worth making separately:** the ratified hero tagline "Agents that know what to build, ship it, and remember." ends on the same weak word, on every external surface including the deck and the site. If "remember" is wrong here, it is wrong there too. Not changed unilaterally, because that tagline is founder-locked. Flagged for a decision.
+> **Variants considered and available if you change your mind:** `Agents that know what to build, ship it, warn you` (49, closes on the brain guiding rather than storing) · `AI that knows what to build, ships it, warns you` (48) · `Agents that know what to build, ship it, and learn` (50).
 
 ### add any details that we might be interested in that you couldn't fit in 50 characters *
 
@@ -195,21 +189,19 @@ And I am the most demanding user I have. I run my company on it daily and hit ev
 ### key traction metrics, use bullet points (be concise) *
 
 ```text
-- Zero outside users. Zero revenue. Saying that first because it is the honest headline and everything below is build progress, not traction.
-- 401 features specced, 362 shipped in 8 weeks, solo. I had the register independently audited against the actual code and it held.
-- An engine that advances product missions on its own every minute: sense, decide, define, build, ship, learn.
-- Agents opening real pull requests behind a merge gate no agent can cross.
-- Agents earning more autonomy from their own track record, with a few things they never get to do regardless of how good that record gets.
-- Beta is open. Public launch September.
+- It runs end to end today. An engine advances product missions on its own every minute, through sense, decide, define, build, ship and learn.
+- 401 features specced, 362 shipped in eight weeks, solo. I had the register independently audited against the actual code and it held.
+- Agents open real pull requests behind a merge gate no agent can cross, and earn more autonomy from their own track record, with a few things they never get to do regardless of how good that record gets.
+- I talk to users constantly and what they say goes straight back into the build: design changes, new roadmap items, and rework on whatever they do not love.
+- The beta is open and anyone can walk the product today. Public launch in September.
+- No paying users and no revenue yet. I built the engine before opening the doors on purpose, because a system whose value is accumulated judgment teaches you nothing while it is empty. That sequencing inverts now.
 ```
 
 ### how long have you been working on this, and how much has been full-time, if any? *
 
 ```text
-Eight weeks on this build, seven days a week, plus about a month of nights and weekends on the prototype before it. Fully full-time now: I am on a break from my product role, and leaving it is already decided rather than contingent on how any of this goes.
+Eight weeks on this build, seven days a week, plus about a month of nights and weekends on the prototype before it. Fully full-time now: I am currently on a break from my product role to make this happen, and leaving it for good is already decided rather than contingent on how any of this goes.
 ```
-
-> _→ swap the employment clause if the literal truth differs on the day you submit ("on sabbatical", "my notice is in, last day is X"). One clause, no gray area._
 
 ### are people using what you're building? *
 
@@ -222,11 +214,11 @@ Eight weeks on this build, seven days a week, plus about a month of nights and w
 ### what are your goals for the next 6 months (in general, doesn't only have to be numerical goals)? *
 
 ```text
-Launch in September and stop guessing. Every judgment about what matters here is currently mine, and I have gone eight weeks with nobody telling me I am wrong. That is not a good way to build something meant to help people think.
+Get real users on it at scale and let them drive the roadmap. I already talk to users and feed what they say back into the build, and it has changed real things: design iterations, new roadmap items, and rework on the parts they did not love. What I want in six months is for that loop to be the engine of the company rather than something running alongside it.
 
-Concretely: get real users on it, learn what they actually do with it versus what I assumed, and find out what a team will pay, which is the number I most want to be wrong about early.
+Concretely: launch publicly in September, get the first cohort of teams running their actual product work inside it, and find out what a team will pay for a closed decision loop. Pricing is the number I most want to be wrong about early.
 
-Less concretely, and more honestly: stop being the only person who understands this system. I want one or two people around me with taste and judgment. Those are the two things I cannot hand to an agent, and they are also the two things that are no fun to have alone.
+And build the team around it. One or two people with real taste and judgment, because those are the two things I cannot hand to an agent.
 ```
 
 ---
@@ -274,9 +266,9 @@ The other thing: I do not compete on generating code. That layer is a knife figh
 ### have you participated in any incubators, accelerators, or pre-accelerators? if so which ones? *
 
 ```text
-Not for this company. An earlier venture of mine, a food and beverage business, was incubated at NSRCEL at IIM Bangalore and recognised under India's Startup India initiative.
+Not for this company. An earlier venture of mine, a food and beverage business, was incubated at NSRCEL at IIM Bangalore and recognised under the Government of India's Startup India initiative.
 
-This cycle I have an application in with Y Combinator and I am applying to a handful of others.
+This cycle I have an application in with Y Combinator, and I am applying to a16z Speedrun, Entrepreneur First and a handful of others.
 ```
 
 ### have you had roommates besides your family before? *
@@ -300,11 +292,11 @@ This cycle I have an application in with Y Combinator and I am applying to a han
 ### who or what inspired you to apply? *
 
 ```text
-Eight weeks of building alone has been the fastest I have ever worked and the loneliest. Those two facts are connected, and I do not think it is a trade worth continuing to make.
+I talk to users every week and that is what shapes the product. What I do not have is other builders next to me. Eight weeks of shipping alone has been the fastest I have ever worked and the least my own thinking has been tested by people doing the same thing.
 
-I have spent my whole career in rooms full of people and got good at working through them. Doing this alone proved I can build without them, which was worth learning. It also showed me what I lose when there is nobody close enough to tell me I am wrong before I ship.
+I spent my whole career in rooms full of people and got good at working through them. Doing this alone proved I can build without them, which was worth learning. It also showed me what I lose when there is nobody close enough to push back before I ship.
 
-So it is less a person who inspired me and more a thing I noticed about myself. I want to fix it somewhere that makes it unavoidable. Not a programme I attend, a house I come home to.
+So it is less a person who inspired me and more something I noticed about myself. I want to fix it somewhere that makes it unavoidable. Not a programme I attend, a house I come home to.
 ```
 
 ### were you referred by an alumni? *
@@ -317,7 +309,7 @@ So it is less a person who inspired me and more a thing I noticed about myself. 
 
 1. **Scan every prose answer for a URL and delete it.** Only the six dedicated link fields get links. This is the rule they said they are grading.
 2. **Read the book answer and the "who inspired you" answer once.** Both are personal, and both are written as you. If either does not sound like you, change it; a slightly worse answer in your own voice beats a better one in mine.
-3. Confirm the two assumed answers: **roommates = yes**, and the employment clause.
+3. Confirm **roommates = yes** (assumed from your Munich MBA years) and pick the true option for **how you heard about the residency**. Those are the only two slots left; the employment clause and the 50-character line are now settled.
 4. **The commit count is deliberately absent.** It contradicted "agents wrote the code" (the number would be measuring them, not you) and reads as a vanity metric to a house full of engineers. If you want a volume number anywhere, re-pull the shipped-feature count instead: `bash scripts/dashboard-tally.sh`. It was 362 shipped of 401 specced on 2026-07-31.
 5. Leave the demo video field blank unless a short cut exists.
 6. Read the "be concise" answers aloud. Past roughly eight lines, cut.
