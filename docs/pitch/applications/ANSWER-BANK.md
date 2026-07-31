@@ -42,8 +42,8 @@ Agents that know what to build, ship it, and remember.
 | Line | Chars | Use it for |
 | --- | --- | --- |
 | `Cursor for PMs, the whole product org.` | 38 | **Investors, VC-run accelerators, YC.** A partner thinks in categories and knows the PM budget exists, so the anchor does real work. |
-| `Knows what to build, ships it, warns you next time` | 50 | **Builder audiences: hacker houses, residencies, engineer-heavy programs.** All three layers, and the third one **guides** rather than stores. |
-| `Knows what to build, ships it, warns on repeats` | 47 | Same, with headroom when a field counts strictly. |
+| `Agents that know what to build, ship it, warn you` | 49 | **Builder audiences: hacker houses, residencies, engineer-heavy programs.** All three layers, the third one **guides** rather than stores, and it keeps the ratified tagline's structure. |
+| `AI that knows what to build, ships it, warns you` | 48 | Same, with more headroom, if you prefer "AI" to "Agents". |
 | `Decides what to build, builds it, learns.` | 41 | When the cap is tighter than 50, or the form wants blunt. |
 | `Cursor for product managers.` | 28 | Anchor-only fallback when space is very tight and the reader is investor-side. |
 
@@ -51,7 +51,11 @@ Agents that know what to build, ship it, and remember.
 >
 > **Never** use "agentic" or "AI-native" in a 50-character field. The vocabulary rules ban "agentic" from any first line, and builder audiences read category words as evasion.
 >
-> The full canon tagline, `Agents that know what to build, ship it, and remember.`, is **54 characters** and does not fit a 50 cap. Trim the "and" and the period.
+> The full canon tagline, `Agents that know what to build, ship it, and remember.`, is **54 characters** and does not fit a 50 cap.
+>
+> ⚠️ **Always name the actor.** A standalone form field has no sentence around it, so `Knows what to build, ships it, warns you` reads as a fragment and the reader asks *what* knows. Start with "Agents" or "AI".
+>
+> ⚠️ **Never close on "remember".** It describes where data sits. The third layer **guides**: it warns you before you repeat what did not work. Close on "warn you", "learn", or "warns on repeats".
 
 ### One sentence
 ```
