@@ -53,37 +53,39 @@ years.
 
 # VIDEO 3 — Which part of the thesis resonated most?
 
-**256 words · 1:59 at your 129 wpm**
+**261 words · 2:01 at your 129 wpm**
 
 > **This is the one that decides whether you sound like everyone else.** Every applicant will quote their thesis back approvingly, because that is what the question invites, and an AI asked to write it produces the same shape every time. The differentiator is a real observation that required actually reading the post. Theirs is sitting in plain sight: **category 1 and category 2 contradict each other**, and resolving that exact contradiction is what you built.
 
 ```text
-Your second category is the one I sat with. The reliability of the
+Your second category is the one I sat with: the reliability of the
 human-machine boundary.
 
-I learned that the hard way, because I'm already the single human in the loop
-your first category describes. That's not a prediction for me, it's just my
-Tuesday. My agents open real pull requests against my own codebase.
+I learned that the hard way. I'm already the single human in the loop you
+describe. That's not a prediction for me, it's just my Tuesday. My agents open
+real pull requests against my own codebase.
 
-Early on I did what most people do. I made myself approve everything. It felt
-responsible. What it actually did was turn me into a queue. I was up at two in
-the morning approving things I hadn't really read, which is worse than not
-checking at all, because now there's my name on it.
+Early on I approved everything. It felt responsible. What it did was turn me
+into a queue. I was up at two in the morning approving things I hadn't really
+read, which is worse than not checking, because now there's my name on it.
 
-That's when I noticed your two categories fight each other. You want an AI
-cofounder scaling with one human, and you want that boundary reliable. But
-every obvious way to make it reliable puts the human back in the path.
+That's when I saw your two categories fight each other. You want one human in
+the loop, and you want that boundary reliable. But every way to make it
+reliable puts the human back in the path.
 
-So I split it. Policy gets decided in advance and doesn't block. Permission
-gets asked in the moment and does. Almost everything should be policy.
+Supaprod is my answer. It's what a product team runs on when agents do the
+work: it tells you what's worth building, ships it, and grades whether the
+call was right.
 
-My agents run on their own now. They earn more room from their own track
-record. And three things stay mine no matter how good they get. Merge. Revert.
-Delegate.
+The boundary is the part I split. Policy is set in advance and doesn't block.
+Permission is asked in the moment and does. Almost everything should be
+policy.
 
-I came to this from banking, where nobody accepts "the model decided". So the
-part I care about isn't making the agent smarter. It's that afterwards I can
-reconstruct exactly what it did, and why.
+So agents run on their own. They earn room from their own track record. And
+three things stay yours no matter how good they get. Merge. Revert. Delegate.
+
+That works because it's all on the record. I'm not asking you to trust the
+agent, just to be able to reconstruct what it did.
 
 I don't think this is solved. I'd like to be argued with about where those
 lines belong.
@@ -94,6 +96,8 @@ lines belong.
 - "That's not a prediction for me, it's just my Tuesday" is the personality line. Underplay it, almost an aside. It lands harder thrown away than pushed.
 - The two-in-the-morning story is the heart of the video. Slow down there. It is the part no other applicant can write, because it happened to you.
 - Beat after "because now there's my name on it." Let it sit.
+- **"Supaprod is my answer." is the hinge.** Everything before it is the problem you lived; everything after is the product. Small pause before it, then pick the pace back up.
+- Note the switch to **"three things stay yours"**. That is where it stops being your workflow and becomes something someone else can use. Do not read past it.
 - "Merge. Revert. Delegate." are three sentences. Full stop between each.
 - The close is a real invitation, not a pitch. Say it like you mean it, because you do.
 

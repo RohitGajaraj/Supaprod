@@ -425,32 +425,34 @@ Those two are the right cuts: Step 1 is atmosphere rather than proof, and Step 5
 > **Nothing you own can be reused here.** This one is Betaworks-specific and it is also the highest-leverage of the three, because most applicants will answer it vaguely. Naming their criterion and then showing you already built it is the whole game.
 
 ```text
-Your second category is the one I sat with. The reliability of the
+Your second category is the one I sat with: the reliability of the
 human-machine boundary.
 
-I learned that the hard way, because I'm already the single human in the loop
-your first category describes. That's not a prediction for me, it's just my
-Tuesday. My agents open real pull requests against my own codebase.
+I learned that the hard way. I'm already the single human in the loop you
+describe. That's not a prediction for me, it's just my Tuesday. My agents open
+real pull requests against my own codebase.
 
-Early on I did what most people do. I made myself approve everything. It felt
-responsible. What it actually did was turn me into a queue. I was up at two in
-the morning approving things I hadn't really read, which is worse than not
-checking at all, because now there's my name on it.
+Early on I approved everything. It felt responsible. What it did was turn me
+into a queue. I was up at two in the morning approving things I hadn't really
+read, which is worse than not checking, because now there's my name on it.
 
-That's when I noticed your two categories fight each other. You want an AI
-cofounder scaling with one human, and you want that boundary reliable. But
-every obvious way to make it reliable puts the human back in the path.
+That's when I saw your two categories fight each other. You want one human in
+the loop, and you want that boundary reliable. But every way to make it
+reliable puts the human back in the path.
 
-So I split it. Policy gets decided in advance and doesn't block. Permission
-gets asked in the moment and does. Almost everything should be policy.
+Supaprod is my answer. It's what a product team runs on when agents do the
+work: it tells you what's worth building, ships it, and grades whether the
+call was right.
 
-My agents run on their own now. They earn more room from their own track
-record. And three things stay mine no matter how good they get. Merge. Revert.
-Delegate.
+The boundary is the part I split. Policy is set in advance and doesn't block.
+Permission is asked in the moment and does. Almost everything should be
+policy.
 
-I came to this from banking, where nobody accepts "the model decided". So the
-part I care about isn't making the agent smarter. It's that afterwards I can
-reconstruct exactly what it did, and why.
+So agents run on their own. They earn room from their own track record. And
+three things stay yours no matter how good they get. Merge. Revert. Delegate.
+
+That works because it's all on the record. I'm not asking you to trust the
+agent, just to be able to reconstruct what it did.
 
 I don't think this is solved. I'd like to be argued with about where those
 lines belong.
