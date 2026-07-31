@@ -103,10 +103,51 @@ lines belong.
 
 ---
 
-# VIDEO 2 — the demo. Do this last.
+# VIDEO 2 — Product demo: what are you building, what problem are you solving?
 
-Full runsheet: [`../../yc/video-scripts.md`](../../yc/video-scripts.md) (2:30, nine beats, shot by shot).
+**265 words · 2:03 at your 129 wpm**
 
-**Shoot once, export twice:** the full 2:30 replaces the YC demo; a trimmed sub-2:00 goes to Betaworks by dropping Step 1 (room at rest) and Step 4 (01 Discover).
+> **Founder's call, 2026-07-31: talking head, not a screen walkthrough.** The screenshots field and the live demo login already carry the "show me" job, so this video answers the question as literally asked: what are you building and what problem does it solve. It closes by sending them to the product itself.
 
-Before you roll: re-run the sixty-second pre-roll check at the bottom of that file. It was verified 2026-07-27 and the seeded approval queues expire on their own, which is exactly what the human-gate beat depends on. Shoot on **`compass@`**, not `explore@`.
+```text
+Let me tell you what I'm building, and the problem it solves.
+
+Building software got cheap this year. You point agents at it and it's done.
+But nobody was ever short of things to build. They were short of knowing which
+ones mattered. So now teams ship ten times more, and get it wrong ten times
+faster. That's the problem.
+
+Supaprod does three things.
+
+First, it tells you what to build. It reads what your team already knows: your
+user feedback, your product data, your competitors, your market. And it comes
+back with a call and the evidence behind it. Not a summary you have to
+interpret. Something you can argue with.
+
+Second, it runs the whole thing. Once you decide, its agents write the spec,
+build it, and open a real pull request a human still has to merge. One loop,
+instead of five tools and somebody holding them together.
+
+Third, and this is the one I care about most, it learns. It checks what shipped
+against the decision that caused it. So next time a similar call comes up, it
+tells you what worked, and warns you before you repeat what didn't.
+
+Everyone else stops one step short. They surface, or draft, or dispatch. Nobody
+closes the loop back to whether the call was right. That's the only part that
+compounds.
+
+It's live, so don't take my word for it. Go to supaprod dot ai and use it, the
+demo login is in the application. And if you want the whole picture, supaprod
+dot ai slash brief lays it out in three minutes.
+```
+
+**Delivery notes**
+- This one is explanation, not story. Steady and clear beats intense.
+- "That's the problem." gets a full stop and a beat. It is the pivot from problem to product.
+- **First / Second / Third are the spine.** Land each number so a listener can count them. If they remember nothing else, they should remember there were three things and that the third one was the one you cared about.
+- "Something you can argue with" is the line that separates you from every summarizer. Do not throw it away.
+- Slow down on "Nobody closes the loop back to whether the call was right." That is the whole differentiator in one sentence.
+- The close is an invitation, not a plea. "Don't take my word for it" is confident, so say it that way.
+- Say the URLs slowly and clearly: "supaprod dot ai" and "supaprod dot ai slash brief". They are being heard, not read.
+
+**Optional, worth 20 seconds:** screen-share the approval queue while you say the "Second, it runs the whole thing" paragraph, then cut back to yourself. Their field is called "Product demo", and even one real screen turns "he described it" into "he showed it". Everything else can stay talking-head.
