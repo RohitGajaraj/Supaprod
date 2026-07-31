@@ -450,8 +450,8 @@ Approving a pending gate is a **write**. Two programs on one login means the sec
 | Login | Password | Allocated to | Status |
 | --- | --- | --- | --- |
 | `explore@supaprod.ai` | `Supaprod!Explore2026` | **Y Combinator** (already filed) | LOCKED, do not reuse |
-| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | _(assign)_ | free |
-| `compass@supaprod.ai` | `Supaprod!Compass2026` | _(assign)_ | free |
+| `voyage@supaprod.ai` | `Supaprod!Voyage2026` | **South Park Commons** (2026-07-31) | SPENT |
+| `compass@supaprod.ai` | `Supaprod!Compass2026` | **Betaworks AI Camp** (2026-07-31, submitted) | SPENT |
 | `meridian@supaprod.ai` | `Supaprod!Meridian2026` | _(assign)_ | free |
 | `lantern@supaprod.ai` | `Supaprod!Lantern2026` | _(assign)_ | free |
 | `harbor@supaprod.ai` | `Supaprod!Harbor2026` | founder rehearsal only | NEVER send |

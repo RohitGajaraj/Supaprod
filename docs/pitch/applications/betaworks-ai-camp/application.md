@@ -1,6 +1,11 @@
 # Betaworks AI Camp: The New Agentic Economy — Fall '26
 
-# 🚨 CLOSES TODAY, 2026-07-31
+# ✅ SUBMITTED 2026-07-31
+
+> Filed on the final deadline. Batch runs 2026-08-31 to 2026-11-20 in NYC; they review on a rolling basis.
+> Login given: `compass@supaprod.ai`, now spent. Questions: `analisa@betaworks.com`.
+>
+> _Archived record of what was sent. Do not edit; copy this file if a later cycle needs a new draft, because any interview will be against these answers._
 
 > _Form captured live 2026-07-31 from the real Airtable. Questions verbatim._
 > **Apply at: https://beta.works/newagenteconomy** (redirects to `airtable.com/applpdBupWZjiAeAH/shrIFqK4liewlonl5`)
