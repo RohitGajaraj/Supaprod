@@ -97,10 +97,16 @@ That is the whole ambition: it tells you what to build, it builds it, and it get
 ### describe what you're building or investigating in 50 characters or less *
 
 ```text
-Cursor for PMs, the whole product org.
+Agents that know what to build, ship it, remember
 ```
 
-_(38 characters. Plainer alternative: `Agents that decide what to build, then build it.` = 47.)_
+_(49 characters. This is your own founder-ratified hero tagline, trimmed of the "and" to leave headroom under the 50 cap.)_
+
+> **Why not "Cursor for PMs, the whole product org." here.** That anchor is right for YC, where a partner thinks in categories and knows the PM budget exists. It is wrong for a house of young builders, where "product manager" is not an aspirational identity and for some of that audience it names the person who slows engineers down. You would be spending your 50 characters on the one word this room may push back on.
+>
+> The tagline above carries all three layers in their canonical order (knows what to build, ships it, remembers) in plain words, with no jargon. Do not reach for "agentic" or "AI-native" here; the vocabulary rules ban "agentic" from any first line, and a builder house reads category words as evasion.
+>
+> **Fallbacks if you want something shorter:** `Decides what to build, builds it, learns.` (41) or `AI that decides what to build, then ships it.` (45).
 
 ### add any details that we might be interested in that you couldn't fit in 50 characters *
 

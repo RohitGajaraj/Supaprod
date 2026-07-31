@@ -37,11 +37,20 @@
 ### 10 words
 Agents that know what to build, ship it, and remember.
 
-### Under 50 characters
-```
-Cursor for PMs, the whole product org.
-```
-(39 chars. Anchor-only fallback: `Cursor for product managers.` at 28 chars.)
+### Under 50 characters — pick by audience, there is no single default
+
+| Line | Chars | Use it for |
+| --- | --- | --- |
+| `Cursor for PMs, the whole product org.` | 38 | **Investors, VC-run accelerators, YC.** A partner thinks in categories and knows the PM budget exists, so the anchor does real work. |
+| `Agents that know what to build, ship it, remember` | 49 | **Builder audiences: hacker houses, residencies, engineer-heavy programs.** The founder-ratified hero tagline, trimmed of the "and" to clear the cap. Carries all three layers in canonical order. |
+| `Decides what to build, builds it, learns.` | 41 | When the cap is tighter than 50, or the form wants blunt. |
+| `Cursor for product managers.` | 28 | Anchor-only fallback when space is very tight and the reader is investor-side. |
+
+> ⚠️ **Do not default to the Cursor line for builder audiences.** At YC it is the right anchor. At a house of young engineers, "product manager" is not an aspirational identity and for part of that room it names the person who slows them down, so it spends the 50 characters on the one word they may push back on.
+>
+> **Never** use "agentic" or "AI-native" in a 50-character field. The vocabulary rules ban "agentic" from any first line, and builder audiences read category words as evasion.
+>
+> The full canon tagline, `Agents that know what to build, ship it, and remember.`, is **54 characters** and does not fit a 50 cap. Trim the "and" and the period.
 
 ### One sentence
 ```
