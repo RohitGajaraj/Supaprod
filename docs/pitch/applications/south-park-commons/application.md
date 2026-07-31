@@ -53,10 +53,9 @@ ready to relocate and I want to build this company from the US.
 ### Q7. How did you hear about the application? *
 ```
 SELECT: X / Social Media
-
-[→ swap if wrong. If a specific person or an SPC post brought you here instead,
-"From an SPC Community Member" or "SPC Blog" carries more weight.]
 ```
+
+> _→ swap if wrong. If a specific person or an SPC post brought you here, "From an SPC Community Member" or "SPC Blog" carries more weight._
 
 ### Q8. Please briefly elaborate on the above
 ```
@@ -65,9 +64,9 @@ programmes that actually back solo technical founders. What made me apply was
 the line about wanting to see how you generate ideas rather than needing a
 finished one. I have thrown four versions of this away, so that is a question
 I can answer honestly.
-
-[→ swap if a specific person or post brought you here. A real name is stronger.]
 ```
+
+> _→ swap if a specific person or post brought you here. A real name is stronger._
 
 ---
 
