@@ -425,32 +425,35 @@ Those two are the right cuts: Step 1 is atmosphere rather than proof, and Step 5
 > **Nothing you own can be reused here.** This one is Betaworks-specific and it is also the highest-leverage of the three, because most applicants will answer it vaguely. Naming their criterion and then showing you already built it is the whole game.
 
 ```text
-I read your five categories and two of them pull against each other.
+Your second category is the one I sat with. The reliability of the
+human-machine boundary.
 
-The first wants an AI cofounder that scales with a single human in the loop.
-The second wants the human-machine boundary dramatically strengthened. But
-every obvious way to make that boundary reliable puts the human back in the
-path. Approve this, confirm that. Do it enough times and you don't have a
-single human in the loop, you have one person doing code review at three in
-the morning.
+I learned that the hard way, because I'm already the single human in the loop
+your first category describes. That's not a prediction for me, it's just my
+Tuesday. My agents open real pull requests against my own codebase.
 
-I've spent eight weeks inside that tension. I am the single human in the loop.
-My agents open real pull requests against my own codebase. If I reviewed every
-one, I'd be the bottleneck I built this to remove.
+Early on I did what most people do. I made myself approve everything. It felt
+responsible. What it actually did was turn me into a queue. I was up at two in
+the morning approving things I hadn't really read, which is worse than not
+checking at all, because now there's my name on it.
 
-So I split it. Policy gets set in advance and doesn't block. Permission gets
-asked in the moment and does. Almost everything should be policy.
+That's when I noticed your two categories fight each other. You want an AI
+cofounder scaling with one human, and you want that boundary reliable. But
+every obvious way to make it reliable puts the human back in the path.
 
-My agents run autonomous by default. They earn more room from their own track
-record, the way a new colleague would. And three things stay mine no matter
-how good that record gets. Merge. Revert. Delegate.
+So I split it. Policy gets decided in advance and doesn't block. Permission
+gets asked in the moment and does. Almost everything should be policy.
 
-That only works because everything is on the record afterward. I'm not
-trusting the agent. I'm trusting that I can reconstruct what it did.
+My agents run on their own now. They earn more room from their own track
+record. And three things stay mine no matter how good they get. Merge. Revert.
+Delegate.
 
-I don't think this is solved. I think it's the most interesting open problem
-in your thesis, and I'd like to be argued with about where those floors
-belong.
+I came to this from banking, where nobody accepts "the model decided". So the
+part I care about isn't making the agent smarter. It's that afterwards I can
+reconstruct exactly what it did, and why.
+
+I don't think this is solved. I'd like to be argued with about where those
+lines belong.
 ```
 
 ---

@@ -53,45 +53,49 @@ years.
 
 # VIDEO 3 — Which part of the thesis resonated most?
 
-**235 words · 1:49 at your actual 129 wpm** (2:02 if you speak unusually slowly)
+**256 words · 1:59 at your 129 wpm**
 
 > **This is the one that decides whether you sound like everyone else.** Every applicant will quote their thesis back approvingly, because that is what the question invites, and an AI asked to write it produces the same shape every time. The differentiator is a real observation that required actually reading the post. Theirs is sitting in plain sight: **category 1 and category 2 contradict each other**, and resolving that exact contradiction is what you built.
 
 ```text
-I read your five categories and two of them pull against each other.
+Your second category is the one I sat with. The reliability of the
+human-machine boundary.
 
-The first wants an AI cofounder that scales with a single human in the loop.
-The second wants the human-machine boundary dramatically strengthened. But
-every obvious way to make that boundary reliable puts the human back in the
-path. Approve this, confirm that. Do it enough times and you don't have a
-single human in the loop, you have one person doing code review at three in
-the morning.
+I learned that the hard way, because I'm already the single human in the loop
+your first category describes. That's not a prediction for me, it's just my
+Tuesday. My agents open real pull requests against my own codebase.
 
-I've spent eight weeks inside that tension. I am the single human in the loop.
-My agents open real pull requests against my own codebase. If I reviewed every
-one, I'd be the bottleneck I built this to remove.
+Early on I did what most people do. I made myself approve everything. It felt
+responsible. What it actually did was turn me into a queue. I was up at two in
+the morning approving things I hadn't really read, which is worse than not
+checking at all, because now there's my name on it.
 
-So I split it. Policy gets set in advance and doesn't block. Permission gets
-asked in the moment and does. Almost everything should be policy.
+That's when I noticed your two categories fight each other. You want an AI
+cofounder scaling with one human, and you want that boundary reliable. But
+every obvious way to make it reliable puts the human back in the path.
 
-My agents run autonomous by default. They earn more room from their own track
-record, the way a new colleague would. And three things stay mine no matter
-how good that record gets. Merge. Revert. Delegate.
+So I split it. Policy gets decided in advance and doesn't block. Permission
+gets asked in the moment and does. Almost everything should be policy.
 
-That only works because everything is on the record afterward. I'm not
-trusting the agent. I'm trusting that I can reconstruct what it did.
+My agents run on their own now. They earn more room from their own track
+record. And three things stay mine no matter how good they get. Merge. Revert.
+Delegate.
 
-I don't think this is solved. I think it's the most interesting open problem
-in your thesis, and I'd like to be argued with about where those floors
-belong.
+I came to this from banking, where nobody accepts "the model decided". So the
+part I care about isn't making the agent smarter. It's that afterwards I can
+reconstruct exactly what it did, and why.
+
+I don't think this is solved. I'd like to be argued with about where those
+lines belong.
 ```
 
 **Delivery notes**
-- Do not perform this one. It is you thinking out loud about something you actually noticed in their post, which is why it works.
-- The opening is the whole differentiator: almost every other applicant will agree with their thesis. You are pointing at a tension inside it. Say it plainly, not cleverly.
-- "one person doing code review at three in the morning" is the concrete image. Do not rush it.
+- This is you talking, not presenting. Do not perform it.
+- "That's not a prediction for me, it's just my Tuesday" is the personality line. Underplay it, almost an aside. It lands harder thrown away than pushed.
+- The two-in-the-morning story is the heart of the video. Slow down there. It is the part no other applicant can write, because it happened to you.
+- Beat after "because now there's my name on it." Let it sit.
 - "Merge. Revert. Delegate." are three sentences. Full stop between each.
-- The close is not a pitch. It is an invitation to be argued with, and it should sound like you mean it, because you do.
+- The close is a real invitation, not a pitch. Say it like you mean it, because you do.
 
 ---
 
