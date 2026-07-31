@@ -118,11 +118,11 @@ The wedge is a free teardown that needs no signup. You point it at a product ide
 
 Beyond that, three things I am doing rather than planning:
 
-I am user zero in public. Supaprod's own roadmap runs inside Supaprod and its agents write its code. The build is the content and the proof at the same time.
+Build in public on X. That is where the AI and product community actually argues about this problem, and where the people I am building for already spend their day. I am user zero: Supaprod's own roadmap runs inside Supaprod and its agents write its code, so every run, every gate an agent stopped at, and every call that turned out wrong is publishable. The build is the content and the proof at the same time, which is rare to have and cheap to keep doing.
 
 Land where procurement is not. Solo founders and product managers on small teams feel this hardest and can start without a purchase order. The audit trail is what larger teams eventually budget for, so expansion comes later and from a different buyer than the landing.
 
-Launch in the rooms where this audience already argues about this problem. Public launch is September, on Hacker News and Product Hunt.
+Launch where the argument already happens. Public launch is September, on X, Hacker News and Product Hunt.
 ```
 
 ## 12. What's your technical stack?
