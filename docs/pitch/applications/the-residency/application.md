@@ -31,28 +31,13 @@ _(Already filled on the form. Leave them.)_
 > _Window is the **past 3 years only**. ISRO and Infineon fall outside it and must not appear here._
 
 ```text
-1. I made myself into someone who can build. Two years ago I was a product
-manager who wrote specs and waited on engineers; I could not have shipped a
-line of this. The proof is Supaprod: an AI system that tells a product team
-what to build, builds it, and learns from what happened. Eight weeks, alone,
-working end to end, running its own roadmap.
+1. I made myself into someone who can build. Two years ago I was a product manager who wrote specs and waited on engineers; I could not have shipped a line of this. The proof is Supaprod: an AI system that tells a product team what to build, builds it, and learns from what happened. Eight weeks, alone, working end to end, running its own roadmap.
 
-The part I would rather tell you is what it cost. This is the fifth version. I
-built four complete working ones before it and threw every one away, because
-each time I got it running I could see it was answering the wrong half of the
-question. The fourth one hurt. Killing your own working software is a specific
-discipline and I did not have it three years ago.
+The part I would rather tell you is what it cost. This is the fifth version. I built four complete working ones before it and threw every one away, because each time I got it running I could see it was answering the wrong half of the question. The fourth one hurt. Killing your own working software is a specific discipline and I did not have it three years ago.
 
-2. At Intellect I shipped AI onboarding from zero to 100,000 end users across
-50 financial institutions, $1.5M in the first eight months. The part I am
-proudest of is unglamorous: I built the evaluation layer underneath it, because
-in banking a wrong answer lands on a real person and somebody has to be able to
-show why the system said what it said.
+2. At Intellect I shipped AI onboarding from zero to 100,000 end users across 50 financial institutions, $1.5M in the first eight months. The part I am proudest of is unglamorous: I built the evaluation layer underneath it, because in banking a wrong answer lands on a real person and somebody has to be able to show why the system said what it said.
 
-3. I left the Assistant Vice President title that came with that to do this
-instead. In a culture where the title is most of what people see, walking away
-from it has been the most expensive decision I have made, and the only one I
-have never once second-guessed.
+3. I left the Assistant Vice President title that came with that to do this instead. In a culture where the title is most of what people see, walking away from it has been the most expensive decision I have made, and the only one I have never once second-guessed.
 ```
 
 ### what is one thing only you believe? *
@@ -60,23 +45,13 @@ have never once second-guessed.
 > _The highest-signal question on the form. This version leads with people, not technology._
 
 ```text
-That everyone racing to make building faster is fixing the half that was never
-the problem.
+That everyone racing to make building faster is fixing the half that was never the problem.
 
-Nobody was ever short of things to build. They were short of knowing which ones
-mattered. Now that agents will build whatever you point them at, that gap is
-the entire game: you can ship ten times more and be wrong ten times faster.
+Nobody was ever short of things to build. They were short of knowing which ones mattered. Now that agents will build whatever you point them at, that gap is the entire game: you can ship ten times more and be wrong ten times faster.
 
-The part people skip is who pays for that. Not the company, not really. It is
-the person who gave four months to something nobody wanted, and the person who
-has to stand in a room and explain a call they made with the best information
-they had, which nobody wrote down. I was both of those people for about ten
-years. It is not an efficiency problem. It is a dignity one.
+The part people skip is who pays for that. Not the company, not really. It is the person who gave four months to something nobody wanted, and the person who has to stand in a room and explain a call they made with the best information they had, which nobody wrote down. I was both of those people for about ten years. It is not an efficiency problem. It is a dignity one.
 
-So the thing worth building is not faster execution. It is a system that tells
-you what is actually worth building, runs it with you, and gets sharper every
-time, so you stop making the same mistake twice. That last part has no fast
-feedback loop, which is exactly why almost nobody is doing it.
+So the thing worth building is not faster execution. It is a system that tells you what is actually worth building, runs it with you, and gets sharper every time, so you stop making the same mistake twice. That last part has no fast feedback loop, which is exactly why almost nobody is doing it.
 ```
 
 ### do you have a cofounder? *
@@ -92,18 +67,11 @@ feedback loop, which is exactly why almost nobody is doing it.
 > _→ swap if wrong. You said you do not really read books. Saying that plainly is a **better** answer here than naming something impressive, because this program is assembling a house and is reading you, not your shelf. This version is honest, reveals character, and lands on the exact idea your company is built on._
 
 ```text
-Honest answer: I am not much of a book person, and I would rather say that
-than name something impressive I never finished.
+Honest answer: I am not much of a book person, and I would rather say that than name something impressive I never finished.
 
-What I do read again and again are postmortems. The public ones, where a
-company or an agency lays out exactly how they got something wrong and what
-they changed because of it. I started my career on satellite programmes, where
-the failure review is the real literature and everyone reads it, and I never
-lost the habit.
+What I do read again and again are postmortems. The public ones, where a company or an agency lays out exactly how they got something wrong and what they changed because of it. I started my career on satellite programmes, where the failure review is the real literature and everyone reads it, and I never lost the habit.
 
-Which is a little embarrassing, because it is also the thing I am now building
-a company around: someone writing down what they decided, what actually
-happened, and what they would do differently.
+Which is a little embarrassing, because it is also the thing I am now building a company around: someone writing down what they decided, what actually happened, and what they would do differently.
 ```
 
 _(Safe alternative if you would rather name a book: **The Making of a Manager** by Julie Zhuo, or **Working in Public** by Nadia Eghbal. Both are defensible and neither is a cliché. But the honest answer above is stronger for this program specifically.)_
@@ -115,28 +83,15 @@ _(Safe alternative if you would rather name a book: **The Making of a Manager** 
 ### what's the ultimate vision you're building towards *
 
 ```text
-Every company is about to run on fleets of agents. The moment that happens, the
-bottleneck stops being how fast you can build and becomes whether you are
-building the right thing at all.
+Every company is about to run on fleets of agents. The moment that happens, the bottleneck stops being how fast you can build and becomes whether you are building the right thing at all.
 
-So the first job is telling you what to build. Supaprod reads everything a team
-already knows, their user feedback, product data, competitors and market, and
-says this is what is worth doing next, with the evidence attached. Almost
-everyone I know has shipped something that mattered to nobody, and not because
-they were careless. Nobody could see the whole picture at once.
+So the first job is telling you what to build. Supaprod reads everything a team already knows, their user feedback, product data, competitors and market, and says this is what is worth doing next, with the evidence attached. Almost everyone I know has shipped something that mattered to nobody, and not because they were careless. Nobody could see the whole picture at once.
 
-The second job is doing it. The whole lifecycle runs as one loop rather than
-five tools and a person holding them together: decide, spec, build, ship, then
-check what actually happened. That in-between work is invisible and it grinds
-people down.
+The second job is doing it. The whole lifecycle runs as one loop rather than five tools and a person holding them together: decide, spec, build, ship, then check what actually happened. That in-between work is invisible and it grinds people down.
 
-The third job, and the one I care most about, is that it learns. Every call and
-its outcome make the next call sharper. It tells you what worked and warns you
-before you repeat something that did not. Your judgment stops living in one
-person's head and starts belonging to the team.
+The third job, and the one I care most about, is that it learns. Every call and its outcome make the next call sharper. It tells you what worked and warns you before you repeat something that did not. Your judgment stops living in one person's head and starts belonging to the team.
 
-That is the whole ambition: it tells you what to build, it builds it, and it
-gets better at knowing every single time it runs.
+That is the whole ambition: it tells you what to build, it builds it, and it gets better at knowing every single time it runs.
 ```
 
 ### describe what you're building or investigating in 50 characters or less *
@@ -152,23 +107,13 @@ _(38 characters. Plainer alternative: `Agents that decide what to build, then bu
 ```text
 Three things, in order.
 
-It tells you what to build. It reads your user feedback, product data,
-competitors and market and says what is worth doing next, with the evidence
-attached. It will also argue against a weak bet before you commit to it.
+It tells you what to build. It reads your user feedback, product data, competitors and market and says what is worth doing next, with the evidence attached. It will also argue against a weak bet before you commit to it.
 
-It runs the whole lifecycle. Once you decide, its agents write the spec, build
-it, and open a real pull request a human still has to merge. One loop instead
-of five tools and someone holding them together.
+It runs the whole lifecycle. Once you decide, its agents write the spec, build it, and open a real pull request a human still has to merge. One loop instead of five tools and someone holding them together.
 
-It learns. Every decision gets checked against what actually happened, so the
-next time a similar call comes up it tells you what worked and warns you before
-you repeat what did not. Your product judgment compounds in the system instead
-of walking out the door when someone leaves.
+It learns. Every decision gets checked against what actually happened, so the next time a similar call comes up it tells you what worked and warns you before you repeat what did not. Your product judgment compounds in the system instead of walking out the door when someone leaves.
 
-The detail I like most is small: agents earn more freedom from their own track
-record, the way you extend trust to a new colleague rather than handing over
-the keys on day one. And a few things they never get to do, no matter how good
-that record gets.
+The detail I like most is small: agents earn more freedom from their own track record, the way you extend trust to a new colleague rather than handing over the keys on day one. And a few things they never get to do, no matter how good that record gets.
 
 I also built it the way it works. One person directing a fleet of agents.
 ```
@@ -214,18 +159,11 @@ https://supaprod.ai/brief
 ### why did you pick this to work on? (be concise) *
 
 ```text
-Because I spent ten years watching good people build the wrong thing, and then
-carry it.
+Because I spent ten years watching good people build the wrong thing, and then carry it.
 
-Three industries, three product jobs, the same work underneath every time:
-gather what nobody had connected, decide from an incomplete picture, then
-months later explain the call from memory while the evidence sat buried
-somewhere. The last three years were AI in banking, which sharpened all of it,
-because nobody there accepts "the model decided".
+Three industries, three product jobs, the same work underneath every time: gather what nobody had connected, decide from an incomplete picture, then months later explain the call from memory while the evidence sat buried somewhere. The last three years were AI in banking, which sharpened all of it, because nobody there accepts "the model decided".
 
-I did not start this to make anyone faster. I started it so people spend their
-months on things that turn out to matter, and so the judgment they build up
-over a career belongs to more than their own memory.
+I did not start this to make anyone faster. I started it so people spend their months on things that turn out to matter, and so the judgment they build up over a career belongs to more than their own memory.
 ```
 
 ### how do you know the world needs what you're making? (be concise) *
@@ -233,14 +171,9 @@ over a career belongs to more than their own memory.
 ```text
 Because people are already building it themselves, badly, in private.
 
-Product people at companies like OpenAI and DoorDash are assembling their own
-versions out of coding agents, connectors and memory files. One described
-spending fifteen hundred hours on her setup. Nobody spends fifteen hundred
-hours on a mild annoyance. They do that when the alternative is being unable to
-defend their own work.
+Product people at companies like OpenAI and DoorDash are assembling their own versions out of coding agents, connectors and memory files. One described spending fifteen hundred hours on her setup. Nobody spends fifteen hundred hours on a mild annoyance. They do that when the alternative is being unable to defend their own work.
 
-And I am the most demanding user I have. I run my company on it daily and hit
-every rough edge before anyone else does.
+And I am the most demanding user I have. I run my company on it daily and hit every rough edge before anyone else does.
 ```
 
 ---
@@ -250,25 +183,18 @@ every rough edge before anyone else does.
 ### key traction metrics, use bullet points (be concise) *
 
 ```text
-- Zero outside users. Zero revenue. Saying that first because it is the honest
-  headline and everything below is build progress, not traction.
-- 401 features specced, 362 shipped in 8 weeks, solo. I had the register
-  independently audited against the actual code and it held.
-- An engine that advances product missions on its own every minute: sense,
-  decide, define, build, ship, learn.
+- Zero outside users. Zero revenue. Saying that first because it is the honest headline and everything below is build progress, not traction.
+- 401 features specced, 362 shipped in 8 weeks, solo. I had the register independently audited against the actual code and it held.
+- An engine that advances product missions on its own every minute: sense, decide, define, build, ship, learn.
 - Agents opening real pull requests behind a merge gate no agent can cross.
-- Agents earning more autonomy from their own track record, with a few things
-  they never get to do regardless of how good that record gets.
+- Agents earning more autonomy from their own track record, with a few things they never get to do regardless of how good that record gets.
 - Beta is open. Public launch September.
 ```
 
 ### how long have you been working on this, and how much has been full-time, if any? *
 
 ```text
-Eight weeks on this build, seven days a week, plus about a month of nights and
-weekends on the prototype before it. Fully full-time now: I am on a break from
-my product role, and leaving it is already decided rather than contingent on
-how any of this goes.
+Eight weeks on this build, seven days a week, plus about a month of nights and weekends on the prototype before it. Fully full-time now: I am on a break from my product role, and leaving it is already decided rather than contingent on how any of this goes.
 ```
 
 > _→ swap the employment clause if the literal truth differs on the day you submit ("on sabbatical", "my notice is in, last day is X"). One clause, no gray area._
@@ -284,18 +210,11 @@ how any of this goes.
 ### what are your goals for the next 6 months (in general, doesn't only have to be numerical goals)? *
 
 ```text
-Launch in September and stop guessing. Every judgment about what matters here
-is currently mine, and I have gone eight weeks with nobody telling me I am
-wrong. That is not a good way to build something meant to help people think.
+Launch in September and stop guessing. Every judgment about what matters here is currently mine, and I have gone eight weeks with nobody telling me I am wrong. That is not a good way to build something meant to help people think.
 
-Concretely: get real users on it, learn what they actually do with it versus
-what I assumed, and find out what a team will pay, which is the number I most
-want to be wrong about early.
+Concretely: get real users on it, learn what they actually do with it versus what I assumed, and find out what a team will pay, which is the number I most want to be wrong about early.
 
-Less concretely, and more honestly: stop being the only person who understands
-this system. I want one or two people around me with taste and judgment. Those
-are the two things I cannot hand to an agent, and they are also the two things
-that are no fun to have alone.
+Less concretely, and more honestly: stop being the only person who understands this system. I want one or two people around me with taste and judgment. Those are the two things I cannot hand to an agent, and they are also the two things that are no fun to have alone.
 ```
 
 ---
@@ -305,35 +224,19 @@ that are no fun to have alone.
 ### who are your main competitors? *
 
 ```text
-Honestly the real competitor is the stitched stack most teams already live
-with: Linear or Jira for tracking, Notion for docs, a spec tool, a coding agent
-for the build, and a product manager acting as the glue between all of it.
+Honestly the real competitor is the stitched stack most teams already live with: Linear or Jira for tracking, Notion for docs, a spec tool, a coding agent for the build, and a product manager acting as the glue between all of it.
 
-Named ones, and the space is moving quickly: Samepage raised a seed to surface
-signals for product leaders. Brief captures decision context for agents.
-Productboard shipped Spark. Notion launched Ship OS, which promises customer
-feedback all the way through to a merged pull request.
+Named ones, and the space is moving quickly: Samepage raised a seed to surface signals for product leaders. Brief captures decision context for agents. Productboard shipped Spark. Notion launched Ship OS, which promises customer feedback all the way through to a merged pull request.
 ```
 
 ### what do you understand that they don't? *
 
 ```text
-Every one of them stops one step short. They surface signals, or draft
-documents, or dispatch work. Not one closes the circle by checking what shipped
-against the decision that caused it and using that to make the next
-recommendation better.
+Every one of them stops one step short. They surface signals, or draft documents, or dispatch work. Not one closes the circle by checking what shipped against the decision that caused it and using that to make the next recommendation better.
 
-That is the difference between a tool that remembers and one that learns.
-Storing decisions is easy and worth almost nothing on its own. The value is a
-system that can say: you are about to make a call you have made before, and
-here is how it went. Nobody gets there without owning the whole loop first,
-which is why it cannot be bolted onto a tracker afterward, and it cannot be
-copied quickly, because it only accumulates with time.
+That is the difference between a tool that remembers and one that learns. Storing decisions is easy and worth almost nothing on its own. The value is a system that can say: you are about to make a call you have made before, and here is how it went. Nobody gets there without owning the whole loop first, which is why it cannot be bolted onto a tracker afterward, and it cannot be copied quickly, because it only accumulates with time.
 
-The other thing: I do not compete on generating code. That layer is a knife
-fight and the models keep absorbing it. I own the harness instead, the gates
-and receipts and rollback, and plug the best model into it. When a better model
-ships, this gets better the same day and I do nothing.
+The other thing: I do not compete on generating code. That layer is a knife fight and the models keep absorbing it. I own the harness instead, the gates and receipts and rollback, and plug the best model into it. When a better model ships, this gets better the same day and I do nothing.
 ```
 
 ---
@@ -359,12 +262,9 @@ ships, this gets better the same day and I do nothing.
 ### have you participated in any incubators, accelerators, or pre-accelerators? if so which ones? *
 
 ```text
-Not for this company. An earlier venture of mine, a food and beverage business,
-was incubated at NSRCEL at IIM Bangalore and recognised under India's Startup
-India initiative.
+Not for this company. An earlier venture of mine, a food and beverage business, was incubated at NSRCEL at IIM Bangalore and recognised under India's Startup India initiative.
 
-This cycle I have an application in with Y Combinator and I am applying to a
-handful of others.
+This cycle I have an application in with Y Combinator and I am applying to a handful of others.
 ```
 
 ### have you had roommates besides your family before? *
@@ -388,18 +288,11 @@ handful of others.
 ### who or what inspired you to apply? *
 
 ```text
-Eight weeks of building alone has been the fastest I have ever worked and the
-loneliest. Those two facts are connected, and I do not think it is a trade
-worth continuing to make.
+Eight weeks of building alone has been the fastest I have ever worked and the loneliest. Those two facts are connected, and I do not think it is a trade worth continuing to make.
 
-I have spent my whole career in rooms full of people and got good at working
-through them. Doing this alone proved I can build without them, which was worth
-learning. It also showed me what I lose when there is nobody close enough to
-tell me I am wrong before I ship.
+I have spent my whole career in rooms full of people and got good at working through them. Doing this alone proved I can build without them, which was worth learning. It also showed me what I lose when there is nobody close enough to tell me I am wrong before I ship.
 
-So it is less a person who inspired me and more a thing I noticed about myself.
-I want to fix it somewhere that makes it unavoidable. Not a programme I attend,
-a house I come home to.
+So it is less a person who inspired me and more a thing I noticed about myself. I want to fix it somewhere that makes it unavoidable. Not a programme I attend, a house I come home to.
 ```
 
 ### were you referred by an alumni? *
