@@ -1,8 +1,134 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-07-30 20:10 IST. 27 commits, all pushed. `main` clean, tsc 0, build 0, 6407 pass / 0 fail. Four founder calls open at the top of the 07-30 section._
+> _Last updated: 2026-07-31 13:10 IST. `main` clean, all pushed through `77b736b4`. This session was NOT a code session: it opened the accelerator funding campaign. Two applications are drafted and one closes TODAY. Read the 07-31 section first._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
+
+---
+
+# 2026-07-31, the accelerator campaign (no code shipped, and that was the point)
+
+## ⏰ DO THIS FIRST, IT HAS A CLOCK ON IT
+
+**Betaworks AI Camp closed or closes 2026-07-31.** Every written answer is done in
+[`docs/pitch/applications/betaworks-ai-camp/application.md`](../pitch/applications/betaworks-ai-camp/application.md).
+The ONLY missing pieces are three videos, 2 minutes maximum each, and bullet cards for all
+three are at the bottom of that file. If the deadline has passed by the time you read this,
+email `analisa@betaworks.com`: their form says applications are reviewed on a rolling basis
+and the program does not start until 2026-08-31, so a late submission is worth attempting.
+
+**South Park Commons closes 2026-08-02, 11:59pm PT** (= Monday 2026-08-03, 12:29pm IST).
+Fully drafted and submit-ready in
+[`docs/pitch/applications/south-park-commons/`](../pitch/applications/south-park-commons/).
+Five founder-only slots remain, and two of them matter: the real cause of death for two of
+the four discarded Supaprod versions, and real names for "who would you recruit".
+
+**Entrepreneur First London closes 2026-08-04.** Not drafted yet. Next in the queue.
+
+## What exists now
+
+New folder [`docs/pitch/applications/`](../pitch/applications/README.md):
+
+| File | What it is |
+| --- | --- |
+| `README.md` | Master index: urgent queue, rolling list, credits, closed, login allocation |
+| `ANSWER-BANK.md` | Every reusable answer at every length. Pull from here, never rewrite |
+| `POSITIONING-DOCTRINE.md` | **How we get selected**, not how we apply. Asset ledger, the counter to every objection, per-program positioning axis, quality gate |
+| `TRACKER-notion.csv` / `TRACKER.csv` | 124 programs, typed columns, ready to import to Notion |
+| `board.html` | Read-only dashboard, also published as an artifact |
+| `betaworks-ai-camp/`, `south-park-commons/` | The two drafted applications |
+
+**124 programs verified live** against their own sites and forms across three research waves.
+39 open or rolling, 42 equity-free, 44 closed, 2 blocked outright by the solo-founder rule.
+
+## Founder rulings this session (binding)
+
+1. **US-primary.** The company should be US-based. Open to relocating anywhere for
+   customers, capital and network, but the US is the destination.
+2. **The YC application supersedes everything** on facts and numbers. Where the resumes and
+   the YC application disagree (the resumes say Intellect serves 40+ countries, YC says 70+),
+   **YC wins**. Resumes are internal reference only and are **never sent to any program**.
+3. **All terms acceptable**, decided case by case. Apply broadly, choose only on offer.
+4. **No legal entity exists yet.**
+
+## The two findings that changed the plan
+
+**Do NOT incorporate in India to chase SISFS.** With US-primary intent, converting an Indian
+Pvt Ltd to a Delaware parent later is an externalisation flip through FEMA and RBI share-swap
+rules, needing valuation reports and filings, and it routinely costs more in time, fees and
+tax than the grant is worth. Indian grant money also attaches conditions to the entity you
+would need to unwind. The entire India grant stack (SISFS, TIDE, 80-IAC, IndiaAI Compute)
+sits behind DPIIT recognition, which requires that entity. **India grants are a conditional
+fallback only.** Cloud and compute credits stay, since they are structure-agnostic.
+
+**The two-founder rule, not the TUM alumni card, decides the European list.** An early draft
+of the strategy sold Munich as the founder's unlock because of his TUM MBA. That was wrong.
+UnternehmerTUM's Accelerator, Incubator and Prototyping Grant all state "no single founder".
+Station F's Founders Program states it "is not for part-time or solo founders", and is
+negative money anyway (EUR 259/desk/month, reportedly 1% equity, zero cash). Startup Wise
+Guys' flagship and ELEVATE Karnataka both require 2+. **Being one person disqualifies him
+before the alumni card is ever played.** Check the team-size bar before scoring fit.
+
+## Corrections made in-session (so they are not re-made)
+
+- **`/brief` is NOT broken.** An early alarm said the page was empty. It was a bad
+  measurement: the deck renders in an **iframe** from `/brief.html` (506KB, ~13,800 words,
+  clean of "Cadence", zero YC mentions) and it is a **horizontal slide deck, press the right
+  arrow**, not a vertical page. Only real nit: crawlers that do not follow iframes see an
+  empty parent, which OG tags already cover. Not an application risk.
+- **Techstars' main accelerator is closed.** Four independent program pages confirm a passed
+  synchronised deadline. Only unfunded "Founder Catalyst" pre-accelerators remain.
+- **Berkeley SkyDeck is NOT equity-free.** A regex matched "equity" inside "NOT equity-free"
+  and flagged it backwards. It takes equity for $210K and charges a $7.5K program fee. The
+  tracker now has a negation-aware `Dilution` column with three states, because "equity-free"
+  and "free" differ: The Residency and Edge City take no equity but charge the founder.
+- **Hub71 and The Residency lost their deadlines to a dedup bug** that kept the highest-fit
+  record rather than the one carrying a verified date. Pinned by override: Hub71 2026-08-21,
+  The Residency 2026-08-14.
+- **The founder's Instagram carousel was ~70% stale.** Of its 11 new names, Launch House and
+  Pioneer are defunct, AngelPad dormant, Moonshot closed 12 days prior, Startmate's "AI track"
+  never existed, and "Founder HQ" was a caption error. Two were genuinely valuable and would
+  have been missed otherwise: **Berkeley SkyDeck (2026-08-21)** and **Alchemist**
+  (enterprise-only, welcomes solo founders in writing).
+
+## Demo login allocation, and the constraint behind it
+
+**One login per program, never shared.** Approving a gate is a WRITE, so the second reviewer
+on a shared workspace opens an emptied approval queue and sees a dead room, which is the exact
+beat the demo is built around.
+
+| Login | Allocated to |
+| --- | --- |
+| `explore@supaprod.ai` | Y Combinator (filed, locked) |
+| `voyage@supaprod.ai` | South Park Commons |
+| `compass@supaprod.ai` | Betaworks AI Camp |
+| `meridian@`, `lantern@` | **free, only two left** |
+| `harbor@supaprod.ai` | founder rehearsal, NEVER send |
+
+Before the next two Tier-1 applications, clone more workspaces using
+`supabase/migrations/20260725140000_clone_helio_to_investor_workspaces.sql`. Lower-priority
+programs get the self-signup line instead. **Approval queues decay on their own**: last
+re-armed 2026-07-28 with a 60-day runway, so they hold to late September.
+
+## Open items for the next session
+
+1. **Notion MCP is installed and CLI-connected but its tools were NOT loadable in this
+   session**, because Claude Code builds its tool registry at startup and the server was added
+   mid-session. Config is at `~/.claude.json`, project-scoped, `{"type":"http","url":"https://mcp.notion.com/mcp"}`.
+   **After a restart the tools should be available** — then build the tracker as a real Notion
+   database instead of a CSV import.
+2. **Draft the next applications**, in order: Entrepreneur First London (2026-08-04),
+   Sequoia Arc (2026-08-17), Berkeley SkyDeck (2026-08-21), Hub71 (2026-08-21).
+3. **Do the credits batch.** Six forms, under an hour total, near-certain acceptance,
+   structure-agnostic: Cloudflare, Microsoft, AWS Activate, Google Cloud, Anthropic, NVIDIA.
+   Plus **Emergent Ventures** (equity-free, replies within a week) and **Plug and Play** (the
+   only genuinely free-and-equity-free accelerator in the open queue).
+4. **Video assets are a standing gap.** The founder video is 2:53 and the demo is 4:51; most
+   programs cap at 1:00 and 2:00-3:00. A short cut of each would serve most of the list.
+5. **Visa lead time is the unsolved part of the US goal.** SPC states plainly it cannot
+   sponsor visas, and most programs are the same. The **UK Global Talent Visa** has zero
+   blockers, applies from Bangalore, takes 5-8 weeks, costs no equity, and unlocks every
+   UK/EU program. Worth starting in parallel with everything else.
 
 ---
 
