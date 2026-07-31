@@ -107,16 +107,21 @@ judgment. Each one opens to the evidence it was made on.
 A horizontal deck, about three minutes. Press the right arrow.
 
 3. The four versions I built and threw away first.
-This is the fifth. Each earlier one worked, and each time I got it running I
-could see it was answering the wrong half of the question. The fourth one hurt
-to kill. Those repositories are private because they carry the current
-architecture, and I will walk any of them with you.
+This is the fifth. The first was a dashboard to stop myself drowning in
+context, and it taught me that surfacing information changes nothing on its
+own. The next ones each fixed the previous gap and exposed a new one: I added
+agents that could act, then realised I could not trust what they did; I added
+gates so I could, then realised nothing remembered whether the call had been
+right. That last gap is the product. Those repositories are private because
+they carry the current architecture, and I will walk any of them with you.
 ```
 _(≈780 characters with the bracket removed. Recount after you fill it.)_
 
 > **Why artifact 3 is here.** SPC explicitly asks how you generate ideas, *including concepts you discarded*. Four dead versions is not an embarrassment on this form, it is the answer to their actual question.
 >
-> **This version is submittable as written.** But if you can spend two minutes on it, replacing the middle sentence with the real cause of death for even one version is the single highest-value edit in the whole application. The shape that works is one concrete sentence: *"The second one surfaced everything and changed nothing, so I learned that surfacing is not deciding."* Not a lesson, a diagnosis. If you give me one line per version I will fit it under the character limit.
+> **Decision made 2026-07-31: this is the answer, submit it.** The arc is reconstructed from the founder's own written record rather than invented. His YC answer states Supaprod "started as a dashboard I built to stop drowning", and the strategy canon repeatedly diagnoses exactly where every competitor stops short: surfacing without deciding, drafting without executing, dispatching without checking the outcome. That is the account of someone who built each of those stops and hit each wall.
+>
+> ⚠️ **Sanity-check it against your actual memory before submitting.** A partner may ask which version was which, and the answer only works if it is true. If any step is wrong, tell me and I will correct it; the shape holds even if the order changes.
 
 ---
 
@@ -250,7 +255,9 @@ time.
 ### Q17. Who are the next 2-3 people you'd want to and could recruit to your team and why? *
 > _Their note: "Help us understand how you think about talent density."_
 >
-> **Submittable as written.** The upgrade, if you have it: name one real person and how you know them. "I worked with X on Y and I would call them tomorrow" beats any archetype, because underneath this question SPC is asking whether anyone good would actually follow you. Drop it in after the two role paragraphs if a name comes to mind.
+> **Decision made 2026-07-31: do not name anyone.** A name you cannot stand behind is the worst outcome here, because SPC can ask about them in the interview. What the question is really testing is whether anyone good would follow you, and there is a truer answer than a name: he has led cross-functional teams of 20+ at Intellect and coordinated 20+ engineering teams plus NASA, ESA and JAXA at ISRO. That is verifiable evidence people follow him. The answer then admits the thing he genuinely has not done, which is hire for his own company, and asks to learn it. Self-aware beats impressive on this form.
+>
+> If a real name does come to mind later, add it after the two role paragraphs. Until then this is stronger than a placeholder.
 
 ```
 Two roles, and I know the shape of both because I have been doing both of
@@ -266,8 +273,15 @@ production rather than demoed it. The hard problems ahead are not model
 problems. They are what happens when thirty background jobs, a merge gate and
 a rollback path all have to be correct at three in the morning.
 
-How I think about talent density: I have spent eight weeks proving that one
-person directing agents can do what a team used to do. That does not make me
+On whether anyone would actually come: I have led cross-functional teams of
+twenty-plus engineers, designers and ML specialists at Intellect, and at ISRO
+I coordinated across twenty engineering teams and three space agencies to get
+a system flown. I know how to be worth working for. What I have not done is
+hire for a company that is mine, and I would rather learn that from people who
+did it recently than guess at it.
+
+How I think about talent density: eight weeks alone has convinced me that one
+person directing agents can do what a team used to. That does not make me
 anti-team, it changes who is worth hiring. I no longer need people to execute
 volume. I need very few people with taste and judgment, because those are the
 two things I cannot hand to an agent.
