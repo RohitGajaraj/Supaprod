@@ -31,23 +31,29 @@ _(Already filled on the form. Leave them.)_
 > _Window is the **past 3 years only**. ISRO and Infineon fall outside it and must not appear here._
 
 ```text
-1. I built a working AI operating system for product teams, alone, in eight
-weeks. 4,264 commits. I did not type the code; I directed AI agents that did,
-and I read every line before it merged. It now runs its own roadmap, and its
-agents open real pull requests against its own codebase behind a gate no agent
-can cross.
+1. I built a working AI system that tells a product team what to build, builds
+it, and learns from what happened. Eight weeks, alone. It runs its own roadmap
+now, and its agents open real pull requests against its own codebase behind a
+gate no agent can cross.
 
-2. At Intellect I shipped AI onboarding from zero to 100,000 end users across
-50 financial institutions, $1.5M in the first eight months. The part I am
-proudest of is unglamorous: I built the evaluation layer underneath it, 500
-tests, six models compared in production, because in banking a wrong answer
-lands on a real person and someone has to be able to show why the system said
-what it said.
+What I would rather tell you about it is the part before that. This is the
+fifth version. I built four complete working ones first and threw every one of
+them away, because each time I got it running I could see it was solving the
+wrong half of the problem. The fourth one hurt. Killing your own working
+software is a specific kind of discipline and I did not have it three years
+ago.
 
-3. The one that actually matters to me: two years ago I could not have built
-any of this. I was a product manager who wrote specs and waited. I spent those
-two years becoming someone who can make the thing himself, at an age where
-most people stop retraining. That is the accomplishment. The rest is output.
+2. I left an Assistant Vice President title to do it. At Intellect I had shipped
+AI onboarding from zero to 100,000 end users across 50 financial institutions,
+and I was good at that job. Walking away from the title, in a culture where the
+title is most of what people see, has been the most personally expensive
+decision I have made, and the first one I have never once second-guessed.
+
+3. Two years ago I could not have built any of this. I was a product manager
+who wrote specs and waited on other people. I spent those two years becoming
+someone who makes the thing himself, at an age when most people quietly stop
+retraining. That is the accomplishment. Everything above is just the output of
+it.
 ```
 
 ### what is one thing only you believe? *
@@ -245,15 +251,16 @@ every rough edge before anyone else does.
 ### key traction metrics, use bullet points (be concise) *
 
 ```text
-- 8 weeks of building, solo. 4,264 commits, 410 database migrations.
-- 401 features specced, 362 shipped, tracked in a register I had independently
-  audited against the actual code. It held.
+- Zero outside users. Zero revenue. Saying that first because it is the honest
+  headline and everything below is build progress, not traction.
+- 401 features specced, 362 shipped in 8 weeks, solo. I had the register
+  independently audited against the actual code and it held.
 - An engine that advances product missions on its own every minute: sense,
   decide, define, build, ship, learn.
 - Agents opening real pull requests behind a merge gate no agent can cross.
-- Agents earning autonomy from their own track record, with limits they never
-  cross regardless of how good that record gets.
-- Zero outside users. Zero revenue. The beta is open, public launch September.
+- Agents earning more autonomy from their own track record, with a few things
+  they never get to do regardless of how good that record gets.
+- Beta is open. Public launch September.
 ```
 
 ### how long have you been working on this, and how much has been full-time, if any? *
@@ -407,7 +414,7 @@ a house I come home to.
 1. **Scan every prose answer for a URL and delete it.** Only the six dedicated link fields get links. This is the rule they said they are grading.
 2. **Read the book answer and the "who inspired you" answer once.** Both are personal, and both are written as you. If either does not sound like you, change it; a slightly worse answer in your own voice beats a better one in mine.
 3. Confirm the two assumed answers: **roommates = yes**, and the employment clause.
-4. Re-pull the commit count the day you submit: `git rev-list --count HEAD`. 4,264 on 2026-07-31, and it appears in two answers.
+4. **The commit count is deliberately absent.** It contradicted "agents wrote the code" (the number would be measuring them, not you) and reads as a vanity metric to a house full of engineers. If you want a volume number anywhere, re-pull the shipped-feature count instead: `bash scripts/dashboard-tally.sh`. It was 362 shipped of 401 specced on 2026-07-31.
 5. Leave the demo video field blank unless a short cut exists.
 6. Read the "be concise" answers aloud. Past roughly eight lines, cut.
 7. No em dashes anywhere.
