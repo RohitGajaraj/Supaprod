@@ -97,16 +97,20 @@ That is the whole ambition: it tells you what to build, it builds it, and it get
 ### describe what you're building or investigating in 50 characters or less *
 
 ```text
-Agents that know what to build, ship it, remember
+Knows what to build, ships it, warns you next time
 ```
 
-_(49 characters. This is your own founder-ratified hero tagline, trimmed of the "and" to leave headroom under the 50 cap.)_
+_(50 characters exactly. Safer 47-char fallback if the field counts strictly: `Knows what to build, ships it, warns on repeats`)_
 
 > **Why not "Cursor for PMs, the whole product org." here.** That anchor is right for YC, where a partner thinks in categories and knows the PM budget exists. It is wrong for a house of young builders, where "product manager" is not an aspirational identity and for some of that audience it names the person who slows engineers down. You would be spending your 50 characters on the one word this room may push back on.
 >
-> The tagline above carries all three layers in their canonical order (knows what to build, ships it, remembers) in plain words, with no jargon. Do not reach for "agentic" or "AI-native" here; the vocabulary rules ban "agentic" from any first line, and a builder house reads category words as evasion.
+> **Why it ends on "warns you next time" and not "remembers".** The canonical hero tagline closes on "remember", and that is the weakest word available for the third layer. Remembering is storage, and storage is the framing the canon explicitly bans. What the brain actually does is **guide**: next time a similar call comes up it tells you what worked and warns you before you repeat what did not. "Warns you next time" says the thing the product does; "remembers" says where the data sits.
 >
-> **Fallbacks if you want something shorter:** `Decides what to build, builds it, learns.` (41) or `AI that decides what to build, then ships it.` (45).
+> The line carries all three layers in canonical order: knows what to build (director), ships it (the loop), warns you next time (the brain, guiding). Plain words, no jargon. Do not reach for "agentic" or "AI-native"; the vocabulary rules ban "agentic" from any first line, and a builder house reads category words as evasion.
+>
+> **Other fits, all under the cap:** `Picks what to build, ships it, learns from misses` (49) · `Tells you what to build, ships it, warns you after` (50) · `Decides what to build, builds it, learns.` (41).
+>
+> ⚠️ **Founder call worth making separately:** the ratified hero tagline "Agents that know what to build, ship it, and remember." ends on the same weak word, on every external surface including the deck and the site. If "remember" is wrong here, it is wrong there too. Not changed unilaterally, because that tagline is founder-locked. Flagged for a decision.
 
 ### add any details that we might be interested in that you couldn't fit in 50 characters *
 

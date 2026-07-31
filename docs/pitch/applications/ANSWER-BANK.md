@@ -42,7 +42,8 @@ Agents that know what to build, ship it, and remember.
 | Line | Chars | Use it for |
 | --- | --- | --- |
 | `Cursor for PMs, the whole product org.` | 38 | **Investors, VC-run accelerators, YC.** A partner thinks in categories and knows the PM budget exists, so the anchor does real work. |
-| `Agents that know what to build, ship it, remember` | 49 | **Builder audiences: hacker houses, residencies, engineer-heavy programs.** The founder-ratified hero tagline, trimmed of the "and" to clear the cap. Carries all three layers in canonical order. |
+| `Knows what to build, ships it, warns you next time` | 50 | **Builder audiences: hacker houses, residencies, engineer-heavy programs.** All three layers, and the third one **guides** rather than stores. |
+| `Knows what to build, ships it, warns on repeats` | 47 | Same, with headroom when a field counts strictly. |
 | `Decides what to build, builds it, learns.` | 41 | When the cap is tighter than 50, or the form wants blunt. |
 | `Cursor for product managers.` | 28 | Anchor-only fallback when space is very tight and the reader is investor-side. |
 
