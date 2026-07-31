@@ -219,7 +219,13 @@ Get real users on it at scale and let them drive the roadmap. I already talk to 
 Concretely: launch publicly in September, get the first cohort of teams running their actual product work inside it, and find out what a team will pay for a closed decision loop. Pricing is the number I most want to be wrong about early.
 
 And build the team around it. One or two people with real taste and judgment, because those are the two things I cannot hand to an agent.
+
+On the personal side, I am also getting married somewhere in that window. The one deadline on this list with no rollback.
 ```
+
+> **Why the last line earns its place.** This is a house, not a fund, and the whole form is reading whether you are a person they want around for twelve weeks. A light, true, non-performative note about a life outside the company does more for that than another metric would, and the rollback joke lands because rollback is a real feature of the product rather than a bolted-on pun.
+>
+> ⚠️ **One thing to weigh before you keep it.** The cohort runs 7 September to 29 November and requires living in the house. A reader could wonder whether a wedding inside that window means you might not show up. If the date is anywhere near those twelve weeks, either say when it is, or move the line to the "anything else" style question instead. If it is comfortably outside the window, keep it exactly as written.
 
 ---
 
