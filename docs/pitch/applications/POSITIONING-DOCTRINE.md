@@ -91,6 +91,31 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 **Two cautions.** Do not manufacture warmth: no anecdote that did not happen, no sentiment the facts do not support. And do not use this register on forms that reward compression above all (a 50-character field, a metrics bullet list). Empathy belongs in the *why* answers, not the *what* answers.
 
+**Rule 5: three layers, in order, every time. The brain is never storage (founder correction, 2026-07-31).**
+
+> _"We are not just building the record part. It is those three things. One is telling what to build, that is the main thing. Second is the entire loop of the product lifecycle. Third is the company brain so that we learn. Maintaining it as a record is a wrong positioning."_
+
+**This rule exists because the empathy rewrite of The Residency application broke it.** Writing warmly about "the person who has to answer for the work" quietly collapsed a three-layer product into an accountability ledger, which is the one framing the canon explicitly bans. The canon was correct the whole time; the application drifted away from it.
+
+**The product, in the only order it is ever told:**
+
+| | Layer | What it does | The human version |
+| --- | --- | --- | --- |
+| **01** | **The director** | Tells you what to build, from your feedback, product data, competitors and market, with evidence attached. **This is the sharpest claim.** | Almost everyone has shipped something that mattered to nobody. Not from carelessness; nobody could see the whole picture at once. |
+| **02** | **The operating system** | Runs the whole lifecycle as one governed loop: sense, decide, define, build, ship, learn. | The glue work between five tools is invisible and it grinds people down. |
+| **03** | **The company brain** | Remembers **and guides**: tells you what worked, warns before you repeat what did not, re-ranks the next bets. | Your judgment stops living in one person's head and stops walking out when they leave. |
+
+**Door then body then brain. One headline per surface. The brain is the crescendo, never the opening.**
+
+**Banned framings, all of which mean the same mistake:**
+- "where the record lives", "the system of record", "the audit trail" as the headline
+- "we keep the receipts so you can answer for it" **as the whole pitch** (it is one supporting beat inside layer 03, not the thesis)
+- anything that reduces the product to memory. README.md says it outright: **"Memory is one layer of the moat, not the headline."**
+
+**The line that fixes it when a draft has drifted:** _"That is the difference between a tool that remembers and one that learns. Storing decisions is easy and worth almost nothing on its own. The value is a system that can say: you are about to make a call you have made before, and here is how it went."_
+
+**Where the canon lives** (all three already correct, do not rewrite them): `README.md` lines 5, 7, 12, 40, 112 · `CLAUDE.md` investor canon · [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3.
+
 ---
 
 ## Part 3 — The positioning axis, program by program

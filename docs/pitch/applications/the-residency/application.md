@@ -55,25 +55,23 @@ most people stop retraining. That is the accomplishment. The rest is output.
 > _The highest-signal question on the form. This version leads with people, not technology._
 
 ```text
-That the people AI hurts most at work will not be the ones replaced by it.
-They will be the ones left holding the bag for it.
+That everyone racing to make building faster is fixing the half that was never
+the problem.
 
-Everyone is arguing about whose job disappears. Meanwhile something quieter is
-already happening: agents are making real calls inside companies, and when one
-of those calls goes wrong, a human still has to stand up in a room and explain
-it. Usually they cannot. The reasoning is gone, the evidence is buried in a
-thread from four months ago, and they end up defending a decision they did not
-fully make and cannot fully reconstruct.
+Nobody was ever short of things to build. They were short of knowing which ones
+mattered. Now that agents will build whatever you point them at, that gap is
+the entire game: you can ship ten times more and be wrong ten times faster.
 
-I was that person for about ten years. It is not a productivity problem. It is
-a dignity problem, and almost nobody is treating it as one.
+The part people skip is who pays for that. Not the company, not really. It is
+the person who gave four months to something nobody wanted, and the person who
+has to stand in a room and explain a call they made with the best information
+they had, which nobody wrote down. I was both of those people for about ten
+years. It is not an efficiency problem. It is a dignity one.
 
-So I do not think the interesting work is making agents faster. I think it is
-making sure that when the machine acts, the human who answers for it has
-something to answer with. Everything I build is that one idea: keep the
-decision with the evidence it was made on, check it later against what actually
-happened, so being wrong becomes something a team learns from instead of
-something a person carries alone.
+So the thing worth building is not faster execution. It is a system that tells
+you what is actually worth building, runs it with you, and gets sharper every
+time, so you stop making the same mistake twice. That last part has no fast
+feedback loop, which is exactly why almost nobody is doing it.
 ```
 
 ### do you have a cofounder? *
@@ -112,18 +110,28 @@ _(Safe alternative if you would rather name a book: **The Making of a Manager** 
 ### what's the ultimate vision you're building towards *
 
 ```text
-Every company is about to run on fleets of agents doing real work. The question
-that follows is not who did the work. It is who answers for it, and whether
-they have anything to answer with.
+Every company is about to run on fleets of agents. The moment that happens, the
+bottleneck stops being how fast you can build and becomes whether you are
+building the right thing at all.
 
-I want to build the layer that protects that person. Every decision kept with
-the evidence it was made on, and checked afterward against what actually
-happened, so a wrong call becomes something the team learns from rather than
-something one person quietly carries.
+So the first job is telling you what to build. Supaprod reads everything a team
+already knows, their user feedback, product data, competitors and market, and
+says this is what is worth doing next, with the evidence attached. Almost
+everyone I know has shipped something that mattered to nobody, and not because
+they were careless. Nobody could see the whole picture at once.
 
-I started with product teams because the loop is tightest there. Where it ends
-up is the record of how a company decides anything, and the reason people can
-move fast without someone paying for it later.
+The second job is doing it. The whole lifecycle runs as one loop rather than
+five tools and a person holding them together: decide, spec, build, ship, then
+check what actually happened. That in-between work is invisible and it grinds
+people down.
+
+The third job, and the one I care most about, is that it learns. Every call and
+its outcome make the next call sharper. It tells you what worked and warns you
+before you repeat something that did not. Your judgment stops living in one
+person's head and starts belonging to the team.
+
+That is the whole ambition: it tells you what to build, it builds it, and it
+gets better at knowing every single time it runs.
 ```
 
 ### describe what you're building or investigating in 50 characters or less *
@@ -137,24 +145,27 @@ _(38 characters. Plainer alternative: `Agents that decide what to build, then bu
 ### add any details that we might be interested in that you couldn't fit in 50 characters *
 
 ```text
-It reads what a team already knows, their user feedback, product data,
-competitors and market, and tells them what is worth building. It argues
-against the weak bets before they commit. Then its agents write the spec, build
-it, and open a real pull request that a human still has to merge. Afterward it
-checks what shipped against the decision that caused it and grades whether the
-call was right.
+Three things, in order.
+
+It tells you what to build. It reads your user feedback, product data,
+competitors and market and says what is worth doing next, with the evidence
+attached. It will also argue against a weak bet before you commit to it.
+
+It runs the whole lifecycle. Once you decide, its agents write the spec, build
+it, and open a real pull request a human still has to merge. One loop instead
+of five tools and someone holding them together.
+
+It learns. Every decision gets checked against what actually happened, so the
+next time a similar call comes up it tells you what worked and warns you before
+you repeat what did not. Your product judgment compounds in the system instead
+of walking out the door when someone leaves.
 
 The detail I like most is small: agents earn more freedom from their own track
-record, the way you would extend trust to a new colleague rather than handing
-over the keys on day one. And there are a few things they never get to do, no
-matter how good their record is.
+record, the way you extend trust to a new colleague rather than handing over
+the keys on day one. And a few things they never get to do, no matter how good
+that record gets.
 
-That last step, checking the outcome against the decision, is the part nobody
-else does, and it is the only one that compounds. Everyone else stops at
-drafting or dispatching.
-
-One more thing worth saying: I built it the way it works. One person directing
-a fleet of agents, with a receipt for everything they did.
+I also built it the way it works. One person directing a fleet of agents.
 ```
 
 ### link to your work (if available)
@@ -198,17 +209,18 @@ https://supaprod.ai/brief
 ### why did you pick this to work on? (be concise) *
 
 ```text
-Because I watched decent people get blamed for decisions nobody could
-reconstruct, and I was one of them often enough to stop finding it acceptable.
+Because I spent ten years watching good people build the wrong thing, and then
+carry it.
 
-Ten years of product work across three industries, and the job underneath was
-always identical: hold the context nobody wrote down, then months later explain
-a call from memory while the evidence sat buried somewhere. The last three
-years were AI in banking, which sharpened it, because nobody there accepts
-"the model decided" and someone's name is attached to every outcome.
+Three industries, three product jobs, the same work underneath every time:
+gather what nobody had connected, decide from an incomplete picture, then
+months later explain the call from memory while the evidence sat buried
+somewhere. The last three years were AI in banking, which sharpened all of it,
+because nobody there accepts "the model decided".
 
-I did not start this to make anyone faster. I started it so that the person who
-has to answer for the work has something to answer with.
+I did not start this to make anyone faster. I started it so people spend their
+months on things that turn out to matter, and so the judgment they build up
+over a career belongs to more than their own memory.
 ```
 
 ### how do you know the world needs what you're making? (be concise) *
@@ -300,14 +312,17 @@ feedback all the way through to a merged pull request.
 ### what do you understand that they don't? *
 
 ```text
-Every one of them stops one step short. They surface, draft, remember, or
-dispatch. Not one checks the shipped outcome against the decision that caused
-it and feeds that back into what gets ranked next.
+Every one of them stops one step short. They surface signals, or draft
+documents, or dispatch work. Not one closes the circle by checking what shipped
+against the decision that caused it and using that to make the next
+recommendation better.
 
-That step is the only one that compounds, and it is unpleasant to build,
-because it is slow and it forces a company to publish its own misses. It also
-cannot be bolted on later, and it cannot be copied quickly, because it only
-accumulates with time.
+That is the difference between a tool that remembers and one that learns.
+Storing decisions is easy and worth almost nothing on its own. The value is a
+system that can say: you are about to make a call you have made before, and
+here is how it went. Nobody gets there without owning the whole loop first,
+which is why it cannot be bolted onto a tracker afterward, and it cannot be
+copied quickly, because it only accumulates with time.
 
 The other thing: I do not compete on generating code. That layer is a knife
 fight and the models keep absorbing it. I own the harness instead, the gates
