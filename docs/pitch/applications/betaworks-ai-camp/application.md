@@ -373,16 +373,17 @@ someone who would actually vouch.]
 ```text
 Hi, I'm Rohit, and I'm building Supaprod.
 
-I've been in product for about ten years. Started in space systems, then
-semiconductors, now banking.
+I've been in product for about ten years. It started at ISRO, on satellite
+communication systems for Chandrayaan-2 and Mangalyaan, our Moon and Mars
+missions. Hardware launches once. There's no patch release.
+
+Then Munich. An MBA at the Technical University of Munich, and semiconductors
+at Infineon after it.
+
+Then the AI platform at Intellect that two hundred banks build on.
 
 Completely different worlds, right? But honestly, the job was the same every
 single morning. You sit down and it's just: what do we build next?
-
-At ISRO I worked on satellite communication systems for Chandrayaan-2 and
-Mangalyaan, our Moon and Mars missions. Hardware launches once. There's no
-patch release. Then Munich, semiconductors at Infineon. Then the AI platform
-at Intellect that two hundred banks build on.
 
 And that's not a me problem, that's the job. Every product manager I've ever
 worked with answers it the same way. Best guess, then defend the guess.
@@ -398,15 +399,33 @@ I'm not building a tool I read about. I'm building the one I needed for ten
 years.
 ```
 
-### Video 2 — Product demo: what are you building, what problem (target 2:00, product on screen from second one)
+### Video 2 — Product demo: what are you building, what problem (≤2:00, product on screen from second one)
 
-- **Screen share from frame one. Do not open on your face.**
-- Open on the approval queue. "Agents worked overnight. These are the calls waiting on me."
-- Click one decision. Show the evidence it was made on. **Then show the prior-outcome record: how a similar call went last time.** This is the beat that separates us from everything else. Do not rush it.
-- Show an agent-opened pull request sitting behind the merge gate. "Agents write real code. No agent can cross this line."
-- Show a rollback. One key.
-- Say the problem once, plainly: "Building got cheap. Deciding what to build, and proving the call was right, did not. Code has a compiler. Product judgment does not."
-- Close on: "Agents do the work. You answer for it. This is how you answer."
+> **Do not write a new script. One already exists and it is verified.**
+> [`../../yc/video-scripts.md`](../../yc/video-scripts.md) is a shot-by-shot runsheet ending at **2:30**, nine beats with Step 6 already cut, plus a sixty-second pre-roll check. The 4:51 recording currently attached to YC did not follow it; it drifted. This is a re-shoot against an existing plan, not a writing job.
+
+**Shoot once, export twice.**
+
+| Export | Length | Goes to | How |
+| --- | --- | --- | --- |
+| Full runsheet | **2:30** | **YC** (replaces the 4:51) | Shoot Steps 1-11 as written |
+| Trimmed | **≤2:00** | **Betaworks** | Drop **Step 1** (room at rest, 0:20) and **Step 4** (01 Discover, 0:12) |
+
+Those two are the right cuts: Step 1 is atmosphere rather than proof, and Step 5 "Decide" already implies discovery. Everything the canon protects survives, in particular the human gate (Step 8), the honest miss (Step 10) and the rollback.
+
+> ⚠️ **Re-run the sixty-second pre-roll check before you shoot.** It was last verified **2026-07-27**, and the demo data decays on its own: the seeded approval queues expire, which is precisely what Step 8 depends on. Shooting against a decayed workspace wastes the session. The runsheet's own rule applies: if any check disagrees on the day, drop that beat rather than shooting a broken one. "A missing beat costs you a sentence. A broken beat costs you the claim."
+>
+> ⚠️ **Shoot on `compass@`, not `harbor@` or `explore@`.** `compass@` is the login going to Betaworks, so the screenshots and the video should match what their reviewer sees. `explore@` is spent on YC and must not be disturbed.
+
+**The beats, for reference while you rehearse** (full detail and exact timings in the runsheet):
+
+- Open on the room. Product on screen from frame one, never your face.
+- The lifecycle in one frame, then the question nobody can answer: "why did we decide this?"
+- **02 Decide** — the machine argues back. This is the wedge.
+- **05 Build** — the code is real, a pull request with actual file paths.
+- **The human gate** — an agent stopped and asked. Do not rush this.
+- **06 Ship**, then **07 Learn** — the honest miss. Never cut it.
+- Close on the compounding beat.
 
 ### Video 3 — Which part of the thesis resonated most? (target 1:30)
 
