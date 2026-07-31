@@ -364,15 +364,39 @@ someone who would actually vouch.]
 
 **Rules for all three:** one take, webcam, look at the lens, bullets not a script. Energy over polish. **Hard stop at 2:00.** Upload unlisted to YouTube or Drive with link-sharing on, then **test each in incognito.**
 
-### Video 1 — Founder background: who are you? (target 1:30)
+### Video 1 — Founder background: who are you? (~200 words, 1:45 at your 115 wpm)
 
-- Rohit Gajaraj, solo founder of Supaprod, from Bangalore.
-- Nine years in product. Started at ISRO building satellite communication systems for Chandrayaan-2 and Mangalyaan, India's Moon and Mars missions. Hardware launches once. No patch release.
-- Then Munich, product manager at Infineon, a $50M audio portfolio in Samsung, Apple and Xiaomi flagships.
-- Then AI in banking at Intellect, where 200+ financial institutions build on the platform I ran product for. Shipped 0-to-1 AI onboarding to 100,000+ end users, built a 500-test evaluation suite, A/B tested six frontier models in production.
-- Same job underneath all three: be the glue across a dozen tools, and re-answer "why did we decide this" from memory months later.
-- Eight weeks ago I started building the thing that removes that job. Alone, 4,264 commits directed and reviewed.
-- Close on: "I am not building a tool I read about. I am building the one I needed for nine years."
+> **Can you just reuse the YC founder video?** No. It is **2:53** against their **2:00** cap, and their form says "PLEASE stick to the time limits!" with the exclamation mark, which means they get abused on this. Sending 2:53 to a program whose thesis is about systems that respect constraints is a bad first signal.
+>
+> **But you barely have to rewrite it.** Your v8.3 script is 372 words because it carries the background *and* the full three-layer product explanation. Here, videos 2 and 3 take the product and the thesis, so video 1 only has to answer "who are you". That drop alone gets you under time. Everything below is lifted from lines you have already practised.
+
+```text
+Hi, I'm Rohit, and I'm building Supaprod.
+
+I've been in product for about ten years. Started in space systems, then
+semiconductors, now banking.
+
+Completely different worlds, right? But honestly, the job was the same every
+single morning. You sit down and it's just: what do we build next?
+
+At ISRO I worked on satellite communication systems for Chandrayaan-2 and
+Mangalyaan, our Moon and Mars missions. Hardware launches once. There's no
+patch release. Then Munich, semiconductors at Infineon. Then the AI platform
+at Intellect that two hundred banks build on.
+
+And that's not a me problem, that's the job. Every product manager I've ever
+worked with answers it the same way. Best guess, then defend the guess.
+
+And nobody's good at it. Not because people are bad at their jobs. It's that
+every reason you ever had is scattered. A Slack thread somewhere. A call
+nobody recorded. Someone asks why you shipped that thing back in March, and
+you know there was a good reason. You just can't find it.
+
+Eight weeks ago I started building the system that keeps it.
+
+I'm not building a tool I read about. I'm building the one I needed for ten
+years.
+```
 
 ### Video 2 — Product demo: what are you building, what problem (target 2:00, product on screen from second one)
 
@@ -388,12 +412,33 @@ someone who would actually vouch.]
 
 > _This is the video most applicants will get wrong, and the easiest one to win. Name their criterion explicitly, then show you have already built it._
 
-- Name it directly: "The line that landed was **human plus agentic systems with steering and certification capabilities.**"
-- Why: most people hear governance and imagine a human approving each step. That is not automation, that is adding a queue to the work. If every agent decision routes to a human, what was the point of the agent?
-- The distinction I build on: **policy is set in advance and does not block. Permission is asked in the moment and does.** Supaprod is built on policy.
-- So: agents are autonomous by default. Boundaries are set ahead of time. Agents earn more autonomy from their own track record, with hard floors they never cross regardless of how good that record is: merge, revert, delegate.
-- And the certification half is the ledger. Fewer interruptions is only safe because the record proves what happened afterward. You buy autonomy with evidence.
-- Close on their own frame: "If abundant intelligence rearranges the economy, the arrangement that has to get invented is who answers for the work. That is the layer I am building."
+> **Nothing you own can be reused here.** This one is Betaworks-specific and it is also the highest-leverage of the three, because most applicants will answer it vaguely. Naming their criterion and then showing you already built it is the whole game.
+
+```text
+The line that landed for me was "human plus agentic systems with steering and
+certification capabilities."
+
+Here's why. Most people hear governance and picture a human approving every
+step. That isn't automation. That's adding a queue to the work. If every
+decision an agent makes routes back to a person, what was the point of the
+agent?
+
+So the distinction I build on is this. Policy is set in advance, and it
+doesn't block. Permission is asked in the moment, and it does. Supaprod is
+built on policy.
+
+Agents are autonomous by default. The boundaries get set ahead of time. And
+agents earn more autonomy from their own track record, the way you'd extend
+trust to a new colleague instead of handing over the keys on day one. There
+are a few things they never get to do, no matter how good that record gets.
+Merge. Revert. Delegate.
+
+The certification half is the ledger. Fewer interruptions is only safe because
+the record proves what actually happened. You buy autonomy with evidence.
+
+If abundant intelligence rearranges the economy, the thing that has to get
+invented is who answers for the work. That's the layer I'm building.
+```
 
 ---
 
