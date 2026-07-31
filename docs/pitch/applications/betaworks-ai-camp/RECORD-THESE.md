@@ -1,7 +1,7 @@
 # Record these two now. Demo last.
 
 > Betaworks needs three videos, **2:00 maximum each**. Their form says "PLEASE stick to the time limits!"
-> Videos 1 and 3 are talking-head and are below, timed at your practised 115 wpm.
+> Videos 1 and 3 are talking-head and are below. Timed at **129 wpm**, which is your real recorded rate: the v8.3 founder video is 372 words and you shot it at 2:53. The 115 wpm in the script doc is your cold-read rate, not your on-camera one.
 > Video 2 is the screen demo and is a separate job: [`../../yc/video-scripts.md`](../../yc/video-scripts.md).
 
 **Setup:** wired mic or built-in, never AirPods. Record ten seconds, play it back, then start. Look at the lens, not at yourself. One take is fine; energy beats polish.
@@ -12,7 +12,7 @@
 
 # VIDEO 1 — Founder background: who are you?
 
-**200 words · 1:44 at 115 wpm · 15 seconds of margin under the cap**
+**200 words · 1:33 at your actual 129 wpm** (1:44 at a slow 115)
 
 ```text
 Hi, I'm Rohit, and I'm building Supaprod.
@@ -53,42 +53,45 @@ years.
 
 # VIDEO 3 — Which part of the thesis resonated most?
 
-**195 words · 1:41 at 115 wpm · 19 seconds of margin**
+**235 words · 1:49 at your actual 129 wpm** (2:02 if you speak unusually slowly)
 
-> This is the one most applicants answer vaguely, which makes it the easiest of the three to win. Name their criterion, then show you already built it.
+> **This is the one that decides whether you sound like everyone else.** Every applicant will quote their thesis back approvingly, because that is what the question invites, and an AI asked to write it produces the same shape every time. The differentiator is a real observation that required actually reading the post. Theirs is sitting in plain sight: **category 1 and category 2 contradict each other**, and resolving that exact contradiction is what you built.
 
 ```text
-The line that landed for me was "human plus agentic systems with steering and
-certification capabilities."
+I read your five categories and two of them pull against each other.
 
-Here's why. Most people hear governance and picture a human approving every
-step. That isn't automation. That's adding a queue to the work. If every
-decision an agent makes routes back to a person, what was the point of the
-agent?
+The first wants an AI cofounder that scales with a single human in the loop.
+The second wants the human-machine boundary dramatically strengthened. But
+every obvious way to make that boundary reliable puts the human back in the
+path. Approve this, confirm that. Do it enough times and you don't have a
+single human in the loop, you have one person doing code review at three in
+the morning.
 
-So the distinction I build on is this. Policy is set in advance, and it
-doesn't block. Permission is asked in the moment, and it does. Supaprod is
-built on policy.
+I've spent eight weeks inside that tension. I am the single human in the loop.
+My agents open real pull requests against my own codebase. If I reviewed every
+one, I'd be the bottleneck I built this to remove.
 
-Agents are autonomous by default. The boundaries get set ahead of time. And
-agents earn more autonomy from their own track record, the way you'd extend
-trust to a new colleague instead of handing over the keys on day one. There
-are a few things they never get to do, no matter how good that record gets.
-Merge. Revert. Delegate.
+So I split it. Policy gets set in advance and doesn't block. Permission gets
+asked in the moment and does. Almost everything should be policy.
 
-The certification half is the ledger. Fewer interruptions is only safe because
-the record proves what actually happened. You buy autonomy with evidence.
+My agents run autonomous by default. They earn more room from their own track
+record, the way a new colleague would. And three things stay mine no matter
+how good that record gets. Merge. Revert. Delegate.
 
-If abundant intelligence rearranges the economy, the thing that has to get
-invented is who answers for the work. That's the layer I'm building.
+That only works because everything is on the record afterward. I'm not
+trusting the agent. I'm trusting that I can reconstruct what it did.
+
+I don't think this is solved. I think it's the most interesting open problem
+in your thesis, and I'd like to be argued with about where those floors
+belong.
 ```
 
 **Delivery notes**
-- Read their line as a quotation, slightly flatter, then shift into your own voice at "Here's why."
-- "What was the point of the agent?" is the pivot. Ask it, then pause.
-- "Merge. Revert. Delegate." are three separate sentences. Full stop between each.
-- "You buy autonomy with evidence." is the thesis in six words. Land it.
-- Close is quiet, not triumphant.
+- Do not perform this one. It is you thinking out loud about something you actually noticed in their post, which is why it works.
+- The opening is the whole differentiator: almost every other applicant will agree with their thesis. You are pointing at a tension inside it. Say it plainly, not cleverly.
+- "one person doing code review at three in the morning" is the concrete image. Do not rush it.
+- "Merge. Revert. Delegate." are three sentences. Full stop between each.
+- The close is not a pitch. It is an invitation to be argued with, and it should sound like you mean it, because you do.
 
 ---
 

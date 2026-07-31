@@ -8,7 +8,7 @@
 
 ## Why this one matters more than anything else on the list
 
-Betaworks' Fall '26 theme is **the agent economy**, and one of their five stated selection criteria is _"human + agentic systems with steering and certification capabilities."_ That is not adjacent to Supaprod. It is a description of it. Their core thesis line is _"the backpressure of abundant intelligence across nearly all domains will result in radical change in the arrangement of our economy,"_ and the governance principle Supaprod is built on (policy set in advance, autonomy by default, a tamper-evident record, the gate as the exception) is a direct answer to it.
+Betaworks' Fall '26 theme is **the agent economy**, and one of their five funding categories is **Human-Machine Reliability Systems**, described verbatim as _"the integration of AI into the economy will require a dramatic strengthening of the reliability of the human/machine boundary."_ That is not adjacent to Supaprod. It is a description of it. Their first category, **AI-Native Organizations**, names _"an AI cofounder that intends to scale with a single human in the loop"_, which is literally how this company is run. Their core thesis is that _"abundant intelligence will result in radical change in both companies and our economy"_, and this cohort is judging **the novelty of the strategy used to build the company**, not only what got built, and the governance principle Supaprod is built on (policy set in advance, autonomy by default, a tamper-evident record, the gate as the exception) is a direct answer to it.
 
 **Terms:** up to **$500K**. Betaworks Ventures up to $250K on an uncapped SAFE with a 25% discount, plus a **5% common stock stake**. Syndicate partners add up to $250K on matching uncapped SAFEs.
 
@@ -425,29 +425,32 @@ Those two are the right cuts: Step 1 is atmosphere rather than proof, and Step 5
 > **Nothing you own can be reused here.** This one is Betaworks-specific and it is also the highest-leverage of the three, because most applicants will answer it vaguely. Naming their criterion and then showing you already built it is the whole game.
 
 ```text
-The line that landed for me was "human plus agentic systems with steering and
-certification capabilities."
+I read your five categories and two of them pull against each other.
 
-Here's why. Most people hear governance and picture a human approving every
-step. That isn't automation. That's adding a queue to the work. If every
-decision an agent makes routes back to a person, what was the point of the
-agent?
+The first wants an AI cofounder that scales with a single human in the loop.
+The second wants the human-machine boundary dramatically strengthened. But
+every obvious way to make that boundary reliable puts the human back in the
+path. Approve this, confirm that. Do it enough times and you don't have a
+single human in the loop, you have one person doing code review at three in
+the morning.
 
-So the distinction I build on is this. Policy is set in advance, and it
-doesn't block. Permission is asked in the moment, and it does. Supaprod is
-built on policy.
+I've spent eight weeks inside that tension. I am the single human in the loop.
+My agents open real pull requests against my own codebase. If I reviewed every
+one, I'd be the bottleneck I built this to remove.
 
-Agents are autonomous by default. The boundaries get set ahead of time. And
-agents earn more autonomy from their own track record, the way you'd extend
-trust to a new colleague instead of handing over the keys on day one. There
-are a few things they never get to do, no matter how good that record gets.
-Merge. Revert. Delegate.
+So I split it. Policy gets set in advance and doesn't block. Permission gets
+asked in the moment and does. Almost everything should be policy.
 
-The certification half is the ledger. Fewer interruptions is only safe because
-the record proves what actually happened. You buy autonomy with evidence.
+My agents run autonomous by default. They earn more room from their own track
+record, the way a new colleague would. And three things stay mine no matter
+how good that record gets. Merge. Revert. Delegate.
 
-If abundant intelligence rearranges the economy, the thing that has to get
-invented is who answers for the work. That's the layer I'm building.
+That only works because everything is on the record afterward. I'm not
+trusting the agent. I'm trusting that I can reconstruct what it did.
+
+I don't think this is solved. I think it's the most interesting open problem
+in your thesis, and I'd like to be argued with about where those floors
+belong.
 ```
 
 ---
