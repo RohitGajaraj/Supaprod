@@ -116,6 +116,28 @@ The canon already carried this and it was under-used. Two lines to reach for:
 
 **Where the canon lives** (all three already correct, do not rewrite them): `README.md` lines 5, 7, 12, 40, 112 · `CLAUDE.md` investor canon · [`../repositioning-2026-07-22.md`](../repositioning-2026-07-22.md) §3.
 
+**Rule 6: the commit count is per-surface, not universal, and it must never sit next to "agents wrote the code" (founder ruling, 2026-07-31).**
+
+> _"Wherever you feel commit counts would be relevant, you can hide, but not everywhere we should be asking about it."_
+
+**The metric was never the problem. The adjacency was.** In the Residency draft, "4,264 commits" sat in the sentence immediately before "I did not type the code, agents did", so the number appeared to be measuring the agents. In the filed YC application the same two facts live in different fields and never touch, which is why it works there and why the 2026-07-23 ruling kept it as journey evidence.
+
+**The framing that defuses it, use this whenever the number appears:**
+
+> _"Eight weeks, one person, 4,264 commits directed and reviewed."_
+
+Not lines typed. **Throughput directed and reviewed.** Stated that way the number stops competing with the agent story and starts supporting it, because reviewing 4,264 commits in eight weeks is itself the hard thing.
+
+| Surface | Use it? | Why |
+| --- | --- | --- |
+| **YC** | **Yes** | A partner scans thousands of files and needs a fast proxy for "did this person actually build". Already filed, founder-ruled as journey evidence. |
+| **South Park Commons** | **Yes** | Their rubric is velocity plus acceleration, and the question literally says "feel free to brag". Use the directed-and-reviewed framing. |
+| **Betaworks** | **Yes** | Their tech-stack question explicitly asks about AI-assisted coding strategies, so it is supporting context rather than a boast. |
+| **The Residency** | **No** | A house of engineers who know commit counts inflate trivially, and five questions asking you to be concise. Shipped-feature count is the better number. |
+| **Investor decks** | **Never** | On the deck-only never list already. |
+
+**The stronger number in almost every case:** *401 features specced, 362 shipped, register independently audited against the code and it held.* Shipped beats committed, and "audited and it held" is the part nobody can fake. Re-pull with `bash scripts/dashboard-tally.sh`.
+
 ---
 
 ## Part 3 — The positioning axis, program by program

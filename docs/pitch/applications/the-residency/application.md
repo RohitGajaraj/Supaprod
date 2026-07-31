@@ -31,29 +31,28 @@ _(Already filled on the form. Leave them.)_
 > _Window is the **past 3 years only**. ISRO and Infineon fall outside it and must not appear here._
 
 ```text
-1. I built a working AI system that tells a product team what to build, builds
-it, and learns from what happened. Eight weeks, alone. It runs its own roadmap
-now, and its agents open real pull requests against its own codebase behind a
-gate no agent can cross.
+1. I made myself into someone who can build. Two years ago I was a product
+manager who wrote specs and waited on engineers; I could not have shipped a
+line of this. The proof is Supaprod: an AI system that tells a product team
+what to build, builds it, and learns from what happened. Eight weeks, alone,
+working end to end, running its own roadmap.
 
-What I would rather tell you about it is the part before that. This is the
-fifth version. I built four complete working ones first and threw every one of
-them away, because each time I got it running I could see it was solving the
-wrong half of the problem. The fourth one hurt. Killing your own working
-software is a specific kind of discipline and I did not have it three years
-ago.
+The part I would rather tell you is what it cost. This is the fifth version. I
+built four complete working ones before it and threw every one away, because
+each time I got it running I could see it was answering the wrong half of the
+question. The fourth one hurt. Killing your own working software is a specific
+discipline and I did not have it three years ago.
 
-2. I left an Assistant Vice President title to do it. At Intellect I had shipped
-AI onboarding from zero to 100,000 end users across 50 financial institutions,
-and I was good at that job. Walking away from the title, in a culture where the
-title is most of what people see, has been the most personally expensive
-decision I have made, and the first one I have never once second-guessed.
+2. At Intellect I shipped AI onboarding from zero to 100,000 end users across
+50 financial institutions, $1.5M in the first eight months. The part I am
+proudest of is unglamorous: I built the evaluation layer underneath it, because
+in banking a wrong answer lands on a real person and somebody has to be able to
+show why the system said what it said.
 
-3. Two years ago I could not have built any of this. I was a product manager
-who wrote specs and waited on other people. I spent those two years becoming
-someone who makes the thing himself, at an age when most people quietly stop
-retraining. That is the accomplishment. Everything above is just the output of
-it.
+3. I left the Assistant Vice President title that came with that to do this
+instead. In a culture where the title is most of what people see, walking away
+from it has been the most expensive decision I have made, and the only one I
+have never once second-guessed.
 ```
 
 ### what is one thing only you believe? *

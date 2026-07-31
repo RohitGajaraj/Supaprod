@@ -70,9 +70,10 @@ say what you read and what in it made you apply. One or two sentences.]
 ```
 Supaprod, which I am building now: https://supaprod.ai
 
-Eight weeks. 4,264 commits. One person. I designed it and directed AI agents
-to write it, and it now runs its own roadmap: its agents open real pull
-requests against its own codebase, behind a merge gate no agent can cross.
+Eight weeks, one person, 4,264 commits directed and reviewed. I designed the
+system and ran a fleet of coding agents against it, reading everything before
+it merged. It now runs its own roadmap: its agents open real pull requests
+against its own codebase, behind a merge gate no agent can cross.
 
 Before software, the one I am proudest of: at 21 I was building satellite
 communication systems at ISRO, India's space agency, for its Moon and Mars

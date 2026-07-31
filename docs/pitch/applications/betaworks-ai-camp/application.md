@@ -317,9 +317,9 @@ what a guardrail is.
 
 And I am the existence proof of my own claim. Supaprod says one person
 directing a fleet of agents can do what a team used to do. I built it that
-way: eight weeks, alone, 4,264 commits, agents writing the code under my
-direction behind gates I designed. If the thesis were wrong, there would be no
-product to show you. The product is the argument.
+way: eight weeks, alone, 4,264 commits directed and reviewed, behind gates I
+designed. If the thesis were wrong, there would be no product to show you. The
+product is the argument.
 ```
 
 ### Team Size *
@@ -371,7 +371,7 @@ someone who would actually vouch.]
 - Then Munich, product manager at Infineon, a $50M audio portfolio in Samsung, Apple and Xiaomi flagships.
 - Then AI in banking at Intellect, where 200+ financial institutions build on the platform I ran product for. Shipped 0-to-1 AI onboarding to 100,000+ end users, built a 500-test evaluation suite, A/B tested six frontier models in production.
 - Same job underneath all three: be the glue across a dozen tools, and re-answer "why did we decide this" from memory months later.
-- Eight weeks ago I started building the thing that removes that job. 4,264 commits, alone, agents writing the code.
+- Eight weeks ago I started building the thing that removes that job. Alone, 4,264 commits directed and reviewed.
 - Close on: "I am not building a tool I read about. I am building the one I needed for nine years."
 
 ### Video 2 — Product demo: what are you building, what problem (target 2:00, product on screen from second one)

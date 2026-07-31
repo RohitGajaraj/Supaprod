@@ -39,7 +39,7 @@ It is a live-in house for people who build, not a fund. That changes the rubric:
 ## Our honest fit, including the part that works against us
 
 **Working for us:**
-- He is genuinely building, alone, right now. 4,264 commits in eight weeks is the exact thing this program is looking for.
+- He is genuinely building, alone, right now, which is the exact thing this program exists for. Evidence it by shipped features and a working end-to-end system, **not** by commit count: see doctrine Rule 6.
 - The three-year accomplishment window suits him: it covers the Intellect AI platform work and all of Supaprod.
 - He is open to five of their locations including San Francisco and New York.
 - The contrarian-belief question is a gift for someone with an actual thesis.
@@ -49,7 +49,9 @@ It is a live-in house for people who build, not a fund. That changes the rubric:
 - **No money, and it costs money.** This is not funding. It is a room, a community, and a deadline. Worth applying to as optionality, not as a funding strategy.
 - **Cohort dates collide.** 7 Sept to 29 Nov overlaps both the September public launch and the South Park Commons bootcamp (late Sept to late Nov). If SPC lands, they cannot both happen.
 
-**How the answers handle the age question:** they do not mention it. Instead the accomplishments answer leads with the last two years and closes on how much he has changed, which reframes a decade of experience as velocity rather than seniority. The tone stays plain and unpolished, because a corporate register would confirm exactly the concern.
+**How the answers handle the age question:** they never mention it. The accomplishments answer **opens** on the change ("two years ago I could not have shipped a line of this"), which reframes a decade of experience as velocity rather than seniority, and the tone stays plain because a corporate register would confirm the concern instantly.
+
+**Why each accomplishment point does a different job.** With zero users the artifact cannot carry an achievement claim on its own, so point 1 claims the **capability** and uses the system as evidence for it, which is unimpeachable. Point 2 carries the **credential**, the only item with real users and real revenue. Point 3 carries the **cost**, leaving the AVP title. Three points, three jobs, no overlap. An earlier draft had points 1 and 3 both claiming the transformation.
 
 ## What they get
 

@@ -14,11 +14,7 @@
 
 Of these, the **book** and **who inspired you** carry the most weight. This is a house, not a fund, and both questions are really asking what you are like.
 
-**2. Re-pull the commit count.**
-```bash
-git rev-list --count HEAD
-```
-4,264 on 2026-07-31. It appears in the accomplishments answer and the traction bullets.
+**2. The commit count is deliberately absent from this application.** It contradicted the agent story (the number would be measuring them, not you) and reads as a vanity metric to a house full of engineers. The number that does appear is the shipped-feature count. Re-pull it with `bash scripts/dashboard-tally.sh`: 362 shipped of 401 specced on 2026-07-31.
 
 **3. Decide the demo video.** The current cut is 4:51. That is too long for a first impression from a program that repeatedly asks you to be concise. **Leave the field blank rather than pasting it**, unless a short cut exists by then. They accept "n/a" and say so on the form.
 
@@ -55,4 +51,4 @@ Five questions say **"be concise"**. They mean it. If an answer runs past roughl
 
 **For us:** he is doing exactly what the program exists to support, right now, alone, and can prove it. The three-year accomplishment window happens to be the strongest three years he has. The contrarian-belief question suits someone with a real thesis.
 
-**Against us:** The Residency's reputation is built on very early-career builders, often college-age. A founder with roughly a decade of industry experience and an MBA is not their typical resident. The answers deal with this by never raising it, leading with the last two years, and closing the accomplishments answer on how much has changed rather than how much has accumulated. The register stays plain on purpose, because a corporate voice would confirm the concern instantly.
+**Against us:** The Residency's reputation is built on very early-career builders, often college-age. A founder with roughly a decade of industry experience and an MBA is not their typical resident. The answers deal with this by never raising it, and by opening the accomplishments answer on how much has changed rather than how much has accumulated. The register stays plain on purpose, because a corporate voice would confirm the concern instantly.
