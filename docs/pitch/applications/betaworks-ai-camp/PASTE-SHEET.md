@@ -155,12 +155,20 @@ I also do not compete on code generation. That layer is a knife fight and the mo
 
 ## 14. What is another startup or founder that you admire? — **YOU** (taste question)
 
-> This is genuinely about your taste. Use the draft or swap it for someone you actually admire. Keep the shape: one specific choice, one non-obvious reason, no flattery.
+> **Founder's pick, 2026-07-31.** A stronger choice than a competitor would have been: naming Cursor says what you compete with, naming Wispr Flow says what you value. The answer does not stop at praise; it lands on the lesson he actually applies, which is that the best systems are invisible until the moment they matter. That is his own governance thesis restated through someone else's product, which is what this question is really fishing for.
 
 ```
-Anysphere, the team behind Cursor. Not for the growth numbers, for a decision they made early: they did not try to win by training a better model. They built the harness the models run inside, and then let every frontier release make their product better for free. That is a bet about where durable value sits when the underlying capability is commoditizing, and they were right about it earlier than almost anyone.
+Wispr Flow.
 
-I made the same bet one layer up. They own the harness for writing code. I am building the harness for deciding what to write and proving it was the right call. What I admire is the discipline of it: it would have been much easier, and much worse, to compete on the thing everyone was staring at.
+I use it every day, all day, and what I admire is how little it asks of me. It does one thing. It does not care which app I am in, what domain I work in, or what I am trying to say. It is almost weightless, and it has changed how I interact with a computer more than anything else I have picked up in years.
+
+Two things in that I keep coming back to.
+
+It won by being a layer, not a destination. There is no Wispr app I go to and work inside. It just exists wherever I already am. Most products fight for a place on your screen and measure themselves by how long you stay. That one refused to compete for attention, and ended up everywhere instead.
+
+And it disappears until the exact moment it is useful. That is the hardest thing to build and the easiest to underrate, because when you get it right nobody notices you did anything at all.
+
+The second one is the bar I hold my own work against. Supaprod is a governance layer, and the failure mode of governance is making itself felt constantly: asking permission, adding queues, reminding you it is there. The version worth building is the one you forget about until an agent is genuinely about to cross a line. Wispr Flow is the clearest proof I have in daily use that invisible is achievable rather than just aspirational.
 ```
 
 ## 15. Are you implementing any research we could familiarize ourselves with?
