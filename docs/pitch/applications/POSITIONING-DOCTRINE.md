@@ -67,6 +67,30 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 **The one vulnerability beat.** Exactly one per application, placed where the form invites it, never volunteered. It buys credibility for everything else. Default choice: pricing is untested. Alternative: distribution, not product, is the real risk.
 
+**Rule 4: lead with the person, not the market (founder direction, 2026-07-31).**
+
+> _"Somewhere we need to connect with human empathy. How you can be kind and sincere. That is what the real me is. So you need to write your solutions and answers from that perspective."_
+
+The strategist's version of this company is: product judgment is the scarce resource and the decision-outcome layer compounds. That is true and it wins arguments. It is not why the company exists.
+
+**Why it actually exists:** people get blamed for decisions nobody can reconstruct. He was that person for a decade, in rooms where being wrong was expensive and the evidence was already buried. Agents make that worse, not better, because now a human answers for calls they did not fully make. **It is a dignity problem before it is an efficiency problem.**
+
+The canon already carried this and it was under-used. Two lines to reach for:
+
+- **"Agents do the work. You answer for it. Supaprod is how you answer."** Read it as a promise to the person holding the bag, not as a tagline.
+- **Agents earn autonomy from their own track record, the way you extend trust to a new colleague rather than handing over the keys on day one.** A humane model of trust, already written into the code. It humanises the governance story instantly.
+
+**How to apply it, concretely:**
+
+| Instead of | Write |
+| --- | --- |
+| "product decisions are the bottleneck" | "someone still has to stand up in a room and explain it, and usually they cannot" |
+| "the outcome ledger compounds" | "being wrong becomes something a team learns from instead of something a person carries alone" |
+| "we remove glue work" | "I did not start this to make anyone faster. I started it so the person answering for the work has something to answer with" |
+| "moving fast" | "moving fast without someone quietly paying for it later" |
+
+**Two cautions.** Do not manufacture warmth: no anecdote that did not happen, no sentiment the facts do not support. And do not use this register on forms that reward compression above all (a 50-character field, a metrics bullet list). Empathy belongs in the *why* answers, not the *what* answers.
+
 ---
 
 ## Part 3 — The positioning axis, program by program
