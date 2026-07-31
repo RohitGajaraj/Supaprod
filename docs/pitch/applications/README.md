@@ -21,6 +21,7 @@
 | Program | Submitted | Decision | Login given | Open items |
 | --- | --- | --- | --- | --- |
 | **Y Combinator Fall 2026** | 2026-07-23 | rolling | `explore@supaprod.ai` | **System demo video and founder video still need updating.** Deferred 2026-07-31, come back to it. Filed under the old name Cadence; only the five update surfaces are editable. |
+| **[South Park Commons](./south-park-commons/)** | 2026-07-31 | **invites by 2026-08-30** | `voyage@supaprod.ai` | none |
 | **[Betaworks AI Camp](./betaworks-ai-camp/)** | 2026-07-31 | rolling, batch starts 08-31 | `compass@supaprod.ai` | none |
 | **[The Residency, Fall 2026](./the-residency/)** | 2026-07-31 | by 2026-08-28 | none given | none |
 
@@ -32,7 +33,6 @@
 | --- | --- | --- | --- | --- |
 | TODAY 07-31 | Entrepreneur First XF (Experienced Founders), London | 6.5 | EF standard | Not drafted |
 | **08-01** | HF0 Residency, Fall 2026 | 7.0 | Up to $1M for 5% | Deadline unverified, single source |
-| **08-02** | **[South Park Commons Founder Fellowship](./south-park-commons/)** | **9.5** | $400K for 7% + $600K guaranteed + $1M credits | ✅ **DRAFTED, READY** |
 | **08-04** | Entrepreneur First, London Fall 2026 | 8.5 | £6K equity-free, then $125K for 8% | Not drafted |
 | 08-16 | German Accelerator Kickstart | 2.5 | Fully funded, **no equity** | Low fit |
 | **08-17** | **Sequoia Arc, Fall 2026** | **8.5** | Sequoia pre-seed program | Not drafted |

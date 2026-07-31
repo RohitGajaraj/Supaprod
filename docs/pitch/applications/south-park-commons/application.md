@@ -1,6 +1,14 @@
 # SPC Founder Fellowship — the answers, ready to paste
 
-> _Form captured live from the real Airtable on 2026-07-31. Questions below are **verbatim**. Deadline **2026-08-02, 11:59pm PT**._
+> # ✅ SUBMITTED 2026-07-31
+>
+> Filed two days before the deadline. **Interview invitations go to all applicants by 2026-08-30.** Login given: `voyage@supaprod.ai`, now spent.
+>
+> _Archived record of what was sent. Do not edit; copy this file if a later cycle needs a draft, because any interview will be against these answers._
+>
+> ⚠️ **Before any interview:** Q10's account of the four discarded versions was reconstructed from his own written record, not dictated. Confirm the order is true, because a partner may ask which version was which.
+>
+> _Form captured live from the real Airtable on 2026-07-31. Questions below are **verbatim**. Deadline was **2026-08-02, 11:59pm PT**._
 >
 > **Register check:** these are written for SPC, not YC. Conversational, specific, curious, certain about the problem and open about the answer. If a sentence sounds like a deck, it is wrong for this form.
 >
