@@ -1,6 +1,12 @@
 # The Residency — the answers, ready to paste
 
-> _Form captured 2026-07-31. Questions verbatim. Cohort **7 Sept to 29 Nov 2026**. Deadline **2026-08-14**._
+> # ✅ SUBMITTED 2026-07-31
+>
+> **Decision by 2026-08-28 at the latest.** Confirmation screen received. Questions go to `support@livetheresidency.com`.
+>
+> _Everything below is the archived record of what was sent. Do not edit it; if a later cycle needs a new draft, copy this file rather than changing it, because the interview will be against these answers._
+>
+> _Form captured 2026-07-31. Questions verbatim. Cohort **7 Sept to 29 Nov 2026**. Deadline was **2026-08-14**, submitted 14 days early._
 
 > ## ⛔ THE ONE RULE
 >
