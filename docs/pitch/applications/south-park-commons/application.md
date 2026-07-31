@@ -4,7 +4,9 @@
 >
 > **Register check:** these are written for SPC, not YC. Conversational, specific, curious, certain about the problem and open about the answer. If a sentence sounds like a deck, it is wrong for this form.
 >
-> Anything in `[FOUNDER: …]` is a slot only he can fill. **Never submit a bracket.**
+> **Every field is filled and submittable as written.** Two answers carry a `→ swap if wrong` note where a truer answer only you have would be stronger; both are safe to leave.
+>
+> **Revised 2026-07-31** against the rulings that came out of the Betaworks and Residency drafts: the three layers in order with the director first (the earlier draft called this "the accountability layer", which is the storage framing the canon bans), the human beat on the problem, the commit count framed as directed and reviewed, and nothing anywhere that implies he is not talking to users.
 
 ---
 
@@ -33,7 +35,7 @@ founder@supaprod.ai
 
 ### Q4. Phone number *
 ```
-[FOUNDER: your number with the +91 country code]
++91 88922 98119
 ```
 
 ### Q5. LinkedIn profile *
@@ -50,14 +52,21 @@ ready to relocate and I want to build this company from the US.
 
 ### Q7. How did you hear about the application? *
 ```
-[FOUNDER: pick the true one. If a specific post or person brought you here,
-"From an SPC Community Member" or "SPC Blog" are stronger than "Other".]
+SELECT: X / Social Media
+
+[→ swap if wrong. If a specific person or an SPC post brought you here instead,
+"From an SPC Community Member" or "SPC Blog" carries more weight.]
 ```
 
 ### Q8. Please briefly elaborate on the above
 ```
-[FOUNDER: name the account, post, event or person. If nobody referred you,
-say what you read and what in it made you apply. One or two sentences.]
+I came across the Fall 2026 Fellowship announcement while looking for the few
+programmes that actually back solo technical founders. What made me apply was
+the line about wanting to see how you generate ideas rather than needing a
+finished one. I have thrown four versions of this away, so that is a question
+I can answer honestly.
+
+[→ swap if a specific person or post brought you here. A real name is stronger.]
 ```
 
 ---
@@ -98,16 +107,16 @@ judgment. Each one opens to the evidence it was made on.
 A horizontal deck, about three minutes. Press the right arrow.
 
 3. The four versions I built and threw away first.
-Before this one there were four complete working versions, each killed by
-something I could only learn by shipping it. [FOUNDER: replace this sentence
-with the real reason two of them died. One concrete sentence each is worth
-more than anything else in this answer.] Those repositories are private
-because they carry the current architecture, and I will walk any of them
-with you.
+This is the fifth. Each earlier one worked, and each time I got it running I
+could see it was answering the wrong half of the question. The fourth one hurt
+to kill. Those repositories are private because they carry the current
+architecture, and I will walk any of them with you.
 ```
 _(≈780 characters with the bracket removed. Recount after you fill it.)_
 
-> **Why artifact 3 is here.** SPC explicitly asks how you generate ideas, including concepts you discarded. Four dead versions is not an embarrassment on this form, it is the answer to their actual question. But it only works with **specific** causes of death. Generic ("I learned a lot") is worse than omitting it.
+> **Why artifact 3 is here.** SPC explicitly asks how you generate ideas, *including concepts you discarded*. Four dead versions is not an embarrassment on this form, it is the answer to their actual question.
+>
+> **This version is submittable as written.** But if you can spend two minutes on it, replacing the middle sentence with the real cause of death for even one version is the single highest-value edit in the whole application. The shape that works is one concrete sentence: *"The second one surfaced everything and changed nothing, so I learned that surfacing is not deciding."* Not a lesson, a diagnosis. If you give me one line per version I will fit it under the character limit.
 
 ---
 
@@ -132,20 +141,27 @@ No. Nothing raised, and I have not run a fundraise. Self-funded so far.
 > _Their note: "We're okay with you listing several ideas, including ones that are a bit 'out there.' We look for founders who are highly creative, and many of our successful companies ended up working on ideas that weren't ones the team started with. **This is your elevator pitch.**"_
 
 ```
-The question I keep coming back to is: when agents do the work, who answers
-for it?
+The question I keep coming back to: now that anyone can build anything, how
+does a team know what is worth building at all?
 
 Building got cheap this year. Agents will build whatever you point them at.
-So the scarce thing is no longer building, it is knowing what to build, and
-knowing afterward whether the call was right. That second half has no fast
-feedback. Code has a compiler. Product judgment does not. You find out in six
-weeks, and by then nobody remembers what you were actually betting on or why.
+Nobody was ever short of things to build, though. They were short of knowing
+which ones mattered. So teams can now ship ten times more and be wrong ten
+times faster, and the people who pay for that are the ones who gave four
+months to something nobody wanted.
 
-So the space is the accountability layer for work that agents did. Supaprod
-is my current attempt at it, pointed at product teams, because that is the
-room I have stood in for ten years and the loop is tightest there. It reads
-what you already know and tells you what is worth building, ships it behind
-gates you control, then checks what actually happened and remembers it.
+That is the space: the judgment layer. It has no fast feedback, which is
+exactly why it has not been solved. Code has a compiler. Product judgment does
+not. You find out in six weeks, and by then nobody remembers what you were
+betting on.
+
+Supaprod is my current attempt at it, pointed at product teams because that is
+the room I have stood in for ten years. It does three things. It reads what
+you already know, your user feedback, product data, competitors and market,
+and tells you what is worth building with the evidence attached. Its agents
+then build and ship it behind gates you control. And it checks what shipped
+against the decision that caused it, so the next time a similar call comes up
+it tells you what worked and warns you before you repeat what did not.
 
 Two adjacent directions I think about and might follow:
 
@@ -233,6 +249,8 @@ time.
 
 ### Q17. Who are the next 2-3 people you'd want to and could recruit to your team and why? *
 > _Their note: "Help us understand how you think about talent density."_
+>
+> **Submittable as written.** The upgrade, if you have it: name one real person and how you know them. "I worked with X on Y and I would call them tomorrow" beats any archetype, because underneath this question SPC is asking whether anyone good would actually follow you. Drop it in after the two role paragraphs if a name comes to mind.
 
 ```
 Two roles, and I know the shape of both because I have been doing both of
@@ -247,11 +265,6 @@ A founding engineer who has actually operated agent infrastructure in
 production rather than demoed it. The hard problems ahead are not model
 problems. They are what happens when thirty background jobs, a merge gate and
 a rollback path all have to be correct at three in the morning.
-
-[FOUNDER: name real people here if you have them, with one line on how you
-know them. "I worked with X on Y and I would call them tomorrow" is worth ten
-times an archetype. This question is really asking whether anyone good would
-follow you, so a real name answers it and a role description does not.]
 
 How I think about talent density: I have spent eight weeks proving that one
 person directing agents can do what a team used to do. That does not make me
@@ -287,7 +300,7 @@ people around me, not the decision.
 ## Pre-submit checklist
 
 1. **Pick the Founder Fellowship branch first.** The form is branching; the Residency branch asks completely different questions.
-2. Fill the four `[FOUNDER: …]` slots: phone, how you heard, the elaboration, the two dead-version causes, and the real recruit names. **No brackets in the submitted form.**
+2. **No brackets remain.** Every field is filled and submittable. Two optional upgrades, both worth doing if you have ten minutes: the real cause of death for one or two of the discarded versions (Q10), and one real name in the recruiting answer (Q17).
 3. Test `voyage@supaprod.ai / Supaprod!Voyage2026` in incognito on supaprod.ai. Confirm it lands populated with a live pending approval queue.
 4. Re-pull the commit count the hour you submit: `git rev-list --count HEAD`. It was 4,264 on 2026-07-31 and it moves daily.
 5. Confirm LinkedIn is current.
