@@ -472,6 +472,16 @@ export async function runAgentLoop(
     missionId?: string | null;
     missionSpendCapUsd?: number | null;
     missionTokenCap?: number | null;
+    /**
+     * The piece of work this run belongs to, when the driver started it.
+     *
+     * Without it a run is attributable to a user, a workspace and sometimes a
+     * mission, but never to the TRACK, and only Build opens a mission. So six of
+     * seven stations produced runs that no surface could tie back to the work
+     * they were doing, which is why nothing could show a person who was acting
+     * on their behalf or what came of it.
+     */
+    trackId?: string | null;
   },
 ): Promise<LoopResult> {
   const traceId = crypto.randomUUID();
@@ -525,6 +535,7 @@ export async function runAgentLoop(
           status: "queued",
           workspace_id: workspaceId,
           mission_id: input.missionId ?? null,
+          track_id: input.trackId ?? null,
           mission_spend_cap_usd: await resolveMissionSpendCap(
             supabase,
             workspaceId,
@@ -561,6 +572,7 @@ export async function runAgentLoop(
       status: "running",
       workspace_id: workspaceId,
       mission_id: input.missionId ?? null,
+      track_id: input.trackId ?? null,
       mission_spend_cap_usd: await resolveMissionSpendCap(
         supabase,
         workspaceId,

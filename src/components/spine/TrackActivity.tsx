@@ -1,0 +1,140 @@
+/**
+ * Who is working on this right now, who worked on it before, and what came out.
+ *
+ * FOUNDER RULING 2026-08-01: "if some agents are working, there should be some
+ * scope for showing visually that this agent is what, after this particular
+ * agent it switched to next agent, this is the outcome. Something like Claude
+ * Code or Copilot or Codex... so the user knows what is happening."
+ *
+ * THE REFERENCE, named before building. Claude Code's transcript: a flat
+ * chronological stream, one actor per entry, each stamped with what it touched
+ * and what came back. No progress bar, no percentage, no spinner with a noun
+ * attached. What is borrowed is the INFORMATION MODEL, not the chrome:
+ *
+ *   who acted  ->  what they did  ->  what you now have
+ *
+ * WHAT IS ADDED, because this product has stations and Claude Code does not:
+ * the HANDOFF. The moment one agent finishes and the next picks the work up is
+ * the product's entire claim, and until now it happened silently in a cron. A
+ * turn that starts a new station is marked so a person can see the baton move.
+ *
+ * IT NEVER INVENTS A STATUS. Every line is derived from a row the run wrote
+ * itself. "Working" is only said when the run row literally says `running`, and
+ * a turn that filed nothing says so plainly rather than being dressed up as
+ * progress. A person has to be able to tell facts from guesses, and the moment a
+ * status display guesses, they cannot.
+ *
+ * ONE COLOUR, like its sibling `TrackChain`. Colour is spent on the one fact a
+ * person came for, which is what is live now. Everything finished is quiet, and
+ * the only other tone is a genuine stop, which is allowed to look like one.
+ */
+import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+
+import { getTrackActivity } from "@/lib/spine/track.functions";
+import { countKinds, type Turn } from "@/lib/spine/activity";
+import { relativeTime } from "@/lib/memory-view";
+import { Failed, Loading, Record, Row, Value } from "@/components/shell/primitives";
+
+/** How a finished turn reads, in verbs rather than status words. */
+function headline(t: Turn): string {
+  if (t.outcome === "working") return `${t.agentName} is working`;
+  if (t.outcome === "waiting") return `${t.agentName} is queued`;
+  if (t.made.length) return `${t.agentName} filed ${countKinds(t.made)}`;
+  if (t.outcome === "stopped") return `${t.agentName} stopped, filing nothing`;
+  return `${t.agentName} finished, filing nothing`;
+}
+
+/**
+ * The tone. Only two are ever used.
+ *
+ * A finished turn that produced nothing is deliberately NOT toned as a failure:
+ * a critic that reads a design back and finds it sound is supposed to file
+ * nothing, and colouring that red would teach a person to distrust the one
+ * agent doing its job correctly. The sentence already says what happened.
+ */
+function toneOf(t: Turn): "pass" | "fail" | undefined {
+  if (t.outcome === "working" || t.outcome === "waiting") return "pass";
+  if (t.outcome === "stopped") return "fail";
+  return undefined;
+}
+
+function stateWord(t: Turn): string {
+  if (t.outcome === "working") return "working";
+  if (t.outcome === "waiting") return "queued";
+  if (t.outcome === "stopped") return "stopped";
+  if (t.outcome === "partly") return "part done";
+  return "done";
+}
+
+export function TrackActivity({ trackId }: { trackId: string }) {
+  const fetchActivity = useServerFn(getTrackActivity);
+  const q = useQuery({
+    queryKey: ["track-activity", trackId],
+    queryFn: () => fetchActivity({ data: { trackId } }),
+    // A live view has to move on its own, or a person watching a run has to
+    // guess whether nothing has happened or nothing is being fetched. Ten
+    // seconds is under the driver's tick and cheap: two indexed reads.
+    refetchInterval: 10_000,
+  });
+
+  if (q.isLoading) return <Loading>Reading what happened.</Loading>;
+  if (q.isError)
+    return <Failed>The activity did not come back, so nothing here would be trustworthy.</Failed>;
+
+  const turns = q.data?.turns ?? [];
+  if (!turns.length) {
+    return (
+      <Record>No agent has worked on this yet. Activity appears here the moment one starts.</Record>
+    );
+  }
+
+  // One clock for the whole list, so ten rows do not each render a slightly
+  // different "now" and disagree with each other.
+  const now = Date.now();
+
+  // Newest first: a person opening this wants to know what is happening NOW,
+  // and reading the whole history to reach the present is backwards for the
+  // question they actually arrived with.
+  const ordered = [...turns].reverse();
+
+  return (
+    <>
+      {ordered.map((t, i) => {
+        // The handoff. Marked when the station changes from the turn that ran
+        // BEFORE this one, which in this reversed list is the next element.
+        const previous = ordered[i + 1];
+        const handedOver =
+          Boolean(t.stationName) && Boolean(previous) && previous.stationName !== t.stationName;
+
+        return (
+          <Row
+            key={t.runId}
+            tight
+            lead={headline(t)}
+            time={relativeTime(t.at, now)}
+            sub={
+              <>
+                {t.stationName ? `${t.stationName}` : ""}
+                {handedOver && previous?.stationName
+                  ? `, picked up from ${previous.stationName}`
+                  : ""}
+                {t.said ? (
+                  <>
+                    {t.stationName ? " · " : ""}
+                    {/* The agent's own words, trimmed and never rewritten. One
+                      line is enough to tell whether it understood the job; the
+                      full text lives on the run. */}
+                    {t.said.length > 160 ? `${t.said.slice(0, 160)}...` : t.said}
+                  </>
+                ) : null}
+              </>
+            }
+            action={<Value tone={toneOf(t)}>{stateWord(t)}</Value>}
+          />
+        );
+      })}
+    </>
+  );
+}

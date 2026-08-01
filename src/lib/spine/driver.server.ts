@@ -533,6 +533,11 @@ export async function driveTrackOnce(
         goal: stationGoal(station, { title: row.title, origin: row.origin }, brief, seat),
         workspaceId: row.workspace_id,
         missionId,
+        // So every run is attributable to the work it was doing. This is what
+        // lets a person see who acted on their behalf at which station and what
+        // came of it; without it six of seven stations produce runs no surface
+        // can tie back to anything.
+        trackId: row.id,
       });
       // The run's own account of what it did. This is the only channel that ties
       // an artifact to THIS track rather than to whatever happened to be created

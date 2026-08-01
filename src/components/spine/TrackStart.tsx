@@ -41,6 +41,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { advanceTrack, listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
 import { TrackChain } from "@/components/spine/TrackChain";
+import { TrackActivity } from "@/components/spine/TrackActivity";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { HOLD_LINE } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
@@ -416,7 +417,12 @@ export function TrackStart() {
                   </>
                 }
               />
+              {/* WHAT IT HAS, then WHO DID IT. The chain answers "what do I
+                now have", the activity answers "who acted and what came of
+                it". Both, in that order, because a person opening a piece of
+                work wants the state before the story. */}
               {open ? <TrackChain trackId={t.id} /> : null}
+              {open ? <TrackActivity trackId={t.id} /> : null}
             </React.Fragment>
           );
         })

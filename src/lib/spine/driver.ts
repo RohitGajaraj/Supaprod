@@ -154,7 +154,12 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   },
   "insight-keeper": {
     job: "Say what this outcome means for the NEXT piece of work. Generalise beyond this one bet without overclaiming from a single result.",
-    file: "Call memory.promote so the next track's Decide and Plan stations meet this. Guidance that is only in your answer is storage, and this product does not claim storage.",
+    // memory.remember WRITES the guidance; memory.promote only raises the standing
+    // of a memory that already exists. An earlier version of this instruction
+    // said "call memory.promote", and the agent did exactly as told: it passed
+    // the id of the learnings row it had just written, which is not an
+    // agent_memory id, and every run failed. The brief was wrong, not the agent.
+    file: "Call memory.remember with scope 'global' so the next track's Decide and Plan stations meet this guidance. If it is a cross-agent truth, follow with memory.promote using the memory_id that memory.remember returned. Guidance that is only in your answer is storage, and this product does not claim storage.",
   },
 };
 

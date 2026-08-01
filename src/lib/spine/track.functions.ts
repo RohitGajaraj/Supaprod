@@ -51,6 +51,12 @@ import {
   type MemberRow,
 } from "@/lib/spine/chain";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import {
+  buildActivity,
+  type MemberRow as ActivityMemberRow,
+  type RunRow,
+  type Turn,
+} from "@/lib/spine/activity";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
 const SHAPE = z.enum([
@@ -611,3 +617,46 @@ export const getTrackChain = createServerFn({ method: "GET" })
       }
     },
   );
+
+/**
+ * Who acted on this piece of work, in order, and what came of it.
+ *
+ * Reads only rows the runs wrote themselves: `agent_runs` for who acted and how
+ * it ended, `spine_track_members` for what was filed. Nothing is inferred from
+ * timing or from a missing row; see the header of ./activity.ts for why a status
+ * display that guesses is worse than none.
+ *
+ * Fails to an empty stream rather than an error page. This is a view onto work,
+ * and a track whose activity cannot be read still has a chain, a route and a
+ * position worth showing.
+ */
+export const getTrackActivity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<{ turns: Turn[] }> => {
+    const { supabase } = context;
+    try {
+      const [runsRes, membersRes] = await Promise.all([
+        supabase
+          .from("agent_runs")
+          .select("id,agent_slug,agent_name,status,output,created_at,spend_used_usd")
+          .eq("track_id", data.trackId)
+          .order("created_at", { ascending: true })
+          .limit(200),
+        supabase
+          .from("spine_track_members" as never)
+          .select("artifact_kind,artifact_id,station,created_at")
+          .eq("track_id", data.trackId)
+          .order("created_at", { ascending: true }),
+      ]);
+
+      return {
+        turns: buildActivity({
+          runs: (runsRes.data ?? []) as unknown as RunRow[],
+          members: (membersRes.data ?? []) as unknown as ActivityMemberRow[],
+        }),
+      };
+    } catch {
+      return { turns: [] };
+    }
+  });

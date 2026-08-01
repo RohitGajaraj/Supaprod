@@ -520,8 +520,22 @@ const memoryPromote = def({
       .eq("id", a.memory_id)
       .eq("user_id", userId)
       .select("id,scope,kind,content")
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    // SAY WHAT IS ACTUALLY WRONG. `.single()` used to raise PostgREST's "Cannot
+    // coerce the result to a single JSON object" when no row matched, which
+    // tells the agent nothing it can act on. Observed live on 2026-08-01:
+    // insight-keeper passed the id of the `learnings` row it had just written,
+    // because a learning IS the thing it wants remembered, and spent every one
+    // of its steps re-trying a call that could never work. The id was wrong, not
+    // the intent, and the error now says so and points at the fix.
+    if (!data) {
+      throw new Error(
+        `No memory with id ${a.memory_id}. memory.promote only raises the scope of a memory that ALREADY exists; ` +
+          `it does not create one, and it does not accept the id of a learning, prd or any other row. ` +
+          `Call memory.remember first and promote the memory_id it returns.`,
+      );
+    }
     return data;
   },
 });
