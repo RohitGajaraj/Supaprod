@@ -41,6 +41,7 @@ import {
   type UpstreamArtifact,
 } from "@/lib/spine/driver";
 import { ARTIFACT_SOURCE } from "@/lib/spine/chain";
+import { costOfRun, isOverTrackBudget, resolveTrackSpendCap } from "@/lib/spine/track-caps.server";
 import {
   collectAttachments,
   describeAttachments,
@@ -83,6 +84,10 @@ type DriveRow = {
   attempts: number | null;
   /** Gates opened by earlier runs of this track, awaiting an answer. */
   pending_gates: unknown;
+  /** Dollars this track has spent across every station, seat and retry. */
+  spend_used_usd: number | null;
+  /** Its own ceiling, when one was set for this track specifically. */
+  spend_cap_usd: number | null;
 };
 
 /** Is everything switched off for this workspace? Checked first, always. */
@@ -496,6 +501,13 @@ export async function driveTrackOnce(
   let steps: ToolStepLike[] = [];
   const crew = stationCrew(station);
   const brief = [...upstream];
+  const cap = await resolveTrackSpendCap(
+    supabase,
+    row.workspace_id,
+    row.spend_cap_usd ?? undefined,
+  );
+  let spent = Number(row.spend_used_usd ?? 0);
+  let overBudget = false;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
   try {
@@ -507,6 +519,15 @@ export async function driveTrackOnce(
       station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
 
     for (const seat of crew) {
+      // THE CEILING WHERE THE AUTONOMY IS. Checked before each seat rather than
+      // once per tick, because a crew is two or three dispatches and a budget
+      // checked only at the top would be overrun by the rest of the crew before
+      // anything looked again.
+      if (isOverTrackBudget(spent, cap)) {
+        overBudget = true;
+        break;
+      }
+
       const result = await runAgentLoop(supabase, row.user_id, {
         agentSlug: seat.slug,
         goal: stationGoal(station, { title: row.title, origin: row.origin }, brief, seat),
@@ -518,6 +539,11 @@ export async function driveTrackOnce(
       // around the same time; the full argument is in the header of ./attach.ts.
       steps = [...steps, ...(result.steps ?? [])];
       queued += result.approvals_queued ?? 0;
+
+      // Charged from the run's OWN row, not estimated. Accrued before the gate
+      // check below, because a seat that spent real money and then stopped at a
+      // boundary still spent it.
+      spent += await costOfRun(supabase, result.run_id);
 
       // A seat that put a call in front of a person stops the CREW, not just
       // itself. The seats after it are briefed on what it filed, and it has not
@@ -561,6 +587,35 @@ export async function driveTrackOnce(
   // are on the record.
   const opened = gatesOpenedBy(steps, station);
   await rememberGates(supabase, row, opened);
+
+  // THE METER IS PERSISTED ON EVERY PATH OUT, before any branch below returns.
+  // A tick that spent money and then held at a gate, stalled, or ran out of
+  // budget has still spent it, and a counter that only advances on the happy
+  // path is a budget that resets itself every time work gets interesting.
+  await supabase
+    .from("spine_tracks" as never)
+    .update({ spend_used_usd: spent } as never)
+    .eq("id", row.id);
+
+  // Out of budget. Not a failure and not a refusal: the work is fine, the money
+  // is finished. It deliberately does NOT count as an attempt, because attempts
+  // exist to stop a station that cannot do its job, and this one was never given
+  // the chance. Raising the ceiling resumes exactly where it stopped.
+  if (overBudget) {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({ last_hold: "over-budget", driven_at: new Date().toISOString() } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: "over-budget",
+      line: say(HOLD_LINE["over-budget"]),
+      attached,
+    };
+  }
 
   // The agent hit its boundary. That is the boundary working, not a failure,
   // and the track waits exactly where it is until the person decides. The
@@ -715,6 +770,10 @@ export async function driveTrackOnce(
 
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
 export const DRIVE_SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,pending_gates";
+  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,pending_gates," +
+  // The budget columns. A DriveRow missing these reads them as null, which
+  // resolves to "spent nothing" and silently removes the ceiling, so they
+  // belong in the shared constant rather than in whichever caller remembers.
+  "spend_used_usd,spend_cap_usd";
 
 export type { DriveRow };

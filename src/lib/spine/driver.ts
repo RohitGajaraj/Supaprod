@@ -189,7 +189,17 @@ export type HoldReason =
    */
   | "produced-nothing"
   /** The station ran and produced nothing, repeatedly. */
-  | "stalled";
+  | "stalled"
+  /**
+   * This track has spent what it was allowed.
+   *
+   * The ceiling that sits where the autonomy sits: a person starts a track and
+   * walks away, so the track is the thing that has to be bounded. Not a failure
+   * and not a refusal, which is why it is its own reason rather than `stalled`;
+   * the work is fine, the budget is finished, and raising it resumes exactly
+   * where it stopped.
+   */
+  | "over-budget";
 
 export type DriveDecision =
   | { act: true; station: AgentStation; agentSlug: string; goal: string }
@@ -395,4 +405,6 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   "produced-nothing":
     "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
   stalled: "This station ran and produced nothing several times, so it stopped trying.",
+  "over-budget":
+    "This work has spent its budget, so it stopped. Raise the ceiling to let it carry on.",
 };
