@@ -79,7 +79,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
@@ -87,11 +87,12 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import type { FleetAgentState } from "@/lib/agent-fleet";
-import { getRoadmap } from "@/lib/roadmap.functions";
+import { commitRoadmapItem, getRoadmap } from "@/lib/roadmap.functions";
 import { isCommitmentGoverned } from "@/lib/roadmap-governance";
 import { listSpecs } from "@/lib/discovery.functions";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
+import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
 import {
   AgentMark,
   Block,
@@ -101,6 +102,7 @@ import {
   Gate,
   Num,
   PageHead,
+  Receipt,
   Row,
   Surface,
   type MarkState,
@@ -189,7 +191,27 @@ function PlanPage() {
   const navigate = useNavigate();
   const [showAllSpecs, setShowAllSpecs] = React.useState(false);
 
+  const qc = useQueryClient();
   const fRoadmap = useServerFn(getRoadmap);
+  const fCommit = useServerFn(commitRoadmapItem);
+
+  /**
+   * THE GATE'S ACTION IS THE WRITE, not a scroll to where the write lives.
+   *
+   * Until 2026-08-01 the primary action here was `go("roadmap")`, which
+   * scrolled the page. The Gate names the exact bets that carry no outcome,
+   * says why that matters, and then handed the reader back the job of finding
+   * those same bets among three columns and remembering what it had just told
+   * them. A surface whose one stated purpose is "to move a bet into Now, Next
+   * or Later with a declared outcome" made the reader leave the sentence in
+   * order to do it.
+   *
+   * The ceremony is the SAME component and the SAME server write RoadmapColumns
+   * already uses, so a promise declared from the Gate and one declared from a
+   * card are one code path and cannot drift.
+   */
+  const [declaring, setDeclaring] = React.useState<CommitCeremonyBet | null>(null);
+  const [receipt, setReceipt] = React.useState<{ title: string; outcome: string } | null>(null);
   const fFleet = useServerFn(getAgentFleet);
   const fSpecs = useServerFn(listSpecs);
 
@@ -204,6 +226,23 @@ function PlanPage() {
   // The same key the retired SpecList held, so every existing writer that
   // invalidates ["prds"] still refreshes this list.
   const specs = useQuery({ queryKey: ["prds"], queryFn: () => fSpecs() });
+
+  // The bet keeps whichever bucket it is already in. `commitRoadmapItem` also
+  // powers the commit-to-Now path, so passing the current bucket is what stops
+  // declaring a promise from silently re-homing work into Now.
+  const declare = useMutation({
+    mutationFn: (v: {
+      id: string;
+      bucket: "now" | "next" | "later";
+      outcome: string;
+      measure: string;
+    }) => fCommit({ data: v }),
+    onSuccess: (_r, v) => {
+      setDeclaring(null);
+      setReceipt({ title: declaring?.title ?? "The bet", outcome: v.outcome });
+      void qc.invalidateQueries({ queryKey: ["roadmap"] });
+    },
+  });
 
   const items = React.useMemo(() => roadmap.data?.items ?? [], [roadmap.data]);
   const committed = React.useMemo(() => items.filter((i) => i.bucket !== null), [items]);
@@ -340,10 +379,56 @@ function PlanPage() {
             </span>,
           ]}
         >
-          <Button variant="primary" onClick={() => go("roadmap")}>
-            Declare the outcomes
+          <Button
+            variant="primary"
+            onClick={() =>
+              setDeclaring({
+                id: undeclared[0].id,
+                title: stripAutoPrefix(undeclared[0].title),
+                outcome: undeclared[0].outcome ?? null,
+                measure: undeclared[0].measure ?? null,
+              })
+            }
+          >
+            {undeclared.length === 1
+              ? "Declare the outcome"
+              : `Declare the first of ${undeclared.length}`}
           </Button>
         </Gate>
+      ) : null}
+
+      {/* What the declaration caused. A promise written down is a write with a
+        consequence, so it earns a Receipt rather than vanishing into a toast
+        (anti-slop.md 5). The consequence is the promise itself, because that
+        is the thing that did not exist a moment ago and now does. */}
+      {receipt ? (
+        <Receipt
+          verb="You wrote the promise"
+          consequence={
+            <>
+              {receipt.title} now promises {receipt.outcome}, and Learn can grade it.
+            </>
+          }
+        />
+      ) : null}
+
+      {declaring ? (
+        <CommitCeremony
+          bet={declaring}
+          pending={declare.isPending}
+          onCancel={() => setDeclaring(null)}
+          onConfirm={(values) => {
+            const bet = items.find((i) => i.id === declaring.id);
+            declare.mutate({
+              id: declaring.id,
+              // Its CURRENT bucket, never "now". Declaring a promise must not
+              // move work into flight that nobody scheduled.
+              bucket: (bet?.bucket ?? "next") as "now" | "next" | "later",
+              outcome: values.outcome,
+              measure: values.measure,
+            });
+          }}
+        />
       ) : null}
 
       <div ref={refRoadmap} id="plan-section-roadmap" tabIndex={-1} className="outline-none">
