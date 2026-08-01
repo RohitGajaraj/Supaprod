@@ -7014,6 +7014,89 @@ export type Database = {
         }
         Relationships: []
       }
+      spine_track_members: {
+        Row: {
+          artifact_id: string
+          artifact_kind: string
+          created_at: string
+          station: string
+          track_id: string
+        }
+        Insert: {
+          artifact_id: string
+          artifact_kind: string
+          created_at?: string
+          station: string
+          track_id: string
+        }
+        Update: {
+          artifact_id?: string
+          artifact_kind?: string
+          created_at?: string
+          station?: string
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spine_track_members_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "spine_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spine_tracks: {
+        Row: {
+          created_at: string
+          entry_station: string
+          id: string
+          origin: string | null
+          path: Json
+          product_id: string | null
+          project_id: string | null
+          station: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          waived: Json
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_station?: string
+          id?: string
+          origin?: string | null
+          path?: Json
+          product_id?: string | null
+          project_id?: string | null
+          station?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          waived?: Json
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          entry_station?: string
+          id?: string
+          origin?: string | null
+          path?: Json
+          product_id?: string | null
+          project_id?: string | null
+          station?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          waived?: Json
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       stage_events: {
         Row: {
           actor: string
