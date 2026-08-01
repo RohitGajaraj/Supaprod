@@ -21,7 +21,7 @@ official product documentation**, with URLs. Treat it as reliable.
 | **Decide** | inherits Discover's triage verbs; Linear's split view | ✅ partially, below |
 | **Plan** | Linear cycles / Productboard roadmap | ⬜ not yet researched |
 | **Design** | Figma (Dev Mode, prototyping, Make) · v0 · Claude Artifacts · Lovable | 🟡 in flight |
-| **Build** | Cursor (Composer/Agent) · Claude Code · GitHub Copilot Workspace · Devin | 🟡 in flight |
+| **Build** | GitHub Copilot cloud agent + VS Code agent mode ✅ · Cursor / Claude Code 🟡 | ✅ partially, below |
 | **Ship** | changelog and release-notes tooling | ⬜ not yet researched |
 | **Learn** | Amplitude / experiment readouts | ⬜ not yet researched |
 
@@ -178,7 +178,135 @@ Amplitude: [Root Cause Analysis](https://amplitude.com/docs/analytics/root-cause
 
 ---
 
-# DESIGN and BUILD
+# BUILD: making agent work visible, steerable and approvable
+
+Researched 2026-08-01 against official GitHub and VS Code documentation. **Copilot Workspace is
+SUNSET** (technical preview ended 2025-05-30; `copilot-workspace.githubnext.com` no longer
+resolves in DNS). Do not cite it as a live product. Its functional successor is the Copilot cloud
+agent, though GitHub never published a succession statement.
+
+Naming note: GitHub renamed **"Copilot coding agent"** to **"Copilot cloud agent"**; current doc
+paths use `/cloud-agent/`. Both names appear in live surfaces.
+
+## THE HEADLINE FINDING, and it validates our governance canon
+
+> **The agent never blocks mid-run for approval. It blocks at the boundary.**
+
+Copilot cloud agent runs to completion autonomously, then stops at four hard edges
+([risks-and-mitigations](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/risks-and-mitigations)):
+
+1. **Workflows do not run** until a human with write access clicks **Approve and run workflows**.
+2. **The agent cannot mark its own PR "Ready for review"**, and cannot approve or merge.
+3. **The person who asked for the work cannot approve it.** Their approval does not count toward
+   required approvals.
+4. **MCP tools are NOT gated at all**: "Copilot will be able to use the tools provided by the
+   server autonomously, and will not ask for your approval before using them."
+
+That is policy-in-advance, expressed as irreversibility floors, from the largest shipping
+agentic-coding product in the world. It is the same shape as our `toolRisk` hard floors and the
+governance canon's four floors, and it is a live product a risk officer can be pointed at.
+
+Also: the agent **cannot push to your default branch**. It only pushes to a `copilot/` branch it
+created, and it "can only perform simple push operations. It cannot directly run `git push`."
+Session ceiling: **59 minutes**, hard.
+
+## The approval ladder (VS Code) — the anti-queue mechanism
+
+Per-tool confirmation offers a **scope**, not just a yes: **Allow in this Session** ·
+**Allow in this Workspace** · **Allow always**
+([v1.99](https://code.visualstudio.com/updates/v1_99)). Approval is remembered at session,
+workspace or application level. This is how a permission prompt becomes a policy: you answer once
+and the class of action stops asking.
+
+A **per-session permission level** picker sits above it
+([approvals](https://code.visualstudio.com/docs/agents/approvals)):
+
+| Level | Behaviour |
+| --- | --- |
+| **Default Approvals** | configured settings; tools needing approval show a dialog |
+| **Assisted permissions** (experimental) | **an LLM judge decides**; approved calls run automatically, others prompt |
+| **Bypass Approvals** | auto-approves everything, no dialogs |
+| **Autopilot** | auto-approves everything **and auto-answers the agent's clarifying questions** |
+
+Terminal commands use a **regex allowlist**, `chat.tools.terminal.autoApprove`, where `true`
+auto-approves and `false` always requires approval. Default deny rules ship for `rm`, `rmdir`,
+`del`, `kill`, `curl`, `wget`, `eval`, `chmod`, `chown`. Step ceiling:
+`chat.agent.maxRequests`, default **25**.
+
+## Steering a run in flight
+
+While a request is running the send button becomes a dropdown with exactly three verbs
+([copilot-chat](https://code.visualstudio.com/docs/copilot/chat/copilot-chat)):
+**Add to Queue** · **Steer with Message** · **Stop and Send**. Default configurable via
+`chat.requestQueuing.defaultAction`.
+
+Our `steerStudioSession` is the same idea; we lack the queue-vs-interrupt distinction.
+
+## The edit review flow
+
+- Per edit: **Keep** / **Undo**, with Up/Down to navigate between edits.
+- Batch: **Keep All** / **Undo All**.
+- **Add Feedback** on a code range, then **Submit Feedback** to send accumulated comments back to
+  the agent. ([review-code-edits](https://code.visualstudio.com/docs/copilot/chat/review-code-edits))
+- The Agents window has a **Changes** panel (edited files + diff statistics) and a **Files** tab,
+  with **Commit**, **Merge**, **Checkout**, **Discard**.
+- Checkpoints: `chat.checkpoints.enabled` default `true`, snapshots at key points so you can roll
+  back.
+
+## How in-progress work is shown (cloud agent)
+
+The PR **is** the review surface, and progress is expressed as artifacts rather than as a spinner:
+
+- an **eyes emoji reaction** appears on the comment that started the session;
+- a **"Copilot has started work"** timeline event, with a **View session** link;
+- **session logs stream live** and carry "the agent's reasoning and validation steps... making it
+  easy to trace decisions";
+- the agent **pushes commits to a draft PR as it works** and **rewrites the PR description**;
+- the agents page (`github.com/copilot/agents`) shows real-time status across every running task.
+
+**The pattern worth stealing:** a blocked network request is written **into the PR body**, showing
+"the blocked address and the command that tried to make the request". The boundary violation is
+recorded where the work is, permanently, rather than as a transient warning.
+
+## Batching as the anti-queue move
+
+> "it's best to batch them by clicking **Start a review**, rather than clicking **Add single
+> comment**. You can then submit all of your comments at once, triggering Copilot to work on your
+> entire review, rather than working on individual comments separately."
+
+Also: the agent responds **only** when explicitly `@copilot`-mentioned by someone with write
+access, so "you can leave notes and thoughts in pull request comments without Copilot
+interpreting them as commands." Addressing is opt-in, which is what stops a conversation becoming
+a command queue.
+
+## Copilot code review, and the one governance fact that matters
+
+Copilot **always leaves a "Comment" review, never "Approve" or "Request changes"**, and its
+reviews **do not count toward required approvals**. An AI reviewer that could approve would
+quietly dissolve the review requirement. Ours must obey the same rule.
+
+## What to take, and what we already have
+
+**Take:** the approval SCOPE ladder (once / session / workspace / always) as the mechanism that
+turns a prompt into policy · the session-level permission dial · the three steering verbs · the
+blocked-boundary written into the artifact · batched feedback · the AI reviewer that cannot
+approve.
+**We already have:** per-hunk accept/reject and touch-list scope enforcement in `ChangesPanel`,
+which is at or above this bar · mid-run steering · a spend ceiling (they use a step ceiling).
+**We lack:** the queue-vs-steer distinction, checkpoints/rollback, and the approval scope ladder.
+
+## Verification caveats, preserved honestly
+
+The researcher flagged ten items it could NOT confirm. The load-bearing ones: the exact current
+VS Code confirmation button strings (only the v1.99 set is officially quoted; current docs
+describe scopes in prose), the checkpoint restore label, `COPILOT_AGENT_FIREWALL_*` variables
+(superseded by UI settings, legacy configs still honored), and the Copilot Workspace sunset date
+(from the search index of the official page, not a rendered fetch, though the dead DNS
+corroborates the shutdown). Verify in-product before quoting any string as current.
+
+---
+
+# DESIGN
 
 🟡 **Research in flight as of 2026-08-01.** Covering: Cursor Composer/Agent, Claude Code, GitHub
 Copilot Workspace and Devin for how in-progress agent work is made visible (what streams, the file
