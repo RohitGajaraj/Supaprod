@@ -198,8 +198,14 @@ export function TrackStart() {
             key={t.id}
             tight
             lead={t.title}
-            sub={t.summary}
-            action={<Value>{AGENT_STATIONS[t.station].name}</Value>}
+            // The hold outranks the route, because a person arriving at this
+            // list wants to know why their work is not moving before they want
+            // to know where it is going. Silence and "still running" look
+            // identical, and only one of them is true.
+            sub={t.hold ?? t.summary}
+            action={
+              <Value tone={t.hold ? "warn" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+            }
           />
         ))
       )}

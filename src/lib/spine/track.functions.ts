@@ -40,6 +40,7 @@ import {
   type StationWaiver,
   type WorkShape,
 } from "@/lib/spine/route";
+import { HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
 const SHAPE = z.enum([
@@ -61,6 +62,19 @@ export type Track = {
   /** The route said as one sentence, so a surface never re-derives the words. */
   summary: string;
   updatedAt: string;
+  /**
+   * Why the autonomous driver last declined to move this track, in the words a
+   * person reads. Null when it is moving normally.
+   *
+   * This is the whole difference between a loop that runs unattended and one a
+   * person cannot trust. Someone who was not watching must arrive at an answer,
+   * not at silence: work that stopped because a call is waiting on them, or
+   * because a kill switch is on, looks identical to work that is simply slow
+   * unless the reason is carried out to the surface.
+   */
+  hold: string | null;
+  /** When the driver last touched it. Null means it has never been driven. */
+  drivenAt: string | null;
 };
 
 type TrackRow = {
@@ -73,6 +87,8 @@ type TrackRow = {
   path: unknown;
   waived: unknown;
   updated_at: string;
+  last_hold: string | null;
+  driven_at: string | null;
 };
 
 /** Rebuild the route from its two stored columns, tolerating anything odd in them. */
@@ -98,10 +114,13 @@ function rowToTrack(r: TrackRow): Track {
     route,
     summary: describeRoute(route),
     updatedAt: r.updated_at,
+    hold: r.last_hold ? (HOLD_LINE[r.last_hold as HoldReason] ?? null) : null,
+    drivenAt: r.driven_at ?? null,
   };
 }
 
-const SELECT = "id,title,origin,entry_station,station,status,path,waived,updated_at";
+const SELECT =
+  "id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at";
 
 /**
  * Start a piece of work and give it a route.

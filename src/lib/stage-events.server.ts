@@ -18,7 +18,13 @@ export type StageEntityType =
   | "loop"
   // SW-5 deliverable C: a sensed signal writes a trail row (migration
   // 20260708120000 widened the DB CHECK to allow 'signal').
-  | "signal";
+  | "signal"
+  // The spine track moving between stations, written by the autonomous driver
+  // (migration 20260801150000 widened the DB CHECK the same way). It goes in
+  // the same trail as every other artifact rather than a private log, because
+  // "who moved this work and when" is the same question for a track as for a
+  // spec, and one trail is what makes it answerable in one place.
+  | "spine_track";
 
 export interface StageEventInput {
   entityType: StageEntityType;
