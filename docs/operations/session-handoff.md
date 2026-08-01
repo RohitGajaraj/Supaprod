@@ -600,7 +600,7 @@ questions, run summaries, Today's headline. Two things to carry over when we do:
 
 ---
 
-## 2026-08-01 (afternoon) — the boundary made legible, and work that enters anywhere
+## 2026-08-01 (afternoon): the boundary made legible, and work that enters anywhere
 
 Four things shipped after the Boundary surface (`ffc1cc57`). All pushed to `main`, all
 gated on tsc + lint + `bun test` 0 fail + `bun run build` green.
