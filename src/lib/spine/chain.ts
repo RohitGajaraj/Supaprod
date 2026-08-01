@@ -80,14 +80,33 @@ export type ArtifactSource = {
    * stays as the fallback for a row whose changeset is gone.
    */
   parent?: { table: string; column: string };
+  /**
+   * The column holding the row's own text, when it has one.
+   *
+   * Read by the HANDOFF (`loadUpstream` in driver.server.ts), not by the chain
+   * panel, which needs only a name. It lives here because the two must resolve
+   * the same row from the same table: the brief an agent is given and the record
+   * a person audits have to be one story about one piece of work, and the moment
+   * they read from two maps they are free to drift into two.
+   *
+   * Absent where the row genuinely has no body. A `mission` is a container whose
+   * content is its steps, and a `deployment` is a URL and a timestamp; inventing
+   * a body column for either would be the runtime failure this file's header
+   * warns about, since a bad column inside `.select()` typechecks clean.
+   *
+   * Checked against src/integrations/supabase/types.ts, one by one. Note how
+   * little agreement there is between tables: `body_md`, `content`, `summary`,
+   * `detail`, `rationale` and `description` all mean "the text of this thing".
+   */
+  body?: string;
 };
 
 export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
-  signal: { table: "signals", title: "title" },
-  theme: { table: "themes", title: "title" },
-  prd: { table: "prds", title: "title" },
-  task: { table: "tasks", title: "title" },
-  changeset: { table: "studio_changesets", title: "title" },
+  signal: { table: "signals", title: "title", body: "content" },
+  theme: { table: "themes", title: "title", body: "summary" },
+  prd: { table: "prds", title: "title", body: "body_md" },
+  task: { table: "tasks", title: "title", body: "detail" },
+  changeset: { table: "studio_changesets", title: "title", body: "summary" },
   mission: { table: "missions", title: "title" },
   // The four stations that gained hands on 2026-08-01. Every one of these
   // tables was already sitting there fully shaped, waiting only for a tool.
@@ -98,9 +117,12 @@ export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
   // the set would have compiled perfectly and failed on the first real read,
   // which is the documented failure mode for this client and the reason each of
   // these was checked against the generated types rather than guessed.
-  decision: { table: "decisions", title: "title" },
-  prototype: { table: "prototypes", title: "name" },
-  learning: { table: "learnings", title: "summary" },
+  decision: { table: "decisions", title: "title", body: "rationale" },
+  prototype: { table: "prototypes", title: "name", body: "description" },
+  // A learning's `summary` IS its text, so it is both the name and the body.
+  // Named twice on purpose rather than special-cased: the handoff wants the
+  // verdict in full, and the panel wants something to label the stop with.
+  learning: { table: "learnings", title: "summary", body: "summary" },
   deployment: {
     table: "deployments",
     title: "deploy_url",

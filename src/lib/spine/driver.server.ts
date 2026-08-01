@@ -32,7 +32,13 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { nextStation, type SpineRoute } from "@/lib/spine/route";
-import { decideDrive, HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
+import {
+  decideDrive,
+  HOLD_LINE,
+  type HoldReason,
+  type UpstreamArtifact,
+} from "@/lib/spine/driver";
+import { ARTIFACT_SOURCE } from "@/lib/spine/chain";
 import {
   collectAttachments,
   describeAttachments,
@@ -326,6 +332,82 @@ function routeOf(row: DriveRow): SpineRoute {
  * Returns what happened in words, because this runs with nobody watching and
  * the record of what it did is the only thing a person will ever see of it.
  */
+/**
+ * What earlier stations on this track already filed, oldest first.
+ *
+ * THE HANDOFF. Reads `spine_track_members` (the causal record of what this
+ * track's own runs produced, never a time window) and fetches each artifact's
+ * title and body so the next station is briefed on real work rather than on the
+ * track's one-line title. The full argument for why this had to exist is on
+ * `describeUpstream` in ./driver.ts.
+ *
+ * `ARTIFACT_SOURCE` is shared with the chain panel deliberately: the handoff and
+ * the thing a person reads on screen must name the same rows from the same
+ * columns, or the brief an agent got and the record a person audits are two
+ * different stories about one piece of work.
+ *
+ * Fails SOFT, by design. A track whose artifact table cannot be read still
+ * drives; it simply drives with a thinner brief, which is worse than a full
+ * handoff and much better than a station that will not run at all. The
+ * produced-nothing hold is what catches the consequence if the thin brief means
+ * the station cannot do its job.
+ */
+async function loadUpstream(
+  supabase: SupabaseClient,
+  trackId: string,
+): Promise<UpstreamArtifact[]> {
+  const { data: members, error } = await supabase
+    .from("spine_track_members" as never)
+    .select("artifact_kind, artifact_id, created_at")
+    .eq("track_id", trackId)
+    .order("created_at", { ascending: true });
+  if (error || !members) return [];
+
+  const rows = members as unknown as Array<{
+    artifact_kind: string;
+    artifact_id: string;
+  }>;
+
+  // One query per kind rather than one per row, so a track with a dozen tasks
+  // costs the same as a track with one.
+  const byKind = new Map<string, string[]>();
+  for (const m of rows) {
+    if (!ARTIFACT_SOURCE[m.artifact_kind]) continue;
+    byKind.set(m.artifact_kind, [...(byKind.get(m.artifact_kind) ?? []), m.artifact_id]);
+  }
+
+  const found = new Map<string, { title: string; body: string | null }>();
+  await Promise.all(
+    [...byKind.entries()].map(async ([kind, ids]) => {
+      const source = ARTIFACT_SOURCE[kind];
+      const cols = ["id", `title:${source.title}`];
+      if (source.body) cols.push(`body:${source.body}`);
+      const { data } = await supabase
+        .from(source.table as never)
+        .select(cols.join(","))
+        .in("id", ids);
+      for (const r of (data ?? []) as unknown as Array<{
+        id: string;
+        title: string | null;
+        body?: string | null;
+      }>) {
+        found.set(`${kind}:${r.id}`, { title: r.title ?? "untitled", body: r.body ?? null });
+      }
+    }),
+  );
+
+  // A member whose artifact row is gone is dropped here rather than named as a
+  // ghost. The chain panel keeps it and marks it missing, because a person
+  // auditing the record needs to see the hole; an agent being briefed does not
+  // benefit from being told about a row it cannot read.
+  return rows.flatMap((m) => {
+    const hit = found.get(`${m.artifact_kind}:${m.artifact_id}`);
+    return hit
+      ? [{ kind: m.artifact_kind, id: m.artifact_id, title: hit.title, body: hit.body }]
+      : [];
+  });
+}
+
 export async function driveTrackOnce(
   supabase: SupabaseClient,
   row: DriveRow,
@@ -340,7 +422,12 @@ export async function driveTrackOnce(
   const gates = await harvestAnsweredGates(supabase, row);
   const harvested = gates.filed;
 
+  // Read AFTER the harvest, so a spec approved through a gate since the last
+  // tick is in the brief of the station that runs now rather than one tick late.
+  const upstream = await loadUpstream(supabase, row.id);
+
   const decision = decideDrive({
+    upstream,
     paused: await isPaused(supabase, row.workspace_id),
     station,
     title: row.title,
@@ -494,6 +581,44 @@ export async function driveTrackOnce(
       line: `${station} did not complete: ${failed}`,
       // A dispatch that threw returned no steps, so there is nothing to file.
       // Kept explicit rather than inlined so the invariant is visible.
+      attached,
+    };
+  }
+
+  // THE STATION RAN CLEANLY AND FILED NOTHING, so it does not move.
+  //
+  // Added 2026-08-01 after watching a live track walk Plan -> Design -> Build ->
+  // Ship having produced one prototype and no spec at all. Plan's agent wrote a
+  // complete, genuinely good spec into its final answer and never called
+  // `prd.draft`, because `prd.draft` had no row in that user's `agent_tools` and
+  // therefore never appeared in its prompt. The driver could not tell that from
+  // success, advanced, and Build then reported -- correctly -- that it had been
+  // given nothing to build. The loop ran end to end and delivered nothing.
+  //
+  // A station's output is the row it wrote. No row means there is nothing to
+  // hand to the next station, so advancing would be reporting progress the work
+  // did not buy. It counts as an attempt so `MAX_STATION_ATTEMPTS` still bounds
+  // the retries and a genuinely stuck station reaches a person the same day.
+  //
+  // NOT a failure, and named separately from `stalled` for that reason: the run
+  // worked, its output went nowhere. That distinction is the whole diagnosis, so
+  // the record keeps it rather than flattening both into "stalled".
+  if (attached.length === 0) {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({
+        attempts: (row.attempts ?? 0) + 1,
+        last_hold: "produced-nothing",
+        driven_at: new Date().toISOString(),
+      } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: "produced-nothing",
+      line: HOLD_LINE["produced-nothing"],
       attached,
     };
   }
