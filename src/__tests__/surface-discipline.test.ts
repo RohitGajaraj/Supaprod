@@ -134,6 +134,50 @@ describe("surface-discipline §5: a diff delta is green and red, and never a fak
   });
 });
 
+describe("surface-discipline: a quiet action is never drawn in the metadata ink", () => {
+  test("the quiet action sits one step up the ink scale from metadata", () => {
+    // THE DEFECT: `.sp-block-more` was `--sp-mute`, which is the ink used for
+    // "merged", "3 files" and every timestamp. A VERB and a LABEL rendered
+    // identically, so nothing on the surface said where a person could act.
+    // Reported as "it looks like a very non-activated texture".
+    const css = read("styles/primitives.css");
+    const act = ruleBody(css, ".sp-block-more");
+    const meta = ruleBody(css, ".sp-row-sub");
+    expect(act).not.toBeNull();
+    expect(meta).not.toBeNull();
+    // Metadata stays quiet; the action must not share that ink.
+    expect(meta!).toContain("--sp-mute");
+    expect(act!).toContain("--sp-body");
+    expect(act!).not.toMatch(/color:\s*var\(--sp-mute\)/);
+  });
+
+  test("it carries a rest-state affordance, not only a hover one", () => {
+    // A signal you can only receive by hovering is a signal received by accident,
+    // and it never reaches touch or a keyboard scan at all.
+    const act = ruleBody(read("styles/primitives.css"), ".sp-block-more");
+    expect(act!).toMatch(/text-decoration-style:\s*dotted/);
+    expect(act!).toContain("cursor: pointer");
+  });
+
+  test("its focus ring is an outline, not a box-shadow", () => {
+    // `styles.css` carries an unlayered `[data-obsidian] :focus-visible
+    // { box-shadow: none }` that sits AFTER primitives.css in source order, so a
+    // shadow-based ring is silently erased. Five rules in primitives.css were
+    // already inert for exactly this reason.
+    const focus = ruleBody(read("styles/primitives.css"), ".sp-block-more:focus-visible");
+    expect(focus).not.toBeNull();
+    expect(focus!).toMatch(/outline:/);
+    expect(focus!).not.toMatch(/box-shadow:/);
+  });
+
+  test("a disabled quiet action stops promising", () => {
+    const off = ruleBody(read("styles/primitives.css"), ".sp-block-more:disabled");
+    expect(off).not.toBeNull();
+    expect(off!).toMatch(/text-decoration:\s*none/);
+    expect(off!).toMatch(/cursor:\s*default/);
+  });
+});
+
 describe("surface-discipline §6: the wait", () => {
   test("the app-wide loader renders the mark and never the product name", () => {
     // THE DEFECT: the loader drew the word "supaprod" in Geist Pixel. The product

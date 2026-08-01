@@ -155,6 +155,38 @@ meaning, the meaning was not encoded anywhere else and the design is wrong.
 - **Do not introduce a new hue for a state that already has a word.** The changeset
   ladder is a sentence, not a coloured pill, because that one genuinely needed a legend.
 
+## 5b. A quiet action is never drawn in the metadata ink
+
+> **Founder ruling, 2026-08-01:** _"as of now it looks like a very non-activated
+> texture. Wherever the buttons or action items need to be taken ... in a subtle way
+> ... so that he knows this is where he can act if he wants to."_ And immediately
+> after: _"don't overpower and overdesign and spoil the current design."_
+
+The cause was one token, not a missing component. `.sp-block-more` — the affordance
+every surface uses for "Draft it", "Edit", "Show all 9", "Drop this file" — was drawn
+in `--sp-mute`, which is the ink for "merged", "3 files" and every timestamp. A VERB
+and a LABEL rendered identically, so the eye had no way to separate them and nothing
+signalled interactivity until you happened to hover. **A signal you can only receive
+by hovering is a signal received by accident**, and it never reaches touch or a
+keyboard scan at all.
+
+The rule, and the reason it stops where it does:
+
+- **An action is one step up the ink scale from the data around it.** `--sp-body`, not
+  `--sp-mute`. This alone does most of the work and costs nothing visually.
+- **It carries a rest-state affordance**, currently a 1px dotted underline at ~26%
+  alpha. Dotted-at-rest is the oldest "interactive but quiet" convention there is and
+  needs no legend. It goes solid on hover, which is where emphasis belongs.
+- **No chrome.** No fill, no border, no brand colour, no size change. Affordance is
+  not emphasis: a primary action still gets a real button, and this is for everything
+  else.
+- **The focus ring is an `outline`, never a `box-shadow`.** `src/styles.css` carries
+  an unlayered `[data-obsidian] :focus-visible { box-shadow: none }` after
+  `primitives.css` in source order, so shadow-based rings are silently erased. Five
+  rules in `primitives.css` were already inert for this reason.
+- **A disabled quiet action stops promising**: it drops to the metadata ink and loses
+  the underline entirely.
+
 ## 6. The wait
 
 One component, `src/components/supaprod/BrandWait.tsx`, wired into

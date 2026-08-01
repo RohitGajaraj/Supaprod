@@ -269,17 +269,70 @@
   font-weight: var(--sp-weight-strong);
   color: var(--sp-ink);
 }
+/* ---------- the quiet action ----------
+ * The one affordance every surface uses for something you MAY do: "Draft it",
+ * "Edit", "Show all 9", "Read them again", a row's "Drop this file".
+ *
+ * FOUNDER, 2026-08-01: "as of now it looks like a very non-activated texture.
+ * Wherever the buttons or action items need to be taken ... in a subtle way ... so
+ * that he knows this is where he can act if he wants to."
+ *
+ * THE CAUSE WAS ONE TOKEN, not a missing component. This was drawn in
+ * `--sp-mute`, which is the metadata ink: the exact colour of "merged", "3 files",
+ * a timestamp. So a VERB and a LABEL were rendered identically and the eye had no
+ * way to tell them apart. Nothing signalled interactivity until you happened to
+ * hover, which is a signal you can only receive by accident.
+ *
+ * THE FIX IS A CORRECTION, NOT AN ADDITION, deliberately: no button chrome, no
+ * fill, no brand colour, no size change. Two whispers, both of which survive
+ * greyscale:
+ *   1. One step up the ink scale (`--sp-body`, not `--sp-mute`), so an action is
+ *      never the same weight as the data around it. This alone does most of the
+ *      work and costs nothing visually.
+ *   2. A dotted underline at very low contrast. Dotted-at-rest is the oldest
+ *      "interactive but quiet" convention there is and needs no legend, and at
+ *      1px with ~26% alpha it is barely present until looked for. It goes solid
+ *      on hover, which is where emphasis belongs.
+ *
+ * Founder's constraint, and it is the reason this stops here: "don't overpower and
+ * overdesign and spoil the current design". Affordance is not emphasis. A primary
+ * action still gets a real button; this is for everything else. */
 .sp-block-more {
   font: inherit;
   font-size: var(--sp-text-meta);
-  color: var(--sp-mute);
+  color: var(--sp-body);
   background: none;
   border: 0;
   padding: 0;
   cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--sp-body) 26%, transparent);
+  transition:
+    color var(--sp-dur-fast) var(--sp-ease),
+    text-decoration-color var(--sp-dur-fast) var(--sp-ease);
 }
 .sp-block-more:hover {
   color: var(--sp-ink);
+  text-decoration-style: solid;
+  text-decoration-color: color-mix(in oklab, var(--sp-ink) 45%, transparent);
+}
+/* An OUTLINE, not a box-shadow. `styles.css` carries an unlayered
+ * `[data-obsidian] :focus-visible { box-shadow: none }` that sits after this file
+ * in source order, so a shadow-based ring here would be silently erased. */
+.sp-block-more:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--sp-ink) 45%, transparent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+/* A disabled quiet action must not keep promising. It drops to the metadata ink it
+ * used to wear all the time, and loses the underline entirely. */
+.sp-block-more:disabled {
+  color: var(--sp-mute);
+  text-decoration: none;
+  cursor: default;
 }
 
 /* ---------- attribution row ----------
