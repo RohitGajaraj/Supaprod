@@ -1,0 +1,38 @@
+-- The gates a track is waiting on, so work made through a boundary is not lost.
+--
+-- THE HOLE THIS CLOSES, found by adversarial review of the attachment pass and
+-- documented in src/lib/spine/attach.ts before it was fixed.
+--
+-- When a write tool is gated, `runAgentLoop` queues it and returns. The tool
+-- actually runs LATER, inside `executeApproval`, entirely outside the loop. Its
+-- id-bearing return value is written to `agent_approvals.result` and nothing in
+-- the product ever read that column back. So `driveTrackOnce` saw `queued > 0`,
+-- held at `waiting-on-a-person` with nothing attached, and a spec drafted
+-- through the boundary was attached to nothing, permanently.
+--
+-- That is exactly inverted from what this product claims. The artifacts that
+-- went THROUGH a boundary are the ones the governance story cares most about,
+-- and they were the only ones with no record of membership.
+--
+-- WHY A COLUMN RATHER THAN A QUERY. The obvious alternative is to search
+-- `agent_approvals` at harvest time for rows belonging to this track. There is
+-- no such filter: the table carries user_id, run_id, mission_id and
+-- workspace_id, and none of those identify a spine track. Matching on user and
+-- time would be the same time-window guess the attachment pass already rejected
+-- for lying, so the driver instead REMEMBERS the ids the loop handed it. A
+-- queued step carries its own `approval_id`, which makes this causal rather
+-- than correlational: this track's own run opened this gate.
+--
+-- SHAPE: [{ "id": "<approval uuid>", "station": "<station that asked>" }]
+-- The station is stored, not re-derived, because by the time a person answers
+-- the call the track may have been moved by hand. The artifact belongs to the
+-- station that actually produced it.
+--
+-- It is bookkeeping, not membership: `spine_track_members` still holds what the
+-- work IS, and an entry here is deleted the moment its gate resolves. A gate
+-- that is rejected, expired, failed, or whose row has vanished is dropped
+-- rather than carried forever, because none of those will ever yield an
+-- artifact.
+
+ALTER TABLE public.spine_tracks
+  ADD COLUMN IF NOT EXISTS pending_gates jsonb NOT NULL DEFAULT '[]'::jsonb;

@@ -54,22 +54,22 @@
  * return the ids they already hold), in a file this change does not own. Until
  * then the honest answer is an unattached theme, not a guessed one.
  *
- * THE LARGER COST, added after adversarial review found it missing here.
- * NOTHING PRODUCED THROUGH AN APPROVED GATE IS EVER ATTACHED. When a write tool
- * is gated, the loop queues it and the tool runs later inside `executeApproval`,
- * entirely outside `runAgentLoop`. Its id-bearing return value is written to
- * `agent_approvals.result` and never enters any `LoopResult.steps`, and nothing
- * in the product reads that column back. `driveTrackOnce` sees `queued > 0`,
- * holds at `waiting-on-a-person` with nothing attached, and re-dispatches the
- * station from scratch on the next tick. So a spec drafted through the boundary
- * is attached to nothing, permanently.
+ * WORK MADE THROUGH A GATE, which was the largest hole here and is now closed.
+ * Adversarial review found that nothing produced through an approved gate was
+ * ever attached: a gated tool runs later inside `executeApproval`, entirely
+ * outside `runAgentLoop`, so its id-bearing return value lands in
+ * `agent_approvals.result` and never appears in any `LoopResult.steps`. The
+ * driver saw `queued > 0`, held, and the spec drafted through the boundary was
+ * attached to nothing, permanently. That was exactly inverted from what this
+ * product claims, because the artifacts that went THROUGH a boundary are the
+ * ones the governance story cares most about.
  *
- * That is worth stating loudly rather than burying, because it is exactly
- * inverted from what the product claims: the artifacts that went THROUGH a
- * boundary are the ones with no record of membership, and those are the ones
- * the governance story cares most about. The data needed to close it already
- * exists in `agent_approvals.result`; reading it back is a change to the
- * approval-execution path, not to this module.
+ * `harvestGates` and `gatesOpenedBy` below close it, using the same causal
+ * channel and never a query for what appeared lately: a queued step carries its
+ * own `approval_id`, the driver remembers it on the track, and once the person
+ * answers, the approval row's own recorded result is read back. The station that
+ * ASKED is stored with the gate, because a person may move the track by hand
+ * before answering and the artifact belongs to whichever station produced it.
  *
  * Pure and dependency-free so every mapping and every edge case is tested
  * without a database.
@@ -152,14 +152,12 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
  * run that logs a signal really did log a signal, and dropping it would lose a
  * true fact to keep a tidy one.
  *
- * The uncomfortable half of this table is the point of writing it down. FIVE of
- * the seven stations cannot produce a member row today. Four of them have no
- * registered tool that creates their artifact at all; Build has one and the
- * driver cannot reach it, which is a different fact with the same result and is
- * recorded separately rather than rounded off. No attribution scheme whatsoever
- * would produce a row for any of the five. A time-window query would have
- * "found" rows for those stations anyway, written by a cron or a person, and
- * filed them against the track as though the station had made them.
+ * The uncomfortable half of this table is the point of writing it down. FOUR of
+ * the seven stations still cannot produce a member row: they have no registered
+ * tool that creates their artifact at all, so no attribution scheme whatsoever
+ * would produce a row for them. A time-window query would have "found" rows for
+ * those stations anyway, written by a cron or a person, and filed them against
+ * the track as though the station had made them.
  */
 export type StationArtifact = {
   /** The kind this station exists to produce. */
@@ -193,15 +191,15 @@ export const STATION_ARTIFACT: Readonly<Record<AgentStation, StationArtifact>> =
     kind: "changeset",
     table: "studio_changesets",
     createdBy: "studio.stage",
-    // CORRECTED after adversarial review: this said `gap: null`, which claimed
-    // Build was attachable. It is not, and the reason is one line of the tool.
-    // `studio.stage` opens with `if (!missionId) throw` (registry.server.ts),
-    // and `driveTrackOnce` dispatches with only agentSlug/goal/workspaceId, so
-    // `ctx.missionId` is null on every driver-run Build step and the call always
-    // lands as an error. `collectAttachments` then correctly drops it. A tool
-    // existing is not the same fact as the driver being able to reach it, and
-    // this table's whole job is to record the second one honestly.
-    gap: "studio.stage is the only tool that writes a changeset, and it refuses without a mission. The driver dispatches without one, so a Build tick can attach nothing until the driver opens or joins a mission first.",
+    // WAS a gap, and the history is worth keeping. Adversarial review found this
+    // table claiming Build was attachable when it was not: `studio.stage` opens
+    // with `if (!missionId) throw`, and the driver dispatched with no mission,
+    // so every Build step errored and nothing was ever filed. The honest fix was
+    // not to reword the entry, it was to give the driver a mission
+    // (`missionForTrack` in driver.server.ts, created once per track and stored
+    // as a member so Build ticks reuse it). The gap is closed rather than
+    // documented, so this is null again, this time truthfully.
+    gap: null,
   },
   ship: {
     kind: "deployment",
@@ -230,6 +228,8 @@ export type ToolStepLike = {
   ok?: boolean;
   status?: string;
   result?: unknown;
+  /** Present only on a QUEUED step: the gate the loop opened for this call. */
+  approval_id?: string;
 };
 
 function idFrom(result: unknown, field: string): string | null {
@@ -279,6 +279,130 @@ export function collectAttachments(
 }
 
 /**
+ * A gate this track is waiting on: the approval id, and the station that asked.
+ *
+ * The station is carried rather than re-derived, because by the time the call is
+ * answered the track may not be standing where it was when it asked. Filing the
+ * artifact against the station that actually produced it is the whole point of
+ * recording a member row at all.
+ */
+export type PendingGate = { id: string; station: AgentStation };
+
+/** The shape of an `agent_approvals` row this module needs. */
+export type ApprovalRowLike = {
+  id: string;
+  tool_name: string | null;
+  status: string | null;
+  result: unknown;
+};
+
+/** What harvesting a batch of gates concluded. */
+export type GateHarvest = {
+  /** Artifacts that were made once the person said yes. */
+  attachments: Attachment[];
+  /** Gates still worth checking on a later tick. */
+  stillPending: PendingGate[];
+};
+
+/**
+ * Read back what a track's ANSWERED gates produced.
+ *
+ * WHY THIS EXISTS, and it is the hole the first version of this module left
+ * open and said so. When a write tool is gated, `runAgentLoop` queues it and
+ * returns; the tool actually runs later inside `executeApproval`, entirely
+ * outside the loop. Its id-bearing return value is written to
+ * `agent_approvals.result` and, until now, nothing in the product ever read that
+ * column back. So a spec drafted through the boundary was attached to nothing,
+ * permanently.
+ *
+ * That is exactly inverted from what the product claims. The artifacts that went
+ * THROUGH a boundary are the ones the governance story cares most about, and
+ * they were the only ones with no record of membership. This closes it using the
+ * same causal channel as the unqueued path: the tool's own reported return
+ * value, never a query for what appeared lately.
+ *
+ * WHAT COUNTS, and nothing else does:
+ *   executed  the person said yes AND the tool ran. Its result is real.
+ *   approved  said yes, has not run yet. No result to read. Check again later.
+ *   pending   still in front of the person. Check again later.
+ *   rejected  said no. Nothing was made and nothing ever will be, so the gate is
+ *   expired   dropped rather than carried forever.
+ *   failed    the tool ran and threw. There is no artifact to attach.
+ *
+ * A gate whose row cannot be found at all is dropped rather than retried
+ * forever: the approval table is the authority on its own rows, and a missing
+ * one is not going to reappear.
+ */
+export function harvestGates(
+  pending: readonly PendingGate[] | null | undefined,
+  rows: readonly ApprovalRowLike[] | null | undefined,
+): GateHarvest {
+  const gates = Array.isArray(pending) ? pending : [];
+  if (gates.length === 0) return { attachments: [], stillPending: [] };
+
+  const byId = new Map<string, ApprovalRowLike>();
+  for (const r of Array.isArray(rows) ? rows : []) {
+    if (r?.id) byId.set(r.id, r);
+  }
+
+  const attachments: Attachment[] = [];
+  const stillPending: PendingGate[] = [];
+  const seen = new Set<string>();
+
+  for (const gate of gates) {
+    if (!gate?.id) continue;
+    const row = byId.get(gate.id);
+    // Unknown row: not ours to chase.
+    if (!row) continue;
+
+    const status = (row.status ?? "").trim().toLowerCase();
+    if (status === "pending" || status === "approved") {
+      stillPending.push(gate);
+      continue;
+    }
+    if (status !== "executed") continue; // rejected, expired, failed: nothing made.
+
+    const product = row.tool_name ? TOOL_PRODUCTS[row.tool_name] : undefined;
+    if (!product) continue;
+    const id = idFrom(row.result, product.idField);
+    if (!id) continue;
+    const key = `${product.kind}:${id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    attachments.push({ artifactKind: product.kind, artifactId: id, station: gate.station });
+  }
+
+  return { attachments, stillPending };
+}
+
+/**
+ * The gates a run just opened, from its own queued steps.
+ *
+ * A queued step carries the `approval_id` the loop wrote for it, so this is the
+ * same direct channel the executed path uses, one step earlier.
+ */
+export function gatesOpenedBy(
+  steps: readonly ToolStepLike[] | null | undefined,
+  station: AgentStation,
+): PendingGate[] {
+  if (!steps || steps.length === 0) return [];
+  const out: PendingGate[] = [];
+  const seen = new Set<string>();
+  for (const step of steps) {
+    if (step.kind !== "tool_call" || step.status !== "queued") continue;
+    const id = typeof step.approval_id === "string" ? step.approval_id : null;
+    // Only a tool this module can later read an artifact out of is worth
+    // remembering. Carrying a gate for a tool with no known product would mean
+    // re-reading a row forever to learn nothing.
+    if (!id || !UUID_RE.test(id) || seen.has(id)) continue;
+    if (!step.name || !TOOL_PRODUCTS[step.name]) continue;
+    seen.add(id);
+    out.push({ id, station });
+  }
+  return out;
+}
+
+/**
  * Plain words for each kind, because the driver's line is read by a person.
  *
  * `changeset` and `prd` are mechanism words that the voice rules keep out of
@@ -289,6 +413,9 @@ const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
   prd: { one: "spec", many: "specs" },
   task: { one: "task", many: "tasks" },
   changeset: { one: "code change", many: "code changes" },
+  // Opened by the driver so Build's own tool will run at all. It is real
+  // membership, so it is said rather than hidden.
+  mission: { one: "run", many: "runs" },
 };
 
 function joinPlainly(parts: string[]): string {

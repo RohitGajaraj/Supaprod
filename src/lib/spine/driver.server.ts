@@ -29,13 +29,18 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
+import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { nextStation, type SpineRoute } from "@/lib/spine/route";
 import { decideDrive, HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
 import {
   collectAttachments,
   describeAttachments,
+  gatesOpenedBy,
+  harvestGates,
+  type ApprovalRowLike,
   type Attachment,
+  type PendingGate,
   type ToolStepLike,
 } from "@/lib/spine/attach";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
@@ -68,6 +73,8 @@ type DriveRow = {
   path: unknown;
   waived: unknown;
   attempts: number | null;
+  /** Gates opened by earlier runs of this track, awaiting an answer. */
+  pending_gates: unknown;
 };
 
 /** Is everything switched off for this workspace? Checked first, always. */
@@ -127,7 +134,14 @@ async function attachProducts(
   station: AgentStation,
   steps: readonly ToolStepLike[],
 ): Promise<Attachment[]> {
-  const attachments = collectAttachments(steps, station);
+  return writeMembers(supabase, trackId, collectAttachments(steps, station));
+}
+
+async function writeMembers(
+  supabase: SupabaseClient,
+  trackId: string,
+  attachments: Attachment[],
+): Promise<Attachment[]> {
   if (attachments.length === 0) return [];
   try {
     // Idempotent on the primary key, the same upsert `attachToTrack` uses, so a
@@ -154,6 +168,146 @@ async function attachProducts(
   }
 }
 
+/**
+ * File what this track's ANSWERED gates produced, and forget the ones that are
+ * settled for good.
+ *
+ * WHY IT RUNS BEFORE THE DRIVE DECISION, not after. A gate may have been
+ * answered at any point since the last tick, including while the workspace was
+ * paused or while the track was held. Harvesting first means the record catches
+ * up even on a tick where nothing is allowed to run, and it means the
+ * pending-approval count `decideDrive` reads is not stale by one tick.
+ *
+ * NON-FATAL, on the same reasoning as attachProducts: losing the index is
+ * recoverable, losing the work is not.
+ */
+async function harvestAnsweredGates(
+  supabase: SupabaseClient,
+  row: DriveRow,
+): Promise<Attachment[]> {
+  const pending = (Array.isArray(row.pending_gates) ? row.pending_gates : []) as PendingGate[];
+  if (pending.length === 0) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("agent_approvals")
+      .select("id,tool_name,status,result")
+      .in(
+        "id",
+        pending.map((g) => g.id),
+      );
+    if (error) return [];
+
+    const { attachments, stillPending } = harvestGates(pending, data as ApprovalRowLike[]);
+    const filed = await writeMembers(supabase, row.id, attachments);
+
+    // Shrink the list only when the write landed. A gate dropped after a failed
+    // attach would lose the artifact permanently, since nothing else in the
+    // product reads agent_approvals.result back.
+    const keep = filed.length === attachments.length ? stillPending : pending;
+    if (keep.length !== pending.length) {
+      await supabase
+        .from("spine_tracks" as never)
+        .update({ pending_gates: keep } as never)
+        .eq("id", row.id);
+    }
+    return filed;
+  } catch (e) {
+    console.error(
+      `spine gate harvest threw for track ${row.id}: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return [];
+  }
+}
+
+/** Remember the gates this run just opened, so their output is not lost. */
+async function rememberGates(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  opened: PendingGate[],
+): Promise<void> {
+  if (opened.length === 0) return;
+  const existing = (Array.isArray(row.pending_gates) ? row.pending_gates : []) as PendingGate[];
+  const seen = new Set(existing.map((g) => g.id));
+  const merged = [...existing, ...opened.filter((g) => !seen.has(g.id))];
+  if (merged.length === existing.length) return;
+  try {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({ pending_gates: merged } as never)
+      .eq("id", row.id);
+  } catch (e) {
+    console.error(
+      `spine gate record threw for track ${row.id}: ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+}
+
+/**
+ * The mission this track builds under, created once and then reused.
+ *
+ * WHY BUILD NEEDS ONE AT ALL. `studio.stage` is the only registered tool that
+ * writes a changeset, and its first line is `if (!missionId) throw`. The driver
+ * dispatched with no mission, so every Build step errored, nothing was ever
+ * attached, and the module's own gap table recorded Build as fine. Adversarial
+ * review caught the table lying; this makes the table true instead of merely
+ * accurate about a broken state.
+ *
+ * WHY THE MISSION IS A TRACK MEMBER RATHER THAN A NEW COLUMN. A mission IS part
+ * of this piece of work, which is exactly what `spine_track_members` records, so
+ * storing it there needs no migration and puts it where a reader would look for
+ * it. Reusing it matters: without a lookup, every Build tick would open a fresh
+ * mission and the changesets of one piece of work would scatter across several.
+ *
+ * Returns null rather than throwing on any failure. A Build station that cannot
+ * get a mission is the state we were already in, so it degrades to exactly the
+ * old behaviour instead of costing the track its tick.
+ */
+async function missionForTrack(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  agentSlug: string,
+): Promise<string | null> {
+  try {
+    const { data: existing } = await supabase
+      .from("spine_track_members")
+      .select("artifact_id")
+      .eq("track_id", row.id)
+      .eq("artifact_kind", "mission")
+      .limit(1)
+      .maybeSingle();
+    const found = (existing as { artifact_id?: string } | null)?.artifact_id;
+    if (found) return found;
+
+    if (!row.workspace_id) return null;
+    const { data: agent } = await supabase
+      .from("agents")
+      .select("id")
+      .eq("user_id", row.user_id)
+      .eq("slug", agentSlug)
+      .maybeSingle();
+    const agentId = (agent as { id?: string } | null)?.id;
+    if (!agentId) return null;
+
+    const mission = await createMission(supabase, row.user_id, row.workspace_id, {
+      title: row.title,
+      goal: row.origin ? `${row.title}. ${row.origin}` : row.title,
+      starting_agent_id: agentId,
+    });
+    if (!mission?.id) return null;
+
+    await writeMembers(supabase, row.id, [
+      { artifactKind: "mission", artifactId: mission.id, station: "build" },
+    ]);
+    return mission.id;
+  } catch (e) {
+    console.error(
+      `spine mission for track ${row.id} failed: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return null;
+  }
+}
+
 function routeOf(row: DriveRow): SpineRoute {
   const path = (Array.isArray(row.path) ? row.path : []) as AgentStation[];
   return {
@@ -177,6 +331,12 @@ export async function driveTrackOnce(
   const route = routeOf(row);
   const station = row.station as AgentStation;
 
+  // Catch the record up on gates answered since the last tick BEFORE deciding
+  // anything. A person may have approved a call while the workspace was paused
+  // or while this track was held, and the artifact that produced belongs to the
+  // track whether or not this tick is allowed to run anything.
+  const harvested = await harvestAnsweredGates(supabase, row);
+
   const decision = decideDrive({
     paused: await isPaused(supabase, row.workspace_id),
     station,
@@ -197,8 +357,13 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold: decision.hold,
-      line: HOLD_LINE[decision.hold],
-      attached: [],
+      // A held tick that nonetheless filed something says both, because "your
+      // spec arrived" and "nothing is running" are separate facts and a person
+      // reading only the second would think the approval they gave did nothing.
+      line: harvested.length
+        ? `${describeAttachments(harvested)} ${HOLD_LINE[decision.hold]}`
+        : HOLD_LINE[decision.hold],
+      attached: harvested,
     };
   }
 
@@ -209,10 +374,18 @@ export async function driveTrackOnce(
   let failed: string | null = null;
   let steps: ToolStepLike[] = [];
   try {
+    // Build is the one station whose tool refuses without a mission, so the
+    // driver opens one for it. Every other station is dispatched exactly as
+    // before, because a mission they never use would be a noun with no referent
+    // cluttering the record.
+    const missionId =
+      station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
+
     const result = await runAgentLoop(supabase, row.user_id, {
       agentSlug: decision.agentSlug,
       goal: decision.goal,
       workspaceId: row.workspace_id,
+      missionId,
     });
     queued = result.approvals_queued ?? 0;
     // The run's own account of what it did. This is the only channel that ties
@@ -227,11 +400,18 @@ export async function driveTrackOnce(
   // boundary on step three may well have drafted a spec on step one. That spec
   // exists and belongs to this work whether or not the track gets to move, and
   // dropping it would lose the record of the only thing the station achieved.
-  const attached = await attachProducts(supabase, row.id, station, steps);
+  const attached = [...harvested, ...(await attachProducts(supabase, row.id, station, steps))];
   const say = (line: string) => {
     const made = describeAttachments(attached);
     return made ? `${line} ${made}` : line;
   };
+
+  // Remember every gate this run opened, so whatever the person approves is
+  // filed against this track when it eventually runs. Without this the work
+  // produced through a boundary is the only work with no record of membership,
+  // which is exactly backwards for a product whose claim is that the crossings
+  // are on the record.
+  await rememberGates(supabase, row, gatesOpenedBy(steps, station));
 
   // The agent hit its boundary. That is the boundary working, not a failure,
   // and the track waits exactly where it is until the person decides. The
@@ -331,6 +511,6 @@ export async function driveTrackOnce(
 
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
 export const DRIVE_SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts";
+  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,pending_gates";
 
 export type { DriveRow };

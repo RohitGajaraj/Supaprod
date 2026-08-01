@@ -10,6 +10,9 @@
 import { describe, expect, it } from "bun:test";
 import {
   collectAttachments,
+  gatesOpenedBy,
+  harvestGates,
+  type ApprovalRowLike,
   describeAttachments,
   STATION_ARTIFACT,
   TOOL_PRODUCTS,
@@ -203,7 +206,7 @@ describe("TOOL_PRODUCTS and STATION_ARTIFACT agree with each other", () => {
     }
   });
 
-  it("names the five stations that cannot produce a member row today", () => {
+  it("names the four stations that cannot produce a member row today", () => {
     // CORRECTED after adversarial review. This pinned four and asserted Build
     // was attachable, which was false: studio.stage refuses without a mission
     // and the driver never passes one. The test passed while recording a wrong
@@ -212,7 +215,7 @@ describe("TOOL_PRODUCTS and STATION_ARTIFACT agree with each other", () => {
     // driver being able to reach it are two different facts, and only the
     // second one decides whether a member row can ever appear.
     const stranded = AGENT_STATION_ORDER.filter((s) => STATION_ARTIFACT[s].gap !== null);
-    expect(stranded).toEqual(["decide", "design", "build", "ship", "learn"]);
+    expect(stranded).toEqual(["decide", "design", "ship", "learn"]);
   });
 });
 
@@ -243,5 +246,114 @@ describe("describeAttachments says only what landed", () => {
     ]);
     expect(line).toBe("It produced 1 code change, now part of this work.");
     expect(line).not.toMatch(/[–—]/);
+  });
+});
+
+describe("harvestGates reads back what an approved gate produced", () => {
+  const gate = { id: "11111111-1111-4111-8111-111111111111", station: "define" as const };
+  const row = (over: Partial<ApprovalRowLike> = {}): ApprovalRowLike => ({
+    id: over.id ?? gate.id,
+    tool_name: over.tool_name ?? "prd.draft",
+    status: over.status ?? "executed",
+    result: "result" in over ? over.result : { prd_id: A },
+  });
+
+  it("files the artifact once the person said yes and the tool ran", () => {
+    // The whole point: work made THROUGH a boundary used to attach to nothing,
+    // because executeApproval runs outside the loop and nothing read its result.
+    const out = harvestGates([gate], [row()]);
+    expect(out.attachments).toEqual([{ artifactKind: "prd", artifactId: A, station: "define" }]);
+    expect(out.stillPending).toEqual([]);
+  });
+
+  it("files against the station that ASKED, not wherever the track is now", () => {
+    // A person may move the track by hand before answering. The artifact still
+    // belongs to the station that produced it.
+    const out = harvestGates(
+      [{ ...gate, station: "sense" }],
+      [row({ tool_name: "signals.log", result: { id: A } })],
+    );
+    expect(out.attachments[0].station).toBe("sense");
+  });
+
+  it("keeps waiting on a gate nobody has answered", () => {
+    const out = harvestGates([gate], [row({ status: "pending" })]);
+    expect(out.attachments).toEqual([]);
+    expect(out.stillPending).toEqual([gate]);
+  });
+
+  it("keeps waiting on an approved gate whose tool has not run yet", () => {
+    // approved means yes was said; the result only exists after it executes.
+    const out = harvestGates([gate], [row({ status: "approved", result: null })]);
+    expect(out.stillPending).toEqual([gate]);
+  });
+
+  it("drops a gate that was refused, expired, or threw, and never retries it", () => {
+    // None of these will ever yield an artifact, so carrying them forever would
+    // re-read the same rows on every tick to learn nothing.
+    for (const status of ["rejected", "expired", "failed"]) {
+      const out = harvestGates([gate], [row({ status })]);
+      expect(out.attachments).toEqual([]);
+      expect(out.stillPending, `${status} should not be carried`).toEqual([]);
+    }
+  });
+
+  it("drops a gate whose approval row has vanished", () => {
+    expect(harvestGates([gate], []).stillPending).toEqual([]);
+  });
+
+  it("attaches nothing when the executed result carries no id", () => {
+    // A tool that returns only a count is invisible here, by design.
+    expect(harvestGates([gate], [row({ result: { themes_created: 3 } })]).attachments).toEqual([]);
+  });
+
+  it("survives malformed input", () => {
+    expect(harvestGates(null, null)).toEqual({ attachments: [], stillPending: [] });
+    expect(harvestGates([], [row()])).toEqual({ attachments: [], stillPending: [] });
+  });
+});
+
+describe("gatesOpenedBy remembers only gates worth harvesting", () => {
+  const G = "22222222-2222-4222-8222-222222222222";
+
+  it("records a queued step's own approval id", () => {
+    const out = gatesOpenedBy(
+      [{ kind: "tool_call", name: "prd.draft", status: "queued", ok: true, approval_id: G }],
+      "define",
+    );
+    expect(out).toEqual([{ id: G, station: "define" }]);
+  });
+
+  it("ignores a queued tool this module could never read an artifact from", () => {
+    // Carrying it would mean re-reading a row forever to learn nothing.
+    const out = gatesOpenedBy(
+      [{ kind: "tool_call", name: "notes.create", status: "queued", ok: true, approval_id: G }],
+      "define",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("ignores executed steps, which collectAttachments already handled", () => {
+    const out = gatesOpenedBy(
+      [
+        {
+          kind: "tool_call",
+          name: "prd.draft",
+          status: "executed",
+          ok: true,
+          result: { prd_id: A },
+        },
+      ],
+      "define",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("rejects a non-uuid approval id rather than storing junk", () => {
+    const out = gatesOpenedBy(
+      [{ kind: "tool_call", name: "prd.draft", status: "queued", ok: true, approval_id: "nope" }],
+      "define",
+    );
+    expect(out).toEqual([]);
   });
 });
