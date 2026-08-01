@@ -80,10 +80,13 @@ before close.
 
 ## UNCOMMITTED WORK IN THE TREE AT CLOSE
 
-**13 files were modified by another session and are NOT committed.** They were deliberately left
-alone rather than swept into a commit by someone who had not reviewed them (this repo has a standing
-rule against `git add -A` while other agents are working). Whoever owns them should finish and gate
-them, or discard them:
+**13 files were modified by another session that was STILL MID-FLIGHT when this one closed, and they
+are NOT committed.** They were deliberately left alone rather than swept into a commit by someone who
+had not reviewed them (this repo has a standing rule against `git add -A` while other agents are
+working).
+
+**DO NOT DISCARD THEM.** This is live, in-progress work on the UX brief below, not an abandoned
+tree. Let that session finish and gate its own work:
 
 ```
 src/components/discover/OpportunityDetailSheet.tsx
@@ -101,10 +104,13 @@ src/routes/api/public/hooks/cluster-tick.ts
 src/styles/primitives.css
 ```
 
-They look like the UX brief in progress: `faces.tsx` is mission shapes (item 4), `ChangesPanel.tsx`
-is the Build terminal (item 2), and the four station routes are the surface pass. **Run the full gate
-before trusting them:** `bunx tsc --noEmit`, `bun run lint`, `bun test`, `bun run build`. Everything
-committed through `7f63a7d8` is gated and green; these are not.
+They map onto the UX brief below: `faces.tsx` is mission shapes (item 4), `ChangesPanel.tsx` is the
+Build terminal (item 2), `AgentPulse.tsx` and `primitives.css` are item 1, and the four station
+routes are the surface pass (item 5).
+
+**Before trusting them, run the full gate:** `bunx tsc --noEmit`, `bun run lint`, `bun test`,
+`bun run build`. Everything committed through `1c0d046f` is gated and green; these are not yet.
+If that session did not finish, pick its work up rather than restarting the item from scratch.
 
 ## PART 2: THE OPEN UX BRIEF (founder, 2026-08-01)
 
