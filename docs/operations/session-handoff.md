@@ -68,8 +68,43 @@ select id, title, station, theme_id, spend_used_usd
 from spine_tracks where theme_id is not null order by created_at desc;
 ```
 
-Expect **at most 2 new tracks per sweep**. If more appear, stop the tick and check
-`MAX_PROMOTIONS_PER_SWEEP` in `src/lib/spine/promote.ts`.
+**READ THE SCOPE BEFORE JUDGING THE NUMBER.** `MAX_PROMOTIONS_PER_SWEEP` is 2 **per workspace
+owner**, and `cron.cluster-tick` processes up to **five workspaces** per invocation. So one tick can
+legitimately open up to **ten** tracks, not two. The figure to check against is
+`2 x (distinct workspaces in that tick)`, and the tick's response body reports the per-workspace
+`started` count so the arithmetic never has to be guessed.
+
+An earlier draft of this handoff said "expect at most 2 per sweep, stop the tick if more appear",
+which would have raised a false alarm on correct behaviour and stopped a working feature. Corrected
+before close.
+
+## UNCOMMITTED WORK IN THE TREE AT CLOSE
+
+**13 files were modified by another session and are NOT committed.** They were deliberately left
+alone rather than swept into a commit by someone who had not reviewed them (this repo has a standing
+rule against `git add -A` while other agents are working). Whoever owns them should finish and gate
+them, or discard them:
+
+```
+src/components/discover/OpportunityDetailSheet.tsx
+src/components/mission/faces.tsx
+src/components/shell/AgentPulse.tsx
+src/components/shell/primitives.tsx
+src/components/studio/ChangesPanel.tsx
+src/lib/spine/promote.server.ts
+src/lib/spine/promote.ts
+src/routes/_authenticated.build.index.tsx
+src/routes/_authenticated.decide.tsx
+src/routes/_authenticated.design.tsx
+src/routes/_authenticated.plan.spec.$id.tsx
+src/routes/api/public/hooks/cluster-tick.ts
+src/styles/primitives.css
+```
+
+They look like the UX brief in progress: `faces.tsx` is mission shapes (item 4), `ChangesPanel.tsx`
+is the Build terminal (item 2), and the four station routes are the surface pass. **Run the full gate
+before trusting them:** `bunx tsc --noEmit`, `bun run lint`, `bun test`, `bun run build`. Everything
+committed through `7f63a7d8` is gated and green; these are not.
 
 ## PART 2: THE OPEN UX BRIEF (founder, 2026-08-01)
 
