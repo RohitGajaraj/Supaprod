@@ -1917,8 +1917,33 @@ button.sp-cell:disabled {
     transform: none;
   }
 }
+/* The dots run continuously and independently of the word, so the indicator is
+ * never still: a word holds for 2.6s, and without this there would be 2.6s of
+ * nothing moving. Three dots on a staggered 1.4s cycle, which is slow enough to
+ * read as breathing rather than as a stutter. */
 .sp-pulse-dots {
-  opacity: 0.55;
+  display: inline-flex;
+  font-style: normal;
+}
+.sp-pulse-dots i {
+  font-style: normal;
+  opacity: 0.25;
+  animation: spPulseDot 1.4s ease-in-out infinite;
+}
+.sp-pulse-dots i:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.sp-pulse-dots i:nth-child(3) {
+  animation-delay: 0.36s;
+}
+@keyframes spPulseDot {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 0.85;
+  }
 }
 
 /* Reduced motion: everything stops and the first word stands. The indicator is
@@ -1927,8 +1952,14 @@ button.sp-cell:disabled {
  * cannot stop a setInterval. */
 @media (prefers-reduced-motion: reduce) {
   .sp-pulse-glyph,
-  .sp-pulse-word-in {
+  .sp-pulse-word-in,
+  .sp-pulse-dots i {
     animation: none;
+  }
+  /* Reduced motion still needs the dots READABLE, so they stop mid-cycle at
+   * full strength rather than frozen at the 0.2 opacity the cycle starts on. */
+  .sp-pulse-dots i {
+    opacity: 0.6;
   }
 }
 

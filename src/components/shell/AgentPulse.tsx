@@ -131,7 +131,16 @@ export function AgentPulse({
         <span key={word} className="sp-pulse-word-in">
           {word}
         </span>
-        <span className="sp-pulse-dots">...</span>
+        {/* THE DOTS MUST KEEP MOVING. A static "..." reads as punctuation, the
+          end of a sentence, and the founder was exact about it: "you just
+          cannot put the word Reading and just end it there." They cycle
+          independently of the word, so between two word changes there is still
+          something alive on the screen. */}
+        <span className="sp-pulse-dots">
+          <i>.</i>
+          <i>.</i>
+          <i>.</i>
+        </span>
       </span>
     </span>
   );
