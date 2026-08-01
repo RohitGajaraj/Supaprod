@@ -97,6 +97,7 @@ import {
   DESIGN_FIDELITIES,
   decideDesignGate,
   getDesignWorkItem,
+  getScaffoldProvenance,
   listDesignWork,
   redrawDesignScaffold,
   runScaffoldDesignCritic,
@@ -193,6 +194,64 @@ function rowSub(r: DesignWorkRow, gateOn: boolean): string {
   // The gate word is only a fact while there IS a gate.
   if (gateOn) facts.push(GATE_WORD[r.gateStatus]);
   return facts.join(" · ");
+}
+
+/**
+ * WHAT OF YOURS SHAPED THIS DRAWING.
+ *
+ * FOUNDER ASK 2026-08-01: on Design a person should see "what it is replacing
+ * if it is already one, and if it is a new one". `Consequence` above already
+ * answers the replacing half. This is the other one, and it was missing
+ * entirely: the design language has been injected into every generation since
+ * DSN-01, and the drawing arrived with no way to tell whether any of it came
+ * from the workspace's own decisions or all of it from the model.
+ *
+ * THE LINE IT WILL NOT CROSS. It never says a particular element came from a
+ * particular rule. What was HANDED OVER is recorded fact; what the model then
+ * honoured in a given button is not knowable from here, and asserting it would
+ * be the same fabrication as a similarity score printed as a percentage. So the
+ * strong claim is the negative one, which is fully provable and the more useful
+ * warning anyway: drawn with none of your rules means all of it is invention.
+ *
+ * Self-contained rather than lifted into the parent's query set, so a
+ * provenance read that fails can never take the drawing down with it.
+ */
+function Grounding({ prdId }: { prdId: string }) {
+  const fProvenance = useServerFn(getScaffoldProvenance);
+  const q = useQuery({
+    queryKey: ["scaffold-provenance", prdId],
+    queryFn: () => fProvenance({ data: { prdId } }),
+  });
+
+  // Silence beats a wrong sentence here. An unread provenance is not the same
+  // fact as an ungrounded drawing, so a failed read says nothing at all.
+  if (q.isLoading || q.isError || !q.data) return null;
+
+  const { groundedIn, ungrounded, staleCount } = q.data;
+
+  if (ungrounded) {
+    return (
+      <Line
+        label="Drawn without your design language"
+        sub="No standing rule was in force when this was made, so every choice in it is the model's own. Approving rules in Design memory changes what the next drawing inherits."
+      />
+    );
+  }
+
+  const current = groundedIn.length - staleCount;
+  return (
+    <Line
+      label={`Built on ${groundedIn.length} of your ${groundedIn.length === 1 ? "rule" : "rules"}`}
+      sub={
+        staleCount > 0
+          ? `${current} still stand. ${staleCount} ${staleCount === 1 ? "has" : "have"} been replaced since, so this drawing is behind your design language: ${groundedIn
+              .filter((g) => g.retired)
+              .map((g) => g.title)
+              .join(", ")}.`
+          : `${groundedIn.map((g) => g.title).join(", ")}. Everything else in the drawing is the model's own.`
+      }
+    />
+  );
 }
 
 function Design() {
@@ -797,6 +856,8 @@ function Design() {
                 gateStatus={focus.gateStatus}
                 stageEnabled={focus.stageEnabled}
               />
+
+              {focus.drawing ? <Grounding prdId={focus.prdId} /> : null}
 
               <Actions
                 trailing={

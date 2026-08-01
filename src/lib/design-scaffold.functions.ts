@@ -178,6 +178,17 @@ export type DesignScaffold = {
   html: string;
   generatedAt: string;
   fidelity: DesignFidelity;
+  /**
+   * The ids of the standing design rules that were in front of the model when
+   * it drew this. Recorded so a person can be told which of their decisions
+   * shaped a drawing, and, when it is empty, that none of them did.
+   *
+   * WHY IDS AND NOT A JUDGEMENT. This is the fact of what was HANDED OVER,
+   * which is knowable exactly. Whether the model then honoured a given rule in
+   * a given element is NOT knowable from here, so nothing downstream is
+   * allowed to claim it. See getScaffoldProvenance.
+   */
+  groundedInMemoryIds: string[];
 };
 
 /**
@@ -194,14 +205,21 @@ async function buildDesignScaffoldHtml(
   // Fail-safe: a workspace-resolution or query error just means no memory
   // block gets injected (byte-identical fallback), never a broken scaffold.
   let designMemoryBlock = "";
+  let groundedInMemoryIds: string[] = [];
   try {
     const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
     if (workspaceId) {
       const activeMemory = await getActiveDesignMemoryForWorkspace(supabase, workspaceId as string);
       designMemoryBlock = formatDesignMemoryContext(activeMemory);
+      // Captured only when the block is non-empty: formatDesignMemoryContext
+      // returns "" for an empty set, and claiming a drawing was grounded in
+      // rules the model never actually received would be the whole point of
+      // this field inverted.
+      if (designMemoryBlock) groundedInMemoryIds = activeMemory.map((r) => r.id);
     }
   } catch {
     designMemoryBlock = "";
+    groundedInMemoryIds = [];
   }
 
   const userMsg = [`Product spec to mockup:\n\n${data.specBody.slice(0, 8000)}`, designMemoryBlock]
@@ -246,7 +264,7 @@ async function buildDesignScaffoldHtml(
     html = `<!DOCTYPE html><html><head>${head}</head><body>${html}</body></html>`;
   }
 
-  return { html, generatedAt: new Date().toISOString(), fidelity };
+  return { html, generatedAt: new Date().toISOString(), fidelity, groundedInMemoryIds };
 }
 
 /**
@@ -287,10 +305,59 @@ async function recordScaffoldDerivedFromFlow(
   }
 }
 
+/**
+ * DESIGN PROVENANCE: one edge per standing design rule that was in front of the
+ * model when it drew this scaffold.
+ *
+ * FOUNDER ASK 2026-08-01: "you should know what it is replacing if it is
+ * already one and if it is new one." The half nothing answered was which parts
+ * of a generated drawing come from the workspace's own accumulated design
+ * decisions and which the model invented. `buildDesignScaffoldHtml` has been
+ * injecting the design language into the prompt since DSN-01 and then throwing
+ * away the fact that it did, so the drawing arrived with no way to tell.
+ *
+ * WHY LINEAGE AND NOT A COLUMN. This is a what-came-from-what fact, and
+ * artifact_lineage is this repo's sole truth for those. It also needs no
+ * migration, is idempotent on the same conflict key every other edge uses, and
+ * survives the scaffold being regenerated in place.
+ *
+ * Non-fatal by the same rule as recordScaffoldDerivedFromFlow: losing the
+ * provenance record must never cost a person their drawing.
+ */
+async function recordScaffoldGrounding(
+  supabase: SupabaseClient,
+  userId: string,
+  scaffoldId: string,
+  memoryIds: string[],
+): Promise<void> {
+  if (memoryIds.length === 0) return;
+  try {
+    await supabase.from("artifact_lineage").upsert(
+      memoryIds.map((memoryId) => ({
+        user_id: userId,
+        parent_kind: "design_memory",
+        parent_id: memoryId,
+        child_kind: "prd_scaffold",
+        child_id: scaffoldId,
+        relation: "grounded-in",
+        created_by_agent: null,
+      })),
+      { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+    );
+  } catch (e) {
+    console.error("recordScaffoldGrounding failed (non-fatal):", e);
+  }
+}
+
 async function persistScaffold(
   supabase: SupabaseClient,
   userId: string,
-  data: { prdId: string; html: string; source: "manual" | "speculative" },
+  data: {
+    prdId: string;
+    html: string;
+    source: "manual" | "speculative";
+    groundedInMemoryIds?: string[];
+  },
 ): Promise<void> {
   try {
     const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
@@ -310,7 +377,9 @@ async function persistScaffold(
       .select("id")
       .single();
     if (error || !row) return;
-    await recordScaffoldDerivedFromFlow(supabase, userId, data.prdId, (row as { id: string }).id);
+    const scaffoldId = (row as { id: string }).id;
+    await recordScaffoldDerivedFromFlow(supabase, userId, data.prdId, scaffoldId);
+    await recordScaffoldGrounding(supabase, userId, scaffoldId, data.groundedInMemoryIds ?? []);
   } catch (e) {
     console.error("persistScaffold failed (non-fatal):", e);
   }
@@ -334,6 +403,7 @@ export const generateDesignScaffold = createServerFn({ method: "POST" })
       prdId: data.prdId,
       html: scaffold.html,
       source: "manual",
+      groundedInMemoryIds: scaffold.groundedInMemoryIds,
     });
     return scaffold;
   });
@@ -368,6 +438,110 @@ export const getPersistedScaffold = createServerFn({ method: "GET" })
     };
   });
 
+export type ScaffoldGrounding = {
+  id: string;
+  title: string;
+  category: string;
+  /** True when this rule is no longer part of the active design language. */
+  retired: boolean;
+};
+
+export type ScaffoldProvenance = {
+  groundedIn: ScaffoldGrounding[];
+  /** True when the drawing was made with none of the workspace's design language. */
+  ungrounded: boolean;
+  /** Rules that shaped this drawing and have since been replaced or retired. */
+  staleCount: number;
+};
+
+/**
+ * What of YOURS shaped this drawing, and what the model invented.
+ *
+ * FOUNDER ASK 2026-08-01: on the Design station a person should be able to see
+ * "what it is replacing if it is already one, and if it is a new one". This
+ * answers the second half at the level the data can actually support.
+ *
+ * WHAT IT CLAIMS, and every part is a recorded fact:
+ *   - which standing design rules were IN FRONT OF the model when it drew this
+ *     (written as lineage at generation time by recordScaffoldGrounding);
+ *   - which of those rules have since been retired or replaced, computed by
+ *     comparing them against the currently active set rather than by guessing
+ *     from timestamps;
+ *   - that a drawing with no edges was made without the design language at all,
+ *     which is the honest reading of "all of this is invented".
+ *
+ * WHAT IT REFUSES TO CLAIM, and the refusal is the important part. It does not
+ * say a given element on screen came from a given rule. The model was handed
+ * the rules; whether it honoured one in a particular button is not knowable
+ * from here, and a per-element attribution would be a fabrication of exactly
+ * the kind this session already removed once (a raw cosine printed as
+ * "72% match"). Grading the returned artifact against the contract mechanically
+ * is BuildDriver's job, and design-parity.functions.ts already says so about
+ * its own half.
+ */
+export const getScaffoldProvenance = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { prdId: string }) => z.object({ prdId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<ScaffoldProvenance> => {
+    const { supabase } = context;
+    const none: ScaffoldProvenance = { groundedIn: [], ungrounded: true, staleCount: 0 };
+
+    const { data: scaffold } = await supabase
+      .from("prd_scaffolds")
+      .select("id")
+      .eq("prd_id", data.prdId)
+      .maybeSingle();
+    if (!scaffold) return none;
+
+    const { data: edges } = await supabase
+      .from("artifact_lineage")
+      .select("parent_id")
+      .eq("child_kind", "prd_scaffold")
+      .eq("child_id", (scaffold as { id: string }).id)
+      .eq("parent_kind", "design_memory")
+      .eq("relation", "grounded-in");
+
+    const memoryIds = ((edges ?? []) as Array<{ parent_id: string }>).map((e) => e.parent_id);
+    if (memoryIds.length === 0) return none;
+
+    const { data: rules } = await supabase
+      .from("design_memory")
+      .select("id,title,category")
+      .in("id", memoryIds);
+    if (!rules || rules.length === 0) return none;
+
+    // Retirement is read from the live active set, not inferred. A rule the
+    // workspace has since replaced is the single most useful thing to say about
+    // an old drawing, and saying it from a timestamp comparison would be a
+    // guess dressed as a fact.
+    let activeIds = new Set<string>(memoryIds);
+    try {
+      const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
+      if (workspaceId) {
+        const active = await getActiveDesignMemoryForWorkspace(supabase, workspaceId as string);
+        activeIds = new Set(active.map((r) => r.id));
+      }
+    } catch {
+      // Unknown is not the same as retired. Failing to read the active set
+      // leaves every rule reported as current rather than falsely flagged.
+    }
+
+    const groundedIn: ScaffoldGrounding[] = (
+      rules as Array<{ id: string; title: string; category: string }>
+    ).map((r) => ({
+      id: r.id,
+      title: r.title,
+      category: r.category,
+      retired: !activeIds.has(r.id),
+    }));
+
+    return {
+      groundedIn,
+      ungrounded: false,
+      staleCount: groundedIn.filter((g) => g.retired).length,
+    };
+  });
+
 /**
  * AGT-03: speculative reversible prep. Called fire-and-forget (never
  * awaited by its caller) right after a contract is drafted, while the human
@@ -391,6 +565,7 @@ export async function prepareScaffoldSpeculative(
       prdId: data.prdId,
       html: scaffold.html,
       source: "speculative",
+      groundedInMemoryIds: scaffold.groundedInMemoryIds,
     });
   } catch (e) {
     console.error("prepareScaffoldSpeculative failed (non-fatal):", e);
@@ -1039,6 +1214,7 @@ export const redrawDesignScaffold = createServerFn({ method: "POST" })
       prdId: data.prdId,
       html: scaffold.html,
       source: "manual",
+      groundedInMemoryIds: scaffold.groundedInMemoryIds,
     });
     return { ...scaffold, ...readScaffoldShape(scaffold.html) };
   });
