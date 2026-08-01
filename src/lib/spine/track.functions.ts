@@ -558,15 +558,32 @@ export const getTrackChain = createServerFn({ method: "GET" })
               // The title column is named per kind: a prototype has `name`, a
               // learning has `summary`, a deployment has only its URL. Aliasing
               // to `title` keeps one shape here without pretending every table
-              // spells it the same way.
+              // spells it the same way. A kind with a `parent` also pulls the
+              // parent's name, which is the only readable name a release has.
+              const select = source.parent
+                ? `id,title:${source.title},${source.parent.table}(${source.parent.column})`
+                : `id,title:${source.title}`;
               const { data: found, error } = await supabase
                 .from(source.table as never)
-                .select(`id,title:${source.title}`)
+                .select(select)
                 .in("id", ids);
               if (error || !found) return;
               answered.add(kind);
-              for (const f of found as unknown as { id: string; title: string | null }[]) {
-                titles.set(`${kind}:${f.id}`, f.title?.trim() || null);
+              for (const f of found as unknown as Record<string, unknown>[]) {
+                const own = typeof f.title === "string" ? f.title.trim() : "";
+                // The parent's name wins when it has one. A release named by the
+                // change it shipped is recognisable; one named by its hostname
+                // is not. Supabase returns an embed as an object or an array
+                // depending on the relationship, so both are read.
+                let borrowed = "";
+                if (source.parent) {
+                  const embed = f[source.parent.table];
+                  const row = (Array.isArray(embed) ? embed[0] : embed) as
+                    Record<string, unknown> | null | undefined;
+                  const v = row?.[source.parent.column];
+                  if (typeof v === "string") borrowed = v.trim();
+                }
+                titles.set(`${kind}:${f.id as string}`, borrowed || own || null);
               }
             } catch {
               // Left unanswered on purpose. See the header: no claim either way.

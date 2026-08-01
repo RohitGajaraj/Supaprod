@@ -63,7 +63,26 @@ import type { SpineRoute } from "@/lib/spine/route";
  * that does not exist inside a `.select()` string typechecks perfectly and
  * fails only at runtime.
  */
-export const ARTIFACT_SOURCE: Readonly<Record<string, { table: string; title: string }>> = {
+export type ArtifactSource = {
+  table: string;
+  /** The column on THIS table that best names the row. */
+  title: string;
+  /**
+   * A parent row whose name is better than anything this table holds.
+   *
+   * Only `deployment` needs one, and it needs one badly. A deployments row has
+   * no human name at all: not a title, not a name, not a label. Falling back to
+   * its URL rendered the Ship station as a bare hostname, which is the machine's
+   * identifier for the release rather than the work's, and it was the one
+   * artifact in the loop a person could not recognise on sight. The changeset it
+   * shipped carries the real name, one foreign key away
+   * (`deployments_changeset_id_fkey`), so the release borrows it and the URL
+   * stays as the fallback for a row whose changeset is gone.
+   */
+  parent?: { table: string; column: string };
+};
+
+export const ARTIFACT_SOURCE: Readonly<Record<string, ArtifactSource>> = {
   signal: { table: "signals", title: "title" },
   theme: { table: "themes", title: "title" },
   prd: { table: "prds", title: "title" },
@@ -75,15 +94,18 @@ export const ARTIFACT_SOURCE: Readonly<Record<string, { table: string; title: st
   //
   // THE TITLE COLUMN IS NAMED PER KIND, not assumed. Three of these four do not
   // have a `title` at all: a prototype has a `name`, a learning has a `summary`,
-  // and a deployment has no human name whatsoever, so it is identified by the
-  // URL a person would actually click. Hard-coding `title` across the set would
-  // have compiled perfectly and failed on the first real read, which is the
-  // documented failure mode for this client and the reason each of these was
-  // checked against the generated types rather than guessed.
+  // and a deployment has no human name whatsoever. Hard-coding `title` across
+  // the set would have compiled perfectly and failed on the first real read,
+  // which is the documented failure mode for this client and the reason each of
+  // these was checked against the generated types rather than guessed.
   decision: { table: "decisions", title: "title" },
   prototype: { table: "prototypes", title: "name" },
   learning: { table: "learnings", title: "summary" },
-  deployment: { table: "deployments", title: "deploy_url" },
+  deployment: {
+    table: "deployments",
+    title: "deploy_url",
+    parent: { table: "studio_changesets", column: "title" },
+  },
 };
 
 /**

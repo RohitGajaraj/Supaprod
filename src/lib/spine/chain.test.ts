@@ -76,6 +76,25 @@ describe("the reader can resolve everything the writer can file", () => {
   });
 
   /**
+   * A deployments row has no human name of any kind, so Ship was the one
+   * station whose artifact a person could not recognise on sight: it rendered
+   * as a bare hostname, the machine's identifier for the release rather than
+   * the work's. It borrows the name of the changeset it shipped instead.
+   */
+  it("gives the one artifact with no name of its own a borrowed one", () => {
+    expect(ARTIFACT_SOURCE.deployment?.parent).toEqual({
+      table: "studio_changesets",
+      column: "title",
+    });
+  });
+
+  it("borrows a name only where the table genuinely has none", () => {
+    for (const [kind, source] of Object.entries(ARTIFACT_SOURCE)) {
+      if (kind !== "deployment") expect(source.parent).toBeUndefined();
+    }
+  });
+
+  /**
    * The engineering note and the sentence a person reads are two statements of
    * one fact, so they are pinned to each other rather than trusted to be kept
    * in step by hand. This test is what forced the excuse copy out: closing the
