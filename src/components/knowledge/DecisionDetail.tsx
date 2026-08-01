@@ -406,7 +406,7 @@ export function DecisionDetail({ id }: { id: string }) {
       ) : null}
 
       {/* RPT-25: the contradiction auditor. Drift pointed inward. */}
-      <ContradictionAuditSection decisionId={d.id} />
+      <ContradictionAuditSection decisionId={d.id} decisionTitle={d.title} />
 
       {/* Outcome-weighted learnings via the Ambient Precedent recall; serving
           one also writes its citation receipt server-side. */}

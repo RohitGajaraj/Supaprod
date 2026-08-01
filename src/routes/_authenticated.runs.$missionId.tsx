@@ -166,6 +166,7 @@ import {
   YouMark,
   type MarkState,
 } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 
 /** Every run on this surface is the build agent's. Display name comes from the
  *  catalog, so a rename there lands here with no change. */
@@ -963,7 +964,20 @@ function BuildRun() {
   }
 
   return (
-    <Surface context={context}>
+    /* WIDE, because this surface is a workbench and not an article.
+       FOUNDER, 2026-08-01, on the diff: "too congested and tightly placed."
+       Measured: `.sp-main` caps its column at `--sp-main-max`, which is 74ch, so
+       the file list and the diff were sharing about 450px on a 1440px screen and
+       code was clipping mid-token while a third of the window sat empty. 74ch is
+       the right constraint for a LINE OF PROSE and the wrong one for code, which
+       is laid out in columns and read by scanning.
+
+       `wide` is the existing opt-out for exactly this (`Surface`'s own note names
+       grids, tables and canvases), and it is safe here because every primitive
+       that genuinely needs a measure carries its own: `.sp-prose` 68ch, the gate
+       question, the page title, the block sub. Nothing on this page depends on
+       the container to keep its line length readable. */
+    <Surface context={context} wide>
       <PageHead title={title} sub={sub} />
 
       {call ? (
@@ -983,6 +997,21 @@ function BuildRun() {
           >
             Decline
           </Button>
+          {/* APPROVING RESUMES THE LOOP, so an agent starts running the moment
+              this is pressed: `decideApproval` executes the gated call and
+              `resumeAgentLoop` carries on from there, every step through the
+              chokepoint. Both buttons only greyed out before, which is the state
+              the founder called static.
+              THE DETAIL IS THE TOOL, because that is exactly what the person
+              just authorised and the one fact that makes the wait legible. It is
+              already in scope: the surface uses it for the verb on the button. */}
+          {busy ? (
+            <AgentPulse
+              label={`${agentDisplayName(BUILDER)} is carrying on`}
+              seed={BUILDER}
+              detail={call.tool_name}
+            />
+          ) : null}
         </Gate>
       ) : null}
 
@@ -1102,6 +1131,20 @@ function BuildRun() {
             ))}
           </Block>
 
+          {/* THIS STAYS IN THE WORK COLUMN. It was briefly moved into a
+              full-width slot spanning the context column too, to give the code
+              another 370px, and that broke layout containment: `.sp-inner`'s
+              second track is an IMPLICIT grid column, so it is `auto`-sized, and
+              a spanning item contributes its own max-content to an auto track.
+              The diff's `white-space: pre` content then sized that track, the grid
+              grew past its container, and the terminal spilled off the right of
+              the screen. Reported as "the terminal window basically spills over
+              the screen", which is precisely what it was.
+
+              A spanning region is only safe once BOTH tracks are explicitly sized.
+              Until then the work column is the honest boundary, and the diff earns
+              its room inside it: a capped list column, a tight gutter, a visible
+              horizontal scrollbar, and Wrap. */}
           <Block
             title="What it produced"
             sub={
@@ -1129,7 +1172,11 @@ function BuildRun() {
                 </button>
               ))}
             </div>
-            <div style={{ marginTop: "var(--sp-space-4)" }}>
+            {/* NO SECOND MARGIN. `.sp-tabs` already carries its own
+                `margin-top: var(--sp-space-4)`, and this wrapper added the same
+                value again immediately below it, so the tab row sat in a double
+                gap before any content. */}
+            <div>
               {tab === "changes" ? (
                 <ChangesPanel
                   changeset={changeset}

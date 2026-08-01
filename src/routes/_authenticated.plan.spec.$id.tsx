@@ -720,13 +720,34 @@ function SpecEditorPage() {
             {save.isPending ? "Saving" : "Save"}
           </Button>
           {prd.github_issue_url ? (
-            <Button
-              disabled={sendToStudio.isPending}
-              onClick={() => void sendToBuild()}
-              title="Plan, stage and open a pull request for this issue"
-            >
-              {sendToStudio.isPending ? "Sending" : "Send to Build"}
-            </Button>
+            <>
+              <Button
+                disabled={sendToStudio.isPending}
+                onClick={() => void sendToBuild()}
+                title="Plan, stage and open a pull request for this issue"
+              >
+                {sendToStudio.isPending ? "Sending" : "Send to Build"}
+              </Button>
+              {/* A GREYED BUTTON IS NOT A SIGN OF LIFE. `dispatchStudioSession`
+                  assembles the work order and enqueues the builder run the
+                  resume sweeper promotes into `runAgentLoop`, so an agent is
+                  genuinely taking this on and the indicator says so beside the
+                  button that started it.
+                  THE DETAIL IS THE SPEC, not the touch list. This surface never
+                  resolves one: the dispatch is called with `{ prdId }` alone, so
+                  `allowedPaths` and `maxFiles` are server-side defaults here,
+                  and the repo `canDispatchToRepo` reports is read inside
+                  `gateDispatch` and never held in state. Naming a file scope
+                  would be inventing the one fact a person would most trust. */}
+              {sendToStudio.isPending ? (
+                <AgentPulse
+                  label="Build is picking up the spec"
+                  seed="builder"
+                  compact
+                  detail={title.trim() || prd.title}
+                />
+              ) : null}
+            </>
           ) : (
             <Button
               disabled={createIssue.isPending}

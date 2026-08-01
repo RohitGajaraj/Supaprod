@@ -140,6 +140,7 @@ import {
   Row,
   Textarea,
 } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 import { IconMic } from "@/components/shell/icons";
 import { SuggestionMarquee } from "./SuggestionMarquee";
 import { AskSwitcher } from "./AskSwitcher";
@@ -579,7 +580,28 @@ function AskPaneOpen() {
         >
           <span style={{ fontSize: "var(--sp-text-data)", color: "var(--sp-mute)", minWidth: 0 }}>
             {stream.streaming
-              ? "Answering. Escape leaves it running."
+              ? // THE PANE'S OWN IN-FLIGHT LINE, and an agent is genuinely behind
+                // it: `sendIntent` posts to /api/chat, which classifies through
+                // `callModel`, streams through `callModelStream` and dispatches the
+                // loop as `orchestrator` via `runAgentLoop`. A flat "Answering."
+                // was the one place this pane stated that as punctuation.
+                // NO DETAIL. The honest noun would be which fork the person sent,
+                // and it is gone by the time this renders: `send` clears the draft
+                // and the override, so `intent` has already fallen back to its
+                // default, and the opener and retry paths send with no fork at
+                // all. A kind read off stale state would be wrong exactly when it
+                // mattered. The per-turn `Working` line in the thread carries the
+                // server's real progress labels.
+                // ONE INDICATOR PER PANE, and this is not the one. `AskTurn`
+                // already renders `<Working status={liveStatus} />` under the
+                // answer, and that carries the server's REAL progress labels and an
+                // elapsed count, which strictly beats a rotating gerund. Putting a
+                // pulse here too gave the reader two live things to watch for one
+                // piece of work, which is the cognitive load the founder's own bar
+                // rules out ("a quick glance must not put cognitive load on the
+                // reader"). So this line goes back to carrying the fact the
+                // indicator cannot: how to walk away from it.
+                "Escape leaves it running."
               : draft.trim() && intent === "instruction"
                 ? "This starts a run and spends credits."
                 : stream.messages.length > 0

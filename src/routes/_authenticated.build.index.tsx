@@ -82,6 +82,7 @@ import { listBuildWork, type BuildWorkItem } from "@/lib/build-engine.functions"
 import { canDispatchToRepo } from "@/lib/new-build.functions";
 import { getWorkspaceSpendPolicy, setWorkspaceSpendPolicy } from "@/lib/governance.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { ago } from "@/components/runs/run-state";
 import {
@@ -112,7 +113,9 @@ const BUILDER = "builder";
  * this surface did not read.
  */
 function statusPhrase(item: BuildWorkItem): string {
-  if (item.live) return "being written now";
+  // No `live` branch. A live row is drawn by the working indicator instead of by
+  // a phrase, so "being written now" would be unreachable here and a second,
+  // silently-dead way of saying the same thing. One vocabulary per fact.
   if (item.gated) return "waiting on you";
   switch (item.status) {
     case "merged":
@@ -196,7 +199,31 @@ function BuildEngine() {
         }`;
 
   const rowFor = (item: BuildWorkItem, keyPrefix: string) => {
-    const parts: React.ReactNode[] = [statusPhrase(item)];
+    const parts: React.ReactNode[] = [
+      // A LIVE ROW MEANS AN AGENT IS WRITING, and `live` is read off a builder
+      // `agent_runs` row in running/queued on this mission, which the resume
+      // sweeper drives through `runAgentLoop` (and every step of that loop
+      // through `callModel`). So the phrase "being written now" gives way to the
+      // indicator, which says the same thing and proves it: the static words
+      // and a frozen page look identical.
+      // THE DETAIL IS THE RUN IT BELONGS TO, because it is the only real field
+      // on `BuildWorkItem` this line does not already carry: the file count, the
+      // created/deleted counts and the repo are all in `parts` below, and the
+      // changeset title is the row's lead. There is no "currently writing file
+      // X" on the type, and a list query that never touches the content columns
+      // could not honestly produce one. With no mission title resolved the
+      // indicator carries no detail rather than a stand-in.
+      item.live ? (
+        <AgentPulse
+          label="Build is writing this change"
+          seed={`${BUILDER}-${item.changesetId}`}
+          compact
+          detail={item.missionTitle ?? undefined}
+        />
+      ) : (
+        statusPhrase(item)
+      ),
+    ];
     if (item.files > 0) {
       parts.push(
         <>

@@ -31,7 +31,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { auditDecision, proposeSupersession } from "@/lib/contradiction-auditor.functions";
 import { Block, Button, Failed, Loading, Num, Receipt, Row } from "@/components/shell/primitives";
 
-export function ContradictionAuditSection({ decisionId }: { decisionId: string }) {
+export function ContradictionAuditSection({
+  decisionId,
+  decisionTitle,
+}: {
+  decisionId: string;
+  /**
+   * The call being audited, so the working indicator can name it.
+   *
+   * Added because the indicator had nothing honest to say otherwise: this
+   * component was handed an id and nothing else, and an id rendered where a noun
+   * belongs is an opaque string dressed as information. Optional, so any other
+   * mount keeps working and simply carries no detail.
+   */
+  decisionTitle?: string;
+}) {
   const qc = useQueryClient();
   const fAudit = useServerFn(auditDecision);
   const fPropose = useServerFn(proposeSupersession);
@@ -79,7 +93,18 @@ export function ContradictionAuditSection({ decisionId }: { decisionId: string }
       onMore={() => audit.mutate()}
     >
       {audit.isPending ? (
-        <Loading>Re-reading the workspace&apos;s decisions.</Loading>
+        // AN AGENT IS GENUINELY RUNNING, so this is the working indicator rather
+        // than the quiet read: auditDecision -> auditDecisionContradictions ->
+        // callModel (contradiction-auditor.server.ts). `working` is the honest
+        // flag and the sentence stays exactly as it was, because it already says
+        // the work.
+        // THE DETAIL IS THE CALL BEING AUDITED, which needed a prop from the
+        // parent: an id in a noun's place would be an opaque string dressed as
+        // information. The auditor's own count (how many it scanned) is not known
+        // until the call returns, so it cannot serve here.
+        <Loading working agent="contradiction-auditor" detail={decisionTitle}>
+          Re-reading the workspace&apos;s decisions.
+        </Loading>
       ) : audit.isError ? (
         <Failed onRetry={() => audit.mutate()}>
           The audit did not run, so this is not a claim that nothing disagrees.{" "}
