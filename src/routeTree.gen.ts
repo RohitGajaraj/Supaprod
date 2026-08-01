@@ -126,6 +126,7 @@ import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksUptimeTickRouteImport } from './routes/api/public/hooks/uptime-tick'
 import { Route as ApiPublicHooksTriggerTickRouteImport } from './routes/api/public/hooks/trigger-tick'
+import { Route as ApiPublicHooksTrackTickRouteImport } from './routes/api/public/hooks/track-tick'
 import { Route as ApiPublicHooksStewardTickRouteImport } from './routes/api/public/hooks/steward-tick'
 import { Route as ApiPublicHooksSenseTickRouteImport } from './routes/api/public/hooks/sense-tick'
 import { Route as ApiPublicHooksSelfImproveTickRouteImport } from './routes/api/public/hooks/self-improve-tick'
@@ -794,6 +795,11 @@ const ApiPublicHooksTriggerTickRoute =
     path: '/api/public/hooks/trigger-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTrackTickRoute = ApiPublicHooksTrackTickRouteImport.update({
+  id: '/api/public/hooks/track-tick',
+  path: '/api/public/hooks/track-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksStewardTickRoute =
   ApiPublicHooksStewardTickRouteImport.update({
     id: '/api/public/hooks/steward-tick',
@@ -1276,6 +1282,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
+  '/api/public/hooks/track-tick': typeof ApiPublicHooksTrackTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
   '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1449,6 +1456,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
+  '/api/public/hooks/track-tick': typeof ApiPublicHooksTrackTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
   '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1626,6 +1634,7 @@ export interface FileRoutesById {
   '/api/public/hooks/self-improve-tick': typeof ApiPublicHooksSelfImproveTickRoute
   '/api/public/hooks/sense-tick': typeof ApiPublicHooksSenseTickRoute
   '/api/public/hooks/steward-tick': typeof ApiPublicHooksStewardTickRoute
+  '/api/public/hooks/track-tick': typeof ApiPublicHooksTrackTickRoute
   '/api/public/hooks/trigger-tick': typeof ApiPublicHooksTriggerTickRoute
   '/api/public/hooks/uptime-tick': typeof ApiPublicHooksUptimeTickRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -1803,6 +1812,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
+    | '/api/public/hooks/track-tick'
     | '/api/public/hooks/trigger-tick'
     | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
@@ -1976,6 +1986,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
+    | '/api/public/hooks/track-tick'
     | '/api/public/hooks/trigger-tick'
     | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
@@ -2152,6 +2163,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/self-improve-tick'
     | '/api/public/hooks/sense-tick'
     | '/api/public/hooks/steward-tick'
+    | '/api/public/hooks/track-tick'
     | '/api/public/hooks/trigger-tick'
     | '/api/public/hooks/uptime-tick'
     | '/api/public/payments/webhook'
@@ -2250,6 +2262,7 @@ export interface RootRouteChildren {
   ApiPublicHooksSelfImproveTickRoute: typeof ApiPublicHooksSelfImproveTickRoute
   ApiPublicHooksSenseTickRoute: typeof ApiPublicHooksSenseTickRoute
   ApiPublicHooksStewardTickRoute: typeof ApiPublicHooksStewardTickRoute
+  ApiPublicHooksTrackTickRoute: typeof ApiPublicHooksTrackTickRoute
   ApiPublicHooksTriggerTickRoute: typeof ApiPublicHooksTriggerTickRoute
   ApiPublicHooksUptimeTickRoute: typeof ApiPublicHooksUptimeTickRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -3097,6 +3110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTriggerTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/track-tick': {
+      id: '/api/public/hooks/track-tick'
+      path: '/api/public/hooks/track-tick'
+      fullPath: '/api/public/hooks/track-tick'
+      preLoaderRoute: typeof ApiPublicHooksTrackTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/steward-tick': {
       id: '/api/public/hooks/steward-tick'
       path: '/api/public/hooks/steward-tick'
@@ -3781,6 +3801,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksSelfImproveTickRoute: ApiPublicHooksSelfImproveTickRoute,
   ApiPublicHooksSenseTickRoute: ApiPublicHooksSenseTickRoute,
   ApiPublicHooksStewardTickRoute: ApiPublicHooksStewardTickRoute,
+  ApiPublicHooksTrackTickRoute: ApiPublicHooksTrackTickRoute,
   ApiPublicHooksTriggerTickRoute: ApiPublicHooksTriggerTickRoute,
   ApiPublicHooksUptimeTickRoute: ApiPublicHooksUptimeTickRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
