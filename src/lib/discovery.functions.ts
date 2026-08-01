@@ -2088,6 +2088,49 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
         rationale: "Generated spec from opportunity",
         created_by_agent: "prd-writer",
       });
+
+      // THE DECIDE -> PLAN HANDOFF, which did not exist.
+      //
+      // /decide's Gate says, in these words, "Keeping it drafts the spec and
+      // moves it into Plan." The first half was true and the second was not:
+      // nothing here or anywhere else ever wrote `roadmap_bucket`, and Plan's
+      // committed set is `items.filter(i => i.bucket !== null)`. So a bet the
+      // team explicitly kept never appeared as committed on the next station,
+      // and the two surfaces disagreed about what had been decided.
+      //
+      // `next`, not `now`. Keeping a bet means the call is made, not that
+      // anyone has started; claiming `now` would put work in flight that
+      // nobody scheduled. It lands as an UNDECLARED commitment (no outcome, no
+      // measure), which Plan already counts and surfaces, and that is the
+      // correct behaviour rather than a gap: the promise is genuinely still
+      // owed, and hiding it would be the comfortable lie.
+      //
+      // Never overwrites. A human who already placed this bet has said
+      // something more specific than a default can, and a draft must not move
+      // work behind their back. Fail-soft for the same reason every other
+      // stamp here is: the spec exists, and a handoff hiccup must not fail a
+      // write that a retry would duplicate.
+      try {
+        const { data: placed } = await supabase
+          .from("opportunities")
+          .update({ roadmap_bucket: "next" })
+          .eq("id", oppId)
+          .is("roadmap_bucket", null)
+          .select("id,workspace_id");
+        if (placed?.length) {
+          await recordStageEvent(supabase, {
+            entityType: "opportunity",
+            entityId: oppId,
+            from: null,
+            to: "next",
+            actor: "human",
+            workspaceId: (placed[0] as { workspace_id: string | null }).workspace_id,
+            userId,
+          });
+        }
+      } catch {
+        // Best-effort placement; the spec and its lineage already survived.
+      }
     }
     if (prd) {
       await runCritic(supabase, userId, { kind: "prd", id: prd.id });
