@@ -3,9 +3,11 @@ import {
   applyChangesetHunkSelections,
   applyHunkSelection,
   computeHunks,
+  diffRows,
   diffStat,
   evaluateFileSetPolicy,
   matchesTouchList,
+  pairDiffRows,
 } from "./studio-hunks";
 
 describe("computeHunks", () => {
@@ -230,5 +232,153 @@ describe("diffStat", () => {
       { added: 0, removed: 0 },
     );
     expect(diffStat(base, next)).toEqual(summed);
+  });
+});
+
+/**
+ * The renderable diff.
+ *
+ * These assert the two properties the VIEW depends on and that a reader cannot
+ * check by eye: that a changed row's `hunkId` is the same id per-hunk curation
+ * acts on, and that line numbers survive a collapsed region. Get either wrong
+ * and the surface lies about which line changed, or rejecting a hunk reverts
+ * different lines than the one the person pressed.
+ */
+describe("diffRows", () => {
+  test("numbers both sides, and a pure addition has no base number", () => {
+    const rows = diffRows("a\nb", "a\nb\nc", Infinity);
+    expect(rows).toEqual([
+      { kind: "same", baseNo: 1, nextNo: 1, text: "a" },
+      { kind: "same", baseNo: 2, nextNo: 2, text: "b" },
+      { kind: "add", baseNo: null, nextNo: 3, text: "c", hunkId: 0 },
+    ]);
+  });
+
+  test("a deletion has no new-file number", () => {
+    const rows = diffRows("a\nb\nc", "a\nc", Infinity);
+    expect(rows).toEqual([
+      { kind: "same", baseNo: 1, nextNo: 1, text: "a" },
+      { kind: "del", baseNo: 2, nextNo: null, text: "b", hunkId: 0 },
+      { kind: "same", baseNo: 3, nextNo: 2, text: "c" },
+    ]);
+  });
+
+  test("a changed row carries the id per-hunk curation acts on", () => {
+    // The contract that makes the two safe to ship together: reject "hunk 1" in
+    // the UI and the server reverts the same lines.
+    const base = "keep\nold1\nkeep2\nkeep3\nkeep4\nkeep5\nold2\nkeep6";
+    const next = "keep\nnew1\nkeep2\nkeep3\nkeep4\nkeep5\nnew2\nkeep6";
+    const hunks = computeHunks(base, next);
+    const rows = diffRows(base, next, Infinity);
+    const idsInRows = [...new Set(rows.flatMap((r) => ("hunkId" in r ? [r.hunkId] : [])))].sort();
+    expect(idsInRows).toEqual(hunks.map((h) => h.id));
+    // And each id's rows carry exactly that hunk's lines.
+    for (const h of hunks) {
+      const dels = rows.filter((r) => r.kind === "del" && r.hunkId === h.id).map((r) => r.text);
+      const adds = rows.filter((r) => r.kind === "add" && r.hunkId === h.id).map((r) => r.text);
+      expect(dels).toEqual(h.baseLines);
+      expect(adds).toEqual(h.modifiedLines);
+    }
+  });
+
+  test("collapses a long unchanged run and keeps the numbers correct after it", () => {
+    // 20 identical lines, one change at the very end. The whole point: the diff
+    // is the size of the CHANGE, not the size of the file.
+    const lines = Array.from({ length: 20 }, (_, i) => `line${i + 1}`);
+    const base = lines.join("\n");
+    const next = [...lines.slice(0, 19), "CHANGED"].join("\n");
+    const rows = diffRows(base, next, 3);
+
+    const skipped = rows.filter((r) => r.kind === "skipped");
+    expect(skipped).toHaveLength(1);
+    // Leading run has no change above it, so it keeps only its tail: 19 context
+    // lines minus the 3 kept = 16 hidden.
+    expect(skipped[0]).toEqual({ kind: "skipped", count: 16, baseNo: 17, nextNo: 17 });
+
+    // THE NUMBERS MUST SURVIVE THE GAP. This is the assertion that catches an
+    // off-by-N in the collapsing: the changed line is line 20 in both files.
+    const del = rows.find((r) => r.kind === "del");
+    const add = rows.find((r) => r.kind === "add");
+    expect(del).toMatchObject({ baseNo: 20, text: "line20" });
+    expect(add).toMatchObject({ nextNo: 20, text: "CHANGED" });
+
+    // And the rows immediately before it are the real neighbouring lines.
+    const context = rows.filter((r) => r.kind === "same").map((r) => r.text);
+    expect(context).toEqual(["line17", "line18", "line19"]);
+  });
+
+  test("never collapses a run too short to be worth collapsing", () => {
+    // 4 unchanged lines between two changes with context 3 would "hide" -2
+    // lines. A naive implementation emits a skipped row claiming a negative or
+    // zero count, which renders as "0 unchanged lines" and looks broken.
+    const base = "x\na\nb\nc\nd\ny";
+    const next = "X\na\nb\nc\nd\nY";
+    const rows = diffRows(base, next, 3);
+    expect(rows.some((r) => r.kind === "skipped")).toBe(false);
+    expect(rows.filter((r) => r.kind === "same")).toHaveLength(4);
+  });
+
+  test("Infinity context renders every line", () => {
+    const lines = Array.from({ length: 50 }, (_, i) => `l${i}`);
+    const rows = diffRows(lines.join("\n"), [...lines.slice(0, 49), "z"].join("\n"), Infinity);
+    expect(rows.some((r) => r.kind === "skipped")).toBe(false);
+    expect(rows).toHaveLength(51); // 49 same + 1 del + 1 add
+  });
+
+  test("an empty base reads as all additions, not as one blank line", () => {
+    const rows = diffRows("", "a\nb", Infinity);
+    expect(rows.every((r) => r.kind === "add")).toBe(true);
+    expect(rows).toHaveLength(2);
+  });
+});
+
+describe("pairDiffRows", () => {
+  test("pairs a rewritten line as a replacement rather than two events", () => {
+    const paired = pairDiffRows(diffRows("a\nold\nb", "a\nnew\nb", Infinity));
+    const change = paired.find((p) => p.left?.kind === "del");
+    expect(change?.left).toMatchObject({ text: "old", baseNo: 2 });
+    expect(change?.right).toMatchObject({ text: "new", nextNo: 2 });
+  });
+
+  test("gives the shorter side nulls when a hunk is lopsided", () => {
+    // One line out, three in. The left column must run out, not borrow rows.
+    const paired = pairDiffRows(diffRows("a\nold\nb", "a\nn1\nn2\nn3\nb", Infinity));
+    const changed = paired.filter((p) => p.left?.kind === "del" || p.right?.kind === "add");
+    expect(changed).toHaveLength(3);
+    expect(changed[0].left).toMatchObject({ text: "old" });
+    expect(changed[1].left).toBeNull();
+    expect(changed[2].left).toBeNull();
+    expect(changed.map((c) => c.right?.text)).toEqual(["n1", "n2", "n3"]);
+  });
+
+  test("an unchanged line occupies both columns", () => {
+    const paired = pairDiffRows(diffRows("a\nb", "a\nc", Infinity));
+    const same = paired.find((p) => p.left?.kind === "same");
+    expect(same?.left).toBe(same?.right as unknown);
+  });
+
+  test("a collapsed run spans both columns and keeps its resume point", () => {
+    const lines = Array.from({ length: 20 }, (_, i) => `line${i + 1}`);
+    const paired = pairDiffRows(
+      diffRows(lines.join("\n"), [...lines.slice(0, 19), "CHANGED"].join("\n"), 3),
+    );
+    const gap = paired.find((p) => p.skipped);
+    expect(gap?.skipped).toEqual({ count: 16, baseNo: 17, nextNo: 17 });
+    expect(gap?.left).toBeNull();
+    expect(gap?.right).toBeNull();
+  });
+
+  test("two hunks separated by context do not bleed into each other", () => {
+    // The pairing walks by hunkId, so a bug here would pair hunk 0's deletion
+    // against hunk 1's addition and claim a change that never happened.
+    const base = "o1\nk1\nk2\nk3\nk4\nk5\nk6\no2";
+    const next = "n1\nk1\nk2\nk3\nk4\nk5\nk6\nn2";
+    const paired = pairDiffRows(diffRows(base, next, Infinity));
+    const changes = paired.filter((p) => p.left?.kind === "del");
+    expect(changes).toHaveLength(2);
+    expect(changes[0].left).toMatchObject({ text: "o1" });
+    expect(changes[0].right).toMatchObject({ text: "n1" });
+    expect(changes[1].left).toMatchObject({ text: "o2" });
+    expect(changes[1].right).toMatchObject({ text: "n2" });
   });
 });

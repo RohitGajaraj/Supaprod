@@ -760,6 +760,17 @@
 .sp-wide {
   min-width: 0;
 }
+/* DELIBERATELY ABSENT: a region that spans the work column AND the context
+ * column. It was built on 2026-08-01 to give a code diff another 370px and had to
+ * be removed the same hour, because `.sp-inner`'s second track is an IMPLICIT grid
+ * column and therefore `auto`-sized: a spanning item contributes its own
+ * max-content to an auto track, so the diff's `white-space: pre` content sized the
+ * track, the grid outgrew its container, and the terminal spilled off the right of
+ * the screen.
+ *
+ * If this is wanted again, size BOTH tracks explicitly first
+ * (`grid-template-columns: minmax(0, 1fr) <ctx-width>`), so a spanning child has no
+ * say in how wide the grid is. Do not reintroduce it without that. */
 /* The context column NEVER disappears. On a narrow region it stacks under
  * the main column instead of hiding, because hiding it loses information
  * that a 14 inch laptop needs just as much as a 32 inch one. */

@@ -38,7 +38,7 @@
  * Every server function, mutation, query key and prop is unchanged.
  */
 
-import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
@@ -63,7 +63,6 @@ import {
 } from "@/lib/studio.functions";
 import { computeHunks } from "@/lib/ai/studio-hunks";
 import { useConfirm, usePrompt } from "@/hooks/use-confirm";
-import { useTheme } from "@/hooks/use-theme";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   Actions,
@@ -76,19 +75,16 @@ import {
   Field,
   Input,
   Line,
+  Loading,
   Num,
   Row,
   Textarea,
   Who,
 } from "@/components/shell/primitives";
+import { CodeDiff } from "@/components/studio/CodeDiff";
 
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
-
-// Monaco stays out of the main bundle: it only loads when a file is opened.
-const DiffEditor = lazy(() =>
-  import("@monaco-editor/react").then((m) => ({ default: m.DiffEditor })),
-);
 
 /** Everything in this panel was written by the run's Build agent. Same slug the
  *  surface above uses, so the mark means the same thing in both places. */
@@ -125,23 +121,6 @@ type DiffRow = {
   updated_at: string;
 };
 
-const LANG_BY_EXT: Record<string, string> = {
-  ts: "typescript",
-  tsx: "typescript",
-  js: "javascript",
-  jsx: "javascript",
-  json: "json",
-  css: "css",
-  html: "html",
-  md: "markdown",
-  sql: "sql",
-  py: "python",
-  sh: "shell",
-  yml: "yaml",
-  yaml: "yaml",
-  toml: "ini",
-};
-
 /** The ladder said in words. A coloured pill carried this before, which failed
  *  the greyscale test and needed a legend nobody was given. */
 const STATUS_SENTENCE: Record<string, string> = {
@@ -152,9 +131,39 @@ const STATUS_SENTENCE: Record<string, string> = {
   abandoned: "Abandoned",
 };
 
-function languageFor(path: string): string | undefined {
-  const ext = path.split(".").pop()?.toLowerCase() ?? "";
-  return LANG_BY_EXT[ext];
+/**
+ * A path where the FILENAME is the part that survives.
+ *
+ * The file list now lives in a narrow left pane, and a plain truncating path
+ * ellipsises from the right, which throws away the filename and keeps
+ * `src/components/...` on every row. That is precisely backwards: the directory
+ * is the shared prefix and the filename is the thing you are looking for.
+ *
+ * So the directory shrinks and the filename never does, which is what VS Code's
+ * and Cursor's file lists do. The full path stays available on hover, since the
+ * directory genuinely matters when two files share a name.
+ */
+function FileName({ path }: { path: string }) {
+  const cut = path.lastIndexOf("/");
+  const name = cut >= 0 ? path.slice(cut + 1) : path;
+  // THE FILENAME ALONE, in the rail.
+  //
+  // The directory used to sit inline ahead of it and shrink first, which works
+  // until the rail is genuinely narrow: at 215px `src/checkout/` collapsed to a
+  // single "s" and fused with the name, rendering "suseAddressConfirm.…". A
+  // one-character directory stub is strictly worse than no directory, because it
+  // reads as part of the filename rather than as a path.
+  //
+  // So the rail shows the name, which is what you scan for, and the full path is
+  // one hover away and spelled out in the terminal's chrome the moment the file is
+  // selected. That is what VS Code's and Cursor's file lists do, and for the same
+  // reason: a list of paths that share a prefix wastes its width repeating the
+  // prefix and truncating the only part that differs.
+  return (
+    <span className="sp-filename" title={path}>
+      {name}
+    </span>
+  );
 }
 
 /** Markdown files get a rendered-document view alongside the code diff (docs read as docs, not as text). */
@@ -191,23 +200,6 @@ const RECESS: CSSProperties = {
   overflowY: "auto",
 };
 
-const DIFF_H = 420;
-
-const loadingBox = (
-  <div
-    style={{
-      height: DIFF_H,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "var(--sp-text-prose)",
-      color: "var(--sp-mute)",
-    }}
-  >
-    Reading the diff.
-  </div>
-);
-
 /**
  * Changes tab: what the run wrote. The file list, the commit history, the
  * declared scope, the ship links, and the per-hunk curation that lets you keep
@@ -227,18 +219,38 @@ export function ChangesPanel({
   fileSetPolicy?: StudioFileSetPolicy | null;
   constraints?: StudioConstraints;
 }) {
+  /** The file a person explicitly clicked. Null until they click one. */
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  /**
+   * The file the right pane is showing, which is never nothing while there are
+   * files.
+   *
+   * DERIVED, NEVER AN EFFECT, the same shape /design uses for its focus: the pane
+   * opens on the first file and a click just overrides it. An effect would fight
+   * the 4s session poll, and it would also have to guess what to do when the
+   * selected file leaves the changeset (hunk curation can drop a file). This
+   * self-heals: a selection that is no longer in the list falls back to the first
+   * row instead of showing a detail view of something that is gone.
+   *
+   * A two-pane layout makes this mandatory rather than nice. Stacked, an empty
+   * right half was invisible below the fold; side by side it is half the region
+   * staring back at you.
+   */
+  const activePath =
+    selectedPath && changes.some((c) => c.path === selectedPath)
+      ? selectedPath
+      : (changes[0]?.path ?? null);
   const [docView, setDocView] = useState<"diff" | "preview">("diff");
-  // Both themes resolve: Monaco follows the app theme instead of hard-coding
-  // vs-dark into the light theme.
-  const { resolvedTheme } = useTheme();
-  const monacoTheme = resolvedTheme === "light" ? "light" : "vs-dark";
+
+  // NO THEME BRIDGE ANY MORE. Monaco needed one because it carries its own
+  // palette and would otherwise render vs-dark inside the light theme; `CodeDiff`
+  // is built from `--sp-*` tokens, so it follows the theme for free.
   const builderName = agentDisplayName(BUILDER);
   const fDiff = useServerFn(getChangesetDiff);
   const diff = useQuery({
     queryKey: ["studio-diff", changeset?.id],
     queryFn: () => fDiff({ data: { changesetId: changeset!.id } }),
-    enabled: !!changeset && !!selectedPath,
+    enabled: !!changeset && !!activePath,
     staleTime: 10_000,
   });
   const diffByPath = useMemo(() => {
@@ -278,8 +290,8 @@ export function ChangesPanel({
   // I1: operator curation (per-hunk reject + drop file), only before commit.
   const canCurate = changeset?.status === "staged";
   const [rejected, setRejected] = useState<Set<number>>(new Set());
-  useEffect(() => setRejected(new Set()), [selectedPath]);
-  useEffect(() => setDocView("diff"), [selectedPath]);
+  useEffect(() => setRejected(new Set()), [activePath]);
+  useEffect(() => setDocView("diff"), [activePath]);
   const fApply = useServerFn(applyStagedHunkSelection);
   const fReject = useServerFn(rejectStagedFile);
   const refetchAll = () => {
@@ -507,7 +519,7 @@ export function ChangesPanel({
     return <Empty>Nothing is staged. {builderName} writes each file in here as it works.</Empty>;
   }
 
-  const selected = selectedPath ? diffByPath.get(selectedPath) : null;
+  const selected = activePath ? diffByPath.get(activePath) : null;
   // Same pure diff the server applies, so hunk ids line up between UI and server.
   const hunks = selected
     ? computeHunks(selected.base_content ?? "", selected.new_content ?? "")
@@ -857,176 +869,191 @@ export function ChangesPanel({
           payload. Now the unit and the colour agree, so the shape claims exactly
           what it is. */}
       <Block title="Files">
-        {changes.map((c) => {
-          const active = c.path === selectedPath;
-          return (
-            <Row
-              key={c.id}
-              tight
-              focused={active}
-              marks={<AgentMark slug={BUILDER} state="quiet" />}
-              lead={<Num>{c.path}</Num>}
-              sub={
-                <>
-                  <Who>{builderName}</Who> {c.op} ·{" "}
-                  <Diffstat added={c.added_lines} removed={c.removed_lines} />
-                  {outOfPolicy.has(c.path) ? (
-                    <span style={{ color: "var(--sp-warn)" }}> · outside the touch list</span>
-                  ) : null}
-                </>
-              }
-              onClick={() => setSelectedPath(active ? null : c.path)}
-            />
-          );
-        })}
         {changes.length === 0 ? (
           <Empty>{builderName} has not written a file into this changeset yet.</Empty>
-        ) : null}
-      </Block>
+        ) : (
+          /* THE LIST AND THE DIFF SIT BESIDE EACH OTHER, not one above the other.
+             FOUNDER, 2026-08-01: "why don't we build this terminal next to each
+             other? Say, when I click the file in the file's name, it should open
+             on the right side immediately. We have the space left and right. Why
+             is it opening below? ... If it is below, we need to scroll a lot."
 
-      {selectedPath ? (
-        <Block>
-          <Line label={<Num>{selectedPath}</Num>} sub="Base against staged">
-            {canCurate ? (
-              <button
-                type="button"
-                className={QUIET}
-                disabled={rejectFileMut.isPending}
-                onClick={() => rejectFileMut.mutate(selectedPath)}
-              >
-                {rejectFileMut.isPending ? "Dropping it" : "Drop this file"}
-              </button>
-            ) : null}
-          </Line>
+             He is right, and the reference class is unanimous: VS Code, Cursor and
+             GitHub's pull-request review all put the changed-file list beside the
+             diff. The old stacked layout meant every file you clicked pushed its
+             own diff below the fold, so reading four files was four scroll
+             journeys down and back up, and the file you were comparing against
+             had already left the screen.
 
-          {isMarkdownFile(selectedPath) ? (
-            <div className="sp-tabs" role="tablist" aria-label="How to read this file">
-              {(["diff", "preview"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  role="tab"
-                  className="sp-tab"
-                  aria-selected={docView === mode}
-                  onClick={() => setDocView(mode)}
-                >
-                  {mode === "diff" ? "Diff" : "Read it"}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <div
-            style={{
-              marginTop: "var(--sp-space-3)",
-              background: "var(--sp-sink)",
-              borderRadius: "var(--sp-radius-panel)",
-              overflow: "hidden",
-            }}
-          >
-            {diff.isError ? (
-              // A failed read is not an empty state. It names its cause and
-              // offers the retry, because "nothing here" and "we could not find
-              // out" are different facts.
-              <div style={{ padding: "var(--sp-space-4) 18px" }}>
-                <Failed onRetry={() => void diff.refetch()}>
-                  The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
-                </Failed>
-              </div>
-            ) : diff.isLoading || !selected ? (
-              loadingBox
-            ) : isMarkdownFile(selectedPath) && docView === "preview" ? (
-              <div
-                style={{
-                  height: DIFF_H,
-                  overflowY: "auto",
-                  padding: "var(--sp-space-4) var(--sp-space-5)",
-                }}
-              >
-                <ChatMarkdown content={selected.new_content ?? ""} />
-              </div>
-            ) : (
-              <Suspense fallback={loadingBox}>
-                <DiffEditor
-                  height={`${DIFF_H}px`}
-                  theme={monacoTheme}
-                  language={languageFor(selectedPath)}
-                  original={selected.base_content ?? ""}
-                  modified={selected.new_content ?? ""}
-                  options={{
-                    readOnly: true,
-                    renderSideBySide: false,
-                    minimap: { enabled: false },
-                    // Monaco's canvas renderer needs a numeric px value, not a CSS custom property.
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                  }}
-                />
-              </Suspense>
-            )}
-          </div>
-
-          {/* Per-hunk curation. These numbers ARE lines (computeHunks returns
-              base and modified line arrays), so the diffstat is honest here. */}
-          {canCurate && selected && hunks.length > 0 ? (
-            <>
-              <Line
-                label={
-                  <>
-                    <Num>{hunks.length}</Num> {hunks.length === 1 ? "hunk" : "hunks"}
-                  </>
-                }
-                sub="Tap one to reject it. Rejecting puts those lines back to base."
-              >
-                <Button
-                  disabled={applyMut.isPending || rejected.size === 0}
-                  title={rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined}
-                  onClick={() =>
-                    applyMut.mutate({
-                      path: selectedPath,
-                      rejectedHunkIds: [...rejected],
-                      expectedUpdatedAt: selected.updated_at,
-                    })
-                  }
-                >
-                  {applyMut.isPending
-                    ? "Reverting them"
-                    : rejected.size === 0
-                      ? "Revert the rejected"
-                      : `Revert ${rejected.size}`}
-                </Button>
-              </Line>
-              {hunks.map((h) => {
-                const isRejected = rejected.has(h.id);
-                const preview = (h.modifiedLines[0] ?? h.baseLines[0] ?? "").trim().slice(0, 80);
+             Each pane scrolls independently, which is what actually kills the
+             long scroll: the list stays put while the diff moves. */
+          <div className="sp-split">
+            <div className="sp-split-list" role="tablist" aria-label="Files this run changed">
+              {changes.map((c) => {
+                const active = c.path === activePath;
                 return (
                   <Row
-                    key={h.id}
+                    key={c.id}
                     tight
-                    focused={isRejected}
+                    focused={active}
                     marks={<AgentMark slug={BUILDER} state="quiet" />}
-                    lead={<Num>{preview || "(blank line)"}</Num>}
+                    lead={<FileName path={c.path} />}
                     sub={
                       <>
-                        <Diffstat added={h.modifiedLines.length} removed={h.baseLines.length} />{" "}
-                        {isRejected ? "Rejected, goes back to base" : `Hunk ${h.id + 1}`}
+                        {c.op} · <Diffstat added={c.added_lines} removed={c.removed_lines} />
+                        {outOfPolicy.has(c.path) ? (
+                          <span style={{ color: "var(--sp-warn)" }}> · outside the list</span>
+                        ) : null}
                       </>
                     }
-                    onClick={() =>
-                      setRejected((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(h.id)) next.delete(h.id);
-                        else next.add(h.id);
-                        return next;
-                      })
-                    }
+                    // NO DESELECT. It used to toggle, which in a two-pane layout
+                    // empties the right half and leaves a person looking at
+                    // nothing after clicking the row they were already reading. A
+                    // file browser selects; it does not un-select.
+                    onClick={() => setSelectedPath(c.path)}
                   />
                 );
               })}
-            </>
-          ) : null}
-        </Block>
-      ) : null}
+            </div>
+
+            <div className="sp-split-view">
+              {/* NO HEADER ROW HERE. The path, the comparison and the file's own
+                  action all moved INTO the terminal's chrome and status line,
+                  because a header above a box that has its own header is two
+                  headers for one thing. That duplication is a good part of what
+                  read as congested, and it cost a whole row of height above the
+                  code on every file you opened. */}
+              {activePath && isMarkdownFile(activePath) ? (
+                <div className="sp-tabs" role="tablist" aria-label="How to read this file">
+                  {(["diff", "preview"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="tab"
+                      className="sp-tab"
+                      aria-selected={docView === mode}
+                      onClick={() => setDocView(mode)}
+                    >
+                      {mode === "diff" ? "Diff" : "Read it"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {diff.isError ? (
+                // A failed read is not an empty state. It names its cause and offers
+                // the retry, because "nothing here" and "we could not find out" are
+                // different facts.
+                <div className="sp-term">
+                  <div style={{ padding: "var(--sp-space-4) 14px" }}>
+                    <Failed onRetry={() => void diff.refetch()}>
+                      The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
+                    </Failed>
+                  </div>
+                </div>
+              ) : diff.isLoading || !selected ? (
+                // ONE LINE, NOT A 420px BOX. This was a fixed-height panel holding
+                // three words, which is the largest single piece of the "unexplained
+                // blank space" and it appeared on every file you opened.
+                <Loading>Reading the diff.</Loading>
+              ) : activePath && isMarkdownFile(activePath) && docView === "preview" ? (
+                <div className="sp-term">
+                  {/* No inner vertical scroller here either, for the same reason
+                      as the diff body: a scroll container nested inside the
+                      page's own scroller traps the wheel and the page reads as
+                      stuck. The document is as tall as it is and the page
+                      carries it. */}
+                  <div style={{ padding: "var(--sp-space-4) var(--sp-space-5)" }}>
+                    <ChatMarkdown content={selected.new_content ?? ""} />
+                  </div>
+                </div>
+              ) : (
+                <CodeDiff
+                  base={selected.base_content ?? ""}
+                  next={selected.new_content ?? ""}
+                  path={activePath ?? undefined}
+                  actions={
+                    canCurate && activePath ? (
+                      <button
+                        type="button"
+                        className="sp-term-ctl"
+                        disabled={rejectFileMut.isPending}
+                        onClick={() => rejectFileMut.mutate(activePath)}
+                      >
+                        {rejectFileMut.isPending ? "Dropping" : "Drop file"}
+                      </button>
+                    ) : null
+                  }
+                />
+              )}
+
+              {/* Per-hunk curation. These numbers ARE lines (computeHunks returns
+              base and modified line arrays), so the diffstat is honest here. */}
+              {canCurate && selected && hunks.length > 0 ? (
+                <>
+                  <Line
+                    label={
+                      <>
+                        <Num>{hunks.length}</Num> {hunks.length === 1 ? "hunk" : "hunks"}
+                      </>
+                    }
+                    sub="Tap one to reject it. Rejecting puts those lines back to base."
+                  >
+                    <Button
+                      disabled={applyMut.isPending || rejected.size === 0}
+                      title={
+                        rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined
+                      }
+                      onClick={() =>
+                        applyMut.mutate({
+                          path: activePath as string,
+                          rejectedHunkIds: [...rejected],
+                          expectedUpdatedAt: selected.updated_at,
+                        })
+                      }
+                    >
+                      {applyMut.isPending
+                        ? "Reverting them"
+                        : rejected.size === 0
+                          ? "Revert the rejected"
+                          : `Revert ${rejected.size}`}
+                    </Button>
+                  </Line>
+                  {hunks.map((h) => {
+                    const isRejected = rejected.has(h.id);
+                    const preview = (h.modifiedLines[0] ?? h.baseLines[0] ?? "")
+                      .trim()
+                      .slice(0, 80);
+                    return (
+                      <Row
+                        key={h.id}
+                        tight
+                        focused={isRejected}
+                        marks={<AgentMark slug={BUILDER} state="quiet" />}
+                        lead={<Num>{preview || "(blank line)"}</Num>}
+                        sub={
+                          <>
+                            <Diffstat added={h.modifiedLines.length} removed={h.baseLines.length} />{" "}
+                            {isRejected ? "Rejected, goes back to base" : `Hunk ${h.id + 1}`}
+                          </>
+                        }
+                        onClick={() =>
+                          setRejected((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(h.id)) next.delete(h.id);
+                            else next.add(h.id);
+                            return next;
+                          })
+                        }
+                      />
+                    );
+                  })}
+                </>
+              ) : null}
+            </div>
+          </div>
+        )}
+      </Block>
     </>
   );
 }

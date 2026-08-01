@@ -91,6 +91,162 @@ export function computeHunks(base: string, modified: string): Hunk[] {
   return buildSegments(base, modified).flatMap((s) => ("hunk" in s ? [s.hunk] : []));
 }
 
+/* ------------------------------------------------------------------ *
+ * The renderable diff: one row per line, with numbers and collapsing
+ * ------------------------------------------------------------------ */
+
+/**
+ * One line of a rendered diff, or one collapsed run of unchanged lines.
+ *
+ * WHY THIS LIVES HERE rather than in a view module. It has to walk the SAME
+ * `buildSegments` alignment that `computeHunks` and `applyHunkSelection` walk,
+ * because every changed row carries the `hunkId` that per-hunk curation acts on.
+ * A second alignment written next to the renderer would drift from the one the
+ * server applies, and then rejecting "hunk 3" in the UI would revert a different
+ * three lines on disk. This file's header already states the rule: both derive
+ * from the same op sequence so a hunk's id is stable. This is the third consumer
+ * of that guarantee, not an exception to it.
+ *
+ * `baseNo` / `nextNo` are 1-based line numbers in the base and the new file, and
+ * null on the side where the line does not exist. That is what makes "which
+ * line" answerable, which was the point of the exercise.
+ */
+export type DiffRow =
+  | { kind: "same"; baseNo: number; nextNo: number; text: string }
+  | { kind: "del"; baseNo: number; nextNo: null; text: string; hunkId: number }
+  | { kind: "add"; baseNo: null; nextNo: number; text: string; hunkId: number }
+  /**
+   * A run of unchanged lines nobody needs to read, stated rather than dropped.
+   * `baseNo`/`nextNo` are where reading RESUMES, so an expander can label itself
+   * honestly and a person always knows the gap is a gap and not a truncation.
+   */
+  | { kind: "skipped"; count: number; baseNo: number; nextNo: number };
+
+/** How many unchanged lines to keep on each side of a change. Three is the
+ *  universal default (git, GitHub, every review tool), and matching it means
+ *  nobody has to learn ours. */
+export const DIFF_CONTEXT_LINES = 3;
+
+/**
+ * Build the rows for one file's diff.
+ *
+ * COLLAPSING IS THE WHOLE POINT, and it is why a fixed-height editor was the
+ * wrong container. A 900-line file with a four-line change renders four changed
+ * rows and six context rows here, so the diff is the size of the CHANGE rather
+ * than the size of the file. That is what lets the box fit its content instead of
+ * sitting at 420px whether it holds three lines or three hundred.
+ *
+ * `context = Infinity` disables collapsing entirely, which is what "expand all"
+ * passes.
+ */
+export function diffRows(
+  base: string,
+  modified: string,
+  context: number = DIFF_CONTEXT_LINES,
+): DiffRow[] {
+  const segs = buildSegments(base, modified);
+  const rows: DiffRow[] = [];
+  let baseNo = 1;
+  let nextNo = 1;
+
+  segs.forEach((seg, i) => {
+    if ("hunk" in seg) {
+      // Removals first, then additions, which is how a unified diff reads and
+      // how the hunk itself is stored.
+      for (const line of seg.hunk.baseLines) {
+        rows.push({ kind: "del", baseNo: baseNo++, nextNo: null, text: line, hunkId: seg.hunk.id });
+      }
+      for (const line of seg.hunk.modifiedLines) {
+        rows.push({ kind: "add", baseNo: null, nextNo: nextNo++, text: line, hunkId: seg.hunk.id });
+      }
+      return;
+    }
+
+    const lines = seg.equal;
+    const first = i === 0;
+    const last = i === segs.length - 1;
+    // A leading run has no change above it, so it only needs its TAIL; a
+    // trailing run only needs its HEAD; a run between two hunks needs both.
+    const head = first ? 0 : context;
+    const tail = last ? 0 : context;
+
+    if (!Number.isFinite(context) || lines.length <= head + tail) {
+      for (const line of lines) {
+        rows.push({ kind: "same", baseNo: baseNo++, nextNo: nextNo++, text: line });
+      }
+      return;
+    }
+
+    for (let k = 0; k < head; k++) {
+      rows.push({ kind: "same", baseNo: baseNo++, nextNo: nextNo++, text: lines[k] });
+    }
+    const hidden = lines.length - head - tail;
+    baseNo += hidden;
+    nextNo += hidden;
+    rows.push({ kind: "skipped", count: hidden, baseNo, nextNo });
+    for (let k = lines.length - tail; k < lines.length; k++) {
+      rows.push({ kind: "same", baseNo: baseNo++, nextNo: nextNo++, text: lines[k] });
+    }
+  });
+
+  return rows;
+}
+
+/** One row of a side-by-side diff: what was there, and what is there now. */
+export type SideBySideRow = {
+  left: DiffRow | null;
+  right: DiffRow | null;
+  /** Set when the whole row is a collapsed run, which spans both columns. */
+  skipped: { count: number; baseNo: number; nextNo: number } | null;
+};
+
+/**
+ * Pair unified rows into two columns.
+ *
+ * Derived FROM the unified rows rather than computed separately, so the two
+ * views can never disagree about what changed: side by side is a layout of the
+ * same facts, not a second opinion. Within a hunk, removals and additions pair
+ * positionally and the shorter side gets nulls, which is what makes a rewritten
+ * line read as a replacement rather than as a delete followed by an unrelated
+ * insert.
+ */
+export function pairDiffRows(rows: DiffRow[]): SideBySideRow[] {
+  const out: SideBySideRow[] = [];
+  let i = 0;
+  while (i < rows.length) {
+    const row = rows[i];
+    if (row.kind === "same") {
+      out.push({ left: row, right: row, skipped: null });
+      i++;
+      continue;
+    }
+    if (row.kind === "skipped") {
+      out.push({
+        left: null,
+        right: null,
+        skipped: { count: row.count, baseNo: row.baseNo, nextNo: row.nextNo },
+      });
+      i++;
+      continue;
+    }
+    // One hunk's worth of removals, then its additions.
+    const hunkId = row.hunkId;
+    const dels: DiffRow[] = [];
+    const adds: DiffRow[] = [];
+    while (i < rows.length) {
+      const r = rows[i];
+      if (r.kind === "del" && r.hunkId === hunkId) dels.push(r);
+      else if (r.kind === "add" && r.hunkId === hunkId) adds.push(r);
+      else break;
+      i++;
+    }
+    for (let k = 0; k < Math.max(dels.length, adds.length); k++) {
+      out.push({ left: dels[k] ?? null, right: adds[k] ?? null, skipped: null });
+    }
+  }
+  return out;
+}
+
 /**
  * The diffstat of one file: lines added, lines removed.
  *

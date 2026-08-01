@@ -1,12 +1,11 @@
 import * as React from "react";
-import { lazy, Suspense } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "@/lib/notify";
 import { useConfirm } from "@/hooks/use-confirm";
-import { useTheme } from "@/hooks/use-theme";
 import { computeHunks } from "@/lib/ai/studio-hunks";
+import { CodeDiff } from "@/components/studio/CodeDiff";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listGovernApprovals } from "@/lib/governance.functions";
 import { listChangelog } from "@/lib/changelog.functions";
@@ -42,11 +41,6 @@ import {
  * listAppliedChanges query. No em/en dashes anywhere (humanized-output law).
  */
 
-// Monaco stays out of the main bundle. It only loads when a diff is opened.
-const DiffEditor = lazy(() =>
-  import("@monaco-editor/react").then((m) => ({ default: m.DiffEditor })),
-);
-
 type PendingApproval = Awaited<ReturnType<typeof listGovernApprovals>>["approvals"][number];
 
 type DiffRow = {
@@ -57,28 +51,6 @@ type DiffRow = {
   new_content: string | null;
   updated_at: string;
 };
-
-const LANG_BY_EXT: Record<string, string> = {
-  ts: "typescript",
-  tsx: "typescript",
-  js: "javascript",
-  jsx: "javascript",
-  json: "json",
-  css: "css",
-  html: "html",
-  md: "markdown",
-  sql: "sql",
-  py: "python",
-  sh: "shell",
-  yml: "yaml",
-  yaml: "yaml",
-  toml: "ini",
-};
-
-function languageFor(path: string): string | undefined {
-  const ext = path.split(".").pop()?.toLowerCase() ?? "";
-  return LANG_BY_EXT[ext];
-}
 
 const RISK_TONE: Record<string, string> = {
   low: "var(--moss)",
@@ -325,7 +297,8 @@ function JustHappened() {
 /* ----------------- 3. Applied changes (diff + rollback) ----------------- */
 
 function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChanged: () => void }) {
-  const { resolvedTheme } = useTheme();
+  // No theme hook any more: it existed only to tell Monaco which of ITS palettes
+  // to use. `CodeDiff` is built from `--sp-*` tokens and follows the theme itself.
   const [open, setOpen] = React.useState(false);
   const [selectedPath, setSelectedPath] = React.useState<string | null>(null);
   const confirm = useConfirm();
@@ -508,23 +481,18 @@ function AppliedChangeRow({ change, onChanged }: { change: AppliedChange; onChan
                   {hunks.length} hunk{hunks.length === 1 ? "" : "s"} · base vs merged
                 </span>
               </div>
+              {/* Ported off Monaco with the Build terminal, and this was the
+                  last usage in the tree, so the editor leaves the bundle
+                  altogether. Same trade as there: a fixed 360px box for text
+                  nobody can edit, carrying its own palette and needing a theme
+                  bridge to avoid rendering vs-dark inside the light theme.
+                  `CodeDiff` is `--sp-*` tokens on the same `computeHunks`
+                  alignment this cockpit already counts its hunks from, so the
+                  number above and the rows below cannot disagree. */}
               {selected ? (
-                <Suspense fallback={<DiffPending />}>
-                  <DiffEditor
-                    height="360px"
-                    theme={resolvedTheme === "light" ? "light" : "vs-dark"}
-                    language={selectedPath ? languageFor(selectedPath) : undefined}
-                    original={selected.base_content ?? ""}
-                    modified={selected.new_content ?? ""}
-                    options={{
-                      readOnly: true,
-                      renderSideBySide: false,
-                      minimap: { enabled: false },
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                    }}
-                  />
-                </Suspense>
+                <div style={{ padding: "0 16px 12px" }}>
+                  <CodeDiff base={selected.base_content ?? ""} next={selected.new_content ?? ""} />
+                </div>
               ) : null}
             </>
           )}

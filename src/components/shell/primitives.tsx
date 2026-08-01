@@ -417,10 +417,21 @@ export function Diffstat({
    *  not have. Reported from the changes panel, whose rows carry char deltas. */
   unit?: string;
 }) {
+  // A ZERO SIDE IS NOT DRAWN. A newly created file rendered "+10 -0", and that
+  // "-0" is a zero presented as if it were a finding: nothing was removed,
+  // because there was nothing there to remove. The reasoning is already recorded
+  // on the Build row, which refused the primitive for this exact reason ("the
+  // '-0' is a zero rendered as if it were a fact"); fixing it here means that row
+  // no longer has to opt out to stay honest.
+  //
+  // Both zero cannot happen: a file with no added and no removed lines is not a
+  // change, and every caller draws this only for something that changed. The
+  // guard is kept anyway so the component can never render an empty box.
+  const both = added === 0 && removed === 0;
   return (
     <span className="sp-diff" aria-label={`${added} ${unit} added, ${removed} ${unit} removed`}>
-      <b className="sp-pass">+{added}</b>
-      <b className="sp-fail">&minus;{removed}</b>
+      {added > 0 || both ? <b className="sp-pass">+{added}</b> : null}
+      {removed > 0 ? <b className="sp-fail">&minus;{removed}</b> : null}
     </span>
   );
 }
