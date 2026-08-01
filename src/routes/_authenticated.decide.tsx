@@ -98,6 +98,7 @@ import {
   Gate,
   Num,
   PageHead,
+  Receipt,
   Record as RecordRecess,
   Row,
   Surface,
@@ -305,6 +306,13 @@ function DecideSurface() {
     [provenance.data],
   );
 
+  /** What the last judgment on this surface caused (anti-slop.md 5). */
+  const [receipt, setReceipt] = React.useState<{
+    verb: string;
+    consequence: React.ReactNode;
+    failed?: boolean;
+  } | null>(null);
+
   const challengerName = agentDisplayName(CHALLENGER);
 
   const challenge = useMutation({
@@ -326,7 +334,9 @@ function DecideSurface() {
       toast("Drafting the spec. It lands in Plan when it is ready.");
     },
     onSuccess: (r) => {
-      toast.success("Spec drafted.");
+      // No success toast: this navigates straight to the spec it just wrote, and
+      // arriving at the artifact is a stronger receipt than a word about it.
+      // The rule's narrow exception, where the changed surface IS the receipt.
       void navigate({
         to: "/plan/spec/$id",
         params: { id: r.prd.id },
@@ -341,22 +351,35 @@ function DecideSurface() {
     mutationFn: ({ id, status }: { id: string; status: OpportunityStatus }) =>
       fUpdate({ data: { id, status } }),
     onMutate: ({ id }) => setBusy(id, true),
-    onSuccess: (_r, { status }) => {
-      toast.success(status === "dropped" ? "Dropped." : `Moved to ${status}.`);
+    onSuccess: (_r, { id, status }) => {
+      const title = rows.find((o) => o.id === id)?.title ?? "The bet";
+      setReceipt({
+        verb: status === "dropped" ? "You dropped it" : "You moved it",
+        consequence:
+          status === "dropped"
+            ? `${title} left the ranking. Its evidence stays on the record, and so does the call.`
+            : `${title} is ${status}.`,
+      });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not move", consequence: e.message, failed: true }),
     onSettled: (_d, _e, { id }) => setBusy(id, false),
   });
 
   const del = useMutation({
     mutationFn: (id: string) => fDelete({ data: { id } }),
     onMutate: (id) => setBusy(id, true),
-    onSuccess: () => {
-      toast.success("Deleted.");
+    onSuccess: (_r, id) => {
+      const title = rows.find((o) => o.id === id)?.title ?? "The bet";
+      setReceipt({
+        verb: "You deleted it",
+        consequence: `${title} is gone from the queue. The signals behind it are untouched.`,
+      });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It was not deleted", consequence: e.message, failed: true }),
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
@@ -656,6 +679,13 @@ function DecideSurface() {
           third register in the way of the one moment that matters here. */}
       {activeCitation ? (
         <RecordRecess evidence={activeRescore ?? undefined}>{activeCitation}</RecordRecess>
+      ) : null}
+
+      {/* What your last call caused. It stays on screen instead of sliding
+        away, because a judgment that erases itself teaches you your judgment
+        left no trace, and judgment is the product. */}
+      {receipt ? (
+        <Receipt verb={receipt.verb} consequence={receipt.consequence} failed={receipt.failed} />
       ) : null}
 
       {/* Only when there is genuinely a queue behind the gate. With one bet
