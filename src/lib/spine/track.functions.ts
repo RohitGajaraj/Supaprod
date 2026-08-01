@@ -51,6 +51,7 @@ import {
   type MemberRow,
 } from "@/lib/spine/chain";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   buildActivity,
   type MemberRow as ActivityMemberRow,
@@ -149,6 +150,68 @@ const SELECT =
  * work that skipped discovery has no evidence behind it, so without a stated
  * reason Learn would have nothing to grade the outcome against.
  */
+/**
+ * Start a piece of work, callable server to server.
+ *
+ * Extracted from the `startTrack` server function so the promotion sweep can
+ * reach it: a `createServerFn` handler needs a request, and a cron tick has
+ * none. The server function below is now a thin wrapper, so a track a person
+ * starts and a track the platform starts go through exactly the same
+ * validation, the same route model and the same refusals. Two entrances to one
+ * table is how the two drift.
+ */
+export async function startTrackCore(
+  supabase: SupabaseClient,
+  userId: string,
+  data: {
+    title: string;
+    shape: WorkShape;
+    origin?: string;
+    productId?: string | null;
+    projectId?: string | null;
+    workspaceId?: string | null;
+    /** The cluster this came from, when the platform started it. */
+    themeId?: string | null;
+  },
+): Promise<{ track: Track | null; problems: string[] }> {
+  const origin = data.origin?.trim() || null;
+  const route = suggestRoute(data.shape, origin);
+
+  const problems = validateRoute(route);
+  if (problems.length > 0) return { track: null, problems: problems.map((p) => p.message) };
+
+  try {
+    const { data: row, error } = await supabase
+      .from("spine_tracks" as never)
+      .insert({
+        user_id: userId,
+        title: data.title.trim(),
+        origin,
+        entry_station: route.entry,
+        station: route.entry,
+        path: route.path,
+        waived: route.waived,
+        product_id: data.productId ?? null,
+        project_id: data.projectId ?? null,
+        workspace_id: data.workspaceId ?? null,
+        theme_id: data.themeId ?? null,
+      } as never)
+      .select(SELECT)
+      .single();
+    if (error || !row) {
+      // 23505 is the unique index on theme_id: another tick promoted this
+      // cluster first. Not an error, just a race this design expects to lose
+      // sometimes, so it is reported as a plain refusal rather than thrown.
+      const code = (error as { code?: string } | null)?.code;
+      if (code === "23505") return { track: null, problems: ["already promoted"] };
+      return { track: null, problems: [error?.message ?? "The track could not be started."] };
+    }
+    return { track: rowToTrack(row as unknown as TrackRow), problems: [] };
+  } catch (e) {
+    return { track: null, problems: [(e as Error).message] };
+  }
+}
+
 export const startTrack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -163,39 +226,13 @@ export const startTrack = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<{ track: Track | null; problems: string[] }> => {
-    const { supabase, userId } = context;
-    const origin = data.origin?.trim() || null;
-    const route = suggestRoute(data.shape as WorkShape, origin);
-
-    // Refuse before writing, and say why in the words the rule uses. A track
-    // with no stated reason that entered at Plan is the exact record Learn
-    // cannot use later, so it is better rejected here than stored broken.
-    const problems = validateRoute(route);
-    if (problems.length > 0) return { track: null, problems: problems.map((p) => p.message) };
-
-    try {
-      const { data: row, error } = await supabase
-        .from("spine_tracks" as never)
-        .insert({
-          user_id: userId,
-          title: data.title.trim(),
-          origin,
-          entry_station: route.entry,
-          station: route.entry,
-          path: route.path,
-          waived: route.waived,
-          product_id: data.productId ?? null,
-          project_id: data.projectId ?? null,
-        } as never)
-        .select(SELECT)
-        .single();
-      if (error || !row) {
-        return { track: null, problems: [error?.message ?? "The track could not be started."] };
-      }
-      return { track: rowToTrack(row as unknown as TrackRow), problems: [] };
-    } catch (e) {
-      return { track: null, problems: [(e as Error).message] };
-    }
+    return startTrackCore(context.supabase, context.userId, {
+      title: data.title,
+      shape: data.shape as WorkShape,
+      origin: data.origin,
+      productId: data.productId ?? null,
+      projectId: data.projectId ?? null,
+    });
   });
 
 /** Open tracks, most recently touched first. Empty, never thrown, pre-migration. */
