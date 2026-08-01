@@ -3138,6 +3138,51 @@ export type Database = {
           },
         ]
       }
+      error_events: {
+        Row: {
+          deployment_id: string | null
+          error_kind: string | null
+          error_message: string | null
+          extras: Json | null
+          id: number
+          occurred_at: string
+          request_method: string | null
+          request_path: string | null
+          stack: string | null
+          surface: string
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          deployment_id?: string | null
+          error_kind?: string | null
+          error_message?: string | null
+          extras?: Json | null
+          id?: never
+          occurred_at?: string
+          request_method?: string | null
+          request_path?: string | null
+          stack?: string | null
+          surface?: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          deployment_id?: string | null
+          error_kind?: string | null
+          error_message?: string | null
+          extras?: Json | null
+          id?: never
+          occurred_at?: string
+          request_method?: string | null
+          request_path?: string | null
+          stack?: string | null
+          surface?: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       eval_case_results: {
         Row: {
           actual: string | null
@@ -7353,6 +7398,63 @@ export type Database = {
             columns: ["prd_id"]
             isOneToOne: false
             referencedRelation: "prds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_rollbacks: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          original_changeset_id: string
+          product_id: string | null
+          reason: string
+          revert_changeset_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          original_changeset_id: string
+          product_id?: string | null
+          reason: string
+          revert_changeset_id?: string | null
+          status: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          original_changeset_id?: string
+          product_id?: string | null
+          reason?: string
+          revert_changeset_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_rollbacks_original_changeset_id_fkey"
+            columns: ["original_changeset_id"]
+            isOneToOne: false
+            referencedRelation: "studio_changesets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_rollbacks_revert_changeset_id_fkey"
+            columns: ["revert_changeset_id"]
+            isOneToOne: false
+            referencedRelation: "studio_changesets"
             referencedColumns: ["id"]
           },
         ]
