@@ -11,6 +11,36 @@
 > This section replaces the old root `active-task.md` (folded in 2026-06-19). It is the single "what is in flight + what to pick next" cursor. Update it in the same unit of work as any change. Past work is in section 6 (progress log); the full dated history is in [`../../plan.md`](../../plan.md) section 4.
 
 > [!IMPORTANT]
+> ## ✅ SHIPPED 2026-08-01: the seven-station spine delivers, unattended
+>
+> **The loop now runs Discover → Learn on its own AND produces a real artifact at every station
+> it passes.** Verified on the live system, not argued from the code: a track walked Plan through
+> Learn autonomously and finished `status = done`. `main` through `11330af7`; all migrations
+> applied to production; deployed; 6,610 tests green.
+>
+> **Full record: [`../features/spine-delivers.md`](../features/spine-delivers.md).** Read that
+> before touching the spine, the agent loop, `agent_tools`, or the ticks.
+>
+> The morning's driver ran the whole loop and delivered **nothing**. Four silent failures, each
+> hiding the next: the tool was unreachable (11 of 16 accounts could not call `prd.draft`), there
+> was no handoff between stations, the driver advanced on silence, and the loop discarded correct
+> tool calls over one field name. All four fixed.
+>
+> **Four standing rules this establishes:**
+>
+> | Rule | Why |
+> |---|---|
+> | **Never seed `agent_tools`.** Tools are platform policy in `src/lib/ai/tools/defaults.ts`; a row is only a per-account override, and absent means the default applies | A seeded row pins that account to the policy of the day it was written. All 7 seed functions are no-op'd in the live DB |
+> | Adding a tool = registry entry + `TOOL_DEFAULTS` entry. **No migration, no backfill** | `tools/defaults.test.ts` fails the build if you add one without the other |
+> | A station runs its **whole crew**, and every active cast agent belongs to exactly one | `driver.test.ts` fails the build if an agent is in no crew, or a station drops below a maker and a reader |
+> | The ceiling sits on the **track**, not the run | Only Build opens a mission, so ~16 runs each carried an independent cap that nothing summed |
+>
+> **Open, and the next session's queue:** promotion has shipped but has **not yet been observed
+> firing live**; and the founder's 7-item UX brief (live agent status everywhere, the Build diff
+> terminal, status colour, mission shapes, scroll discipline, rail collapse, perceived speed) is
+> recorded in [`../operations/session-handoff.md`](../operations/session-handoff.md).
+
+> [!IMPORTANT]
 > ## ⭐ IN FLIGHT RIGHT NOW (2026-07-29, 15:40): the front-end rebuild moves from design to build
 >
 > **The design system is DECIDED and founder-approved. Stop prototyping. Start implementing.**
