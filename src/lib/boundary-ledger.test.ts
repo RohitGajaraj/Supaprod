@@ -4,8 +4,8 @@
  * The invariants worth protecting are the honesty ones. A ledger that
  * overstates how often the boundary bites is worse than no ledger, because the
  * whole surface exists to be believed. So the tests that matter here are: a
- * failed tool is not a declined one, a warn is not a refusal, and one decline
- * disqualifies a pair from ever being proposed for removal.
+ * failed tool is not a declined one, a warn is not a refusal, and a rule hit is
+ * never attributed to an agent that did not choose it.
  */
 
 import { describe, expect, it } from "bun:test";
@@ -13,10 +13,6 @@ import {
   buildLedger,
   isRefusal,
   outcomeOfApproval,
-  patternKey,
-  promotionCandidates,
-  summarizeBoundary,
-  PROMOTION_MIN_DECIDED,
   type LedgerApprovalRow,
   type LedgerGuardrailRow,
 } from "./boundary-ledger";
@@ -118,85 +114,5 @@ describe("buildLedger", () => {
   it("survives malformed input", () => {
     expect(buildLedger(null as never, null as never)).toEqual([]);
     expect(buildLedger([{ id: "" } as never], [])).toEqual([]);
-  });
-});
-
-describe("summarizeBoundary", () => {
-  const events = buildLedger(
-    [
-      approval({ id: "1", status: "executed" }),
-      approval({ id: "2", status: "approved", created_at: "2026-08-01T11:00:00Z" }),
-      approval({ id: "3", status: "rejected" }),
-      approval({ id: "4", status: "pending" }),
-      approval({ id: "5", tool_name: "send_email", status: "executed" }),
-    ],
-    [hit()],
-  );
-
-  it("tallies only the asked events", () => {
-    const pairs = summarizeBoundary(events);
-    const pr = pairs.find((p) => p.tool === "open_pull_request");
-    expect(pr).toBeDefined();
-    expect(pr!.asked).toBe(4);
-    expect(pr!.allowed).toBe(2);
-    expect(pr!.declined).toBe(1);
-    expect(pr!.waiting).toBe(1);
-  });
-
-  it("ignores refusals, which have no agent to promote", () => {
-    expect(summarizeBoundary(events).some((p) => p.tool === "no customer emails")).toBe(false);
-  });
-
-  it("keeps the most recent timestamp per pair", () => {
-    const pr = summarizeBoundary(events).find((p) => p.tool === "open_pull_request");
-    expect(pr!.lastAt).toBe("2026-08-01T11:00:00Z");
-  });
-
-  it("ranks the noisiest pair first", () => {
-    expect(summarizeBoundary(events)[0].tool).toBe("open_pull_request");
-  });
-
-  it("separates the same tool used by different agents", () => {
-    // Two agents earn autonomy separately. Merging them would propose handing
-    // a tool to an agent that never touched it.
-    const mixed = buildLedger(
-      [
-        approval({ id: "x", agent_slug: "engineer", status: "executed" }),
-        approval({ id: "y", agent_slug: "designer", status: "executed" }),
-      ],
-      [],
-    );
-    expect(summarizeBoundary(mixed)).toHaveLength(2);
-    expect(patternKey("engineer", "t")).not.toBe(patternKey("designer", "t"));
-  });
-});
-
-describe("promotionCandidates", () => {
-  const pair = (allowed: number, declined: number) => ({
-    agent: "engineer",
-    tool: "open_pull_request",
-    asked: allowed + declined,
-    allowed,
-    declined,
-    waiting: 0,
-    lastAt: null,
-  });
-
-  it("proposes a pair approved every time, past the threshold", () => {
-    expect(promotionCandidates([pair(PROMOTION_MIN_DECIDED, 0)])).toHaveLength(1);
-  });
-
-  it("ONE decline disqualifies the pair, however lopsided the record", () => {
-    // The single no is the entire justification for the gate. A ratio would
-    // average away the only evidence that the boundary is real.
-    expect(promotionCandidates([pair(50, 1)])).toEqual([]);
-  });
-
-  it("does not act on a short run", () => {
-    expect(promotionCandidates([pair(PROMOTION_MIN_DECIDED - 1, 0)])).toEqual([]);
-  });
-
-  it("survives malformed input", () => {
-    expect(promotionCandidates(null as never)).toEqual([]);
   });
 });

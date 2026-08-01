@@ -26,8 +26,6 @@ import {
 } from "@/lib/rejection-learning";
 import {
   buildLedger,
-  promotionCandidates,
-  summarizeBoundary,
   type LedgerApprovalRow,
   type LedgerGuardrailRow,
 } from "@/lib/boundary-ledger";
@@ -704,12 +702,9 @@ export const getDeclinedLedger = createServerFn({ method: "GET" })
     const hits = (hitsRes.data ?? []) as LedgerGuardrailRow[];
 
     const events = buildLedger(approvals, hits);
-    const patterns = summarizeBoundary(events);
 
     return {
       events,
-      patterns,
-      candidates: promotionCandidates(patterns),
       windowDays: LEDGER_WINDOW_DAYS,
       // Reported so the UI can say "the last 200" instead of implying it is all
       // of them. A truncated record presented as complete is the same defect

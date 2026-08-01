@@ -71,6 +71,7 @@ import type { BoundaryTool } from "@/lib/governance.functions";
 import type { BoundaryEvent } from "@/lib/boundary-ledger";
 import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
+import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import {
   Block,
   CtxBody,
@@ -423,6 +424,20 @@ function BoundarySurface() {
               failed={receipt.failed}
             />
           ) : null}
+
+          {/* THE QUEUE EATING ITSELF, and it belongs above the boundary rather
+            than inside it. `maybeProposeTrustGraduations` watches clean
+            approval streaks and proposes that an agent be handed a tool it has
+            never once been refused on. That offer was already built and already
+            rendered, but only inside the approvals queue, which means the one
+            mechanism for SHRINKING the queue was visible only to someone who
+            had gone to work it. Here it leads: on a surface about what agents
+            may do alone, an agent asking for more room is the one thing worth
+            deciding, and accepting it is a policy change rather than a piece of
+            work approved. That distinction is why this does not violate the
+            no-pending-items rule above: the queue decides work, the boundary
+            decides boundaries. */}
+          <TrustGraduationsBlock />
 
           {block(
             "alone",
