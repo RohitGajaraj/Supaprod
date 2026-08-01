@@ -308,6 +308,24 @@ export const SPECIALIST_CATALOG: CatalogEntry[] = [
     glyph: "pen-tool",
     status: "active",
   },
+  {
+    // ADDED 2026-08-01. Design was the only station in the loop with a single
+    // agent and therefore the only one where nothing checked the work before it
+    // was handed on. Every other station already pairs a maker with a reader:
+    // Decide has Challenge, Build has Review, Plan has Plan. A design that no
+    // one reads against the standing system is how a surface ships looking like
+    // it came from a different product.
+    slug: "design-critic",
+    name: "Critique",
+    station: "design",
+    face: "critic",
+    tier: "cast",
+    relayVerb: "reading the design back",
+    blurb: "Reads the design against the standing system before it is built.",
+    hue: "oklch(0.55 0.125 219)",
+    glyph: "scan-eye",
+    status: "active",
+  },
   // --- CAST: Build ---
   {
     slug: "builder",
@@ -335,6 +353,24 @@ export const SPECIALIST_CATALOG: CatalogEntry[] = [
   },
   // --- CAST: Ship ---
   {
+    // ADDED 2026-08-01, and it runs BEFORE Announce, which is the point of it.
+    // Ship is the one station whose action cannot be undone from inside the
+    // product, and until now nothing stood between arriving at Ship and
+    // publishing. `release.publish` sits at a hard review floor, so a person was
+    // the only readiness check there was, which makes the gate do a job policy
+    // should have done first.
+    slug: "release-verifier",
+    name: "Verify",
+    station: "ship",
+    face: "critic",
+    tier: "cast",
+    relayVerb: "checking it is ready to go out",
+    blurb: "Checks the change is ready to go out, before it goes out.",
+    hue: "oklch(0.57 0.125 255)",
+    glyph: "clipboard-check",
+    status: "active",
+  },
+  {
     slug: "release",
     name: "Announce",
     station: "ship",
@@ -357,6 +393,30 @@ export const SPECIALIST_CATALOG: CatalogEntry[] = [
     blurb: "Reads the outcome against the bet and feeds memory.",
     hue: "oklch(0.565 0.11 203)",
     glyph: "activity",
+    status: "active",
+  },
+  {
+    // ADDED 2026-08-01. Measure grades ONE outcome; nothing turned that grade
+    // into something the next piece of work would meet. The investor canon is
+    // explicit that the brain is never storage, that it compounds and warns
+    // before you repeat what went wrong, and a station that only writes a
+    // learnings row is storage. This is the role that makes the claim true:
+    // it generalises the verdict and promotes it into memory the next track's
+    // Decide and Plan stations actually read.
+    //
+    // Distinct from Measure on purpose. Grading an outcome is quantitative and
+    // bounded to one bet; deciding what it means for the next bet is judgment.
+    // One agent doing both does the second badly, because it is finished by the
+    // time it gets there.
+    slug: "insight-keeper",
+    name: "Guide",
+    station: "learn",
+    face: "strategist",
+    tier: "cast",
+    relayVerb: "turning the outcome into guidance",
+    blurb: "Turns what happened into guidance the next piece of work will meet.",
+    hue: "oklch(0.60 0.10 195)",
+    glyph: "lightbulb",
     status: "active",
   },
   // --- CAST: the conductor ---

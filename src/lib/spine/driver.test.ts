@@ -9,8 +9,15 @@
  */
 
 import { describe, expect, it } from "bun:test";
-import { decideDrive, leadAgentFor, stationGoal, HOLD_LINE, MAX_STATION_ATTEMPTS } from "./driver";
-import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
+import {
+  decideDrive,
+  leadAgentFor,
+  stationCrew,
+  stationGoal,
+  HOLD_LINE,
+  MAX_STATION_ATTEMPTS,
+} from "./driver";
+import { AGENT_STATION_ORDER, SPECIALIST_CATALOG } from "@/lib/agent-vocabulary";
 
 const base = {
   paused: false,
@@ -132,6 +139,67 @@ describe("HOLD_LINE", () => {
       expect(HOLD_LINE[reason].length).toBeGreaterThan(10);
       // A status word alone is not an explanation.
       expect(HOLD_LINE[reason]).toMatch(/\s/);
+    }
+  });
+});
+
+/**
+ * THE ROSTER IS FULLY ASSIGNED, which is the check that was missing.
+ *
+ * Six active cast agents (researcher, customer-insights, critic, sprint-planner,
+ * qa, and Design's second seat, which did not exist) were defined in the catalog
+ * with names, colours and relay verbs, and dispatched by nothing at all: the
+ * driver took the FIRST active agent per station and ignored the rest. Nothing
+ * failed, because an agent that never runs raises no error. It just quietly does
+ * not happen, and the station does part of its job forever.
+ */
+describe("the station crews", () => {
+  const active = SPECIALIST_CATALOG.filter(
+    (e) => e.tier === "cast" && e.status === "active" && !e.conductor,
+  );
+
+  it("gives every active cast agent a station to work", () => {
+    const crewed = new Set(AGENT_STATION_ORDER.flatMap((s) => stationCrew(s).map((r) => r.slug)));
+    const orphans = active.map((e) => e.slug).filter((s) => !crewed.has(s));
+    expect(orphans).toEqual([]);
+  });
+
+  it("gives every crew member a job, so nobody is dispatched with an empty brief", () => {
+    const jobless = AGENT_STATION_ORDER.flatMap((s) => stationCrew(s))
+      .filter((r) => !r.job.trim())
+      .map((r) => r.slug);
+    expect(jobless).toEqual([]);
+  });
+
+  it("staffs all seven stations, so no station is dispatched to nobody", () => {
+    const empty = AGENT_STATION_ORDER.filter((s) => stationCrew(s).length === 0);
+    expect(empty).toEqual([]);
+  });
+
+  it("pairs a maker with a reader at every station that produces an artifact", () => {
+    // Design was the one station with a single seat, so nothing read the work
+    // before it was handed on. Every other station already had the pair. This
+    // pins it: a station shipping one agent again is a regression, not a choice
+    // somebody can make quietly.
+    const alone = AGENT_STATION_ORDER.filter((s) => stationCrew(s).length < 2);
+    expect(alone).toEqual([]);
+  });
+
+  it("verifies a release before announcing it, never after", () => {
+    const ship = stationCrew("ship").map((r) => r.slug);
+    // Ship is the only irreversible station in the loop. A verifier that runs
+    // after the publish is not a verifier.
+    expect(ship.indexOf("release-verifier")).toBeLessThan(ship.indexOf("release"));
+  });
+
+  it("challenges the call after it is made, never before", () => {
+    const decide = stationCrew("decide").map((r) => r.slug);
+    expect(decide.indexOf("strategist")).toBeLessThan(decide.indexOf("critic"));
+  });
+
+  it("keeps the lead as the first of the crew, so the old contract still holds", () => {
+    for (const s of AGENT_STATION_ORDER) {
+      expect(leadAgentFor(s)).toBe(stationCrew(s)[0].slug);
     }
   });
 });

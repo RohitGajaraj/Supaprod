@@ -35,6 +35,8 @@ import { nextStation, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
   HOLD_LINE,
+  stationCrew,
+  stationGoal,
   type HoldReason,
   type UpstreamArtifact,
 } from "@/lib/spine/driver";
@@ -475,12 +477,27 @@ export async function driveTrackOnce(
     };
   }
 
-  // The station's own agent, through the pinned chokepoint. Every guardrail,
-  // floor, trust arc and spend cap applies here exactly as it would to a run a
-  // person started by hand.
+  // THE STATION'S WHOLE CREW, in order, through the pinned chokepoint. Every
+  // guardrail, floor, trust arc and spend cap applies to each seat exactly as it
+  // would to a run a person started by hand.
+  //
+  // The crew runs WITHIN one tick rather than one seat per tick, so "one tick =
+  // one attempt at one station" stays true and `MAX_STATION_ATTEMPTS` keeps
+  // meaning what it says. The alternative, a seat index persisted on the track,
+  // needed a schema column and made every stop condition ask "which seat" before
+  // it could ask anything else.
+  //
+  // EACH SEAT IS BRIEFED WITH WHAT THE PREVIOUS SEAT FILED. `upstream` grows as
+  // the crew works, so Plan's sprint-planner reads the spec prd-writer just
+  // wrote, and Design's critic reads the design it is being asked to check. This
+  // is the same handoff that runs between stations, applied within one.
   let queued = 0;
   let failed: string | null = null;
   let steps: ToolStepLike[] = [];
+  const crew = stationCrew(station);
+  const brief = [...upstream];
+  /** What the crew filed, accumulated seat by seat as each one runs. */
+  const made: Attachment[] = [];
   try {
     // Build is the one station whose tool refuses without a mission, so the
     // driver opens one for it. Every other station is dispatched exactly as
@@ -489,26 +506,49 @@ export async function driveTrackOnce(
     const missionId =
       station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
 
-    const result = await runAgentLoop(supabase, row.user_id, {
-      agentSlug: decision.agentSlug,
-      goal: decision.goal,
-      workspaceId: row.workspace_id,
-      missionId,
-    });
-    queued = result.approvals_queued ?? 0;
-    // The run's own account of what it did. This is the only channel that ties
-    // an artifact to THIS track rather than to whatever happened to be created
-    // around the same time; the full argument is in the header of ./attach.ts.
-    steps = result.steps ?? [];
+    for (const seat of crew) {
+      const result = await runAgentLoop(supabase, row.user_id, {
+        agentSlug: seat.slug,
+        goal: stationGoal(station, { title: row.title, origin: row.origin }, brief, seat),
+        workspaceId: row.workspace_id,
+        missionId,
+      });
+      // The run's own account of what it did. This is the only channel that ties
+      // an artifact to THIS track rather than to whatever happened to be created
+      // around the same time; the full argument is in the header of ./attach.ts.
+      steps = [...steps, ...(result.steps ?? [])];
+      queued += result.approvals_queued ?? 0;
+
+      // A seat that put a call in front of a person stops the CREW, not just
+      // itself. The seats after it are briefed on what it filed, and it has not
+      // filed yet; running them now would have them review work that does not
+      // exist and then advance the station on the strength of it.
+      if (queued > 0) break;
+
+      // Re-read rather than guessing from the steps, so the next seat is briefed
+      // on rows that are actually on the record. A tool that reported an id it
+      // did not write would otherwise put a phantom artifact in the next brief.
+      const filed = await attachProducts(supabase, row.id, station, result.steps ?? []);
+      made.push(...filed);
+      brief.push(
+        ...(await loadUpstream(supabase, row.id)).filter(
+          (a) => !brief.some((b) => b.id === a.id) && filed.some((f) => f.artifactId === a.id),
+        ),
+      );
+    }
   } catch (e) {
     failed = e instanceof Error ? e.message : String(e);
   }
 
-  // Filed before the branches below, not after them, because a run that hit its
-  // boundary on step three may well have drafted a spec on step one. That spec
-  // exists and belongs to this work whether or not the track gets to move, and
-  // dropping it would lose the record of the only thing the station achieved.
-  const attached = [...harvested, ...(await attachProducts(supabase, row.id, station, steps))];
+  // Collected as the crew ran, not re-derived from the accumulated steps here.
+  // Re-attaching would write every member a second time, and the seats had to
+  // file as they went anyway so each one could brief the next.
+  //
+  // Kept ahead of the branches below, because a crew that hit its boundary on
+  // the second seat may well have drafted a spec on the first. That spec exists
+  // and belongs to this work whether or not the track gets to move, and dropping
+  // it would lose the record of the only thing the station achieved.
+  const attached = [...harvested, ...made];
   const say = (line: string) => {
     const made = describeAttachments(attached);
     return made ? `${line} ${made}` : line;

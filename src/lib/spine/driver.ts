@@ -42,10 +42,130 @@ import { SPECIALIST_CATALOG, type AgentStation } from "@/lib/agent-vocabulary";
  * history and must never be dispatched.
  */
 export function leadAgentFor(station: AgentStation): string | null {
-  const entry = SPECIALIST_CATALOG.find(
+  return stationCrew(station)[0]?.slug ?? null;
+}
+
+/**
+ * Everyone who works a station, in the order they work it.
+ *
+ * WHY A CREW AND NOT A LEAD (founder ruling 2026-08-01: "what are the necessary
+ * agents that is going to get attached... those things needs to be sitting
+ * somewhere"). The driver used to dispatch exactly one agent per station, so
+ * seven of the thirteen active cast agents ran and six never ran at all:
+ * `researcher`, `customer-insights`, `critic`, `sprint-planner` and `qa` were
+ * defined, named, coloured, given relay verbs, and dispatched by nothing. A
+ * station led by one generalist does one station's job partially; that is why
+ * Plan produced a spec and never the tasks, and why Design produced a surface
+ * nobody read back.
+ *
+ * The ordering is the station's actual sequence of work, and it matters, because
+ * each role is briefed with what the previous role filed. Verify runs BEFORE
+ * Announce. Challenge runs AFTER Prioritize. A crew in the wrong order is a
+ * review that happens after the thing it was meant to review.
+ *
+ * Derived FROM the catalog rather than duplicating it, so an agent cannot be
+ * added to the roster and quietly left out of the loop. `driver.test.ts` asserts
+ * every active cast agent appears in exactly one crew, which is the check that
+ * would have caught the six missing ones on the day they were written.
+ */
+export type CrewRole = {
+  slug: string;
+  /** What this agent is asked to do, in its own terms. */
+  job: string;
+  /**
+   * What it must FILE, named as the tool that files it.
+   *
+   * Per ROLE, not per station, because two agents at one station file different
+   * things: Draft writes the spec, Plan writes the tasks the spec implies. A
+   * station-wide instruction would tell each of them to do the other's job.
+   */
+  file: string;
+};
+
+/**
+ * What each agent is FOR, in the words that agent needs.
+ *
+ * Keyed by slug because the job is the agent's, not the station's: two agents at
+ * one station are only worth having if they are asked different questions.
+ */
+const CREW_ROLE: Record<string, { job: string; file: string }> = {
+  // 01 Discover
+  "discovery-scout": {
+    job: "Gather the evidence that already exists for this work.",
+    file: "File each piece by calling signals.log. Evidence that is only in your answer is not on the record and the next station cannot read it.",
+  },
+  researcher: {
+    job: "Go deeper than the first pass: find what the sources say that the scout did not reach.",
+    file: "File what you found with signals.log, then group the evidence by calling research.synthesize or cluster.trigger.",
+  },
+  "customer-insights": {
+    job: "Say what customers actually said, in their words, not what we would like them to have said.",
+    file: "File each quote or complaint with signals.log, attributed to where it came from.",
+  },
+  // 02 Decide
+  strategist: {
+    job: "Weigh this against what else could be done, and say what the evidence supports. If the evidence does not support it, say so plainly rather than finding a reason.",
+    file: "Call decision.record with the alternatives you weighed. A decision that is only in your answer is not on the record.",
+  },
+  critic: {
+    job: "Red-team the call that was just made. Argue the strongest case against it, and say what would have to be true for it to be wrong.",
+    file: "Call critic.evaluate on the decision. If it should not stand, call decision.revise rather than leaving the objection in prose.",
+  },
+  // 03 Plan
+  "prd-writer": {
+    job: "Write the spec: the outcome it moves, and how anyone would know it worked. That is what the outcome gets graded against later.",
+    file: "Call prd.draft with the spec body. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
+  },
+  "sprint-planner": {
+    job: "Break the spec above into the work it actually implies. Do not invent scope the spec does not ask for.",
+    file: "Call tasks.create for each piece of work. A plan that is only in your answer cannot be worked.",
+  },
+  // 04 Design
+  "ux-architect": {
+    job: "Design the surface the spec describes. Follow the standing design language, and say which parts it does not cover.",
+    file: "Call design.draft with the surface you designed. A design that is only in your answer is not on the record and Build cannot read it.",
+  },
+  "design-critic": {
+    job: "Read the design back against the standing system and against the spec. Name what does not conform, and what the spec asked for that the design does not do.",
+    file: "If the design needs to change, call design.draft with the corrected version. Say plainly if it is sound as it stands.",
+  },
+  // 05 Build
+  builder: {
+    job: "Build to the spec and the design above. Stop at anything your boundary does not let you do alone.",
+    file: "Call studio.stage with the change you made. Work that is only in your answer is not on the record and cannot be shipped.",
+  },
+  qa: {
+    job: "Check the change against the spec before it goes anywhere. Say plainly what does not meet it.",
+    file: "If it does not meet the spec, call studio.stage with the fix. Do not pass work you would not sign off.",
+  },
+  // 06 Ship
+  "release-verifier": {
+    job: "Decide whether this is ready to go out. Check it against the spec and against what review found. Shipping cannot be undone from inside this product, so say no if it is not ready.",
+    file: "Record your readiness call with decision.record, naming what you checked. If it is not ready, say so and stop; do not publish.",
+  },
+  release: {
+    job: "Publish it and record where it went, so the release can be pointed at.",
+    file: "Call release.publish. A release that is only in your answer did not happen.",
+  },
+  // 07 Learn
+  "data-analyst": {
+    job: "Grade the outcome against what the spec above said it was for. Record the verdict even when it is a miss; a miss recorded honestly is worth more than a win claimed loosely.",
+    file: "Call learning.record with the verdict. A grade that is only in your answer never reaches the next piece of work.",
+  },
+  "insight-keeper": {
+    job: "Say what this outcome means for the NEXT piece of work. Generalise beyond this one bet without overclaiming from a single result.",
+    file: "Call memory.promote so the next track's Decide and Plan stations meet this. Guidance that is only in your answer is storage, and this product does not claim storage.",
+  },
+};
+
+export function stationCrew(station: AgentStation): CrewRole[] {
+  return SPECIALIST_CATALOG.filter(
     (e) => e.station === station && e.tier === "cast" && e.status === "active" && !e.conductor,
-  );
-  return entry?.slug ?? null;
+  ).map((e) => ({
+    slug: e.slug,
+    job: CREW_ROLE[e.slug]?.job ?? "",
+    file: CREW_ROLE[e.slug]?.file ?? "",
+  }));
 }
 
 /** Why the driver did not move a track. Every one is reported, never silent. */
@@ -145,9 +265,7 @@ export function describeUpstream(upstream: UpstreamArtifact[]): string {
     const body = (a.body ?? "").trim();
     if (i < inlineFrom || !body) return head;
     const clipped =
-      body.length > HANDOFF_BODY_CHARS
-        ? `${body.slice(0, HANDOFF_BODY_CHARS)}\n[truncated]`
-        : body;
+      body.length > HANDOFF_BODY_CHARS ? `${body.slice(0, HANDOFF_BODY_CHARS)}\n[truncated]` : body;
     return `${head}:\n${clipped}`;
   });
 
@@ -173,21 +291,24 @@ export function stationGoal(
   station: AgentStation,
   track: { title: string; origin: string | null },
   upstream: UpstreamArtifact[] = [],
+  /** Which member of the crew is being briefed. Defaults to the lead. */
+  role: CrewRole | null = null,
 ): string {
   const why = track.origin ? ` It exists because: ${track.origin}` : "";
   const subject = `"${track.title}".${why}`;
   const prior = describeUpstream(upstream);
+  const seat = role ?? stationCrew(station)[0] ?? null;
 
-  return `${stationJob(station, subject)}${prior}\n\n${FILE_IT[station]}`;
+  // The station's outcome first, so every agent on the crew knows what the
+  // station as a whole is for and not merely its own slice. Then the seat's own
+  // job, then what already exists, then what it must file. An agent that knows
+  // only its slice optimises its slice.
+  const mine = seat?.job ? `\n\nYour part in that: ${seat.job}` : "";
+  const file = seat?.file ?? FILE_IT[station];
+
+  return `${stationJob(station, subject)}${mine}${prior}\n\n${file}`;
 }
 
-/**
- * What each station must leave behind, named as the tool that leaves it.
- *
- * Naming the tool is deliberate. "Record the decision" is a sentence an agent
- * can believe it satisfied by writing a paragraph; "call decision.record" is
- * not. The record is the product here, so the brief is explicit about it.
- */
 const FILE_IT: Record<AgentStation, string> = {
   sense:
     "Finish by filing what you found: call signals.log for each piece of evidence, and research.synthesize or cluster.trigger to group them. A finding that is only in your answer is not on the record and the next station cannot read it.",
