@@ -68,7 +68,6 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   deleteOpportunity,
   generatePrd,
-  getSenseCoverage,
   getThemePrecedent,
   listOpportunities,
   listThemes,
@@ -76,6 +75,7 @@ import {
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
+import { getProvenance } from "@/lib/lineage.functions";
 import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { getBriefAlignment } from "@/lib/brief-opportunity.functions";
 import { alignmentForOpportunity } from "@/lib/brief-opportunity";
@@ -149,8 +149,8 @@ function DecideSurface() {
   const fDraftSpec = useServerFn(generatePrd);
   const fUpdate = useServerFn(updateOpportunity);
   const fDelete = useServerFn(deleteOpportunity);
-  const fSenseCoverage = useServerFn(getSenseCoverage);
   const fThemePrecedent = useServerFn(getThemePrecedent);
+  const fProvenance = useServerFn(getProvenance);
 
   // Same keys as before, so the detail sheet's own writes and the Discover
   // surface keep sharing one cache.
@@ -274,11 +274,15 @@ function DecideSurface() {
     enabled: hasEnoughOutcomes && visibleIds.length > 0,
   });
 
-  // Source coverage for the active opportunity's theme: what is feeding this bet.
-  const coverage = useQuery({
-    queryKey: ["sense-coverage", active?.opp?.theme_id],
-    queryFn: () => fSenseCoverage({ data: { productId: activeProductId } }),
-    enabled: !!active?.opp?.theme_id,
+  // The root signals this bet rests on, walked up the lineage graph. Keyed on
+  // the opportunity, because that is what the walk starts from; an earlier
+  // draft keyed a product-wide read on the theme id, so two bets on one product
+  // held separate cache entries for identical data.
+  const provenance = useQuery({
+    queryKey: ["provenance", "opportunity", active?.opp?.id],
+    queryFn: () => fProvenance({ data: { kind: "opportunity" as const, id: active!.opp!.id } }),
+    enabled: Boolean(active?.opp?.id),
+    staleTime: 5 * 60_000,
   });
 
   // Novelty and prior theme resemblance for the active opportunity's theme.
@@ -287,6 +291,18 @@ function DecideSurface() {
     queryFn: () => fThemePrecedent({ data: { theme_id: active!.opp!.theme_id } }),
     enabled: !!active?.opp?.theme_id,
   });
+
+  /** The distinct sources behind THIS bet, from its own linked signals. */
+  const provenanceSources = React.useMemo(
+    () => [
+      ...new Set(
+        (provenance.data?.source_signals ?? [])
+          .map((s) => s.source)
+          .filter((v): v is string => Boolean(v)),
+      ),
+    ],
+    [provenance.data],
+  );
 
   const challengerName = agentDisplayName(CHALLENGER);
 
@@ -450,48 +466,56 @@ function DecideSurface() {
               {active?.designation ? `. Reads as a ${active.designation}` : ""}.
             </div>
 
+            {/* WHAT THIS RESEMBLES, as a claim rather than an arithmetic.
+              An earlier draft of this block printed the raw cosine similarity
+              as "72% match", and that number is wrong twice over: a 0.72
+              cosine is not seventy-two percent of anything a reader would
+              recognise, and no product in this class puts a similarity score
+              on an auto-generated cluster at all. The useful thing is the
+              prior cluster's NAME, which is clickable evidence; the number is
+              our own internals shown to someone who cannot act on it. */}
             {themePrecedent.data?.priorTheme ? (
               <>
                 <div className="sp-ctx-head">What this resembles</div>
                 <div className="sp-ctx-body">
-                  This pattern resembles {themePrecedent.data.priorTheme.title}
-                  {themePrecedent.data.priorTheme.similarity !== null ? (
-                    <>
-                      {" at "}
-                      <Num>{Math.round((themePrecedent.data.priorTheme.similarity ?? 0) * 100)}%</Num>
-                      {" match"}
-                    </>
-                  ) : null}
-                  . The record has been here before.
+                  The record has been here before, on {themePrecedent.data.priorTheme.title}.
                 </div>
               </>
             ) : null}
 
-            {coverage.data?.sources && coverage.data.sources.length > 0 ? (
+            {/* THE EVIDENCE THIS BET RESTS ON, verbatim.
+              Until 2026-08-01 the entire evidence display on this surface was a
+              count, and the count was `themeById.get(theme_id)?.frequency`: an
+              integer written once at cluster time. Discover's Gate promised
+              "this evidence travels with it" and nothing on this screen could
+              show one sentence a customer actually said.
+
+              It can now, because `promoteThemeToOpportunity` writes a direct
+              signal -> opportunity lineage edge per member, so `getProvenance`
+              reaches the root signals from here rather than dead-ending at the
+              theme. A previous draft of this block put WORKSPACE-WIDE source
+              coverage under the heading "What is feeding this", which reads as
+              a claim about this bet and is not one. Coverage is a Discover
+              question; at the moment of the call what matters is what these
+              specific people said. */}
+            {provenance.data?.source_signals?.length ? (
               <>
-                <div className="sp-ctx-head">What is feeding this</div>
-                {coverage.data.sources.slice(0, 3).map((s) => (
-                  <div key={s.source} className="sp-ctx-row">
+                <div className="sp-ctx-head">What people actually said</div>
+                {provenance.data.source_signals.slice(0, 4).map((s) => (
+                  <div key={s.id} className="sp-ctx-row">
                     <span>
-                      <span className="sp-ctx-name">{s.source}</span>
+                      <span className="sp-ctx-name">
+                        {(s.content ?? s.title ?? "").slice(0, 96)}
+                      </span>
                       <span className="sp-ctx-sub">
-                        {s.quiet ? (
-                          <>
-                            quiet for <Num>7d</Num>
-                          </>
-                        ) : (
-                          <>
-                            <Num>{s.recent}</Num> this week
-                          </>
-                        )}
+                        {s.source ?? "unattributed"}, <Num>{ago(s.created_at)}</Num>
                       </span>
                     </span>
                   </div>
                 ))}
-                {coverage.data.sources.length > 3 ? (
+                {provenance.data.source_signals.length > 4 ? (
                   <div className="sp-ctx-body">
-                    <Num>{coverage.data.sources.length - 3}</Num> more source
-                    {coverage.data.sources.length - 3 !== 1 ? "s" : ""}.
+                    <Num>{provenance.data.source_signals.length - 4}</Num> more said the same thing.
                   </div>
                 ) : null}
               </>
@@ -557,15 +581,20 @@ function DecideSurface() {
                   </span>,
                 ]
               : []),
-            ...(coverage.data?.sources && coverage.data.sources.length > 0
+            /* What backs THIS bet, counted from the signals actually linked to
+               it. An earlier draft counted the workspace's connected sources
+               here and called them "Backed by", which asserts something about
+               this one bet that the number does not support: it would have read
+               the same on a bet with no evidence at all. */
+            ...(provenanceSources.length > 0
               ? [
                   <span key="sources">
-                    Backed by <Num>{coverage.data.sources.length}</Num> source
-                    {coverage.data.sources.length !== 1 ? "s" : ""}: {coverage.data.sources
-                      .slice(0, 2)
-                      .map((s) => s.source)
-                      .join(", ")}
-                    {coverage.data.sources.length > 2 ? " and more" : ""}.
+                    <Num>{provenance.data?.source_signals?.length ?? 0}</Num> signal
+                    {(provenance.data?.source_signals?.length ?? 0) === 1 ? "" : "s"} behind it,
+                    from <Num>{provenanceSources.length}</Num> separate source
+                    {provenanceSources.length === 1 ? "" : "s"}:{" "}
+                    {provenanceSources.slice(0, 2).join(", ")}
+                    {provenanceSources.length > 2 ? " and more" : ""}.
                   </span>,
                 ]
               : []),
