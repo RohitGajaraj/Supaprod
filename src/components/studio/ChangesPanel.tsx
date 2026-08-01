@@ -15,14 +15,23 @@
  *    mark the surface above uses. The rollback rows do NOT: `studio_rollbacks`
  *    records no actor, so those rows say "unattributed" rather than wearing a
  *    mark that would be a guess.
- *  - Diffstat only where the numbers are genuinely lines. `computeHunks`
- *    returns real base/modified LINE arrays, so hunks get the primitive. The
- *    `studio_changes` rows carry CHARACTER counts, so those say "chars" in
- *    words instead of borrowing a shape that reads as lines.
- *  - Colour. Monochrome throughout. Warn marks the one policy breach (files
- *    outside the declared touch list), green and red live inside the diffstat,
- *    and nothing else is coloured. The changeset ladder chip is gone: its state
- *    is now a sentence, which survives greyscale and needs no legend.
+ *  - Diffstat wherever a line delta is shown, which is now the file rows as
+ *    well as the hunks. `computeHunks` returns real base/modified LINE arrays,
+ *    and `getStudioSession` runs that same alignment per file, so both levels
+ *    carry genuine line counts and both wear the primitive. The rows previously
+ *    said "chars" in words because this type had not declared the line columns
+ *    the server was already sending; that is fixed at the type, not papered over
+ *    at the view.
+ *  - Colour. A DIFF DELTA IS ALWAYS GREEN AND RED (founder ruling 2026-08-01:
+ *    "we need to display it in red and green ... so that its evident"). This
+ *    file used to say monochrome throughout, on the reasoning that colour needs
+ *    a legend; a diffstat is the one place in software where it does not, since
+ *    plus-green and minus-red is the most universally known convention a
+ *    developer surface has. Everything else here stays monochrome, and the
+ *    restraint budget is unchanged: warn still marks the one policy breach
+ *    (files outside the declared touch list), and the changeset ladder is still
+ *    a sentence rather than a coloured chip, because THAT one genuinely needed a
+ *    legend.
  *
  * Monaco keeps its own diff colours, the standing code-diff exemption.
  *
@@ -72,7 +81,7 @@ import {
   Textarea,
   Who,
 } from "@/components/shell/primitives";
-import { fmtCompact } from "./studio-format";
+
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 
@@ -91,6 +100,20 @@ type ChangeRow = {
   op: string;
   base_chars: number;
   new_chars: number;
+  /**
+   * REAL LINE COUNTS, and they were on the wire all along.
+   *
+   * `getStudioSession` has computed these per file since the diffstat fix
+   * (studio.functions.ts, `const stat = diffStat(...)`), running the same
+   * `computeHunks` alignment this panel renders its hunks from. This type simply
+   * never declared them, so the Files rows fell back to `base_chars`/`new_chars`
+   * and showed a CHARACTER delta -- a unit that nets to zero when a line is
+   * rewritten to the same length or two lines are swapped, both of which are
+   * real changes. The panel was showing the weaker number while the stronger one
+   * arrived in the same payload and was dropped on the floor.
+   */
+  added_lines: number;
+  removed_lines: number;
 };
 
 type DiffRow = {
@@ -825,8 +848,14 @@ export function ChangesPanel({
         </Block>
       ) : null}
 
-      {/* The files themselves. Character counts, said as characters: these rows
-          carry no line counts, so they never borrow a diffstat's shape. */}
+      {/* The files themselves, each with its real line delta in green and red.
+          FOUNDER RULING 2026-08-01: a diff number is read at a glance or it is
+          not read, and grey numerals are not read. These rows used to carry a
+          monochrome character count precisely BECAUSE characters are not lines
+          and the diffstat shape reads as lines -- honest, and solving the wrong
+          half of the problem, since the real line counts were already in the
+          payload. Now the unit and the colour agree, so the shape claims exactly
+          what it is. */}
       <Block title="Files">
         {changes.map((c) => {
           const active = c.path === selectedPath;
@@ -839,8 +868,8 @@ export function ChangesPanel({
               lead={<Num>{c.path}</Num>}
               sub={
                 <>
-                  <Who>{builderName}</Who> {c.op} · <Num>+{fmtCompact(c.new_chars)}</Num>{" "}
-                  <Num>&minus;{fmtCompact(c.base_chars)}</Num> chars
+                  <Who>{builderName}</Who> {c.op} ·{" "}
+                  <Diffstat added={c.added_lines} removed={c.removed_lines} />
                   {outOfPolicy.has(c.path) ? (
                     <span style={{ color: "var(--sp-warn)" }}> · outside the touch list</span>
                   ) : null}

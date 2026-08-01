@@ -155,6 +155,7 @@ import {
   Row,
   Surface,
 } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 
 const MODE_TABS = ["contract", "projections", "edit", "preview", "flow", "launch"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
@@ -486,14 +487,33 @@ function SpecEditorPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [save]);
 
+  /**
+   * What the in-flight rewrite is actually working on, captured at dispatch.
+   *
+   * IT HAS TO BE CAPTURED RATHER THAN DERIVED, and that is not a shortcut. The
+   * textarea loses its selection the moment a button takes focus, so by the time
+   * the indicator renders, `taRef.current.selectionStart === selectionEnd` and
+   * the scope is unrecoverable. Reading it later would report "the whole spec"
+   * for every call, including the ones that were a two-line selection.
+   *
+   * It matters because selecting nothing SILENTLY means the whole document, so
+   * this is the one control on the surface where a person can be wrong about
+   * what they just asked for.
+   */
+  const [assistScope, setAssistScope] = useState("");
+
   const assist = useMutation({
     mutationFn: (action: "rewrite" | "expand" | "critique" | "shorten") => {
       const ta = taRef.current;
-      const sel =
-        ta && ta.selectionStart !== ta.selectionEnd
-          ? body.slice(ta.selectionStart, ta.selectionEnd)
-          : body;
+      const whole = !(ta && ta.selectionStart !== ta.selectionEnd);
+      const sel = whole ? body : body.slice(ta!.selectionStart, ta!.selectionEnd);
       if (!sel.trim()) throw new Error("Select some text first (or have content to work on)");
+      const words = sel.trim().split(/\s+/).length;
+      setAssistScope(
+        whole
+          ? `the whole spec, ${words} words`
+          : `${words} ${words === 1 ? "word" : "words"} selected`,
+      );
       return mAssist({ data: { action, selection: sel, context: body.slice(0, 4000) } });
     },
     onSuccess: (r) => {
@@ -572,6 +592,19 @@ function SpecEditorPage() {
   const orderedTasks = [...prdTasks].sort(
     (a: { seq?: number | null }, b: { seq?: number | null }) => (a.seq ?? 999) - (b.seq ?? 999),
   );
+
+  /**
+   * How many tasks the Planner would overwrite if it ran again.
+   *
+   * `generateTaskGraph` deletes where `seq is not null` and keeps manual tasks,
+   * so a non-null `seq` is exactly the marker for "the Planner wrote this". The
+   * indicator says this number while the call is in flight, because replacing
+   * work you already sequenced is the one consequence of that button a person
+   * cannot see coming from its label.
+   */
+  const generatedCount = orderedTasks.filter(
+    (t: { seq?: number | null }) => t.seq !== null && t.seq !== undefined,
+  ).length;
 
   // The record either contradicts you or it confirms you, and it gets ONE
   // region. A stale decision outranks a precedent, because acting on ground
@@ -797,9 +830,30 @@ function SpecEditorPage() {
               // the four assist actions are one model call and not a named
               // agent, and a mark here would claim a worker that is not there.
               sub={
-                assist.isPending
-                  ? "The crew is rewriting your selection."
-                  : "The crew rewrites what you select. Select nothing and it works on the whole spec."
+                assist.isPending ? (
+                  // `prdAssist` is a chokepoint call, so the indicator is
+                  // honest. The detail is the ACTION the person chose plus how
+                  // much text is under it, which is the pair that answers "is it
+                  // working on the paragraph I meant, or the whole document" -
+                  // the one real ambiguity in this control, since selecting
+                  // nothing silently means the whole spec.
+                  <AgentPulse
+                    label="The crew is rewriting your selection"
+                    seed={`assist-${assist.variables ?? ""}`}
+                    compact
+                    detail={
+                      <>
+                        {assist.variables
+                          ? ASSIST_LABEL[assist.variables].toLowerCase()
+                          : "editing"}
+                        {" · "}
+                        {assistScope}
+                      </>
+                    }
+                  />
+                ) : (
+                  "The crew rewrites what you select. Select nothing and it works on the whole spec."
+                )
               }
             >
               {/* The Textarea primitive does not forward a ref and the assist
@@ -919,12 +973,30 @@ function SpecEditorPage() {
         <Block
           title="The work this implies"
           sub={
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <AgentMark slug="sprint-planner" state={genTasks.isPending ? "running" : "quiet"} />
-              {genTasks.isPending
-                ? "The Planner is breaking the spec down."
-                : "The Planner breaks a settled spec into work you could sequence."}
-            </span>
+            genTasks.isPending ? (
+              // The Planner replaces the existing generated graph, so the detail
+              // says how many tasks are about to be overwritten. That is the one
+              // consequence of this button a person cannot see coming, and it is
+              // read from the list already on screen rather than guessed.
+              <AgentPulse
+                label="The Planner is breaking the spec down"
+                seed="sprint-planner"
+                compact
+                detail={
+                  <>
+                    {prd.title}
+                    {generatedCount > 0
+                      ? ` · replacing ${generatedCount} ${generatedCount === 1 ? "task" : "tasks"}`
+                      : null}
+                  </>
+                }
+              />
+            ) : (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <AgentMark slug="sprint-planner" state="quiet" />
+                The Planner breaks a settled spec into work you could sequence.
+              </span>
+            )
           }
           more={genTasks.isPending ? "Working" : "Break it into tasks"}
           onMore={() => {

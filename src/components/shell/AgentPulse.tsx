@@ -85,6 +85,7 @@ export function AgentPulse({
   seed,
   words = WORKING_WORDS,
   compact = false,
+  detail,
 }: {
   /**
    * What a screen reader is told, once. Say the WORK, not the animation:
@@ -97,6 +98,29 @@ export function AgentPulse({
   words?: readonly string[];
   /** Inline, for a row or a button, rather than a block with its own room. */
   compact?: boolean;
+  /**
+   * WHAT it is working on, right now. A file path, a line, an artifact title, a
+   * tool name, a rule count.
+   *
+   * FOUNDER RULING 2026-08-01, and it is the half that makes the indicator worth
+   * anything: "wire AgentPulse across every surface where an agent actually
+   * runs, and add the per-action detail (which file, which line, which
+   * artifact)." A rotating gerund alone proves something is alive; it does not
+   * tell you what is happening to your work, and his complaint was exactly that
+   * the journey is "still a mystery and a little chaos".
+   *
+   * THE RULE FOR WHAT GOES IN HERE: a NOUN THIS SURFACE ALREADY READ. Never a
+   * second verb (the word is the verb), never a percentage, never a guess about
+   * a step the client cannot see. If the only honest thing available is "an
+   * agent is running", pass nothing: an empty detail is the correct output when
+   * the specific fact is not in scope, and inventing one would be the same
+   * defect as a made-up progress bar.
+   *
+   * It is aria-hidden for the same reason the word is: the static `label` is
+   * what a screen reader gets, once, and it should carry the noun itself where
+   * the noun matters.
+   */
+  detail?: React.ReactNode;
 }) {
   const base = React.useMemo(() => seedFrom(seed), [seed]);
   const [tick, setTick] = React.useState(0);
@@ -142,6 +166,17 @@ export function AgentPulse({
           <i>.</i>
         </span>
       </span>
+      {/* The noun, after the verb, quieter than it. It does not rotate and it
+        does not animate: it is a FACT about this run, and a fact that moves
+        reads as another animation rather than as information. Rendering it
+        beside the word rather than under it keeps the whole indicator one line,
+        so it drops into a row, a Block sub or a button without changing the
+        height of anything around it. */}
+      {detail ? (
+        <span className="sp-pulse-detail" aria-hidden="true">
+          {detail}
+        </span>
+      ) : null}
     </span>
   );
 }

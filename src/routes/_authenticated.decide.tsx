@@ -106,6 +106,7 @@ import {
   Row,
   Surface,
 } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** The agent that red-teams a call, named from the one catalog so this page
@@ -656,6 +657,30 @@ function DecideSurface() {
           <Button variant="ghost" disabled={busy} onClick={() => setOpenId(activeOpp.id)}>
             Open the full record
           </Button>
+          {/* Both of the first two buttons dispatch an agent, and until now the
+              only sign of it was the buttons greying out. "Keep it" runs
+              `generatePrd`, which is THREE chokepoint calls (a title, the body,
+              then the outcome contract) and the slowest act on this surface;
+              "Challenge it" runs the Critic. Greyed buttons and no other change
+              is exactly the state the founder described as static.
+
+              It lives INSIDE the Gate, after the verbs, because the Gate is the
+              biggest thing on the surface and a person who just pressed a button
+              there is still looking at it. Putting the indicator below the
+              recess would ask them to go find it. */}
+          {draftSpec.isPending || challenge.isPending ? (
+            <AgentPulse
+              label={draftSpec.isPending ? "Drafting the spec" : "The Critic is challenging it"}
+              seed={draftSpec.isPending ? "product-manager" : "critic"}
+              detail={
+                draftSpec.isPending ? (
+                  <>{activeOpp.title} · spec, then the outcome contract</>
+                ) : (
+                  <>{activeOpp.title} · against what the record already settled</>
+                )
+              }
+            />
+          ) : null}
         </Gate>
       ) : (
         /* Day one. The headline already says nothing is ranked, so this says

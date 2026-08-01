@@ -703,12 +703,19 @@ export function Loading({
   children = "Reading.",
   working = false,
   agent,
+  detail,
 }: {
   children?: React.ReactNode;
   /** True only when an agent is actually running, never for a plain fetch. */
   working?: boolean;
   /** Who is running, so two indicators on one screen do not chant in unison. */
   agent?: string;
+  /**
+   * WHAT it is working on: a file, a line, an artifact, a tool. Only read when
+   * `working` is true, because a plain fetch has no per-action fact worth
+   * naming and dressing one up would be the invented status this refuses.
+   */
+  detail?: React.ReactNode;
 }) {
   if (working) {
     return (
@@ -716,6 +723,7 @@ export function Loading({
         <AgentPulse
           label={typeof children === "string" ? children : "An agent is working"}
           seed={agent}
+          detail={detail}
         />
       </p>
     );

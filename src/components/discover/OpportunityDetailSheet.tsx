@@ -82,6 +82,7 @@ import {
   Value,
   Who,
 } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 import type { VerdictWord } from "./format";
 import type { Designation } from "./ranking";
 import {
@@ -809,6 +810,20 @@ export function OpportunityDetailSheet({
                 <Button onClick={onChallenge} disabled={busy || challengePending}>
                   {challengePending ? "Challenging it" : "Challenge it"}
                 </Button>
+                {/* The label already changes; this says WHAT is being worked on
+                    and proves the work is still moving. A changed label is a
+                    one-time event and reads as frozen thirty seconds later,
+                    which is the whole complaint the indicator exists to answer.
+                    Both of these are chokepoint calls: `generatePrd` and the
+                    Critic. */}
+                {draftPending || challengePending ? (
+                  <AgentPulse
+                    label={draftPending ? "Drafting the spec" : "The Critic is challenging it"}
+                    seed={draftPending ? "product-manager" : "critic"}
+                    compact
+                    detail={opportunity?.title}
+                  />
+                ) : null}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button disabled={busy}>Move to</Button>

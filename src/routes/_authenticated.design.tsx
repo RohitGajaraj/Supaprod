@@ -138,6 +138,7 @@ import {
   Value,
   Who,
 } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** One fetch, unfiltered: this surface needs the pending queue and the
@@ -727,12 +728,29 @@ function Design() {
       <Block
         title="Screens the crew drew"
         sub={
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <AgentMark slug={DRAWS} state={drawAt.isPending ? "running" : "quiet"} />
-            {drawAt.isPending
-              ? "Design is drawing."
-              : "Design renders a spec as a screen, in your brand."}
-          </span>
+          // A DRAWING AGENT IS GENUINELY RUNNING HERE, so this is the indicator
+          // rather than a static mark with a full stop after it. `redrawDesignScaffold`
+          // reaches `buildDesignScaffoldHtml`, which calls the chokepoint, so
+          // `working` is honest. The detail names the two facts the click chose
+          // and the surface already holds: which fidelity, and which spec.
+          drawAt.isPending ? (
+            <AgentPulse
+              label="Design is drawing a screen"
+              seed={DRAWS}
+              compact
+              detail={
+                <>
+                  {drawAt.variables ? FIDELITY_WORD[drawAt.variables].toLowerCase() : "drawing"}
+                  {focus?.title ? ` of ${focus.title}` : null}
+                </>
+              }
+            />
+          ) : (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <AgentMark slug={DRAWS} state="quiet" />
+              Design renders a spec as a screen, in your brand.
+            </span>
+          )
         }
       >
         {work.isLoading ? (
@@ -900,6 +918,34 @@ function Design() {
                 ) : null}
               </Actions>
 
+              {/* THE INDICATOR SITS WITH THE WORK, not only with its result.
+                  "What the Critic found" carries a pulse too, but that Block
+                  only exists once there ARE findings, so on a first review the
+                  only sign of life would have been a greyed-out button. The
+                  first review is the one where a person has no idea whether
+                  anything is happening, so it is the one that most needs this. */}
+              {critic.isPending || drawAt.isPending ? (
+                <AgentPulse
+                  label={critic.isPending ? "The Critic is reviewing" : "Design is drawing"}
+                  seed={critic.isPending ? REVIEWS : DRAWS}
+                  detail={
+                    critic.isPending ? (
+                      <>
+                        {focus.title} · against {inForce} {inForce === 1 ? "rule" : "rules"} in
+                        force
+                      </>
+                    ) : (
+                      <>
+                        {drawAt.variables
+                          ? FIDELITY_WORD[drawAt.variables].toLowerCase()
+                          : "screen"}{" "}
+                        of {focus.title}
+                      </>
+                    )
+                  }
+                />
+              ) : null}
+
               {focusTrace.map((t) => (
                 <Receipt
                   key={t.id}
@@ -928,10 +974,30 @@ function Design() {
         <Block
           title="What the Critic found"
           sub={
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <AgentMark slug={REVIEWS} state={critic.isPending ? "running" : "quiet"} />
-              Making one a rule stops the crew repeating it.
-            </span>
+            // `runScaffoldDesignCritic` routes through the critic lens, which
+            // calls the chokepoint. The detail says what it is reading the
+            // drawing AGAINST, because that is the fact a person actually wants
+            // while they wait: a review against nine rules in force means
+            // something, a review against none is worth knowing before the
+            // verdict arrives rather than after.
+            critic.isPending ? (
+              <AgentPulse
+                label="The Critic is reviewing the drawing"
+                seed={REVIEWS}
+                compact
+                detail={
+                  <>
+                    {focus?.title ?? "the drawing"} · against {inForce}{" "}
+                    {inForce === 1 ? "rule" : "rules"} in force
+                  </>
+                }
+              />
+            ) : (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <AgentMark slug={REVIEWS} state="quiet" />
+                Making one a rule stops the crew repeating it.
+              </span>
+            )
           }
         >
           <Findings

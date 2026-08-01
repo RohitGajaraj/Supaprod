@@ -1530,13 +1530,23 @@ function FilesChangedCard({
           </div>
         ) : null}
       </div>
+      {/* The total, coloured like the per-file rows above it. It was grey while
+          every row it summed was green and red, so the one number a person scans
+          first was the only one that did not read as a diff. */}
       <div
         className="mt-2 border-t pt-2 font-mono text-[10px]"
         style={{ borderColor: "var(--ink-hairline-soft)", color: "var(--ink-faint)" }}
       >
-        {haveStats
-          ? `+${totalAdds}  -${totalDels}  across ${changes.length} ${changes.length === 1 ? "file" : "files"}`
-          : `${changes.length} ${changes.length === 1 ? "file" : "files"} changed`}
+        {haveStats ? (
+          <>
+            <span style={{ color: "var(--verdict-pass)" }}>{`+${totalAdds}`}</span>
+            {"  "}
+            <span style={{ color: "var(--verdict-fail)" }}>{`-${totalDels}`}</span>
+            {`  across ${changes.length} ${changes.length === 1 ? "file" : "files"}`}
+          </>
+        ) : (
+          `${changes.length} ${changes.length === 1 ? "file" : "files"} changed`
+        )}
       </div>
     </div>
   );

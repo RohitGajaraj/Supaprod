@@ -204,12 +204,24 @@ function BuildEngine() {
         </>,
       );
     }
-    // PLAIN WORDS, not a +/- pair. Diffstat renders "+2 -0", and both halves of
-    // that are wrong here: the shape reads as LINES to anyone who has used a
-    // diff, and the "-0" is a zero rendered as if it were a fact. These are
-    // files, and only the non-zero side is worth a word.
-    if (item.added > 0) parts.push(`${item.added} new`);
-    if (item.deleted > 0) parts.push(`${item.deleted} deleted`);
+    // COLOURED, BUT STILL PLAIN WORDS, and the distinction is the whole point.
+    // Founder ruling 2026-08-01 puts green and red on every diff number so it is
+    // evident at a glance, and these counts get it. What they do NOT get is
+    // `Diffstat`'s "+2 −0" shape, for the two reasons this row already recorded
+    // and which the colour ruling does not touch: the shape reads as LINES to
+    // anyone who has used a diff and these are FILES, and "−0" renders a zero as
+    // if it were a fact. So the colour comes, the pill and the fake zero stay
+    // away. Only the non-zero side is drawn at all.
+    if (item.added > 0) {
+      parts.push(
+        <span className="sp-pass">
+          {item.added} new {item.added === 1 ? "file" : "files"}
+        </span>,
+      );
+    }
+    if (item.deleted > 0) {
+      parts.push(<span className="sp-fail">{item.deleted} deleted</span>);
+    }
     if (item.prNumber != null) {
       parts.push(
         item.prUrl ? (
