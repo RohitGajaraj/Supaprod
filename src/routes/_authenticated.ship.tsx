@@ -98,6 +98,7 @@ import {
   Input,
   Num,
   PageHead,
+  Receipt,
   Row,
   Surface,
   Textarea,
@@ -113,6 +114,13 @@ const VISIBLE = 6;
  * ------------------------------------------------------------------ */
 
 /** Plain-words relative time. Mono is applied by the row, not here. */
+type ShipReceipt = {
+  verb: string;
+  consequence: string;
+  slug?: string | null;
+  failed?: boolean;
+};
+
 function ago(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const t = new Date(iso).getTime();
@@ -246,23 +254,52 @@ function Ship() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  /**
+   * What the last act on this surface caused.
+   *
+   * anti-slop.md 5: a write with a consequence renders a Receipt, and there are
+   * no success toasts. PUBLISH is the strongest case for that rule anywhere in
+   * the product. This surface's own header says "nowhere else in the product
+   * does anything become readable by a stranger", and that act was reporting
+   * itself as a toast reading "It is live." A toast confirms the click
+   * registered; a receipt renders what the click DID, and what this click did
+   * was put a page on the public internet at a specific address. The address is
+   * the consequence, so the address is what gets drawn, as a real link.
+   *
+   * `create` and `update` keep their toasts on purpose. They save a draft and
+   * the list re-renders showing it, which is the rule's own narrow exception: a
+   * write whose changed surface IS the receipt.
+   */
+  const [receipt, setReceipt] = React.useState<ShipReceipt | null>(null);
+
   const submit = useMutation({
     mutationFn: (id: string) => fSubmit({ data: { id, workspaceId: wid } }),
-    onSuccess: () => {
-      toast.success("Sent for approval.");
+    onSuccess: (_r, id) => {
+      const a = announcements.find((x) => x.id === id);
+      setReceipt({
+        verb: "You sent it up",
+        consequence: `${a?.title ?? "The announcement"} is waiting on an owner or an admin. It is not public yet.`,
+      });
       void invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go up", consequence: e.message, failed: true }),
   });
 
   const publish = useMutation({
     mutationFn: (id: string) => fPublish({ data: { id, workspaceId: wid } }),
-    onSuccess: () => {
-      toast.success("It is live.");
+    onSuccess: (_r, id) => {
+      const a = announcements.find((x) => x.id === id);
+      setReceipt({
+        verb: "You published it",
+        consequence: "It is readable by anyone with the link.",
+        slug: a?.slug ?? null,
+      });
       setPicked(null);
       void invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not publish", consequence: e.message, failed: true }),
   });
 
   const busy = create.isPending || update.isPending || submit.isPending || publish.isPending;
@@ -463,6 +500,34 @@ function Ship() {
           ) : null}
         </Gate>
       )}
+
+      {/* What the last act caused. Publishing is the one thing here that reaches
+        the public internet, so its consequence is a real address rather than a
+        confirmation, and it stays on screen instead of sliding away. */}
+      {receipt ? (
+        <Receipt
+          verb={receipt.verb}
+          consequence={
+            receipt.slug ? (
+              <>
+                Anyone can read it now at{" "}
+                <a
+                  href={`/p/${receipt.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "var(--sp-ink)" }}
+                >
+                  <Num>/p/{receipt.slug}</Num>
+                </a>
+                .
+              </>
+            ) : (
+              receipt.consequence
+            )
+          }
+          failed={receipt.failed}
+        />
+      ) : null}
 
       <Block
         title="What shipped"

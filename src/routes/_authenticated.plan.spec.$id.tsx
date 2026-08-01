@@ -106,6 +106,7 @@
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
@@ -283,6 +284,26 @@ export const Route = createFileRoute("/_authenticated/plan/spec/$id")({
 });
 
 function SpecEditorPage() {
+  /**
+   * THE SPINE STAYS ON SCREEN INSIDE A DETAIL RECORD.
+   *
+   * Founder ruling 2026-08-01: "whenever we click any items in lines, pages,
+   * sub items within those seven strip items... the strip should be constant
+   * across all those items... so that the user also knows what it is and where
+   * it is."
+   *
+   * A spec is Plan's detail record: you reach it by clicking a row on /plan, or
+   * by keeping a bet on /decide. Until now the strip published on the seven
+   * station surfaces and on runs, and nowhere else, so opening a spec dropped
+   * you off the spine entirely. Nothing on screen said which of the seven
+   * stations you were standing in, and the way back was the browser button.
+   *
+   * `define` is the station a spec belongs to, so the chip for Plan is lit
+   * while you edit one, and the other six remain one click away at workspace
+   * scope. This is the same one shared query every other spine surface reads
+   * (use-spine-strip.ts), so it costs a cache read rather than a request.
+   */
+  useSpineStrip("define");
   const { id } = useParams({ from: "/_authenticated/plan/spec/$id" });
   const initialTab = Route.useSearch().tab;
   const qc = useQueryClient();
