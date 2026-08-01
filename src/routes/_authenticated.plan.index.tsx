@@ -92,6 +92,7 @@ import { isCommitmentGoverned } from "@/lib/roadmap-governance";
 import { listSpecs } from "@/lib/discovery.functions";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
+import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
 import {
   AgentMark,
@@ -430,6 +431,14 @@ function PlanPage() {
           }}
         />
       ) : null}
+
+      {/* THE ENTRY THAT DID NOT EXIST. Work on a product you already run has no
+        signal and no theme behind it, so it has no lineage root, so until the
+        track object there was nothing in the product that could even name it.
+        It enters here, and it arrives carrying which stations it will visit and
+        which it waives. Above the roadmap because starting work precedes
+        scheduling it. */}
+      <TrackStart />
 
       <div ref={refRoadmap} id="plan-section-roadmap" tabIndex={-1} className="outline-none">
         <Block title="Now, Next and Later">
