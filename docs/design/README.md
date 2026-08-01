@@ -28,6 +28,13 @@ Both were caught and corrected. Assume the same error rate in these documents.
    around them may not hold.
 3. **Do not cite these as canon** in a commit message, a doc, or an investor surface.
 
+## NOT in the warning: the reference-pattern library
+
+[`REFERENCE-PATTERNS.md`](./REFERENCE-PATTERNS.md) in this same folder is the OPPOSITE kind of
+document. It is verified research against official product documentation with source URLs, it is
+trustworthy, and it is where every future research pass gets appended so the same research is
+never paid for twice. Read it before researching any surface's reference class.
+
 ## What is in here
 
 | File | Covers |
