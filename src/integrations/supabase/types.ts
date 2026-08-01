@@ -9664,6 +9664,10 @@ export type Database = {
         Returns: undefined
       }
       seed_seam2_ci_tools: { Args: { _user_id: string }; Returns: undefined }
+      seed_station_agent_tools: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       seed_studio_tools: { Args: { _user_id: string }; Returns: undefined }
       slugify: { Args: { p_text: string }; Returns: string }
       tier_product_limit: { Args: { _tier: string }; Returns: number }
