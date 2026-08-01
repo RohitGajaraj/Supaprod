@@ -7101,6 +7101,7 @@ export type Database = {
           last_hold: string | null
           origin: string | null
           path: Json
+          pending_gates: Json
           product_id: string | null
           project_id: string | null
           station: string
@@ -7120,6 +7121,7 @@ export type Database = {
           last_hold?: string | null
           origin?: string | null
           path?: Json
+          pending_gates?: Json
           product_id?: string | null
           project_id?: string | null
           station?: string
@@ -7139,6 +7141,7 @@ export type Database = {
           last_hold?: string | null
           origin?: string | null
           path?: Json
+          pending_gates?: Json
           product_id?: string | null
           project_id?: string | null
           station?: string
