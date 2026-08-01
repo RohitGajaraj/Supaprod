@@ -18,6 +18,7 @@ import {
 import { refundAbandonedRunCredits } from "@/lib/credits.functions";
 import { TOOL_REGISTRY, describeToolsForPrompt, type ToolCtx } from "./tools/registry.server";
 import { resolveMissionSpendCap } from "./mission-caps.server";
+import { resolveToolAccess } from "@/lib/ai/tools/defaults";
 import { recallMemoryRefs, logMemoryRecall, type MemoryRef } from "./memory.server";
 import { adaptiveStepBudget } from "./budget";
 import { withIdempotency } from "@/lib/runtime/idempotency.server";
@@ -541,18 +542,32 @@ export async function runAgentLoop(
   if (runInsertErr) throw new Error(`agent_runs insert failed: ${runInsertErr.message}`);
   const runId = (runRow as { id: string } | null)?.id ?? null;
 
-  const { data: toolRows } = await supabase
+  // THE REGISTRY IS THE LIST; A STORED ROW IS AN OVERRIDE (founder ruling
+  // 2026-08-01: "build at a platform level, not associated with the users").
+  //
+  // This used to read `agent_tools` filtered to `enabled = true` and treat the
+  // result AS the tool list, so a tool with no row was invisible: not disabled,
+  // absent from the prompt entirely, unknowable to the agent. Capability was
+  // copied per account at signup, which meant a new tool needed a backfill
+  // against every existing user and a new user got whatever the seed trigger
+  // granted the day they arrived. Eleven of sixteen accounts could not call
+  // `prd.draft` for exactly that reason, and their Plan station wrote specs into
+  // prose that nothing downstream could read.
+  //
+  // Now the platform's registry is the list and `agent_tools` only records where
+  // an account DEVIATES from it. A newly registered tool is live for everyone
+  // the moment it ships, a new account needs no seeding, and there is no seed
+  // left that can drift. `enabled = false` still turns a tool off, because that
+  // is a real choice somebody made; absent is not.
+  const { data: overrideRows } = await supabase
     .from("agent_tools")
     .select("tool_name,mode,enabled")
-    .eq("user_id", userId)
-    .eq("enabled", true);
+    .eq("user_id", userId);
+  const access = resolveToolAccess(Object.keys(TOOL_REGISTRY), overrideRows ?? []);
   // FND-0.5 per-agent cap: drop any enabled tool whose blast-radius tier exceeds this agent's
   // max_tool_risk so a scoped agent can't reach (or even see in its prompt) a tool beyond its
   // remit. Null cap = unrestricted = byte-identical.
-  const tools = capToolsByRisk(
-    (toolRows ?? []).filter((t: { tool_name: string }) => TOOL_REGISTRY[t.tool_name]),
-    (agent as { max_tool_risk?: string | null }).max_tool_risk,
-  );
+  const tools = capToolsByRisk(access, (agent as { max_tool_risk?: string | null }).max_tool_risk);
   const modeOf = new Map<string, string>(
     tools.map((t) => [t.tool_name as string, t.mode as string]),
   );
@@ -1396,14 +1411,17 @@ export async function resumeAgentLoop(
       : rawModel;
   const startStep = cp ? cp.step_index : 0;
 
-  const { data: toolRows } = await supabase
+  // Registry plus overrides, exactly as the fresh-dispatch path above. It has to
+  // be the same resolution: a run that resumed with a different toolset than it
+  // started with would change what the agent can do halfway through, which is
+  // the one place a tool list must not move.
+  const { data: overrideRows } = await supabase
     .from("agent_tools")
     .select("tool_name,mode,enabled")
-    .eq("user_id", run.user_id)
-    .eq("enabled", true);
+    .eq("user_id", run.user_id);
   // FND-0.5 per-agent cap (resume path mirrors the fresh-dispatch path above).
   const tools = capToolsByRisk(
-    (toolRows ?? []).filter((t: { tool_name: string }) => TOOL_REGISTRY[t.tool_name]),
+    resolveToolAccess(Object.keys(TOOL_REGISTRY), overrideRows ?? []),
     (agent as { max_tool_risk?: string | null }).max_tool_risk,
   );
   const modeOf = new Map<string, string>(

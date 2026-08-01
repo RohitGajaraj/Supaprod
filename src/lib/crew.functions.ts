@@ -39,6 +39,7 @@ import { computeAllAgentTrust, type Arc, type ToolMode } from "@/lib/ai/trust.se
 import { resolveToolMode } from "@/lib/ai/loop.server";
 import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 import { capToolsByRisk } from "@/lib/agent-tool-cap";
+import { TOOL_DEFAULTS, resolveToolAccess } from "@/lib/ai/tools/defaults";
 import { toolRisk, type ToolRisk } from "@/lib/tool-consequences";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import { runBucket } from "@/lib/agent-fleet";
@@ -237,7 +238,9 @@ export const listCrew = createServerFn({ method: "GET" })
         .select("agent_slug,tool_name,to_mode")
         .eq("user_id", userId)
         .eq("status", "pending"),
-      supabase.from("agent_tools").select("tool_name,display_name").eq("user_id", userId),
+      // Placeholder kept so the destructure below stays positional; the real
+      // labels come from the platform policy, not from stored rows.
+      Promise.resolve({ data: [] as { tool_name: string; display_name: string }[] }),
     ]);
     if (agentsRes.error) throw new Error(agentsRes.error.message);
 
@@ -274,10 +277,7 @@ export const listCrew = createServerFn({ method: "GET" })
     // switched off would have no label, so it is dropped rather than shown as
     // a raw id.
     const labelByTool = new Map<string, string>(
-      ((toolNamesRes.data ?? []) as { tool_name: string; display_name: string }[]).map((t) => [
-        t.tool_name,
-        t.display_name,
-      ]),
+      Object.entries(TOOL_DEFAULTS).map(([name, d]) => [name, d.label]),
     );
     const askingBySlug = new Map<string, { toolLabel: string; toMode: ToolMode }[]>();
     for (const row of (proposalsRes.data ?? []) as {
@@ -344,11 +344,8 @@ export const getCrewMember = createServerFn({ method: "GET" })
     // the surface: the boundary controls are the point, so a failed read reads
     // as an honest empty rather than as an error page.
     const [toolsRes, overridesRes, proposalsRes] = await Promise.all([
-      supabase
-        .from("agent_tools")
-        .select("tool_name,display_name,mode")
-        .eq("user_id", userId)
-        .eq("enabled", true),
+      // Overrides only. The list itself is the registry; see access.server.ts.
+      supabase.from("agent_tools").select("tool_name,mode,enabled").eq("user_id", userId),
       supabase
         .from("agent_tool_modes")
         .select("tool_name,mode,source")
@@ -417,13 +414,14 @@ export const getCrewMember = createServerFn({ method: "GET" })
     // The tool composition, performed exactly as the loop performs it:
     // enabled rows -> registry filter -> per-agent blast-radius cap ->
     // per-agent stored override -> resolveToolMode.
-    const rawTools = (
+    const rawTools = resolveToolAccess(
+      Object.keys(TOOL_REGISTRY),
       (toolsRes.data ?? []) as {
         tool_name: string;
-        display_name: string;
-        mode: string;
-      }[]
-    ).filter((t) => TOOL_REGISTRY[t.tool_name]);
+        mode: string | null;
+        enabled: boolean | null;
+      }[],
+    );
     const capped = capToolsByRisk(rawTools, agent?.max_tool_risk ?? null);
 
     const overrides = new Map<string, { mode: ToolMode; source: string }>(
@@ -446,7 +444,7 @@ export const getCrewMember = createServerFn({ method: "GET" })
       );
       return {
         toolName: t.tool_name,
-        label: t.display_name || t.tool_name,
+        label: TOOL_DEFAULTS[t.tool_name]?.label ?? t.tool_name,
         risk: toolRisk(t.tool_name),
         seededMode,
         storedMode: override?.mode ?? null,

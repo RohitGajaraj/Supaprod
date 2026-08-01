@@ -270,7 +270,7 @@ function BoundarySurface() {
 
   const move = useMutation({
     mutationFn: (v: { tool: BoundaryTool; mode: "auto" | "confirm" | "off" }) =>
-      fSetMode({ data: { toolId: v.tool.id, mode: v.mode, enabled: v.mode !== "off" } }),
+      fSetMode({ data: { toolName: v.tool.name, mode: v.mode, enabled: v.mode !== "off" } }),
     onSuccess: (_r, v) => {
       // The consequence is what the boundary now LETS THROUGH, in the same
       // words the blocks use, never "Saved."
@@ -330,7 +330,7 @@ function BoundarySurface() {
         ) : (
           shown.map((t) => (
             <Row
-              key={t.id}
+              key={t.name}
               tight
               lead={t.label}
               // The different fact: what it does, or what the floor forbids.

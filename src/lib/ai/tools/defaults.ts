@@ -1,0 +1,194 @@
+/**
+ * What every tool does by default, for everyone, without anybody being seeded.
+ *
+ * FOUNDER RULING 2026-08-01: "shouldn't it be building at a platform level
+ * holistically? Say tomorrow a new user signs up, this fix also needs to be
+ * applicable to them. What happens if a seventeenth user signs up, do we need to
+ * do the migration to his account? Please fix it at a holistic level, not just
+ * solve for today's problem."
+ *
+ * THE SHAPE THAT WAS WRONG, and it was wrong even after it was made correct.
+ * `agent_tools` held one row per user per tool: capability was COPIED into every
+ * account at signup. Sixteen users meant 864 rows saying the same thing, a new
+ * tool meant a backfill migration against every existing account, and a new user
+ * got whatever the seed trigger happened to grant on the day they arrived. That
+ * last part is not a hypothetical: it is exactly how eleven of sixteen accounts
+ * ended up unable to draft a spec, because seeding had accumulated as six
+ * one-shot migrations and only three left a trigger behind.
+ *
+ * Collapsing those six into one authority fixed the DRIFT and kept the SHAPE, so
+ * the seventeenth user was still one un-fired trigger away from a broken loop,
+ * and tool fifty-five would still need a migration to reach anyone.
+ *
+ * THE SHAPE THAT IS RIGHT. The registry is the platform's list of tools, and
+ * this module is the platform's policy on them. A row in `agent_tools` is an
+ * OVERRIDE, not a grant: absent means "the default applies", not "you may not".
+ * So a newly registered tool is live for every account the moment it ships, a new
+ * account needs no seeding at all, and there is no seed left that can drift.
+ *
+ * WHAT A STORED ROW MEANS NOW:
+ *
+ *   no row           -> the default below, which is the platform's policy
+ *   enabled = false  -> this account turned it off, and that is obeyed
+ *   mode = '...'     -> this account chose a mode, and that is obeyed
+ *
+ * Existing rows keep working unchanged, because a row that agrees with the
+ * default is simply an override that agrees with the default. Nothing had to be
+ * deleted or rewritten to move to this model.
+ *
+ * THE RUNTIME FLOORS STILL COMPOSE ON TOP. A default here is a starting point,
+ * never a bypass: `resolveToolMode`, `toolRisk`, `HIGH_RISK_FORCE_REVIEW` and
+ * `HIGH_RISK_MIN_CONFIRM` all still run afterwards, and `capToolsByRisk` still
+ * drops anything past an agent's own remit. A mode set here can be tightened by
+ * those and never loosened.
+ *
+ * Pure and dependency-free, so `defaults.test.ts` can assert against the whole
+ * registry without a database or a worker.
+ */
+
+/**
+ * How a call is treated before the runtime floors compose on top.
+ *
+ * `off` is a stored mode, not a fourth level of oversight: the settings UI has
+ * always written it to mean "this account does not want this tool at all", and
+ * `resolveToolAccess` drops it exactly like `enabled = false`. It is in the
+ * union because the column really holds it, and a type that pretended otherwise
+ * would push the check out to every caller.
+ */
+export type ToolMode = "auto" | "confirm" | "review" | "off";
+
+/**
+ * The one tool policy, keyed by tool name.
+ *
+ * `defaults.test.ts` fails the build when a registered tool is missing from
+ * here, which is the same gate the seed migration used to need, moved to the
+ * layer that actually decides. The difference is that this one is enforced
+ * before anything ships rather than after every account is migrated.
+ */
+export const TOOL_DEFAULTS: Readonly<
+  Record<string, { mode: ToolMode; enabled: boolean; label: string }>
+> = {
+  // Read and search. Auto: they observe, they never change anything.
+  "workspace.search": { mode: "auto", enabled: true, label: "Search workspace" },
+  "workspace.list_tasks": { mode: "auto", enabled: true, label: "List tasks" },
+  "signals.list": { mode: "auto", enabled: true, label: "List signals" },
+  "themes.list": { mode: "auto", enabled: true, label: "List themes" },
+  "sources.status": { mode: "auto", enabled: true, label: "Source status" },
+  "sources.connect": { mode: "auto", enabled: true, label: "Connect a source" },
+  "repo.tree": { mode: "auto", enabled: true, label: "Repo tree" },
+  "repo.read": { mode: "auto", enabled: true, label: "Read a file" },
+  "repo.search": { mode: "auto", enabled: true, label: "Search the repo" },
+  "ci.logs": { mode: "auto", enabled: true, label: "CI logs" },
+  "github.ci.read": { mode: "auto", enabled: true, label: "Read GitHub CI" },
+  "web.search": { mode: "auto", enabled: true, label: "Search the web" },
+  "web.fetch": { mode: "auto", enabled: true, label: "Fetch a page" },
+  "web.map": { mode: "auto", enabled: true, label: "Map a site" },
+  // Crawling pulls a whole site and costs real money, so it asks first even
+  // though it only reads.
+  "web.crawl": { mode: "confirm", enabled: true, label: "Crawl a site" },
+
+  // THE SEVEN STATIONS' OWN HANDS. Every one of these writes the artifact its
+  // station hands to the next, so a tool missing here stops the loop dead.
+  // 01 Discover
+  "signals.log": { mode: "confirm", enabled: true, label: "Log a signal" },
+  "research.synthesize": { mode: "confirm", enabled: true, label: "Synthesise research" },
+  "cluster.trigger": { mode: "confirm", enabled: true, label: "Cluster signals" },
+  // 02 Decide
+  "decision.record": { mode: "confirm", enabled: true, label: "Record a decision" },
+  "decision.revise": { mode: "confirm", enabled: true, label: "Revise a decision" },
+  // 03 Plan
+  "prd.draft": { mode: "confirm", enabled: true, label: "Draft a spec" },
+  "prd.revise": { mode: "confirm", enabled: true, label: "Revise a spec" },
+  "prd.link_issue": { mode: "confirm", enabled: true, label: "Link a spec issue" },
+  "tasks.create": { mode: "confirm", enabled: true, label: "Create a task" },
+  "tasks.update_status": { mode: "confirm", enabled: true, label: "Update task status" },
+  "backlog.prioritize": { mode: "confirm", enabled: true, label: "Prioritise backlog" },
+  "roadmap.move": { mode: "confirm", enabled: true, label: "Move on the roadmap" },
+  // 04 Design
+  "design.draft": { mode: "confirm", enabled: true, label: "Draft a design" },
+  // 05 Build
+  "studio.stage": { mode: "auto", enabled: true, label: "Stage a change" },
+  "studio.commit": { mode: "confirm", enabled: true, label: "Commit a change" },
+  "studio.fix.commit": { mode: "auto", enabled: true, label: "Commit a fix" },
+  "studio.sync_branch": { mode: "auto", enabled: true, label: "Sync a branch" },
+  "studio.pr.open": { mode: "confirm", enabled: true, label: "Open a PR" },
+  "github.issue.create": { mode: "confirm", enabled: true, label: "Open an issue" },
+  "github.pr.open": { mode: "confirm", enabled: true, label: "Open a GitHub PR" },
+  "github.commit.append": { mode: "confirm", enabled: true, label: "Append a commit" },
+  // 06 Ship. Everything irreversible sits at review, and trust-ramp.ts floors
+  // these independently so an agent cannot earn its way past them.
+  "release.publish": { mode: "review", enabled: true, label: "Publish a release" },
+  "studio.pr.merge": { mode: "review", enabled: true, label: "Merge a PR" },
+  "studio.revert": { mode: "review", enabled: true, label: "Revert a change" },
+  // 07 Learn
+  "learning.record": { mode: "confirm", enabled: true, label: "Record a learning" },
+
+  // Orchestration and delegation.
+  "mission.plan": { mode: "auto", enabled: true, label: "Plan a mission" },
+  "mission.dispatch": { mode: "auto", enabled: true, label: "Dispatch a mission" },
+  "mission.observe": { mode: "auto", enabled: true, label: "Observe a mission" },
+  "mission.finalize": { mode: "auto", enabled: true, label: "Finalise a mission" },
+  "agent.handoff": { mode: "auto", enabled: true, label: "Hand off to an agent" },
+  "agent.spawn": { mode: "confirm", enabled: true, label: "Spawn an agent" },
+  "delegate.openhands": { mode: "review", enabled: true, label: "Delegate to OpenHands" },
+
+  // Planning aids. Advisory and side-effect-free beyond their own row.
+  "critic.evaluate": { mode: "auto", enabled: true, label: "Red-team this" },
+  "scheduler.propose": { mode: "auto", enabled: true, label: "Propose a schedule" },
+  "calendar.create": { mode: "confirm", enabled: true, label: "Create an event" },
+  "notes.create": { mode: "confirm", enabled: true, label: "Create a note" },
+
+  // Memory.
+  "memory.remember": { mode: "auto", enabled: true, label: "Remember this" },
+  "memory.reflect": { mode: "auto", enabled: true, label: "Reflect on memory" },
+  "memory.promote": { mode: "confirm", enabled: true, label: "Promote a memory" },
+};
+
+/**
+ * A tool nobody has an opinion about yet.
+ *
+ * Reached only when a tool is registered and not listed above, which the build
+ * gate makes impossible to ship. It exists so the runtime behaves conservatively
+ * rather than throwing if one ever slips through in a hotfix: the tool works,
+ * and it asks first.
+ */
+export const UNLISTED_TOOL_DEFAULT: { mode: ToolMode; enabled: boolean; label: string } = {
+  mode: "confirm",
+  enabled: true,
+  label: "Unlisted tool",
+};
+
+/** A stored per-user override. Absent fields mean "no opinion, use the default". */
+export type ToolOverride = { tool_name: string; mode?: string | null; enabled?: boolean | null };
+
+/**
+ * The effective tool list for an account: platform defaults, then its overrides.
+ *
+ * `registered` is passed in rather than imported, because `registry.server.ts` is
+ * worker-only and this module has to stay testable and client-safe.
+ */
+export function resolveToolAccess(
+  registered: string[],
+  overrides: ToolOverride[],
+): Array<{ tool_name: string; mode: ToolMode }> {
+  const byName = new Map(overrides.map((o) => [o.tool_name, o]));
+
+  return registered.flatMap((name) => {
+    const base = TOOL_DEFAULTS[name] ?? UNLISTED_TOOL_DEFAULT;
+    const over = byName.get(name);
+
+    // Only an EXPLICIT false turns a tool off. A null or missing `enabled` is an
+    // override row with no opinion on availability, which must not read as a
+    // denial: that reading is what made an absent row mean "you may not" and
+    // cost eleven accounts their Plan station.
+    if (over?.enabled === false) return [];
+
+    const mode = (over?.mode as ToolMode | null | undefined) ?? base.mode;
+    // `off` is the settings UI's word for "not at all", so it leaves the list
+    // the same way `enabled = false` does. Handled here rather than at each
+    // caller, because the one caller that forgot would hand an agent a tool its
+    // owner had switched off.
+    if (mode === "off") return [];
+    return [{ tool_name: name, mode }];
+  });
+}

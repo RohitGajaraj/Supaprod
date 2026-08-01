@@ -202,8 +202,11 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   ) => setCommitted((c) => [...c, { verb, consequence, at: new Date().toISOString(), handoff }]);
 
   const toolModeMut = useMutation({
-    mutationFn: (v: { toolId: string; mode: OversightMode; name: string }) =>
-      updateToolModeFn({ data: { toolId: v.toolId, mode: v.mode } }),
+    // Keyed by NAME, not by row id. Under the platform-defaults model a tool
+    // this account has never changed has no row at all, so there is no id to
+    // send; the server upserts one the moment a person first deviates.
+    mutationFn: (v: { toolName: string; mode: OversightMode; name: string }) =>
+      updateToolModeFn({ data: { toolName: v.toolName, mode: v.mode } }),
     onSuccess: (_d, v) => {
       commit(
         v.mode === "auto" ? "You handed it back" : "You tightened it",
@@ -331,7 +334,6 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const tools = (toolsQ.data?.tools ?? []).filter(
     (t) => t.enabled !== false && t.mode !== "off",
   ) as Array<{
-    id: string;
     tool_name: string;
     display_name: string | null;
     description: string | null;
@@ -596,7 +598,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                */
               const askWontHold = mode === "confirm" && toolRisk(t.tool_name) === "low";
               return (
-                <Fragment key={t.id}>
+                <Fragment key={t.tool_name}>
                   {showCategory ? <div style={GROUP_LABEL}>{cat}</div> : null}
                   <Line
                     label={t.display_name || t.tool_name}
@@ -631,10 +633,12 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                         title={
                           autoBlocked ? "This tool never runs unattended. Safety floor." : undefined
                         }
-                        disabled={toolModeMut.isPending && toolModeMut.variables?.toolId === t.id}
+                        disabled={
+                          toolModeMut.isPending && toolModeMut.variables?.toolName === t.tool_name
+                        }
                         onChange={(e) =>
                           toolModeMut.mutate({
-                            toolId: t.id,
+                            toolName: t.tool_name,
                             mode: e.target.value as OversightMode,
                             name: t.display_name || t.tool_name,
                           })

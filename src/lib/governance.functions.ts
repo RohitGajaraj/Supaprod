@@ -24,6 +24,7 @@ import {
   type RejectionPattern,
   type RejectionRow,
 } from "@/lib/rejection-learning";
+import { resolveToolAccess } from "@/lib/ai/tools/defaults";
 import {
   buildLedger,
   type LedgerApprovalRow,
@@ -269,19 +270,29 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
       missionIds.length
         ? supabase.from("missions").select("id,title").in("id", missionIds)
         : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      // Effective modes, not stored rows: a tool this account never changed has
+      // no row, and rendering its oversight as blank would understate what the
+      // boundary actually is.
       toolNames.length
-        ? supabase
-            .from("agent_tools")
-            .select("tool_name,mode")
-            .eq("user_id", userId)
-            .in("tool_name", toolNames)
+        ? supabase.from("agent_tools").select("tool_name,mode,enabled").eq("user_id", userId)
         : Promise.resolve({ data: [] as { tool_name: string; mode: string }[] }),
     ]);
     const titleOf = new Map<string, string>(
       (missions.data ?? []).map((m) => [m.id as string, m.title as string]),
     );
+    const { TOOL_REGISTRY } = await import("@/lib/ai/tools/registry.server");
+    const effectiveMode = new Map(
+      resolveToolAccess(
+        Object.keys(TOOL_REGISTRY),
+        (tools.data ?? []) as Array<{
+          tool_name: string;
+          mode: string | null;
+          enabled: boolean | null;
+        }>,
+      ).map((t) => [t.tool_name, { tool_name: t.tool_name, mode: t.mode as string }]),
+    );
     const riskOf = new Map<string, "high" | "medium" | "low">(
-      (tools.data ?? []).map((t) => [
+      [...effectiveMode.values()].map((t) => [
         t.tool_name as string,
         (t.mode === "review" ? "high" : t.mode === "auto" ? "low" : "medium") as
           "high" | "medium" | "low",
@@ -551,15 +562,15 @@ export const getBoundary = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const { data: rows, error } = await supabase
-      .from("agent_tools")
-      .select("id,tool_name,display_name,description,category,mode,enabled")
-      .eq("user_id", userId)
-      .order("display_name");
-    if (error) throw new Error(error.message);
+    // Platform policy plus this account's overrides, never the stored rows
+    // alone: those are only the deviations now, so selecting them directly
+    // would render a boundary with nothing on it.
+    const { loadAccountTools } = await import("@/lib/ai/tools/access.server");
+    const rows = await loadAccountTools(supabase, userId);
 
     type Row = {
-      id: string;
+      // No id: a tool this account has never deviated from has no row at all,
+      // so the boundary keys on the tool name like every other surface now.
       tool_name: string;
       display_name: string | null;
       description: string | null;
@@ -584,7 +595,6 @@ export const getBoundary = createServerFn({ method: "GET" })
           : null;
 
       const t: BoundaryTool = {
-        id: raw.id,
         name: raw.tool_name,
         label: raw.display_name ?? raw.tool_name,
         what: raw.description ?? null,
@@ -635,7 +645,13 @@ export const getBoundary = createServerFn({ method: "GET" })
   });
 
 export type BoundaryTool = {
-  id: string;
+  /**
+   * The tool's NAME is its identity here, and there is no row id.
+   *
+   * Under the platform-defaults model a tool this account has never changed has
+   * no `agent_tools` row, so most of what this surface renders has no id to
+   * carry. The name is stable, unique and the thing every writer keys on.
+   */
   name: string;
   label: string;
   what: string | null;

@@ -14,6 +14,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "./runtime.server";
 import { embedOne } from "@/lib/rag/embed.server";
+import { resolveToolAccess } from "@/lib/ai/tools/defaults";
+import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 
 export type ReflectionInput = {
   userId: string;
@@ -321,11 +323,12 @@ export async function maybeProposeTrustGraduations(
   //    graduation override for this (agent, tool).
   const toolNames = candidates.map(([t]) => t);
   const [{ data: seeded }, overridesRes, pendingRes] = await Promise.all([
-    supabase
-      .from("agent_tools")
-      .select("tool_name, mode")
-      .eq("user_id", userId)
-      .in("tool_name", toolNames),
+    // Overrides only. The baseline a graduation proposal is measured against is
+    // the EFFECTIVE mode (platform default, then this account's override), not
+    // whatever rows happen to exist; under the platform model most tools have
+    // none, and reading rows alone would compute every proposal from a missing
+    // baseline and propose graduating tools nobody had ever loosened.
+    supabase.from("agent_tools").select("tool_name, mode, enabled").eq("user_id", userId),
     supabase
       .from("agent_tool_modes" as never)
       .select("tool_name, mode")
@@ -342,11 +345,14 @@ export async function maybeProposeTrustGraduations(
   // Pre-migration: the ramp tables are absent, stand down quietly.
   if (overridesRes.error || pendingRes.error) return;
 
+  // Platform default, then this account's override. Named `seededMode` still
+  // because that is what the graduation logic below calls the baseline; nothing
+  // is seeded any more.
   const seededMode = new Map(
-    ((seeded ?? []) as Array<{ tool_name: string; mode: string }>).map((t) => [
-      t.tool_name,
-      t.mode,
-    ]),
+    resolveToolAccess(
+      Object.keys(TOOL_REGISTRY),
+      (seeded ?? []) as Array<{ tool_name: string; mode: string | null; enabled: boolean | null }>,
+    ).map((t) => [t.tool_name, t.mode as string]),
   );
   const overrideMode = new Map(
     ((overridesRes.data ?? []) as unknown as Array<{ tool_name: string; mode: string }>).map(
