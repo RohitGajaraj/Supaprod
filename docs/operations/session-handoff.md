@@ -597,3 +597,81 @@ questions, run summaries, Today's headline. Two things to carry over when we do:
    (`contextualStarters({ scopeKind, scopeLabel })`), so the chip and the suggestions are one
    fact said twice. Any surface that adopts PM voice should adopt that shape too, or it will
    drift back into a hand-written constant within a release.
+
+---
+
+## 2026-08-01 (afternoon) — the boundary made legible, and work that enters anywhere
+
+Four things shipped after the Boundary surface (`ffc1cc57`). All pushed to `main`, all
+gated on tsc + lint + `bun test` 0 fail + `bun run build` green.
+
+| Commit | What |
+| --- | --- |
+| `b1f0a268` | the declined ledger, on `/boundary` |
+| `957a6978` | the graduation offer moved out of the approvals queue onto `/boundary` |
+| `74f35070` | design provenance: which of your rules shaped a drawing |
+| `cb79d9ca` | the spine track: work enters the loop anywhere, carrying its route |
+
+### The pattern that keeps repeating, now six times
+
+**Capability built, door missing.** Three of these four were not missing features. They
+were finished systems whose last step, showing the result, was skipped:
+
+- `guardrail_hits` has been written by `runtime.server.ts` at two chokepoints all along,
+  and every `agent_approvals` row is an agent stopping because policy told it to. Nothing
+  rendered either as evidence.
+- `maybeProposeTrustGraduations` is called (`reflection.server.ts:249`), writes per-(agent,
+  tool) proposals off clean streaks, honours the high-risk ceilings, guards against a recent
+  `missed` outcome, and is duplicate-protected by a partial unique index. It was rendered
+  **only inside the approvals queue**, so the one mechanism for shrinking the queue was
+  visible exclusively to someone already working it. The fix was three lines.
+- `buildDesignScaffoldHtml` has injected the workspace design language into every
+  generation since DSN-01 and then discarded the fact, so a drawing arrived with no way to
+  tell what was the workspace's and what the model invented.
+
+**Check before building. Two of the four planned builds already existed and were better
+than the version being planned.**
+
+### Code deleted an hour after being written
+
+`promotionCandidates` and `summarizeBoundary` in `boundary-ledger.ts` were written before
+the trust ramp was found, then removed. Two recommenders that can disagree about the same
+question is the "two vocabularies, neither authoritative" defect. **The engine proposes;
+the ledger remembers.** Their absence is documented in the module so a future session does
+not helpfully re-add them.
+
+### Two honesty refusals worth keeping
+
+1. **Design provenance never claims a given element came from a given rule.** Matching rule
+   titles against generated HTML was the obvious implementation and would have produced
+   mostly false negatives dressed as a verdict, the same defect as the raw cosine printed
+   as "72% match" that was removed this morning. It states what was handed over (recorded
+   fact), what has since been retired (read from the live active set, not inferred from
+   timestamps), and the strongest provable line: drawn with none of your rules means all of
+   it is invention.
+2. **The ledger does not claim "approved without changes".** `resolveApproval` has no edit
+   path, so there is no before-and-after to compare. The stronger honest reading is that
+   approval here *cannot* alter the call, so a pair always approved is latency with a
+   record attached.
+
+### ⚠️ Needs a publish before it does anything
+
+`spine_tracks` / `spine_track_members` (migration `20260801130000`) are **committed but not
+applied**. `src/lib/spine/track.functions.ts` degrades on purpose (catch, return empty, the
+same `as never` idiom `trust.functions.ts` uses), so `/plan` shows "Work in flight" with an
+empty state and nothing looks broken. **Clicking "Start it" will silently do nothing until
+Lovable applies the migration.** Check `src/integrations/supabase/types.ts` for
+`spine_tracks` before debugging the track code.
+
+### Picking this up
+
+1. **Apply the migration**, then verify a track round-trips (start on `/plan`, confirm the
+   route reads back).
+2. **Advance is written but has no caller.** `advanceTrack` exists and is the point of the
+   whole object (the next station comes from the route, not from whatever a page links to).
+   Wiring it into the station handoffs is the next real step, and it replaces `navigate()`
+   calls in components.
+3. **`attachToTrack` has no caller either.** Each station should attach its artifact as it
+   creates one, or a track will have a route and no members.
+4. **Still open from the morning:** 33 hand-rolled `sp-ctx-*` divs to convert to
+   `CtxHead`/`CtxRow`/`CtxBody` (Decide 20, Design 7, Plan 4, Ship 2).
