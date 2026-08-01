@@ -1,76 +1,90 @@
 /**
- * Discover. Redesigned, not re-skinned (SURFACE-JUSTIFICATION.md).
+ * Discover. The depth pass, 2026-08-01.
  *
- * The prototype does not draw this surface, so a port would have been an
- * assembly. The five answers, written before the code, so the next session
- * reads a decision instead of guessing at one:
+ * The 2026-07-30 pass got the SHAPE right (one call in focus, evidence in the
+ * context column, no competing panels) and stopped there. What it left is a
+ * station with one verb on it. This pass gives it the other three, shows the
+ * five scored dimensions the database was already holding, and makes the
+ * surface stop promising something the write did not keep.
  *
- * 1. WHO IS HERE, AND WHAT DID THEY COME TO DO.
- *    A product lead who has been told the crew read something. They came to
- *    find out what the reading adds up to, and to put the strongest of it into
- *    the queue as a bet. Not to browse quotes.
+ * REFERENCE, NAMED BEFORE BUILDING (founder ruling 2026-08-01: lift the proven
+ * pattern rather than invent one). A cluster is structurally an issue group, so
+ * the model is SENTRY'S ISSUE STREAM crossed with LINEAR'S TRIAGE INBOX:
+ *   - Sentry: raw events group into an issue; the row carries volume, distinct
+ *     users, first seen, last seen and a state the SYSTEM can move on its own.
+ *     "Users affected" is a separate number from "events" because 40 reports
+ *     from one account and 40 from 40 accounts are the same volume and the
+ *     opposite decision.
+ *   - Linear: one item in focus with the queue still scannable beside it, and
+ *     DIGIT KEYS are dispositions (1 keep, 2 merge, 3 decline), letters are
+ *     properties. That split is why its triage feels fast.
+ *   - Productboard: the most common real outcome is "this is more evidence for
+ *     something already in flight", which had no expression here at all.
  *
- * 2. THE ONE THING THIS SURFACE EXISTS FOR.
- *    To turn accumulated evidence into a bet. The cluster is the unit of
- *    decision here: promote one and it lands on Decide as a ranked bet with
- *    its evidence attached. That is the thing you would otherwise have to
- *    assemble by hand from twenty conversations.
+ * DELIBERATELY NOT LIFTED, and the reason matters. None of those products puts
+ * a numeric confidence score on an auto-generated cluster; Enterpret says so
+ * outright and substitutes explainability. So `themes.confidence` stays off
+ * this surface. A percentage invites an argument about the percentage. The
+ * evidence and the ability to undo are what a person actually acts on.
  *
- * 3. SIGNALS AND THE QUEUE: ONE JOB OR TWO. Asked, and answered: ONE. The
- *    ranked queue itself lives on /decide since 2026-07-13, and the raw signal
- *    feed is not a second job on this surface either, it is the evidence
- *    behind the cluster in focus. So it moved into the context column, where
- *    it describes the ONE cluster being judged rather than shouting all 200.
+ * 1. WHO IS HERE, AND WHAT THEY CAME TO DO. A product lead who has been told
+ *    the crew read something. The 2026-07-30 header said they came "to put the
+ *    strongest of it into the queue as a bet", and that was optimistic: they
+ *    came to TRIAGE. Most clusters are noise, a duplicate, or more weight for a
+ *    bet already running. Promotion is the rare terminal case, and building the
+ *    surface around the rare case is what made it shallow.
  *
- *    KEEP  the clusters, ranked by corroboration. This is where the call is
- *          actually made, and promote / draft spec are the two writes.
- *    KEEP  capture. Sense needs a way in when no connector covers what you
- *          just heard on a call. One box, one button, at the bottom.
- *    KEEP  the cold-start gate (connect a source, or open a sample workspace)
- *          and the live Sense relay line, which is silent unless a run is on.
- *    KILL  the whole SignalFeed panel. A card shell with its own masthead
- *          ("Signals captured" / "Everything sensed, verbatim, from every
- *          source"), a three-mode composer, three verbatim signal cards, a
- *          show-more, and a footer restating the masthead. It was a second
- *          surface stacked on the first, and it is exactly the verbosity the
- *          founder named. Its one irreplaceable part, the verbatim evidence,
- *          is now the context column.
- *    KILL  the AutoClustered panel shell around the clusters: its own header,
- *          its own paragraph of explanation, its own source-filter chip row,
- *          its own show-more, its own drawer. The clusters survive; the
- *          furniture around them does not. A source filter over four rows is
- *          a facet explosion over nothing.
- *    KILL  Market watch (StrategySection). Two more panels side by side, and
- *          neither is this person's job: weekly competitor briefs and a
- *          self-seeding watch list with nothing to decide on it. Read-only by
- *          its own contract. It also half-duplicated /plan.
- *    KILL  per-signal promote / delete / detail sheet. Signal-level CRUD is an
- *          archivist's job, and a single signal promoting straight to a bet
- *          skips the corroboration this whole surface is ranked on.
- *    KILL  the bulk paste mode. One capture control now takes one line or
- *          twenty; a mode toggle for the same job was the assembly.
- *    MOVE  the weekly briefs, which already render on /plan via IntelBriefPanel.
- *    MOVE  the tracked-entity watch list to /engine-room. "What are we
- *          watching, and when was each last checked" is machinery status, and
- *          the doctrine puts machinery behind that door.
- *    MOVE  the queue deep links (?tab=queue, ?tab=opportunities) to /decide,
- *          handled in the route file. They used to land here silently on a
- *          desk with no queue on it, which is a lie to the link.
+ * 2. THE ONE THING THIS SURFACE EXISTS FOR. To turn accumulated evidence into a
+ *    judgment, and to leave the judgment on the record whichever way it went. A
+ *    record that only holds the yeses is a highlight reel.
  *
- * 4. ONE CLICK AWAY. A cluster row is its title plus one different fact (how
- *    many signals, how many sources), and it never wraps. Clicking it makes it
- *    the call in front of you, and only then does its verbatim evidence
- *    appear, in the context column. Promote and the full bet opens on /decide.
+ * 3. WHAT THIS PASS ADDED, and what was already here.
+ *    FIXED the surface's own broken promise. The Gate said "this evidence
+ *          travels with it" and only ONE theme -> opportunity lineage edge was
+ *          written, so /decide showed a stale integer and the walk back could
+ *          not reach a single quote. promoteThemeToOpportunity now writes an
+ *          edge per member signal, and carries the theme's product scope, which
+ *          it also dropped.
+ *    ADDED the brain, on the surface that computes it. cluster.server.ts calls
+ *          computeNovelty on every insert and stores the basis on the row, and
+ *          none of it was ever rendered. The Record now speaks here, one
+ *          station EARLIER than /decide, because killing a repeat at Discover
+ *          costs nothing and killing it at Decide has already spent a critic
+ *          run and a person's attention.
+ *    ADDED the ranking the repo already wrote. brain/score.ts is a pure, tested
+ *          severity x recency x novelty function. The surface sorted on raw
+ *          `frequency`, which is the one dimension that says nothing about
+ *          whether a thing is new or urgent.
+ *    ADDED distinct sources as a first-class number beside volume, per Sentry.
+ *    ADDED decline and merge, with digit keys, and a Receipt for each.
+ *    ADDED source coverage, which closes a genuine asymmetry: an AGENT has had
+ *          `sources.status` since 2026-06-30 and the human standing on the
+ *          surface those signals feed had no equivalent anywhere in the product.
+ *    KEPT  every 2026-07-30 decision. The SignalFeed panel stays dead, market
+ *          watch stays gone, capture stays one box, and the queue deep links
+ *          still redirect to /decide. Those were right.
  *
- * 5. THE MOMENT, AND THE CONFUSION. The moment is reading four sentences from
- *    four different sources that turn out to be the same complaint, which is
- *    the thing a PM normally spends a week discovering by hand. The confusion
- *    to avoid was the old one: three panels each claiming to be the subject,
- *    so nobody could tell whether the surface wanted them to read, to cluster,
- *    or to decide. There is now one call on screen at a time.
+ * 4. ONE CLICK AWAY. A row is its title and one different fact, and it never
+ *    wraps. Focus moves with the arrow keys and the list stays on screen, which
+ *    is the whole point of triage: you judge this cluster relative to the ones
+ *    around it, so a modal or a full-page detail would break the comparison.
  *
- * VOICE: never greet, always report. The first line is a count that came out
- * of the record, or an honest statement that there is nothing in it yet.
+ * 5. THE MOMENT, AND THE CONFUSION. The moment is the record saying "you
+ *    decided this in March and it missed" while the thing is still a cluster
+ *    and not yet a bet. The confusion to avoid is a wall of scores: five
+ *    numbers per row is not depth, it is a spreadsheet, and the founder's
+ *    complaint about scatter is exactly that failure one step later.
+ *
+ * KNOWN NEXT STEP, recorded rather than pretended. Sentry's archive is
+ * CONDITIONAL ("until it escalates / until N users are affected") and ours is
+ * not, because a dismissed cluster here can never grow: clusterSignalsCore only
+ * ever reads signals with a null theme_id and creates NEW themes, so nothing
+ * joins an existing one and `last_signal_at` is frozen at creation. Conditional
+ * decline is the right design and it is blocked on re-clustering into existing
+ * themes, not on this surface.
+ *
+ * VOICE: never greet, always report. The first line is a count that came out of
+ * the record, or an honest statement that there is nothing in it yet.
  */
 
 import * as React from "react";
@@ -82,13 +96,19 @@ import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { toast } from "@/lib/notify";
+import { scoreTheme } from "@/lib/brain/score";
 import {
+  attachThemeToOpportunity,
   clusterSignals,
   createSignal,
   generatePrd,
+  getSenseCoverage,
+  getThemePrecedent,
+  listOpportunities,
   listSignals,
   listThemes,
   promoteThemeToOpportunity,
+  setThemeStatus,
 } from "@/lib/discovery.functions";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import {
@@ -100,10 +120,18 @@ import {
   AgentMark,
   Block,
   Button,
+  CtxBody,
+  CtxHead,
+  CtxRow,
+  Empty,
   Failed,
   Gate,
+  MoreItem,
+  MoreMenu,
   Num,
   PageHead,
+  Receipt,
+  Record,
   Row,
   Surface,
   Textarea,
@@ -120,6 +148,9 @@ const SENSE_AGENTS = ["discovery-scout", "researcher"];
 /** How much evidence the ONE cluster in focus shows before it says "and N
  * more". Four quotes is enough to see the pattern; twelve is a wall. */
 const QUOTES_IN_FOCUS = 4;
+
+/** How many sources the coverage line names before it counts the rest. */
+const SOURCES_IN_CONTEXT = 5;
 
 /** Plain-words relative time, whole phrase, so it never reads "now ago". */
 function since(iso: string | null | undefined): string | null {
@@ -144,6 +175,28 @@ function markState(state: string): MarkState {
 
 const plural = (n: number) => (n === 1 ? "" : "s");
 
+/**
+ * Novelty as a CLAIM, never as a percentage.
+ *
+ * `themes.novelty` is a 0..1 remap of cosine similarity against decision memory
+ * and prior themes, computed at cluster time. Printing "0.34" would be printing
+ * our own arithmetic at someone; the useful reading is the sentence it implies,
+ * and the receipt behind it is the Record below the Gate.
+ */
+function noveltyClaim(novelty: number | null | undefined): string | null {
+  if (typeof novelty !== "number") return null;
+  if (novelty >= 0.75) return "new to this workspace";
+  if (novelty >= 0.4) return "close to something on the record";
+  return "the record has seen this before";
+}
+
+type ReceiptState = {
+  verb: string;
+  consequence: React.ReactNode;
+  handoff?: { slug: string | null; name?: string | null } | null;
+  failed?: boolean;
+};
+
 export function DiscoverSurface() {
   // The spine, lit on this station. One shared query across all seven
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
@@ -162,11 +215,24 @@ export function DiscoverSurface() {
   const fDraftSpec = useServerFn(generatePrd);
   const fSampleEnabled = useServerFn(isSampleWorkspaceEnabled);
   const fTriggerSample = useServerFn(triggerSampleWorkspace);
+  const fCoverage = useServerFn(getSenseCoverage);
+  const fPrecedent = useServerFn(getThemePrecedent);
+  const fSetStatus = useServerFn(setThemeStatus);
+  const fAttach = useServerFn(attachThemeToOpportunity);
+  const fOpportunities = useServerFn(listOpportunities);
 
   /** Which cluster is the call in front of you. Same idea as the approvals
    *  queue: exactly one thing asks at a time, the rest are one-line rows. */
   const [focusedId, setFocusedId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState("");
+  /** The merge picker, opened IN PLACE rather than in a pane. primitives.tsx
+   *  bans the slide-over and says a lane that wanted one built its detail view
+   *  in place instead, "and that is the better surface". */
+  const [picking, setPicking] = React.useState(false);
+  /** What the last judgment caused. Replaces the success toast the surface used
+   *  to fire, per anti-slop.md §5: a toast confirms the click registered, a
+   *  Receipt renders what the click DID. */
+  const [receipt, setReceipt] = React.useState<ReceiptState | null>(null);
 
   // Shared cache with FleetView's "By Agent" tab (same queryKey): a cache read
   // here, not a second network call, when both are mounted on one workspace.
@@ -186,18 +252,15 @@ export function DiscoverSurface() {
     queryKey: ["themes", activeProductId],
     queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
   });
+  const coverage = useQuery({
+    queryKey: ["sense-coverage", activeProductId],
+    queryFn: () => fCoverage({ data: { productId: activeProductId } }),
+  });
 
   const rows = React.useMemo(() => signals.data?.signals ?? [], [signals.data]);
   type SignalRow = (typeof rows)[number];
   const loadError = (signals.error ?? themes.error) as Error | null;
   const loading = signals.isLoading || themes.isLoading;
-
-  /** Ranked by corroboration, strongest first. Same comparator the retired
-   *  panel used, so the order a user learned does not change under them. */
-  const ranked = React.useMemo(
-    () => [...(themes.data?.themes ?? [])].sort((a, b) => b.frequency - a.frequency),
-    [themes.data],
-  );
 
   /** Member signals per cluster, grouped from data already in hand. Newest
    *  first, because listSignals returns newest first. */
@@ -212,31 +275,103 @@ export function DiscoverSurface() {
     return map;
   }, [rows]);
 
+  /**
+   * Ranked by the brain's own score, not by raw volume.
+   *
+   * `scoreTheme` is severity x recency x novelty-vs-memory, pure and unit
+   * tested, and it existed for a month while this surface sorted on
+   * `b.frequency - a.frequency`. Volume is the one dimension that cannot tell
+   * you whether a thing is urgent or whether you already answered it.
+   *
+   * `nowMs` is hoisted out of the comparator so every row is scored against one
+   * instant; scoring inside the sort would compare rows against slightly
+   * different clocks and is not a stable ordering.
+   *
+   * Dismissed and merged clusters leave the ranking. They are not deleted and
+   * their evidence is untouched; they have simply been judged.
+   */
+  const ranked = React.useMemo(() => {
+    const all = themes.data?.themes ?? [];
+    const nowMs = Date.now();
+    return all
+      .filter((t) => {
+        const st = (t.status ?? "new") as string;
+        return st !== "dismissed" && st !== "merged";
+      })
+      .map((t) => {
+        const members = membersByTheme.get(t.id) ?? [];
+        // The newest member we actually hold beats the stored column, which
+        // cluster.server.ts writes once at creation and never updates.
+        const lastAt = members[0]?.created_at ?? t.last_signal_at ?? t.created_at;
+        return {
+          theme: t,
+          members,
+          lastAt,
+          sources: new Set(members.map((s) => s.source)).size,
+          score: scoreTheme(
+            {
+              severity: t.severity,
+              confidence: t.confidence,
+              createdAt: t.created_at,
+              lastSignalAt: lastAt,
+              novelty: t.novelty,
+            },
+            nowMs,
+          ),
+        };
+      })
+      .sort((a, b) => b.score - a.score || b.theme.frequency - a.theme.frequency);
+  }, [themes.data, membersByTheme]);
+
   const unclustered = React.useMemo(() => {
-    const known = new Set(ranked.map((t) => t.id));
+    const known = new Set((themes.data?.themes ?? []).map((t) => t.id));
     return rows.filter((s) => !s.theme_id || !known.has(s.theme_id)).length;
-  }, [rows, ranked]);
+  }, [rows, themes.data]);
 
   const signalsEmpty = !loading && !loadError && rows.length === 0;
 
   // The focus always points at something that exists, and defaults to the
-  // strongest cluster, so the surface opens on the call worth making.
+  // top-ranked cluster, so the surface opens on the call worth making.
   React.useEffect(() => {
     if (ranked.length === 0) {
       setFocusedId(null);
       return;
     }
-    if (!ranked.some((t) => t.id === focusedId)) setFocusedId(ranked[0].id);
+    if (!ranked.some((r) => r.theme.id === focusedId)) setFocusedId(ranked[0].theme.id);
   }, [ranked, focusedId]);
 
-  const focused = ranked.find((t) => t.id === focusedId) ?? null;
-  const focusedMembers: SignalRow[] = focused ? (membersByTheme.get(focused.id) ?? []) : [];
-  const focusedSources = [...new Set(focusedMembers.map((s) => s.source))];
+  const focusedIndex = ranked.findIndex((r) => r.theme.id === focusedId);
+  const focused = focusedIndex >= 0 ? ranked[focusedIndex] : null;
+  const focusedMembers = focused?.members ?? [];
+  const focusedSources = focused ? [...new Set(focusedMembers.map((s) => s.source))] : [];
+
+  /**
+   * What the record already knows about the cluster in focus.
+   *
+   * Enabled only when something is focused, and keyed on the theme, so moving
+   * the focus is one cheap read rather than a refetch of the whole surface. The
+   * server function is fail-safe by contract, so a quiet brain renders nothing
+   * rather than erroring a surface whose main job still works.
+   */
+  const precedent = useQuery({
+    queryKey: ["theme-precedent", focused?.theme.id],
+    queryFn: () => fPrecedent({ data: { theme_id: focused!.theme.id } }),
+    enabled: Boolean(focused?.theme.id),
+    staleTime: 5 * 60_000,
+  });
+
+  /** The open bets, read only while the merge picker is up. */
+  const opportunities = useQuery({
+    queryKey: ["opportunities"],
+    queryFn: () => fOpportunities(),
+    enabled: picking,
+  });
 
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["signals"] });
     void qc.invalidateQueries({ queryKey: ["themes"] });
     void qc.invalidateQueries({ queryKey: ["opportunities"] });
+    void qc.invalidateQueries({ queryKey: ["sense-coverage"] });
   };
 
   // SW-6 cold start: from an empty desk a user can open a SEPARATE Explore
@@ -259,17 +394,67 @@ export function DiscoverSurface() {
   });
   const sampleOffered = signalsEmpty && (sampleEnabledQ.data?.enabled ?? false);
 
-  // The surface's one write that changes the loop: a cluster becomes a ranked
-  // bet, and its evidence travels with it (recordLineageSafe, server side).
+  // ---- The three dispositions. Digits, per Linear: mutually exclusive,
+  // terminal, one keystroke. Each one renders what it caused. ----
+
   const promote = useMutation({
     mutationFn: (themeId: string) => fPromote({ data: { theme_id: themeId } }),
-    onSuccess: () => {
-      toast.success("Kept. It is a ranked bet now.", {
-        action: { label: "Open Decide", onClick: () => navigate({ to: "/decide" }) },
+    onSuccess: (res, themeId) => {
+      const title = ranked.find((r) => r.theme.id === themeId)?.theme.title ?? "the cluster";
+      const carried = (res as { evidence?: number } | undefined)?.evidence ?? 0;
+      setReceipt({
+        verb: "You kept it",
+        consequence: (
+          <>
+            {title} is a ranked bet, carrying <Num>{carried}</Num> signal{plural(carried)} of
+            evidence.
+          </>
+        ),
+        // The Critic genuinely picks it up inside promoteThemeToOpportunity, so
+        // the arrow points at something real. Never an arrow to nowhere.
+        handoff: { slug: "critic", name: "Critic" },
       });
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+  });
+
+  const decline = useMutation({
+    mutationFn: (themeId: string) =>
+      fSetStatus({ data: { theme_id: themeId, status: "dismissed" } }),
+    onSuccess: (_r, themeId) => {
+      const title = ranked.find((r) => r.theme.id === themeId)?.theme.title ?? "the cluster";
+      setReceipt({
+        verb: "You said it is not a pattern",
+        consequence: (
+          <>{title} left the ranking. Its evidence is still on the record, and the call is too.</>
+        ),
+      });
+      invalidate();
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
+  });
+
+  const attach = useMutation({
+    mutationFn: (v: { themeId: string; oppId: string }) =>
+      fAttach({ data: { theme_id: v.themeId, opportunity_id: v.oppId } }),
+    onSuccess: (res) => {
+      const r = res as { opportunity: { id: string; title: string }; evidence: number };
+      setPicking(false);
+      setReceipt({
+        verb: "You merged it",
+        consequence: (
+          <>
+            <Num>{r.evidence}</Num> signal{plural(r.evidence)} now back {r.opportunity.title}.
+          </>
+        ),
+      });
+      invalidate();
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
   });
 
   // The spec brief aggregates every member quote plus the cluster summary,
@@ -277,11 +462,10 @@ export function DiscoverSurface() {
   // not change shape because the surface did.
   const draftSpec = useMutation({
     mutationFn: async (themeId: string) => {
-      const theme = ranked.find((t) => t.id === themeId);
-      const members = membersByTheme.get(themeId) ?? [];
-      const brief = `Theme: ${theme?.title ?? ""}\n${
-        theme?.summary ? `Summary: ${theme.summary}\n` : ""
-      }Evidence:\n${members.map((m) => `- "${m.content}" (${m.source})`).join("\n")}`.slice(
+      const entry = ranked.find((r) => r.theme.id === themeId);
+      const brief = `Theme: ${entry?.theme.title ?? ""}\n${
+        entry?.theme.summary ? `Summary: ${entry.theme.summary}\n` : ""
+      }Evidence:\n${(entry?.members ?? []).map((m) => `- "${m.content}" (${m.source})`).join("\n")}`.slice(
         0,
         4000,
       );
@@ -289,19 +473,20 @@ export function DiscoverSurface() {
       return { id: r.prd.id };
     },
     onSuccess: (r) => {
-      toast.success("Spec drafted");
       navigate({ to: "/plan/spec/$id", params: { id: r.id }, search: { tab: "contract" } });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
   });
 
   const cluster = useMutation({
     mutationFn: () => fCluster({ data: { productId: activeProductId } }),
     onSuccess: (r) => {
-      toast.success(r.message);
+      setReceipt({ verb: "You ran the reading", consequence: r.message });
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
   });
 
   // One control, one or many. A single line captures one signal; paste twenty
@@ -328,6 +513,57 @@ export function DiscoverSurface() {
   });
 
   const captureReady = draft.trim().length >= 2;
+  const busy = promote.isPending || decline.isPending || attach.isPending;
+
+  /**
+   * The triage keyboard. Digits dispose, arrows move, Escape backs out.
+   *
+   * Guarded against every field on the surface, because the capture box is a
+   * textarea sitting on the same screen and a person typing "1 more thing" must
+   * not promote a bet. `metaKey`/`ctrlKey`/`altKey` are excluded so browser and
+   * OS shortcuts keep working.
+   */
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el?.isContentEditable)
+        return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === "Escape" && picking) {
+        e.preventDefault();
+        setPicking(false);
+        return;
+      }
+      if (!focused || busy || picking) return;
+
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        const next = ranked[Math.min(focusedIndex + 1, ranked.length - 1)];
+        if (next) setFocusedId(next.theme.id);
+        return;
+      }
+      if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        const prev = ranked[Math.max(focusedIndex - 1, 0)];
+        if (prev) setFocusedId(prev.theme.id);
+        return;
+      }
+      if (e.key === "1") {
+        e.preventDefault();
+        promote.mutate(focused.theme.id);
+      } else if (e.key === "2") {
+        e.preventDefault();
+        setPicking(true);
+      } else if (e.key === "3") {
+        e.preventDefault();
+        decline.mutate(focused.theme.id);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [focused, focusedIndex, ranked, busy, picking, promote, decline]);
 
   const headline: React.ReactNode = loading ? (
     "Reading the record."
@@ -337,79 +573,127 @@ export function DiscoverSurface() {
     "Nothing has been sensed yet."
   ) : ranked.length === 0 ? (
     <>
-      <Num>{rows.length}</Num> signals in, nothing clustered yet.
+      <Num>{rows.length}</Num> signals in, nothing waiting on a call.
     </>
   ) : ranked.length === 1 ? (
-    "One cluster has formed."
+    "One cluster is waiting on a call."
   ) : (
     <>
-      <Num>{ranked.length}</Num> clusters have formed.
+      <Num>{ranked.length}</Num> clusters are waiting on a call.
     </>
   );
+
+  const cov = coverage.data;
+  const claim = noveltyClaim(focused?.theme.novelty);
+  const seenBefore = precedent.data?.precedent ?? [];
+  const priorTheme = precedent.data?.priorTheme ?? null;
 
   return (
     <Surface
       context={
-        watcher || focused ? (
-          <>
-            {watcher ? (
-              <>
-                <div className="sp-ctx-head">Reading for you</div>
-                <div className="sp-ctx-row">
+        <>
+          {watcher ? (
+            <>
+              <CtxHead>Reading for you</CtxHead>
+              <CtxRow
+                mark={
                   <AgentMark
                     slug={watcher.slug}
                     name={watcher.name}
                     state={markState(watcher.state)}
                   />
-                  <span>
-                    <span className="sp-ctx-name">
-                      {agentDisplayName(watcher.slug, watcher.name)}
-                    </span>
-                    <span className="sp-ctx-sub">
-                      {since(watcher.lastActiveAt) ? (
-                        <>
-                          last read <Num>{since(watcher.lastActiveAt)}</Num>
-                        </>
-                      ) : (
-                        "has not read anything yet"
-                      )}
-                    </span>
-                  </span>
-                </div>
-              </>
-            ) : null}
+                }
+                name={agentDisplayName(watcher.slug, watcher.name)}
+                sub={
+                  since(watcher.lastActiveAt) ? (
+                    <>
+                      last read <Num>{since(watcher.lastActiveAt)}</Num>
+                    </>
+                  ) : (
+                    "has not read anything yet"
+                  )
+                }
+              />
+            </>
+          ) : null}
 
-            {/* The evidence, and it belongs to the ONE cluster in focus. This
-              is what the whole signal feed panel was for; here it is doing
-              the job it was actually needed for, verbatim and attributed. */}
-            {focused && focusedMembers.length > 0 ? (
-              <>
-                <div className="sp-ctx-head">What backs this</div>
-                {focusedMembers.slice(0, QUOTES_IN_FOCUS).map((s) => (
-                  <div className="sp-ctx-row" key={s.id}>
-                    <span>
-                      <span className="sp-ctx-name">{signalPreview(s.content, 96)}</span>
-                      <span className="sp-ctx-sub">
-                        {s.source}, <Num>{since(s.created_at)}</Num>
-                      </span>
-                    </span>
-                  </div>
-                ))}
-                {focusedMembers.length > QUOTES_IN_FOCUS ? (
-                  <div className="sp-ctx-body">
-                    <Num>{focusedMembers.length - QUOTES_IN_FOCUS}</Num> more say the same thing.
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-          </>
-        ) : null
+          {/* WHAT IS FEEDING THIS DESK. The agent has had `sources.status`
+            since 2026-06-30 and the person reading its output had nothing.
+            A ranking is only as trustworthy as the intake behind it, and a
+            source that has gone quiet is invisible unless something says so. */}
+          {cov && cov.sources.length > 0 ? (
+            <>
+              <CtxHead>What is feeding this</CtxHead>
+              {cov.sources.slice(0, SOURCES_IN_CONTEXT).map((s) => (
+                <CtxRow
+                  key={s.source}
+                  name={s.source}
+                  sub={
+                    s.quiet ? (
+                      <>
+                        quiet for <Num>7d</Num>, sent <Num>{s.prior}</Num> before that
+                      </>
+                    ) : (
+                      <>
+                        <Num>{s.recent}</Num> in <Num>7d</Num>
+                        {s.lastAt ? (
+                          <>
+                            , last <Num>{since(s.lastAt)}</Num>
+                          </>
+                        ) : null}
+                      </>
+                    )
+                  }
+                />
+              ))}
+              {cov.sources.length > SOURCES_IN_CONTEXT ? (
+                <CtxBody>
+                  <Num>{cov.sources.length - SOURCES_IN_CONTEXT}</Num> more source
+                  {plural(cov.sources.length - SOURCES_IN_CONTEXT)}.
+                </CtxBody>
+              ) : null}
+              {cov.quietCount > 0 ? (
+                <CtxBody>
+                  <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver and has
+                  not this week.
+                </CtxBody>
+              ) : null}
+            </>
+          ) : null}
+
+          {/* The evidence, and it belongs to the ONE cluster in focus. This
+            is what the whole signal feed panel was for; here it is doing
+            the job it was actually needed for, verbatim and attributed. */}
+          {focused && focusedMembers.length > 0 ? (
+            <>
+              <CtxHead>What backs this</CtxHead>
+              {focusedMembers.slice(0, QUOTES_IN_FOCUS).map((s) => (
+                <CtxRow
+                  key={s.id}
+                  name={signalPreview(s.content, 96)}
+                  sub={
+                    <>
+                      {s.source}, <Num>{since(s.created_at)}</Num>
+                    </>
+                  }
+                />
+              ))}
+              {focusedMembers.length > QUOTES_IN_FOCUS ? (
+                <CtxBody>
+                  <Num>{focusedMembers.length - QUOTES_IN_FOCUS}</Num> more say the same thing.
+                </CtxBody>
+              ) : null}
+            </>
+          ) : null}
+        </>
       }
     >
       <PageHead
         title={headline}
         sub={
-          ranked.length > 0 ? "Ranked by how many separate sources say the same thing." : undefined
+          ranked.length > 0
+            ? "Ordered by how severe, how recent, and how new to the record each one is."
+            : undefined
         }
       />
 
@@ -460,45 +744,80 @@ export function DiscoverSurface() {
             </Button>
           ) : null}
         </Gate>
+      ) : picking && focused ? (
+        /* THE MERGE PICKER, in place. Productboard's link-to-feature move: the
+           most common real outcome is that a cluster is more weight for a bet
+           already running, not a new one. Opened over the Gate rather than
+           beside it, because it is the same one question in a different mode. */
+        <Gate
+          question="Which bet does this belong to?"
+          lines={[
+            <span key="what">
+              Its <Num>{focused.theme.frequency}</Num> signal{plural(focused.theme.frequency)} will
+              back that bet instead of starting a new one.
+            </span>,
+          ]}
+        >
+          <Button onClick={() => setPicking(false)}>Never mind</Button>
+        </Gate>
       ) : focused ? (
         <Gate
-          question={focused.title}
+          question={focused.theme.title}
           lines={
             [
+              /* Volume and distinct sources are two numbers because they are two
+                 facts. Sentry keeps "events" and "users affected" apart for the
+                 same reason: one loud account and a broad pattern read the same
+                 by volume and are opposite decisions. */
               <span key="ev">
-                <Num>{focused.frequency}</Num> signal{plural(focused.frequency)} from{" "}
-                <Num>{focusedSources.length}</Num> source{plural(focusedSources.length)}
+                <Num>{focused.theme.frequency}</Num> signal{plural(focused.theme.frequency)} from{" "}
+                <Num>{focusedSources.length}</Num> separate source
+                {plural(focusedSources.length)}
                 {focusedSources.length > 0 ? `: ${focusedSources.slice(0, 3).join(", ")}` : ""}.
               </span>,
-              focused.summary ? <span key="sum">{focused.summary}</span> : null,
-              <span key="next">
-                It opens on Decide as a ranked bet, and this evidence travels with it.
+              <span key="when">
+                First heard <Num>{since(focused.theme.created_at)}</Num>, most recently{" "}
+                <Num>{since(focused.lastAt)}</Num>
+                {claim ? `, and it is ${claim}` : ""}.
               </span>,
+              focused.theme.summary ? <span key="sum">{focused.theme.summary}</span> : null,
             ].filter(Boolean) as React.ReactNode[]
           }
         >
           <Button
             variant="primary"
-            disabled={promote.isPending}
-            onClick={() => promote.mutate(focused.id)}
+            disabled={busy}
+            shortcut="1"
+            onClick={() => promote.mutate(focused.theme.id)}
           >
             {promote.isPending ? "Making it a bet" : "Make it a bet"}
           </Button>
-          <Button disabled={draftSpec.isPending} onClick={() => draftSpec.mutate(focused.id)}>
-            {draftSpec.isPending ? "Drafting" : "Draft the spec"}
+          <Button disabled={busy} shortcut="2" onClick={() => setPicking(true)}>
+            Add to an existing bet
           </Button>
+          <MoreMenu label={`More for ${focused.theme.title}`}>
+            <MoreItem onClick={() => decline.mutate(focused.theme.id)}>Not a pattern (3)</MoreItem>
+            <MoreItem onClick={() => draftSpec.mutate(focused.theme.id)}>
+              {draftSpec.isPending ? "Drafting the spec" : "Draft the spec"}
+            </MoreItem>
+          </MoreMenu>
         </Gate>
       ) : (
         <Gate
-          question="Nothing has clustered yet."
+          question="Nothing is waiting on a call."
           lines={[
             <span key="have">
-              <Num>{rows.length}</Num> signal{plural(rows.length)} captured and waiting to be read
-              together.
+              <Num>{rows.length}</Num> signal{plural(rows.length)} captured
+              {unclustered > 0 ? (
+                <>
+                  , <Num>{unclustered}</Num> of them not yet read together
+                </>
+              ) : null}
+              .
             </span>,
             <span key="what">
-              Clustering groups the ones saying the same thing, then ranks them by how many separate
-              sources agree.
+              Clustering groups the ones saying the same thing, then ranks them by how severe, how
+              recent, and how new to the record each one is.
             </span>,
           ]}
         >
@@ -508,29 +827,105 @@ export function DiscoverSurface() {
         </Gate>
       )}
 
-      {/* Everything else that clustered, one line each. The title, and one
-        DIFFERENT fact: how much agrees with it. Clicking makes it the call
-        in front of you, which is where its evidence appears. */}
-      {ranked.length > 1 ? (
-        <Block title="Also clustered">
-          {ranked
-            .map((t, i) => ({ theme: t, rank: i + 1 }))
-            .filter(({ theme }) => theme.id !== focusedId)
-            .map(({ theme, rank }) => {
-              const sources = new Set((membersByTheme.get(theme.id) ?? []).map((s) => s.source))
-                .size;
-              return (
+      {/* THE RECORD SPEAKING, and it belongs here as much as on /decide.
+        cluster.server.ts already embeds every theme and scores it against
+        decision memory and prior themes; until now nothing rendered the
+        answer. Catching a repeat while it is still a cluster costs nothing.
+        Kept directly under the Gate, the placement /decide proved: a side
+        rail would demote the one differentiated moment to a statistic. */}
+      {focused && !picking && seenBefore.length > 0
+        ? seenBefore.slice(0, 2).map((p) => (
+            <Record
+              key={p.id}
+              evidence={
+                <>
+                  {p.verdict === "validated"
+                    ? "it paid off"
+                    : p.verdict === "missed"
+                      ? "it did not pay off"
+                      : "the result was mixed"}
+                </>
+              }
+            >
+              {p.title ? (
+                <>
+                  You have reasoned this way before, on {p.title}, and {p.summary}
+                </>
+              ) : (
+                p.summary
+              )}
+            </Record>
+          ))
+        : null}
+
+      {/* The weaker claim, and only when there is no outcome to show instead.
+        "You have clustered this shape before" is worth saying and is not the
+        same sentence as "here is how it went". */}
+      {focused && !picking && seenBefore.length === 0 && priorTheme ? (
+        <Record evidence={<>clustered separately</>}>
+          This closely repeats an earlier cluster, {priorTheme.title}.
+        </Record>
+      ) : null}
+
+      {/* What your last judgment caused. One at a time, and it survives until
+        the next one, so the surface never erases the trace of a decision. */}
+      {receipt ? (
+        <Receipt
+          verb={receipt.verb}
+          consequence={receipt.consequence}
+          handoff={receipt.handoff}
+          failed={receipt.failed}
+        />
+      ) : null}
+
+      {/* The bets a cluster can be merged into. Rendered only in picker mode,
+        so the surface still shows one question at a time. */}
+      {picking && focused ? (
+        <Block title="Open bets">
+          {opportunities.isLoading ? (
+            <Empty>Reading the queue.</Empty>
+          ) : (opportunities.data?.opportunities ?? []).length === 0 ? (
+            <Empty>
+              There are no bets yet, so there is nothing to merge into. Keeping it makes the first
+              one.
+            </Empty>
+          ) : (
+            (opportunities.data?.opportunities ?? [])
+              .filter((o) => o.status !== "shipped" && o.status !== "dropped")
+              .slice(0, 12)
+              .map((o) => (
                 <Row
-                  key={theme.id}
+                  key={o.id}
                   tight
-                  marks={<Num>{rank}</Num>}
-                  lead={theme.title}
-                  sub={`${theme.frequency} signal${plural(theme.frequency)} · ${sources} source${plural(sources)}`}
-                  time={since(theme.created_at)}
-                  onClick={() => setFocusedId(theme.id)}
+                  lead={o.title}
+                  sub={o.status ?? "backlog"}
+                  onClick={() => attach.mutate({ themeId: focused.theme.id, oppId: o.id })}
                 />
-              );
-            })}
+              ))
+          )}
+        </Block>
+      ) : null}
+
+      {/* Everything else waiting on a call, one line each. The title, and the
+        facts that differ between them: how much agrees, how many separate
+        sources, and when it was last heard. Clicking makes it the call in
+        front of you, which is where its evidence and its record appear. */}
+      {!picking && ranked.length > 1 ? (
+        <Block title="Also waiting">
+          {ranked
+            .map((entry, i) => ({ entry, rank: i + 1 }))
+            .filter(({ entry }) => entry.theme.id !== focusedId)
+            .map(({ entry, rank }) => (
+              <Row
+                key={entry.theme.id}
+                tight
+                marks={<Num>{rank}</Num>}
+                lead={entry.theme.title}
+                sub={`${entry.theme.frequency} signal${plural(entry.theme.frequency)} · ${entry.sources} source${plural(entry.sources)}`}
+                time={since(entry.lastAt)}
+                onClick={() => setFocusedId(entry.theme.id)}
+              />
+            ))}
         </Block>
       ) : null}
 
@@ -538,7 +933,7 @@ export function DiscoverSurface() {
         One box: one line captures one signal, twenty pasted lines capture
         twenty. The loose count is the only other thing worth saying here,
         and it carries its own action rather than a separate panel. */}
-      {!signalsEmpty && !loadError && !loading ? (
+      {!signalsEmpty && !loadError && !loading && !picking ? (
         <Block
           title="Capture what you heard"
           // Offered here only once clusters exist. With none, the Gate above

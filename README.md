@@ -128,6 +128,16 @@ Six statements that should never drift:
 
 ## The MOAT: why a frontier-model launch does not kill us
 
+> **THE SIX-MONTH-FORWARD DOCTRINE (founder ruling 2026-08-01).** We do not build for today's
+> problem. Every design is made for where the industry will be six months out, and must also
+> close the pain the user carried from the past. Five tests, all of which a design passes
+> before it is built: (1) assume the model layer commoditizes, so anything one frontier release
+> could absorb is not a moat; (2) assume a large vendor ships our vertical next quarter, and
+> name what we still have that they do not; (3) agentic-first, not agent-assisted, so a surface
+> an autonomous agent cannot run end to end under policy is legacy the day it ships;
+> (4) solve backwards and forwards; (5) delight is a requirement, not a finishing pass.
+> Canonical: [`AGENTS.md`](./AGENTS.md) "THE SIX-MONTH-FORWARD DOCTRINE".
+
 **The moat is the decision layer: what to build, and whether the call was right.** Vibe-coding tools (Lovable, Cursor) own the build layer, how to build, which is racing to zero; we own the decision layer, which has no fast oracle and does not commoditize, and we run the build ourselves on the same commodity models they race on (own-engine ruling 2026-07-22; Lovable builds the wrong thing beautifully; Supaprod decides, builds the right thing, and proves it). The model is **not** the moat; neither is raw data; Supaprod is model-agnostic, so a lab's horizontal "PM agent" is a _capability we plug in_. **Memory is one layer of the moat, not the headline.** Full articulation, competition map (integrate / absorb / race / ignore), the PM/two-phase positioning, and the YC objection Q&A: **[`docs/strategy/moat.md`](./docs/strategy/moat.md)**. The defensibility is five layers a model release cannot replicate:
 
 1. **End-to-end lifecycle orchestration.** Owning and orchestrating the entire loop, discover $\rightarrow$ build $\rightarrow$ ship $\rightarrow$ launch $\rightarrow$ support $\rightarrow$ learn, as one governed system.

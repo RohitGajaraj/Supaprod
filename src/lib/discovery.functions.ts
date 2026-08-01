@@ -5,6 +5,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { extractArrayField } from "@/lib/ai/json-shape";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { runCritic } from "@/lib/ai/critic.server";
+import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { recordLineage, recordLineageSafe } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { retrieve } from "@/lib/rag/retriever.server";
@@ -393,6 +394,316 @@ export const toggleAutoCluster = createServerFn({ method: "POST" })
     return { ok: true, enabled: data.enabled };
   });
 
+// ---------- SENSE TRIAGE: the station's missing verbs (2026-08-01) ----------
+//
+// Discover shipped with exactly one verb, "promote", and promotion is the RARE
+// case. The proven shape for this job is Sentry's issue stream crossed with
+// Linear's triage inbox: raw events group into an issue, and the operator
+// spends most of their time saying "not a pattern" or "same as that one", not
+// "make this a bet". Without those two verbs a cluster that is noise stays at
+// the top of the ranking forever and the only way to remove it is to delete the
+// evidence, which is the one thing a record-keeping product must never make
+// easy.
+//
+// `themes.status` has existed since the first migration (TEXT NOT NULL DEFAULT
+// 'new', no CHECK), so none of this needs a migration. It was simply never
+// written by anything but the demo seeds.
+
+/**
+ * Triage a cluster without destroying its evidence.
+ *
+ * `dismissed` is not `deleted`: the signals stay, the cluster stays, and the
+ * judgment that it was not a pattern becomes part of the record. That matters
+ * twice over. A dismissed cluster is still corroboration if the same complaint
+ * returns louder later, and "we looked at this and said no" is exactly the kind
+ * of prior call the brain is supposed to hand back the next time it forms.
+ */
+export const setThemeStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        theme_id: z.string().uuid(),
+        status: z.enum(["new", "dismissed"]),
+        reason: z.string().max(400).optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: prior } = await supabase
+      .from("themes")
+      .select("status,workspace_id,title")
+      .eq("id", data.theme_id)
+      .maybeSingle();
+    if (!prior) throw new Error("Theme not found");
+
+    const { error } = await supabase
+      .from("themes")
+      .update({ status: data.status })
+      .eq("id", data.theme_id);
+    if (error) throw new Error(error.message);
+
+    // SEAM-1: a triage call is a stage transition and belongs in the history
+    // beside the promotions, so the record shows what was rejected as well as
+    // what was kept. A record that only holds the yeses is a highlight reel.
+    await recordStageEvent(supabase, {
+      entityType: "theme",
+      entityId: data.theme_id,
+      from: prior.status ?? null,
+      to: data.status,
+      actor: "human",
+      workspaceId: (prior.workspace_id as string | null) ?? null,
+      userId,
+    });
+
+    return { ok: true, status: data.status, title: prior.title as string };
+  });
+
+/**
+ * "This is not a new bet, it is more evidence for one we already have."
+ *
+ * The single most common real outcome of triage, and the one Discover could not
+ * express at all: every cluster either became a brand-new opportunity or sat
+ * there. So a team running the loop for a month accumulated four opportunities
+ * that were all the same bet, each with a quarter of the evidence, and the
+ * ranked queue on /decide ranked the duplicates against each other.
+ *
+ * Lifted from Sentry's "merge duplicate issues" and Productboard's
+ * link-insight-to-feature. The evidence re-parents onto the existing bet, the
+ * cluster is marked merged rather than deleted, and nothing is re-scored behind
+ * the user's back: attaching evidence must not silently change a bet's rank,
+ * because that would make the queue move for a reason nobody can see.
+ */
+export const attachThemeToOpportunity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        theme_id: z.string().uuid(),
+        opportunity_id: z.string().uuid(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+
+    const [{ data: theme }, { data: opp }] = await Promise.all([
+      supabase
+        .from("themes")
+        .select("id,title,status,workspace_id")
+        .eq("id", data.theme_id)
+        .maybeSingle(),
+      supabase.from("opportunities").select("id,title").eq("id", data.opportunity_id).maybeSingle(),
+    ]);
+    if (!theme) throw new Error("Theme not found");
+    if (!opp) throw new Error("That bet no longer exists");
+
+    const { data: memberRows } = await supabase
+      .from("signals")
+      .select("id")
+      .eq("theme_id", data.theme_id);
+    const memberIds = (memberRows ?? []).map((r) => (r as { id: string }).id);
+
+    // The cluster's own edge, then one per quote. Same shape promotion writes,
+    // so a merged cluster's evidence walks back exactly like a promoted one's.
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: "theme",
+      parent_id: theme.id as string,
+      child_kind: "opportunity",
+      child_id: opp.id as string,
+      relation: "supports",
+      rationale: "Merged into an existing bet as further evidence",
+      created_by_agent: null,
+    });
+    if (memberIds.length > 0) {
+      try {
+        await supabase.from("artifact_lineage").upsert(
+          memberIds.map((sid) => ({
+            user_id: userId,
+            parent_kind: "signal" as const,
+            parent_id: sid,
+            child_kind: "opportunity" as const,
+            child_id: opp.id as string,
+            relation: "supports",
+            rationale: "Evidence merged from a later cluster",
+            created_by_agent: null,
+          })),
+          { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+        );
+      } catch {
+        // Best-effort provenance; the theme edge above already survived.
+      }
+    }
+
+    await supabase.from("themes").update({ status: "merged" }).eq("id", data.theme_id);
+    await recordStageEvent(supabase, {
+      entityType: "theme",
+      entityId: theme.id as string,
+      from: (theme.status as string | null) ?? null,
+      to: "merged",
+      actor: "human",
+      workspaceId: (theme.workspace_id as string | null) ?? null,
+      userId,
+    });
+
+    return {
+      ok: true,
+      opportunity: { id: opp.id as string, title: opp.title as string },
+      evidence: memberIds.length,
+    };
+  });
+
+/**
+ * "Am I seeing everything?" - the first question anyone asks of a discovery
+ * surface, and the one Discover could not answer.
+ *
+ * The asymmetry this closes is stark: an AGENT has had `sources.status` since
+ * 2026-06-30 (registry.server.ts), which reports exactly this. The human
+ * standing on the surface those signals feed had no equivalent anywhere in the
+ * product. An operator who cannot see the shape of their intake cannot trust a
+ * ranking built on it, and enterprise buyers ask this question first.
+ *
+ * `quiet` is the load-bearing field, not the counts. A source that used to
+ * deliver and has stopped is a blind spot, and a blind spot is invisible by
+ * definition unless something names it.
+ */
+export const getSenseCoverage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ productId: z.string().uuid().nullable().optional() }).parse(i ?? {}),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const now = Date.now();
+    const windowMs = 7 * 86_400_000;
+    const since = new Date(now - 2 * windowMs).toISOString();
+
+    let q = supabase
+      .from("signals")
+      .select("source,source_kind,created_at,theme_id")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    if (data.productId) q = q.or(`project_id.eq.${data.productId},project_id.is.null`);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    type Bucket = { source: string; recent: number; prior: number; lastAt: string | null };
+    const bySource = new Map<string, Bucket>();
+    let unclustered = 0;
+
+    for (const r of rows ?? []) {
+      const row = r as {
+        source: string | null;
+        source_kind: string | null;
+        created_at: string;
+        theme_id: string | null;
+      };
+      const key = row.source_kind || row.source || "unknown";
+      const b = bySource.get(key) ?? { source: key, recent: 0, prior: 0, lastAt: null };
+      const age = now - Date.parse(row.created_at);
+      if (age <= windowMs) b.recent += 1;
+      else b.prior += 1;
+      if (!b.lastAt || row.created_at > b.lastAt) b.lastAt = row.created_at;
+      bySource.set(key, b);
+      if (!row.theme_id) unclustered += 1;
+    }
+
+    const sources = [...bySource.values()]
+      .map((b) => ({
+        ...b,
+        // Delivered before, silent now. Not "zero signals", which is the
+        // ordinary state of a source nobody connected.
+        quiet: b.recent === 0 && b.prior > 0,
+      }))
+      .sort((a, b) => b.recent - a.recent || b.prior - a.prior);
+
+    return {
+      sources,
+      total7d: sources.reduce((n, s) => n + s.recent, 0),
+      totalPrior7d: sources.reduce((n, s) => n + s.prior, 0),
+      unclustered,
+      quietCount: sources.filter((s) => s.quiet).length,
+    };
+  });
+
+/**
+ * What the record already knows about this cluster, BEFORE it becomes a bet.
+ *
+ * The product's own canon says the brain "warns before you repeat what was
+ * wrong". /decide honours that with its record recess. Discover, which is the
+ * surface that COMPUTES the novelty score in the first place
+ * (cluster.server.ts calls computeNovelty on every insert and stores the basis
+ * on the row), showed none of it. So the warning arrived one station after the
+ * cheapest moment to act on it: killing a repeat at Discover costs nothing,
+ * killing it at Decide has already spent a critic run and a person's attention.
+ *
+ * Nothing new is computed here. `loadDecisionPrecedent` takes arbitrary text and
+ * has since the Decision Brain increment, and `novelty_basis.themeId` is already
+ * on the row. This is a door onto machinery that was built and never opened.
+ */
+export const getThemePrecedent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ theme_id: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: theme } = await supabase
+      .from("themes")
+      .select("id,title,summary,novelty,novelty_basis,workspace_id")
+      .eq("id", data.theme_id)
+      .maybeSingle();
+    if (!theme) throw new Error("Theme not found");
+
+    const basis = (theme.novelty_basis ?? null) as {
+      maxSim?: number | null;
+      maxThemeSim?: number | null;
+      themeId?: string | null;
+    } | null;
+
+    // The prior CLUSTER this most resembles, resolved from the basis already on
+    // the row. "You have seen this shape before" is a different and cheaper
+    // claim than "you decided this before", and both are worth saying.
+    let priorTheme: { id: string; title: string; similarity: number | null } | null = null;
+    if (basis?.themeId) {
+      const { data: pt } = await supabase
+        .from("themes")
+        .select("id,title")
+        .eq("id", basis.themeId)
+        .maybeSingle();
+      if (pt) {
+        priorTheme = {
+          id: pt.id as string,
+          title: pt.title as string,
+          similarity: basis.maxThemeSim ?? null,
+        };
+      }
+    }
+
+    // The prior OUTCOME. Fail-safe by contract: loadDecisionPrecedent returns
+    // [] on any embedding or RPC failure, so a quiet brain degrades to silence
+    // rather than to an error on a surface whose main job still works.
+    const text = `${theme.title}\n${theme.summary ?? ""}`.trim();
+    const precedent = await loadDecisionPrecedent(supabase as unknown as SupabaseClient, {
+      userId,
+      workspaceId: (theme.workspace_id as string | null) ?? null,
+      text,
+    });
+
+    return {
+      novelty: (theme.novelty as number | null) ?? null,
+      priorTheme,
+      precedent: precedent.map((p) => ({
+        id: p.id,
+        title: p.title,
+        verdict: p.verdict,
+        summary: p.summary,
+        opportunityId: p.opportunityId,
+        score: p.score,
+      })),
+    };
+  });
+
 // ---------- OPPORTUNITIES ----------
 
 export const listOpportunities = createServerFn({ method: "GET" })
@@ -467,6 +778,19 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
       .eq("id", data.theme_id)
       .single();
     if (error || !theme) throw new Error("Theme not found");
+
+    // THE EVIDENCE IS READ BEFORE THE BET IS MADE, because it is what the bet
+    // is made OF. Discover's Gate says "this evidence travels with it", and
+    // until 2026-08-01 that sentence was false: only a single theme ->
+    // opportunity edge was written, so /decide showed a stale integer and the
+    // lineage walk could not reach one quote. A promise the surface makes and
+    // the write does not keep is worse than no promise.
+    const { data: memberRows } = await supabase
+      .from("signals")
+      .select("id")
+      .eq("theme_id", theme.id);
+    const memberIds = (memberRows ?? []).map((r) => (r as { id: string }).id);
+
     const { data: opp, error: oErr } = await supabase
       .from("opportunities")
       .insert({
@@ -478,6 +802,12 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
         impact: Math.min(10, theme.severity * 2),
         confidence: Math.round(theme.confidence * 10),
         ease: 5,
+        // SCOPE TRAVELS TOO. `listThemes` is product-scoped and
+        // `listOpportunities` is not, so a bet promoted from a product's theme
+        // used to land in every product's queue at once. Carrying the theme's
+        // own scope is the only reading that keeps the two lists agreeing.
+        project_id: theme.project_id,
+        product_id: theme.product_id,
       })
       .select()
       .single();
@@ -503,9 +833,38 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
         rationale: "Promoted from theme",
         created_by_agent: "discovery-scout",
       });
+      // EVERY QUOTE GETS ITS OWN EDGE. One theme edge made the chain two hops
+      // deep and the quotes unreachable except by re-deriving them through the
+      // theme, which `LineageDrawer` does not do. A direct signal ->
+      // opportunity edge per member is what makes "traces back to" answer with
+      // the actual sentences a person read before they decided. Batched and
+      // fail-soft: the bet already exists, and provenance must never be able to
+      // fail a promotion that a retry would then duplicate.
+      if (memberIds.length > 0) {
+        try {
+          await supabase.from("artifact_lineage").upsert(
+            memberIds.map((sid) => ({
+              user_id: userId,
+              parent_kind: "signal" as const,
+              parent_id: sid,
+              child_kind: "opportunity" as const,
+              child_id: opp.id as string,
+              relation: "promoted",
+              rationale: "Evidence behind the promoted theme",
+              created_by_agent: "discovery-scout",
+            })),
+            { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+          );
+        } catch {
+          // Best-effort provenance; the theme edge above already survived.
+        }
+      }
       await runCritic(supabase, userId, { kind: "opportunity", id: opp.id });
     }
-    return { opportunity: opp };
+    // `evidence` is returned so the surface can render a Receipt that states
+    // what the promotion actually carried, rather than a toast asserting that
+    // something happened (anti-slop.md §5).
+    return { opportunity: opp, evidence: memberIds.length };
   });
 
 export const updateOpportunity = createServerFn({ method: "POST" })
@@ -596,7 +955,9 @@ export const listSpecs = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("prds")
-      .select("id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id")
+      .select(
+        "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id",
+      )
       .order("updated_at", { ascending: false })
       .limit(300);
     if (error) throw new Error(error.message);

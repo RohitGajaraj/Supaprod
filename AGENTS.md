@@ -27,6 +27,45 @@ Distilled from the investor-deck build; full artifacts at [`docs/pitch/investor-
 - **Investor-material never list:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only (user-zero framing allowed), no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM" (never "Intellect Design Arena"), founder role arc ISRO associate PM -> Infineon PM -> Intellect senior AI PM, education shows TUM only.
 - **Contact canon:** founder@supaprod.ai (founder surfaces) · investors@supaprod.ai (investor relations) · linkedin.com/in/rohit-gajaraj.
 
+## ⭐ THE SIX-MONTH-FORWARD DOCTRINE (founder ruling 2026-08-01), binding on every design, architecture and deliverable
+
+> **We are not building for today's problem. Every solution is designed for where the industry
+> will be six months from the current date, and it must also close the pain the user has
+> carried from the past.**
+
+The founder's concern, stated plainly: when a frontier lab ships a new model, or an enterprise
+AI vendor launches the vertical we serve, **we must not look like a wrapper.** Solving only
+today's pain guarantees that outcome. So five tests, and every design decision passes all five
+before it is built:
+
+1. **Assume the model layer commoditizes.** If a single frontier release could absorb this
+   feature, it is not a moat. Build the loop, the gates and the ledger _around_ the model,
+   never the thin layer on top of it. The models are interchangeable parts; the system is ours.
+2. **Assume a large vendor ships our vertical next quarter.** Ask of every feature: when they
+   launch it, what do we still have that they do not? The honest answer must be the
+   compounding decision-and-outcome record and the closed loop. If the answer is "nothing",
+   the design is wrong and gets redone, not shipped.
+3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end
+   under policy is already legacy on the day it ships. The human sets boundaries; the agent
+   does the work. This is the governance canon applied to design: policy in advance, not
+   permission in the moment.
+4. **Solve backwards and forwards.** Fix the pain the user carried from the past, serve the job
+   they have today, and leave the seam for the job they will have in six months.
+5. **Delight is a requirement, not a finishing pass.** The bar is what the best product teams
+   in the world would ship, per [`docs/conventions/anti-slop.md`](./docs/conventions/anti-slop.md).
+
+**How to apply, on every task:** state the six-month assumption explicitly when proposing a
+design, and say in one line what survives a frontier launch. An agent that cannot answer that
+has not finished thinking. This applies to every agent, every surface, and every deliverable in
+this repo, not only product features.
+
+**A companion standing rule (same ruling):** for each surface, research the best proven product
+in that category and lift its information model and verbs outright, even close to literally.
+Originality is not the goal; an experience customers already know and love is. Name the
+reference and the pattern before building, then express it in our own shipped primitives and
+voice. (Build -> Cursor / Claude Code · Design -> Figma's fidelity ladder · Discover -> Sentry's
+issue stream + Linear's triage inbox.)
+
 ## 0. What we are building
 
 **Supaprod** is the **AI-native, agentic-first operating system for product teams — it tells you what to build, builds it, ships it, checks the outcome, and remembers** _(category headline founder-ratified 2026-07-22, the triple-RFS repositioning: Supaprod sits at the intersection of YC's own three requests — "Cursor for Product Managers" (Spring 2026) · "The AI Operating System for Companies" (Summer 2026) · "Company Brain" (Summer 2026) — one product at three altitudes, told door → body → brain, brain as the crescendo; canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md))_. Most "AI for product" tools are an AI feature bolted onto an app (drafts, suggests, waits) or a chatbot (hands you a paragraph, the work is still yours); Supaprod is the other thing, an **AI operating system that owns the loop** and an **action system where the work is done.** A swarm of governed agents runs the whole product lifecycle (sense, decide, define, build, ship, learn) as one continuous loop, while a human sets intent and owns the calls that matter; agents execute, the human decides and is accountable. Its **build engine is its own** (own-engine ruling 2026-07-22: the harness is owned, frontier models plug in per lifecycle job as commodities — no second vendor license, no data round-trip; enterprise BYO dispatch survives quietly in the architecture only) and it **owns the one thing no frontier model or single-suite incumbent can backfill or neutrally own**: a cross-tool, auditable, compounding record of what the team decided and whether it was right. That **decision-and-outcome layer over three pillars (own the loop, sense continuously, keep the receipts)** is the moat. It is **not** a PM tool with AI bolted on; AI is the core. Standing canon (the verbatim answer is its §1A): [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md); moat detail: [`docs/strategy/moat.md`](./docs/strategy/moat.md); full thesis + personas: [`README.md`](./README.md).

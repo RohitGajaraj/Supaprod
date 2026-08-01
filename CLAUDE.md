@@ -28,6 +28,37 @@ Distilled from the investor-deck build; full artifacts at [`docs/pitch/investor-
 - **Investor-material never list:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only (user-zero framing allowed), no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM" (never "Intellect Design Arena"), founder role arc ISRO associate PM -> Infineon PM -> Intellect senior AI PM, education shows TUM only.
 - **Contact canon:** founder@supaprod.ai (founder surfaces) · investors@supaprod.ai (investor relations) · linkedin.com/in/rohit-gajaraj.
 
+## ⭐ THE SIX-MONTH-FORWARD DOCTRINE (founder ruling 2026-08-01) - binding on EVERY deliverable
+
+> **We are not building for today's problem. Every solution is designed for where the industry
+> will be six months from the current date, and it must also close the pain the user carried
+> from the past.**
+
+When a frontier lab ships a new model, or an enterprise AI vendor launches our vertical, **we
+must not look like a wrapper.** Five tests, all of which every design passes before it is built:
+
+1. **Assume the model layer commoditizes.** If one frontier release could absorb this feature,
+   it is not a moat. Build the loop, the gates and the ledger _around_ the model, never the thin
+   layer on top of it.
+2. **Assume a large vendor ships our vertical next quarter.** What do we still have that they do
+   not? The answer must be the compounding decision-and-outcome record and the closed loop. If
+   it is "nothing", the design is wrong and gets redone.
+3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end
+   under policy is legacy the day it ships. Human sets boundaries; agent does the work.
+4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for
+   the six-month job.
+5. **Delight is a requirement, not a finishing pass.**
+
+State the six-month assumption and what survives a frontier launch when proposing any design.
+
+**Companion rule (same ruling):** for each surface, research the best proven product in that
+category and lift its information model and verbs outright, even close to literally. Name the
+reference before building, then express it in our shipped primitives and voice. (Build ->
+Cursor / Claude Code · Design -> Figma's fidelity ladder · Discover -> Sentry's issue stream +
+Linear's triage inbox.)
+
+Canonical: [`AGENTS.md`](./AGENTS.md) "THE SIX-MONTH-FORWARD DOCTRINE".
+
 ## ⭐ Governance canon (founder ruling 2026-07-29) - apply to EVERY product decision
 
 > **Policy is set in advance and does not block. Permission is asked in the moment and does.
