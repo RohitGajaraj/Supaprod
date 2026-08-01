@@ -41,6 +41,15 @@ import {
   type WorkShape,
 } from "@/lib/spine/route";
 import { HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
+import {
+  ARTIFACT_TABLE,
+  buildChain,
+  describeChain,
+  wordFor,
+  type Chain,
+  type ChainMember,
+  type MemberRow,
+} from "@/lib/spine/chain";
 import { recordStageEvent } from "@/lib/stage-events.server";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
@@ -467,3 +476,117 @@ export const attachToTrack = createServerFn({ method: "POST" })
       return { ok: false };
     }
   });
+
+/**
+ * The whole record of one piece of work: its route, and what each station made.
+ *
+ * THE DOOR THAT WAS MISSING. `spine_track_members` has been written correctly
+ * since the attachment pass, and nothing read it as membership. The only read
+ * in the product was `missionForTrack`, which filters to `artifact_kind =
+ * 'mission'` and takes one row so Build reuses its mission instead of opening a
+ * new one every tick. Everything else that was filed had no reader at all.
+ *
+ * ONE QUERY PER KIND, NOT PER MEMBER. Members are grouped and each kind's
+ * table is asked once with an `in` list, all of them in parallel. A track that
+ * ran a full loop can hold a few dozen members and a per-row lookup would put
+ * that many round trips behind one page.
+ *
+ * A FAILED LOOKUP IS NOT A MISSING ARTIFACT, and the difference is the only
+ * subtle thing in here. `missing` means the lookup SUCCEEDED and the row was
+ * not in it, so the product can honestly say the artifact is gone. A query that
+ * errored, or a kind with no table mapped, leaves `missing` false and the title
+ * null: we did not look, so we claim nothing. Collapsing the two would let a
+ * transient error or a pre-migration table report a shelf of healthy artifacts
+ * as destroyed, which is a far worse lie than showing a row with no title.
+ *
+ * Degrades to an empty chain rather than throwing, the same pre-migration
+ * tolerance every other handler in this module uses.
+ */
+export const getTrackChain = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
+  .handler(
+    async ({ context, data }): Promise<{ track: Track | null; chain: Chain; summary: string }> => {
+      const { supabase } = context;
+      const empty: Chain = { stops: [], orphans: [], total: 0 };
+
+      try {
+        const { data: row } = await supabase
+          .from("spine_tracks" as never)
+          .select(SELECT)
+          .eq("id", data.trackId)
+          .maybeSingle();
+        if (!row) return { track: null, chain: empty, summary: "" };
+
+        const track = rowToTrack(row as unknown as TrackRow);
+        const shape = {
+          route: track.route,
+          station: track.station,
+          status: track.status,
+        };
+
+        const { data: memberRows } = await supabase
+          .from("spine_track_members" as never)
+          .select("artifact_kind,artifact_id,station,created_at")
+          .eq("track_id", data.trackId);
+
+        const rows = (memberRows ?? []) as unknown as MemberRow[];
+        if (rows.length === 0) {
+          // Still built, never short-circuited to a blank: the route and its
+          // waivers are most of what this answers, and a track that has
+          // produced nothing yet is exactly the one worth showing a route for.
+          const chain = buildChain({ ...shape, members: [] });
+          return { track, chain, summary: describeChain(chain) };
+        }
+
+        const byKind = new Map<string, string[]>();
+        for (const r of rows) {
+          const ids = byKind.get(r.artifact_kind) ?? [];
+          ids.push(r.artifact_id);
+          byKind.set(r.artifact_kind, ids);
+        }
+
+        const titles = new Map<string, string | null>();
+        /** Kinds whose table answered. Only these may have a row called gone. */
+        const answered = new Set<string>();
+
+        await Promise.all(
+          [...byKind].map(async ([kind, ids]) => {
+            const table = ARTIFACT_TABLE[kind];
+            if (!table) return;
+            try {
+              const { data: found, error } = await supabase
+                .from(table as never)
+                .select("id,title")
+                .in("id", ids);
+              if (error || !found) return;
+              answered.add(kind);
+              for (const f of found as unknown as { id: string; title: string | null }[]) {
+                titles.set(`${kind}:${f.id}`, f.title?.trim() || null);
+              }
+            } catch {
+              // Left unanswered on purpose. See the header: no claim either way.
+            }
+          }),
+        );
+
+        const members: ChainMember[] = rows.map((r) => {
+          const key = `${r.artifact_kind}:${r.artifact_id}`;
+          return {
+            kind: r.artifact_kind,
+            word: wordFor(r.artifact_kind),
+            artifactId: r.artifact_id,
+            station: r.station,
+            createdAt: r.created_at,
+            title: titles.get(key) ?? null,
+            missing: answered.has(r.artifact_kind) && !titles.has(key),
+          };
+        });
+
+        const chain = buildChain({ ...shape, members });
+        return { track, chain, summary: describeChain(chain) };
+      } catch {
+        return { track: null, chain: empty, summary: "" };
+      }
+    },
+  );

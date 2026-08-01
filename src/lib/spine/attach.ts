@@ -444,7 +444,7 @@ export function gatesOpenedBy(
  * `changeset` and `prd` are mechanism words that the voice rules keep out of
  * user-facing copy, so they are said the way the rest of the product says them.
  */
-const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
+export const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
   signal: { one: "signal", many: "signals" },
   theme: { one: "cluster", many: "clusters" },
   prd: { one: "spec", many: "specs" },
@@ -455,7 +455,7 @@ const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
   mission: { one: "run", many: "runs" },
 };
 
-function joinPlainly(parts: string[]): string {
+export function joinPlainly(parts: string[]): string {
   if (parts.length === 1) return parts[0];
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }

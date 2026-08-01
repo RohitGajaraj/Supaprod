@@ -1,0 +1,310 @@
+/**
+ * Reading a track back, tested without a database.
+ *
+ * The invariant these guard is that the chain never quietly shrinks. A record
+ * that drops a row it cannot resolve, or hides one filed at a station the route
+ * has since stopped visiting, reads as complete while being short, and a
+ * complete-looking short record is the one failure mode this whole surface
+ * exists to prevent. Most of the cases below therefore count things.
+ */
+
+import { describe, expect, it } from "bun:test";
+import {
+  ARTIFACT_TABLE,
+  NOTHING_LANDS_HERE,
+  buildChain,
+  describeChain,
+  type ChainMember,
+} from "./chain";
+import { STATION_ARTIFACT, TOOL_PRODUCTS } from "./attach";
+import type { SpineRoute } from "./route";
+import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
+
+const A = "11111111-1111-4111-8111-111111111111";
+const B = "22222222-2222-4222-8222-222222222222";
+const C = "33333333-3333-4333-8333-333333333333";
+
+function member(over: Partial<ChainMember> = {}): ChainMember {
+  return {
+    kind: "signal",
+    word: "signal",
+    artifactId: A,
+    station: "sense",
+    createdAt: "2026-08-01T10:00:00Z",
+    title: "A thing someone said",
+    missing: false,
+    ...over,
+  };
+}
+
+function route(over: Partial<SpineRoute> = {}): SpineRoute {
+  return {
+    entry: "sense",
+    path: [...AGENT_STATION_ORDER],
+    waived: [],
+    origin: null,
+    ...over,
+  };
+}
+
+/** Members across every stop plus the orphan bucket. */
+function counted(chain: ReturnType<typeof buildChain>): number {
+  return chain.stops.reduce((n, s) => n + s.members.length, 0) + chain.orphans.length;
+}
+
+describe("the reader can resolve everything the writer can file", () => {
+  it("covers every kind a registered tool produces", () => {
+    for (const product of Object.values(TOOL_PRODUCTS)) {
+      expect(ARTIFACT_TABLE[product.kind]).toBeDefined();
+    }
+  });
+
+  it("covers the mission the driver files itself, which no tool writes", () => {
+    expect(ARTIFACT_TABLE.mission).toBe("missions");
+  });
+
+  /**
+   * The engineering note and the sentence a person reads are two statements of
+   * one fact, so they are pinned to each other rather than trusted to be kept
+   * in step by hand. Close a gap by registering a tool and this fails until the
+   * plain line is dropped too, which is the only way a surface stops telling
+   * someone nothing can land at a station that now produces things.
+   */
+  it("says something plainly at exactly the stations that have an engineering gap", () => {
+    const withGap = AGENT_STATION_ORDER.filter((s) => STATION_ARTIFACT[s].gap !== null).sort();
+    const withLine = (Object.keys(NOTHING_LANDS_HERE) as AgentStation[]).sort();
+    expect(withLine).toEqual(withGap);
+  });
+
+  it("keeps tool names out of the words a person reads", () => {
+    for (const line of Object.values(NOTHING_LANDS_HERE)) {
+      // A dot followed by a word is a tool name (`decision.revise`); a dot at
+      // the end is just a sentence, which is what these are supposed to be.
+      expect(line).not.toMatch(/\.\w/);
+      expect(line).not.toMatch(/_|-tick\b/);
+    }
+  });
+});
+
+describe("every member appears exactly once", () => {
+  it("reconciles against total", () => {
+    const members = [
+      member({ artifactId: A, station: "sense" }),
+      member({ artifactId: B, station: "define", kind: "prd" }),
+      member({ artifactId: C, station: "nowhere" }),
+    ];
+    const chain = buildChain({ route: route(), station: "define", status: "open", members });
+    expect(chain.total).toBe(3);
+    expect(counted(chain)).toBe(3);
+  });
+
+  it("surfaces a member filed at a station the route no longer visits", () => {
+    // Design was waived after it had already produced something. The row must
+    // not fall through the floor just because the plan changed.
+    const r = route({
+      path: AGENT_STATION_ORDER.filter((s) => s !== "design") as AgentStation[],
+      waived: [
+        {
+          station: "design",
+          reason: "No interface changes here",
+          by: "human",
+          reopensWhen: "never",
+        },
+      ],
+    });
+    const chain = buildChain({
+      route: r,
+      station: "build",
+      status: "open",
+      members: [member({ station: "design", kind: "prd", artifactId: B })],
+    });
+    const design = chain.stops.find((s) => s.station === "design");
+    expect(design?.members).toHaveLength(1);
+    expect(counted(chain)).toBe(1);
+  });
+
+  it("puts a member with an unreadable station in orphans rather than losing it", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [member({ station: "not-a-station" })],
+    });
+    expect(chain.orphans).toHaveLength(1);
+    expect(counted(chain)).toBe(1);
+  });
+
+  it("keeps a member whose artifact no longer resolves", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [member({ title: null, missing: true })],
+    });
+    expect(counted(chain)).toBe(1);
+    expect(chain.stops.find((s) => s.station === "sense")?.members[0].missing).toBe(true);
+  });
+});
+
+describe("where a station sits relative to the work", () => {
+  it("marks behind, current and ahead", () => {
+    const chain = buildChain({ route: route(), station: "define", status: "open", members: [] });
+    const state = (s: AgentStation) => chain.stops.find((x) => x.station === s)?.state;
+    expect(state("sense")).toBe("passed");
+    expect(state("define")).toBe("here");
+    expect(state("build")).toBe("not-reached");
+  });
+
+  it("does not leave a finished track standing at its last station", () => {
+    const chain = buildChain({ route: route(), station: "learn", status: "done", members: [] });
+    expect(chain.stops.find((s) => s.station === "learn")?.state).toBe("passed");
+  });
+
+  it("lets a waiver outrank position and carries the reason given", () => {
+    const r = route({
+      waived: [
+        {
+          station: "design",
+          reason: "Nothing here that people see",
+          by: "human",
+          reopensWhen: "never",
+        },
+      ],
+    });
+    const stop = buildChain({ route: r, station: "learn", status: "open", members: [] }).stops.find(
+      (s) => s.station === "design",
+    );
+    expect(stop?.state).toBe("waived");
+    expect(stop?.waivedReason).toBe("Nothing here that people see");
+  });
+
+  it("orders stops along the spine, never by when things were filed", () => {
+    const chain = buildChain({ route: route(), station: "build", status: "open", members: [] });
+    const seen = chain.stops.map((s) => s.station);
+    const expected = AGENT_STATION_ORDER.filter((s) => seen.includes(s));
+    expect(seen).toEqual(expected as AgentStation[]);
+  });
+});
+
+describe("an empty station says why it is empty", () => {
+  it("carries the gap sentence where no tool can ever file anything", () => {
+    const chain = buildChain({ route: route(), station: "sense", status: "open", members: [] });
+    expect(chain.stops.find((s) => s.station === "design")?.gap).toBeTruthy();
+    expect(chain.stops.find((s) => s.station === "ship")?.gap).toBeTruthy();
+  });
+
+  it("does not excuse a station that produced something", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [member({ station: "sense" })],
+    });
+    expect(chain.stops.find((s) => s.station === "sense")?.gap).toBeNull();
+  });
+
+  it("leaves a station with a tool but no output un-excused, so it reads as not yet", () => {
+    const chain = buildChain({ route: route(), station: "sense", status: "open", members: [] });
+    expect(chain.stops.find((s) => s.station === "sense")?.gap).toBeNull();
+  });
+});
+
+describe("members within a station", () => {
+  it("reads oldest first", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [
+        member({ artifactId: B, createdAt: "2026-08-01T12:00:00Z" }),
+        member({ artifactId: A, createdAt: "2026-08-01T09:00:00Z" }),
+      ],
+    });
+    expect(
+      chain.stops.find((s) => s.station === "sense")?.members.map((m) => m.artifactId),
+    ).toEqual([A, B]);
+  });
+
+  it("does not reshuffle when two were filed in the same instant", () => {
+    const same = "2026-08-01T09:00:00Z";
+    const build = () =>
+      buildChain({
+        route: route(),
+        station: "sense",
+        status: "open",
+        members: [
+          member({ artifactId: B, createdAt: same }),
+          member({ artifactId: A, createdAt: same }),
+        ],
+      })
+        .stops.find((s) => s.station === "sense")
+        ?.members.map((m) => m.artifactId);
+    expect(build()).toEqual(build());
+  });
+});
+
+describe("the sentence", () => {
+  it("says plainly when nothing has been filed", () => {
+    const chain = buildChain({ route: route(), station: "sense", status: "open", members: [] });
+    expect(describeChain(chain)).toBe("Nothing has been filed against this work yet.");
+  });
+
+  it("counts in the words the driver already uses, never the table names", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "build",
+      status: "open",
+      members: [
+        member({ artifactId: A, station: "sense" }),
+        member({ artifactId: B, station: "define", kind: "prd" }),
+      ],
+    });
+    const said = describeChain(chain);
+    expect(said).toContain("1 signal");
+    expect(said).toContain("1 spec");
+    expect(said).not.toContain("prd");
+  });
+
+  it("pluralizes off the shared vocabulary", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "build",
+      status: "open",
+      members: [
+        member({ artifactId: A, station: "build", kind: "changeset" }),
+        member({ artifactId: B, station: "build", kind: "changeset" }),
+      ],
+    });
+    expect(describeChain(chain)).toContain("2 code changes");
+  });
+
+  it("says missing artifacts out loud instead of folding them into the count", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [member({ artifactId: A, title: null, missing: true })],
+    });
+    expect(describeChain(chain)).toContain("no longer resolves");
+  });
+
+  it("stays silent about missing artifacts when there are none", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [member()],
+    });
+    expect(describeChain(chain)).not.toContain("no longer resolves");
+  });
+
+  it("counts orphans too, so the sentence cannot undercount the record", () => {
+    const chain = buildChain({
+      route: route(),
+      station: "sense",
+      status: "open",
+      members: [member({ station: "not-a-station" })],
+    });
+    expect(describeChain(chain)).toContain("1 signal");
+  });
+});

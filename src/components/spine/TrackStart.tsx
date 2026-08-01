@@ -40,6 +40,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { advanceTrack, listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
+import { TrackChain } from "@/components/spine/TrackChain";
 import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
 import { HOLD_LINE } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
@@ -86,6 +87,12 @@ export function TrackStart() {
   const [moved, setMoved] = React.useState<MoveReceipt | null>(null);
   /** The track whose close is armed, waiting for a second press. */
   const [confirmClose, setConfirmClose] = React.useState<string | null>(null);
+  /**
+   * The track whose record is open, if any. One at a time: this list answers
+   * "where is my work", and seven stops unfolded under every row would bury the
+   * question the list exists to answer.
+   */
+  const [showing, setShowing] = React.useState<string | null>(null);
 
   const tracks = useQuery({ queryKey: ["spine-tracks"], queryFn: () => fList() });
 
@@ -331,26 +338,35 @@ export function TrackStart() {
            */
           const waitingOnAPerson = t.hold === HOLD_LINE["waiting-on-a-person"];
 
+          const open = showing === t.id;
+
           return (
-            <Row
-              key={t.id}
-              tight
-              lead={t.title}
-              // The hold outranks the route, because a person arriving at this
-              // list wants to know why their work is not moving before they want
-              // to know where it is going. Silence and "still running" look
-              // identical, and only one of them is true.
-              sub={t.hold ?? t.summary}
-              action={
-                <>
-                  {/* The station stays. It is the answer to "where is this",
+            <React.Fragment key={t.id}>
+              <Row
+                tight
+                focused={open}
+                // The row's own contract: tight marks a row whose full content
+                // has a detail view to open, and until now this one had none. The
+                // record of what the work produced is that detail view, and it
+                // opens where the work is already being read rather than behind a
+                // second address a person has to find.
+                onClick={() => setShowing(open ? null : t.id)}
+                lead={t.title}
+                // The hold outranks the route, because a person arriving at this
+                // list wants to know why their work is not moving before they want
+                // to know where it is going. Silence and "still running" look
+                // identical, and only one of them is true.
+                sub={t.hold ?? t.summary}
+                action={
+                  <>
+                    {/* The station stays. It is the answer to "where is this",
                     which is why the row is read at all, and trading it for a
                     button would swap information for a control. It is a fact and
                     not an affordance, so the row still carries exactly ONE
                     thing that can be pressed. */}
-                  <Value tone={t.hold ? "warn" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+                    <Value tone={t.hold ? "warn" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
 
-                  {/* Behind the three dots rather than out on the row, which is
+                    {/* Behind the three dots rather than out on the row, which is
                     the shape boundary.tsx already uses for a per-row move: a
                     button repeated down fifty rows is fifty invitations to do
                     something a person should be doing rarely, and it competes
@@ -358,14 +374,14 @@ export function TrackStart() {
                     boundary.tsx also settles the refused case: where a move is
                     forbidden the row shows the fact and no control, because a
                     dead button that never says why is worse than no button. */}
-                  {waitingOnAPerson ? null : (
-                    <MoreMenu label={`Where ${t.title} goes next`}>
-                      {/* The words name the destination, never the machinery.
+                    {waitingOnAPerson ? null : (
+                      <MoreMenu label={`Where ${t.title} goes next`}>
+                        {/* The words name the destination, never the machinery.
                         "Advance" is what the function is called; "Hand it to
                         Build" is what happens, and it says who has it next.
                         At the end of the route there is nobody to hand it to,
                         so it says what the write actually does instead. */}
-                      {/* CLOSING IT OUT ASKS TWICE, HANDING IT ON DOES NOT.
+                        {/* CLOSING IT OUT ASKS TWICE, HANDING IT ON DOES NOT.
                         Handing work to the next station is reversible by
                         handing it on again, or by the driver picking it up.
                         Closing it is not: it writes status "done", `listTracks`
@@ -376,30 +392,32 @@ export function TrackStart() {
                         confirm or an undo; there is no undo to offer, so it
                         confirms, and the second press states the consequence
                         rather than repeating the verb. */}
-                      <MoreItem
-                        onClick={() => {
-                          if (hand.isPending) return;
-                          if (!next && confirmClose !== t.id) {
-                            setConfirmClose(t.id);
-                            return;
-                          }
-                          setConfirmClose(null);
-                          hand.mutate(t);
-                        }}
-                      >
-                        {next
-                          ? `${busy ? "Handing" : "Hand"} it to ${AGENT_STATIONS[next].name}`
-                          : busy
-                            ? "Closing it out"
-                            : confirmClose === t.id
-                              ? "Close it, and it leaves this list"
-                              : "Call it finished"}
-                      </MoreItem>
-                    </MoreMenu>
-                  )}
-                </>
-              }
-            />
+                        <MoreItem
+                          onClick={() => {
+                            if (hand.isPending) return;
+                            if (!next && confirmClose !== t.id) {
+                              setConfirmClose(t.id);
+                              return;
+                            }
+                            setConfirmClose(null);
+                            hand.mutate(t);
+                          }}
+                        >
+                          {next
+                            ? `${busy ? "Handing" : "Hand"} it to ${AGENT_STATIONS[next].name}`
+                            : busy
+                              ? "Closing it out"
+                              : confirmClose === t.id
+                                ? "Close it, and it leaves this list"
+                                : "Call it finished"}
+                        </MoreItem>
+                      </MoreMenu>
+                    )}
+                  </>
+                }
+              />
+              {open ? <TrackChain trackId={t.id} /> : null}
+            </React.Fragment>
           );
         })
       )}
