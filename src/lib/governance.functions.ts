@@ -422,3 +422,85 @@ export const resolveApproval = createServerFn({ method: "POST" })
     }
     return { ok: true, executed: false };
   });
+
+/* ------------------------------------------------------------------ *
+ * The spend ceiling, made visible (2026-08-01)
+ * ------------------------------------------------------------------ */
+
+/**
+ * The workspace's default ceiling on what one mission may spend.
+ *
+ * WHY THIS EXISTS. `resolveMissionSpendCap` has resolved this value on every
+ * dispatch since the mission-caps fix, and `checkMissionCaps` enforces it
+ * fail-closed before every model call. The enforcement is real. What was
+ * missing was any way for a person to SEE or SET it: a repo-wide grep for
+ * `default_mission_spend_cap_usd` outside the server returned nothing.
+ *
+ * That is not a cosmetic gap. `mission-caps.server.ts` says so itself, about
+ * its own built-in number: "It is also a default the user never chose, which by
+ * the governance canon's fourth floor makes it our decision rather than their
+ * policy, so it must stay visible and changeable rather than quietly correct."
+ * The engine asked for this surface and nothing built it.
+ *
+ * It matters most for the autonomy argument. GOVERNANCE-PRINCIPLE.md: arguing
+ * for more agent autonomy without a ceiling is the one version of the story a
+ * risk officer will refuse. The cap is not a brake on that story, it is what
+ * makes it sayable.
+ */
+export const getWorkspaceSpendPolicy = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    // RLS plus the owner filter: this is a boundary, and only the person who
+    // owns the workspace may read or move it.
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("id,default_mission_spend_cap_usd")
+      .eq("owner_id", userId)
+      .limit(1)
+      .maybeSingle();
+
+    if (!ws) return { is_owner: false, cap_usd: null as number | null, is_default: true };
+
+    const raw = (ws as { default_mission_spend_cap_usd: number | string | null })
+      .default_mission_spend_cap_usd;
+    return {
+      is_owner: true,
+      // null here is a real answer, "this workspace has no ceiling", and it is
+      // reported as such rather than folded into the built-in number. The UI
+      // has to be able to say which of the two is true.
+      cap_usd: raw === null ? null : Number(raw),
+      // Whether the number in force is one a person chose, or ours.
+      is_default: raw === null || raw === undefined,
+    };
+  });
+
+export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        // `null` is "no ceiling", and it is a deliberate human decision that
+        // `resolveMissionSpendCap` obeys. It is separated from "not set" on
+        // purpose; see that function's own note on the distinction.
+        cap_usd: z.number().positive().max(100_000).nullable(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (!ws) throw new Error("Only the workspace owner can move the spend ceiling.");
+
+    const { error } = await supabase
+      .from("workspaces")
+      .update({ default_mission_spend_cap_usd: data.cap_usd })
+      .eq("id", ws.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, cap_usd: data.cap_usd };
+  });

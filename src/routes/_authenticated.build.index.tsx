@@ -75,11 +75,12 @@
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { listBuildWork, type BuildWorkItem } from "@/lib/build-engine.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
+import { getWorkspaceSpendPolicy, setWorkspaceSpendPolicy } from "@/lib/governance.functions";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { ago } from "@/components/runs/run-state";
@@ -91,8 +92,11 @@ import {
   CtxHead,
   Empty,
   Failed,
+  Input,
+  Line,
   Num,
   PageHead,
+  Receipt,
   Row,
   Surface,
 } from "@/components/shell/primitives";
@@ -131,8 +135,23 @@ function statusPhrase(item: BuildWorkItem): string {
 
 function BuildEngine() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const fWork = useServerFn(listBuildWork);
   const fCanDispatch = useServerFn(canDispatchToRepo);
+  const fSpend = useServerFn(getWorkspaceSpendPolicy);
+  const fSetSpend = useServerFn(setWorkspaceSpendPolicy);
+
+  /** The ceiling on what one run may spend. Owner-only; the query reports
+   *  `is_owner: false` for everyone else and the line is not drawn. */
+  const spend = useQuery({ queryKey: ["spend-policy"], queryFn: () => fSpend() });
+  const [capReceipt, setCapReceipt] = React.useState<{ cap: number | null } | null>(null);
+  const setCap = useMutation({
+    mutationFn: (cap_usd: number | null) => fSetSpend({ data: { cap_usd } }),
+    onSuccess: (_r, cap) => {
+      setCapReceipt({ cap });
+      void qc.invalidateQueries({ queryKey: ["spend-policy"] });
+    },
+  });
   // The active product, because a repo can be bound to a PRODUCT and the check
   // is blind to that binding without it. See canDispatchToRepo.
   const { activeProductId } = useWorkspace();
@@ -337,6 +356,78 @@ function BuildEngine() {
           items.map((i) => rowFor(i, "all"))
         )}
       </Block>
+
+      {/* THE CEILING, on the station where the money is actually spent.
+        `resolveMissionSpendCap` has resolved this on every dispatch since the
+        mission-caps fix and `checkMissionCaps` enforces it fail-closed before
+        every model call, but a repo-wide grep for the column outside the
+        server returned nothing: the single most important governance control
+        in the product was invisible to the person accountable for it.
+
+        `mission-caps.server.ts` asked for this surface in its own words, about
+        its own built-in number: "a default the user never chose, which by the
+        governance canon's fourth floor makes it our decision rather than their
+        policy, so it must stay visible and changeable rather than quietly
+        correct."
+
+        It is one line, not a panel, because a boundary is a sentence you set
+        once and it does not block anything. And it is HERE rather than three
+        clicks into Settings because GOVERNANCE-PRINCIPLE.md's instruction is to
+        promote the policy layer to the centre of the product, and the centre
+        for a spend ceiling is the room where agents write code. */}
+      {spend.data?.is_owner ? (
+        <Block title="The boundary">
+          <Line
+            label="What one run may spend before it stops"
+            sub={
+              spend.data.cap_usd === null ? (
+                "No ceiling. A run continues until it finishes or something else stops it."
+              ) : spend.data.is_default ? (
+                <>
+                  <Num>${spend.data.cap_usd.toFixed(2)}</Num>, which is our number rather than yours
+                  until you change it.
+                </>
+              ) : (
+                <>
+                  <Num>${spend.data.cap_usd.toFixed(2)}</Num>. A run that reaches it halts and says
+                  so.
+                </>
+              )
+            }
+          >
+            <Input
+              type="number"
+              min={1}
+              step={1}
+              defaultValue={spend.data.cap_usd ?? undefined}
+              aria-label="Dollars one run may spend before it stops"
+              style={{ width: 96, textAlign: "right" }}
+              disabled={setCap.isPending}
+              onBlur={(e) => {
+                const raw = e.currentTarget.value.trim();
+                const next = raw === "" ? null : Number(raw);
+                if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
+                if (next === spend.data?.cap_usd) return;
+                setCap.mutate(next);
+              }}
+            />
+          </Line>
+          {capReceipt ? (
+            <Receipt
+              verb="You moved the ceiling"
+              consequence={
+                capReceipt.cap === null ? (
+                  "A run now continues until it finishes. Nothing stops it on spend."
+                ) : (
+                  <>
+                    A run now halts at <Num>${capReceipt.cap.toFixed(2)}</Num>.
+                  </>
+                )
+              }
+            />
+          ) : null}
+        </Block>
+      ) : null}
     </Surface>
   );
 }
