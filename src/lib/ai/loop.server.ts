@@ -257,16 +257,51 @@ type Action =
 
 type ModelReply = { thought?: string; action?: Action };
 
+/**
+ * Accept the shape models actually emit, not only the one we asked for.
+ *
+ * THE CONTRACT is `{"type":"tool_call","name":"prd.draft","args":{...}}`. What
+ * models frequently emit instead is `{"type":"prd.draft","args":{...}}`: they
+ * read a list of tools and put the tool in the field literally called `type`,
+ * which is a very reasonable thing to think. `action.name` is then undefined,
+ * the loop answers "Unknown tool: undefined", and the call is thrown away.
+ *
+ * That is not a cosmetic parse failure. It was found on 2026-08-01 by reading a
+ * live checkpoint: Learn's data-analyst had graded the outcome correctly, chosen
+ * `learning.record`, and written a well-formed argument object with the verdict,
+ * the evidence id and the reasoning. All of it was discarded on the field name,
+ * the agent fell back to prose, and the station filed nothing. The station looks
+ * broken; the agent was right.
+ *
+ * So the envelope is normalised here rather than defended against downstream. A
+ * `type` that is not one of the two protocol words, on an action that carries
+ * `args`, is a tool name in the wrong field, and is read as one. The strict
+ * shape still parses unchanged, and an action with neither a usable name nor
+ * `args` is still rejected rather than guessed at.
+ */
+export function normalizeAction(reply: ModelReply | null): ModelReply | null {
+  const a = reply?.action as
+    { type?: string; name?: string; args?: unknown; message?: string } | undefined;
+  if (!a || typeof a !== "object") return reply;
+  if (a.type === "tool_call" || a.type === "final") return reply;
+  // A tool name in `type`, which is the common mistake. Requiring `args` keeps
+  // this from rewriting some future protocol word into a phantom tool call.
+  if (typeof a.type === "string" && a.type && !a.name && a.args !== undefined) {
+    return { ...reply, action: { ...a, type: "tool_call", name: a.type } } as ModelReply;
+  }
+  return reply;
+}
+
 function safeParseAction(text: string): ModelReply | null {
   try {
-    return JSON.parse(text) as ModelReply;
+    return normalizeAction(JSON.parse(text) as ModelReply);
   } catch {
     /* try slice */
   }
   const m = text.match(/\{[\s\S]*\}/);
   if (!m) return null;
   try {
-    return JSON.parse(m[0]) as ModelReply;
+    return normalizeAction(JSON.parse(m[0]) as ModelReply);
   } catch {
     return null;
   }
