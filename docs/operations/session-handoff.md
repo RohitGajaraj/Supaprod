@@ -1,8 +1,101 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-08-01 12:40 IST. `main` clean, all pushed through `eee24a54`. **Spine depth pass: Discover complete, Decide connected, the route model built. Five stations remain.** Read the 08-01 section first; it is the live one._
+> _Last updated: 2026-08-01 22:45 IST. `main` clean, pushed through `1ca46dd7`, all migrations applied live, deployed. **The seven-station loop now runs end to end on its own and the front door is open.** Read the section immediately below; it is the live one._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
+
+---
+
+# 2026-08-01 evening: the loop delivers, and clusters become work
+
+## PART 1: IS THE ONE-TO-SEVEN SPINE WORKING?
+
+**Yes, end to end, verified on the live system rather than argued from the code.** A real track
+walked Plan -> Design -> Build -> Ship -> Learn on its own and finished `status = done`, filing
+artifacts and metering its own spend.
+
+It did NOT work this morning. Four independent silent failures, each hiding the next:
+
+1. **The tool was unreachable.** Plan's agent wrote a complete spec into its final answer and never
+   called `prd.draft`, because that account had no `agent_tools` row for it and the loop built its
+   tool list from that table. 11 of 16 accounts could not draft a spec; `prd.revise`,
+   `decision.revise` and `roadmap.move` were reachable by nobody at all.
+2. **There was no handoff.** `stationGoal` took only the track's title and origin, so Design never
+   saw the spec and Build never saw the design. Seven stations were each handed the same one-line
+   brief and asked to invent the rest.
+3. **The driver advanced on silence.** A station that ran and filed nothing was indistinguishable
+   from one that did its job, so 1 and 2 could never surface.
+4. **The loop discarded correct tool calls over one field name.** Models emit
+   `{"type":"learning.record","args":{...}}` rather than `{"type":"tool_call","name":"...",...}`.
+   `action.name` was undefined, the loop answered "Unknown tool: undefined", and fully-formed calls
+   carrying the verdict and reasoning were thrown away. **Only visible by reading a live
+   checkpoint** - invisible in code, tests and every status field.
+
+### Everything else shipped today
+
+- **Tools are platform policy, not per-user rows.** `TOOL_REGISTRY` + `src/lib/ai/tools/defaults.ts`
+  decide; `agent_tools` holds only per-account DEVIATIONS. A new tool is live for everyone the moment
+  it ships; a new account needs no seeding. All seven seed functions are no-op'd in the live DB.
+  **Never seed `agent_tools` again.** Adding a tool = registry entry + `TOOL_DEFAULTS` entry, no
+  migration; `tools/defaults.test.ts` fails the build if you forget.
+- **Every station runs a CREW.** 13 active agents existed and 7 were dispatched. Three genuinely
+  missing seats created: `design-critic`, `release-verifier` (runs BEFORE release), `insight-keeper`.
+  `driver.test.ts` fails the build if an active agent is in no crew.
+- **A spend ceiling on the TRACK** ($5 default), because the run cap bounded ~16 runs separately and
+  summed none of them. Control on `/boundary`.
+- **A tick deadline**, after finding ticks killed mid-write by the Worker duration limit.
+- **`agent_runs.track_id` + `TrackActivity`**: who acted, the handoff, the outcome.
+- **`AgentPulse`**: our seven-petal mark turning beside a rotating gerund with running dots.
+- **Clusters become work on their own**, the loop's front door, which was shut.
+
+### Known-good live numbers
+
+| | |
+|---|---|
+| Signals / sources | 308 across 26 |
+| Clustered | 307 (99.7%) into 181 themes |
+| Cost per agent run | ~$0.03 |
+| Full track pass | ~16 runs, ~$0.50 |
+| Tests | 6,610 pass, 0 fail |
+
+### THE FIRST THING TO CHECK NEXT SESSION
+
+Promotion has **not yet been observed firing live** - it ships inside `cron.cluster-tick` and needs a
+sweep. Verify:
+
+```sql
+select id, title, station, theme_id, spend_used_usd
+from spine_tracks where theme_id is not null order by created_at desc;
+```
+
+Expect **at most 2 new tracks per sweep**. If more appear, stop the tick and check
+`MAX_PROMOTIONS_PER_SWEEP` in `src/lib/spine/promote.ts`.
+
+## PART 2: THE OPEN UX BRIEF (founder, 2026-08-01)
+
+**Why it matters, his words:** _"If you don't have the live indicator it feels very static and we do
+not realize what is happening in the background. The user would churn, there is no stickiness. And as
+a founder, if I myself know what to do, I need to figure out where it is moving, what is the journey.
+After this what happens, where did it move, where should I find that. That is still a mystery and a
+little chaos."_
+
+Standing bar: **premium but never force-fitted**, and a quick glance must not put cognitive load on
+the reader.
+
+1. **Wire `AgentPulse` across every agent-running surface**, plus per-action detail (which file,
+   which line, which mockup, what moved to memory). Built, but wired into `TrackActivity` ONLY. 64
+   files use `<Loading>`; pass `working` only where an agent genuinely runs or the indicator lies.
+2. **The Build terminal - the biggest one.** Wrong shape, unexplained blank space above it, does not
+   show what changed. Lift Claude Code's diff view; it must sit inline or side by side with the file
+   and change with the selection.
+3. **Status colour everywhere.** Red/green per added/deleted line, coloured threads and mission ids.
+   **Not limited to red/green** - other hues welcome if subtle and carrying meaning, never decorating.
+4. **Unique shapes for missions and cards.** Not square/circle/triangle. Monotone background,
+   premium. Founder's refinement: _thoughtfully placed, only where it makes sense_ - a UI/UX cleanup,
+   not ornament.
+5. **Space and scroll discipline** across all seven surfaces.
+6. **Left rail auto-collapses** once the 01-07 spine is familiar, with instant hover tooltips.
+7. **Perceived speed** on strips and messages.
 
 ---
 
