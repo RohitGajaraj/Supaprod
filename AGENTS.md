@@ -540,6 +540,18 @@ If you hit the same friction twice, add a row here before the third time. The co
 - **Symptom:** repeated `COST WARNING`.
 - **Permanent behavior:** batch independent operations into one message with parallel tool calls. Do not narrate each step. Do not retry a blocked op in isolation — fix the pattern, then retry the batch.
 
+### Query the knowledge graph before grepping (applies to EVERY tool, not just Claude Code)
+
+- **Symptom:** an agent greps or reads many files to answer "where is X", "what calls Y", "what breaks if I change Z". Measured at ~206x more tokens than asking the graph.
+- **Permanent behavior:** a graphify knowledge graph covering all code (including every `supabase/migrations/*.sql`) plus the docs canon is built for this repo. Ask it first:
+  - `graphify explain "<symbol>"` — sharpest: exact file + line + every inbound/outbound edge.
+  - `graphify query "<question>" --budget 1500` — BFS walk; prefer specific nouns, generic words collide.
+  - `graphify affected "<symbol>"` — what breaks if this changes.
+- **The graph is NOT in git** (50 MB, rewritten every build), so no `git pull` will produce one. If the checkout has no `graphify-out/`, use the machine-wide copy: `--graph ~/.graphify/global-graph.json`. It works from any directory, and its node ids are prefixed `supaprod::`.
+- **Agents that cannot run a CLI** (cloud/web sessions) should read `graphify-out/wiki/index.md` and `graphify-out/GRAPH_REPORT.md` instead, where those exist in the checkout.
+- **It is read-only on the repo.** graphify parses files and writes only to `graphify-out/` (git-ignored) and `~/.graphify/`. It never edits source.
+- **It goes stale; nothing refreshes it automatically.** After code changes run `PYTHONHASHSEED=0 graphify update .` (AST only, free). Pin `PYTHONHASHSEED=0` or clustering is nondeterministic and community names churn. Full detail, including the two accuracy limits and the banned `--backend claude-cli`, lives in [`CLAUDE.md`](./CLAUDE.md) "Knowledge-graph note (graphify)".
+
 ---
 
 ### Canonical repo law (permanent, corrected 2026-07-01 — supersedes the 2026-06-26 ruling below)
