@@ -20,8 +20,8 @@ official product documentation**, with URLs. Treat it as reliable.
 | **Discover** | Sentry issue stream · Linear Triage · Productboard Insights · Enterpret / Unwrap / Dovetail | ✅ researched 2026-08-01, below |
 | **Decide** | inherits Discover's triage verbs; Linear's split view | ✅ partially, below |
 | **Plan** | Linear cycles / Productboard roadmap | ⬜ not yet researched |
-| **Design** | Figma (Dev Mode, prototyping, Make) · v0 · Claude Artifacts · Lovable | 🟡 in flight |
-| **Build** | GitHub Copilot cloud agent ✅ · Devin ✅ · Cursor / Claude Code 🟡 | ✅ largely, below |
+| **Design** | Figma Dev Mode + Make · v0 · Lovable · Uizard · Stitch | ✅ researched 2026-08-01, below |
+| **Build** | GitHub Copilot · Devin · Cursor · Claude Code · Codex | ✅ researched 2026-08-01, below |
 | **Ship** | changelog and release-notes tooling | ⬜ not yet researched |
 | **Learn** | Amplitude / experiment readouts | ⬜ not yet researched |
 
@@ -457,9 +457,216 @@ tab name; and no wall-clock session timeout is published.
 
 ---
 
-# DESIGN
+# THE APPROVAL PATTERN, across the whole market
 
-🟡 **Research in flight as of 2026-08-01.** Covering: Cursor Composer/Agent, Claude Code, GitHub
+Researched 2026-08-01 across Cursor, VS Code Copilot, Claude Code, Codex, Devin and Windsurf. This
+section is the most convergent evidence in the library, and **it validates the 2026-07-29
+governance ruling almost line for line.**
+
+## The single strongest data point
+
+> **Cursor DEPRECATED "Ask Every Time" in version 3.5.**
+> ([cursor.com/docs/agent/security/run-modes](https://cursor.com/docs/agent/security/run-modes))
+
+The market leader removed per-action approval as an option. Not de-emphasised: removed.
+
+## Everyone landed on the same four-rung ladder
+
+| Product | Rungs, exact names |
+| --- | --- |
+| **Cursor** | Auto-review (default) -> Allowlist -> Run Everything |
+| **VS Code Copilot** | Default Approvals -> Assisted permissions (LLM judge) -> Bypass -> Autopilot |
+| **Devin Desktop / Windsurf** | Disabled -> Allowlist Only -> Auto -> Turbo |
+| **Claude Code** | default -> acceptEdits -> plan -> auto -> dontAsk -> bypassPermissions |
+| **Codex** | read-only -> workspace -> danger-full-access, plus custom profiles |
+
+Policy lives in a FILE in every case, with the same grammar: allow / ask / deny, **deny wins**, and
+an admin tier that outranks the user's. Cursor: team dashboard > `permissions.json` > IDE settings,
+and once a key is set the IDE editor goes read-only.
+
+## The three mechanisms worth naming
+
+**1. A classifier as the boundary, steered in plain English.** Cursor sends every non-allowlisted
+shell, MCP and fetch call to a classifier subagent that allows, redirects or escalates. Cursor says
+in its own docs that the classifier **"is not a security boundary"** and errs in both directions.
+That honesty is worth copying verbatim.
+
+**2. A reviewer AGENT instead of a human at the boundary.** Codex `approvals_reviewer =
+"auto_review"` routes eligible requests to a separate agent that sees a compact transcript plus the
+exact request and grades it against intent, environment, policy and likely impact. OpenAI's
+published numbers ([alignment.openai.com/auto-review](https://alignment.openai.com/auto-review/)):
+
+> **roughly 200x fewer interruptions** · 99.1% approval rate on escalated actions · 90.3% detection
+> of overeager risky actions · 99.3% detection of prompt-injection attacks
+
+With a **rejection circuit breaker** (abort after 3 consecutive or 10 rolling denials) and
+`/approve` to override one specific denial, which is itself still reviewed.
+
+**And OpenAI's stated reason for building it is the thesis of our governance canon:**
+
+> **"Approval friction harms security"** because it drives users to Full Access mode,
+> over-permissive rules, and rubber-stamping under reviewer fatigue.
+
+**3. Hard floors above every mode.** Cursor keeps Browser Protection, File-Deletion Protection and
+External-File Protection always-approval regardless of run mode. Claude Code hook `exit 2` blocks
+outrank allow rules. Devin Desktop admins set a **maximum auto-execution level** capping what a
+member may choose. This is our `toolRisk` floor, independently arrived at four times.
+
+## Spend as policy, not as a dashboard
+
+Only Devin makes budget a per-automation policy field (ACU limit per session, invocation limit per
+window, network allowlist). Cursor's are admin-tier and **deliberately soft "to avoid blocking
+users"**, with alerts at 50/80/100%. Both write the ceiling in advance; neither asks a human at
+spend time.
+
+> **The researcher's verdict, and it changes our roadmap framing: "the missing
+> `mission_spend_cap_usd` is not a catch-up item, it is a LEAD item. A workspace-default spend
+> ceiling that fires, with the exceeded-cap event written to the record, is something no competitor
+> ships, and it is the one thing that makes the autonomy argument survivable in front of a risk
+> officer."**
+
+---
+
+# BUILD: the information model, ranked
+
+**Tier 1, cannot ship without:** the plan as a live MUTABLE document (Cursor's is a real document
+with dirty tracking, inline editing and export, not a chat ornament) · the live diff applied-then-
+reviewed (**Cursor's default polarity is REJECT, not approve**) · the changed-file list with a
+navigation spine · **tool calls at adjustable density** (Cursor's Compact / Balanced / Detailed,
+uncontested and the right answer to "the trace is too noisy") · terminal output inline.
+
+**Tier 2:** per-run cost as a workflow affordance · **the commit that links to its own session
+log** · checkpoints as an axis SEPARATE from git (Claude Code keeps 100, 30-day retention, and
+honestly reports `Restored the code, but skipped N files`) · multi-agent state at a glance ·
+tests/CI and the failure loop.
+
+## The verb set, with the bindings that are stable across products
+
+`Cmd/Ctrl+Return` accept or send-now · `Cmd+Backspace` reject · `Esc` interrupt WITHOUT discarding
+· `Shift+Tab` cycle autonomy mode (Cursor and Claude Code agree) · `Ctrl+B` background a task.
+
+Verbs we lack: **Stage to accept** (VS Code: staging in source control implicitly accepts pending
+edits, so git becomes the accept gesture and there is no second approval, the cleverest verb in the
+set) · **Steer with Message** landing at the next tool boundary rather than the next turn ·
+**Queue** with drag-reorder · **Rewind** with Claude Code's menu (Restore code and conversation /
+Restore conversation / Restore code / Summarize from here / Never mind), the best-articulated menu
+anywhere · **Fork** the conversation · **Split PRs** into logical slices with a backup snapshot ·
+**Retry a denial** (Claude Code `/permissions` Recently denied tab, press `r`).
+
+## The genuine market gaps in Build
+
+- **No product ships a first-class "loop until green."** Cursor tells you to build it from hooks
+  (`loop_limit` default 5). **Nobody records "iteration 1 failed this test, iteration 2 changed
+  this, iteration 3 passed" as inspectable history.** An agent that retries invisibly is exactly
+  what makes people demand approval gates back.
+- **Non-blocking clarification** exists only in Cursor 2.4: the agent asks and **keeps working**,
+  incorporating the answer when it arrives. This is the most important single verb for a policy
+  product, because the ask stops being a gate.
+
+---
+
+# DESIGN: the fidelity ladder and "what it replaces"
+
+## The headline finding: the AI-native tools DELETED the fidelity ladder
+
+Only legacy-lineage tools expose fidelity as a control. Figma Make, v0, Lovable and Artifacts have
+none: **the preview IS the artifact.** What replaced the ladder is a pre-code **planning rung**
+(Figma Make Plan mode, Lovable Plan mode, v0 Plan Mode).
+
+**Uizard is the model to steal: fidelity is a VIEW ON ONE DOCUMENT, not a separate document.** One
+toggle repaints the same project as a black-and-white hand-drawn sketch or a finished mockup. And
+Figma's Config 2026 **Code Layers** points at the successor: individual LAYERS promoted from static
+to live, per layer, rather than the whole document switching.
+
+## "What it replaces": Figma Dev Mode Compare changes is the reference, and NOBODY in the AI category copied it
+
+([help.figma.com/.../15023193382935](https://help.figma.com/hc/en-us/articles/15023193382935-Compare-changes-in-Dev-Mode))
+In one modal: **Side by side** and **Overlay with a transparency slider** · a timeline of file
+history including autosaves · per-layer tags **Edited / Added / Deleted**, click to zoom · selecting
+an edited layer shows **the previous version's property values beside the current** · **and the code
+diff between the two versions**.
+
+> **Across every AI generator there is no visual before/after between two committed versions.** v0
+> and Figma Make have one only for UNCOMMITTED staged edits. This is the founder's exact ask
+> (2026-08-01, "you should know what it is replacing") and it is an open position in the market.
+
+Figma branch review is the same grammar for approval, and its documented limitation is instructive:
+**merge is all-or-nothing**, no way to select individual changes.
+
+## How a change is requested: three models, one clearly winning
+
+**Stage -> before/after -> Apply -> new version.** v0 Design mode and Figma Make converged on this
+INDEPENDENTLY within a year, **including the economics: direct manipulation is free while staged;
+only the commit costs.** v0: pending edits with Undo / Redo / Reset and a **Before / after preview**
+toggle that "temporarily toggles off all pending edits so you can compare with the original", then
+**Apply** serializes them into "a diffable, reviewable, revertable chat version". Figma Make,
+2026-07-30: "Edits stack up in the chat panel first, **staged and credit-free**, until you apply
+them."
+
+Lovable's preview toolbar is the richest taxonomy: **Select elements** `S` · **Edit text inline**
+`T` (**free up to 100 edits/user/day**) · **Draw annotation** `D` · **Add a comment** `C`.
+**The under-copied insight: a text change is a DATA edit, not a generation, so it does not invoke
+the agent at all.**
+
+## Design-system enforcement, and the provenance gap
+
+1. **Lovable is the only product with an automated adherence check.** It scans generated output for
+   raw colour literals where a token belongs, custom re-implementations of system components, and
+   inline style overrides, then **"automatically retries to correct them before finishing the
+   generation."**
+2. **v0 has the strongest stated constraint**: "If a component, prop, or token cannot be verified
+   from the sources, v0 should not use it." Plus the best onboarding ritual: it **builds a small
+   starter app using your design system to prove it understood.**
+3. **Figma Code Connect** is the only real ground truth, but lives on the inspect side.
+4. **Stitch's `DESIGN.md`**, an agent-friendly markdown file of design rules. The most portable idea
+   in the category and the closest to our own conventions.
+
+> **THE UNIVERSAL GAP: not one product renders provenance.** Nothing labels a generated element
+> "this is your `<Button variant="primary">`" versus "this one I invented". Lovable enforces
+> silently, v0 constrains in the prompt, Figma proves it only in Inspect. **No product shows the
+> user, on the generated surface, which parts came from the system and which were improvised.**
+> That is the clearest unclaimed position in this market, and for a product whose brain is supposed
+> to GUIDE rather than store, showing where the agent improvised is exactly where the brain should
+> speak up.
+
+## Handoff
+
+Figma treats handoff as a **representation** problem (Inspect, per-language snippets, variables per
+layer, Ready for dev / Completed / Changed statuses, the compare modal, and an MCP server exposing
+`get_code` and `get_variable_defs`). Every AI generator treats it as a **transport** problem: the
+code is the spec, push it to a repo. **Nobody does both.**
+
+---
+
+# WHAT THE WHOLE MARKET GETS WRONG (the openings)
+
+1. **The default polarity is still "the human is a reviewer", not "the human sets boundaries."**
+   Nothing treats NOT reviewing as the normal outcome. For us the diff cannot be the destination; it
+   is the exhibit attached to an outcome, opened when the outcome or the record is contested.
+2. **Policy is a settings file, so it is invisible at the moment it matters.** None of these
+   products shows, in the run, WHICH POLICY let this happen or which would have stopped it. Claude
+   Code's `/permissions` with its Recently denied tab is the seed of the right idea and nobody grew
+   it into a product surface.
+3. **The queue is never offered for deletion.** No product reads your approval history and proposes
+   a policy. Devin's Suggested Knowledge is the right mechanic pointed at the wrong object. Our
+   governance canon's "you approved 14 of these without changes, let Engineer do it alone?"
+   **exists nowhere.**
+4. **Everything above the floor is per-tool-call. Nothing is per-OUTCOME.** Every allowlist gates
+   commands and tools; none gates consequences. "Never ship anything a customer sees without a named
+   owner" is not expressible in any of these grammars. Codex's reviewer agent is the only mechanism
+   reasoning about impact rather than syntax, and it is a model, not a policy.
+5. **Cost is a billing page, not a boundary.** See the spend verdict above.
+6. **Provenance is invisible in the design lane.**
+7. **There is no ledgered failure loop.**
+
+**Six of those seven are things our architecture already has the pieces for.** That is the strategic
+read of this entire library.
+
+---
+
+# DESIGN, remaining
+
+🟡 **Still to research as of 2026-08-01.** Covering: Cursor Composer/Agent, Claude Code, GitHub
 Copilot Workspace and Devin for how in-progress agent work is made visible (what streams, the file
 list, per-hunk diff review, terminal permission, tests and CI, steering mid-run); and Figma
 (Dev Mode, prototyping, Make), v0, Claude Artifacts and Lovable for the fidelity ladder, how a
