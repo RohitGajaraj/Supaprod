@@ -7104,6 +7104,8 @@ export type Database = {
           pending_gates: Json
           product_id: string | null
           project_id: string | null
+          spend_cap_usd: number | null
+          spend_used_usd: number
           station: string
           status: string
           title: string
@@ -7124,6 +7126,8 @@ export type Database = {
           pending_gates?: Json
           product_id?: string | null
           project_id?: string | null
+          spend_cap_usd?: number | null
+          spend_used_usd?: number
           station?: string
           status?: string
           title: string
@@ -7144,6 +7148,8 @@ export type Database = {
           pending_gates?: Json
           product_id?: string | null
           project_id?: string | null
+          spend_cap_usd?: number | null
+          spend_used_usd?: number
           station?: string
           status?: string
           title?: string
@@ -8575,6 +8581,7 @@ export type Database = {
           auto_trigger_enabled: boolean
           created_at: string
           default_mission_spend_cap_usd: number | null
+          default_track_spend_cap_usd: number | null
           deleted_at: string | null
           design_stage_enabled: boolean
           id: string
@@ -8605,6 +8612,7 @@ export type Database = {
           auto_trigger_enabled?: boolean
           created_at?: string
           default_mission_spend_cap_usd?: number | null
+          default_track_spend_cap_usd?: number | null
           deleted_at?: string | null
           design_stage_enabled?: boolean
           id?: string
@@ -8635,6 +8643,7 @@ export type Database = {
           auto_trigger_enabled?: boolean
           created_at?: string
           default_mission_spend_cap_usd?: number | null
+          default_track_spend_cap_usd?: number | null
           deleted_at?: string | null
           design_stage_enabled?: boolean
           id?: string
