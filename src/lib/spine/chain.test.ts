@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from "bun:test";
 import {
-  ARTIFACT_TABLE,
+  ARTIFACT_SOURCE,
   NOTHING_LANDS_HERE,
   buildChain,
   describeChain,
@@ -55,20 +55,32 @@ function counted(chain: ReturnType<typeof buildChain>): number {
 describe("the reader can resolve everything the writer can file", () => {
   it("covers every kind a registered tool produces", () => {
     for (const product of Object.values(TOOL_PRODUCTS)) {
-      expect(ARTIFACT_TABLE[product.kind]).toBeDefined();
+      expect(ARTIFACT_SOURCE[product.kind]).toBeDefined();
     }
   });
 
   it("covers the mission the driver files itself, which no tool writes", () => {
-    expect(ARTIFACT_TABLE.mission).toBe("missions");
+    expect(ARTIFACT_SOURCE.mission?.table).toBe("missions");
+  });
+
+  /**
+   * Three of the four tables added on 2026-08-01 do not have a `title` column,
+   * and a wrong column name inside a select string compiles clean and fails
+   * only on a live read. This pins the names that were checked against the
+   * generated types, so a rename has to break a test rather than a page.
+   */
+  it("names the title column per kind instead of assuming every table spells it title", () => {
+    expect(ARTIFACT_SOURCE.prototype?.title).toBe("name");
+    expect(ARTIFACT_SOURCE.learning?.title).toBe("summary");
+    expect(ARTIFACT_SOURCE.deployment?.title).toBe("deploy_url");
   });
 
   /**
    * The engineering note and the sentence a person reads are two statements of
    * one fact, so they are pinned to each other rather than trusted to be kept
-   * in step by hand. Close a gap by registering a tool and this fails until the
-   * plain line is dropped too, which is the only way a surface stops telling
-   * someone nothing can land at a station that now produces things.
+   * in step by hand. This test is what forced the excuse copy out: closing the
+   * four gaps made it fail until the sentences were deleted, which is exactly
+   * the behaviour we want from every explanation of a hole.
    */
   it("says something plainly at exactly the stations that have an engineering gap", () => {
     const withGap = AGENT_STATION_ORDER.filter((s) => STATION_ARTIFACT[s].gap !== null).sort();
@@ -82,6 +94,40 @@ describe("the reader can resolve everything the writer can file", () => {
       // the end is just a sentence, which is what these are supposed to be.
       expect(line).not.toMatch(/\.\w/);
       expect(line).not.toMatch(/_|-tick\b/);
+    }
+  });
+});
+
+/**
+ * FOUNDER RULING 2026-08-01. Every station gets an agent that can produce its
+ * artifact. Sense had six tools, Define four, Build fifteen; Decide, Design,
+ * Ship and Learn had none, and the surface had begun excusing that in words a
+ * customer would read. These assertions are the guard: a station that loses its
+ * tool fails here rather than quietly going back to being narrated.
+ */
+describe("every station can produce its own artifact", () => {
+  it("leaves no station without a tool that creates what it exists to make", () => {
+    const handless = AGENT_STATION_ORDER.filter((s) => STATION_ARTIFACT[s].createdBy === null);
+    expect(handless).toEqual([]);
+  });
+
+  it("names a tool that is actually registered, not an aspiration", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      const tool = STATION_ARTIFACT[station].createdBy;
+      expect(TOOL_PRODUCTS[tool as string]).toBeDefined();
+    }
+  });
+
+  it("files that tool's output under the kind the station is for", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      const spec = STATION_ARTIFACT[station];
+      expect(TOOL_PRODUCTS[spec.createdBy as string].kind).toBe(spec.kind);
+    }
+  });
+
+  it("can resolve every station's artifact back to a readable row", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      expect(ARTIFACT_SOURCE[STATION_ARTIFACT[station].kind]).toBeDefined();
     }
   });
 });
@@ -187,10 +233,16 @@ describe("where a station sits relative to the work", () => {
 });
 
 describe("an empty station says why it is empty", () => {
-  it("carries the gap sentence where no tool can ever file anything", () => {
+  /**
+   * Design and Ship used to carry a sentence here. They do not any more,
+   * because they can now produce their own artifact, and an empty stop on a
+   * station that CAN produce means "not yet" all by itself. Excusing it would
+   * tell a person nothing lands there when something just has not landed there
+   * yet, which is a different and false claim.
+   */
+  it("excuses nothing now that every station has a tool", () => {
     const chain = buildChain({ route: route(), station: "sense", status: "open", members: [] });
-    expect(chain.stops.find((s) => s.station === "design")?.gap).toBeTruthy();
-    expect(chain.stops.find((s) => s.station === "ship")?.gap).toBeTruthy();
+    for (const stop of chain.stops) expect(stop.gap).toBeNull();
   });
 
   it("does not excuse a station that produced something", () => {

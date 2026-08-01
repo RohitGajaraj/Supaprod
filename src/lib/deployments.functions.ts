@@ -138,17 +138,37 @@ export const listDeployments = createServerFn({ method: "GET" })
 // Ship closes the loop on the spec: status 'shipped' + its stage event, and
 // the 30-day outcome window arms (a minimal, truthful launch_plans row when
 // none exists; the full plan stays regenerable from the Launch tab).
-export const promoteToProduction = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ changesetId: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) => {
-    const { userId } = context;
-    const db = context.supabase as unknown as SupabaseClient;
-
+/**
+ * Promote a merged changeset to production.
+ *
+ * EXTRACTED FROM THE SERVER FUNCTION, unchanged, so the Ship station's agent can
+ * call the same path a person does. Ship had no agent-callable tool at all: the
+ * station's lead agent arrived, was handed a goal, and had no way to produce the
+ * one artifact the station exists for, so a track walked through Ship and left
+ * no record. The fix is not a second deploy path, which would be two ways to
+ * ship that can disagree; it is one path with two callers.
+ *
+ * THIS IS A GOVERNANCE FLOOR AND STAYS ONE. A production deploy is named in the
+ * four floors no boundary may lower: irreversible from inside the product, and
+ * customers see it. The tool that wraps this is pinned to review for exactly
+ * that reason, and the pin is asserted by a test rather than left to a default.
+ * That is the gate being the exception, not the loop.
+ *
+ * Returns the deployment row's id so the caller can say what it produced. The
+ * spine files artifacts from a tool's own reported return value and never from
+ * a query for what appeared lately, so a promote that reported only a URL would
+ * be invisible to the record.
+ */
+export async function promoteChangesetToProductionCore(
+  db: SupabaseClient,
+  userId: string,
+  changesetId: string,
+): Promise<{ productionUrl: string; revisionId?: string | null; deploymentId: string | null }> {
+  {
     const { data: cs, error } = await db
       .from("studio_changesets")
       .select("id,mission_id,workspace_id,product_id,prd_id,repo,status,title,release_notes")
-      .eq("id", data.changesetId)
+      .eq("id", changesetId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!cs) throw new Error("Changeset not found");
@@ -193,23 +213,30 @@ export const promoteToProduction = createServerFn({ method: "POST" })
     }
 
     const nowIso = new Date().toISOString();
-    const { error: depErr } = await db.from("deployments").upsert(
-      {
-        user_id: userId,
-        workspace_id: cs.workspace_id,
-        product_id: cs.product_id ?? null,
-        changeset_id: cs.id,
-        provider: "deno",
-        environment: "production",
-        status: "success",
-        commit_sha: preview.commit_sha,
-        deploy_url: result.url,
-        triggered_by: "promote",
-        deployed_at: nowIso,
-      },
-      { onConflict: "changeset_id,environment,commit_sha" },
-    );
+    const { data: depRow, error: depErr } = await db
+      .from("deployments")
+      .upsert(
+        {
+          user_id: userId,
+          workspace_id: cs.workspace_id,
+          product_id: cs.product_id ?? null,
+          changeset_id: cs.id,
+          provider: "deno",
+          environment: "production",
+          status: "success",
+          commit_sha: preview.commit_sha,
+          deploy_url: result.url,
+          triggered_by: "promote",
+          deployed_at: nowIso,
+        },
+        { onConflict: "changeset_id,environment,commit_sha" },
+      )
+      // Selected so the caller can name what it produced. The upsert is
+      // unchanged; only its return is read now.
+      .select("id")
+      .maybeSingle();
     if (depErr) throw new Error(depErr.message);
+    const deploymentId = (depRow as { id?: string } | null)?.id ?? null;
 
     // Release notes attach automatically on ship (mission 3.7). Best-effort
     // and skip-if-present - a human may already have written/edited one, and
@@ -290,5 +317,18 @@ export const promoteToProduction = createServerFn({ method: "POST" })
       }
     }
 
-    return { productionUrl: result.url, revisionId: result.revisionId };
-  });
+    return { productionUrl: result.url, revisionId: result.revisionId, deploymentId };
+  }
+}
+
+/** The person-facing door. Same path as the agent's, so the two cannot drift. */
+export const promoteToProduction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ changesetId: z.string().uuid() }).parse(i))
+  .handler(async ({ context, data }) =>
+    promoteChangesetToProductionCore(
+      context.supabase as unknown as SupabaseClient,
+      context.userId,
+      data.changesetId,
+    ),
+  );

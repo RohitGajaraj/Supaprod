@@ -42,6 +42,12 @@ export const HIGH_RISK_FORCE_REVIEW = new Set([
   "studio.pr.merge",
   "studio.revert",
   "delegate.openhands",
+  // Ship's own tool, pinned the day it was written rather than after an
+  // incident. A production deploy is two of the four governance floors at once:
+  // irreversible from inside the product, and customers see it. It is the only
+  // gate in the seven-station loop, which is what makes the autonomy of the
+  // other six defensible instead of reckless.
+  "release.publish",
 ]);
 
 const LADDER: Record<RampMode, RampMode | null> = {

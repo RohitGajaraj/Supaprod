@@ -155,6 +155,16 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
   // and only the return shape was withholding them.
   "research.synthesize": { kind: "theme", table: "themes", idField: "theme_ids", many: true },
   "cluster.trigger": { kind: "theme", table: "themes", idField: "theme_ids", many: true },
+  // The four stations that used to have no hands (founder ruling 2026-08-01).
+  // Each returns the id of the row it created, so the station it ran at finally
+  // produces a member instead of walking through and leaving nothing.
+  "decision.record": { kind: "decision", table: "decisions", idField: "decision_id" },
+  "design.draft": { kind: "prototype", table: "prototypes", idField: "prototype_id" },
+  "learning.record": { kind: "learning", table: "learnings", idField: "learning_id" },
+  // Runs through a review gate, so its id arrives via `agent_approvals.result`
+  // and is picked up by the gate harvest rather than off a loop step. That path
+  // already exists and needs nothing special here.
+  "release.publish": { kind: "deployment", table: "deployments", idField: "deployment_id" },
 };
 
 /**
@@ -192,15 +202,23 @@ export const STATION_ARTIFACT: Readonly<Record<AgentStation, StationArtifact>> =
   decide: {
     kind: "decision",
     table: "decisions",
-    createdBy: null,
-    gap: "No registered tool inserts a decision. decision.revise only edits one that exists.",
+    // WAS a gap. `decision.revise` could only edit a decision that already
+    // existed, so the one station whose entire job is deciding could not record
+    // a decision. `decision.record` closes it, and refuses a call with no
+    // rejected alternative, because the alternatives are what the brain
+    // compounds on later.
+    createdBy: "decision.record",
+    gap: null,
   },
   define: { kind: "prd", table: "prds", createdBy: "prd.draft", gap: null },
   design: {
     kind: "prototype",
     table: "prototypes",
-    createdBy: null,
-    gap: "No registered tool creates a prototype. Design is driven by people today.",
+    // WAS a gap, and the excuse for it had reached the UI: the chain panel told
+    // people "design is done with people today", which is the wrapper story
+    // told in our own product. Deleted, and the tool built instead.
+    createdBy: "design.draft",
+    gap: null,
   },
   build: {
     kind: "changeset",
@@ -219,14 +237,23 @@ export const STATION_ARTIFACT: Readonly<Record<AgentStation, StationArtifact>> =
   ship: {
     kind: "deployment",
     table: "deployments",
-    createdBy: null,
-    gap: "No registered tool inserts a deployment. The deploy path writes that row, not an agent.",
+    // WAS a gap. `release.publish` calls the SAME promote path a person does,
+    // rather than adding a second way to ship that could disagree with the
+    // first. It is pinned to review and is the only gate in the loop: a
+    // production deploy is irreversible and customers see it, which is the one
+    // place a person genuinely belongs.
+    createdBy: "release.publish",
+    gap: null,
   },
   learn: {
     kind: "learning",
     table: "learnings",
-    createdBy: null,
-    gap: "Learnings are written by the outcome-review sweep (outcome-tick), not by an agent tool.",
+    // WAS a gap. The nightly outcome sweep still writes its own learnings; this
+    // gives the station's agent the same ability during a run, so a track that
+    // reaches Learn produces the verdict instead of waiting on a cron that
+    // knows nothing about it.
+    createdBy: "learning.record",
+    gap: null,
   },
 };
 
@@ -453,6 +480,11 @@ export const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> 
   // Opened by the driver so Build's own tool will run at all. It is real
   // membership, so it is said rather than hidden.
   mission: { one: "run", many: "runs" },
+  decision: { one: "decision", many: "decisions" },
+  prototype: { one: "prototype", many: "prototypes" },
+  learning: { one: "learning", many: "learnings" },
+  // `deployment` is the table's word; a person says release.
+  deployment: { one: "release", many: "releases" },
 };
 
 export function joinPlainly(parts: string[]): string {

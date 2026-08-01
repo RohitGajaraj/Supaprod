@@ -90,6 +90,35 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Delete the draft.",
   },
+  // The four stations that had no hands. Three are reversible internal writes
+  // and classify low, so they run autonomously by default rather than queueing
+  // a person behind every step. An entry is REQUIRED, not optional: toolRisk
+  // returns "high" for any tool it has never heard of, so a tool registered
+  // without one would be gated on every call and the loop would stop at four
+  // stations for a different reason than before.
+  "decision.record": {
+    effect: "Records a decision, with the alternatives that were rejected.",
+    reversible: "reversible",
+    undo: "Delete the decision, or supersede it with a newer one.",
+  },
+  "design.draft": {
+    effect: "Registers a prototype against the spec.",
+    reversible: "reversible",
+    undo: "Delete the prototype.",
+  },
+  "learning.record": {
+    effect: "Records what a shipped piece of work taught us.",
+    reversible: "reversible",
+    undo: "Delete the learning.",
+  },
+  // The exception, and the reason the other three can be autonomous. A
+  // production deploy is irreversible from inside the product and customers see
+  // it, which is two of the four floors at once.
+  "release.publish": {
+    effect: "Ships a merged changeset to production, where customers see it.",
+    reversible: "irreversible",
+    undo: "It is live. Undoing means shipping a revert.",
+  },
   "prd.link_issue": {
     effect: "Links the spec to a tracker issue.",
     reversible: "reversible",

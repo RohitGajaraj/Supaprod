@@ -206,16 +206,24 @@ describe("TOOL_PRODUCTS and STATION_ARTIFACT agree with each other", () => {
     }
   });
 
-  it("names the four stations that cannot produce a member row today", () => {
-    // CORRECTED after adversarial review. This pinned four and asserted Build
-    // was attachable, which was false: studio.stage refuses without a mission
-    // and the driver never passes one. The test passed while recording a wrong
-    // fact about the system, which is the exact drift it was written to catch,
-    // so it now keys off `gap` rather than `createdBy`. A tool existing and the
-    // driver being able to reach it are two different facts, and only the
-    // second one decides whether a member row can ever appear.
+  it("leaves no station stranded without a way to produce a member row", () => {
+    // HISTORY WORTH KEEPING, because this test did its job twice.
+    //
+    // It first pinned four stations and asserted Build was attachable, which
+    // was false: studio.stage refuses without a mission and the driver never
+    // passed one. It was corrected to key off `gap` rather than `createdBy`,
+    // since a tool existing and the driver being able to reach it are two
+    // different facts.
+    //
+    // Then it held the list ["decide","design","ship","learn"] as a permanent
+    // feature of the system, and the founder read that state on the surface and
+    // refused it: four sevenths of the loop cannot be human work in a product
+    // whose claim is that agents run the loop. Every one of those stations had
+    // an active lead agent and a fully shaped table and was missing only a
+    // registered tool, so the tools were built and this now asserts the
+    // opposite. A station that ever loses its hands fails here.
     const stranded = AGENT_STATION_ORDER.filter((s) => STATION_ARTIFACT[s].gap !== null);
-    expect(stranded).toEqual(["decide", "design", "ship", "learn"]);
+    expect(stranded).toEqual([]);
   });
 });
 

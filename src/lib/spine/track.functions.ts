@@ -42,7 +42,7 @@ import {
 } from "@/lib/spine/route";
 import { HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
 import {
-  ARTIFACT_TABLE,
+  ARTIFACT_SOURCE,
   buildChain,
   describeChain,
   wordFor,
@@ -552,12 +552,16 @@ export const getTrackChain = createServerFn({ method: "GET" })
 
         await Promise.all(
           [...byKind].map(async ([kind, ids]) => {
-            const table = ARTIFACT_TABLE[kind];
-            if (!table) return;
+            const source = ARTIFACT_SOURCE[kind];
+            if (!source) return;
             try {
+              // The title column is named per kind: a prototype has `name`, a
+              // learning has `summary`, a deployment has only its URL. Aliasing
+              // to `title` keeps one shape here without pretending every table
+              // spells it the same way.
               const { data: found, error } = await supabase
-                .from(table as never)
-                .select("id,title")
+                .from(source.table as never)
+                .select(`id,title:${source.title}`)
                 .in("id", ids);
               if (error || !found) return;
               answered.add(kind);

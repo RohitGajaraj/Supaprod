@@ -24,6 +24,7 @@ import {
   missionFinalize,
 } from "./orchestrator.server";
 import { runCriticTool } from "@/lib/ai/critic.server";
+import { promoteChangesetToProductionCore } from "@/lib/deployments.functions";
 import { autoReflect } from "@/lib/ai/reflection.server";
 import { studioBranchName } from "@/lib/ai/studio-branch";
 import { mergeReadinessFromCi, overallFromChecks } from "@/lib/ai/studio-ci";
@@ -2635,6 +2636,178 @@ const decisionRevise = def({
   },
 });
 
+/* ------------------------------------------------------------------ *
+ * The four stations that had no hands
+ *
+ * FOUNDER RULING 2026-08-01. Sense had six tools, Define four, Build fifteen.
+ * Decide, Design, Ship and Learn had ZERO that create their station's artifact:
+ * `decision.revise` can only edit a decision that already exists, and the other
+ * three had nothing at all. Every one of those stations has an active lead
+ * agent and a fully shaped table waiting for it, so an agent arrived, was
+ * handed a goal, and had no way to write anything down. A track walked the
+ * route and left no record at four of its seven stops.
+ *
+ * The surface had started EXCUSING this ("design is done with people today"),
+ * which is the wrapper story told in our own product: four sevenths of the loop
+ * advertised as human work. The doctrine's third test is explicit that a
+ * surface an autonomous agent cannot run end to end under policy is legacy the
+ * day it ships. So the excuse is deleted and the hands are built.
+ *
+ * THREE ARE REVERSIBLE INTERNAL WRITES and run autonomously by default, which
+ * is the governance canon's posture: the human sets boundaries, the agent does
+ * the work. The fourth, shipping to production, is named in the four floors no
+ * boundary may lower, so it is pinned to review and a test asserts the pin.
+ * That is one gate in seven stations: the exception, not the loop.
+ * ------------------------------------------------------------------ */
+
+/**
+ * decision.record, the Decide stage.
+ * The station's missing artifact. Records the call an agent actually made, with
+ * what it rejected, which is the column the company brain compounds on: next
+ * time it can say this was already weighed and why it lost.
+ */
+const decisionRecord = def({
+  name: "decision.record",
+  description:
+    "Record a decision you have made: the call, why you made it, and the alternatives you rejected. Use at the Decide station once the call is genuinely made, not to propose one. Requires at least one rejected alternative -- a choice with nothing weighed against it is an assertion, not a decision, and is refused.",
+  category: "write",
+  argsSchema: z.object({
+    title: z.string().min(1).max(200),
+    rationale: z.string().min(1).max(4000),
+    alternatives_considered: z.array(z.string().min(1).max(500)).min(1).max(10),
+    prd_id: z.string().uuid().optional(),
+  }),
+  preview: (a) =>
+    `Record decision "${a.title}" against ${a.alternatives_considered.length} rejected alternative${a.alternatives_considered.length === 1 ? "" : "s"}`,
+  run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
+    const { data, error } = await supabase
+      .from("decisions")
+      .insert({
+        user_id: userId,
+        workspace_id: workspaceId ?? null,
+        mission_id: missionId ?? null,
+        prd_id: a.prd_id ?? null,
+        title: a.title,
+        rationale: a.rationale,
+        alternatives_considered: a.alternatives_considered,
+        // The agent made this call, so the record says so and names the agent.
+        // Filing it as pending would turn the one station whose job is deciding
+        // into a queue for a person, which is the shape this product refuses.
+        status: "approved",
+        decided_by_agent_slug: agentSlug ?? null,
+        source_kind: "agent",
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return {
+      decision_id: (data as { id: string }).id,
+      title: a.title,
+      alternatives_weighed: a.alternatives_considered.length,
+    };
+  },
+});
+
+/**
+ * design.draft, the Design stage.
+ * Registers a prototype against the spec so Design produces something a later
+ * station can point at. The scaffold generator remains where it is; this is the
+ * record that a design exists, which is what the loop was missing.
+ */
+const designDraft = def({
+  name: "design.draft",
+  description:
+    "Register a prototype for a spec at the Design station: a name, what it shows, and the entry file. Use once you have something to show, not to reserve a slot.",
+  category: "write",
+  argsSchema: z.object({
+    name: z.string().min(1).max(160),
+    description: z.string().min(1).max(2000),
+    prd_id: z.string().uuid().optional(),
+    entry_path: z.string().min(1).max(200).optional(),
+  }),
+  preview: (a) => `Register prototype "${a.name}"`,
+  run: async (a, { supabase, userId, workspaceId }) => {
+    const { data, error } = await supabase
+      .from("prototypes")
+      .insert({
+        user_id: userId,
+        workspace_id: workspaceId ?? null,
+        prd_id: a.prd_id ?? null,
+        name: a.name,
+        description: a.description,
+        entry_path: a.entry_path ?? "index.html",
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { prototype_id: (data as { id: string }).id, name: a.name };
+  },
+});
+
+/**
+ * learning.record, the Learn stage.
+ * What the outcome actually meant. This is where the record stops being storage
+ * and starts guiding: a verdict here is what memory compounds on later, so the
+ * vocabulary matches what the compounding layer already reads.
+ */
+const learningRecord = def({
+  name: "learning.record",
+  description:
+    "Record what a shipped piece of work actually taught us. verdict is validated (it did what we expected), missed (it did not), mixed (some of both), or uncertain (not enough evidence yet). Say uncertain rather than guessing: only the first three compound into future guidance, so a wrong confident verdict poisons later advice.",
+  category: "write",
+  argsSchema: z.object({
+    summary: z.string().min(1).max(4000),
+    verdict: z.enum(["validated", "missed", "mixed", "uncertain"]),
+    metric_label: z.string().min(1).max(120).optional(),
+    metric_value: z.string().min(1).max(120).optional(),
+    prd_id: z.string().uuid().optional(),
+  }),
+  preview: (a) =>
+    `Record learning (${a.verdict}): "${a.summary.slice(0, 60)}${a.summary.length > 60 ? "..." : ""}"`,
+  run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
+    const { data, error } = await supabase
+      .from("learnings")
+      .insert({
+        user_id: userId,
+        workspace_id: workspaceId ?? null,
+        mission_id: missionId ?? null,
+        prd_id: a.prd_id ?? null,
+        summary: a.summary,
+        verdict: a.verdict,
+        metric_label: a.metric_label ?? null,
+        metric_value: a.metric_value ?? null,
+        recorded_by_agent_slug: agentSlug ?? null,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { learning_id: (data as { id: string }).id, verdict: a.verdict };
+  },
+});
+
+/**
+ * release.publish, the Ship stage.
+ * The one genuine gate in the loop. Calls the same promote path a person does,
+ * so there are not two ways to ship that can disagree, and it is pinned to
+ * review because a production deploy is irreversible and customers see it.
+ */
+const releasePublish = def({
+  name: "release.publish",
+  description:
+    "Ship a merged changeset to production. Requires the changeset to be merged with a successful preview deploy already recorded. This is irreversible and customers see it, so it always goes to a person before it runs.",
+  category: "write",
+  argsSchema: z.object({ changeset_id: z.string().uuid() }),
+  preview: (a) => `Ship changeset ${a.changeset_id.slice(0, 8)} to production`,
+  run: async (a, { supabase, userId }) => {
+    const res = await promoteChangesetToProductionCore(supabase, userId, a.changeset_id);
+    return {
+      deployment_id: res.deploymentId,
+      url: res.productionUrl,
+      changeset_id: a.changeset_id,
+    };
+  },
+});
+
 /**
  * roadmap.move — Plan stage.
  * Moves an opportunity to a Now/Next/Later roadmap bucket (or back to backlog),
@@ -3223,6 +3396,10 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     prdDraft,
     prdRevise,
     decisionRevise,
+    decisionRecord,
+    designDraft,
+    learningRecord,
+    releasePublish,
     roadmapMove,
     backlogPrioritize,
     agentHandoff,

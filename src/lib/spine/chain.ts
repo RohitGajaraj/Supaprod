@@ -63,37 +63,54 @@ import type { SpineRoute } from "@/lib/spine/route";
  * that does not exist inside a `.select()` string typechecks perfectly and
  * fails only at runtime.
  */
-export const ARTIFACT_TABLE: Readonly<Record<string, string>> = {
-  signal: "signals",
-  theme: "themes",
-  prd: "prds",
-  task: "tasks",
-  changeset: "studio_changesets",
-  mission: "missions",
+export const ARTIFACT_SOURCE: Readonly<Record<string, { table: string; title: string }>> = {
+  signal: { table: "signals", title: "title" },
+  theme: { table: "themes", title: "title" },
+  prd: { table: "prds", title: "title" },
+  task: { table: "tasks", title: "title" },
+  changeset: { table: "studio_changesets", title: "title" },
+  mission: { table: "missions", title: "title" },
+  // The four stations that gained hands on 2026-08-01. Every one of these
+  // tables was already sitting there fully shaped, waiting only for a tool.
+  //
+  // THE TITLE COLUMN IS NAMED PER KIND, not assumed. Three of these four do not
+  // have a `title` at all: a prototype has a `name`, a learning has a `summary`,
+  // and a deployment has no human name whatsoever, so it is identified by the
+  // URL a person would actually click. Hard-coding `title` across the set would
+  // have compiled perfectly and failed on the first real read, which is the
+  // documented failure mode for this client and the reason each of these was
+  // checked against the generated types rather than guessed.
+  decision: { table: "decisions", title: "title" },
+  prototype: { table: "prototypes", title: "name" },
+  learning: { table: "learnings", title: "summary" },
+  deployment: { table: "deployments", title: "deploy_url" },
 };
 
 /**
- * What an always-empty station says for itself, in plain words.
+ * What an always-empty station says for itself.
  *
- * WHY THIS IS NOT `STATION_ARTIFACT.gap`. That field is an engineering note and
- * reads like one: it names tools ("decision.revise only edits one that
- * exists"). The voice rules keep mechanism words off surfaces a person reads,
- * so the same fact is said twice, once for each audience, and a test asserts
- * the two maps cover exactly the same stations. Add a tool that closes a gap
- * and the test fails until this map drops the station too.
+ * IT IS EMPTY, AND THAT IS THE POINT (founder ruling 2026-08-01). This map
+ * briefly held four sentences explaining why nothing could ever land at Decide,
+ * Design, Ship and Learn: "design is done with people today", and so on. The
+ * founder read them and called it correctly. Those sentences were not a
+ * description of a design, they were an unfinished build wearing one, and they
+ * put the wrapper story into our own product: four sevenths of the loop
+ * advertised to the customer as human work, on the surface whose entire job is
+ * to show that agents ran the loop.
  *
- * THESE SENTENCES DO NOT APOLOGISE. Four of the seven stations will be empty on
- * every track that ever runs, so this copy is the most-read text on the
- * surface. It says where the artifact actually comes from, which is useful and
- * true, rather than "nothing yet", which reads as a stall the person is
- * supposed to fix.
+ * The four stations all had an active lead agent and a fully shaped table, and
+ * were missing only a registered tool. So the tools were built
+ * (`decision.record`, `design.draft`, `learning.record`, `release.publish`) and
+ * the excuse was deleted. The test pinning this map to `STATION_ARTIFACT.gap`
+ * is what forced the deletion: closing the gaps made it fail until the words
+ * came out, which is the behaviour we want from every explanation of a hole.
+ *
+ * KEPT, EMPTY, ON PURPOSE. A future station may genuinely have no agent path,
+ * and when that happens the sentence belongs here in plain words rather than in
+ * an engineering note that leaks tool names onto a surface. The type and the
+ * test survive; the excuses do not.
  */
-export const NOTHING_LANDS_HERE: Readonly<Partial<Record<AgentStation, string>>> = {
-  decide: "Calls here are made by people, and recorded as decisions rather than filed by an agent.",
-  design: "Design is done with people today, so nothing arrives here on its own.",
-  ship: "A release is recorded when it goes out, by the path that ships it.",
-  learn: "What was learned is written by the outcome review after the fact, not during the run.",
-};
+export const NOTHING_LANDS_HERE: Readonly<Partial<Record<AgentStation, string>>> = {};
 
 /** A member row as it comes off the table. */
 export type MemberRow = {
