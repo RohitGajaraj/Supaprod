@@ -104,11 +104,13 @@ import {
   generatePrd,
   getSenseCoverage,
   getThemePrecedent,
+  getWorkspaceClusterSettings,
   listOpportunities,
   listSignals,
   listThemes,
   promoteThemeToOpportunity,
   setThemeStatus,
+  toggleAutoCluster,
 } from "@/lib/discovery.functions";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import {
@@ -126,6 +128,7 @@ import {
   Empty,
   Failed,
   Gate,
+  Line,
   MoreItem,
   MoreMenu,
   Num,
@@ -134,6 +137,7 @@ import {
   Record,
   Row,
   Surface,
+  Switch,
   Textarea,
   type MarkState,
 } from "@/components/shell/primitives";
@@ -220,6 +224,8 @@ export function DiscoverSurface() {
   const fSetStatus = useServerFn(setThemeStatus);
   const fAttach = useServerFn(attachThemeToOpportunity);
   const fOpportunities = useServerFn(listOpportunities);
+  const fClusterSettings = useServerFn(getWorkspaceClusterSettings);
+  const fToggleAuto = useServerFn(toggleAutoCluster);
 
   /** Which cluster is the call in front of you. Same idea as the approvals
    *  queue: exactly one thing asks at a time, the rest are one-line rows. */
@@ -255,6 +261,32 @@ export function DiscoverSurface() {
   const coverage = useQuery({
     queryKey: ["sense-coverage", activeProductId],
     queryFn: () => fCoverage({ data: { productId: activeProductId } }),
+  });
+
+  /** This station's boundary. RLS scopes the read to a workspace the caller
+   *  owns, so `is_owner` false simply means the line is not theirs to set and
+   *  it is not drawn. */
+  const clusterSettings = useQuery({
+    queryKey: ["cluster-settings", activeWorkspaceId],
+    queryFn: () => fClusterSettings(),
+  });
+
+  const autoSense = useMutation({
+    mutationFn: (enabled: boolean) => fToggleAuto({ data: { enabled } }),
+    onSuccess: (_r, enabled) => {
+      // A boundary change is a write with a consequence, so it earns a Receipt
+      // like every other write on this surface. The consequence is what the
+      // boundary now lets through, never "Saved".
+      setReceipt({
+        verb: enabled ? "You let it read on its own" : "You took the reading back",
+        consequence: enabled
+          ? "New signals cluster without waiting for you. Nothing is promoted without you."
+          : "Nothing clusters until you press the button yourself.",
+      });
+      void qc.invalidateQueries({ queryKey: ["cluster-settings"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "The boundary did not move", consequence: e.message, failed: true }),
   });
 
   const rows = React.useMemo(() => signals.data?.signals ?? [], [signals.data]);
@@ -970,6 +1002,55 @@ export function DiscoverSurface() {
               </Button>
             </Actions>
           </form>
+        </Block>
+      ) : null}
+
+      {/* THE BOUNDARY FOR THIS STATION, and it belongs on the station rather
+        than three clicks away in Settings.
+
+        GOVERNANCE-PRINCIPLE.md, the founder ruling this obeys: "policy is set
+        in advance and does not block", and "the machinery already exists; it
+        needs promoting from a settings page to the centre of the product."
+        This is the literal case it names. `toggleAutoCluster` and
+        `getWorkspaceClusterSettings` have existed since the F3 work, the
+        `cluster-tick` cron reads the flag every tick, and NOTHING in src/routes
+        or src/components ever called either one. Unattended sensing was built
+        end to end and the human had no switch anywhere in the product.
+
+        It is one line with a switch on the end, not a panel, because a boundary
+        is a sentence you set once. It does not block anything, and the second
+        line reports what the boundary has actually been doing rather than
+        restating the first (hard ban 10). */}
+      {clusterSettings.data?.is_owner && !picking && !loading && !loadError ? (
+        <Block title="The boundary">
+          {/* No `htmlFor`: Switch renders a `<button role="switch">`, and
+            Line's own contract says a label pointing at a button makes the
+            label a second way to fire it. The Switch carries its own
+            accessible name instead. */}
+          <Line
+            label="Read new signals without asking"
+            sub={
+              clusterSettings.data.enabled ? (
+                clusterSettings.data.last_run_at ? (
+                  <>
+                    On. Last read <Num>{since(clusterSettings.data.last_run_at)}</Num>, and it
+                    clusters without waiting for you.
+                  </>
+                ) : (
+                  "On. It has not had a batch to read yet."
+                )
+              ) : (
+                "Off, so nothing clusters until you press the button yourself."
+              )
+            }
+          >
+            <Switch
+              checked={clusterSettings.data.enabled}
+              onChange={(next) => autoSense.mutate(next)}
+              label="Read new signals without asking"
+              disabled={autoSense.isPending}
+            />
+          </Line>
         </Block>
       ) : null}
     </Surface>

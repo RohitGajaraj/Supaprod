@@ -68,6 +68,8 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
   deleteOpportunity,
   generatePrd,
+  getSenseCoverage,
+  getThemePrecedent,
   listOpportunities,
   listThemes,
   runCriticReview,
@@ -147,6 +149,8 @@ function DecideSurface() {
   const fDraftSpec = useServerFn(generatePrd);
   const fUpdate = useServerFn(updateOpportunity);
   const fDelete = useServerFn(deleteOpportunity);
+  const fSenseCoverage = useServerFn(getSenseCoverage);
+  const fThemePrecedent = useServerFn(getThemePrecedent);
 
   // Same keys as before, so the detail sheet's own writes and the Discover
   // surface keep sharing one cache.
@@ -268,6 +272,20 @@ function DecideSurface() {
     queryKey: ["opportunity-precedent-citations", visibleIds],
     queryFn: () => fCitations({ data: { ids: visibleIds } }),
     enabled: hasEnoughOutcomes && visibleIds.length > 0,
+  });
+
+  // Source coverage for the active opportunity's theme: what is feeding this bet.
+  const coverage = useQuery({
+    queryKey: ["sense-coverage", active?.opp?.theme_id],
+    queryFn: () => fSenseCoverage({ data: { productId: activeProductId } }),
+    enabled: !!active?.opp?.theme_id,
+  });
+
+  // Novelty and prior theme resemblance for the active opportunity's theme.
+  const themePrecedent = useQuery({
+    queryKey: ["theme-precedent", active?.opp?.theme_id],
+    queryFn: () => fThemePrecedent({ data: { theme_id: active!.opp!.theme_id } }),
+    enabled: !!active?.opp?.theme_id,
   });
 
   const challengerName = agentDisplayName(CHALLENGER);
@@ -432,13 +450,61 @@ function DecideSurface() {
               {active?.designation ? `. Reads as a ${active.designation}` : ""}.
             </div>
 
+            {themePrecedent.data?.priorTheme ? (
+              <>
+                <div className="sp-ctx-head">What this resembles</div>
+                <div className="sp-ctx-body">
+                  This pattern resembles {themePrecedent.data.priorTheme.title}
+                  {themePrecedent.data.priorTheme.similarity !== null ? (
+                    <>
+                      {" at "}
+                      <Num>{Math.round((themePrecedent.data.priorTheme.similarity ?? 0) * 100)}%</Num>
+                      {" match"}
+                    </>
+                  ) : null}
+                  . The record has been here before.
+                </div>
+              </>
+            ) : null}
+
+            {coverage.data?.sources && coverage.data.sources.length > 0 ? (
+              <>
+                <div className="sp-ctx-head">What is feeding this</div>
+                {coverage.data.sources.slice(0, 3).map((s) => (
+                  <div key={s.source} className="sp-ctx-row">
+                    <span>
+                      <span className="sp-ctx-name">{s.source}</span>
+                      <span className="sp-ctx-sub">
+                        {s.quiet ? (
+                          <>
+                            quiet for <Num>7d</Num>
+                          </>
+                        ) : (
+                          <>
+                            <Num>{s.recent}</Num> this week
+                          </>
+                        )}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+                {coverage.data.sources.length > 3 ? (
+                  <div className="sp-ctx-body">
+                    <Num>{coverage.data.sources.length - 3}</Num> more source
+                    {coverage.data.sources.length - 3 !== 1 ? "s" : ""}.
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+
             {activeSignals !== null || activeIce !== null ? (
               <>
                 <div className="sp-ctx-head">What backs it</div>
                 <div className="sp-ctx-body">
                   {activeSignals !== null ? (
                     <>
-                      <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"}
+                      <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
+                      record
                     </>
                   ) : null}
                   {activeSignals !== null && activeIce !== null ? " · " : null}
@@ -447,6 +513,11 @@ function DecideSurface() {
                       ICE <Num>{activeIce.toFixed(1)}</Num>
                     </>
                   ) : null}
+                </div>
+                <div className="sp-ctx-body">
+                  <Button variant="ghost" onClick={() => setLineageId(activeOpp.id)}>
+                    View the evidence
+                  </Button>
                 </div>
               </>
             ) : null}
@@ -483,6 +554,18 @@ function DecideSurface() {
               ? [
                   <span key="critic">
                     <b>{challengerName}</b> {activeOpp.critic_review.summary}
+                  </span>,
+                ]
+              : []),
+            ...(coverage.data?.sources && coverage.data.sources.length > 0
+              ? [
+                  <span key="sources">
+                    Backed by <Num>{coverage.data.sources.length}</Num> source
+                    {coverage.data.sources.length !== 1 ? "s" : ""}: {coverage.data.sources
+                      .slice(0, 2)
+                      .map((s) => s.source)
+                      .join(", ")}
+                    {coverage.data.sources.length > 2 ? " and more" : ""}.
                   </span>,
                 ]
               : []),
