@@ -41,6 +41,7 @@ import {
   type WorkShape,
 } from "@/lib/spine/route";
 import { HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
+import { recordStageEvent } from "@/lib/stage-events.server";
 
 const STATION = z.enum(AGENT_STATION_ORDER as unknown as [AgentStation, ...AgentStation[]]);
 const SHAPE = z.enum([
@@ -79,6 +80,8 @@ export type Track = {
 
 type TrackRow = {
   id: string;
+  user_id: string;
+  workspace_id: string | null;
   title: string;
   origin: string | null;
   entry_station: string;
@@ -120,7 +123,7 @@ function rowToTrack(r: TrackRow): Track {
 }
 
 const SELECT =
-  "id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at";
+  "id,user_id,workspace_id,title,origin,entry_station,station,status,path,waived,updated_at,last_hold,driven_at";
 
 /**
  * Start a piece of work and give it a route.
@@ -225,15 +228,47 @@ export const getTrack = createServerFn({ method: "GET" })
  * walked into. Now the route answers it, so a track that waived Design goes
  * from Plan to Build without anyone having to remember that it should.
  *
- * A track at the end of its route is marked done rather than left open, since
- * the last station on every route is `learn` and work that has been graded is
- * finished.
+ * A MOVE IS A MOVE, WHOEVER MAKES IT (repaired 2026-08-01 after adversarial
+ * review). This handler used to write `station` and nothing else, which was
+ * harmless only while it had no caller. The moment a person could press it,
+ * three defects became reachable, and all three had the same shape: the driver
+ * does four things on a move and this did one.
+ *
+ *   - `attempts` was not reset, so unsticking a `stalled` track walked it to
+ *     the next station with the counter intact. `decideDrive` refuses at the
+ *     ceiling BEFORE it looks at the station, so the next tick held instantly.
+ *     A person could walk a track through its entire remaining route without a
+ *     single station ever running, while the surface reported progress. That is
+ *     the precise thing this codebase keeps deleting: a claim the work does not
+ *     support.
+ *   - `last_hold` was not cleared, so the row went on rendering the PREVIOUS
+ *     station's failure as a fact about the new one. HOLD_LINE's sentences are
+ *     worded about "this station", so every one of them became false on the
+ *     move.
+ *   - No `stage_events` row was written. Migration 20260801150000 widened that
+ *     table's CHECK for `spine_track` on the argument that "who moved this work
+ *     and when" is one question with one answer. The driver writes `system`;
+ *     this now writes `human`, so the trail can tell them apart.
+ *
+ * IT REFUSES WHILE THE WORKSPACE IS PAUSED. A kill switch outranks every other
+ * consideration in the product, and the driver fails closed even on a read
+ * error. Offering a control beside a row that reads "everything is paused" and
+ * having it write anyway would make the switch a suggestion.
+ *
+ * IT DOES NOT REFUSE ON A WAITING APPROVAL, deliberately. Moving a track does
+ * not approve anything: the queued call stays queued and the boundary still
+ * binds. A person choosing to carry their own work forward past a station that
+ * asked them something is a decision they are allowed to make, and the record
+ * shows both facts side by side.
  */
 export const advanceTrack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trackId: string }) => z.object({ trackId: z.string().uuid() }).parse(d))
   .handler(
-    async ({ context, data }): Promise<{ track: Track | null; arrivedAt: string | null }> => {
+    async ({
+      context,
+      data,
+    }): Promise<{ track: Track | null; arrivedAt: string | null; refused: string | null }> => {
       const { supabase } = context;
       try {
         const { data: row } = await supabase
@@ -241,29 +276,85 @@ export const advanceTrack = createServerFn({ method: "POST" })
           .select(SELECT)
           .eq("id", data.trackId)
           .maybeSingle();
-        if (!row) return { track: null, arrivedAt: null };
+        if (!row) {
+          return { track: null, arrivedAt: null, refused: "That work could not be found." };
+        }
 
-        const track = rowToTrack(row as unknown as TrackRow);
+        const raw = row as unknown as TrackRow;
+        const track = rowToTrack(raw);
+
+        // Fails closed: a kill switch that cannot be read counts as on, the same
+        // direction driver.server.ts chose for the same control.
+        if (raw.workspace_id) {
+          let paused = true;
+          try {
+            const { data: sw } = await supabase
+              .from("kill_switches")
+              .select("paused")
+              .eq("scope", "workspace")
+              .eq("workspace_id", raw.workspace_id)
+              .maybeSingle();
+            paused = Boolean((sw as { paused?: boolean } | null)?.paused);
+          } catch {
+            paused = true;
+          }
+          if (paused) {
+            return {
+              track,
+              arrivedAt: null,
+              refused: "Everything is paused for this workspace, so nothing moved.",
+            };
+          }
+        }
+
         const next = nextStation(track.route, track.station);
+        const now = new Date().toISOString();
 
-        const { data: updated } = await supabase
+        const { data: updated, error: upErr } = await supabase
           .from("spine_tracks" as never)
           .update(
-            next
-              ? ({ station: next, updated_at: new Date().toISOString() } as never)
-              : ({ status: "done", updated_at: new Date().toISOString() } as never),
+            (next
+              ? { station: next, attempts: 0, last_hold: null, updated_at: now }
+              : { status: "done", attempts: 0, last_hold: null, updated_at: now }) as never,
           )
           .eq("id", data.trackId)
           .select(SELECT)
           .single();
 
+        // An UPDATE that returned nothing did not necessarily fail to commit, so
+        // this reports what it knows and refuses to narrate a cause. The old
+        // code fell back to the pre-write row with arrivedAt still set, which
+        // announced an arrival that may never have happened.
+        if (upErr || !updated) {
+          return {
+            track,
+            arrivedAt: null,
+            refused: "The move did not come back confirmed, so nothing here is certain.",
+          };
+        }
+
+        await recordStageEvent(supabase, {
+          entityType: "spine_track",
+          entityId: track.id,
+          from: track.station,
+          to: next ?? track.station,
+          actor: "human",
+          workspaceId: raw.workspace_id,
+          userId: raw.user_id,
+        });
+
         return {
-          track: updated ? rowToTrack(updated as unknown as TrackRow) : track,
+          track: rowToTrack(updated as unknown as TrackRow),
           arrivedAt: next,
+          refused: null,
         };
       } catch (e) {
         console.error("advanceTrack failed:", e);
-        return { track: null, arrivedAt: null };
+        return {
+          track: null,
+          arrivedAt: null,
+          refused: "The move failed. Nothing on screen can be trusted until this list reloads.",
+        };
       }
     },
   );

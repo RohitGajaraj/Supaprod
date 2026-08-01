@@ -32,6 +32,12 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { nextStation, type SpineRoute } from "@/lib/spine/route";
 import { decideDrive, HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
+import {
+  collectAttachments,
+  describeAttachments,
+  type Attachment,
+  type ToolStepLike,
+} from "@/lib/spine/attach";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 
 export type DriveOutcome = {
@@ -44,6 +50,11 @@ export type DriveOutcome = {
   hold: HoldReason | null;
   /** The sentence a person reads. Always populated, never a bare status. */
   line: string;
+  /**
+   * What this dispatch produced and filed against the track. Only rows the
+   * write actually landed, so a caller reading this is reading the table.
+   */
+  attached: Attachment[];
 };
 
 type DriveRow = {
@@ -93,6 +104,56 @@ async function pendingApprovals(supabase: SupabaseClient, userId: string): Promi
   }
 }
 
+/**
+ * File what the run reported making against the track.
+ *
+ * A track with a route and no members is an itinerary with no luggage: the
+ * board can say where work is but not what it is made of, and `attachToTrack`
+ * shipped with no caller at all, so nothing ever wrote a member row.
+ *
+ * NON-FATAL BY CONSTRUCTION, and this is the whole contract of the function.
+ * Losing the index is recoverable, losing the work is not, so every failure
+ * here returns an empty list and the track advances exactly as it would have.
+ * The empty return also keeps the reported line honest: if the write did not
+ * land, the driver must not go on to say that something joined the track.
+ *
+ * Pre-migration and permission failures both land in the same place. The table
+ * is live, but the same tolerance every other spine handler carries costs
+ * nothing and means a schema window can never take a tick down.
+ */
+async function attachProducts(
+  supabase: SupabaseClient,
+  trackId: string,
+  station: AgentStation,
+  steps: readonly ToolStepLike[],
+): Promise<Attachment[]> {
+  const attachments = collectAttachments(steps, station);
+  if (attachments.length === 0) return [];
+  try {
+    // Idempotent on the primary key, the same upsert `attachToTrack` uses, so a
+    // re-drive of the same station files the same rows without duplicating them.
+    const { error } = await supabase.from("spine_track_members").upsert(
+      attachments.map((a) => ({
+        track_id: trackId,
+        artifact_kind: a.artifactKind,
+        artifact_id: a.artifactId,
+        station: a.station,
+      })),
+      { onConflict: "track_id,artifact_kind,artifact_id" },
+    );
+    if (error) {
+      console.error(`spine attach failed for track ${trackId}: ${error.message}`);
+      return [];
+    }
+    return attachments;
+  } catch (e) {
+    console.error(
+      `spine attach threw for track ${trackId}: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return [];
+  }
+}
+
 function routeOf(row: DriveRow): SpineRoute {
   const path = (Array.isArray(row.path) ? row.path : []) as AgentStation[];
   return {
@@ -137,6 +198,7 @@ export async function driveTrackOnce(
       arrivedAt: null,
       hold: decision.hold,
       line: HOLD_LINE[decision.hold],
+      attached: [],
     };
   }
 
@@ -145,6 +207,7 @@ export async function driveTrackOnce(
   // person started by hand.
   let queued = 0;
   let failed: string | null = null;
+  let steps: ToolStepLike[] = [];
   try {
     const result = await runAgentLoop(supabase, row.user_id, {
       agentSlug: decision.agentSlug,
@@ -152,9 +215,23 @@ export async function driveTrackOnce(
       workspaceId: row.workspace_id,
     });
     queued = result.approvals_queued ?? 0;
+    // The run's own account of what it did. This is the only channel that ties
+    // an artifact to THIS track rather than to whatever happened to be created
+    // around the same time; the full argument is in the header of ./attach.ts.
+    steps = result.steps ?? [];
   } catch (e) {
     failed = e instanceof Error ? e.message : String(e);
   }
+
+  // Filed before the branches below, not after them, because a run that hit its
+  // boundary on step three may well have drafted a spec on step one. That spec
+  // exists and belongs to this work whether or not the track gets to move, and
+  // dropping it would lose the record of the only thing the station achieved.
+  const attached = await attachProducts(supabase, row.id, station, steps);
+  const say = (line: string) => {
+    const made = describeAttachments(attached);
+    return made ? `${line} ${made}` : line;
+  };
 
   // The agent hit its boundary. That is the boundary working, not a failure,
   // and the track waits exactly where it is until the person decides. The
@@ -173,7 +250,8 @@ export async function driveTrackOnce(
       moved: false,
       arrivedAt: null,
       hold: "waiting-on-a-person",
-      line: HOLD_LINE["waiting-on-a-person"],
+      line: say(HOLD_LINE["waiting-on-a-person"]),
+      attached,
     };
   }
 
@@ -195,6 +273,9 @@ export async function driveTrackOnce(
       arrivedAt: null,
       hold: "stalled",
       line: `${station} did not complete: ${failed}`,
+      // A dispatch that threw returned no steps, so there is nothing to file.
+      // Kept explicit rather than inlined so the invariant is visible.
+      attached,
     };
   }
 
@@ -239,9 +320,12 @@ export async function driveTrackOnce(
     moved: true,
     arrivedAt,
     hold: null,
-    line: arrivedAt
-      ? `${row.title} moved from ${station} to ${arrivedAt}.`
-      : `${row.title} reached the end of its route and has been graded.`,
+    line: say(
+      arrivedAt
+        ? `${row.title} moved from ${station} to ${arrivedAt}.`
+        : `${row.title} reached the end of its route and has been graded.`,
+    ),
+    attached,
   };
 }
 

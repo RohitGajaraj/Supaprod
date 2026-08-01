@@ -1,0 +1,247 @@
+/**
+ * What may be filed against a track, tested without a database.
+ *
+ * The invariant these guard is not "does it attach", it is "does it ever attach
+ * the wrong thing". A member row naming an artifact that belongs to somebody
+ * else's work is a false claim on the one surface whose whole job is answering
+ * "what is part of this piece of work", so the cases below are mostly refusals.
+ */
+
+import { describe, expect, it } from "bun:test";
+import {
+  collectAttachments,
+  describeAttachments,
+  STATION_ARTIFACT,
+  TOOL_PRODUCTS,
+  type ToolStepLike,
+} from "./attach";
+import { AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
+
+const A = "11111111-1111-4111-8111-111111111111";
+const B = "22222222-2222-4222-8222-222222222222";
+
+/** An executed tool call, the only shape that may ever produce an attachment. */
+function executed(name: string, result: unknown): ToolStepLike {
+  return { kind: "tool_call", name, ok: true, status: "executed", result };
+}
+
+describe("collectAttachments takes ids only from the run's own report", () => {
+  it("files the spec a define run drafted", () => {
+    const out = collectAttachments([executed("prd.draft", { prd_id: A, title: "SSO" })], "define");
+    expect(out).toEqual([{ artifactKind: "prd", artifactId: A, station: "define" }]);
+  });
+
+  it("reads each tool's own id field, not a guessed one", () => {
+    // prd.draft returns prd_id, signals.log returns id, studio.stage returns
+    // changeset_id. Assuming one shape for all three would silently attach
+    // nothing for two of them.
+    const out = collectAttachments(
+      [
+        executed("signals.log", { id: A }),
+        executed("studio.stage", { changeset_id: B, repo: "acme/app" }),
+      ],
+      "sense",
+    );
+    expect(out.map((a) => a.artifactKind).sort()).toEqual(["changeset", "signal"]);
+  });
+
+  it("stamps the station that ran, not the station the kind usually comes from", () => {
+    // A build run that logs a signal really did log a signal at build. Filing it
+    // under sense would be tidier and untrue.
+    const out = collectAttachments([executed("signals.log", { id: A })], "build");
+    expect(out[0].station).toBe("build");
+  });
+
+  it("returns nothing for a run with no steps at all", () => {
+    // The dispatch threw. There is no report, so there is nothing to claim.
+    expect(collectAttachments([], "define")).toEqual([]);
+    expect(collectAttachments(null, "define")).toEqual([]);
+    expect(collectAttachments(undefined, "define")).toEqual([]);
+  });
+});
+
+describe("collectAttachments refuses everything it cannot stand behind", () => {
+  it("ignores a call that was queued for a person", () => {
+    // Queued means it is sitting in front of someone and has produced nothing.
+    const out = collectAttachments(
+      [{ kind: "tool_call", name: "prd.draft", ok: true, status: "queued", result: { prd_id: A } }],
+      "define",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("ignores a denied call and an errored one", () => {
+    const out = collectAttachments(
+      [
+        {
+          kind: "tool_call",
+          name: "prd.draft",
+          ok: false,
+          status: "denied",
+          result: { prd_id: A },
+        },
+        { kind: "tool_call", name: "signals.log", ok: false, status: "error", result: { id: B } },
+      ],
+      "define",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("ignores a step that says executed but not ok", () => {
+    // Belt and braces: both flags must agree before an id is believed.
+    const out = collectAttachments(
+      [
+        {
+          kind: "tool_call",
+          name: "prd.draft",
+          ok: false,
+          status: "executed",
+          result: { prd_id: A },
+        },
+      ],
+      "define",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("ignores thoughts and the final message", () => {
+    const out = collectAttachments(
+      [{ kind: "thought" }, executed("prd.draft", { prd_id: A }), { kind: "final" }],
+      "define",
+    );
+    expect(out).toHaveLength(1);
+  });
+
+  it("ignores a tool that is not in the map", () => {
+    // prd.revise edits a spec that already exists. Editing something is not a
+    // statement that it belongs to this track.
+    const out = collectAttachments([executed("prd.revise", { prd_id: A })], "define");
+    expect(out).toEqual([]);
+  });
+
+  it("ignores a result that carries no id, or a non-uuid one", () => {
+    // research.synthesize returns counts. A count is not an artifact.
+    const out = collectAttachments(
+      [
+        executed("prd.draft", { themes_created: 3 }),
+        executed("signals.log", { id: "not-a-uuid" }),
+        executed("tasks.create", { id: 17 }),
+        executed("tasks.create", null),
+      ],
+      "sense",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("files one row when a run reports the same artifact twice", () => {
+    // studio.stage returns the same changeset id on every stage into it, and the
+    // primary key is (track, kind, id), so two rows would be one row anyway.
+    const out = collectAttachments(
+      [
+        executed("studio.stage", { changeset_id: A }),
+        executed("studio.stage", { changeset_id: A }),
+      ],
+      "build",
+    );
+    expect(out).toHaveLength(1);
+  });
+});
+
+describe("the two-tracks-in-one-tick case, which is why this is not a time window", () => {
+  it("attributes only what each run reported, even for identical stations", () => {
+    // Two tracks, same user, same station, driven back to back by one tick.
+    // Track one drafted spec A, track two drafted spec B. A window over
+    // `prds` created after the tick started would hand BOTH specs to BOTH
+    // tracks; reading each run's own steps cannot, because neither run ever
+    // mentions the other's id.
+    const trackOne = collectAttachments([executed("prd.draft", { prd_id: A })], "define");
+    const trackTwo = collectAttachments([executed("prd.draft", { prd_id: B })], "define");
+
+    expect(trackOne.map((a) => a.artifactId)).toEqual([A]);
+    expect(trackTwo.map((a) => a.artifactId)).toEqual([B]);
+    expect(trackOne.map((a) => a.artifactId)).not.toContain(B);
+    expect(trackTwo.map((a) => a.artifactId)).not.toContain(A);
+  });
+
+  it("attributes nothing to a run that did nothing, whatever else was happening", () => {
+    // The concurrent-cron case: a recluster loop or a person on Discover can be
+    // writing rows for this same user while this run does no work at all. A
+    // run with no productive step attaches nothing, full stop.
+    expect(collectAttachments([{ kind: "thought" }, { kind: "final" }], "sense")).toEqual([]);
+  });
+});
+
+describe("TOOL_PRODUCTS and STATION_ARTIFACT agree with each other", () => {
+  it("every station names an artifact and a table", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      const spec = STATION_ARTIFACT[station];
+      expect(spec, `${station} has no artifact spec`).toBeTruthy();
+      expect(spec.kind.length).toBeGreaterThan(0);
+      expect(spec.table.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("a station claiming a tool names one that exists in the map", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      const spec = STATION_ARTIFACT[station];
+      if (!spec.createdBy) continue;
+      expect(TOOL_PRODUCTS[spec.createdBy], `${spec.createdBy} is not mapped`).toBeTruthy();
+      expect(TOOL_PRODUCTS[spec.createdBy].kind).toBe(spec.kind);
+      expect(TOOL_PRODUCTS[spec.createdBy].table).toBe(spec.table);
+    }
+  });
+
+  it("a station with no tool states the gap instead of leaving it blank", () => {
+    // The honest half of the map. Decide, Design, Ship and Learn have no tool
+    // that creates their artifact, and a silent null there would read as an
+    // oversight rather than as the finding it is.
+    for (const station of AGENT_STATION_ORDER) {
+      const spec = STATION_ARTIFACT[station];
+      if (!spec.createdBy) {
+        expect(spec.gap, `${station} has no tool and no stated reason`).toBeTruthy();
+      }
+    }
+  });
+
+  it("names the five stations that cannot produce a member row today", () => {
+    // CORRECTED after adversarial review. This pinned four and asserted Build
+    // was attachable, which was false: studio.stage refuses without a mission
+    // and the driver never passes one. The test passed while recording a wrong
+    // fact about the system, which is the exact drift it was written to catch,
+    // so it now keys off `gap` rather than `createdBy`. A tool existing and the
+    // driver being able to reach it are two different facts, and only the
+    // second one decides whether a member row can ever appear.
+    const stranded = AGENT_STATION_ORDER.filter((s) => STATION_ARTIFACT[s].gap !== null);
+    expect(stranded).toEqual(["decide", "design", "build", "ship", "learn"]);
+  });
+});
+
+describe("describeAttachments says only what landed", () => {
+  it("says nothing when nothing was filed", () => {
+    expect(describeAttachments([])).toBeNull();
+  });
+
+  it("uses plain words, never the mechanism word", () => {
+    const line = describeAttachments([{ artifactKind: "prd", artifactId: A, station: "define" }]);
+    expect(line).toBe("It produced 1 spec, now part of this work.");
+    expect(line).not.toContain("prd");
+    expect(line).not.toContain("artifact");
+  });
+
+  it("counts by kind and reads as a sentence", () => {
+    const line = describeAttachments([
+      { artifactKind: "signal", artifactId: A, station: "sense" },
+      { artifactKind: "signal", artifactId: B, station: "sense" },
+      { artifactKind: "task", artifactId: A, station: "sense" },
+    ]);
+    expect(line).toBe("It produced 2 signals and 1 task, now part of this work.");
+  });
+
+  it("carries no dash characters, per the voice rules", () => {
+    const line = describeAttachments([
+      { artifactKind: "changeset", artifactId: A, station: "build" },
+    ]);
+    expect(line).toBe("It produced 1 code change, now part of this work.");
+    expect(line).not.toMatch(/[–—]/);
+  });
+});

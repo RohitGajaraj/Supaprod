@@ -25,13 +25,23 @@
  * no stated reason. `validateRoute` refuses it server-side and this surface says
  * why, because work with no evidence AND no stated intent is the exact record
  * Learn cannot grade an outcome against later.
+ *
+ * WHY THE LIST CARRIES A CONTROL AT ALL, given that the whole point of the
+ * driver is that nobody has to watch. `advanceTrack` existed with no caller
+ * anywhere in the product, so the ONLY thing that could move a piece of work was
+ * the autonomous sweep. That is fine on the day the sweep is running and it is
+ * the entire product on the day it is not: a track parked on `no-agent` or
+ * `stalled` would sit there forever with the reason printed on it and no way for
+ * the person reading the reason to act on it. Policy is set in advance and does
+ * not block; it does not follow that a person may never move their own work.
  */
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import { listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
-import { WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
+import { advanceTrack, listTracks, startTrack, type Track } from "@/lib/spine/track.functions";
+import { nextStation, WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
+import { HOLD_LINE } from "@/lib/spine/driver";
 import { AGENT_STATIONS } from "@/lib/agent-vocabulary";
 import {
   Actions,
@@ -40,6 +50,8 @@ import {
   Empty,
   Field,
   Input,
+  MoreItem,
+  MoreMenu,
   Receipt,
   Row,
   Textarea,
@@ -56,10 +68,14 @@ const NEEDS_ORIGIN: ReadonlySet<WorkShape> = new Set<WorkShape>([
   "incident-fix",
 ]);
 
+/** What a move left behind. Rendered as a Receipt, never as a toast. */
+type MoveReceipt = { verb: string; consequence: React.ReactNode; failed?: boolean };
+
 export function TrackStart() {
   const qc = useQueryClient();
   const fStart = useServerFn(startTrack);
   const fList = useServerFn(listTracks);
+  const fAdvance = useServerFn(advanceTrack);
 
   const [open, setOpen] = React.useState(false);
   const [title, setTitle] = React.useState("");
@@ -67,6 +83,9 @@ export function TrackStart() {
   const [origin, setOrigin] = React.useState("");
   const [problems, setProblems] = React.useState<string[]>([]);
   const [started, setStarted] = React.useState<Track | null>(null);
+  const [moved, setMoved] = React.useState<MoveReceipt | null>(null);
+  /** The track whose close is armed, waiting for a second press. */
+  const [confirmClose, setConfirmClose] = React.useState<string | null>(null);
 
   const tracks = useQuery({ queryKey: ["spine-tracks"], queryFn: () => fList() });
 
@@ -93,6 +112,83 @@ export function TrackStart() {
       void qc.invalidateQueries({ queryKey: ["spine-tracks"] });
     },
     onError: (e: Error) => setProblems([e.message]),
+  });
+
+  /**
+   * Move one track to the station its own route says comes next.
+   *
+   * WHAT THE SERVER ACTUALLY DOES, read rather than assumed, because everything
+   * below depends on it. `advanceTrack` reads the row, asks `nextStation` for
+   * the next station ON THAT ROUTE, and writes it. If the route is finished it
+   * writes `status: "done"` instead. It consults nothing else: not the hold, not
+   * the kill switch, not the pending calls. So every judgment about when this is
+   * offered has to be made here, and it has to be made honestly.
+   *
+   * THE HONESTY GUARD, and it is not theoretical. When the UPDATE returns no row
+   * the handler falls back to returning the track it read BEFORE the write, with
+   * `arrivedAt` still set to the station it intended to reach. Rendering the
+   * receipt off `arrivedAt` would therefore announce an arrival that never
+   * happened. So the receipt is written from what came back: if the track is
+   * still open AND still at the station it was at when the click happened, then
+   * nothing moved, and the surface says so instead of congratulating anyone.
+   */
+  const hand = useMutation({
+    mutationFn: (t: Track) => fAdvance({ data: { trackId: t.id } }),
+    onSuccess: (res, t) => {
+      // Re-read either way. A failed move is exactly when the list on screen is
+      // least trustworthy, so it is the worst moment to leave a stale one up.
+      void qc.invalidateQueries({ queryKey: ["spine-tracks"] });
+
+      // The server now says WHY in its own words rather than leaving the client
+      // to infer a cause from a station comparison. It refuses on a kill switch,
+      // and it declines to narrate a cause it cannot know when an update comes
+      // back unconfirmed. Repeating its sentence is the only honest option here:
+      // the client knows strictly less than the handler did.
+      if (res.refused) {
+        setMoved({ verb: "It did not move", consequence: res.refused, failed: true });
+        return;
+      }
+      if (!res.track) {
+        setMoved({
+          verb: "It did not move",
+          consequence: `${t.title} did not come back, so nothing here is certain.`,
+          failed: true,
+        });
+        return;
+      }
+      if (res.track.status !== "open") {
+        // NOT "it has been graded", which is what the driver's own done line
+        // says. The driver says that because it only ever reaches the end after
+        // Learn has run; a person pressing this reaches it because the route ran
+        // out, and Learn can itself be waived. Closing the track is the whole of
+        // what this write did, so closing the track is the whole of what the
+        // receipt claims. It also explains the row vanishing, which `listTracks`
+        // causes by returning only open work.
+        setMoved({
+          verb: "You closed it out",
+          consequence: `${t.title} reached the end of its route, so it leaves this list.`,
+        });
+        return;
+      }
+      // Where it goes AFTER this one, straight off the route that came back.
+      // Costs nothing, is provable, and is the one thing a person cannot see
+      // from the row.
+      const after = nextStation(res.track.route, res.track.station);
+      setMoved({
+        verb: "You handed it on",
+        consequence: `${t.title} is at ${AGENT_STATIONS[res.track.station].name}. ${
+          after
+            ? `Its route goes to ${AGENT_STATIONS[after].name} after that.`
+            : "That is the last station on its route."
+        }`,
+      });
+    },
+    onError: (e: Error, t) =>
+      setMoved({
+        verb: "It did not move",
+        consequence: `${t.title} is still at ${AGENT_STATIONS[t.station].name}. ${e.message}`,
+        failed: true,
+      }),
   });
 
   const list = tracks.data ?? [];
@@ -125,6 +221,14 @@ export function TrackStart() {
 
       {problems.length > 0 ? (
         <Receipt verb="It did not start" consequence={problems.join(" ")} failed />
+      ) : null}
+
+      {/* One receipt area for the block, not one per row. A receipt drawn
+        between two rows breaks the rhythm of the list it is reporting on, and
+        the row itself already re-renders at its new station, so this line is
+        here to name the consequence rather than to be the only feedback. */}
+      {moved ? (
+        <Receipt verb={moved.verb} consequence={moved.consequence} failed={moved.failed} />
       ) : null}
 
       {open ? (
@@ -193,21 +297,111 @@ export function TrackStart() {
           should.
         </Empty>
       ) : (
-        list.map((t) => (
-          <Row
-            key={t.id}
-            tight
-            lead={t.title}
-            // The hold outranks the route, because a person arriving at this
-            // list wants to know why their work is not moving before they want
-            // to know where it is going. Silence and "still running" look
-            // identical, and only one of them is true.
-            sub={t.hold ?? t.summary}
-            action={
-              <Value tone={t.hold ? "warn" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
-            }
-          />
-        ))
+        list.map((t) => {
+          // The next station on THIS track's route, never the next one on the
+          // spine. It is what lets the control name a destination instead of a
+          // mechanism, and it is the same pure function the server calls, so the
+          // word on screen and the write behind it cannot disagree.
+          const next = nextStation(t.route, t.station);
+          const busy = hand.isPending && hand.variables?.id === t.id;
+
+          /**
+           * The one state where moving this track on is refused.
+           *
+           * `advanceTrack` will not refuse it on this ground: it never looks at
+           * the hold. But the hold that says a call is in front of you comes
+           * from `decideDrive`, which counts pending approvals scoped to the
+           * PERSON rather than to the track (driver.server.ts `pendingApprovals`
+           * filters on user_id and status, and on nothing that identifies this
+           * track). So the driver will refuse this person's tracks at every
+           * station until that call is answered, and a track handed past the
+           * gate arrives somewhere new and stays exactly as stuck. The control
+           * would report progress it did not buy, which is the one thing this
+           * codebase will not render. Answering the call is the move, and the
+           * row's own sub line already says so.
+           *
+           * `stalled` and `no-agent` are the opposite case and keep the control:
+           * the driver has stopped for good and only a person can decide the
+           * work carries on.
+           *
+           * `paused` also keeps the control, but the SERVER refuses it, not this
+           * line. A kill switch outranks everything, so the refusal belongs
+           * where it cannot be forgotten rather than in one component's
+           * condition. The person still gets a sentence saying why.
+           */
+          const waitingOnAPerson = t.hold === HOLD_LINE["waiting-on-a-person"];
+
+          return (
+            <Row
+              key={t.id}
+              tight
+              lead={t.title}
+              // The hold outranks the route, because a person arriving at this
+              // list wants to know why their work is not moving before they want
+              // to know where it is going. Silence and "still running" look
+              // identical, and only one of them is true.
+              sub={t.hold ?? t.summary}
+              action={
+                <>
+                  {/* The station stays. It is the answer to "where is this",
+                    which is why the row is read at all, and trading it for a
+                    button would swap information for a control. It is a fact and
+                    not an affordance, so the row still carries exactly ONE
+                    thing that can be pressed. */}
+                  <Value tone={t.hold ? "warn" : "quiet"}>{AGENT_STATIONS[t.station].name}</Value>
+
+                  {/* Behind the three dots rather than out on the row, which is
+                    the shape boundary.tsx already uses for a per-row move: a
+                    button repeated down fifty rows is fifty invitations to do
+                    something a person should be doing rarely, and it competes
+                    with the station for the eye every time the list is scanned.
+                    boundary.tsx also settles the refused case: where a move is
+                    forbidden the row shows the fact and no control, because a
+                    dead button that never says why is worse than no button. */}
+                  {waitingOnAPerson ? null : (
+                    <MoreMenu label={`Where ${t.title} goes next`}>
+                      {/* The words name the destination, never the machinery.
+                        "Advance" is what the function is called; "Hand it to
+                        Build" is what happens, and it says who has it next.
+                        At the end of the route there is nobody to hand it to,
+                        so it says what the write actually does instead. */}
+                      {/* CLOSING IT OUT ASKS TWICE, HANDING IT ON DOES NOT.
+                        Handing work to the next station is reversible by
+                        handing it on again, or by the driver picking it up.
+                        Closing it is not: it writes status "done", `listTracks`
+                        returns only open work, and there is no reopen anywhere
+                        in the product, so one press on a menu item would remove
+                        a piece of work from the only list that shows it with no
+                        way back. The destructive-actions convention wants a
+                        confirm or an undo; there is no undo to offer, so it
+                        confirms, and the second press states the consequence
+                        rather than repeating the verb. */}
+                      <MoreItem
+                        onClick={() => {
+                          if (hand.isPending) return;
+                          if (!next && confirmClose !== t.id) {
+                            setConfirmClose(t.id);
+                            return;
+                          }
+                          setConfirmClose(null);
+                          hand.mutate(t);
+                        }}
+                      >
+                        {next
+                          ? `${busy ? "Handing" : "Hand"} it to ${AGENT_STATIONS[next].name}`
+                          : busy
+                            ? "Closing it out"
+                            : confirmClose === t.id
+                              ? "Close it, and it leaves this list"
+                              : "Call it finished"}
+                      </MoreItem>
+                    </MoreMenu>
+                  )}
+                </>
+              }
+            />
+          );
+        })
       )}
     </Block>
   );

@@ -93,6 +93,9 @@ import {
   AgentMark,
   Block,
   Button,
+  CtxBody,
+  CtxHead,
+  CtxRow,
   Empty,
   Failed,
   Gate,
@@ -447,24 +450,20 @@ function DecideSurface() {
       context={
         activeOpp ? (
           <>
-            <div className="sp-ctx-head">Who has touched it</div>
+            <CtxHead>Who has touched it</CtxHead>
             {activeOpp.decided_by_agent_slug ? (
-              <div className="sp-ctx-row">
-                <AgentMark slug={activeOpp.decided_by_agent_slug} state="idle" />
-                <span>
-                  <span className="sp-ctx-name">
-                    {agentDisplayName(activeOpp.decided_by_agent_slug)}
-                  </span>
-                  <span className="sp-ctx-sub">recorded the last call on it</span>
-                </span>
-              </div>
+              <CtxRow
+                mark={<AgentMark slug={activeOpp.decided_by_agent_slug} state="idle" />}
+                name={agentDisplayName(activeOpp.decided_by_agent_slug)}
+                sub="recorded the last call on it"
+              />
             ) : null}
             {activeOpp.critic_review ? (
-              <div className="sp-ctx-row">
-                <AgentMark slug={CHALLENGER} state="idle" />
-                <span>
-                  <span className="sp-ctx-name">{challengerName}</span>
-                  <span className="sp-ctx-sub">
+              <CtxRow
+                mark={<AgentMark slug={CHALLENGER} state="idle" />}
+                name={challengerName}
+                sub={
+                  <>
                     {verdictSentence(activeVerdict, challengerName)}
                     {typeof activeOpp.critic_review.confidence === "number" ? (
                       <>
@@ -473,22 +472,22 @@ function DecideSurface() {
                         {" confidence"}
                       </>
                     ) : null}
-                  </span>
-                </span>
-              </div>
+                  </>
+                }
+              />
             ) : null}
             {!activeOpp.decided_by_agent_slug && !activeOpp.critic_review ? (
-              <div className="sp-ctx-body">
+              <CtxBody>
                 Nobody has reviewed it. Challenging it puts a teardown on the record before you call
                 it.
-              </div>
+              </CtxBody>
             ) : null}
 
-            <div className="sp-ctx-head">Why it ranks here</div>
-            <div className="sp-ctx-body">
+            <CtxHead>Why it ranks here</CtxHead>
+            <CtxBody>
               {active?.rationale}
               {active?.designation ? `. Reads as a ${active.designation}` : ""}.
-            </div>
+            </CtxBody>
 
             {/* WHAT THIS RESEMBLES, as a claim rather than an arithmetic.
               An earlier draft of this block printed the raw cosine similarity
@@ -500,10 +499,10 @@ function DecideSurface() {
               our own internals shown to someone who cannot act on it. */}
             {themePrecedent.data?.priorTheme ? (
               <>
-                <div className="sp-ctx-head">What this resembles</div>
-                <div className="sp-ctx-body">
+                <CtxHead>What this resembles</CtxHead>
+                <CtxBody>
                   The record has been here before, on {themePrecedent.data.priorTheme.title}.
-                </div>
+                </CtxBody>
               </>
             ) : null}
 
@@ -524,31 +523,30 @@ function DecideSurface() {
               specific people said. */}
             {provenance.data?.source_signals?.length ? (
               <>
-                <div className="sp-ctx-head">What people actually said</div>
+                <CtxHead>What people actually said</CtxHead>
                 {provenance.data.source_signals.slice(0, 4).map((s) => (
-                  <div key={s.id} className="sp-ctx-row">
-                    <span>
-                      <span className="sp-ctx-name">
-                        {(s.content ?? s.title ?? "").slice(0, 96)}
-                      </span>
-                      <span className="sp-ctx-sub">
+                  <CtxRow
+                    key={s.id}
+                    name={(s.content ?? s.title ?? "").slice(0, 96)}
+                    sub={
+                      <>
                         {s.source ?? "unattributed"}, <Num>{ago(s.created_at)}</Num>
-                      </span>
-                    </span>
-                  </div>
+                      </>
+                    }
+                  />
                 ))}
                 {provenance.data.source_signals.length > 4 ? (
-                  <div className="sp-ctx-body">
+                  <CtxBody>
                     <Num>{provenance.data.source_signals.length - 4}</Num> more said the same thing.
-                  </div>
+                  </CtxBody>
                 ) : null}
               </>
             ) : null}
 
             {activeSignals !== null || activeIce !== null ? (
               <>
-                <div className="sp-ctx-head">What backs it</div>
-                <div className="sp-ctx-body">
+                <CtxHead>What backs it</CtxHead>
+                <CtxBody>
                   {activeSignals !== null ? (
                     <>
                       <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
@@ -561,12 +559,12 @@ function DecideSurface() {
                       ICE <Num>{activeIce.toFixed(1)}</Num>
                     </>
                   ) : null}
-                </div>
-                <div className="sp-ctx-body">
+                </CtxBody>
+                <CtxBody>
                   <Button variant="ghost" onClick={() => setLineageId(activeOpp.id)}>
                     View the evidence
                   </Button>
-                </div>
+                </CtxBody>
               </>
             ) : null}
           </>

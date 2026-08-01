@@ -98,6 +98,8 @@ import {
   AgentMark,
   Block,
   Button,
+  CtxHead,
+  CtxRow,
   Empty,
   Failed,
   Gate,
@@ -331,29 +333,28 @@ function PlanPage() {
       context={
         crew.length ? (
           <>
-            <div className="sp-ctx-head">Who works the plan</div>
+            <CtxHead>Who works the plan</CtxHead>
             {crew.map((a) => {
               const last = ago(a.lastActiveAt);
               return (
-                <div className="sp-ctx-row" key={a.slug}>
-                  <AgentMark slug={a.slug} name={a.name} state={markState(a.state)} />
-                  <span>
-                    <span className="sp-ctx-name">{agentDisplayName(a.slug, a.name)}</span>
-                    <span className="sp-ctx-sub">
-                      {a.running > 0 ? (
-                        <>
-                          working on <Num>{a.running}</Num>
-                        </>
-                      ) : last ? (
-                        <>
-                          last worked <Num>{last}</Num> ago
-                        </>
-                      ) : (
-                        "has not run here yet"
-                      )}
-                    </span>
-                  </span>
-                </div>
+                <CtxRow
+                  key={a.slug}
+                  mark={<AgentMark slug={a.slug} name={a.name} state={markState(a.state)} />}
+                  name={agentDisplayName(a.slug, a.name)}
+                  sub={
+                    a.running > 0 ? (
+                      <>
+                        working on <Num>{a.running}</Num>
+                      </>
+                    ) : last ? (
+                      <>
+                        last worked <Num>{last}</Num> ago
+                      </>
+                    ) : (
+                      "has not run here yet"
+                    )
+                  }
+                />
               );
             })}
           </>

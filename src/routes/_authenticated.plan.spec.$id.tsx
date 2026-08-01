@@ -144,6 +144,8 @@ import {
   AgentMark,
   Block,
   Button,
+  CtxBody,
+  CtxHead,
   Empty,
   Failed,
   Num,
@@ -595,8 +597,8 @@ function SpecEditorPage() {
         wide
         context={
           <>
-            <div className="sp-ctx-head">Linked work</div>
-            <div className="sp-ctx-body">
+            <CtxHead>Linked work</CtxHead>
+            <CtxBody>
               <Num>{prdTasks.length}</Num> {prdTasks.length === 1 ? "task" : "tasks"} on this spec.{" "}
               {issueMatch ? (
                 <a
@@ -610,12 +612,21 @@ function SpecEditorPage() {
               ) : (
                 "No GitHub issue yet."
               )}
-            </div>
+            </CtxBody>
 
             {/* Attribution, not a label. "Review" named the mechanism and hid
                 the worker; the Critic red-teams this spec and its verdict is
                 its own, so it signs it. */}
-            <div className="sp-ctx-head">What the Critic says</div>
+            <CtxHead>What the Critic says</CtxHead>
+            {/* Deliberately NOT <CtxRow>. CtxRow always wraps its `name` slot in
+                .sp-ctx-name, which is display:block plus its own font-size and
+                colour. That is right for a name and wrong for a control: the
+                badge here is a button (or the Value pill once a verdict exists),
+                and putting a block wrapper with an inherited type scale around
+                it changes how it renders. The row is the only one on this
+                surface whose second slot is a control rather than a name, so it
+                stays hand-rolled until CtxRow grows an unstyled slot. Convert it
+                the day that exists, not before. */}
             <div className="sp-ctx-row">
               <AgentMark slug="critic" state="quiet" />
               <span>
@@ -629,10 +640,10 @@ function SpecEditorPage() {
 
             {hasSnapshot ? (
               <>
-                <div className="sp-ctx-head">Before the crew touched it</div>
-                <div className="sp-ctx-body">
+                <CtxHead>Before the crew touched it</CtxHead>
+                <CtxBody>
                   <RewindButton prdId={id} hasSnapshot={true} />
-                </div>
+                </CtxBody>
               </>
             ) : null}
           </>

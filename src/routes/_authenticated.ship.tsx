@@ -91,6 +91,8 @@ import {
   Actions,
   Block,
   Button,
+  CtxBody,
+  CtxHead,
   Empty,
   Failed,
   Field,
@@ -409,11 +411,11 @@ function Ship() {
       context={
         call ? (
           <>
-            <div className="sp-ctx-head">Where it goes</div>
-            <div className="sp-ctx-body">
+            <CtxHead>Where it goes</CtxHead>
+            <CtxBody>
               Once it is live, anyone can read it at <Num>/p/{call.slug}</Num>. Owners and admins
               publish.
-            </div>
+            </CtxBody>
           </>
         ) : null
       }

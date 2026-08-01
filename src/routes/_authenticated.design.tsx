@@ -122,6 +122,8 @@ import {
   Block,
   Button,
   Choices,
+  CtxBody,
+  CtxHead,
   Empty,
   Failed,
   Gate,
@@ -598,8 +600,8 @@ function Design() {
     <>
       {call ? (
         <>
-          <div className="sp-ctx-head">Where this rule came from</div>
-          <div className="sp-ctx-body">
+          <CtxHead>Where this rule came from</CtxHead>
+          <CtxBody>
             {CATEGORY_LABEL[call.category]} · {SOURCE_LABEL[call.source_kind]} ·{" "}
             <Num>
               {new Date(call.created_at).toLocaleDateString(undefined, {
@@ -607,26 +609,26 @@ function Design() {
                 month: "short",
               })}
             </Num>
-          </div>
+          </CtxBody>
         </>
       ) : null}
 
       {waiting.length > 1 ? (
         <>
-          <div className="sp-ctx-head">Behind this one</div>
-          <div className="sp-ctx-body">
+          <CtxHead>Behind this one</CtxHead>
+          <CtxBody>
             <Num>{waiting.length - 1}</Num> more waiting. They keep their order until this one is
             settled.
-          </div>
+          </CtxBody>
         </>
       ) : null}
 
       {rules.isSuccess && entries.length > 0 ? (
         <>
-          <div className="sp-ctx-head">The rules themselves</div>
-          <div className="sp-ctx-body">
+          <CtxHead>The rules themselves</CtxHead>
+          <CtxBody>
             <Num>{inForce}</Num> in force. Add, review or retire them in Settings.
-          </div>
+          </CtxBody>
           <div className="sp-acts">
             <Button variant="ghost" onClick={openBrandRules}>
               Open brand rules
@@ -639,7 +641,7 @@ function Design() {
           block. Owner only, because only the owner can write it. */}
       {work.data?.isOwner ? (
         <>
-          <div className="sp-ctx-head">The gate itself</div>
+          <CtxHead>The gate itself</CtxHead>
           <Line
             label="Design gates Build"
             sub={
