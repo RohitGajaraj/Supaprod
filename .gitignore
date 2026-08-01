@@ -53,6 +53,7 @@ nango/
 
 # Local tool artifacts — knowledge-graph / agent DB state, churns every session
 ruvector.db
+graphify-out/
 agentdb*.rvf
 agentdb*.rvf*.lock
 agentdb*.lock

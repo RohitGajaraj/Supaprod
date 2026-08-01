@@ -24,6 +24,13 @@ import {
   type RejectionPattern,
   type RejectionRow,
 } from "@/lib/rejection-learning";
+import {
+  buildLedger,
+  promotionCandidates,
+  summarizeBoundary,
+  type LedgerApprovalRow,
+  type LedgerGuardrailRow,
+} from "@/lib/boundary-ledger";
 
 /** Returns the current pause state for a workspace + recent in-flight missions + stale approvals. */
 export const getGovernanceOverview = createServerFn({ method: "POST" })
@@ -640,3 +647,76 @@ export type BoundaryTool = {
   /** The lowest supervision this tool may ever have, or null if unconstrained. */
   floor: "confirm" | "review" | null;
 };
+
+/* ------------------------------------------------------------------ *
+ * The declined ledger (2026-08-01)
+ * ------------------------------------------------------------------ */
+
+/** How far back the ledger looks. Long enough to show a pattern, short enough to stay true. */
+const LEDGER_WINDOW_DAYS = 30;
+/** Cap on rows read per source. The ledger is evidence, not an export. */
+const LEDGER_LIMIT = 200;
+
+/**
+ * Every moment the boundary held: what an agent wanted, what stopped it, and
+ * what happened next.
+ *
+ * WHY THIS IS THE SURFACE NOBODY ELSE HAS. Read the full reasoning in
+ * src/lib/boundary-ledger.ts. The short version: every competitor shows what an
+ * agent DID. None shows what it nearly did and didn't. In a product whose claim
+ * is autonomy under policy, the near-misses are the only proof the policy is
+ * real, and the record is what pays for the autonomy.
+ *
+ * BOTH HALVES OR NEITHER. `agent_approvals` is the boundary delegating (an
+ * agent stopped and asked, costing an interruption) and `guardrail_hits` is the
+ * boundary blocking (a rule matched and the content never travelled, costing
+ * nothing). Showing only the first would read as "the product interrupts a
+ * lot"; showing only the second would hide the interruption budget entirely.
+ *
+ * Both queries are RLS-scoped to the caller by user_id, and both are read-only.
+ */
+export const getDeclinedLedger = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const since = new Date(Date.now() - LEDGER_WINDOW_DAYS * 86400_000).toISOString();
+
+    const [approvalsRes, hitsRes] = await Promise.all([
+      supabase
+        .from("agent_approvals")
+        .select("id,agent_slug,tool_name,rationale,status,created_at,decided_at,decision_reason")
+        .eq("user_id", userId)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(LEDGER_LIMIT),
+      supabase
+        .from("guardrail_hits")
+        .select("id,rule_name,kind,action,side,created_at")
+        .eq("user_id", userId)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(LEDGER_LIMIT),
+    ]);
+
+    // A missing source degrades the ledger, it does not empty the page. Losing
+    // guardrail rows must not hide the approvals a person is waiting on.
+    const approvals = (approvalsRes.data ?? []) as LedgerApprovalRow[];
+    const hits = (hitsRes.data ?? []) as LedgerGuardrailRow[];
+
+    const events = buildLedger(approvals, hits);
+    const patterns = summarizeBoundary(events);
+
+    return {
+      events,
+      patterns,
+      candidates: promotionCandidates(patterns),
+      windowDays: LEDGER_WINDOW_DAYS,
+      // Reported so the UI can say "the last 200" instead of implying it is all
+      // of them. A truncated record presented as complete is the same defect
+      // this whole surface exists to remove.
+      truncated: approvals.length >= LEDGER_LIMIT || hits.length >= LEDGER_LIMIT,
+      asked: events.filter((e) => e.kind === "asked").length,
+      refused: events.filter((e) => e.kind === "refused").length,
+      waiting: events.filter((e) => e.outcome === "waiting").length,
+    };
+  });

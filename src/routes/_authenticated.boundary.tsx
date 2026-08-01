@@ -62,8 +62,14 @@ import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
 import { useWorkspace } from "@/hooks/use-workspace";
-import { getBoundary, setWorkspaceSpendPolicy } from "@/lib/governance.functions";
+import {
+  getBoundary,
+  getDeclinedLedger,
+  setWorkspaceSpendPolicy,
+} from "@/lib/governance.functions";
 import type { BoundaryTool } from "@/lib/governance.functions";
+import type { BoundaryEvent } from "@/lib/boundary-ledger";
+import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
 import {
   Block,
@@ -97,10 +103,151 @@ function floorLine(floor: BoundaryTool["floor"]): string | null {
   return null;
 }
 
+/**
+ * How a boundary event ended, said as an outcome rather than as a status.
+ *
+ * "Allowed" and not "approved", because the reader's question is what happened
+ * to the work, not what the person clicked. `blocked` is the only tone="fail"
+ * case: a rule refusing something is the boundary at full strength, and it is
+ * the one row a reader should be able to find without reading.
+ */
+function outcomeLabel(e: BoundaryEvent): {
+  text: string;
+  tone: "quiet" | "pass" | "warn" | "fail";
+} {
+  switch (e.outcome) {
+    case "allowed":
+      return { text: "You allowed it", tone: "pass" };
+    case "declined":
+      return { text: "You said no", tone: "warn" };
+    case "expired":
+      return { text: "Ran out of time", tone: "warn" };
+    case "blocked":
+      return { text: "Stopped by a rule", tone: "fail" };
+    default:
+      return { text: "Waiting on you", tone: "quiet" };
+  }
+}
+
+/** The subject of a boundary event in a person's words, not the tool's identifier. */
+function readableSubject(e: BoundaryEvent): string {
+  if (e.kind === "refused") return e.subject;
+  return e.subject.replace(/_/g, " ");
+}
+
+/**
+ * The declined ledger: every moment an agent reached the boundary and stopped.
+ *
+ * WHY IT IS ON THIS SURFACE AND NOT ITS OWN. The positioning is "you set the
+ * boundary once, and every crossing is on the record". A policy screen with no
+ * record is a claim; a record with no policy screen is a log. They are one
+ * argument and they belong in one place, policy first, then the proof.
+ *
+ * WHY IT DOES NOT LIST WHAT IS WAITING, which is a rule this surface already
+ * set for itself: the moment it renders a pending item with an action beside
+ * it, it becomes the approval queue it exists to shrink. So a waiting call is
+ * reported as a COUNT and named as a cost, and the queue stays at /approvals
+ * where deciding is the job. The record shows what the boundary DID.
+ */
+function DeclinedLedger({
+  q,
+  open,
+  onToggle,
+}: {
+  q: { data?: LedgerData; isLoading: boolean; isError: boolean };
+  open: boolean;
+  onToggle: () => void;
+}) {
+  // A record that fails to load must say so rather than render as "nothing ever
+  // happened". Silence and innocence look identical, and only one is true.
+  if (q.isError) {
+    return (
+      <Block title="What they did not do">
+        <Empty>The record could not be read. Your boundary is unchanged.</Empty>
+      </Block>
+    );
+  }
+  if (q.isLoading || !q.data) {
+    return (
+      <Block title="What they did not do">
+        <Loading>Reading the record.</Loading>
+      </Block>
+    );
+  }
+
+  const { events, waiting, windowDays, truncated } = q.data;
+  // Decided and blocked only. See the note above on why waiting is a count.
+  const settled = events.filter((e) => e.outcome !== "waiting");
+  const shown = open ? settled : settled.slice(0, VISIBLE);
+  // Read once per render so every row in the list ages against the same clock.
+  const now = Date.now();
+
+  return (
+    <Block
+      title="What they did not do"
+      sub={`Every time an agent reached your boundary and stopped, over the last ${windowDays} days. This is what pays for the autonomy.`}
+      more={settled.length > VISIBLE ? (open ? "Show fewer" : `All ${settled.length}`) : undefined}
+      onMore={onToggle}
+    >
+      {settled.length === 0 ? (
+        <Empty>
+          Nothing has reached your boundary in {windowDays} days. Either your crew has not run, or
+          everything it did was already inside what you allow.
+        </Empty>
+      ) : (
+        shown.map((e) => {
+          const o = outcomeLabel(e);
+          return (
+            <Row
+              key={e.id}
+              tight
+              lead={
+                e.kind === "asked"
+                  ? `${e.agent ?? "An agent"} wanted to ${readableSubject(e)}`
+                  : readableSubject(e)
+              }
+              // The agent's own words for why, so the reader judges the request
+              // and not just the verb. A rule hit says which way it travelled.
+              sub={[relativeTime(e.at, now), e.wanted, e.outcomeReason].filter(Boolean).join(" · ")}
+              action={<Value tone={o.tone}>{o.text}</Value>}
+            />
+          );
+        })
+      )}
+
+      {waiting > 0 ? (
+        <Line
+          label={
+            waiting === 1 ? "One call is waiting on you" : `${waiting} calls are waiting on you`
+          }
+          sub="Each one is an interruption your current boundary is charging. Deciding them happens in Approvals, not here."
+        >
+          <Num>{waiting}</Num>
+        </Line>
+      ) : null}
+
+      {truncated ? (
+        <Line
+          label="This is the most recent part of the record"
+          sub="Older crossings are not shown here. The full record is kept."
+        />
+      ) : null}
+    </Block>
+  );
+}
+
+type LedgerData = {
+  events: BoundaryEvent[];
+  waiting: number;
+  windowDays: number;
+  truncated: boolean;
+};
+
 function BoundarySurface() {
   const qc = useQueryClient();
   const { activeWorkspaceId } = useWorkspace();
   const fBoundary = useServerFn(getBoundary);
+  const fLedger = useServerFn(getDeclinedLedger);
   const fSetMode = useServerFn(updateToolMode);
   const fSetCap = useServerFn(setWorkspaceSpendPolicy);
 
@@ -110,6 +257,14 @@ function BoundarySurface() {
   const b = useQuery({
     queryKey: ["boundary", activeWorkspaceId],
     queryFn: () => fBoundary(),
+  });
+
+  // The ledger loads independently of the boundary itself. If the record fails
+  // to read, the policy a person came here to set still renders: the evidence
+  // is what makes the boundary believable, not what makes it usable.
+  const ledger = useQuery({
+    queryKey: ["boundary-ledger", activeWorkspaceId],
+    queryFn: () => fLedger(),
   });
 
   const move = useMutation({
@@ -341,6 +496,12 @@ function BoundarySurface() {
               ) : null}
             </Block>
           ) : null}
+
+          <DeclinedLedger
+            q={ledger}
+            open={showAll.ledger ?? false}
+            onToggle={() => setShowAll((s) => ({ ...s, ledger: !(s.ledger ?? false) }))}
+          />
         </>
       )}
     </Surface>
