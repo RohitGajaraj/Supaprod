@@ -147,14 +147,18 @@ export function useRunStrip(): RunStripContextValue {
 }
 
 /**
- * The strip's labels, which are NOT `AGENT_STATIONS[station].name`.
+ * The strip's labels, which now AGREE with `AGENT_STATIONS[station].name`.
  *
- * That map calls the first station "Sense", which is the internal name for the
- * station in the agent mesh. The product calls it Discover: it is what the
- * prototype's strip says, what the founder said, and what the route is
- * (`/discover`). The other six agree with the catalog, and are listed anyway so
- * the strip's vocabulary is readable in one place rather than being six
- * lookups and one exception.
+ * This map used to exist because of a disagreement: the catalog called the
+ * first station "Sense", the internal name in the agent mesh, while the product
+ * called it Discover. Rather than fix the catalog, this file aliased around it,
+ * and the alias held for weeks while every other surface that rendered straight
+ * from the catalog went on leaking the internal word. The founder caught it on
+ * 2026-08-01 in a Plan receipt reading "Waived: sense, decide" under a rail
+ * saying Discover and Decide, and ruled it Discover everywhere. The catalog is
+ * the fix; this map is now a plain restatement of it, kept only so the strip's
+ * vocabulary is readable in one place. A test asserts the two cannot drift
+ * apart again, which is what should have guarded the original exception.
  */
 export const STAGE_LABEL: Record<AgentStation, string> = {
   sense: "Discover",

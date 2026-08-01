@@ -111,7 +111,20 @@ export interface AgentStationMeta {
 export const AGENT_STATIONS: Record<AgentStation, AgentStationMeta> = {
   sense: {
     id: "sense",
-    name: "Sense",
+    // FOUNDER RULING 2026-08-01: the first station is called Discover, on every
+    // surface, with no exceptions.
+    //
+    // `sense` stays as the internal id, the same way `define` is the id of the
+    // station a person calls Plan. What changed is that this display name used
+    // to disagree with the rest of the product: the nav, the spine rail, the
+    // audit-id ledger, the briefing, the Ask scope chip and the public landing
+    // replay all said Discover, and only this map said Sense. Anything
+    // rendering from here therefore leaked a word the customer had never seen,
+    // which is how the Plan receipt came to read "Waived: sense, decide" while
+    // the rail above it said Discover. run-strip.tsx had already worked around
+    // it with a private alias calling this "the internal name", which is the
+    // tell that the vocabulary, not the surface, was wrong.
+    name: "Discover",
     verb: "senses",
     blurb: "Reads the world and surfaces what changed.",
   },

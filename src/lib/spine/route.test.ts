@@ -271,6 +271,23 @@ describe("describeRoute", () => {
   });
 
   it("names what was waived rather than counting it", () => {
-    expect(describeRoute(suggestRoute("under-the-hood", "why"))).toContain("design");
+    expect(describeRoute(suggestRoute("under-the-hood", "why"))).toContain("Design");
+  });
+
+  /**
+   * FOUNDER RULING 2026-08-01. This sentence is the first thing a person reads
+   * after starting work, and it was interpolating raw station ids: "5 stations,
+   * starting at define. Waived: sense, decide." Three internal slugs in one
+   * line, directly under a rail saying Plan, Discover and Decide. The old test
+   * above asserted the lowercase slug, so it PASSED while the sentence leaked.
+   */
+  it("says the station names a person sees, never the internal ids", () => {
+    const said = describeRoute(suggestRoute("under-the-hood", "why"));
+    for (const station of AGENT_STATION_ORDER) {
+      expect(said).not.toContain(` ${station}`);
+      expect(said).not.toContain(`${station},`);
+    }
+    expect(said).toContain("Discover");
+    expect(said).toContain("Plan");
   });
 });

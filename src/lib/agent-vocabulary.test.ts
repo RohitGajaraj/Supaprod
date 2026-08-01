@@ -1,8 +1,10 @@
+import { STAGE_LABEL } from "@/components/shell/run-strip";
 import { describe, it, expect } from "bun:test";
 import {
   SPECIALIST_CATALOG,
   AGENT_FACES,
   AGENT_STATIONS,
+  AGENT_STATION_ORDER,
   agentDisplayName,
   catalogEntry,
   agentFace,
@@ -435,5 +437,33 @@ describe("agent-vocabulary: catalog lookups and displays", () => {
       expect(ACTION_LABEL["github.ci.read"]).toBe("checking tests");
       expect(ACTION_LABEL["ci.logs"]).toBe("reading the failing check");
     });
+  });
+});
+
+/**
+ * FOUNDER RULING 2026-08-01: the first station is Discover, on every surface.
+ *
+ * The guard that was missing. The catalog said "Sense" while the nav, the spine
+ * rail, the audit ledger, the briefing, the Ask chip and the public landing all
+ * said Discover, and run-strip.tsx aliased around the disagreement instead of
+ * fixing it. The alias held for weeks while every surface rendering straight
+ * from the catalog leaked the internal word, until a Plan receipt read
+ * "Waived: sense, decide" under a rail saying Discover.
+ */
+describe("the first station is called Discover everywhere", () => {
+  it("names it Discover in the catalog every surface renders from", () => {
+    expect(AGENT_STATIONS.sense.name).toBe("Discover");
+  });
+
+  it("keeps the run strip a restatement of the catalog, never an exception", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      expect(STAGE_LABEL[station]).toBe(AGENT_STATIONS[station].name);
+    }
+  });
+
+  it("never shows an internal station id as a display name", () => {
+    for (const station of AGENT_STATION_ORDER) {
+      expect(AGENT_STATIONS[station].name).not.toBe(station);
+    }
   });
 });

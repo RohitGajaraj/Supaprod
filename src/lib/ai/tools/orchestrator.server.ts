@@ -171,7 +171,7 @@ export const missionPlan = def({
       "",
       "Rules:",
       "- 1 to 6 steps. Fewer is better, but use multiple specialists when the goal genuinely needs them.",
-      "- Plan in station order: earlier-station work (Sense, Decide) comes before later work (Build, Ship, Learn).",
+      "- Plan in station order: earlier-station work (Discover, Decide) comes before later work (Build, Ship, Learn).",
       "- Within a single station you MAY run two or three specialists in parallel (give them the same depends_on) when their work is independent.",
       "- Each step's sub_goal must be self-contained (the specialist will not see the wider plan).",
       "- depends_on is an array of zero-based indices of EARLIER steps that must finish first. Leave [] for root steps.",

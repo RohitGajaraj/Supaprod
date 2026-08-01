@@ -48,7 +48,7 @@
  * Learn measures against. `validateRoute` enforces it.
  */
 
-import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
+import { AGENT_STATIONS, AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 
 /** Who took a station off the path. Kept apart because they carry different
  *  authority: a policy waiver is a rule the workspace set once and can be
@@ -393,8 +393,14 @@ export function validateRoute(route: SpineRoute): RouteProblem[] {
  * excluded per policy" is an internal log entry wearing a sentence.
  */
 export function describeRoute(route: SpineRoute): string {
+  // The station's NAME, never its id. This sentence is read by a person, and it
+  // used to interpolate the raw ids straight out of the row, so the Plan receipt
+  // said "starting at define. Waived: sense, decide." while the rail directly
+  // above it said Plan, Discover and Decide. Three internal slugs in one
+  // sentence, on the surface where work is started.
+  const label = (s: AgentStation) => AGENT_STATIONS[s]?.name ?? s;
   const names = route.path.length;
-  if (route.waived.length === 0) return `All seven stations, starting at ${route.entry}.`;
-  const skipped = route.waived.map((w) => w.station).join(", ");
-  return `${names} station${names === 1 ? "" : "s"}, starting at ${route.entry}. Waived: ${skipped}.`;
+  if (route.waived.length === 0) return `All seven stations, starting at ${label(route.entry)}.`;
+  const skipped = route.waived.map((w) => label(w.station)).join(", ");
+  return `${names} station${names === 1 ? "" : "s"}, starting at ${label(route.entry)}. Waived: ${skipped}.`;
 }

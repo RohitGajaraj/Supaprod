@@ -102,7 +102,7 @@ export const FULL_LOG: LogEntry[] = [
   },
   {
     ts: "09:13:26",
-    tag: "SENSE",
+    tag: "DISCOVER",
     col: R.blue,
     actor: "agent",
     agentName: "Scout",
@@ -654,7 +654,14 @@ export function FlowList({
               )}
             </div>
             <div style={{ paddingBottom: i < entries.length - 1 ? 12 : 0, paddingTop: 8 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "var(--geist-space-2x)", marginBottom: 2 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: "var(--geist-space-2x)",
+                  marginBottom: 2,
+                }}
+              >
                 <span style={{ fontFamily: MONO, color: R.faint }}>{e.ts}</span>
                 <span
                   style={{
@@ -711,7 +718,11 @@ export function MockDecisionCard({ revealed }: { revealed: boolean }) {
     "Agents dispatched",
   ];
   const stepCols = [R.blue, R.blue, R.ember, R.blue, R.amber];
-  const spineLabels = ["Sense", "Decide", "Plan", "Design", "Build"];
+  // Discover, not Sense. This is the PUBLIC landing page, so it was showing a
+  // word that exists nowhere in the product to people who have never seen the
+  // product (founder ruling 2026-08-01). The STATIONS list further up this same
+  // file already said Discover, so the page disagreed with itself.
+  const spineLabels = ["Discover", "Decide", "Plan", "Design", "Build"];
 
   return (
     <div
@@ -875,9 +886,7 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
             transition: "background 0.4s ease",
           }}
         />
-        <span style={{ color: R.muted, fontFamily: MONO }}>
-          live run / agent mesh
-        </span>
+        <span style={{ color: R.muted, fontFamily: MONO }}>live run / agent mesh</span>
         <span style={{ marginLeft: "auto", color: R.faint, fontFamily: MONO }}>
           {allDone ? "run complete" : `${working}/${AGENTS.length} working`}
         </span>
@@ -909,9 +918,7 @@ export function MockLiveRun({ revealed }: { revealed: boolean }) {
                 transition: "background 0.4s ease",
               }}
             />
-            <span
-              style={{ fontWeight: 600, color: R.text, flexShrink: 0, width: 64 }}
-            >
+            <span style={{ fontWeight: 600, color: R.text, flexShrink: 0, width: 64 }}>
               {a.name}
             </span>
             <span style={{ color: R.muted, flex: 1, lineHeight: 1.3 }}>{a.act}</span>
@@ -988,12 +995,8 @@ function DeadRun() {
         }}
       >
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: R.faint }} />
-        <span style={{ color: R.muted, fontFamily: MONO }}>
-          live run / agent mesh
-        </span>
-        <span style={{ marginLeft: "auto", color: R.faint, fontFamily: MONO }}>
-          0/5 working
-        </span>
+        <span style={{ color: R.muted, fontFamily: MONO }}>live run / agent mesh</span>
+        <span style={{ marginLeft: "auto", color: R.faint, fontFamily: MONO }}>0/5 working</span>
       </div>
       {AGENTS.map((a, i) => (
         <div
