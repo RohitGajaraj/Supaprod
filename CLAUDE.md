@@ -222,6 +222,11 @@ Query it before raw grep - it is ~206x cheaper per question than reading the cor
 
 Two honest limits: every file is truncated at **20,000 chars** before extraction, so only the head of the mega-docs (`feature-dashboard.md` is 6.45 MB) is indexed; and 26 mostly-SVG files returned no nodes.
 
-Rebuild after code changes with `graphify update .` (AST only, no LLM, free). A full rebuild including the doc layer needs a Gemini key and costs ~$3: `GEMINI_API_KEY=... graphify extract . --backend gemini`. Do **not** use `--backend claude-cli`: it appends its schema to Claude Code's base agent prompt, so the model returns a plausible but wrong-schema graph that graphify discards as "hollow" - it produces nothing and burns hours.
+Rebuild after code changes with `graphify update .` (AST only, no LLM, free). A `post-commit`
+hook is installed, but **it deliberately exits 0 inside a git worktree** (it compares `git-dir`
+against `git-common-dir`), so it never fires in a Conductor workspace. Assume the graph is stale
+there and run `graphify update .` yourself. Note also that a rebuild re-runs clustering and
+renumbers communities, so hand-written community labels do not survive; the tail is auto-named
+from each community's hub node. A full rebuild including the doc layer needs a Gemini key and costs ~$3: `GEMINI_API_KEY=... graphify extract . --backend gemini`. Do **not** use `--backend claude-cli`: it appends its schema to Claude Code's base agent prompt, so the model returns a plausible but wrong-schema graph that graphify discards as "hollow" - it produces nothing and burns hours.
 
 > Everything else: [`AGENTS.md`](./AGENTS.md). Do not restate its rules here.
