@@ -14,7 +14,9 @@ import {
   UNMEASURED_RUN_USD,
   costOfRun,
   isOverTrackBudget,
+  outOfTime,
   resolveTrackSpendCap,
+  TICK_DEADLINE_MS,
 } from "./track-caps.server";
 
 /** A supabase stub that answers one workspace read. */
@@ -158,5 +160,24 @@ describe("the over-budget test", () => {
     // fifty if every station retries to the attempt ceiling. The default must
     // sit well above that or it would interrupt real work rather than runaways.
     expect(isOverTrackBudget(1.5, DEFAULT_TRACK_SPEND_CAP_USD)).toBe(false);
+  });
+});
+
+describe("the tick deadline", () => {
+  it("keeps going while there is time", () => {
+    expect(outOfTime(1_000, 1_000)).toBe(false);
+    expect(outOfTime(1_000, 1_000 + TICK_DEADLINE_MS - 1)).toBe(false);
+  });
+
+  it("stops at the deadline, not after it", () => {
+    expect(outOfTime(1_000, 1_000 + TICK_DEADLINE_MS)).toBe(true);
+    expect(outOfTime(1_000, 1_000 + TICK_DEADLINE_MS + 60_000)).toBe(true);
+  });
+
+  it("leaves room for the bookkeeping of the seat already running", () => {
+    // Being killed mid-tick loses the writes that record what was produced,
+    // which is the failure this exists to prevent. The margin under a Worker's
+    // limit is for finishing that seat, never for starting one more.
+    expect(TICK_DEADLINE_MS).toBeLessThan(60_000);
   });
 });

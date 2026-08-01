@@ -196,6 +196,15 @@ export type HoldReason =
   /** The station ran and produced nothing, repeatedly. */
   | "stalled"
   /**
+   * The tick ran out of wall clock before this seat could start.
+   *
+   * OURS, NOT THE STATION'S. The work is fine and the budget is fine; the
+   * Worker that drives it has a duration limit and a crew is several dispatches.
+   * So it never counts as an attempt and never looks like a failure: the next
+   * tick picks the track up exactly where this one left it.
+   */
+  | "out-of-time"
+  /**
    * This track has spent what it was allowed.
    *
    * The ceiling that sits where the autonomy sits: a person starts a track and
@@ -412,4 +421,5 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   stalled: "This station ran and produced nothing several times, so it stopped trying.",
   "over-budget":
     "This work has spent its budget, so it stopped. Raise the ceiling to let it carry on.",
+  "out-of-time": "This run of the loop ran long, so the rest of the work carries on next time.",
 };

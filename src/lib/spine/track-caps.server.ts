@@ -132,3 +132,32 @@ export function isOverTrackBudget(spent: number, cap: number | null): boolean {
   if (cap === null) return false;
   return spent >= cap;
 }
+
+/**
+ * How long one tick may spend driving, before it stops handing out new seats.
+ *
+ * WHY IT EXISTS. `spine.track-tick` drives up to five tracks SEQUENTIALLY, and
+ * since each station became a crew that is up to three agent dispatches per
+ * station rather than one. Cloudflare Workers bound a request's wall clock, so
+ * a tick that keeps starting seats eventually gets killed mid-flight. That is
+ * not hypothetical: `job_runs` on 2026-08-01 held sense-tick and track-tick rows
+ * stuck at `running`, 40 minutes stale, with no error recorded, which is exactly
+ * what being killed between two writes looks like.
+ *
+ * A DEADLINE RATHER THAN A SMALLER CONSTANT. Capping tracks-per-tick lower would
+ * trade throughput for safety at a number nobody can pick correctly: a station
+ * whose crew is one fast reader and one that thinks for a minute cost wildly
+ * different amounts. Checking the clock adapts to whatever the work actually
+ * costs, and it degrades the right way, by doing less this tick rather than by
+ * being killed halfway through one.
+ *
+ * Deliberately well under the platform limit. Being killed loses the writes that
+ * record what was produced, so the margin is for finishing the bookkeeping of
+ * the seat that IS running, not for squeezing in one more.
+ */
+export const TICK_DEADLINE_MS = 45_000;
+
+/** Has this tick used the wall clock it was given? */
+export function outOfTime(startedAtMs: number, nowMs: number): boolean {
+  return nowMs - startedAtMs >= TICK_DEADLINE_MS;
+}

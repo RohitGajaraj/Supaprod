@@ -41,7 +41,12 @@ import {
   type UpstreamArtifact,
 } from "@/lib/spine/driver";
 import { ARTIFACT_SOURCE } from "@/lib/spine/chain";
-import { costOfRun, isOverTrackBudget, resolveTrackSpendCap } from "@/lib/spine/track-caps.server";
+import {
+  costOfRun,
+  isOverTrackBudget,
+  outOfTime,
+  resolveTrackSpendCap,
+} from "@/lib/spine/track-caps.server";
 import {
   collectAttachments,
   describeAttachments,
@@ -418,6 +423,15 @@ async function loadUpstream(
 export async function driveTrackOnce(
   supabase: SupabaseClient,
   row: DriveRow,
+  /**
+   * When the TICK started, not when this track did.
+   *
+   * The deadline is the sweep's, shared across every track it drives, because
+   * the thing being protected is the Worker's request budget and that is spent
+   * by all of them together. Defaults to now, so a caller driving one track by
+   * hand gets the full window.
+   */
+  tickStartedAtMs: number = Date.now(),
 ): Promise<DriveOutcome> {
   const route = routeOf(row);
   const station = row.station as AgentStation;
@@ -508,6 +522,7 @@ export async function driveTrackOnce(
   );
   let spent = Number(row.spend_used_usd ?? 0);
   let overBudget = false;
+  let ranLong = false;
   /** What the crew filed, accumulated seat by seat as each one runs. */
   const made: Attachment[] = [];
   try {
@@ -525,6 +540,16 @@ export async function driveTrackOnce(
       // anything looked again.
       if (isOverTrackBudget(spent, cap)) {
         overBudget = true;
+        break;
+      }
+
+      // The Worker's clock, checked in the same place as the money. A crew is
+      // several dispatches and this sweep drives up to five tracks, so a tick
+      // that keeps starting seats is eventually killed between two writes and
+      // loses the record of what it produced. Stopping cleanly here leaves the
+      // track exactly where it is for the next tick to pick up.
+      if (outOfTime(tickStartedAtMs, Date.now())) {
+        ranLong = true;
         break;
       }
 
@@ -601,6 +626,25 @@ export async function driveTrackOnce(
     .from("spine_tracks" as never)
     .update({ spend_used_usd: spent } as never)
     .eq("id", row.id);
+
+  // Out of TIME, ours rather than the station's, so it is reported before the
+  // budget hold and never counts as an attempt. The work is fine and the money
+  // is fine; the Worker driving it has a duration limit.
+  if (ranLong) {
+    await supabase
+      .from("spine_tracks" as never)
+      .update({ last_hold: "out-of-time", driven_at: new Date().toISOString() } as never)
+      .eq("id", row.id);
+    return {
+      trackId: row.id,
+      station,
+      moved: false,
+      arrivedAt: null,
+      hold: "out-of-time",
+      line: say(HOLD_LINE["out-of-time"]),
+      attached,
+    };
+  }
 
   // Out of budget. Not a failure and not a refusal: the work is fine, the money
   // is finished. It deliberately does NOT count as an attempt, because attempts

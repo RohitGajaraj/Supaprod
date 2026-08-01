@@ -59,6 +59,10 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
           }
 
           const rows = (tracks ?? []) as unknown as DriveRow[];
+          // One clock for the whole sweep. The Worker's request budget is spent
+          // by every track together, so the deadline has to be shared rather
+          // than restarted per track.
+          const tickStartedAt = Date.now();
           const client = supabaseAdmin as unknown as SupabaseClient;
           const outcomes: string[] = [];
 
@@ -67,7 +71,7 @@ export const Route = createFileRoute("/api/public/hooks/track-tick")({
           // would race the cap check rather than respect it.
           for (const row of rows) {
             try {
-              const outcome = await driveTrackOnce(client, row);
+              const outcome = await driveTrackOnce(client, row, tickStartedAt);
               outcomes.push(outcome.line);
             } catch (e) {
               // One track that throws must never stop the sweep, or a single
