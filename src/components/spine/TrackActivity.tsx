@@ -54,8 +54,12 @@ function headline(t: Turn): string {
  * nothing, and colouring that red would teach a person to distrust the one
  * agent doing its job correctly. The sentence already says what happened.
  */
-function toneOf(t: Turn): "pass" | "fail" | undefined {
-  if (t.outcome === "working" || t.outcome === "waiting") return "pass";
+function toneOf(t: Turn): "live" | "pass" | "fail" | undefined {
+  // `live` is the only tone in the system that moves, and it is spent on the
+  // one fact a person came for: something is happening right now. Queued is
+  // NOT live, because nothing is running yet and a pulse would say otherwise.
+  if (t.outcome === "working") return "live";
+  if (t.outcome === "waiting") return "pass";
   if (t.outcome === "stopped") return "fail";
   return undefined;
 }

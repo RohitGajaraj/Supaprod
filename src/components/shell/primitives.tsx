@@ -885,7 +885,7 @@ export function Value({
   tone = "quiet",
 }: {
   children: React.ReactNode;
-  tone?: "quiet" | "pass" | "warn" | "fail";
+  tone?: "quiet" | "pass" | "warn" | "fail" | "live";
 }) {
   return (
     <span className="sp-value" data-tone={tone}>

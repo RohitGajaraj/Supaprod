@@ -1550,6 +1550,52 @@ button.sp-cell:disabled {
   color: var(--sp-fail);
 }
 
+/* ---------- live ----------
+ * SOMETHING IS HAPPENING RIGHT NOW, and this is the only place in the system
+ * that moves on its own.
+ *
+ * FOUNDER RULING 2026-08-01: "if you don't have the live indicator then it
+ * feels very static, and we do not realize what is happening in the background.
+ * The user would churn, there is no stickiness."
+ *
+ * A dot rather than a spinner. A spinner says "wait", which is wrong: the work
+ * continues whether or not anyone is looking, and the product's whole claim is
+ * that you do not have to watch. A slow pulse says "alive" without asking for
+ * attention, which is the honest signal.
+ *
+ * It reuses --sp-pass rather than introducing a colour. Live IS a good state,
+ * the palette already carries that meaning, and a fifth status colour would
+ * spend the restraint budget on a distinction nobody asked for.
+ *
+ * The animation is bounded by the global prefers-reduced-motion rule in
+ * styles.css, which forces every animation to 0.001ms. The dot stays visible
+ * there, so the information survives even when the motion does not. */
+.sp-value[data-tone="live"] {
+  color: var(--sp-pass);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sp-value[data-tone="live"]::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sp-pass);
+  animation: spLivePulse 2s ease-in-out infinite;
+}
+@keyframes spLivePulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sp-pass) 45%, transparent);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--sp-pass) 0%, transparent);
+  }
+}
+
 /* ---------- checkbox ----------
  * A value you tick, as part of something you will submit. The switch above is
  * the other instrument and the difference is WHEN IT TAKES EFFECT: a switch
