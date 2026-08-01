@@ -473,12 +473,19 @@ export const getWorkspaceSpendPolicy = createServerFn({ method: "GET" })
     // owns the workspace may read or move it.
     const { data: ws } = await supabase
       .from("workspaces")
-      .select("id,default_mission_spend_cap_usd")
+      .select("id,default_mission_spend_cap_usd,default_track_spend_cap_usd")
       .eq("owner_id", userId)
       .limit(1)
       .maybeSingle();
 
-    if (!ws) return { is_owner: false, cap_usd: null as number | null, is_default: true };
+    if (!ws)
+      return {
+        is_owner: false,
+        cap_usd: null as number | null,
+        is_default: true,
+        track_cap_usd: null as number | null,
+        track_is_default: true,
+      };
 
     const raw = (ws as { default_mission_spend_cap_usd: number | string | null })
       .default_mission_spend_cap_usd;
@@ -490,6 +497,16 @@ export const getWorkspaceSpendPolicy = createServerFn({ method: "GET" })
       cap_usd: raw === null ? null : Number(raw),
       // Whether the number in force is one a person chose, or ours.
       is_default: raw === null || raw === undefined,
+      // THE CEILING ON A PIECE OF WORK, one level up from the run. A track walks
+      // seven stations unattended with a crew at each, so this is the number
+      // that actually bounds autonomous spend; the run cap bounds one dispatch.
+      track_cap_usd: (() => {
+        const t = (ws as { default_track_spend_cap_usd: number | string | null })
+          .default_track_spend_cap_usd;
+        return t === null || t === undefined ? null : Number(t);
+      })(),
+      track_is_default:
+        (ws as { default_track_spend_cap_usd: number | null }).default_track_spend_cap_usd == null,
     };
   });
 
@@ -501,7 +518,9 @@ export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
         // `null` is "no ceiling", and it is a deliberate human decision that
         // `resolveMissionSpendCap` obeys. It is separated from "not set" on
         // purpose; see that function's own note on the distinction.
-        cap_usd: z.number().positive().max(100_000).nullable(),
+        cap_usd: z.number().positive().max(100_000).nullable().optional(),
+        /** The ceiling on one piece of work, end to end. Same null semantics. */
+        track_cap_usd: z.number().positive().max(100_000).nullable().optional(),
       })
       .parse(i),
   )
@@ -515,12 +534,17 @@ export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!ws) throw new Error("Only the workspace owner can move the spend ceiling.");
 
-    const { error } = await supabase
-      .from("workspaces")
-      .update({ default_mission_spend_cap_usd: data.cap_usd })
-      .eq("id", ws.id);
+    // Only what was sent. `null` is a real value here ("no ceiling"), so the
+    // two are distinguished by presence rather than by nullishness: writing an
+    // absent field as null would silently clear the other ceiling.
+    const patch: Record<string, number | null> = {};
+    if ("cap_usd" in data) patch.default_mission_spend_cap_usd = data.cap_usd ?? null;
+    if ("track_cap_usd" in data) patch.default_track_spend_cap_usd = data.track_cap_usd ?? null;
+    if (!Object.keys(patch).length) return { ok: true, cap_usd: null, track_cap_usd: null };
+
+    const { error } = await supabase.from("workspaces").update(patch).eq("id", ws.id);
     if (error) throw new Error(error.message);
-    return { ok: true, cap_usd: data.cap_usd };
+    return { ok: true, cap_usd: data.cap_usd ?? null, track_cap_usd: data.track_cap_usd ?? null };
   });
 
 /* ------------------------------------------------------------------ *
@@ -613,7 +637,7 @@ export const getBoundary = createServerFn({ method: "GET" })
     // when the caller does not own the workspace.
     const { data: ws } = await supabase
       .from("workspaces")
-      .select("id,default_mission_spend_cap_usd")
+      .select("id,default_mission_spend_cap_usd,default_track_spend_cap_usd")
       .eq("owner_id", userId)
       .limit(1)
       .maybeSingle();
@@ -629,17 +653,23 @@ export const getBoundary = createServerFn({ method: "GET" })
       paused = Boolean((sw as { paused?: boolean } | null)?.paused);
     }
 
-    const rawCap = ws
-      ? (ws as { default_mission_spend_cap_usd: number | string | null })
-          .default_mission_spend_cap_usd
-      : null;
+    const num = (v: number | string | null | undefined) =>
+      v === null || v === undefined ? null : Number(v);
+    const w = ws as {
+      default_mission_spend_cap_usd?: number | string | null;
+      default_track_spend_cap_usd?: number | string | null;
+    } | null;
 
     return {
       alone,
       asks,
       never,
       isOwner: Boolean(ws),
-      capUsd: rawCap === null || rawCap === undefined ? null : Number(rawCap),
+      capUsd: num(w?.default_mission_spend_cap_usd),
+      // The ceiling on a piece of work end to end. It is the one that actually
+      // bounds unattended spend: a track walks seven stations with a crew at
+      // each, and the run cap only ever bounded one dispatch of that.
+      trackCapUsd: num(w?.default_track_spend_cap_usd),
       paused,
     };
   });

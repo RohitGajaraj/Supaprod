@@ -289,6 +289,20 @@ function BoundarySurface() {
       setReceipt({ verb: "The boundary did not move", consequence: e.message, failed: true }),
   });
 
+  const setTrackCap = useMutation({
+    mutationFn: (cap: number | null) => fSetCap({ data: { track_cap_usd: cap } }),
+    onSuccess: (_r, cap) => {
+      setReceipt({
+        verb: "You moved the ceiling on a piece of work",
+        consequence:
+          cap === null
+            ? "Work now runs through every station until it finishes. Nothing stops it on spend."
+            : `Work that spends $${cap.toFixed(2)} across its stations stops and waits for you.`,
+      });
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+    },
+  });
+
   const setCap = useMutation({
     mutationFn: (cap: number | null) => fSetCap({ data: { cap_usd: cap } }),
     onSuccess: (_r, cap) => {
@@ -498,6 +512,42 @@ function BoundarySurface() {
                     if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
                     if (next === data.capUsd) return;
                     setCap.mutate(next);
+                  }}
+                />
+              </Line>
+              {/* THE ONE THAT ACTUALLY BOUNDS UNATTENDED SPEND. A person starts
+                a track and walks away; it walks seven stations with a crew of
+                two or three at each, and only Build opens a mission, so the run
+                ceiling above bounded each dispatch separately and nothing summed
+                them. This is the ceiling on the whole piece of work. */}
+              <Line
+                label="Dollars one piece of work may spend"
+                sub={
+                  data.trackCapUsd === null ? (
+                    "No ceiling. Work continues through every station until it finishes."
+                  ) : (
+                    <>
+                      <Num>${data.trackCapUsd.toFixed(2)}</Num> across every station, every agent
+                      and every retry. Work that reaches it stops and waits, and raising this
+                      carries on from where it stopped.
+                    </>
+                  )
+                }
+              >
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  defaultValue={data.trackCapUsd ?? undefined}
+                  aria-label="Dollars one piece of work may spend before it stops"
+                  style={{ width: 96, textAlign: "right" }}
+                  disabled={setTrackCap.isPending}
+                  onBlur={(e) => {
+                    const raw = e.currentTarget.value.trim();
+                    const next = raw === "" ? null : Number(raw);
+                    if (next !== null && (!Number.isFinite(next) || next <= 0)) return;
+                    if (next === data.trackCapUsd) return;
+                    setTrackCap.mutate(next);
                   }}
                 />
               </Line>
