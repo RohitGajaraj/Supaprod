@@ -21,7 +21,7 @@ official product documentation**, with URLs. Treat it as reliable.
 | **Decide** | inherits Discover's triage verbs; Linear's split view | ✅ partially, below |
 | **Plan** | Linear cycles / Productboard roadmap | ⬜ not yet researched |
 | **Design** | Figma (Dev Mode, prototyping, Make) · v0 · Claude Artifacts · Lovable | 🟡 in flight |
-| **Build** | GitHub Copilot cloud agent + VS Code agent mode ✅ · Cursor / Claude Code 🟡 | ✅ partially, below |
+| **Build** | GitHub Copilot cloud agent ✅ · Devin ✅ · Cursor / Claude Code 🟡 | ✅ largely, below |
 | **Ship** | changelog and release-notes tooling | ⬜ not yet researched |
 | **Learn** | Amplitude / experiment readouts | ⬜ not yet researched |
 
@@ -303,6 +303,157 @@ describe scopes in prose), the checkpoint restore label, `COPILOT_AGENT_FIREWALL
 (superseded by UI settings, legacy configs still honored), and the Copilot Workspace sunset date
 (from the search index of the official page, not a rendered fetch, though the dead DNS
 corroborates the shutdown). Verify in-product before quoting any string as current.
+
+---
+
+# BUILD, second reference: Devin (Cognition)
+
+Researched 2026-08-01 against live official docs. Devin is the most complete autonomous-agent
+product surface in the market and it answers the question our governance canon most needs
+answered: **how do you gate autonomy without building an approvals queue.**
+
+## The five ideas most worth stealing
+
+### 1. Confidence gates the autonomy, not the human's calendar
+
+> "At multiple points in each session, Devin will express its confidence: at the start, after
+> creating a plan, whenever it answers a question about the code. **When Devin doesn't have green
+> confidence (i.e. yellow or red), it will wait for user approval before proceeding with its plan.
+> If it's green, it proceeds automatically.**"
+> ([release-notes/2025](https://docs.devin.ai/release-notes/2025), Devin 2.1)
+
+**The gate is a derived signal, not a fixed step.** That is exactly the governance-canon shape:
+policy set in advance, permission asked only on exception. And Cognition reports the signal is
+"highly correlated with success", so it is load-bearing rather than decorative.
+
+The same glyphs appear on ticket scoping, and crucially can be produced **in bulk without
+spending a session**: "get Confidence Scores for multiple issues at once, without starting actual
+Devin sessions... prioritize having Devin work on the highest-confidence tasks."
+
+### 2. The 30-second default: a gate that degrades to autonomous
+
+> "For more complex tasks, click **'Wait for my approval'** so that Devin waits for your feedback
+> on its full plan. **By default, if you don't click 'Wait for my approval', Devin waits 30 seconds
+> for your input before proceeding.**"
+
+**This is the single best pattern in the whole research for beating the approvals-queue failure
+mode.** A timed gate that expires into autonomy is not a queue: you can intervene, and if you are
+not there the work continues. The default is configurable in Settings. Steering does not end at
+the gate either: "You can still send feedback and adjust Devin's plan **even after it has started
+working**."
+
+### 3. Retrieval-triggered memory, not dumped context
+
+Knowledge items REQUIRE a **Trigger Description**, and the stated principle is:
+
+> "**Devin retrieves Knowledge when relevant, not all at once or all at the beginning.** Be sure to
+> make your retrieval trigger highly relevant to the contents."
+> ([knowledge](https://docs.devin.ai/product-guides/knowledge))
+
+Three-state pin, which is a clean policy-scope model we should copy for house rules: pinned to **no
+repo** (retrieved only when judged relevant) · **one repo** (always used there) · **all repos**.
+Knowledge is also **suggested by the agent from your chat feedback**, and you **edit before saving
+or dismiss** it. That is dissent-not-consent, applied to memory.
+
+### 4. Cost made legible as a t-shirt size, on two axes
+
+Session Insights sizes a session XS to XL on **ACUs** *and* on **user message count**, and takes
+**the larger of the two**. So "you nagged it thirty times" reads as unhealthy just as loudly as
+"it burned forty units". L or XL is flagged unhealthy. The docs even supply the interpretation:
+high spend with few messages means "worked autonomously but struggled"; many messages with low
+spend means "frequent interruptions or course corrections".
+([session-insights](https://docs.devin.ai/product-guides/session-insights))
+
+Per-PR cost is a **hover pill**: t-shirt size on the surface, exact total plus job count on hover.
+
+### 5. The spend cap is a SOFT block
+
+Hitting the per-PR auto-review limit **only pauses automatic reviews**; manual reviews still work,
+and re-enabling on a specific PR exempts that PR.
+([devin-review](https://docs.devin.ai/work-with-devin/devin-review))
+
+**This is the shape our `default_mission_spend_cap_usd` should take.** A ceiling that stops
+everything is a kill switch; a ceiling that stops the *automatic* path and leaves the deliberate
+one open is a boundary. Note also the carve-out: review spend does not count against
+per-organization session limits, so a governance function is never starved by a build budget.
+
+## Where Devin blocks on a human, and where it does not
+
+**Verified blocking triggers**: plan approval when confidence is not green · the explicit "Wait for
+my approval" gate · credentials requested mid-session (session-scoped, "not saved for any future
+sessions") · **network access requests for specific domains, surfaced for approval** so you need
+not preconfigure every domain · CAPTCHA / MFA / OAuth (human takes over the browser) · launching
+child sessions ("proposes the sessions for your approval before launching them") · a stacked-PR
+conflict that "reflects a substantive decision" (it resolves the rest silently) · hitting an ACU
+limit.
+
+**Notably there is NO approval gate before pushing or opening a PR.** The only documented push
+guardrails are ones the user writes into a playbook's **Forbidden Actions** section, verbatim from
+the official example: "NEVER force push on branches!", "Do NOT push directly to the main branch."
+
+That is a genuinely different philosophy from GitHub's, and the contrast is the useful part:
+**GitHub blocks at irreversible edges; Devin blocks on low confidence and on things it cannot do
+itself.** Ours should do both.
+
+## The instruction layering, which is better than ours
+
+Three named layers with a documented division of labour
+([instructing-devin-effectively](https://docs.devin.ai/essential-guidelines/instructing-devin-effectively)):
+
+| Layer | What it is | When |
+| --- | --- | --- |
+| **Knowledge** | "tips, advice, and instructions Devin can reference in all sessions" | general conventions, retrieved on trigger |
+| **Playbooks** | "**like a custom system prompt for a repeated task**" | step-by-step procedures for a specific task |
+| **Skills** | `SKILL.md` committed to the repo at `.agents/skills/<name>/`, on the open Agent Skills standard | reusable procedures that live with the code |
+
+Playbook section vocabulary, worth copying wholesale for our house rules: **Procedure** (one step
+per line, imperative, action verb, "mutually exclusive and collectively exhaustive") ·
+**Specifications** (postconditions) · **Advice and Pointers** ("correct Devin's priors") ·
+**Forbidden Actions** ("any action Devin should absolutely not take") · **What's Needed From User**.
+
+Playbooks carry **version history with revert**. Skills are **self-authoring**: after learning
+something, Devin "will suggest creating or updating a skill", surfaced in the session timeline with
+a **Create PR** button.
+
+## The session surface
+
+Tabs: **Progress** (a unified log of "all shell commands, code edits, and browser activity") ·
+**Shell** · **IDE** (an interactive embedded VS Code) · **Desktop** (the interactive browser,
+renamed from "Browser") · **Tasks** (the live todo list).
+
+**Time travel is a first-class affordance**: commands run later in the session are **greyed out**,
+and clicking any command jumps the whole workspace to that point in time.
+
+**Takeover is explicit and racy, and the docs admit it**: "Click to stop the session to take over",
+then "**Make sure that Devin is paused before taking over the IDE to avoid simultaneous,
+conflicting changes**". The inverse control is **"Follow Devin"**, which highlights actions live.
+
+**Waiting is shown in the browser tab**: the favicon carries a status dot, "green when Devin is
+working, **orange when it's waiting for you**", so a blocked session is visible without switching
+tabs. Cheap, and we have nothing like it.
+
+Message handling while busy is modelled properly: queue by preference, send the next queued message
+with Enter in an empty composer, and queued messages default to sending the moment the agent frees
+up. There is also an **`(aside)` / `!aside`** prefix that makes the agent **ignore** a message, so
+you can comment on a run in-thread without commanding it.
+
+## The CLI permission model, which is the most granular in the market
+
+Five named modes with a published per-tool matrix: **Normal** · **Accept Edits** · **Smart** ·
+**Bypass** · **Autonomous (sandbox)**. Per approval you may allow **once, for the session, or
+permanently for the project**. **Smart mode delegates the judgment**: "a fast model judges whether
+the action is safe to run unattended", with a hard never-auto-approve list (package installs,
+mutating git, `rm`/`sudo`, `kubectl delete`, anything touching dotenv or key material).
+And the line that matters most: **"Smart, Bypass, and Autonomous modes do not override
+organization-level permissions."** Personal autonomy can never exceed org policy.
+([cli/reference/permissions](https://docs.devin.ai/cli/reference/permissions))
+
+## Verification caveats, preserved
+
+The researcher flagged eight unverified items. The ones that matter: **"1 ACU is about 15 minutes"
+is stale** and must not be repeated (the current definition is effort/inference-based, not
+temporal); there is no "Edit plan" button (plan editing is conversational); "Planner" is a legacy
+tab name; and no wall-clock session timeout is published.
 
 ---
 
