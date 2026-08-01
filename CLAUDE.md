@@ -212,7 +212,7 @@ If your work touches telemetry, error capture, uptime, on-call, or the public st
 
 Current state (built 2026-08-01): **14,563 nodes / 29,128 edges** over all 1,872 code files (including every one of the 412 `supabase/migrations/*.sql`) plus 704 docs. There is no `ruvector.db`; that pointer was wrong and is retired.
 
-**The graph is NOT in git and never will be** (50 MB, and it churns on every commit), so `git pull` will never give you one. `.gitignore` excludes `graphify-out/`. Two ways to have a graph in any given checkout:
+**The markdown layer IS in git; the graph binary is not.** `graphify-out/wiki/` (1,713 articles) and `graphify-out/GRAPH_REPORT.md` are committed, because cloud and web agents cannot run the graphify CLI and markdown is the only thing they can read. `graph.json` (16 MB, rewritten in full every build), `cache/`, `manifest.json` and the HTML stay ignored, so `git pull` gives you the readable layer but never a queryable graph. Two ways to get one in a given checkout:
 
 - **The machine-wide copy (use this first).** Registered at `~/.graphify/global-graph.json`, it is queryable from any directory on this Mac, including a fresh clone or another worktree with no `graphify-out/`: `graphify explain "<symbol>" --graph ~/.graphify/global-graph.json`. Node ids there are prefixed `supaprod::`. Refresh it after a rebuild with `graphify global add graphify-out/graph.json --as supaprod`.
 - **A local build**, only if you need the HTML or wiki in that checkout. Free for code (`graphify update .`); the full doc layer costs ~$3 of Gemini (see the rebuild note below).
@@ -229,7 +229,11 @@ Query it before raw grep - it is ~206x cheaper per question than reading the cor
 
 Two honest limits: every file is truncated at **20,000 chars** before extraction, so only the head of the mega-docs (`feature-dashboard.md` is 6.45 MB) is indexed; and 26 mostly-SVG files returned no nodes.
 
-Rebuild after code changes with `graphify update .` (AST only, no LLM, free). **Do this by hand;
+Rebuild after code changes with **`PYTHONHASHSEED=0 graphify update .`** (AST only, no LLM, free).
+**Always pin `PYTHONHASHSEED=0`**: networkx louvain iterates string-keyed sets whose order python
+randomizes per process, so without the pin the clustering churns run to run, every community gets
+renamed, and the 1,713 committed `wiki/` filenames all change. The removed git hook used to set
+this for you; now you must. **Do this by hand;
 the graph does not refresh itself.** `graphify hook install` was tried on 2026-08-01 and removed
 the same day, deliberately, for two reasons: the hook writes into the SHARED `.git/hooks`, so it
 applies to every worktree and every parallel session rather than just yours, and it grabs the git

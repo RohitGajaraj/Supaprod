@@ -53,7 +53,14 @@ nango/
 
 # Local tool artifacts — knowledge-graph / agent DB state, churns every session
 ruvector.db
-graphify-out/
+# graphify: the graph itself stays out (graph.json is 16MB and is rewritten in full on every
+# build; cache/ and the HTML are derived). The markdown layer IS committed on purpose: cloud and
+# web agents cannot run the graphify CLI, so wiki/ and GRAPH_REPORT.md are the only artifacts
+# they can actually read. Needs `graphify-out/*`, not `graphify-out/`, because git cannot
+# re-include a child once its parent directory is excluded.
+graphify-out/*
+!graphify-out/wiki/
+!graphify-out/GRAPH_REPORT.md
 agentdb*.rvf
 agentdb*.rvf*.lock
 agentdb*.lock

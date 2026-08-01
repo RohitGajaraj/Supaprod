@@ -1,0 +1,25 @@
+# docs/planning - Engine Room Surface
+
+> 1 nodes · cohesion 1.00
+
+## Key Concepts
+
+- **Engine Room Surface** (0 connections) — `docs/planning/obsidian-port/OBS-09.md`
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `docs/planning/obsidian-port/OBS-09.md`
+
+## Audit Trail
+
+- EXTRACTED: 0 (0%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

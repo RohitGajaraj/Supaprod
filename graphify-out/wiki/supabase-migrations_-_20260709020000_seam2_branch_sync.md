@@ -1,0 +1,25 @@
+# supabase/migrations - 20260709020000_seam2_branch_sync
+
+> 1 nodes · cohesion 1.00
+
+## Key Concepts
+
+- **20260709020000_seam2_branch_sync_budget.sql** (0 connections) — `supabase/migrations/20260709020000_seam2_branch_sync_budget.sql`
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `supabase/migrations/20260709020000_seam2_branch_sync_budget.sql`
+
+## Audit Trail
+
+- EXTRACTED: 0 (0%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*
