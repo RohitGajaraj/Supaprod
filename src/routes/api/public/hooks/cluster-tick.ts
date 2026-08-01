@@ -64,6 +64,12 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
             workspace_id: string;
             themes?: number;
             started?: number;
+            /** Cleared the bar this sweep, before the per-sweep bound. */
+            qualified?: number;
+            /** Clusters that have already become work, so a zero can be read. */
+            already?: number;
+            /** Why promotion could not run at all. Absent when it ran. */
+            promotion_blocked?: string;
             error?: string;
           }> = [];
           for (const ws of workspaces ?? []) {
@@ -96,15 +102,36 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
               // spine_tracks.theme_id makes a double promotion impossible even
               // if two ticks overlap.
               let started = 0;
+              let qualified = 0;
+              let already = 0;
+              let promotionBlocked: string | undefined;
               try {
-                const promoted = await promoteClustersOnce(supabaseAdmin, ws.owner_id);
-                started = promoted.filter((p) => p.trackId).length;
+                const sweep = await promoteClustersOnce(supabaseAdmin, ws.owner_id);
+                started = sweep.outcomes.filter((p) => p.trackId).length;
+                qualified = sweep.qualified;
+                already = sweep.alreadyPromoted;
+                promotionBlocked = sweep.blocked ?? undefined;
+                // A blocked sweep is a real operational fault, not a quiet day,
+                // so it reaches the log as well as the response body. The whole
+                // point is that this state can no longer pass for "nothing
+                // qualified".
+                if (sweep.blocked) {
+                  console.error(`cluster-tick: promotion blocked for ${ws.id}: ${sweep.blocked}`);
+                }
               } catch (e) {
                 // Promotion failing must never lose the clustering that just
                 // succeeded, so it is caught separately and reported alongside.
                 console.error(`cluster-tick: promotion failed for ${ws.id}:`, e);
+                promotionBlocked = e instanceof Error ? e.message : String(e);
               }
-              results.push({ workspace_id: ws.id, themes: r.themes, started });
+              results.push({
+                workspace_id: ws.id,
+                themes: r.themes,
+                started,
+                qualified,
+                already,
+                ...(promotionBlocked ? { promotion_blocked: promotionBlocked } : {}),
+              });
             } catch (e) {
               results.push({
                 workspace_id: ws.id,

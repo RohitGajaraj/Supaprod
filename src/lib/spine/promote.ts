@@ -137,13 +137,23 @@ export function originFor(theme: ThemeLike, bar: PromotionBar = DEFAULT_PROMOTIO
 }
 
 /**
- * How many clusters may become work in one sweep.
+ * How many clusters may become work in one sweep, PER WORKSPACE OWNER.
  *
  * There are 181 themes today. Without a bound, the first run of this would open
  * every qualifying one at once and every one of them would start spending, which
  * is the single worst thing this feature could do on the day it ships. Two per
  * sweep, strongest first, so the backlog drains at a pace a person can watch and
  * stop.
+ *
+ * READ THE SCOPE CAREFULLY BEFORE USING THIS NUMBER TO JUDGE A LIVE TICK.
+ * `promoteClustersOnce` is called once per workspace, and `cron.cluster-tick`
+ * processes up to FIVE workspaces per invocation, so one tick of the ten-minute
+ * cron can legitimately open up to TEN tracks: five workspaces times this bound.
+ * An operator who expects two and sees six across three workspaces is looking at
+ * correct behaviour. The number to check against is
+ * `MAX_PROMOTIONS_PER_SWEEP x (distinct workspaces in that tick)`, and the
+ * tick's own response body reports the per-workspace figure so the arithmetic
+ * never has to be guessed.
  */
 export const MAX_PROMOTIONS_PER_SWEEP = 2;
 

@@ -24,6 +24,7 @@ import { startTrackCore } from "@/lib/spine/track.functions";
 import {
   DEFAULT_PROMOTION_BAR,
   originFor,
+  qualifies,
   rankForPromotion,
   type ThemeLike,
 } from "@/lib/spine/promote";
@@ -36,6 +37,59 @@ export type PromotionOutcome = {
 };
 
 /**
+ * What one sweep did, in a shape that can tell three different zeroes apart.
+ *
+ * WHY THIS IS NOT JUST AN ARRAY, and it is the whole reason promotion could not
+ * be verified after it shipped. Three completely different things all used to
+ * return an empty list:
+ *
+ *   1. Nothing cleared the bar. The common, correct, healthy outcome.
+ *   2. The link column does not exist yet, because the migration is committed
+ *      and not applied. Nothing can ever be promoted, and nothing says so.
+ *   3. The themes read failed outright.
+ *
+ * The founder's verification query is `select ... from spine_tracks where
+ * theme_id is not null`, and it returns zero rows in ALL THREE cases, so no
+ * amount of looking at the database can distinguish "working and nothing
+ * qualified" from "structurally dead". That is the same defect this codebase
+ * keeps deleting under a different name: the driver advancing on silence, a
+ * station that filed nothing looking identical to one that did its job.
+ *
+ * So the sweep now states which zero it is, and `cron.cluster-tick` returns it
+ * in its response body. One authenticated POST to the hook answers the question
+ * that no SQL query against the result table can.
+ */
+export type PromotionSweep = {
+  /** One entry per theme it actually tried. */
+  outcomes: PromotionOutcome[];
+  /**
+   * Why the sweep could not run at all, in plain words. Null when it ran, even
+   * if it ran and promoted nothing. This is the difference between "no" and
+   * "we never got to ask".
+   */
+  blocked: string | null;
+  /** How many themes cleared the bar, before the per-sweep bound was applied. */
+  qualified: number;
+  /** How many clusters have already become work, so a zero can be read. */
+  alreadyPromoted: number;
+};
+
+/**
+ * Postgres and PostgREST for "that column is not there".
+ *
+ * The pre-migration window is real and expected in this project: migrations are
+ * committed here and applied by Lovable on publish, so any code that reads a
+ * freshly added column must be able to name that state rather than crash or,
+ * worse, shrug.
+ */
+function isMissingColumn(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code;
+  if (code === "42703" || code === "PGRST204" || code === "42P01") return true;
+  const message = (error as { message?: string } | null)?.message ?? "";
+  return /column .* does not exist|could not find the .* column/i.test(message);
+}
+
+/**
  * Promote what qualifies, for one user, once.
  *
  * Returns what it did rather than throwing, because this runs inside a cron
@@ -44,14 +98,30 @@ export type PromotionOutcome = {
 export async function promoteClustersOnce(
   supabase: SupabaseClient,
   userId: string,
-): Promise<PromotionOutcome[]> {
+): Promise<PromotionSweep> {
+  const nothing = { outcomes: [], qualified: 0, alreadyPromoted: 0 };
+
   // Only clusters that have never become work. Reading the tracks first and
   // excluding by id keeps this to two queries rather than one per theme.
-  const { data: taken } = await supabase
+  const { data: taken, error: takenErr } = await supabase
     .from("spine_tracks" as never)
     .select("theme_id")
     .eq("user_id", userId)
     .not("theme_id", "is", null);
+
+  // THIS READ USED TO IGNORE ITS ERROR, and that single ignored error is what
+  // made the feature unverifiable. Without `theme_id` the read fails, `already`
+  // becomes empty, the sweep proceeds as if no cluster had ever been promoted,
+  // and then every insert fails on the same missing column. The result was a
+  // silent, permanent zero that looked exactly like a quiet, healthy workspace.
+  if (takenErr) {
+    return {
+      ...nothing,
+      blocked: isMissingColumn(takenErr)
+        ? "spine_tracks.theme_id does not exist yet, so no cluster can become work. Apply migration 20260802020000_promote_clusters_to_work.sql."
+        : `Could not read which clusters are already promoted: ${takenErr.message}`,
+    };
+  }
 
   const already = new Set(
     ((taken ?? []) as unknown as Array<{ theme_id: string }>).map((r) => r.theme_id),
@@ -64,13 +134,39 @@ export async function promoteClustersOnce(
     // Cheap pre-filter on the strongest single condition so the bar below reads
     // a small set. The real gate is `qualifies`, which checks all three.
     .gte("severity", DEFAULT_PROMOTION_BAR.minSeverity)
+    // ORDERED, and the order matters more than it looks. `limit` without an
+    // `order by` returns an ARBITRARY 200 rows: Postgres makes no promise, and
+    // the set it picks can change between two calls with no data change. So the
+    // moment a workspace holds more than 200 themes at this severity, an
+    // unordered window would hand `rankForPromotion` a random subset, the
+    // strongest theme in the workspace could sit outside it, and the sweep would
+    // quietly promote the second-best while reporting nothing unusual. Worse,
+    // the failure is indistinguishable from "nothing qualified", which is the
+    // most common honest outcome, so it would never be noticed.
+    //
+    // This is the same order `rankForPromotion` applies, so the window and the
+    // ranking agree and the 200 rows read here are provably the 200 that could
+    // win. It is not a substitute for the pure ranking, which still decides.
+    .order("severity", { ascending: false })
+    .order("frequency", { ascending: false })
+    .order("confidence", { ascending: false })
     .limit(200);
-  if (error || !rows) return [];
+  if (error || !rows) {
+    return {
+      ...nothing,
+      alreadyPromoted: already.size,
+      blocked: `Could not read the clusters: ${error?.message ?? "the themes read returned nothing"}`,
+    };
+  }
 
   const candidates = (
     rows as unknown as Array<ThemeLike & { workspace_id: string | null; product_id: string | null }>
   ).filter((t) => !already.has(t.id));
 
+  // Counted BEFORE the per-sweep bound, so the sweep can say "nine cleared the
+  // bar and I took the two strongest" rather than only ever reporting two. A
+  // reader needs the backlog to know whether the bound is doing any work.
+  const qualified = candidates.filter((t) => qualifies(t).ok).length;
   const picked = rankForPromotion(candidates);
   const done: PromotionOutcome[] = [];
 
@@ -99,5 +195,15 @@ export async function promoteClustersOnce(
     });
   }
 
-  return done;
+  // A theme that cleared the bar and whose insert was refused for the SAME
+  // structural reason is still a blocked sweep, not a quiet one. Without this,
+  // `theme_id` missing on the write side alone (the read having somehow
+  // succeeded) would report "two attempted, none started" with no cause.
+  const structural = done.every((d) => d.trackId === null) && done.length > 0;
+  return {
+    outcomes: done,
+    qualified,
+    alreadyPromoted: already.size,
+    blocked: structural ? `Nothing could be started: ${done[0].why}` : null,
+  };
 }
