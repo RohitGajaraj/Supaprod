@@ -35,6 +35,7 @@ import * as React from "react";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
 import { IconMore } from "./icons";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 
 /* ------------------------------------------------------------------ *
  * Agent mark
@@ -686,7 +687,39 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
  *  says "we could not find out", and neither is true yet. It reserves the
  *  height so the layout does not jump, and says so in words. No shimmer:
  *  motion confirms, and this has nothing to confirm yet. */
-export function Loading({ children = "Reading." }: { children?: React.ReactNode }) {
+/**
+ * Waiting.
+ *
+ * TWO KINDS, and conflating them would be a lie. `Loading` on its own is US
+ * reading rows: quiet, factual, over in a moment. `working` is an AGENT running,
+ * which is a different fact with a different shape and a different honesty bar,
+ * and it is the one the founder calls the platform's core USP.
+ *
+ * Passing `working` on a settings fetch would put "Reasoning..." on a database
+ * read, which is exactly the kind of invented status this system refuses
+ * everywhere else. Use it only where an agent is genuinely dispatched.
+ */
+export function Loading({
+  children = "Reading.",
+  working = false,
+  agent,
+}: {
+  children?: React.ReactNode;
+  /** True only when an agent is actually running, never for a plain fetch. */
+  working?: boolean;
+  /** Who is running, so two indicators on one screen do not chant in unison. */
+  agent?: string;
+}) {
+  if (working) {
+    return (
+      <p className="sp-loading">
+        <AgentPulse
+          label={typeof children === "string" ? children : "An agent is working"}
+          seed={agent}
+        />
+      </p>
+    );
+  }
   return (
     <p className="sp-loading" aria-live="polite">
       {children}

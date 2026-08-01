@@ -36,6 +36,7 @@ import { getTrackActivity } from "@/lib/spine/track.functions";
 import { countKinds, type Turn } from "@/lib/spine/activity";
 import { relativeTime } from "@/lib/memory-view";
 import { Failed, Loading, Record, Row, Value } from "@/components/shell/primitives";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 
 /** How a finished turn reads, in verbs rather than status words. */
 function headline(t: Turn): string {
@@ -143,7 +144,18 @@ export function TrackActivity({ trackId }: { trackId: string }) {
                 ) : null}
               </>
             }
-            action={<Value tone={toneOf(t)}>{stateWord(t)}</Value>}
+            action={
+              // A RUNNING seat gets the pulse, not a word. This is the moment
+              // the founder called the platform's core USP: something is
+              // happening in the background and the person has to be able to
+              // feel it. Everything finished stays a quiet word, because a
+              // screen of pulses is noise and proves nothing.
+              t.outcome === "working" ? (
+                <AgentPulse label={`${t.agentName} is working`} seed={t.agentSlug} compact />
+              ) : (
+                <Value tone={toneOf(t)}>{stateWord(t)}</Value>
+              )
+            }
           />
         );
       })}

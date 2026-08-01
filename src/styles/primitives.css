@@ -1840,3 +1840,108 @@ button.sp-cell:disabled {
     overflow-x: auto;
   }
 }
+
+/* ---------- agent pulse ----------
+ * PROOF THAT AN AGENT IS WORKING, and the founder calls it the platform's core
+ * USP: "if something happens in the background with no visual effect, then it
+ * does not even feel valuable."
+ *
+ * Three moving parts, each doing one job:
+ *   the glyph turns   -> something is alive
+ *   the word changes  -> it is DOING something, and roughly what
+ *   the dots hold     -> it has not finished
+ *
+ * The glyph turns SLOWLY, six seconds a revolution. A fast spinner reads as
+ * "blocked, please wait", which is the opposite of what is true here: the work
+ * continues whether or not anyone is watching. It breathes on a different, prime
+ * period from the rotation so the two never lock into a single repeating beat.
+ *
+ * Colour is --sp-pass, the same token the live dot uses, so "something is
+ * running" has ONE colour everywhere on the platform rather than a new one per
+ * surface. */
+.sp-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sp-mute);
+  font-size: var(--sp-text-prose);
+  line-height: var(--sp-leading-body);
+}
+.sp-pulse[data-compact] {
+  font-size: var(--sp-text-meta);
+  gap: 6px;
+}
+
+.sp-pulse-glyph {
+  flex: none;
+  color: var(--sp-pass);
+  transform-origin: 50% 50%;
+  animation:
+    spPulseTurn 6s linear infinite,
+    spPulseBreathe 2.6s ease-in-out infinite;
+}
+@keyframes spPulseTurn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spPulseBreathe {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* The word ENTERS rather than cross-fading in place, which is what makes it
+ * read as a new word instead of as a flicker. Short and eased, because a slow
+ * entrance on a 2.6s cycle is still animating when it is replaced. */
+.sp-pulse-word {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+}
+.sp-pulse-word-in {
+  display: inline-block;
+  animation: spPulseWordIn 260ms var(--ease-out, cubic-bezier(0.2, 0, 0, 1)) both;
+}
+@keyframes spPulseWordIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sp-pulse-dots {
+  opacity: 0.55;
+}
+
+/* Reduced motion: everything stops and the first word stands. The indicator is
+ * still legible and still says "working", so the information survives even
+ * where the movement does not. The JS timer is stopped separately, because CSS
+ * cannot stop a setInterval. */
+@media (prefers-reduced-motion: reduce) {
+  .sp-pulse-glyph,
+  .sp-pulse-word-in {
+    animation: none;
+  }
+}
+
+/* Announced, never drawn. The pulse needs a stable sentence for a screen reader
+ * while the visible word rotates; there was no such utility in this sheet. */
+.sp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
