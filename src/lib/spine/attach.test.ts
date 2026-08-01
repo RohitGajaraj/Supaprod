@@ -332,13 +332,38 @@ describe("gatesOpenedBy remembers only gates worth harvesting", () => {
     expect(out).toEqual([{ id: G, station: "define" }]);
   });
 
-  it("ignores a queued tool this module could never read an artifact from", () => {
-    // Carrying it would mean re-reading a row forever to learn nothing.
+  /**
+   * INVERTED 2026-08-01, and the inversion is the point.
+   *
+   * This asserted that a queued tool with no harvestable artifact was ignored,
+   * on the reasoning that carrying it means re-reading a row forever to learn
+   * nothing. That was right about harvesting and wrong about the list, because
+   * the list is now also the answer to "is this track waiting on a person".
+   *
+   * The driver used to answer that with a count of every pending approval the
+   * USER owned, so one unanswered call anywhere froze all their tracks. Now that
+   * the hold is scoped to this track's own gates, an unrecorded queued call
+   * would read as "not waiting", and the next tick would redispatch the station
+   * and queue the same call again, every ten minutes, forever.
+   */
+  it("records a queued call even when no artifact will ever come back from it", () => {
     const out = gatesOpenedBy(
       [{ kind: "tool_call", name: "notes.create", status: "queued", ok: true, approval_id: G }],
       "define",
     );
-    expect(out).toEqual([]);
+    expect(out).toEqual([{ id: G, station: "define" }]);
+  });
+
+  it("does not hold a track forever for a call that produced nothing", () => {
+    // The other half of the bargain: harvestGates drops an executed gate with no
+    // product, so a product-less gate holds the track exactly as long as the
+    // call is genuinely open and not one tick longer.
+    const { attachments, stillPending } = harvestGates(
+      [{ id: G, station: "define" }],
+      [{ id: G, tool_name: "notes.create", status: "executed", result: { id: A } }],
+    );
+    expect(attachments).toEqual([]);
+    expect(stillPending).toEqual([]);
   });
 
   it("ignores executed steps, which collectAttachments already handled", () => {

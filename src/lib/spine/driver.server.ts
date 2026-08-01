@@ -96,20 +96,20 @@ async function isPaused(supabase: SupabaseClient, workspaceId: string | null): P
 }
 
 /** Calls already in front of this person. The driver never stacks work on them. */
-async function pendingApprovals(supabase: SupabaseClient, userId: string): Promise<number> {
-  try {
-    const { count } = await supabase
-      .from("agent_approvals")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("status", "pending");
-    return count ?? 0;
-  } catch {
-    // Unknown means we do not know the person is free, so we assume they are
-    // not. Fail closed, same reasoning as the kill switch.
-    return 1;
-  }
-}
+/*
+ * REMOVED 2026-08-01: a person-wide pending-approval count.
+ *
+ * It read `agent_approvals` filtered to user_id and status only, and its result
+ * became the "waiting on a person" hold for every track that user owned. One
+ * unanswered call anywhere therefore froze all autonomous work indefinitely,
+ * which made the gate a global mutex instead of an exception, and meant the
+ * busier a workspace got the less its agents were permitted to do.
+ *
+ * The hold is now computed from the track's own `pending_gates`, in
+ * `harvestAnsweredGates` above. Do not reintroduce a user-wide count here: the
+ * question the driver needs answered is "is THIS work waiting on someone", and
+ * a count of everything the person owes is not an answer to it.
+ */
 
 /**
  * File what the run reported making against the track.
@@ -184,9 +184,9 @@ async function writeMembers(
 async function harvestAnsweredGates(
   supabase: SupabaseClient,
   row: DriveRow,
-): Promise<Attachment[]> {
+): Promise<{ filed: Attachment[]; stillOpen: number }> {
   const pending = (Array.isArray(row.pending_gates) ? row.pending_gates : []) as PendingGate[];
-  if (pending.length === 0) return [];
+  if (pending.length === 0) return { filed: [], stillOpen: 0 };
 
   try {
     const { data, error } = await supabase
@@ -196,7 +196,9 @@ async function harvestAnsweredGates(
         "id",
         pending.map((g) => g.id),
       );
-    if (error) return [];
+    // Fails closed on both branches below: a count we could not read must not
+    // report the person as free, the same direction the kill switch takes.
+    if (error) return { filed: [], stillOpen: pending.length };
 
     const { attachments, stillPending } = harvestGates(pending, data as ApprovalRowLike[]);
     const filed = await writeMembers(supabase, row.id, attachments);
@@ -211,12 +213,12 @@ async function harvestAnsweredGates(
         .update({ pending_gates: keep } as never)
         .eq("id", row.id);
     }
-    return filed;
+    return { filed, stillOpen: keep.length };
   } catch (e) {
     console.error(
       `spine gate harvest threw for track ${row.id}: ${e instanceof Error ? e.message : String(e)}`,
     );
-    return [];
+    return { filed: [], stillOpen: pending.length };
   }
 }
 
@@ -335,14 +337,33 @@ export async function driveTrackOnce(
   // anything. A person may have approved a call while the workspace was paused
   // or while this track was held, and the artifact that produced belongs to the
   // track whether or not this tick is allowed to run anything.
-  const harvested = await harvestAnsweredGates(supabase, row);
+  const gates = await harvestAnsweredGates(supabase, row);
+  const harvested = gates.filed;
 
   const decision = decideDrive({
     paused: await isPaused(supabase, row.workspace_id),
     station,
     title: row.title,
     origin: row.origin,
-    pendingApprovals: await pendingApprovals(supabase, row.user_id),
+    // THIS TRACK'S OWN OPEN CALLS, not the person's (fixed 2026-08-01, found by
+    // watching the live loop sit still).
+    //
+    // This used to count every pending row in `agent_approvals` for the user,
+    // scoped to nothing else: not the track, not the workspace, not the mission.
+    // So a single unanswered call anywhere froze EVERY track that person owned,
+    // permanently, and a workspace holding a normal backlog of approvals had an
+    // autonomous loop that could never run at all. The demo workspace has 23,
+    // and the loop was parked behind them.
+    //
+    // That is the governance principle exactly inverted. The gate is meant to be
+    // the exception; a person-wide count makes it a global mutex on all
+    // autonomous work, so the busier the queue gets the less the agents are
+    // allowed to do, which is backwards from every direction you read it.
+    //
+    // `pending_gates` already records the calls THIS track's own run opened,
+    // with the station that opened them, which makes the hold causal rather than
+    // correlational: this track waits because this track asked something.
+    pendingApprovals: gates.stillOpen,
     attempts: row.attempts ?? 0,
   });
 
@@ -411,16 +432,34 @@ export async function driveTrackOnce(
   // produced through a boundary is the only work with no record of membership,
   // which is exactly backwards for a product whose claim is that the crossings
   // are on the record.
-  await rememberGates(supabase, row, gatesOpenedBy(steps, station));
+  const opened = gatesOpenedBy(steps, station);
+  await rememberGates(supabase, row, opened);
 
   // The agent hit its boundary. That is the boundary working, not a failure,
   // and the track waits exactly where it is until the person decides. The
   // declined ledger on /boundary already records what it asked for and why.
   if (queued > 0) {
+    // THE ONE WAY THIS COULD RUN AWAY, bounded rather than assumed away.
+    //
+    // Hitting a gate is not a failure, so it deliberately does not count as an
+    // attempt. That was safe while a person-wide approval count blocked every
+    // track; now that the hold is scoped to this track's own recorded gates, a
+    // run that queued a call we could NOT record would read as "not waiting" on
+    // the next tick, redispatch the station, and queue the same call again every
+    // ten minutes forever, spending real money each time.
+    //
+    // `gatesOpenedBy` now records every queued call rather than only the ones
+    // that yield an artifact, so this should not happen. Should is not a
+    // guarantee: a queued step carrying no usable approval_id would still land
+    // here. When it does, the tick counts as an attempt so the existing stall
+    // ceiling stops it after a few rounds and says so, instead of billing
+    // forever in silence.
+    const untracked = opened.length === 0;
     await supabase
       .from("spine_tracks" as never)
       .update({
         last_hold: "waiting-on-a-person",
+        ...(untracked ? { attempts: (row.attempts ?? 0) + 1 } : {}),
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);

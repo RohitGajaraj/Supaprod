@@ -443,6 +443,26 @@ export function harvestGates(
  *
  * A queued step carries the `approval_id` the loop wrote for it, so this is the
  * same direct channel the executed path uses, one step earlier.
+ *
+ * EVERY QUEUED CALL IS RECORDED, not only the ones that will yield an artifact
+ * (widened 2026-08-01). This list started life as "gates worth harvesting" and
+ * filtered to tools in TOOL_PRODUCTS, on the reasoning that carrying a gate for
+ * a tool with no known product means re-reading a row forever to learn nothing.
+ * That reasoning was right about harvesting and wrong about the list, because
+ * the list became the answer to a second and more important question: IS THIS
+ * TRACK WAITING ON A PERSON?
+ *
+ * The driver used to answer that by counting every pending approval belonging
+ * to the user, which meant one unanswered call anywhere froze every track that
+ * person owned. With the count now scoped to this track's own gates, a queued
+ * call that went unrecorded would read as "not waiting", and the next tick would
+ * redispatch the station and queue the same call again, every ten minutes,
+ * forever.
+ *
+ * Nothing is re-read forever as a result: `harvestGates` drops an executed gate
+ * with no product, and drops rejected, expired, failed and vanished rows too, so
+ * a product-less gate holds the track exactly as long as the call is genuinely
+ * open and not one tick longer.
  */
 export function gatesOpenedBy(
   steps: readonly ToolStepLike[] | null | undefined,
@@ -454,11 +474,7 @@ export function gatesOpenedBy(
   for (const step of steps) {
     if (step.kind !== "tool_call" || step.status !== "queued") continue;
     const id = typeof step.approval_id === "string" ? step.approval_id : null;
-    // Only a tool this module can later read an artifact out of is worth
-    // remembering. Carrying a gate for a tool with no known product would mean
-    // re-reading a row forever to learn nothing.
     if (!id || !UUID_RE.test(id) || seen.has(id)) continue;
-    if (!step.name || !TOOL_PRODUCTS[step.name]) continue;
     seen.add(id);
     out.push({ id, station });
   }
