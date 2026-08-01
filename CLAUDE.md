@@ -210,7 +210,14 @@ If your work touches telemetry, error capture, uptime, on-call, or the public st
 
 ## Knowledge-graph note (graphify)
 
-Current state (built 2026-08-01): the graph is live at `graphify-out/` (git-ignored, local only) - **14,316 nodes / 28,843 edges / 1,702 communities** over all 1,872 code files (including every one of the 412 `supabase/migrations/*.sql`) plus 704 docs. There is no `ruvector.db`; that pointer was wrong and is retired.
+Current state (built 2026-08-01): **14,563 nodes / 29,128 edges** over all 1,872 code files (including every one of the 412 `supabase/migrations/*.sql`) plus 704 docs. There is no `ruvector.db`; that pointer was wrong and is retired.
+
+**The graph is NOT in git and never will be** (50 MB, and it churns on every commit), so `git pull` will never give you one. `.gitignore` excludes `graphify-out/`. Two ways to have a graph in any given checkout:
+
+- **The machine-wide copy (use this first).** Registered at `~/.graphify/global-graph.json`, it is queryable from any directory on this Mac, including a fresh clone or another worktree with no `graphify-out/`: `graphify explain "<symbol>" --graph ~/.graphify/global-graph.json`. Node ids there are prefixed `supaprod::`. Refresh it after a rebuild with `graphify global add graphify-out/graph.json --as supaprod`.
+- **A local build**, only if you need the HTML or wiki in that checkout. Free for code (`graphify update .`); the full doc layer costs ~$3 of Gemini (see the rebuild note below).
+
+The HTML/wiki outputs are local-only artifacts of whichever checkout built them: `graphify-out/GRAPH_TREE.html` (the readable one at this node count), `graph.html` (force-directed, auto-aggregated to community bubbles above 5,000 nodes), `GRAPH_REPORT.md`, and `wiki/index.md`.
 
 Query it before raw grep - it is ~206x cheaper per question than reading the corpus:
 
