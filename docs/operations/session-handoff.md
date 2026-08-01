@@ -1,8 +1,172 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-08-01 22:45 IST. `main` clean, pushed through `1ca46dd7`, all migrations applied live, deployed. **The seven-station loop now runs end to end on its own and the front door is open.** Read the section immediately below; it is the live one._
+> _Last updated: 2026-08-02 02:05 IST. `main` clean, pushed through `9e490f45`, working tree empty, no migration pending. **The Build terminal is rebuilt, the loader is the mark, and the design laws are now enforced by tests rather than remembered.** Read the section immediately below; it is the live one._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
+
+---
+
+# 2026-08-02 (overnight): the Build terminal, the loader, and the rules that outlast the session
+
+## STATE: SAFE
+
+`main` = `9e490f45`, pushed to `origin/main` (`RohitGajaraj/Supaprod`). Working tree clean,
+nothing staged, dev server stopped. Gate green at every commit: **tsc 0, eslint 0 errors,
+6646 pass / 0 fail, `bun run build` green.** **No migration is pending from this session** —
+nothing here touched the schema, so a Lovable publish picks it all up.
+
+Six commits, oldest first:
+
+| Commit | What |
+| --- | --- |
+| `ae526cbf` | AgentPulse gains per-action detail; every diff delta goes green and red |
+| `c17673c1` | The Build terminal: Monaco removed from the tree, `CodeDiff` on the shared alignment, two-pane split, +20 tests |
+| `f874683d` | The last four agent-dispatch surfaces say what they are working on |
+| `4f5520a1` | The app-wide wait becomes the mark turning, not the word sitting still |
+| `ac5fa966` | **The rules: `surface-discipline.md` + 12 guards + AGENTS.md §3.0e** |
+| `9e490f45` | An action stops looking like a label, in one token |
+
+## THE MOST IMPORTANT THING IN THIS SESSION
+
+**Two founder rulings are now repo law, not session memory.** `docs/conventions/surface-discipline.md`,
+wired into `AGENTS.md` as **§3.0e** so every tool inherits it, guarded by
+`src/__tests__/surface-discipline.test.ts` (16 tests).
+
+1. **THE RATCHET: today's design is the FLOOR.** _"that doesn't mean you need to compromise on
+   the look and feel... Don't just compress and shrink it and make it worse. Your baseline is
+   what we have today. You need to enhance it on top of that."_ So "reduce the vertical scroll"
+   is a request for a BETTER surface, never a smaller one. **Forbidden as an answer:** smaller
+   type, stripped padding, capped heights, deleted states, two facts crushed onto one line.
+   **Allowed:** use the horizontal axis, collapse what nobody reads, escape the 74ch measure for
+   non-prose, delete genuine duplication. The test: would someone who liked yesterday's screen
+   prefer today's?
+2. **THE STANDARD: Stripe / Google / Anthropic at enterprise B2B scale.** Two halves, and the
+   second is the one that gets forgotten: the states nobody screenshots (empty, partial, failed,
+   denied, very long, very short, slow) are each COMPOSED not merely handled; and **we are past
+   the reskin** — the `--sp-*` system is the built thing, work is fine touches on top, so
+   reaching for a new visual language on a surface that already has one is itself a ratchet
+   regression however good it looks alone.
+
+The guards were **proven to fail**, not just proven to pass: I planted the exact defect the
+founder hit (`overflow: auto` + `max-height: 60vh` back onto the diff body), confirmed the guard
+caught it, then reverted. A guard that has only ever passed is worth nothing.
+
+## THE BUILD TERMINAL, and the six corrections that shaped it
+
+Monaco is gone from the tree (`grep -rn monaco src/` returns 0) and out of the bundle. It was a
+code EDITOR shipped to display text nobody can edit, pinned at 420px so a three-line change sat
+in an empty pane; until its chunk arrived the box was 420px of the words "Reading the diff.", and
+if it never arrived it stayed that way. It also computed its OWN diff, so it could disagree with
+the per-hunk curation directly underneath it.
+
+`CodeDiff` renders from new pure `diffRows` / `pairDiffRows` in `studio-hunks.ts`, which walk the
+SAME `buildSegments` alignment `computeHunks` and `applyHunkSelection` walk. **That is why they
+live in that file** — a second alignment beside the renderer would drift, and then rejecting
+"hunk 3" in the UI would revert a different three lines on disk.
+
+What the founder corrected, each worth keeping:
+
+- **"I see 1212 twice there."** Two gutters render an unchanged line as "12 12". The reference
+  class is unanimous and I had not checked it: Monaco's inline diff, `delta` and Claude Code show
+  ONE column, `git diff` shows none. Two gutters are right only in side-by-side.
+- **"some sort of icon ... like Claude Code."** Pushed back: that class uses a bare `+`/`-`, no
+  icons. What they have and we lacked is a coloured EDGE BAR, which is what makes a changed
+  region findable in peripheral vision. Added that instead.
+- **"why is it opening below? we need to scroll a lot."** VS Code, Cursor and GitHub all put the
+  file list BESIDE the diff. Now a two-pane split, selection derived not effect-driven, no
+  deselect.
+- **"too congested and tightly placed."** The region was trapped in `.sp-main`'s 74ch measure,
+  about 450px, so code clipped mid-token while a third of the window sat empty. Passes `wide` now.
+- **"What is this side-by-side heading? It's not going well."** The fault was the SHAPE: a lone
+  button labelled with a mode cannot say whether it describes what you see or what you would get.
+  Now a two-state `Inline | Split` segment.
+- **"the proper enclosing enclosure."** Chrome + body + status line. The path moved INTO the
+  chrome, deleting a duplicate header row.
+
+## THREE BUGS I INTRODUCED AND FIXED. The patterns matter more than the fixes.
+
+1. **Nested scroll traps.** `.sp-work` is the page scroller (2229px of content in a 778px
+   window). I added two more vertical scrollers inside it at 60vh. Wheeling over the diff scrolled
+   the diff and the page stayed still: _"I'm not able to scroll to the end. It's got stuck."_ The
+   diff no longer traps the wheel at all; collapsed context keeps its height sane so the cap
+   protected nothing. **The LIST sticks instead**, which is the better pattern anyway.
+2. **A full-width slot spilled off screen.** I moved the diff region into a slot spanning the
+   work column AND the context column to buy 370px. `.sp-inner`'s second track is an **implicit**
+   grid column, therefore `auto`-sized, and a spanning child contributes its own max-content to an
+   auto track — so `white-space: pre` code sized the track and the grid outgrew its container.
+   _"The terminal window basically spills over the screen."_ **Reverted**, with the reason recorded
+   in `shell.css` so nobody rebuilds it without sizing both tracks explicitly first.
+3. **Viewport media queries inside a pane.** At 1512px a `max-width: 900px` query never fires
+   while the pane is 467px. Container queries now.
+
+## A CLAIM OF MINE THAT WAS WRONG, corrected here so it is not inherited
+
+I reported a "real, pre-existing bug: a direct URL load of `/runs/<id>` renders zero blocks."
+**It is not real.** A subagent refuted it by sampling a cold load every 60ms across four loads:
+the shell and spine strip paint at ~0.8s while the body still reads "Reading the record.", and
+all eight blocks commit together at ~4s. Cold load and click-through are identical on three
+separate runs. I had measured inside the loading window. Nothing was changed.
+
+It did surface a genuine gap, which is brief item 7: **the loading branch renders a bare
+`PageHead` with nothing beneath it, so a 3-second wait looks like an empty page.** Still open.
+
+## THE LOADER
+
+`BrandWait` (`src/components/supaprod/BrandWait.tsx`) wired into `defaultPendingComponent` in
+`router.tsx`, which is the loader for **every** route, public and authenticated, so one change
+reached all of them. The word "supaprod" is gone; the mark turns instead. Verified centred at
+756/430 on a 1512x860 window, exactly half each axis.
+
+Two things found by looking rather than reading: the loader's own full-curve track was
+`--hairline-strong` at `opacity 0.22`, an **effective alpha near 0.02** — invisible, so a person
+saw only a travelling comet and the seven-petal mark could not be recognised. Fixed to 0.38. And
+44px read as lost on a large dark field; it is 76px.
+
+One thing added: a second dimmer comet trailing the first. The bright one is the work going round
+the loop; the faint one is the record keeping up. The company's claim in two marks and no copy.
+
+## WHAT IS OPEN, in priority order, and it is all specified
+
+The founder asked for **loop mode**: pick the next item, close it, do not stop to ask.
+
+1. **The audit** feeding items 2 and 4. I have the full subagent prompt written and ready in the
+   session; it covers five parts (nested scrollers, viewport-vs-container queries, fixed heights,
+   waits that look like nothing, and a per-station verdict for all thirteen surfaces). It is
+   READ-ONLY by design so it cannot collide with parallel work.
+2. **Space and scroll discipline** across the other six stations — apply the audit output.
+3. **Status colour beyond diffs** (brief item 3): coloured threads and mission ids, other hues
+   where they carry meaning, never decorating, always surviving greyscale.
+4. **Perceived speed** (brief item 7): adopt `BrandWait overlay={false}` where a region waits,
+   and make the bare-`PageHead` loading branches say what they are reading.
+5. **Left rail auto-collapse** (item 6) once the 01-07 spine is familiar, with instant hover
+   tooltips. Needs a persisted familiarity signal.
+6. **Unique shapes for missions and cards** (item 4): not square/circle/triangle, monotone,
+   premium, and per the founder's refinement only where it makes sense — a UI cleanup, not
+   ornament.
+
+**Standing bar on all six:** the ratchet. None of these may make a surface worse to satisfy its
+own metric.
+
+## ENVIRONMENT, so tomorrow does not rediscover it
+
+- **No Lovable MCP in this session.** `.kiro/settings/mcp.json` declares it at
+  `https://mcp.lovable.dev` but it never came up authenticated. Founder confirmed he holds no
+  Supabase credential directly. `.env` DOES hold `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF`
+  (untested, he aborted the call).
+- **Local dev cannot exercise service-role paths:** `SUPABASE_SERVICE_ROLE_KEY` is absent from
+  `.env`; the dev server logs "Missing Supabase environment variable(s)".
+- Login that works: `harbor@supaprod.ai` / `Supaprod!Harbor2026`. Dev server runs on **:8081**
+  (8080 was taken). Browser viewport left at **1512x860** to match the founder's laptop.
+- **Tooling traps that cost real time today:** heredocs (`<<'PY'`, `<<'EOF'`) are unreliable in
+  this shell — they silently return stale output or hang, so use `fs_write` for scripts and
+  `str_replace` for edits. Multi-file eslint needs
+  `cat list | tr '\n' '\0' | xargs -0 npx eslint`; a bare `$VAR` breaks on newlines. **The
+  pre-commit hook consumes stdin, so `git commit -F -` with a heredoc fails silently** — write the
+  message to `/tmp` and use `-F <file>`. `grep_search` with `includePattern` silently returns zero
+  matches; use `grep -rn`. `ripgrep` is not installed.
+- The 12 screenshots this session created at the repo root were deleted per
+  `workspace-hygiene.md`. **~65 older PNGs from previous sessions remain there** and are
+  gitignored; `bun run clean:workspace` is the janitor if anyone wants them gone.
 
 ---
 
