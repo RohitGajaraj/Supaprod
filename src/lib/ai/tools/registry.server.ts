@@ -2317,6 +2317,7 @@ const researchSynthesize = def({
     if (!themes.length)
       return { themes_created: 0, signals_linked: 0, reason: "model returned no themes" };
 
+    const themeIds: string[] = [];
     let created = 0,
       linked = 0;
     for (const t of themes) {
@@ -2356,8 +2357,18 @@ const researchSynthesize = def({
         .in("id", sigIds)
         .eq("user_id", userId);
       if (!uErr) linked += count ?? sigIds.length;
+      // Carried out with the count so the spine driver can file these themes
+      // against the track that asked for them. It reads a tool's own reported
+      // return value, never a query for what appeared lately, so a tool that
+      // returns only a count is invisible to it (src/lib/spine/attach.ts).
+      themeIds.push(themeRow.id as string);
     }
-    return { themes_created: created, signals_linked: linked, model: DRAFT_MODEL };
+    return {
+      themes_created: created,
+      theme_ids: themeIds,
+      signals_linked: linked,
+      model: DRAFT_MODEL,
+    };
   },
 });
 

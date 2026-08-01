@@ -52,7 +52,16 @@ export async function clusterSignalsCore(
   userId: string,
   workspaceId: string | null,
   projectId: string | null,
-): Promise<{ themes: number; message: string }> {
+): Promise<{ themes: number; theme_ids: string[]; message: string }> {
+  // The ids of the themes this pass created, carried out alongside the count.
+  //
+  // WHY: the spine driver files what a station produced against the track that
+  // asked for it, and it does that from the tool's OWN reported return value
+  // rather than by asking the database what appeared lately (the argument is in
+  // src/lib/spine/attach.ts). A tool that returns only a count is invisible to
+  // it, so a Sense run that clustered produced no member row at all. The ids
+  // were already in hand here; only the return shape was withholding them.
+  const themeIds: string[] = [];
   let sigQuery = supabase
     .from("signals")
     // AMBIENT-SENSE: also read the deterministic tagger's output (tags + sentiment) so clustering
@@ -75,7 +84,7 @@ export async function clusterSignalsCore(
   if (workspaceId) sigQuery = sigQuery.eq("workspace_id", workspaceId);
   const { data: sigs, error } = await sigQuery.order("created_at", { ascending: false }).limit(80);
   if (error) throw new Error(error.message);
-  if (!sigs?.length) return { themes: 0, message: "No unclustered signals." };
+  if (!sigs?.length) return { themes: 0, theme_ids: [], message: "No unclustered signals." };
 
   const indexed = sigs
     .map((s, i) => {
@@ -215,6 +224,11 @@ Return STRICT JSON only, no prose, no markdown fences.`;
       }
     }
     created++;
+    themeIds.push(theme.id as string);
   }
-  return { themes: created, message: `Created ${created} themes from ${sigs.length} signals.` };
+  return {
+    themes: created,
+    theme_ids: themeIds,
+    message: `Created ${created} themes from ${sigs.length} signals.`,
+  };
 }

@@ -45,14 +45,16 @@
  * a concurrent cron, because it never asks the database "what appeared lately",
  * it reads what this run reported doing.
  *
- * WHAT THAT COSTS, stated plainly rather than papered over. A tool that creates
- * rows but returns only a count is invisible here, and the driver attaches
- * nothing for it. Today that is `research.synthesize` and `cluster.trigger`,
- * both of which create `themes` and both of which return
- * `{themes_created | themes, ...}` with no ids, so a Sense run that clusters
- * produces no member row. The fix is one line in each of those tools (select and
- * return the ids they already hold), in a file this change does not own. Until
- * then the honest answer is an unattached theme, not a guessed one.
+ * WHAT THAT COSTS. A tool that creates rows but returns only a count is
+ * invisible here, and the driver attaches nothing for it rather than guessing.
+ * That was true of `research.synthesize` and `cluster.trigger`, which create
+ * `themes` and returned a bare count, so a Sense run that clustered produced no
+ * member row at all. Both now return `theme_ids` as well, which is why
+ * `ToolProduct` reads a list as readily as a single id: one call does not always
+ * make one row, and forcing the many case through the one case would file the
+ * first theme and silently drop the rest. Any tool that still returns only a
+ * count stays invisible, on purpose. An unattached artifact is honest; a guessed
+ * one is not.
  *
  * WORK MADE THROUGH A GATE, which was the largest hole here and is now closed.
  * Adversarial review found that nothing produced through an approved gate was
@@ -102,8 +104,17 @@ export type ToolProduct = {
   kind: string;
   /** Table the row lives in. Verified against src/integrations/supabase/types.ts. */
   table: string;
-  /** Key on the tool's return value holding the row id. */
+  /**
+   * Key on the tool's return value holding the row id, or a LIST of ids.
+   *
+   * Both shapes are read, because one call does not always make one row. A
+   * clustering pass creates several themes at once and hands back all of their
+   * ids; a draft creates exactly one. Forcing the many case through the one
+   * case would mean filing the first theme and silently dropping the rest.
+   */
   idField: string;
+  /** True when idField holds an array of ids rather than a single one. */
+  many?: boolean;
 };
 
 /**
@@ -115,8 +126,6 @@ export type ToolProduct = {
  * column compiles clean and fails only at runtime.
  *
  * DELIBERATELY ABSENT, each for a reason worth keeping:
- *   - `research.synthesize` / `cluster.trigger`: create `themes`, return counts
- *     only. See the header. No id, no attachment.
  *   - `notes.create`: returns an id, but `note` is not a kind in either artifact
  *     vocabulary (@/lib/artifact-tables or lineage's KIND_TARGETS), so a member
  *     row naming it could not be resolved to a title by any existing surface.
@@ -140,6 +149,12 @@ export const TOOL_PRODUCTS: Readonly<Record<string, ToolProduct>> = {
   // code changes into it, which is what makes it part of this work. Membership
   // is "part of this piece of work", not "created by this dispatch".
   "studio.stage": { kind: "changeset", table: "studio_changesets", idField: "changeset_id" },
+  // Both create SEVERAL themes in one call and now hand back every id. They
+  // used to return a bare count, which made a clustering pass invisible here
+  // and left a Sense run with no member row at all; the ids were always in hand
+  // and only the return shape was withholding them.
+  "research.synthesize": { kind: "theme", table: "themes", idField: "theme_ids", many: true },
+  "cluster.trigger": { kind: "theme", table: "themes", idField: "theme_ids", many: true },
 };
 
 /**
@@ -242,6 +257,27 @@ function idFrom(result: unknown, field: string): string | null {
   return UUID_RE.test(id) ? id : null;
 }
 
+/** Every valid id in a list-shaped result. Junk entries are dropped, not fatal. */
+function idsFrom(result: unknown, field: string): string[] {
+  if (!result || typeof result !== "object") return [];
+  const value = (result as Record<string, unknown>)[field];
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const raw of value) {
+    if (typeof raw !== "string") continue;
+    const id = raw.trim();
+    if (UUID_RE.test(id)) out.push(id);
+  }
+  return out;
+}
+
+/** The ids a product yields from one result, whichever shape it uses. */
+function productIds(result: unknown, product: ToolProduct): string[] {
+  if (product.many) return idsFrom(result, product.idField);
+  const one = idFrom(result, product.idField);
+  return one ? [one] : [];
+}
+
 /**
  * Everything this run reported making, ready to be filed against the track.
  *
@@ -267,12 +303,12 @@ export function collectAttachments(
     if (step.status !== "executed" || step.ok !== true) continue;
     const product = step.name ? TOOL_PRODUCTS[step.name] : undefined;
     if (!product) continue;
-    const id = idFrom(step.result, product.idField);
-    if (!id) continue;
-    const key = `${product.kind}:${id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ artifactKind: product.kind, artifactId: id, station });
+    for (const id of productIds(step.result, product)) {
+      const key = `${product.kind}:${id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ artifactKind: product.kind, artifactId: id, station });
+    }
   }
 
   return out;
@@ -364,12 +400,12 @@ export function harvestGates(
 
     const product = row.tool_name ? TOOL_PRODUCTS[row.tool_name] : undefined;
     if (!product) continue;
-    const id = idFrom(row.result, product.idField);
-    if (!id) continue;
-    const key = `${product.kind}:${id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    attachments.push({ artifactKind: product.kind, artifactId: id, station: gate.station });
+    for (const id of productIds(row.result, product)) {
+      const key = `${product.kind}:${id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      attachments.push({ artifactKind: product.kind, artifactId: id, station: gate.station });
+    }
   }
 
   return { attachments, stillPending };
@@ -410,6 +446,7 @@ export function gatesOpenedBy(
  */
 const KIND_WORD: Readonly<Record<string, { one: string; many: string }>> = {
   signal: { one: "signal", many: "signals" },
+  theme: { one: "cluster", many: "clusters" },
   prd: { one: "spec", many: "specs" },
   task: { one: "task", many: "tasks" },
   changeset: { one: "code change", many: "code changes" },

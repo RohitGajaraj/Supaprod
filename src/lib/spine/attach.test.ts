@@ -357,3 +357,94 @@ describe("gatesOpenedBy remembers only gates worth harvesting", () => {
     expect(out).toEqual([]);
   });
 });
+
+describe("a tool that makes several rows in one call", () => {
+  const B = "33333333-3333-4333-8333-333333333333";
+
+  it("attaches every theme a clustering pass created, not just the first", () => {
+    // The bug this guards: forcing the many case through the one case would
+    // file one theme and silently drop the rest of the same pass.
+    const out = collectAttachments(
+      [
+        {
+          kind: "tool_call",
+          name: "cluster.trigger",
+          status: "executed",
+          ok: true,
+          result: { themes: 2, theme_ids: [A, B] },
+        },
+      ],
+      "sense",
+    );
+    expect(out).toEqual([
+      { artifactKind: "theme", artifactId: A, station: "sense" },
+      { artifactKind: "theme", artifactId: B, station: "sense" },
+    ]);
+  });
+
+  it("attaches nothing when the pass created nothing", () => {
+    const out = collectAttachments(
+      [
+        {
+          kind: "tool_call",
+          name: "cluster.trigger",
+          status: "executed",
+          ok: true,
+          result: { themes: 0, theme_ids: [] },
+        },
+      ],
+      "sense",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("drops junk entries without losing the good ones", () => {
+    const out = collectAttachments(
+      [
+        {
+          kind: "tool_call",
+          name: "research.synthesize",
+          status: "executed",
+          ok: true,
+          result: { themes_created: 3, theme_ids: [A, "not-a-uuid", null, B] },
+        },
+      ],
+      "sense",
+    );
+    expect(out.map((a) => a.artifactId)).toEqual([A, B]);
+  });
+
+  it("still reads a bare count as nothing, rather than guessing", () => {
+    // A tool that has not been updated stays invisible on purpose.
+    const out = collectAttachments(
+      [
+        {
+          kind: "tool_call",
+          name: "research.synthesize",
+          status: "executed",
+          ok: true,
+          result: { themes_created: 3 },
+        },
+      ],
+      "sense",
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("harvests every theme from a gate answered later", () => {
+    const gate = { id: "44444444-4444-4444-8444-444444444444", station: "sense" as const };
+    const out = harvestGates(
+      [gate],
+      [
+        {
+          id: gate.id,
+          tool_name: "cluster.trigger",
+          status: "executed",
+          result: { theme_ids: [A, B] },
+        },
+      ],
+    );
+    expect(out.attachments).toHaveLength(2);
+    expect(out.stillPending).toEqual([]);
+  });
+});
