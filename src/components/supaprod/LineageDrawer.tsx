@@ -94,7 +94,14 @@ export function LineageDrawer({
   const ancestors = q.data?.ancestors ?? [];
   const descendants = q.data?.descendants ?? [];
   const prov = provQ.data;
-  const showProvenance = Boolean(prov && prov.signal_count > 0 && prov.depth > 1);
+  // `depth > 1` used to gate this too, and it hid the evidence in exactly the
+  // cases where the chain is shortest and the evidence is most direct: an
+  // opportunity promoted straight from a signal is one hop, and since
+  // 2026-08-01 `promoteThemeToOpportunity` also writes a direct
+  // signal -> opportunity edge per member, so the strongest provenance in the
+  // product resolves at depth 1. If there are source signals, there is
+  // provenance to show; how many hops it took to find them is our business.
+  const showProvenance = Boolean(prov && prov.signal_count > 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
