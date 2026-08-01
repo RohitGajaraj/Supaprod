@@ -84,9 +84,17 @@ export function TrackActivity({ trackId }: { trackId: string }) {
     return <Failed>The activity did not come back, so nothing here would be trustworthy.</Failed>;
 
   const turns = q.data?.turns ?? [];
+  // NOT "no agent has worked on this yet", which is a claim this cannot support.
+  // Runs only carry a track from the day `track_id` was added, so work done
+  // before that is real and unlinked, and saying it never happened would be
+  // exactly the invention this view exists to refuse. Deliberately silent on the
+  // reason: an unlinked history and a genuinely new track are indistinguishable
+  // here, and a made-up reason is worse than a plain absence.
   if (!turns.length) {
     return (
-      <Record>No agent has worked on this yet. Activity appears here the moment one starts.</Record>
+      <Record>
+        Nothing is recorded against this work yet. Activity appears here as agents run.
+      </Record>
     );
   }
 
