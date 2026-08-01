@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import {
   getApprovalsQueue,
   decideApprovalItem,
@@ -82,6 +83,29 @@ function Today() {
   const qc = useQueryClient();
   const { activeWorkspace } = useWorkspace();
   const workspaceId = activeWorkspace?.id ?? null;
+
+  /**
+   * The seven stations, on the surface everyone lands on.
+   *
+   * FOUNDER RULING 2026-08-01. Today had no link to any of the seven: the rail
+   * carries Today, Runs, Brain, Crew and Engine room, and the spine strip was
+   * published only by loop surfaces. So the product's entire spine had exactly
+   * one door from its own home page, the command palette, which is a keyboard
+   * shortcut nobody has been told about yet. That is the door-missing defect on
+   * the most visited screen in the app.
+   *
+   * `null` means no station is lit, which the strip already supports on purpose:
+   * "a board opens with no stage selected, and that is a strip with nothing lit,
+   * not the absence of a strip". Today is not a station, so nothing should be
+   * lit; it is where you see the whole loop before choosing a part of it.
+   *
+   * This does revise the earlier reading that off a run there is no strip. That
+   * reading came from a ruling whose actual words were "that horizontal pane,
+   * always remain... right from 01 to 07. It should not collapse", which argues
+   * for the strip being present, not absent. The 97px it costs buys the only
+   * visible route into the loop from the front door.
+   */
+  useSpineStrip(null);
 
   const fetchQueue = useServerFn(getApprovalsQueue);
   const fetchMissions = useServerFn(listMissions);
