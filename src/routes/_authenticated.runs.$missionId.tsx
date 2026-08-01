@@ -139,6 +139,7 @@ import {
 } from "@/lib/studio.functions";
 import { decideApproval } from "@/lib/agent_loop.functions";
 import { listDeployments } from "@/lib/deployments.functions";
+import { getDesignParity } from "@/lib/design-parity.functions";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
 import { ReceiptsPanel } from "@/components/studio/ReceiptsPanel";
@@ -150,6 +151,7 @@ import {
   AgentMark,
   Block,
   Button,
+  CtxBody,
   Diffstat,
   Empty,
   Failed,
@@ -501,6 +503,7 @@ function BuildRun() {
   const fSteer = useServerFn(steerStudioSession);
   const fDecide = useServerFn(decideApproval);
   const fDeployments = useServerFn(listDeployments);
+  const fParity = useServerFn(getDesignParity);
 
   const session = useQuery({
     queryKey: ["studio-session", missionId],
@@ -515,6 +518,21 @@ function BuildRun() {
       );
       return missionLive || runLive ? 4000 : false;
     },
+  });
+
+  /**
+   * Did the returning work honour the design contract it was handed.
+   *
+   * Read once the mission exists and cached, because parity is computed from
+   * the changeset's recorded text rather than from anything live: re-reading it
+   * on the 4s run poll would spend a request per tick to answer a question that
+   * only changes when a changeset returns.
+   */
+  const parity = useQuery({
+    queryKey: ["design-parity", missionId],
+    queryFn: () => fParity({ data: { missionId } }),
+    enabled: Boolean(missionId),
+    staleTime: 5 * 60_000,
   });
 
   const data = session.data;
@@ -809,6 +827,40 @@ function BuildRun() {
 
   const context = mission ? (
     <>
+      {/* DID THE CODE HONOUR THE DESIGN IT WAS HANDED.
+        `dispatchStudioSession` folds the workspace's standing design language
+        and the spec's flow graph into the mission goal, so the building agent
+        sees the same design contract a human reviewer would. `checkDesignParity`
+        closes the return half and records whether the work that came back
+        actually referenced them, as a real lineage edge.
+        Both halves shipped. Neither `getDesignParity` nor `checkDesignParity`
+        had a single consumer anywhere in src/, so the design contract was
+        enforced on the way out and never checked on the way back where a person
+        could see it. This is the Design-to-Build loop closing.
+        It reports `no_context` honestly rather than inventing a verdict for a
+        spec that legitimately had no design contract, and that state renders as
+        nothing rather than as a false pass. */}
+      {parity.data?.available && parity.data.signal.verdict !== "no_context" ? (
+        <>
+          <div className="sp-ctx-head">Against the design</div>
+          <CtxBody>
+            {parity.data.signal.verdict === "aligned" ? (
+              <>
+                The returning work names <Num>{parity.data.signal.matched.length}</Num> of{" "}
+                <Num>{parity.data.signal.expected.length}</Num> thing
+                {parity.data.signal.expected.length === 1 ? "" : "s"} it was handed.
+              </>
+            ) : (
+              <>
+                None of the <Num>{parity.data.signal.expected.length}</Num> design reference
+                {parity.data.signal.expected.length === 1 ? "" : "s"} it was given appear in what
+                came back. That is worth a look before it merges, not a blocker.
+              </>
+            )}
+          </CtxBody>
+        </>
+      ) : null}
+
       <div className="sp-ctx-head">Who is on it</div>
       <CtxRow
         mark={
