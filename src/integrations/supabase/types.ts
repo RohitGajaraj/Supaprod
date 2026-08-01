@@ -9631,6 +9631,7 @@ export type Database = {
       reset_subscription_cycle: { Args: { _account_id: string }; Returns: Json }
       revoke_mcp_token: { Args: { _token_id: string }; Returns: undefined }
       right_to_erasure_enabled: { Args: never; Returns: boolean }
+      seed_agent_tools_for: { Args: { _user_id: string }; Returns: undefined }
       seed_default_agent_tools: {
         Args: { _user_id: string }
         Returns: undefined
