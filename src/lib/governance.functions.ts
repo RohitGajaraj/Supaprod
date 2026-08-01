@@ -6,6 +6,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { toolRisk } from "@/lib/tool-consequences";
+import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import { executeApproval, type Json } from "@/lib/ai/loop.server";
 import {
   summarizeAgentRecords,
@@ -504,3 +506,137 @@ export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, cap_usd: data.cap_usd };
   });
+
+/* ------------------------------------------------------------------ *
+ * THE BOUNDARY (founder ruling 2026-08-01)
+ * ------------------------------------------------------------------ */
+
+/**
+ * What your crew may do alone, what still needs you, and what nobody may do.
+ *
+ * WHY THIS EXISTS. GOVERNANCE-PRINCIPLE.md asks for it by name: "A new
+ * first-class surface: the boundary. Where a person sets what agents may do
+ * alone, what needs them, and what nobody may do. This is house rules plus tool
+ * modes plus autonomy, which are today three separate settings sections."
+ *
+ * All of the machinery already existed and none of it had a home. `/govern`
+ * redirects into four different Engine Room rooms (safety/controls,
+ * safety/house-rules, safety/rules, spend/caps), so the answer to "what can my
+ * agents do without me" was spread across four screens and a settings page, and
+ * could not be read anywhere as one sentence.
+ *
+ * MARKET CONTEXT, and it is why this is a lead rather than a catch-up
+ * (docs/design/REFERENCE-PATTERNS.md): every competitor keeps policy in a file.
+ * Cursor's `permissions.json`, Claude Code's `settings.json`, Codex's
+ * `config.toml`, VS Code's `chat.tools.terminal.autoApprove`. All of them are
+ * text a developer edits once and never sees again, and **none of those products
+ * shows, during a run, which policy allowed an action or which would have
+ * stopped it.** Cursor went further and DEPRECATED per-action approval outright
+ * in 3.5. The market has converged on policy-in-advance and left the surface
+ * for it unbuilt.
+ *
+ * IT IS A READ OF THE REAL RESOLVER, NOT A SECOND OPINION. The buckets below
+ * are computed from the same `toolRisk` floors the loop enforces, so this
+ * surface cannot tell you an agent may do something the runtime would stop, or
+ * the reverse. A boundary screen that disagrees with the engine is worse than
+ * no boundary screen.
+ */
+export const getBoundary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: rows, error } = await supabase
+      .from("agent_tools")
+      .select("id,tool_name,display_name,description,category,mode,enabled")
+      .eq("user_id", userId)
+      .order("display_name");
+    if (error) throw new Error(error.message);
+
+    type Row = {
+      id: string;
+      tool_name: string;
+      display_name: string | null;
+      description: string | null;
+      category: string | null;
+      mode: string | null;
+      enabled: boolean | null;
+    };
+
+    const alone: BoundaryTool[] = [];
+    const asks: BoundaryTool[] = [];
+    const never: BoundaryTool[] = [];
+
+    for (const raw of (rows ?? []) as Row[]) {
+      const risk = toolRisk(raw.tool_name);
+      // A floor is a thing this surface may show and must never let you lower.
+      // Reported honestly per tool so the UI can explain WHY a control is not
+      // offered, rather than silently rendering a disabled switch.
+      const floor = HIGH_RISK_FORCE_REVIEW.has(raw.tool_name)
+        ? ("review" as const)
+        : HIGH_RISK_MIN_CONFIRM.has(raw.tool_name)
+          ? ("confirm" as const)
+          : null;
+
+      const t: BoundaryTool = {
+        id: raw.id,
+        name: raw.tool_name,
+        label: raw.display_name ?? raw.tool_name,
+        what: raw.description ?? null,
+        category: raw.category ?? null,
+        mode: (raw.mode ?? "confirm") as BoundaryTool["mode"],
+        risk,
+        floor,
+      };
+
+      if (raw.enabled === false || t.mode === "off") never.push(t);
+      else if (t.mode === "auto") alone.push(t);
+      else asks.push(t);
+    }
+
+    // The ceilings. Owner-scoped, and reported as absent rather than as zero
+    // when the caller does not own the workspace.
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("id,default_mission_spend_cap_usd")
+      .eq("owner_id", userId)
+      .limit(1)
+      .maybeSingle();
+
+    let paused = false;
+    if (ws) {
+      const { data: sw } = await supabase
+        .from("kill_switches")
+        .select("paused")
+        .eq("scope", "workspace")
+        .eq("workspace_id", ws.id)
+        .maybeSingle();
+      paused = Boolean((sw as { paused?: boolean } | null)?.paused);
+    }
+
+    const rawCap = ws
+      ? (ws as { default_mission_spend_cap_usd: number | string | null })
+          .default_mission_spend_cap_usd
+      : null;
+
+    return {
+      alone,
+      asks,
+      never,
+      isOwner: Boolean(ws),
+      capUsd: rawCap === null || rawCap === undefined ? null : Number(rawCap),
+      paused,
+    };
+  });
+
+export type BoundaryTool = {
+  id: string;
+  name: string;
+  label: string;
+  what: string | null;
+  category: string | null;
+  mode: "auto" | "confirm" | "review" | "off";
+  risk: "low" | "medium" | "high";
+  /** The lowest supervision this tool may ever have, or null if unconstrained. */
+  floor: "confirm" | "review" | null;
+};

@@ -311,6 +311,10 @@ function rosterCatalog(): CatalogEntry[] {
 }
 
 function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
+  // The roster's own navigate, for the one link that leaves this surface: the
+  // workspace boundary. Every other row here opens a member in place via
+  // onOpen, which is why this hook did not already exist.
+  const navigate = useNavigate();
   const { activeWorkspace } = useWorkspace();
   const fList = useServerFn(listCrew);
   const crew = useQuery({
@@ -405,6 +409,26 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           </Failed>
         </Block>
       ) : null}
+
+      {/* THE DOOR TO THE BOUNDARY.
+        Crew answers "who works here". The boundary answers "what may they do
+        without me", and until 2026-08-01 that question had no single surface:
+        it was spread across four Engine Room rooms and a settings page. The
+        two belong beside each other, and this is the only place in the product
+        where a reader is already thinking about the crew as a group.
+
+        A row rather than a rail entry on purpose. The rail's own comment says
+        the five rows are "decided, and not to be relitigated", and quietly
+        adding a sixth would be relitigating a founder ruling by commit rather
+        than by asking. */}
+      <Block title="What they may do without you">
+        <Row
+          tight
+          lead="The boundary"
+          sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
+          onClick={() => navigate({ to: "/boundary" })}
+        />
+      </Block>
 
       {asking.length > 0 ? (
         <Block

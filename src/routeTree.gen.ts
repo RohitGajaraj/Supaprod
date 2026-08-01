@@ -84,6 +84,7 @@ import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedBudgetsRouteImport } from './routes/_authenticated.budgets'
 import { Route as AuthenticatedBriefingRouteImport } from './routes/_authenticated.briefing'
 import { Route as AuthenticatedBrainRouteImport } from './routes/_authenticated.brain'
+import { Route as AuthenticatedBoundaryRouteImport } from './routes/_authenticated.boundary'
 import { Route as AuthenticatedArtifactsRouteImport } from './routes/_authenticated.artifacts'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated.approvals'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated.analytics'
@@ -560,6 +561,11 @@ const AuthenticatedBriefingRoute = AuthenticatedBriefingRouteImport.update({
 const AuthenticatedBrainRoute = AuthenticatedBrainRouteImport.update({
   id: '/brain',
   path: '/brain',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBoundaryRoute = AuthenticatedBoundaryRouteImport.update({
+  id: '/boundary',
+  path: '/boundary',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedArtifactsRoute = AuthenticatedArtifactsRouteImport.update({
@@ -1147,6 +1153,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/artifacts': typeof AuthenticatedArtifactsRoute
+  '/boundary': typeof AuthenticatedBoundaryRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/briefing': typeof AuthenticatedBriefingRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
@@ -1320,6 +1327,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/artifacts': typeof AuthenticatedArtifactsRoute
+  '/boundary': typeof AuthenticatedBoundaryRoute
   '/brain': typeof AuthenticatedBrainRoute
   '/briefing': typeof AuthenticatedBriefingRoute
   '/budgets': typeof AuthenticatedBudgetsRoute
@@ -1495,6 +1503,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/artifacts': typeof AuthenticatedArtifactsRoute
+  '/_authenticated/boundary': typeof AuthenticatedBoundaryRoute
   '/_authenticated/brain': typeof AuthenticatedBrainRoute
   '/_authenticated/briefing': typeof AuthenticatedBriefingRoute
   '/_authenticated/budgets': typeof AuthenticatedBudgetsRoute
@@ -1671,6 +1680,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/approvals'
     | '/artifacts'
+    | '/boundary'
     | '/brain'
     | '/briefing'
     | '/budgets'
@@ -1844,6 +1854,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/approvals'
     | '/artifacts'
+    | '/boundary'
     | '/brain'
     | '/briefing'
     | '/budgets'
@@ -2018,6 +2029,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/approvals'
     | '/_authenticated/artifacts'
+    | '/_authenticated/boundary'
     | '/_authenticated/brain'
     | '/_authenticated/briefing'
     | '/_authenticated/budgets'
@@ -2791,6 +2803,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBrainRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/boundary': {
+      id: '/_authenticated/boundary'
+      path: '/boundary'
+      fullPath: '/boundary'
+      preLoaderRoute: typeof AuthenticatedBoundaryRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/artifacts': {
       id: '/_authenticated/artifacts'
       path: '/artifacts'
@@ -3550,6 +3569,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedArtifactsRoute: typeof AuthenticatedArtifactsRoute
+  AuthenticatedBoundaryRoute: typeof AuthenticatedBoundaryRoute
   AuthenticatedBrainRoute: typeof AuthenticatedBrainRoute
   AuthenticatedBriefingRoute: typeof AuthenticatedBriefingRoute
   AuthenticatedBudgetsRoute: typeof AuthenticatedBudgetsRoute
@@ -3618,6 +3638,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedArtifactsRoute: AuthenticatedArtifactsRoute,
+  AuthenticatedBoundaryRoute: AuthenticatedBoundaryRoute,
   AuthenticatedBrainRoute: AuthenticatedBrainRoute,
   AuthenticatedBriefingRoute: AuthenticatedBriefingRoute,
   AuthenticatedBudgetsRoute: AuthenticatedBudgetsRoute,
