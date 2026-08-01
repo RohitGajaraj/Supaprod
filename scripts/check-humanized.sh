@@ -37,6 +37,11 @@ set -uo pipefail
 
 STRICT="${STRICT:-0}"
 TEXT_EXT_RE='\.(md|ts|tsx|sql)$'
+# Generated artifacts we commit but do not author. graphify builds graphify-out/wiki/*.md and
+# GRAPH_REPORT.md by quoting text extracted from the corpus, so any em-dash in them came from a
+# source file, not from us, and it reappears on every rebuild. Scanning them buried the real
+# violations under thousands of hits, which is how a warn-only check becomes one people ignore.
+GENERATED_RE='^graphify-out/'
 
 # --- The perl scanner: reads "<lineno>\t<content>" lines, prints a hit line
 # "  <file>:<lineno>  <names>" for each offending added line, and exits with a
@@ -106,6 +111,7 @@ scan_file_args() {
       continue
     fi
     [[ "$f" =~ $TEXT_EXT_RE ]] || continue
+    [[ "$f" =~ $GENERATED_RE ]] && continue
     # Emit "<lineno>\t<line>" for every line, scan, capture, then consume in the
     # current shell so the hit count is not lost to a pipeline subshell.
     n=0
@@ -120,7 +126,7 @@ scan_file_args() {
 
 scan_staged_diff() {
   local files file tmp
-  files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$TEXT_EXT_RE" || true)"
+  files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$TEXT_EXT_RE" | grep -Ev "$GENERATED_RE" || true)"
   [[ -z "$files" ]] && return 0
   tmp="$(mktemp)"
   while IFS= read -r file; do
