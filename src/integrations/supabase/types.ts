@@ -7093,9 +7093,12 @@ export type Database = {
       }
       spine_tracks: {
         Row: {
+          attempts: number
           created_at: string
+          driven_at: string | null
           entry_station: string
           id: string
+          last_hold: string | null
           origin: string | null
           path: Json
           product_id: string | null
@@ -7109,9 +7112,12 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          attempts?: number
           created_at?: string
+          driven_at?: string | null
           entry_station?: string
           id?: string
+          last_hold?: string | null
           origin?: string | null
           path?: Json
           product_id?: string | null
@@ -7125,9 +7131,12 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          attempts?: number
           created_at?: string
+          driven_at?: string | null
           entry_station?: string
           id?: string
+          last_hold?: string | null
           origin?: string | null
           path?: Json
           product_id?: string | null
