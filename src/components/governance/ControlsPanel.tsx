@@ -66,6 +66,7 @@ import {
 } from "@/lib/governance.functions";
 import { listTools, updateToolMode } from "@/lib/agent_loop.functions";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
+import { toolRisk } from "@/lib/tool-consequences";
 import {
   listEventSubscriptions,
   upsertEventSubscription,
@@ -572,6 +573,28 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                 t.mode === "review" ? "review" : t.mode === "confirm" ? "confirm" : "auto";
               const cat = t.category ?? "general";
               const showCategory = i === 0 || cat !== (tools[i - 1].category ?? "general");
+
+              /**
+               * "Ask first" that will not actually ask (fixed 2026-08-01).
+               *
+               * This panel rendered the STORED mode and called it the boundary.
+               * It is not: `resolveToolMode` demotes a reversible internal tool
+               * from confirm to auto, and the arc dial does the same for any
+               * confirm tool once an agent is trusted, which is the default a
+               * new workspace arrives on. So three tools seeded at confirm sat
+               * here reading "Ask first" while every run executed them inline. A
+               * settings page that misstates the boundary is worse than one that
+               * does not exist, because a person reads it and stops worrying.
+               *
+               * IT IS SAID AS A CONDITION, NOT A VERDICT. The exact effective
+               * mode depends on the acting agent's arc, and the arc is per
+               * agent while this row is per tool, so there is no single answer
+               * this panel could compute without inventing one. What IS certain
+               * is the direction: a reversible internal tool never holds at
+               * confirm for an agent that has earned its arc. That is stated,
+               * and nothing more precise is claimed.
+               */
+              const askWontHold = mode === "confirm" && toolRisk(t.tool_name) === "low";
               return (
                 <Fragment key={t.id}>
                   {showCategory ? <div style={GROUP_LABEL}>{cat}</div> : null}
@@ -583,6 +606,16 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                       <>
                         <Num>{t.tool_name}</Num>
                         {t.description ? ` · ${t.description}` : ""}
+                        {askWontHold ? (
+                          <>
+                            {" · "}
+                            <strong>
+                              An agent that has earned its arc runs this without asking. It is
+                              reversible and stays inside your workspace. Set it to Review to stop
+                              that.
+                            </strong>
+                          </>
+                        ) : null}
                       </>
                     }
                   >
