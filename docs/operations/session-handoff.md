@@ -93,23 +93,49 @@ navigate directly.
 - **Discover's ranking was uncapped** (Decide already had an expand). Capped at six with
   "Show all N", the same gesture on both.
 
+### ✅ All seven stations touched, in spine order
+
+| Station | What this session did |
+| --- | --- |
+| **Discover** | full depth pass, see the table above |
+| **Decide** | renders the real evidence via `getProvenance`; 3 success toasts became Receipts; selection stays visible |
+| **Plan** | the Gate now PERFORMS the write it names (commit ceremony + Receipt) instead of scrolling to it |
+| **Design** | verified already deep: 10 mutations, 3 gates, the fidelity ladder present, zero toast.success. No change needed. |
+| **Build** | the spend ceiling made visible and settable, on the station where agents spend |
+| **Ship** | publishing renders its public address as a real link, not a toast reading "It is live." |
+| **Learn** | verified already deep: writes in `SettlePanel`, pre-committed projection, Receipt. No change needed. |
+
+Two audit claims were WRONG and are corrected here, having been checked against the code:
+Plan is not a read-only surface (`RoadmapColumns` carries five mutations), and Build's rows ARE
+clickable into their run and it does have a "Waiting on you" block.
+
+### ✅ The spine survives a detail record
+
+Founder ruling: the strip must stay on screen when you drill into a sub-item, so you always know
+which station you are in. `/plan/spec/$id` now publishes `define`; it was the one real gap
+(`/build/$missionId` is a redirect, not a surface).
+
+### ✅ The receipt-rule sweep, all seven stations
+
+Design, Learn, Plan and Build were already clean. Ship and Decide were fixed. The rule's narrow
+exception was applied deliberately twice: Ship's draft-save and Decide's draft-spec keep their
+toasts, because in both cases the changed surface (or the navigation to the artifact) IS the
+receipt.
+
 ## WHAT IS LEFT, and it is specified
 
-**Five stations still need their depth pass**, in this order. Audited findings, verified:
-
-1. **Plan** (`_authenticated.plan.index.tsx`, 418 lines): **3 server fns, ZERO mutations.** A
-   pure read surface. The Gate's primary action is `go("roadmap")`, which is a scroll.
-2. **Build** (`_authenticated.build.index.tsx`, 360 lines): **2 server fns, ZERO mutations,
-   ZERO gates.** The shallowest station in the product. Reference to lift: Cursor / Claude Code.
-3. **Ship** (561 lines): not yet audited in depth.
-4. **Design** (928 lines, 12 server fns, 9 mutations, 3 gates): already the deepest; needs the
-   Figma fidelity-ladder pass (low-fi to mockup to high-fi prototype) rather than a rebuild.
-5. **Learn** (431 + SettlePanel 575): already deep, has a pre-committed projection and a Receipt.
+**The route model is built and not yet wired.** `src/lib/spine/route.ts` is pure, total and
+tested, and no surface calls it yet. Wiring it is the next substantial piece: a run carries a
+`SpineRoute`, the handoff uses `nextStation`, and a waived station shows its reason and its way
+back. That needs a persistence decision first, because no single entity walks all seven stations
+today (signal, theme, opportunity, prd, prototype, mission, deployment, learning are eight tables
+chained by `artifact_lineage`).
 
 **Cross-cutting, fix once not five times:**
 
-- `CtxHead` / `CtxBody` / `CtxRow` exist and Discover, Decide and Plan all hand-write the same
-  raw `sp-ctx-*` divs. Discover is now converted; the others are not.
+- `CtxHead` / `CtxBody` / `CtxRow` exist and several surfaces still hand-write raw `sp-ctx-*`
+  divs. Counted 2026-08-01: **Decide 20, Design 7, Plan 4, Ship 2**, Discover 0 (converted),
+  Build 0, Learn 0. Mechanical but with real regression surface, so it wants its own commit.
 - `ago()` is duplicated verbatim in `decide.tsx:117` and `plan.index.tsx:125`.
 - `OpportunityDetailSheet` is built on the legacy shadcn `Sheet`, which `primitives.tsx:13`
   explicitly bans ("DELIBERATELY ABSENT: a pane, a slide-over, a drawer").
