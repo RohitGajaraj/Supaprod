@@ -210,6 +210,18 @@ If your work touches telemetry, error capture, uptime, on-call, or the public st
 
 ## Knowledge-graph note (graphify)
 
-Current state: the graph is stored in `ruvector.db` at repo root; `graphify-out/` is **not** generated, so don't expect the `graphify-out/wiki/` files below to exist until you run a build. If `graphify-out/graph.json` exists, run `graphify query "<question>"` for codebase questions before raw grep; `graphify path "<A>" "<B>"` for relationships; `graphify explain "<concept>"` for focused concepts. Use `graphify-out/wiki/index.md` for broad navigation. After modifying code, run `graphify update .` to keep the graph current.
+Current state (built 2026-08-01): the graph is live at `graphify-out/` (git-ignored, local only) - **14,316 nodes / 28,843 edges / 1,702 communities** over all 1,872 code files (including every one of the 412 `supabase/migrations/*.sql`) plus 704 docs. There is no `ruvector.db`; that pointer was wrong and is retired.
+
+Query it before raw grep - it is ~206x cheaper per question than reading the corpus:
+
+- `graphify explain "<symbol>"` - **the sharpest tool.** Exact node, source file + line, and every inbound/outbound edge. Use this when you know the name.
+- `graphify query "<question>"` - BFS over the graph. Broad: a 2-hop walk routinely touches 1,000+ nodes, so pass `--budget` and prefer specific nouns over generic ones.
+- `graphify affected "<symbol>"` - reverse traversal, what breaks if you change this.
+- `graphify-out/wiki/index.md` - 1,712 markdown articles, one per community; the agent-crawlable entry point.
+- `graphify path "<A>" "<B>"` - weakest of the set. Matching is literal substring + IDF with no synonyms, so generic words collide (asking for "Build" matches the npm `build` script in `package.json`, not the Build station). Use full symbol names or prefer `explain`.
+
+Two honest limits: every file is truncated at **20,000 chars** before extraction, so only the head of the mega-docs (`feature-dashboard.md` is 6.45 MB) is indexed; and 26 mostly-SVG files returned no nodes.
+
+Rebuild after code changes with `graphify update .` (AST only, no LLM, free). A full rebuild including the doc layer needs a Gemini key and costs ~$3: `GEMINI_API_KEY=... graphify extract . --backend gemini`. Do **not** use `--backend claude-cli`: it appends its schema to Claude Code's base agent prompt, so the model returns a plausible but wrong-schema graph that graphify discards as "hollow" - it produces nothing and burns hours.
 
 > Everything else: [`AGENTS.md`](./AGENTS.md). Do not restate its rules here.
