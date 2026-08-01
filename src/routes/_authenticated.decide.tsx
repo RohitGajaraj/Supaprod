@@ -253,10 +253,11 @@ function DecideSurface() {
     () => ranked.find((r) => r.opp.id === selectedId) ?? ranked[0] ?? null,
     [ranked, selectedId],
   );
-  const others = React.useMemo(
-    () => ranked.filter((r) => r.opp.id !== active?.opp.id),
-    [ranked, active],
-  );
+  // THE SELECTED BET STAYS IN THE QUEUE (founder, 2026-08-01). Filtering it out
+  // meant the Gate changed under you with nothing on screen connecting it to
+  // the row you pressed, and the queue silently renumbered around the gap.
+  // `Row` already carries `focused`, so keeping it costs one prop.
+  const others = ranked;
   const visibleOthers = showAll ? others : others.slice(0, VISIBLE_OTHERS);
 
   // The account's own record, cited at decision time, fetched only for what is
@@ -573,6 +574,16 @@ function DecideSurface() {
         <Gate
           question={activeOpp.title}
           lines={[
+            /* Which of the queue this is. The row below says where it sits;
+               this says the Gate is showing that row. Suppressed at one bet,
+               because "1 of 1" is a fact about nothing. */
+            ...(ranked.length > 1
+              ? [
+                  <span key="rank">
+                    <Num>{active?.rank ?? 1}</Num> of <Num>{ranked.length}</Num> in the ranking.
+                  </span>,
+                ]
+              : []),
             ...(activeOpp.problem ? [<span key="problem">{activeOpp.problem}</span>] : []),
             ...(activeOpp.critic_review?.summary
               ? [
@@ -651,9 +662,9 @@ function DecideSurface() {
           ranked, a heading over an empty line is a panel that says nothing the
           headline has not already said, and it sits between the reader and the
           one question they came to answer. */}
-      {others.length > 0 ? (
+      {others.length > 1 ? (
         <Block
-          title="The other bets"
+          title="The ranking"
           more={
             others.length > VISIBLE_OTHERS
               ? showAll
@@ -683,6 +694,7 @@ function DecideSurface() {
                   </>
                 }
                 time={ago(o.updated_at)}
+                focused={o.id === active?.opp.id}
                 onClick={() => setSelectedId(o.id)}
               />
             );

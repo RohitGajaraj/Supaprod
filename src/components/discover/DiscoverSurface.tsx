@@ -156,6 +156,11 @@ const QUOTES_IN_FOCUS = 4;
 /** How many sources the coverage line names before it counts the rest. */
 const SOURCES_IN_CONTEXT = 5;
 
+/** How much of the ranking is on screen before it asks. Six is roughly one
+ *  screen beside the gate; past that the surface becomes a scroll, which is the
+ *  complaint this cap exists to answer. */
+const VISIBLE_CLUSTERS = 6;
+
 /** Plain-words relative time, whole phrase, so it never reads "now ago". */
 function since(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -235,6 +240,8 @@ export function DiscoverSurface() {
    *  bans the slide-over and says a lane that wanted one built its detail view
    *  in place instead, "and that is the better surface". */
   const [picking, setPicking] = React.useState(false);
+  /** Whether the whole ranking is on screen, or the first six of it. */
+  const [showAllClusters, setShowAllClusters] = React.useState(false);
   /** What the last judgment caused. Replaces the success toast the surface used
    *  to fire, per anti-slop.md §5: a toast confirms the click registered, a
    *  Receipt renders what the click DID. */
@@ -797,6 +804,17 @@ export function DiscoverSurface() {
           question={focused.theme.title}
           lines={
             [
+              /* WHICH ONE OF THEM THIS IS. The other half of keeping the
+                 selected row in the list: the row says where you are in the
+                 ranking, this says the Gate is showing that row. Without it the
+                 headline counts clusters and the Gate names one, and nothing
+                 tells you how the two relate. Suppressed when there is only one,
+                 because "1 of 1" is a fact about nothing. */
+              ranked.length > 1 ? (
+                <span key="rank">
+                  <Num>{focusedIndex + 1}</Num> of <Num>{ranked.length}</Num> in the ranking.
+                </span>
+              ) : null,
               /* Volume and distinct sources are two numbers because they are two
                  facts. Sentry keeps "events" and "users affected" apart for the
                  same reason: one loud account and a broad pattern read the same
@@ -938,26 +956,53 @@ export function DiscoverSurface() {
         </Block>
       ) : null}
 
-      {/* Everything else waiting on a call, one line each. The title, and the
-        facts that differ between them: how much agrees, how many separate
-        sources, and when it was last heard. Clicking makes it the call in
-        front of you, which is where its evidence and its record appear. */}
+      {/* The ranking, one line each: the title, and the facts that differ
+        between them. Clicking makes it the call in front of you.
+
+        THE SELECTED ROW STAYS IN THE LIST (founder, 2026-08-01: "when I click
+        on any bets the top section changes... somewhere that distinction needs
+        to be there that it's getting changed and this is what it is"). An
+        earlier version filtered the focused cluster OUT, so the Gate changed
+        under you with nothing on screen connecting it to the row you pressed,
+        and the list silently renumbered. Keeping it in place and marked is how
+        Linear's split view reads, and `Row` already carries `focused`, so this
+        costs one prop and no new component. The rank on the Gate is the other
+        half: it says WHICH of the ranking you are looking at.
+
+        CAPPED AND EXPANDABLE (founder, same message: "it says twenty three
+        bets, and below if I see there are only five or six... should we give
+        something like see more"). It was the inverse here, uncapped, so a
+        workspace with thirty clusters was thirty rows of scroll, which is the
+        scatter complaint one step later. Six, then ask. */}
       {!picking && ranked.length > 1 ? (
-        <Block title="Also waiting">
-          {ranked
-            .map((entry, i) => ({ entry, rank: i + 1 }))
-            .filter(({ entry }) => entry.theme.id !== focusedId)
-            .map(({ entry, rank }) => (
-              <Row
-                key={entry.theme.id}
-                tight
-                marks={<Num>{rank}</Num>}
-                lead={entry.theme.title}
-                sub={`${entry.theme.frequency} signal${plural(entry.theme.frequency)} · ${entry.sources} source${plural(entry.sources)}`}
-                time={since(entry.lastAt)}
-                onClick={() => setFocusedId(entry.theme.id)}
-              />
-            ))}
+        <Block
+          title="The ranking"
+          more={
+            ranked.length > VISIBLE_CLUSTERS
+              ? showAllClusters
+                ? "Show fewer"
+                : `Show all ${ranked.length}`
+              : undefined
+          }
+          onMore={() => setShowAllClusters((v) => !v)}
+        >
+          {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => (
+            <Row
+              key={entry.theme.id}
+              tight
+              focused={entry.theme.id === focusedId}
+              marks={<Num>{i + 1}</Num>}
+              lead={entry.theme.title}
+              sub={`${entry.theme.frequency} signal${plural(entry.theme.frequency)} · ${entry.sources} source${plural(entry.sources)}`}
+              time={since(entry.lastAt)}
+              onClick={() => setFocusedId(entry.theme.id)}
+            />
+          ))}
+          {!showAllClusters && ranked.length > VISIBLE_CLUSTERS ? (
+            <CtxBody>
+              <Num>{ranked.length - VISIBLE_CLUSTERS}</Num> more below the fold.
+            </CtxBody>
+          ) : null}
         </Block>
       ) : null}
 
