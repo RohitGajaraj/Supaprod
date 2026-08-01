@@ -91,14 +91,38 @@ export function SupaprodMark({
               : undefined,
           }}
         >
+          {/* THE MARK ITSELF MUST STAY LEGIBLE WHILE IT LOADS. This track used to
+              be `--hairline-strong` (about 0.09 alpha) at `opacity 0.22`, an
+              effective alpha near 0.02, which is invisible: all a person saw was
+              the comet, so the loader read as an abstract squiggle rather than as
+              our mark. A brand loader whose brand cannot be recognised is doing
+              the one job it has badly. The full seven-petal curve now reads at all
+              times and the comet is a highlight travelling along it. */}
           {animated ? (
             <path
               d={PATH}
-              stroke="var(--hairline-strong, rgba(255,255,255,0.09))"
+              stroke="var(--text-subtle, #7d786f)"
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity={0.22}
+              opacity={0.38}
+            />
+          ) : null}
+          {/* THE RECORD, following the work. A second comet on the same curve,
+              dimmer and a beat behind the bright one. It is the product's claim
+              said in two marks rather than in copy: the loop runs, and the record
+              keeps up with it. Loader mode only, and it sits UNDER the leading
+              comet so the bright head always reads as the thing in front. */}
+          {animated ? (
+            <path
+              d={PATH}
+              stroke="var(--ember, #ff6b2c)"
+              strokeWidth={strokeWidth * 0.7}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="supaprod-flow supaprod-flow-trail"
+              pathLength={100}
+              opacity={0.4}
             />
           ) : null}
           <path

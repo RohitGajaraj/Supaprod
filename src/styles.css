@@ -2567,6 +2567,14 @@ html[data-motion="off"] .flow-pulse {
   stroke-dasharray: 20 80;
   animation: supaprodFlow 2.7s linear infinite;
 }
+/* The record, following the work. Same curve, same speed, a beat behind: a
+   NEGATIVE delay so it starts already in motion rather than waiting 0.42s to
+   appear on first paint, which would read as a stutter on the frame that matters
+   most. Shorter dash, so it trails rather than competes. */
+.supaprod-flow-trail {
+  stroke-dasharray: 12 88;
+  animation-delay: -0.42s;
+}
 .supaprod-core {
   animation: supaprodCore 3s ease-in-out infinite;
 }
@@ -2599,6 +2607,12 @@ html[data-motion="off"] .flow-pulse {
   .supaprod-flow {
     animation: none;
     stroke-dasharray: none;
+  }
+  /* The trail would sit exactly on top of the leading stroke once both stop
+     moving, doubling the weight of the curve for no information. Under reduced
+     motion the mark is one clean stroke. */
+  .supaprod-flow-trail {
+    display: none;
   }
 }
 /* Hero brand watermark — a large monochrome mark that bleeds into a corner,

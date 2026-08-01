@@ -1,50 +1,25 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { BrandWait } from "@/components/supaprod/BrandWait";
 
-// Tempo v5 - route-level pending fallback. Navigation must never flash a dead
-// black frame: this renders the Pixel wordmark over the glacier shimmer while
-// a route's beforeLoad/loader work runs, so even the wait carries the brand
-// (founder ruling 2026-07-11: Pixel is the hero face; glacier is the AI/info
-// blue). Inline styles only - it also mounts on public routes, so every value
-// carries a dark-safe literal and reads on both themes.
+// The route-level pending fallback, and it is the ONE loader for the whole
+// product: `defaultPendingComponent` below covers every route, public and
+// authenticated, so replacing it here replaces the wait everywhere at once.
+//
+// FOUNDER RULING 2026-08-01: it used to draw the lowercase word "supaprod" in
+// Geist Pixel over a shimmer bar. "The word 'Super Prod' does not make sense",
+// and he is right: the product name is the one fact a person waiting already
+// has. It also sat in the middle of the top 40% of the region rather than in
+// the middle of the screen, and it was `aria-hidden`, so a screen reader was
+// told nothing during the wait.
+//
+// `BrandWait` carries the seven-petal mark in loader mode instead: the loop
+// turning, energy running the curve, the brain pulsing at the core, and a
+// second dimmer comet for the record keeping up with the work. See that file
+// for why each part of it means something.
 function RoutePending() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        minHeight: "40vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 14,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
-          fontSize: 15,
-          letterSpacing: "0.18em",
-          color: "var(--text-muted, rgb(143, 143, 143))",
-          userSelect: "none",
-        }}
-      >
-        supaprod
-      </span>
-      <div
-        style={{
-          width: 220,
-          height: 3,
-          borderRadius: 99,
-          background:
-            "linear-gradient(90deg, rgba(132, 179, 236,0.0), rgba(132, 179, 236,0.5), rgba(132, 179, 236,0.0))",
-          backgroundSize: "280% 100%",
-          animation: "cadShimmer 1.6s linear infinite",
-        }}
-      />
-    </div>
-  );
+  return <BrandWait />;
 }
 
 // LOOM W4 - route-level error fallback (DESIGN-LOOM §9: an error may never
