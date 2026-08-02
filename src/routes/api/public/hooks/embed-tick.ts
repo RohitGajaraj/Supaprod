@@ -3,6 +3,7 @@ import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { backfillSignalEmbeddings, EMBED_SWEEP_BATCH } from "@/lib/sources/signal-embedding.server";
 import { backfillThemeEmbeddings, THEME_EMBED_BATCH } from "@/lib/brain/theme-embedding.server";
+import { backfillMemoryEmbeddings, MEMORY_EMBED_BATCH } from "@/lib/brain/memory-embedding.server";
 import { withJobRun } from "@/lib/observability";
 
 /**
@@ -66,6 +67,23 @@ export const Route = createFileRoute("/api/public/hooks/embed-tick")({
             console.error("embed-tick theme backfill failed", e);
           }
 
+          // Memories, for the same reason and with a sharper edge. match_agent_memory
+          // filters on `embedding IS NOT NULL`, so an unembedded memory is not a weak
+          // memory, it is one recall can never reach. On 2026-08-02, 249 of 421 had no
+          // vector, and every single `note` and `precedent` row was among them: the
+          // memories a HUMAN curated were exactly the ones the brain could not surface.
+          let memScanned = 0,
+            memEmbedded = 0,
+            memFailed = 0;
+          try {
+            const m = await backfillMemoryEmbeddings(supabaseAdmin, MEMORY_EMBED_BATCH);
+            memScanned = m.scanned;
+            memEmbedded = m.embedded;
+            memFailed = m.failed;
+          } catch (e) {
+            console.error("embed-tick memory backfill failed", e);
+          }
+
           return new Response(
             JSON.stringify({
               ok: true,
@@ -73,6 +91,9 @@ export const Route = createFileRoute("/api/public/hooks/embed-tick")({
               themeScanned,
               themeEmbedded,
               themeFailed,
+              memScanned,
+              memEmbedded,
+              memFailed,
               scanned,
               embedded,
               failed,
