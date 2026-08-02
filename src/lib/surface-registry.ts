@@ -134,6 +134,17 @@ export const SURFACE_REGISTRY = {
     opensFrom: "top-bar-workspace-switcher",
     status: "live",
   },
+  // The claim lives under Plan rather than Workspace: the person deciding
+  // whether to hand a year of solo work to their employer is standing in front
+  // of what their plan is and what it could be, and that is where the question
+  // belongs. Both halves (the person's offer, the admin's record of what was
+  // claimed) render from WorkspaceClaimCard on that one pane.
+  "workspace-claim": {
+    kind: "settings",
+    home: "settings/plan/billing",
+    opensFrom: "settings-nav",
+    status: "live",
+  },
 
   // ---- Settings > Agents (the charter-mandated deliberate home) ----
   agents: {

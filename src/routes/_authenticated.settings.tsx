@@ -171,6 +171,7 @@ import { StripeEmbeddedCheckout } from "@/components/billing/StripeEmbeddedCheck
 import { PaymentTestModeBanner } from "@/components/billing/PaymentTestModeBanner";
 import { PlanTable } from "@/components/billing/PlanPicker";
 import { CreditCapsCard } from "@/components/billing/CreditCapsCard";
+import { WorkspaceClaimCard } from "@/components/billing/WorkspaceClaimCard";
 import { UsageIndicator } from "@/components/billing/UsageIndicator";
 import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
 import { ProductsTab } from "@/components/settings/ProductsTab";
@@ -1820,6 +1821,15 @@ function PlanSection({ checkout }: { checkout?: string }) {
       <Block title="What else you could be on">
         <PlanTable currentTier={currentTier} canSelect={state?.isOwner ?? false} />
       </Block>
+
+      {/* The claim sits under the plan on purpose. A person who has worked alone
+          for a year and is now joining an organisation is standing exactly here,
+          looking at what their plan is and what it could be, and the question
+          "what happens to everything I already built" belongs in that moment
+          rather than buried in a workspace pane. It renders for every tier: the
+          single-seat user needs the offer, and the Business admin needs the
+          record of who handed what over. */}
+      <WorkspaceClaimCard />
     </>
   );
 }
