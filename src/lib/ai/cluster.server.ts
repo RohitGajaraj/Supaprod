@@ -393,7 +393,7 @@ Return STRICT JSON only, no prose, no markdown fences.`;
             ],
             {
               onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
-            }
+            },
           );
         } catch {
           // Best-effort: attachment is already done; lineage miss is non-fatal

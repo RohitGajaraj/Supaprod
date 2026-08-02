@@ -54,6 +54,31 @@
  *
  * Every write survives: the same deterministic comparator, the same server
  * functions and query keys, the same k/c/x keys, and the same detail sheet.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-02. Founder: "certain cards are not clickable and details, whatever
+ * is required, I feel left out. I don't know where to find them, and I do not
+ * have their entire information as a user." Four things were true, and each one
+ * is a hole rather than a taste:
+ *
+ * 1. A QUEUE ROW OPENED NOTHING. It called setSelectedId, which only re-pointed
+ *    the Gate, and the sheet was hard-wired to the Gate's bet, so pressing any
+ *    row in the ranking could never show that bet's record. The row now opens
+ *    the record it belongs to, and the Gate keeps its own door in the row's
+ *    trailing action slot, outside the clickable region.
+ * 2. ICE WAS READ-ONLY IN PRACTICE. `updateOpportunity` has always accepted
+ *    impact, confidence and ease and no caller anywhere sent one, so the three
+ *    numbers that produce this entire order could be read and not changed. They
+ *    are editable in the context column, beside the ranking they cause.
+ * 3. NOW, NEXT AND LATER WERE BURIED. The only control that set them was a
+ *    "Move to" menu at the foot of the open record. The placement is a control
+ *    on this surface now, next to the call that needs it.
+ * 4. THE ROW NEVER SAID WHICH LANE A BET WAS IN, which stopped being tolerable
+ *    the moment the lane became settable from here.
+ *
+ * What did NOT change: the comparator, the server functions, the query keys,
+ * the k/c/x keys, the Gate's one primary answer, and the record recess sitting
+ * directly under the question.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -79,15 +104,18 @@ import { getProvenance } from "@/lib/lineage.functions";
 import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { getBriefAlignment } from "@/lib/brief-opportunity.functions";
 import { alignmentForOpportunity } from "@/lib/brief-opportunity";
-import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
+import { rescoreNoteOf } from "@/lib/moat-vis";
 import { verdictFor, withTimeout, type VerdictWord } from "@/components/discover/format";
 import { outcomeSupportFromCounts, rankOpportunities } from "@/components/discover/ranking";
 import {
   BestBetStamp,
   DesignationTag,
+  STATUS_META,
+  StatusPill,
   type OpportunityStatus,
 } from "@/components/discover/OpportunityRow";
 import {
+  IceEditor,
   OpportunityDetailSheet,
   type OpportunityDetailRecord,
 } from "@/components/discover/OpportunityDetailSheet";
@@ -97,12 +125,14 @@ import {
   AgentMark,
   Block,
   Button,
+  Choices,
   CtxBody,
   CtxHead,
   CtxRow,
   Empty,
   Failed,
   Gate,
+  Line,
   Num,
   PageHead,
   Receipt,
@@ -119,6 +149,28 @@ const CHALLENGER = "critic";
 
 /** How many bets sit under the gate before the queue asks to be expanded. */
 const VISIBLE_OTHERS = 5;
+
+/**
+ * THE PLACEMENT, ON THE SURFACE THAT MAKES IT.
+ *
+ * Now, Next and Later were reachable from exactly one control in the product: a
+ * "Move to" dropdown at the bottom of the open record, behind two clicks and a
+ * scroll. So the station where a person settles a bet could say yes, could say
+ * challenge it, and could say drop it, and could not say WHEN. That is half a
+ * decision, and it is the half a roadmap is made of.
+ *
+ * Four of the six statuses, not six. `shipped` is written when something ships,
+ * by the work, never by a judgment made here. `dropped` already has its own verb
+ * inside the Gate, where it belongs: dropping a bet is a call, not a placement,
+ * and two ways to say the same thing on one screen is the confusion this surface
+ * was rebuilt to remove.
+ */
+const LANES: { id: OpportunityStatus; label: string; title: string }[] = [
+  { id: "now", label: "Now", title: "Work starts on it in the cycle running today" },
+  { id: "next", label: "Next", title: "Committed, and it starts once Now clears" },
+  { id: "later", label: "Later", title: "Agreed in principle, with no cycle behind it" },
+  { id: "backlog", label: "Backlog", title: "Kept on the record, with nothing promised" },
+];
 /** The server caps a citation request at 12 ids; never ask for more. */
 const MAX_PRECEDENT_IDS = 12;
 
@@ -362,11 +414,16 @@ function DecideSurface() {
     onSuccess: (_r, { id, status }) => {
       const title = rows.find((o) => o.id === id)?.title ?? "The bet";
       setReceipt({
-        verb: status === "dropped" ? "You dropped it" : "You moved it",
+        verb: status === "dropped" ? "You dropped it" : "You placed it",
         consequence:
+          // It does NOT leave the queue, which is what this line used to claim:
+          // nothing filters a dropped bet out of the ranking, so the old wording
+          // was contradicted by the list directly underneath it. The row now
+          // carries its lane, so a dropped bet reads as dropped and can be put
+          // back with one press.
           status === "dropped"
-            ? `${title} left the ranking. Its evidence stays on the record, and so does the call.`
-            : `${title} is ${status}.`,
+            ? `${title} is dropped. Its evidence stays on the record, and so does the call.`
+            : `${title} sits in ${STATUS_META[status].label}.`,
       });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
@@ -393,6 +450,25 @@ function DecideSurface() {
 
   const activeOpp = active?.opp ?? null;
   const busy = activeOpp ? busyIds.has(activeOpp.id) : false;
+
+  /* THE RECORD OPENS ON THE BET YOU PRESSED, NOT ON THE ONE UNDER THE GATE.
+     Until now the sheet read `activeOpp` whatever row had been pressed, so it
+     was only ever a second view of the bet already in focus and every other row
+     in the queue had no way to show its own record at all. Founder: "certain
+     cards are not clickable and details, whatever is required, I feel left out."
+     He was reading it exactly right.
+
+     The ranking entry is resolved for the OPENED bet, so its rank, designation,
+     rationale and next action are its own rather than the focused bet's, and
+     every write the sheet fires is addressed to it. The Gate is untouched: it
+     still holds whichever bet you chose to decide. */
+  const openRanked = React.useMemo(
+    () => ranked.find((r) => r.opp.id === openId) ?? null,
+    [ranked, openId],
+  );
+  const openOpp = openRanked?.opp ?? null;
+  const openBusy = openId ? busyIds.has(openId) : false;
+  const openVerdict = openOpp ? verdictFor(openOpp) : "PENDING";
 
   const askDelete = React.useCallback(
     async (opp: OpportunityDetailRecord) => {
@@ -441,7 +517,6 @@ function DecideSurface() {
   }, [loading, opps.error, ranked.length]);
 
   const activeVerdict = activeOpp ? verdictFor(activeOpp) : "PENDING";
-  const activeIce = activeOpp ? iceNum(activeOpp.ice_score) : null;
   const activeSignals = activeOpp?.theme_id
     ? (themeById.get(activeOpp.theme_id)?.frequency ?? null)
     : null;
@@ -548,30 +623,27 @@ function DecideSurface() {
               </>
             ) : null}
 
-            {activeSignals !== null || activeIce !== null ? (
-              <>
-                <CtxHead>What backs it</CtxHead>
-                <CtxBody>
-                  {activeSignals !== null ? (
-                    <>
-                      <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
-                      record
-                    </>
-                  ) : null}
-                  {activeSignals !== null && activeIce !== null ? " · " : null}
-                  {activeIce !== null ? (
-                    <>
-                      ICE <Num>{activeIce.toFixed(1)}</Num>
-                    </>
-                  ) : null}
-                </CtxBody>
-                <CtxBody>
-                  <Button variant="ghost" onClick={() => setLineageId(activeOpp.id)}>
-                    View the evidence
-                  </Button>
-                </CtxBody>
-              </>
+            <CtxHead>What backs it</CtxHead>
+            {activeSignals !== null ? (
+              <CtxBody>
+                <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
+                record
+              </CtxBody>
             ) : null}
+            {/* THE SCORE STOPS BEING A READ-ONLY FACT.
+                This column printed "ICE 7.3" and nothing on the surface could
+                change it, on the one station whose entire job is the order those
+                three numbers produce. `updateOpportunity` has always accepted
+                them and nothing ever sent one. It sits here, where the number
+                was already being read, rather than behind a control that would
+                have to be found: three fields, arrow keys, and the queue
+                re-ranks itself the moment a score lands. */}
+            <IceEditor opportunity={activeOpp} disabled={busy} idPrefix="queue-ice" />
+            <CtxBody>
+              <Button variant="ghost" onClick={() => setLineageId(activeOpp.id)}>
+                View the evidence
+              </Button>
+            </CtxBody>
           </>
         ) : null
       }
@@ -708,6 +780,40 @@ function DecideSurface() {
         <RecordRecess evidence={activeRescore ?? undefined}>{activeCitation}</RecordRecess>
       ) : null}
 
+      {/* WHEN, said on the surface that decides it.
+          The Gate answers whether; this answers when, and it is the half that
+          used to be buried in a "Move to" menu at the foot of the open record.
+          It is a Line rather than three more buttons in the Gate because it is a
+          placement you set, not a call you make: label left, control right, one
+          decision, one tab stop, and the arrow keys move inside it. It sits
+          after the recess so the record still speaks directly under the
+          question, which is the one thing this surface is built around. */}
+      {activeOpp ? (
+        <Line
+          label="Where it sits"
+          sub={
+            activeOpp.status === "dropped"
+              ? "It is dropped right now. Picking a lane brings it back into the ranking."
+              : activeOpp.status === "shipped"
+                ? "It shipped. Picking a lane puts it back in front of the team."
+                : "Placing it moves the roadmap. Nothing is drafted and nothing ships from here."
+          }
+        >
+          {/* NOT disabled while a write is in flight, unlike the Gate's verbs.
+              Those dispatch an agent and a second press costs a real run; this
+              is one cheap column write where the last press wins. And a radio
+              group that disables itself mid-decision throws focus to the body
+              and loses the arrow keys, which is a worse failure than a double
+              write nobody can perceive. */}
+          <Choices
+            label="Where this bet sits"
+            value={activeOpp.status as OpportunityStatus}
+            options={LANES}
+            onPick={(status) => setStatus.mutate({ id: activeOpp.id, status })}
+          />
+        </Line>
+      ) : null}
+
       {/* What your last call caused. It stays on screen instead of sliding
         away, because a judgment that erases itself teaches you your judgment
         left no trace, and judgment is the product. */}
@@ -722,6 +828,10 @@ function DecideSurface() {
       {others.length > 1 ? (
         <Block
           title="The ranking"
+          /* WHAT A ROW DOES, SAID ONCE, IN THE ONE PLACE A PERSON IS ABOUT TO
+             DO IT. The rows carry two different verbs now, and an affordance
+             nobody can name is an affordance nobody uses. */
+          sub="Press a bet to open its whole record. Decide it puts that bet under the question above."
           more={
             others.length > VISIBLE_OTHERS
               ? showAll
@@ -734,6 +844,7 @@ function DecideSurface() {
           {visibleOthers.map((r) => {
             const o = r.opp;
             const mark = o.decided_by_agent_slug ?? (o.critic_review ? CHALLENGER : null);
+            const focused = o.id === active?.opp.id;
             return (
               <Row
                 key={o.id}
@@ -741,24 +852,59 @@ function DecideSurface() {
                 marks={<AgentMark slug={mark} state={mark ? "idle" : "quiet"} />}
                 lead={o.title}
                 // One line, one different fact: where it sits, what KIND of bet
-                // it is, and what the reviewer concluded. The score that produced
-                // the rank is the ranking's own input and belongs to the bet in
-                // focus. The designation is the queue's read-at-a-glance verb:
-                // ranking.ts has always derived it, but until now nothing on the
-                // surface rendered it, so a scanning user saw an ordered list with
-                // no stated reason why one bet outranks the next.
+                // it is, what the reviewer concluded, and which lane it is in.
+                // The score that produced the rank is the ranking's own input and
+                // belongs to the bet in focus. The designation is the queue's
+                // read-at-a-glance verb: ranking.ts has always derived it, but
+                // until now nothing on the surface rendered it, so a scanning
+                // user saw an ordered list with no stated reason why one bet
+                // outranks the next. The lane joined it on 2026-08-02: Now, Next
+                // and Later are settable from this surface, so the queue has to
+                // be able to say which one a bet is already in.
                 sub={
                   <>
                     <Num>#{r.rank}</Num>
                     {" · "}
-                    {r.isBestBet ? <BestBetStamp /> : <DesignationTag designation={r.designation} />}
+                    {r.isBestBet ? (
+                      <BestBetStamp />
+                    ) : (
+                      <DesignationTag designation={r.designation} />
+                    )}
                     {(r.isBestBet || r.designation) && " · "}
                     {verdictSentence(verdictFor(o), challengerName)}
+                    {o.status ? (
+                      <>
+                        {" · "}
+                        <StatusPill status={o.status} />
+                      </>
+                    ) : null}
                   </>
                 }
                 time={ago(o.updated_at)}
-                focused={o.id === active?.opp.id}
-                onClick={() => setSelectedId(o.id)}
+                focused={focused}
+                // THE ROW OPENS THE RECORD. It used to re-select the Gate, which
+                // is why a person could press every bet in the queue and never
+                // reach one of their details.
+                onClick={() => setOpenId(o.id)}
+                // And the Gate keeps its own door, outside the row's clickable
+                // region so it is never a button inside a button. Disabled with
+                // a reason on the bet already under the question, rather than
+                // hidden: a control that appears and disappears down a list
+                // reads as a rendering bug.
+                action={
+                  <Button
+                    variant="ghost"
+                    disabled={focused || busyIds.has(o.id)}
+                    title={
+                      focused
+                        ? "This bet is already under the question above"
+                        : "Puts this bet under the question at the top"
+                    }
+                    onClick={() => setSelectedId(o.id)}
+                  >
+                    Decide it
+                  </Button>
+                }
               />
             );
           })}
@@ -772,32 +918,34 @@ function DecideSurface() {
         id={lineageId}
         title={rows.find((o) => o.id === lineageId)?.title}
       />
-      {/* The sheet only ever opens on the bet under the gate, so it reads the
-          ranking context already resolved for it rather than re-deriving one. */}
+      {/* The record of whichever bet was opened, with that bet's own ranking
+          context, and every write addressed to it. It reads the entry already
+          resolved by the ranking rather than re-deriving one. */}
       <OpportunityDetailSheet
-        open={!!openId}
+        open={!!openOpp}
         onOpenChange={(open) => !open && setOpenId(null)}
-        opportunity={openId ? activeOpp : null}
-        verdict={activeVerdict}
-        rank={active?.rank}
-        designation={active?.designation}
-        rationale={active?.rationale}
-        nextAction={active?.nextAction}
-        busy={busy}
-        challengePending={challenge.isPending && busy}
-        draftPending={draftSpec.isPending && busy}
-        onChallenge={() => activeOpp && challenge.mutate(activeOpp.id)}
-        onDraftSpec={() => activeOpp && draftSpec.mutate(activeOpp.id)}
+        opportunity={openOpp}
+        verdict={openVerdict}
+        rank={openRanked?.rank}
+        designation={openRanked?.designation}
+        rationale={openRanked?.rationale}
+        nextAction={openRanked?.nextAction}
+        busy={openBusy}
+        challengePending={challenge.isPending && openBusy}
+        draftPending={draftSpec.isPending && openBusy}
+        onChallenge={() => openOpp && challenge.mutate(openOpp.id)}
+        onDraftSpec={() => openOpp && draftSpec.mutate(openOpp.id)}
         onViewLineage={() => {
           if (!openId) return;
           setLineageId(openId);
           setOpenId(null);
         }}
-        onSetStatus={(status) => activeOpp && setStatus.mutate({ id: activeOpp.id, status })}
+        onSetStatus={(status) => openOpp && setStatus.mutate({ id: openOpp.id, status })}
         onDelete={() => {
-          if (!activeOpp) return;
+          if (!openOpp) return;
+          const target = openOpp;
           setOpenId(null);
-          void askDelete(activeOpp);
+          void askDelete(target);
         }}
       />
     </Surface>

@@ -383,9 +383,7 @@ function Today() {
         {loading ? null : missions.isError ? (
           // Same rule as the Gate above: a read that failed must not be reported
           // as a day where nothing happened.
-          <Failed onRetry={() => missions.refetch()}>
-            Could not load what the crew finished.
-          </Failed>
+          <Failed onRetry={() => missions.refetch()}>Could not load what the crew finished.</Failed>
         ) : done.length === 0 ? (
           <Empty>
             Nothing finished in the last day. The crew picks work up on its own, so this fills in as

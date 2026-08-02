@@ -1,14 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import {
-  backfillSignalEmbeddings,
-  EMBED_SWEEP_BATCH,
-} from "@/lib/sources/signal-embedding.server";
-import {
-  backfillThemeEmbeddings,
-  THEME_EMBED_BATCH,
-} from "@/lib/brain/theme-embedding.server";
+import { backfillSignalEmbeddings, EMBED_SWEEP_BATCH } from "@/lib/sources/signal-embedding.server";
+import { backfillThemeEmbeddings, THEME_EMBED_BATCH } from "@/lib/brain/theme-embedding.server";
 import { withJobRun } from "@/lib/observability";
 
 /**
