@@ -148,6 +148,7 @@ import { Route as ApiPublicHooksFanoutReconcileTickRouteImport } from './routes/
 import { Route as ApiPublicHooksEventReactorTickRouteImport } from './routes/api/public/hooks/event-reactor-tick'
 import { Route as ApiPublicHooksEvalTickRouteImport } from './routes/api/public/hooks/eval-tick'
 import { Route as ApiPublicHooksEvalSuiteTickRouteImport } from './routes/api/public/hooks/eval-suite-tick'
+import { Route as ApiPublicHooksEmbedTickRouteImport } from './routes/api/public/hooks/embed-tick'
 import { Route as ApiPublicHooksDriftTickRouteImport } from './routes/api/public/hooks/drift-tick'
 import { Route as ApiPublicHooksDigestTickRouteImport } from './routes/api/public/hooks/digest-tick'
 import { Route as ApiPublicHooksDeriveTickRouteImport } from './routes/api/public/hooks/derive-tick'
@@ -920,6 +921,11 @@ const ApiPublicHooksEvalSuiteTickRoute =
     path: '/api/public/hooks/eval-suite-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksEmbedTickRoute = ApiPublicHooksEmbedTickRouteImport.update({
+  id: '/api/public/hooks/embed-tick',
+  path: '/api/public/hooks/embed-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksDriftTickRoute = ApiPublicHooksDriftTickRouteImport.update({
   id: '/api/public/hooks/drift-tick',
   path: '/api/public/hooks/drift-tick',
@@ -1261,6 +1267,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/derive-tick': typeof ApiPublicHooksDeriveTickRoute
   '/api/public/hooks/digest-tick': typeof ApiPublicHooksDigestTickRoute
   '/api/public/hooks/drift-tick': typeof ApiPublicHooksDriftTickRoute
+  '/api/public/hooks/embed-tick': typeof ApiPublicHooksEmbedTickRoute
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
@@ -1435,6 +1442,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/derive-tick': typeof ApiPublicHooksDeriveTickRoute
   '/api/public/hooks/digest-tick': typeof ApiPublicHooksDigestTickRoute
   '/api/public/hooks/drift-tick': typeof ApiPublicHooksDriftTickRoute
+  '/api/public/hooks/embed-tick': typeof ApiPublicHooksEmbedTickRoute
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
@@ -1613,6 +1621,7 @@ export interface FileRoutesById {
   '/api/public/hooks/derive-tick': typeof ApiPublicHooksDeriveTickRoute
   '/api/public/hooks/digest-tick': typeof ApiPublicHooksDigestTickRoute
   '/api/public/hooks/drift-tick': typeof ApiPublicHooksDriftTickRoute
+  '/api/public/hooks/embed-tick': typeof ApiPublicHooksEmbedTickRoute
   '/api/public/hooks/eval-suite-tick': typeof ApiPublicHooksEvalSuiteTickRoute
   '/api/public/hooks/eval-tick': typeof ApiPublicHooksEvalTickRoute
   '/api/public/hooks/event-reactor-tick': typeof ApiPublicHooksEventReactorTickRoute
@@ -1791,6 +1800,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/derive-tick'
     | '/api/public/hooks/digest-tick'
     | '/api/public/hooks/drift-tick'
+    | '/api/public/hooks/embed-tick'
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
@@ -1965,6 +1975,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/derive-tick'
     | '/api/public/hooks/digest-tick'
     | '/api/public/hooks/drift-tick'
+    | '/api/public/hooks/embed-tick'
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
@@ -2142,6 +2153,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/derive-tick'
     | '/api/public/hooks/digest-tick'
     | '/api/public/hooks/drift-tick'
+    | '/api/public/hooks/embed-tick'
     | '/api/public/hooks/eval-suite-tick'
     | '/api/public/hooks/eval-tick'
     | '/api/public/hooks/event-reactor-tick'
@@ -2241,6 +2253,7 @@ export interface RootRouteChildren {
   ApiPublicHooksDeriveTickRoute: typeof ApiPublicHooksDeriveTickRoute
   ApiPublicHooksDigestTickRoute: typeof ApiPublicHooksDigestTickRoute
   ApiPublicHooksDriftTickRoute: typeof ApiPublicHooksDriftTickRoute
+  ApiPublicHooksEmbedTickRoute: typeof ApiPublicHooksEmbedTickRoute
   ApiPublicHooksEvalSuiteTickRoute: typeof ApiPublicHooksEvalSuiteTickRoute
   ApiPublicHooksEvalTickRoute: typeof ApiPublicHooksEvalTickRoute
   ApiPublicHooksEventReactorTickRoute: typeof ApiPublicHooksEventReactorTickRoute
@@ -3264,6 +3277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksEvalSuiteTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/embed-tick': {
+      id: '/api/public/hooks/embed-tick'
+      path: '/api/public/hooks/embed-tick'
+      fullPath: '/api/public/hooks/embed-tick'
+      preLoaderRoute: typeof ApiPublicHooksEmbedTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/drift-tick': {
       id: '/api/public/hooks/drift-tick'
       path: '/api/public/hooks/drift-tick'
@@ -3779,6 +3799,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDeriveTickRoute: ApiPublicHooksDeriveTickRoute,
   ApiPublicHooksDigestTickRoute: ApiPublicHooksDigestTickRoute,
   ApiPublicHooksDriftTickRoute: ApiPublicHooksDriftTickRoute,
+  ApiPublicHooksEmbedTickRoute: ApiPublicHooksEmbedTickRoute,
   ApiPublicHooksEvalSuiteTickRoute: ApiPublicHooksEvalSuiteTickRoute,
   ApiPublicHooksEvalTickRoute: ApiPublicHooksEvalTickRoute,
   ApiPublicHooksEventReactorTickRoute: ApiPublicHooksEventReactorTickRoute,

@@ -12,6 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { prepareSignalRows } from "./prepare";
+import { attachEmbeddings } from "./signal-embedding.server";
 import type { SignalCandidate, SinkResult } from "./kinds";
 
 // external_id / source_kind are not yet in the generated Database types; use the
@@ -54,12 +55,19 @@ export async function writeSignals(
 
   if (rows.length === 0) return { inserted: 0, skipped, quarantined };
 
+  // Stamp the comparison vector on the way in so a freshly sensed signal is
+  // dedupable and clusterable immediately rather than at the next sweep. This is a
+  // latency optimisation only, it is fail-open, and `backfillSignalEmbeddings`
+  // (driven by `embedding is null`) is what actually guarantees coverage, here and
+  // for the write paths that never reach this sink. See signal-embedding.server.ts.
+  const rowsWithVectors = await attachEmbeddings(rows, { supabase: db, userId });
+
   // .select("id") so each sensed signal can write its stage_events trail row.
-  const { data: inserted, error } = await db.from("signals").insert(rows).select("id");
+  const { data: inserted, error } = await db.from("signals").insert(rowsWithVectors).select("id");
   if (error) throw new Error(`writeSignals insert failed: ${error.message}`);
 
   // SW-5 deliverable C: every sensed signal gets a visible trail row
-  // (entity_type='signal', to_stage='sensed') — the DONE-WHEN "SIG trace ref +
+  // (entity_type='signal', to_stage='sensed'), the DONE-WHEN "SIG trace ref +
   // stage_events row" and the first link of the Trust Ledger chain. Because the
   // sink is the single write path, EVERY source (GitHub, Scout, MCP, webhook,
   // manual) inherits the trail. recordStageEvent is fail-safe (swallows errors),
