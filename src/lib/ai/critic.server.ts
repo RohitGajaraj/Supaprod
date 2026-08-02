@@ -29,6 +29,7 @@ import { parsePersonaBoardReview, type PersonaBoardReview } from "@/lib/ai/perso
 import type { RawLineageEdge } from "@/lib/knowledge-graph-view";
 import { resolveLineageCols } from "@/lib/knowledge-graph-view.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { SUPERSESSION_RELATIONS } from "@/lib/trust-ledger.functions";
 
 const DESIGN_CRITIC_SYSTEM = `You are the Critic agent's design lens. Evaluate the given screen (a PRD's described UI, or a rendered mockup's HTML) for:
 - HIERARCHY - is there a clear primary action / visual priority, or does everything compete for attention?
@@ -141,7 +142,7 @@ async function loadContradictionEdges(
       .from("artifact_lineage")
       .select(cols)
       .eq("user_id", userId)
-      .in("relation", ["supersedes", "contradicts"])
+      .in("relation", [...SUPERSESSION_RELATIONS])
       .or(`parent_id.in.(${list}),child_id.in.(${list})`)
       .order("created_at", { ascending: false })
       .limit(50);

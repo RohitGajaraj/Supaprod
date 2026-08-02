@@ -167,11 +167,43 @@ export type LineageEdgeLite = {
   valid_to?: string | null;
 };
 
-/** PURE. The two relations the supersession engine writes (mirrors knowledge-graph-view). */
+/**
+ * PURE. Every relation that means "this belief replaced that one", in BOTH voices.
+ *
+ * It used to accept only the active spellings, and that was a live defect rather
+ * than a simplification. `artifact_lineage.relation` has no constraint and two
+ * writers: application code writes the active voice, and the demo seed
+ * (20260725130000, cloned into six provisioned demo accounts by 20260725140000)
+ * writes the PASSIVE voice. A live census found 21 `superseded_by` and 7
+ * `contradicted_by` rows across six workspaces, and this predicate matched none
+ * of them, so every consumer treated a superseded decision as still standing.
+ *
+ * WHICH END IS THE SUPERSEDED ONE DEPENDS ON THE VOICE, and that is why this is a
+ * pair of functions rather than a wider string match. `supersedes` stores
+ * new -> old, so the CHILD was replaced. `superseded_by` stores old -> new, so
+ * the PARENT was replaced. Widening the match alone would have turned rows that
+ * were merely missing into rows that name the wrong artifact, which is worse.
+ */
 export function isSupersessionRelation(raw: string | null | undefined): boolean {
   const r = (raw ?? "").trim().toLowerCase();
-  return r === "supersedes" || r === "contradicts";
+  return (
+    r === "supersedes" || r === "contradicts" || r === "superseded_by" || r === "contradicted_by"
+  );
 }
+
+/** PURE. True when the stored edge runs old -> new, so the PARENT is the replaced one. */
+export function isPassiveSupersession(raw: string | null | undefined): boolean {
+  const r = (raw ?? "").trim().toLowerCase();
+  return r === "superseded_by" || r === "contradicted_by";
+}
+
+/** The spellings a SQL `.in("relation", ...)` filter must carry to see them all. */
+export const SUPERSESSION_RELATIONS = [
+  "supersedes",
+  "contradicts",
+  "superseded_by",
+  "contradicted_by",
+] as const;
 
 /**
  * PURE. An edge reads `parent --relation--> child`, so the CHILD of an ACTIVE
@@ -187,8 +219,13 @@ export function supersededChildIds(
     if (!e || !isSupersessionRelation(e.relation)) continue;
     const retired = typeof e.valid_to === "string" && e.valid_to.trim() !== "";
     if (retired) continue;
-    if (typeof e.child_id === "string" && e.child_id) {
-      out.set(e.child_id, typeof e.parent_id === "string" ? e.parent_id : "");
+    // Direction, not just the string: the passive voice stores old -> new, so the
+    // superseded artifact is the PARENT and the superseding one is the child.
+    const passive = isPassiveSupersession(e.relation);
+    const supersededId = passive ? e.parent_id : e.child_id;
+    const supersedingId = passive ? e.child_id : e.parent_id;
+    if (typeof supersededId === "string" && supersededId) {
+      out.set(supersededId, typeof supersedingId === "string" ? supersedingId : "");
     }
   }
   return out;

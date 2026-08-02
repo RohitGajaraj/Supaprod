@@ -24,6 +24,7 @@ import { supabase as anonSupabase } from "@/integrations/supabase/client";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { checkPublicDecisionRateLimit } from "@/lib/decisions-ratelimit.server";
 import { isSupersessionRelation, type LineageEdgeLite } from "@/lib/trust-ledger.functions";
+import { SUPERSESSION_RELATIONS } from "@/lib/trust-ledger.functions";
 
 /** v1 provenance outcome surfaced on the public receipt — the honest "did it hold up?". */
 export type PublicDecisionOutcome = "standing" | "superseded";
@@ -182,7 +183,7 @@ async function computePublicOutcome(slug: string): Promise<PublicDecisionOutcome
       .from("artifact_lineage")
       .select("parent_id,child_id,relation,valid_to")
       .in("child_id", childIds)
-      .in("relation", ["supersedes", "contradicts"]);
+      .in("relation", [...SUPERSESSION_RELATIONS]);
     if (error || !edges) return "standing";
     const parentIds = supersedingParentIds(childIds, edges as unknown as LineageEdgeLite[]);
     if (!parentIds.length) return "standing";

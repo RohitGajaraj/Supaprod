@@ -16,6 +16,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { isSupersessionRelation } from "@/lib/trust-ledger.functions";
 import { trendOf, type Trend } from "@/lib/gauntlet-metrics";
+import { SUPERSESSION_RELATIONS } from "@/lib/trust-ledger.functions";
 
 // `insights.resolution`/`kind` (FS-01) predate the generated types; same
 // relaxed-typing pattern as sink.server.ts / scout's targets.server.ts.
@@ -105,7 +106,7 @@ export async function computeSupersessionsCaught(): Promise<SupersessionsCaught>
   const { data, error } = await supabaseAdmin
     .from("artifact_lineage")
     .select("relation,valid_to,created_at")
-    .in("relation", ["supersedes", "contradicts"])
+    .in("relation", [...SUPERSESSION_RELATIONS])
     .gte("created_at", since60)
     .limit(20000);
   if (error) return { total: 0, last30d: 0, trend: "flat" };
