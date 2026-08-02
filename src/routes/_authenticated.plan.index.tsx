@@ -304,7 +304,7 @@ function PlanPage() {
   // The head is a fact assembled from real counts, never a slogan. It claims
   // no number it does not have.
   const headline: React.ReactNode = React.useMemo(() => {
-    if (roadmap.isLoading) return "Reading the plan.";
+    if (roadmap.isLoading) return "Plan";
     if (committed.length === 0) return "Nothing is committed yet.";
     const behind = committed.length - nowCount;
     const lead =

@@ -198,7 +198,7 @@ function Learn() {
   // WAITING leads, because settling it is the job; what came back so far is a
   // different fact and goes in the sub.
   const headline = React.useMemo(() => {
-    if (ledgerQ.isLoading || pendingQ.isLoading) return "Reading the record.";
+    if (ledgerQ.isLoading || pendingQ.isLoading) return "Learn";
     if (waiting > 0) {
       return waiting === 1
         ? "One shipped bet is waiting on your verdict."

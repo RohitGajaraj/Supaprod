@@ -175,6 +175,37 @@ const RAIL = [
 ] as const;
 
 const RAIL_KEY = "supaprod:rail-narrow";
+/** Familiarity signal for auto-collapse. Once the user has visited enough
+ *  distinct stations, the rail starts narrow on the next load — they know
+ *  the layout by then and the extra 172px of work area matters more. */
+const FAMILIARITY_KEY = "supaprod:rail-visited";
+const FAMILIARITY_THRESHOLD = 4;
+
+function trackFamiliarity(pathname: string) {
+  try {
+    const raw = window.localStorage.getItem(FAMILIARITY_KEY);
+    const visited: string[] = raw ? JSON.parse(raw) : [];
+    // Normalize to the first segment: /today, /runs, /brain, /crew, /discover, etc.
+    const station = "/" + (pathname.split("/")[1] ?? "");
+    if (!visited.includes(station)) {
+      visited.push(station);
+      window.localStorage.setItem(FAMILIARITY_KEY, JSON.stringify(visited));
+    }
+  } catch {
+    // localStorage unavailable — ignore
+  }
+}
+
+function isFamiliar(): boolean {
+  try {
+    const raw = window.localStorage.getItem(FAMILIARITY_KEY);
+    if (!raw) return false;
+    const visited: string[] = JSON.parse(raw);
+    return visited.length >= FAMILIARITY_THRESHOLD;
+  } catch {
+    return false;
+  }
+}
 
 function initialsFrom(email: string | null | undefined, name?: string | null): string {
   const source = (name ?? "").trim() || (email ?? "").split("@")[0] || "";
@@ -275,10 +306,22 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const { activeWorkspace } = useWorkspace();
 
   // The rail's collapsed state is the user's, so it survives a reload.
+  // AUTO-COLLAPSE: if the user has visited 4+ stations and has never explicitly
+  // toggled the rail, start narrow. Once they toggle, their explicit choice wins.
   const [narrow, setNarrow] = React.useState(false);
   React.useEffect(() => {
-    setNarrow(window.localStorage.getItem(RAIL_KEY) === "1");
+    const explicit = window.localStorage.getItem(RAIL_KEY);
+    if (explicit !== null) {
+      setNarrow(explicit === "1");
+    } else if (isFamiliar()) {
+      // First time auto-collapsing — the user has explored enough to know the icons
+      setNarrow(true);
+    }
   }, []);
+  // Track which stations the user visits, for the familiarity signal
+  React.useEffect(() => {
+    trackFamiliarity(pathname);
+  }, [pathname]);
   const toggleRail = React.useCallback(() => {
     setNarrow((v) => {
       window.localStorage.setItem(RAIL_KEY, v ? "0" : "1");
@@ -468,13 +511,14 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // Voice: never greet, always report. The lead is a fact, and it is a fact we
   // can prove. Five states, in the order a person cares about them.
   //
-  // "Reading" and "Cannot see" are not decoration. A header that says "Nothing
-  // running" while the read is still in flight, or after it failed, has told
-  // you something false about your own workspace, which is the same class of
-  // error as a fabricated count.
+  // The live line stays quiet until data arrives. A header that says "Nothing
+  // running" before the read lands would be a false claim about workspace state.
+  // But saying "Reading" advertises latency. The dot already communicates the
+  // idle state and the shell provides enough structure; the words appear the
+  // moment data resolves (instant from cache on revisit).
   const liveLead = React.useMemo(() => {
     if (missions.isError) return "Cannot see what is running";
-    if (missions.isLoading) return "Reading";
+    if (missions.isLoading) return null;
     if (running.length === 0) {
       if (gateCount === 0) return "Nothing running";
       return gateCount === 1 ? "1 call needs you" : `${gateCount} calls need you`;
@@ -705,12 +749,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           {React.createElement(
             strip ? "div" : "button",
             strip
-              ? { className: "sp-live", "data-static": "true" }
+              ? { className: "sp-live", "data-static": "true", "data-state": liveState }
               : {
                   className: "sp-live",
                   type: "button",
                   onClick: liveTarget.go,
                   title: liveTarget.title,
+                  "data-state": liveState,
                 },
             <>
               {/* WHO, before how many. A fixed-height slot, so swapping the
@@ -823,7 +868,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                     to={to}
                     className="sp-navrow"
                     activeProps={{ "aria-current": "page" }}
-                    title={narrow ? label : undefined}
+                    aria-label={label}
                   >
                     <Icon />
                     <span className="sp-navlabel">{label}</span>

@@ -341,7 +341,7 @@ function Ship() {
   const headline = posts.isError
     ? "The announcements did not load."
     : loading
-      ? "Reading what has gone out."
+      ? "Ship"
       : waitingCount === 0
         ? "Nothing is waiting to go out."
         : waitingCount === 1

@@ -404,7 +404,7 @@ function BoundarySurface() {
       <PageHead
         title={
           b.isLoading ? (
-            "Reading the boundary."
+            "Boundary"
           ) : b.isError ? (
             "The boundary could not be read."
           ) : total === 0 ? (

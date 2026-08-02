@@ -726,9 +726,10 @@ function BuildPage() {
   };
 
   // The headline is a fact assembled from real counts. It never claims a
-  // number it does not have.
+  // The headline shows the station name instantly; data fills in from cache.
+  // Never say "Reading" — that advertises latency.
   const headline = React.useMemo(() => {
-    if (loading) return "Reading the record.";
+    if (loading) return "Build";
     if (sessions.isError) return "The runs did not load.";
     const ran =
       running === 0
@@ -1045,7 +1046,7 @@ function BuildPage() {
                     ]
                   : state === "gate"
                     ? [
-                        "Waiting on you",
+                        <span className="sp-gate">Waiting on you</span>,
                         s.pending_approvals > 0 ? (
                           <>
                             <Num>{s.pending_approvals}</Num>{" "}
@@ -1054,7 +1055,11 @@ function BuildPage() {
                         ) : null,
                       ]
                     : state === "stopped"
-                      ? [steps ? <>Stopped at {steps}</> : "Stopped"]
+                      ? [
+                          <span className="sp-fail">
+                            {steps ? <>Stopped at {steps}</> : "Stopped"}
+                          </span>,
+                        ]
                       : state === "queued"
                         ? [`Queued for ${actorName(s).toLowerCase()}`]
                         : [

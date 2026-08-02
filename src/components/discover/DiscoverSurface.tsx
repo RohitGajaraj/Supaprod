@@ -605,7 +605,7 @@ export function DiscoverSurface() {
   }, [focused, focusedIndex, ranked, busy, picking, promote, decline]);
 
   const headline: React.ReactNode = loading ? (
-    "Reading the record."
+    "Discover"
   ) : loadError ? (
     "The record could not be read."
   ) : rows.length === 0 ? (

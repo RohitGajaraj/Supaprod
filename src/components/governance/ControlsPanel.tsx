@@ -567,7 +567,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         ) : tools.length === 0 ? (
           <Empty>No tools enabled yet. Turn one on and its oversight lands here.</Empty>
         ) : (
-          <div style={{ maxHeight: 380, overflowY: "auto" }}>
+          <div>
             {tools.map((t, i) => {
               const pinned = HIGH_RISK_FORCE_REVIEW.has(t.tool_name);
               const autoBlocked = HIGH_RISK_MIN_CONFIRM.has(t.tool_name);

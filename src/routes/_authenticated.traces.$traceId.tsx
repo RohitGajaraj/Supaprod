@@ -247,8 +247,6 @@ const paneBase: React.CSSProperties = {
   background: "var(--sp-sink)",
   borderRadius: "var(--sp-radius-panel)",
   padding: "14px 16px",
-  maxHeight: 260,
-  overflow: "auto",
 };
 
 const noteStyle: React.CSSProperties = {

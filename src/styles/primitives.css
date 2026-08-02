@@ -427,6 +427,9 @@
 .sp-warn {
   color: var(--sp-warn);
 }
+.sp-gate {
+  color: var(--sp-gate);
+}
 
 /* ---------- diffstat ----------
  * A diffstat reads as a diffstat: added green, removed red, side by side,
@@ -1986,6 +1989,24 @@ button.sp-cell:focus-visible:not(:disabled) {
 }
 .sp-cell[data-disabled="true"] {
   opacity: 0.45;
+}
+/* A working or gate mark inside a cell paints a 2px left accent in its own
+ * stage hue, so a glance at the board tells which stage each run belongs to
+ * without reading the mark. Subtle, never a fill — the card is furniture and
+ * the accent is the one bit of shape that distinguishes it. Survives greyscale
+ * because the mark already carries the same information by shape. */
+.sp-cell:has(.sp-mark[data-state="running"]) {
+  box-shadow: inset 2px 0 0 color-mix(in oklab, var(--sp-hue, var(--sp-stage-build)) 55%, transparent);
+}
+.sp-cell:has(.sp-mark[data-state="gate"]),
+.sp-cell:has(.sp-mark[data-state="waiting"]) {
+  box-shadow: inset 2px 0 0 color-mix(in oklab, var(--sp-gate) 50%, transparent);
+}
+.sp-cell:has(.sp-mark[data-state="verified"]) {
+  box-shadow: inset 2px 0 0 color-mix(in oklab, var(--sp-pass) 45%, transparent);
+}
+.sp-cell:has(.sp-mark[data-state="failed"]) {
+  box-shadow: inset 2px 0 0 color-mix(in oklab, var(--sp-fail) 45%, transparent);
 }
 button.sp-cell:disabled {
   cursor: not-allowed;

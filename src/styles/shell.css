@@ -265,6 +265,10 @@
 .sp-live-dot[data-state="gate"] {
   background: var(--sp-gate);
 }
+/* The headline wears ember too, so the whole line says "needs you" in one colour. */
+.sp-live[data-state="gate"] .sp-live-lead {
+  color: var(--sp-gate);
+}
 .sp-live-lead {
   color: var(--sp-ink);
   font-weight: var(--sp-weight-strong);
@@ -630,6 +634,32 @@
 .sp-app[data-rail="narrow"] .sp-navrow {
   justify-content: center;
   padding: 0;
+  position: relative;
+}
+/* INSTANT TOOLTIP. The browser's native `title` tooltip delays ~400ms, which
+ * makes the narrow rail feel slow. This replaces it with a CSS tooltip that
+ * appears on hover without delay, positioned to the right of the rail. */
+.sp-app[data-rail="narrow"] .sp-navrow::after {
+  content: attr(aria-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-ink);
+  background: var(--sp-float);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-chip);
+  padding: 4px 10px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 50;
+  transition: opacity var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-app[data-rail="narrow"] .sp-navrow:hover::after {
+  opacity: 1;
 }
 .sp-navrow:hover {
   background: var(--sp-hover);

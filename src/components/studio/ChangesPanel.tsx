@@ -196,8 +196,6 @@ const RECESS: CSSProperties = {
   color: "var(--sp-body)",
   whiteSpace: "pre-wrap",
   overflowWrap: "anywhere",
-  maxHeight: 260,
-  overflowY: "auto",
 };
 
 /**

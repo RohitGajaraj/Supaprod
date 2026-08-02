@@ -233,10 +233,13 @@ function Today() {
 
   const loading = queue.isLoading || missions.isLoading;
 
-  // The headline is a fact assembled from real counts. It never claims a
-  // number it does not have.
+  // The headline is a fact assembled from real counts. While loading, show
+  // the date — a headline that says "Reading" advertises latency; a headline
+  // that says the date tells the user they arrived. Data fills in instantly
+  // from cache on revisit; on first load the brief gap is invisible because
+  // the shell already provides structure.
   const headline = React.useMemo(() => {
-    if (loading) return "Reading the record.";
+    if (loading) return "Today";
     const n = done.length;
     const g = items.length;
     const ran =
@@ -383,7 +386,11 @@ function Today() {
                       {" · "}
                     </>
                   ) : null}
-                  {m.status}
+                  {m.status === "failed" || m.status === "completed_with_failures" ? (
+                    <span className="sp-fail">{m.status === "failed" ? "failed" : "partial"}</span>
+                  ) : (
+                    m.status
+                  )}
                 </>
               }
               time={ago(m.completed_at)}

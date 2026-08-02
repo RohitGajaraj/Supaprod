@@ -386,7 +386,7 @@ function recordHeadline(
       : `Real outcomes have re-scored ${rescored} calls.`;
   }
   if (calls === null && learnings === null) {
-    return loading ? "Reading the record." : "The record did not load.";
+    return loading ? "Brain" : "The record did not load.";
   }
   const clauses: string[] = [];
   if (calls) clauses.push(calls === 1 ? "one call" : `${calls} calls`);

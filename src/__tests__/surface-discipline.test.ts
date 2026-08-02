@@ -221,6 +221,36 @@ describe("surface-discipline §6: the wait", () => {
   });
 });
 
+describe("surface-discipline §5b: status colour beyond diffs", () => {
+  test("all four status utility classes exist and use their semantic tokens", () => {
+    // THE PRINCIPLE: status colour carries meaning and survives greyscale because
+    // it is NEVER the only carrier; the shape/position/text already says the state.
+    // These utilities let any inline text wear the status without inventing a hex.
+    const css = read("styles/primitives.css");
+    const pass = ruleBody(css, ".sp-pass");
+    const fail = ruleBody(css, ".sp-fail");
+    const warn = ruleBody(css, ".sp-warn");
+    const gate = ruleBody(css, ".sp-gate");
+    expect(pass).not.toBeNull();
+    expect(fail).not.toBeNull();
+    expect(warn).not.toBeNull();
+    expect(gate).not.toBeNull();
+    expect(pass!).toContain("--sp-pass");
+    expect(fail!).toContain("--sp-fail");
+    expect(warn!).toContain("--sp-warn");
+    expect(gate!).toContain("--sp-gate");
+  });
+
+  test("the header live line wears ember in the gate state", () => {
+    // THE DEFECT: "3 calls need you" rendered in --sp-ink, the same weight as
+    // "Nothing running", so there was no visible urgency difference between
+    // idle and needing-your-attention.
+    const css = stripCssComments(read("styles/shell.css"));
+    expect(css).toMatch(/\.sp-live\[data-state="gate"\].*\.sp-live-lead/s);
+    expect(css).toContain("--sp-gate");
+  });
+});
+
 describe("surface-discipline §7: an indicator means an agent is running", () => {
   test("Loading only wears the agent's clothes when told to", () => {
     // `working` must stay opt-in and default off, so a plain fetch can never

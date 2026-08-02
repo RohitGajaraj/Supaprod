@@ -428,7 +428,7 @@ function DecideSurface() {
   // A fact assembled from real counts. It never claims a number it does not
   // have, and it stays silent while the counts are still loading.
   const headline = React.useMemo(() => {
-    if (loading) return "Reading the ranked bets.";
+    if (loading) return "Decide";
     if (opps.error) return "The bets did not load.";
     const n = ranked.length;
     if (n === 0) return "Nothing is ranked yet.";
