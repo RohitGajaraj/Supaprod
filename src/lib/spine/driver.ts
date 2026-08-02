@@ -31,7 +31,12 @@
 // database. The stop conditions are the safety of the whole feature: a driver
 // that runs when it should not is worse than no driver.
 
-import { SPECIALIST_CATALOG, type AgentStation } from "@/lib/agent-vocabulary";
+import {
+  AGENT_STATIONS,
+  AGENT_STATION_ORDER,
+  SPECIALIST_CATALOG,
+  type AgentStation,
+} from "@/lib/agent-vocabulary";
 
 /**
  * The agent that leads a station.
@@ -213,7 +218,42 @@ export type HoldReason =
    * the work is fine, the budget is finished, and raising it resumes exactly
    * where it stopped.
    */
-  | "over-budget";
+  | "over-budget"
+  /**
+   * The ACCOUNT ran out of credit before this station could run.
+   *
+   * NOT THE STATION'S FAILURE, and separating it is a correction of a live
+   * defect rather than a nicety. `runtime.server.ts` throws
+   * `CreditExhaustedError` before a single token is spent, the driver caught it
+   * as a dispatch failure, counted it as an attempt and recorded `stalled`. Three
+   * ticks of an empty account therefore burned a station's whole attempt budget
+   * in half an hour and froze the track permanently, having never once run the
+   * station. Measured on the live database on 2026-08-02: three frozen tracks
+   * had `spend_used_usd = 0` and nothing but credit refusals behind them.
+   *
+   * So it behaves exactly like `out-of-time`: reported, never counted as an
+   * attempt, and resumed by topping the account up.
+   */
+  | "out-of-credit"
+  /* ---------------------------------------------------------------------- *
+   * THE CORRECTION LOOP'S OWN HOLDS (founder ruling 2026-08-02).
+   *
+   * Each one is a DIFFERENT thing for a person to do, which is why they are four
+   * reasons rather than four shades of `stalled`. The rule that produces them is
+   * `decideCorrection` in ./correction.ts, and the sentence a person reads names
+   * the station, because "escalated" is a status word and this product does not
+   * hand people status words.
+   * ---------------------------------------------------------------------- */
+  /** Nothing to work from, and no station in the loop can produce it. */
+  | "needs-evidence"
+  /** The station that files the missing thing is waived off this route. */
+  | "needs-a-waived-station"
+  /** Everything the station needs is on the record and it still finishes empty. */
+  | "station-cannot-finish"
+  /** Sent back for a fix as often as it is allowed, and still short. */
+  | "corrections-spent"
+  /** Corrected, came back, still cannot finish. Nothing more will be tried. */
+  | "given-up";
 
 export type DriveDecision =
   | { act: true; station: AgentStation; agentSlug: string; goal: string }
@@ -317,6 +357,18 @@ export function stationGoal(
   upstream: UpstreamArtifact[] = [],
   /** Which member of the crew is being briefed. Defaults to the lead. */
   role: CrewRole | null = null,
+  /**
+   * Why this station is being run AGAIN, when the work was sent back to it.
+   *
+   * THE DETERMINISTIC HALF OF THE LEARNING (founder ruling 2026-08-02). A
+   * station that receives corrected work and is not told what went wrong files
+   * the same thing again, which turns the correction loop into an expensive
+   * retry. The sentence is built by `correctionNote` in ./correction.ts from the
+   * track's own recorded transitions, so it costs no model call and cannot go
+   * stale. It sits AFTER the record and BEFORE the filing instruction, because
+   * it is an instruction about what to file.
+   */
+  correction: string | null = null,
 ): string {
   const why = track.origin ? ` It exists because: ${track.origin}` : "";
   const subject = `"${track.title}".${why}`;
@@ -329,8 +381,9 @@ export function stationGoal(
   // only its slice optimises its slice.
   const mine = seat?.job ? `\n\nYour part in that: ${seat.job}` : "";
   const file = seat?.file ?? FILE_IT[station];
+  const back = correction?.trim() ? `\n\n${correction.trim()}` : "";
 
-  return `${stationJob(station, subject)}${mine}${prior}\n\n${file}`;
+  return `${stationJob(station, subject)}${mine}${prior}${back}\n\n${file}`;
 }
 
 const FILE_IT: Record<AgentStation, string> = {
@@ -418,8 +471,70 @@ export const HOLD_LINE: Record<HoldReason, string> = {
   done: "The route is finished. This work has been graded.",
   "produced-nothing":
     "This station ran but filed nothing, so there is nothing to hand to the next one. It will try again.",
-  stalled: "This station ran and produced nothing several times, so it stopped trying.",
+  // NO LONGER TERMINAL, and the wording had to change with it. This used to read
+  // "so it stopped trying", which was true and was the defect: nothing anywhere
+  // handled the state and the work froze for good. A track that reaches the
+  // ceiling now goes to `decideCorrection`, which sends it back to the station
+  // that can fix the precondition or puts one specific ask in front of a person.
+  stalled: "This station ran and produced nothing several times, so it is being sent for a fix.",
   "over-budget":
     "This work has spent its budget, so it stopped. Raise the ceiling to let it carry on.",
   "out-of-time": "This run of the loop ran long, so the rest of the work carries on next time.",
+  "out-of-credit":
+    "The account ran out of credit before this station could run, so nothing was tried and nothing was charged against this work. Top the account up and it carries on from here.",
+  "needs-evidence":
+    "This station has nothing to work from, and no other station can make it. Connect a source, or file the missing input by hand, and this starts again on its own.",
+  "needs-a-waived-station":
+    "This station needs something that a waived station was the one to file, so nothing is going to file it. Put that station back on the route, or file it yourself.",
+  "station-cannot-finish":
+    "This station has everything it needs on the record and still finishes with nothing, several times over. That is the station rather than the work, so it needs your eyes.",
+  "corrections-spent":
+    "This work has been sent back for the same fix as often as it is allowed and is still short of it. Nothing further will be spent on it until you look.",
+  "given-up":
+    "This station was corrected, came back, and still cannot finish with everything it needs on the record. Nothing more will be tried on it automatically.",
 };
+
+/**
+ * The hold line, naming the station when the reason is about one.
+ *
+ * WHY THIS EXISTS RATHER THAN A LONGER MAP. Six of the reasons above are true of
+ * the workspace or of the track as a whole and read perfectly as they stand. The
+ * correction loop's reasons are true of a PARTICULAR station, and "this station"
+ * in a list of five pieces of work is not an answer, it is a pronoun with no
+ * referent. Naming the station costs one argument the caller already has and is
+ * the difference between a reason and a status word.
+ *
+ * Tolerant of an unknown reason on purpose: `last_hold` is a text column and a
+ * value written by a newer deploy must render as nothing rather than as a crash
+ * on the surface that lists work.
+ */
+export function holdLine(
+  hold: string | null | undefined,
+  ctx: { station?: AgentStation | null } = {},
+): string | null {
+  if (!hold) return null;
+  const line = HOLD_LINE[hold as HoldReason];
+  if (!line) return null;
+  const station = ctx.station ? SPECIALIST_STATION_NAME[ctx.station] : null;
+  if (!station || !STATION_SPECIFIC.has(hold as HoldReason)) return line;
+  // Only ever replaces the leading pronoun, so the sentence stays the one
+  // written above and there is no second copy of the words to drift.
+  return line.replace(/^This station/, station).replace(/^This work/, station);
+}
+
+/** The reasons that are about one station rather than the whole track. */
+const STATION_SPECIFIC: ReadonlySet<HoldReason> = new Set<HoldReason>([
+  "needs-evidence",
+  "needs-a-waived-station",
+  "station-cannot-finish",
+  "given-up",
+]);
+
+/** Station display names, read from the one vocabulary the whole product uses. */
+const SPECIALIST_STATION_NAME: Record<AgentStation, string> = AGENT_STATION_ORDER.reduce(
+  (acc, s) => {
+    acc[s] = AGENT_STATIONS[s]?.name ?? s;
+    return acc;
+  },
+  {} as Record<AgentStation, string>,
+);

@@ -34,12 +34,27 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { nextStation, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
+  holdLine,
   HOLD_LINE,
   stationCrew,
   stationGoal,
   type HoldReason,
   type UpstreamArtifact,
 } from "@/lib/spine/driver";
+import {
+  CORRECTABLE_HOLDS,
+  correctionNote,
+  decideCorrection,
+  holdForCorrection,
+  isEnvironmentFailure,
+  needIsMet,
+  STATION_NEEDS,
+} from "@/lib/spine/correction";
+import {
+  applyCorrection,
+  readCorrections,
+  rememberCorrectionFix,
+} from "@/lib/spine/correction.server";
 import { ARTIFACT_SOURCE } from "@/lib/spine/chain";
 import {
   costOfRun,
@@ -87,6 +102,15 @@ type DriveRow = {
   path: unknown;
   waived: unknown;
   attempts: number | null;
+  /**
+   * Why the driver last declined to move this track.
+   *
+   * READ, not only written, since the correction loop landed. When the loop
+   * escalated for one specific thing and that thing has since arrived, this is
+   * what tells the rule the ask was answered, so the work resumes without
+   * anybody having to unstick it by hand. See `RESUMABLE_HOLDS` in ./correction.
+   */
+  last_hold: string | null;
   /** Gates opened by earlier runs of this track, awaiting an answer. */
   pending_gates: unknown;
   /** Dollars this track has spent across every station, seat and retry. */
@@ -420,6 +444,164 @@ async function loadUpstream(
   });
 }
 
+/**
+ * Is the one precondition the loop cannot produce for itself satisfied?
+ *
+ * Only Discover has one: evidence has to enter the workspace from outside before
+ * there is anything to gather. The answer changes the ESCALATION rather than the
+ * spending, and the difference matters to whoever reads it. "There is nothing in
+ * this workspace to gather, connect a source" is a job a person can do in a
+ * minute. "There is evidence sitting there and Discover still files nothing" is
+ * a broken station, and telling somebody to connect a source when one is already
+ * connected wastes their time and their trust.
+ *
+ * Never a reason to run anything. It is read on the escalation path only, and
+ * `null` (nobody could check) is read as not satisfied, so an unreadable table
+ * can only ever make the loop more cautious.
+ */
+async function externalEvidence(
+  supabase: SupabaseClient,
+  workspaceId: string | null,
+): Promise<boolean | null> {
+  if (!workspaceId) return null;
+  try {
+    const { count, error } = await supabase
+      .from("signals")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId);
+    if (error) return null;
+    return (count ?? 0) > 0;
+  } catch {
+    return null;
+  }
+}
+
+/** What a correction did, in the shape driveTrackOnce returns. */
+type CorrectionOutcome = {
+  trackId: string;
+  station: AgentStation;
+  moved: boolean;
+  arrivedAt: AgentStation | null;
+  hold: HoldReason | null;
+  line: string;
+};
+
+/**
+ * Decide what to do about a station that could not finish, and do it.
+ *
+ * The rule is pure and lives in ./correction.ts, so everything here is the two
+ * reads it needs and the write its answer implies. Returns null when the rule
+ * says there is nothing to correct, which leaves the caller to report the hold
+ * exactly as it did before.
+ *
+ * A GO-BACK THAT DOES NOT COMMIT RETURNS NULL, so the caller reports the
+ * original hold. Announcing a correction the table did not take would be the
+ * same class of lie `advanceTrack` was repaired for: a surface reporting
+ * progress the work did not buy.
+ */
+async function correctIfPossible(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  at: {
+    hold: HoldReason;
+    station: AgentStation;
+    route: SpineRoute;
+    corrections: number;
+    filed: string[];
+  },
+): Promise<CorrectionOutcome | null> {
+  if (!CORRECTABLE_HOLDS.has(at.hold)) return null;
+
+  const need = STATION_NEEDS[at.station];
+  // Read only when the station's precondition is one no station can file, which
+  // today is Discover alone. Every other station is answered entirely from the
+  // track's own record and costs no extra query.
+  const externalMet =
+    need.from === null ? await externalEvidence(supabase, row.workspace_id) : null;
+
+  const decision = decideCorrection({
+    hold: at.hold,
+    station: at.station,
+    route: at.route,
+    attempts: row.attempts ?? 0,
+    corrections: at.corrections,
+    filed: at.filed,
+    externalMet,
+    priorHold: (row.last_hold as HoldReason | null) ?? null,
+  });
+
+  if (decision.action === "retry") {
+    if (!decision.resume) return null;
+    // THE ASK WAS ANSWERED. Clearing the ceiling is the whole write: the station
+    // is left exactly where it is, and the next tick drives it normally. Doing
+    // it here rather than dispatching immediately keeps "one tick, one attempt
+    // at one station" true, which is what `MAX_STATION_ATTEMPTS` counts.
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from("spine_tracks" as never)
+      .update({ attempts: 0, last_hold: null, driven_at: now, updated_at: now } as never)
+      .eq("id", row.id);
+    if (error) return null;
+    return {
+      trackId: row.id,
+      station: at.station,
+      moved: false,
+      arrivedAt: null,
+      hold: null,
+      line: decision.because,
+    };
+  }
+
+  if (decision.action === "go-back") {
+    const moved = await applyCorrection(
+      supabase,
+      {
+        id: row.id,
+        title: row.title,
+        user_id: row.user_id,
+        workspace_id: row.workspace_id,
+      },
+      {
+        from: at.station,
+        to: decision.station,
+        missing: decision.missing,
+        kind: decision.kind,
+      },
+    );
+    if (!moved) return null;
+    return {
+      trackId: row.id,
+      station: at.station,
+      // A correction is a move, and calling it one is what keeps the tick's own
+      // account of the sweep honest. It is not FORWARD, which is why `arrivedAt`
+      // names the earlier station and the line says "back".
+      moved: true,
+      arrivedAt: decision.station,
+      hold: null,
+      line: `${row.title} went back to ${decision.station} for a fix. ${decision.because}`,
+    };
+  }
+
+  // ESCALATE AND GIVE-UP BOTH STOP, and they record a reason rather than a
+  // status word. The persisted `last_hold` is the coarse shape so the surface
+  // that lists work can render a sentence; the specific one, naming both
+  // stations and the missing thing, is the line returned here and it is what the
+  // tick's own record of the sweep carries.
+  const hold = holdForCorrection(decision);
+  await supabase
+    .from("spine_tracks" as never)
+    .update({ last_hold: hold, driven_at: new Date().toISOString() } as never)
+    .eq("id", row.id);
+  return {
+    trackId: row.id,
+    station: at.station,
+    moved: false,
+    arrivedAt: null,
+    hold,
+    line: decision.because,
+  };
+}
+
 export async function driveTrackOnce(
   supabase: SupabaseClient,
   row: DriveRow,
@@ -446,6 +628,15 @@ export async function driveTrackOnce(
   // Read AFTER the harvest, so a spec approved through a gate since the last
   // tick is in the brief of the station that runs now rather than one tick late.
   const upstream = await loadUpstream(supabase, row.id);
+
+  // WHAT THIS TRACK HAS ALREADY BEEN SENT BACK FOR (founder ruling 2026-08-02).
+  // Read once and used three times: the correction rule needs the count as its
+  // budget, the crew about to run needs to be told what it is being asked to
+  // fix, and a station that finally finishes after a correction needs to know
+  // that so the lesson can be written as confirmed rather than as a guess.
+  const history = await readCorrections(supabase, row.id);
+  /** The artifact kinds on this track's record, which is what a station HAS. */
+  const filed = upstream.map((a) => a.kind);
 
   const decision = decideDrive({
     upstream,
@@ -476,6 +667,39 @@ export async function driveTrackOnce(
   });
 
   if (!decision.act) {
+    // THE CORRECTION LOOP (founder ruling 2026-08-02: "if something is moving
+    // forward, something messed up, an agent should automatically learn, go
+    // back, correct it, and come back... across all seven stages").
+    //
+    // THIS IS WHERE THE WORK USED TO FREEZE. `stalled` was terminal by omission:
+    // `decideDrive` returned it at the attempt ceiling and nothing anywhere read
+    // it back, so the track sat here forever having its hold rewritten every ten
+    // minutes. Nine live tracks were in exactly that state on 2026-08-02.
+    //
+    // IT RUNS ON THE HELD PATH RATHER THAN AT THE MOMENT OF FAILURE, and that is
+    // the reason the tracks already frozen get a way out. A correction decided
+    // where the failure happens would only ever apply to failures that happen
+    // after this ships; deciding it where the track is HELD means every track
+    // sitting at the ceiling today is corrected on the next tick, with no
+    // backfill and nothing to run by hand. It also spends nothing extra: this
+    // path already runs, and the decision itself is two small reads.
+    const corrected = await correctIfPossible(supabase, row, {
+      hold: decision.hold,
+      station,
+      route,
+      corrections: history.count,
+      filed,
+    });
+    if (corrected) {
+      return {
+        ...corrected,
+        attached: harvested,
+        line: harvested.length
+          ? `${describeAttachments(harvested)} ${corrected.line}`
+          : corrected.line,
+      };
+    }
+
     await supabase
       .from("spine_tracks" as never)
       .update({ last_hold: decision.hold, driven_at: new Date().toISOString() } as never)
@@ -515,6 +739,31 @@ export async function driveTrackOnce(
   let steps: ToolStepLike[] = [];
   const crew = stationCrew(station);
   const brief = [...upstream];
+
+  // WHY THIS STATION IS RUNNING AGAIN, when the work was sent back to it.
+  //
+  // THE DETERMINISTIC HALF OF THE LEARNING, and without it the correction loop
+  // is an expensive retry. A station handed corrected work with no idea what
+  // went wrong files the same thing it filed the first time, the station ahead
+  // fails on it again, and the only thing the round trip bought was another
+  // three dispatches. The sentence is rebuilt from the track's own recorded
+  // transition rather than stored, so it costs no model call and cannot go
+  // stale; `rememberCorrection` is the compounding half that reaches every
+  // future track.
+  //
+  // The kind is recomputed rather than remembered because it is a function of
+  // what is on the record right now: if the thing the failing station needed is
+  // present, the problem is that it was not good enough, and telling the station
+  // "it is missing" when it is sitting there would be wrong by the time it read
+  // it.
+  const backNote =
+    history.last && history.last.to === station
+      ? correctionNote(
+          history.last.from,
+          station,
+          needIsMet(STATION_NEEDS[history.last.from], filed) ? "not-enough" : "absent",
+        )
+      : null;
   const cap = await resolveTrackSpendCap(
     supabase,
     row.workspace_id,
@@ -555,7 +804,7 @@ export async function driveTrackOnce(
 
       const result = await runAgentLoop(supabase, row.user_id, {
         agentSlug: seat.slug,
-        goal: stationGoal(station, { title: row.title, origin: row.origin }, brief, seat),
+        goal: stationGoal(station, { title: row.title, origin: row.origin }, brief, seat, backNote),
         workspaceId: row.workspace_id,
         missionId,
         // So every run is attributable to the work it was doing. This is what
@@ -707,12 +956,23 @@ export async function driveTrackOnce(
 
   // A failed dispatch counts as an attempt rather than advancing the track. It
   // must not move work forward on the strength of a station that threw.
+  //
+  // UNLESS THE STATION NEVER GOT TO RUN, which is a live defect this now closes.
+  // `assertCredits` throws before a single token is spent, so an empty account
+  // produced a "failure" that was not the station's, counted an attempt, and
+  // froze the track after three ticks having never once dispatched it. Three of
+  // the nine tracks frozen on 2026-08-02 were exactly that: `spend_used_usd = 0`
+  // and nothing behind them but credit refusals. It is the same shape as
+  // `out-of-time` one line above, so it is treated the same way: reported, never
+  // counted, resumed by topping the account up.
   if (failed) {
+    const outside = isEnvironmentFailure(failed);
+    const hold: HoldReason = outside ? "out-of-credit" : "stalled";
     await supabase
       .from("spine_tracks" as never)
       .update({
-        attempts: (row.attempts ?? 0) + 1,
-        last_hold: "stalled",
+        ...(outside ? {} : { attempts: (row.attempts ?? 0) + 1 }),
+        last_hold: hold,
         driven_at: new Date().toISOString(),
       } as never)
       .eq("id", row.id);
@@ -721,8 +981,10 @@ export async function driveTrackOnce(
       station,
       moved: false,
       arrivedAt: null,
-      hold: "stalled",
-      line: `${station} did not complete: ${failed}`,
+      hold,
+      line: outside
+        ? (holdLine(hold, { station }) ?? HOLD_LINE[hold])
+        : `${station} did not complete: ${failed}`,
       // A dispatch that threw returned no steps, so there is nothing to file.
       // Kept explicit rather than inlined so the invariant is visible.
       attached,
@@ -802,6 +1064,26 @@ export async function driveTrackOnce(
     userId: row.user_id,
   });
 
+  // WHAT ACTUALLY FIXED IT, written only once it is known.
+  //
+  // At correction time the loop knows what failed and where it sent the work,
+  // which is a HYPOTHESIS. Writing only that would teach every future agent a
+  // guess. This is the station that could not finish, finishing, after the work
+  // went back and came forward again, which is the moment the hypothesis becomes
+  // a fact. It replaces the earlier row rather than sitting beside it, so recall
+  // meets the confirmed lesson and not both versions of it.
+  if (history.last?.from === station) {
+    await rememberCorrectionFix(supabase, {
+      userId: row.user_id,
+      workspaceId: row.workspace_id,
+      trackId: row.id,
+      title: row.title,
+      from: history.last.from,
+      to: history.last.to,
+      missing: STATION_NEEDS[history.last.from].missing,
+    });
+  }
+
   return {
     trackId: row.id,
     station,
@@ -819,7 +1101,8 @@ export async function driveTrackOnce(
 
 /** The columns driveTrackOnce needs. Exported so the tick and the driver agree. */
 export const DRIVE_SELECT =
-  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,pending_gates," +
+  "id,user_id,workspace_id,title,origin,entry_station,station,path,waived,attempts,last_hold," +
+  "pending_gates," +
   // The budget columns. A DriveRow missing these reads them as null, which
   // resolves to "spent nothing" and silently removes the ceiling, so they
   // belong in the shared constant rather than in whichever caller remembers.

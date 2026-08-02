@@ -40,7 +40,7 @@ import {
   type StationWaiver,
   type WorkShape,
 } from "@/lib/spine/route";
-import { HOLD_LINE, type HoldReason } from "@/lib/spine/driver";
+import { holdLine } from "@/lib/spine/driver";
 import {
   ARTIFACT_SOURCE,
   buildChain,
@@ -133,7 +133,12 @@ function rowToTrack(r: TrackRow): Track {
     route,
     summary: describeRoute(route),
     updatedAt: r.updated_at,
-    hold: r.last_hold ? (HOLD_LINE[r.last_hold as HoldReason] ?? null) : null,
+    // NAMED, not "this station". The correction loop's holds are true of one
+    // station rather than of the whole track, and "this station has nothing to
+    // work from" in a list of five pieces of work is a pronoun with no referent.
+    // `holdLine` substitutes the station's own display name and leaves every
+    // other reason exactly as written, so there is no second copy of the words.
+    hold: holdLine(r.last_hold, { station: r.station as AgentStation }),
     drivenAt: r.driven_at ?? null,
   };
 }
