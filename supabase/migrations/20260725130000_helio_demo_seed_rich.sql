@@ -1,3 +1,14 @@
+-- EDITED IN PLACE AFTER IT WAS ALREADY APPLIED, DELIBERATELY (founder ruling 2026-08-02).
+-- The repo rule is "do not hand-edit migration SQL once applied". This is the justified
+-- exception, so please do not "fix" it back. This file only ever runs against a FRESH
+-- database, so editing it changes nothing that has already run, and NOT editing it means
+-- every new database is born with the defect: artifact_lineage.relation carries no
+-- constraint, and this seed used to write its own forked vocabulary (underscored, passive
+-- voice) against the application's canonical one (hyphenated, ACTIVE voice, PARENT = the
+-- actor and CHILD = the thing acted upon). Existing production rows are deliberately NOT
+-- rewritten; the read layer already normalises them (canonicalRelation and
+-- RELATION_ALIASES in src/lib/knowledge-graph-view.ts).
+--
 -- Helio Labs demo seed, the rich pass (founder ruling 2026-07-25, the YC session).
 --
 -- WHY. The Helio Labs showcase workspace looked alive on four tables and empty on
@@ -66,7 +77,7 @@ VALUES
    'discovery-scout', '{"method":"support_ticket_cluster","tickets":214,"confidence":0.81}'::jsonb, now() - interval '26 days'),
 
   ('10000000-2a01-4000-8000-000000000003', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'theme', '10000000-0002-4000-8000-000000000001', 'opportunity', '10000000-0b00-4000-8000-000000000005', 'derived_from',
+   'theme', '10000000-0002-4000-8000-000000000001', 'opportunity', '10000000-0b00-4000-8000-000000000005', 'derived-from',
    'The crypto add-on bet was written off the same theme on the assumption that payment choice was the checkout blocker. Recording the parent makes the later kill traceable.',
    'discovery-scout', NULL, now() - interval '24 days'),
 
@@ -77,7 +88,7 @@ VALUES
 
   -- Evidence into decisions
   ('10000000-2a01-4000-8000-000000000005', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'opportunity', '10000000-0b00-4000-8000-000000000001', 'decision', '10000000-0a00-4000-8000-000000000001', 'informed_by',
+   'opportunity', '10000000-0b00-4000-8000-000000000001', 'decision', '10000000-0a00-4000-8000-000000000001', 'informs',
    'The drop-off diagnosis came straight off this bet: 5210 checkout starts, 1614 exits on the address screen, impact on the payment step under 3 percent.',
    'data-analyst', '{"source":"posthog:checkout_funnel","starts":5210,"address_step_exits":1614}'::jsonb, now() - interval '23 days'),
 
@@ -87,12 +98,12 @@ VALUES
    'strategist', NULL, now() - interval '22 days'),
 
   ('10000000-2a01-4000-8000-000000000007', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000001', 'decision', '10000000-0a00-4000-8000-000000000002', 'informed_by',
+   'decision', '10000000-0a00-4000-8000-000000000001', 'decision', '10000000-0a00-4000-8000-000000000002', 'informs',
    'The fix ruling rests on the diagnosis ruling. Without the finding that payment was not the blocker, the single-address-step call has no ground under it.',
    'strategist', NULL, now() - interval '22 days'),
 
   ('10000000-2a01-4000-8000-000000000008', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'opportunity', '10000000-0b00-4000-8000-000000000002', 'decision', '10000000-0a00-4000-8000-000000000004', 'informed_by',
+   'opportunity', '10000000-0b00-4000-8000-000000000002', 'decision', '10000000-0a00-4000-8000-000000000004', 'informs',
    'Mute rates by cohort week came off this bet: 22 percent of new homeowners silenced Relay alerts inside the first month.',
    'data-analyst', '{"source":"posthog:notification_muted","cohort_weeks":8,"first_month_mute_rate":0.22}'::jsonb, now() - interval '23 days'),
 
@@ -113,7 +124,7 @@ VALUES
    'prd-writer', NULL, now() - interval '20 days'),
 
   ('10000000-2a01-4000-8000-000000000012', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'opportunity', '10000000-0003-4000-8000-000000000001', 'prd', '10000000-0001-4000-8000-000000000011', 'derived_from',
+   'opportunity', '10000000-0003-4000-8000-000000000001', 'prd', '10000000-0001-4000-8000-000000000011', 'derived-from',
    'The checkout PRD is the first half of the committed rollup bet, so the rollup stays linked to the doc that delivers it.',
    'prd-writer', NULL, now() - interval '20 days'),
 
@@ -140,76 +151,76 @@ VALUES
 
   -- Deployment measured
   ('10000000-2a01-4000-8000-000000000017', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'deployment', '10000000-0d00-4000-8000-000000000002', 'learning', '10000000-0e00-4000-8000-000000000001', 'measured_by',
+   'learning', '10000000-0e00-4000-8000-000000000001', 'deployment', '10000000-0d00-4000-8000-000000000002', 'measures',
    'Seven days of post-release funnel data on the flagged cohort produced the completed-checkout learning.',
    'data-analyst', '{"window_days":7,"cohort_users":2460,"control_users":2380}'::jsonb, now() - interval '6 days'),
 
   ('10000000-2a01-4000-8000-000000000018', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'deployment', '10000000-0d00-4000-8000-000000000002', 'learning', '10000000-0e00-4000-8000-000000000003', 'measured_by',
+   'learning', '10000000-0e00-4000-8000-000000000003', 'deployment', '10000000-0d00-4000-8000-000000000002', 'measures',
    'The same release, split by device class, produced the honest one: tablets moved far less than phones.',
    'data-analyst', '{"window_days":7,"split":"device_class","tablet_share":0.11}'::jsonb, now() - interval '5 days'),
 
   -- Outcome edges: what the record says about what we decided
   ('10000000-2a01-4000-8000-000000000019', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000002', 'learning', '10000000-0e00-4000-8000-000000000001', 'validated_by',
+   'learning', '10000000-0e00-4000-8000-000000000001', 'decision', '10000000-0a00-4000-8000-000000000002', 'validates',
    'The ruling predicted a lift from removing the second address step. Completed checkouts went from 59 to 78 percent, so the ruling holds.',
    'data-analyst', '{"predicted_lift":0.12,"observed_lift":0.19,"p_value":0.004}'::jsonb, now() - interval '6 days'),
 
   ('10000000-2a01-4000-8000-000000000020', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'prd', '10000000-0001-4000-8000-000000000011', 'learning', '10000000-0e00-4000-8000-000000000001', 'validated_by',
+   'learning', '10000000-0e00-4000-8000-000000000001', 'prd', '10000000-0001-4000-8000-000000000011', 'validates',
    'The PRD success metric was completed checkouts above 70 percent. Shipped result is 78 percent, so the doc closes as met.',
    'qa', NULL, now() - interval '6 days'),
 
   ('10000000-2a01-4000-8000-000000000021', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000003', 'learning', '10000000-0e00-4000-8000-000000000002', 'validated_by',
+   'learning', '10000000-0e00-4000-8000-000000000002', 'decision', '10000000-0a00-4000-8000-000000000003', 'validates',
    'Shipping the in-app grouped digest first was the cheaper half of the ruling, and it alone cut first-month mutes. The sequencing call is confirmed.',
    'data-analyst', NULL, now() - interval '7 days'),
 
   ('10000000-2a01-4000-8000-000000000022', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'prd', '10000000-0001-4000-8000-000000000012', 'learning', '10000000-0e00-4000-8000-000000000002', 'validated_by',
+   'learning', '10000000-0e00-4000-8000-000000000002', 'prd', '10000000-0001-4000-8000-000000000012', 'validates',
    'The digest PRD asked for fewer mutes without fewer opens. Both held, so the doc closes against real numbers rather than a status update.',
    'qa', NULL, now() - interval '7 days'),
 
   ('10000000-2a01-4000-8000-000000000023', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000002', 'learning', '10000000-0e00-4000-8000-000000000003', 'contradicted_by',
+   'learning', '10000000-0e00-4000-8000-000000000003', 'decision', '10000000-0a00-4000-8000-000000000002', 'contradicts',
    'The ruling assumed the address step hurt every device the same way. Tablet checkouts moved 4 points against 21 on phones, so the ruling is only partly right and the record says so.',
    'critic', '{"phone_lift":0.21,"tablet_lift":0.04,"scope_gap":"device_class"}'::jsonb, now() - interval '5 days'),
 
   -- The loop closes: outcomes feed the next call
   ('10000000-2a01-4000-8000-000000000024', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'learning', '10000000-0e00-4000-8000-000000000001', 'decision', '10000000-000a-4000-8000-000000000002', 'informed_by',
+   'learning', '10000000-0e00-4000-8000-000000000001', 'decision', '10000000-000a-4000-8000-000000000002', 'informs',
    'The build-next ruling for Relay is pending on the strength of this outcome: checkout paid off, so checkout debt gets the next slot.',
    'strategist', NULL, now() - interval '3 days'),
 
   ('10000000-2a01-4000-8000-000000000025', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'learning', '10000000-0e00-4000-8000-000000000002', 'decision', '10000000-000a-4000-8000-000000000001', 'informed_by',
+   'learning', '10000000-0e00-4000-8000-000000000002', 'decision', '10000000-000a-4000-8000-000000000001', 'informs',
    'The digest result is why splitting the remaining notification work into two passes is on the table instead of one large push migration.',
    'strategist', NULL, now() - interval '3 days'),
 
   ('10000000-2a01-4000-8000-000000000026', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'learning', '10000000-0e00-4000-8000-000000000003', 'opportunity', '10000000-0b00-4000-8000-000000000001', 'informed_by',
+   'learning', '10000000-0e00-4000-8000-000000000003', 'opportunity', '10000000-0b00-4000-8000-000000000001', 'informs',
    'The tablet gap reopened the original bet with a narrower scope: the same fix, applied to the tablet layout in src/checkout/ReviewStep.tsx.',
    'strategist', '{"reopened":true,"scope":"tablet_layout","expected_users":270}'::jsonb, now() - interval '2 days'),
 
   -- Supersession: what replaced what
   ('10000000-2a01-4000-8000-000000000027', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000004', 'decision', '10000000-0a00-4000-8000-000000000003', 'superseded_by',
+   'decision', '10000000-0a00-4000-8000-000000000003', 'decision', '10000000-0a00-4000-8000-000000000004', 'supersedes',
    'The first response to notification fatigue was to throttle push volume per device. The grouped digest ruling replaced it: group the alerts, do not drop them.',
    'strategist', '{"reason":"approach_replaced","previous_approach":"per_device_throttle"}'::jsonb, now() - interval '21 days'),
 
   ('10000000-2a01-4000-8000-000000000028', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000003', 'decision', '10000000-000a-4000-8000-000000000001', 'superseded_by',
+   'decision', '10000000-000a-4000-8000-000000000001', 'decision', '10000000-0a00-4000-8000-000000000003', 'supersedes',
    'One digest pass was the plan until the tablet gap showed up. The pending two-pass ruling supersedes the single-pass sequencing.',
    'strategist', '{"reason":"scope_split","passes":2}'::jsonb, now() - interval '3 days'),
 
   -- The killed bet, with the reason on the record
   ('10000000-2a01-4000-8000-000000000029', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'opportunity', '10000000-0b00-4000-8000-000000000005', 'decision', '10000000-0a00-4000-8000-000000000002', 'killed_by',
+   'decision', '10000000-0a00-4000-8000-000000000002', 'opportunity', '10000000-0b00-4000-8000-000000000005', 'kills',
    'The critic killed one-tap crypto checkout against the same funnel the fix ruling used: 61 of 5210 checkouts ever opened the payment method picker.',
    'critic', '{"picker_opens":61,"checkout_starts":5210,"share":0.012}'::jsonb, now() - interval '19 days'),
 
   ('10000000-2a01-4000-8000-000000000030', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'opportunity', '10000000-0b00-4000-8000-000000000005', 'opportunity', '10000000-0b00-4000-8000-000000000001', 'superseded_by',
+   'opportunity', '10000000-0b00-4000-8000-000000000001', 'opportunity', '10000000-0b00-4000-8000-000000000005', 'supersedes',
    'The crypto bet and the address bet were chasing the same drop-off. The address fix covers it with far less surface area, so it takes the slot.',
    'critic', NULL, now() - interval '19 days'),
 
@@ -230,28 +241,28 @@ VALUES
    'release-manager', NULL, now() - interval '28 days'),
 
   ('10000000-2a01-4000-8000-000000000034', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'deployment', '10000000-0007-4000-8000-000000000001', 'learning', '10000000-0009-4000-8000-000000000001', 'measured_by',
+   'learning', '10000000-0009-4000-8000-000000000001', 'deployment', '10000000-0007-4000-8000-000000000001', 'measures',
    'Fleet coverage was tracked daily after the release until it flattened, which is where the nine-day number comes from.',
    'data-analyst', '{"fleet_size":12480,"days_to_full_coverage":9}'::jsonb, now() - interval '18 days'),
 
   ('10000000-2a01-4000-8000-000000000035', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'prd', '10000000-0001-4000-8000-000000000003', 'learning', '10000000-0009-4000-8000-000000000001', 'validated_by',
+   'learning', '10000000-0009-4000-8000-000000000001', 'prd', '10000000-0001-4000-8000-000000000003', 'validates',
    'The PRD asked for full-fleet coverage inside two weeks. Nine days beat it, so the doc closes as met.',
    'qa', NULL, now() - interval '18 days'),
 
   ('10000000-2a01-4000-8000-000000000036', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'deployment', '10000000-0d00-4000-8000-000000000001', 'learning', '10000000-0009-4000-8000-000000000002', 'measured_by',
+   'learning', '10000000-0009-4000-8000-000000000002', 'deployment', '10000000-0d00-4000-8000-000000000001', 'measures',
    'Lost-checklist rate was pulled from installer job records for the four weeks after offline mode shipped.',
    'data-analyst', '{"jobs_sampled":3140,"lost_rate_before":0.11,"lost_rate_after":0.018}'::jsonb, now() - interval '20 days'),
 
   ('10000000-2a01-4000-8000-000000000037', '1339eea2-e170-4e37-a581-e2bec0b676c7', '10000000-0000-4000-8000-000000000000',
-   'prd', '10000000-0001-4000-8000-000000000001', 'learning', '10000000-0009-4000-8000-000000000002', 'validated_by',
+   'learning', '10000000-0009-4000-8000-000000000002', 'prd', '10000000-0001-4000-8000-000000000001', 'validates',
    'Offline mode was written to stop installers losing checklists in basements and on rural roofs. The rate fell from 11 percent to under 2, so the doc holds.',
    'qa', NULL, now() - interval '20 days'),
 
   -- Beacon SSO thread, currently in flight
   ('10000000-2a01-4000-8000-000000000038', '9e7958c5-3560-4133-ad83-0f8c42f1b33d', '10000000-0000-4000-8000-000000000000',
-   'decision', '10000000-0a00-4000-8000-000000000005', 'prd', '10000000-0001-4000-8000-000000000031', 'informed_by',
+   'decision', '10000000-0a00-4000-8000-000000000005', 'prd', '10000000-0001-4000-8000-000000000031', 'informs',
    'Keeping Relay on the shared auth package is why the Beacon SSO PRD extends packages/auth instead of standing up a second identity path.',
    'strategist', '{"shared_package":"packages/auth","avoided_fork":true}'::jsonb, now() - interval '16 days'),
 
