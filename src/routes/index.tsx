@@ -25,6 +25,7 @@ import { Receipts } from "@/components/landing/Receipts";
 import { TrustClose } from "@/components/landing/TrustClose";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { getLandingStats, trackLandingEvent } from "@/lib/landing.functions";
+import { getLandingSessionKey } from "@/lib/landing-session";
 
 const SITE = "https://supaprod.ai";
 
@@ -141,6 +142,11 @@ function LandingPage() {
   }, []);
 
   // Funnel: one visit event per session, no PII (plan section 7.2).
+  //
+  // This is where the session key is first minted, because this is the first
+  // event of the visit. It runs in an effect, so it never executes during SSR
+  // and the server render never reaches for sessionStorage or crypto. The key
+  // is an anonymous join value, not a visitor id: see src/lib/landing-session.ts.
   useEffect(() => {
     try {
       if (sessionStorage.getItem("cad_landing_visit")) return;
@@ -151,7 +157,9 @@ function LandingPage() {
       } catch {
         // unparseable referrer stays blank
       }
-      void trackLandingEvent({ data: { event: "landing_visit", props: { ref } } });
+      void trackLandingEvent({
+        data: { event: "landing_visit", sessionKey: getLandingSessionKey(), props: { ref } },
+      });
     } catch {
       // storage unavailable: skip rather than double-count
     }

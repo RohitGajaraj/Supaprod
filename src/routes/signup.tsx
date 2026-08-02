@@ -7,6 +7,8 @@ import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
+import { claimLandingSession } from "@/lib/landing.functions";
+import { clearLandingSessionKey, peekLandingSessionKey } from "@/lib/landing-session";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -163,6 +165,35 @@ function SignupPage() {
     void recordAuthEvent({
       data: { event: "signup_completed", method: "password", from, plan },
     });
+    // The attribution seam. Everything this person did before this moment was
+    // recorded against an anonymous session key in landing_events; this is the
+    // moment that session becomes an account, and the only moment the two can
+    // honestly be joined. One row, written once, and after that the browser
+    // stops carrying the key at all.
+    //
+    // peek, never mint: somebody who arrived straight at /signup from an email
+    // link has no landing session, and inventing one here would file a claim
+    // that joins nothing.
+    //
+    // Fire and forget, and the session key is deliberately NOT added to the
+    // signup_completed event above. That event goes to a vendor; this claim
+    // stays first party. An anonymous join key is not something to hand to a
+    // third party just because it is convenient to attach.
+    //
+    // KNOWN GAP, stated rather than hidden: the Google path below leaves the
+    // page for the OAuth round trip and comes back on a different route, so it
+    // never reaches this line and a Google signup is still unjoined. Closing it
+    // means claiming from wherever the OAuth return lands, which is a different
+    // surface and a separate change.
+    const landingSession = peekLandingSessionKey();
+    if (landingSession) {
+      void claimLandingSession({ data: { sessionKey: landingSession } })
+        .then(() => clearLandingSessionKey())
+        .catch(() => {
+          // The claim is the only thing that failed. The account exists, the
+          // person is signed in, and nothing about the signup changes.
+        });
+    }
     // Carry a /pricing purchase intent toward the plan section. First-run
     // accounts detour through /onboarding (the gate always wins); the pick
     // note above told the user where to confirm the plan.

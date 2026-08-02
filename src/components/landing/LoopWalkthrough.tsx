@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SUPAPROD_MARK_PATH } from "@/components/supaprod/SupaprodMark";
 import { trackLandingEvent } from "@/lib/landing.functions";
+import { getLandingSessionKey } from "@/lib/landing-session";
 import { LoopReplay, type ReplayTab } from "./replay/Replay";
 
 /**
@@ -243,7 +244,12 @@ export function LoopWalkthrough() {
         <p className="mt-12">
           <a
             href="/demo"
-            onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
+            // Read in the handler, not at render: this section is server rendered.
+            onClick={() =>
+              void trackLandingEvent({
+                data: { event: "demo_click", sessionKey: getLandingSessionKey() },
+              })
+            }
             className="group inline-flex items-baseline gap-2 font-mono text-[12px] uppercase text-zinc-500 hover:text-white transition-colors"
             style={{ letterSpacing: "0.12em" }}
           >

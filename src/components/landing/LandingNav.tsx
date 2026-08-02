@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { trackLandingEvent } from "@/lib/landing.functions";
+import { getLandingSessionKey } from "@/lib/landing-session";
 
 /**
  * Sparse nav per the v2 plan: Demo, Pricing, Security, Sign in, the beta CTA,
@@ -20,7 +21,12 @@ export function LandingNav() {
       <div className="hidden md:flex items-center gap-8">
         <a
           href="/demo"
-          onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
+          // Read in the handler, not at render: this nav is server rendered.
+          onClick={() =>
+            void trackLandingEvent({
+              data: { event: "demo_click", sessionKey: getLandingSessionKey() },
+            })
+          }
           className="text-sm text-zinc-400 hover:text-white transition-colors"
         >
           Demo

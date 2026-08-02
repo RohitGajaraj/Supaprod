@@ -1,4 +1,5 @@
 import { trackLandingEvent } from "@/lib/landing.functions";
+import { getLandingSessionKey } from "@/lib/landing-session";
 import { MarkGlint } from "./MarkGlint";
 
 /**
@@ -242,7 +243,15 @@ export function Hero() {
               </a>
               <a
                 href="/demo"
-                onClick={() => void trackLandingEvent({ data: { event: "demo_click" } })}
+                // The session key is read inside the handler, never at render,
+                // so SSR paints this link without touching sessionStorage. It
+                // comes back undefined if the browser will not give us one, and
+                // the event fires anyway with no key attached.
+                onClick={() =>
+                  void trackLandingEvent({
+                    data: { event: "demo_click", sessionKey: getLandingSessionKey() },
+                  })
+                }
                 className="hero-quiet group rounded-sm text-sm text-zinc-400"
               >
                 Watch a real run{" "}

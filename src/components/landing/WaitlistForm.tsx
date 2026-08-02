@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { joinWaitlist, trackLandingEvent, type JoinWaitlistResult } from "@/lib/landing.functions";
+import { getLandingSessionKey } from "@/lib/landing-session";
 
 /**
  * The waitlist mechanic (plan section 7.1): email + the optional bet field.
@@ -43,6 +44,7 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
       betText?: string;
       referredBy?: string;
       website?: string;
+      sessionKey?: string;
     }) => joinWaitlist({ data: input }),
   });
 
@@ -76,7 +78,9 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
                   .then(() => {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
-                    void trackLandingEvent({ data: { event: "referral_share" } });
+                    void trackLandingEvent({
+                      data: { event: "referral_share", sessionKey: getLandingSessionKey() },
+                    });
                   })
                   .catch(() => {});
               }}
@@ -101,6 +105,10 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           betText: bet || undefined,
           referredBy,
           website: website || undefined,
+          // Read on submit, never at render, so the form server renders without
+          // touching sessionStorage. The join succeeds either way: the key only
+          // decides whether the waitlist_join event can be tied to the visit.
+          sessionKey: getLandingSessionKey(),
         });
       }}
     >
