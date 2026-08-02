@@ -30,85 +30,72 @@ describe("extractThemesJson", () => {
   });
 });
 
-import { describe as describeTest, expect as expectTest, test as testFn } from "bun:test";
-
-// THEME GROWTH: helper logic and tests for the re-activation mechanism
-// When a dismissed theme receives escalating signals, it should automatically
-// re-activate (status -> 'new') if the frequency crosses the escalation threshold.
-// This is the "conditional decline until it escalates" mechanism.
-
 /**
- * Determine if a theme should re-activate based on its current status and new
- * frequency after signal attachment. Used by the theme-growth logic in
- * clusterSignalsCore to decide whether to flip a dismissed theme back to "new"
- * when it escalates.
+ * Theme growth gates, tested against the SHIPPED functions.
  *
- * Re-activation is conservative: only dismissed/merged/archived themes (not
- * "done", which is user-settled) get a chance, and only if the new frequency
- * crosses a threshold (>= 5). This prevents stray signals from re-activating
- * while allowing genuine escalation to resurface dismissed themes.
+ * These tests previously declared their own local copies of shouldReactivateTheme
+ * and isValidThemeMatch inside this file and asserted against those, importing
+ * bun:test a second time under aliases to do it. So they passed while never once
+ * touching the code that runs, and they went on passing after the real
+ * shouldReactivateTheme was corrected on 2026-08-02, still asserting the OLD
+ * behaviour: a flat "frequency >= 5" bar and `merged` counting as re-activatable.
+ * A test that green-lights the exact defect it is named after is worse than no
+ * test, because it is read as evidence.
  */
-export function shouldReactivateTheme(
-  currentStatus: string | null | undefined,
-  newFrequency: number
-): boolean {
-  const status = (currentStatus ?? "").toLowerCase();
-  const isDismissed = status === "dismissed" || status === "merged" || status === "archived";
-  return isDismissed && newFrequency >= 5;
-}
+import { shouldReactivateTheme, isValidThemeMatch } from "./cluster.server";
+import { THEME_ATTACH_THRESHOLD } from "./theme-growth";
 
-describeTest("shouldReactivateTheme", () => {
-  testFn("re-activates dismissed themes at frequency threshold (>= 5)", () => {
-    expectTest(shouldReactivateTheme("dismissed", 5)).toBe(true);
-    expectTest(shouldReactivateTheme("dismissed", 6)).toBe(true);
-    expectTest(shouldReactivateTheme("merged", 5)).toBe(true);
-    expectTest(shouldReactivateTheme("archived", 5)).toBe(true);
+describe("shouldReactivateTheme", () => {
+  test("measures growth against the size at the decline, not a flat count", () => {
+    // Declined at 2, now 5: doubled AND grew by 3, so it comes back.
+    expect(shouldReactivateTheme("dismissed", 5, 2)).toBe(true);
+    // Declined at 2, now 4: doubled but only grew by 2, so it stays quiet.
+    expect(shouldReactivateTheme("dismissed", 4, 2)).toBe(false);
   });
 
-  testFn("does not re-activate dismissed themes below threshold", () => {
-    expectTest(shouldReactivateTheme("dismissed", 1)).toBe(false);
-    expectTest(shouldReactivateTheme("dismissed", 4)).toBe(false);
-    expectTest(shouldReactivateTheme("merged", 0)).toBe(false);
+  test("does not re-open a large decline on a single new signal", () => {
+    // The old flat ">= 5" rule returned true here, which handed the user back a
+    // decision they had just closed. It must not.
+    expect(shouldReactivateTheme("dismissed", 41, 40)).toBe(false);
+    expect(shouldReactivateTheme("dismissed", 80, 40)).toBe(true);
   });
 
-  testFn("does not re-activate themes with other statuses", () => {
-    expectTest(shouldReactivateTheme("new", 5)).toBe(false);
-    expectTest(shouldReactivateTheme("active", 5)).toBe(false);
-    expectTest(shouldReactivateTheme("done", 5)).toBe(false); // User settled; don't override
-    expectTest(shouldReactivateTheme(null, 5)).toBe(false);
-    expectTest(shouldReactivateTheme("", 5)).toBe(false);
+  test("a theme declined before the column existed never escalates", () => {
+    expect(shouldReactivateTheme("dismissed", 999, null)).toBe(false);
+    expect(shouldReactivateTheme("dismissed", 999, undefined)).toBe(false);
   });
 
-  testFn("handles case-insensitive status strings", () => {
-    expectTest(shouldReactivateTheme("DISMISSED", 5)).toBe(true);
-    expectTest(shouldReactivateTheme("Merged", 5)).toBe(true);
-    expectTest(shouldReactivateTheme("ARCHIVED", 5)).toBe(true);
+  test("only a dismissed theme is re-activatable", () => {
+    // `merged` is deliberately NOT re-activatable: its evidence belongs to the
+    // theme it was merged into, so reopening it strands that evidence.
+    expect(shouldReactivateTheme("merged", 50, 2)).toBe(false);
+    expect(shouldReactivateTheme("new", 50, 2)).toBe(false);
+    expect(shouldReactivateTheme("active", 50, 2)).toBe(false);
+    expect(shouldReactivateTheme(null, 50, 2)).toBe(false);
+    expect(shouldReactivateTheme("", 50, 2)).toBe(false);
+  });
+
+  test("status matching stays case insensitive", () => {
+    expect(shouldReactivateTheme("DISMISSED", 5, 2)).toBe(true);
   });
 });
 
-/**
- * Validate that a signal-to-theme match is strong enough to warrant attachment.
- * Uses cosine similarity with a conservative threshold to avoid attaching
- * semantically unrelated signals to themes.
- */
-export function isValidThemeMatch(similarity: number): boolean {
-  // 0.7+ cosine similarity = roughly 45 degrees in vector space.
-  // Below this, the match is noise (even random vectors have non-zero similarity).
-  return similarity >= 0.7;
-}
-
-describeTest("isValidThemeMatch", () => {
-  testFn("accepts high-similarity matches", () => {
-    expectTest(isValidThemeMatch(0.7)).toBe(true);
-    expectTest(isValidThemeMatch(0.8)).toBe(true);
-    expectTest(isValidThemeMatch(0.99)).toBe(true);
-    expectTest(isValidThemeMatch(1.0)).toBe(true);
+describe("isValidThemeMatch", () => {
+  test("accepts a match at or above the attach threshold", () => {
+    expect(isValidThemeMatch(THEME_ATTACH_THRESHOLD)).toBe(true);
+    expect(isValidThemeMatch(0.95)).toBe(true);
+    expect(isValidThemeMatch(1)).toBe(true);
   });
 
-  testFn("rejects low-similarity matches", () => {
-    expectTest(isValidThemeMatch(0.69)).toBe(false);
-    expectTest(isValidThemeMatch(0.5)).toBe(false);
-    expectTest(isValidThemeMatch(0.0)).toBe(false);
-    expectTest(isValidThemeMatch(-0.1)).toBe(false);
+  test("rejects the merely-related band the old 0.7 bar let through", () => {
+    expect(isValidThemeMatch(0.7)).toBe(false);
+    expect(isValidThemeMatch(0.79)).toBe(false);
+    expect(isValidThemeMatch(0.5)).toBe(false);
+    expect(isValidThemeMatch(0)).toBe(false);
+    expect(isValidThemeMatch(-0.1)).toBe(false);
+  });
+
+  test("stays pinned to the shared constant so the two cannot drift", () => {
+    expect(isValidThemeMatch(THEME_ATTACH_THRESHOLD - 0.001)).toBe(false);
   });
 });
