@@ -16,6 +16,11 @@ import { enqueueFanout, fanoutEnabled } from "@/lib/ai/fanout.server";
 import { FANOUT_MAX_CHILDREN, fanoutDepthOf, canSpawnAtDepth } from "@/lib/ai/fanout";
 import { submitDelegation } from "@/lib/delegate/openhands.server";
 import { DELEGATE_TASK_MAX_CHARS } from "@/lib/delegate/provider";
+import { rememberOutcome } from "@/lib/ai/memory.server";
+// The verdict rules, read from the one place that owns them, so the agent path
+// and the human recordOutcome path can never disagree about what a verdict does
+// to a bet's confidence. See the comment on the exports in outcome.functions.ts.
+import { VERDICT_CONFIDENCE_DELTA, clampConfidence, iceOf } from "@/lib/outcome.functions";
 import { webSearch, webFetch, webMap, webCrawl } from "./firecrawl.server";
 import {
   missionPlan,
@@ -2779,23 +2784,119 @@ const learningRecord = def({
   preview: (a) =>
     `Record learning (${a.verdict}): "${a.summary.slice(0, 60)}${a.summary.length > 60 ? "..." : ""}"`,
   run: async (a, { supabase, userId, agentSlug, missionId, workspaceId }) => {
+    // THE LOOP HAS TO CLOSE FOR THE AGENT, NOT ONLY FOR THE HUMAN.
+    //
+    // This used to insert a learnings row carrying prd_id and nothing else. That
+    // looked complete and was not: listLearnings derives a learning's theme
+    // THROUGH opportunity_id, and /decide drops any learning with no theme, so
+    // an agent's verdict was written to a table nobody's ranking could see. The
+    // human path and the nightly outcome-review cron both set it and both work.
+    // In a product whose claim is that agents run the loop unattended, the
+    // unattended path was the one that did not compound.
+    //
+    // So the tool now does what recordOutcome does, reading the SAME exported
+    // rules rather than a second copy of the arithmetic: resolve the bet behind
+    // the spec, move its confidence by the verdict, recompute ICE, and carry
+    // prior/new ICE onto the learning so the audit trail matches.
+    let opportunityId: string | null = null;
+    let resolvedWorkspace: string | null = workspaceId ?? null;
+    let priorIce: number | null = null;
+    let newIce: number | null = null;
+    let prdTitle: string | null = null;
+    let oppTitle: string | null = null;
+
+    if (a.prd_id) {
+      const { data: prd } = await supabase
+        .from("prds")
+        .select("id,workspace_id,opportunity_id,title")
+        .eq("id", a.prd_id)
+        .maybeSingle();
+      if (prd) {
+        opportunityId = (prd.opportunity_id as string | null) ?? null;
+        resolvedWorkspace = (prd.workspace_id as string | null) ?? resolvedWorkspace;
+        prdTitle = (prd.title as string | null) ?? null;
+      }
+    }
+
+    if (opportunityId) {
+      const { data: opp } = await supabase
+        .from("opportunities")
+        .select("id,impact,confidence,ease,ice_score,title")
+        .eq("id", opportunityId)
+        .maybeSingle();
+      if (opp) {
+        oppTitle = (opp.title as string | null) ?? null;
+        priorIce = opp.ice_score == null ? null : Number(opp.ice_score);
+        // `uncertain` is deliberately absent from the delta table and must not
+        // move confidence: the tool's own description tells the agent to say
+        // uncertain rather than guess, so acting on it would punish honesty.
+        const delta = VERDICT_CONFIDENCE_DELTA[a.verdict as keyof typeof VERDICT_CONFIDENCE_DELTA];
+        if (typeof delta === "number") {
+          const newConfidence = clampConfidence((opp.confidence ?? 5) + delta);
+          await supabase
+            .from("opportunities")
+            .update({ confidence: newConfidence, updated_at: new Date().toISOString() })
+            .eq("id", opp.id);
+          // ice_score is a GENERATED column, so compute the new value here rather
+          // than re-reading a row Postgres has not recomputed yet.
+          newIce = iceOf(opp.impact, newConfidence, opp.ease);
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("learnings")
       .insert({
         user_id: userId,
-        workspace_id: workspaceId ?? null,
+        workspace_id: resolvedWorkspace,
         mission_id: missionId ?? null,
         prd_id: a.prd_id ?? null,
+        opportunity_id: opportunityId,
         summary: a.summary,
         verdict: a.verdict,
         metric_label: a.metric_label ?? null,
         metric_value: a.metric_value ?? null,
+        prior_ice: priorIce,
+        new_ice: newIce,
         recorded_by_agent_slug: agentSlug ?? null,
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    return { learning_id: (data as { id: string }).id, verdict: a.verdict };
+    const learningId = (data as { id: string }).id;
+
+    // The verdict has to reach memory too, or the next Critic red-team cannot
+    // cite it. Best effort: the learning is already written and a memory miss
+    // must not fail the tool. rememberOutcome refuses to insert an unembeddable
+    // memory by design, since match_agent_memory hard filters on the vector.
+    if (a.prd_id) {
+      try {
+        await rememberOutcome(supabase, {
+          userId,
+          workspaceId: resolvedWorkspace,
+          prdId: a.prd_id,
+          opportunityId,
+          learningId,
+          content: a.summary,
+          importance: a.verdict === "uncertain" ? 3 : 5,
+          verdict: a.verdict,
+          priorIce,
+          newIce,
+          prdTitle,
+          oppTitle,
+        });
+      } catch (e) {
+        console.error("learning.record rememberOutcome failed", e);
+      }
+    }
+
+    return {
+      learning_id: learningId,
+      verdict: a.verdict,
+      opportunity_id: opportunityId,
+      prior_ice: priorIce,
+      new_ice: newIce,
+    };
   },
 });
 

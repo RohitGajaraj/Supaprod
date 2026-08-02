@@ -188,21 +188,30 @@ export const checkPrdShipped = createServerFn({ method: "POST" })
 
 // `OutcomeVerdict` is declared further down with the Historian; TS hoists the
 // type, so this stays next to the write it governs.
-const VERDICT_CONFIDENCE_DELTA: Record<OutcomeVerdict, number> = {
+// EXPORTED 2026-08-02 so the agent path cannot drift from the human one. The
+// `learning.record` agent tool used to write a learning with no opportunity_id
+// at all, which meant the ranking could not see an agent's verdict (listLearnings
+// derives the theme through that column and /decide drops a learning with no
+// theme). Closing that required the agent path to move confidence and recompute
+// ICE exactly as this file does. Two copies of that arithmetic would eventually
+// disagree, and the one surface whose entire authority is that the record is
+// true is the worst place to let that happen, so there is one copy and both
+// callers read it.
+export const VERDICT_CONFIDENCE_DELTA: Record<OutcomeVerdict, number> = {
   validated: 2,
   missed: -2,
   mixed: 0,
 };
 
 /** confidence is a 1..10 axis; a verdict may push it out and it clamps back. */
-function clampConfidence(n: number): number {
+export function clampConfidence(n: number): number {
   return Math.min(10, Math.max(1, n));
 }
 
 /** ICE is the mean of the three axes. `ice_score` is a GENERATED column, so a
  *  caller that has just changed confidence computes the new value rather than
  *  re-reading a row Postgres has not recomputed for it yet. */
-function iceOf(impact: number | null, confidence: number, ease: number | null): number {
+export function iceOf(impact: number | null, confidence: number, ease: number | null): number {
   return ((impact ?? 5) + confidence + (ease ?? 5)) / 3;
 }
 

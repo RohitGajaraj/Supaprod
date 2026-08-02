@@ -90,11 +90,15 @@ purpose of agents?"_**
   `loop.server.ts:1103`'s `?? "confirm"` inverted the principle. That was wrong: the loop fails
   closed before that line, and the only calls reaching the fallback are control-flow tools that
   short-circuit the queue branch, so it cannot cause a single approval.)_
-- **The one indefensible default, and it is live:** `mission_spend_cap_usd` is enforced fail-closed
-  at `runtime.server.ts:226-238`, and **every writer passes `?? null`** (`handoff.server.ts:419`,
-  `loop.server.ts:491` and `:523`), so the ceiling never fires. **There is no spend cap.** Ship a
-  workspace default before telling the autonomy story, because arguing for more autonomy without a
-  ceiling is the one version of this that a risk officer will refuse.
+- **The spend ceiling: CLOSED 2026-07-30, this paragraph was stale and is corrected here.** It used
+  to read "there is no spend cap", because every writer passed `?? null` and the fail-closed check at
+  `runtime.server.ts:226-238` therefore never fired. That is no longer true. Migration
+  `20260730010000_mission_spend_cap_default.sql:28-30` added `workspaces.default_mission_spend_cap_usd`,
+  all three writers now resolve through `resolveMissionSpendCap` (`src/lib/ai/mission-caps.server.ts:46`,
+  default 10 USD at `:36`, failing **closed** at `:62`), and a separate 5 USD track ceiling exists at
+  `src/lib/spine/track-caps.server.ts:53`. The autonomy story can now be told with a ceiling behind it.
+  **One residual hole, do not call this fully closed:** `src/lib/ai/fanout.server.ts:66` still passes an
+  explicit `null`, which reads as a deliberate "no ceiling" on the fanout path.
 - **The machinery already exists; promote it from Settings to the centre of the product.**
   `resolveToolMode` + `toolRisk` (per-tool auto/confirm/off with hard risk floors),
   `ai/trust.server.ts` (agents earn autonomy from their record), `trust_graduation_proposals` +
