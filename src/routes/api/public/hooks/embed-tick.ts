@@ -4,7 +4,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { backfillSignalEmbeddings, EMBED_SWEEP_BATCH } from "@/lib/sources/signal-embedding.server";
 import { backfillThemeEmbeddings, THEME_EMBED_BATCH } from "@/lib/brain/theme-embedding.server";
 import { backfillMemoryEmbeddings, MEMORY_EMBED_BATCH } from "@/lib/brain/memory-embedding.server";
+import {
+  backfillEntityEmbeddings,
+  ENTITY_EMBEDDING_SPECS,
+  type EntityBackfillResult,
+} from "@/lib/brain/entity-embedding.server";
 import { withJobRun } from "@/lib/observability";
+import { recordErrorEvent } from "@/lib/observability/errors";
 
 /**
  * Signal embedding sweeper, stamps the comparison vector on any signal that does
@@ -63,8 +69,13 @@ export const Route = createFileRoute("/api/public/hooks/embed-tick")({
             themeEmbedded = t.embedded;
             themeFailed = t.failed;
           } catch (e) {
-            // Never let the theme sweep bury the signal sweep's result.
+            // Never let the theme sweep bury the signal sweep's result, and never
+            // let it fail into a console instead of error_events.
             console.error("embed-tick theme backfill failed", e);
+            void recordErrorEvent(e, {
+              surface: "cron.embed-tick.themes",
+              failure_kind: "sweep_failed",
+            });
           }
 
           // Memories, for the same reason and with a sharper edge. match_agent_memory
@@ -82,6 +93,45 @@ export const Route = createFileRoute("/api/public/hooks/embed-tick")({
             memFailed = m.failed;
           } catch (e) {
             console.error("embed-tick memory backfill failed", e);
+            void recordErrorEvent(e, {
+              surface: "cron.embed-tick.memory",
+              failure_kind: "sweep_failed",
+            });
+          }
+
+          // The four entities that hold the judgment: opportunities, decisions, prds
+          // and learnings. Until now none of them had an embedding column at all, so
+          // the record a product team builds up was the one part of the brain that
+          // semantic recall could not reach, and "have we thought about this before"
+          // was answered by proxy through agent_memory instead of by the decision
+          // that actually holds the answer. Table-driven, one helper, four specs:
+          // see `lib/brain/entity-embedding.server.ts`.
+          //
+          // Each sweep gets its OWN try/catch so one failing table cannot bury the
+          // other three, or the three sweeps above it. And each failure is REPORTED
+          // to error_events under its own surface, not written to a console: today
+          // the memory sweeper failed for hours while this route kept returning ok,
+          // because a sweeper that has never once succeeded and a sweeper with
+          // nothing to do look identical from the outside.
+          const entities: Record<string, EntityBackfillResult> = {};
+          for (const spec of ENTITY_EMBEDDING_SPECS) {
+            try {
+              entities[spec.table] = await backfillEntityEmbeddings(supabaseAdmin, spec);
+            } catch (e) {
+              console.error(`embed-tick ${spec.table} backfill failed`, e);
+              void recordErrorEvent(e, {
+                surface: spec.errorSurface,
+                failure_kind: "sweep_failed",
+                extras: { table: spec.table },
+              });
+              entities[spec.table] = {
+                table: spec.table,
+                scanned: 0,
+                skipped: 0,
+                embedded: 0,
+                failed: 0,
+              };
+            }
           }
 
           return new Response(
@@ -94,6 +144,7 @@ export const Route = createFileRoute("/api/public/hooks/embed-tick")({
               memScanned,
               memEmbedded,
               memFailed,
+              entities,
               scanned,
               embedded,
               failed,
