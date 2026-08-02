@@ -1662,19 +1662,82 @@ export async function callModel(
     }
   }
   if (useGuards) {
+    // AN INPUT BLOCK USED TO BE INVISIBLE EVERYWHERE, on BOTH call paths. This
+    // threw straight out of a .map() without writing an ai_events row, so the one
+    // call the product refused outright left no trace at all: not in the ledger,
+    // not in gate pressure, not in the cost record. The OUTPUT-side block has
+    // always written its row, so refusals were half recorded, and the missing
+    // half was the half that never even reached a provider.
+    //
+    // It matters past tidiness. "How often do we refuse a user, and which rule
+    // does it" is the question the governance canon needs answered before the
+    // product can honestly offer to relax a rule, and the input side is where
+    // most refusals live.
+    //
+    // The block is detected first and handled OUTSIDE the map, because writing
+    // the row is async and a throw from inside a synchronous map cannot await.
+    let blockedBy: string | null = null;
     messages = messages.map((m) => {
       if (m.role !== "user") return m;
       const r = evaluateGuardrails(m.content, rules, "input");
       r.hits.forEach((h) => hits.push(h));
-      if (r.blocked)
-        throw Object.assign(
-          new Error(
-            `A safety rule blocked this: ${r.hits.find((h) => h.action === "block")?.rule_name}`,
-          ),
-          { code: "GUARDRAIL_BLOCK" },
-        );
+      if (r.blocked && !blockedBy) {
+        blockedBy = r.hits.find((h) => h.action === "block")?.rule_name ?? "a safety rule";
+      }
       return { ...m, content: r.text };
     });
+
+    if (blockedBy) {
+      const reason = `A safety rule blocked this: ${blockedBy}`;
+      // Fail-safe: the refusal is the point, so a telemetry failure must never
+      // turn a clean block into a confusing crash. Record what we can, then throw
+      // the same error with the same code, so every caller behaves as before.
+      try {
+        const { data: blockEvt } = await supabase
+          .from("ai_events")
+          .insert({
+            user_id: userId,
+            surface: opts.surface,
+            model: effectiveModel,
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            total_tokens: 0,
+            est_cost_usd: 0,
+            latency_ms: 0,
+            status: "blocked",
+            error_code: GATE_CODES.guardrail_block,
+            error_message: reason,
+            input_preview: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
+          })
+          .select("id")
+          .single();
+        const blockEventId = (blockEvt as { id: string } | null)?.id ?? null;
+        if (blockEventId && hits.length) {
+          await supabase.from("guardrail_hits").insert(
+            hits.map((h) => ({
+              user_id: userId,
+              event_id: blockEventId,
+              rule_id: h.rule_id,
+              rule_name: h.rule_name,
+              kind: h.kind,
+              side: h.side,
+              action: h.action,
+              matched: h.matched,
+            })),
+          );
+        }
+        void noteGate(GATE_CODES.guardrail_block, {
+          userId,
+          surface: opts.surface,
+          model: effectiveModel,
+          workspaceId: opts.workspaceId ?? null,
+          runId: opts.runId ?? null,
+        });
+      } catch (e) {
+        console.error("input guardrail block telemetry failed:", e);
+      }
+      throw Object.assign(new Error(reason), { code: "GUARDRAIL_BLOCK" });
+    }
   }
 
   // 2b. Soft humanization directive (prose only; JSON/tool-calling calls keep
@@ -2191,19 +2254,82 @@ export async function callModelStream(
   }
 
   if (useGuards) {
+    // AN INPUT BLOCK USED TO BE INVISIBLE EVERYWHERE, on BOTH call paths. This
+    // threw straight out of a .map() without writing an ai_events row, so the one
+    // call the product refused outright left no trace at all: not in the ledger,
+    // not in gate pressure, not in the cost record. The OUTPUT-side block has
+    // always written its row, so refusals were half recorded, and the missing
+    // half was the half that never even reached a provider.
+    //
+    // It matters past tidiness. "How often do we refuse a user, and which rule
+    // does it" is the question the governance canon needs answered before the
+    // product can honestly offer to relax a rule, and the input side is where
+    // most refusals live.
+    //
+    // The block is detected first and handled OUTSIDE the map, because writing
+    // the row is async and a throw from inside a synchronous map cannot await.
+    let blockedBy: string | null = null;
     messages = messages.map((m) => {
       if (m.role !== "user") return m;
       const r = evaluateGuardrails(m.content, rules, "input");
       r.hits.forEach((h) => hits.push(h));
-      if (r.blocked)
-        throw Object.assign(
-          new Error(
-            `A safety rule blocked this: ${r.hits.find((h) => h.action === "block")?.rule_name}`,
-          ),
-          { code: "GUARDRAIL_BLOCK" },
-        );
+      if (r.blocked && !blockedBy) {
+        blockedBy = r.hits.find((h) => h.action === "block")?.rule_name ?? "a safety rule";
+      }
       return { ...m, content: r.text };
     });
+
+    if (blockedBy) {
+      const reason = `A safety rule blocked this: ${blockedBy}`;
+      // Fail-safe: the refusal is the point, so a telemetry failure must never
+      // turn a clean block into a confusing crash. Record what we can, then throw
+      // the same error with the same code, so every caller behaves as before.
+      try {
+        const { data: blockEvt } = await supabase
+          .from("ai_events")
+          .insert({
+            user_id: userId,
+            surface: opts.surface,
+            model: effectiveModel,
+            prompt_tokens: 0,
+            completion_tokens: 0,
+            total_tokens: 0,
+            est_cost_usd: 0,
+            latency_ms: 0,
+            status: "blocked",
+            error_code: GATE_CODES.guardrail_block,
+            error_message: reason,
+            input_preview: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
+          })
+          .select("id")
+          .single();
+        const blockEventId = (blockEvt as { id: string } | null)?.id ?? null;
+        if (blockEventId && hits.length) {
+          await supabase.from("guardrail_hits").insert(
+            hits.map((h) => ({
+              user_id: userId,
+              event_id: blockEventId,
+              rule_id: h.rule_id,
+              rule_name: h.rule_name,
+              kind: h.kind,
+              side: h.side,
+              action: h.action,
+              matched: h.matched,
+            })),
+          );
+        }
+        void noteGate(GATE_CODES.guardrail_block, {
+          userId,
+          surface: opts.surface,
+          model: effectiveModel,
+          workspaceId: opts.workspaceId ?? null,
+          runId: opts.runId ?? null,
+        });
+      } catch (e) {
+        console.error("input guardrail block telemetry failed:", e);
+      }
+      throw Object.assign(new Error(reason), { code: "GUARDRAIL_BLOCK" });
+    }
   }
 
   // 2b. Soft humanization directive (prose only). The streamed output also
