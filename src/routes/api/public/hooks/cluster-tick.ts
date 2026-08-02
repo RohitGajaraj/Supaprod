@@ -6,6 +6,8 @@ import { markRoutineRun } from "@/lib/routines.server";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { withJobRun } from "@/lib/observability";
 import { promoteClustersOnce } from "@/lib/spine/promote.server";
+import { loadAutonomyPolicy } from "@/lib/autonomy-policy.server";
+import { promotionBarFor } from "@/lib/autonomy-policy";
 
 // workspace_routine_prefs (PC-08, migration 20260710220000) predates the
 // last generated Supabase types.
@@ -106,7 +108,19 @@ export const Route = createFileRoute("/api/public/hooks/cluster-tick")({
               let already = 0;
               let promotionBlocked: string | undefined;
               try {
-                const sweep = await promoteClustersOnce(supabaseAdmin, ws.owner_id);
+                // THE BAR IS THE WORKSPACE'S, NOT OURS. Frequency, severity and
+                // confidence decide when a cluster becomes work that starts
+                // spending with nobody watching, so by the canon's fourth floor
+                // they are policy a person sets on /boundary rather than a
+                // constant we chose for them. A workspace that has set nothing
+                // resolves to the platform bar, so this changes nothing until
+                // somebody deliberately moves it.
+                const policy = await loadAutonomyPolicy(routinesDb, ws.id);
+                const sweep = await promoteClustersOnce(
+                  supabaseAdmin,
+                  ws.owner_id,
+                  promotionBarFor(policy),
+                );
                 started = sweep.outcomes.filter((p) => p.trackId).length;
                 qualified = sweep.qualified;
                 already = sweep.alreadyPromoted;

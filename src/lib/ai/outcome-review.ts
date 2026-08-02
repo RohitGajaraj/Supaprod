@@ -327,6 +327,26 @@ export const SETTLE_FLOOR = 0.45;
  *  merged change can clear. That is the intent. */
 export const SETTLE_STAKES_SPAN = 0.4;
 
+/**
+ * Where the sliding bar sits, as a value rather than as two constants.
+ *
+ * WHY IT IS A PARAMETER NOW. Governance canon, fourth floor: "a default the
+ * user never set is our choice, not their policy, so it must be visible and
+ * changeable". These two numbers decide when an agent settles a shipped bet's
+ * verdict on its own, which is the sharpest thing on this surface, and until
+ * now a workspace had no way to say where it wanted them. They stay here,
+ * because a workspace that has said nothing must get exactly what the product
+ * ships with; `src/lib/autonomy-policy.ts` supplies the other value when a
+ * person has stated one.
+ *
+ * NOTHING ELSE MOVED. The three hard gates below are floors rather than
+ * settings and take no argument, so no bar passed here can lower them.
+ */
+export type SettleBar = { floor: number; span: number };
+
+/** What the product does when nobody has said otherwise. */
+export const SHIPPED_SETTLE_BAR: SettleBar = { floor: SETTLE_FLOOR, span: SETTLE_STAKES_SPAN };
+
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
 /** How much there is to go on, 0..1. */
@@ -411,10 +431,13 @@ function factsFor(i: SettlementInputs): string[] {
  * Each one is the "genuine judgment with no oracle" floor in a concrete form,
  * and none of them can be cleared by a confident model.
  */
-export function classifyOutcomeSettlement(i: SettlementInputs): SettlementDecision {
+export function classifyOutcomeSettlement(
+  i: SettlementInputs,
+  bar: SettleBar = SHIPPED_SETTLE_BAR,
+): SettlementDecision {
   const evidence = settlementEvidence(i);
   const stakes = settlementStakes(i);
-  const required = SETTLE_FLOOR + SETTLE_STAKES_SPAN * stakes;
+  const required = bar.floor + bar.span * stakes;
   const because = factsFor(i);
   const base = { evidence, stakes, required, because };
 

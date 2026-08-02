@@ -56,10 +56,15 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
 import type { OutcomeContract } from "@/lib/discovery.functions";
 import {
+  decideSettlement,
+  SHIPPED_AUTONOMY_POLICY,
+  type AutonomyPolicy,
+} from "@/lib/autonomy-policy";
+import { loadAutonomyPolicies } from "@/lib/autonomy-policy.server";
+import {
   asReviewVerdict,
   basisFor,
   buildSkeletonReview,
-  classifyOutcomeSettlement,
   composeReviewSummary,
   designationForReview,
   metricWasDeclared,
@@ -176,6 +181,22 @@ export async function runOutcomeReviews(
     ((existing ?? []) as Array<{ prd_id: string | null }>).map((r) => r.prd_id).filter(Boolean),
   );
   const due = plans.filter((p) => !reviewedPrdIds.has(p.prd_id)).slice(0, REVIEWS_PER_TICK);
+
+  // WHERE EACH WORKSPACE PUTS THE SETTLE-OR-ASK BAR.
+  //
+  // The floor and the span decide when an agent puts a verdict on the record
+  // instead of handing the call to a person, which is the sharpest autonomy in
+  // the product, and by the canon's fourth floor a number we picked is our
+  // choice rather than the workspace's policy until they can move it. Read in
+  // one batch here rather than per plan, so a tick of five reviews is one extra
+  // query. A workspace that has stated nothing resolves to the shipped bar, so
+  // this sweep decides exactly as it did before until somebody moves it.
+  const policies = await loadAutonomyPolicies(
+    db,
+    due.map((p) => p.workspace_id),
+  );
+  const policyFor = (workspaceId: string | null): AutonomyPolicy =>
+    (workspaceId ? policies.get(workspaceId) : null) ?? SHIPPED_AUTONOMY_POLICY;
 
   for (const plan of due) {
     try {
@@ -361,7 +382,7 @@ export async function runOutcomeReviews(
         movesTheScore: VERDICT_CONFIDENCE_DELTA[verdict] !== 0,
         holdsPromotionFor,
       };
-      const decision = classifyOutcomeSettlement(inputs);
+      const decision = decideSettlement(inputs, policyFor(plan.workspace_id));
 
       if (decision.action === "escalate") {
         // Deliberately writes NOTHING. The window stays in the human queue,

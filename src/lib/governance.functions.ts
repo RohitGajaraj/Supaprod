@@ -30,6 +30,13 @@ import {
   type LedgerApprovalRow,
   type LedgerGuardrailRow,
 } from "@/lib/boundary-ledger";
+import {
+  AUTONOMY_BOUNDS,
+  AUTONOMY_COLUMNS,
+  SHIPPED_AUTONOMY_POLICY,
+  type AutonomyField,
+  type AutonomyPolicy,
+} from "@/lib/autonomy-policy";
 
 /** Returns the current pause state for a workspace + recent in-flight missions + stale approvals. */
 export const getGovernanceOverview = createServerFn({ method: "POST" })
@@ -548,6 +555,100 @@ export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
   });
 
 /* ------------------------------------------------------------------ *
+ * The two bars the platform crosses on its own (2026-08-02)
+ * ------------------------------------------------------------------ */
+
+/**
+ * Where this workspace puts the promotion bar and the settle-or-ask bar.
+ *
+ * WHY IT IS A WRITE AND NOT JUST A READ. Both numbers were constants, and the
+ * governance canon's fourth floor is explicit that a default the user never set
+ * is our choice rather than their policy, so it has to be visible AND
+ * changeable. One of them decides when a cluster of evidence starts spending
+ * money with nobody watching; the other decides when an agent puts a verdict on
+ * a shipped bet instead of asking. Neither is a number a product should keep to
+ * itself.
+ *
+ * Owner-scoped, like every other ceiling on this surface: a boundary is the
+ * accountable person's to move.
+ *
+ * NULL IS A REAL VALUE AND IT MEANS "USE YOURS", not "allow nothing". Clearing
+ * a field puts the shipped default back, which is why the resolver falls back
+ * per field rather than per row.
+ */
+export const setWorkspaceAutonomyPolicy = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        minFrequency: z
+          .number()
+          .int()
+          .min(AUTONOMY_BOUNDS.minFrequency.min)
+          .max(AUTONOMY_BOUNDS.minFrequency.max)
+          .nullable()
+          .optional(),
+        minSeverity: z
+          .number()
+          .int()
+          .min(AUTONOMY_BOUNDS.minSeverity.min)
+          .max(AUTONOMY_BOUNDS.minSeverity.max)
+          .nullable()
+          .optional(),
+        minConfidence: z
+          .number()
+          .min(AUTONOMY_BOUNDS.minConfidence.min)
+          .max(AUTONOMY_BOUNDS.minConfidence.max)
+          .nullable()
+          .optional(),
+        settleFloor: z
+          .number()
+          .min(AUTONOMY_BOUNDS.settleFloor.min)
+          .max(AUTONOMY_BOUNDS.settleFloor.max)
+          .nullable()
+          .optional(),
+        settleStakesSpan: z
+          .number()
+          .min(AUTONOMY_BOUNDS.settleStakesSpan.min)
+          .max(AUTONOMY_BOUNDS.settleStakesSpan.max)
+          .nullable()
+          .optional(),
+        neverSettleAboveImpact: z
+          .number()
+          .int()
+          .min(AUTONOMY_BOUNDS.neverSettleAboveImpact.min)
+          .max(AUTONOMY_BOUNDS.neverSettleAboveImpact.max)
+          .nullable()
+          .optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("owner_id", userId)
+      .limit(1)
+      .maybeSingle();
+    if (!ws) throw new Error("Only the workspace owner can move these boundaries.");
+
+    // Only what was sent. `null` clears a field back to the shipped default, so
+    // presence and nullishness mean different things and writing an absent
+    // field as null would silently reset a boundary nobody touched.
+    const patch: Record<string, number | null> = {};
+    for (const field of Object.keys(AUTONOMY_COLUMNS) as AutonomyField[]) {
+      if (field in data) patch[AUTONOMY_COLUMNS[field]] = data[field] ?? null;
+    }
+    if (!Object.keys(patch).length) return { ok: true };
+
+    const db = supabase as unknown as SupabaseClient;
+    const { error } = await db.from("workspaces").update(patch).eq("id", ws.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/* ------------------------------------------------------------------ *
  * THE BOUNDARY (founder ruling 2026-08-01)
  * ------------------------------------------------------------------ */
 
@@ -653,6 +754,19 @@ export const getBoundary = createServerFn({ method: "GET" })
       paused = Boolean((sw as { paused?: boolean } | null)?.paused);
     }
 
+    // The two bars the platform crosses on its own. READ SEPARATELY, and that
+    // is the whole point: folding these columns into the ceiling select above
+    // would mean that during the window where this code is live and the
+    // migration is not, the read fails, `ws` comes back null, and the entire
+    // ceiling block silently vanishes from the surface. A policy read that
+    // cannot be answered falls back to what the product ships with and says so
+    // in the log, never to a boundary nobody set.
+    let autonomy: AutonomyPolicy = SHIPPED_AUTONOMY_POLICY;
+    if (ws) {
+      const { loadAutonomyPolicy } = await import("@/lib/autonomy-policy.server");
+      autonomy = await loadAutonomyPolicy(supabase as unknown as SupabaseClient, ws.id);
+    }
+
     const num = (v: number | string | null | undefined) =>
       v === null || v === undefined ? null : Number(v);
     const w = ws as {
@@ -665,6 +779,9 @@ export const getBoundary = createServerFn({ method: "GET" })
       asks,
       never,
       isOwner: Boolean(ws),
+      /** Where this workspace puts the promotion bar and the settle-or-ask bar,
+       *  with the shipped defaults standing in for anything it has not set. */
+      autonomy,
       capUsd: num(w?.default_mission_spend_cap_usd),
       // The ceiling on a piece of work end to end. It is the one that actually
       // bounds unattended spend: a track walks seven stations with a crew at

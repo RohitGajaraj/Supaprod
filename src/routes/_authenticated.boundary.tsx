@@ -65,9 +65,16 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getBoundary,
   getDeclinedLedger,
+  setWorkspaceAutonomyPolicy,
   setWorkspaceSpendPolicy,
 } from "@/lib/governance.functions";
 import type { BoundaryTool } from "@/lib/governance.functions";
+import {
+  AUTONOMY_BOUNDS,
+  SHIPPED_AUTONOMY_POLICY,
+  type AutonomyField,
+  type AutonomyPolicy,
+} from "@/lib/autonomy-policy";
 import type { BoundaryEvent } from "@/lib/boundary-ledger";
 import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
@@ -244,6 +251,126 @@ type LedgerData = {
   truncated: boolean;
 };
 
+/* ------------------------------------------------------------------ *
+ * The two bars the platform crosses on its own
+ * ------------------------------------------------------------------ */
+
+/** A whole percent, for the three numbers stored as a fraction. */
+const pct = (n: number) => Math.round(n * 100);
+
+/**
+ * One number on the policy, as a control you can actually reach.
+ *
+ * Uncontrolled with a `key` on the stored value, which is the same shape the
+ * ceilings above use plus the one thing they lack: after a write lands, the
+ * field is remounted from the record rather than still showing what it showed
+ * on first paint. A boundary screen that disagrees with the record is the exact
+ * defect this whole surface was built against.
+ *
+ * A NULL VALUE IS AN EMPTY FIELD, not a number standing in for one. The
+ * carve-out has no shipped value, and pre-filling it with a plausible impact
+ * would mean that focusing the field and tabbing away silently invented a
+ * boundary nobody stated. Only a real change writes anything.
+ */
+function PolicyNumber({
+  id,
+  label,
+  value,
+  bounds,
+  step,
+  disabled,
+  onCommit,
+}: {
+  id: string;
+  label: string;
+  /** What the field shows, in the unit the reader sees. Null renders empty. */
+  value: number | null;
+  bounds: { min: number; max: number };
+  step: number;
+  disabled?: boolean;
+  /** Null means "clear it": back to the number we ship, or no carve-out. */
+  onCommit: (next: number | null) => void;
+}) {
+  return (
+    <Input
+      // Remounted when the record changes, so the field shows what was stored
+      // rather than what it showed on first paint. A boundary screen that
+      // disagrees with the record is the defect this surface exists against.
+      key={`${id}:${value ?? "unset"}`}
+      id={id}
+      type="number"
+      min={bounds.min}
+      max={bounds.max}
+      step={step}
+      defaultValue={value ?? ""}
+      aria-label={label}
+      style={{ width: 88, textAlign: "right" }}
+      disabled={disabled}
+      onBlur={(e) => {
+        const raw = e.currentTarget.value.trim();
+        if (raw === "") {
+          // Emptying a field is how you hand it back, and it is only a write
+          // when there is something of yours to hand back.
+          if (value !== null) onCommit(null);
+          return;
+        }
+        const next = Number(raw);
+        // A value outside the range is refused rather than pulled to the edge:
+        // silently enforcing a boundary nobody stated is the failure this
+        // surface exists to prevent.
+        if (!Number.isFinite(next) || next < bounds.min || next > bounds.max) return;
+        if (next === value) return;
+        onCommit(next);
+      }}
+    />
+  );
+}
+
+/** What a number that is ours rather than theirs has to say for itself.
+ *  Governance canon, fourth floor: a default the user never set is our choice,
+ *  so the surface names it as ours rather than presenting it as their policy. */
+function oursNote(committed: boolean): string {
+  return committed ? "" : " This is the number we ship, not one you set.";
+}
+
+/** What the move actually causes, in the same words the blocks use. Never
+ *  "Saved": a receipt renders what your click caused, not that it registered. */
+function autonomyConsequence(
+  field: AutonomyField,
+  next: number | null,
+  policy: AutonomyPolicy,
+): string {
+  const shipped = SHIPPED_AUTONOMY_POLICY;
+  switch (field) {
+    case "minFrequency":
+      return next === null
+        ? `Back to ours: a cluster needs ${shipped.minFrequency} signals behind it before it becomes work.`
+        : `A cluster now becomes work once ${next} independent signals say it. Fewer than that and it waits for you.`;
+    case "minSeverity":
+      return next === null
+        ? `Back to ours: only clusters at ${shipped.minSeverity} out of 5 or worse start on their own.`
+        : `Only clusters that hurt at ${next} out of 5 or worse start on their own now.`;
+    case "minConfidence":
+      return next === null
+        ? `Back to ours: the clustering has to be ${pct(shipped.minConfidence)}% sure before work starts.`
+        : `The clustering now has to be ${pct(next)}% sure the signals belong together before work starts.`;
+    case "settleFloor":
+      return next === null
+        ? `Back to ours: a verdict nothing rides on needs ${pct(shipped.settleFloor)}% of the evidence.`
+        : `An agent may now settle a verdict nothing rides on at ${pct(next)}% of the evidence.`;
+    case "settleStakesSpan": {
+      const floor = policy.settleFloor;
+      return next === null
+        ? `Back to ours: a verdict with everything riding on it needs ${pct(floor + shipped.settleStakesSpan)}%.`
+        : `A verdict with everything riding on it now needs ${pct(Math.min(1, floor + next))}% of the evidence.`;
+    }
+    case "neverSettleAboveImpact":
+      return next === null
+        ? "No impact is carved out any more. Every bet is judged on its evidence."
+        : `No agent settles a bet above impact ${next} again, whatever the evidence says.`;
+  }
+}
+
 function BoundarySurface() {
   const qc = useQueryClient();
   const { activeWorkspaceId } = useWorkspace();
@@ -251,6 +378,7 @@ function BoundarySurface() {
   const fLedger = useServerFn(getDeclinedLedger);
   const fSetMode = useServerFn(updateToolMode);
   const fSetCap = useServerFn(setWorkspaceSpendPolicy);
+  const fSetAutonomy = useServerFn(setWorkspaceAutonomyPolicy);
 
   const [receipt, setReceipt] = React.useState<BoundaryReceipt | null>(null);
   const [showAll, setShowAll] = React.useState<Record<string, boolean>>({});
@@ -324,7 +452,28 @@ function BoundarySurface() {
   });
 
   const data = b.data;
+  // Never null, even before the read lands: the shipped numbers ARE the policy
+  // until a workspace says otherwise, so there is no such thing as "no policy".
+  const autonomy: AutonomyPolicy = data?.autonomy ?? SHIPPED_AUTONOMY_POLICY;
+  const chose = (f: AutonomyField) => autonomy.chosen.includes(f);
   const total = data ? data.alone.length + data.asks.length + data.never.length : 0;
+
+  // The two bars the platform crosses on its own. One mutation for all six
+  // numbers: they are one policy, and six mutations would be six ways for the
+  // surface and the record to disagree.
+  const setAutonomy = useMutation({
+    mutationFn: (v: { field: AutonomyField; next: number | null }) =>
+      fSetAutonomy({ data: { [v.field]: v.next } }),
+    onSuccess: (_r, v) => {
+      setReceipt({
+        verb: "You moved the boundary",
+        consequence: autonomyConsequence(v.field, v.next, autonomy),
+      });
+      void qc.invalidateQueries({ queryKey: ["boundary"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "The boundary did not move", consequence: e.message, failed: true }),
+  });
 
   /** One block of the boundary. The menu offers only the moves a floor allows,
    *  and where a move is forbidden the row says why instead of showing a
@@ -560,6 +709,169 @@ function BoundarySurface() {
                 </Line>
               ) : null}
             </Block>
+          ) : null}
+
+          {/* THE TWO BARS THE PLATFORM CROSSES ON ITS OWN, and they belong
+            here for the same reason the ceiling does. Both were constants
+            nobody could see: one decides when a cluster of evidence turns
+            itself into work that starts spending, the other decides when an
+            agent puts a verdict on a shipped bet instead of asking you. The
+            canon's fourth floor says a default the user never set is our
+            choice rather than their policy, so it has to be visible and
+            changeable, and this is the surface where a person reads what their
+            crew may do alone. */}
+          {data.isOwner ? (
+            <>
+              <Block
+                title="What starts without you"
+                sub="A cluster of evidence becomes a piece of work on its own when it clears all three. Nobody clicks, and the work begins spending against the ceiling above. Clear a field to hand it back to us."
+              >
+                <Line
+                  label="Signals that must say it"
+                  htmlFor="bar-frequency"
+                  sub={`${autonomy.minFrequency} or more independent signals. One complaint is not a theme, and below this a cluster waits for you to start it by hand.${oursNote(chose("minFrequency"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-frequency"
+                    label="Signals a cluster needs before it becomes work"
+                    value={autonomy.minFrequency}
+                    bounds={AUTONOMY_BOUNDS.minFrequency}
+                    step={1}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) => setAutonomy.mutate({ field: "minFrequency", next })}
+                  />
+                </Line>
+
+                <Line
+                  label="How much it has to hurt"
+                  htmlFor="bar-severity"
+                  sub={`${autonomy.minSeverity} out of 5 or worse for the people who reported it. An annoyance never opens work on its own.${oursNote(chose("minSeverity"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-severity"
+                    label="Severity a cluster needs before it becomes work, 1 to 5"
+                    value={autonomy.minSeverity}
+                    bounds={AUTONOMY_BOUNDS.minSeverity}
+                    step={1}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) => setAutonomy.mutate({ field: "minSeverity", next })}
+                  />
+                </Line>
+
+                <Line
+                  label="How sure the grouping has to be"
+                  htmlFor="bar-confidence"
+                  sub={`${pct(autonomy.minConfidence)}% sure these signals belong together. Below it the work would start from a brief that is three unrelated complaints stapled together.${oursNote(chose("minConfidence"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-confidence"
+                    label="Percent sure the grouping has to be before work starts"
+                    value={pct(autonomy.minConfidence)}
+                    bounds={{ min: 0, max: 100 }}
+                    step={5}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({
+                        field: "minConfidence",
+                        next: next === null ? null : next / 100,
+                      })
+                    }
+                  />
+                </Line>
+
+                <Line
+                  label="What moving these costs you, both ways"
+                  sub="Lower them and work starts on evidence you have not read yet, and it spends before you see it. Raise them and real themes sit in Discover until you notice them and start them by hand. Neither direction is the safe one."
+                />
+              </Block>
+
+              <Block
+                title="What an agent may settle on its own"
+                sub="When a shipped bet's outcome window closes, an agent either puts the verdict on the record or hands the call to you. This is where that line sits."
+              >
+                <Line
+                  label="Evidence a verdict needs when nothing rides on it"
+                  htmlFor="bar-settle-floor"
+                  sub={`${pct(autonomy.settleFloor)}% of the case a full one would carry. Below that the verdict comes to you even when it costs almost nothing to be wrong.${oursNote(chose("settleFloor"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-settle-floor"
+                    label="Percent of the evidence a verdict needs when nothing rides on it"
+                    value={pct(autonomy.settleFloor)}
+                    bounds={{ min: 0, max: 100 }}
+                    step={5}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({
+                        field: "settleFloor",
+                        next: next === null ? null : next / 100,
+                      })
+                    }
+                  />
+                </Line>
+
+                <Line
+                  label="How much higher the bar climbs when a lot rides on it"
+                  htmlFor="bar-settle-span"
+                  sub={`A big bet whose verdict re-ranks other bets needs ${pct(Math.min(1, autonomy.settleFloor + autonomy.settleStakesSpan))}% instead, which nothing short of a number that was read plus two weeks of usage plus the merged change on file can clear.${oursNote(chose("settleStakesSpan"))}`}
+                >
+                  <PolicyNumber
+                    id="bar-settle-span"
+                    label="Percent the evidence bar climbs by when everything rides on the verdict"
+                    value={pct(autonomy.settleStakesSpan)}
+                    bounds={{ min: 0, max: 100 }}
+                    step={5}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({
+                        field: "settleStakesSpan",
+                        next: next === null ? null : next / 100,
+                      })
+                    }
+                  />
+                </Line>
+
+                {/* THE CARVE-OUT IS SAID OUT LOUD. The founder asked to be able
+                  to state "never settle a bet above impact 8" rather than have
+                  it fall out of a number he tuned, and the two are genuinely
+                  different: a threshold is an argument about evidence, and this
+                  is a sentence about what an agent may never be the one to
+                  decide. It only ever takes a call back, never hands one over. */}
+                <Line
+                  label="Never settle a bet above this impact"
+                  htmlFor="bar-carve-out"
+                  sub={
+                    autonomy.neverSettleAboveImpact === null
+                      ? "No carve-out. Every bet is judged on its evidence alone, however big it is. Name an impact here and nothing above it is ever settled by an agent."
+                      : `Nothing scored above ${autonomy.neverSettleAboveImpact} is ever settled by an agent, whatever the evidence says. Bets at ${autonomy.neverSettleAboveImpact} and below still answer to the bar above. Clear the field to drop the carve-out.`
+                  }
+                >
+                  <PolicyNumber
+                    id="bar-carve-out"
+                    label="The impact above which an agent never settles a verdict"
+                    // Empty when there is no carve-out. A pre-filled impact
+                    // would let a focus and a tab invent one.
+                    value={autonomy.neverSettleAboveImpact}
+                    bounds={AUTONOMY_BOUNDS.neverSettleAboveImpact}
+                    step={1}
+                    disabled={setAutonomy.isPending}
+                    onCommit={(next) =>
+                      setAutonomy.mutate({ field: "neverSettleAboveImpact", next })
+                    }
+                  />
+                </Line>
+
+                <Line
+                  label="Three calls stay yours whatever these say"
+                  sub="A bet nothing was ever attached to that could check it. A win or a miss with no number actually read. And a miss that would hold another agent's promotion on a soft signal. Those are floors, not settings, so no number here can lower them."
+                />
+
+                <Line
+                  label="What moving these costs you, both ways"
+                  sub="Lower them and verdicts land on your record without you, and a wrong one compounds into every future recommendation. Raise them and every shipped bet waits in Learn for a judgment only you can give, which is the approvals queue coming back under a different name."
+                />
+              </Block>
+            </>
           ) : null}
 
           <DeclinedLedger

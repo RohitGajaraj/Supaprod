@@ -21,12 +21,15 @@ import { outcomeSupportFromCounts } from "@/components/discover/ranking";
 // rule's own unit tests.
 import {
   basisFor,
-  classifyOutcomeSettlement,
   metricWasDeclared,
   metricWasObserved,
   overturnMove,
   type SettlementDecision,
 } from "@/lib/ai/outcome-review";
+// The workspace's own settle-or-ask bar, so the queue explains the decision the
+// sweep actually made rather than the one the platform default would have made.
+import { decideSettlement, SHIPPED_AUTONOMY_POLICY } from "@/lib/autonomy-policy";
+import { loadAutonomyPolicies } from "@/lib/autonomy-policy.server";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 // Type only, so nothing is imported at runtime and the cycle this file would
@@ -969,16 +972,38 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
     // The two extra facts the settle-or-ask rule needs, both batched so the
     // queue stays one round of queries rather than one per row.
     // 1. What the bet promised to measure.
-    const planByPrd = new Map<string, { success_metric: string | null }>();
+    const planByPrd = new Map<
+      string,
+      { success_metric: string | null; workspace_id: string | null }
+    >();
     {
       const { data } = await db
         .from("launch_plans")
-        .select("prd_id,success_metric")
+        // workspace_id rides along because the settle-or-ask bar is workspace
+        // policy now, and the sweep keys it off exactly this column.
+        .select("prd_id,success_metric,workspace_id")
         .in("prd_id", prdIds);
-      for (const r of (data ?? []) as Array<{ prd_id: string; success_metric: string | null }>) {
-        if (!planByPrd.has(r.prd_id)) planByPrd.set(r.prd_id, { success_metric: r.success_metric });
+      for (const r of (data ?? []) as Array<{
+        prd_id: string;
+        success_metric: string | null;
+        workspace_id: string | null;
+      }>) {
+        if (!planByPrd.has(r.prd_id)) {
+          planByPrd.set(r.prd_id, {
+            success_metric: r.success_metric,
+            workspace_id: r.workspace_id,
+          });
+        }
       }
     }
+
+    // The same policy read the sweep makes, so a row can never show a reason
+    // the sweep did not act on. A spec with no launch plan, or a workspace that
+    // has stated nothing, falls back to the bar the product ships with.
+    const policies = await loadAutonomyPolicies(
+      db,
+      [...planByPrd.values()].map((p) => p.workspace_id),
+    );
     // 2. How far a verdict propagates: other bets on the same theme re-rank.
     const siblingsByTheme = new Map<string, number>();
     {
@@ -1057,25 +1082,29 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       // the sweep reads it. Everything in this queue has shipped (the query
       // filters on it), so `verdictIsRecordFact` can never be true here.
       const verdictOnTable = asVerdict(p.outcome_suggestion?.verdict);
+      const planWorkspaceId = planByPrd.get(p.id)?.workspace_id ?? null;
       const settlement = verdictOnTable
-        ? classifyOutcomeSettlement({
-            verdict: verdictOnTable,
-            verdictIsRecordFact: false,
-            metricDeclared: metricWasDeclared(
-              planByPrd.get(p.id)?.success_metric ?? null,
-              gradeOutcomeContract(
-                (p.contract ?? null) as { success_metrics?: ContractClause[] | null } | null,
-              ).verdict,
-            ),
-            metricObserved: metricWasObserved(p.outcome_suggestion),
-            basis: basisFor(p.outcome_suggestion),
-            impact: opp ? (opp.impact ?? null) : null,
-            otherBetsOnTheme: opp?.theme_id
-              ? Math.max(0, (siblingsByTheme.get(opp.theme_id) ?? 1) - 1)
-              : 0,
-            movesTheScore: VERDICT_CONFIDENCE_DELTA[verdictOnTable] !== 0,
-            holdsPromotionFor: slug && holdsPromotion ? agentDisplayName(slug) : null,
-          })
+        ? decideSettlement(
+            {
+              verdict: verdictOnTable,
+              verdictIsRecordFact: false,
+              metricDeclared: metricWasDeclared(
+                planByPrd.get(p.id)?.success_metric ?? null,
+                gradeOutcomeContract(
+                  (p.contract ?? null) as { success_metrics?: ContractClause[] | null } | null,
+                ).verdict,
+              ),
+              metricObserved: metricWasObserved(p.outcome_suggestion),
+              basis: basisFor(p.outcome_suggestion),
+              impact: opp ? (opp.impact ?? null) : null,
+              otherBetsOnTheme: opp?.theme_id
+                ? Math.max(0, (siblingsByTheme.get(opp.theme_id) ?? 1) - 1)
+                : 0,
+              movesTheScore: VERDICT_CONFIDENCE_DELTA[verdictOnTable] !== 0,
+              holdsPromotionFor: slug && holdsPromotion ? agentDisplayName(slug) : null,
+            },
+            (planWorkspaceId ? policies.get(planWorkspaceId) : null) ?? SHIPPED_AUTONOMY_POLICY,
+          )
         : null;
 
       return {

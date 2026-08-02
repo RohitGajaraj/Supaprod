@@ -26,6 +26,7 @@ import {
   originFor,
   qualifies,
   rankForPromotion,
+  type PromotionBar,
   type ThemeLike,
 } from "@/lib/spine/promote";
 
@@ -94,10 +95,19 @@ function isMissingColumn(error: unknown): boolean {
  *
  * Returns what it did rather than throwing, because this runs inside a cron
  * sweep where one user's failure must never stop the rest.
+ *
+ * `bar` is the workspace's own bar when it has stated one, and it defaults to
+ * the platform bar so a caller that passes nothing gets exactly the behaviour
+ * this function had before the argument existed. The reason it is an argument
+ * rather than a read inside here: the canon's fourth floor makes the three
+ * numbers the workspace's policy rather than ours, and resolving policy is the
+ * caller's job in this codebase (the tick already knows which workspace it is
+ * sweeping; this function only knows an owner).
  */
 export async function promoteClustersOnce(
   supabase: SupabaseClient,
   userId: string,
+  bar: PromotionBar = DEFAULT_PROMOTION_BAR,
 ): Promise<PromotionSweep> {
   const nothing = { outcomes: [], qualified: 0, alreadyPromoted: 0 };
 
@@ -133,7 +143,7 @@ export async function promoteClustersOnce(
     .eq("user_id", userId)
     // Cheap pre-filter on the strongest single condition so the bar below reads
     // a small set. The real gate is `qualifies`, which checks all three.
-    .gte("severity", DEFAULT_PROMOTION_BAR.minSeverity)
+    .gte("severity", bar.minSeverity)
     // ORDERED, and the order matters more than it looks. `limit` without an
     // `order by` returns an ARBITRARY 200 rows: Postgres makes no promise, and
     // the set it picks can change between two calls with no data change. So the
@@ -166,8 +176,8 @@ export async function promoteClustersOnce(
   // Counted BEFORE the per-sweep bound, so the sweep can say "nine cleared the
   // bar and I took the two strongest" rather than only ever reporting two. A
   // reader needs the backlog to know whether the bound is doing any work.
-  const qualified = candidates.filter((t) => qualifies(t).ok).length;
-  const picked = rankForPromotion(candidates);
+  const qualified = candidates.filter((t) => qualifies(t, bar).ok).length;
+  const picked = rankForPromotion(candidates, bar);
   const done: PromotionOutcome[] = [];
 
   for (const theme of picked) {
@@ -182,7 +192,7 @@ export async function promoteClustersOnce(
       // this is worth doing actually runs. Entering lower would waive exactly
       // those stations on a guess nobody made.
       shape: "new-capability",
-      origin: originFor(theme),
+      origin: originFor(theme, bar),
       productId: full?.product_id ?? null,
       workspaceId: full?.workspace_id ?? null,
       themeId: theme.id,
