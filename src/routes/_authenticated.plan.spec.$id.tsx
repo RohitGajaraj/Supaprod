@@ -534,7 +534,7 @@ function SpecEditorPage() {
   if (prdQ.isLoading) {
     return (
       <Surface>
-        <PageHead title="Reading the spec." />
+        <PageHead title="Spec" />
       </Surface>
     );
   }

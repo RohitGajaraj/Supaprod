@@ -296,7 +296,7 @@ function ApprovalsSurface() {
 
   const n = allItems.length;
   const headline = queue.isLoading
-    ? "Reading the queue."
+    ? "Approvals"
     : n === 0
       ? "Nothing needs you."
       : n === 1
