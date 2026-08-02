@@ -1,0 +1,28 @@
+-- Build verification: persist the agent code-review verdict on the changeset it judges.
+--
+-- Added alongside studio.review, studio.secrets.scan, studio.tests.plan and
+-- studio.deps.audit (2026-08-02). Everything in that layer works without this
+-- column: the verdict already reaches the agent and lands in the run's tool_calls
+-- trail, and studio.review reports `persisted: false` when the column is absent
+-- rather than implying a durable record it does not have.
+--
+-- What the column buys is the part that was otherwise unenforceable: a verdict a
+-- human can read on the changeset without replaying the whole run, and the ability
+-- for studio.pr.open to refuse a changeset that review blocked. A gate whose result
+-- lives only in a transcript cannot gate anything.
+--
+-- Shape mirrors opportunities.critic_review and prds.critic_review exactly, which is
+-- the established "advisory verdict persisted on the row it judges" pattern here:
+--   { verdict: 'approve' | 'revise' | 'block' | 'unreviewed',
+--     summary: text,
+--     findings: [{ severity, category, path, line, issue, fix, deterministic }],
+--     files_reviewed: int,
+--     reviewer_model: text | null,
+--     reviewed_at: timestamptz }
+--
+-- Additive and nullable, so there is no backfill and no existing row changes
+-- meaning. No new RLS: studio_changesets already gates read and write on
+-- is_workspace_member(workspace_id) and this column inherits that. No index: it is
+-- only ever read by primary key alongside the rest of the changeset row.
+ALTER TABLE public.studio_changesets
+  ADD COLUMN IF NOT EXISTS code_review jsonb;

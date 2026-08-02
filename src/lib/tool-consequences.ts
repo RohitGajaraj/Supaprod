@@ -70,6 +70,33 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     reversible: "reversible",
     undo: "Nothing to undo; read-only.",
   },
+  // Build's pre-pull-request verification checks. Catalogued for the reason the
+  // comment further down states: toolRisk returns "high" for anything it has
+  // never heard of, so an uncatalogued check would be demoted to confirm on
+  // every call and dropped entirely from any agent carrying a max_tool_risk cap.
+  // A verification gate that has to ask permission to run does not get run. All
+  // four read only, and none of them writes anything anywhere, so they follow
+  // ci.logs exactly: reversible, and not in EXTERNAL_TOOLS.
+  "studio.review": {
+    effect: "Reads the staged diff and reports findings. Writes no code and opens nothing.",
+    reversible: "reversible",
+    undo: "Nothing to undo; the verdict is advisory.",
+  },
+  "studio.secrets.scan": {
+    effect: "Scans the staged changes for credentials. Changes nothing.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "studio.tests.plan": {
+    effect: "Lists the test files this changeset still owes. Writes none of them.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
+  "studio.deps.audit": {
+    effect: "Reads GitHub's open dependency advisories for the repo. Changes nothing.",
+    reversible: "reversible",
+    undo: "Nothing to undo; read-only.",
+  },
   "studio.stage": {
     effect: "Stages file changes on the working branch.",
     reversible: "reversible",

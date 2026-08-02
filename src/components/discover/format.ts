@@ -28,6 +28,99 @@ export function sourceCaps(source: string): string {
   return source.toUpperCase();
 }
 
+// --- Where a signal came from, in words -------------------------------------
+//
+// Discover printed the raw `signals.source` token, so the queue read `note`,
+// `pull_connector`, `transcript_action`, `product_pulse`. Those are OUR column
+// values, not a sentence, and the one question a person asks about a row they did
+// not expect is "why is this in front of me". A signal a colleague pasted by hand
+// and a signal a connector pulled at 4am are the same shape on screen and are
+// completely different levels of evidence, so the provenance has to be readable.
+//
+// Two inputs because the fabric carries two facts: `source_kind` is the LANE
+// (manual, pull_connector, web_scout, mcp_source, webhook) and `source` is the
+// CHANNEL inside it (github, note, transcript). The channel wins when we have a
+// word for it, because "GitHub" tells you more than "Connected tools"; the lane
+// is the fallback, which is what makes a brand new connector readable on the day
+// it ships rather than after someone remembers to add it here.
+
+/** The lanes of the signal fabric (`signals.source_kind`), in plain words. */
+const KIND_WORDS: Record<string, string> = {
+  manual: "Captured by hand",
+  pull_connector: "A connected tool",
+  web_scout: "The web scout",
+  mcp_source: "A connected agent",
+  webhook: "An inbound webhook",
+};
+
+/** Channels we can name outright. Every manual channel is here, because those are
+ *  the ones a person needs to recognise as their own work. */
+const SOURCE_WORDS: Record<string, string> = {
+  note: "A note you wrote",
+  document: "A document you added",
+  transcript: "A transcript you added",
+  paste: "Lines you pasted",
+  manual: "Captured by hand",
+  doc: "A page from Written",
+  meeting: "A meeting",
+  transcript_action: "A recorded call",
+  product_pulse: "Feedback on Supaprod",
+  webhook: "An inbound webhook",
+  mcp: "A connected agent",
+};
+
+/** Products whose own capitalisation we should not mangle. */
+const BRAND_WORDS: Record<string, string> = {
+  github: "GitHub",
+  gitlab: "GitLab",
+  posthog: "PostHog",
+  hubspot: "HubSpot",
+  g2: "G2",
+};
+
+/** `scout_competitor` -> `Scout competitor`. The honest last resort: a channel we
+ *  have no word for is still readable, and it never pretends to be something it
+ *  is not. */
+function prettyToken(token: string): string {
+  const words = token.replace(/[_-]+/g, " ").trim();
+  if (!words) return "";
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/**
+ * One readable phrase for where a signal came from.
+ *
+ * Also serves the coverage list, whose grouping key is `source_kind || source`,
+ * so a lane token arriving in the `source` position resolves the same way.
+ */
+export function sourceLabel(source: string | null | undefined, sourceKind?: string | null): string {
+  const s = (source ?? "").trim().toLowerCase();
+  const k = (sourceKind ?? "").trim().toLowerCase();
+  if (s && SOURCE_WORDS[s]) return SOURCE_WORDS[s];
+  if (s && KIND_WORDS[s]) return KIND_WORDS[s];
+  if (s && BRAND_WORDS[s]) return BRAND_WORDS[s];
+  if (s) return prettyToken(s);
+  if (k && KIND_WORDS[k]) return KIND_WORDS[k];
+  return "An unnamed source";
+}
+
+/**
+ * True when a person put this here themselves.
+ *
+ * Reads `source_kind` first because that is the column the fabric stamps, and
+ * falls back to the channel token so the rows written before manual capture went
+ * through the sink (which carry a null `source_kind`) are still attributed
+ * correctly rather than reading as if a machine produced them.
+ */
+export function capturedByHand(
+  source: string | null | undefined,
+  sourceKind?: string | null,
+): boolean {
+  if ((sourceKind ?? "").trim().toLowerCase() === "manual") return true;
+  const s = (source ?? "").trim().toLowerCase();
+  return s === "note" || s === "document" || s === "transcript" || s === "paste" || s === "manual";
+}
+
 /** The most-recent (max) of a set of ISO timestamps, skipping null / blank /
  * malformed entries. Returns null when none are valid. Lets an object backed
  * by several rows (a provider with many accounts, a binding chain) show ONE

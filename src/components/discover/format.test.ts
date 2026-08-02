@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
+  capturedByHand,
   latestIso,
   relTimeCaps,
   sourceCaps,
+  sourceLabel,
   verdictFor,
   traceRef,
   withTimeout,
@@ -856,5 +858,60 @@ describe("signalGist (via signalPreview / signalCleanBody, integration edge case
     const result = signalPreview(json);
     expect(typeof result).toBe("string");
     expect(result).toContain("Multi-level");
+  });
+});
+
+describe("sourceLabel - a person must never have to read a column value", () => {
+  test("names every manual channel as the person's own work", () => {
+    expect(sourceLabel("note", "manual")).toBe("A note you wrote");
+    expect(sourceLabel("document", "manual")).toBe("A document you added");
+    expect(sourceLabel("transcript", "manual")).toBe("A transcript you added");
+    expect(sourceLabel("paste", "manual")).toBe("Lines you pasted");
+  });
+
+  test("prefers the channel over the lane, because the tool name says more", () => {
+    expect(sourceLabel("github", "pull_connector")).toBe("GitHub");
+    expect(sourceLabel("intercom", "pull_connector")).toBe("Intercom");
+  });
+
+  test("falls back to the lane when there is no channel at all", () => {
+    expect(sourceLabel(null, "pull_connector")).toBe("A connected tool");
+    expect(sourceLabel("", "web_scout")).toBe("The web scout");
+  });
+
+  test("reads a lane token arriving in the channel position, which is what the coverage list passes", () => {
+    expect(sourceLabel("manual")).toBe("Captured by hand");
+    expect(sourceLabel("pull_connector")).toBe("A connected tool");
+    expect(sourceLabel("web_scout")).toBe("The web scout");
+    expect(sourceLabel("mcp_source")).toBe("A connected agent");
+    expect(sourceLabel("webhook")).toBe("An inbound webhook");
+  });
+
+  test("stays readable for a channel nobody has named yet", () => {
+    expect(sourceLabel("scout_competitor", "web_scout")).toBe("Scout competitor");
+    expect(sourceLabel("some-new-thing", null)).toBe("Some new thing");
+  });
+
+  test("never returns an empty string", () => {
+    expect(sourceLabel(null, null)).toBe("An unnamed source");
+    expect(sourceLabel("   ", "  ")).toBe("An unnamed source");
+  });
+});
+
+describe("capturedByHand", () => {
+  test("reads the stamped lane first", () => {
+    expect(capturedByHand("anything", "manual")).toBe(true);
+    expect(capturedByHand("github", "pull_connector")).toBe(false);
+  });
+
+  test("still attributes rows written before manual capture reached the sink", () => {
+    expect(capturedByHand("manual", null)).toBe(true);
+    expect(capturedByHand("note", null)).toBe(true);
+    expect(capturedByHand("paste", undefined)).toBe(true);
+  });
+
+  test("does not claim a machine-sensed signal as a person's own", () => {
+    expect(capturedByHand("github", null)).toBe(false);
+    expect(capturedByHand(null, null)).toBe(false);
   });
 });

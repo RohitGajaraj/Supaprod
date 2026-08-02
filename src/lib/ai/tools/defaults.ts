@@ -108,6 +108,18 @@ export const TOOL_DEFAULTS: Readonly<
   "design.draft": { mode: "confirm", enabled: true, label: "Draft a design" },
   // 05 Build
   "studio.stage": { mode: "auto", enabled: true, label: "Stage a change" },
+  // BUILD VERIFICATION. Four read-only checks on the staged diff, and all four
+  // are `auto` on purpose. A gate you have to ask permission to run is not a
+  // gate: put any of these behind an approval and the loop's cheapest path
+  // becomes skipping the check and opening the PR, which is exactly the state
+  // they were written to end. They change nothing, they leave the workspace only
+  // to READ GitHub, and the governance canon's own test applies directly here:
+  // the human's job is to judge the small number of things that cross a
+  // boundary, not to authorise the machine to look before it crosses one.
+  "studio.review": { mode: "auto", enabled: true, label: "Review the staged diff" },
+  "studio.secrets.scan": { mode: "auto", enabled: true, label: "Scan for credentials" },
+  "studio.tests.plan": { mode: "auto", enabled: true, label: "Plan the missing tests" },
+  "studio.deps.audit": { mode: "auto", enabled: true, label: "Audit dependencies" },
   "studio.commit": { mode: "confirm", enabled: true, label: "Commit a change" },
   "studio.fix.commit": { mode: "auto", enabled: true, label: "Commit a fix" },
   "studio.sync_branch": { mode: "auto", enabled: true, label: "Sync a branch" },

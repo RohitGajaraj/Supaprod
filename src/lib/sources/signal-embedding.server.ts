@@ -16,6 +16,14 @@
  * and therefore cannot be bypassed by a write path that has never heard of it - and
  * which backfills the rows already stored, for free, by the same query.
  *
+ * 2026-08-02: one of those twelve came home. `createSignal` and `bulkImportSignals`,
+ * the two doors a HUMAN captures through, now build candidates via `sources/manual.ts`
+ * and go through the sink, so hand-captured signals arrive with a vector, a
+ * `source_kind`, dedup and a `stage_events` trail like every connector signal. The
+ * count stands at eleven and the sweeper is still the guarantee: the remaining ten
+ * (onboarding seeds, meetings, audio, analytics, mcp, pulse, the two ticks, the public
+ * ingest route) have not moved, and the paragraph above is why that is survivable.
+ *
  * `attachEmbeddings` is then only a latency optimisation for the hot connector path,
  * so a freshly sensed signal is comparable immediately instead of at the next tick.
  * Both are fail-open: a signal that cannot be embedded is still a signal, and the

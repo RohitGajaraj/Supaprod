@@ -32,7 +32,19 @@ export const submitPulse = createServerFn({ method: "POST" })
       (data.useful ? "Marked useful, no note." : "Marked not useful, no note.");
     const { error } = await supabase.from("signals").insert({
       source: "product_pulse",
-      source_kind: "product_pulse",
+      // `source_kind` is CHECK-constrained to pull_connector | web_scout |
+      // mcp_source | webhook | manual (20260702202247_...sql:59). This wrote
+      // "product_pulse", which is not in that list, so EVERY pulse insert has
+      // been failing the constraint and throwing: the in-product thumbs up and
+      // down has recorded nothing since the constraint landed. Confirmed on the
+      // live database, where the source_kind census returns zero product_pulse
+      // rows against 294 rows across the five legal values.
+      //
+      // The right value is `manual`: a pulse is a human telling us something in
+      // their own words, which is exactly what that kind means, and the specific
+      // origin is already carried by `source` (unconstrained text) and by the
+      // tags below, so nothing is lost by conforming.
+      source_kind: "manual",
       title,
       content,
       sentiment: data.useful ? "positive" : "negative",

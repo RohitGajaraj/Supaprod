@@ -37,6 +37,30 @@ export const HIGH_RISK_MIN_CONFIRM = new Set(["calendar.create"]);
  * demotion in resolveToolMode skips these three).
  */
 export const BUILD_LANE_AUTONOMOUS = new Set(["studio.stage", "studio.commit", "studio.pr.open"]);
+/**
+ * DELIBERATELY ABSENT FROM BOTH FLOORS: Build's pre-pull-request verification
+ * checks (studio.review, studio.secrets.scan, studio.tests.plan,
+ * studio.deps.audit). Recording the reasoning here so a later reader does not
+ * take the omission for an oversight and "fix" it.
+ *
+ * A floor exists to put a human in front of consequence. These four have none:
+ * they read the staged diff and GitHub, they write nothing, and their whole
+ * purpose is to be run before the tools that DO have consequence. Flooring them
+ * would invert their point twice over. It would put an approval in front of the
+ * check that exists to shorten the approval queue, and it would make skipping
+ * the check the cheapest path through the loop, which is precisely the state
+ * that let an unread diff reach the merge gate.
+ *
+ * They are also not in BUILD_LANE_AUTONOMOUS, and do not need to be: that set
+ * exempts a tool from the generic high-risk demotion in resolveToolMode, and
+ * these are catalogued low-risk in tool-consequences.ts, so the demotion never
+ * reaches them. Adding a read tool there would blur what the set means.
+ *
+ * The floors below are unchanged. Nothing in the Build verification layer
+ * lowers one, and studio.pr.merge in particular still forces review no matter
+ * how clean a review verdict is: a green check is evidence for a human, never a
+ * substitute for one.
+ */
 /** Safety floor: always `review`. Never graduates. */
 export const HIGH_RISK_FORCE_REVIEW = new Set([
   "studio.pr.merge",

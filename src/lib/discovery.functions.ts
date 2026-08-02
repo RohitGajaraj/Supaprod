@@ -13,6 +13,14 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
+import { writeSignals } from "@/lib/sources/sink.server";
+import {
+  MAX_BODY_CHARS,
+  bodyCandidate,
+  titleFromBody,
+  typedCandidates,
+} from "@/lib/sources/manual";
+import type { SignalCandidate, SinkResult } from "@/lib/sources/kinds";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
@@ -241,13 +249,68 @@ export const listSignals = createServerFn({ method: "GET" })
     return { signals: rows ?? [] };
   });
 
+/**
+ * MANUAL CAPTURE GOES THROUGH THE SAME DOOR AS EVERY CONNECTOR (2026-08-02).
+ *
+ * `sink.server.ts` calls itself "the single write path into public.signals" and
+ * names manual as one of its lanes, but the human's own two doors, `createSignal`
+ * and `bulkImportSignals`, built a raw row here and inserted it directly. So a
+ * signal a product lead typed with their own hands was the ONLY kind of signal in
+ * the product that arrived with:
+ *
+ *   - no `source_kind`, so `getSenseCoverage` filed it under a bare channel token
+ *     and the surface could not tell a person "you captured this" from "a
+ *     connector sensed this";
+ *   - no `external_id`, so re-uploading the same document grew a phantom cluster;
+ *   - no `stage_events` row, which is the FIRST link of the Trust Ledger chain,
+ *     so the one signal whose provenance a human could personally vouch for was
+ *     the one with no trail;
+ *   - no embedding until the next sweeper pass, so it could not join a cluster or
+ *     be recognised as a near-duplicate at the moment it was captured.
+ *
+ * Routing both through `writeSignals` gets all four by construction, and any
+ * future guarantee the sink grows arrives here for free.
+ *
+ * The sink is service-role because dedup has to read across the workspace. That
+ * is safe here and nowhere near a tenancy hole: `userId` comes from the verified
+ * token, and `workspaceId` from `current_user_default_workspace()`, an RPC run on
+ * the CALLER's client so `auth.uid()` is the caller. Neither is ever taken from
+ * the request body.
+ */
+async function captureManual(
+  supabase: SupabaseClient,
+  userId: string,
+  candidates: SignalCandidate[],
+  productId: string | null,
+): Promise<SinkResult> {
+  if (candidates.length === 0) return { inserted: 0, skipped: 0, quarantined: 0 };
+  const { data: workspaceId, error } = await supabase.rpc("current_user_default_workspace");
+  if (error) throw new Error(`Could not resolve your workspace: ${error.message}`);
+  if (!workspaceId) {
+    throw new Error("No workspace is active, so there is nowhere to file this. Reload and retry.");
+  }
+  return writeSignals(userId, workspaceId as string, candidates, { productId });
+}
+
+/**
+ * One captured thing: a typed note, a document, or a transcript.
+ *
+ * `kind` is a fact about the MATERIAL and it decides three things the caller
+ * should not have to know: the `source` token written on the row, whether the
+ * text is keyed for dedup, and whether the sink screens it. See manual.ts.
+ *
+ * `content` runs to MAX_BODY_CHARS rather than the old 8000, because a document
+ * or a transcript is the point of the document and transcript kinds and 8000
+ * characters is about three pages.
+ */
 export const createSignal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
     z
       .object({
-        content: z.string().min(2).max(8000),
+        content: z.string().min(2).max(MAX_BODY_CHARS),
         source: z.string().min(1).max(40).default("manual"),
+        kind: z.enum(["note", "document", "transcript"]).optional(),
         title: z.string().max(200).optional(),
         url: z.string().url().max(500).optional().or(z.literal("")),
         sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
@@ -256,23 +319,52 @@ export const createSignal = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
-    const { data: row, error } = await context.supabase
-      .from("signals")
-      .insert({
-        user_id: context.userId,
-        content: data.content,
-        source: data.source,
-        title: data.title ?? null,
-        url: data.url || null,
-        sentiment: data.sentiment ?? null,
-        project_id: data.project_id ?? null,
-      })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-    return { signal: row };
+    const kind = data.kind ?? "note";
+
+    if (kind === "document" || kind === "transcript") {
+      const { candidate, dropped } = bodyCandidate(kind, data.title ?? "", data.content);
+      const result = await captureManual(
+        context.supabase as unknown as SupabaseClient,
+        context.userId,
+        [{ ...candidate, url: data.url || null, sentiment: data.sentiment }],
+        data.project_id ?? null,
+      );
+      return { ...result, dropped };
+    }
+
+    // A note keeps whatever `source` the caller passed (DocsPanel sends "doc",
+    // the Discover box sends "note"), so an existing door does not silently
+    // change what it writes. Everything else about it is now the sink's.
+    //
+    // The derived title takes the FIRST LINE, never the whole body: a title is a
+    // row lead, and a lead carrying three paragraphs of newlines is not one.
+    const title = data.title?.trim() || titleFromBody(data.content, "A captured note");
+    const result = await captureManual(
+      context.supabase as unknown as SupabaseClient,
+      context.userId,
+      [
+        {
+          source: data.source,
+          sourceKind: "manual",
+          title,
+          content: data.content,
+          url: data.url || null,
+          sentiment: data.sentiment,
+          untrusted: false,
+        },
+      ],
+      data.project_id ?? null,
+    );
+    return { ...result, dropped: 0 };
   });
 
+/**
+ * Many observations at once: newline separated, one signal per line.
+ *
+ * The line floor moved from 4 characters to the fabric's own MIN_LINE_CHARS (2)
+ * so this door and the Discover capture box stop disagreeing about what counts as
+ * a line. Everything else about the contract is unchanged.
+ */
 export const bulkImportSignals = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -280,28 +372,24 @@ export const bulkImportSignals = createServerFn({ method: "POST" })
       .object({
         source: z.string().min(1).max(40).default("paste"),
         // newline-separated, one signal per line
-        text: z.string().min(2).max(50_000),
+        text: z.string().min(2).max(MAX_BODY_CHARS),
         // F3: file the imported signals under the active product when one is set.
         project_id: z.string().uuid().nullable().optional(),
       })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
-    const lines = data.text
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l.length >= 4)
-      .slice(0, 200);
-    if (!lines.length) return { inserted: 0 };
-    const rows = lines.map((content) => ({
-      user_id: context.userId,
-      content,
+    const candidates = typedCandidates(data.text, "paste").map((c) => ({
+      ...c,
       source: data.source,
-      project_id: data.project_id ?? null,
     }));
-    const { error } = await context.supabase.from("signals").insert(rows);
-    if (error) throw new Error(error.message);
-    return { inserted: rows.length };
+    const result = await captureManual(
+      context.supabase as unknown as SupabaseClient,
+      context.userId,
+      candidates,
+      data.project_id ?? null,
+    );
+    return result;
   });
 
 export const deleteSignal = createServerFn({ method: "POST" })

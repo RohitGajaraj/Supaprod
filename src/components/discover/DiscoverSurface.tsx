@@ -75,6 +75,43 @@
  *    numbers per row is not depth, it is a spreadsheet, and the founder's
  *    complaint about scatter is exactly that failure one step later.
  *
+ * 6. THE MANUAL PASS, 2026-08-02. The station had exactly one way for a person
+ *    to put something in: a three-line box that split on newlines. Everything
+ *    else they might be holding, a document somebody sent them, a call
+ *    transcript, a page of research, had no door here at all. Worse, the box was
+ *    hidden behind `!signalsEmpty`, so a brand new workspace was told to connect
+ *    a source and given no way to write down the thing it had just heard.
+ *
+ *    WHAT THIS PASS DID, and it is mostly wiring rather than building:
+ *    FIXED the write path. `createSignal` and `bulkImportSignals` built raw
+ *          `signals` rows and inserted them, so a hand-captured signal was the
+ *          only kind in the product with no `source_kind`, no `external_id`, no
+ *          `stage_events` trail and no embedding until the next sweep. Both go
+ *          through `writeSignals` now, the same sink every connector uses, via a
+ *          pure producer at `src/lib/sources/manual.ts`.
+ *    USED  `bulkImportSignals`, which had existed since F3 and which NOTHING in
+ *          src/routes or src/components had ever called. The box looped
+ *          `createSignal` once per line instead, so forty pasted lines opened
+ *          forty sequential requests and a failure halfway left no report of
+ *          what had landed. One call now.
+ *    ADDED the longer form, in place inside the same Block: a document or a
+ *          transcript, named, kept whole as ONE signal, typed in or read out of
+ *          a plain-text file. Not a pane, not a drawer, not a slide-over, which
+ *          primitives.tsx bans outright and which this is the textbook case for.
+ *    ADDED provenance in words. The context column printed `note`,
+ *          `pull_connector`, `transcript_action` at a person, which are our
+ *          column values. A quote a colleague typed and a quote a connector
+ *          pulled at 4am are the same shape on screen and are not the same
+ *          level of evidence.
+ *    ADDED a Receipt where capture used to fire a toast, and it reports all
+ *          three of the sink's counts: what landed, what was already on the
+ *          record, and what the injection screen refused.
+ *
+ *    DELIBERATELY NOT BUILT: PDF and DOCX reading. Nothing in this repo parses
+ *    either format, and the honest move is to say so in the composer rather than
+ *    accept the file and fail after the upload. The picker offers only formats
+ *    that really are text.
+ *
  * KNOWN NEXT STEP, recorded rather than pretended. Sentry's archive is
  * CONDITIONAL ("until it escalates / until N users are affected") and ours is
  * not, because a dismissed cluster here can never grow: clusterSignalsCore only
@@ -95,10 +132,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { toast } from "@/lib/notify";
 import { scoreTheme } from "@/lib/brain/score";
 import {
+  MAX_BODY_CHARS,
+  READABLE_EXTENSIONS,
+  isReadableFileName,
+  typedCandidates,
+} from "@/lib/sources/manual";
+import {
   attachThemeToOpportunity,
+  bulkImportSignals,
   clusterSignals,
   createSignal,
   generatePrd,
@@ -122,12 +165,15 @@ import {
   AgentMark,
   Block,
   Button,
+  Choices,
   CtxBody,
   CtxHead,
   CtxRow,
   Empty,
   Failed,
+  Field,
   Gate,
+  Input,
   Line,
   MoreItem,
   MoreMenu,
@@ -141,7 +187,7 @@ import {
   Textarea,
   type MarkState,
 } from "@/components/shell/primitives";
-import { signalPreview, withTimeout } from "./format";
+import { capturedByHand, signalPreview, sourceLabel, withTimeout } from "./format";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** The crew that reads for this desk, most relevant first. The fleet already
@@ -220,6 +266,7 @@ export function DiscoverSurface() {
   const fFleet = useServerFn(getAgentFleet);
   const fCluster = useServerFn(clusterSignals);
   const fCreate = useServerFn(createSignal);
+  const fBulk = useServerFn(bulkImportSignals);
   const fPromote = useServerFn(promoteThemeToOpportunity);
   const fDraftSpec = useServerFn(generatePrd);
   const fSampleEnabled = useServerFn(isSampleWorkspaceEnabled);
@@ -236,6 +283,29 @@ export function DiscoverSurface() {
    *  queue: exactly one thing asks at a time, the rest are one-line rows. */
   const [focusedId, setFocusedId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState("");
+  /**
+   * The longer-form capture, revealed IN PLACE inside the same Block.
+   *
+   * A note and a document are not two answers to a question about our storage
+   * (the box above already takes one line or twenty without asking), they are two
+   * different things a person is holding: a sentence they remember, versus a file
+   * somebody sent them. The second one needs a name, a body that keeps its
+   * paragraphs, and a way to say whether it is a document or a meeting
+   * transcript, because that is what the row's provenance will say afterwards.
+   *
+   * Revealed, never floated: primitives.tsx bans the pane, the drawer and the
+   * slide-over, and this is exactly the case its note describes, a lane that
+   * wanted one and built the thing in place instead.
+   */
+  const [bodyOpen, setBodyOpen] = React.useState(false);
+  const [bodyKind, setBodyKind] = React.useState<"document" | "transcript">("document");
+  const [bodyTitle, setBodyTitle] = React.useState("");
+  const [bodyText, setBodyText] = React.useState("");
+  /** What the file picker said, when it had something to say. Never a toast: a
+   *  rejected file is a state of this composer, not a passing announcement. */
+  const [fileNote, setFileNote] = React.useState<{ text: string; failed: boolean } | null>(null);
+  const [fileReading, setFileReading] = React.useState(false);
+  const fileInput = React.useRef<HTMLInputElement | null>(null);
   /** The merge picker, opened IN PLACE rather than in a pane. primitives.tsx
    *  bans the slide-over and says a lane that wanted one built its detail view
    *  in place instead, "and that is the better surface". */
@@ -381,8 +451,12 @@ export function DiscoverSurface() {
 
   const focusedIndex = ranked.findIndex((r) => r.theme.id === focusedId);
   const focused = focusedIndex >= 0 ? ranked[focusedIndex] : null;
-  const focusedMembers = focused?.members ?? [];
-  const focusedSources = focused ? [...new Set(focusedMembers.map((s) => s.source))] : [];
+  // Annotated, not inferred. `focused?.members ?? []` is `SignalRow[] | never[]`,
+  // a union of two array types, and calling `.map` on a union hands the callback
+  // an `unknown` element. Reading the source off a member looked type safe and
+  // was not, which is why the provenance line needed the annotation to compile.
+  const focusedMembers: SignalRow[] = focused?.members ?? [];
+  const focusedSources: string[] = [...new Set(focusedMembers.map((s) => s.source))];
 
   /**
    * What the record already knows about the cluster in focus.
@@ -526,30 +600,195 @@ export function DiscoverSurface() {
       setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
   });
 
+  /**
+   * WHAT A CAPTURE LEFT BEHIND, in the sink's own numbers.
+   *
+   * `writeSignals` reports three counts and every one of them is a different
+   * fact a person needs: what landed, what was already on the record (the
+   * external_id dedup, which is why re-uploading a file is safe), and what the
+   * injection screen refused to store. Rolling those into one "Captured." was
+   * the surface deciding on the user's behalf that two of the three did not
+   * happen.
+   */
+  function captureConsequence(r: {
+    inserted: number;
+    skipped: number;
+    quarantined: number;
+  }): React.ReactNode {
+    const parts: React.ReactNode[] = [];
+    if (r.inserted > 0) {
+      parts.push(
+        <React.Fragment key="in">
+          <Num>{r.inserted}</Num> signal{plural(r.inserted)} joined the record and{" "}
+          {r.inserted === 1 ? "is" : "are"} waiting to be read with everything else.
+        </React.Fragment>,
+      );
+    }
+    if (r.skipped > 0) {
+      parts.push(
+        <React.Fragment key="skip">
+          <Num>{r.skipped}</Num> {r.skipped === 1 ? "was" : "were"} already on the record, so
+          nothing was duplicated.
+        </React.Fragment>,
+      );
+    }
+    if (r.quarantined > 0) {
+      parts.push(
+        <React.Fragment key="quar">
+          <Num>{r.quarantined}</Num> {r.quarantined === 1 ? "was" : "were"} refused: the text
+          carries instructions aimed at the agents rather than an observation.
+        </React.Fragment>,
+      );
+    }
+    if (parts.length === 0) return "Nothing was captured. Every line was too short to be a signal.";
+    // Joined here rather than by leading spaces inside each fragment, so a
+    // sentence that happens to be the only one never opens with a stray space.
+    return (
+      <>
+        {parts.map((part, i) => (
+          <React.Fragment key={i}>
+            {i > 0 ? " " : null}
+            {part}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
+
   // One control, one or many. A single line captures one signal; paste twenty
   // lines and each becomes its own signal. The old surface asked you to pick a
   // mode first, which is a question about our storage, not about your work.
+  //
+  // ONE ROUND TRIP now, and through a server function that already existed.
+  // This looped `createSignal` per line, so pasting forty lines opened forty
+  // sequential requests and a failure halfway left twenty captured with no
+  // report of which twenty. `bulkImportSignals` has done exactly this job since
+  // F3 and nothing in src/routes or src/components had ever called it.
   const capture = useMutation({
-    mutationFn: async (text: string) => {
-      const lines = text
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter((l) => l.length >= 2)
-        .slice(0, 200);
-      for (const content of lines) {
-        await fCreate({ data: { content, source: "manual", project_id: activeProductId } });
-      }
-      return lines.length;
-    },
-    onSuccess: (n) => {
-      toast.success(n === 1 ? "Captured." : `${n} signals captured.`);
+    mutationFn: (text: string) =>
+      fBulk({
+        data: {
+          text,
+          // The channel token is a fact about the material, not a mode the person
+          // picked: one line is a note, many lines is a paste, and the row says so
+          // afterwards without anyone having answered a question.
+          source: typedCandidates(text).length > 1 ? "paste" : "note",
+          project_id: activeProductId,
+        },
+      }),
+    onSuccess: (r) => {
+      setReceipt({ verb: "You captured what you heard", consequence: captureConsequence(r) });
       setDraft("");
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      setReceipt({ verb: "Nothing was captured", consequence: e.message, failed: true }),
   });
 
+  /** A document or a transcript: one signal, kept whole, named. */
+  const captureBody = useMutation({
+    mutationFn: () =>
+      fCreate({
+        data: {
+          content: bodyText,
+          kind: bodyKind,
+          source: bodyKind,
+          title: bodyTitle.trim() || undefined,
+          project_id: activeProductId,
+        },
+      }),
+    onSuccess: (r) => {
+      const noun = bodyKind === "transcript" ? "transcript" : "document";
+      // THREE OUTCOMES, THREE SENTENCES. The sink can store it, recognise it as
+      // one it already holds, or refuse it at the injection screen, and calling
+      // the third one "added" would be the surface reporting a write that never
+      // happened. The refusal is not a failure of the person, so it does not
+      // wear the failed treatment; it is a fact about the file.
+      const verb =
+        r.inserted > 0
+          ? `You added a ${noun}`
+          : r.quarantined > 0
+            ? `That ${noun} was not stored`
+            : `That ${noun} was already here`;
+      setReceipt({
+        verb,
+        consequence: (
+          <>
+            {captureConsequence(r)}
+            {r.dropped > 0 ? (
+              <>
+                {" "}
+                It ran <Num>{r.dropped}</Num> characters past what one signal holds, and that tail
+                was not stored.
+              </>
+            ) : null}
+          </>
+        ),
+      });
+      // The composer only closes on a real write. A refusal or a duplicate leaves
+      // the text exactly where it is, because closing it would throw away the
+      // thing the person still has to decide what to do with.
+      if (r.inserted > 0) {
+        setBodyOpen(false);
+        setBodyTitle("");
+        setBodyText("");
+        setFileNote(null);
+      }
+      invalidate();
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: `The ${bodyKind === "transcript" ? "transcript" : "document"} was not added`,
+        consequence: e.message,
+        failed: true,
+      }),
+  });
+
+  /**
+   * Read a plain-text file into the composer rather than uploading it.
+   *
+   * The text becomes the body a person can still edit, which is the honest shape
+   * given what this repo can actually parse: there is no PDF or DOCX reader
+   * anywhere in it, so the picker offers only formats that really are text, and
+   * says so when something else is chosen instead of failing after the fact.
+   */
+  async function readFile(file: File) {
+    setFileNote(null);
+    if (!isReadableFileName(file.name)) {
+      setFileNote({
+        text: `${file.name} is not a format this can read yet. Plain text works: ${READABLE_EXTENSIONS.join(", ")}. For a PDF or a Word file, open it and paste the text in.`,
+        failed: true,
+      });
+      return;
+    }
+    setFileReading(true);
+    try {
+      const text = await file.text();
+      if (!text.trim()) {
+        setFileNote({ text: `${file.name} has no text in it.`, failed: true });
+        return;
+      }
+      setBodyText(text.slice(0, MAX_BODY_CHARS));
+      if (!bodyTitle.trim()) setBodyTitle(file.name.replace(/\.[^.]+$/, ""));
+      setFileNote({
+        text:
+          text.length > MAX_BODY_CHARS
+            ? `Read ${file.name}, and kept the first ${MAX_BODY_CHARS.toLocaleString()} characters. Edit it before you capture.`
+            : `Read ${file.name}. Edit it before you capture.`,
+        failed: false,
+      });
+    } catch (e) {
+      setFileNote({
+        text: `${file.name} could not be read. ${(e as Error).message || "The browser refused it."}`,
+        failed: true,
+      });
+    } finally {
+      setFileReading(false);
+    }
+  }
+
   const captureReady = draft.trim().length >= 2;
+  const bodyReady = bodyText.trim().length >= 2;
   const busy = promote.isPending || decline.isPending || attach.isPending;
 
   /**
@@ -573,7 +812,28 @@ export function DiscoverSurface() {
         setPicking(false);
         return;
       }
-      if (!focused || busy || picking) return;
+      // The longer capture composer closes on Escape too, so a person who
+      // opened it by mistake is never stuck reaching for the mouse.
+      if (e.key === "Escape" && bodyOpen) {
+        e.preventDefault();
+        setBodyOpen(false);
+        setFileNote(null);
+        return;
+      }
+      /**
+       * THE COMPOSER SUSPENDS THE TRIAGE KEYBOARD, and this is a correctness
+       * guard rather than a nicety.
+       *
+       * The exclusion above only covers INPUT, TEXTAREA, SELECT and
+       * contenteditable. The composer also holds BUTTONS: the kind picker (a
+       * radio group that owns the arrow keys itself), the file chooser, the
+       * submit. With focus on any of them, "3" reached this handler and
+       * declined whatever cluster happened to be in front of you, and an arrow
+       * key both moved the radio group and moved the ranking. A destructive
+       * disposition fired from a form that has nothing to do with disposition
+       * is the exact class of defect a digit-key surface has to be sure about.
+       */
+      if (!focused || busy || picking || bodyOpen) return;
 
       if (e.key === "ArrowDown" || e.key === "j") {
         e.preventDefault();
@@ -600,7 +860,7 @@ export function DiscoverSurface() {
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [focused, focusedIndex, ranked, busy, picking, promote, decline]);
+  }, [focused, focusedIndex, ranked, busy, picking, bodyOpen, promote, decline]);
 
   const headline: React.ReactNode = loading ? (
     "Discover"
@@ -664,7 +924,12 @@ export function DiscoverSurface() {
               {cov.sources.slice(0, SOURCES_IN_CONTEXT).map((s) => (
                 <CtxRow
                   key={s.source}
-                  name={s.source}
+                  /* The readable name, not the column value. `getSenseCoverage`
+                     groups on `source_kind || source`, so this list used to read
+                     "pull_connector" and "manual" at a person, which are our
+                     words for our lanes and nobody else's words for anything. */
+                  name={sourceLabel(s.source)}
+                  title={s.source}
                   sub={
                     s.quiet ? (
                       <>
@@ -708,9 +973,16 @@ export function DiscoverSurface() {
                 <CtxRow
                   key={s.id}
                   name={signalPreview(s.content, 96)}
+                  /* WHERE THIS ONE CAME FROM, in words. A quote a colleague
+                     typed by hand and a quote a connector pulled at 4am are the
+                     same shape on screen and are not the same level of
+                     evidence, and the raw token ("note", "pull_connector") was
+                     our column value rather than a sentence. */
                   sub={
                     <>
-                      {s.source}, <Num>{since(s.created_at)}</Num>
+                      {sourceLabel(s.source, s.source_kind)}
+                      {capturedByHand(s.source, s.source_kind) ? "" : ", sensed"},{" "}
+                      <Num>{since(s.created_at)}</Num>
                     </>
                   }
                 />
@@ -754,6 +1026,13 @@ export function DiscoverSurface() {
             [
               <span key="where">
                 Opens Settings, Connections. Reading starts the moment a source is linked.
+              </span>,
+              /* The other honest answer, and it is right below this. Without
+                 saying so, the empty desk reads as though a connector is the
+                 only way in, which has never been true. */
+              <span key="hand">
+                Or capture it yourself below: a note, a pasted list, a document, a transcript.
+                Nothing has to be connected first.
               </span>,
               sampleOffered ? (
                 <span key="sample">
@@ -821,7 +1100,13 @@ export function DiscoverSurface() {
                 <Num>{focused.theme.frequency}</Num> signal{plural(focused.theme.frequency)} from{" "}
                 <Num>{focusedSources.length}</Num> separate source
                 {plural(focusedSources.length)}
-                {focusedSources.length > 0 ? `: ${focusedSources.slice(0, 3).join(", ")}` : ""}.
+                {focusedSources.length > 0
+                  ? `: ${focusedSources
+                      .slice(0, 3)
+                      .map((s) => sourceLabel(s))
+                      .join(", ")}`
+                  : ""}
+                .
               </span>,
               <span key="when">
                 First heard <Num>{since(focused.theme.created_at)}</Num>, most recently{" "}
@@ -1009,10 +1294,28 @@ export function DiscoverSurface() {
       {/* Capture is the way in when no connector covers what you just heard.
         One box: one line captures one signal, twenty pasted lines capture
         twenty. The loose count is the only other thing worth saying here,
-        and it carries its own action rather than a separate panel. */}
-      {!signalsEmpty && !loadError && !loading && !picking ? (
+        and it carries its own action rather than a separate panel.
+
+        NOW OFFERED ON AN EMPTY DESK TOO. It used to be hidden behind
+        `!signalsEmpty`, so the first thing a new workspace saw was a Gate
+        saying "connect a source" and no way at all to write down the thing
+        they had just been told on a call. A product whose whole promise is
+        that evidence compounds cannot make the first piece of evidence
+        unreachable, and "wait for a connector" is not an answer to "I heard
+        something ten minutes ago".
+
+        LONGER MATERIAL HAS ITS OWN DOOR, revealed in this same Block. A file
+        or a transcript needs a name and a body that keeps its paragraphs, and
+        it is one signal rather than one per line, which the box above cannot
+        express without lying about what it is doing. */}
+      {!loadError && !loading && !picking ? (
         <Block
           title="Capture what you heard"
+          sub={
+            signalsEmpty
+              ? "Nothing is connected yet, and you do not have to wait for that. Write down what you already know."
+              : undefined
+          }
           // Offered here only once clusters exist. With none, the Gate above
           // IS the cluster call, and two of them would be two subjects.
           more={
@@ -1032,7 +1335,10 @@ export function DiscoverSurface() {
           >
             <Textarea
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              // Held at the same ceiling the server enforces, so a very long
+              // paste is trimmed while it is still editable rather than coming
+              // back as a validation error after the round trip.
+              onChange={(e) => setDraft(e.target.value.slice(0, MAX_BODY_CHARS))}
               placeholder="What did you hear, and where from? One per line."
               aria-label="Capture a signal"
               rows={3}
@@ -1045,8 +1351,153 @@ export function DiscoverSurface() {
               <Button type="submit" disabled={!captureReady || capture.isPending}>
                 {capture.isPending ? "Capturing" : "Capture"}
               </Button>
+              {/* The door to the longer form. It is a toggle rather than a
+                second panel, and it says which state it is in, so it is never
+                a control that opens something you cannot close. */}
+              <Button
+                aria-expanded={bodyOpen}
+                onClick={() => {
+                  setBodyOpen((v) => !v);
+                  setFileNote(null);
+                }}
+              >
+                {bodyOpen ? "Close the longer one" : "Add a document or transcript"}
+              </Button>
             </Actions>
           </form>
+
+          {bodyOpen ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (bodyReady && !captureBody.isPending) captureBody.mutate();
+              }}
+            >
+              {/* WHAT IT IS, and this is not a question about our storage: a
+                meeting transcript and a written document are different kinds
+                of evidence, they read differently, and the row afterwards says
+                which one it was. Two options, so it is the words themselves
+                rather than a select.
+
+                A Line rather than a Field, for the reason Line's own contract
+                states: Field renders a real `<label>` around its children, and
+                a label wrapping a radio group of buttons makes the label text a
+                second way to fire the first button. Choices carries its own
+                accessible name instead. */}
+              <Line label="What you are adding">
+                <Choices
+                  label="What you are adding"
+                  value={bodyKind}
+                  onPick={(id) => setBodyKind(id)}
+                  options={[
+                    { id: "document" as const, label: "A document" },
+                    { id: "transcript" as const, label: "A transcript" },
+                  ]}
+                />
+              </Line>
+
+              <Field label="What to call it" htmlFor="capture-body-title">
+                <Input
+                  id="capture-body-title"
+                  value={bodyTitle}
+                  onChange={(e) => setBodyTitle(e.target.value)}
+                  placeholder={
+                    bodyKind === "transcript"
+                      ? "Churn call with Northwind, March 4"
+                      : "Q3 research readout"
+                  }
+                  maxLength={200}
+                />
+              </Field>
+
+              <Field label="The text itself" htmlFor="capture-body-text">
+                <Textarea
+                  id="capture-body-text"
+                  value={bodyText}
+                  onChange={(e) => setBodyText(e.target.value.slice(0, MAX_BODY_CHARS))}
+                  placeholder={
+                    bodyKind === "transcript"
+                      ? "Paste the transcript, or choose a file below."
+                      : "Write it here, paste it, or choose a file below."
+                  }
+                  rows={8}
+                  style={{
+                    height: "auto",
+                    minHeight: 168,
+                    padding: "10px 12px",
+                    resize: "vertical",
+                  }}
+                />
+              </Field>
+
+              {/* The file picker. A bare file input is unstyleable and reads as
+                a different product, so the button is the affordance and the
+                input is the mechanism. It is still a real input, so the
+                keyboard and assistive tech reach it through the button. */}
+              <input
+                ref={fileInput}
+                type="file"
+                accept={READABLE_EXTENSIONS.join(",")}
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  // Cleared so choosing the same file twice fires again.
+                  e.target.value = "";
+                  if (file) void readFile(file);
+                }}
+              />
+
+              {/* The file is an alternative way to FILL the box above, not a
+                second way to submit, so it sits with the field it fills rather
+                than in the action row. The sub line is the one place this
+                surface admits a limit: naming the formats it cannot read is
+                what stops a person picking a PDF and finding out afterwards.
+                A rejected file replaces that sentence in place, because a
+                refusal is a state of this composer and not an announcement
+                that erases itself while you are still looking for it. */}
+              <Line
+                label="Or read it in from a file"
+                sub={
+                  fileNote ? (
+                    <span className={fileNote.failed ? "sp-fail" : undefined}>{fileNote.text}</span>
+                  ) : (
+                    <>
+                      Plain text only: {READABLE_EXTENSIONS.join(", ")}. A PDF or a Word file has to
+                      be opened and pasted, because nothing here can read one yet.
+                    </>
+                  )
+                }
+              >
+                <Button disabled={fileReading} onClick={() => fileInput.current?.click()}>
+                  {fileReading ? "Reading the file" : "Choose a file"}
+                </Button>
+              </Line>
+
+              <Actions
+                trailing={
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setBodyOpen(false);
+                      setBodyTitle("");
+                      setBodyText("");
+                      setFileNote(null);
+                    }}
+                  >
+                    Discard it
+                  </Button>
+                }
+              >
+                <Button type="submit" disabled={!bodyReady || captureBody.isPending}>
+                  {captureBody.isPending
+                    ? "Capturing"
+                    : bodyKind === "transcript"
+                      ? "Capture the transcript"
+                      : "Capture the document"}
+                </Button>
+              </Actions>
+            </form>
+          ) : null}
         </Block>
       ) : null}
 

@@ -35,6 +35,23 @@ import { studioBranchName } from "@/lib/ai/studio-branch";
 import { mergeReadinessFromCi, overallFromChecks } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { evalRegressionReadiness, type SuiteScorePair } from "@/lib/ai/eval-gate";
+import { isTestPath } from "@/lib/ai/studio-inspection";
+import {
+  scanStagedChangesForSecrets,
+  describeStagedSecrets,
+  type StagedChangeContent,
+} from "@/lib/build/secret-scan";
+import { planChangesetTests } from "@/lib/build/test-plan";
+import {
+  normalizeDependabotAlert,
+  summarizeDepAlerts,
+  depsAuditGate,
+  isDependencyManifest,
+  lockfileDivergenceNote,
+  DEP_SEVERITY_RANK,
+  type DepAlert,
+} from "@/lib/build/deps-audit";
+import { runChangesetReview, loadStagedContent } from "@/lib/build/code-review.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
@@ -1590,11 +1607,27 @@ const studioCommit = def({
     if (!changeset) throw new Error("no active changeset — call studio.stage first");
     const { data: changes } = await supabase
       .from("studio_changes")
-      .select("path,op,new_content")
+      .select("path,op,base_content,new_content")
       .eq("changeset_id", changeset.id)
       .order("path");
     if (!changes?.length) throw new Error("changeset has no staged changes");
     for (const c of changes as { path: string }[]) assertStudioPathAllowed(c.path);
+
+    // THE SECRET FLOOR, and it sits here for one reason: this line is the last
+    // point at which a credential is still only in our database. Everything
+    // after it is a Git Data API write to a real customer repo, where a secret
+    // is in history, in every fork and clone, and unrecallable from inside the
+    // product. That is the same class of boundary `assertStudioPathAllowed`
+    // guards a few lines up, so it is enforced the same way: a hard refusal
+    // with no argument and no override, never a warning an agent can read past.
+    //
+    // Scoped to lines this changeset ADDS (see secret-scan.ts), so a repo that
+    // already contains a credential somewhere does not become un-editable, and
+    // matched only against the platform's existing high-confidence structural
+    // rules, so a refusal is a real credential rather than a guess. The message
+    // names path, line, and kind, and never the value.
+    const secretScan = scanStagedChangesForSecrets(changes as StagedChangeContent[]);
+    if (secretScan.blocked) throw new Error(describeStagedSecrets(secretScan));
 
     const { token, repo } = await requireGithub(ctx);
     const headers = ghHeaders(token);
@@ -1850,6 +1883,308 @@ const studioFixCommit = def({
         .eq("id", changeset.id);
     }
     return result;
+  },
+});
+
+// ── Build verification: the four checks that run BEFORE a pull request ──────
+//
+// Everything above this line either writes code or reads what CI said about it
+// afterwards. Nothing read the code itself. These four close that, and every one
+// of them is a VERIFICATION action that gates a merge, which is what makes them
+// Build's and not Ship's: they are cheap, reversible, and their entire job is to
+// be right before anything irreversible happens. Ship's floors (release.publish,
+// studio.pr.merge, studio.revert) stay exactly where they are.
+//
+// None of them executes anything. There is no Supaprod execution sandbox
+// (src/lib/exec/provider.ts, and ai/studio-ci.ts says the same): the only wired
+// backend is the connected repo's GitHub Actions CI, which runs after a push.
+// So these read, diff, match, and judge. A tool here that claimed to have RUN
+// the test suite would be a lie with a green tick on it.
+
+/**
+ * Every test file on a ref, for the test plan's "already covered in the repo"
+ * arm. Fail-soft by design: an unreadable tree yields [], which over-reports
+ * gaps rather than under-reporting them, and a plan that names a test which
+ * turns out to exist costs one repo.read.
+ */
+async function listRepoTestPaths(
+  repo: string,
+  headers: Record<string, string>,
+  ref: string,
+): Promise<string[]> {
+  try {
+    const j = await ghJson<{ tree?: Array<{ path: string; type: string }> }>(
+      `https://api.github.com/repos/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`,
+      headers,
+    );
+    return (j.tree ?? []).filter((e) => e.type === "blob" && isTestPath(e.path)).map((e) => e.path);
+  } catch {
+    return [];
+  }
+}
+
+/** The ref a changeset's checks read from: its own branch once it has one. */
+async function changesetRef(
+  changeset: ChangesetRow,
+  repo: string,
+  headers: Record<string, string>,
+): Promise<string> {
+  return changeset.branch ?? (await getDefaultBranch(repo, headers));
+}
+
+/**
+ * The audit GitHub has already run: open Dependabot alerts for the repo.
+ *
+ * Honest about not being able to look. 403 means the installed token lacks the
+ * `security_events` scope; 404 means Dependabot alerts are switched off for the
+ * repo. Neither is a clean bill of health and neither is reported as one.
+ */
+async function fetchDependabotAlerts(
+  repo: string,
+  headers: Record<string, string>,
+): Promise<{ available: boolean; reason: string | null; alerts: DepAlert[] }> {
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://api.github.com/repos/${repo}/dependabot/alerts?state=open&per_page=100`,
+      { headers },
+    );
+  } catch (e) {
+    return {
+      available: false,
+      reason: e instanceof Error ? e.message.slice(0, 160) : "network error",
+      alerts: [],
+    };
+  }
+  if (res.status === 403) {
+    return {
+      available: false,
+      reason: "the connected GitHub credential has no security_events scope",
+      alerts: [],
+    };
+  }
+  if (res.status === 404) {
+    return {
+      available: false,
+      reason: "Dependabot alerts are not enabled on this repo",
+      alerts: [],
+    };
+  }
+  if (!res.ok) {
+    return { available: false, reason: `GitHub ${res.status}`, alerts: [] };
+  }
+  const raw = (await res.json()) as unknown;
+  if (!Array.isArray(raw)) {
+    return { available: false, reason: "GitHub returned an unreadable alert list", alerts: [] };
+  }
+  return {
+    available: true,
+    reason: null,
+    alerts: raw.map(normalizeDependabotAlert).filter((a): a is DepAlert => a !== null),
+  };
+}
+
+const studioSecretsScan = def({
+  name: "studio.secrets.scan",
+  description:
+    "Studio: scan this mission's STAGED changes for credentials before they reach the repo. Read-only. Matches the platform's own high-confidence secret rules against lines this changeset ADDS (a credential already in the file does not trip it), and reports path, line, and the KIND of secret, never the value. studio.commit enforces this same scan as a hard refusal, so run it while you can still fix a file cheaply.",
+  category: "read",
+  argsSchema: z.object({}),
+  preview: () => "Scan the staged changes for credentials",
+  run: async (_a, ctx) => {
+    const { supabase, missionId } = ctx;
+    if (!missionId) throw new Error("studio.secrets.scan requires a mission");
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset, call studio.stage first");
+    const changes = await loadStagedContent(supabase, changeset.id);
+    if (!changes.length) throw new Error("changeset has no staged changes to scan");
+    const scan = scanStagedChangesForSecrets(changes);
+    return {
+      changeset_id: changeset.id,
+      clean: !scan.blocked,
+      findings: scan.findings,
+      files_scanned: scan.files_scanned,
+      added_lines_scanned: scan.added_lines_scanned,
+      truncated: scan.truncated,
+      note: scan.blocked
+        ? describeStagedSecrets(scan)
+        : "No high-confidence credential on any added line. This checks structural credential formats only; it is not a guarantee that nothing sensitive is in the diff.",
+    };
+  },
+});
+
+const studioTestsPlan = def({
+  name: "studio.tests.plan",
+  description:
+    "Studio: work out which tests this changeset still owes. Read-only. Compares every changed source file against the repo's test-file convention and the tests already on the branch, and returns the concrete list of test files that do not exist yet. Call it after staging and stage each gap with studio.stage. It does NOT run tests: nothing here executes, and whether a test passes is decided by the repo's CI after the PR opens (read that with ci.logs).",
+  category: "read",
+  argsSchema: z.object({}),
+  preview: () => "Plan the tests this changeset still owes",
+  run: async (_a, ctx) => {
+    const { supabase, missionId } = ctx;
+    if (!missionId) throw new Error("studio.tests.plan requires a mission");
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset, call studio.stage first");
+    const { data: changes } = await supabase
+      .from("studio_changes")
+      .select("path,op")
+      .eq("changeset_id", changeset.id)
+      .order("path");
+    if (!changes?.length) throw new Error("changeset has no staged changes to plan against");
+
+    const { token, repo } = await requireGithub(ctx);
+    const headers = ghHeaders(token);
+    const ref = await changesetRef(changeset, repo, headers);
+    const repoTestPaths = await listRepoTestPaths(repo, headers, ref);
+    const plan = planChangesetTests(changes as Array<{ path: string; op: string }>, repoTestPaths);
+    return {
+      changeset_id: changeset.id,
+      repo,
+      ref,
+      gaps: plan.gaps,
+      covered: plan.items.filter((i) => i.coverage !== "gap"),
+      staged_test_files: plan.staged_test_files,
+      not_applicable: plan.not_applicable,
+      note: plan.note,
+    };
+  },
+});
+
+const studioDepsAudit = def({
+  name: "studio.deps.audit",
+  description:
+    "Studio: audit the repo's dependencies for known vulnerabilities. Read-only. Reads GitHub's own Dependabot alerts (computed from the committed manifests against the GitHub Advisory Database), correlates them with whatever dependency manifest this changeset touches, and reports whether that is a reason not to open the pull request. Reports 'not available' honestly when the repo has Dependabot off or the credential lacks the scope; that is never the same as clean.",
+  category: "read",
+  argsSchema: z.object({}),
+  preview: () => "Audit dependencies for known vulnerabilities",
+  run: async (_a, ctx) => {
+    const { supabase, missionId } = ctx;
+    const { token, repo } = await requireGithub(ctx);
+    const headers = ghHeaders(token);
+
+    let touchedPaths: string[] = [];
+    let changesetId: string | null = null;
+    if (missionId) {
+      const changeset = await getActiveChangeset(supabase, missionId);
+      if (changeset) {
+        changesetId = changeset.id;
+        const { data } = await supabase
+          .from("studio_changes")
+          .select("path")
+          .eq("changeset_id", changeset.id);
+        touchedPaths = ((data ?? []) as Array<{ path: string }>).map((r) => r.path);
+      }
+    }
+
+    const { available, reason, alerts } = await fetchDependabotAlerts(repo, headers);
+    const summary = summarizeDepAlerts(alerts);
+    const touchesManifest = touchedPaths.some(isDependencyManifest);
+    const gate = depsAuditGate({
+      available,
+      unavailableReason: reason,
+      summary,
+      touchesManifest,
+    });
+    return {
+      changeset_id: changesetId,
+      repo,
+      available,
+      unavailable_reason: reason,
+      summary,
+      // The list is capped because a repo with a long tail of low advisories
+      // would otherwise crowd the agent's context with things this changeset
+      // neither caused nor can fix.
+      alerts: alerts
+        .slice()
+        .sort((a, b) => DEP_SEVERITY_RANK[b.severity] - DEP_SEVERITY_RANK[a.severity])
+        .slice(0, 20),
+      touches_manifest: touchesManifest,
+      may_proceed: gate.mayProceed,
+      reason: gate.reason,
+      lockfile_note: lockfileDivergenceNote(touchedPaths) || null,
+    };
+  },
+});
+
+const studioReview = def({
+  name: "studio.review",
+  description:
+    "Studio: review this mission's STAGED diff before it becomes a pull request. Read-only and advisory. Runs the deterministic checks (credentials on added lines, forbidden paths, missing test files) and then one reviewer pass over the diff for security, correctness, swallowed errors, scope creep, and convention breaks. Returns a verdict of approve / revise / block / unreviewed with per-file, per-line findings. Call it AFTER studio.commit and BEFORE studio.pr.open, and act on the blockers rather than opening the PR anyway. 'unreviewed' means the reviewer did not run; it is not a pass.",
+  // 'planning' + the loop's control-flow handling, matching critic.evaluate: the
+  // verdict is advisory and side-effect-free beyond its own row, so gating it
+  // behind an approval would put a queue in front of the check that exists to
+  // shorten the queue.
+  category: "planning",
+  argsSchema: z.object({
+    intent: z.string().max(4000).optional(),
+  }),
+  preview: () => "Review the staged diff before opening a pull request",
+  run: async (a, ctx) => {
+    const { supabase, userId, missionId, workspaceId, runId } = ctx;
+    if (!missionId) throw new Error("studio.review requires a mission");
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset, call studio.stage first");
+
+    // Finding 32's lesson, applied ahead of time: the mission already knows what
+    // it was asked to do, so an omitted `intent` resolves from the changeset
+    // rather than costing a step to self-correct.
+    let intent = a.intent?.trim() || "";
+    if (!intent) {
+      const { data: m } = await supabase
+        .from("missions")
+        .select("title,goal")
+        .eq("id", missionId)
+        .maybeSingle();
+      const mission = m as { title?: string | null; goal?: string | null } | null;
+      intent = [changeset.title, mission?.title, mission?.goal]
+        .map((s) => (s ?? "").trim())
+        .filter(Boolean)
+        .join("\n");
+    }
+
+    // The repo-side facts the deterministic pass needs. Both fail soft: a
+    // GitHub outage degrades the review to the diff-only checks rather than
+    // throwing away the whole review.
+    let repoTestPaths: string[] = [];
+    let dependencyNote: string | null = null;
+    try {
+      const { token, repo } = await requireGithub(ctx);
+      const headers = ghHeaders(token);
+      const ref = await changesetRef(changeset, repo, headers);
+      repoTestPaths = await listRepoTestPaths(repo, headers, ref);
+      const { data: pathRows } = await supabase
+        .from("studio_changes")
+        .select("path")
+        .eq("changeset_id", changeset.id);
+      dependencyNote =
+        lockfileDivergenceNote(((pathRows ?? []) as Array<{ path: string }>).map((r) => r.path)) ||
+        null;
+    } catch (e) {
+      console.error("[studio.review] repo context unavailable:", e);
+    }
+
+    const result = await runChangesetReview(supabase, userId, {
+      changesetId: changeset.id,
+      workspaceId,
+      runId,
+      intent: intent || null,
+      repoTestPaths,
+      dependencyNote,
+    });
+    return {
+      changeset_id: changeset.id,
+      verdict: result.review.verdict,
+      summary: result.review.summary,
+      findings: result.review.findings,
+      files_reviewed: result.review.files_reviewed,
+      reviewer_model: result.review.reviewer_model,
+      may_open_pr: result.gate.mayOpenPr,
+      reason: result.gate.reason,
+      // Stated rather than implied: without the changeset column this verdict
+      // exists only in this run's tool trail. See BUILD-NEEDS-MIGRATION.md.
+      persisted: result.persisted,
+      model_error: result.model_error,
+    };
   },
 });
 
@@ -3502,6 +3837,10 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     studioStage,
     studioCommit,
     studioFixCommit,
+    studioSecretsScan,
+    studioTestsPlan,
+    studioDepsAudit,
+    studioReview,
     studioPrOpen,
     studioPrMerge,
     studioSyncBranch,
