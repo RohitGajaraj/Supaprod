@@ -33,6 +33,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { embedTexts } from "@/lib/rag/embed.server";
+import { recordErrorEvent } from "@/lib/observability/errors";
 
 export const MEMORY_EMBED_BATCH = 64;
 
@@ -95,7 +96,18 @@ export async function backfillMemoryEmbeddings(
         { supabase: db, userId, surfaceRef: "memory-embedding-backfill" },
       );
     } catch (e) {
+      // REPORTED, not just logged, and this is the whole reason this sweeper was
+      // undiagnosable for three hours. It caught its own failure, wrote a line to
+      // a console nobody reads, and let the tick return ok, so from the outside a
+      // sweeper that had never once succeeded looked exactly like a sweeper with
+      // nothing to do. Every other silent failure found today had the same shape.
+      // console.error is not observability; error_events is.
       console.error("backfillMemoryEmbeddings embed failed for user", userId, e);
+      void recordErrorEvent(e, {
+        surface: "cron.embed-tick.memory",
+        user_id: userId,
+        failure_kind: "embed_failed",
+      });
       failed += group.length;
       continue;
     }
