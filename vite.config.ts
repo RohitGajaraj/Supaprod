@@ -28,6 +28,19 @@ const publicBackendKey =
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
+    router: {
+      // Tests that live beside the routes they cover are not routes. Without
+      // this the router scans them, finds no Route export, and prints a nine
+      // line warning per file on EVERY dev start and every build. Two files do
+      // it today, so twenty lines of scary yellow text greet you before the
+      // "ready" line, which is exactly why `bun run dev` reads as broken when it
+      // is working perfectly.
+      //
+      // Matching on the test suffix rather than renaming the files, because the
+      // "-" prefix convention would move them away from the code they test and
+      // the point of colocating them is that they are easy to find.
+      routeFileIgnorePattern: "\\.(test|spec)\\.(ts|tsx)$|__tests__",
+    },
   },
   vite: {
     plugins: [mcpPlugin()],
