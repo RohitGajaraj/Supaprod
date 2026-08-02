@@ -581,7 +581,7 @@ function Design() {
   // is asking. Standing counts are standing facts and live in the context column.
   const headline =
     rules.isLoading || work.isLoading
-      ? "Reading the record."
+      ? "Design"
       : waiting.length > 0
         ? waiting.length === 1
           ? "One brand rule needs you."
