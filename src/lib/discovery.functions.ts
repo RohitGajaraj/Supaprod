@@ -433,15 +433,26 @@ export const setThemeStatus = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: prior } = await supabase
       .from("themes")
-      .select("status,workspace_id,title")
+      .select("status,workspace_id,title,frequency")
       .eq("id", data.theme_id)
       .maybeSingle();
     if (!prior) throw new Error("Theme not found");
 
-    const { error } = await supabase
-      .from("themes")
-      .update({ status: data.status })
-      .eq("id", data.theme_id);
+    // Record how big the cluster was at the moment it was declined. This is what
+    // makes "not a pattern" mean "not YET a pattern": theme growth compares later
+    // frequency against this number, so a decline at 3 signals and a decline at 40
+    // are held to proportionate bars rather than one flat threshold. Cleared on the
+    // way back to `new` so a second decline is measured from where it actually
+    // stood, not from a stale reading taken the first time round.
+    const update: Record<string, unknown> = { status: data.status };
+    if (data.status === "dismissed") {
+      update.dismissed_at_frequency = (prior as { frequency?: number | null }).frequency ?? 0;
+    } else {
+      update.dismissed_at_frequency = null;
+      update.escalated_at = null;
+    }
+
+    const { error } = await supabase.from("themes").update(update).eq("id", data.theme_id);
     if (error) throw new Error(error.message);
 
     // SEAM-1: a triage call is a stage transition and belongs in the history

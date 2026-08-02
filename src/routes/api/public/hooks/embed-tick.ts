@@ -5,6 +5,10 @@ import {
   backfillSignalEmbeddings,
   EMBED_SWEEP_BATCH,
 } from "@/lib/sources/signal-embedding.server";
+import {
+  backfillThemeEmbeddings,
+  THEME_EMBED_BATCH,
+} from "@/lib/brain/theme-embedding.server";
 import { withJobRun } from "@/lib/observability";
 
 /**
@@ -49,10 +53,32 @@ export const Route = createFileRoute("/api/public/hooks/embed-tick")({
             if (r.scanned === 0 || r.embedded === 0) break;
           }
 
+          // Themes need the same treatment and for a sharper reason. On 2026-08-02
+          // the live database held 181 themes and zero theme embeddings, because
+          // computeNovelty fails open and writes a null vector when embedding fails.
+          // match_themes filters on `embedding IS NOT NULL`, so with none of them
+          // vectored, theme growth could never attach a single signal however well
+          // the matching logic was written. This is what unblocks it.
+          let themeScanned = 0,
+            themeEmbedded = 0,
+            themeFailed = 0;
+          try {
+            const t = await backfillThemeEmbeddings(supabaseAdmin, THEME_EMBED_BATCH);
+            themeScanned = t.scanned;
+            themeEmbedded = t.embedded;
+            themeFailed = t.failed;
+          } catch (e) {
+            // Never let the theme sweep bury the signal sweep's result.
+            console.error("embed-tick theme backfill failed", e);
+          }
+
           return new Response(
             JSON.stringify({
               ok: true,
               batches,
+              themeScanned,
+              themeEmbedded,
+              themeFailed,
               scanned,
               embedded,
               failed,

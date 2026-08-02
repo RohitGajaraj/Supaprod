@@ -3,6 +3,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
 import { computeNovelty } from "@/lib/brain/novelty.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { shouldEscalate, THEME_ATTACH_THRESHOLD } from "@/lib/ai/theme-growth";
 
 export type ThemeCandidate = {
   title: string;
@@ -38,29 +39,41 @@ export function extractThemesJson(rawJson: unknown): ThemeCandidate[] | undefine
  * clusterSignalsCore to decide whether to flip a dismissed theme back to "new"
  * when it escalates.
  *
- * Re-activation is conservative: only dismissed/merged/archived themes (not
- * "done", which is user-settled) get a chance, and only if the new frequency
- * crosses a threshold (>= 5). This prevents stray signals from re-activating
- * while allowing genuine escalation to resurface dismissed themes.
+ * SUPERSEDED 2026-08-02. This delegates to `shouldEscalate` in ai/theme-growth.ts
+ * and is kept only so nothing importing the old name breaks.
+ *
+ * The original rule was `isDismissed && newFrequency >= 5`, which had two faults.
+ * It ignored the size the theme was when the human declined it, so any theme
+ * already larger than 5 re-opened the instant one more signal arrived: the user
+ * would be handed back a decision they had just closed. And it treated `merged` as
+ * re-activatable, but a merged theme's evidence belongs to the theme it was merged
+ * into, so reopening it strands that evidence under a cluster nobody reads.
+ *
+ * The replacement measures growth relative to the decline instead of against a flat
+ * count. See ai/theme-growth.ts for the reasoning and its tests.
  */
 export function shouldReactivateTheme(
   currentStatus: string | null | undefined,
-  newFrequency: number
+  newFrequency: number,
+  dismissedAtFrequency?: number | null,
 ): boolean {
   const status = (currentStatus ?? "").toLowerCase();
-  const isDismissed = status === "dismissed" || status === "merged" || status === "archived";
-  return isDismissed && newFrequency >= 5;
+  if (status !== "dismissed") return false;
+  return shouldEscalate(dismissedAtFrequency ?? null, newFrequency);
 }
 
 /**
  * Validate that a signal-to-theme match is strong enough to warrant attachment.
- * Uses cosine similarity with a conservative threshold to avoid attaching
- * semantically unrelated signals to themes.
+ *
+ * Threshold raised from 0.7 to THEME_ATTACH_THRESHOLD (0.8) on 2026-08-02. At 0.7
+ * two texts merely share a subject area; `brain/novelty.server.ts:70` already treats
+ * ~0.5 as the floor where a pair stops being noise, so 0.7 sits far closer to that
+ * floor than to "this is the same complaint". The failure is asymmetric: a wrong
+ * attach silently buries a signal inside a theme nobody reads it under, while a
+ * missed attach merely falls through to the model, which is the safe direction.
  */
 export function isValidThemeMatch(similarity: number): boolean {
-  // 0.7+ cosine similarity = roughly 45 degrees in vector space.
-  // Below this, the match is noise (even random vectors have non-zero similarity).
-  return similarity >= 0.7;
+  return similarity >= THEME_ATTACH_THRESHOLD;
 }
 
 /**
@@ -297,8 +310,34 @@ Return STRICT JSON only, no prose, no markdown fences.`;
     const similarity = bestMatch.similarity ?? 0;
     if (!isValidThemeMatch(similarity)) continue;
 
-    // Attach the signal to the best-match existing theme atomically, only if still
-    // unclustered (another pass or manual operation might have claimed it).
+    // Load the candidate theme BEFORE attaching anything, because the match itself
+    // is not scoped and the attach is irreversible in practice.
+    //
+    // KI-31, second occurrence: the signal query above is carefully scoped by
+    // workspace and product, but `match_themes` is not. Its WHERE clause is only
+    // `t.user_id = COALESCE(auth.uid(), for_user)` plus an embedding check
+    // (20260630122000_brain_theme_scoring.sql:30-36), with no workspace or product
+    // filter at all. On the live database 4 users hold themes in more than one
+    // workspace, so an unguarded attach could move a signal sensed in workspace A
+    // under a theme belonging to workspace B, which is exactly the cross-workspace
+    // bleed the comments on the signal query were written to prevent.
+    const { data: theme } = await supabase
+      .from("themes")
+      .select("id,frequency,status,workspace_id,project_id,dismissed_at_frequency")
+      .eq("id", bestMatch.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!theme) continue;
+
+    const themeWorkspace = (theme as { workspace_id?: string | null }).workspace_id ?? null;
+    const themeProject = (theme as { project_id?: string | null }).project_id ?? null;
+    if (workspaceId && themeWorkspace && themeWorkspace !== workspaceId) continue;
+    // A product-scoped pass may only grow that product's themes, or the
+    // workspace-level themes that carry no product of their own.
+    if (projectId && themeProject && themeProject !== projectId) continue;
+
+    // Only now claim the signal, and only if still unclustered (another pass or a
+    // manual operation might have taken it).
     const { data: attachedRows } = await supabase
       .from("signals")
       .update({ theme_id: bestMatch.id })
@@ -308,29 +347,31 @@ Return STRICT JSON only, no prose, no markdown fences.`;
 
     if (!attachedRows?.length) continue; // Lost the race; another pass claimed this signal
 
-    // Update the theme to reflect new member. Increment frequency and set last_signal_at.
-    // If the theme is dismissed, check if escalation should re-activate it.
     const nowIso = new Date().toISOString();
-    const { data: theme } = await supabase
-      .from("themes")
-      .select("id,frequency,status")
-      .eq("id", bestMatch.id)
-      .maybeSingle();
-
-    if (theme) {
+    {
       const newFrequency = ((theme as { frequency?: number | null }).frequency ?? 0) + 1;
 
-      // Update theme: frequency, last_signal_at, and optionally status (re-activation).
-      // shouldReactivateTheme() encodes the "conditional decline until it escalates"
-      // mechanism: dismissed themes re-activate only when they escalate past a threshold.
+      // Conditional decline. The gate is measured against how big the theme was when
+      // the human declined it, not against a fixed count. A flat "frequency >= 5"
+      // bar re-opens every theme that was already larger than 5 the moment one more
+      // signal lands, which would hand the user back decisions they had closed and
+      // teach them to distrust the triage queue. shouldEscalate() instead requires
+      // the theme to have both doubled and grown by at least 3 since the decline, so
+      // a small dismissal needs real repetition and a large one needs proportionate
+      // growth. A theme declined before dismissed_at_frequency existed reads null and
+      // never escalates, on purpose.
+      const dismissedAt = (theme as { dismissed_at_frequency?: number | null })
+        .dismissed_at_frequency;
+      const reopening =
+        (theme as { status?: string | null }).status === "dismissed" &&
+        shouldEscalate(dismissedAt ?? null, newFrequency);
+
       const { error: upErr } = await supabase
         .from("themes")
         .update({
           frequency: newFrequency,
           last_signal_at: nowIso,
-          ...(shouldReactivateTheme((theme as { status?: string | null }).status, newFrequency)
-            ? { status: "new" }
-            : {}),
+          ...(reopening ? { status: "new", escalated_at: nowIso } : {}),
         })
         .eq("id", bestMatch.id);
 
