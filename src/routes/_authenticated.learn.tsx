@@ -36,6 +36,15 @@
  *          before, recorded after.
  *    ADD   the receipt. A settled outcome renders what it caused; a failed one
  *          says so and says nothing was written (anti-slop.md section 5).
+ *    ADD   (2026-08-02) the agent as the DEFAULT settler, and this surface as
+ *          the exception desk. The hourly sweep now puts the verdict on the
+ *          record itself whenever the evidence supports it, so the headline
+ *          counts what the agent could not evidence rather than every outcome,
+ *          the sub says how many it settled without you, and the panel carries
+ *          a block of agent-settled verdicts with their confidence, the facts
+ *          they rested on, and a one-click way to disagree. The founder's
+ *          ruling and the governance floor it has to respect are argued in
+ *          full at the top of src/lib/ai/outcome-review.ts.
  *    KEEP  the record recess and the paid-off list. Made switchable last pass,
  *          and still the only place a learning can be read in full here.
  *    KEEP  the headline, now leading with what is WAITING, because that is the
@@ -100,7 +109,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 
-import { getOutcomeData, listPendingOutcomes } from "@/lib/outcome.functions";
+import {
+  getOutcomeData,
+  listAgentSettledOutcomes,
+  listPendingOutcomes,
+} from "@/lib/outcome.functions";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
 import {
@@ -166,6 +179,7 @@ function Learn() {
   const fOutcome = useServerFn(getOutcomeData);
   const fLedger = useServerFn(getImpactLedger);
   const fPending = useServerFn(listPendingOutcomes);
+  const fSettled = useServerFn(listAgentSettledOutcomes);
 
   // Same query keys the retired panels used, so the cache stays shared with
   // Ship and Brain rather than fetching the same rows twice.
@@ -178,15 +192,17 @@ function Learn() {
     queryKey: ["impact-ledger"],
     queryFn: () => fLedger({ data: {} }),
   });
-  // The same key SettlePanel reads, so the count in the headline and the queue
-  // below it are one fetch and can never disagree.
+  // The same keys SettlePanel reads, so the counts in the headline and the
+  // queues below it are one fetch each and can never disagree.
   const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
+  const settledQ = useQuery({ queryKey: ["outcome-agent-settled"], queryFn: () => fSettled() });
 
   const ledger = ledgerQ.data?.ledger ?? null;
   const markdown = ledgerQ.data?.markdown ?? "";
   const outcomes = ledger?.outcomes ?? null;
   const support = outcome.data?.support ?? [];
   const waiting = pendingQ.data?.pending.length ?? 0;
+  const agentSettled = settledQ.data?.settled.length ?? 0;
 
   const highlights = ledger?.highlights ?? [];
   const focusIdx = highlights.length > 0 ? Math.min(focus, highlights.length - 1) : 0;
@@ -200,9 +216,18 @@ function Learn() {
   const headline = React.useMemo(() => {
     if (ledgerQ.isLoading || pendingQ.isLoading) return "Learn";
     if (waiting > 0) {
+      // "Asked for" rather than "waiting on", because the queue is now the
+      // exception the agent could not evidence, not the default every outcome
+      // passes through. Calling it a waiting list would misdescribe what a
+      // person is looking at and quietly re-centre the human as the bottleneck.
       return waiting === 1
-        ? "One shipped bet is waiting on your verdict."
-        : `${waiting} shipped bets are waiting on your verdict.`;
+        ? "One shipped bet needs your call."
+        : `${waiting} shipped bets need your call.`;
+    }
+    if (agentSettled > 0) {
+      return agentSettled === 1
+        ? "Measure settled the last outcome on its own."
+        : `Measure settled the last ${agentSettled} outcomes on its own.`;
     }
     if (!outcomes) return "The record is not readable right now.";
     if (outcomes.total === 0) return "No outcome has come back yet.";
@@ -214,7 +239,7 @@ function Learn() {
         ? `${outcomes.validated} of ${decisive} paid off.`
         : "None of them decisive yet.";
     return `${back}. ${verdict}`;
-  }, [ledgerQ.isLoading, pendingQ.isLoading, waiting, outcomes]);
+  }, [ledgerQ.isLoading, pendingQ.isLoading, waiting, agentSettled, outcomes]);
 
   const since = day(ledger?.span.firstAt ?? null);
   const movedPriority = (ledger?.measuredOutcomes ?? 0) > 0;
@@ -225,7 +250,11 @@ function Learn() {
   // 10). With bets waiting, that is the record so far; with none waiting, it is
   // how far back the record goes.
   const sub: React.ReactNode =
-    waiting > 0 && outcomes && decisive > 0 ? (
+    waiting > 0 && agentSettled > 0 ? (
+      <>
+        Measure settled <Num>{agentSettled}</Num> more without you
+      </>
+    ) : waiting > 0 && outcomes && decisive > 0 ? (
       <>
         <Num>{outcomes.validated}</Num> of <Num>{decisive}</Num> already settled paid off
       </>

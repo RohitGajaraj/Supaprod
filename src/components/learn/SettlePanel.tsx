@@ -10,28 +10,46 @@
  * the write caused. A loop whose last stage cannot capture what happened does
  * not compound, it reports.
  *
- * So this panel is the whole justification for the surface, and it obeys four
- * rules that are not negotiable here:
+ * THE 2026-08-02 CHANGE: the agent gives the verdict now, and this surface has
+ * two jobs instead of one.
+ *
+ * Founder ruling: "Why should it always be the user giving the verdict?
+ * Primarily it should be the AGENT giving the verdict." So the hourly sweep
+ * settles what it can evidence, and what reaches this panel is the exception,
+ * not the loop. Two consequences the design has to carry honestly:
+ *
+ *   · AN OUTCOME AN AGENT SETTLED MUST NOT LOOK LIKE ONE A PERSON SETTLED.
+ *     It carries the agent's mark, its confidence, and the facts it rested on,
+ *     in its own block. Anything less would be a write nobody agreed to,
+ *     dressed as a write somebody made.
+ *   · DISAGREEING IS ONE CLICK AND IT IS ALWAYS THERE. Autonomy is paid for
+ *     with evidence, and the payment only clears if the person can see the
+ *     working and reverse it. The overturn is priced before the click, the
+ *     same way a first verdict is, and it is recorded against the agent's
+ *     original rather than replacing it silently.
+ *
+ * And the four rules the panel already obeyed, which the change does not
+ * relax:
  *
  *   · NOTHING IS INVENTED. A bet with no linked opportunity says no priority
  *     moves, rather than printing a zero. A spec Measure could not draft from
  *     says exactly what was missing. The score movement shown BEFORE you click
- *     comes from `listPendingOutcomes`, which runs the same arithmetic the
- *     write runs, so the promise and the write cannot drift.
+ *     comes from `listPendingOutcomes` and `listAgentSettledOutcomes`, which
+ *     run the same arithmetic the write runs, so the promise and the write
+ *     cannot drift. The reason a bet is on your desk comes from the same pure
+ *     function the sweep decided with.
  *   · A RECEIPT, NEVER A TOAST (anti-slop.md section 5). Settling writes a
  *     receipt carrying the real consequence: the priority that moved, the
- *     agent whose promotion is now held, the other bets that re-rank. A failed
- *     write writes an honest failed one.
- *   · THE CREW IS PRESENT AND IT IS LOAD BEARING. Measure drafts the verdict
- *     from usage data and the merged change. Every waiting row wears the mark
- *     of the agent that made the call being judged. A missed verdict against
- *     an agent still earning its autonomy holds its promotion, which the Gate
- *     warns about before you click and the receipt records after. Remove the
- *     agents and this is a manual form with no draft, no attribution and no
- *     consequence.
+ *     agent whose promotion is now held, the other bets that re-rank, and the
+ *     verdict this one overturned. A failed write writes an honest failed one.
+ *   · THE CREW IS PRESENT AND IT IS LOAD BEARING. Measure settles what it can
+ *     evidence and hands over what it cannot, saying which and why. Every
+ *     waiting row wears the mark of the agent that made the call being judged.
+ *     Remove the agents and this is a manual form with no draft, no
+ *     attribution, no consequence, and no verdicts settled at all.
  *   · ONE PRIMARY. The Gate asks and shows the evidence; the form beneath it
- *     is already filled when Measure is confident, so the confident case is
- *     genuinely one click and the thin case is a review.
+ *     is already filled, so the confident case is genuinely one click and the
+ *     thin case is a review.
  */
 
 import * as React from "react";
@@ -40,8 +58,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   draftOutcomeSuggestion,
+  listAgentSettledOutcomes,
   listPendingOutcomes,
   recordOutcome,
+  type AgentSettledOutcome,
   type PendingOutcome,
 } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
@@ -101,6 +121,12 @@ function score(n: number | null | undefined): string | null {
   return typeof n === "number" && Number.isFinite(n) ? n.toFixed(1) : null;
 }
 
+/** The agent's evidence score, as a person reads it. Never a bare decimal. */
+function sureness(n: number | null | undefined): string | null {
+  if (typeof n !== "number" || !Number.isFinite(n)) return null;
+  return `${Math.round(Math.min(1, Math.max(0, n)) * 100)}%`;
+}
+
 type Mark = {
   key: string;
   verb: string;
@@ -109,21 +135,63 @@ type Mark = {
   failed: boolean;
 };
 
+/** What the form is pointed at. A bet waiting for a first verdict, or one an
+ *  agent already settled that a person is looking at again. The form itself is
+ *  identical either way; only the Gate above it and the button beneath it
+ *  change, because giving a verdict and replacing one are the same act with
+ *  different consequences. */
+type Target = {
+  prdId: string;
+  title: string;
+  opportunity: PendingOutcome["opportunity"];
+  /** Set only when a person is looking at a verdict an agent already gave. */
+  settled: AgentSettledOutcome | null;
+  pending: PendingOutcome | null;
+};
+
 export function SettlePanel() {
   const qc = useQueryClient();
   const fPending = useServerFn(listPendingOutcomes);
+  const fSettled = useServerFn(listAgentSettledOutcomes);
   const fRecord = useServerFn(recordOutcome);
   const fDraft = useServerFn(draftOutcomeSuggestion);
 
   const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
+  const settledQ = useQuery({ queryKey: ["outcome-agent-settled"], queryFn: () => fSettled() });
   const pending = React.useMemo(() => pendingQ.data?.pending ?? [], [pendingQ.data]);
+  const agentSettled = React.useMemo(() => settledQ.data?.settled ?? [], [settledQ.data]);
 
   const [pickedId, setPickedId] = React.useState<string | null>(null);
-  const focus: PendingOutcome | null =
-    pending.find((p) => p.prdId === pickedId) ?? pending[0] ?? null;
-  const focusId = focus?.prdId ?? null;
+  /** Which agent-settled verdict the person is reconsidering. Takes precedence
+   *  over the waiting queue: they clicked it on purpose. */
+  const [overturnId, setOverturnId] = React.useState<string | null>(null);
 
-  /* ---- the form, seeded from Measure's draft ---- */
+  const reconsidering = overturnId
+    ? (agentSettled.find((s) => s.prdId === overturnId) ?? null)
+    : null;
+  const pendingFocus: PendingOutcome | null =
+    pending.find((p) => p.prdId === pickedId) ?? pending[0] ?? null;
+
+  const target: Target | null = reconsidering
+    ? {
+        prdId: reconsidering.prdId,
+        title: reconsidering.title,
+        opportunity: reconsidering.opportunity,
+        settled: reconsidering,
+        pending: null,
+      }
+    : pendingFocus
+      ? {
+          prdId: pendingFocus.prdId,
+          title: pendingFocus.title,
+          opportunity: pendingFocus.opportunity,
+          settled: null,
+          pending: pendingFocus,
+        }
+      : null;
+  const targetId = target?.prdId ?? null;
+
+  /* ---- the form, seeded from whatever verdict is already on the table ---- */
   const [verdict, setVerdict] = React.useState<Verdict | null>(null);
   const [summary, setSummary] = React.useState("");
   const [metricLabel, setMetricLabel] = React.useState("");
@@ -133,37 +201,47 @@ export function SettlePanel() {
    *  was missing rather than leaving the button looking broken. */
   const [nothingToDraft, setNothingToDraft] = React.useState<string | null>(null);
 
-  // `focus` is a fresh object on every render, so the effect keys off the one
+  // `target` is a fresh object on every render, so the effect keys off the one
   // value that means "seed again", the spec id, and reads the row through a ref
   // rather than making an object identity a dependency. A refetch, or the
   // hourly tick landing a fresh draft mid-session, must never overwrite what is
   // being typed; asking for a draft seeds the form directly instead.
-  const focusRef = React.useRef<PendingOutcome | null>(focus);
-  focusRef.current = focus;
+  const targetRef = React.useRef<Target | null>(target);
+  targetRef.current = target;
   const seeded = React.useRef<string | null>(null);
 
   React.useEffect(() => {
-    const row = focusRef.current;
-    if (!row || !focusId) return;
-    if (seeded.current === focusId) return;
-    seeded.current = focusId;
+    const t = targetRef.current;
+    if (!t || !targetId) return;
+    if (seeded.current === targetId) return;
+    seeded.current = targetId;
     setDirty(false);
-    const s = row.suggestion;
+    if (t.settled) {
+      // Seed with what the agent put on the record. Changing it IS the
+      // disagreement, so the person edits a filled form rather than an empty
+      // one and can see exactly what they are replacing.
+      setVerdict(t.settled.verdict);
+      setSummary(t.settled.summary);
+      setMetricLabel(t.settled.metricLabel ?? "");
+      setMetricValue(t.settled.metricValue ?? "");
+      return;
+    }
+    const s = t.pending?.suggestion ?? null;
     setVerdict(s?.verdict ?? null);
     setSummary(s?.summary ?? "");
     setMetricLabel(s?.metric_label ?? "");
     setMetricValue(s?.metric_value ?? "");
-  }, [focusId]);
+  }, [targetId]);
 
   /* ---- the commit ---- */
   const [receipts, setReceipts] = React.useState<Mark[]>([]);
   const addReceipt = React.useCallback((m: Mark) => setReceipts((r) => [m, ...r].slice(0, 4)), []);
 
   const settle = useMutation({
-    mutationFn: (v: { row: PendingOutcome; verdict: Verdict; summary: string }) =>
+    mutationFn: (v: { target: Target; verdict: Verdict; summary: string }) =>
       fRecord({
         data: {
-          prdId: v.row.prdId,
+          prdId: v.target.prdId,
           verdict: v.verdict,
           summary: v.summary,
           metricLabel: metricLabel.trim() || undefined,
@@ -172,29 +250,31 @@ export function SettlePanel() {
       }),
     onSuccess: (r, v) => {
       addReceipt({
-        key: `${v.row.prdId}-${Date.now()}`,
-        verb: "You settled it",
-        consequence: <SettledConsequence title={v.row.title} verdict={v.verdict} result={r} />,
+        key: `${v.target.prdId}-${Date.now()}`,
+        verb: r.overturned ? "You overturned it" : "You settled it",
+        consequence: <SettledConsequence title={v.target.title} verdict={v.verdict} result={r} />,
         at: clock(),
         failed: false,
       });
-      // The score moved, a learning landed, and the queue this drains all read
+      // The score moved, a learning landed, and the queues this drains all read
       // from those rows.
       void qc.invalidateQueries({ queryKey: ["outcome-pending"] });
+      void qc.invalidateQueries({ queryKey: ["outcome-agent-settled"] });
       void qc.invalidateQueries({ queryKey: ["impact-ledger"] });
       void qc.invalidateQueries({ queryKey: ["outcome"] });
       void qc.invalidateQueries({ queryKey: ["learnings"] });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
       setPickedId(null);
+      setOverturnId(null);
       seeded.current = null;
     },
     onError: (e: Error, v) => {
       addReceipt({
-        key: `${v.row.prdId}-${Date.now()}`,
+        key: `${v.target.prdId}-${Date.now()}`,
         verb: "The outcome did not record",
         consequence: (
           <>
-            {v.row.title}. Nothing was written. {e.message}
+            {v.target.title}. Nothing was written. {e.message}
           </>
         ),
         at: clock(),
@@ -234,100 +314,170 @@ export function SettlePanel() {
     );
   }
 
-  if (!focus) {
+  if (!target) {
     return (
       <>
         <Gate
-          question="Nothing has shipped that needs a verdict."
+          question={
+            agentSettled.length > 0
+              ? "Nothing needs your verdict."
+              : "Nothing has shipped that needs a verdict."
+          }
           lines={[
             <span key="how">
-              A bet arrives here when its spec ships. Measure drafts a verdict from what the usage
-              actually did, and you settle it.
+              {agentSettled.length > 0 ? (
+                <>
+                  <b>{agentDisplayName(MEASURE_SLUG)} settled the last ones on the evidence.</b>{" "}
+                  They are below, with what each rested on. Disagree with any of them and the record
+                  keeps both.
+                </>
+              ) : (
+                <>
+                  A bet arrives here when its spec ships. {agentDisplayName(MEASURE_SLUG)} settles
+                  it from what the usage actually did, and asks you only when the evidence does not
+                  reach.
+                </>
+              )}
             </span>,
           ]}
+        />
+        <AgentSettledBlock
+          rows={agentSettled}
+          loading={settledQ.isLoading}
+          onReconsider={setOverturnId}
         />
         <ReceiptStack receipts={receipts} />
       </>
     );
   }
 
-  const s = focus.suggestion;
+  const s = target.pending?.suggestion ?? null;
+  const settledByAgent = target.settled;
   const canRecord = !!verdict && !!summary.trim();
-  const confirmable = !!s && !dirty && canRecord && verdict === s.verdict;
-  const drafting = draft.isPending && draft.variables === focus.prdId;
+  const unchanged = !!settledByAgent && verdict === settledByAgent.verdict && !dirty;
+  const confirmable = !settledByAgent && !!s && !dirty && canRecord && verdict === s.verdict;
+  const drafting = draft.isPending && draft.variables === target.prdId;
 
   const lines: React.ReactNode[] = [];
 
-  if (s?.predicted?.trim()) {
+  if (settledByAgent) {
     lines.push(
-      <span key="predicted">
-        <b>You predicted</b> {s.predicted.trim()}
+      <span key="settled">
+        <b>
+          {agentDisplayName(settledByAgent.agentSlug ?? MEASURE_SLUG)} settled this as{" "}
+          {VERDICT_SAYS[settledByAgent.verdict]}
+        </b>
+        {sureness(settledByAgent.confidence) ? (
+          <>
+            , on <Num>{sureness(settledByAgent.confidence)}</Num> of the evidence it needed
+          </>
+        ) : null}
+        . {settledByAgent.reason ?? ""}
       </span>,
     );
-  }
-
-  if (s) {
-    const read: string[] = [];
-    if (s.basis.data_days > 0) {
-      read.push(
-        `${s.basis.sample_users} ${s.basis.sample_users === 1 ? "person" : "people"} over ${s.basis.data_days} ${s.basis.data_days === 1 ? "day" : "days"}`,
-      );
+    if (settledByAgent.evidence.length > 0) {
+      lines.push(<span key="worked">{settledByAgent.evidence.join(" ")}</span>);
     }
-    if (s.basis.has_shipped_changeset) read.push("the merged change");
-    if (s.basis.has_prediction) read.push("the bet you wrote down");
-    const tier =
-      s.confidence_tier === "high"
-        ? "Enough to confirm in one click."
-        : "Thin, so read the draft before you record it.";
     lines.push(
-      <span key="basis">
-        {read.length > 0 ? (
-          <>
-            <b>{agentDisplayName(MEASURE_SLUG)} read</b> {read.join(", ")}.{" "}
-          </>
-        ) : (
-          <>
-            <b>{agentDisplayName(MEASURE_SLUG)} drafted this.</b>{" "}
-          </>
-        )}
-        {tier}
-      </span>,
-    );
-  } else if (nothingToDraft === focus.prdId) {
-    lines.push(
-      <span key="nodraft">
-        <b>{agentDisplayName(MEASURE_SLUG)} found nothing to draft from</b>: no usage data, no
-        merged change, and no bet written down against this spec.
-      </span>,
+      <ScoreLine
+        key="score"
+        opportunity={target.opportunity}
+        verdict={verdict}
+        replacing={settledByAgent.verdict}
+      />,
     );
   } else {
-    lines.push(
-      <span key="undrafted">
-        <b>No draft yet.</b> Measure can read the usage and the merged change, or you can write the
-        verdict yourself.
-      </span>,
-    );
-  }
+    if (s?.predicted?.trim()) {
+      lines.push(
+        <span key="predicted">
+          <b>You predicted</b> {s.predicted.trim()}
+        </span>,
+      );
+    }
 
-  lines.push(<ScoreLine key="score" opportunity={focus.opportunity} verdict={verdict} />);
+    // WHY THIS ONE IS YOURS. The sweep already looked at it and handed it over,
+    // and this is the sentence it handed over WITH, recomputed by the same
+    // function. Without it the queue reads as "the agent does not do this",
+    // which is now false and would make every remaining ask feel arbitrary.
+    const why = target.pending?.settlement ?? null;
+    if (why && why.action === "escalate") {
+      lines.push(
+        <span key="why">
+          <b>{agentDisplayName(MEASURE_SLUG)} did not settle this.</b> {why.reason}
+        </span>,
+      );
+    }
 
-  if (verdict === "missed" && focus.decidedBy?.holdsPromotion) {
-    lines.push(
-      <span key="arc">
-        <b>{agentDisplayName(focus.decidedBy.slug)} made this call.</b> Recording a miss holds its
-        promotion while the miss is on the record.
-      </span>,
-    );
+    if (s) {
+      const read: string[] = [];
+      if (s.basis.data_days > 0) {
+        read.push(
+          `${s.basis.sample_users} ${s.basis.sample_users === 1 ? "person" : "people"} over ${s.basis.data_days} ${s.basis.data_days === 1 ? "day" : "days"}`,
+        );
+      }
+      if (s.basis.has_shipped_changeset) read.push("the merged change");
+      if (s.basis.has_prediction) read.push("the bet you wrote down");
+      const tier =
+        s.confidence_tier === "high"
+          ? "Enough to confirm in one click."
+          : "Thin, so read the draft before you record it.";
+      lines.push(
+        <span key="basis">
+          {read.length > 0 ? (
+            <>
+              <b>{agentDisplayName(MEASURE_SLUG)} read</b> {read.join(", ")}.{" "}
+            </>
+          ) : (
+            <>
+              <b>{agentDisplayName(MEASURE_SLUG)} drafted this.</b>{" "}
+            </>
+          )}
+          {tier}
+        </span>,
+      );
+    } else if (nothingToDraft === target.prdId) {
+      lines.push(
+        <span key="nodraft">
+          <b>{agentDisplayName(MEASURE_SLUG)} found nothing to draft from</b>: no usage data, no
+          merged change, and no bet written down against this spec.
+        </span>,
+      );
+    } else {
+      lines.push(
+        <span key="undrafted">
+          <b>No draft yet.</b> Measure can read the usage and the merged change, or you can write
+          the verdict yourself.
+        </span>,
+      );
+    }
+
+    lines.push(<ScoreLine key="score" opportunity={target.opportunity} verdict={verdict} />);
+
+    if (verdict === "missed" && target.pending?.decidedBy?.holdsPromotion) {
+      lines.push(
+        <span key="arc">
+          <b>{agentDisplayName(target.pending.decidedBy.slug)} made this call.</b> Recording a miss
+          holds its promotion while the miss is on the record.
+        </span>,
+      );
+    }
   }
 
   return (
     <>
-      <Gate question={`Did ${focus.title} pay off?`} lines={lines} />
+      <Gate
+        question={
+          settledByAgent
+            ? `Was ${target.title} really ${VERDICT_SAYS[settledByAgent.verdict]}?`
+            : `Did ${target.title} pay off?`
+        }
+        lines={lines}
+      />
 
       {/* The Gate above asks and prices it; this is where the answer is given.
           The title is a verb rather than a noun so it does not restate the Line
           label under it (hard ban 10). */}
-      <Block title="Settle it">
+      <Block title={settledByAgent ? "Give your own verdict" : "Settle it"}>
         <Line label="The verdict">
           <Choices<VerdictPick>
             label="The verdict"
@@ -385,33 +535,43 @@ export function SettlePanel() {
           {canRecord ? (
             <Button
               variant="primary"
-              disabled={settle.isPending}
+              disabled={settle.isPending || (!!settledByAgent && unchanged)}
               onClick={() =>
-                settle.mutate({ row: focus, verdict: verdict as Verdict, summary: summary.trim() })
+                settle.mutate({ target, verdict: verdict as Verdict, summary: summary.trim() })
               }
             >
               {settle.isPending
                 ? "Recording it."
-                : confirmable
-                  ? `Confirm: ${VERDICT_SAYS[verdict as Verdict]}`
-                  : "Record it"}
+                : settledByAgent
+                  ? unchanged
+                    ? "Change the verdict to overturn it"
+                    : `Overturn: ${VERDICT_SAYS[verdict as Verdict]}`
+                  : confirmable
+                    ? `Confirm: ${VERDICT_SAYS[verdict as Verdict]}`
+                    : "Record it"}
             </Button>
           ) : (
-            <Button variant="primary" disabled={drafting} onClick={() => draft.mutate(focus.prdId)}>
+            <Button
+              variant="primary"
+              disabled={drafting}
+              onClick={() => draft.mutate(target.prdId)}
+            >
               {drafting
                 ? "Reading the outcome."
                 : `Ask ${agentDisplayName(MEASURE_SLUG)} to draft it`}
             </Button>
           )}
-          {canRecord && !s ? (
-            <Button disabled={drafting} onClick={() => draft.mutate(focus.prdId)}>
+          {settledByAgent ? (
+            <Button onClick={() => setOverturnId(null)}>Leave it as it is</Button>
+          ) : canRecord && !s ? (
+            <Button disabled={drafting} onClick={() => draft.mutate(target.prdId)}>
               {drafting ? "Reading the outcome." : `Ask ${agentDisplayName(MEASURE_SLUG)}`}
             </Button>
           ) : null}
         </Actions>
 
         {draft.isError ? (
-          <Failed onRetry={() => draft.mutate(focus.prdId)}>
+          <Failed onRetry={() => draft.mutate(target.prdId)}>
             The draft did not come back, and nothing was written. {(draft.error as Error).message}
           </Failed>
         ) : null}
@@ -419,10 +579,10 @@ export function SettlePanel() {
 
       <ReceiptStack receipts={receipts} />
 
-      {pending.length > 1 ? (
-        <Block title="Also waiting">
+      {pending.length > (target.pending ? 1 : 0) ? (
+        <Block title={target.pending ? "Also waiting" : "Waiting on you"}>
           {pending
-            .filter((p) => p.prdId !== focus.prdId)
+            .filter((p) => p.prdId !== target.prdId)
             .map((p) => (
               <Row
                 key={p.prdId}
@@ -431,18 +591,85 @@ export function SettlePanel() {
                   p.decidedBy ? <AgentMark slug={p.decidedBy.slug} state="quiet" /> : undefined
                 }
                 lead={p.title}
-                sub={
-                  p.suggestion
-                    ? `${agentDisplayName(MEASURE_SLUG)} suggests ${VERDICT_SAYS[p.suggestion.verdict]}`
-                    : "no draft yet"
-                }
+                sub={waitingSub(p)}
                 time={shortDay(p.shippedAt)}
-                onClick={() => setPickedId(p.prdId)}
+                onClick={() => {
+                  setOverturnId(null);
+                  setPickedId(p.prdId);
+                }}
               />
             ))}
         </Block>
       ) : null}
+
+      <AgentSettledBlock
+        rows={agentSettled.filter((r) => r.prdId !== target.prdId)}
+        loading={settledQ.isLoading}
+        onReconsider={(id) => {
+          setPickedId(null);
+          setOverturnId(id);
+        }}
+      />
     </>
+  );
+}
+
+/** One line under a waiting row: why it is waiting, not what it is. */
+function waitingSub(p: PendingOutcome): string {
+  if (p.settlement?.action === "escalate") return p.settlement.reason;
+  if (p.suggestion)
+    return `${agentDisplayName(MEASURE_SLUG)} suggests ${VERDICT_SAYS[p.suggestion.verdict]}`;
+  return "no draft yet";
+}
+
+/* ------------------------------------------------------------------ *
+ * What the agents settled without you.
+ *
+ * This block is the whole reason the autonomy is defensible. An agent
+ * verdict that is not visible, attributed, and reversible is not
+ * autonomy, it is a silent write, so every one of them lands here with
+ * its confidence and the facts it rested on, and every one of them can
+ * be taken back.
+ * ------------------------------------------------------------------ */
+
+function AgentSettledBlock({
+  rows,
+  loading,
+  onReconsider,
+}: {
+  rows: AgentSettledOutcome[];
+  loading: boolean;
+  onReconsider: (prdId: string) => void;
+}) {
+  if (loading || rows.length === 0) return null;
+  return (
+    <Block
+      title={`${agentDisplayName(MEASURE_SLUG)} settled these`}
+      sub="Click any of them to disagree. The record keeps what it said and what you said."
+    >
+      {rows.map((r) => (
+        <Row
+          key={r.prdId}
+          tight
+          marks={<AgentMark slug={r.agentSlug ?? MEASURE_SLUG} state="quiet" />}
+          lead={r.title}
+          sub={
+            <>
+              {VERDICT_SAYS[r.verdict]}
+              {sureness(r.confidence) ? (
+                <>
+                  {" · "}
+                  <Num>{sureness(r.confidence)}</Num> of the evidence it needed
+                </>
+              ) : null}
+              {r.overturns.length > 0 ? " · you overturned this once" : ""}
+            </>
+          }
+          time={shortDay(r.settledAt)}
+          onClick={() => onReconsider(r.prdId)}
+        />
+      ))}
+    </Block>
   );
 }
 
@@ -454,9 +681,13 @@ export function SettlePanel() {
 function ScoreLine({
   opportunity,
   verdict,
+  replacing,
 }: {
   opportunity: PendingOutcome["opportunity"];
   verdict: Verdict | null;
+  /** The verdict already on the record, when this would replace one. The
+   *  projections already account for it, so this only changes the words. */
+  replacing?: Verdict;
 }) {
   if (!opportunity) {
     return <span>No bet is linked to this spec, so settling it moves no priority.</span>;
@@ -490,13 +721,15 @@ function ScoreLine({
   if (next === null || next === prior) {
     return (
       <span>
-        <b>{name}</b> holds at <Num>{prior}</Num>.
+        <b>{name}</b> holds at <Num>{prior}</Num>
+        {replacing && verdict === replacing ? ", where the verdict already put it" : ""}.
       </span>
     );
   }
   return (
     <span>
-      <b>{name}</b> moves from <Num>{prior}</Num> to <Num>{next}</Num>.
+      <b>{name}</b> {replacing ? "moves back" : "moves"} from <Num>{prior}</Num> to{" "}
+      <Num>{next}</Num>.
     </span>
   );
 }
@@ -519,10 +752,21 @@ function SettledConsequence({
   const prior = score(result.opportunity?.prior_ice ?? null);
   const next = score(result.opportunity?.new_ice ?? null);
   const oppName = result.opportunityTitle?.trim() || "the linked bet";
+  const over = result.overturned;
 
   return (
     <>
       {title}, {VERDICT_SAYS[verdict]}.{" "}
+      {/* The contrast, kept out loud. Two verdicts on one bet is the record
+          this product is built to produce, and a receipt that hid the first one
+          would be the exact place to start losing it. */}
+      {over ? (
+        <>
+          {over.from_agent_slug ? agentDisplayName(over.from_agent_slug) : "The agent"} had settled
+          it as {VERDICT_SAYS[over.from_verdict as Verdict]}, and that call stays on the record
+          beside yours.{" "}
+        </>
+      ) : null}
       {!result.opportunity ? (
         <>No bet was linked, so no priority moved. </>
       ) : prior !== null && next !== null && prior !== next ? (

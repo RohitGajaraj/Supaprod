@@ -16,11 +16,25 @@ import {
   type ChangesetForChangelog,
 } from "@/lib/changelog";
 import { outcomeSupportFromCounts } from "@/components/discover/ranking";
+// The pure half of the settle-or-ask rule. Server-free by construction, so
+// importing it here drags nothing into the client bundle and nothing into the
+// rule's own unit tests.
+import {
+  basisFor,
+  classifyOutcomeSettlement,
+  metricWasDeclared,
+  metricWasObserved,
+  overturnMove,
+  type SettlementDecision,
+} from "@/lib/ai/outcome-review";
+import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 // Type only, so nothing is imported at runtime and the cycle this file would
 // otherwise close with outcome-suggestion.server (which imports
 // draftOutcomeVerdict from here) never exists. The runtime call is a dynamic
 // import inside draftOutcomeSuggestion's handler.
 import type { OutcomeSuggestion } from "@/lib/outcome-suggestion.server";
+import type { ContractClause } from "@/lib/discovery.functions";
 
 // Outcome surface: read-only roll-ups over existing tables.
 // No new agent logic; surfaces the right-half of the loop (Ship · Launch · Support · Learn)
@@ -208,6 +222,12 @@ export function clampConfidence(n: number): number {
   return Math.min(10, Math.max(1, n));
 }
 
+/** The move a verdict makes, accounting for one it REPLACES. `overturnMove` is
+ *  the pure, unit-tested half; this binds it to the one delta table. */
+export function confidenceMoveFor(next: OutcomeVerdict, prior: OutcomeVerdict | null): number {
+  return overturnMove(VERDICT_CONFIDENCE_DELTA, next, prior);
+}
+
 /** ICE is the mean of the three axes. `ice_score` is a GENERATED column, so a
  *  caller that has just changed confidence computes the new value rather than
  *  re-reading a row Postgres has not recomputed for it yet. */
@@ -215,11 +235,156 @@ export function iceOf(impact: number | null, confidence: number, ease: number | 
   return ((impact ?? 5) + confidence + (ease ?? 5)) / 3;
 }
 
+/* ------------------------------------------------------------------------ *
+ * WHO SETTLED IT, AND HOW TO DISAGREE.
+ *
+ * `prds.outcome` is jsonb and always has been, so attribution costs no
+ * migration: every field below is additive and an outcome written before this
+ * existed reads back as a human settlement with no evidence attached, which is
+ * exactly what it was.
+ *
+ * The contrast this preserves is the point. When an agent settles `validated`
+ * and a person overturns it to `missed`, that pair is the single most valuable
+ * row this product produces, because the whole thesis is a record of judgment
+ * that compounds. Overwriting the agent's verdict in place would delete the
+ * training signal to save one column, so the overturn is appended and the
+ * original is kept whole.
+ * ------------------------------------------------------------------------ */
+
+export type SettledByKind = "human" | "agent";
+
+/**
+ * One human disagreement with a settled verdict, kept forever.
+ *
+ * Everything the agent had is captured, not just the verdict it landed on: what
+ * it said, why it believed it could settle, and the facts it rested on. A pair
+ * of verdicts with no reasoning attached tells you an agent was wrong; a pair
+ * with the reasoning attached tells you WHERE it was wrong, and that second
+ * thing is the only one worth training on.
+ */
+export type OutcomeOverturn = {
+  from_verdict: OutcomeVerdict;
+  from_settled_by: SettledByKind;
+  from_agent_slug: string | null;
+  from_confidence: number | null;
+  from_summary: string | null;
+  from_reason: string | null;
+  from_evidence: string[];
+  to_verdict: OutcomeVerdict;
+  at: string;
+  /** What the person said instead. */
+  note: string;
+};
+
+/** The shape `prds.outcome` carries. Older rows have only the first five. */
+export type RecordedOutcome = {
+  verdict: OutcomeVerdict;
+  summary: string;
+  metric_label: string | null;
+  metric_value: string | null;
+  checked_at: string;
+  settled_by?: SettledByKind;
+  settled_by_agent_slug?: string | null;
+  /** The agent's own 0..1 evidence score at the moment it settled. */
+  settled_confidence?: number | null;
+  /** One plain sentence: why the agent was allowed to settle this. */
+  settled_reason?: string | null;
+  /** The facts it rested on, so a person can check the working. */
+  settled_evidence?: string[] | null;
+  /** The learnings row this outcome wrote. An overturn replaces THAT row by id
+   *  rather than guessing at the newest one for the spec. */
+  settled_learning_id?: string | null;
+  overturns?: OutcomeOverturn[];
+};
+
+/** How this write is attributed. */
+export type OutcomeSettledBy =
+  { kind: "human" } | { kind: "agent"; slug: string; decision: SettlementDecision };
+
+export type PriorSettlement = {
+  verdict: OutcomeVerdict;
+  summary: string | null;
+  by: SettledByKind;
+  agentSlug: string | null;
+  confidence: number | null;
+  reason: string | null;
+  evidence: string[];
+  learningId: string | null;
+  overturns: OutcomeOverturn[];
+};
+
+const asVerdict = (v: unknown): OutcomeVerdict | null =>
+  v === "validated" || v === "missed" || v === "mixed" ? v : null;
+
+/**
+ * Read what is already on the record for a spec. Null when nothing is, which
+ * is not the same as a human having settled it with no notes, so the two are
+ * never conflated.
+ */
+export function priorSettlement(outcome: unknown): PriorSettlement | null {
+  if (!outcome || typeof outcome !== "object") return null;
+  const o = outcome as RecordedOutcome;
+  const verdict = asVerdict(o.verdict);
+  if (!verdict) return null;
+  return {
+    verdict,
+    summary: typeof o.summary === "string" ? o.summary : null,
+    // Absent means it predates attribution, and every one of those was a human
+    // pressing the button on /learn.
+    by: o.settled_by === "agent" ? "agent" : "human",
+    agentSlug: typeof o.settled_by_agent_slug === "string" ? o.settled_by_agent_slug : null,
+    confidence: typeof o.settled_confidence === "number" ? o.settled_confidence : null,
+    reason: typeof o.settled_reason === "string" ? o.settled_reason : null,
+    evidence: Array.isArray(o.settled_evidence)
+      ? o.settled_evidence.filter((s) => typeof s === "string")
+      : [],
+    learningId: typeof o.settled_learning_id === "string" ? o.settled_learning_id : null,
+    overturns: Array.isArray(o.overturns) ? o.overturns : [],
+  };
+}
+
+/** The learnings row this write produced, as it comes back over the wire.
+ *  `numeric` columns arrive as strings through PostgREST, so ICE stays widened
+ *  and callers coerce, exactly as `listLearnings` documents. */
+export type LearningRow = {
+  id: string;
+  prd_id: string | null;
+  opportunity_id: string | null;
+  verdict: OutcomeVerdict;
+  summary: string;
+  metric_label: string | null;
+  metric_value: string | null;
+  prior_ice: number | string | null;
+  new_ice: number | string | null;
+  created_at: string;
+  recorded_by_agent_slug?: string | null;
+  mission_id?: string | null;
+};
+
+export type ApplyOutcomeResult = {
+  learning: LearningRow | null;
+  opportunity: { id: string; prior_ice: number | null; new_ice: number | null } | null;
+  memory_id: string | null;
+  prdTitle: string | null;
+  opportunityTitle: string | null;
+  arcHold: { slug: string; arc: string } | null;
+  themeMoved: { themeId: string; before: number; after: number; otherBets: number } | null;
+  /** Set when this write replaced a verdict that was already on the record. */
+  overturned: OutcomeOverturn | null;
+};
+
 /**
  * Record a shipped PRD's real-world outcome: write prds.outcome, adjust the
  * linked opportunity's confidence by verdict (validated +2 / missed -2 /
  * mixed 0, clamped 1..10; ice_score is DB-generated), and append a learnings
  * row carrying the prior/new ICE for the audit trail.
+ *
+ * THE ONE COPY. `recordOutcome` (the human pressing the button on /learn) and
+ * the hourly sweep (an agent settling a verdict it earned the right to settle)
+ * both land here. A second copy of this would let an agent-settled outcome
+ * close the loop differently from a human-settled one, and then the record
+ * would be true about which agent acted and false about what it caused, on the
+ * one surface whose entire authority is that the record is true.
  *
  * Returns the CONSEQUENCE, not just the row, because `/learn` renders a
  * receipt rather than a toast (anti-slop.md section 5) and a receipt has to
@@ -234,33 +399,40 @@ export function iceOf(impact: number | null, confidence: number, ease: number | 
  *     decisive outcome record into the ORDER of new bets on the same evidence
  *     (outcomeSupportFromCounts). Null unless the support number actually
  *     changed and there is another bet on the theme for it to move.
- * All three are best-effort: a lookup failure never breaks the recorded
- * outcome, it just reports less.
+ *   · `overturned`: the verdict this one replaced, when it replaced one.
+ * All are best-effort except the write itself: a lookup failure never breaks
+ * the recorded outcome, it just reports less.
  */
-export const recordOutcome = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: unknown) =>
-    z
-      .object({
-        prdId: z.string().uuid(),
-        verdict: z.enum(["validated", "missed", "mixed"]),
-        summary: z.string().min(1).max(2000),
-        metricLabel: z.string().optional(),
-        metricValue: z.string().optional(),
-      })
-      .parse(i),
-  )
-  .handler(async ({ context, data }) => {
-    const { userId } = context;
-    const db = context.supabase as unknown as SupabaseClient;
-
+export async function applyOutcome(
+  db: SupabaseClient,
+  userId: string,
+  data: {
+    prdId: string;
+    verdict: OutcomeVerdict;
+    summary: string;
+    metricLabel?: string | null;
+    metricValue?: string | null;
+    by: OutcomeSettledBy;
+    /** Agent path only: the mission whose outcome produced this learning. */
+    missionId?: string | null;
+  },
+): Promise<ApplyOutcomeResult> {
+  {
     const { data: prd, error: prdErr } = await db
       .from("prds")
-      .select("id,workspace_id,opportunity_id,title")
+      .select("id,workspace_id,opportunity_id,title,outcome")
       .eq("id", data.prdId)
       .single();
     if (prdErr) throw new Error(prdErr.message);
     const prdTitle = (prd.title as string | null) ?? null;
+
+    const prior = priorSettlement((prd as { outcome?: unknown }).outcome);
+    // An agent never overwrites a verdict that is already on the record. It had
+    // its chance before the row was settled; after that, disagreeing is a
+    // person's move, not a sweep's.
+    if (prior && data.by.kind === "agent") {
+      throw new Error("This outcome is already settled; an agent does not overwrite one.");
+    }
 
     const now = new Date().toISOString();
 
@@ -287,22 +459,12 @@ export const recordOutcome = createServerFn({ method: "POST" })
         shippedNote = `\n\nShipped change: ${(shippedChangeset.release_notes ?? "").trim().slice(0, 600)}`;
       }
     } catch (e) {
-      console.error("recordOutcome shipped-changeset lookup failed (non-fatal):", e);
+      console.error("applyOutcome shipped-changeset lookup failed (non-fatal):", e);
     }
-    const { error: outErr } = await db
-      .from("prds")
-      .update({
-        outcome: {
-          verdict: data.verdict,
-          summary: data.summary,
-          metric_label: data.metricLabel ?? null,
-          metric_value: data.metricValue ?? null,
-          checked_at: now,
-        },
-        updated_at: now,
-      })
-      .eq("id", prd.id);
-    if (outErr) throw new Error(outErr.message);
+
+    // prds.outcome is written LAST, once the learning it points at exists. A
+    // spec that claims a settled outcome with no learning behind it is the one
+    // inconsistency this surface cannot afford.
 
     let priorIce: number | null = null;
     let newIce: number | null = null;
@@ -320,8 +482,12 @@ export const recordOutcome = createServerFn({ method: "POST" })
         oppTitle = (opp.title as string | null) ?? null;
         oppThemeId = (opp.theme_id as string | null) ?? null;
         priorIce = opp.ice_score == null ? null : Number(opp.ice_score);
+        // On an overturn this is the DIFFERENCE between the two verdicts, not
+        // the new verdict's own delta, so the score lands exactly where it
+        // would have if the person had settled it in the first place. Getting
+        // this wrong would leave the agent's +2 sitting under the human's -2.
         const newConfidence = clampConfidence(
-          (opp.confidence ?? 5) + VERDICT_CONFIDENCE_DELTA[data.verdict],
+          (opp.confidence ?? 5) + confidenceMoveFor(data.verdict, prior?.verdict ?? null),
         );
         const { error: oppErr } = await db
           .from("opportunities")
@@ -335,35 +501,125 @@ export const recordOutcome = createServerFn({ method: "POST" })
       }
     }
 
-    const { data: learning, error: learnErr } = await db
-      .from("learnings")
-      .insert({
-        user_id: userId,
-        workspace_id: prd.workspace_id,
-        prd_id: prd.id,
-        opportunity_id: prd.opportunity_id,
-        verdict: data.verdict,
-        summary: data.summary,
-        metric_label: data.metricLabel ?? null,
-        metric_value: data.metricValue ?? null,
-        prior_ice: priorIce,
-        new_ice: newIce,
-      })
-      .select()
-      .single();
-    if (learnErr) throw new Error(learnErr.message);
+    // ONE LEARNING PER OUTCOME.
+    //
+    // An overturn REPLACES the settled row rather than adding a second one,
+    // and it is found by id, not by guessing at the newest row for the spec.
+    // The reason is arithmetic, not tidiness: /decide ranks new bets on a theme
+    // by counting decisive learnings against it (outcomeSupportFromCounts), so
+    // an agent's `validated` left standing beside a human's `missed` would read
+    // as one-for-one evidence when in truth the first was withdrawn. The
+    // contrast is not lost, it moves to prds.outcome.overturns, where it is
+    // structured and queryable instead of being two rows nobody can pair up.
+    //
+    // prior_ice keeps the value from before ANY verdict touched the bet, so the
+    // audit trail still reads prior -> final rather than agent-adjusted -> final.
+    const supersedes = prior?.learningId ?? null;
+    const overturnSummary = prior
+      ? `${data.summary}\n\nOverturned: ${prior.by === "agent" ? `${prior.agentSlug ?? "an agent"} settled this as` : "this was previously settled as"} ${prior.verdict}. A person read it again and called it ${data.verdict}.`
+      : data.summary;
+
+    const learningFields = {
+      verdict: data.verdict,
+      summary: overturnSummary.slice(0, 4000),
+      metric_label: data.metricLabel ?? null,
+      metric_value: data.metricValue ?? null,
+      new_ice: newIce,
+      // A person owning the final word takes the byline off the agent, and the
+      // agent's original stays in prds.outcome.overturns.
+      recorded_by_agent_slug: data.by.kind === "agent" ? data.by.slug : null,
+    };
+
+    let learning: LearningRow | null = null;
+    if (supersedes) {
+      const { data: updated, error: updErr } = await db
+        .from("learnings")
+        .update(learningFields)
+        .eq("id", supersedes)
+        .select()
+        .single();
+      if (updErr) throw new Error(updErr.message);
+      learning = updated;
+      // prior_ice on the superseded row already holds the pre-verdict score.
+      const rowPrior = (updated as { prior_ice?: number | string | null } | null)?.prior_ice;
+      priorIce = rowPrior == null ? priorIce : Number(rowPrior);
+    } else {
+      const { data: inserted, error: learnErr } = await db
+        .from("learnings")
+        .insert({
+          user_id: userId,
+          workspace_id: prd.workspace_id,
+          prd_id: prd.id,
+          opportunity_id: prd.opportunity_id,
+          mission_id: data.missionId ?? null,
+          prior_ice: priorIce,
+          ...learningFields,
+        })
+        .select()
+        .single();
+      if (learnErr) throw new Error(learnErr.message);
+      learning = inserted;
+    }
+    const learningId = (learning as { id?: string } | null)?.id ?? null;
+
+    // ---- The record of who settled it, written last. --------------------
+    const overturned: OutcomeOverturn | null = prior
+      ? {
+          from_verdict: prior.verdict,
+          from_settled_by: prior.by,
+          from_agent_slug: prior.agentSlug,
+          from_confidence: prior.confidence,
+          from_summary: prior.summary,
+          from_reason: prior.reason,
+          from_evidence: prior.evidence,
+          to_verdict: data.verdict,
+          at: now,
+          note: data.summary.slice(0, 500),
+        }
+      : null;
+    const recorded: RecordedOutcome = {
+      verdict: data.verdict,
+      summary: data.summary,
+      metric_label: data.metricLabel ?? null,
+      metric_value: data.metricValue ?? null,
+      checked_at: now,
+      settled_by: data.by.kind,
+      settled_by_agent_slug: data.by.kind === "agent" ? data.by.slug : null,
+      settled_confidence: data.by.kind === "agent" ? data.by.decision.evidence : null,
+      settled_reason: data.by.kind === "agent" ? data.by.decision.reason : null,
+      settled_evidence: data.by.kind === "agent" ? data.by.decision.because : null,
+      settled_learning_id: learningId,
+      overturns: overturned ? [...(prior?.overturns ?? []), overturned] : (prior?.overturns ?? []),
+    };
+    const { error: outErr } = await db
+      .from("prds")
+      .update({ outcome: recorded, updated_at: now })
+      .eq("id", prd.id);
+    if (outErr) throw new Error(outErr.message);
 
     // v6 Phase 2 (W1) — close the compounding loop: distil the outcome into a
     // global, searchable agent_memory so future agent runs recall "we shipped
     // this and it was {verdict}" when they re-encounter the opportunity. The
     // re-score already moved the ICE; this makes the loop actually LEARN, not
     // just record. Best-effort — never let a memory write break the outcome.
+    //
+    // rememberOutcome is already idempotent per spec: it drops the prior
+    // outcome memory before inserting. So an overturn REPLACES the agent's
+    // memory rather than leaving the compounding layer holding two verdicts
+    // that contradict each other. The contrast survives where it belongs, on
+    // the record, not in the thing that whispers advice into the next prompt.
+    const settlerNote =
+      data.by.kind === "agent"
+        ? `\n\nSettled by ${data.by.slug} on the evidence, not by a person.`
+        : overturned
+          ? `\n\nA person overturned the ${overturned.from_verdict} verdict ${overturned.from_agent_slug ? `${overturned.from_agent_slug} had settled` : "already on file"}.`
+          : "";
     const memory = await rememberOutcome(db, {
       userId,
       workspaceId: (prd.workspace_id as string | null) ?? null,
       prdId: prd.id,
       opportunityId: (prd.opportunity_id as string | null) ?? null,
-      learningId: (learning as { id?: string } | null)?.id ?? null,
+      learningId,
       content:
         buildOutcomeMemory({
           prdTitle: (prd.title as string | null) ?? "",
@@ -372,7 +628,9 @@ export const recordOutcome = createServerFn({ method: "POST" })
           summary: data.summary,
           priorIce,
           newIce,
-        }) + shippedNote,
+        }) +
+        shippedNote +
+        settlerNote,
       importance: outcomeImportance(data.verdict),
       verdict: data.verdict,
       priorIce,
@@ -413,7 +671,7 @@ export const recordOutcome = createServerFn({ method: "POST" })
         text: [prd.title as string | null, data.summary].filter(Boolean).join(". "),
         verdict: data.verdict,
         summary: data.summary,
-        learningId: (learning as { id?: string } | null)?.id ?? null,
+        learningId,
         memoryId: memory?.id ?? null,
         aiEventId: null,
       });
@@ -484,9 +742,14 @@ export const recordOutcome = createServerFn({ method: "POST" })
           const validated = rows.filter((r) => r.verdict === "validated").length;
           const missed = rows.filter((r) => r.verdict === "missed").length;
           const after = outcomeSupportFromCounts(validated, missed);
+          // The "before" is this row's own contribution removed and, on an
+          // overturn, the verdict it replaced put back, because that one was in
+          // the count until a moment ago.
+          const wasCounted = (v: OutcomeVerdict): number =>
+            (data.verdict === v ? -1 : 0) + (prior?.verdict === v ? 1 : 0);
           const before = outcomeSupportFromCounts(
-            data.verdict === "validated" ? validated - 1 : validated,
-            data.verdict === "missed" ? missed - 1 : missed,
+            validated + wasCounted("validated"),
+            missed + wasCounted("missed"),
           );
           const otherBets = themeOppIds.filter((id) => id !== prd.opportunity_id).length;
           if (before !== after && otherBets > 0) {
@@ -506,7 +769,39 @@ export const recordOutcome = createServerFn({ method: "POST" })
       opportunityTitle: oppTitle,
       arcHold,
       themeMoved,
+      overturned,
     };
+  }
+}
+
+/**
+ * The human path. A person on `/learn` giving, confirming, or overturning a
+ * verdict. Everything it does is `applyOutcome`; the only thing this adds is
+ * the session, the validation, and the fact that a human pressed it.
+ */
+export const recordOutcome = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z
+      .object({
+        prdId: z.string().uuid(),
+        verdict: z.enum(["validated", "missed", "mixed"]),
+        summary: z.string().min(1).max(2000),
+        metricLabel: z.string().optional(),
+        metricValue: z.string().optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ context, data }) => {
+    const db = context.supabase as unknown as SupabaseClient;
+    return applyOutcome(db, context.userId, {
+      prdId: data.prdId,
+      verdict: data.verdict,
+      summary: data.summary,
+      metricLabel: data.metricLabel ?? null,
+      metricValue: data.metricValue ?? null,
+      by: { kind: "human" },
+    });
   });
 
 /* ------------------------------------------------------------------------ *
@@ -520,8 +815,10 @@ export const recordOutcome = createServerFn({ method: "POST" })
  * ------------------------------------------------------------------------ */
 
 /** The most recent decision on this spec that an AGENT made, if any. Null when
- *  a human made every call, which is the honest answer and not a gap. */
-async function decidingAgentSlug(db: SupabaseClient, prdId: string): Promise<string | null> {
+ *  a human made every call, which is the honest answer and not a gap.
+ *  Exported for the sweep: the settle-or-ask rule needs to know whose
+ *  promotion a miss would hold before it decides it may settle one. */
+export async function decidingAgentSlug(db: SupabaseClient, prdId: string): Promise<string | null> {
   const { data } = await db
     .from("decisions")
     .select("decided_by_agent_slug,created_at")
@@ -537,7 +834,11 @@ async function decidingAgentSlug(db: SupabaseClient, prdId: string): Promise<str
 /** Where this agent sits on the trust arc, by slug. Null when the workspace has
  *  no agent by that slug or no arc row for it, and a missing arc row means
  *  autonomous by default (SW-7), which is not a hold. */
-async function agentArc(db: SupabaseClient, userId: string, slug: string): Promise<string | null> {
+export async function agentArc(
+  db: SupabaseClient,
+  userId: string,
+  slug: string,
+): Promise<string | null> {
   const { data: agent } = await db
     .from("agents")
     .select("id")
@@ -572,6 +873,49 @@ export type PendingOutcome = {
    *  missed verdict has a cost beyond the score. */
   decidedBy: { slug: string; arc: string | null; holdsPromotion: boolean } | null;
   suggestion: OutcomeSuggestion | null;
+  /**
+   * WHY THIS IS STILL YOURS.
+   *
+   * Recomputed here with the SAME pure function the hourly sweep decides with
+   * (`classifyOutcomeSettlement`), against the same inputs. That is deliberate:
+   * a queue that showed a reason the sweep did not act on would be worse than
+   * no reason at all. Null only when there is no verdict on the table yet to
+   * judge, which happens before anything has been drafted for the spec.
+   *
+   * `action` is effectively always "escalate" for a row sitting here, because a
+   * settled one is no longer pending. It is carried anyway so the surface can
+   * tell "the agent looked and asked" apart from "the window has not closed".
+   */
+  settlement: SettlementDecision | null;
+  /** The verdict the agent would have put on the record. */
+  verdictOnTable: OutcomeVerdict | null;
+};
+
+/** An outcome an agent settled on its own, and everything a person needs to
+ *  disagree with it. */
+export type AgentSettledOutcome = {
+  prdId: string;
+  title: string;
+  settledAt: string | null;
+  verdict: OutcomeVerdict;
+  summary: string;
+  metricLabel: string | null;
+  metricValue: string | null;
+  agentSlug: string | null;
+  /** The agent's own 0..1 evidence score when it settled. */
+  confidence: number | null;
+  reason: string | null;
+  evidence: string[];
+  overturns: OutcomeOverturn[];
+  opportunity: {
+    id: string;
+    title: string | null;
+    /** Where the score stands NOW, with the agent's verdict already applied. */
+    priorIce: number | null;
+    /** Where each verdict would put it if a person overturns to that one, from
+     *  the same overturn arithmetic the write runs. */
+    projected: { validated: number; mixed: number; missed: number } | null;
+  } | null;
 };
 
 /** Shipped specs with no outcome on file, newest ship first. This is the queue
@@ -588,10 +932,11 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       shipped_at: string | null;
       opportunity_id: string | null;
       outcome_suggestion: OutcomeSuggestion | null;
+      contract: unknown;
     };
     const { data: prdRows, error } = await db
       .from("prds")
-      .select("id,title,shipped_at,opportunity_id,outcome_suggestion")
+      .select("id,title,shipped_at,opportunity_id,outcome_suggestion,contract")
       .is("outcome", null)
       .not("shipped_at", "is", null)
       .order("shipped_at", { ascending: false })
@@ -610,14 +955,46 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       confidence: number | null;
       ease: number | null;
       ice_score: number | string | null;
+      theme_id: string | null;
     };
     const oppById = new Map<string, OppRow>();
     if (oppIds.length > 0) {
       const { data } = await db
         .from("opportunities")
-        .select("id,title,impact,confidence,ease,ice_score")
+        .select("id,title,impact,confidence,ease,ice_score,theme_id")
         .in("id", oppIds);
       for (const o of (data ?? []) as OppRow[]) oppById.set(o.id, o);
+    }
+
+    // The two extra facts the settle-or-ask rule needs, both batched so the
+    // queue stays one round of queries rather than one per row.
+    // 1. What the bet promised to measure.
+    const planByPrd = new Map<string, { success_metric: string | null }>();
+    {
+      const { data } = await db
+        .from("launch_plans")
+        .select("prd_id,success_metric")
+        .in("prd_id", prdIds);
+      for (const r of (data ?? []) as Array<{ prd_id: string; success_metric: string | null }>) {
+        if (!planByPrd.has(r.prd_id)) planByPrd.set(r.prd_id, { success_metric: r.success_metric });
+      }
+    }
+    // 2. How far a verdict propagates: other bets on the same theme re-rank.
+    const siblingsByTheme = new Map<string, number>();
+    {
+      const themeIds = [
+        ...new Set([...oppById.values()].map((o) => o.theme_id).filter((v): v is string => !!v)),
+      ];
+      if (themeIds.length > 0) {
+        const { data } = await db
+          .from("opportunities")
+          .select("id,theme_id")
+          .in("theme_id", themeIds);
+        for (const r of (data ?? []) as Array<{ id: string; theme_id: string | null }>) {
+          if (!r.theme_id) continue;
+          siblingsByTheme.set(r.theme_id, (siblingsByTheme.get(r.theme_id) ?? 0) + 1);
+        }
+      }
     }
 
     // Newest agent-made decision per spec. Ordered newest first, so the first
@@ -674,6 +1051,33 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       const opp = p.opportunity_id ? (oppById.get(p.opportunity_id) ?? null) : null;
       const slug = slugByPrd.get(p.id) ?? null;
       const arc = slug ? (arcBySlug.get(slug) ?? null) : null;
+      const holdsPromotion = arc === "observing" || arc === "proving";
+
+      // The verdict the agent would have put on the record, read the same way
+      // the sweep reads it. Everything in this queue has shipped (the query
+      // filters on it), so `verdictIsRecordFact` can never be true here.
+      const verdictOnTable = asVerdict(p.outcome_suggestion?.verdict);
+      const settlement = verdictOnTable
+        ? classifyOutcomeSettlement({
+            verdict: verdictOnTable,
+            verdictIsRecordFact: false,
+            metricDeclared: metricWasDeclared(
+              planByPrd.get(p.id)?.success_metric ?? null,
+              gradeOutcomeContract(
+                (p.contract ?? null) as { success_metrics?: ContractClause[] | null } | null,
+              ).verdict,
+            ),
+            metricObserved: metricWasObserved(p.outcome_suggestion),
+            basis: basisFor(p.outcome_suggestion),
+            impact: opp ? (opp.impact ?? null) : null,
+            otherBetsOnTheme: opp?.theme_id
+              ? Math.max(0, (siblingsByTheme.get(opp.theme_id) ?? 1) - 1)
+              : 0,
+            movesTheScore: VERDICT_CONFIDENCE_DELTA[verdictOnTable] !== 0,
+            holdsPromotionFor: slug && holdsPromotion ? agentDisplayName(slug) : null,
+          })
+        : null;
+
       return {
         prdId: p.id,
         title: (p.title ?? "").trim() || "Untitled spec",
@@ -702,14 +1106,110 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
               },
             }
           : null,
-        decidedBy: slug
-          ? { slug, arc, holdsPromotion: arc === "observing" || arc === "proving" }
-          : null,
+        decidedBy: slug ? { slug, arc, holdsPromotion } : null,
         suggestion: p.outcome_suggestion ?? null,
+        settlement,
+        verdictOnTable,
       };
     });
 
     return { pending };
+  });
+
+/**
+ * Outcomes an AGENT settled, newest first, and everything a person needs to
+ * overturn one.
+ *
+ * This exists because of the shape of the change that made agents settle at
+ * all. Autonomy is paid for with evidence, and the payment only clears if the
+ * evidence is READABLE: an agent-settled verdict a person cannot find is not
+ * autonomy, it is a write nobody agreed to. So every settlement lands here with
+ * its confidence, the facts it rested on, and the score movement an overturn
+ * would cause, priced before the click exactly as the pending queue prices a
+ * first verdict.
+ */
+export const listAgentSettledOutcomes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ settled: AgentSettledOutcome[] }> => {
+    const db = context.supabase as unknown as SupabaseClient;
+
+    type PrdRow = {
+      id: string;
+      title: string | null;
+      opportunity_id: string | null;
+      outcome: unknown;
+    };
+    const { data: prdRows, error } = await db
+      .from("prds")
+      .select("id,title,opportunity_id,outcome")
+      // Repo jsonb-filter convention (see rememberOutcome): `col->>key`.
+      .filter("outcome->>settled_by", "eq", "agent")
+      .order("updated_at", { ascending: false })
+      .limit(8);
+    if (error) throw new Error(error.message);
+    const prds = (prdRows ?? []) as PrdRow[];
+    if (prds.length === 0) return { settled: [] };
+
+    type OppRow = {
+      id: string;
+      title: string | null;
+      impact: number | null;
+      confidence: number | null;
+      ease: number | null;
+      ice_score: number | string | null;
+    };
+    const oppById = new Map<string, OppRow>();
+    const oppIds = [...new Set(prds.map((p) => p.opportunity_id).filter((v): v is string => !!v))];
+    if (oppIds.length > 0) {
+      const { data } = await db
+        .from("opportunities")
+        .select("id,title,impact,confidence,ease,ice_score")
+        .in("id", oppIds);
+      for (const o of (data ?? []) as OppRow[]) oppById.set(o.id, o);
+    }
+
+    const settled: AgentSettledOutcome[] = [];
+    for (const p of prds) {
+      const prior = priorSettlement(p.outcome);
+      if (!prior || prior.by !== "agent") continue;
+      const o = p.outcome as RecordedOutcome;
+      const opp = p.opportunity_id ? (oppById.get(p.opportunity_id) ?? null) : null;
+      // The confidence axis already carries the agent's move, so an overturn
+      // projects from HERE by the difference between the two verdicts.
+      const projectedFor = (target: OutcomeVerdict): number =>
+        iceOf(
+          opp!.impact,
+          clampConfidence((opp!.confidence ?? 5) + confidenceMoveFor(target, prior.verdict)),
+          opp!.ease,
+        );
+      settled.push({
+        prdId: p.id,
+        title: (p.title ?? "").trim() || "Untitled spec",
+        settledAt: typeof o?.checked_at === "string" ? o.checked_at : null,
+        verdict: prior.verdict,
+        summary: typeof o?.summary === "string" ? o.summary : "",
+        metricLabel: typeof o?.metric_label === "string" ? o.metric_label : null,
+        metricValue: typeof o?.metric_value === "string" ? o.metric_value : null,
+        agentSlug: prior.agentSlug,
+        confidence: prior.confidence,
+        reason: prior.reason,
+        evidence: prior.evidence,
+        overturns: prior.overturns,
+        opportunity: opp
+          ? {
+              id: opp.id,
+              title: opp.title,
+              priorIce: opp.ice_score == null ? null : Number(opp.ice_score),
+              projected: {
+                validated: projectedFor("validated"),
+                mixed: projectedFor("mixed"),
+                missed: projectedFor("missed"),
+              },
+            }
+          : null,
+      });
+    }
+    return { settled };
   });
 
 /**
@@ -739,9 +1239,14 @@ export const draftOutcomeSuggestion = createServerFn({ method: "POST" })
 // what was PREDICTED when the bet was committed (the opportunity's problem /
 // hypothesis / expected ICE, and — post-H2, once synced — its roadmap outcome +
 // measure) and proposes a verdict + summary against the ACTUAL signal so far.
-// It only DRAFTS — the human still confirms and fires recordOutcome, so the
-// rescore + memory write stay human-gated. Reuses surface:"judge" (the Historian
-// is an assessor) so it rides the AI chokepoint without touching runtime.server.
+// This function itself only DRAFTS and never writes. What happens to the draft
+// changed on 2026-08-02: it used to be that a human always confirmed it, so the
+// rescore and the memory write were human-gated by construction. Now the sweep
+// puts the draft on the record itself when classifyOutcomeSettlement says the
+// evidence carries it, and asks a person when it does not. The gate moved from
+// "every verdict" to "the verdicts that are genuinely judgment"; the drafting
+// contract here is unchanged. Reuses surface:"judge" (the Historian is an
+// assessor) so it rides the AI chokepoint without touching runtime.server.
 const HISTORIAN_MODEL = "google/gemini-2.5-flash";
 
 const HISTORIAN_SYSTEM =

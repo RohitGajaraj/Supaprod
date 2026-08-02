@@ -209,11 +209,22 @@ export const Route = createFileRoute("/api/public/hooks/outcome-tick")({
             }
 
             // Mission 3.8a third pass: launch plans whose outcome window
-            // (launch_plans.check_by) has closed with no review yet get one
-            // drafted now, so a window never expires silently. One review per
-            // launch plan; best-effort, never blocks the tick. Full behavior:
-            // src/lib/ai/outcome-review.server.ts.
-            let reviews: OutcomeReviewResult = { reviewed: 0, drafted: 0, skeletons: 0 };
+            // (launch_plans.check_by) has closed with no verdict yet are closed
+            // now, so a window never expires silently. Since 2026-08-02 this
+            // pass SETTLES rather than merely recording: the agent puts the
+            // verdict on the record whenever the evidence supports it, and
+            // escalates to the person on /learn when it genuinely does not.
+            // `settled` and `escalated` are the two numbers worth watching; a
+            // climbing `escalated` is a policy signal, not a backlog. One
+            // decision per launch plan; best-effort, never blocks the tick.
+            // Full behavior: src/lib/ai/outcome-review.server.ts.
+            let reviews: OutcomeReviewResult = {
+              reviewed: 0,
+              settled: 0,
+              escalated: 0,
+              drafted: 0,
+              skeletons: 0,
+            };
             try {
               reviews = await runOutcomeReviews(admin);
             } catch (e) {
