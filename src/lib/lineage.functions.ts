@@ -19,6 +19,13 @@ export const ARTIFACT_KINDS = [
   "design_memory",
   "prototype",
   "capability_change",
+  // Added 2026-08-02 to match what is actually stored. A live census of
+  // artifact_lineage found these being written by real code paths while absent
+  // from every vocabulary, so they parsed nowhere and rendered untitled.
+  "learning",
+  "deployment",
+  "changeset",
+  "prd_scaffold",
 ] as const;
 export type ArtifactKind = (typeof ARTIFACT_KINDS)[number];
 

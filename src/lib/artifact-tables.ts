@@ -50,7 +50,36 @@ export const ARTIFACT_TABLES: Readonly<Record<string, ArtifactTableSpec>> = {
   design_memory: { table: "design_memory", titleCol: "title" },
   prototype: { table: "prototypes", titleCol: "name" },
   capability_change: { table: "capability_changes", titleCol: "description" },
+  // Added 2026-08-02 after a live census of artifact_lineage found four kinds
+  // being WRITTEN that this map had never heard of, so their nodes reached the
+  // knowledge graph with no title and rendered blank.
+  //
+  // `learning` is the serious one: 146 occurrences, the second most connected
+  // kind in the whole graph after `decision`. In a product whose claim is that
+  // it remembers what happened, the recorded outcome was the one node a reader
+  // could not read. Its human sentence is `summary` (there is no `title`
+  // column on `learnings`).
+  learning: { table: "learnings", titleCol: "summary" },
+  changeset: { table: "studio_changesets", titleCol: "title" },
 };
+
+/**
+ * Kinds that appear in `artifact_lineage` and are deliberately left unmapped,
+ * for the same reason `roadmap_item` is: no column on their table is a human
+ * title, and a mapping that resolves to the wrong text is worse than none.
+ *
+ * `deployment` (42 live occurrences): `deployments` carries environment, status,
+ * commit_sha and deploy_url, and no name. `environment` would label every node
+ * "production" and distinguish nothing, which is a worse read than an honest
+ * blank. Its real identity is environment plus commit, which this single-column
+ * contract cannot express; widening the contract is the fix, not guessing here.
+ *
+ * `prd_scaffold` (12 live occurrences): `prd_scaffolds` is html plus a parent
+ * `prd_id`. A scaffold is identified by the spec it belongs to, never by itself,
+ * so its title should be resolved through its parent once hydration can follow
+ * a foreign key. Recorded rather than silently ignored.
+ */
+export const UNMAPPED_LINEAGE_KINDS = ["deployment", "prd_scaffold", "roadmap_item"] as const;
 
 /**
  * Where a kind's rows live, or `undefined` when the kind has no backing table.

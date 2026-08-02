@@ -41,6 +41,15 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
   design_memory: "Design memory",
   prototype: "Prototype",
   capability_change: "Capability change",
+  // Added 2026-08-02 with the four kinds a live census found stored but declared
+  // nowhere. Plain words, per the voice convention: what the thing IS to a
+  // product manager, not the table it came from. "Outcome" rather than
+  // "learning", because that is the word every other surface uses for the
+  // verdict on a shipped spec.
+  learning: "Outcome",
+  deployment: "Deployment",
+  changeset: "Code change",
+  prd_scaffold: "Drawing",
 };
 
 function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: string | null }) {

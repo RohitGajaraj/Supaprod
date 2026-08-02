@@ -26,6 +26,18 @@ export const GRAPH_NODE_KINDS = [
   "decision",
   "mission",
   "design_memory",
+  // Added 2026-08-02 from a live census of artifact_lineage, which held THIRTEEN
+  // kinds against the ten declared here. This list gates `focusKind`, so a kind
+  // missing from it could be walked THROUGH by the traversal but never focused
+  // ON. `learning` is the one that mattered: 146 occurrences, second only to
+  // `decision`, and the graph could not be opened on a recorded outcome. For a
+  // product that sells "we remember how it turned out", the outcome was the one
+  // thing you could not start from.
+  "learning",
+  "deployment",
+  "changeset",
+  "prd_scaffold",
+  "prototype",
 ] as const;
 export type GraphNodeKind = (typeof GRAPH_NODE_KINDS)[number];
 
