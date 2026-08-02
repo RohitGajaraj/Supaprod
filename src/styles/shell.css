@@ -265,9 +265,10 @@
 .sp-live-dot[data-state="gate"] {
   background: var(--sp-gate);
 }
-/* The headline wears ember too, so the whole line says "needs you" in one colour. */
+/* A subtle warmth, not full ember. The dot and marks already carry the status;
+ * the headline just needs to feel slightly different from idle, not shout. */
 .sp-live[data-state="gate"] .sp-live-lead {
-  color: var(--sp-gate);
+  color: color-mix(in oklab, var(--sp-gate) 45%, var(--sp-ink));
 }
 .sp-live-lead {
   color: var(--sp-ink);

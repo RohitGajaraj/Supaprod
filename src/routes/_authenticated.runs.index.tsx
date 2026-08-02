@@ -1046,7 +1046,7 @@ function BuildPage() {
                     ]
                   : state === "gate"
                     ? [
-                        <span className="sp-gate">Waiting on you</span>,
+                        "Waiting on you",
                         s.pending_approvals > 0 ? (
                           <>
                             <Num>{s.pending_approvals}</Num>{" "}
@@ -1055,11 +1055,7 @@ function BuildPage() {
                         ) : null,
                       ]
                     : state === "stopped"
-                      ? [
-                          <span className="sp-fail">
-                            {steps ? <>Stopped at {steps}</> : "Stopped"}
-                          </span>,
-                        ]
+                      ? [steps ? <>Stopped at {steps}</> : "Stopped"]
                       : state === "queued"
                         ? [`Queued for ${actorName(s).toLowerCase()}`]
                         : [
