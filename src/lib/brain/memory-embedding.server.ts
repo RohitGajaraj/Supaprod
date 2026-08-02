@@ -47,21 +47,33 @@ export async function backfillMemoryEmbeddings(
   db: SupabaseClient,
   limit: number = MEMORY_EMBED_BATCH,
 ): Promise<MemoryBackfillResult> {
+  // DELIBERATELY THE SAME SHAPE AS THE THEME SWEEPER, which is the one of these
+  // three that demonstrably drained (0 to 175 themes in three ticks) while this
+  // one moved a single row in two hours against a backlog of 272.
+  //
+  // The first version added two things the theme sweeper does not have: a
+  // `.not("content", "is", null)` filter and an `.order("importance", {nullsFirst})`.
+  // ai_events proves the embedder was never reached even once from here, so the
+  // select was returning nothing while the same predicate run directly returned
+  // 272 rows. Rather than keep guessing which of the two extras did it from the
+  // outside, both are gone: ordering matches the sweeper that works, and null
+  // content is filtered in JS below where it is visible and testable.
+  //
+  // The cost is giving up importance ordering. That is worth paying: a backlog
+  // that drains in the wrong order still drains, and one that never starts does
+  // not.
   const { data, error } = await db
     .from("agent_memory")
     .select("id, content, user_id")
     .is("embedding", null)
-    .not("content", "is", null)
-    .order("importance", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(`backfillMemoryEmbeddings select failed: ${error.message}`);
 
-  const rows = (data ?? []) as Array<{ id: string; content: string | null; user_id: string }>;
-  if (rows.length === 0) return { scanned: 0, embedded: 0, failed: 0 };
-
-  // Most important first, not oldest first. A backlog here is a recall gap, and
-  // the memories a human marked as mattering should stop being invisible before
-  // the machine's routine reflections do.
+  const all = (data ?? []) as Array<{ id: string; content: string | null; user_id: string }>;
+  // A memory with no text cannot be embedded and must not be retried forever.
+  const rows = all.filter((r) => (r.content ?? "").trim().length > 0);
+  if (rows.length === 0) return { scanned: all.length, embedded: 0, failed: 0 };
 
   // Per owner, never a mixed batch: embedTexts resolves a BYO provider key from
   // userId, so a mixed batch would send one workspace's text to another
