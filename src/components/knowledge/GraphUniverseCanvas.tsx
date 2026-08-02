@@ -25,9 +25,11 @@ import {
 import type { KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { Button, Num } from "@/components/shell/primitives";
 import {
+  edgeWeight,
   kindCssColor,
   kindLabel,
   nodeRadius,
+  outcomeLabel,
   resolveKindColors,
   truncateTitle,
 } from "./graph-visual";
@@ -40,6 +42,8 @@ type SimNode3D = SimulationNodeDatum & {
   influence: number;
   r: number;
   color: THREE.Color;
+  /** Present on a recorded outcome whose verdict the server could read. */
+  outcome: string | null;
   x: number;
   y: number;
   z: number;
@@ -49,8 +53,18 @@ type SimEdge3D = SimulationLinkDatum<SimNode3D> & {
   id: string;
   source: SimNode3D;
   target: SimNode3D;
-  superseding: boolean;
+  /**
+   * A belief that stopped being current, in ANY spelling. This used to read
+   * `superseding`, which matched only the two active-voice spellings the engine
+   * writes, so the 35 rows stored as `superseded_by` / `contradicted_by` /
+   * `killed_by` were drawn as ordinary threads. Additive GL lines cannot carry a
+   * dash pattern, so this canvas distinguishes revisions by hue and brightness
+   * only; the flat canvas carries the full four-group stroke vocabulary.
+   */
+  revises: boolean;
   retired: boolean;
+  /** Stroke brightness multiplier from the engine's confidence; 1 when unscored. */
+  weight: number;
 };
 
 type CamState = { theta: number; phi: number; radius: number };
@@ -464,9 +478,13 @@ export function GraphUniverseCanvas({
         const litEdge = isLit(e.source.key) && isLit(e.target.key);
         let base: THREE.Color;
         let intensity: number;
-        if (e.superseding && !e.retired) {
+        if (e.revises && !e.retired) {
           base = chrome.madder;
-          intensity = litEdge ? 0.95 : 0.32;
+          // A strong claim and a tentative one must not look identical. Weight
+          // comes from the engine's own confidence, and an UNSCORED edge sits at
+          // full weight rather than dimmed: "we did not score this" is not "we do
+          // not believe this".
+          intensity = (litEdge ? 0.95 : 0.32) * e.weight;
         } else if (e.retired) {
           base = chrome.thread;
           intensity = litEdge ? 0.3 : 0.12;
@@ -607,7 +625,7 @@ export function GraphUniverseCanvas({
         const wasVisible = isVisible;
         isVisible = entry.isIntersecting;
         if (!wasVisible && isVisible && !reducedRef.current) {
-          // Panel came back into view — resume if there is work to do.
+          // Panel came back into view, so resume if there is work to do.
           lastInteract.current = performance.now();
           startLoop();
         } else if (!isVisible) {
@@ -770,7 +788,6 @@ export function GraphUniverseCanvas({
       cameraRef.current = null;
       lineRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Build (or rebuild) the constellation whenever the graph changes.
@@ -820,6 +837,7 @@ export function GraphUniverseCanvas({
         influence: n.influence,
         r: Math.round(nodeRadius(n, n.key === graph.focusKey) * 2) / 2,
         color,
+        outcome: n.outcome,
         x: prior?.x ?? n.x,
         y: prior?.y ?? n.y,
         z: prior?.z ?? seedZ(n.key),
@@ -873,7 +891,16 @@ export function GraphUniverseCanvas({
       const source = nodeByKey.current.get(e.source);
       const target = nodeByKey.current.get(e.target);
       if (!source || !target) continue;
-      edges.push({ id: e.id, source, target, superseding: e.superseding, retired: e.retired });
+      edges.push({
+        id: e.id,
+        source,
+        target,
+        revises: e.revises,
+        retired: e.retired,
+        // Clamped at 1 so a high-confidence edge never blows past the additive
+        // ceiling and reads as a different colour instead of a stronger one.
+        weight: Math.min(1, edgeWeight(e.confidence)),
+      });
     }
     nodesRef.current = nodes;
     edgesRef.current = edges;
@@ -936,14 +963,12 @@ export function GraphUniverseCanvas({
     return () => {
       sim.stop();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
 
   // Re-light on focus / selection / annotation change.
   useEffect(() => {
     applyEmphasisRef.current?.();
     if (reducedRef.current) renderOnceRef.current?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, staleKeys, hotKeys]);
 
   // Hover lights the hovered node's connections immediately (Rauno: responsive,
@@ -952,7 +977,6 @@ export function GraphUniverseCanvas({
   useEffect(() => {
     applyEmphasisRef.current?.();
     if (reducedRef.current) renderOnceRef.current?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hover]);
 
   // Start / stop the drift loop when the motion preference flips at runtime.
@@ -1063,6 +1087,17 @@ export function GraphUniverseCanvas({
             <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
               {kindLabel(hoverNode.kind)}
             </span>
+            {/* How it turned out, where the record actually knows. Green and red
+                carry outcomes, and a recorded outcome is the one node on this
+                canvas that IS one. Absent, never guessed, when unread. */}
+            {outcomeLabel(hoverNode.outcome) ? (
+              <span
+                className={hoverNode.outcome === "missed" ? "sp-fail" : "sp-pass"}
+                style={{ fontSize: "var(--sp-text-meta)" }}
+              >
+                {outcomeLabel(hoverNode.outcome)}
+              </span>
+            ) : null}
           </div>
           <div
             style={{

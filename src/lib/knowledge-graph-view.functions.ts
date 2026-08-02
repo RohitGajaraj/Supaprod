@@ -13,11 +13,13 @@ import {
   projectGraph,
   nodeKey,
   pickLineageFocus,
+  isOutcomeVerdict,
   DEFAULT_BOUNDS,
   GRAPH_NODE_KINDS,
   type GraphNodeKind,
   type GraphBounds,
   type KnowledgeGraph,
+  type OutcomeVerdict,
   type RawLineageEdge,
 } from "./knowledge-graph-view";
 
@@ -43,11 +45,19 @@ function emptyGraph(): KnowledgeGraph {
    `roadmap_item`, which has no backing table) is skipped, so the node keeps its id-derived
    label on the canvas instead of claiming a title it could not read. */
 
-const LINEAGE_COLS = "id,parent_kind,parent_id,child_kind,child_id,relation,rationale,created_at";
+/**
+ * `created_by_agent` joined the base set 2026-08-02. It has always been a column
+ * on `artifact_lineage`, it has always been populated, and it was never read: the
+ * canvas could draw that two things were connected and had no way to say who
+ * said so. A graph with rationale but no author is an anonymous claim, and the
+ * whole product argument is that a claim carries its receipt.
+ */
+const LINEAGE_COLS =
+  "id,parent_kind,parent_id,child_kind,child_id,relation,rationale,created_by_agent,created_at";
 /**
  * Same row plus the bi-temporal `valid_to` stamp AND the `inference` provenance blob
  * (edge-confidence, DBR-EDGE-CONF). Both columns shipped in the same migration
- * (`20260621030000`), so the single `valid_to` probe below gates both — used once the
+ * (`20260621030000`), so the single `valid_to` probe below gates both. Used once the
  * migration is live; otherwise the base set is returned and the canvas degrades cleanly.
  */
 const LINEAGE_COLS_BITEMPORAL = `${LINEAGE_COLS},valid_to,inference`;
@@ -236,6 +246,46 @@ async function hydrateTitles(
 }
 
 /**
+ * How each recorded outcome in the subgraph turned out.
+ *
+ * A SECOND, NARROW READ rather than a widened title contract. `artifactTable`
+ * gives one table and one title column per kind, which is all the other three
+ * hydration paths need; teaching it about a second column for one kind would
+ * change a shared map to serve one caller. `learnings.verdict` is the one field
+ * that makes the outcome a first-class thing to explore rather than a node with
+ * a sentence on it, so it gets its own bounded query, batched like every other
+ * `.in()` here.
+ *
+ * FAIL-SAFE AND NEVER GUESSED. A verdict that does not load stays absent, and an
+ * absent verdict renders as an unknown outcome rather than a win. A read surface
+ * that defaults unknown outcomes to "validated" is the exact failure this whole
+ * surface exists to prevent.
+ */
+async function hydrateOutcomes(
+  supabase: SupabaseClient,
+  nodes: Map<string, FocusNode>,
+): Promise<Map<string, OutcomeVerdict>> {
+  const ids: string[] = [];
+  for (const { kind, id } of nodes.values()) if (kind === "learning") ids.push(id);
+  const out = new Map<string, OutcomeVerdict>();
+  if (ids.length === 0) return out;
+  try {
+    for (const batch of chunk(ids, IN_BATCH)) {
+      const { data } = await supabase.from("learnings").select("id,verdict").in("id", batch);
+      for (const row of (data as Array<{ id?: string; verdict?: unknown }> | null) ?? []) {
+        if (row?.id && isOutcomeVerdict(row.verdict)) {
+          out.set(nodeKey("learning", row.id), row.verdict);
+        }
+      }
+    }
+  } catch {
+    // An unreadable verdict column is "we do not know", which is what an empty
+    // map already says. Never let it take the whole graph down.
+  }
+  return out;
+}
+
+/**
  * O1: the typed knowledge-graph around a focus artifact. RLS-scoped, bounded,
  * fail-safe. With no focus, centres on the caller's most recent decision.
  */
@@ -269,8 +319,11 @@ export const getKnowledgeGraph = createServerFn({ method: "GET" })
       }
       if (!focus || !sub) return emptyGraph();
       const focusKey = nodeKey(focus.kind, focus.id);
-      const titleMap = await hydrateTitles(supabase, sub.nodes);
-      return projectGraph(sub.edges, titleMap, focusKey, DEFAULT_BOUNDS);
+      const [titleMap, outcomes] = await Promise.all([
+        hydrateTitles(supabase, sub.nodes),
+        hydrateOutcomes(supabase, sub.nodes),
+      ]);
+      return projectGraph(sub.edges, titleMap, focusKey, DEFAULT_BOUNDS, outcomes);
     } catch {
       return emptyGraph();
     }

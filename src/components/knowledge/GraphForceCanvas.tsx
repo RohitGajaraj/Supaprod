@@ -10,6 +10,19 @@
 // the in-product toggle) freezes the physics to a settled still and kills
 // the shimmer. Truth law: only the real nodes and edges getKnowledgeGraph
 // returned are ever drawn.
+//
+// The knowledge pass, 2026-08-02:
+//   Threads are drawn by RELATION MEANING now, not by two booleans. A reader
+//   could previously tell a revision from everything else and nothing else
+//   apart, so a promotion, a cited source and a measured result were one
+//   identical hairline. Four dash groups, no new colour (graph-visual.ts
+//   records why it is a stroke and not a hue).
+//   Revision threads are weighted by the supersession engine's own confidence,
+//   because a strong claim and a tentative one must not look identical. An
+//   UNSCORED edge draws at the middle weight: "we did not score this" is not
+//   "we do not believe this".
+//   The hover card answers WHY, with the rationale and the agent off the edge,
+//   and names the recorded verdict where the node is an outcome.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -24,14 +37,25 @@ import {
   type SimulationNodeDatum,
 } from "d3-force";
 import { getLineage } from "@/lib/lineage.functions";
-import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
+import {
+  relationPhrase,
+  type GraphNodeKind,
+  type KnowledgeGraph,
+} from "@/lib/knowledge-graph-view";
+import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { Button, Num } from "@/components/shell/primitives";
 import {
+  OUTCOME_TONE,
+  RELATION_GROUP_DASH,
+  edgeWeight,
   kindCssColor,
   kindLabel,
   nodeRadius,
+  outcomeLabel,
+  relationGroup,
   resolveKindColors,
   truncateTitle,
+  type RelationGroup,
 } from "./graph-visual";
 
 type SimNode = SimulationNodeDatum & {
@@ -44,14 +68,41 @@ type SimNode = SimulationNodeDatum & {
   label: string;
   x: number;
   y: number;
+  /** Present on a recorded outcome whose verdict the server could read. */
+  outcome: string | null;
+};
+
+/**
+ * The strongest thing the record says about WHY a node is on the canvas: its
+ * newest incident link, phrased from that node's point of view, with the
+ * rationale the writer left and the agent that left it.
+ *
+ * This is the defect the founder named. `rationale` and `created_by_agent` are
+ * columns on every lineage row and neither reached a pixel, so the canvas showed
+ * topology with the reasoning stripped out, which is a picture of a brain rather
+ * than a brain.
+ */
+type EdgeWhy = {
+  phrase: string;
+  peerTitle: string;
+  rationale: string | null;
+  agent: string | null;
+  at: string | null;
+  revises: boolean;
 };
 
 type SimEdge = SimulationLinkDatum<SimNode> & {
   id: string;
   source: SimNode;
   target: SimNode;
-  superseding: boolean;
+  /** The relation's MEANING, spelling-independent. Drives the dash pattern. */
+  family: string;
+  group: RelationGroup;
+  /** True for any relation that says a belief stopped being current. */
+  revises: boolean;
   retired: boolean;
+  /** Stroke multiplier from the engine's own confidence; 1 when unscored. */
+  weight: number;
 };
 
 type Camera = { x: number; y: number; k: number };
@@ -60,6 +111,9 @@ const SPRITE_PAD = 2.6; // glow radius multiplier baked into each sprite
 const SPRITE_SCALE = 3; // sprite oversampling so glows stay smooth when zoomed
 const LABEL_ZOOM_THRESHOLD = 1.05;
 const PULSE_MS = 1400;
+
+/** The three non-revision stroke groups, drawn before the revision threads. */
+const PLAIN_GROUPS: RelationGroup[] = ["flow", "evidence", "outcome"];
 
 /** Layered radial glow + nothing else; the crisp core is drawn as a vector. */
 function makeGlowSprite(color: string, r: number): HTMLCanvasElement {
@@ -175,8 +229,38 @@ export function GraphForceCanvas({
   const neighborsRef = useRef(neighborSets);
   neighborsRef.current = neighborSets;
 
+  /**
+   * One WHY per node: the newest link incident to it, phrased from its side. A
+   * revision beats a plain link at the same recency, because "this belief was
+   * replaced" is the sentence a reader most needs and the one they will never go
+   * looking for.
+   */
+  const whyByKey = useMemo(() => {
+    const titleOf = new Map(graph.nodes.map((n) => [n.key, n.title]));
+    const best = new Map<string, EdgeWhy>();
+    const better = (a: EdgeWhy, b: EdgeWhy | undefined) =>
+      !b || (a.revises && !b.revises) || (a.revises === b.revises && (a.at ?? "") > (b.at ?? ""));
+    for (const e of graph.edges) {
+      if (e.retired) continue;
+      for (const side of ["source", "target"] as const) {
+        const self = side === "source" ? e.source : e.target;
+        const peer = side === "source" ? e.target : e.source;
+        const why: EdgeWhy = {
+          phrase: relationPhrase(e.family, e.inverted, side),
+          peerTitle: titleOf.get(peer) ?? "",
+          rationale: e.rationale,
+          agent: e.createdByAgent,
+          at: e.validFrom,
+          revises: e.revises,
+        };
+        if (better(why, best.get(self))) best.set(self, why);
+      }
+    }
+    return best;
+  }, [graph.edges, graph.nodes]);
+
   const hasLiveSupersession = useMemo(
-    () => graph.edges.some((e) => e.superseding && !e.retired),
+    () => graph.edges.some((e) => e.revises && !e.retired),
     [graph.edges],
   );
   const shimmerRef = useRef(hasLiveSupersession);
@@ -204,57 +288,83 @@ export function GraphForceCanvas({
     ctx.translate(w / 2 + cam.x, h / 2 + cam.y);
     ctx.scale(cam.k, cam.k);
 
-    // Edges: three grouped passes so canvas state changes stay cheap.
+    // Edges. Grouped passes so canvas state changes stay cheap, but grouped by
+    // RELATION MEANING now rather than by two booleans: a reader could previously
+    // tell a revision from everything else and nothing else apart, so a promotion
+    // and a piece of cited evidence and a measured result were one identical
+    // hairline. The dash pattern is the vocabulary (graph-visual.ts explains why
+    // it is a stroke and not a hue).
     const hairWidth = 1.1 / cam.k;
 
-    // 1. Plain threads at 25% alpha (dim to 8% outside a focused neighborhood).
-    ctx.lineWidth = hairWidth;
-    ctx.setLineDash([]);
-    for (const pass of [true, false]) {
-      ctx.beginPath();
-      let any = false;
-      for (const e of edges) {
-        if (e.superseding || e.retired) continue;
-        const litEdge = isLit(e.source.key) && isLit(e.target.key);
-        if (litEdge !== pass) continue;
-        ctx.moveTo(e.source.x, e.source.y);
-        ctx.lineTo(e.target.x, e.target.y);
-        any = true;
+    // 1. Ordinary threads, one pass per (group, lit) so each group keeps its own
+    //    dash. Dimmed to 7% outside a focused neighborhood, exactly as before.
+    for (const group of PLAIN_GROUPS) {
+      const dash = RELATION_GROUP_DASH[group];
+      for (const pass of [true, false]) {
+        ctx.beginPath();
+        let any = false;
+        for (const e of edges) {
+          if (e.revises || e.retired || e.group !== group) continue;
+          const litEdge = isLit(e.source.key) && isLit(e.target.key);
+          if (litEdge !== pass) continue;
+          ctx.moveTo(e.source.x, e.source.y);
+          ctx.lineTo(e.target.x, e.target.y);
+          any = true;
+        }
+        if (!any) continue;
+        ctx.lineWidth = hairWidth;
+        // Dash lengths are in world units, so they must be divided by the camera
+        // scale or a dotted thread turns solid the moment you zoom out.
+        ctx.setLineDash(dash.map((d) => d / cam.k));
+        ctx.lineDashOffset = 0;
+        if (pass && selected) {
+          ctx.strokeStyle = chrome.selected;
+          ctx.globalAlpha = 0.42;
+        } else {
+          // Token-resolved thread color (was a hardcoded hex; both themes resolve).
+          ctx.strokeStyle = chrome.thread;
+          ctx.globalAlpha = pass ? 0.25 : 0.07;
+        }
+        ctx.stroke();
       }
-      if (!any) continue;
-      if (pass && selected) {
-        ctx.strokeStyle = chrome.selected;
-        ctx.globalAlpha = 0.42;
-      } else {
-        // Token-resolved thread color (was a hardcoded hex; both themes resolve).
-        ctx.strokeStyle = chrome.thread;
-        ctx.globalAlpha = pass ? 0.25 : 0.07;
-      }
-      ctx.stroke();
     }
 
-    // 2. Live supersession threads: madder, dashed, drifting toward the newer
+    // 2. Live revision threads: madder, long-dashed, drifting toward the newer
     //    belief (the thread in motion; static under reduced motion).
-    ctx.strokeStyle = chrome.madder;
-    ctx.lineWidth = 1.5 / cam.k;
-    ctx.setLineDash([6, 5]);
-    ctx.lineDashOffset = reducedRef.current ? 0 : -((t * 0.012) % 11);
-    ctx.beginPath();
-    let anySuper = false;
+    //
+    //    ONE PASS PER WEIGHT, because a strong claim and a tentative one must not
+    //    look identical and lineWidth cannot vary inside a single path. The weight
+    //    comes from the supersession engine's own confidence; an UNSCORED edge
+    //    draws at the middle weight rather than the thin one, so "we did not score
+    //    this" never renders as "we do not believe this".
+    const revisionDash = RELATION_GROUP_DASH.revision;
+    const byWeight = new Map<number, SimEdge[]>();
     for (const e of edges) {
-      if (!e.superseding || e.retired) continue;
-      ctx.moveTo(e.source.x, e.source.y);
-      ctx.lineTo(e.target.x, e.target.y);
-      anySuper = true;
+      if (!e.revises || e.retired) continue;
+      const w = Math.round(e.weight * 10) / 10;
+      const bucket = byWeight.get(w) ?? [];
+      bucket.push(e);
+      byWeight.set(w, bucket);
     }
-    if (anySuper) {
+    if (byWeight.size > 0) {
+      ctx.strokeStyle = chrome.madder;
+      ctx.setLineDash(revisionDash.map((d) => d / cam.k));
+      ctx.lineDashOffset = reducedRef.current ? 0 : -((t * 0.012) % 13);
       ctx.globalAlpha = selected ? 0.5 : 0.7;
-      ctx.stroke();
+      for (const [w, group] of byWeight) {
+        ctx.lineWidth = (1.5 * w) / cam.k;
+        ctx.beginPath();
+        for (const e of group) {
+          ctx.moveTo(e.source.x, e.source.y);
+          ctx.lineTo(e.target.x, e.target.y);
+        }
+        ctx.stroke();
+      }
     }
 
     // 3. Retired revisions stay as faded history (invalidate, never delete).
     ctx.lineWidth = hairWidth;
-    ctx.setLineDash([2, 4]);
+    ctx.setLineDash([2 / cam.k, 4 / cam.k]);
     ctx.lineDashOffset = 0;
     ctx.beginPath();
     let anyRetired = false;
@@ -436,6 +546,7 @@ export function GraphForceCanvas({
         label: truncateTitle(n.title || kindLabel(n.kind)),
         x: prior?.x ?? n.x,
         y: prior?.y ?? n.y,
+        outcome: n.outcome,
       };
       byKey.set(n.key, simNode);
       return simNode;
@@ -449,8 +560,11 @@ export function GraphForceCanvas({
         id: e.id,
         source,
         target,
-        superseding: e.superseding,
+        family: e.family,
+        group: relationGroup(e.family),
+        revises: e.revises,
         retired: e.retired,
+        weight: edgeWeight(e.confidence),
       });
     }
     nodesRef.current = nodes;
@@ -769,7 +883,13 @@ export function GraphForceCanvas({
         onDoubleClick={onDoubleClick}
       />
       {hoveredNode ? (
-        <GraphHoverCard node={hoveredNode} sx={hover!.sx} sy={hover!.sy} bounds={sizeRef.current} />
+        <GraphHoverCard
+          node={hoveredNode}
+          why={whyByKey.get(hoveredNode.key) ?? null}
+          sx={hover!.sx}
+          sy={hover!.sy}
+          bounds={sizeRef.current}
+        />
       ) : null}
       <div style={{ position: "absolute", right: 10, bottom: 8 }}>
         <Button
@@ -795,11 +915,21 @@ export function GraphForceCanvas({
  */
 function GraphHoverCard({
   node,
+  why,
   sx,
   sy,
   bounds,
 }: {
-  node: { key: string; kind: string; id: string; title: string; influence: number };
+  node: {
+    key: string;
+    kind: string;
+    id: string;
+    title: string;
+    influence: number;
+    outcome: string | null;
+  };
+  /** The newest link into this node, in words. Null when nothing is joined to it. */
+  why: EdgeWhy | null;
   sx: number;
   sy: number;
   bounds: { w: number; h: number };
@@ -813,6 +943,7 @@ function GraphHoverCard({
   });
   const cameFrom = story.data?.ancestors?.length ?? null;
   const ledTo = story.data?.descendants?.length ?? null;
+  const verdict = outcomeLabel(node.outcome);
 
   const flipX = sx > bounds.w * 0.58;
   const flipY = sy > bounds.h * 0.62;
@@ -854,6 +985,13 @@ function GraphHoverCard({
         <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
           {kindLabel(node.kind)}
         </span>
+        {/* The verdict, where the record has one. Green and red carry outcomes,
+            and an outcome is the one thing on this canvas that IS one. */}
+        {verdict ? (
+          <span className={OUTCOME_TONE[node.outcome!] === "fail" ? "sp-fail" : "sp-pass"}>
+            <span style={{ fontSize: "var(--sp-text-meta)" }}>{verdict}</span>
+          </span>
+        ) : null}
       </div>
       <div
         style={{
@@ -868,6 +1006,37 @@ function GraphHoverCard({
       >
         {node.title || "Untitled"}
       </div>
+      {/* WHY it is joined to anything, in the record's own words. The link count
+          below says HOW MANY, which is a different fact and a much weaker one. */}
+      {why ? (
+        <div
+          style={{
+            fontSize: "var(--sp-text-meta)",
+            color: "var(--sp-mute)",
+            lineHeight: "var(--sp-leading-row)",
+            marginBottom: 6,
+          }}
+        >
+          <span className={why.revises ? "sp-fail" : undefined}>{why.phrase}</span>
+          {why.peerTitle ? ` ${truncateTitle(why.peerTitle, 34)}` : ""}
+          {why.rationale ? (
+            <span
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                marginTop: 3,
+              }}
+            >
+              {why.rationale}
+            </span>
+          ) : null}
+          {why.agent ? (
+            <span style={{ display: "block" }}>{agentDisplayName(why.agent)}</span>
+          ) : null}
+        </div>
+      ) : null}
       <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
         <Num>{node.influence}</Num> {node.influence === 1 ? "link" : "links"}
         {cameFrom !== null && ledTo !== null ? (
@@ -880,7 +1049,7 @@ function GraphHoverCard({
         ) : null}
       </div>
       <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", marginTop: 5 }}>
-        Click to focus, double-click for the story
+        Click to open it
       </div>
     </div>
   );

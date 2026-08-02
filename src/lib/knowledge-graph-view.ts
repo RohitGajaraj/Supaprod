@@ -53,6 +53,242 @@ export const GRAPH_RELATIONS = [
 ] as const;
 export type GraphRelation = (typeof GRAPH_RELATIONS)[number];
 
+/* ------------------------------------------------------------------ *
+ * Relation families: one MEANING per family, however it was spelled.
+ * ------------------------------------------------------------------ */
+
+/**
+ * THE DUPLICATE-SPELLING RULING (2026-08-02).
+ *
+ * A live census of `artifact_lineage` found SIXTEEN distinct relation strings
+ * standing for about thirteen meanings, because two writers disagree on both
+ * spelling and voice:
+ *
+ *   `derived_from` (14 rows) and `derived-from` (12 rows) are ONE relation. The
+ *   app writes the hyphen form (`flows.functions.ts:165`); the Helio demo seed
+ *   (`supabase/migrations/20260725130000_helio_demo_seed_rich.sql`) writes the
+ *   underscore form. Nothing tells them apart, and GRAPH_RELATIONS above declared
+ *   only the hyphen, so half of that relation fell through as an unknown string
+ *   with no label and no legend entry.
+ *
+ *   `promoted`/`promotes`, `validates`/`validated_by`, `supersedes`/`superseded_by`
+ *   and `contradicts`/`contradicted_by` are one relation written from opposite ends
+ *   of the same edge. The active spelling puts the ACTOR on the parent; the `_by`
+ *   spelling puts the actor on the child.
+ *
+ * WHAT WE DO, and what we deliberately refuse to do:
+ *
+ *   WE DO NOT REWRITE THE ROW. `GraphEdge.relation` still carries the stored
+ *   string byte for byte. The record is evidence, and a read surface that quietly
+ *   corrects its own source has stopped being a record. The fix at rest is a
+ *   migration, and it is written up rather than smuggled in here: see
+ *   GRAPH-NEEDS-MIGRATION.md at the repo root.
+ *
+ *   WE DO NOT FLIP THE EDGE. Reversing parent and child so a label reads nicely
+ *   would rewrite the topology, and every other reader of `artifact_lineage` walks
+ *   the same rows expecting the stored direction (the Critic's contradiction
+ *   history, the trust ledger, the loop-closure moat).
+ *
+ *   WE NORMALISE AT READ TIME into a FAMILY plus an INVERTED flag. The family is
+ *   the meaning; `inverted` says which end of the stored edge is the actor. That
+ *   one flag is the whole difference between a legend and a lie: under
+ *   `supersedes` the CHILD is the belief that stopped being current, under
+ *   `superseded_by` it is the PARENT, and until now the second case (21 rows, more
+ *   than the 8 the active spelling has) was not counted as a revision at all.
+ */
+export type RelationFamilySpec = {
+  /** Plain words for the legend. Never the stored string. */
+  label: string;
+  /** Completes "<source> ___ <target>" on a NON-inverted edge. */
+  fromSource: string;
+  /** Completes "<target> ___ <source>" on a NON-inverted edge. */
+  fromTarget: string;
+  /**
+   * True when the family asserts that one end's belief STOPPED BEING CURRENT.
+   * Wider than `supersedes`/`contradicts` on purpose: a bet that was killed is a
+   * belief that ended, and the record should say so on the canvas.
+   */
+  revises: boolean;
+};
+
+export const RELATION_FAMILIES: Readonly<Record<string, RelationFamilySpec>> = {
+  promoted: {
+    label: "Promoted",
+    fromSource: "promoted into",
+    fromTarget: "was promoted from",
+    revises: false,
+  },
+  "derived-from": {
+    label: "Derived",
+    fromSource: "gave rise to",
+    fromTarget: "came from",
+    revises: false,
+  },
+  informs: {
+    label: "Informed",
+    fromSource: "informed",
+    fromTarget: "was informed by",
+    revises: false,
+  },
+  cites: { label: "Cited", fromSource: "cites", fromTarget: "is cited by", revises: false },
+  "grounded-in": {
+    label: "Grounded",
+    fromSource: "is grounded in",
+    fromTarget: "grounds",
+    revises: false,
+  },
+  validates: {
+    label: "Validated",
+    fromSource: "validated",
+    fromTarget: "was validated by",
+    revises: false,
+  },
+  measures: {
+    label: "Measured",
+    fromSource: "measured",
+    fromTarget: "was measured by",
+    revises: false,
+  },
+  dispatched: {
+    label: "Dispatched",
+    fromSource: "dispatched",
+    fromTarget: "was dispatched by",
+    revises: false,
+  },
+  "depends-on": {
+    label: "Depends",
+    fromSource: "depends on",
+    fromTarget: "is needed by",
+    revises: false,
+  },
+  "relates-to": {
+    label: "Related",
+    fromSource: "relates to",
+    fromTarget: "relates to",
+    revises: false,
+  },
+  supersedes: {
+    label: "Replaced",
+    fromSource: "replaced",
+    fromTarget: "was replaced by",
+    revises: true,
+  },
+  contradicts: {
+    label: "Contradicted",
+    fromSource: "contradicts",
+    fromTarget: "is contradicted by",
+    revises: true,
+  },
+  kills: { label: "Killed", fromSource: "killed", fromTarget: "was killed by", revises: true },
+};
+
+/**
+ * Every spelling seen in the live table or written anywhere in `src/`, mapped to
+ * its family and to which end of the stored edge acts.
+ *
+ * `informed-by` IS THE ONE EXCEPTION and it is listed rather than left to the
+ * generic `-by` rule below, because the seed uses that suffix against its own
+ * convention. Every `informed_by` row runs earlier artifact -> later artifact
+ * (`learning -> decision`, "the loop closes: outcomes feed the next call"), so the
+ * PARENT is the thing doing the informing and the edge is NOT inverted. The
+ * `_by` in the name describes the child's relation to the parent, whereas in
+ * `validated_by`, `measured_by`, `superseded_by`, `contradicted_by` and `killed_by`
+ * it describes the parent's relation to the child. Guessing here would have put
+ * forty-nine edges the wrong way round, so it is pinned to the evidence.
+ */
+const RELATION_ALIASES: Readonly<Record<string, { family: string; inverted: boolean }>> = {
+  promoted: { family: "promoted", inverted: false },
+  promotes: { family: "promoted", inverted: false },
+  "derived-from": { family: "derived-from", inverted: false },
+  derived: { family: "derived-from", inverted: false },
+  from: { family: "derived-from", inverted: false },
+  "informed-by": { family: "informs", inverted: false },
+  informs: { family: "informs", inverted: false },
+  cites: { family: "cites", inverted: false },
+  references: { family: "cites", inverted: false },
+  "grounded-in": { family: "grounded-in", inverted: false },
+  validates: { family: "validates", inverted: false },
+  "validated-by": { family: "validates", inverted: true },
+  measures: { family: "measures", inverted: false },
+  "measured-by": { family: "measures", inverted: true },
+  dispatched: { family: "dispatched", inverted: false },
+  "depends-on": { family: "depends-on", inverted: false },
+  "relates-to": { family: "relates-to", inverted: false },
+  supports: { family: "relates-to", inverted: false },
+  documents: { family: "relates-to", inverted: false },
+  supersedes: { family: "supersedes", inverted: false },
+  revised: { family: "supersedes", inverted: false },
+  "superseded-by": { family: "supersedes", inverted: true },
+  contradicts: { family: "contradicts", inverted: false },
+  "contradicted-by": { family: "contradicts", inverted: true },
+  kills: { family: "kills", inverted: false },
+  "killed-by": { family: "kills", inverted: true },
+};
+
+/**
+ * PURE. Fold a stored relation string into its family and its direction.
+ *
+ * Separator-blind first (`derived_from` and `derived-from` land in one bucket),
+ * then the alias table, then a generic rule for anything nobody has taught it: a
+ * spelling ending in `-by` is the passive voice of its stem, so a relation this
+ * file has never heard of still reads the right way round instead of becoming a
+ * second unnamed colour on the legend.
+ */
+export function canonicalRelation(raw: string | null | undefined): {
+  family: string;
+  inverted: boolean;
+} {
+  const r = classifyRelation(raw).replace(/_/g, "-");
+  const known = RELATION_ALIASES[r];
+  if (known) return known;
+  if (r.endsWith("-by") && r.length > 3) {
+    const stem = r.slice(0, -3);
+    const viaStem = RELATION_ALIASES[stem];
+    if (viaStem) return { family: viaStem.family, inverted: !viaStem.inverted };
+    return { family: stem, inverted: true };
+  }
+  return { family: r, inverted: false };
+}
+
+/** PURE. The legend word for a family, including one nobody has declared yet. */
+export function relationLabel(family: string): string {
+  const spec = RELATION_FAMILIES[family];
+  if (spec) return spec.label;
+  const words = family.replace(/[-_]+/g, " ").trim();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Linked";
+}
+
+/**
+ * PURE. The phrase that completes a sentence starting at ONE end of the edge.
+ * `side` names which end you are standing on, and `inverted` swaps the voice, so
+ * `decision --validated_by--> learning` reads "was validated by" from the
+ * decision and "validated" from the learning, off the same row.
+ */
+export function relationPhrase(
+  family: string,
+  inverted: boolean,
+  side: "source" | "target",
+): string {
+  const spec = RELATION_FAMILIES[family];
+  if (!spec) return side === "source" ? "links to" : "is linked from";
+  return (side === "source") !== inverted ? spec.fromSource : spec.fromTarget;
+}
+
+/**
+ * PURE. True when the relation asserts that one end's belief stopped being
+ * current, in ANY spelling.
+ *
+ * DELIBERATELY NOT `isSuperseding`. That predicate stays exactly as narrow as it
+ * was because three modules outside this surface depend on its precise meaning
+ * (`ai/contradiction-history.ts` reads the CHILD as the prior belief, which is
+ * true of `supersedes` and false of `superseded_by`). This is the wider,
+ * direction-aware question the canvas needs, and it is a different name so the
+ * two can never be confused for one another.
+ */
+export function revisesBelief(raw: string | null | undefined): boolean {
+  return RELATION_FAMILIES[canonicalRelation(raw).family]?.revises === true;
+}
+
 /** A row as it comes out of `artifact_lineage` (the fields we read). */
 export type RawLineageEdge = {
   id: string;
@@ -63,6 +299,14 @@ export type RawLineageEdge = {
   relation: string | null;
   rationale: string | null;
   created_at: string | null;
+  /**
+   * WHO drew this link. Already a column on `artifact_lineage` and already
+   * populated (the seed stamps `discovery-scout`, `critic`, `data-analyst`,
+   * `strategist`, `qa`; the supersession engine stamps its own slug). It was
+   * never selected, so the graph rendered a shape with no author: a reader could
+   * see that two things were connected and had no way to ask who said so.
+   */
+  created_by_agent?: string | null;
   /**
    * Bi-temporal stamp (DBR-1.5): the time this supersession assertion stopped
    * being current, because a LATER outcome reversed it (invalidate-don't-delete).
@@ -79,6 +323,17 @@ export type RawLineageEdge = {
   inference?: { confidence?: number; tier?: string } | null;
 };
 
+/**
+ * How a recorded outcome turned out. The three words the `learnings.verdict`
+ * column actually holds, and the product's whole claim in one field: the record
+ * does not just remember that you shipped, it remembers whether it worked.
+ */
+export type OutcomeVerdict = "validated" | "missed" | "mixed";
+
+export function isOutcomeVerdict(v: unknown): v is OutcomeVerdict {
+  return v === "validated" || v === "missed" || v === "mixed";
+}
+
 export type GraphNode = {
   /** `${kind}:${id}` - the stable graph key. */
   key: string;
@@ -93,14 +348,35 @@ export type GraphNode = {
   ring: number;
   x: number;
   y: number;
+  /**
+   * Set on a `learning` node whose verdict the server could read, null on every
+   * other kind and on any learning whose verdict did not load. Never guessed:
+   * an unread verdict stays null rather than defaulting to "validated", because
+   * a product that quietly paints unknown outcomes as wins is the one thing this
+   * surface must never do.
+   */
+  outcome: OutcomeVerdict | null;
 };
 
 export type GraphEdge = {
   id: string;
   source: string;
   target: string;
+  /** The STORED string, byte for byte. Never normalised: the record is evidence. */
   relation: GraphRelation | string;
+  /** The meaning behind the spelling. See the duplicate-spelling ruling above. */
+  family: string;
+  /** True when the CHILD is the actor in the family's sentence (`superseded_by`). */
+  inverted: boolean;
+  /**
+   * True when this edge says a belief stopped being current, in any spelling.
+   * Wider and more correct than `superseding`, which only ever matched the two
+   * active-voice spellings the engine writes.
+   */
+  revises: boolean;
   rationale: string | null;
+  /** The agent that drew the link, when the row records one. */
+  createdByAgent: string | null;
   /** = the edge's created_at; the honest time axis. */
   validFrom: string | null;
   /**
@@ -109,7 +385,11 @@ export type GraphEdge = {
    * non-supersession edge / before the migration is live (the seam was empty in v1).
    */
   validTo: string | null;
-  /** True for supersedes / contradicts edges (styled distinctly). */
+  /**
+   * True for the two ACTIVE-VOICE spellings the supersession engine writes.
+   * Kept unchanged for the readers that depend on its narrowness; prefer
+   * `revises` for anything that asks "did a belief end here".
+   */
   superseding: boolean;
   /**
    * The invalidate-don't-delete property made visible: a supersession edge whose
@@ -121,7 +401,7 @@ export type GraphEdge = {
    * Edge-confidence (DBR-EDGE-CONF): how trustworthy the supersession engine judged this
    * edge, from its `inference` provenance. Null on non-supersession edges and on edges
    * written before the confidence layer (so the canvas only ever fades a genuinely-scored,
-   * low-confidence revision — never an unscored one).
+   * low-confidence revision, never an unscored one).
    */
   confidence: number | null;
   confidenceTier: "strong" | "tentative" | "drop" | string | null;
@@ -195,6 +475,13 @@ export function projectGraph(
   titleMap: Map<string, string>,
   focusKey: string,
   bounds: GraphBounds = DEFAULT_BOUNDS,
+  /**
+   * Node key -> recorded verdict, for the `learning` nodes whose verdict the
+   * server could read. Optional and additive: every existing caller passes four
+   * arguments and gets a graph whose outcomes are all null, which is exactly the
+   * honest reading of "we did not look".
+   */
+  outcomes?: Map<string, OutcomeVerdict> | null,
 ): KnowledgeGraph {
   const maxNodes = bounds?.maxNodes ?? DEFAULT_BOUNDS.maxNodes;
   const maxDepth = bounds?.maxDepth ?? DEFAULT_BOUNDS.maxDepth;
@@ -305,33 +592,41 @@ export function projectGraph(
         ring,
         x,
         y,
+        outcome: outcomes?.get(key) ?? null,
       });
     });
   }
 
   const edges: GraphEdge[] = includedEdges.map((e) => {
     const relation = classifyRelation(e.raw.relation);
+    const { family, inverted } = canonicalRelation(relation);
+    const revises = RELATION_FAMILIES[family]?.revises === true;
     const superseding = isSuperseding(relation);
-    // Only a supersession edge can be "retired"; a stray valid_to on any other
-    // relation is ignored so the flag never lies.
+    // Only a REVISION edge can be "retired"; a stray valid_to on any other
+    // relation is ignored so the flag never lies. Gated on `revises` rather than
+    // `superseding` so a `superseded_by` row that was itself later reversed reads
+    // as history instead of silently ignoring its own stamp.
     const validTo =
-      superseding && typeof e.raw.valid_to === "string" && e.raw.valid_to.trim()
+      revises && typeof e.raw.valid_to === "string" && e.raw.valid_to.trim()
         ? e.raw.valid_to
         : null;
-    // Edge-confidence (DBR-EDGE-CONF): only a supersession edge can carry it, so a stray
+    // Edge-confidence (DBR-EDGE-CONF): only a revision edge can carry it, so a stray
     // inference blob on any other relation is ignored and the canvas never mis-fades.
     const inf =
-      superseding && e.raw.inference && typeof e.raw.inference === "object"
-        ? e.raw.inference
-        : null;
+      revises && e.raw.inference && typeof e.raw.inference === "object" ? e.raw.inference : null;
     const confidence = inf && typeof inf.confidence === "number" ? inf.confidence : null;
     const confidenceTier = inf && typeof inf.tier === "string" ? inf.tier : null;
+    const agent = typeof e.raw.created_by_agent === "string" ? e.raw.created_by_agent.trim() : "";
     return {
       id: e.raw.id,
       source: e.sourceKey,
       target: e.targetKey,
       relation,
+      family,
+      inverted,
+      revises,
       rationale: e.raw.rationale ?? null,
+      createdByAgent: agent || null,
       validFrom: e.raw.created_at ?? null,
       validTo,
       superseding,
@@ -369,11 +664,240 @@ export function summarizeEdgeConfidence(edges: GraphEdge[]): {
   let strong = 0;
   let tentative = 0;
   for (const e of edges) {
-    if (!e.superseding || e.retired || !e.confidenceTier) continue;
+    if (!e.revises || e.retired || !e.confidenceTier) continue;
     if (e.confidenceTier === "strong") strong++;
     else if (e.confidenceTier === "tentative") tentative++;
   }
   return { scored: strong + tentative, strong, tentative };
+}
+
+/**
+ * PURE. Which END of a revision edge is the belief that stopped being current,
+ * or null when the edge is not a revision at all.
+ *
+ * The whole reason `inverted` exists. `supersedes` puts the newer belief on the
+ * parent, so the retired one is the target; `superseded_by` puts the older belief
+ * on the parent, so the retired one is the source. Reading the direction off the
+ * row is the difference between "this call was overturned" and pointing at the
+ * call that did the overturning.
+ */
+export function revisedEndpoint(edge: GraphEdge): string | null {
+  if (!edge.revises) return null;
+  return edge.inverted ? edge.source : edge.target;
+}
+
+/** The other end. Whatever replaced, contradicted or killed the revised belief. */
+export function revisingEndpoint(edge: GraphEdge): string | null {
+  if (!edge.revises) return null;
+  return edge.inverted ? edge.target : edge.source;
+}
+
+export type RelationTally = {
+  family: string;
+  label: string;
+  count: number;
+  revises: boolean;
+};
+
+/**
+ * PURE. How many edges of each MEANING are on the canvas.
+ *
+ * Counts by family, so `derived_from` and `derived-from` are one line rather than
+ * two, and `supersedes` and `superseded_by` are one line rather than two halves
+ * of a mechanic neither of which looked significant on its own. Deterministic
+ * order: commonest first, then alphabetical, so the legend does not reshuffle
+ * itself between renders of the same graph.
+ */
+export function summarizeRelations(edges: GraphEdge[]): RelationTally[] {
+  const counts = new Map<string, number>();
+  for (const e of Array.isArray(edges) ? edges : []) {
+    counts.set(e.family, (counts.get(e.family) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([family, count]) => ({
+      family,
+      label: relationLabel(family),
+      count,
+      revises: RELATION_FAMILIES[family]?.revises === true,
+    }))
+    .sort((a, b) => b.count - a.count || a.family.localeCompare(b.family));
+}
+
+/**
+ * One moment where the workspace changed its mind, phrased from the record.
+ * This is the compounding claim made countable: not "here are some edges" but
+ * "on this date, this belief stopped being current, and here is who said so and
+ * why".
+ */
+export type BeliefChange = {
+  /** The lineage edge id: this row is the evidence, and it is addressable. */
+  id: string;
+  family: string;
+  label: string;
+  /** When the revision was asserted. */
+  at: string | null;
+  /** When the revision was ITSELF reversed, or null while it still holds. */
+  retiredAt: string | null;
+  retired: boolean;
+  /** The belief that stopped being current. */
+  revisedKey: string;
+  revisedTitle: string;
+  /** What replaced, contradicted or killed it. */
+  revisedByKey: string;
+  revisedByTitle: string;
+  /** WHY, in the words stored on the edge. */
+  rationale: string | null;
+  /** WHO said so. */
+  agent: string | null;
+  confidence: number | null;
+  confidenceTier: string | null;
+};
+
+/**
+ * PURE. The time axis of the graph's thinking, newest first.
+ *
+ * The canvas could already DRAW a revision; nothing could READ one. A dashed
+ * madder thread tells you something changed and refuses to say what, when, or on
+ * whose say-so, which is a picture of a brain rather than a brain. This turns the
+ * same edges into dated sentences, and it keeps the reversed ones (invalidate,
+ * never delete) so the reader can see the workspace change its mind twice.
+ */
+export function buildBeliefChanges(graph: KnowledgeGraph): BeliefChange[] {
+  const titleOf = new Map<string, string>();
+  for (const n of graph?.nodes ?? []) titleOf.set(n.key, n.title);
+
+  const out: BeliefChange[] = [];
+  for (const e of graph?.edges ?? []) {
+    const revised = revisedEndpoint(e);
+    const by = revisingEndpoint(e);
+    if (!revised || !by) continue;
+    out.push({
+      id: e.id,
+      family: e.family,
+      label: relationLabel(e.family),
+      at: e.validFrom,
+      retiredAt: e.validTo,
+      retired: e.retired,
+      revisedKey: revised,
+      revisedTitle: titleOf.get(revised) ?? "",
+      revisedByKey: by,
+      revisedByTitle: titleOf.get(by) ?? "",
+      rationale: e.rationale,
+      agent: e.createdByAgent,
+      confidence: e.confidence,
+      confidenceTier: e.confidenceTier,
+    });
+  }
+  // Newest first, and a stable tiebreak on the edge id so two revisions written
+  // in the same transaction do not swap places between renders.
+  return out.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? "") || a.id.localeCompare(b.id));
+}
+
+/** A recorded outcome, and the calls that led to it. */
+export type OutcomeTrail = {
+  outcomeKey: string;
+  outcomeTitle: string;
+  verdict: OutcomeVerdict;
+  /** When the outcome landed. */
+  at: string | null;
+  decisions: {
+    key: string;
+    title: string;
+    /** Steps through the graph from the outcome back to this call. */
+    hops: number;
+    /** True when a single stored edge joins the call to the outcome. */
+    direct: boolean;
+  }[];
+};
+
+const OUTCOME_KIND: GraphNodeKind = "learning";
+const TRAIL_KIND: GraphNodeKind = "decision";
+const DEFAULT_TRAIL_HOPS = 3;
+
+/**
+ * PURE. "Show me every decision that led to a missed outcome."
+ *
+ * The product's claim is that it remembers how things turned out, and until the
+ * `learning` kind became nameable there was no way to ask this question at all:
+ * 146 outcome nodes rendered blank and could not be focused. Now that they can,
+ * this walks BACKWARDS from each outcome carrying the asked-for verdict and
+ * names the calls within `maxHops` of it.
+ *
+ * UNDIRECTED on purpose. The stored direction of an outcome edge depends on which
+ * writer made it (`decision --validated_by--> learning` runs one way,
+ * `learning --informed_by--> decision` the other), so walking only downstream
+ * would answer this question correctly for one half of the data and silently
+ * return nothing for the other half. Bounded, deterministic, and fail-safe: a
+ * graph with no scored outcomes yields an empty list rather than a claim.
+ */
+export function findOutcomeTrails(
+  graph: KnowledgeGraph,
+  opts: { verdicts?: readonly OutcomeVerdict[]; maxHops?: number } = {},
+): OutcomeTrail[] {
+  const wanted = new Set<OutcomeVerdict>(opts.verdicts ?? ["missed"]);
+  const maxHops = Math.max(1, opts.maxHops ?? DEFAULT_TRAIL_HOPS);
+  const nodes = graph?.nodes ?? [];
+  const edges = graph?.edges ?? [];
+  if (nodes.length === 0) return [];
+
+  const byKey = new Map(nodes.map((n) => [n.key, n]));
+  const adj = new Map<string, Set<string>>();
+  const directPairs = new Set<string>();
+  const join = (a: string, b: string) => {
+    const s = adj.get(a) ?? new Set<string>();
+    s.add(b);
+    adj.set(a, s);
+  };
+  for (const e of edges) {
+    if (e.retired) continue; // a reversed link is history, never a live trail
+    join(e.source, e.target);
+    join(e.target, e.source);
+    directPairs.add(`${e.source}|${e.target}`);
+    directPairs.add(`${e.target}|${e.source}`);
+  }
+
+  const trails: OutcomeTrail[] = [];
+  for (const outcome of nodes) {
+    if (outcome.kind !== OUTCOME_KIND) continue;
+    if (!outcome.outcome || !wanted.has(outcome.outcome)) continue;
+
+    const seen = new Map<string, number>([[outcome.key, 0]]);
+    let frontier = [outcome.key];
+    const found: OutcomeTrail["decisions"] = [];
+    for (let hop = 1; hop <= maxHops && frontier.length; hop++) {
+      const next: string[] = [];
+      for (const k of [...frontier].sort()) {
+        for (const nb of [...(adj.get(k) ?? [])].sort()) {
+          if (seen.has(nb)) continue;
+          seen.set(nb, hop);
+          next.push(nb);
+          const n = byKey.get(nb);
+          if (n?.kind === TRAIL_KIND) {
+            found.push({
+              key: nb,
+              title: n.title,
+              hops: hop,
+              direct: directPairs.has(`${outcome.key}|${nb}`),
+            });
+          }
+        }
+      }
+      frontier = next;
+    }
+
+    trails.push({
+      outcomeKey: outcome.key,
+      outcomeTitle: outcome.title,
+      verdict: outcome.outcome,
+      at: outcome.createdAt,
+      // Closest call first, then alphabetical, so the ordering is stable.
+      decisions: found.sort((a, b) => a.hops - b.hops || a.key.localeCompare(b.key)),
+    });
+  }
+
+  return trails.sort(
+    (a, b) => (b.at ?? "").localeCompare(a.at ?? "") || a.outcomeKey.localeCompare(b.outcomeKey),
+  );
 }
 
 /**
@@ -398,9 +922,9 @@ export function filterByTime(graph: KnowledgeGraph, asOf: string | null): Knowle
   const nodeKeys = new Set(nodes.map((n) => n.key));
   const finalEdges = edges
     .filter((e) => nodeKeys.has(e.source) && nodeKeys.has(e.target))
-    // Bi-temporal honesty: a supersession assertion reversed AFTER `asOf` was still
+    // Bi-temporal honesty: a revision assertion reversed AFTER `asOf` was still
     // current as of that instant, so it reads retired only once `validTo <= asOf`.
-    .map((e) => (e.superseding && e.validTo ? { ...e, retired: e.validTo <= asOf } : e));
+    .map((e) => (e.revises && e.validTo ? { ...e, retired: e.validTo <= asOf } : e));
 
   return {
     ...graph,
@@ -494,16 +1018,19 @@ export type ContradictionDriftResult = {
 export function computeContradictionDrift(graph: KnowledgeGraph): ContradictionDriftResult {
   const driftedKeys = new Set<string>();
 
-  // A node is "drifted" when the newest edge pointing TO it (target) is a
-  // current supersession. That edge's relation is supersedes/contradicts, and
-  // it is NOT retired (still in effect).
+  // A node is "drifted" when a CURRENT revision edge names it as the belief that
+  // stopped being current.
+  //
+  // THIS USED TO READ `e.target` UNCONDITIONALLY, and that was wrong for half the
+  // data. It is only the target under the active-voice spellings the engine
+  // writes; under `superseded_by`, `contradicted_by` and `killed_by` (35 live
+  // rows against the active spellings' 16) the parent is the revised belief, and
+  // those rows were not reaching this loop at all. `revisedEndpoint` reads the
+  // direction off the edge instead of assuming it.
   for (const e of graph.edges) {
-    // Only superseding relations (relation field is already classified).
-    if (!isSuperseding(e.relation)) continue;
-    // Only current revisions (not retired = the assertion is still true).
-    if (e.retired) continue;
-    // The TARGET node is the one whose belief was revised.
-    driftedKeys.add(e.target);
+    if (e.retired) continue; // a reversed revision is history, not a current claim
+    const revised = revisedEndpoint(e);
+    if (revised) driftedKeys.add(revised);
   }
 
   return {
@@ -528,7 +1055,7 @@ export function computeContradictionDrift(graph: KnowledgeGraph): ContradictionD
 
 /** How a supersession edge reads relative to the SELECTED node. */
 export type SupersessionDirection =
-  "superseded-by" | "contradicted-by" | "supersedes" | "contradicts";
+  "superseded-by" | "contradicted-by" | "killed-by" | "supersedes" | "contradicts" | "kills";
 
 // Plain words on every user-facing chip (Loom W3, quality register: no
 // "superseded/supersession" jargon in the UI; the relation values themselves
@@ -536,8 +1063,26 @@ export type SupersessionDirection =
 const SUPERSESSION_LABEL: Record<SupersessionDirection, string> = {
   "superseded-by": "Replaced by",
   "contradicted-by": "Contradicted by",
+  "killed-by": "Killed by",
   supersedes: "Replaces",
   contradicts: "Contradicts",
+  kills: "Killed",
+};
+
+/**
+ * Per revision family: how it reads when the SELECTED node is the one doing the
+ * revising, and how it reads when the selected node is the one being revised.
+ * Which of the two applies is computed from the stored edge's direction, never
+ * from the spelling, so `supersedes` and `superseded_by` produce the same
+ * sentence about the same pair of artifacts.
+ */
+const REVISION_VOICE: Record<
+  string,
+  { active: SupersessionDirection; passive: SupersessionDirection }
+> = {
+  supersedes: { active: "supersedes", passive: "superseded-by" },
+  contradicts: { active: "contradicts", passive: "contradicted-by" },
+  kills: { active: "kills", passive: "killed-by" },
 };
 
 /** A single supersession relationship, phrased from the selected node's point of view. */
@@ -583,10 +1128,23 @@ export type LineageRowLike = {
   valid_to?: string | null;
 };
 
-/** PURE. True for the two relations the supersession engine writes. */
+/**
+ * PURE. True for any relation that says a belief stopped being current.
+ *
+ * WIDENED 2026-08-02, and the widening is the point. It used to match only the
+ * two active-voice spellings, so `superseded_by` (21 live rows, more than
+ * `supersedes` has), `contradicted_by` and `killed_by` were read as ordinary
+ * lineage: they showed up in "What it came from" as a bare relation word and
+ * never once in "What this replaced". A workspace whose thinking had visibly
+ * changed thirty-five times displayed sixteen of them.
+ *
+ * This is the same question `revisesBelief` answers, kept as its own exported
+ * name because `GraphNodeStory` uses it as the FILTER that stops a revision
+ * appearing twice, and that pairing has to move in lockstep with
+ * `buildSupersessionStory` below or a row renders in both lists at once.
+ */
 export function isSupersessionRelation(raw: string | null | undefined): boolean {
-  const r = (raw ?? "").trim().toLowerCase();
-  return r === "supersedes" || r === "contradicts";
+  return revisesBelief(raw);
 }
 
 /**
@@ -612,16 +1170,18 @@ export function buildSupersessionStory(
   const links: SupersessionLink[] = [];
   const seen = new Set<string>();
 
-  const collect = (
-    rows: LineageRowLike[] | null | undefined,
-    peerSide: "parent" | "child",
-    byRelation: Partial<Record<string, SupersessionDirection>>,
-  ) => {
+  const collect = (rows: LineageRowLike[] | null | undefined, peerSide: "parent" | "child") => {
     for (const r of Array.isArray(rows) ? rows : []) {
       if (!r || typeof r.id !== "string" || seen.has(r.id)) continue;
-      const rel = (r.relation ?? "").trim().toLowerCase();
-      const direction = byRelation[rel];
-      if (!direction) continue;
+      const { family, inverted } = canonicalRelation(r.relation);
+      const voice = REVISION_VOICE[family];
+      if (!voice) continue;
+      // The stored edge always runs parent -> child. The ACTOR is the parent
+      // unless the spelling inverted it. `peerSide` names where the PEER sits, so
+      // the selected node sits on the other one.
+      const selfIsParent = peerSide === "child";
+      const actorIsParent = !inverted;
+      const direction = selfIsParent === actorIsParent ? voice.active : voice.passive;
       seen.add(r.id);
       const peerKind = (peerSide === "parent" ? r.parent_kind : r.child_kind) ?? "";
       const peerId = (peerSide === "parent" ? r.parent_id : r.child_id) ?? "";
@@ -633,19 +1193,27 @@ export function buildSupersessionStory(
         peerTitle: (r.peer_title ?? "").trim(),
         peerKind,
         peerId,
-        retiresSelf: direction === "superseded-by" || direction === "contradicted-by",
+        retiresSelf: direction.endsWith("-by"),
         retired: retiredAt !== null,
         retiredAt,
       });
     }
   };
 
-  // Self-revised first (ancestors), then this node's own assertions (descendants).
-  collect(ancestors, "parent", { supersedes: "superseded-by", contradicts: "contradicted-by" });
-  collect(descendants, "child", { supersedes: "supersedes", contradicts: "contradicts" });
+  collect(ancestors, "parent");
+  collect(descendants, "child");
 
-  // Current links before retired ones (insertion order preserved within each group).
-  const ordered = [...links.filter((l) => !l.retired), ...links.filter((l) => l.retired)];
+  // Current links before retired ones, and within each group the links that
+  // revise the SELECTED node's own belief first, because that is the sentence the
+  // reader came for. "Self-revised first" used to be a side effect of walking the
+  // ancestors first, which held only while the vocabulary was active-voice: an
+  // ancestor carrying `superseded_by` means the selected node did the replacing,
+  // not that it was replaced, so the position no longer implies the direction.
+  const rank = (l: SupersessionLink) => (l.retired ? 2 : 0) + (l.retiresSelf ? 0 : 1);
+  const ordered = links
+    .map((l, i) => ({ l, i }))
+    .sort((a, b) => rank(a.l) - rank(b.l) || a.i - b.i)
+    .map(({ l }) => l);
 
   // "Revised" reflects the node's belief RIGHT NOW: a self-retiring link that has
   // itself been reversed (retired) no longer means the belief is currently revised.

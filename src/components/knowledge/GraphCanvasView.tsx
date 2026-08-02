@@ -28,6 +28,20 @@
  *   KILLED the "showing the N closest nodes" wording, which read as a claim
  *     about the workspace. It says the view is bounded, which is what is true.
  *
+ * The knowledge pass, 2026-08-02. What arrived, and why:
+ *   ADDED the THREAD legend. The dots said what a node is; nothing said what a
+ *     line means, so the canvas carried a vocabulary with no way to learn it.
+ *     Grouped into the four things a link can claim rather than listed per
+ *     relation, and counted by MEANING, so `derived_from` and `derived-from` are
+ *     one entry rather than two halves of the same fact.
+ *   ADDED the WHY into the story panel, by handing it the edges this component
+ *     is already holding. `rationale` and `created_by_agent` were on every row
+ *     and had never reached a pixel.
+ *   MOVED the two new reading regions OUT, to GraphRecordRegions, mounted by
+ *     GraphPanel beside both views. Reduced motion makes the outline the
+ *     default, so anything living in here is invisible to the reader most likely
+ *     to want a text answer.
+ *
  * UNCHANGED: getKnowledgeGraph, the ["knowledge-graph", kind, id] key, the
  * time filter and replay stepping through real edge timestamps, the Escape
  * contract, the recentre navigation, and every count, all of which come from
@@ -43,16 +57,49 @@ import {
   computeStaleness,
   computeContradictionDrift,
   summarizeEdgeConfidence,
+  summarizeRelations,
   type GraphNodeKind,
 } from "@/lib/knowledge-graph-view";
 import { GraphForceCanvas } from "./GraphForceCanvas";
 import { GraphUniverseCanvas } from "./GraphUniverseCanvas";
 import { GraphNodeStory } from "./GraphNodeStory";
 import { GraphCompoundingStrip } from "./GraphCompoundingStrip";
-import { kindCssColor, kindLabel } from "./graph-visual";
+import {
+  RELATION_GROUP_DASH,
+  RELATION_GROUP_LABEL,
+  kindCssColor,
+  kindLabel,
+  relationGroup,
+  type RelationGroup,
+} from "./graph-visual";
 import { Block, Button, Empty, Failed, Loading, Num } from "@/components/shell/primitives";
 
 const REPLAY_STEP_MS = 650;
+
+/**
+ * A relation's stroke, drawn at the size of its own label.
+ *
+ * The node legend has always been a dot and a name. Threads had no legend at
+ * all, so the canvas carried a vocabulary nobody had been taught: a reader could
+ * see that some lines were dotted and had no way to learn that dotted means
+ * evidence. Same anatomy as the dot, one line of SVG instead.
+ */
+function StrokeSwatch({ group }: { group: RelationGroup }) {
+  const dash = RELATION_GROUP_DASH[group];
+  return (
+    <svg width="18" height="8" aria-hidden="true" style={{ flexShrink: 0, overflow: "visible" }}>
+      <line
+        x1="0"
+        y1="4"
+        x2="18"
+        y2="4"
+        stroke="currentColor"
+        strokeWidth={group === "revision" ? 1.8 : 1.1}
+        strokeDasharray={dash.length ? dash.join(" ") : undefined}
+      />
+    </svg>
+  );
+}
 
 const VIEWS: { id: "3D" | "2D"; label: string }[] = [
   { id: "3D", label: "Universe" },
@@ -100,6 +147,24 @@ export function GraphCanvasView({
     () => graph?.nodes.find((n) => n.key === storyKey) ?? null,
     [graph, storyKey],
   );
+
+  /** Node key to title, shared by the story panel and both new regions. */
+  const titleOf = useMemo(
+    () => new Map((graph?.nodes ?? []).map((n) => [n.key, n.title])),
+    [graph],
+  );
+
+  /** The links touching the open node, so the story can say WHY, not just what. */
+  const storyEdges = useMemo(
+    () =>
+      storyKey
+        ? (graph?.edges ?? []).filter((e) => e.source === storyKey || e.target === storyKey)
+        : [],
+    [graph, storyKey],
+  );
+
+  /** The thread vocabulary, counted by MEANING rather than by stored spelling. */
+  const relationTallies = useMemo(() => (graph ? summarizeRelations(graph.edges) : []), [graph]);
 
   const presentKinds = useMemo(() => {
     const set = new Set<string>();
@@ -364,6 +429,46 @@ export function GraphCanvasView({
         )}
       </div>
 
+      {/* THE THREAD LEGEND. The dots above say what a NODE is; this says what a
+          LINE means, and until now the canvas carried that vocabulary with no way
+          to learn it. Grouped by the four things a link can claim rather than
+          listed per relation, because thirteen dash patterns is a legend nobody
+          reads (graph-visual.ts records the reasoning). Counted by MEANING, so
+          `derived_from` and `derived-from` are one entry rather than two halves of
+          the same fact. */}
+      {relationTallies.length > 0 ? (
+        <div
+          className="flex flex-wrap items-center"
+          style={{
+            gap: "var(--sp-space-3)",
+            marginBottom: "var(--sp-space-3)",
+            color: "var(--sp-mute)",
+            fontSize: "var(--sp-text-meta)",
+          }}
+        >
+          {(["flow", "evidence", "outcome", "revision"] as RelationGroup[]).map((group) => {
+            const inGroup = relationTallies.filter((r) => relationGroup(r.family) === group);
+            if (inGroup.length === 0) return null;
+            const total = inGroup.reduce((sum, r) => sum + r.count, 0);
+            return (
+              <span
+                key={group}
+                className="flex items-center"
+                style={{ gap: 5 }}
+                title={`${RELATION_GROUP_LABEL[group]}: ${inGroup
+                  .map((r) => `${r.label} ${r.count}`)
+                  .join(", ")}`}
+              >
+                <StrokeSwatch group={group} />
+                <span>
+                  {RELATION_GROUP_LABEL[group]} <Num>{total}</Num>
+                </span>
+              </span>
+            );
+          })}
+        </div>
+      ) : null}
+
       {/* One region, one heading, rather than six paragraphs floating loose. */}
       {notices.length > 0 ? (
         <Block title="What to watch in this view">
@@ -409,7 +514,13 @@ export function GraphCanvasView({
             question about what is on screen must not take the screen away. */}
         {storyNode ? (
           <div style={{ width: 340, flexShrink: 0, minWidth: 280 }}>
-            <GraphNodeStory node={storyNode} onFocus={recenter} onClose={() => setStoryKey(null)} />
+            <GraphNodeStory
+              node={storyNode}
+              edges={storyEdges}
+              titleOf={titleOf}
+              onFocus={recenter}
+              onClose={() => setStoryKey(null)}
+            />
           </div>
         ) : null}
       </div>

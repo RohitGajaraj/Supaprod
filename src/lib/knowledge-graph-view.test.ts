@@ -11,9 +11,20 @@ import {
   isSupersessionRelation,
   pickLineageFocus,
   summarizeEdgeConfidence,
+  canonicalRelation,
+  relationLabel,
+  relationPhrase,
+  revisesBelief,
+  revisedEndpoint,
+  revisingEndpoint,
+  summarizeRelations,
+  buildBeliefChanges,
+  findOutcomeTrails,
+  isOutcomeVerdict,
   type RawLineageEdge,
   type GraphNodeKind,
   type LineageRowLike,
+  type OutcomeVerdict,
 } from "./knowledge-graph-view";
 
 const k = nodeKey;
@@ -31,6 +42,7 @@ function edge(
     child_id: c[1],
     relation: opts.relation ?? "promoted",
     rationale: opts.rationale ?? null,
+    created_by_agent: opts.created_by_agent,
     created_at: opts.created_at ?? "2026-06-01T00:00:00.000Z",
     valid_to: opts.valid_to,
     inference: opts.inference,
@@ -95,13 +107,13 @@ describe("edge confidence on the canvas (DBR-EDGE-CONF-READ)", () => {
           relation: "supersedes",
           inference: { confidence: 0.5, tier: "tentative" },
         }),
-        // retired (reversed) — must NOT count toward the current summary
+        // retired (reversed): must NOT count toward the current summary
         edge(["prd", "a"], ["prd", "c0"], {
           relation: "contradicts",
           valid_to: "2026-06-05T00:00:00.000Z",
           inference: { confidence: 0.95, tier: "strong" },
         }),
-        // a plain promoted edge — not superseding, never scored
+        // a plain promoted edge: not superseding, never scored
         edge(["signal", "s1"], ["prd", "a"], { relation: "promoted" }),
       ],
       titles,
@@ -660,5 +672,535 @@ describe("computeContradictionDrift", () => {
     const r = computeContradictionDrift(g);
     expect(r.driftedCount).toBe(0);
     expect(r.nodeCount).toBe(1); // just the focus
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// The duplicate-spelling ruling (2026-08-02). One meaning per family, whichever
+// of the sixteen live spellings the row happens to carry.
+// ───────────────────────────────────────────────────────────────────────────
+
+describe("canonicalRelation - the duplicate spellings", () => {
+  it("collapses derived_from and derived-from into ONE family", () => {
+    // The whole defect: 14 rows underscore, 12 rows hyphen, same relation, and
+    // GRAPH_RELATIONS declared only the hyphen so half fell through unnamed.
+    expect(canonicalRelation("derived_from")).toEqual(canonicalRelation("derived-from"));
+    expect(canonicalRelation("derived_from").family).toBe("derived-from");
+  });
+
+  it("collapses promoted and promotes, and neither is inverted", () => {
+    expect(canonicalRelation("promotes")).toEqual({ family: "promoted", inverted: false });
+    expect(canonicalRelation("promoted")).toEqual({ family: "promoted", inverted: false });
+  });
+
+  it("reads the inverse spellings as the same family, flagged inverted", () => {
+    expect(canonicalRelation("validates")).toEqual({ family: "validates", inverted: false });
+    expect(canonicalRelation("validated_by")).toEqual({ family: "validates", inverted: true });
+    expect(canonicalRelation("superseded_by")).toEqual({ family: "supersedes", inverted: true });
+    expect(canonicalRelation("contradicted_by")).toEqual({ family: "contradicts", inverted: true });
+    expect(canonicalRelation("killed_by")).toEqual({ family: "kills", inverted: true });
+    expect(canonicalRelation("measured_by")).toEqual({ family: "measures", inverted: true });
+  });
+
+  it("keeps informed_by NOT inverted, against the generic rule, per the seed", () => {
+    // Every `informed_by` row runs source -> target as earlier -> later
+    // (learning -> decision, "outcomes feed the next call"), so the PARENT does
+    // the informing. Guessing from the suffix would reverse forty-nine edges.
+    expect(canonicalRelation("informed_by")).toEqual({ family: "informs", inverted: false });
+  });
+
+  it("falls back on the generic -by rule for a spelling it has never seen", () => {
+    expect(canonicalRelation("blessed_by")).toEqual({ family: "blessed", inverted: true });
+    expect(canonicalRelation("whatever")).toEqual({ family: "whatever", inverted: false });
+  });
+
+  it("is case and whitespace insensitive, and empty reads as promoted", () => {
+    expect(canonicalRelation("  Superseded_By ")).toEqual({
+      family: "supersedes",
+      inverted: true,
+    });
+    expect(canonicalRelation("")).toEqual({ family: "promoted", inverted: false });
+    expect(canonicalRelation(null)).toEqual({ family: "promoted", inverted: false });
+  });
+
+  it("never returns a raw column value as a user-facing label", () => {
+    expect(relationLabel("supersedes")).toBe("Replaced");
+    expect(relationLabel("derived-from")).toBe("Derived");
+    // Even an undeclared family gets words rather than a slug.
+    expect(relationLabel("blessed")).toBe("Blessed");
+    expect(relationLabel("")).toBe("Linked");
+  });
+});
+
+describe("relationPhrase - the same pair of artifacts, either spelling", () => {
+  it("reads validates from both ends", () => {
+    expect(relationPhrase("validates", false, "source")).toBe("validated");
+    expect(relationPhrase("validates", false, "target")).toBe("was validated by");
+  });
+
+  it("swaps the voice when the stored spelling is the inverse one", () => {
+    // decision --validated_by--> learning: the DECISION was validated by the
+    // learning, and the learning validated the decision. Same row, both true.
+    expect(relationPhrase("validates", true, "source")).toBe("was validated by");
+    expect(relationPhrase("validates", true, "target")).toBe("validated");
+  });
+
+  it("produces the SAME sentence for supersedes and superseded_by", () => {
+    // `supersedes` stores new -> old; `superseded_by` stores old -> new. The
+    // older belief must read "was replaced by" in both.
+    expect(relationPhrase("supersedes", false, "target")).toBe("was replaced by");
+    expect(relationPhrase("supersedes", true, "source")).toBe("was replaced by");
+  });
+
+  it("stays honest about an unknown family instead of inventing a verb", () => {
+    expect(relationPhrase("blessed", false, "source")).toBe("links to");
+    expect(relationPhrase("blessed", false, "target")).toBe("is linked from");
+  });
+});
+
+describe("revisesBelief and revisedEndpoint - which end actually ended", () => {
+  it("counts every revision spelling, not just the two the engine writes", () => {
+    expect(revisesBelief("supersedes")).toBe(true);
+    expect(revisesBelief("superseded_by")).toBe(true);
+    expect(revisesBelief("contradicted_by")).toBe(true);
+    expect(revisesBelief("killed_by")).toBe(true);
+    expect(revisesBelief("promoted")).toBe(false);
+    expect(revisesBelief("validates")).toBe(false);
+  });
+
+  it("names the CHILD as the revised belief under the active spelling", () => {
+    const g = projectGraph(
+      [edge(["decision", "new"], ["decision", "old"], { relation: "supersedes" })],
+      new Map(),
+      k("decision", "old"),
+    );
+    const e = g.edges[0];
+    expect(e.family).toBe("supersedes");
+    expect(e.inverted).toBe(false);
+    expect(e.revises).toBe(true);
+    expect(revisedEndpoint(e)).toBe(k("decision", "old"));
+    expect(revisingEndpoint(e)).toBe(k("decision", "new"));
+  });
+
+  it("names the PARENT as the revised belief under superseded_by", () => {
+    // The bug this pass fixes: the old code took `e.target` unconditionally, so
+    // 21 live rows pointed at the belief that did the replacing.
+    const g = projectGraph(
+      [edge(["decision", "old"], ["decision", "new"], { relation: "superseded_by" })],
+      new Map(),
+      k("decision", "old"),
+    );
+    const e = g.edges[0];
+    expect(e.inverted).toBe(true);
+    expect(revisedEndpoint(e)).toBe(k("decision", "old"));
+    expect(revisingEndpoint(e)).toBe(k("decision", "new"));
+  });
+
+  it("returns null on a relation that asserts nothing about currency", () => {
+    const g = projectGraph(
+      [edge(["signal", "s1"], ["theme", "t1"], { relation: "promoted" })],
+      new Map(),
+      k("theme", "t1"),
+    );
+    expect(revisedEndpoint(g.edges[0])).toBeNull();
+    expect(revisingEndpoint(g.edges[0])).toBeNull();
+  });
+});
+
+describe("computeContradictionDrift - reads the direction off the row", () => {
+  it("flags the parent when the stored spelling is superseded_by", () => {
+    const edges = [
+      edge(["opportunity", "killed"], ["decision", "d1"], { relation: "killed_by" }),
+      edge(["decision", "old"], ["decision", "new"], { relation: "superseded_by" }),
+    ];
+    const g = projectGraph(edges, new Map(), k("decision", "d1"), { maxNodes: 80, maxDepth: 8 });
+    const r = computeContradictionDrift(g);
+    expect(r.driftedKeys.has(k("opportunity", "killed"))).toBe(true);
+    // `new` did the replacing, so it must NOT be marked as the revised belief.
+    expect(r.driftedKeys.has(k("decision", "new"))).toBe(false);
+  });
+
+  it("still ignores a revision that was itself reversed", () => {
+    const edges = [
+      edge(["decision", "old"], ["decision", "new"], {
+        relation: "superseded_by",
+        valid_to: "2026-06-18T00:00:00.000Z",
+      }),
+    ];
+    const g = projectGraph(edges, new Map(), k("decision", "old"));
+    expect(g.edges[0].retired).toBe(true); // valid_to is honoured on the inverse spelling too
+    expect(computeContradictionDrift(g).driftedCount).toBe(0);
+  });
+});
+
+describe("projectGraph - the author of every link", () => {
+  it("carries created_by_agent through, trimmed, and null when blank", () => {
+    const g = projectGraph(
+      [
+        edge(["decision", "d1"], ["learning", "l1"], {
+          id: "with",
+          relation: "validated_by",
+          created_by_agent: "  data-analyst ",
+          rationale: "Completed checkouts went from 59 to 78 percent.",
+        }),
+        edge(["decision", "d1"], ["prd", "p1"], { id: "without", created_by_agent: "   " }),
+      ],
+      new Map(),
+      k("decision", "d1"),
+    );
+    const withAgent = g.edges.find((e) => e.id === "with")!;
+    const without = g.edges.find((e) => e.id === "without")!;
+    expect(withAgent.createdByAgent).toBe("data-analyst");
+    expect(withAgent.rationale).toBe("Completed checkouts went from 59 to 78 percent.");
+    expect(without.createdByAgent).toBeNull();
+  });
+});
+
+describe("summarizeRelations - counted by meaning, not by spelling", () => {
+  it("merges the two derived spellings into one legend line", () => {
+    const edges = [
+      edge(["theme", "t1"], ["opportunity", "o1"], { id: "a", relation: "derived_from" }),
+      edge(["theme", "t1"], ["opportunity", "o2"], { id: "b", relation: "derived-from" }),
+      edge(["theme", "t1"], ["opportunity", "o3"], { id: "c", relation: "promoted" }),
+    ];
+    const g = projectGraph(edges, new Map(), k("theme", "t1"));
+    const tally = summarizeRelations(g.edges);
+    const derived = tally.find((t) => t.family === "derived-from")!;
+    expect(derived.count).toBe(2);
+    expect(derived.label).toBe("Derived");
+    expect(tally.map((t) => t.family)).toEqual(["derived-from", "promoted"]);
+  });
+
+  it("is deterministic: commonest first, then alphabetical", () => {
+    const edges = [
+      edge(["prd", "p"], ["task", "t1"], { id: "1", relation: "cites" }),
+      edge(["prd", "p"], ["task", "t2"], { id: "2", relation: "promoted" }),
+      edge(["prd", "p"], ["task", "t3"], { id: "3", relation: "promoted" }),
+    ];
+    const g = projectGraph(edges, new Map(), k("prd", "p"));
+    expect(summarizeRelations(g.edges).map((t) => [t.family, t.count])).toEqual([
+      ["promoted", 2],
+      ["cites", 1],
+    ]);
+  });
+
+  it("is fail-safe on empty and malformed input", () => {
+    expect(summarizeRelations([])).toEqual([]);
+    // @ts-expect-error deliberately malformed
+    expect(summarizeRelations(null)).toEqual([]);
+  });
+});
+
+describe("buildBeliefChanges - the time axis of the thinking", () => {
+  const titles = new Map([
+    [k("decision", "old"), "Throttle push volume"],
+    [k("decision", "new"), "Group the alerts"],
+    [k("decision", "older"), "Send every alert"],
+  ]);
+
+  it("renders each revision as a dated sentence with its reason and author", () => {
+    const g = projectGraph(
+      [
+        edge(["decision", "old"], ["decision", "new"], {
+          id: "e1",
+          relation: "superseded_by",
+          rationale: "The grouped digest ruling replaced it.",
+          created_by_agent: "strategist",
+          created_at: "2026-06-10T00:00:00.000Z",
+          inference: { confidence: 0.9, tier: "strong" },
+        }),
+      ],
+      titles,
+      k("decision", "old"),
+    );
+    const [c] = buildBeliefChanges(g);
+    expect(c.label).toBe("Replaced");
+    expect(c.revisedTitle).toBe("Throttle push volume");
+    expect(c.revisedByTitle).toBe("Group the alerts");
+    expect(c.rationale).toBe("The grouped digest ruling replaced it.");
+    expect(c.agent).toBe("strategist");
+    expect(c.confidenceTier).toBe("strong");
+    expect(c.retired).toBe(false);
+  });
+
+  it("keeps a reversed revision as history and stamps when it was reversed", () => {
+    const g = projectGraph(
+      [
+        edge(["decision", "old"], ["decision", "new"], {
+          id: "e1",
+          relation: "superseded_by",
+          valid_to: "2026-06-20T00:00:00.000Z",
+        }),
+      ],
+      titles,
+      k("decision", "old"),
+    );
+    const [c] = buildBeliefChanges(g);
+    expect(c.retired).toBe(true);
+    expect(c.retiredAt).toBe("2026-06-20T00:00:00.000Z");
+  });
+
+  it("orders newest first and ignores links that revise nothing", () => {
+    const g = projectGraph(
+      [
+        edge(["decision", "old"], ["decision", "new"], {
+          id: "recent",
+          relation: "superseded_by",
+          created_at: "2026-06-10T00:00:00.000Z",
+        }),
+        edge(["decision", "older"], ["decision", "old"], {
+          id: "ancient",
+          relation: "superseded_by",
+          created_at: "2026-01-10T00:00:00.000Z",
+        }),
+        edge(["decision", "old"], ["decision", "older"], {
+          id: "plain",
+          relation: "cites",
+          created_at: "2026-07-01T00:00:00.000Z",
+        }),
+      ],
+      titles,
+      k("decision", "old"),
+    );
+    expect(buildBeliefChanges(g).map((c) => c.id)).toEqual(["recent", "ancient"]);
+  });
+
+  it("never throws on an empty graph", () => {
+    const g = projectGraph([], new Map(), k("decision", "d1"));
+    expect(buildBeliefChanges(g)).toEqual([]);
+  });
+});
+
+describe("outcomes - the recorded verdict as a first-class fact", () => {
+  it("isOutcomeVerdict accepts only the three words the column holds", () => {
+    expect(isOutcomeVerdict("validated")).toBe(true);
+    expect(isOutcomeVerdict("missed")).toBe(true);
+    expect(isOutcomeVerdict("mixed")).toBe(true);
+    expect(isOutcomeVerdict("shipped")).toBe(false);
+    expect(isOutcomeVerdict(null)).toBe(false);
+    expect(isOutcomeVerdict(1)).toBe(false);
+  });
+
+  it("hydrates a verdict onto the learning node and NEVER guesses one", () => {
+    const outcomes = new Map<string, OutcomeVerdict>([[k("learning", "l1"), "missed"]]);
+    const g = projectGraph(
+      [
+        edge(["decision", "d1"], ["learning", "l1"], { id: "a", relation: "contradicted_by" }),
+        edge(["decision", "d1"], ["learning", "l2"], { id: "b", relation: "validated_by" }),
+      ],
+      new Map(),
+      k("decision", "d1"),
+      undefined,
+      outcomes,
+    );
+    const byKey = (key: string) => g.nodes.find((n) => n.key === key)!;
+    expect(byKey(k("learning", "l1")).outcome).toBe("missed");
+    // Unread verdict stays null. An unknown outcome must never render as a win.
+    expect(byKey(k("learning", "l2")).outcome).toBeNull();
+    expect(byKey(k("decision", "d1")).outcome).toBeNull();
+  });
+
+  it("leaves every outcome null when the caller did not look", () => {
+    const g = projectGraph(
+      [edge(["decision", "d1"], ["learning", "l1"], { relation: "validated_by" })],
+      new Map(),
+      k("decision", "d1"),
+    );
+    expect(g.nodes.every((n) => n.outcome === null)).toBe(true);
+  });
+});
+
+describe("findOutcomeTrails - every decision that led to a missed outcome", () => {
+  const titles = new Map([
+    [k("decision", "d1"), "Remove the second address step"],
+    [k("decision", "d2"), "Ship the digest first"],
+    [k("learning", "miss"), "Tablets moved 4 points against 21 on phones"],
+    [k("learning", "win"), "Completed checkouts went 59 to 78"],
+    [k("deployment", "dep"), "Release 4.2"],
+  ]);
+
+  const outcomes = new Map<string, OutcomeVerdict>([
+    [k("learning", "miss"), "missed"],
+    [k("learning", "win"), "validated"],
+  ]);
+
+  const build = () =>
+    projectGraph(
+      [
+        // The miss names d1 directly, in the inverse spelling the seed writes.
+        edge(["decision", "d1"], ["learning", "miss"], {
+          id: "contra",
+          relation: "contradicted_by",
+          created_at: "2026-06-10T00:00:00.000Z",
+        }),
+        // d2 is two hops away, through the deployment that was measured.
+        edge(["deployment", "dep"], ["learning", "miss"], {
+          id: "measured",
+          relation: "measured_by",
+          created_at: "2026-06-10T00:00:00.000Z",
+        }),
+        edge(["decision", "d2"], ["deployment", "dep"], {
+          id: "shipped",
+          relation: "promoted",
+          created_at: "2026-06-01T00:00:00.000Z",
+        }),
+        edge(["decision", "d1"], ["learning", "win"], {
+          id: "valid",
+          relation: "validated_by",
+          created_at: "2026-06-09T00:00:00.000Z",
+        }),
+      ],
+      titles,
+      k("learning", "miss"),
+      undefined,
+      outcomes,
+    );
+
+  it("returns only the asked-for verdict, and defaults to the miss", () => {
+    const trails = findOutcomeTrails(build());
+    expect(trails).toHaveLength(1);
+    expect(trails[0].outcomeKey).toBe(k("learning", "miss"));
+    expect(trails[0].verdict).toBe("missed");
+  });
+
+  it("names the calls behind it, closest first, marking the direct one", () => {
+    const [trail] = findOutcomeTrails(build());
+    expect(trail.decisions.map((d) => d.key)).toEqual([k("decision", "d1"), k("decision", "d2")]);
+    expect(trail.decisions[0]).toMatchObject({ hops: 1, direct: true });
+    expect(trail.decisions[1]).toMatchObject({ hops: 2, direct: false });
+  });
+
+  it("walks UNDIRECTED, so it answers for both writers' edge directions", () => {
+    // `decision --contradicted_by--> learning` and `learning --informed_by-->
+    // decision` point opposite ways for the same question. A downstream-only
+    // walk would answer for one and silently return nothing for the other.
+    const g = projectGraph(
+      [
+        edge(["learning", "miss"], ["decision", "d1"], {
+          id: "informed",
+          relation: "informed_by",
+        }),
+      ],
+      titles,
+      k("learning", "miss"),
+      undefined,
+      outcomes,
+    );
+    expect(findOutcomeTrails(g)[0].decisions.map((d) => d.key)).toEqual([k("decision", "d1")]);
+  });
+
+  it("honours the verdict filter and the hop bound", () => {
+    const g = build();
+    expect(findOutcomeTrails(g, { verdicts: ["validated"] })).toHaveLength(1);
+    expect(findOutcomeTrails(g, { verdicts: ["validated"] })[0].outcomeKey).toBe(
+      k("learning", "win"),
+    );
+    // One hop only: d2 is two away and drops out, d1 stays.
+    const near = findOutcomeTrails(g, { maxHops: 1 });
+    expect(near[0].decisions.map((d) => d.key)).toEqual([k("decision", "d1")]);
+  });
+
+  it("returns an outcome with no calls behind it rather than hiding it", () => {
+    const g = projectGraph(
+      [edge(["deployment", "dep"], ["learning", "miss"], { relation: "measured_by" })],
+      titles,
+      k("learning", "miss"),
+      undefined,
+      outcomes,
+    );
+    const [trail] = findOutcomeTrails(g);
+    expect(trail.decisions).toEqual([]);
+  });
+
+  it("skips a reversed link, and is fail-safe on an empty graph", () => {
+    const g = projectGraph(
+      [
+        edge(["decision", "d1"], ["learning", "miss"], {
+          relation: "contradicted_by",
+          valid_to: "2026-06-20T00:00:00.000Z",
+        }),
+      ],
+      titles,
+      k("learning", "miss"),
+      undefined,
+      outcomes,
+    );
+    expect(findOutcomeTrails(g)[0].decisions).toEqual([]);
+    expect(findOutcomeTrails(projectGraph([], new Map(), k("decision", "x")))).toEqual([]);
+  });
+
+  it("claims nothing when no verdict was read (never guesses a miss)", () => {
+    const g = projectGraph(
+      [edge(["decision", "d1"], ["learning", "miss"], { relation: "contradicted_by" })],
+      titles,
+      k("learning", "miss"),
+    );
+    expect(findOutcomeTrails(g)).toEqual([]);
+  });
+});
+
+describe("buildSupersessionStory - both spellings reach the panel", () => {
+  const row = (o: Partial<LineageRowLike> & { id: string }): LineageRowLike => ({
+    relation: "promoted",
+    peer_title: null,
+    parent_kind: null,
+    parent_id: null,
+    child_kind: null,
+    child_id: null,
+    ...o,
+  });
+
+  it("reads an ancestor superseded_by as THIS node doing the replacing", () => {
+    // parent --superseded_by--> self means the parent was replaced BY self.
+    const story = buildSupersessionStory(
+      [
+        row({
+          id: "e1",
+          relation: "superseded_by",
+          peer_title: "Throttle push volume",
+          parent_kind: "decision",
+          parent_id: "old",
+        }),
+      ],
+      [],
+    );
+    expect(story.links[0]).toMatchObject({ direction: "supersedes", label: "Replaces" });
+    expect(story.revised).toBe(false);
+  });
+
+  it("reads a descendant superseded_by as THIS node having been replaced", () => {
+    const story = buildSupersessionStory(
+      [],
+      [
+        row({
+          id: "e2",
+          relation: "superseded_by",
+          peer_title: "Group the alerts",
+          child_kind: "decision",
+          child_id: "new",
+        }),
+      ],
+    );
+    expect(story.links[0]).toMatchObject({ direction: "superseded-by", label: "Replaced by" });
+    expect(story.revised).toBe(true);
+  });
+
+  it("carries killed_by, which had no reading at all before", () => {
+    const story = buildSupersessionStory(
+      [],
+      [row({ id: "k", relation: "killed_by", child_kind: "decision", child_id: "d" })],
+    );
+    expect(story.links[0]).toMatchObject({ direction: "killed-by", label: "Killed by" });
+    expect(story.revised).toBe(true);
+  });
+
+  it("isSupersessionRelation now filters every revision spelling", () => {
+    // It must move in lockstep with buildSupersessionStory or a revision renders
+    // in the came-from list AND in its own section at the same time.
+    expect(isSupersessionRelation("superseded_by")).toBe(true);
+    expect(isSupersessionRelation("contradicted_by")).toBe(true);
+    expect(isSupersessionRelation("killed_by")).toBe(true);
+    expect(isSupersessionRelation("promoted")).toBe(false);
+    expect(isSupersessionRelation("validated_by")).toBe(false);
   });
 });

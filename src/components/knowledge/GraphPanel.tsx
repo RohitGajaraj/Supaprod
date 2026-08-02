@@ -14,6 +14,7 @@
 import { useEffect, useState } from "react";
 import { GraphCanvasView } from "./GraphCanvasView";
 import { GraphTreeView } from "./GraphTreeView";
+import { GraphRecordRegions } from "./GraphRecordRegions";
 import { usePrefersReducedMotion } from "./graph-visual";
 
 type GraphView = "graph" | "list";
@@ -73,6 +74,13 @@ export function GraphPanel({ focusKind, focusId }: { focusKind?: string; focusId
       ) : (
         <GraphTreeView focusKind={focusKind} focusId={focusId} />
       )}
+      {/* WHAT THE MAP SAYS, in sentences, under BOTH views.
+          Reduced motion makes the outline the default above, which is exactly
+          why these two regions sit out here rather than inside the canvas: the
+          reader most likely to want a text answer is the one who would never
+          have seen them. Same query key as the canvas, so it costs no second
+          request, and every row leads to an address that already existed. */}
+      <GraphRecordRegions focusKind={focusKind} focusId={focusId} />
     </div>
   );
 }
