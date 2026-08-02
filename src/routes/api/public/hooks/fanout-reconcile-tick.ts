@@ -9,6 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { withJobRun } from "@/lib/observability";
 
 const db = supabaseAdmin as unknown as SupabaseClient;
 const TERMINAL_RUN_STATUSES = ["complete", "completed", "completed_with_failures", "failed"];
@@ -51,6 +52,13 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
         const unauth = await requireHookCaller(request);
         if (unauth) return unauth;
 
+        // Wrapped 2026-08-02. This was the ONLY scheduled hook in the product not
+        // inside withJobRun, so it wrote no job_runs row, which made it the one
+        // job the cron watchdog could not see. It runs every two minutes: had it
+        // died, nothing anywhere would ever have said so, and the health page
+        // would have gone on reporting that every scheduled job was running.
+        // Found by the feature-liveness audit, which is the point of that audit.
+        return withJobRun("fanout.reconcile-tick", async () => {
         const now = new Date();
         const staleCutoff = new Date(
           now.getTime() - BATCH_STALE_HOURS * 60 * 60 * 1000,
@@ -139,6 +147,7 @@ export const Route = createFileRoute("/api/public/hooks/fanout-reconcile-tick")(
         }
 
         return json({ ok: true, reconciled });
+        });
       },
     },
   },

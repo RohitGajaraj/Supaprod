@@ -43,10 +43,12 @@ const DAY = 24 * HOUR;
  *                        Listing it would show it permanently late, which is
  *                        true and useless. It is a feature that has never run;
  *                        the liveness registry is the right place for that.
- *   fanout-reconcile-tick  registered in pg_cron every 2 minutes and NOT wrapped
- *                        in withJobRun, so it writes no job_runs row and this
- *                        watchdog structurally cannot see it. Wrapping it is a
- *                        one-line change in a route this lane must not touch.
+ *   fanout-reconcile-tick  WAS the exception and is no longer. It was registered
+ *                        in pg_cron every 2 minutes and not wrapped in
+ *                        withJobRun, so it wrote no job_runs row and this
+ *                        watchdog structurally could not see it. Wrapped on
+ *                        2026-08-02 and listed below, so the manifest now covers
+ *                        every scheduled job that reports.
  */
 export const EXPECTED_JOBS: ExpectedJob[] = [
   { job: "cron.resume-runs", supaprod: "every minute", staleAfterMs: 10 * 60_000 },
@@ -54,6 +56,7 @@ export const EXPECTED_JOBS: ExpectedJob[] = [
   { job: "cron.approvals-tick", supaprod: "every minute", staleAfterMs: 15 * 60_000 },
   { job: "cron.event-reactor-tick", supaprod: "every minute", staleAfterMs: 15 * 60_000 },
   { job: "cron.ci-poll-tick", supaprod: "every 2 min", staleAfterMs: 15 * 60_000 },
+  { job: "fanout.reconcile-tick", supaprod: "every 2 min", staleAfterMs: 15 * 60_000 },
   { job: "ambient.sense-tick", supaprod: "every 5 min", staleAfterMs: 20 * 60_000 },
   { job: "cron.uptime-tick", supaprod: "every 5 min", staleAfterMs: 20 * 60_000 },
   { job: "cron.cluster-tick", supaprod: "every 10 min", staleAfterMs: 40 * 60_000 },
