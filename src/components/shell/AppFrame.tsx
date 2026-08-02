@@ -749,13 +749,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           {React.createElement(
             strip ? "div" : "button",
             strip
-              ? { className: "sp-live", "data-static": "true", "data-state": liveState }
+              ? { className: "sp-live", "data-static": "true" }
               : {
                   className: "sp-live",
                   type: "button",
                   onClick: liveTarget.go,
                   title: liveTarget.title,
-                  "data-state": liveState,
                 },
             <>
               {/* WHO, before how many. A fixed-height slot, so swapping the

@@ -241,12 +241,12 @@ describe("surface-discipline §5b: status colour beyond diffs", () => {
     expect(gate!).toContain("--sp-gate");
   });
 
-  test("the header live line wears ember in the gate state", () => {
-    // THE DEFECT: "3 calls need you" rendered in --sp-ink, the same weight as
-    // "Nothing running", so there was no visible urgency difference between
-    // idle and needing-your-attention.
+  test("the status dot already carries gate colour", () => {
+    // The dot wears ember in the gate state, which is enough urgency signal
+    // without colouring the headline text (founder ruling: no two shades of
+    // ember, the text stays ink).
     const css = stripCssComments(read("styles/shell.css"));
-    expect(css).toMatch(/\.sp-live\[data-state="gate"\].*\.sp-live-lead/s);
+    expect(css).toMatch(/\.sp-live-dot\[data-state="gate"\]/);
     expect(css).toContain("--sp-gate");
   });
 });
