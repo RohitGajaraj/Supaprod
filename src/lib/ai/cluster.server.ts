@@ -33,6 +33,37 @@ export function extractThemesJson(rawJson: unknown): ThemeCandidate[] | undefine
 }
 
 /**
+ * Determine if a theme should re-activate based on its current status and new
+ * frequency after signal attachment. Used by the theme-growth logic in
+ * clusterSignalsCore to decide whether to flip a dismissed theme back to "new"
+ * when it escalates.
+ *
+ * Re-activation is conservative: only dismissed/merged/archived themes (not
+ * "done", which is user-settled) get a chance, and only if the new frequency
+ * crosses a threshold (>= 5). This prevents stray signals from re-activating
+ * while allowing genuine escalation to resurface dismissed themes.
+ */
+export function shouldReactivateTheme(
+  currentStatus: string | null | undefined,
+  newFrequency: number
+): boolean {
+  const status = (currentStatus ?? "").toLowerCase();
+  const isDismissed = status === "dismissed" || status === "merged" || status === "archived";
+  return isDismissed && newFrequency >= 5;
+}
+
+/**
+ * Validate that a signal-to-theme match is strong enough to warrant attachment.
+ * Uses cosine similarity with a conservative threshold to avoid attaching
+ * semantically unrelated signals to themes.
+ */
+export function isValidThemeMatch(similarity: number): boolean {
+  // 0.7+ cosine similarity = roughly 45 degrees in vector space.
+  // Below this, the match is noise (even random vectors have non-zero similarity).
+  return similarity >= 0.7;
+}
+
+/**
  * Core signal-clustering logic, shared by the user-triggered `clusterSignals`
  * server fn (RLS-scoped, user session) and the `cluster-tick` cron hook
  * (service-role, RLS bypassed). Reads unclustered signals for ONE user, asks
@@ -46,6 +77,15 @@ export function extractThemesJson(rawJson: unknown): ThemeCandidate[] | undefine
  * `workspaceId` is passed through to `callModel` so the workspace kill-switch
  * and spend caps apply (the cron clusters on behalf of a workspace owner).
  * `projectId` scopes clustering to one product when set (F3 per-product).
+ *
+ * THEME GROWTH (2026-08-02): After creating new themes from clustered signals,
+ * this function now attaches remaining unclustered signals to existing themes
+ * using embedding-based semantic similarity (cosine distance via HNSW index).
+ * This enables (1) existing themes to grow beyond creation events, (2) dismissed
+ * themes to re-surface automatically when escalating signals arrive (the
+ * "conditional decline until it escalates" mechanism). A dismissed theme
+ * re-activates (status -> 'new') when its escalated frequency crosses a threshold
+ * (frequency >= 5), allowing re-promotion.
  */
 export async function clusterSignalsCore(
   supabase: SupabaseClient,
@@ -66,7 +106,7 @@ export async function clusterSignalsCore(
     .from("signals")
     // AMBIENT-SENSE: also read the deterministic tagger's output (tags + sentiment) so clustering
     // is informed by it. Before, the tagger wrote tags/sentiment that no consumer ever read.
-    .select("id,content,source,tags,sentiment")
+    .select("id,content,source,tags,sentiment,embedding")
     .eq("user_id", userId)
     .is("theme_id", null);
   // A manual "cluster now" scoped to one product must still pick up
@@ -140,6 +180,7 @@ Return STRICT JSON only, no prose, no markdown fences.`;
   const themes = themesArray.slice(0, 10);
 
   let created = 0;
+  const claimedSignalIds = new Set<string>();
   for (const t of themes) {
     const members = (t.members ?? []).filter(
       (n) => Number.isInteger(n) && n >= 0 && n < sigs.length,
@@ -225,10 +266,105 @@ Return STRICT JSON only, no prose, no markdown fences.`;
     }
     created++;
     themeIds.push(theme.id as string);
+    claimedIds.forEach((id) => claimedSignalIds.add(id));
   }
+
+  // THEME GROWTH: attach remaining unclustered signals to existing themes using
+  // semantic similarity. This enables (1) existing themes to grow, (2) dismissed
+  // themes to re-surface when escalating signals arrive. After new theme creation,
+  // filter the initial signal batch to exclude claimed ones and match remaining
+  // signals to existing themes by embedding cosine similarity.
+  const remaining = sigs.filter((s) => !claimedSignalIds.has((s as { id: string }).id));
+  let attached = 0;
+  for (const sig of remaining) {
+    // Backfill guard: if signal has no embedding, the signal-embedding sweeper will
+    // compute it later. Skip matching this pass; the next sweep will find it.
+    if (!(sig as { embedding?: unknown }).embedding) continue;
+
+    // Find similar existing themes using the HNSW index + match_themes RPC.
+    // Exclude the signal's existing theme (null) and get the best match only.
+    const { data: matches, error: matchErr } = await supabase.rpc("match_themes", {
+      query_embedding: (sig as { embedding: unknown }).embedding,
+      for_user: userId,
+      match_count: 1,
+    });
+
+    if (matchErr || !matches?.length) continue;
+    const bestMatch = matches[0];
+    if (!bestMatch) continue;
+
+    // Validate the match strength before attachment.
+    const similarity = bestMatch.similarity ?? 0;
+    if (!isValidThemeMatch(similarity)) continue;
+
+    // Attach the signal to the best-match existing theme atomically, only if still
+    // unclustered (another pass or manual operation might have claimed it).
+    const { data: attachedRows } = await supabase
+      .from("signals")
+      .update({ theme_id: bestMatch.id })
+      .eq("id", (sig as { id: string }).id)
+      .is("theme_id", null)
+      .select("id");
+
+    if (!attachedRows?.length) continue; // Lost the race; another pass claimed this signal
+
+    // Update the theme to reflect new member. Increment frequency and set last_signal_at.
+    // If the theme is dismissed, check if escalation should re-activate it.
+    const nowIso = new Date().toISOString();
+    const { data: theme } = await supabase
+      .from("themes")
+      .select("id,frequency,status")
+      .eq("id", bestMatch.id)
+      .maybeSingle();
+
+    if (theme) {
+      const newFrequency = ((theme as { frequency?: number | null }).frequency ?? 0) + 1;
+
+      // Update theme: frequency, last_signal_at, and optionally status (re-activation).
+      // shouldReactivateTheme() encodes the "conditional decline until it escalates"
+      // mechanism: dismissed themes re-activate only when they escalate past a threshold.
+      const { error: upErr } = await supabase
+        .from("themes")
+        .update({
+          frequency: newFrequency,
+          last_signal_at: nowIso,
+          ...(shouldReactivateTheme((theme as { status?: string | null }).status, newFrequency)
+            ? { status: "new" }
+            : {}),
+        })
+        .eq("id", bestMatch.id);
+
+      if (!upErr) {
+        // Attach the lineage edge so the signal's path through the theme is recorded.
+        try {
+          await supabase.from("artifact_lineage").upsert(
+            [
+              {
+                user_id: userId,
+                parent_kind: "signal" as const,
+                parent_id: (sig as { id: string }).id,
+                child_kind: "theme" as const,
+                child_id: bestMatch.id,
+                relation: "promoted",
+                rationale: `Matched to existing theme (similarity ${similarity.toFixed(2)})`,
+                created_by_agent: "discovery-scout",
+              },
+            ],
+            {
+              onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
+            }
+          );
+        } catch {
+          // Best-effort: attachment is already done; lineage miss is non-fatal
+        }
+        attached++;
+      }
+    }
+  }
+
   return {
     themes: created,
     theme_ids: themeIds,
-    message: `Created ${created} themes from ${sigs.length} signals.`,
+    message: `Created ${created} themes, attached ${attached} signals to existing themes from ${sigs.length} signals.`,
   };
 }

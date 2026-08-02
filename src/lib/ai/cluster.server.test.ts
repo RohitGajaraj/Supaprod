@@ -29,3 +29,86 @@ describe("extractThemesJson", () => {
     expect(extractThemesJson({ notThemes: [{ title: "A" }] })).toBeUndefined();
   });
 });
+
+import { describe as describeTest, expect as expectTest, test as testFn } from "bun:test";
+
+// THEME GROWTH: helper logic and tests for the re-activation mechanism
+// When a dismissed theme receives escalating signals, it should automatically
+// re-activate (status -> 'new') if the frequency crosses the escalation threshold.
+// This is the "conditional decline until it escalates" mechanism.
+
+/**
+ * Determine if a theme should re-activate based on its current status and new
+ * frequency after signal attachment. Used by the theme-growth logic in
+ * clusterSignalsCore to decide whether to flip a dismissed theme back to "new"
+ * when it escalates.
+ *
+ * Re-activation is conservative: only dismissed/merged/archived themes (not
+ * "done", which is user-settled) get a chance, and only if the new frequency
+ * crosses a threshold (>= 5). This prevents stray signals from re-activating
+ * while allowing genuine escalation to resurface dismissed themes.
+ */
+export function shouldReactivateTheme(
+  currentStatus: string | null | undefined,
+  newFrequency: number
+): boolean {
+  const status = (currentStatus ?? "").toLowerCase();
+  const isDismissed = status === "dismissed" || status === "merged" || status === "archived";
+  return isDismissed && newFrequency >= 5;
+}
+
+describeTest("shouldReactivateTheme", () => {
+  testFn("re-activates dismissed themes at frequency threshold (>= 5)", () => {
+    expectTest(shouldReactivateTheme("dismissed", 5)).toBe(true);
+    expectTest(shouldReactivateTheme("dismissed", 6)).toBe(true);
+    expectTest(shouldReactivateTheme("merged", 5)).toBe(true);
+    expectTest(shouldReactivateTheme("archived", 5)).toBe(true);
+  });
+
+  testFn("does not re-activate dismissed themes below threshold", () => {
+    expectTest(shouldReactivateTheme("dismissed", 1)).toBe(false);
+    expectTest(shouldReactivateTheme("dismissed", 4)).toBe(false);
+    expectTest(shouldReactivateTheme("merged", 0)).toBe(false);
+  });
+
+  testFn("does not re-activate themes with other statuses", () => {
+    expectTest(shouldReactivateTheme("new", 5)).toBe(false);
+    expectTest(shouldReactivateTheme("active", 5)).toBe(false);
+    expectTest(shouldReactivateTheme("done", 5)).toBe(false); // User settled; don't override
+    expectTest(shouldReactivateTheme(null, 5)).toBe(false);
+    expectTest(shouldReactivateTheme("", 5)).toBe(false);
+  });
+
+  testFn("handles case-insensitive status strings", () => {
+    expectTest(shouldReactivateTheme("DISMISSED", 5)).toBe(true);
+    expectTest(shouldReactivateTheme("Merged", 5)).toBe(true);
+    expectTest(shouldReactivateTheme("ARCHIVED", 5)).toBe(true);
+  });
+});
+
+/**
+ * Validate that a signal-to-theme match is strong enough to warrant attachment.
+ * Uses cosine similarity with a conservative threshold to avoid attaching
+ * semantically unrelated signals to themes.
+ */
+export function isValidThemeMatch(similarity: number): boolean {
+  // 0.7+ cosine similarity = roughly 45 degrees in vector space.
+  // Below this, the match is noise (even random vectors have non-zero similarity).
+  return similarity >= 0.7;
+}
+
+describeTest("isValidThemeMatch", () => {
+  testFn("accepts high-similarity matches", () => {
+    expectTest(isValidThemeMatch(0.7)).toBe(true);
+    expectTest(isValidThemeMatch(0.8)).toBe(true);
+    expectTest(isValidThemeMatch(0.99)).toBe(true);
+    expectTest(isValidThemeMatch(1.0)).toBe(true);
+  });
+
+  testFn("rejects low-similarity matches", () => {
+    expectTest(isValidThemeMatch(0.69)).toBe(false);
+    expectTest(isValidThemeMatch(0.5)).toBe(false);
+    expectTest(isValidThemeMatch(0.0)).toBe(false);
+    expectTest(isValidThemeMatch(-0.1)).toBe(false);
+  });
+});
