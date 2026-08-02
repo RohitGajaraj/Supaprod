@@ -1,8 +1,106 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-08-02 02:05 IST. `main` clean, pushed through `9e490f45`, working tree empty, no migration pending. **The Build terminal is rebuilt, the loader is the mark, and the design laws are now enforced by tests rather than remembered.** Read the section immediately below; it is the live one._
+> _Last updated: 2026-08-02 22:30 IST. `main` clean, pushed through `3de9098e`. **Nine separately shipped features were found doing nothing in production, all passing tests. Every one is fixed, and the product can now tell you when it happens again.** Read the section immediately below; it is the live one._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
+
+---
+
+# 2026-08-02 (evening): nine dead features, and the detector that finds the tenth
+
+## STATE: SAFE
+
+`main` = `3de9098e`, pushed to `origin/main`. **40 commits.** Gate green at every commit:
+tsc 0 errors, `bun test` 7130 pass / 0 fail (up from 6571).
+
+**ELEVEN MIGRATIONS APPLIED LIVE AND VERIFIED THIS SESSION**, so nothing is pending:
+signal embedding sweeper, theme growth columns, changeset code_review, agent_memory
+visibility, reflections visibility, seat-limit trigger, workspace autonomy policy,
+landing session claims, lineage canonicalisation, workspace claim, entity embeddings.
+
+## THE FINDING THAT SHAPED THE WHOLE SESSION
+
+Nine features were shipped, committed with plausible messages, passing typecheck and
+tests, and **doing nothing in production**:
+
+1. `signals.embedding` was never written, so every semantic query returned zero.
+2. Theme growth could not attach a signal, because zero themes had embeddings.
+3. Ranking designations were computed and rendered nowhere; `OpportunityRow` had zero
+   instantiations outside its own tests.
+4. The knowledge graph could not name or focus a `learning`, its second-most-common node.
+5. `note` and `precedent` memories were 100 percent unembedded, so the memories a HUMAN
+   curated were exactly the ones recall could never reach.
+6. The pulse widget had THREE stacked faults and had recorded nothing, ever.
+7. `signals.url` existed since the table was created and no surface ever rendered it.
+8. `design.draft` wrote a share link onto a blank page.
+9. The public pricing page advertised 50 free credits against an actual 750.
+
+**Not one was found by reading code. All nine came from querying the live database.**
+
+Two had unit tests that asserted the defect as the contract.
+
+**The root cause of the whole spine being frozen**: `signals.list` defaulted to a 7 day
+lookback when only 6 of 308 signals fall inside it. 42 open tracks, every one standing at
+`sense`, exactly ONE track in the product's history had ever reached `done`.
+
+## WHAT SHIPPED, BY THEME
+
+**The loop can now run.** Signal embeddings (308/308 live), theme embeddings (0 to 175),
+theme growth with conditional decline, the 7-day lookback fixed, and a universal
+correction loop so a failed station routes BACK to whoever can fix it and learns from it.
+
+**The brain.** Memory is workspace-shared with private opt-in, both recall paths
+workspace-aware, the graph renders WHY (rationale, author, verdict, dated revisions),
+35 of 51 revision edges were being read backwards and are fixed, and
+decisions/opportunities/prds/learnings finally have embeddings.
+
+**Agent-first.** Learn settles its own verdict when the evidence is clear (the sweep was
+ALREADY deciding one and was forbidden from acting), the promotion bar and settle bar are
+workspace policy on /boundary, and Build gained four verification tools.
+
+**Governance and security.** A seat-limit trigger, and a live tenancy hole closed: any
+workspace owner could move their workspace into any account by uuid.
+
+**Observability, the thing that makes the rest durable.** A feature-liveness detector
+answering "is this executing in production", seeded with all nine cases. Gate pressure
+answering "when it runs, what stops it". Plus: the cron watchdog was missing 8 jobs, one
+job was structurally invisible, and a refused AI call left no trace on either path.
+
+## WHAT IS OPEN, AND WHO OWNS IT
+
+**EMBEDDING IS DOWN. Check this first.** `ai_events` has no `embed` row since 12:00 UTC
+while `agent` and `discovery` are healthy. The entity sweeps shipped but are NOT verified
+live. The symptom to look for is `error_events` filling with `cron.embed-tick.* /
+embed_failed`, which is exactly the signal the old console.error swallowed.
+
+**Founder decisions, all documented:**
+- Tier limits are off. `docs/decisions/launch-gates-seat-limits-and-sandbox.md`. Ten
+  accounts are over their limits; flipping first would freeze the demos. Arbor
+  (harbor@supaprod.ai) was granted platform admin this session so the tier change can go
+  through `admin_override_user_plan` rather than an ad-hoc write, which a billing trigger
+  correctly refuses.
+- Sandbox: same doc. Cloudflare on fit, cost is a rounding error for demos, and the
+  do-nothing alternative (read CI before opening the PR) is written up.
+- Max pricing: `creditMultiplier` grants 15,000 credits a month, which at Pro's published
+  rate would be 3,000 USD, not 99. Two pricing models describing different products. The
+  contradiction is stated in the code rather than smoothed over.
+- Lineage relation CHECK constraint: NOT added, deliberately. 30 relation strings are
+  written by real code and a 13-value CHECK would have rejected live inserts.
+
+**Known gaps, flagged not hidden:** `workspace_audit_log` cascades on workspace delete, so
+the claim's proof dies with the workspace. Nine modules still bypass the signal sink.
+`meetings` and `audio` are complete AI pipelines with zero UI. `draftContractFromIntent`
+is dead with zero callers. PostHog is keyless.
+
+## THE OPERATING LESSON
+
+Read the live database before believing the code. Every real defect this session came from
+a query, never from a review. Two of my own fixes were wrong and only the data showed it:
+I "fixed" the memory sweeper's query when the query was fine, and I told the founder the
+read layer normalised the relation fork when three SQL-filtered surfaces did not, one of
+them a public shared receipt showing a superseded decision as still standing.
+
+`console.error` is not observability. `error_events` is.
 
 ---
 
