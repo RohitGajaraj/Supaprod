@@ -32,6 +32,16 @@
 
 ---
 
+## ⭐ THE CORE USP (founder-directed 2026-08-02, in session; exact wording not yet founder-reviewed) - the one claim, and the file that proves it
+
+> **Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks the outcome, and remembers. Wired end to end, from signal to learning and back again.**
+
+- **One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended under boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
+- **Product knowledge compounds, and the RECORD is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped, so when a product manager leaves the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding. **Known limit, do not overstate it:** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the USER who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Closing that is tracked work; until it closes, say "the record travels" and not "the memory travels".
+- **Proof, not assertion.** The station-by-station, code-verified account of that loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
+
+Works with, not against, the Investor canon and the triple-RFS positioning (the same three layers: the director, the operating system, the company brain) and the six-month-forward doctrine; it replaces none of them. This block is identical in `README.md`, `CLAUDE.md`, `AGENTS.md` and `GEMINI.md` so it cannot drift. Change all four or none.
+
 ## ⭐ Investor canon (founder-ratified 2026-07-24, the deck session)
 
 Distilled from the investor-deck build; full artifacts at [`docs/pitch/investor-deck/`](./docs/pitch/investor-deck/README.md) (frozen deck v19, brand assets vault, usage notes). Supersedes conflicting outward-facing copy anywhere in this repo. Works with, not against, the 2026-07-22 triple-RFS positioning: same three layers, sharper words.
