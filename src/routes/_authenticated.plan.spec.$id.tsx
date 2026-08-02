@@ -22,6 +22,22 @@
  *          views, Save, Send to Build with its repo gate, Create GitHub issue,
  *          Capture as decision. Every one of these is where a decision about
  *          this spec is actually made.
+ *    MOVE  Send to Build out of the action row and into "Where this spec goes
+ *          next", because the handoff is a ROUTE and a lone button is not a
+ *          choice. Founder, 2026-08-02: "the PRDs/ARDs/FRDs are properly scoped
+ *          and then passed to design. Design creates a prototype mockup, and
+ *          from there it moves to build. There may be scenarios where a design
+ *          step isn't required... The approach depends on the desired outcome."
+ *          With one exit on screen, Plan -> Build was never chosen, it was the
+ *          only thing there, and Plan -> Design -> Build happened only if you
+ *          already knew drawings live behind a tab called Flow. Both routes are
+ *          now named, one is picked, and the pick is written to this spec's
+ *          stage record so a skipped design is a decision somebody made rather
+ *          than a step nobody noticed. The dispatch itself, its repo gate, the
+ *          dialog and the navigate are unchanged; only where you reach them is.
+ *          The DESIGN GATE IS UNTOUCHED: a spec whose drawing exists and is not
+ *          approved still cannot go direct, refused by the same rule
+ *          designGateBlocksDispatch enforces at both dispatch paths.
  *    KEEP  the Critic's verdict and the rewind in the context column. That is
  *          the crew's record ON this spec, which is exactly what depth about
  *          the one thing in focus means.
@@ -134,6 +150,11 @@ import { LaunchPlanPanel } from "@/components/product/LaunchPlanPanel";
 import { listTasks } from "@/lib/tasks.functions";
 import { DesignReadinessPanel } from "@/components/product/DesignReadinessPanel";
 import { DesignScaffoldPanel } from "@/components/product/DesignScaffoldPanel";
+import {
+  chooseDesignRoute,
+  getSpecDesignRoute,
+  type DesignRouteChoice,
+} from "@/lib/design-scaffold.functions";
 import { dispatchStudioSession } from "@/lib/studio.functions";
 import { createDecision } from "@/lib/decisions.functions";
 import { canDispatchToRepo } from "@/lib/new-build.functions";
@@ -144,10 +165,13 @@ import {
   AgentMark,
   Block,
   Button,
+  Choices,
   CtxBody,
   CtxHead,
   Empty,
   Failed,
+  Line,
+  Loading,
   Num,
   PageHead,
   Receipt,
@@ -412,6 +436,79 @@ function SpecEditorPage() {
       dispatch: () => sendToStudio.mutate(),
       openGate: (reason) => setRepoGate({ reason }),
     });
+
+  /**
+   * THE ROUTE. Read before anything is offered, because both options describe
+   * what would happen to THIS spec and neither sentence can be written without
+   * knowing whether a screen is already drawn and whether its gate holds.
+   */
+  const fRoute = useServerFn(getSpecDesignRoute);
+  const mChooseRoute = useServerFn(chooseDesignRoute);
+  const routeQ = useQuery({
+    queryKey: ["spec-design-route", id],
+    queryFn: () => fRoute({ data: { prdId: id } }),
+  });
+  const routeInfo = routeQ.data ?? null;
+
+  // Derived, never an effect. The selection defaults to what the workspace's
+  // own policy implies and to whatever was chosen last time, but SELECTING is
+  // not choosing: nothing is recorded and nothing moves until the button.
+  const [routePick, setRoutePick] = useState<DesignRouteChoice | null>(null);
+  const route: DesignRouteChoice =
+    routePick ??
+    routeInfo?.chosen?.route ??
+    (routeInfo?.stageEnabled === false ? "direct" : "design");
+
+  const chooseRoute = useMutation({
+    mutationFn: (next: DesignRouteChoice) => mChooseRoute({ data: { prdId: id, route: next } }),
+    onSuccess: (res, next) => {
+      qc.setQueryData(["spec-design-route", id], res);
+      // Design lists this spec, and the route it is on is one of the facts it
+      // shows, so its list is stale the moment this lands.
+      void qc.invalidateQueries({ queryKey: ["design-work"] });
+      if (next === "design") {
+        // No receipt: this navigates, and a line nobody can read is not a
+        // receipt. The Design station itself is what the click caused.
+        void navigate({ to: "/design", search: { focus: id } as never });
+        return;
+      }
+      commit(
+        "You sent it straight to Build",
+        "No screen gets drawn. The skip is on this spec's record and Design shows it was sent past.",
+      );
+      void sendToBuild();
+    },
+    onError: (e: Error) => commit("The route did not change", e.message, true),
+  });
+
+  /** What picking this route would actually do to THIS spec, read from the
+   *  record rather than described in general terms. */
+  const routeConsequence = (): string => {
+    if (!routeInfo) return "";
+    if (route === "design") {
+      if (!routeInfo.hasDrawing) {
+        return "Design draws the screen this spec implies, and somebody judges the drawing before Build starts.";
+      }
+      return routeInfo.gateStatus === "approved"
+        ? "A screen is already drawn and its design is approved. This spec can reach Build."
+        : "A screen is already drawn and is waiting on a call at Design.";
+    }
+    return routeInfo.gateHolds
+      ? "A screen is already drawn for this spec and nobody has judged it. That call has to be settled at Design first; skipping the step cannot clear it."
+      : "No screen gets drawn. Build reads the spec as it stands, and the skip goes on this spec's record.";
+  };
+
+  /** Why the send cannot run right now, or null when it can. Never a greyed
+   *  button with no reason beside it. */
+  const routeBlocker = (): string | null => {
+    if (!routeInfo) return null;
+    if (route === "design") return null;
+    if (routeInfo.gateHolds) return "The drawn screen has to be settled at Design first.";
+    if (!prdQ.data?.prd?.github_issue_url) {
+      return "Build works from a GitHub issue. Create the issue above and this opens.";
+    }
+    return null;
+  };
 
   const createIssue = useMutation({
     mutationFn: () => mCreateIssue({ data: { id } }),
@@ -719,40 +816,11 @@ function SpecEditorPage() {
           >
             {save.isPending ? "Saving" : "Save"}
           </Button>
-          {prd.github_issue_url ? (
-            <>
-              <Button
-                disabled={sendToStudio.isPending}
-                onClick={() => void sendToBuild()}
-                title="Plan, stage and open a pull request for this issue"
-              >
-                {sendToStudio.isPending ? "Sending" : "Send to Build"}
-              </Button>
-              {/* A GREYED BUTTON IS NOT A SIGN OF LIFE. `dispatchStudioSession`
-                  assembles the work order and enqueues the builder run the
-                  resume sweeper promotes into `runAgentLoop`, so an agent is
-                  genuinely taking this on and the indicator says so beside the
-                  button that started it.
-                  THE DETAIL IS THE SPEC, not the touch list. This surface never
-                  resolves one: the dispatch is called with `{ prdId }` alone, so
-                  `allowedPaths` and `maxFiles` are server-side defaults here,
-                  and the repo `canDispatchToRepo` reports is read inside
-                  `gateDispatch` and never held in state. Naming a file scope
-                  would be inventing the one fact a person would most trust. */}
-              {sendToStudio.isPending ? (
-                <AgentPulse
-                  label="Build is picking up the spec"
-                  seed="builder"
-                  compact
-                  detail={title.trim() || prd.title}
-                />
-              ) : null}
-            </>
-          ) : (
+          {prd.github_issue_url ? null : (
             <Button
               disabled={createIssue.isPending}
               onClick={() => createIssue.mutate()}
-              title="Send to Build opens once the issue exists"
+              title="Build works from a GitHub issue. Creating it opens the route below."
             >
               {createIssue.isPending ? "Creating" : "Create GitHub issue"}
             </Button>
@@ -766,6 +834,134 @@ function SpecEditorPage() {
             {captureDecision.isPending ? "Recording" : "Capture as decision"}
           </Button>
         </Actions>
+
+        {/* WHERE THIS SPEC GOES NEXT. The one region on the page that hands the
+            work off, and it asks the question rather than answering it with
+            whichever button happened to be here. Above the tab body on purpose:
+            the two always-on blocks below it are the only two the surface
+            allows, and this is the handoff, not a view of the document. */}
+        <Block
+          title="Where this spec goes next"
+          sub={
+            sendToStudio.isPending ? (
+              // A GREYED BUTTON IS NOT A SIGN OF LIFE. `dispatchStudioSession`
+              // assembles the work order and enqueues the builder run the resume
+              // sweeper promotes into `runAgentLoop`, so an agent is genuinely
+              // taking this on and the indicator says so beside the button that
+              // started it.
+              // THE DETAIL IS THE SPEC, not the touch list. This surface never
+              // resolves one: the dispatch is called with `{ prdId }` alone, so
+              // `allowedPaths` and `maxFiles` are server-side defaults here, and
+              // the repo `canDispatchToRepo` reports is read inside
+              // `gateDispatch` and never held in state. Naming a file scope
+              // would be inventing the one fact a person would most trust.
+              <AgentPulse
+                label="Build is picking up the spec"
+                seed="builder"
+                compact
+                detail={title.trim() || prd.title}
+              />
+            ) : (
+              "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record."
+            )
+          }
+        >
+          {routeQ.isLoading ? (
+            <Loading>Reading what has been drawn for this spec.</Loading>
+          ) : routeQ.isError ? (
+            <Failed onRetry={() => void routeQ.refetch()}>
+              Could not read this spec's route. {(routeQ.error as Error).message}
+            </Failed>
+          ) : (
+            <>
+              <Line label="Route" sub={routeConsequence()}>
+                <Choices<DesignRouteChoice>
+                  label="How this spec reaches Build"
+                  value={route}
+                  options={[
+                    {
+                      id: "design",
+                      label: "Through Design",
+                      title: "Design draws the screen, then somebody judges it before Build starts",
+                      disabled: chooseRoute.isPending || sendToStudio.isPending,
+                    },
+                    {
+                      id: "direct",
+                      label: "Straight to Build",
+                      title: routeInfo?.gateHolds
+                        ? "A drawn screen is waiting on a call at Design. Settle it there first."
+                        : "No screen gets drawn. Build reads the spec as it stands.",
+                      // The design gate, unchanged and enforced here too: a
+                      // drawing that exists and is not approved is a call
+                      // somebody owes, and skipping the step is not a way to
+                      // stop owing it. The server refuses this as well, so a
+                      // stale page cannot get past it either.
+                      disabled:
+                        routeInfo?.gateHolds || chooseRoute.isPending || sendToStudio.isPending,
+                    },
+                  ]}
+                  onPick={setRoutePick}
+                />
+              </Line>
+
+              {/* What is already on the record. It is stated whichever way it
+                  went, because "somebody chose to skip design here" is exactly
+                  the fact a person reading this spec next month needs. */}
+              {routeInfo?.chosen ? (
+                <Line
+                  label={
+                    routeInfo.chosen.route === "direct"
+                      ? "Design was skipped on purpose"
+                      : "This spec was handed to Design"
+                  }
+                  sub={`Recorded ${new Date(routeInfo.chosen.at).toLocaleDateString(undefined, {
+                    day: "numeric",
+                    month: "short",
+                  })}. It is on this spec's stage record, and Design lists it.`}
+                />
+              ) : null}
+
+              <Actions>
+                <Button
+                  variant="primary"
+                  disabled={
+                    chooseRoute.isPending || sendToStudio.isPending || routeBlocker() !== null
+                  }
+                  title={routeBlocker() ?? undefined}
+                  onClick={() => chooseRoute.mutate(route)}
+                >
+                  {chooseRoute.isPending || sendToStudio.isPending
+                    ? "Sending"
+                    : route === "design"
+                      ? "Hand it to Design"
+                      : "Send it straight to Build"}
+                </Button>
+              </Actions>
+
+              {/* NEVER A DEAD END. When the send cannot run, the reason is on
+                  the page under the button rather than hidden in a title
+                  attribute a keyboard user never sees, and it names who acts
+                  next. */}
+              {routeBlocker() ? (
+                <Empty
+                  action={
+                    routeInfo?.gateHolds ? (
+                      <Button
+                        onClick={() =>
+                          void navigate({ to: "/design", search: { focus: id } as never })
+                        }
+                      >
+                        Open it on Design
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  {routeBlocker()}
+                </Empty>
+              ) : null}
+            </>
+          )}
+        </Block>
 
         {/* THE COMMIT (R10). What you did here, and what it caused. It appears
             only once you have acted, and a failed write lands in the same

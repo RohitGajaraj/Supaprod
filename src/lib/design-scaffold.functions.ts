@@ -24,6 +24,15 @@
  * fired fire-and-forget while the human reviews a freshly drafted contract)
  * is sitting there ready by the time they open the Design panel, instead of
  * a fresh generation call starting only once they click.
+ *
+ * `prd_scaffolds.html` IS THE DRAWING, and that is the fact this module is
+ * built on. It is the only place a spec's markup exists: the Design surface
+ * renders it, `loadDesignDispatchContext` carries it into the ARD as
+ * `scaffoldHtml`, `loadDesignGateState` counts it to decide whether there is
+ * anything for the gate to judge, and `publishPrototypeFromPrd` READS it to
+ * fill a `prototypes` share. A `prototypes` row is the wrapper around a
+ * drawing (a name, a slug, a public switch), never the drawing itself, so
+ * anything that means to produce a design produces one of these rows.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -36,6 +45,10 @@ import {
 } from "@/lib/design-memory.functions";
 import { runDesignCriticLens } from "@/lib/ai/critic.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+// The blocking rule itself, read from the one module that owns it, so the route
+// picker on the spec page can never disagree with what the two dispatch paths
+// actually enforce.
+import { designGateBlocksDispatch } from "@/lib/build/design-gate";
 import type { DesignCriticReview } from "@/lib/ai/design-critic";
 
 // Minimal CSS injected into every generated mockup. Avoids any external CDN
@@ -192,6 +205,28 @@ export type DesignScaffold = {
 };
 
 /**
+ * The workspace a drawing is filed under.
+ *
+ * `current_user_default_workspace()` resolves through `auth.uid()`, so it
+ * answers for a request made by a signed-in person and returns null under any
+ * client that is not one. An agent run already knows its workspace and carries
+ * it (`ToolCtx.workspaceId`), so a caller that HAS the id passes it and never
+ * asks; passing nothing keeps the previous behaviour exactly.
+ */
+async function resolveWorkspaceId(
+  supabase: SupabaseClient,
+  given?: string | null,
+): Promise<string | null> {
+  if (given) return given;
+  try {
+    const { data } = await supabase.rpc("current_user_default_workspace");
+    return (data as string | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * The core generation call, shared by the human-triggered `generateDesignScaffold`
  * and the speculative `prepareScaffoldSpeculative`. Pure I/O (one AI call), no
  * persistence — callers decide whether and how to save the result.
@@ -199,7 +234,7 @@ export type DesignScaffold = {
 async function buildDesignScaffoldHtml(
   supabase: SupabaseClient,
   userId: string,
-  data: { prdId: string; specBody: string; fidelity?: DesignFidelity },
+  data: { prdId: string; specBody: string; fidelity?: DesignFidelity; workspaceId?: string | null },
 ): Promise<DesignScaffold> {
   const fidelity: DesignFidelity = data.fidelity ?? "mockup";
   // Fail-safe: a workspace-resolution or query error just means no memory
@@ -207,7 +242,7 @@ async function buildDesignScaffoldHtml(
   let designMemoryBlock = "";
   let groundedInMemoryIds: string[] = [];
   try {
-    const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
+    const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId);
     if (workspaceId) {
       const activeMemory = await getActiveDesignMemoryForWorkspace(supabase, workspaceId as string);
       designMemoryBlock = formatDesignMemoryContext(activeMemory);
@@ -349,6 +384,9 @@ async function recordScaffoldGrounding(
   }
 }
 
+/** Returns whether the drawing actually landed. A caller that reports "drawn"
+ *  to an agent has to be able to tell the difference between a saved row and a
+ *  swallowed failure, and this used to return void for both. */
 async function persistScaffold(
   supabase: SupabaseClient,
   userId: string,
@@ -357,11 +395,12 @@ async function persistScaffold(
     html: string;
     source: "manual" | "speculative";
     groundedInMemoryIds?: string[];
+    workspaceId?: string | null;
   },
-): Promise<void> {
+): Promise<boolean> {
   try {
-    const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
-    if (!workspaceId) return;
+    const workspaceId = await resolveWorkspaceId(supabase, data.workspaceId);
+    if (!workspaceId) return false;
     const { data: row, error } = await supabase
       .from("prd_scaffolds")
       .upsert(
@@ -376,12 +415,14 @@ async function persistScaffold(
       )
       .select("id")
       .single();
-    if (error || !row) return;
+    if (error || !row) return false;
     const scaffoldId = (row as { id: string }).id;
     await recordScaffoldDerivedFromFlow(supabase, userId, data.prdId, scaffoldId);
     await recordScaffoldGrounding(supabase, userId, scaffoldId, data.groundedInMemoryIds ?? []);
+    return true;
   } catch (e) {
     console.error("persistScaffold failed (non-fatal):", e);
+    return false;
   }
 }
 
@@ -543,32 +584,85 @@ export const getScaffoldProvenance = createServerFn({ method: "GET" })
   });
 
 /**
- * AGT-03: speculative reversible prep. Called fire-and-forget (never
- * awaited by its caller) right after a contract is drafted, while the human
- * is still reviewing it — by the time they open the Design panel, a scaffold
- * is already sitting there. Zero side effects beyond the idempotent
- * `prd_scaffolds` upsert (the same row a later manual "Generate" overwrites);
- * never throws into its caller.
+ * THE UNATTENDED DRAW: a spec becomes a drawing with nobody waiting on it.
+ *
+ * AGT-03 built this for one caller and named it for that caller: fired
+ * fire-and-forget right after a contract is drafted so a scaffold is already
+ * sitting there when the human opens the Design panel. It now has a second and
+ * more important one, `design.draft` in the tool registry, which is how an
+ * agent standing at the Design station produces a drawing rather than a note
+ * saying a design exists.
+ *
+ * Both callers share the one fact the stored `source` records: YOU DID NOT ASK
+ * FOR THIS ONE. Neither is a person clicking Generate. `prd_scaffolds.source`
+ * is CHECK constrained to ('manual','speculative') so an agent's drawing is
+ * filed as speculative today; naming it as the agent's needs a migration and is
+ * requested in DESIGN-NEEDS-MIGRATION.md rather than faked here.
+ *
+ * Never throws: the fire-and-forget caller does `void ...catch()`, and the
+ * agent caller must not lose a registered prototype because a model timed out.
+ * It reports what happened instead, because a tool that tells an agent it drew
+ * something when it did not is worse than one that never drew.
  */
+export type UnattendedDraw =
+  | {
+      drawn: true;
+      fidelity: DesignFidelity;
+      screenCount: number;
+      controlCount: number;
+      html: string;
+    }
+  | { drawn: false; reason: string };
+
 export async function prepareScaffoldSpeculative(
   supabase: SupabaseClient,
   userId: string,
-  data: { prdId: string; specBody: string },
-): Promise<void> {
-  if (!data.specBody || data.specBody.trim().length < 40) return;
+  data: {
+    prdId: string;
+    specBody: string;
+    /** Passed by an agent run, which already knows it. See resolveWorkspaceId. */
+    workspaceId?: string | null;
+    fidelity?: DesignFidelity;
+  },
+): Promise<UnattendedDraw> {
+  if (!data.specBody || data.specBody.trim().length < 40) {
+    return {
+      drawn: false,
+      reason:
+        "the spec is shorter than a paragraph, so a screen drawn from it would be invention rather than a reading of it",
+    };
+  }
   try {
     const scaffold = await buildDesignScaffoldHtml(supabase, userId, {
       prdId: data.prdId,
       specBody: data.specBody,
+      fidelity: data.fidelity,
+      workspaceId: data.workspaceId,
     });
-    await persistScaffold(supabase, userId, {
+    const saved = await persistScaffold(supabase, userId, {
       prdId: data.prdId,
       html: scaffold.html,
       source: "speculative",
       groundedInMemoryIds: scaffold.groundedInMemoryIds,
+      workspaceId: data.workspaceId,
     });
+    if (!saved) {
+      return {
+        drawn: false,
+        reason: "the drawing was made but could not be saved against the spec",
+      };
+    }
+    const shape = readScaffoldShape(scaffold.html);
+    return {
+      drawn: true,
+      fidelity: scaffold.fidelity,
+      screenCount: shape.screenCount,
+      controlCount: shape.controlCount,
+      html: scaffold.html,
+    };
   } catch (e) {
     console.error("prepareScaffoldSpeculative failed (non-fatal):", e);
+    return { drawn: false, reason: e instanceof Error ? e.message : "the generator failed" };
   }
 }
 
@@ -824,6 +918,11 @@ export type DesignWorkRow = {
   rulesSince: number;
   /** Links already handed out from this spec. */
   shareCount: number;
+  /** The route somebody put this spec on, read from the stage trail. Null means
+   *  nobody has chosen, which is a different fact from choosing to skip: an
+   *  undrawn spec nobody has routed is waiting, an undrawn spec routed direct
+   *  was a decision and says so. */
+  route: RecordedRoute | null;
 };
 
 export type DesignWork = {
@@ -913,15 +1012,34 @@ export const listDesignWork = createServerFn({ method: "GET" })
     }));
 
     const shareCounts = new Map<string, number>();
+    // The routes, one query for the whole list. Ordered oldest first so the
+    // newest row for each spec is the one left in the map: a spec that was
+    // routed direct and later sent through design reads as through design.
+    const routes = new Map<string, RecordedRoute>();
     const ids = prds.map((p) => p.id);
     if (ids.length > 0) {
-      const { data: protoRows } = await supabase
-        .from("prototypes")
-        .select("id,prd_id")
-        .in("prd_id", ids);
+      const [{ data: protoRows }, { data: routeRows }] = await Promise.all([
+        supabase.from("prototypes").select("id,prd_id").in("prd_id", ids),
+        supabase
+          .from("stage_events")
+          .select("entity_id,to_stage,at,actor")
+          .eq("entity_type", "spec")
+          .in("entity_id", ids)
+          .in("to_stage", ROUTE_STAGES)
+          .order("at", { ascending: true }),
+      ]);
       for (const p of (protoRows ?? []) as Array<Record<string, unknown>>) {
         const key = p.prd_id as string | null;
         if (key) shareCounts.set(key, (shareCounts.get(key) ?? 0) + 1);
+      }
+      for (const e of (routeRows ?? []) as Array<Record<string, unknown>>) {
+        const route = routeOfStage(e.to_stage as string);
+        if (!route) continue;
+        routes.set(e.entity_id as string, {
+          route,
+          at: e.at as string,
+          actor: (e.actor as string | null) ?? "system",
+        });
       }
     }
 
@@ -943,6 +1061,7 @@ export const listDesignWork = createServerFn({ method: "GET" })
                 .length
             : 0,
           shareCount: shareCounts.get(p.id) ?? 0,
+          route: routes.get(p.id) ?? null,
         };
       });
 
@@ -1018,6 +1137,9 @@ export type DesignWorkItem = {
   specExcerpt: string;
   drawing: (DesignDrawing & { html: string; screens: string[] }) | null;
   consequence: DesignConsequence;
+  /** The route this spec was deliberately put on, if anyone put it on one.
+   *  A design station has to be able to see that a spec was sent past it. */
+  route: RecordedRoute | null;
 };
 
 function tally(
@@ -1055,7 +1177,7 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       workspace_id: string | null;
     };
 
-    const [{ data: wsRow }, { data: scaffoldRow }, { data: protoRows }] = await Promise.all([
+    const [{ data: wsRow }, { data: scaffoldRow }, { data: protoRows }, route] = await Promise.all([
       prd.workspace_id
         ? supabase
             .from("workspaces")
@@ -1074,6 +1196,7 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
         .eq("prd_id", data.prdId)
         .order("created_at", { ascending: false })
         .limit(20),
+      readRecordedRoute(supabase, data.prdId),
     ]);
 
     const w = wsRow as { design_stage_enabled?: boolean | null; owner_id?: string | null } | null;
@@ -1165,6 +1288,7 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       specTooThin: (prd.body_md ?? "").trim().length < 40,
       specExcerpt: (prd.body_md ?? prd.title ?? "").trim().slice(0, 4000),
       drawing,
+      route,
       consequence: {
         // The identical rule designGateBlocksDispatch enforces at both dispatch
         // paths. Restated as a boolean, not re-derived with different words.
@@ -1217,4 +1341,227 @@ export const redrawDesignScaffold = createServerFn({ method: "POST" })
       groundedInMemoryIds: scaffold.groundedInMemoryIds,
     });
     return { ...scaffold, ...readScaffoldShape(scaffold.html) };
+  });
+
+// ---------------------------------------------------------------------------
+// THE ROUTE OUT OF PLAN (2026-08-02).
+//
+// FOUNDER'S WORDS: "Building directly from the plan is acceptable, but it
+// should also incorporate the design section... There may be scenarios where a
+// design step isn't required. In such cases the plan can go straight to build.
+// The approach depends on the desired outcome."
+//
+// So the handoff is a ROUTE, and the route is a decision. Until now it was
+// neither: the spec page carried one "Send to Build" button and no other exit,
+// so Plan -> Build was not chosen, it was the only thing on screen, and
+// Plan -> Design -> Build happened only if someone already knew that drawings
+// live behind a tab called "flow".
+//
+// WHAT THIS DOES NOT TOUCH, and it is the important half. The gate is
+// unchanged. `designGateBlocksDispatch` still refuses a dispatch when a drawing
+// EXISTS and its gate is not approved, both dispatch paths still call it, and
+// this module never writes `design_gate_status`. Choosing "straight to build"
+// on a spec whose drawing is waiting on a call is therefore refused HERE too,
+// with the same rule imported rather than a second copy of it: a route is a
+// choice about whether to draw, never a way past a drawing already made.
+//
+// WHY A STAGE EVENT AND NOT A COLUMN. Skipping design is a transition in this
+// spec's life, and `stage_events` is this repo's one trail for those: the gate
+// verdict itself lands there (decideDesignGate above), so the skip lands beside
+// it, in the same trail, readable by everything that already reads it. It also
+// needs no migration, it is append-only so a later change of mind is a second
+// row rather than an erased first one, and it records WHO chose.
+// ---------------------------------------------------------------------------
+
+export type DesignRouteChoice = "design" | "direct";
+
+/** The `to_stage` words. Read as a pair everywhere, so they live in one map. */
+const ROUTE_STAGE: Record<DesignRouteChoice, string> = {
+  design: "design_requested",
+  direct: "design_skipped",
+};
+const ROUTE_STAGES = [ROUTE_STAGE.design, ROUTE_STAGE.direct];
+
+function routeOfStage(stage: string | null | undefined): DesignRouteChoice | null {
+  if (stage === ROUTE_STAGE.design) return "design";
+  if (stage === ROUTE_STAGE.direct) return "direct";
+  return null;
+}
+
+export type RecordedRoute = {
+  route: DesignRouteChoice;
+  at: string;
+  /** 'human', an agent slug, or 'system'. Recorded, never assumed. */
+  actor: string;
+};
+
+export type SpecDesignRoute = {
+  /** workspaces.design_stage_enabled. */
+  stageEnabled: boolean;
+  gateStatus: DesignGateWord;
+  hasDrawing: boolean;
+  /** The live answer from designGateBlocksDispatch, so the surface never
+   *  offers a route the dispatch would refuse a second later. */
+  gateHolds: boolean;
+  /** Null means nobody has chosen yet. It is NOT read as "straight to build". */
+  chosen: RecordedRoute | null;
+};
+
+/** The newest route this spec was put on, or null when nobody chose one. */
+async function readRecordedRoute(
+  supabase: SupabaseClient,
+  prdId: string,
+): Promise<RecordedRoute | null> {
+  const { data, error } = await supabase
+    .from("stage_events")
+    .select("to_stage,at,actor")
+    .eq("entity_type", "spec")
+    .eq("entity_id", prdId)
+    .in("to_stage", ROUTE_STAGES)
+    .order("at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  const row = data as { to_stage: string; at: string; actor: string | null };
+  const route = routeOfStage(row.to_stage);
+  return route ? { route, at: row.at, actor: row.actor ?? "system" } : null;
+}
+
+/** Everything the route picker needs, in one read. */
+export const getSpecDesignRoute = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { prdId: string }) => z.object({ prdId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }): Promise<SpecDesignRoute> => {
+    const { supabase } = context;
+    const { data: prdRow } = await supabase
+      .from("prds")
+      .select("id,workspace_id,design_gate_status")
+      .eq("id", data.prdId)
+      .maybeSingle();
+    if (!prdRow) throw new Error("Spec not found");
+    const prd = prdRow as unknown as {
+      workspace_id: string | null;
+      design_gate_status: string | null;
+    };
+
+    const [{ data: wsRow }, drawingRes, chosen] = await Promise.all([
+      prd.workspace_id
+        ? supabase
+            .from("workspaces")
+            .select("design_stage_enabled")
+            .eq("id", prd.workspace_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      // head+count, the same question loadDesignGateState asks and for the same
+      // reason: whether a drawing exists must not cost a read of its markup.
+      supabase
+        .from("prd_scaffolds")
+        .select("id", { count: "exact", head: true })
+        .eq("prd_id", data.prdId),
+      readRecordedRoute(supabase, data.prdId),
+    ]);
+
+    const stageEnabled = Boolean(
+      (wsRow as { design_stage_enabled?: boolean | null } | null)?.design_stage_enabled,
+    );
+    const gateStatus = gateWord(prd.design_gate_status);
+    // An unreadable count is not "no drawing", exactly as in design-gate.server:
+    // undefined leaves the gate shut rather than opening it on an error.
+    const hasDrawing = drawingRes.error ? undefined : (drawingRes.count ?? 0) > 0;
+
+    return {
+      stageEnabled,
+      gateStatus,
+      hasDrawing: hasDrawing === true,
+      gateHolds: designGateBlocksDispatch({ stageEnabled, status: gateStatus, hasDrawing }),
+      chosen,
+    };
+  });
+
+/**
+ * Put this spec on a route, deliberately.
+ *
+ * Neither option dispatches anything and neither writes the gate. "design"
+ * says the crew draws first and a human judges the drawing; "direct" says this
+ * one does not need a screen and Build reads the spec as it stands. The caller
+ * does the navigating or the dispatching afterwards, so a recorded route is
+ * never a claim that the work moved.
+ */
+export const chooseDesignRoute = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ prdId: z.string().uuid(), route: z.enum(["design", "direct"]) }).parse(d),
+  )
+  .handler(async ({ context, data }): Promise<SpecDesignRoute> => {
+    const { supabase, userId } = context;
+    const { data: prdRow } = await supabase
+      .from("prds")
+      .select("id,workspace_id,design_gate_status")
+      .eq("id", data.prdId)
+      .maybeSingle();
+    if (!prdRow) throw new Error("Spec not found");
+    const prd = prdRow as unknown as {
+      id: string;
+      workspace_id: string | null;
+      design_gate_status: string | null;
+    };
+
+    const [wsRes, drawingRes, prior] = await Promise.all([
+      prd.workspace_id
+        ? supabase
+            .from("workspaces")
+            .select("design_stage_enabled")
+            .eq("id", prd.workspace_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from("prd_scaffolds")
+        .select("id", { count: "exact", head: true })
+        .eq("prd_id", data.prdId),
+      readRecordedRoute(supabase, data.prdId),
+    ]);
+
+    const stageEnabled = Boolean(
+      (wsRes.data as { design_stage_enabled?: boolean | null } | null)?.design_stage_enabled,
+    );
+    const gateStatus = gateWord(prd.design_gate_status);
+    const hasDrawing = drawingRes.error ? undefined : (drawingRes.count ?? 0) > 0;
+    const gateHolds = designGateBlocksDispatch({ stageEnabled, status: gateStatus, hasDrawing });
+
+    // THE ONE REFUSAL. A drawing that exists and is not approved is a call a
+    // human owes, and skipping design is not a way to stop owing it. The rule
+    // is the imported one, so this can never drift from what dispatch enforces.
+    if (data.route === "direct" && gateHolds) {
+      throw new Error(
+        "A screen is already drawn for this spec and its design has not been approved. Approve it or send it back on Design first; skipping the design step cannot clear a drawing that is already waiting.",
+      );
+    }
+
+    const to = ROUTE_STAGE[data.route];
+    // Passing the prior route as `from` makes re-picking the same route a no-op
+    // (recordStageEvent skips from === to), so the trail holds decisions rather
+    // than clicks.
+    await recordStageEvent(supabase, {
+      entityType: "spec",
+      entityId: prd.id,
+      from: prior ? ROUTE_STAGE[prior.route] : null,
+      to,
+      actor: "human",
+      workspaceId: prd.workspace_id,
+      userId,
+    });
+
+    const chosen = (await readRecordedRoute(supabase, data.prdId)) ?? {
+      route: data.route,
+      at: new Date().toISOString(),
+      actor: "human",
+    };
+
+    return {
+      stageEnabled,
+      gateStatus,
+      hasDrawing: hasDrawing === true,
+      gateHolds,
+      chosen,
+    };
   });

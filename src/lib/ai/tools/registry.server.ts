@@ -58,6 +58,11 @@ import { runRollbackRelease } from "@/lib/studio-rollbacks";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
+// design.draft draws through the SAME generator the human path uses, so an
+// agent's drawing inherits the workspace design language and lands in the one
+// row (`prd_scaffolds`) the gate, the Design surface and both dispatch paths
+// already read. See the tool's own comment for why a `prototypes` row was not.
+import { prepareScaffoldSpeculative, type UnattendedDraw } from "@/lib/design-scaffold.functions";
 import { buildAuditInsert } from "@/lib/roadmap-audit";
 import { validateCommitment } from "@/lib/roadmap-governance";
 import { CONNECTOR_REGISTRY } from "@/lib/connectors/registry";
@@ -3064,14 +3069,40 @@ const decisionRecord = def({
 
 /**
  * design.draft, the Design stage.
- * Registers a prototype against the spec so Design produces something a later
- * station can point at. The scaffold generator remains where it is; this is the
- * record that a design exists, which is what the loop was missing.
+ *
+ * IT NOW DRAWS. The previous version inserted a `prototypes` row and stopped,
+ * with a comment saying "the scaffold generator remains where it is; this is
+ * the record that a design exists". That record was stranded, and the audit is
+ * worth keeping because the shape of the mistake is general: nothing in the
+ * loop reads `prototypes` as a design. `loadDesignDispatchContext` hands Build
+ * `prd_scaffolds.html`; `loadDesignGateState` counts `prd_scaffolds` to decide
+ * whether there is a drawing to judge; the /design surface builds its whole
+ * drawings map out of `prd_scaffolds`; and `publishPrototypeFromPrd` READS a
+ * scaffold to fill a prototype's file. A `prototypes` row has no html column at
+ * all: its markup lives in `prototype_files`, which this tool never wrote. So
+ * an unattended design run produced a name, a sentence and a share link that
+ * opened onto an empty document, and Build never saw a design.
+ *
+ * The drawing is `prd_scaffolds.html` and the prototype is the wrapper around
+ * it, so this draws first and registers second. It is the SAME generator the
+ * human path uses (prepareScaffoldSpeculative -> buildDesignScaffoldHtml), not
+ * a second one: an agent's drawing therefore inherits the workspace's design
+ * language, records its grounding lineage, and lands in the one row the gate,
+ * the surface and the dispatch already read.
+ *
+ * THE GATE IS UNTOUCHED AND THAT IS DELIBERATE. Because a drawing now exists,
+ * `designGateBlocksDispatch` starts holding this spec out of Build until a
+ * human approves it, exactly as it does for a drawing a person asked for. That
+ * is the rule the gate is for. The deliberate way past it is the route on the
+ * spec page: a spec that does not need a screen is sent straight to Build and
+ * no drawing is made, so nothing is held. The return value says all of this
+ * plainly, because an agent that is told "drawn" and not told "a call is now
+ * owed" will report the loop as finished when it is waiting.
  */
 const designDraft = def({
   name: "design.draft",
   description:
-    "Register a prototype for a spec at the Design station: a name, what it shows, and the entry file. Use once you have something to show, not to reserve a slot.",
+    "Draw the screen a spec implies and register it as a prototype at the Design station. Pass prd_id: the drawing is made from that spec's own words and is what Build later reads, so without a spec id this records a name and nothing anybody downstream can use. A drawing that exists needs a human to approve it before that spec reaches Build.",
   category: "write",
   argsSchema: z.object({
     name: z.string().min(1).max(160),
@@ -3079,8 +3110,37 @@ const designDraft = def({
     prd_id: z.string().uuid().optional(),
     entry_path: z.string().min(1).max(200).optional(),
   }),
-  preview: (a) => `Register prototype "${a.name}"`,
+  preview: (a) =>
+    a.prd_id
+      ? `Draw the screen for spec ${a.prd_id.slice(0, 8)} and register it as "${a.name}"`
+      : `Register prototype "${a.name}" with no drawing (no spec given)`,
   run: async (a, { supabase, userId, workspaceId }) => {
+    // 1. THE DRAWING, first, because it is the artifact everything downstream
+    //    reads. Never throws: a registered prototype must not be lost because a
+    //    model timed out, and the result is reported rather than assumed.
+    let drew: UnattendedDraw = {
+      drawn: false,
+      reason: "no spec was given, so there were no words to draw from",
+    };
+    if (a.prd_id) {
+      const { data: prdRow } = await supabase
+        .from("prds")
+        .select("body_md")
+        .eq("id", a.prd_id)
+        .maybeSingle();
+      if (!prdRow) {
+        drew = { drawn: false, reason: "that spec is not readable from this workspace" };
+      } else {
+        drew = await prepareScaffoldSpeculative(supabase, userId, {
+          prdId: a.prd_id,
+          specBody: ((prdRow as { body_md: string | null }).body_md ?? "").trim().slice(0, 20000),
+          workspaceId,
+        });
+      }
+    }
+
+    // 2. THE SHARE RECORD. Unchanged shape and unchanged return field, because
+    //    src/lib/spine/attach.ts files this tool's output by `prototype_id`.
     const { data, error } = await supabase
       .from("prototypes")
       .insert({
@@ -3094,7 +3154,42 @@ const designDraft = def({
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    return { prototype_id: (data as { id: string }).id, name: a.name };
+    const prototypeId = (data as { id: string }).id;
+
+    // 3. Give the share something to show. `/p/$slug` renders `prototype_files`
+    //    and nothing else, so a prototype with no file is a link onto a blank
+    //    page. Non-fatal: the drawing is already safe in `prd_scaffolds`, and
+    //    losing the shareable copy must not cost the tool its whole call.
+    let shareable = false;
+    if (drew.drawn && workspaceId) {
+      const { error: fileErr } = await supabase.from("prototype_files").insert({
+        prototype_id: prototypeId,
+        user_id: userId,
+        workspace_id: workspaceId,
+        path: a.entry_path ?? "index.html",
+        content: drew.html,
+        language: "html",
+      });
+      shareable = !fileErr;
+      if (fileErr) console.error("design.draft prototype_files write failed:", fileErr.message);
+    }
+
+    return {
+      prototype_id: prototypeId,
+      name: a.name,
+      drawing: drew.drawn
+        ? {
+            drawn: true,
+            fidelity: drew.fidelity,
+            screens: drew.screenCount,
+            controls: drew.controlCount,
+            shareable,
+          }
+        : { drawn: false, reason: drew.reason },
+      next: drew.drawn
+        ? "The screen is drawn and Build will read it. A human has to approve this design before this spec can dispatch, unless the workspace has the design gate off."
+        : "Nothing was drawn, so Build has no design to read for this spec and the design gate is not holding it.",
+    };
   },
 });
 

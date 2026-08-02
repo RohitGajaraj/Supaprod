@@ -38,6 +38,13 @@
  *    ADD  the drawings, the gate on each, the fidelity spectrum, the
  *         consequence panel, the Critic and the publish action. All of it was
  *         already built. None of it had a reader here.
+ *    ADD  (2026-08-02) the ROUTE, on the row and on the spec in focus. Plan now
+ *         asks whether a spec passes through Design or goes straight to Build,
+ *         and writes the answer to the spec's stage record. That decision is
+ *         ABOUT this station, so this station shows it: an undrawn spec that
+ *         somebody deliberately sent past reads "Design skipped on purpose"
+ *         rather than "nothing drawn yet", which are opposite facts. `?focus=`
+ *         lands a handoff from Plan on the right spec instead of on the list.
  *
  * 4. WHAT IS ONE CLICK AWAY. The brand ledger with its import, paste and
  *    defaults machinery stays in Settings. Every prototype ever made stays on
@@ -185,9 +192,21 @@ type Trace = {
  *  the exception worth surfacing in a list; everything else describes itself. */
 function rowSub(r: DesignWorkRow, gateOn: boolean): string {
   if (!r.drawing) {
+    // A SKIP IS A DECISION AND SAYS SO. Without this line an undrawn spec that
+    // somebody deliberately sent past Design is indistinguishable from one
+    // nobody has got to yet, and those are opposite facts: the first is settled
+    // and the second is waiting on the crew.
+    if (r.route?.route === "direct") {
+      return `Design skipped on purpose · ${new Date(r.route.at).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+      })}`;
+    }
     return gateOn && r.gateStatus === "approved"
       ? "Nothing drawn. The gate is already approved"
-      : "Nothing drawn yet";
+      : r.route?.route === "design"
+        ? "Handed here to be drawn"
+        : "Nothing drawn yet";
   }
   if (r.rulesSince > 0) {
     return `Drawn before ${r.rulesSince} ${r.rulesSince === 1 ? "rule" : "rules"} now in force`;
@@ -301,10 +320,13 @@ function Design() {
   // Derived, never an effect: the surface opens on the thing you came to judge,
   // and a click just overrides it. An effect would fight the query on refetch.
   const [picked, setPicked] = React.useState<string | null>(null);
+  // The spec a handoff sent you here to look at, when one did. It ranks below a
+  // click (you are looking at something else now) and above the list's default.
+  const sent = Route.useSearch().focus ?? null;
   // A pick that is no longer in the list falls back rather than opening a
   // detail view of something that is gone.
-  const focusId =
-    (picked && items.some((i) => i.prdId === picked) ? picked : items[0]?.prdId) ?? null;
+  const inList = (id: string | null) => Boolean(id && items.some((i) => i.prdId === id));
+  const focusId = (inList(picked) ? picked : inList(sent) ? sent : items[0]?.prdId) ?? null;
 
   const item = useQuery({
     queryKey: ["design-work-item", focusId],
@@ -879,6 +901,34 @@ function Design() {
 
               {focus.drawing ? <Grounding prdId={focus.prdId} /> : null}
 
+              {/* THE ROUTE, WHERE THE DESIGN STATION CAN SEE IT. Somebody
+                  decided on Plan whether this spec passes through here, and
+                  that decision was invisible to the station it was made about.
+                  Read from the spec's own stage record, never inferred from the
+                  absence of a drawing. */}
+              {focus.route ? (
+                <Line
+                  label={
+                    focus.route.route === "direct"
+                      ? "This spec was sent past Design"
+                      : "This spec was handed here"
+                  }
+                  sub={
+                    focus.route.route === "direct"
+                      ? `Someone chose to build it without a screen on ${new Date(
+                          focus.route.at,
+                        ).toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "short",
+                        })}. Drawing one now puts it back in front of the gate.`
+                      : `Routed here on ${new Date(focus.route.at).toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "short",
+                        })} to be drawn before Build.`
+                  }
+                />
+              ) : null}
+
               <Actions
                 trailing={
                   focus.drawing ? (
@@ -1044,6 +1094,19 @@ function Design() {
 }
 
 export const Route = createFileRoute("/_authenticated/design")({
+  /**
+   * `?focus=<specId>` opens on one spec.
+   *
+   * Added with the Plan route picker: "Hand it to Design" is a handoff, and a
+   * handoff that lands you on a list of forty drawings and leaves you to find
+   * the one you just sent is a dead end wearing a navigation's clothes.
+   * Optional, so every existing link into /design behaves exactly as before,
+   * and a stale id falls back to the list's own first pick rather than opening
+   * a detail view of nothing.
+   */
+  validateSearch: (search: Record<string, unknown>): { focus?: string } => ({
+    focus: typeof search.focus === "string" && search.focus ? search.focus : undefined,
+  }),
   component: Design,
   head: () => ({ meta: [{ title: "Design · Supaprod" }] }),
   errorComponent: ({ error }) => {

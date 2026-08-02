@@ -139,6 +139,7 @@ import { Route as ApiPublicHooksPromptOptimizeTickRouteImport } from './routes/a
 import { Route as ApiPublicHooksOutcomeTickRouteImport } from './routes/api/public/hooks/outcome-tick'
 import { Route as ApiPublicHooksMemoryTickRouteImport } from './routes/api/public/hooks/memory-tick'
 import { Route as ApiPublicHooksLoopTickRouteImport } from './routes/api/public/hooks/loop-tick'
+import { Route as ApiPublicHooksLivenessTickRouteImport } from './routes/api/public/hooks/liveness-tick'
 import { Route as ApiPublicHooksIndexerTickRouteImport } from './routes/api/public/hooks/indexer-tick'
 import { Route as ApiPublicHooksHouseRulesTickRouteImport } from './routes/api/public/hooks/house-rules-tick'
 import { Route as ApiPublicHooksGoalTickRouteImport } from './routes/api/public/hooks/goal-tick'
@@ -869,6 +870,12 @@ const ApiPublicHooksLoopTickRoute = ApiPublicHooksLoopTickRouteImport.update({
   path: '/api/public/hooks/loop-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksLivenessTickRoute =
+  ApiPublicHooksLivenessTickRouteImport.update({
+    id: '/api/public/hooks/liveness-tick',
+    path: '/api/public/hooks/liveness-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksIndexerTickRoute =
   ApiPublicHooksIndexerTickRouteImport.update({
     id: '/api/public/hooks/indexer-tick',
@@ -1277,6 +1284,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
+  '/api/public/hooks/liveness-tick': typeof ApiPublicHooksLivenessTickRoute
   '/api/public/hooks/loop-tick': typeof ApiPublicHooksLoopTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
@@ -1452,6 +1460,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
+  '/api/public/hooks/liveness-tick': typeof ApiPublicHooksLivenessTickRoute
   '/api/public/hooks/loop-tick': typeof ApiPublicHooksLoopTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
@@ -1631,6 +1640,7 @@ export interface FileRoutesById {
   '/api/public/hooks/goal-tick': typeof ApiPublicHooksGoalTickRoute
   '/api/public/hooks/house-rules-tick': typeof ApiPublicHooksHouseRulesTickRoute
   '/api/public/hooks/indexer-tick': typeof ApiPublicHooksIndexerTickRoute
+  '/api/public/hooks/liveness-tick': typeof ApiPublicHooksLivenessTickRoute
   '/api/public/hooks/loop-tick': typeof ApiPublicHooksLoopTickRoute
   '/api/public/hooks/memory-tick': typeof ApiPublicHooksMemoryTickRoute
   '/api/public/hooks/outcome-tick': typeof ApiPublicHooksOutcomeTickRoute
@@ -1810,6 +1820,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
+    | '/api/public/hooks/liveness-tick'
     | '/api/public/hooks/loop-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
@@ -1985,6 +1996,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
+    | '/api/public/hooks/liveness-tick'
     | '/api/public/hooks/loop-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
@@ -2163,6 +2175,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/goal-tick'
     | '/api/public/hooks/house-rules-tick'
     | '/api/public/hooks/indexer-tick'
+    | '/api/public/hooks/liveness-tick'
     | '/api/public/hooks/loop-tick'
     | '/api/public/hooks/memory-tick'
     | '/api/public/hooks/outcome-tick'
@@ -2263,6 +2276,7 @@ export interface RootRouteChildren {
   ApiPublicHooksGoalTickRoute: typeof ApiPublicHooksGoalTickRoute
   ApiPublicHooksHouseRulesTickRoute: typeof ApiPublicHooksHouseRulesTickRoute
   ApiPublicHooksIndexerTickRoute: typeof ApiPublicHooksIndexerTickRoute
+  ApiPublicHooksLivenessTickRoute: typeof ApiPublicHooksLivenessTickRoute
   ApiPublicHooksLoopTickRoute: typeof ApiPublicHooksLoopTickRoute
   ApiPublicHooksMemoryTickRoute: typeof ApiPublicHooksMemoryTickRoute
   ApiPublicHooksOutcomeTickRoute: typeof ApiPublicHooksOutcomeTickRoute
@@ -3214,6 +3228,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksLoopTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/liveness-tick': {
+      id: '/api/public/hooks/liveness-tick'
+      path: '/api/public/hooks/liveness-tick'
+      fullPath: '/api/public/hooks/liveness-tick'
+      preLoaderRoute: typeof ApiPublicHooksLivenessTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/indexer-tick': {
       id: '/api/public/hooks/indexer-tick'
       path: '/api/public/hooks/indexer-tick'
@@ -3810,6 +3831,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksGoalTickRoute: ApiPublicHooksGoalTickRoute,
   ApiPublicHooksHouseRulesTickRoute: ApiPublicHooksHouseRulesTickRoute,
   ApiPublicHooksIndexerTickRoute: ApiPublicHooksIndexerTickRoute,
+  ApiPublicHooksLivenessTickRoute: ApiPublicHooksLivenessTickRoute,
   ApiPublicHooksLoopTickRoute: ApiPublicHooksLoopTickRoute,
   ApiPublicHooksMemoryTickRoute: ApiPublicHooksMemoryTickRoute,
   ApiPublicHooksOutcomeTickRoute: ApiPublicHooksOutcomeTickRoute,
