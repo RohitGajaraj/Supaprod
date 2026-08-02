@@ -562,6 +562,7 @@ export type Database = {
           status: string
           step_index: number
           tokens_used: number
+          track_id: string | null
           user_id: string
           workspace_id: string | null
         }
@@ -588,6 +589,7 @@ export type Database = {
           status?: string
           step_index?: number
           tokens_used?: number
+          track_id?: string | null
           user_id: string
           workspace_id?: string | null
         }
@@ -614,10 +616,18 @@ export type Database = {
           status?: string
           step_index?: number
           tokens_used?: number
+          track_id?: string | null
           user_id?: string
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_runs_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "spine_tracks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_runs_workspace_id_fkey"
             columns: ["workspace_id"]
@@ -7108,6 +7118,7 @@ export type Database = {
           spend_used_usd: number
           station: string
           status: string
+          theme_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -7130,6 +7141,7 @@ export type Database = {
           spend_used_usd?: number
           station?: string
           status?: string
+          theme_id?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -7152,13 +7164,22 @@ export type Database = {
           spend_used_usd?: number
           station?: string
           status?: string
+          theme_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
           waived?: Json
           workspace_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "spine_tracks_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stage_events: {
         Row: {
