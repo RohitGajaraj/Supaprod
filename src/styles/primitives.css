@@ -638,6 +638,24 @@
   display: flex;
   gap: 14px;
   margin-top: 4px;
+  /* Neutralised on the base rule so the div and the button are pixel identical
+   * and a record does not reflow the moment the decision it cites becomes
+   * openable. */
+  width: 100%;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+/* Only a button lights up, same law as button.sp-cell. The record already
+ * carries a slow lamp gradient, so the hover is a quiet lift of the ground
+ * underneath it rather than a second moving thing competing with the lamp. */
+button.sp-record {
+  cursor: pointer;
+}
+button.sp-record:hover,
+button.sp-record:focus-visible {
+  background: color-mix(in oklab, var(--sp-sink) 92%, var(--sp-ink));
 }
 /* It breathes once every eight seconds. Slow enough to be felt, not watched. */
 @keyframes sp-lamp {
@@ -745,9 +763,28 @@
   gap: 10px;
   align-items: flex-start;
   padding: var(--sp-space-2) 0;
+  /* Neutralised here rather than under a button selector, so the button and the
+   * div render identically and a row does not shift when it gains a door. */
+  width: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 .sp-ctx-row + .sp-ctx-row {
   border-top: 1px solid var(--sp-line-soft);
+}
+/* Only a button lights up. A hover state on something that does nothing is a
+ * lie about what will happen, which is the same rule button.sp-cell follows.
+ * The tint is drawn inside the row's own padding so the context column keeps
+ * its hairline rhythm. */
+button.sp-ctx-row {
+  cursor: pointer;
+}
+button.sp-ctx-row:hover,
+button.sp-ctx-row:focus-visible {
+  background: color-mix(in oklab, transparent 92%, var(--sp-ink));
 }
 /* Both are their own line. As inline spans they ran together into
  * "PrioritizeThis workspace", which is the kind of defect that only shows up

@@ -38,6 +38,7 @@ import {
   Block,
   Button,
   Empty,
+  Failed,
   Gate,
   Num,
   PageHead,
@@ -340,7 +341,19 @@ function Today() {
             Snooze
           </Button>
         </Gate>
-      ) : loading ? null : (
+      ) : loading ? null : queue.isError ? (
+        // A failed read is not an empty queue. `items` falls back to [] on error,
+        // so without this branch the front door told a user "Nothing is waiting on
+        // you" at the exact moment it had no idea what was waiting. That is the
+        // worst sentence in the product to get wrong: it is the one thing Today
+        // exists to say, and being confidently wrong about it teaches the user
+        // that the surface cannot be trusted when it is quiet.
+        <Gate question="Cannot reach the queue right now.">
+          <Failed onRetry={() => queue.refetch()}>
+            Your calls are safe, this screen just could not load them.
+          </Failed>
+        </Gate>
+      ) : (
         <Gate question="Nothing is waiting on you.">
           <Button variant="ghost" onClick={() => navigate({ to: "/runs" })}>
             Look at the runs
@@ -367,7 +380,13 @@ function Today() {
         more={rows.length ? `All ${rows.length} runs` : undefined}
         onMore={() => navigate({ to: "/runs" })}
       >
-        {loading ? null : done.length === 0 ? (
+        {loading ? null : missions.isError ? (
+          // Same rule as the Gate above: a read that failed must not be reported
+          // as a day where nothing happened.
+          <Failed onRetry={() => missions.refetch()}>
+            Could not load what the crew finished.
+          </Failed>
+        ) : done.length === 0 ? (
           <Empty>
             Nothing finished in the last day. The crew picks work up on its own, so this fills in as
             runs land.
@@ -376,7 +395,22 @@ function Today() {
           done.slice(0, 6).map((m) => (
             <Row
               key={m.id}
-              marks={<AgentMark slug={null} name={m.build_driver} state="idle" />}
+              // Every run on this block rendered state="idle", so MarkState
+              // "verified" existed solely to show a win and was never once used:
+              // Today could shout a loss and had no way to show a success.
+              marks={
+                <AgentMark
+                  slug={null}
+                  name={m.build_driver}
+                  state={
+                    m.status === "failed"
+                      ? "failed"
+                      : m.status === "completed_with_failures"
+                        ? "idle"
+                        : "verified"
+                  }
+                />
+              }
               lead={<Who>{m.title}</Who>}
               sub={
                 <>
@@ -386,8 +420,18 @@ function Today() {
                       {" · "}
                     </>
                   ) : null}
-                  {m.status === "failed" || m.status === "completed_with_failures" ? (
-                    <span className="sp-fail">{m.status === "failed" ? "failed" : "partial"}</span>
+                  {/* Three outcomes, three tones. A partial used to be painted in
+                      the same red as an outright failure, which taught the eye to
+                      read "some of it landed" as "none of it landed"; warn is
+                      exactly what a partial is. A clean run used to render the raw
+                      database word in body grey, so the one thing worth celebrating
+                      was also the least visible thing on the row. */}
+                  {m.status === "failed" ? (
+                    <span className="sp-fail">failed</span>
+                  ) : m.status === "completed_with_failures" ? (
+                    <span className="sp-warn">partial</span>
+                  ) : m.status === "completed" ? (
+                    <span className="sp-pass">done</span>
                   ) : (
                     m.status
                   )}

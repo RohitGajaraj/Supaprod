@@ -561,21 +561,44 @@ export function Receipt({
 export function Record({
   children,
   evidence,
+  onClick,
+  title,
 }: {
   /** What the record says. It contradicts you or it confirms you; either way
    *  it is a claim, not a statistic. */
   children: React.ReactNode;
   /** What backs it. Counts and dates, in mono. */
   evidence?: React.ReactNode;
+  /** Absent when nothing happens on click, same law as `Cell`. Present when the
+   *  claim names a prior decision the reader can open, which is the usual case:
+   *  a record that says "you decided this before and it missed" is the strongest
+   *  sentence on the surface, and until this existed there was no way to go read
+   *  the decision it was talking about. */
+  onClick?: () => void;
+  title?: string;
 }) {
-  return (
-    <div className="sp-record">
+  const body = (
+    <>
       <span className="sp-record-mark" aria-hidden="true" />
       <span className="sp-record-body">
         <span className="sp-record-text">{children}</span>
         {evidence ? <span className="sp-record-evidence">{evidence}</span> : null}
       </span>
-    </div>
+    </>
+  );
+
+  if (!onClick) {
+    return (
+      <div className="sp-record" title={title}>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <button type="button" className="sp-record" title={title} onClick={onClick}>
+      {body}
+    </button>
   );
 }
 
@@ -1176,19 +1199,44 @@ export function CtxRow({
   mark,
   name,
   sub,
+  onClick,
+  title,
 }: {
   mark?: React.ReactNode;
   name: React.ReactNode;
   sub?: React.ReactNode;
+  /** Absent when nothing happens on click, exactly as on `Cell`: an affordance is
+   *  a promise, so a context row that leads nowhere stays a div and never lights
+   *  up under the cursor. Present when the row names something with an address of
+   *  its own, which is most of them: a source that stopped delivering, a quote
+   *  that came from a real ticket, a rule that shaped a drawing. Until this
+   *  existed the entire context column was inert by construction, and every
+   *  surface that used it inherited that dead end. */
+  onClick?: () => void;
+  title?: string;
 }) {
-  return (
-    <div className="sp-ctx-row">
+  const body = (
+    <>
       {mark}
       <span>
         <span className="sp-ctx-name">{name}</span>
         {sub ? <span className="sp-ctx-sub">{sub}</span> : null}
       </span>
-    </div>
+    </>
+  );
+
+  if (!onClick) {
+    return (
+      <div className="sp-ctx-row" title={title}>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <button type="button" className="sp-ctx-row" title={title} onClick={onClick}>
+      {body}
+    </button>
   );
 }
 
