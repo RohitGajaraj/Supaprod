@@ -44,6 +44,32 @@ describe("recordErrorEvent (SW-6 in-house failure floor)", () => {
     expect(typeof row.stack).toBe("string");
   });
 
+  it("keeps failure_kind on the in-house floor, not only in the Sentry tags", async () => {
+    // It used to be dropped here, so the taxonomy reached only the vendor half,
+    // which has no key. The floor is the half that always runs.
+    const client = fakeClient();
+    await recordErrorEvent(new Error("gateway 500"), { failure_kind: "model_error" }, { client });
+    expect((client.inserted[0].extras as Record<string, unknown>).failure_kind).toBe("model_error");
+  });
+
+  it("merges failure_kind with caller extras rather than replacing them", async () => {
+    const client = fakeClient();
+    await recordErrorEvent(
+      new Error("boom"),
+      { failure_kind: "timeout", extras: { model: "google/gemini-2.5-flash" } },
+      { client },
+    );
+    const extras = client.inserted[0].extras as Record<string, unknown>;
+    expect(extras.failure_kind).toBe("timeout");
+    expect(extras.model).toBe("google/gemini-2.5-flash");
+  });
+
+  it("leaves extras null when there is neither a kind nor a payload", async () => {
+    const client = fakeClient();
+    await recordErrorEvent(new Error("boom"), {}, { client });
+    expect(client.inserted[0].extras).toBeNull();
+  });
+
   it("wraps non-Error throwables so nothing is lost", async () => {
     const client = fakeClient();
     const ok = await recordErrorEvent("plain string failure", {}, { client });

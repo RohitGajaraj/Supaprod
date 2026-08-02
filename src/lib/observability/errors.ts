@@ -88,7 +88,19 @@ export async function recordErrorEvent(
       user_id: ctx.user_id ?? null,
       workspace_id: ctx.workspace_id ?? null,
       deployment_id: env.CF_VERSION_METADATA_ID?.trim() || null,
-      extras: ctx.extras ?? null,
+      // AFD-04 fix, 2026-08-02: `failure_kind` was accepted by ErrorContext,
+      // forwarded to the Sentry tags, and then dropped on the floor here. The
+      // floor is the half that is ALWAYS on and Sentry is the half that has no
+      // key, so the taxonomy was reaching only the store that never runs. It
+      // rides in `extras` because that column already exists and this needs no
+      // migration; `extras->>'failure_kind'` is the query.
+      extras:
+        ctx.failure_kind || ctx.extras
+          ? {
+              ...(ctx.extras ?? {}),
+              ...(ctx.failure_kind ? { failure_kind: ctx.failure_kind } : {}),
+            }
+          : null,
     });
     return !error;
   } catch {

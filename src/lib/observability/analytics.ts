@@ -25,7 +25,15 @@ export type TrackEvent =
   | "landing_visit"
   | "waitlist_join"
   | "referral_share"
-  | "demo_click";
+  | "demo_click"
+  // AFD-04 auth boundary. The funnel's real entry, and it had nothing until
+  // 2026-08-02. See ./auth.functions.ts for why no first-party row is written.
+  | "signup_completed"
+  | "login_succeeded"
+  // AFD-04 chokepoint. NOT one event per AI call: ai_events is the ledger and
+  // duplicating it per call would cost a vendor round trip on the hot path for
+  // a worse copy of what we already store. Only a refusal crosses. See ./gates.ts.
+  | "ai_gate_fired";
 
 export type TrackProps = Record<string, string | number | boolean | null | undefined>;
 

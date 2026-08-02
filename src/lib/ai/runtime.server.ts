@@ -36,6 +36,11 @@ import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retrie
 import { resolvePrompt, logPromptRun, withHumanizeDirective } from "./prompts.server";
 import { humanizeText, isFenceOpen } from "./humanize";
 import { entitlementsFor, normalizePlanTier } from "../entitlements";
+// AFD-04, the refusal half. Telemetry only: these fill ai_events.error_code
+// (a column that has existed since the first schema and was written by nothing)
+// and forward a refusal, never a completed call, to the product-analytics
+// facade. No AI behaviour reads them. See ../observability/gates.ts.
+import { GATE_CODES, classifyFailureCode, noteGate, type GateCode } from "../observability/gates";
 
 import {
   generateCacheKey,
@@ -307,7 +312,10 @@ async function logGovernanceHalt(
       est_cost_usd: 0,
       latency_ms: 0,
       status: "blocked",
-      error_message: `governance_halt:${err.kind} — ${err.message}`,
+      // AFD-04: the typed half of the same fact. error_message stays the human
+      // sentence; error_code is what "which gate stops the most work" groups by.
+      error_code: GATE_CODES[err.kind],
+      error_message: `governance_halt:${err.kind}: ${err.message}`,
       input_preview: (opts.messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
       system_preview: (opts.messages.find((m) => m.role === "system")?.content ?? "").slice(
         0,
@@ -318,6 +326,14 @@ async function logGovernanceHalt(
   } catch (e) {
     console.error("governance_halt event insert failed:", e);
   }
+  // AFD-04 vendor forward. Fire and forget, no-op with no PostHog key.
+  void noteGate(GATE_CODES[err.kind], {
+    userId,
+    surface: opts.surface,
+    model: opts.model,
+    workspaceId: opts.workspaceId ?? null,
+    runId: opts.runId ?? null,
+  });
   if (opts.runId) {
     try {
       await supabase.rpc("halt_agent_run", {
@@ -1028,6 +1044,7 @@ async function insertBlockedCreditEvent(
   userId: string,
   opts: CallOpts,
   errorMessage: string,
+  code: GateCode,
 ): Promise<void> {
   try {
     await supabase.from("ai_events").insert({
@@ -1048,6 +1065,7 @@ async function insertBlockedCreditEvent(
       est_cost_usd: 0,
       latency_ms: 0,
       status: "blocked",
+      error_code: code,
       error_message: errorMessage,
       input_preview: (opts.messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
       system_preview: "",
@@ -1056,6 +1074,13 @@ async function insertBlockedCreditEvent(
   } catch (e) {
     console.error("blocked credit event insert failed:", e);
   }
+  void noteGate(code, {
+    userId,
+    surface: opts.surface,
+    model: opts.model,
+    workspaceId: opts.workspaceId ?? null,
+    runId: opts.runId ?? null,
+  });
 }
 
 async function logCreditExhausted(
@@ -1071,6 +1096,7 @@ async function logCreditExhausted(
     userId,
     opts,
     `credit_exhausted: account ${accountId} balance ${balance} below projected ${projected}`,
+    GATE_CODES.credit_exhausted,
   );
 }
 
@@ -1102,6 +1128,9 @@ async function logAmbientDowngrade(
       est_cost_usd: 0,
       latency_ms: 0,
       status: "ok",
+      // Not a block, still a refusal of what was asked for: the model the
+      // caller wanted was swapped for the free floor. It counts in gate pressure.
+      error_code: GATE_CODES.ambient_downgrade,
       error_message: `ambient_downgrade: account ${accountId} balance ${balance} below projected ${projected}, routed to free floor`,
       input_preview: "",
       system_preview: "",
@@ -1110,6 +1139,13 @@ async function logAmbientDowngrade(
   } catch (e) {
     console.error("ambient downgrade event insert failed:", e);
   }
+  void noteGate(GATE_CODES.ambient_downgrade, {
+    userId,
+    surface: opts.surface,
+    model: opts.model,
+    workspaceId: opts.workspaceId ?? null,
+    runId: opts.runId ?? null,
+  });
 }
 
 /**
@@ -1278,6 +1314,7 @@ async function assertCreditCaps(
         userId,
         opts,
         `credit_cap_reached: ${cap.scope} ${cap.target_id} spent ${spent} of ${cap.cap_credits}`,
+        GATE_CODES.credit_cap,
       );
       throw new CreditCapError(
         accountId,
@@ -1853,7 +1890,14 @@ export async function callModel(
         total_tokens: totalTok,
         est_cost_usd: est,
         latency_ms: providerOut.latency,
+        // ttft_ms stays null here on purpose. This is the awaited path: there
+        // is no first token, only a whole response, so any number written here
+        // would be latency wearing a second name. The streaming path below
+        // measures it for real.
         status,
+        // AFD-04: the same taxonomy agent_runs.failure_kind uses, now recorded
+        // for EVERY failed call and not only the ones that belong to a run.
+        error_code: status === "error" ? classifyFailureKind(errMsg) : null,
         error_message: errMsg ?? null,
         input_preview: (messages.find((m) => m.role === "user")?.content ?? "").slice(0, 500),
         system_preview: (messages.find((m) => m.role === "system")?.content ?? "").slice(0, 4000),
@@ -1937,27 +1981,11 @@ export async function callModel(
 
   /**
    * AFD-06: heuristic mapping of AI-call error strings to the agent_runs.failure_kind taxonomy.
-   * Keep cheap & string-based — the goal is rough categorisation for dashboards, not certainty.
+   * The rules moved to src/lib/observability/gates.ts unchanged, so the streaming path and the
+   * read side can name the same list. Same inputs, same strings, same column.
    */
   function classifyFailureKind(errMsg: string | null | undefined): string {
-    const m = (errMsg ?? "").toLowerCase();
-    if (!m) return "unknown";
-    if (m.includes("timeout") || m.includes("timed out")) return "timeout";
-    if (m.includes("aborted") || m.includes("cancelled") || m.includes("canceled"))
-      return "user_aborted";
-    if (
-      m.includes("budget") ||
-      m.includes("cap") ||
-      m.includes("credits exhausted") ||
-      m.includes("402")
-    )
-      return "budget_kill";
-    if (m.includes("guardrail") || m.includes("blocked")) return "guardrail_block";
-    if (m.includes("injection") || m.includes("prompt injection")) return "injection_block";
-    if (m.includes("rls") || m.includes("permission denied") || m.includes("forbidden"))
-      return "rls_denied";
-    if (m.includes("tool") || m.includes("function call")) return "tool_error";
-    return "model_error";
+    return classifyFailureCode(errMsg);
   }
 
   let parsedJson: unknown = undefined;
@@ -2032,6 +2060,10 @@ export async function logAiEvent(
         est_cost_usd: est,
         latency_ms: evt.latency_ms ?? 0,
         status: evt.status ?? "ok",
+        // AFD-04: classify here too, so a stream that died before its first
+        // byte lands in the same taxonomy as everything else.
+        error_code:
+          (evt.status ?? "ok") === "error" ? classifyFailureCode(evt.error_message) : null,
         error_message: evt.error_message ?? null,
         input_preview: (evt.input_preview ?? "").slice(0, 500),
         system_preview: (evt.system_preview ?? "").slice(0, 4000),
@@ -2273,6 +2305,19 @@ export async function callModelStream(
   let response: Response | null = null;
   let lastErr: unknown = null;
 
+  // ai_events.ttft_ms, written for the first time. The column has existed since
+  // migration 20260522001642 and nothing has ever filled it, which is why
+  // AnalyticsPanel omits the datum. Time to first token is measured from the
+  // moment the first request leaves, retries and provider fallback included,
+  // because that is the wait a person actually sits through. Note the two
+  // clocks differ on purpose: latency_ms below is the stream read window, timed
+  // from response headers, so on a very short stream ttft_ms can exceed it.
+  const tDispatch = Date.now();
+  let ttftMs: number | null = null;
+  const markFirstToken = () => {
+    if (ttftMs === null) ttftMs = Date.now() - tDispatch;
+  };
+
   for (let i = 0; i <= maxRetries; i++) {
     try {
       response = await attemptStream(effectiveModel);
@@ -2391,6 +2436,7 @@ export async function callModelStream(
                 const parsed = JSON.parse(payload);
                 if (parsed.type === "content_block_delta" && parsed.delta?.text) {
                   const piece = parsed.delta.text;
+                  markFirstToken();
                   assistantText += piece;
                   emitContent(humanizeStream ? humanizer.push(piece) : piece);
                 } else if (parsed.type === "message_start" && parsed.message?.usage) {
@@ -2419,6 +2465,7 @@ export async function callModelStream(
                 const parsed = JSON.parse(payload);
                 const piece = parsed.choices?.[0]?.delta?.content;
                 if (piece) {
+                  markFirstToken();
                   assistantText += piece;
                   if (humanizeStream) emitContent(humanizer.push(piece));
                 }
@@ -2486,7 +2533,13 @@ export async function callModelStream(
               total_tokens: inTok + outTok,
               est_cost_usd: estCost,
               latency_ms: finalLatency,
+              // Null when no token ever arrived, which is itself the fact: the
+              // stream opened and produced nothing.
+              ttft_ms: ttftMs,
               status: hits.some((h) => h.action === "block") ? "blocked" : "ok",
+              error_code: hits.some((h) => h.action === "block")
+                ? GATE_CODES.guardrail_block
+                : null,
               error_message: hits.some((h) => h.action === "block")
                 ? `Blocked by guardrail: ${hits.find((h) => h.action === "block")?.rule_name}`
                 : null,
@@ -2501,6 +2554,16 @@ export async function callModelStream(
             .single();
 
           const eventId = (evt as { id: string } | null)?.id ?? null;
+
+          if (hits.some((h) => h.action === "block")) {
+            void noteGate(GATE_CODES.guardrail_block, {
+              userId,
+              surface: opts.surface,
+              model: modelUsed,
+              workspaceId: opts.workspaceId ?? null,
+              runId: opts.runId ?? null,
+            });
+          }
 
           if (hits.length && eventId) {
             await supabase.from("guardrail_hits").insert(

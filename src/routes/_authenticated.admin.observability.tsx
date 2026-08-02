@@ -86,6 +86,19 @@
  *    The page is now composed rather than written straight through, so a failed
  *    health read no longer takes liveness down with it. They are two reads and
  *    two verdicts, and one failing must not blank the other.
+ *
+ * 8. GATE PRESSURE, ADDED 2026-08-02 WITH AFD-04.
+ *    Liveness answers "is this executing". The block below answers the next
+ *    question, and it is the one the governance canon needs an answer to before
+ *    it can offer to remove a gate: when the machine DOES execute, what stops
+ *    it. Every refusal at the AI chokepoint already wrote a row; the reason was
+ *    prose in error_message and the typed column beside it (error_code, in the
+ *    schema since the first migration) was blank on every row ever written.
+ *    It is filled now, so this is a GROUP BY and not a text search.
+ *    It sits BELOW what failed, not above it, on purpose. A gate firing is the
+ *    product working: a cap held, a kill switch held, a guardrail held. It is
+ *    only news in aggregate, when one gate is doing all the stopping, which is
+ *    a policy set wrong rather than a thing that broke.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -140,6 +153,37 @@ function whenText(iso: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso.slice(0, 16).replace("T", " ") : d.toLocaleString();
 }
+
+/**
+ * The stored code, said the way the person who set the boundary would say it.
+ * Anything unmapped falls back to the code with its underscores opened out, so
+ * a new code added at the chokepoint shows up here readable on the first run
+ * rather than waiting for somebody to remember this list.
+ */
+const GATE_WORD: Record<string, string> = {
+  gate_kill_switch: "The kill switch",
+  gate_mission_token_cap: "The mission token ceiling",
+  gate_mission_spend_cap: "The mission spend ceiling",
+  gate_credit_exhausted: "An empty credit pool",
+  gate_credit_cap: "A credit cap for this cycle",
+  gate_ambient_downgrade: "Background work dropped to the free model",
+  gate_guardrail_block: "A guardrail rule",
+};
+
+function gateName(code: string): string {
+  return GATE_WORD[code] ?? code.replace(/^gate_/, "").replaceAll("_", " ");
+}
+
+/** What a gate firing means, so a count is never left to be guessed at. */
+const GATE_MEANING: Record<string, string> = {
+  gate_kill_switch: "Someone paused the system or a workspace, and calls stopped there",
+  gate_mission_token_cap: "A mission reached the token ceiling it was given",
+  gate_mission_spend_cap: "A mission reached the spend ceiling it was given",
+  gate_credit_exhausted: "The account had no credits left to cover the call",
+  gate_credit_cap: "A per-product or per-user cap for this cycle was already used up",
+  gate_ambient_downgrade: "Self-started background work ran on the free model instead of stopping",
+  gate_guardrail_block: "A safety rule blocked what the model produced",
+};
 
 /* ------------------------------------------------------------------ *
  * Feature liveness
@@ -414,6 +458,23 @@ function MachineHealth() {
           .filter(Boolean)
           .join(", ");
 
+  // ---- What stopped work ---------------------------------------------------
+  // Refusals the product chose are read separately from calls that simply
+  // failed, because you act differently on each: a gate firing a lot is a
+  // boundary set wrong, a failure kind repeating is something broken.
+  const gatesFired = s.gatePressure.filter((g) => g.isGate);
+  const callFailures = s.gatePressure.filter((g) => !g.isGate);
+  const gatesTotal = gatesFired.reduce((sum, g) => sum + g.count, 0);
+  const topGate = gatesFired[0];
+  const gateVerdict =
+    s.gatePressure.length === 0
+      ? "Nothing has been stopped or refused"
+      : gatesTotal === 0
+        ? `No work was refused, and ${callFailures.reduce((n, g) => n + g.count, 0)} calls failed on their own`
+        : topGate && topGate.count >= gatesTotal * 0.6 && gatesFired.length > 1
+          ? `${gateName(topGate.code)} is doing most of the stopping`
+          : `${gatesTotal} call${gatesTotal === 1 ? " was" : "s were"} refused in the last 7 days`;
+
   // ---- Who is watching -----------------------------------------------------
   const vendors = [
     {
@@ -517,6 +578,49 @@ function MachineHealth() {
                 lead={f.failure_kind.replaceAll("_", " ")}
                 sub="Agent runs that ended this way in the last 7 days"
                 time={String(f.count)}
+              />
+            ))}
+          </>
+        )}
+      </Block>
+
+      <Block
+        title={gateVerdict}
+        sub="A gate firing is the product working, so this is only news in aggregate. One boundary doing all the stopping is a policy set wrong, and that is the read this block exists for."
+      >
+        {s.gatePressure.length === 0 ? (
+          <Empty>
+            No call was refused and none failed in the last 7 days. This stays empty for as long as
+            every boundary holds without ever being reached.
+          </Empty>
+        ) : (
+          <>
+            {gatesFired.map((g) => (
+              <Row
+                key={g.code}
+                tight
+                lead={gateName(g.code)}
+                sub={
+                  <>
+                    {GATE_MEANING[g.code] ?? "Work was refused with this code"}
+                    {g.lastAt ? ` · last ${whenText(g.lastAt)}` : null}
+                  </>
+                }
+                time={String(g.count)}
+              />
+            ))}
+            {callFailures.map((g) => (
+              <Row
+                key={g.code}
+                tight
+                lead={
+                  <>
+                    {g.code.replaceAll("_", " ")}
+                    <span className="sp-fail"> · failed</span>
+                  </>
+                }
+                sub="An AI call that failed on its own rather than being refused"
+                time={String(g.count)}
               />
             ))}
           </>

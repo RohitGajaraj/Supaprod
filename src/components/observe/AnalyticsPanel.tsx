@@ -53,7 +53,13 @@
  * covers the window (ai_budgets daily cap on 24h, monthly cap on 30d), and it
  * is now additive rather than replacing the run count, so a failed budget read
  * can never quietly swap one fact for another. The reference's "ttft"
- * sub-datum stays omitted: ai_events.ttft_ms is never written.
+ * sub-datum stays omitted, and the reason CHANGED on 2026-08-02: ttft_ms used
+ * to be written by nothing at all, and is now written by the streaming path in
+ * callModelStream. It is still omitted here because it is only meaningful for a
+ * streamed call, so an average over this panel's window would silently mix
+ * streamed rows with awaited ones that carry no first token. Adding it needs a
+ * "streamed only" qualifier on the datum, which is a design decision, not a
+ * missing column.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";

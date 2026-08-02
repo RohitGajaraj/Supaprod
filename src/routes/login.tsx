@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
+import { recordAuthEvent } from "@/lib/observability/auth.functions";
 
 // Sign-in on the shared dark auth scaffold (auth_surfaces pass). The REAL auth
 // flow is unchanged (Supabase password + Lovable Google OAuth); this pass is
@@ -74,6 +75,12 @@ function LoginPage() {
       return toast.error(msg);
     }
     toast.success("Welcome back");
+    // AFD-04: the funnel's actual entry, and it had nothing until now. Fire and
+    // forget so a sign-in never waits on telemetry; the navigation below may cut
+    // the request short, which is acceptable for an analytics forward and would
+    // never be acceptable for a ledger write. The in-house record of this login
+    // is auth.users.last_sign_in_at, which Supabase has already written.
+    void recordAuthEvent({ data: { event: "login_succeeded", method: "password" } });
     // Always a full browser navigation, never the SPA transition. The SPA
     // path was observed live (SW-7 step-0 rerun, 2026-07-09) hanging as an
     // empty Suspense tree mid gate-redirect (/ -> /onboarding) on fresh

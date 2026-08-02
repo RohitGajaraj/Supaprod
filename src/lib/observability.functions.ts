@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { readObservabilityConfig } from "@/lib/observability/config";
+import { isGateCode } from "@/lib/observability/gates";
 import { EXPECTED_JOBS } from "@/lib/observability/jobs";
 
 export type ObservabilityStatus = {
@@ -28,6 +29,14 @@ export type ObservabilityStatus = {
     error_message: string | null;
   }>;
   failureBreakdown: Array<{ failure_kind: string; count: number }>;
+  /**
+   * AFD-04 gate pressure: what stopped work at the AI chokepoint in the last 7
+   * days, counted by the typed code now written into ai_events.error_code.
+   * A `gate_*` code is a refusal the product chose (kill switch, a cap, a
+   * guardrail); anything else is a failure kind from the same vocabulary
+   * agent_runs.failure_kind uses. Always on, no vendor key involved.
+   */
+  gatePressure: Array<{ code: string; count: number; isGate: boolean; lastAt: string | null }>;
   /** SW-6 cron watchdog: expected-vs-actual per job, stale first. */
   cronHealth: Array<{
     job: string;
@@ -85,7 +94,8 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
     // The DB function is the source of truth for the gate.
     const { data: gate } = await context.supabase.rpc("observability_enabled");
 
-    const [{ data: jobs }, { data: failures }] = await Promise.all([
+    const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+    const [{ data: jobs }, { data: failures }, { data: gates }] = await Promise.all([
       supabaseAdmin
         .from("job_runs")
         .select("id, job_name, status, started_at, duration_ms, error_kind, error_message")
@@ -95,7 +105,18 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
         .from("agent_runs")
         .select("failure_kind")
         .not("failure_kind", "is", null)
-        .gte("created_at", new Date(Date.now() - 7 * 86400_000).toISOString())
+        .gte("created_at", sevenDaysAgo)
+        .limit(5000),
+      // AFD-04 gate pressure. Same window and same shape as the failure read
+      // above, and deliberately a separate count rather than a union with it:
+      // agent_runs counts RUNS that ended badly, this counts CALLS the product
+      // refused, and most refusals never belong to a run at all.
+      supabaseAdmin
+        .from("ai_events")
+        .select("error_code, created_at")
+        .not("error_code", "is", null)
+        .gte("created_at", sevenDaysAgo)
+        .order("created_at", { ascending: false })
         .limit(5000),
     ]);
 
@@ -103,6 +124,16 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
     for (const r of (failures ?? []) as Array<{ failure_kind: string | null }>) {
       const k = r.failure_kind ?? "unknown";
       counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+
+    // Rows arrive newest first, so the first sighting of a code is its latest.
+    const gateCounts = new Map<string, { count: number; lastAt: string | null }>();
+    for (const r of (gates ?? []) as Array<{ error_code: string | null; created_at: string }>) {
+      const code = r.error_code;
+      if (!code) continue;
+      const seen = gateCounts.get(code);
+      if (seen) seen.count += 1;
+      else gateCounts.set(code, { count: 1, lastAt: r.created_at ?? null });
     }
 
     // SW-6 cron watchdog: expected-vs-actual. One indexed 1-row read per
@@ -143,6 +174,9 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
       recentJobRuns: (jobs ?? []) as ObservabilityStatus["recentJobRuns"],
       failureBreakdown: Array.from(counts.entries())
         .map(([failure_kind, count]) => ({ failure_kind, count }))
+        .sort((a, b) => b.count - a.count),
+      gatePressure: Array.from(gateCounts.entries())
+        .map(([code, v]) => ({ code, count: v.count, isGate: isGateCode(code), lastAt: v.lastAt }))
         .sort((a, b) => b.count - a.count),
       cronHealth,
     };

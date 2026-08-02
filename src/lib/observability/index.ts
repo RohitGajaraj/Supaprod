@@ -5,6 +5,15 @@
  */
 export { track, identify, type TrackEvent, type TrackProps } from "./analytics";
 export { captureError, recordErrorEvent, type ErrorContext } from "./errors";
+export {
+  GATE_CODES,
+  classifyFailureCode,
+  isGateCode,
+  noteGate,
+  type GateCode,
+  type GateKind,
+  type GateContext,
+} from "./gates";
 export { heartbeat } from "./uptime";
 export { withJobRun } from "./jobs";
 export { observabilityGateOn, readObservabilityConfig } from "./config";

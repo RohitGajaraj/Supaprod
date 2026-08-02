@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
+import { recordAuthEvent } from "@/lib/observability/auth.functions";
 import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
@@ -152,6 +153,16 @@ function SignupPage() {
     }
     setLoading(false);
     toast.success("Account created");
+    // AFD-04: identify plus the signup event, at the one moment the person has
+    // just become a known account. This is the only place in the product that
+    // calls identify(), so before this every event a PostHog project received
+    // would have been a bare uuid with no traits behind it. Fire and forget;
+    // the in-house record of the account is auth.users.created_at, and the
+    // first workspace still gets its funnel_milestones row from the
+    // trigger_funnel_signup trigger, so nothing here duplicates a ledger.
+    void recordAuthEvent({
+      data: { event: "signup_completed", method: "password", from, plan },
+    });
     // Carry a /pricing purchase intent toward the plan section. First-run
     // accounts detour through /onboarding (the gate always wins); the pick
     // note above told the user where to confirm the plan.
