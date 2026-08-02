@@ -153,6 +153,7 @@ Git-tracked rules every tool follows. One file per rule. Index + how to add: [`c
 
 | File                                                                                      | Decision                                                                                                      |
 | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| [`decisions/lineage-relation-vocabulary.md`](./decisions/lineage-relation-vocabulary.md) | **DECISION NEEDED.** `artifact_lineage.relation` holds sixteen strings for thirteen meanings (two writers, two conventions). Proposal to collapse them, including an endpoint flip on 105 rows, which is why it is here and not in `supabase/migrations/`. Nothing is broken while it waits. |
 | [`decisions/tech-stack.md`](./decisions/tech-stack.md)                                    | Stack choices + keep-vs-change analysis.                                                                      |
 | [`decisions/durable-runtime.md`](./decisions/durable-runtime.md)                          | Durable workflow / runtime choice.                                                                            |
 | [`decisions/analytics-vendor-selection.md`](./decisions/analytics-vendor-selection.md)    | AFD vendor selection (PostHog EU + Sentry EU + Better Stack); BUY commodity, BUILD moat, INTEGRATE at façade. |
