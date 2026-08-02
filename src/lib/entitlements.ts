@@ -45,6 +45,29 @@ export const CREDIT_DROPDOWN_TIERS = [
 export type CreditTier = (typeof CREDIT_DROPDOWN_TIERS)[number];
 
 /** Annual discount factor (pay for ~10 months, get 12 = ~16.7% off). */
+/**
+ * Max is a FIXED monthly price, not a per-credit rate, because it is the only
+ * paid tier with `hasCreditDropdown: false`: there is no band for the buyer to
+ * pick, so there is nothing for a rate to multiply.
+ *
+ * IT LIVES HERE SO THERE IS EXACTLY ONE OF IT. Until 2026-08-02 the number
+ * existed only as the string "from $99/mo" inside planPresentation, and
+ * priceForCredits("max") returned null, so nothing in the product could
+ * reproduce the price it advertised and nothing would have noticed if the two
+ * drifted apart. The copy now renders from this constant.
+ *
+ * WHAT THIS DOES NOT DO, and it is a real open question rather than an
+ * oversight: it does not reconcile the two pricing mechanics that currently
+ * disagree. `entitlements.creditMultiplier` grants max 20x the free base, which
+ * is 15,000 credits a month, and at Pro's published rate of 20 USD per 100
+ * credits that same volume would price at 3,000 USD. So the multiplier model and
+ * the rate model describe different products. Picking which one is real is a
+ * founder decision about the business, not something to infer from the code, and
+ * inventing a base rate here would have buried the contradiction instead of
+ * showing it. See docs/strategy/pricing/.
+ */
+export const MAX_MONTHLY_USD = 99;
+
 export const ANNUAL_DISCOUNT_FACTOR = 10 / 12;
 
 export const PLAN_TIERS: readonly PlanTier[] = [
@@ -341,7 +364,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
       return {
         tier: "max",
         name: "Max",
-        price: "from $99/mo",
+        price: `from $${MAX_MONTHLY_USD}/mo`,
         tagline: "The high credit band for one person. The same product as Pro, with more room.",
         forWhom: "Built for one person running the loop hard. Still one seat, never a small team.",
         hasCreditDropdown: false,

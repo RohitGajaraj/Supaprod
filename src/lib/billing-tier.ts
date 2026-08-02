@@ -10,7 +10,7 @@
  * Single source of truth used by the webhook to flip accounts.plan_tier and by
  * the checkout UI to pick a sensible default bundle for an upgrade.
  */
-import type { PlanTier } from "@/lib/entitlements";
+import { MAX_MONTHLY_USD, type PlanTier } from "@/lib/entitlements";
 
 export function tierFromLookupKey(lookupKey: string | null | undefined): PlanTier | null {
   if (!lookupKey) return null;
@@ -43,6 +43,9 @@ export function priceForCredits(
   credits: number,
   interval: "monthly" | "yearly",
 ): number | null {
+  // Max is a flat price with no band to multiply. Returning null here was why
+  // the advertised number could not be reproduced anywhere in the product.
+  if (tier === "max") return interval === "yearly" ? Math.round(MAX_MONTHLY_USD * (10 / 12)) : MAX_MONTHLY_USD;
   const base = TIER_BASE_MONTHLY_USD[tier as "pro" | "team"];
   if (!base) return null;
   const monthly = base * (credits / 100);
