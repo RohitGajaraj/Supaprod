@@ -25,12 +25,18 @@ export const submitPulse = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const title = `Pulse: ${data.surface.replace("_", " ")} ${data.useful ? "useful" : "not useful"}`;
     const content =
       data.note?.trim() ||
       (data.useful ? "Marked useful, no note." : "Marked not useful, no note.");
     const { error } = await supabase.from("signals").insert({
+      // NOT NULL with no default, and this insert never set it, so the row was
+      // rejected even after the source_kind fix. Two separate faults were
+      // stacked on the same statement and fixing only the visible one left the
+      // widget just as silent, which is the whole argument for the liveness
+      // check that found this: nobody was ever going to notice from the outside.
+      user_id: userId,
       source: "product_pulse",
       // `source_kind` is CHECK-constrained to pull_connector | web_scout |
       // mcp_source | webhook | manual (20260702202247_...sql:59). This wrote
@@ -49,7 +55,18 @@ export const submitPulse = createServerFn({ method: "POST" })
       content,
       sentiment: data.useful ? "positive" : "negative",
       tags: ["product_pulse", data.surface],
-      external_id: `pulse:${data.surface}:${data.targetId}`,
+      // external_id is deliberately NOT set. It was `pulse:<surface>:<targetId>`,
+      // which is identical for every pulse on the same target, so the unique
+      // index on (user_id, workspace_id, external_id) dropped every one after
+      // the first: a user could never change their mind, and the same surface
+      // could never be marked useful twice.
+      //
+      // That is the same call `sources/manual.ts` already makes for typed notes,
+      // and for the same reason: repetition is evidence. Keying feedback by its
+      // subject deletes the second and third time you heard it, which is exactly
+      // the signal worth keeping. Dedup by external_id is for connectors
+      // re-fetching a row that already exists, not for a human pressing a button
+      // again.
     });
     if (error) throw new Error(error.message);
     return { ok: true };

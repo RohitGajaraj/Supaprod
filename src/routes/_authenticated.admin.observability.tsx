@@ -67,6 +67,25 @@
  *    so this read genuinely does not know WHICH agent failed. Drawing a mark
  *    would be inventing an attribution, and the block says the count is by kind
  *    for that reason. Attribution needs a column this lane must not add.
+ *
+ * 7. FEATURE LIVENESS, ADDED 2026-08-02, AND WHY IT LEADS THE PAGE.
+ *    In one session five separately shipped features were found to be doing
+ *    nothing in production. A column read by a search and written by nothing. A
+ *    theme matcher that could never match. A graph that could not open the
+ *    second commonest thing in it. Human-curated memories that recall could not
+ *    reach. A feedback widget whose every insert failed a CHECK constraint. All
+ *    five passed typecheck and tests. All five had a plausible commit message.
+ *
+ *    This page already answered "is the machine ticking". It could not answer
+ *    "is the machine ticking over anything", and that is the question that cost
+ *    the day. So liveness goes ABOVE the cron watchdog rather than below it: a
+ *    job that runs every fifteen minutes and achieves nothing is a worse
+ *    finding than a job that stopped, because the stopped one at least looks
+ *    wrong. Two blocks, both silent when there is nothing to say.
+ *
+ *    The page is now composed rather than written straight through, so a failed
+ *    health read no longer takes liveness down with it. They are two reads and
+ *    two verdicts, and one failing must not blank the other.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -77,6 +96,8 @@ import {
   getObservabilityStatus,
   adminSetObservabilityEnabled,
 } from "@/lib/observability.functions";
+import { getLivenessReport } from "@/lib/liveness.functions";
+import type { CapabilityReport, IntegrityReport, VocabularyReport } from "@/lib/liveness/report";
 import {
   Block,
   Empty,
@@ -91,6 +112,19 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/observability")({
   component: AdminObservability,
 });
+
+/**
+ * Two reads, two verdicts, neither able to blank the other. Liveness first,
+ * because "this feature has never executed" outranks "this job is late".
+ */
+function AdminObservability() {
+  return (
+    <>
+      <FeatureLiveness />
+      <MachineHealth />
+    </>
+  );
+}
 
 /** How long since it last ran, in the coarsest unit that is still true. */
 function ago(minutes: number | null): string {
@@ -107,7 +141,211 @@ function whenText(iso: string): string {
   return Number.isNaN(d.getTime()) ? iso.slice(0, 16).replace("T", " ") : d.toLocaleString();
 }
 
-function AdminObservability() {
+/* ------------------------------------------------------------------ *
+ * Feature liveness
+ * ------------------------------------------------------------------ */
+
+/** The word a verdict wears in a row. Plain, and never a colour on its own. */
+const CAPABILITY_WORD: Record<CapabilityReport["verdict"], string | null> = {
+  dead: "doing nothing",
+  quiet: "quiet",
+  unknown: "could not check",
+  healthy: null,
+};
+
+const INTEGRITY_WORD: Record<IntegrityReport["verdict"], string | null> = {
+  broken: "never written",
+  degraded: "incomplete",
+  unknown: "could not check",
+  clean: null,
+};
+
+const VOCABULARY_WORD: Record<VocabularyReport["verdict"], string | null> = {
+  drifted: "disagrees with the database",
+  unknown: "could not check",
+  aligned: null,
+};
+
+/** How often it is meant to run, said the way an operator would say it. */
+const CADENCE_WORD: Record<CapabilityReport["cadence"], string> = {
+  continuous: "Runs continuously",
+  daily: "Runs daily",
+  weekly: "Runs weekly",
+  on_demand: "Runs when someone uses it",
+};
+
+function FeatureLiveness() {
+  const fLiveness = useServerFn(getLivenessReport);
+  const [showEverything, setShowEverything] = useState(false);
+  const liveness = useQuery({
+    queryKey: ["liveness-report"],
+    queryFn: () => fLiveness({ data: {} }),
+  });
+
+  if (liveness.isLoading) {
+    return (
+      <Block title="Checking what is actually executing">
+        <Loading>Reading what each tracked feature last did.</Loading>
+      </Block>
+    );
+  }
+
+  if (!liveness.data || "error" in liveness.data) {
+    return (
+      <Block title="Feature liveness did not load">
+        <Failed onRetry={() => void liveness.refetch()}>
+          Nothing here can be read as clear.{" "}
+          {liveness.data && "error" in liveness.data
+            ? liveness.data.error
+            : liveness.error instanceof Error
+              ? liveness.error.message
+              : "The read failed."}
+        </Failed>
+      </Block>
+    );
+  }
+
+  const r = liveness.data;
+  const findings = r.capabilities.filter((c) => c.verdict !== "healthy");
+  const shown = showEverything ? r.capabilities : findings;
+
+  const dataFindings = [
+    ...r.integrity.filter((c) => c.verdict !== "clean"),
+    ...r.vocabulary.filter((c) => c.verdict !== "aligned"),
+  ];
+  const dataVerdict =
+    dataFindings.length === 0
+      ? "Every column a feature reads is actually being written"
+      : dataFindings.length === 1
+        ? "One thing the code reads is not there"
+        : `${dataFindings.length} things the code reads are not there`;
+
+  return (
+    <>
+      <Block
+        title={r.headline}
+        sub={
+          r.counts.dead > 0
+            ? "A capability is dead when it has never executed once, or has not executed in seven of its own cycles. Every line below is a real row count, not a flag someone set."
+            : `Each tracked capability names the row it writes when it works, counted over the last ${r.windowDays} days. Nothing here is a usage number: one execution a month is alive, none at all is the finding.`
+        }
+        more={
+          r.capabilities.length === 0
+            ? undefined
+            : showEverything
+              ? "Only what is wrong"
+              : `Show all ${r.capabilities.length}`
+        }
+        onMore={() => setShowEverything((v) => !v)}
+      >
+        {shown.length === 0 ? (
+          <Empty>
+            All {r.capabilities.length} tracked capabilities executed inside their own window. This
+            stays empty for as long as every shipped feature is doing something.
+          </Empty>
+        ) : (
+          shown.map((c) => {
+            const word = CAPABILITY_WORD[c.verdict];
+            return (
+              <Row
+                key={c.id}
+                tight
+                lead={
+                  <>
+                    <span>{c.title}</span>
+                    {word ? (
+                      <span className={c.verdict === "quiet" ? "sp-warn" : "sp-fail"}>
+                        {" "}
+                        · {word}
+                      </span>
+                    ) : null}
+                  </>
+                }
+                sub={
+                  <>
+                    {c.reason} {CADENCE_WORD[c.cadence]}. Proof: {c.proof.toLowerCase()}.
+                  </>
+                }
+                time={c.lastAt ? c.lastAt.slice(0, 10) : "never"}
+              />
+            );
+          })
+        )}
+      </Block>
+
+      <Block
+        title={dataVerdict}
+        sub="A column that exists, is read by a query, and is written by nothing returns zero rows and returns it correctly, so there is no error anywhere to find. This is the check for that shape, plus the same thing one level up: a value the database holds that no vocabulary in the code declares."
+      >
+        {dataFindings.length === 0 ? (
+          <Empty>
+            {r.integrity.length + r.vocabulary.length} checks, and every one came back full. Every
+            column a feature reads has values in it, and every value the database holds is one the
+            code can name.
+          </Empty>
+        ) : (
+          <>
+            {r.integrity
+              .filter((c) => c.verdict !== "clean")
+              .map((c) => {
+                const word = INTEGRITY_WORD[c.verdict];
+                return (
+                  <Row
+                    key={c.id}
+                    tight
+                    lead={
+                      <>
+                        <span>{c.title}</span>
+                        {word ? (
+                          <span className={c.verdict === "degraded" ? "sp-warn" : "sp-fail"}>
+                            {" "}
+                            · {word}
+                          </span>
+                        ) : null}
+                      </>
+                    }
+                    sub={
+                      <>
+                        {c.reason} Read by {c.readBy}.
+                      </>
+                    }
+                  />
+                );
+              })}
+            {r.vocabulary
+              .filter((c) => c.verdict !== "aligned")
+              .map((c) => {
+                const word = VOCABULARY_WORD[c.verdict];
+                return (
+                  <Row
+                    key={c.id}
+                    tight
+                    lead={
+                      <>
+                        <span>{c.title}</span>
+                        {word ? <span className="sp-fail"> · {word}</span> : null}
+                      </>
+                    }
+                    sub={
+                      <>
+                        {c.reason} Declared in {c.declaredBy}.
+                      </>
+                    }
+                  />
+                );
+              })}
+          </>
+        )}
+      </Block>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Machine health
+ * ------------------------------------------------------------------ */
+
+function MachineHealth() {
   const qc = useQueryClient();
   const fStatus = useServerFn(getObservabilityStatus);
   const fSet = useServerFn(adminSetObservabilityEnabled);

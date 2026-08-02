@@ -38,6 +38,7 @@ export const GRAPH_NODE_KINDS = [
   "changeset",
   "prd_scaffold",
   "prototype",
+  "prd_flow",
 ] as const;
 export type GraphNodeKind = (typeof GRAPH_NODE_KINDS)[number];
 

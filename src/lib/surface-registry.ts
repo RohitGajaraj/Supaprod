@@ -80,6 +80,10 @@ export const SURFACE_REGISTRY = {
   },
   activation: { kind: "admin", home: "admin/proof", opensFrom: "admin-nav", status: "live" },
   incidents: { kind: "admin", home: "admin/observability", opensFrom: "admin-nav", status: "live" },
+  // Feature liveness shares the Health surface with observability: same
+  // operator, same trip, one asking whether the machine is ticking and the
+  // other whether it is ticking over anything.
+  liveness: { kind: "admin", home: "admin/observability", opensFrom: "admin-nav", status: "live" },
   moat: { kind: "admin", home: "admin/proof", opensFrom: "admin-nav", status: "live" },
   observability: {
     kind: "admin",

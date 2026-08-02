@@ -50,6 +50,7 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
   deployment: "Deployment",
   changeset: "Code change",
   prd_scaffold: "Drawing",
+  prd_flow: "Flow",
 };
 
 function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: string | null }) {

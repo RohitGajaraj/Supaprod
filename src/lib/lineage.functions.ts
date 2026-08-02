@@ -24,6 +24,9 @@ export const ARTIFACT_KINDS = [
   // from every vocabulary, so they parsed nowhere and rendered untitled.
   "learning",
   "deployment",
+  // prd_flow is written to artifact_lineage by flows.functions.ts and was declared
+  // in no vocabulary at all, found by the liveness vocabulary check.
+  "prd_flow",
   "changeset",
   "prd_scaffold",
 ] as const;
