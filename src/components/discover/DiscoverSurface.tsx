@@ -445,12 +445,10 @@ export function DiscoverSurface() {
         verb: "You kept it",
         consequence: (
           <>
-            {title} is a ranked bet, carrying <Num>{carried}</Num> signal{plural(carried)} of
-            evidence.
+            {title} is now a ranked bet on Decide, carrying <Num>{carried}</Num> signal
+            {plural(carried)} of evidence. The Critic scores it next.
           </>
         ),
-        // The Critic genuinely picks it up inside promoteThemeToOpportunity, so
-        // the arrow points at something real. Never an arrow to nowhere.
         handoff: { slug: "critic", name: "Critic" },
       });
       invalidate();
@@ -845,10 +843,12 @@ export function DiscoverSurface() {
           <Button disabled={busy} shortcut="2" onClick={() => setPicking(true)}>
             Add to an existing bet
           </Button>
+          <Button disabled={busy} shortcut="3" onClick={() => decline.mutate(focused.theme.id)}>
+            Not a pattern
+          </Button>
           <MoreMenu label={`More for ${focused.theme.title}`}>
-            <MoreItem onClick={() => decline.mutate(focused.theme.id)}>Not a pattern (3)</MoreItem>
             <MoreItem onClick={() => draftSpec.mutate(focused.theme.id)}>
-              {draftSpec.isPending ? "Drafting the spec" : "Draft the spec"}
+              {draftSpec.isPending ? "Drafting the spec" : "Draft the spec directly"}
             </MoreItem>
           </MoreMenu>
         </Gate>
