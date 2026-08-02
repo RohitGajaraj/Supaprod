@@ -82,7 +82,11 @@ import { alignmentForOpportunity } from "@/lib/brief-opportunity";
 import { iceNum, rescoreNoteOf } from "@/lib/moat-vis";
 import { verdictFor, withTimeout, type VerdictWord } from "@/components/discover/format";
 import { outcomeSupportFromCounts, rankOpportunities } from "@/components/discover/ranking";
-import type { OpportunityStatus } from "@/components/discover/OpportunityRow";
+import {
+  BestBetStamp,
+  DesignationTag,
+  type OpportunityStatus,
+} from "@/components/discover/OpportunityRow";
 import {
   OpportunityDetailSheet,
   type OpportunityDetailRecord,
@@ -736,13 +740,19 @@ function DecideSurface() {
                 tight
                 marks={<AgentMark slug={mark} state={mark ? "idle" : "quiet"} />}
                 lead={o.title}
-                // One line, one different fact: where it sits and what the
-                // reviewer concluded. The score that produced the rank is
-                // the ranking's own input and belongs to the bet in focus.
+                // One line, one different fact: where it sits, what KIND of bet
+                // it is, and what the reviewer concluded. The score that produced
+                // the rank is the ranking's own input and belongs to the bet in
+                // focus. The designation is the queue's read-at-a-glance verb:
+                // ranking.ts has always derived it, but until now nothing on the
+                // surface rendered it, so a scanning user saw an ordered list with
+                // no stated reason why one bet outranks the next.
                 sub={
                   <>
                     <Num>#{r.rank}</Num>
                     {" · "}
+                    {r.isBestBet ? <BestBetStamp /> : <DesignationTag designation={r.designation} />}
+                    {(r.isBestBet || r.designation) && " · "}
                     {verdictSentence(verdictFor(o), challengerName)}
                   </>
                 }
