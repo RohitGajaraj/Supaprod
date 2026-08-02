@@ -160,6 +160,16 @@ export function PlanTable({
         />
       </div>
 
+      {/* What the Personal/Teams split actually means. Founder ruling
+          2026-08-02: Teams is a capability that appears when a team appears,
+          never a checkbox unlocked on the solo user's memory. Said here, once,
+          at metadata weight, so the tab does not read as a paywall. */}
+      <p style={{ ...META, margin: "var(--sp-space-3) 0 0" }}>
+        {tab === "personal"
+          ? "One seat. You are the only author, so nothing in your record is held back for a higher plan, and you can hand any decision to a colleague with a link."
+          : "Two seats minimum. Business is what appears once a second person starts writing decisions too. It is not a lock lifted on memory you already have."}
+      </p>
+
       <div
         style={{
           display: "grid",
@@ -305,8 +315,11 @@ function ExpandableBullets({ items }: { items: string[] }) {
         {visible.map((h) => {
           const isReadConnector = h.startsWith("Read connectors");
           const isWriteConnector = h.startsWith("Write-back connectors");
+          // A roadmap line drops to metadata weight so it cannot be read as a
+          // shipped capability sitting in the same list as shipped ones.
+          const isPlanned = h.startsWith("Planned,");
           return (
-            <li key={h} style={BODY}>
+            <li key={h} style={isPlanned ? META : BODY}>
               {h}
               {isReadConnector || isWriteConnector ? (
                 <ConnectorList showWrite={isWriteConnector} />
@@ -380,16 +393,21 @@ function EnterpriseCard({
         popular={popular}
       />
       <Price amount="Custom" />
+      {/* This card used to read "platform fee + $20/seat". Nothing in the code
+          prices a seat: entitlements gives enterprise `seats: null` and the
+          plan copy sells a committed credit envelope, so the per-seat line was
+          a number the product cannot charge. Stated the way it is actually
+          sold. */}
       {isComingFromBusiness ? (
         <p style={{ ...BODY, margin: 0 }}>
-          Custom platform fee + <Num>$20</Num>/seat + usage at API rates
+          Custom platform fee plus a committed annual credit envelope
         </p>
       ) : (
         <>
-          <p style={{ ...BODY, margin: 0 }}>
-            Platform fee + <Num>$20</Num>/seat
+          <p style={{ ...BODY, margin: 0 }}>Platform fee plus a committed annual credit envelope</p>
+          <p style={{ ...META, margin: 0 }}>
+            Unlimited seats. The credit model is negotiated, not picked from the standard bands.
           </p>
-          <p style={{ ...META, margin: 0 }}>Usage at API rates, scales with model and task</p>
         </>
       )}
       {isCurrent ? (

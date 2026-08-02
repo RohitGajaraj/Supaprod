@@ -305,57 +305,82 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         name: "Pro",
         price: "from $20/mo",
         tagline:
-          "Persistent memory, no expiration. Your product context stays intact across sprints and tool changes.",
-        forWhom: "Built for solo PMs and founders doing product work that needs to compound.",
+          "One author, and the whole record is yours. Memory never fades, and nothing about it is held back for a higher plan.",
+        forWhom: "Built for one person doing product work that needs to compound. One seat.",
         hasCreditDropdown: true,
         hasBillingToggle: true,
         highlights: [
+          // Founder ruling 2026-08-02: sharing is never presented as a locked
+          // row. On a single seat there is exactly one author, so sharing is a
+          // no-op rather than a feature withheld. State that plainly, first.
+          "One seat. One author, so nothing in your memory is held back for a higher plan.",
+          // shareLinks is true on EVERY tier (see entitlementsFor). It is the
+          // pressure valve that lets a solo user show a colleague without
+          // buying a seat, so it must be legible, not buried.
+          "Share any decision by link. The reader needs no account and no seat.",
           "Everything in Free, plus:",
           "Persistent decision memory that never fades",
-          "100-10,000 monthly credits (your choice)",
+          // The real mechanic: credits are SELECTED from CREDIT_DROPDOWN_TIERS,
+          // not a fixed multiplier. Price scales linearly with the band.
+          "Pick your monthly credit band, 100 to 10,000. Every action spends credits, so size it to how hard you run.",
           "Critic red-teams every spec and bet, automatically",
-          "Read connectors",
-          "Ambient signal ingestion runs automatically on your account",
+          "Read connectors that pull signals in on their own",
           "Memory recalls across all your workspaces",
           "Up to 3 products, pooled workspaces",
+          "Up to 3 agents running in parallel",
           "Fair-use top-ups when you need a boost",
           "Save around 17% with annual billing",
           "Email support, next-business-day",
         ],
       };
     case "max":
-      // Internal-only tier (not on public pricing page). Backward-compat slug.
+      // Not on the public grid (see PUBLIC_PLAN_TIERS), but a live DB slug: an
+      // account on it reads this copy in Settings, so it has to be true.
+      // Founder ruling 2026-08-02: max is MORE POWER FOR ONE PERSON, never a
+      // small team. seats is 1 here exactly as it is on free and pro.
       return {
         tier: "max",
-        name: "Pro (legacy)",
+        name: "Max",
         price: "from $99/mo",
-        tagline: "Internal tier. Use Pro with a high credit tier instead.",
-        forWhom: "Internal tier.",
+        tagline: "The high credit band for one person. The same product as Pro, with more room.",
+        forWhom: "Built for one person running the loop hard. Still one seat, never a small team.",
         hasCreditDropdown: false,
         hasBillingToggle: false,
-        highlights: ["Everything in Pro, plus:", "High credit allocation", "Priority routing"],
+        highlights: [
+          "One seat. Sharing stays a link, not a plan change.",
+          "Everything in Pro, plus:",
+          "A higher monthly credit band, because every action spends credits",
+          "Up to 5 products",
+          "Up to 5 agents running in parallel",
+          "Priority routing",
+        ],
       };
     case "team":
       return {
         tier: "team",
         name: "Business",
+        // Founder-ratified spine, 2026-08-02. Business is what appears when a
+        // team appears. It is not a lock lifted on the solo user's memory.
+        tagline: "Your team stops re-deciding things it already decided.",
         price: "from $50/mo",
-        tagline:
-          "One shared memory for the whole team. Stop re-litigating what was already decided.",
-        forWhom: "Built for product teams that need shared context and shared accountability.",
+        forWhom:
+          "Built for two or more people who each write decisions. With one author, Pro already does this.",
         hasCreditDropdown: true,
         hasBillingToggle: true,
         highlights: [
+          "Two seats minimum. With one author there is nothing to pool, so Pro is the plan.",
           "Everything in Pro, plus:",
-          "Write-back connectors",
-          "One shared connector pool for the whole team (one GitHub OAuth covers everyone)",
-          "Shared credit pool across the whole team",
+          "One decision record every member writes into and reads from",
           "Members, seats, and role-based access",
           "Per-role approval lanes for agent actions and write-back",
-          "Shared playbook library for the team",
-          "Admin controls: per-user credit limits and spend caps",
-          "Team-wide audit trail of agent actions",
-          "Workspace-level guardrails and budgets",
+          "Write-back connectors",
+          "One connector pool for the whole team (one GitHub OAuth covers everyone)",
+          "One credit pool the whole team draws from",
+          "Per-member credit limits and spend caps",
+          "Up to 8 agents running in parallel",
+          "Unlimited products and workspaces",
+          "Shared playbook library",
+          "Receipts covering every member's runs, not only your own",
           "Centralized billing and usage view",
           "Onboarding session with our team",
           "Chat support, same-business-day SLA",
@@ -366,8 +391,10 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         tier: "enterprise",
         name: "Enterprise",
         price: "Platform fee",
-        tagline:
-          "Full controls, dedicated support, and audit trails. Shaped to how your org works.",
+        // Founder-ratified spine, 2026-08-02. True of the RECORD today: it is
+        // membership scoped, so a successor inherits it. The governance
+        // machinery around it is not built and is marked planned below.
+        tagline: "When someone leaves, you can prove what they knew and why they chose it.",
         forWhom:
           "Built for large orgs that need flexibility, scale, and governance across product.",
         hasCreditDropdown: false,
@@ -376,11 +403,18 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           "Everything in Business, plus:",
           "Platform fee based on company size",
           "Committed annual credit envelope, unlimited seats",
-          "SSO, SCIM, and full audit logs",
-          "Data residency and custom credit model",
+          // byokAllowed is enterprise-only in entitlementsFor. This is the one
+          // capability line here the code genuinely gates.
+          "Bring your own model keys, the only tier that can",
+          "A negotiated credit model instead of the standard bands",
+          "Custom connectors and connector development",
+          // NOT BUILT. There is no SAML path (src/routes/login.tsx says so in
+          // as many words), no SCIM, no retention policy, no legal hold, no
+          // audit export and no departure workflow. Both plan surfaces render
+          // any line starting "Planned," as a note, without the included mark.
+          "Planned, not yet shipped: SSO, SCIM, audit export, data residency, retention policy, legal hold, and the departure handover",
           "Dedicated support with a signed SLA",
           "Security review, DPA, and procurement help",
-          "Custom connectors and connector development",
           "Dedicated CSM and quarterly business reviews",
           "Volume pricing on committed credits",
           "24/7 incident response with named contacts",
@@ -394,16 +428,19 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         price: "$0",
         tagline:
           "The full product loop, free. Memory rolls 30 days. Upgrade when your work outgrows it.",
-        forWhom: "Get started with Supaprod. No card, no commitment.",
+        forWhom: "Get started with Supaprod. No card, no commitment. One seat.",
         hasCreditDropdown: false,
         hasBillingToggle: false,
         highlights: [
           "The full daily loop and rituals",
-          "50 monthly credits",
+          // Matches FREE_MONTHLY_CREDITS, which is what credits.functions.ts
+          // actually grants. This line read "50" and was simply wrong.
+          FREE_MONTHLY_CREDITS + " monthly credits",
           // G18 canon edit (pricing-strategy.md §3.1, 2026-07-10): the Critic
           // teardown IS the wedge and lives in Free, capped by the allowance.
           // Pro's line stays the depth claim (Critic on EVERY spec and bet).
           "Critic teardown of your bets, within your credits",
+          "Share any decision by link. The reader needs no account and no seat.",
           "Decision memory kept " + FREE_MEMORY_RETENTION_DAYS + " days, then it fades",
           // RPT-14: the fade above is the AI's own recall cache, never the
           // decision record itself - decisions have no expiry in the schema
@@ -412,7 +449,6 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // hooks/memory-tick.ts (the only expiry cron, agent_memory only).
           "Your decision record: exportable forever, never fades",
           "2 products, 1 workspace",
-          "Shareable decision links",
           "Community support",
         ],
       };

@@ -158,7 +158,10 @@ describe("planPresentation", () => {
   it("uses the current display names for each tier", () => {
     expect(planPresentation("free").name).toBe("Free");
     expect(planPresentation("pro").name).toBe("Pro");
-    expect(planPresentation("max").name).toBe("Pro (legacy)");
+    // Founder ruling 2026-08-02: `max` is the high credit band for ONE person,
+    // not a legacy shim and never a small team. It stays off the public grid
+    // (PUBLIC_PLAN_TIERS) but an account on the slug reads this name in Settings.
+    expect(planPresentation("max").name).toBe("Max");
     expect(planPresentation("team").name).toBe("Business");
     expect(planPresentation("enterprise").name).toBe("Enterprise");
   });
@@ -170,7 +173,11 @@ describe("planPresentation", () => {
 
 describe("planPresentation prices mirror the catalog recommended bundles (M-C-PRICE-SYNC drift guard)", () => {
   it("pins the public/marketing price per tier to the recommended pricing_bundles", () => {
-    // free/$0, pro/from $20/mo, max/from $99/mo (legacy), team/from $50/mo, enterprise/Platform fee.
+    // free/$0, pro/from $20/mo, max/from $99/mo, team/from $50/mo, enterprise/Platform fee.
+    // KNOWN GAP, reported not papered over: billing-tier.ts's TIER_BASE_MONTHLY_USD
+    // has no `max` entry, so priceForCredits("max", ...) returns null and nothing
+    // in the app can reproduce the $99 below. Either give max a base there or
+    // retire the number; do not invent one here.
     // If the catalog changes, change both this test and planPresentation() in entitlements.ts.
     expect(planPresentation("free").price).toBe("$0");
     expect(planPresentation("pro").price).toBe("from $20/mo");

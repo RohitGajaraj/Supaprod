@@ -229,7 +229,11 @@ export function CreditCapsCard() {
 
       <Block
         title="Per-member credit allocation"
-        sub="Set how many credits each team member can use per window. Business and Enterprise."
+        // This read "Business and Enterprise", which named a gate the code does
+        // not enforce: writing a member cap is authorized by owner RLS alone,
+        // with no tier check anywhere in payments.functions.ts. It is also a
+        // no-op on the single-seat plans, where you are the only member.
+        sub="Set how many credits each member can use per window. It starts to matter once more than one person is on the account."
       >
         {memberCaps.length === 0 ? (
           <Empty>No member is capped. Everyone draws from the shared pool.</Empty>

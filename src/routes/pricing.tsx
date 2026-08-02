@@ -119,8 +119,11 @@ function ConnectorChips({ showWrite = false }: { showWrite?: boolean }) {
 }
 
 const TITLE = "Pricing · Supaprod";
+// Founder ruling 2026-08-02: never sell the shared record as the thing a paid
+// plan unlocks. On a single seat there is one author, so the record is already
+// whole; Business is what appears when a second author does.
 const DESC =
-  "Supaprod runs your product loop for free. Paid plans add capacity and give your team one shared record of every call.";
+  "Supaprod runs your product loop for free. Paid plans add capacity, and every plan can hand a decision to someone else with a link.";
 
 export const Route = createFileRoute("/pricing")({
   ssr: true,
@@ -518,8 +521,13 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       >
         {visibleHighlights.map((h, i) => {
           const isHeader = h.startsWith("Everything in");
+          // A roadmap line must never wear the included mark. Anything starting
+          // "Planned," renders as a muted note with no "+", so a reader cannot
+          // mistake unbuilt governance for a shipped capability.
+          const isPlanned = h.startsWith("Planned,");
           const isReadConnector = h.startsWith("Read connectors");
           const isWriteConnector = h.startsWith("Write-back connectors");
+          const quiet = isHeader || isPlanned;
           return (
             <li
               key={i}
@@ -529,7 +537,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
                 gap: 0,
                 fontSize: 12,
                 lineHeight: 1.45,
-                color: isHeader ? "var(--ink-subtle, #6b6457)" : "var(--ink, #1f1b16)",
+                color: quiet ? "var(--ink-subtle, #6b6457)" : "var(--ink, #1f1b16)",
                 fontWeight: isHeader ? 500 : 400,
                 borderTop:
                   isHeader && i > 0 ? "1px solid var(--hairline, rgba(0,0,0,0.06))" : undefined,
@@ -537,7 +545,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
               }}
             >
               <div style={{ display: "flex", gap: 8 }}>
-                {!isHeader && (
+                {!quiet && (
                   <span
                     style={{ color: "var(--moss-success, #4f8a59)", flexShrink: 0, marginTop: 1 }}
                   >
@@ -680,7 +688,7 @@ function PricingPage() {
                   letterSpacing: 0,
                 }}
               >
-                Start free. Get to the exact capacity that fits your team.
+                Start free. Pick the capacity that fits how hard you run it.
               </h1>
               <p
                 style={{
@@ -691,8 +699,8 @@ function PricingPage() {
                   maxWidth: 520,
                 }}
               >
-                Supaprod runs your product loop for free. Paid plans add more capacity and give your
-                team one shared record of every call and its outcome.
+                Supaprod runs your product loop for free. Paid plans add capacity, and every plan
+                can hand a decision to someone else with a link.
               </p>
 
               {/* Global billing toggle */}
@@ -721,18 +729,42 @@ function PricingPage() {
               ))}
             </div>
 
+            {/* How the ladder actually works. Founder ruling 2026-08-02: the
+              single-seat plans are not a withheld version of the team plan.
+              With one author there is nobody to share with, so nothing is held
+              back, and a link covers the times you need to show someone. */}
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--ink-subtle, #6b6457)",
+                textAlign: "center",
+                marginTop: 28,
+                lineHeight: 1.6,
+                maxWidth: 640,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            >
+              Free and Pro are single seat. More power for one person is a bigger credit band on
+              Pro, not a different product, so nothing about your record is held back for a higher
+              plan. You can hand any decision to a colleague with a link on every plan, including
+              Free. Business starts at two seats, because two people is where a team starts
+              re-deciding what it already decided.
+            </p>
+
             {/* Footer note */}
             <p
               style={{
                 fontSize: 11.5,
                 color: "var(--ink-subtle, #6b6457)",
                 textAlign: "center",
-                marginTop: 28,
+                marginTop: 12,
                 lineHeight: 1.5,
               }}
             >
               Every plan starts free. No credit card needed until you upgrade. Change or cancel
-              anytime from Settings.
+              anytime from Settings. Every action in Supaprod spends credits, so the price follows
+              the credit band you pick, not a fixed multiplier.
             </p>
           </div>
         </main>
