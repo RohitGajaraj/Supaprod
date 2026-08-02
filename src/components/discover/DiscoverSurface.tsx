@@ -112,6 +112,32 @@
  *    accept the file and fail after the upload. The picker offers only formats
  *    that really are text.
  *
+ * 7. THE DOORS PASS, 2026-08-02. Founder verdict on the product: "certain cards
+ *    are not clickable and details, whatever is required, I feel left out. I
+ *    don't know where to find them." This surface was the clearest case: every
+ *    fact it showed was true, attributed, and inert.
+ *
+ *    FIXED a deep link that had been broken for two audits while a comment on
+ *          the other end claimed it was repaired. /plan/spec/$id sends
+ *          `?focus=<signalId>`; this route's validator returned only `tab`, so
+ *          the router discarded the id before render, and nothing here read it
+ *          anyway. It resolves to the cluster now, and the quote it named leads
+ *          the evidence list.
+ *    FIXED the scroll order. The ranking sat under the Gate plus up to two
+ *          Record recesses plus a receipt, roughly 570px, so the list this
+ *          surface exists to triage against was below the fold on a 1440x900
+ *          screen. It now sits directly under the Gate, which is a single
+ *          column's version of the split view Linear proves. The full reasoning,
+ *          and what the reversal costs, is on the Record below.
+ *    ADDED a door on every source in the coverage list, and on the quiet-source
+ *          line, which is the most actionable sentence on the page and led
+ *          nowhere. Captured-by-hand keeps none: it is not a connector.
+ *    ADDED a door on each verbatim quote, to the ticket or thread it was lifted
+ *          from. `signals.url` has been on the row since the table was created
+ *          and no surface had ever rendered it.
+ *    ADDED a door on the precedent Record, to the prior bet's own chain in the
+ *          graph, and on the weaker prior-cluster claim, which moves the focus.
+ *
  * KNOWN NEXT STEP, recorded rather than pretended. Sentry's archive is
  * CONDITIONAL ("until it escalates / until N users are affected") and ours is
  * not, because a dismissed cluster here can never grow: clusterSignalsCore only
@@ -252,7 +278,21 @@ type ReceiptState = {
   failed?: boolean;
 };
 
-export function DiscoverSurface() {
+export function DiscoverSurface({
+  /**
+   * WHAT THE LINK NAMED. A signal id (what /plan/spec/$id sends when you click
+   * a row under "Why this spec exists") or a theme id. Optional, so every
+   * existing link into /discover behaves exactly as it did.
+   *
+   * It resolves to the CLUSTER, because a single quote is not a call and this
+   * surface only ever asks about clusters. The quote itself is then lifted to
+   * the top of the evidence list, so the thing the link named is the thing you
+   * see rather than something merely related to it.
+   */
+  focus,
+}: {
+  focus?: string;
+} = {}) {
   // The spine, lit on this station. One shared query across all seven
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
   useSpineStrip("sense");
@@ -439,15 +479,49 @@ export function DiscoverSurface() {
 
   const signalsEmpty = !loading && !loadError && rows.length === 0;
 
-  // The focus always points at something that exists, and defaults to the
-  // top-ranked cluster, so the surface opens on the call worth making.
+  /**
+   * WHICH CLUSTER THE LINK MEANT, resolved rather than assumed.
+   *
+   * Two shapes arrive at `?focus=`: a signal id (the spec page sends one per
+   * row) and, for anything that later links a cluster directly, a theme id.
+   * Both are resolved here and both are checked against the RANKING, never
+   * against the raw table, because a cluster that has been declined or merged
+   * is not in front of anybody and focusing it would put the Gate on a call
+   * that is already settled.
+   *
+   * `null` when the id names nothing focusable, which is the honest outcome for
+   * a signal that was never clustered, a cluster since judged, or a stale link.
+   * The surface then opens on the top of the ranking exactly as before.
+   */
+  const focusTarget = React.useMemo(() => {
+    if (!focus) return null;
+    const inRanking = (id: string | null | undefined) =>
+      Boolean(id) && ranked.some((r) => r.theme.id === id);
+    if (inRanking(focus)) return focus;
+    const signal = rows.find((s) => s.id === focus);
+    return inRanking(signal?.theme_id) ? (signal!.theme_id as string) : null;
+  }, [focus, rows, ranked]);
+
+  /** Honoured ONCE. The deep link decides where you land; the moment you press
+   *  a row, you have decided instead, and a link that kept reasserting itself
+   *  on every refetch would drag the Gate back off whatever you chose. */
+  const focusHonoured = React.useRef(false);
+
+  // The focus always points at something that exists. It opens on what the link
+  // named when a link named something, and otherwise on the top-ranked cluster,
+  // which is the call worth making.
   React.useEffect(() => {
     if (ranked.length === 0) {
       setFocusedId(null);
       return;
     }
+    if (focusTarget && !focusHonoured.current) {
+      focusHonoured.current = true;
+      setFocusedId(focusTarget);
+      return;
+    }
     if (!ranked.some((r) => r.theme.id === focusedId)) setFocusedId(ranked[0].theme.id);
-  }, [ranked, focusedId]);
+  }, [ranked, focusedId, focusTarget]);
 
   const focusedIndex = ranked.findIndex((r) => r.theme.id === focusedId);
   const focused = focusedIndex >= 0 ? ranked[focusedIndex] : null;
@@ -455,7 +529,17 @@ export function DiscoverSurface() {
   // a union of two array types, and calling `.map` on a union hands the callback
   // an `unknown` element. Reading the source off a member looked type safe and
   // was not, which is why the provenance line needed the annotation to compile.
-  const focusedMembers: SignalRow[] = focused?.members ?? [];
+  //
+  // THE QUOTE THE LINK NAMED LEADS. Only four quotes are drawn before the list
+  // says "and N more", so a deep link that landed on the right cluster could
+  // still leave the exact sentence somebody clicked invisible underneath the
+  // fold of its own evidence list.
+  const focusedMembers: SignalRow[] = React.useMemo(() => {
+    const members: SignalRow[] = focused?.members ?? [];
+    const at = focus ? members.findIndex((s) => s.id === focus) : -1;
+    if (at <= 0) return members;
+    return [members[at], ...members.slice(0, at), ...members.slice(at + 1)];
+  }, [focused, focus]);
   const focusedSources: string[] = [...new Set(focusedMembers.map((s) => s.source))];
 
   /**
@@ -929,7 +1013,38 @@ export function DiscoverSurface() {
                      "pull_connector" and "manual" at a person, which are our
                      words for our lanes and nobody else's words for anything. */
                   name={sourceLabel(s.source)}
-                  title={s.source}
+                  title={
+                    capturedByHand(s.source)
+                      ? s.source
+                      : "Open this source in Settings, Connections"
+                  }
+                  /* THE DOOR TO THE CONNECTOR. A row here says a source has gone
+                     quiet, which is the most actionable fact in the column, and
+                     it led nowhere: the only way to act on it was to remember
+                     that connectors live three clicks away in Settings.
+
+                     The grouping key rides along as `?connector=`. Settings
+                     already resolves that against the provider registry and
+                     falls back to the list for anything it does not recognise,
+                     which is exactly right here: the key is a LANE token
+                     ("pull_connector") for anything the sink stamped and a
+                     provider token ("github") for the older rows, so the link
+                     lands on the connector when we can name it and on the
+                     connector list when we cannot.
+
+                     Captured by hand is not a connector and gets no door.
+                     Its way in is the capture box on this same page, and
+                     pointing it at Connections would be a promise the
+                     destination cannot keep. */
+                  onClick={
+                    capturedByHand(s.source)
+                      ? undefined
+                      : () =>
+                          navigate({
+                            to: "/settings",
+                            search: { section: "connections", connector: s.source },
+                          })
+                  }
                   sub={
                     s.quiet ? (
                       <>
@@ -954,11 +1069,28 @@ export function DiscoverSurface() {
                   {plural(cov.sources.length - SOURCES_IN_CONTEXT)}.
                 </CtxBody>
               ) : null}
+              {/* THE MOST ACTIONABLE LINE ON THE PAGE, and it was a paragraph.
+                A source that used to deliver and has stopped is the one fact
+                here that says DO SOMETHING, and it said it with no way to do
+                anything. It names which sources went quiet on its second line,
+                because "3 sources" and "GitHub, Intercom, Zendesk" are
+                different facts and only the second one tells you whether to
+                care. */}
               {cov.quietCount > 0 ? (
-                <CtxBody>
-                  <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver and has
-                  not this week.
-                </CtxBody>
+                <CtxRow
+                  name={
+                    <>
+                      <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver and
+                      has not this week
+                    </>
+                  }
+                  sub={cov.sources
+                    .filter((s) => s.quiet)
+                    .map((s) => sourceLabel(s.source))
+                    .join(", ")}
+                  title="Open Connections in Settings"
+                  onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
+                />
               ) : null}
             </>
           ) : null}
@@ -973,6 +1105,24 @@ export function DiscoverSurface() {
                 <CtxRow
                   key={s.id}
                   name={signalPreview(s.content, 96)}
+                  /* THE QUOTE OPENS THE THING IT CAME FROM. `signals.url` has
+                     held the ticket, the thread or the review this sentence was
+                     lifted out of since the table was created, and no surface
+                     ever rendered it, so the evidence under a call was a wall of
+                     quotes you had to take on trust. A new tab rather than a
+                     navigation: the address belongs to somebody else's product,
+                     and leaving triage to read one comment loses the queue.
+
+                     A signal with no url keeps no door, which is most hand
+                     captured ones: there is nowhere to send you, and a row that
+                     lights up and does nothing is the defect this whole pass is
+                     about. */
+                  title={s.url ? `Open the source: ${s.url}` : undefined}
+                  onClick={
+                    s.url
+                      ? () => window.open(s.url as string, "_blank", "noopener,noreferrer")
+                      : undefined
+                  }
                   /* WHERE THIS ONE CAME FROM, in words. A quote a colleague
                      typed by hand and a quote a connector pulled at 4am are the
                      same shape on screen and are not the same level of
@@ -1162,48 +1312,14 @@ export function DiscoverSurface() {
         </Gate>
       )}
 
-      {/* THE RECORD SPEAKING, and it belongs here as much as on /decide.
-        cluster.server.ts already embeds every theme and scores it against
-        decision memory and prior themes; until now nothing rendered the
-        answer. Catching a repeat while it is still a cluster costs nothing.
-        Kept directly under the Gate, the placement /decide proved: a side
-        rail would demote the one differentiated moment to a statistic. */}
-      {focused && !picking && seenBefore.length > 0
-        ? seenBefore.slice(0, 2).map((p) => (
-            <Record
-              key={p.id}
-              evidence={
-                <>
-                  {p.verdict === "validated"
-                    ? "it paid off"
-                    : p.verdict === "missed"
-                      ? "it did not pay off"
-                      : "the result was mixed"}
-                </>
-              }
-            >
-              {p.title ? (
-                <>
-                  You have reasoned this way before, on {p.title}, and {p.summary}
-                </>
-              ) : (
-                p.summary
-              )}
-            </Record>
-          ))
-        : null}
-
-      {/* The weaker claim, and only when there is no outcome to show instead.
-        "You have clustered this shape before" is worth saying and is not the
-        same sentence as "here is how it went". */}
-      {focused && !picking && seenBefore.length === 0 && priorTheme ? (
-        <Record evidence={<>clustered separately</>}>
-          This closely repeats an earlier cluster, {priorTheme.title}.
-        </Record>
-      ) : null}
-
       {/* What your last judgment caused. One at a time, and it survives until
-        the next one, so the surface never erases the trace of a decision. */}
+        the next one, so the surface never erases the trace of a decision.
+
+        IT STAYS WELDED TO THE GATE. The reorder below moved the ranking up
+        past the Record recess; the receipt did not travel with it, because a
+        receipt reports what the buttons directly above it just did, and a
+        receipt six rows away from the control that caused it is a receipt
+        nobody reads. It costs one line of height and only after you act. */}
       {receipt ? (
         <Receipt
           verb={receipt.verb}
@@ -1289,6 +1405,111 @@ export function DiscoverSurface() {
             </CtxBody>
           ) : null}
         </Block>
+      ) : null}
+
+      {/* THE RECORD SPEAKING, and it belongs here as much as on /decide.
+        cluster.server.ts already embeds every theme and scores it against
+        decision memory and prior themes; until now nothing rendered the answer.
+        Catching a repeat while it is still a cluster costs nothing.
+
+        IT SITS UNDER THE RANKING NOW, and that is a reversal of the earlier
+        note here, made deliberately and for a measured reason. The old
+        placement put the Gate, then up to two recesses, then a receipt above
+        the list: roughly 570px before the first cluster row, which at 1440x900
+        with the top bar and the spine strip is the whole viewport. So the
+        surface's PRIMARY job, comparing this call against the ones around it,
+        was below the fold on every screen, which is the opposite of the triage
+        pattern this file names as its reference. Linear puts the list beside
+        the item; a single column's version of beside is directly under.
+
+        What the reversal costs is that the recess is now one short scroll away
+        rather than immediately visible, and that is the cheaper loss: the
+        warning matters at the moment of disposition, and the disposition
+        buttons are still on the Gate above it, still reached by keys 1, 2 and
+        3, and the recess still moves with the focus. What the old order cost
+        was a person not knowing there was a ranking at all.
+
+        Kept as the one lit surface, and NOT moved into the context rail, which
+        would demote the single differentiated moment in the product to a
+        statistic. */}
+      {focused && !picking && seenBefore.length > 0
+        ? seenBefore.slice(0, 2).map((p) => (
+            <Record
+              key={p.id}
+              evidence={
+                <>
+                  {p.verdict === "validated"
+                    ? "it paid off"
+                    : p.verdict === "missed"
+                      ? "it did not pay off"
+                      : "the result was mixed"}
+                </>
+              }
+              /* THE PRIOR BET OPENS. The strongest sentence on the surface named
+                 a bet you already made and gave you no way to go and look at
+                 it, which is the exact gap Record's own onClick was added for.
+
+                 The graph, not the queue, and the difference is honest rather
+                 than convenient: a bet with an outcome attached has usually
+                 shipped or been dropped, so it is no longer IN the ranked queue
+                 on /decide, and sending someone to a list that does not contain
+                 the thing they clicked is a worse dead end than no link at all.
+                 The knowledge graph focuses any lineage node by kind and id,
+                 `opportunity` is one of its declared kinds, and what it draws is
+                 the bet with everything that led to it and everything that came
+                 out of it, which is what "go and look at that one" means here.
+
+                 Precedent that carries no opportunity id keeps no door. */
+              title={p.opportunityId ? "Open that bet and its chain" : undefined}
+              onClick={
+                p.opportunityId
+                  ? () =>
+                      navigate({
+                        to: "/brain",
+                        search: {
+                          tab: "graph",
+                          focusKind: "opportunity",
+                          focusId: p.opportunityId as string,
+                        },
+                      })
+                  : undefined
+              }
+            >
+              {p.title ? (
+                <>
+                  You have reasoned this way before, on {p.title}, and {p.summary}
+                </>
+              ) : (
+                p.summary
+              )}
+            </Record>
+          ))
+        : null}
+
+      {/* The weaker claim, and only when there is no outcome to show instead.
+        "You have clustered this shape before" is worth saying and is not the
+        same sentence as "here is how it went".
+
+        It opens the earlier cluster the same way a row does, by moving the
+        focus, and ONLY when that cluster is still in the ranking. A prior
+        cluster that has since been declined or merged is not a call anybody
+        can make, so naming it stays a fact and never becomes a promise. */}
+      {focused && !picking && seenBefore.length === 0 && priorTheme ? (
+        <Record
+          evidence={<>clustered separately</>}
+          title={
+            ranked.some((r) => r.theme.id === priorTheme.id)
+              ? "Put that earlier cluster in front of you"
+              : undefined
+          }
+          onClick={
+            ranked.some((r) => r.theme.id === priorTheme.id)
+              ? () => setFocusedId(priorTheme.id)
+              : undefined
+          }
+        >
+          This closely repeats an earlier cluster, {priorTheme.title}.
+        </Record>
       ) : null}
 
       {/* Capture is the way in when no connector covers what you just heard.

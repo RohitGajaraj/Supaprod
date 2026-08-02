@@ -37,6 +37,10 @@ import {
   AgentMark,
   Block,
   Button,
+  CtxBody,
+  CtxHead,
+  CtxRow,
+  Door,
   Empty,
   Failed,
   Gate,
@@ -260,29 +264,49 @@ function Today() {
       context={
         call ? (
           <>
-            <div className="sp-ctx-head">Where this call came from</div>
-            <div className="sp-ctx-row">
-              <AgentMark slug={call.agentSlug} state="gate" />
-              <span>
-                <span className="sp-ctx-name">{agentDisplayName(call.agentSlug)}</span>
-                <span className="sp-ctx-sub">
-                  {call.projectName ?? call.project ?? "This workspace"}
-                </span>
-              </span>
-            </div>
+            {/* THE AGENT THAT RAISED IT, and it opens the agent. This markup was
+                hand-copied out of the primitives rather than using them, which
+                is the drift CtxRow's own note names; going through the
+                primitive is also what makes the door possible, because a div
+                cannot take one. `/crew?agent=` is the agent's real address:
+                what it may do, on whose approval, and its record. Absent when
+                the queue does not say which agent raised the call, because a
+                door to the whole roster is not a door to this agent. */}
+            <CtxHead>Where this call came from</CtxHead>
+            <CtxRow
+              mark={<AgentMark slug={call.agentSlug} state="gate" />}
+              name={agentDisplayName(call.agentSlug)}
+              sub={call.projectName ?? call.project ?? "This workspace"}
+              title={call.agentSlug ? "Open this agent in the crew" : undefined}
+              onClick={
+                call.agentSlug
+                  ? () => navigate({ to: "/crew", search: { agent: call.agentSlug as string } })
+                  : undefined
+              }
+            />
             {call.impact ? (
               <>
-                <div className="sp-ctx-head">Before you decide</div>
-                <div className="sp-ctx-body">{call.impact}</div>
+                <CtxHead>Before you decide</CtxHead>
+                <CtxBody>{call.impact}</CtxBody>
               </>
             ) : null}
+            {/* THE DOOR TO THE QUEUE. This counted the rest of the queue and
+                gave no way to reach it, on the one surface that shows exactly
+                one call at a time. /approvals IS the queue, and it is where
+                the other N are. */}
             {items.length > 1 ? (
               <>
-                <div className="sp-ctx-head">Behind this one</div>
-                <div className="sp-ctx-body">
-                  <Num>{items.length - 1}</Num> more waiting. They keep their order until this call
-                  is settled.
-                </div>
+                <CtxHead>Behind this one</CtxHead>
+                <CtxRow
+                  name={
+                    <>
+                      <Num>{items.length - 1}</Num> more waiting
+                    </>
+                  }
+                  sub="They keep their order until this call is settled."
+                  title="Open the queue"
+                  onClick={() => navigate({ to: "/approvals" })}
+                />
               </>
             ) : null}
           </>
@@ -294,10 +318,20 @@ function Today() {
         sub={
           <>
             {today}
+            {/* "On the record" names a place, and Brain is that place. It was
+                a plain span on the front door: the product's own word for its
+                moat, printed at you with no way in. The number is the age of
+                the record, so the door is the record itself rather than the
+                run the age happens to be measured from. */}
             {onRecord !== null ? (
               <>
                 {" · "}
-                <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record
+                <Door
+                  title="Open the record"
+                  onClick={() => navigate({ to: "/brain", search: {} })}
+                >
+                  <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record
+                </Door>
               </>
             ) : null}
           </>
@@ -362,7 +396,20 @@ function Today() {
       )}
 
       {receipts.length > 0 ? (
-        <Block title="What you settled">
+        // THE RECEIPTS GO SOMEWHERE NOW. A receipt on this page is the trace of
+        // a judgment made in this session and it vanished on reload, which
+        // taught exactly what the receipt doctrine exists to prevent: that your
+        // judgment left no lasting trace. The Record room is where every
+        // receipt is kept, sealed, with the chain behind it. The door is on the
+        // block rather than on each line because the block is the set, and
+        // an individual settled item has no address of its own: `decideApprovalItem`
+        // fans out across ten different kinds and only some of them land
+        // somewhere a person can open.
+        <Block
+          title="What you settled"
+          more="Every receipt"
+          onMore={() => navigate({ to: "/engine-room", search: { room: "record" } })}
+        >
           {receipts.map((r, i) => (
             <Receipt
               key={i}
@@ -445,6 +492,16 @@ function Today() {
       {learning?.summary ? (
         <Block title="It learned one thing">
           <RecordRecess
+            // THE RECESS OPENS THE OUTCOME. This is the one lit surface in the
+            // product and on the front door it was inert: a claim about what
+            // the record learned, with no way to read the outcome behind it.
+            // Brain's Outcomes tab takes the learning id it already has, which
+            // is the same drill CompoundingPanel's own rows use, so the two
+            // doors cannot drift.
+            title="Open this outcome in the record"
+            onClick={() =>
+              navigate({ to: "/brain", search: { tab: "learnings", learning: learning.id } })
+            }
             evidence={
               <>
                 {learning.recorded_by_agent_slug

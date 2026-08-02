@@ -162,7 +162,12 @@ import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
   Block,
   Button,
+  Cell,
+  Diffstat,
+  Door,
   Empty,
+  Failed,
+  Grid,
   Num,
   PageHead,
   Record as RecordRecess,
@@ -464,17 +469,45 @@ function MemoryPage() {
     learningCount === 0 &&
     counts.docs === 0;
 
-  // The rest of the substrate: real numbers already fetched, none of them on
-  // the surface, all of them one click down.
-  const substrate: { label: string; value: number }[] | null =
+  /**
+   * The rest of the substrate: real numbers already fetched, none of them on
+   * the surface, all of them one click down.
+   *
+   * AND NOW A DOOR EACH, where one exists. Six counts of things the crew reads
+   * before it acts, every one of them a plain span, on a page whose entire job
+   * is recall: the surface told you there were 41 signals and made you go and
+   * find them. `open` is absent rather than pointed at something adjacent
+   * wherever the product genuinely has nowhere to send you, and the two that
+   * are absent are named honestly here rather than quietly aimed at Brain
+   * itself:
+   *
+   *   meetings     THE MEETINGS SURFACE IS GONE. /meetings and /meetings/$id
+   *                301 to /brain?tab=calendar, and `calendar` resolves through
+   *                LEGACY_TABS to `decisions`, which renders the decision
+   *                ledger and not one meeting. So the count is real and there
+   *                is nothing behind it. Linking it to Decisions would be the
+   *                broken deep link this same pass is repairing on Discover.
+   *   saved notes  `rag_chunks` rows with source_kind 'finding'. They are read
+   *                by retrieval, not browsed: no surface in the product lists
+   *                them, so there is no page to open.
+   */
+  const substrate: { label: string; value: number; open?: () => void }[] | null =
     counts && stats.data
       ? [
-          { label: "chat threads", value: stats.data.conversations },
-          { label: "signals", value: counts.signals },
+          {
+            label: "chat threads",
+            value: stats.data.conversations,
+            open: () => navigate({ to: "/threads" }),
+          },
+          { label: "signals", value: counts.signals, open: () => navigate({ to: "/discover" }) },
           { label: "meetings", value: counts.meetings },
-          { label: "specs", value: counts.prds },
+          { label: "specs", value: counts.prds, open: () => navigate({ to: "/plan" }) },
           { label: "saved notes", value: counts.findings },
-          { label: "live connections", value: stats.data.connectorsLive },
+          {
+            label: "live connections",
+            value: stats.data.connectorsLive,
+            open: () => navigate({ to: "/settings", search: { section: "connections" } as never }),
+          },
         ]
       : null;
 
@@ -486,26 +519,33 @@ function MemoryPage() {
   // The second line is the SIZE of the record: what the headline no longer
   // says, because a manifest is not a claim. Every clause is a count that
   // loaded, so a failed read contributes no clause and never a zero.
+  //
+  // EVERY CLAUSE THAT HAS A TAB IS A DOOR TO IT. Calls, learnings and docs each
+  // name a table that one of the five tabs directly below renders, and all
+  // three were plain spans: the page counted them at you and then asked you to
+  // work out which door held them. Three counts, three tabs, no new
+  // destinations invented. "Last added" keeps no door, because a date is not a
+  // place.
   const sizeClauses: ReactNode[] = [];
   if (counts && counts.decisions > 0) {
     sizeClauses.push(
-      <span key="calls">
+      <Door key="calls" title="Open the decisions" onClick={() => setTab("decisions")}>
         <Num>{counts.decisions}</Num> {counts.decisions === 1 ? "call" : "calls"}
-      </span>,
+      </Door>,
     );
   }
   if (learningCount) {
     sizeClauses.push(
-      <span key="learnings">
+      <Door key="learnings" title="Open the outcomes" onClick={() => setTab("learnings")}>
         <Num>{learningCount}</Num> {learningCount === 1 ? "learning" : "learnings"}
-      </span>,
+      </Door>,
     );
   }
   if (counts && counts.docs > 0) {
     sizeClauses.push(
-      <span key="docs">
+      <Door key="docs" title="Open what is written" onClick={() => setTab("docs")}>
         <Num>{counts.docs}</Num> docs
-      </span>,
+      </Door>,
     );
   }
   if (lastAdded) {
@@ -530,44 +570,66 @@ function MemoryPage() {
     <Surface wide>
       <PageHead title={headline} sub={sub} />
 
+      {/* A NAKED "Try again" IS NOT AN ERROR STATE. This rendered one ghost
+          button under the headline and said nothing at all about what had
+          failed, so the page read as a working page with a stray control on it:
+          the headline had already fallen back to the honest manifest, the tabs
+          below still worked, and nothing told the reader that the counts they
+          could not see were counts we could not read. `Failed` is the primitive
+          for exactly this, and its whole reason for existing is that "nothing
+          here" and "we could not find out" are different facts. */}
       {countsFailed ? (
-        <div style={{ marginTop: "var(--sp-space-3)" }}>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              void brain.refetch();
-              void stats.refetch();
-            }}
-          >
-            Try again
-          </Button>
-        </div>
+        <Failed
+          onRetry={() => {
+            void brain.refetch();
+            void stats.refetch();
+          }}
+        >
+          The size of the record did not load. Everything it holds is still behind the five doors
+          below.
+        </Failed>
       ) : null}
 
       <RetentionLine />
 
+      {/* THE RECESS OPENS ITSELF NOW. This was a hand-rolled twelve-line inline
+          button reset wrapped around the Record, which is the precise
+          duplication the primitives were written to end: Record has carried its
+          own `onClick` since the audit, it renders a real <button> with the
+          reset in the stylesheet, and it keeps the div and the button pixel
+          identical so nothing reflows when a record becomes openable. A button
+          wrapping a button-shaped thing also meant the hover lift the recess
+          defines never fired, because the outer element was the one being
+          hovered.
+
+          THE PRIORITY MOVE IS A DIFF, so it wears the diff. "priority +3" was
+          rendered in flat metadata grey while `Diffstat` colours the identical
+          signal everywhere else in the product, which taught the eye that a
+          re-ranking here is a different kind of fact from a re-ranking
+          anywhere else. Green for a bet the outcome pushed up, red for one it
+          pushed down, and NOTHING when the outcome moved it nowhere: a "+0" is
+          a zero rendered as if it were a finding, which is the rule Diffstat's
+          own guard already states.
+
+          The Block is the section rhythm the removed wrapper was faking with an
+          inline margin. Every other region on this page is one, so the recess
+          gets the same rule above it rather than a bespoke gap. */}
       {showRecord && latest ? (
-        <button
-          type="button"
-          onClick={() => navigate({ search: { tab: "learnings", learning: latest.id } })}
-          style={{
-            display: "block",
-            width: "100%",
-            marginTop: "var(--sp-space-5)",
-            padding: 0,
-            border: 0,
-            background: "none",
-            font: "inherit",
-            color: "inherit",
-            textAlign: "left",
-            cursor: "pointer",
-          }}
-        >
+        <Block>
           <RecordRecess
+            title="Open this outcome"
+            onClick={() => navigate({ search: { tab: "learnings", learning: latest.id } })}
             evidence={
               <>
-                priority {latest.delta > 0 ? "+" : ""}
-                {latest.delta}
+                {latest.delta !== 0 ? (
+                  <Diffstat
+                    added={latest.delta > 0 ? latest.delta : 0}
+                    removed={latest.delta < 0 ? -latest.delta : 0}
+                    unit="points of priority"
+                  />
+                ) : (
+                  "priority unchanged"
+                )}
                 {day(latest.created_at) ? ` · ${day(latest.created_at)}` : ""}
               </>
             }
@@ -575,7 +637,7 @@ function MemoryPage() {
             {verdictLine(latest.verdict, latest.opportunity_title ?? "A call you shipped")}{" "}
             {latest.summary}
           </RecordRecess>
-        </button>
+        </Block>
       ) : null}
 
       {/* What changed BECAUSE of all that. The outcome speaks in the recess
@@ -668,25 +730,24 @@ function MemoryPage() {
           >
             What the crew reads before it acts, beyond the five doors above.
           </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "var(--sp-space-2) var(--sp-space-5)",
-            }}
-          >
+          {/* A Grid of Cells, which is the system's shape for things that are
+              SCANNED, rather than six inline spans styled from raw tokens. It
+              is what makes the door possible at all: Cell is a real <button>
+              when it does something, so it is tabbable, it answers Space and
+              Enter and it takes the app focus ring, none of which a styled
+              <span> with an onClick would have. Recessed, because these sit on
+              ground the disclosure already raised. */}
+          <Grid>
             {substrate.map((s) => (
-              <span
+              <Cell
                 key={s.label}
-                style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}
-              >
-                <span style={{ color: "var(--sp-ink)" }}>
-                  <Num>{s.value}</Num>
-                </span>{" "}
-                {s.label}
-              </span>
+                tone="recessed"
+                lead={<Num>{s.value}</Num>}
+                sub={s.label}
+                onClick={s.open}
+              />
             ))}
-          </div>
+          </Grid>
         </Disclosure>
       ) : null}
     </Surface>

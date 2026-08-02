@@ -1244,3 +1244,44 @@ export function CtxRow({
 export function Num({ children }: { children: React.ReactNode }) {
   return <span className="sp-num">{children}</span>;
 }
+
+/**
+ * A WORD INSIDE A SENTENCE THAT GOES SOMEWHERE.
+ *
+ * The quiet end of the affordance scale. `Button` is for something the surface
+ * is ASKING you to do; this is for a fact that happens to have an address of
+ * its own. Reported from four subtitles at once, and every one of them was the
+ * same defect: Today's "N days on the record", Brain's call, learning and doc
+ * counts, and Design's published share address were all plain spans naming a
+ * thing the reader could not open, on surfaces whose whole complaint was "I do
+ * not know where to find them".
+ *
+ * It is a primitive rather than four inline resets for the reason `Cell`'s own
+ * note gives: the alternative is the same eight-property button reset written
+ * out per surface, which is how a system drifts one screen at a time.
+ *
+ * It IS `.sp-block-more`, the system's existing quiet action: one step up the
+ * ink scale, and a dotted underline at very low contrast that goes solid on
+ * hover. `.sp-door` rides alongside it and modifies exactly one property, the
+ * size, which it inherits from the line it sits in rather than fixing at the
+ * metadata size; a control that shrinks halfway through a sentence reads as a
+ * typo rather than as an affordance. Every other state stays the base class's,
+ * so the two can never drift. No new colour, no new spacing.
+ */
+export function Door({
+  children,
+  onClick,
+  title,
+}: {
+  children: React.ReactNode;
+  /** Required. A Door with nowhere to go is a span, and this file's whole rule
+   *  is that an affordance is a promise. */
+  onClick: () => void;
+  title?: string;
+}) {
+  return (
+    <button type="button" className="sp-block-more sp-door" title={title} onClick={onClick}>
+      {children}
+    </button>
+  );
+}

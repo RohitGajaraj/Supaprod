@@ -131,6 +131,7 @@ import {
   Choices,
   CtxBody,
   CtxHead,
+  Door,
   Empty,
   Failed,
   Gate,
@@ -239,11 +240,38 @@ function rowSub(r: DesignWorkRow, gateOn: boolean): string {
  * provenance read that fails can never take the drawing down with it.
  */
 function Grounding({ prdId }: { prdId: string }) {
+  const navigate = useNavigate();
   const fProvenance = useServerFn(getScaffoldProvenance);
   const q = useQuery({
     queryKey: ["scaffold-provenance", prdId],
     queryFn: () => fProvenance({ data: { prdId } }),
   });
+
+  /**
+   * A NAMED RULE OPENS. Every rule that shaped the drawing was printed as
+   * plain text, so the surface would tell you your screen was built on
+   * "Buttons state the consequence" and leave you to go and find out what that
+   * rule actually says. The brand ledger in Settings is where a rule is read,
+   * edited and retired, and this file's own answer 4 already puts it there.
+   *
+   * THE LIMIT, RECORDED RATHER THAN FAKED: Settings validates `?section=`,
+   * `?tab=`, `?connector=` and `?checkout=` and nothing else, so there is no
+   * per-rule address to link to. The door lands on the ledger that holds the
+   * rule, not on the rule. Every name is its own control anyway, because the
+   * one that is retired is the one you came to look at and a single link at the
+   * end of the sentence would not say which.
+   */
+  const openLedger = () =>
+    void navigate({ to: "/settings", search: { section: "brand" } as never });
+  const ruleDoors = (rules: { id: string; title: string }[]) =>
+    rules.map((g, i) => (
+      <React.Fragment key={g.id}>
+        {i > 0 ? ", " : null}
+        <Door onClick={openLedger} title="Open this rule in the brand ledger">
+          {g.title}
+        </Door>
+      </React.Fragment>
+    ));
 
   // Silence beats a wrong sentence here. An unread provenance is not the same
   // fact as an ungrounded drawing, so a failed read says nothing at all.
@@ -265,12 +293,15 @@ function Grounding({ prdId }: { prdId: string }) {
     <Line
       label={`Built on ${groundedIn.length} of your ${groundedIn.length === 1 ? "rule" : "rules"}`}
       sub={
-        staleCount > 0
-          ? `${current} still stand. ${staleCount} ${staleCount === 1 ? "has" : "have"} been replaced since, so this drawing is behind your design language: ${groundedIn
-              .filter((g) => g.retired)
-              .map((g) => g.title)
-              .join(", ")}.`
-          : `${groundedIn.map((g) => g.title).join(", ")}. Everything else in the drawing is the model's own.`
+        staleCount > 0 ? (
+          <>
+            {current} still stand. {staleCount} {staleCount === 1 ? "has" : "have"} been replaced
+            since, so this drawing is behind your design language:{" "}
+            {ruleDoors(groundedIn.filter((g) => g.retired))}.
+          </>
+        ) : (
+          <>{ruleDoors(groundedIn)}. Everything else in the drawing is the model's own.</>
+        )
       }
     />
   );
@@ -1064,7 +1095,29 @@ function Design() {
             <Line
               key={s.id}
               label={s.name}
-              sub={s.isPublic ? shareUrl(s.slug) : "Nobody outside can open it"}
+              /* THE ADDRESS IS AN ADDRESS. A published link rendered as dead
+                 text, next to a Copy button, so the only way to find out what
+                 you had just published to the world was to copy it and paste it
+                 somewhere else. It opens what a visitor sees, in a new tab
+                 rather than in place: /p/$slug is a public page outside this
+                 shell, so navigating there would take the whole app away and
+                 leave the browser's back button as the only way home.
+
+                 Only when it is actually public. A private link has no address
+                 that works, and drawing a door onto a page that would refuse
+                 the visitor is the promise this pass exists to stop making. */
+              sub={
+                s.isPublic ? (
+                  <Door
+                    title="Open what a visitor sees"
+                    onClick={() => window.open(shareUrl(s.slug), "_blank", "noopener,noreferrer")}
+                  >
+                    {shareUrl(s.slug)}
+                  </Door>
+                ) : (
+                  "Nobody outside can open it"
+                )
+              }
             >
               {s.isPublic ? (
                 <Button
@@ -1109,11 +1162,30 @@ export const Route = createFileRoute("/_authenticated/design")({
   }),
   component: Design,
   head: () => ({ meta: [{ title: "Design · Supaprod" }] }),
+  /**
+   * A HEADLINE IS NOT A RECOVERY. This shipped as a title and a subtitle
+   * telling the reader to reload, with nothing to press: the one screen in the
+   * product where a person is already stuck, and the instruction was "go and
+   * operate your browser". Discover's own error state has had a button since it
+   * was written, and Decide's is the shape copied here, so the three route
+   * failures in this station now answer the same way.
+   *
+   * `Failed`, not `Empty`: a crash is "we could not find out", never "nothing
+   * here", and those are different facts a person acts on differently. A full
+   * reload rather than `reset`, because the render already threw once and
+   * re-running it against the same cache usually throws again.
+   */
   errorComponent: ({ error }) => {
     console.error("[Design] route crashed:", error);
     return (
       <Surface>
-        <PageHead title="Design did not load." sub="Reload the page. Nothing here is lost." />
+        <PageHead
+          title="Design did not load."
+          sub="Every drawing, rule and link is safe on the record."
+        />
+        <Failed onRetry={() => window.location.reload()} retryLabel="Reload">
+          The surface crashed while rendering.
+        </Failed>
       </Surface>
     );
   },

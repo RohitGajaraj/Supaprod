@@ -319,6 +319,18 @@
   text-decoration-style: solid;
   text-decoration-color: color-mix(in oklab, var(--sp-ink) 45%, transparent);
 }
+/* A DOOR IS THE SAME QUIET ACTION, INSIDE A RUNNING SENTENCE. It wears
+ * `.sp-block-more` and modifies exactly one thing, so the ink step, the dotted
+ * underline, the focus outline and the disabled state are the base class's and
+ * can never drift from it.
+ *
+ * The one modification is the size. `.sp-block-more` fixes it at the metadata
+ * size because it is normally a control on its own line; a Door sits mid
+ * sentence, and a control that shrinks halfway through a sentence reads as a
+ * typo rather than as an affordance. */
+.sp-door {
+  font-size: inherit;
+}
 /* An OUTLINE, not a box-shadow. `styles.css` carries an unlayered
  * `[data-obsidian] :focus-visible { box-shadow: none }` that sits after this file
  * in source order, so a shadow-based ring here would be silently erased. */
