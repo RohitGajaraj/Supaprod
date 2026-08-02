@@ -275,7 +275,19 @@ const listSignals = def({
     source_kind: z.string().max(60).optional(),
     tag: z.string().max(60).optional(),
     sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
-    lookback_days: z.number().int().min(1).max(90).default(7),
+    // 30, not 7. THIS DEFAULT IS WHY NOTHING HAD EVER LEFT DISCOVER.
+    //
+    // Measured on the live database 2026-08-02: 308 signals exist, 144 of them
+    // inside 30 days, and SIX inside 7. So this tool answered "empty" for almost
+    // every workspace on almost every call, the Discover station filed nothing,
+    // its track burned three attempts and froze. 42 open tracks, every one of
+    // them standing at `sense`, exactly one track in the product's history has
+    // ever reached `done`.
+    //
+    // A pattern-finding station needs enough history to contain a pattern. Seven
+    // days is a status-update window, not an evidence window, and it does not
+    // match the scout's own 30 day horizon or the clustering horizon either.
+    lookback_days: z.number().int().min(1).max(90).default(30),
     limit: z.number().int().min(1).max(50).default(20),
   }),
   preview: (a) =>
@@ -295,7 +307,34 @@ const listSignals = def({
     if (a.tag) q = q.contains("tags", [a.tag]);
     const { data, error } = await q;
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+    if (rows.length > 0) return rows;
+
+    // AN EMPTY WINDOW AND AN EMPTY WORKSPACE ARE DIFFERENT FACTS, and returning
+    // a bare [] for both is what let this fail silently for weeks: the station
+    // read "no signals" and reported "connect a source" to workspaces holding
+    // thirty. So when the window is empty, say what is outside it. The agent can
+    // then widen the lookback instead of concluding the desk is empty, and a
+    // human reading the run sees the real reason. Filters are repeated rather
+    // than shared because PostgREST's count option exists only on the FIRST
+    // select in a chain, so the two queries cannot share a builder.
+    let c = supabase
+      .from("signals")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    if (workspaceId) c = c.eq("workspace_id", workspaceId);
+    if (a.source_kind) c = c.eq("source_kind", a.source_kind);
+    if (a.sentiment) c = c.eq("sentiment", a.sentiment);
+    if (a.tag) c = c.contains("tags", [a.tag]);
+    const { count } = await c;
+    const outside = count ?? 0;
+    if (outside === 0) return [];
+    return {
+      signals: [],
+      window_days: a.lookback_days,
+      older_signals_outside_window: outside,
+      note: `No signals in the last ${a.lookback_days} days, but this workspace holds ${outside} older ones. Call again with a larger lookback_days before concluding there is nothing to work with.`,
+    };
   },
 });
 
