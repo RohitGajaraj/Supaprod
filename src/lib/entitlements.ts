@@ -359,9 +359,10 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           "Share any decision by link. The reader needs no account and no seat.",
           "Everything in Free, plus:",
           "Persistent decision memory that never fades",
-          // The real mechanic: credits are SELECTED from CREDIT_DROPDOWN_TIERS,
-          // not a fixed multiplier. Price scales linearly with the band.
-          "Pick your monthly credit band, 100 to 10,000. Every action spends credits, so size it to how hard you run.",
+          // The real mechanic since 2026-08-03: ONE included allowance per tier, from
+          // the multipliers in this file, plus top-ups for capacity. A tier sells seats
+          // and capability; credits sell capacity. The band picker used to blur the two.
+          "3,750 credits a month included. Every action spends credits, and you can add more any time without changing plan.",
           "Critic red-teams every spec and bet, automatically",
           "Read connectors that pull signals in on their own",
           "Memory recalls across all your workspaces",

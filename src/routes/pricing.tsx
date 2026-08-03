@@ -734,7 +734,7 @@ function PricingPage() {
                 marginRight: "auto",
               }}
             >
-              Free and Pro are single seat. More power for one person is a bigger credit band on
+              Free and Pro are single seat. More power for one person is more credits on
               Pro, not a different product, so nothing about your record is held back for a higher
               plan. You can hand any decision to a colleague with a link on every plan, including
               Free. Business starts at two seats, because two people is where a team starts
