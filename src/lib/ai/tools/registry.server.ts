@@ -1580,6 +1580,53 @@ const studioStage = def({
       if (c.op !== "delete" && typeof c.content !== "string")
         throw new Error(`change for ${c.path}: op '${c.op}' requires content`);
     }
+
+    /**
+     * A DECLARED TOUCH LIST IS A BOUNDARY, SO IT HAS TO HOLD HERE.
+     *
+     * Found 2026-08-03: `studio_changeset_constraints.allowed_paths` was written
+     * at dispatch, and then only ever READ to compute `outOfPolicy` for the
+     * Changes tab, which reports the violation AFTER the file is already staged.
+     * So an operator who narrowed the scope to `src/checkout/**` got a report
+     * that the agent had written elsewhere, not a refusal.
+     *
+     * That is the governance canon inverted. The human's job is to set the
+     * boundary in advance; a boundary that is merely narrated afterwards is a
+     * log, and it is worse than no boundary because the operator believes they
+     * set one. The hard floor (assertStudioPathAllowed: CI, migrations, env,
+     * lockfiles) already refuses at this seam; a boundary the user chose
+     * themselves deserves at least the same standing.
+     *
+     * Undeclared stays unbounded, deliberately: the default is autonomy, and an
+     * empty list means "nobody narrowed this", not "narrow it to nothing".
+     * Fail-soft on the READ only, so a constraints table that cannot be reached
+     * never blocks a legitimate run.
+     */
+    let allowedPaths: string[] = [];
+    try {
+      const { data: constraintRow } = await supabase
+        .from("studio_changeset_constraints")
+        .select("allowed_paths")
+        .eq("mission_id", missionId)
+        .maybeSingle();
+      allowedPaths = ((constraintRow as { allowed_paths?: string[] | null } | null)
+        ?.allowed_paths ?? []) as string[];
+    } catch {
+      allowedPaths = [];
+    }
+    if (allowedPaths.length > 0) {
+      const within = (path: string) =>
+        allowedPaths.some((rule) => {
+          const r = rule.trim().replace(/\*+$/, "");
+          return r === "" ? false : path === r || path.startsWith(r.endsWith("/") ? r : `${r}/`);
+        });
+      const outside = a.changes.map((c) => c.path).filter((p) => !within(p));
+      if (outside.length > 0) {
+        throw new Error(
+          `Outside the declared touch list: ${outside.join(", ")}. This run may only write under ${allowedPaths.join(", ")}. Widen the scope on the Changes tab if that is wrong.`,
+        );
+      }
+    }
     const { token, repo } = await requireGithub(ctx);
     const headers = ghHeaders(token);
 

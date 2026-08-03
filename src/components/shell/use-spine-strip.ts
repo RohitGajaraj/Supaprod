@@ -87,8 +87,13 @@ export function useSpineStrip(active: AgentStation | null): void {
       // muted styling already says nothing is here. The strip reserves the
       // line's height in CSS so removing the word does not make the region
       // jump every time a run starts or finishes.
+      // NAME WHAT IS WAITING. This chip counts RUNS held at a gate, and it used
+      // to read "20 waiting on you" directly above a Discover page reading
+      // "9 clusters are waiting on a call". Both numbers were right about
+      // different objects, and with the same six words between them the screen
+      // read as a contradiction. Saying "runs" costs one word and removes it.
       const note = b.gate
-        ? `${b.gate} waiting on you`
+        ? `${b.gate} ${b.gate === 1 ? "run" : "runs"} waiting on you`
         : b.working
           ? `${b.working} running`
           : b.total

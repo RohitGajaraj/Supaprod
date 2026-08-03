@@ -1013,7 +1013,13 @@ export function ChangesPanel({
                 </>
               )
             ) : (
-              `No touch list and no cap, so ${builderName} may write anywhere in the repo.`
+              // "Anywhere in the repo" was scarier than the truth and hid the
+              // floor that does exist: assertStudioPathAllowed refuses CI
+              // configs, migrations, env files and lockfiles at the write seam,
+              // whatever the operator has or has not declared. Naming that floor
+              // is what makes the ABSENCE of a touch list readable as a choice
+              // rather than as an oversight.
+              `No touch list and no cap. ${builderName} may write anywhere except CI, migrations, env and lockfiles, which are always refused.`
             )
           }
           more={editScope ? "Close" : "Edit"}
