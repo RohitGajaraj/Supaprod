@@ -149,7 +149,7 @@ Operator-facing surfaces shipped in this pass and how to verify each:
 - **Doc the surface as you ship it.** The first version of this audit shipped without a "How to use / verify" block; the operator had to ask where the new switcher lived. The Core rule exists for a reason. Every user-facing surface lands with the block in the same turn.
 - **Inline management beats a settings route.** Operators ranked "rename inline" above three other asks the same session. Manage-where-the-thing-lives is the default; a dedicated route is the exception.
 - **Typed-name-match is cheap insurance.** One operator-typed string is the difference between "I deleted the wrong workspace" and "I won't make that ticket again."
-- **Voice rules belong in `DESIGN.md`, not the audit only.** The audit is the _case_; `DESIGN.md` is the _contract_. Without the contract entry the next person ships an exclamation-point H1 and a triple-pattern subhead.
+- **Voice rules belong in `docs/design/archive/ember-editorial-landing.md`, not the audit only.** The audit is the _case_; `docs/design/archive/ember-editorial-landing.md` is the _contract_. Without the contract entry the next person ships an exclamation-point H1 and a triple-pattern subhead.
 
 ## Related
 

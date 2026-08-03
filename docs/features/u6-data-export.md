@@ -12,7 +12,7 @@ One click in Settings > Data downloads the entire workspace as a single JSON fil
 
 ## Why it exists
 
-Data portability is a trust requirement, not a nicety: a PM will not pour their product thinking into a tool they cannot get it back out of. It complements B5 (per-product export) by exporting the whole workspace footprint at once. Build note: [`plan.md`](../../plan.md) §4.
+Data portability is a trust requirement, not a nicety: a PM will not pour their product thinking into a tool they cannot get it back out of. It complements B5 (per-product export) by exporting the whole workspace footprint at once. Build note: [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4.
 
 ## Where to find it
 
@@ -53,7 +53,7 @@ Settings (`/settings`) > the **Data** tab > "Download workspace export".
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 build log · [`projects.functions.ts`](../../src/lib/projects.functions.ts) (B5 `exportProduct` sibling) · feature-dashboard U6 row · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycle 1).
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`projects.functions.ts`](../../src/lib/projects.functions.ts) (B5 `exportProduct` sibling) · feature-dashboard U6 row · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycle 1).
 
 ## Settings/connections audit note (2026-07-07)
 

@@ -12,6 +12,6 @@ ruling on 2026-07-10, the standing design system for every Supaprod surface is *
 
 **Stop. Invoke the `supaprod-tempo` skill instead.**
 
-The old contracts (`DESIGN-LOOM.md`, `DESIGN-OBSIDIAN.md`, `DESIGN.md`) and the
+The old contracts (`docs/design/archive/loom-v4.md`, `docs/design/archive/obsidian-v3.md`, `docs/design/archive/ember-editorial-landing.md`) and the
 `design-reference/obsidian-v3/` package remain in the repo as history only. Do not build
 new surfaces from them.

@@ -23,7 +23,7 @@ built together. Inventing a new data-flow shape is a smell — mirror an existin
 6. **Verify visually.** `bun run dev` and check the surface in the browser —
    type-checking is not feature-checking (AGENTS.md §3, architecture/frontend.md).
 7. **Close the documentation loop.** Update the relevant doc + append to the build log in
-   `plan.md` §4 in the _same_ unit of work (AGENTS.md §5). A change isn't done until its
+   `docs/planning/archive/build-log.md` §4 in the _same_ unit of work (AGENTS.md §5). A change isn't done until its
    docs are true.
 
 ## Gotchas

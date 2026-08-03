@@ -95,6 +95,6 @@ implementation for the pattern paying off. See [`v12-self-improving-os.md`](../s
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2, §7.2
 - Siblings: [`decision-brain.md`](./decision-brain.md) (the supersession convention this follows)

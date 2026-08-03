@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-19 · Last updated: 2026-06-19_
 
-> The visual, motion and interaction contract for Cadence. Product framing: [`README.md`](./README.md). Operating/engineering rules: [`AGENTS.md`](./AGENTS.md). Build log: [`plan.md`](./plan.md). Repo map: [`ENTRY.md`](./ENTRY.md).
+> The visual, motion and interaction contract for Cadence. Product framing: [`README.md`](./README.md). Operating/engineering rules: [`AGENTS.md`](./AGENTS.md). Build log: [`docs/planning/archive/build-log.md`](./plan.md). Repo map: [`README.md`](./ENTRY.md).
 
 ---
 
@@ -105,7 +105,7 @@ Token names `--violet`, `--indigo-grid`, `.ring-glow-violet`, `.neural-*` are re
    - Approved palettes move into `src/styles.css` tokens immediately after review
 
 5. **Update documentation in the same commit**
-   - Add Pantone tone to `DESIGN.md` §Tokens (this section)
+   - Add Pantone tone to `docs/design/archive/ember-editorial-landing.md` §Tokens (this section)
    - Update `src/styles.css` with new `--color-*` tokens (never hardcoded hex)
    - Document in [`AGENTS.md`](./AGENTS.md) §4 if a new color selection pattern emerges
 

@@ -10,7 +10,7 @@ A multi-hop orchestrated mission now runs **unattended**. Once the orchestrator 
 
 ## Why it exists
 
-Phase 0 made the Chief of Staff real but left autonomy _claimed_ ahead of _wired_: missions stalled after wave-0 because nothing re-fired the orchestrator, a single failed hop killed the branch, the step budget was static, and the `memory_refs[]` contract field added in W5 was never populated. Phase 1 wires all four, the honest next step on the North Star (genuine autonomous end-to-end execution under governance), per [`plan.md`](../../plan.md) §4 (2026-06-14 entry) and [v6 §9](../strategy/archive/v6-agentic-product-os.md).
+Phase 0 made the Chief of Staff real but left autonomy _claimed_ ahead of _wired_: missions stalled after wave-0 because nothing re-fired the orchestrator, a single failed hop killed the branch, the step budget was static, and the `memory_refs[]` contract field added in W5 was never populated. Phase 1 wires all four, the honest next step on the North Star (genuine autonomous end-to-end execution under governance), per [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-06-14 entry) and [v6 §9](../strategy/archive/v6-agentic-product-os.md).
 
 ## Where to find it
 
@@ -58,7 +58,7 @@ Phase 0 made the Chief of Staff real but left autonomy _claimed_ ahead of _wired
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4: 2026-06-14 build-log entry
+- [`../../plan.md`](../planning/archive/build-log.md) §4: 2026-06-14 build-log entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md): orchestration contract
 - [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md) §9 (Phase 1) + Appendix B
 - Siblings: [`f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md) · [`f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md)

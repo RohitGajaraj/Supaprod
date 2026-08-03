@@ -25,7 +25,7 @@
 
 1. **Moat = compounding memory.** Conviction's _"reasoning traces + evaluation methods… not yet collected by any player; the field is open"_ is a verbatim description of our PM decision-memory. The moat thesis is the VC consensus, not a hope.
 2. **Dual-persona is the right cut** — and the GCP startups synthesis independently proposes the _same_ split: **senior/founding PM = budget/OpEx replacement** (Jerry Chen) · **individual PM/prosumer = long-tail personalization / PLG** (Friedberg/Chen).
-3. **Model-agnostic / BYOK** is repeatedly advised (Arvind Jain, Gonimah) — a validated existing strength matching our [`Ai_Cofounder.md`](../../Ai_Cofounder.md) mandate.
+3. **Model-agnostic / BYOK** is repeatedly advised (Arvind Jain, Gonimah) — a validated existing strength matching our [`docs/strategy/founding-constitution.md`](../strategy/founding-constitution.md) mandate.
 4. **Grounding + citations + Critic + reversibility + audit** are the trust mechanics the market explicitly rewards (Liberty; the Trends report's whole governance posture).
 5. **"Claim-never-outruns-wiring"** is not just integrity — it is _legal_ risk management: 12 FTC "agent-washing" cases + SEC actions in 2025; ~90% of "agentic" vendors are rebranded copilots (Gartner). Our honesty rule is a moat.
 

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-11_
 
-> Status: **DECISION BRIEF (for the founder to confirm).** Date: 2026-05-29. Owner: founder. Rules: [`../../AGENTS.md`](../../AGENTS.md), section 9 (open-source discipline). Stack as implemented: [`../../plan.md`](../../plan.md).
+> Status: **DECISION BRIEF (for the founder to confirm).** Date: 2026-05-29. Owner: founder. Rules: [`../../AGENTS.md`](../../AGENTS.md), section 9 (open-source discipline). Stack as implemented: [`../../plan.md`](../planning/archive/build-log.md).
 
 This brief answers four questions you asked directly:
 
@@ -86,7 +86,7 @@ This is two separate decisions — do not conflate them:
 
 ## What to do now
 
-1. Keep the stack. Build the **full intended scope** on it ([`../../plan.md`](../../plan.md)) — production-grade, no MVP gating, no rewrite.
+1. Keep the stack. Build the **full intended scope** on it ([`../../plan.md`](../planning/archive/build-log.md)) — production-grade, no MVP gating, no rewrite.
 2. Design the durable agent-runtime tier into the orchestration layer up front ([`../../architecture/orchestration.md`](../../architecture/orchestration.md)) so long/parallel missions are an addition, never a rewrite.
 3. Confirm the app runs on a vanilla Supabase project (export migrations) so Lovable-Cloud lock-in stays optional; keep BYO keys + model-agnostic adapters as the gateway escape hatch.
 4. Co-develop freely across Claude Code and Lovable — nothing is tool-specific.

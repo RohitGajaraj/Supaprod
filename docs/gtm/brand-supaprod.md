@@ -35,7 +35,7 @@
 | **Pronunciation** | SOO-pa-prod (three syllables) |
 | **Spoken rule** | Say **"Supaprod, with an A"** once in every spoken pitch, podcast, and demo. The only systematic leak in the name is spelling (supa → super), and it is coachable. |
 | **Tagline candidate** | **"Ships to prod, with receipts."** — makes the production reading deliberate and pre-empts the "lol it tests in prod" joke before Twitter writes it for us |
-| **Wordmark** | Lowercase single word — `supaprod` — set in the Tempo design contract (`DESIGN-TEMPO.md`) type system. **Never camel-case "SupaProd"**: the capital D visually amputates and amplifies "Prod", and the risk analysis flagged camel-casing as the styling that makes the wrong parse loudest. |
+| **Wordmark** | Lowercase single word — `supaprod` — set in the Tempo design contract (`docs/design/archive/tempo-v5.md`) type system. **Never camel-case "SupaProd"**: the capital D visually amputates and amplifies "Prod", and the risk analysis flagged camel-casing as the styling that makes the wrong parse loudest. |
 
 ### The three accepted taxes (decided with eyes open, 2026-07-16)
 

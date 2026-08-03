@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-07 · Last updated: 2026-07-07_
 
-> **The comprehensive reference for how every object looks, reads, and behaves in the Supaprod app.** This is the "how to build a surface" companion to the design law. [`DESIGN-LOOM.md`](../../DESIGN-LOOM.md) §0.1 dimension 17 is the short, binding CONTRACT (the rule any change is gated on); this doc is the LONG-FORM reference behind it: the full anatomy, the shared primitives, the color/token palette, the naming conventions, the ranking and designation logic, and the reasoning (the WHY) behind each decision. When the two agree they are the same rule stated at two lengths; if this doc ever drifts from the contract, the contract wins and this doc is corrected in the same change.
+> **The comprehensive reference for how every object looks, reads, and behaves in the Supaprod app.** This is the "how to build a surface" companion to the design law. [`docs/design/archive/loom-v4.md`](../design/archive/loom-v4.md) §0.1 dimension 17 is the short, binding CONTRACT (the rule any change is gated on); this doc is the LONG-FORM reference behind it: the full anatomy, the shared primitives, the color/token palette, the naming conventions, the ranking and designation logic, and the reasoning (the WHY) behind each decision. When the two agree they are the same rule stated at two lengths; if this doc ever drifts from the contract, the contract wins and this doc is corrected in the same change.
 >
 > Read this before building or retrofitting any object card, list row, graph node, or detail side panel. The Discover and Decide surfaces are the built exemplars; every other surface (Today, Plan/Define, Build, Brain, Trust Ledger, Engine Room, Settings) adopts this by default and is brought into line as it is touched.
 
@@ -12,7 +12,7 @@
 
 **Every object the platform shows is a first-class, auditable thing, never a dead tile.** A card, a row, a list item, or a graph node can always answer, in one click and without a menu: what am I, how important am I, what state am I in, where did I come from, when did I change, and what should happen next. This is the felt expression of the product thesis (the decision-and-outcome layer that keeps the receipts): if the whole moat is an auditable record of what was decided and whether it was right, then every object on screen has to carry its own receipts. It is built for a human AND for an agent reading the same surface, so the provenance, the trace ref, the timestamps, and the recommended next action are all first-class, not decoration.
 
-Founder ruling 2026-07-07, standing, every surface and object type. The binding form is [`DESIGN-LOOM.md`](../../DESIGN-LOOM.md) dimension 17.
+Founder ruling 2026-07-07, standing, every surface and object type. The binding form is [`docs/design/archive/loom-v4.md`](../design/archive/loom-v4.md) dimension 17.
 
 ---
 
@@ -255,11 +255,11 @@ A checklist for any object card, row, node, or detail:
 
 ## Related
 
-- [`../../DESIGN-LOOM.md`](../../DESIGN-LOOM.md), the design contract (§0.1 dimension 17 is the binding short form of this reference; dimensions 1 to 16 are the wider Consumer Production Doctrine)
-- [`../../DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md), the v3 base design system (tokens, role colors, restraint budget) that Loom is additive over
+- [`../../DESIGN-LOOM.md`](../design/archive/loom-v4.md), the design contract (§0.1 dimension 17 is the binding short form of this reference; dimensions 1 to 16 are the wider Consumer Production Doctrine)
+- [`../../DESIGN-OBSIDIAN.md`](../design/archive/obsidian-v3.md), the v3 base design system (tokens, role colors, restraint budget) that Loom is additive over
 - [`../features/opportunity-ranking.md`](../features/opportunity-ranking.md), the DEC-RANK feature doc (ranking + best bet + designations, the built exemplar)
 - [`../features/obsidian-port.md`](../features/obsidian-port.md), the surface-by-surface port to the v3/Loom system
 - [`ui-voice.md`](./ui-voice.md), UI copy length budgets + the AI-tell denylist
 - [`humanized-output.md`](./humanized-output.md), the zero-AI-fingerprint rule
 - [`engine-room-doctrine.md`](./engine-room-doctrine.md), outcome-first naming (complexity lives in the engine, never the experience)
-- [`../../plan.md`](../../plan.md) §4, the dated build log (the Discover/Decide redesign chain)
+- [`../../plan.md`](../planning/archive/build-log.md) §4, the dated build log (the Discover/Decide redesign chain)

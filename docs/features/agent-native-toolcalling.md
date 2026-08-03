@@ -135,7 +135,7 @@ consuming a mission's step budget.
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
 - [`consent-scopes.md`](./consent-scopes.md) - AGT-02, shipped alongside this in the same
   chokepoint-attended session, sharing the `resolveToolMode` mode-composition chain

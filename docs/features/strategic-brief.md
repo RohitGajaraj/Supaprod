@@ -115,7 +115,7 @@ founder's own highest-level calls. See [`v12-self-improving-os.md`](../strategy/
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.4
 - Siblings this reuses: FS-02 (`assumptions`, `watchAssumptions`), CNV-02 (the `assumptions_source_chk`
   widening precedent), RF-04 (the chokepoint injection pattern)

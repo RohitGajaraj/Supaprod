@@ -11,7 +11,7 @@
 >
 > **Relationship to other docs (no duplication of rules).** Product thesis + USP/MOAT: [`../README.md`](../README.md). Build _order_: [`../plan.md`](../../plan.md) §3. Cross-cutting non-functional rationale + P0/P1/P2 priorities: [`../docs/considerations.md`](./considerations.md). UI/IA/screen + AI-message contract: [`../design.md`](../../DESIGN.md). Architecture contracts: [`../architecture/`](../../architecture/). Operating rules: [`../AGENTS.md`](../../AGENTS.md).
 >
-> **This file adds detail; it does not replace `plan.md`.** `plan.md` stays the narrative + build order; this is the flat, addressable scope list. Keep both true (closed doc loop, [`../AGENTS.md`](../../AGENTS.md) §5).
+> **This file adds detail; it does not replace `docs/planning/archive/build-log.md`.** `docs/planning/archive/build-log.md` stays the narrative + build order; this is the flat, addressable scope list. Keep both true (closed doc loop, [`../AGENTS.md`](../../AGENTS.md) §5).
 >
 > **Looking for the next task to pick up?** Jump to the [Build-order rollup](#build-order-rollup-status--build-sequence) at the bottom - it is the canonical task queue. The live cursor (now / next / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (section 0 + section 3), which points back here for F-ID scope.
 
@@ -166,7 +166,7 @@ ID. Feature name                         [status] · Pn · stage
    Depends  — prerequisite IDs.
 ```
 
-**Status** (from `plan.md` §2): `[reuse]` legacy survives largely as-is · `[extend]` legacy base + new work · `[new]` build from scratch · `[found]` foundation/non-functional (architecture, not a screen).
+**Status** (from `docs/planning/archive/build-log.md` §2): `[reuse]` legacy survives largely as-is · `[extend]` legacy base + new work · `[new]` build from scratch · `[found]` foundation/non-functional (architecture, not a screen).
 
 **Priority** (from `considerations.md` precedence, P0 highest): `P0` credible first user / built into foundation now · `P1` before/at first enterprise sale · `P2` scale & maturity.
 
@@ -308,7 +308,7 @@ _Focus: Swarm steering, natural language intent routing, execution loops._
 
 - Build: `auto|confirm|review` per run; queue of `awaiting_review` runs with summary + proposed action; approve/reject; one-click resume from checkpoint.
 - States: approve → resume; reject → record + stop; timeout policy.
-- Done when: a `confirm` action pauses, appears in the queue, and resumes on approve. See `DESIGN.md` DecisionQueue card.
+- Done when: a `confirm` action pauses, appears in the queue, and resumes on approve. See `docs/design/archive/ember-editorial-landing.md` DecisionQueue card.
 - Depends: D2, P (trace).
 
 **D4 — Cancellation / replay-and-branch / checkpoints** `[reuse]` · `P1` · `X1`
@@ -337,7 +337,7 @@ _Focus: PRD writing, roadmapping, sprint planning, Linear/Jira connectors._
 
 - Build: Tiptap editor; inline `/ai` slash menu; 1.5s autosave to `prd_versions`; version diff; citation pills; side-anchored comments.
 - States: autosave conflict; offline edit; long doc.
-- Done when: edits autosave + version; `/ai` edits inline with citations; diff renders. See `DESIGN.md` DocEditor.
+- Done when: edits autosave + version; `/ai` edits inline with citations; diff renders. See `docs/design/archive/ember-editorial-landing.md` DocEditor.
 - Depends: G1.
 
 ---
@@ -384,7 +384,7 @@ _Focus: UI mockups, visual sandbox, design tokens, style audits._
 
 - Build: live per-session view — current step, files touched, tool calls, cost, status; pause/steer/approve mid-run; streaming.
 - States: many concurrent sessions; paused; errored step.
-- Done when: a building agent's steps/files/cost stream live and can be paused. See README capability surface + `DESIGN.md`.
+- Done when: a building agent's steps/files/cost stream live and can be paused. See README capability surface + `docs/design/archive/ember-editorial-landing.md`.
 - Depends: E6, I1, P.
 
 **I3 — Branch/worktree isolation per mission** `[new]` · `P1` · `S4`
@@ -674,7 +674,7 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 **C1 — Agent roster** `[extend]` · `P0` · `X1`
 
 - Build: list durable lifecycle agents + spawned sub-agents per product; status dots; last-run summary.
-- Done when: the roster shows the ~10 durable agents (`plan.md` §6) + live sub-agents.
+- Done when: the roster shows the ~10 durable agents (`docs/planning/archive/build-log.md` §6) + live sub-agents.
 
 **C2 — Create / clone / configure agent** `[reuse]` · `P0` · `X1`
 
@@ -766,7 +766,7 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 **P6 — Budgets** `[reuse]` · `P0` · `X3`
 
 - Build: daily/monthly caps per workspace/product/mission; BudgetBar (today vs cap, month vs cap; muted→accent→destructive; per-surface popover); breach is friendly (not a crash).
-- Done when: a breach degrades gracefully and the BudgetBar reflects burn. See `DESIGN.md` BudgetBar.
+- Done when: a breach degrades gracefully and the BudgetBar reflects burn. See `docs/design/archive/ember-editorial-landing.md` BudgetBar.
 - Depends: 0.6, V1.
 
 **P7 — Incidents log** `[reuse]` · `P1` · `X3`
@@ -776,7 +776,7 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 **P8 — AI message UI contract** `[reuse]` · `P0` · `X3`
 
 - Build: one shared component rendering score/model+via/latency/tokens/cost/citations/feedback/view-trace/replay on every AI message; cache hit shows `$0.0000`; no citations box when `retrieval=false`.
-- Done when: every AI surface (chat, copilot, PRD `/ai`, Studio, agent summaries, brief) uses the one contract component. Non-negotiable per `DESIGN.md` + `AGENTS.md` rule 9.
+- Done when: every AI surface (chat, copilot, PRD `/ai`, Studio, agent summaries, brief) uses the one contract component. Non-negotiable per `docs/design/archive/ember-editorial-landing.md` + `AGENTS.md` rule 9.
 - Depends: P1, O2.
 
 ---
@@ -802,13 +802,13 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 **R1 — Command palette (⌘K) + global search** `[reuse]` · `P0` · `X6`
 
 - Build: `cmdk`-based; resolves every destination/create-action/recent-artifact; keyboard-first.
-- Done when: ⌘K reaches every route + create action + recent artifact. See `DESIGN.md`.
+- Done when: ⌘K reaches every route + create action + recent artifact. See `docs/design/archive/ember-editorial-landing.md`.
 
 **R2 — Connectors / integrations** `[extend]` · `P1` · `X5`
 
 - Build: Google Docs/Notion two-way sync, Linear pull/push + Sync Inbox, Google Calendar read+write, GitHub, Slack, CRM; integration health surface; OAuth + token storage (encrypted); reuse Nango engine (`nango/`); known limits: Docs sync drops comments, Notion BFS reorder fixed.
 - States: token expired; sync conflict; partial sync; rate limit.
-- Done when: at least Docs/Notion/Linear/Calendar round-trip with health visible. See `integrations` epic in `plan.md` §5.
+- Done when: at least Docs/Notion/Linear/Calendar round-trip with health visible. See `integrations` epic in `docs/planning/archive/build-log.md` §5.
 - Depends: A5/secrets, nango.
 
 **R3 — Notifications** `[extend]` · `P1` · `X6`
@@ -1008,7 +1008,7 @@ _Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md
 | F-ID              | What                                                                                                                                                                                                                                          | Source recs |        Status        |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | :------------------: |
 | `F-VOICE-DIALOGS` | `window.prompt()`/`window.confirm()` flows in `AppShell` (workspace + product creation/rename/delete) replaced with `useConfirm` / `usePrompt` dialogs + sentence-case labels; ESLint guardrail blocks `alert/confirm/prompt/onbeforeunload`. | LANG-07     | ☑ shipped 2026-06-06 |
-| `F-VOICE-GUIDE`   | One-page voice guide published as [`./conventions/ui-voice.md`](../conventions/ui-voice.md); linked from `DESIGN.md`, `AGENTS.md` §3, `CLAUDE.md` + `GEMINI.md` read-order step 1.6.                                                          | LANG-10     | ☑ shipped 2026-06-06 |
+| `F-VOICE-GUIDE`   | One-page voice guide published as [`./conventions/ui-voice.md`](../conventions/ui-voice.md); linked from `docs/design/archive/ember-editorial-landing.md`, `AGENTS.md` §3, `CLAUDE.md` + `GEMINI.md` read-order step 1.6.                                                          | LANG-10     | ☑ shipped 2026-06-06 |
 
 #### Security follow-up (ignored finding, tracked)
 
@@ -1030,7 +1030,7 @@ _Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md
 
 ## Build-order rollup (status × build sequence)
 
-Sequence from [`../plan.md`](../../plan.md) §3. Status: ☐ not started · ◑ legacy partial (harden) · ☑ verified into `plan.md` §4. **Per-item code-verified grades + step-1 tickets: [`archive/foundation-audit.md`](./archive/foundation-audit.md) (2026-05-30).**
+Sequence from [`../plan.md`](../../plan.md) §3. Status: ☐ not started · ◑ legacy partial (harden) · ☑ verified into `docs/planning/archive/build-log.md` §4. **Per-item code-verified grades + step-1 tickets: [`archive/foundation-audit.md`](./archive/foundation-audit.md) (2026-05-30).**
 
 > **▶ This table is the canonical "what do I build next?" source.** To resolve the next actionable task deterministically (any tool, any human):
 >

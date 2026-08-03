@@ -10,7 +10,7 @@ A read-only tab in Govern that surfaces the three north-star proof metrics on a 
 
 ## Why it exists
 
-Phase 3 ("Proof & Launch") needs the proof metrics instrumented on a surface, not asserted in a deck. These three are the evidence that the loop is real and trusted: that the agents' proposals match your judgment (A), that the reversible work is genuinely being carried unattended while the consequential work still comes to you (C), and that the daily ritual is sticky (B). See [`../../plan.md`](../../plan.md) §4 for the build-log entry.
+Phase 3 ("Proof & Launch") needs the proof metrics instrumented on a surface, not asserted in a deck. These three are the evidence that the loop is real and trusted: that the agents' proposals match your judgment (A), that the reversible work is genuinely being carried unattended while the consequential work still comes to you (C), and that the daily ritual is sticky (B). See [`../../plan.md`](../planning/archive/build-log.md) §4 for the build-log entry.
 
 ## Where to find it
 
@@ -62,7 +62,7 @@ Govern surface → **Gauntlet** tab (inserted after Analytics). Direct link: `/g
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4: build log entry
+- [`../../plan.md`](../planning/archive/build-log.md) §4: build log entry
 - [`loop-runs-itself.md`](./loop-runs-itself.md): the v6 P1 autonomous loop these metrics measure
 - [`trust-and-autonomy.md`](./trust-and-autonomy.md): per-agent trust score (Acceptance rate's per-agent sibling)
 - [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md): the North Star these metrics prove

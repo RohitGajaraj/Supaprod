@@ -63,5 +63,5 @@ A follow-up after founder review found the overnight Engine Room pass was a resk
 
 - [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md), live status (the authoritative cursor + progress log)
 - [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md), the design-system reference this pass applied everywhere
-- [`../../DESIGN-LOOM.md`](../../DESIGN-LOOM.md) §0.1 dimension 17, the binding doctrine
-- [`../../plan.md`](../../plan.md) §4, the dated build log
+- [`../../DESIGN-LOOM.md`](../design/archive/loom-v4.md) §0.1 dimension 17, the binding doctrine
+- [`../../plan.md`](./archive/build-log.md) §4, the dated build log

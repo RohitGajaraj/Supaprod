@@ -32,7 +32,7 @@ The strongest unexplored lane: names whose _story is the product mechanic itself
 
 ## Next step
 
-At the end of the pre-launch sequence: founder reviews the fresh directions (plus any new candidates), one web-clearance pass on the favorites, set status DECIDED, then a single find-replace sweep of user-level "Cadence" to the chosen name (DB/plumbing identifiers stay, per the standing name note in [`../../CLAUDE.md`](../../CLAUDE.md) / [`../../plan.md`](../../plan.md)).
+At the end of the pre-launch sequence: founder reviews the fresh directions (plus any new candidates), one web-clearance pass on the favorites, set status DECIDED, then a single find-replace sweep of user-level "Cadence" to the chosen name (DB/plumbing identifiers stay, per the standing name note in [`../../CLAUDE.md`](../../CLAUDE.md) / [`../../plan.md`](../planning/archive/build-log.md)).
 
 ## Product-level taglines (name-independent, keep)
 

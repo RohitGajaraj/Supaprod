@@ -6,7 +6,7 @@
 > plays, our icon/illustration/logo treatment, and Supaprod-specific pattern extensions.
 > Dark-first; light is a secondary theme generated from the same token names._
 
-**The contract lives at [`/DESIGN-TEMPO.md`](../../DESIGN-TEMPO.md).** This folder is the
+**The contract lives at [`/DESIGN-TEMPO.md`](../../docs/design/archive/tempo-v5.md).** This folder is the
 evidence and tooling under it. When look/feel/IA disagreement arises anywhere, the contract wins.
 
 ## Contents

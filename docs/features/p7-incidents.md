@@ -10,7 +10,7 @@ The Engine Room's **Incidents** tab is a read-only "what went wrong" record: fai
 
 ## Why it exists
 
-When the loop runs unattended, failures should leave a visible, reviewable record, not vanish into the logs. P7 is that record. Build note: [`plan.md`](../../plan.md) §4.
+When the loop runs unattended, failures should leave a visible, reviewable record, not vanish into the logs. P7 is that record. Build note: [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4.
 
 ## Where to find it
 
@@ -51,4 +51,4 @@ Engine Room (`/engine-room`) → the **Safety** room → **Incidents** (`?room=s
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 build log · [`incidents.functions.ts`](../../src/lib/incidents.functions.ts) · sources: `agent_approvals`, `event_queue` (reactor), `guardrail_hits` · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycles 3, 16).
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`incidents.functions.ts`](../../src/lib/incidents.functions.ts) · sources: `agent_approvals`, `event_queue` (reactor), `guardrail_hits` · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycles 3, 16).

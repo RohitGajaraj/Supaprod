@@ -112,7 +112,7 @@ No change to existing tables. The revert reuses `studio_changesets` / `studio_ch
 ## 11. Closed-doc loop (update in the same unit of work)
 
 - `docs/features/studio.md` → new **"Rollback"** section (the R1/R2/R3 contract + the explicit flag-kill/3-way/auto-trigger deferrals).
-- `docs/planning/feature-dashboard.md` (G3 K2 row → ✅) + `docs/planning/feature-backlog.md` (K2 ledger) + `plan.md` §4 build log.
+- `docs/planning/feature-dashboard.md` (G3 K2 row → ✅) + `docs/planning/feature-backlog.md` (K2 ledger) + `docs/planning/archive/build-log.md` §4 build log.
 - `docs/strategy/session-decisions.md` → the "cut production flag-kill; git-truth revert" decision.
 
 ## 12. Build order (for writing-plans)

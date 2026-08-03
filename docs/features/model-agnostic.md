@@ -4,7 +4,7 @@
 
 > Status · Engine shipped 2026-06-30 (Lane 2) · runtime/chokepoint + catalog + Settings/chat UI · Owner: platform
 > Twin of BLD-04 / [`build-driver-and-dispatch.md`](../strategy/build-driver-and-dispatch.md) (the code-gen path). This doc is the **chat/AI chokepoint** path.
-> Reconciles WM-M9 — see [Governance](#governance--guardrails). Build log: [`../../plan.md`](../../plan.md) §4.
+> Reconciles WM-M9 — see [Governance](#governance--guardrails). Build log: [`../../plan.md`](../planning/archive/build-log.md) §4.
 
 ## What it does
 
@@ -12,7 +12,7 @@ Supaprod's AI backend is now **model-agnostic**: every internal AI action (agent
 
 ## Why it exists
 
-Before this, the catalog was a closed 7-provider union and the chokepoint resolved provider endpoints by a hardcoded prefix switch (`byoConfig`) that returned `null` for anything it did not recognize — so a model like `qwen/...` silently fell through to the managed gateway and 400'd, and a stored `base_url` was honored only on the Settings "Test" path, never on real calls. The platform was effectively locked to ~5 providers. The founder's mandate (2026-06-29): the platform's own AI must be pluggable with any model/token + base URL, and routed to the best model per task for output quality and cost/token efficiency. See [`../../plan.md`](../../plan.md) §4.
+Before this, the catalog was a closed 7-provider union and the chokepoint resolved provider endpoints by a hardcoded prefix switch (`byoConfig`) that returned `null` for anything it did not recognize — so a model like `qwen/...` silently fell through to the managed gateway and 400'd, and a stored `base_url` was honored only on the Settings "Test" path, never on real calls. The platform was effectively locked to ~5 providers. The founder's mandate (2026-06-29): the platform's own AI must be pluggable with any model/token + base URL, and routed to the best model per task for output quality and cost/token efficiency. See [`../../plan.md`](../planning/archive/build-log.md) §4.
 
 ## Where to find it
 
@@ -75,7 +75,7 @@ Before this, the catalog was a closed 7-provider union and the chokepoint resolv
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4 build log · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (MA-1 row)
+- [`../../plan.md`](../planning/archive/build-log.md) §4 build log · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (MA-1 row)
 - [`../strategy/build-driver-and-dispatch.md`](../strategy/build-driver-and-dispatch.md) (the code-gen twin) · [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) (WM-M9)
 - [`subprocessor-disclosure.md`](./subprocessor-disclosure.md) · [`pricing.md`](./pricing.md)
 - [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (2026-06-30 entry)

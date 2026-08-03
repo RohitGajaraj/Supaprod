@@ -59,7 +59,7 @@ Capability scopes per token/peer; per-tool rate limits; **prompt-injection guard
 - External results are untrusted input — guard them.
 - Model providers are connectors too: model-agnostic by contract.
 
-Integration/protocol change → update this file + [`plan.md`](../plan.md).
+Integration/protocol change → update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md).
 
 ## Outbound observability (AFD, planned · founder-gated)
 

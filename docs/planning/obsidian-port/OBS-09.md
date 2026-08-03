@@ -250,7 +250,7 @@ All strings: no em/en dashes, no exclamation marks, no emoji, no AI-cliche words
 - **restraint budget:** audit ≥ 90% neutral; one aurora per room screen; no ember; one glacier machine voice; status color only on status.
 - **impeccable / humanized scan:** grep every new UI string for `-`, `-`, `!`, and the banned-word list (seamlessly, leverage, empower, robust, unlock, delve); confirm the subline uses a middot.
 - **manual + screenshots:** open the prototype and `/engine-room` side by side at 1440px, walk §11, capture both glance and one room-detail (a score room) for the ship report; capture the grayscale glance.
-- **on completion:** flip the OBS-09 dashboard row + all four dashboard sections; remove the Active-claims line; update this folder + `../obsidian-port-plan.md` + `docs/features/obsidian-port.md` + `plan.md` §4, in the same unit of work.
+- **on completion:** flip the OBS-09 dashboard row + all four dashboard sections; remove the Active-claims line; update this folder + `../obsidian-port-plan.md` + `docs/features/obsidian-port.md` + `docs/planning/archive/build-log.md` §4, in the same unit of work.
 
 ## 13. Risks · gotchas · founder-gates
 

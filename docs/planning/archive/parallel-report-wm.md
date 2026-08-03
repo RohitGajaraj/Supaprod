@@ -15,7 +15,7 @@
 - **Gate:** `bunx tsc --noEmit` 0 · `bunx eslint` 0 (new files) · `bun run build` ✓ (Node 26; session default Node 20.9 < Vite floor = environmental) · `bun test` 398/398 (11 new).
 - **Review:** 4-lens adversarial Workflow (sql-fk-correctness CLEAN; tenant-isolation; gdpr-completeness; ts-receipt) → 4 must-fix folded (`_col` whitelist, primitive dormancy gate, `isErasureComplete` null guard, structural `isAccount`). 6 GDPR-completeness findings are stated scope boundaries → DATA-RETENTION-c.
 - **Live verify:** zero-destruction dry-run on the real prod schema (Lovable MCP, `BEGIN..ROLLBACK`, random non-existent uuid → 0-row deletes) clean: `{passes:1, tables:{}}` + residue `{}`. Prod untouched.
-- **Doc-loop:** feature dashboard row 145b flipped ◐ + claim cleared; `plan.md` §4 (2026-06-21); SSOT §3 DATA-RETENTION row; `session-decisions.md`; new `docs/features/right-to-erasure.md`.
+- **Doc-loop:** feature dashboard row 145b flipped ◐ + claim cleared; `docs/planning/archive/build-log.md` §4 (2026-06-21); SSOT §3 DATA-RETENTION row; `session-decisions.md`; new `docs/features/right-to-erasure.md`.
 - **◐ not ✅:** tenant-data erasure, dormant + service-role-only + offline-gated + dry-run-verified; NOT person-level (auth.users / `user_id`-only rows / Storage / account residue → DATA-RETENTION-c); the destructive FK-order dry-run + live activation (flag flip + operator invoke) are publish-verify.
 - **Commit:** see `git log` on `parallel/lane-0` (fast-forward to `main`). **Released claim** after ship.
 
@@ -30,7 +30,7 @@
 - **Built:** pure `src/lib/roadmap-governance.ts` (the governance rule, 8 tests) + `commitRoadmapItem` governed write (now/next/later requires outcome+measure; RLS-hardened) + `getRoadmap` returns `governanceGaps` + board gap-header + ember `VerdictChip` ("Needs outcome") on ungoverned cards. Lenient drag move untouched (the lenient/strict split).
 - **Gate:** tsc 0 · eslint 0 (4 files) · build ✓ (Node 26) · `bun test` 446/446 (8 new).
 - **Review:** focused adversarial self-review (additive/non-destructive → no multi-agent workflow); `impeccable` design pass (VerdictChip per the verdict-chip ruling, role-color law, no banned pattern).
-- **Doc-loop:** dashboard row 8 → ◐ + claim cleared; `plan.md` §4; new `docs/features/h2-writes.md`; `session-decisions.md`.
+- **Doc-loop:** dashboard row 8 → ◐ + claim cleared; `docs/planning/archive/build-log.md` §4; new `docs/features/h2-writes.md`; `session-decisions.md`.
 - **◐ not ✅:** renders on publish (not render-verified locally); agent autonomous-commit wiring + richer write surface remain.
 - **Released claim** after ship.
 
@@ -41,7 +41,7 @@
 - **Built:** append-only `roadmap_audit` migration (insert-own + read-own-or-workspace RLS, no update/delete; FK opportunities ON DELETE CASCADE; auto-covered by DATA-RETENTION-b's workspace_id sweep) + best-effort audit writes in commitRoadmapItem (outcome at commit time) + updateRoadmapItem (moves) + getRoadmapHistory read fn + pure roadmap-audit.ts (buildAuditInsert + summarizeRoadmapHistory, 5 tests).
 - **Gate:** tsc 0 · eslint 0 (3 files) · build ✓ (Node 26) · `bun test` 451/451 (5 new).
 - **Review:** focused adversarial self-review (additive/best-effort → no multi-agent workflow). Migration dry-run-verified on prod (BEGIN..ROLLBACK: table+RLS+2 policies+3 indexes+FK CASCADE).
-- **Doc-loop:** dashboard new row 8b → ◐; `plan.md` §4; `docs/features/h2-writes.md` (H2-AUDIT section); `session-decisions.md`.
+- **Doc-loop:** dashboard new row 8b → ◐; `docs/planning/archive/build-log.md` §4; `docs/features/h2-writes.md` (H2-AUDIT section); `session-decisions.md`.
 - **◐ not ✅:** backend built + dry-run-verified, renders on publish; the "why is this here" UI surface is a later/design slice.
 - **Released claim** after ship.
 
@@ -53,7 +53,7 @@
 - **Gate:** tsc 0 · eslint 0 · build ✓ (Node 26) · `bun test` 469/469 · no fancy unicode.
 - **Design:** Ember Editorial + Engine-Room reveal-on-demand applied (restrained color, hairline separators not side-stripes, `·` separator, no banned pattern); design rules from last cycle's `impeccable` load govern.
 - **Review:** focused self-review (additive UI): lazy fetch (no N-query fan-out), graceful empty/pre-publish state (no crash), purely additive.
-- **Doc-loop:** dashboard new row 8c → ◐ + H2-WRITES row 8 bumped to [~85%] + claim cleared; `plan.md` §4; `docs/features/h2-writes.md` UI section.
+- **Doc-loop:** dashboard new row 8c → ◐ + H2-WRITES row 8 bumped to [~85%] + claim cleared; `docs/planning/archive/build-log.md` §4; `docs/features/h2-writes.md` UI section.
 - **◐ not ✅:** renders real history on publish (once audit rows exist); not render-verified locally.
 - **Released claim** after ship.
 

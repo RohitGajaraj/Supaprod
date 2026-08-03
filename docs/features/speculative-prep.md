@@ -92,7 +92,7 @@ prep fires automatically whenever a contract is drafted via CNV-04's one-line-in
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
 - Siblings this reuses the idiom of: DSN-03/JNY-04 (the `prd_flows`/`launch_plans` one-row-per-PRD
   upsert pattern); unblocks a future DSN-04 pick

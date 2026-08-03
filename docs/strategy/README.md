@@ -118,5 +118,5 @@ Every strategy doc, decision record, information-gathering note, and answer to a
 
 - Current product truth: [`../../README.md`](../../README.md)
 - Feature list: [`../planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md)
-- Build plan: [`../../plan.md`](../../plan.md)
+- Build plan: [`../../plan.md`](../planning/archive/build-log.md)
 - Operating rules: [`../../AGENTS.md`](../../AGENTS.md)

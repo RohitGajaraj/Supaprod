@@ -62,7 +62,7 @@ The autonomy and memory engine is real and verified, and as of 2026-06-14 all pe
 
 ## How this stays current
 
-Tier 1, continuous. On any status change or milestone completion, update the table and the next-pick list in the same commit, and add a one-line note to `plan.md` section 4. The NEXT pick is always the first not-done item in the earliest not-done milestone.
+Tier 1, continuous. On any status change or milestone completion, update the table and the next-pick list in the same commit, and add a one-line note to `docs/planning/archive/build-log.md` section 4. The NEXT pick is always the first not-done item in the earliest not-done milestone.
 
 ## Related
 

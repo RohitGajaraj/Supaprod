@@ -52,4 +52,4 @@ A consumer/enterprise-grade functional + design audit of the Settings and `/sync
 - **Product bindings (`ProductBindingsSection`):** the same ember-misuse (`text-primary`) and raw-Tailwind-hue (`text-emerald-500`) fixes.
 - **OAuth-gated flows stay honestly parked.** No connect flow is faked. A provider whose founder-registered OAuth client env is absent (`GITHUB_APP_ID`/`GITHUB_APP_SLUG`, a gateway `clientIdEnv`, or `LOVABLE_API_KEY`) renders as a calm "coming soon"/"not configured" state (`AccountConnectionsSection.statusFor` + `ConnectorDetail`), never an implied Connect promise. See `docs/features/README.md` and `connections.functions.ts` `deriveProviderAvailability`.
 
-Build note: [`../../plan.md`](../../plan.md) §4 (2026-07-07 entry).
+Build note: [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-07-07 entry).

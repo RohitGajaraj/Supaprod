@@ -30,7 +30,7 @@
 
 ## How to resume in a fresh session
 
-1. Read this file, then [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) (the new source of truth), then [`plan.md`](../../plan.md) §3 (build order) and [`feature-backlog.md`](./feature-backlog.md) (Live status board).
+1. Read this file, then [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) (the new source of truth), then [`docs/planning/archive/build-log.md`](../../plan.md) §3 (build order) and [`feature-backlog.md`](./feature-backlog.md) (Live status board).
 2. Whatever step above is unchecked: do it next, then check it off here and append a line to plan.md §4 (build log).
 3. If all steps are checked: this activity is CLOSED. Next work = **Milestone M1 "The Golden Path"** per the feature map §9 — start with the IA collapse (`F-IA-V4`) and the demo spine. Use Lovable for UI-heavy slices, Claude Code/Antigravity for server/agent slices (per AGENTS.md §10).
 4. Standing open ops item (unrelated to this rebuild): calendar OAuth client IDs — see [`../decisions/calendar-oauth-credentials.md`](../decisions/calendar-oauth-credentials.md).
@@ -42,7 +42,7 @@
 | `docs/strategy/archive/v4-feature-map.md`         | **Canonical feature scope + agent mesh + IA + milestones (read before any feature work)** |
 | `docs/strategy/archive/v4-stress-test.md`         | Why v3 wasn't enough — the argued verdict                                                 |
 | `docs/references/competitive-landscape.md`        | Market research with links (don't re-research)                                            |
-| `plan.md`                                         | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here            |
+| `docs/planning/archive/build-log.md`                                         | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here            |
 | `docs/planning/feature-backlog.md`                | Ticket-level F-IDs; v4 overlay section maps backlog → stations                            |
 | `README.md`                                       | Product thesis, updated to v4 framing                                                     |
 | `docs/strategy/archive/v3-positioning-cadence.md` | Historical — superseded by v4 for scope; persona definitions still valid                  |

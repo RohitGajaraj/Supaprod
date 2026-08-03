@@ -10,7 +10,7 @@ The Swarm HUD is a single live screen that answers, without tab-hopping, what ev
 
 ## Why it exists
 
-F-AGENT-1 made Supaprod plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. Together they produce far more concurrent activity than the operator can track from `/missions`, `/inbox`, `/agents`, and `/governance` separately. The HUD closes the agent-ecosystem bundle by giving governance one screen that scales as the swarm scales. Full rationale: [`../../plan.md`](../../plan.md) §4 entry dated 2026-06-06 (F-AGENT-4).
+F-AGENT-1 made Supaprod plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. Together they produce far more concurrent activity than the operator can track from `/missions`, `/inbox`, `/agents`, and `/governance` separately. The HUD closes the agent-ecosystem bundle by giving governance one screen that scales as the swarm scales. Full rationale: [`../../plan.md`](../planning/archive/build-log.md) §4 entry dated 2026-06-06 (F-AGENT-4).
 
 ## Where to find it
 
@@ -78,7 +78,7 @@ F-AGENT-1 made Supaprod plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. 
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4: 2026-06-06 F-AGENT-4 entry
+- [`../../plan.md`](../planning/archive/build-log.md) §4: 2026-06-06 F-AGENT-4 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md): agent orchestration contract (Swarm HUD bullet)
 - [`../planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md): F-AGENT-4 ledger row
 - [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), [`./f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md), [`./f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md)

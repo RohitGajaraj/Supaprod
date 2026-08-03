@@ -12,7 +12,7 @@ Frames AI spend as value, not telemetry. The PM sees what they GOT for what they
 
 ## Why it exists
 
-The founder's instinct to make the "agent manager" role explicit was right, but a literal "Agent Manager" dashboard of cost/API/efficiency on the calm front is the doctrine's named anti-pattern ("control-room creep"). This is the doctrine-compliant expression: outcome-framed and light on the front, deep and on-demand behind the one door. Build log: [`../../plan.md`](../../plan.md) §4 (2026-06-17, Part B).
+The founder's instinct to make the "agent manager" role explicit was right, but a literal "Agent Manager" dashboard of cost/API/efficiency on the calm front is the doctrine's named anti-pattern ("control-room creep"). This is the doctrine-compliant expression: outcome-framed and light on the front, deep and on-demand behind the one door. Build log: [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-17, Part B).
 
 ## Where to find it
 
@@ -57,4 +57,4 @@ The founder's instinct to make the "agent manager" role explicit was right, but 
 - Decision + reasoning: [`../strategy/session-decisions.md`](../strategy/session-decisions.md) · [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) (2026-06-17 "year of the agent manager") · [`../strategy/v9-decision-wedge-and-build-next.md`](../strategy/v9-decision-wedge-and-build-next.md) §2.
 - Doctrine: [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md).
 - Backlog: `ENG-06 / F-GOV-COST-SURFACE` in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) and [`../planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md).
-- Build log: [`../../plan.md`](../../plan.md) §4.
+- Build log: [`../../plan.md`](../planning/archive/build-log.md) §4.

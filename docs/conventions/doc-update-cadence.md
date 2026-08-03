@@ -14,7 +14,7 @@
 
 The live cursors, logs, and trackers. Update these in the SAME commit as the change that touched them. Never let them go stale; a stale Tier-1 doc is worse than none.
 
-- `plan.md` section 4 (the build log): one line per shipped change.
+- `docs/planning/archive/build-log.md` section 4 (the build log): one line per shipped change.
 - `docs/planning/SOURCE-OF-TRUTH.md` section 0 (the live cursor): the current Now-building and Next-up, at the start and end of every session.
 - `docs/planning/feature-dashboard.md`: the live status board. (`docs/planning/feature-backlog.md` is archived at `docs/planning/archive/feature-backlog.md` as of 2026-06-24; do not update the archive.)
 - `docs/planning/known-issues.md`: bugs and blockers as they open and close.
@@ -30,7 +30,7 @@ The product-facing maps and specs. Refresh these when a feature set lands or a f
 - `docs/planning/feature-dashboard.md`: the live board (status, board groups).
 - `docs/features/*`: per-feature operator specs.
 
-The refresh pass at each feature-milestone: update each feature's status on the board, refresh the blueprint and implementation plan if scope or priority moved, and re-check the execution order against the milestone gates. Add a one-line note to `plan.md` section 4 that the refresh happened.
+The refresh pass at each feature-milestone: update each feature's status on the board, refresh the blueprint and implementation plan if scope or priority moved, and re-check the execution order against the milestone gates. Add a one-line note to `docs/planning/archive/build-log.md` section 4 that the refresh happened.
 
 ### Tier 3, per structural change (only on a real architectural change, or as a deliberate refresh once a build settles)
 
@@ -65,9 +65,9 @@ Rules:
 
 1. **Audit / feature doc** - add a "How to use / verify" block: route + nav path, what each control does, server enforcement points, verification checklist.
 2. **`architecture/*.md`** - add or update the relevant contract (frontend pattern, security invariant, data shape, runtime hook).
-3. **`DESIGN.md`** - add or update the token / voice / UI-contract entry if the feature touches visual or copy rules.
+3. **`docs/design/archive/ember-editorial-landing.md`** - add or update the token / voice / UI-contract entry if the feature touches visual or copy rules.
 4. **Trackers** - update `docs/planning/SOURCE-OF-TRUTH.md` (section 0 the live cursor + section 6 progress) and the relevant board `docs/planning/feature-dashboard.md` (flip the status mark, append a shipping note to the row). Do NOT update `docs/planning/archive/feature-backlog.md` — it is archived and frozen.
-5. **`plan.md` §4** - append a dated one-liner with a clear WHY (not just WHAT).
+5. **`docs/planning/archive/build-log.md` §4** - append a dated one-liner with a clear WHY (not just WHAT).
 6. **`docs/strategy/session-decisions.md`** - add an entry if a strategic decision or tradeoff was resolved.
 7. **`docs/conventions/`** - write a new convention file if the learning is a durable rule. Reference it from [`../../AGENTS.md`](../../AGENTS.md) §3 if it is a hard engineering rule.
 8. **Cross-links** - add a "Related" block at the bottom of any new doc.
@@ -79,7 +79,7 @@ Rules:
 ## How to apply
 
 - Every change: update Tier 1 in the same commit. This is the existing closed-doc loop (AGENTS.md section 5).
-- At each milestone (M-0 to M-D) or about every two weeks: run a Tier-2 refresh pass and log it in `plan.md` section 4.
+- At each milestone (M-0 to M-D) or about every two weeks: run a Tier-2 refresh pass and log it in `docs/planning/archive/build-log.md` section 4.
 - On a structural change: update the affected Tier-3 doc in the same commit as the code change. A new table updates the ERD and the data contract. A new route updates the API doc and the diagrams. A new deploy target updates `deployment.md`. Otherwise leave Tier-3 alone.
 - A doc whose tier you are unsure of defaults to Tier 2.
 - This convention is the tier registry: each doc's tier is the one listed in the three tiers above. A doc may also note its tier in its own header for visibility, but the registry here is authoritative.

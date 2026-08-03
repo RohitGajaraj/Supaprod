@@ -11,7 +11,7 @@
 **Precedence.** This file wins over `docs/conventions/ui-voice.md`, `src/lib/agent-vocabulary.ts`,
 `src/lib/nav-model.ts`, `src/lib/mission-vocabulary.ts`, and every older strategy or design doc on
 naming and copy. It does not override `docs/conventions/humanized-output.md` (the formatting law,
-ratified unchanged) or `DESIGN-TEMPO.md` (the visual contract). Section 12 lists every override.
+ratified unchanged) or `docs/design/archive/tempo-v5.md` (the visual contract). Section 12 lists every override.
 
 **Scope.** The authenticated app. Public landing and investor materials are governed by the
 investor canon in `CLAUDE.md` and are out of scope, with one crossing noted in section 14.

@@ -44,4 +44,4 @@ Each uncovered/stale coverage chip is now a button: clicking it opens the existi
 - Gap source: [`../planning/considerations.md`](../planning/considerations.md) (AI / autonomous-agent safety lens, P1).
 - Triad siblings: [`reliability-slo.md`](./reliability-slo.md) + [`runaway-detection.md`](./runaway-detection.md).
 - Board: `EVAL-COVERAGE` (row 155) in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md).
-- Build log: [`../../plan.md`](../../plan.md) §4.
+- Build log: [`../../plan.md`](../planning/archive/build-log.md) §4.

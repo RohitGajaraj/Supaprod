@@ -10,7 +10,7 @@
 
 2. **Relocate and curate, never delete or textualize.** When content moves off a surface, it lands in its right home in its _best_ representation (the rich visual / chart / dashboard form, whichever delivers the most value there), exactly preserved or improved. The destination gains the good version. Rich visuals (for example the autonomy `observing -> proving -> trusted` stage strip, which lives on the Gauntlet) are never flattened into prose, and nothing is dropped just because a thinner copy exists elsewhere. Before removing a panel from a surface, open its destination and either preserve the visual into it, keep the destination's form because it is better, or improve the destination.
 
-3. **Editorial hierarchy over card-stacks.** Hierarchy comes from type and whitespace; a surface earns at most a few containers. Identical card grids and the hero-metric template (big number, small label, supporting stats) are banned (they read as AI slop and break `DESIGN.md`'s no-filler law).
+3. **Editorial hierarchy over card-stacks.** Hierarchy comes from type and whitespace; a surface earns at most a few containers. Identical card grids and the hero-metric template (big number, small label, supporting stats) are banned (they read as AI slop and break `docs/design/archive/ember-editorial-landing.md`'s no-filler law).
 
 ## The surface-placement rubric (the durable answer to "where does this go")
 
@@ -24,7 +24,7 @@ Worked example (the 2026-06-16 de-clutter): the autonomy stage visual -> Gauntle
 
 Worked example (OPS-01 Flow mode, 2026-06-16): a global operating stance (calm focus: dim chrome + ambient sound + quiet notifications) is not an act-on-it call or a curated vital, so it goes to the **chrome, not Today** — the control sits in the `AppShell` sidebar footer beside the theme toggle, exactly like theme. Stances and session toggles live in the chrome; Today stays the command center.
 
-Worked example (the 2026-06-16 command-center pass): after de-cluttering, the survivors were composed into a live little dashboard — a Pulse strip (decisions-accepted % and autonomy % with trend marks, spend, a hand-sketched activity sparkline) over an asymmetric action row (Top priorities as a sketched ICE bar chart, with Bottlenecks + What-changed stacked beside it). Each is a curated PM vital or action that links to its deep station (the gauntlet, Product, Govern, Knowledge); none is a full analytics surface. The pencil-sketch marks (`SketchLine` / `SketchBar`, per `DESIGN.md`) and the opt-in draw-in + press motion are how it reads as modern and live rather than an old-school panel — see [`design-context.md`](./design-context.md) "Motion is craft."
+Worked example (the 2026-06-16 command-center pass): after de-cluttering, the survivors were composed into a live little dashboard — a Pulse strip (decisions-accepted % and autonomy % with trend marks, spend, a hand-sketched activity sparkline) over an asymmetric action row (Top priorities as a sketched ICE bar chart, with Bottlenecks + What-changed stacked beside it). Each is a curated PM vital or action that links to its deep station (the gauntlet, Product, Govern, Knowledge); none is a full analytics surface. The pencil-sketch marks (`SketchLine` / `SketchBar`, per `docs/design/archive/ember-editorial-landing.md`) and the opt-in draw-in + press motion are how it reads as modern and live rather than an old-school panel — see [`design-context.md`](./design-context.md) "Motion is craft."
 
 ## Why
 
@@ -38,5 +38,5 @@ On any new surface or panel: run the placement rubric first; if it is not "needs
 
 - [`design-context.md`](./design-context.md) - the design brief (Ember system + design-craft skills + reference north-stars) that loads by default on any design work.
 - [`ui-voice.md`](./ui-voice.md) · [`humanized-output.md`](./humanized-output.md) · [`inline-management.md`](./inline-management.md).
-- [`../../DESIGN.md`](../../DESIGN.md) (Ember Editorial, "every element earns its place; three clicks max") · [`../../architecture/frontend.md`](../../architecture/frontend.md).
+- [`../../DESIGN.md`](../design/archive/ember-editorial-landing.md) (Ember Editorial, "every element earns its place; three clicks max") · [`../../architecture/frontend.md`](../../architecture/frontend.md).
 - Plan of record for the recompose: `.claude/plans/piped-brewing-knuth.md` (session 2026-06-16).

@@ -16,7 +16,7 @@ It is the connective tissue over provenance the product already records ([Trust 
 
 ## Why it exists
 
-A buyer pays for trust, and trust is verifiable provenance. Before this, an entity's trace ref (`OPP·005C82`) was a static, copyable label — it looked auditable but did nothing. The founder ruling made the id a first-class, platform-generated primitive: if the platform shows you an id, that id must resolve to its own verifiable trail. This closes the gap between _looking_ auditable and _being_ auditable, and it does so uniformly (one resolver, one sheet, one tag component) so a new entity kind becomes traceable in one line. See the build-log entry in [`../../plan.md`](../../plan.md) §4 (2026-07-13).
+A buyer pays for trust, and trust is verifiable provenance. Before this, an entity's trace ref (`OPP·005C82`) was a static, copyable label — it looked auditable but did nothing. The founder ruling made the id a first-class, platform-generated primitive: if the platform shows you an id, that id must resolve to its own verifiable trail. This closes the gap between _looking_ auditable and _being_ auditable, and it does so uniformly (one resolver, one sheet, one tag component) so a new entity kind becomes traceable in one line. See the build-log entry in [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-07-13).
 
 ## Where to find it
 

@@ -190,7 +190,7 @@ Supaprod achieves "genuine ultra-premium" status (Vercel parity, 95%+) when:
 ## Related Documents
 
 - **Full audit:** `docs/planning/DESIGN-AUDIT-2026-07-17.md`
-- **Design contract:** `DESIGN-TEMPO.md` (§1–11)
-- **Color semantics:** `DESIGN-TEMPO.md` §2, §2.1
-- **Typography:** `DESIGN-TEMPO.md` §3
-- **Responsive:** `DESIGN-TEMPO.md` §10
+- **Design contract:** `docs/design/archive/tempo-v5.md` (§1–11)
+- **Color semantics:** `docs/design/archive/tempo-v5.md` §2, §2.1
+- **Typography:** `docs/design/archive/tempo-v5.md` §3
+- **Responsive:** `docs/design/archive/tempo-v5.md` §10

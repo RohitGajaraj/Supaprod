@@ -51,7 +51,7 @@ Headline:
 5. `src/lib/ai/trust.server.ts` auto-advance: count successful runs without approval rejection per `(user_id, agent_id)`; advance Observing→Proving at 5, Proving→Trusted at 20 (configurable). Wire into the `agent_runs` completion path. Trust score itself stays computed-on-read.
 6. New cron `/api/public/hooks/memory-tick.ts`: decays low-importance unused memories (>30d, importance ≤2).
 7. Operator-visible: `/agents/$slug` (or extend existing) shows a "Recent reflections" section so the learning is legible.
-8. Doc loop: status board, `plan.md` §4, this file, `architecture/orchestration.md`.
+8. Doc loop: status board, `docs/planning/archive/build-log.md` §4, this file, `architecture/orchestration.md`.
 
 **Why now:** without reflection the loop has no learning channel. Runs finish, status flips, lessons are lost. Without trust auto-advance, the autonomy dial is a manual knob and the trust arc is decorative.
 

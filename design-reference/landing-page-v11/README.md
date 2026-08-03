@@ -160,7 +160,7 @@ revamp could push it further with real painterly/portrait art if assets exist.
 
 ## 8. Where to start in a revamp
 
-1. Read this file + `DESIGN.md` + `docs/conventions/design-context.md` (Ember system, the tuned
+1. Read this file + `docs/design/archive/ember-editorial-landing.md` + `docs/conventions/design-context.md` (Ember system, the tuned
    orange `#fb7100`, motion-as-craft) + `docs/conventions/humanized-output.md` (no fingerprints).
 2. Open `src/routes/index.tsx`. Tokens are in `C`; keyframes/classes in `STYLES`; fonts in the
    Google Fonts `<link>` inside `LandingPage`.

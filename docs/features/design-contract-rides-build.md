@@ -10,7 +10,7 @@ When a PRD is dispatched into Build (Studio's agent door, `dispatchStudioSession
 
 ## Why it exists
 
-v12 §6: design intent dies at the codegen handoff in every AI pipeline today. DSN-01 (design memory) and DSN-03 (flow graphs) both already exist as structured artifacts a spec carries — this is where they survive the one step that actually matters, the handoff into the agent doing the building. Build log: [`../../plan.md`](../../plan.md) §4 (search "DSN-04").
+v12 §6: design intent dies at the codegen handoff in every AI pipeline today. DSN-01 (design memory) and DSN-03 (flow graphs) both already exist as structured artifacts a spec carries — this is where they survive the one step that actually matters, the handoff into the agent doing the building. Build log: [`../../plan.md`](../planning/archive/build-log.md) §4 (search "DSN-04").
 
 ## Where to find it
 

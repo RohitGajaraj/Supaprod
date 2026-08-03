@@ -10,7 +10,7 @@ behave before implementing it in `src/`.
 > ## CURRENT: the v5 "Tempo" system (adopted 2026-07-10)
 >
 > The design contract for EVERY Supaprod surface (app AND landing) is
-> [`/DESIGN-TEMPO.md`](../DESIGN-TEMPO.md) (repo root, the law): the base derived
+> [`/DESIGN-TEMPO.md`](../docs/design/archive/tempo-v5.md) (repo root, the law): the base derived
 > from Vercel's Geist design system with Supaprod's ember brand scale and identity
 > layer on top. The reference package is [`tempo-v5/`](./tempo-v5/): verbatim
 > `tokens/*.css` (both themes), `research/` (re-implementation-grade specs of every
@@ -24,7 +24,7 @@ behave before implementing it in `src/`.
 > ## Retired: the v3 "Obsidian" system (2026-07-02 → 2026-07-10)
 >
 > The former contract for authenticated app surfaces was
-> [`/DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (retired). The full
+> [`/DESIGN-OBSIDIAN.md`](../docs/design/archive/obsidian-v3.md) (retired). The full
 > frozen handoff package is committed at [`obsidian-v3/`](./obsidian-v3/):
 > its `README.md` read order, `tokens/*.css` custom properties (copy verbatim),
 > `components.md` anatomies, `implementation-notes.md` behaviors, the Butterfly

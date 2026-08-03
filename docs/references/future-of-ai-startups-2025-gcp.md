@@ -6,7 +6,7 @@
 >
 > **Why it matters to us.** This is the VC/founder consensus on _how to build a durable AI company in 2025–26._ It validates our moat thesis (data/memory over models), our ambient-+-HITL stance, model-agnostic infra, and value/outcome pricing — and it hands us a fundraising spine. Convergence write-up: [`external-strategy-synthesis.md`](./external-strategy-synthesis.md).
 >
-> **Cross-references.** Companion enterprise-trends digest → [`ai-agent-trends-2026-gcp.md`](./ai-agent-trends-2026-gcp.md). Our market scan → [`competitive-landscape.md`](./competitive-landscape.md). Positioning canon → [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md). Constitution (model-agnostic/BYOK mandate) → [`../../Ai_Cofounder.md`](../../Ai_Cofounder.md).
+> **Cross-references.** Companion enterprise-trends digest → [`ai-agent-trends-2026-gcp.md`](./ai-agent-trends-2026-gcp.md). Our market scan → [`competitive-landscape.md`](./competitive-landscape.md). Positioning canon → [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md). Constitution (model-agnostic/BYOK mandate) → [`../../Ai_Cofounder.md`](../strategy/founding-constitution.md).
 
 ---
 
@@ -89,7 +89,7 @@ AI is in its **earliest** innings (Elad Gil: _"AI is massively underhyped"_). Th
 - **Price on value, not seats** — base subscription + value/outcome component; charge for _memory persistence + decisions/outcomes_, not per agent-run.
 - **Ambient + HITL is the design target** (not unattended autonomy): monitor signals → surface the call → PM reviews/overrides → system learns. This is _both_ what the market wants _and_ an honest reading of our current build.
 - **Win the last mile** — reliability, grounding/citations, integrations, explainability, confidence scores. Our hollow-station/reliability gaps are the _moat-building_ work, not catch-up.
-- **Stay model-agnostic (BYOK), agnostic infra** — already a strength; matches our [`Ai_Cofounder.md`](../../Ai_Cofounder.md) mandate and de-risks the 18–24-mo model churn.
+- **Stay model-agnostic (BYOK), agnostic infra** — already a strength; matches our [`docs/strategy/founding-constitution.md`](../strategy/founding-constitution.md) mandate and de-risks the 18–24-mo model churn.
 - **Fundraising spine (assembled from the report):** underhyped category → unit-of-cognition for the PM function → budget-replacement TAM → data/specialization moat → solved last-mile (grounding, confidence, integrations, explainability) → value-aligned pricing → force-multiplier outcome.
 
 ---

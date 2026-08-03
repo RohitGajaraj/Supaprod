@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-14_
 
-> Every AI call in Cadence goes through one function. This file is its contract. Rules: [`AGENTS.md`](../AGENTS.md). Build history: [`plan.md`](../plan.md).
+> Every AI call in Cadence goes through one function. This file is its contract. Rules: [`AGENTS.md`](../AGENTS.md). Build history: [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md).
 
 ## The one rule
 
@@ -15,7 +15,7 @@ callModel({ surface, traceId, parentEventId, model, messages, tools?, retrieval?
   -> { text, tool_calls, usage, latency_ms, ttft_ms }
 ```
 
-`surface` is one of the known surfaces (chat, agent, copilot, prd, discovery, studio, brief, eval, judge, embed, mcp_server, a2a). It drives per-surface defaults, color coding ([`DESIGN.md`](../DESIGN.md)), and analytics filters. `workspaceId` scopes the kill-switch check; `runId` ties the call to an `agent_runs` row for per-mission token/spend caps and atomic usage accounting.
+`surface` is one of the known surfaces (chat, agent, copilot, prd, discovery, studio, brief, eval, judge, embed, mcp_server, a2a). It drives per-surface defaults, color coding ([`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md)), and analytics filters. `workspaceId` scopes the kill-switch check; `runId` ties the call to an `agent_runs` row for per-mission token/spend caps and atomic usage accounting.
 
 ## The pipeline (in order)
 
@@ -56,7 +56,7 @@ Lovable/AI gateway (default, no user key) and BYO adapters (Anthropic, DeepSeek,
 - Eval failure (≥10-point regression on a "Cadence core" case, 0–100 scale — KI-14) is a deploy gate; drift is a passive watcher.
 - Both `callModel()` and `callModelStream()` enforce the governance halt check identically. Streaming halts emit a `status='blocked'` event before the SSE stream is ever opened.
 
-Change anything here and update this file + [`plan.md`](../plan.md) (see [`AGENTS.md`](../AGENTS.md), section 5).
+Change anything here and update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md) (see [`AGENTS.md`](../AGENTS.md), section 5).
 
 ## Observability hooks (AFD, planned · founder-gated)
 

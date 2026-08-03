@@ -13,7 +13,7 @@
 > **Scope discipline.** This lane owns: attribution, the gate moment, the trust arc, delegation,
 > the first ten seconds, and the contract language. It does not own the shell geometry (that is
 > the IA lane), the lexicon (Lane A of `language/`), or the visual system (`craft-law.md`,
-> `DESIGN-TEMPO.md`). Where it touches those, it says so and defers.
+> `docs/design/archive/tempo-v5.md`). Where it touches those, it says so and defers.
 
 ---
 
@@ -1259,7 +1259,7 @@ experience, including the two code gaps it exposes (section 8). The delegation g
 grammar of agent sentences, and the judgment verbs: all from `language/lang-a-lexicon.md` section
 6. The shell's six regions, the depth rail, the URL scheme, the workbench children, and the
 migration phases: all from `ia/FINAL-ia.md`. The visual laws: `craft-law.md` and
-`DESIGN-TEMPO.md`.
+`docs/design/archive/tempo-v5.md`.
 
 **What I hand over, marked, so it is not decided twice.**
 

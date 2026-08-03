@@ -35,7 +35,7 @@ Any decision in Knowledge → Decisions can be made public and shared via a read
 
 ### Why it exists
 
-v6 §7 names a shareable decision link as the viral mechanism: proof of the swarm's work that an operator can post. See [`../../plan.md`](../../plan.md) §4 (2026-06-14 · viral loop).
+v6 §7 names a shareable decision link as the viral mechanism: proof of the swarm's work that an operator can post. See [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-14 · viral loop).
 
 ### Where to find it
 
@@ -130,7 +130,7 @@ The wedge (WEDGE / v9-wedge) names the Critic-teardown as the launch artifact an
 ## Related
 
 - [`wedge.md`](./wedge.md) - the Critic-teardown first-run the `/t` share feature hooks into.
-- [`../../plan.md`](../../plan.md) §4: build log entries (decision-share viral loop 2026-06-14; teardown-share 2026-06-17).
+- [`../../plan.md`](../planning/archive/build-log.md) §4: build log entries (decision-share viral loop 2026-06-14; teardown-share 2026-06-17).
 - [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md) §7: the viral loop in the GTM plan.
 - [`../strategy/v9-decision-wedge-and-build-next.md`](../strategy/v9-decision-wedge-and-build-next.md): the wedge as acquisition.
 - [`../strategy/v10-master-blueprint.md`](../strategy/v10-master-blueprint.md) §16 (monetize & growth).

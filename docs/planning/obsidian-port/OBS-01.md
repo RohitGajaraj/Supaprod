@@ -82,7 +82,7 @@ Follow top to bottom. Every value is quoted in §7; copy from there, do not rety
 8. **`src/routes/__root.tsx` line 122 · add the two fonts.** Extend the existing href by inserting `&family=Codystar:wght@300;400&family=Caveat:wght@500;600;700` immediately before `&display=swap`. Keep the three existing families and the two `preconnect` links. Do not add a second stylesheet link.
 9. **Verify locally (temporary, do not commit a mount).** Run `bun run dev`, open the app, and in devtools set `data-obsidian` on the authenticated wrapper element, then confirm `getComputedStyle(el).getPropertyValue('--canvas')` returns `#0A0A0B` and `--ember` returns `#FF6B2C`. Remove the attribute afterward. This proves the layer resolves without shipping a live mount.
 10. **Add the unit test** `src/styles.obsidian.test.ts` (§6) asserting the tokens, keyframes, and fonts are present in the CSS/route source.
-11. **Run the gates** (§12) and update the docs loop (§10 of the hub): flip the dashboard row + all four sections, update this folder, `../obsidian-port-plan.md`, and `plan.md` §4.
+11. **Run the gates** (§12) and update the docs loop (§10 of the hub): flip the dashboard row + all four sections, update this folder, `../obsidian-port-plan.md`, and `docs/planning/archive/build-log.md` §4.
 
 ---
 
@@ -291,7 +291,7 @@ OBS-01 renders no surface, so the eight-point visual parity walk against `design
 
 - **Hub (shared substrate, this item assumes it):** [`./README.md`](./README.md) · tokens §5, keyframes §5.6, codebase map §7, sequencing §3, gates §10, build-gate note §11.
 - **Next item (consumes this):** [`./OBS-02.md`](./OBS-02.md) · the app shell mounts `data-obsidian` and consumes `--rail`, the mono index, the keyboard map; it inherits the collision-mount responsibility flagged in §13.
-- **Design law:** [`../../../DESIGN-OBSIDIAN.md`](../../../DESIGN-OBSIDIAN.md) · §1 surfaces, §2 role colors, §3 working palette, §5 type, §6 geometry and motion.
+- **Design law:** [`../../../DESIGN-OBSIDIAN.md`](../../design/archive/obsidian-v3.md) · §1 surfaces, §2 role colors, §3 working palette, §5 type, §6 geometry and motion.
 - **Token source of truth (port verbatim):** [`../../../design-reference/obsidian-v3/tokens/`](../../../design-reference/obsidian-v3/tokens/) · `colors.css`, `typography.css`, `geometry.css`, `motion.css`, `fonts.css`.
 - **Implementation notes:** [`../../../design-reference/obsidian-v3/implementation-notes.md`](../../../design-reference/obsidian-v3/implementation-notes.md) · Styling approach, Motion, Accessibility.
 - **Density + empty-state law:** [`../../../design-reference/obsidian-extensions.md`](../../../design-reference/obsidian-extensions.md) · §8 density modes, §9 empty-state catalog.

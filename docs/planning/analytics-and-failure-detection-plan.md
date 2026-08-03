@@ -438,7 +438,7 @@ The picker MUST NOT start AFD until:
 | `docs/operations/credit-engine-go-live.md`                              | Referenced as the dormant-by-design pattern AFD mirrors.                                                         |
 | `AGENTS.md`                                                             | "If you touch observability, the spec is this file."                                                             |
 | `CLAUDE.md`                                                             | Same pointer.                                                                                                    |
-| `plan.md`                                                               | A dated line in §4 ("2026-06-25 — committed AFD doc-only plan, 14 task IDs, group G12, build is founder-gated"). |
+| `docs/planning/archive/build-log.md`                                                               | A dated line in §4 ("2026-06-25 — committed AFD doc-only plan, 14 task IDs, group G12, build is founder-gated"). |
 | `docs/README.md`                                                        | New row in the doc map.                                                                                          |
 
 If you add a doc that touches observability, add a row HERE so it never sits orphaned.

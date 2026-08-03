@@ -67,7 +67,7 @@ BYO AI keys + connector OAuth secrets are encrypted **app-layer with WebCrypto A
 
 ## Migrations
 
-Source of truth is `supabase/migrations/`. Author via the migration tool; **never edit an existing migration in place.** Schema change → update this file + [`plan.md`](../plan.md) + ship the migration.
+Source of truth is `supabase/migrations/`. Author via the migration tool; **never edit an existing migration in place.** Schema change → update this file + [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md) + ship the migration.
 
 ## Known limits
 

@@ -14,7 +14,7 @@ proven; we adopt and adapt, we do not invent.
 
 ## Read order (do this first)
 
-1. [`/DESIGN-TEMPO.md`](../../../DESIGN-TEMPO.md) — THE contract. Its 11 sections are
+1. [`/DESIGN-TEMPO.md`](../../../docs/design/archive/tempo-v5.md) — THE contract. Its 11 sections are
    mandatory law. When anything else disagrees, the contract wins.
 2. [`/design-reference/tempo-v5/tokens/`](../../../design-reference/tempo-v5/tokens/) —
    `colors.css` (both themes + ember), `typography.css` (class system), `materials.css`

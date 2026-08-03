@@ -17,7 +17,11 @@ FAIL=0
 WARN=0
 
 # Root is reserved for SYSTEM-READ entry points (tools auto-load them from here, so they MUST stay at root).
-ROOT_WHITELIST=" AGENTS.md CLAUDE.md GEMINI.md README.md DESIGN.md DESIGN-OBSIDIAN.md DESIGN-LOOM.md ENTRY.md Ai_Cofounder.md plan.md "
+# Root holds exactly four docs (2026-08-03 cleanup). Each answers one question:
+# README = what is it and where is everything · AGENTS = how to build it ·
+# CLAUDE/GEMINI = per-tool specifics, thin because they auto-load every session.
+# Adding a fifth is how the last three cleanups started. Do not widen this list.
+ROOT_WHITELIST=" AGENTS.md CLAUDE.md GEMINI.md README.md "
 DOCS_TOP_WHITELIST=" README.md brand-feed.md "
 
 echo "== docs-doctor =="

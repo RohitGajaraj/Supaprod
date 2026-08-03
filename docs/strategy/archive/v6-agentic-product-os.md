@@ -6,7 +6,7 @@
 > Chief-of-Staff overlay as the **wedge + positioning** doc; v4 (`v4-feature-map.md`)
 > remains the **expansion / engine map** (the 19-agent mesh, 7 laws, 6 stations). Personas trace to
 > v3; this doc refines them.
-> **Author:** Claude (technical co-founder / CTO, per `Ai_Cofounder.md`).
+> **Author:** Claude (technical co-founder / CTO, per `docs/strategy/founding-constitution.md`).
 > **Naming:** product name not finalized; **Supaprod** everywhere (see CLAUDE.md disclaimer).
 > **Method:** 3 internal-lens explorations (surfaces · strategy canon · runtime reality) + 3
 > market-research streams (competition · customer pain · UX/pricing/GTM) + a 5-seat pressure test
@@ -300,7 +300,7 @@ public launch. Gate on the §8 gauntlet, not a date.
 
 - This doc is the canonical strategy. Competitive + pain + UX findings:
   [`docs/references/competitive-landscape.md`](../references/competitive-landscape.md).
-- Rulings logged in [`session-decisions.md`](./session-decisions.md); `Ai_Cofounder.md` Repo
+- Rulings logged in [`session-decisions.md`](./session-decisions.md); `docs/strategy/founding-constitution.md` Repo
   Concordance updated for the OS-position shift.
 - Read-order pointers to this doc live in `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.lovable-config.txt`.
 

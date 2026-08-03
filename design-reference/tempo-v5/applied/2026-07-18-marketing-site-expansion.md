@@ -1,8 +1,8 @@
 # Marketing Site Expansion: Vercel Ultra-Premium Standard Applied
 
-> _Created: 2026-07-18 · Status: **APPLIED RECORD & IMPLEMENTATION GUIDE**. This document records autonomous design decisions for the public marketing site expansion beyond the landing page (v2, shipped 2026-07-15). Every decision below follows [`DESIGN-TEMPO.md`](../../../DESIGN-TEMPO.md) and [`2026-07-15-landing-v2-ink-and-starfield.md`](./2026-07-15-landing-v2-ink-and-starfield.md) as the law; differentiators and rationale are stated once here, then implemented consistently across all pages._
+> _Created: 2026-07-18 · Status: **APPLIED RECORD & IMPLEMENTATION GUIDE**. This document records autonomous design decisions for the public marketing site expansion beyond the landing page (v2, shipped 2026-07-15). Every decision below follows [`docs/design/archive/tempo-v5.md`](../../../docs/design/archive/tempo-v5.md) and [`2026-07-15-landing-v2-ink-and-starfield.md`](./2026-07-15-landing-v2-ink-and-starfield.md) as the law; differentiators and rationale are stated once here, then implemented consistently across all pages._
 >
-> **Interlinks:** [`DESIGN-TEMPO.md`](../../../DESIGN-TEMPO.md) · [`2026-07-15-landing-v2-ink-and-starfield.md`](./2026-07-15-landing-v2-ink-and-starfield.md) (the prior applied record; this builds on it) · [`../research/vercel-composition-playbook.md`](../research/vercel-composition-playbook.md) (section 6 has the pickup instructions) · [`docs/pitch/one-pager.md`](../../../docs/pitch/one-pager.md) (canonical copy) · [`docs/planning/landing-page-v2-plan.md`](../../../docs/planning/landing-page-v2-plan.md) (claims law).
+> **Interlinks:** [`docs/design/archive/tempo-v5.md`](../../../docs/design/archive/tempo-v5.md) · [`2026-07-15-landing-v2-ink-and-starfield.md`](./2026-07-15-landing-v2-ink-and-starfield.md) (the prior applied record; this builds on it) · [`../research/vercel-composition-playbook.md`](../research/vercel-composition-playbook.md) (section 6 has the pickup instructions) · [`docs/pitch/one-pager.md`](../../../docs/pitch/one-pager.md) (canonical copy) · [`docs/planning/landing-page-v2-plan.md`](../../../docs/planning/landing-page-v2-plan.md) (claims law).
 
 ---
 
@@ -382,7 +382,7 @@ If this phase is done and the founder wants phase 2:
 
 ## 18. Files referenced (for future readers)
 
-- `DESIGN-TEMPO.md` — the base contract
+- `docs/design/archive/tempo-v5.md` — the base contract
 - `2026-07-15-landing-v2-ink-and-starfield.md` — the prior applied record
 - `vercel-composition-playbook.md` — the reference study
 - `docs/pitch/one-pager.md` — canonical outward copy

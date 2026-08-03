@@ -10,7 +10,7 @@
 
 Complexity lives in the engine, never in the experience. Everything powerful happens in the backend; the front stays calm, simple, and legible to a smart non-technical person. The operator tools that prove the machine is honest (logs, traces, evals, prompts, budgets, raw data, agent internals) still exist and stay one click away, but they live behind one clearly marked door the user opens only when they choose to. The default surface never makes the user reason about how the machine works.
 
-This is the rule the constitution already states ("Complexity exists in the engine, not in the user experience", `Ai_Cofounder.md`) and v6 already states ("simple front, powerful engine; approve-by-exception; hide the engine room"). It is written here as an enforceable convention because it was being written and then quietly broken: capability after capability earned its own top-level surface and its own piece of jargon until the product started to feel like a technical control room. This doctrine exists so the system itself resists that drift, instead of relying on anyone to remember.
+This is the rule the constitution already states ("Complexity exists in the engine, not in the user experience", `docs/strategy/founding-constitution.md`) and v6 already states ("simple front, powerful engine; approve-by-exception; hide the engine room"). It is written here as an enforceable convention because it was being written and then quietly broken: capability after capability earned its own top-level surface and its own piece of jargon until the product started to feel like a technical control room. This doctrine exists so the system itself resists that drift, instead of relying on anyone to remember.
 
 ## The reference model
 
@@ -65,5 +65,5 @@ On any new surface, panel, metric, label, field, or architecture decision: run t
 - [`../features/command-canvas.md`](../features/command-canvas.md) - the Command Canvas bet (2026-06-20), tested against this doctrine: a "command-line" front is compatible ONLY as a natural-language intent bar (not a syntax CLI) over a calm GUI, with a live preview as the legibility surface. The CLI feel is an optional accelerator, never the floor.
 - [`home-and-today-ia.md`](./home-and-today-ia.md) - the surface-placement rubric this extends (the engine-room-vs-front axis).
 - [`ui-voice.md`](./ui-voice.md) and [`humanized-output.md`](./humanized-output.md) - outcome-naming and calm copy are how rule 2 is executed in strings.
-- [`../../Ai_Cofounder.md`](../../Ai_Cofounder.md) ("Complexity exists in the engine, not in the user experience") and [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) ("simple front, powerful engine; hide the engine room").
+- [`../../Ai_Cofounder.md`](../strategy/founding-constitution.md) ("Complexity exists in the engine, not in the user experience") and [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) ("simple front, powerful engine; hide the engine room").
 - [`../../AGENTS.md`](../../AGENTS.md) §3 (engineering rules, where this is wired as a non-negotiable).

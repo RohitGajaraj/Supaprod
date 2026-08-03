@@ -408,7 +408,7 @@ Worked examples, drawn from the four tools that actually pause a run:
 | `delegate.openhands` | the task text · target repo · **`External agent. Cannot be recalled.`** |
 
 The `emphasis: "danger"` flag drives the one visual escalation the card is allowed
-(`DESIGN-TEMPO.md` §restraint budget: one signal per card).
+(`docs/design/archive/tempo-v5.md` §restraint budget: one signal per card).
 
 ### 3.4 The `chat.ts` changes, line by line
 

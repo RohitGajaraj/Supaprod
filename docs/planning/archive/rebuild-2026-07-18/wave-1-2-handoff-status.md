@@ -219,7 +219,7 @@ SETTINGS:
 
 ### Step 3: Update Tempo Design System Documentation (1 hour)
 
-**File to update:** `DESIGN-TEMPO.md` (existing file)
+**File to update:** `docs/design/archive/tempo-v5.md` (existing file)
 
 **Sections to add/update:**
 
@@ -262,7 +262,7 @@ SETTINGS:
 **Source documents to compile from:**
 - `VERCEL_GEIST_DISSECTION.md` (Vercel standard reference)
 - `WAVE_1_2_DESIGN_AUDIT.md` (audit framework + results)
-- `WAVE_1_2_DESIGN_COMPLETION.md` (completion summary)
+- `docs/planning/archive/rebuild-2026-07-18/wave-1-2-design-completion.md` (completion summary)
 
 ### Step 4: Final Production Build Verification
 

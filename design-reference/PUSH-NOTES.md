@@ -7,7 +7,7 @@ to point builders at it ("port these screens, don't reinvent them").
 
 - `design-reference/` → **repo root**, sibling of `src/` and `design-system/`.
   It's a standalone folder; nothing in the app imports it.
-- `DESIGN.md` → **replaces** the root DESIGN.md from the previous push (same
+- `docs/design/archive/ember-editorial-landing.md` → **replaces** the root DESIGN.md from the previous push (same
   file, two sections updated to point at design-reference/).
 
 ## Push it

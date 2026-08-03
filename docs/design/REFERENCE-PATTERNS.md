@@ -618,7 +618,7 @@ the agent at all.**
    from the sources, v0 should not use it." Plus the best onboarding ritual: it **builds a small
    starter app using your design system to prove it understood.**
 3. **Figma Code Connect** is the only real ground truth, but lives on the inspect side.
-4. **Stitch's `DESIGN.md`**, an agent-friendly markdown file of design rules. The most portable idea
+4. **Stitch's `docs/design/archive/ember-editorial-landing.md`**, an agent-friendly markdown file of design rules. The most portable idea
    in the category and the closest to our own conventions.
 
 > **THE UNIVERSAL GAP: not one product renders provenance.** Nothing labels a generated element

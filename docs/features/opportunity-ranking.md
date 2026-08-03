@@ -12,7 +12,7 @@ Beyond the #1 best bet, every ranked bet also carries a system-derived **designa
 
 ## Why it exists
 
-An agent that acts on the queue needs a deterministic total order and one unambiguous top pick, not a coin-flip when scores tie. Sorting by `ice_score` alone (the previous behavior) left equal-score bets in an engine-dependent, unstable order, so "what is the single most important thing to do next" had no reliable answer. DEC-RANK makes the decision layer's ordering a real, testable contract: the same inputs always produce the same ranks and the same best bet. Build-log entry: [`../../plan.md`](../../plan.md) §4.
+An agent that acts on the queue needs a deterministic total order and one unambiguous top pick, not a coin-flip when scores tie. Sorting by `ice_score` alone (the previous behavior) left equal-score bets in an engine-dependent, unstable order, so "what is the single most important thing to do next" had no reliable answer. DEC-RANK makes the decision layer's ordering a real, testable contract: the same inputs always produce the same ranks and the same best bet. Build-log entry: [`../../plan.md`](../planning/archive/build-log.md) §4.
 
 ## Where to find it
 
@@ -81,7 +81,7 @@ Every ranked bet carries one system-derived designation so a human or an agent c
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4, build log entry
+- [`../../plan.md`](../planning/archive/build-log.md) §4, build log entry
 - `src/components/discover/ranking.ts` and `ranking.test.ts`, the implementation and its lock tests
 - [`critic-agent.md`](./critic-agent.md), the Critic verdict that feeds the second tie-break key
 - [`f3-continuous-discovery.md`](./f3-continuous-discovery.md), the signal themes whose frequency is the corroboration input

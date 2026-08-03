@@ -1,276 +1,209 @@
-# Supaprod ⚡
+# Supaprod
 
-> _Created: 2026-06-03 · Last updated: 2026-07-24_
+> _Created: 2026-06-03 · Last updated: 2026-08-03_
 
-> **Supaprod is the AI-native, agentic-first operating system for product teams - and its sharpest claim is that it tells you what to build.** Code is commoditized: agents build whatever you point them at, cheaply, so the scarce act left in product work is knowing *what* to build and whether the call was right. Supaprod owns that act. It reads everything a team already knows (user feedback, product data, competitors, market intelligence) and tells you what is worth building next; you make the call, and its agents build and ship it behind gates you control - the whole lifecycle (sense, decide, define, build, ship, learn) running as one governed loop. The closest analogy: **Cursor, but for the whole product lifecycle end to end, not just writing code.** Then it remembers: every decision is recorded with its evidence and checked against what actually happened, so when a similar call comes up, Supaprod shows how you decided last time and whether it worked - it learns **your taste, not just your tasks**, and your product judgment compounds in the system instead of living in someone's head. That auditable decision-and-outcome record is the one thing no frontier model or single-suite incumbent can backfill or neutrally own: over three pillars (own the loop, sense continuously, keep the receipts), it is the moat.
->
-> One-line (category): **the agentic operating system for product teams - it tells you what to build, builds it, ships it, checks the outcome, and remembers. The more it runs, the sharper it gets.** _(Positioning updated 2026-07-22, founder ruling - the triple-RFS repositioning; supersedes the 2026-07-18 category headline. The decision-and-outcome layer remains the moat story.)_
-> One-line (the instant anchor, v13): **"Supaprod is Claude Code for the product lifecycle - agents do the product work end to end, you make the calls, and the ledger proves what worked."** The story's spine: code has a compiler; product judgment doesn't - **the ledger is the compiler for judgment.**
-> **The layman two-liner (canonical, 2026-07-23 - when a human asks "so what is Supaprod?"):** _"Supaprod tells you what to build and gets it built: AI agents read everything you already know (your user feedback, product data, competitors, market), surface what is worth building, and once you approve, they build and ship it. Think of it like Cursor, but for the whole product lifecycle, not just writing code. And it remembers: every decision is recorded with its evidence and outcome, so the next time a similar call comes up, it shows you how you decided last time and whether it worked."_ **Sub-50:** _"Supaprod runs product work with AI agents: it tells you what to build from everything you already know, builds and ships it once you approve, and remembers how every decision turned out, so your next call is sharper than your last."_ (Canonical home: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md) §3.)
-> **The full spoken telling (founder-loved, 2026-07-23 - use wherever the product needs explaining in plain speech; complete, in the founder's approved order):** _"Supaprod is building Supaprod on its own: it plans its own roadmap, its agents write the code behind a merge gate no agent can cross, and it grades what actually shipped. Code is commoditized; agents build whatever you point them at, cheaply. The scarce thing left is knowing what to build and whether the call was right. That is what Supaprod does: it reads everything you already know (your user feedback, your product data, your competitors, your market) and tells you what is worth building next. You make the call; agents build and ship it. Think of it like Cursor, but for the whole product lifecycle end to end, not just writing code. Then it remembers. Every decision is recorded with its evidence and checked against what actually happened, so when a similar call comes up, Supaprod shows you how you decided last time and whether it worked. Your product judgment compounds in the system instead of living in someone's head. YC's own recent RFS essays have been circling this same company from different angles; I read that as confirmation. I keep building, with the beta live for users today; I talk to users constantly, and their feedback goes straight back into the build, in a loop."_ (Also preserved beside the YC how-far-along field in [`docs/pitch/yc/fall-2026-application.md`](./docs/pitch/yc/fall-2026-application.md) ⑤.)
->
-> **⭐ THE TRIPLE-RFS POSITIONING (founder-ratified 2026-07-22 - the standing positioning architecture):** Supaprod sits at the intersection of the three companies YC's own Requests for Startups describe - **"Cursor for Product Managers"** (Andrew Miklas, Spring 2026), **"The AI Operating System for Companies"** (Diana Hu, Summer 2026), and **"Company Brain"** (Tom Blomfield, Summer 2026). They are one product at three altitudes: **the door** (Cursor for PMs - who it's for, the instant anchor), **the body** (the operating system - the closed loop, sense → decide → define → build → ship → learn), **the brain** (the compounding decision-and-outcome memory - why it wins). The telling order is always **door → body → brain, one headline per surface, never all three at once; the brain is the crescendo** (post-Notion-Ship-OS, "closes the loop" alone is contested copy - the uncontested claim is outcome verification + decision→outcome memory that re-ranks the next bets). The intersection claim is the earned insight: _you can't be the company brain without owning the loop that generates outcomes, and you can't run the loop without being the OS; the product org is where the loop is tightest._ Canonical memo (corrected live RFS verbatims, per-surface vocabulary rules, competitor sweep, durability argument, customer-evidence rules): [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
->
-> **🚀 THE CURRENT CANON CHAIN (2026-07-10, read in this order):** **[v13 Proof Campaign](./docs/strategy/v13-proof-campaign.md) wins on what to do NOW** - the engine is finished and independently audited, market contact is zero, so users/proof/love outrank engine depth: **ship publicly in under 25 days** (a 3-4 day build sprint → beta → Show HN → Product Hunt; the YC application follows the launch, consuming its traction - binding founder rulings, [session-decisions](./docs/strategy/session-decisions.md) 2026-07-10). Execution + the parallel-lane protocol (Fable/Sonnet): [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) (board group **G17**, rows PC-01..PC-27 in [the feature dashboard](./docs/planning/feature-dashboard.md)). **[v11 Guiding Star](./docs/strategy/v11-guiding-star.md) still wins direction** (the decision-and-outcome-layer moat over three pillars; supersedes v7 - v10 for direction); **[v12](./docs/strategy/v12-self-improving-os.md)** remains the learning-depth reference (shipped). The arbiter of which doc to pick: [`docs/strategy/README.md`](./docs/strategy/README.md).
+**Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks the outcome, and remembers. Wired end to end, from signal to learning and back again.**
+
+This file is the front door: what the product is, why it holds, and where every other document lives. It is the only navigation map in the repo. If you are here to **build**, read [`AGENTS.md`](./AGENTS.md) instead.
 
 ---
 
-> [!IMPORTANT]
-> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `supaprod`/`Supaprod`.
+## The three things that are true about it
 
----
+**One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended, inside boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
 
-> [!IMPORTANT]
->
-> ## Where we are right now (2026-07-10) - and what to do if you're opening this fresh
->
-> **Honest state:** the engine is real and finished - 300+ register rows shipped, an outside code audit confirmed the self-reported completeness, the live loop is warm on founder data (133 missions, 72 decisions, 49 learnings, outcome-reinforced ranking live) - and **market contact is zero** (8 users, all founder/internal/test; no revenue; billing built but dormant). The one-line reframe: **we built the OS and never opened the doors. The [v13 Proof Campaign](./docs/strategy/v13-proof-campaign.md) opens them.**
->
-> **The active mission:** ship publicly in **under 25 days** - days 1-4 build sprint (close launch-gating gaps + the subtraction pass), days 5-14 beta wave (first sessions double as discovery interviews), days 14-25 the listing (**Show HN → Product Hunt the same week**), then the **YC application AFTER launch**, consuming its traction. Post-launch is gates, not dates. Full sequencing, work packages, and the paste-ready parallel-lane briefs (Lane A judgment/**Fable** · Lane B build/**Sonnet** · Lane C GTM/**Sonnet**): [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md).
->
-> **Starting a session tomorrow?** Read, in order: (1) [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0 (the live cursor), (2) the [v13 canon](./docs/strategy/v13-proof-campaign.md), (3) the [campaign plan](./docs/planning/v13-proof-campaign-plan.md) §2 - §4 - then claim the next PC row via `bash scripts/lane.sh next`. **Writing an application or pitch?** Draft from [v13](./docs/strategy/v13-proof-campaign.md) §8 (positioning + the one-liner) + [`moat.md`](./docs/strategy/moat.md) (objection Q&A) + the evidence corpus: [`docs/references/pm-voice-and-ai-tooling-research.md`](./docs/references/pm-voice-and-ai-tooling-research.md) (17 sections of dated primary sources) and [`docs/references/2026-07-10-launch-research-briefs.md`](./docs/references/2026-07-10-launch-research-briefs.md) (competitors · frontier · market · HyperAgent). The founder-gated unblock list (LOOM publish + migrations, merchant-of-record pick, OAuth registrations): plan §4.
+**Product knowledge compounds, and the record is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped. When a product manager leaves, the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding.
 
----
+> **Known limit, do not overstate it.** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the **user** who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Until that closes, say "the record travels", never "the memory travels".
 
-## ⭐ THE CORE USP (founder-directed 2026-08-02, in session; exact wording not yet founder-reviewed) - the one claim, and the file that proves it
-
-> **Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks the outcome, and remembers. Wired end to end, from signal to learning and back again.**
-
-- **One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended under boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
-- **Product knowledge compounds, and the RECORD is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped, so when a product manager leaves the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding. **Known limit, do not overstate it:** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the USER who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Closing that is tracked work; until it closes, say "the record travels" and not "the memory travels".
-- **Proof, not assertion.** The station-by-station, code-verified account of that loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
-
-Works with, not against, the Investor canon and the triple-RFS positioning (the same three layers: the director, the operating system, the company brain) and the six-month-forward doctrine; it replaces none of them. This block is identical in `README.md`, `CLAUDE.md`, `AGENTS.md` and `GEMINI.md` so it cannot drift. Change all four or none.
-
-## ⭐ Investor canon (founder-ratified 2026-07-24, the deck session)
-
-Distilled from the investor-deck build; full artifacts at [`docs/pitch/investor-deck/`](./docs/pitch/investor-deck/README.md) (frozen deck v19, brand assets vault, usage notes). Supersedes conflicting outward-facing copy anywhere in this repo. Works with, not against, the 2026-07-22 triple-RFS positioning: same three layers, sharper words.
-
-- **Tagline (hero, all surfaces):** "Agents that know what to build, ship it, and remember." Support line: "One agentic operating system, every call on the record." Journey kicker: `signal -> shipped -> remembered` (supersedes "Signal to shipped").
-- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold #e8b44c) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (remembers, and it guides, green).
-- **The brain is never storage.** Banned framing: "where the record lives". Canon: it compounds; next time it tells you what is right, and warns before you repeat what was wrong.
-- **Public launch date on every external surface: September 2026** (supersedes August / "~Aug 4" phrasing).
-- **Market sizing ladder (retires the unsourced $18B TAM everywhere):** TAM $300B+/yr, the PM work budget (2.6M PMs x ~$115K loaded). SAM $2B -> $12B/yr (launch pricing to value pricing; Motion 1 Transform: 650K existing teams; Motion 2 Create: 500K new agent-native orgs by 2030). SOM ~$47M ARR (the agent-native tenth at launch pricing). Full arithmetic: deck appendix B.
-- **Engine positioning: not a wrapper.** The models are interchangeable parts; the system is ours: the loop, the gates, the ledger. Our own build engine runs frontier models via API in the customer's repo. Never say we dispatch work to Cursor, Lovable, or Devin; they are the era's proof, not our subcontractors.
-- **Investor-material never list:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only (user-zero framing allowed), no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM" (never "Intellect Design Arena"), founder role arc ISRO associate PM -> Infineon PM -> Intellect senior AI PM, education shows TUM only.
-- **Contact canon:** founder@supaprod.ai (founder surfaces) · investors@supaprod.ai (investor relations) · linkedin.com/in/rohit-gajaraj.
-
-## ⭐ Governance canon (founder ruling 2026-07-29)
-
-> **Policy is set in advance and does not block. Permission is asked in the moment and does.
-> Supaprod is built on policy.**
-
-The founder's framing, quoting MuleSoft: _"AI agents don't submit change requests before they act.
-They make decisions, access data, call tools, and move work forward in real time. When governance is
-fragmented, the business still owns every outcome."_ His test, which every product decision must now
-pass: **_"Even human in the loop - every approval, if it passes to a human, then what is the purpose
-of agents?"_**
-
-**The human's job is not to approve work. It is to set the boundaries, and to judge the small number
-of things that genuinely cross them.** The gate is the exception, not the loop. A product where a
-human approves each step has not automated the work, it has added a queue to it - and a long
-approvals queue is a policy failure to surface, not a workload to render.
-
-This does not weaken the moat, it is the reason the moat matters: **autonomy is paid for with
-evidence.** Fewer interrupts is only safe because every action is recorded against a tamper-evident
-record, so the business owns the outcome because it set the rules, not because it clicked approve on
-every step. Four floors no boundary may lower: anything irreversible from inside the product,
-genuine judgment with no oracle, defaults the user never set (visible and changeable, or they are
-our choice and not their policy), and hard risk floors above any earned autonomy.
-
-Canonical: [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](./docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md).
-
-## What this is, in one paragraph
-
-Supaprod is the **AI-native, agentic-first operating system for product teams - and it tells you what to build.** Most "AI for product" tools are an AI feature bolted onto an app (it drafts, suggests, and waits) or a chatbot (it hands you a paragraph and the work is still yours). Supaprod is the other thing: an **AI operating system that owns the loop**, and an **action system where the work is actually done.** You give it intent ("turn this customer signal into the right shipped outcome"), and a swarm of governed agents carries it end to end across the whole product lifecycle: it senses signal, ranks and red-teams the opportunity (the Critic), defines the cited spec, **builds it with its own engine** (the harness is ours; the best model plugs in per lifecycle job - own-engine ruling 2026-07-22; enterprise BYO dispatch exists quietly in architecture), drafts GTM, triages support, evaluates the outcome, and feeds the result back into the next decision, pausing only for the few calls that genuinely need a human. Every action is cited, observable in a live trace, and reversible. **Agents execute; you decide and stay accountable.** And here is why it is defensible: building software is no longer the bottleneck, **deciding what to build is.** Code has a fast oracle (it compiles in seconds), so building commoditizes; "what to build, and was it right" has no fast oracle (feedback lands in weeks to quarters), so it does not. Supaprod owns that **decision-and-outcome layer over three pillars (own the loop, sense continuously, keep the receipts)**, and the auditable, compounding record of what your team decided and whether it was right is the one thing no frontier model or single-suite incumbent can backfill or neutrally own. The moat: [`docs/strategy/moat.md`](./docs/strategy/moat.md); the standing canon (with the verbatim "what is Supaprod" answer in its §1A): [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md).
-
-Operating rules for anyone (human or agent) building this: [`AGENTS.md`](./AGENTS.md). **The felt product / wedge (v5): [`docs/strategy/archive/v5-chief-of-staff.md`](./docs/strategy/archive/v5-chief-of-staff.md). Supaprod lands as the senior PM's Chief of Staff (the daily evidence-to-decision ritual); the cockpit below is the expansion.** Expansion scope, agent mesh, and milestones: [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md). Build order + build log: [`plan.md`](./plan.md). Design contract (all surfaces, CURRENT): [`DESIGN-TEMPO.md`](./DESIGN-TEMPO.md) (v5 "Tempo", adopted 2026-07-10; supersedes Obsidian v3 / Loom v4 / the Ember landing system in `DESIGN.md`, which are retired history). Brand kit (logo/favicon/social, ready to upload): [`docs/Growth Strategy/branding/`](./docs/Growth%20Strategy/branding/README.md); the app + brand logo is the seven-petal **SupaprodMark** (`src/components/supaprod/SupaprodMark.tsx`). Live UI/UX build state + tomorrow-pickup pending: [`UI-REVAMP-HANDOFF.md`](./UI-REVAMP-HANDOFF.md). Public landing + public pages applied design record (2026-07-15, read before touching any public page): [`design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](./design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md), with its companion reference study [`design-reference/tempo-v5/research/vercel-composition-playbook.md`](./design-reference/tempo-v5/research/vercel-composition-playbook.md) (the Vercel anatomy + the blocked-pattern waiting list; the two documents cross-reference each other). Architecture: [`architecture/`](./architecture/). Market evidence: [`docs/references/competitive-landscape.md`](./docs/references/competitive-landscape.md). Founding constitution (AI co-founder role, north star, mandates): [`Ai_Cofounder.md`](./Ai_Cofounder.md).
-
-> **Standing rule: humanized output, zero AI fingerprints.** No em/en dashes, no invisible Unicode, no AI-cliche phrasing in what we build OR what the platform generates for users. Applies to every co-dev tool and to every AI feature's output. Full rule: [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md).
-
----
-
-## Try it: demo accounts
-
-Two pre-provisioned demo logins ship with the database. Both land in a fully populated Demo workspace (Lumen project, themes, signals, opportunities, PRDs, missions, traces, evals, briefs) so every surface is real on first sign-in.
-
-| #   | Email                  | Password           |
-| --- | ---------------------- | ------------------ |
-| 1   | `demo@redcadence.app`  | `Cadence!Demo2026` |
-| 2   | `demo2@redcadence.app` | `Cadence!Demo2026` |
-
-_Note: Database credentials retain the legacy email domains and passwords to prevent auth session disruption during co-development._ Full details: [`docs/operations/demo-credentials.md`](./docs/operations/demo-credentials.md).
+**Proof, not assertion.** The station-by-station, code-verified account of the loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
 
 ---
 
 ## The problem
 
-A product operator today doesn't just do discovery and specs. They own the whole arc: talk to users, decide what's worth building, write the spec, get it built, tested, and shipped, launch it, position and price it, drive distribution, handle support, and learn from the result. That arc is smeared across 15 tools (Intercom, Gong, Notion, Linear, Jira, Figma, GitHub, CI, Vercel, Slack, Mixpanel, and a stack of AI chat tabs) with a human manually carrying context across every seam.
+A product operator owns the whole arc: talk to users, decide what is worth building, write the spec, get it built and shipped, launch it, handle support, and learn from the result. That arc is smeared across fifteen tools with a human manually carrying context across every seam. **The cost of switching, reconciling and re-explaining across those seams now exceeds the cost of the work itself.**
 
-**The cost of switching, reconciling, re-explaining, and hand-holding the work across those seams now exceeds the cost of the work itself.** Point AI tools make one seam faster (a better spec, a faster PR) but leave the operator as the glue. To remove the glue, the _substrate_ has to own the whole lifecycle, and agents must _run_ it, not just assist it.
+Point AI tools make one seam faster and leave the operator as the glue. To remove the glue, the substrate has to own the whole lifecycle, and agents have to *run* it, not assist it.
 
-**The deeper problem:** the scarce skill is no longer building; it is deciding what to build and knowing whether you were right. AI build tools make the cheap part cheaper and leave the operator as the glue and the sole keeper of undocumented, unaccountable judgment. Supaprod removes the glue by running the whole arc end to end AND makes the judgment compound, defensible, and governed, so it out-scopes the point tools (the whole loop) rather than racing them on any single seam.
-
-**Supaprod is that substrate - the end-to-end product management operating system - with the decision-and-outcome layer as its moat.** One data model, one governed agent runtime, one orchestration layer that runs the whole loop (with its own build engine inside it), one trust layer (the receipts), spanning sense to decide to define to build to ship to learn, running continuously and self-initiating from live signals. The decision-and-outcome layer over three pillars (own the loop, sense continuously, keep the receipts) is the moat; the build is one governed station within the loop, run by Supaprod's own engine on commodity models (quiet enterprise BYO aside), not a standalone race against vibe-coding.
+The deeper problem: **building is no longer the bottleneck, deciding what to build is.** Code has a fast oracle, it compiles in seconds, so building commoditizes. "What to build, and was it right" has no fast oracle, feedback lands in weeks to quarters, so it does not.
 
 ---
 
-## Positioning: the closed product loop
+## The loop: seven stations, and it is a route, not a conveyor
 
-Six statements that should never drift:
-
-1. **The moat is the decision layer.** Supaprod owns "what to build, and was it right" (no fast oracle, does not commoditize); vibe-coding owns "how to build" (racing to zero). That race is exactly why the build engine is ours, built on commodity models: the harness is owned, the best model per lifecycle job plugs in, and the moat stays in the decision layer (own-engine ruling 2026-07-22). Memory is one layer of the moat, not the headline. Its engine form is the **Decision Brain**, a typed, bi-temporal decision knowledge graph (decision, evidence, outcome, supersession) with an Obsidian-style visual view, now the topmost build: [`docs/features/decision-brain.md`](./docs/features/decision-brain.md). Full canon: [`docs/strategy/moat.md`](./docs/strategy/moat.md).
-2. **Agents execute; the human decides and is accountable.** Supaprod agents don't just suggest; they _execute_ multi-step missions and report back. The human sets intent, approves the gates, and owns the call. Accountability is structurally human; it does not automate away.
-3. **The closed, end-to-end loop.** Supaprod runs the whole arc: customer signal $\rightarrow$ ranked + red-teamed decision $\rightarrow$ cited spec $\rightarrow$ build (Supaprod's own engine; best model per job) $\rightarrow$ ship $\rightarrow$ launch $\rightarrow$ outcome $\rightarrow$ learning, as one governed loop. factory.ai/Devin own autonomous _engineering_; Linear/Jira own _issues_; Notion owns _docs_; Lovable/Cursor own _building_, one station each. None owns the end-to-end loop, or the decision layer + the record of whether the call was right (the moat).
-4. **Governed autonomy.** Every autonomous action is cited, observable in a live trace, approval-gated where it touches the outside world, and reversible. Autonomy without governance is a liability; Supaprod ships both, which is what makes autonomy sellable to an enterprise.
-5. **Continuous, and a force-multiplier, not a replacement.** Products never finish. Supaprod makes one PM operate like a team and their judgment compound; it does not replace the PM. It gets more valuable the longer it runs (the decision memory compounds), and we monetize the decision work (credits), so we grow as decisioning gets cheaper.
-6. **The three-altitude telling (founder-ratified 2026-07-22).** Supaprod is the intersection of YC's own three requests - Cursor for Product Managers (the door: who it's for), the AI Operating System for Companies (the body: the closed loop), Company Brain (the brain: the compounding decision-and-outcome memory). Told in that order, one headline per surface, brain as the crescendo - never all three at once. "Company brain" is YC's phrase, quoted and attributed, never our brand identity (our owned words: the outcome ledger, the decision brain, receipts). Canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
-
-### The USP
-
-> **Supaprod is the end-to-end product operating system: a swarm of specialist agents runs your whole product lifecycle, discover, decide, define, build, ship, launch, learn, as one governed loop, governed by you at the calls that matter. The moat is the decision layer (what to build, and whether the call was right) plus the compounding memory; the build is a governed station within the loop, run by our own engine on plug-in models. Vibe-coding is one station; Supaprod is the whole loop, and makes the decision right.**
-
-### The portability commitment
-
-> **Your data is always yours.** Export everything (decisions, memory, signals, agent configs) in open formats, anytime. We earn your trust through value, not friction. See Epic U in [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md).
-
----
-
-## The MOAT: why a frontier-model launch does not kill us
-
-> **THE SIX-MONTH-FORWARD DOCTRINE (founder ruling 2026-08-01).** We do not build for today's
-> problem. Every design is made for where the industry will be six months out, and must also
-> close the pain the user carried from the past. Five tests, all of which a design passes
-> before it is built: (1) assume the model layer commoditizes, so anything one frontier release
-> could absorb is not a moat; (2) assume a large vendor ships our vertical next quarter, and
-> name what we still have that they do not; (3) agentic-first, not agent-assisted, so a surface
-> an autonomous agent cannot run end to end under policy is legacy the day it ships;
-> (4) solve backwards and forwards; (5) delight is a requirement, not a finishing pass.
-> Canonical: [`AGENTS.md`](./AGENTS.md) "THE SIX-MONTH-FORWARD DOCTRINE".
-
-**The moat is the decision layer: what to build, and whether the call was right.** Vibe-coding tools (Lovable, Cursor) own the build layer, how to build, which is racing to zero; we own the decision layer, which has no fast oracle and does not commoditize, and we run the build ourselves on the same commodity models they race on (own-engine ruling 2026-07-22; Lovable builds the wrong thing beautifully; Supaprod decides, builds the right thing, and proves it). The model is **not** the moat; neither is raw data; Supaprod is model-agnostic, so a lab's horizontal "PM agent" is a _capability we plug in_. **Memory is one layer of the moat, not the headline.** Full articulation, competition map (integrate / absorb / race / ignore), the PM/two-phase positioning, and the YC objection Q&A: **[`docs/strategy/moat.md`](./docs/strategy/moat.md)**. The defensibility is five layers a model release cannot replicate:
-
-1. **End-to-end lifecycle orchestration.** Owning and orchestrating the entire loop, discover $\rightarrow$ build $\rightarrow$ ship $\rightarrow$ launch $\rightarrow$ support $\rightarrow$ learn, as one governed system.
-2. **The trust & governance layer.** Approval gates, full audit trail, citations, evals, guardrails, budgets, and reversibility: the part enterprises require before they let agents touch real systems.
-3. **System of record _and_ system of action.** Once a product org runs its decisions, code, releases, and institutional context through Supaprod, it becomes the operating layer. Ripping it out means re-gluing the lifecycle by hand.
-4. **Compounding Product Memory.** The longer Supaprod runs, the better the agents know your product, your users, your decisions, and your domain. This intelligence is genuinely hard to rebuild.
-5. **Agent-native interop.** Supaprod speaks MCP and A2A both ways. It is the place other agents plug in to act inside a governed product org.
-
-Positioning rule: **"Supaprod orchestrates the models; it does not compete with them."**
-
-**Market validation + urgency (verified 2026-07-22):** all three positioning banners are literal YC RFS categories, and the intersection cell - agentic PM execution + closed-loop decision→outcome memory - measured empty in a fresh competitor sweep (Samepage surfaces, Brief remembers context without executing, ChatPRD/Spark draft, Linear/Notion Ship OS dispatch without outcome checks). The window is 1-2 quarters: YC's S26 batch is being funded right now to build these cells, and Notion shipped "feedback to a merged PR" copy in July 2026. Sweep + sources: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md) §2.
-
----
-
-## Who Supaprod is for
-
-**Front door: the individual PM or founding PM.** Drowning in the low-judgment half of the job (writing PRDs, triaging alerts, chasing status, running meetings), and wanting the loop to take it off their plate. Entry via the **Critic teardown**: self-serve, the 10-minute wow - point Supaprod at a feature you believe in, get an evidence-backed red-team with receipts. This is the viral wedge. **This persona is now primary-source-proven** (research [§12](./docs/references/pm-voice-and-ai-tooling-research.md)): the year's most-upvoted AI post in r/ProductManagement is a Sr. PM who hand-built a Supaprod-shaped system (Claude Code + MCP + memory + a judgment skill), and Coinbase's public memo describes "one-person teams... managing fleets of agents" - the wedge user exists, named and dated.
-
-**Expansion: the product team.** The decision system of record for the whole team: governance, audit, shared compounding memory. Conversion from individual to team motion when the PM's manager or VP wants visibility and accountability over what the team decides and whether it paid off. This is the >$150/team/month ticket.
-
-**Buyer: the VP or Head of Product** for the team motion. Wants the decision record, the governance layer, and the accountability story for leadership.
-
-**Later (post-PMF):** the broader product org and adjacent stakeholders (sales, GTM, leadership consume the decision-and-outcome record in their language); regulated/compliance buyers (provenance is a purchase requirement). Full v11 persona and expansion rationale: [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md) §5.
-
----
-
-## Six stations, one loop (the platform offering)
-
-Supaprod delivers all six stations end to end. The engine runs a 12-stage loop internally; the operator sees **six stations**, each run by named specialist agents (the concrete 13-agent roster: 12 specialists + the Chief of Staff conductor (registry: docs/planning/Supaprod Final Sweep/agent-roster.md), sub-agents, handoff contract, HITL gates, in [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md)). **BUILD is a governed station run by Supaprod's own engine** (the harness is ours; the best model per job plugs in; enterprise BYO dispatch exists quietly in the architecture); the un-commoditizable ends (SENSE, DECIDE, LEARN) are where the moat lives:
-
-1. **SENSE:** Scout, Listener, Researcher, Quant ingest everything users feel, say, and do (support, meetings, reviews, analytics, competitor moves) into one cited signal stream.
-2. **DECIDE:** Strategist keeps a living, re-scored opportunity queue; Critic red-teams every candidate before the human ever sees it.
-3. **DEFINE:** Scribe drafts cited specs; Designer scaffolds mockups checked against design tokens; Critic stress-tests the spec.
-4. **BUILD:** Planner graphs the work; Builder codes on isolated branches with CI self-correction, on whichever model is best at the job (enterprise BYO delegation exists quietly); Inspector gates quality; Releaser ships safely.
-5. **LAUNCH:** Marketer drafts the full launch kit in brand voice; Pricer analyzes packaging; everything customer-visible is approval-gated.
-6. **LEARN:** Support triages tickets back into signals; Quant reads outcomes; Historian writes what we learned into Product Memory, which re-ranks everything upstream.
-
-The user-facing app is **six destinations + summonable AI + one door** (Today · Discover · Decide · Plan · Build · Brain, plus Ask (Cmd+J) and the Engine Room door + Settings); Decide is the decide stage between Discover (sense) and Plan (define), the ranked opportunity queue that Discover promotes bets into. Features never add nav items, and the engine never appears as navigation. IA contract: [`DESIGN-OBSIDIAN.md`](./DESIGN-OBSIDIAN.md) § 8 Information architecture.
-
-### GTM posture (decided 2026-06-11)
-
-**PLG wedge → enterprise.** Land with the individual senior PM via the **Critic teardown** (the 10-minute wow: point Supaprod at a feature you believe in, get an evidence-backed red-team, "why your pet feature is wrong, with receipts"), then expand team → org. Self-serve is **credits-only** (managed AI credits + capped top-ups; BYOK is enterprise-only); pricing is **account-level** and gates the **decision layer** (persistent memory, Critic everywhere, governance), never the build. Credits and billing pool at the **account**, not per-workspace, the market-standard pattern for products whose value compounds with usage (Anthropic, OpenAI, Vercel, Bolt, and Replit all pool at the org/account and treat the sub-container as cost attribution); per-workspace billing would tax the very behavior that deepens our moat. Enterprise governance (SSO, audit, roles, budgets) is built into the architecture from day 1. Pain-point-first; investor framing secondary. **💳 The full pricing & billing system (credit model, BYOK, model access, tiers, billing rail) has one front door: [`docs/strategy/pricing/`](./docs/strategy/pricing/README.md) - start at [`pricing-architecture.md`](./docs/strategy/pricing/pricing-architecture.md), the finalized end-to-end architecture.** Supporting context: [`docs/strategy/moat.md`](./docs/strategy/moat.md) §7 + [`docs/planning/workspace-tenancy-and-monetization-plan.md`](./docs/planning/workspace-tenancy-and-monetization-plan.md) (§2.4 the tier matrix; §4.2.1 the credit engine).
-
----
-
-## Pluggable Multi-Model Substrate
-
-Supaprod is **model-agnostic by design.** Every AI call routes through one chokepoint (`src/lib/ai/runtime.server.ts`) that selects the best model for each task -- frontier models for reasoning and spec, fast models for classification, long-context models for ingest -- and routes around any provider outage or cost spike without touching the product interface:
-
-| Task category                    | Example providers               | In Supaprod                                                         |
-| -------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| **High-context ingest**          | Gemini 2.0 Flash, Claude Sonnet | 1M+ token audio/transcript/support dumps (WhisperFlow) without loss |
-| **High-reasoning + spec draft**  | Claude Sonnet 4.6, GPT-4o       | Spec drafting, Critic reasoning, roadmap planning, strategic briefs |
-| **Fast intent + classification** | Gemini 2.0 Flash, GPT-4o mini   | Chat intent routing, real-time dashboard updates                    |
-| **Surgical code generation**     | Claude Sonnet 4.6, DeepSeek     | Build-station agent code edits, CI self-correction                  |
-
-- **BYO Key (enterprise-only):** Enterprise accounts can bind their own provider API keys, encrypted at rest via AES-256-GCM in a service-role-only vault. Self-serve uses managed AI credits only. Model-agnostic routing across providers on our keys is the default. _(BYOK update 2026-06-19: enterprise-negotiated, not self-serve. See [`docs/strategy/moat.md`](./docs/strategy/moat.md) §7 and [`docs/planning/workspace-tenancy-and-monetization-plan.md`](./docs/planning/workspace-tenancy-and-monetization-plan.md) §2.6.)_
-
----
-
-## Architecture at a glance
-
-A request enters at the **client**, passes the **account / workspace / product tenancy** gate (where decision memory pools at the account, the compounding moat), is planned by the **orchestration layer** (which dispatches the build), every model call funnels through the **AI chokepoint** (credits-metered), and state lives in one **database**.
-
-```text
-1. CLIENT  (calm front; the decision loop is the hero)
-   Home · Chat · Missions · Product · Knowledge · Learn · Govern + Settings
-   Stack: TanStack Start (React 19 + Vite) · Tailwind v4 · shadcn/ui
-        |  server functions (typed RPC)        |  /api/public/hooks/*
-        v                                      v
-2. ACCOUNT / WORKSPACE / PRODUCT TENANCY  (isolation gate + the moat)
-   Supabase Auth -> RLS scoped by account + workspace + product
-   decision memory pools at the account (the compounding moat)
-   Contract: architecture/security.md, architecture/data.md
-        |
-        v
-3. ORCHESTRATION  (runs the sense -> decide -> learn loop)
-   workflow engine · parallel sub-agents · the Critic · governance gates
-   runs the BUILD with Supaprod's own engine (best model per job)
-   Contract: architecture/orchestration.md
-        |
-        v
-4. AI CHOKEPOINT  (src/lib/ai/runtime.server.ts; EVERY model call)
-   budget -> credits -> cache -> pre-guard -> RAG -> PROVIDER -> post-guard
-   Contract: architecture/runtime.md
-        |
-        v
-5a. MODELS (model-agnostic): Claude · Gemini · GPT · DeepSeek
-    our keys, credits-metered (BYOK is enterprise-only)
-5b. DATA (one store): Supabase Postgres; RLS · pgvector (RAG) · pg_cron
-    Contract: architecture/data.md
+```
+  01 Discover -> 02 Decide -> 03 Plan -> 04 Design -> 05 Build -> 06 Ship -> 07 Learn
+       ^                                                                        |
+       +------------------------ outcome re-ranks the next bet -----------------+
 ```
 
-Where each layer lives in detail: [`architecture/`](./architecture/). Stack rationale and the open-source posture: [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md).
+**Work visits the subset of stations it actually needs, and can enter at any of them** (founder ruling 2026-08-01). A copy tweak may go Discover, Build, Ship. A backend change skips Design. An existing product getting one feature enters at Plan or Design, not at Discover, and the loop must never force a real customer through discovery for work whose problem is already settled.
 
-**Hosting, backend, and the first checkpoint.** Supaprod is built on, hosted on, and published through Lovable, the live system of record for the whole project (Supabase database, auth and OAuth, edge functions, hosting, deploys, analytics, logs, source). For contributors and agents: when you hit any gap, error, log, analytics, SQL, or data question, check Lovable directly first via the connected Lovable MCP, never assume it. Secrets and env are the one local-first exception (this project's git-ignored `.env`). Standing rule: [`AGENTS.md`](./AGENTS.md) §0.
+A skipped station is **a decision on the record with a reason**, never a silent omission. The path is policy, not permission: the human sets the routing rule once and the loop routes itself thereafter. That is the line between a workflow tool and an agentic OS.
+
+| Station | What runs there |
+| --- | --- |
+| **01 Discover** | Signals ingest from every source, cluster into themes, surface what is worth attention. |
+| **02 Decide** | A living, re-scored opportunity queue. The Critic red-teams every candidate before a human sees it. |
+| **03 Plan** | Cited specs, scope, sequencing, the roadmap. |
+| **04 Design** | Scaffolded surfaces checked against the live design system. |
+| **05 Build** | Our own engine writes code in the customer's repo, on frontier models via API. |
+| **06 Ship** | Release, gates, the deploy path, what customers see. |
+| **07 Learn** | Outcomes are settled and written back, which re-ranks Discover and Decide. |
+
+---
+
+## Who it is for
+
+**Front door: the individual PM or founding PM**, drowning in the low-judgment half of the job. Entry is the **Critic teardown**: point Supaprod at a feature you believe in and get an evidence-backed red-team with receipts.
+
+**Expansion: the product team.** The decision system of record: governance, audit, shared compounding memory. The conversion happens when a VP wants visibility over what the team decided and whether it paid off.
+
+**Buyer: the VP or Head of Product**, who wants the decision record, the governance layer, and the accountability story.
 
 ---
 
-## Documentation map
+## Why it holds
 
-| If you are...                                                                  | Read                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Evaluating Supaprod                                                          | **README.md** (here)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **What to do NOW (CURRENT campaign - pick first)**                           | **[`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md)** (the Proof Campaign: honest state, the one-liner, the 25-day ship, the pressure-test, the frontier defense) · execution + parallel-lane briefs: [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) (group G17) · live status: [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) · the live cursor: [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| **What to build next + how it should look and behave (CURRENT, pick first)** | **[`docs/strategy/v10-master-blueprint.md`](./docs/strategy/v10-master-blueprint.md)** (the master blueprint: every feature with pain + how it functions, IA, screen-by-screen, the analytical engine, priority + disjoint lanes) · execution order: [`docs/planning/v10_implementation-plan.md`](./docs/planning/v10_implementation-plan.md) · live status: [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) · which-doc-to-pick role map: [`docs/strategy/README.md`](./docs/strategy/README.md) · **current build initiative:** [`docs/planning/workspace-tenancy-and-monetization-plan.md`](./docs/planning/workspace-tenancy-and-monetization-plan.md) (workspace / accounts / tenancy + monetization, the cross-tool build bible; live board group G10 in feature-dashboard)                                                                                                                                                                                                                                                                                                      |
-| Understanding positioning (CURRENT source of truth)                          | **[`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md)** (the standing canon: decision-and-outcome-layer moat, three pillars, ambient self-initiating North Star, core-user lens, market, villain/defense; supersedes v7-v10 for direction). **The depth-and-learning canon layered under v11 is [`docs/strategy/v12-self-improving-os.md`](./docs/strategy/v12-self-improving-os.md)** (2026-07-02, audit-grounded: the reinforcement/learning loop, foresight + the reach channel, the operable memory OS, the design third leg, the Outcome Contract / ARD conventions, and the end-to-end journey coverage; wins on that build plan, v11 still wins direction) · detailed reference: [`v7`](./docs/strategy/v7-agentic-product-os.md) (positioning + market detail), [`v8`](./docs/strategy/v8-calm-front-deep-engine.md) (structure/IA), [`v9`](./docs/strategy/v9-decision-wedge-and-build-next.md) (decision-lens/wedge) · engine/expansion: [`v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md) · index+role-map: [`docs/strategy/README.md`](./docs/strategy/README.md) |
-| Strategy reasoning + fundraising source narrative (YC / investor)            | [`docs/strategy/strategic-inputs-log.md`](./docs/strategy/strategic-inputs-log.md): the raw brainstorm reasoning + evidence behind the canon (operator/PM/investor/marketer lenses), the source narrative for accelerator/investor applications · decisions: [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md) · **moat / competition / defensibility (YC + interview prep):** [`docs/strategy/moat.md`](./docs/strategy/moat.md) · **the dated primary-source evidence corpus (2026-07-10):** [`docs/references/pm-voice-and-ai-tooling-research.md`](./docs/references/pm-voice-and-ai-tooling-research.md) (user voices, the wedge in users' words, the beta cohort, industry-direction quotes) + [`docs/references/2026-07-10-launch-research-briefs.md`](./docs/references/2026-07-10-launch-research-briefs.md) (competitors · frontier UX · TAM/SAM/SOM · HyperAgent) - outward material cites artifacts and companies, never gurus (the §12.4 rule)                                                                                                                              |
-| Founding constitution (AI co-founder posture, north star, mandates)          | [`Ai_Cofounder.md`](./Ai_Cofounder.md): its Repo Concordance maps its 13 mandated docs onto this repo's canon                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Market & competitor evidence                                                 | [`docs/references/competitive-landscape.md`](./docs/references/competitive-landscape.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Resuming the v4 rebuild session                                              | [`docs/planning/archive/v4-rebuild-handoff.md`](./docs/planning/archive/v4-rebuild-handoff.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Navigating the repo                                                          | [`ENTRY.md`](./ENTRY.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Building (human or agent)                                                    | [`AGENTS.md`](./AGENTS.md). Claude Code: [`CLAUDE.md`](./CLAUDE.md). Antigravity/Gemini: [`GEMINI.md`](./GEMINI.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Feature scope + build order + build log                                      | [`plan.md`](./plan.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Design / UI / motion                                                         | [`DESIGN-TEMPO.md`](./DESIGN-TEMPO.md) (v5 "Tempo", CURRENT for ALL surfaces; Loom/Obsidian/Ember are retired history) · [`design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](./design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) (public landing + public pages applied record; companion study [`vercel-composition-playbook.md`](./design-reference/tempo-v5/research/vercel-composition-playbook.md)) · [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md) (card + detail anatomy, trace-ref registry, ranking/designation logic, color + naming: the design-system reference)                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Architecture (runtime, orchestration, data, auth, frontend, integrations)    | [`architecture/`](./architecture/)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Subagents / skills / tools / hooks                                           | [`docs/operations/subagents.md`](./docs/operations/subagents.md) · [`docs/operations/skills.md`](./docs/operations/skills.md) · [`docs/operations/tools.md`](./docs/operations/tools.md) · [`docs/operations/hooks.md`](./docs/operations/hooks.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| Memory / commits / git discipline                                            | [`docs/operations/memory.md`](./docs/operations/memory.md) · [`docs/operations/commits.md`](./docs/operations/commits.md) · [`docs/operations/git-discipline.md`](./docs/operations/commits.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Stack + name decisions                                                       | [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md) · [`docs/decisions/naming.md`](./docs/decisions/naming.md) · **rename decision 2026-07-16, executed in-product 2026-07-17 (Cadence → Supaprod):** [`docs/pitch/naming-decision-supaprod.md`](./docs/pitch/naming-decision-supaprod.md) · ops playbook: [`docs/gtm/brand-supaprod.md`](./docs/gtm/brand-supaprod.md) · attorney brief: [`docs/gtm/trademark-brief-supaprod.md`](./docs/gtm/trademark-brief-supaprod.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+### The six-month-forward doctrine (founder ruling 2026-08-01)
 
-Every doc cross-references the others. **Do not let them drift.** Update protocol in [`AGENTS.md`](./AGENTS.md), section 5. **Before creating any new file, follow the repository map + file-placement policy in [`docs/README.md`](./docs/README.md)** (right subfolder + index link, same commit; never repo root or `docs/` top level; no duplicates/stubs).
+> We are not building for today's problem. Every solution is designed for where the industry will be **six months from the current date**, and it must also close the pain the user carried from the past.
+
+Five tests, all of which a design passes before it is built:
+
+1. **Assume the model layer commoditizes.** Anything one frontier release could absorb is not a moat. Build the loop, the gates and the ledger *around* the model, never the thin layer on top of it.
+2. **Assume a large vendor ships our vertical next quarter.** Name what we still have that they do not. The answer must be the compounding decision-and-outcome record and the closed loop. If it is "nothing", the design is wrong and gets redone.
+3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end under policy is legacy the day it ships.
+4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for the six-month job.
+5. **Delight is a requirement, not a finishing pass.**
+
+### The moat
+
+The moat is the **decision layer**: what to build, and whether the call was right. Vibe-coding tools own the build layer, which is racing to zero. We own the decision layer, which has no fast oracle, and we run the build ourselves on the same commodity models they race on.
+
+**Engine positioning, not a wrapper.** The models are interchangeable parts; the system is ours: the loop, the gates, the ledger. Our own build engine runs frontier models via API in the customer's repo. Never say we dispatch work to Cursor, Lovable, or Devin. They are the era's proof, not our subcontractors.
+
+Full canon, competitor map, and the objection Q&A: [`docs/strategy/moat.md`](./docs/strategy/moat.md).
+
+### Governance: policy, not permission (founder ruling 2026-07-29)
+
+> Policy is set in advance and does not block. Permission is asked in the moment and does. **Supaprod is built on policy.**
+
+The test every product decision passes: *"Even human in the loop, every approval, if it passes to a human, then what is the purpose of agents?"*
+
+**The human's job is not to approve work. It is to set the boundaries, and to judge the small number of things that genuinely cross them.** The gate is the exception, not the loop. A long approvals queue is a policy failure to surface, not a workload to render.
+
+This does not weaken the moat, it is why the moat matters: **autonomy is paid for with evidence.** Fewer interrupts is only safe because every action is recorded against a tamper-evident record. Four floors no boundary may lower: anything irreversible from inside the product, genuine judgment with no oracle, defaults the user never set, and hard risk floors above any earned autonomy.
+
+Canonical: [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](./docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md).
 
 ---
+
+## Positioning canon
+
+**These are founder-ratified and supersede conflicting copy anywhere in this repo.** Outward-facing work starts here, then goes to [`docs/pitch/`](./docs/pitch/README.md).
+
+- **Tagline, all surfaces:** "Agents that know what to build, ship it, and remember."
+  Support line: "One agentic operating system, every call on the record."
+  Journey kicker: `signal -> shipped -> remembered`.
+- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (remembers, and it guides, green).
+- **The brain is never storage.** Banned framing: "where the record lives". It compounds; next time it tells you what is right, and warns before you repeat what was wrong.
+- **Public launch date on every external surface: September 2026.**
+- **Market sizing ladder:** TAM $300B+/yr (2.6M PMs x ~$115K loaded). SAM $2B to $12B/yr. SOM ~$47M ARR. Arithmetic in the deck appendix B.
+- **Never list, investor material:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only, no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM", education shows TUM only.
+- **Contact:** founder@supaprod.ai · investors@supaprod.ai · linkedin.com/in/rohit-gajaraj.
+
+**The triple-RFS telling** (2026-07-22): Supaprod sits at the intersection of YC's own three requests, one product at three altitudes. **The door** (who it is for) then **the body** (the closed loop) then **the brain** (the compounding memory, always the crescendo). One headline per surface, never all three at once. "Company brain" is YC's phrase, quoted and attributed, never our brand identity. Canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
+
+---
+
+## The system, at a glance
+
+```
+1. CLIENT   calm front; the loop is the hero
+            TanStack Start (React 19 + Vite 7) · Tailwind v4 · shadcn/ui
+              |  server functions (typed RPC)     |  /api/public/hooks/*
+              v                                   v
+2. TENANCY  account / workspace / product
+            Supabase Auth -> RLS scoped by membership
+              |
+              v
+3. ORCHESTRATION  runs the seven-station route
+            agent loop · the Critic · governance gates · spend ceilings
+              |
+              v
+4. AI CHOKEPOINT  src/lib/ai/runtime.server.ts, EVERY model call
+            budget -> credits -> cache -> guardrails -> RAG -> provider -> guardrails
+              |
+              v
+5a. MODELS  model-agnostic, our keys, credits-metered (BYOK is enterprise-only)
+5b. DATA    Supabase Postgres: RLS · pgvector · pg_cron
+```
+
+Deployed to **Cloudflare Workers**; backend, auth, hosting and deploys are provisioned and managed by **Lovable**, which is the live system of record. Contracts live in [`architecture/`](./architecture/).
+
+**Scale today:** 1,440 source files · 79 authenticated routes · 151 server-function modules · 462 migrations · 402 test files.
+
+---
+
+## Run it
+
+Bun is the package manager and runner.
+
+```bash
+bun install        # deps (bunfig.toml enforces a 24h supply-chain guard)
+bun run dev        # Vite dev server, verify UI changes here
+bunx tsc --noEmit  # typecheck
+bun test           # unit + integration
+bun run build      # production build (Vite -> Cloudflare Worker)
+bun run lint       # ESLint
+```
+
+Database changes are timestamped, RLS-aware SQL in `supabase/migrations/`. Applying them is done through Lovable, not a local Supabase CLI.
+
+**Logins for demos and testing:** [`docs/operations/demo-credentials.md`](./docs/operations/demo-credentials.md). Do not paste credentials into other docs; that file is the only copy, and it carries a warning about which rows have been verified. Rehearse on the `harbor@` account, never on one you plan to send out.
+
+---
+
+## Where everything lives
+
+**Root holds four files, and nothing else.** Each answers one question.
+
+| File | Answers | Read it when |
+| --- | --- | --- |
+| **`README.md`** (here) | What is Supaprod, and where is everything? | Evaluating it, or looking for another doc. |
+| [**`AGENTS.md`**](./AGENTS.md) | How do I build it? | Writing any code, human or agent. The rules, gates and invariants. |
+| [**`CLAUDE.md`**](./CLAUDE.md) | Claude Code specifics | Auto-loaded by Claude Code. Thin by design. |
+| [**`GEMINI.md`**](./GEMINI.md) | Gemini / Antigravity specifics | Auto-loaded by those tools. Thin by design. |
+
+### By what you are doing
+
+| If you want... | Go to |
+| --- | --- |
+| **Where we are, what is next, what needs the founder** | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0. The only status file. |
+| **Per-feature status and claims** | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) |
+| **What the last session did and left open** | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
+| **Which strategy doc is current** | [`docs/strategy/README.md`](./docs/strategy/README.md), the arbiter. Direction: [`v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md). Moat: [`moat.md`](./docs/strategy/moat.md). |
+| **Pitch, demo, applications, objections** | [`docs/pitch/`](./docs/pitch/README.md), the Pitch Room. Update in place, never parallel copies. |
+| **Design: the live system** | [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md). The shipped `--sp-*` shell is the baseline; every earlier design contract is retired history. |
+| **How a feature works, end to end** | [`docs/features/`](./docs/features/README.md). The loop's proof file: [`lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). |
+| **Architecture contracts** | [`architecture/`](./architecture/): runtime · orchestration · security · data · frontend · integrations. |
+| **Durable conventions** (voice, chrome, destructive actions, engine room) | [`docs/conventions/`](./docs/conventions/README.md) |
+| **Ops: commits, hooks, skills, memory, demo logins** | [`docs/operations/`](./docs/operations/) |
+| **Pricing and billing** | [`docs/strategy/pricing/`](./docs/strategy/pricing/README.md), start at `pricing-architecture.md`. |
+| **Market and competitor evidence** | [`docs/references/`](./docs/references/) |
+| **GTM execution, brand ops** | [`docs/Growth Strategy/`](./docs/Growth%20Strategy/README.md) · [`docs/gtm/`](./docs/gtm/README.md) |
+| **The founding constitution** | [`docs/strategy/founding-constitution.md`](./docs/strategy/founding-constitution.md) |
+| **What shipped, historically** | [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) |
+
+**Before creating any file**, read the placement policy in [`docs/README.md`](./docs/README.md). One purpose per doc, extend before you create, archive before you orphan, and link it from its folder index in the same commit.
+
+---
+
+## Naming
+
+The product is **Supaprod**: lowercase `supaprod` for domains, handles and slugs, `Supaprod` in prose, `SUPAPROD` only in legal contexts, and never camel-case "SupaProd". It shipped as *Cadence* until the rename executed on 2026-07-17. That name is retired, with three narrow exceptions: the generic English word ("release cadence", the DB `cadence` column), dated historical narrative, and a short list of internal identifiers left unmigrated on purpose. The ledger of those: [`docs/operations/rename-cadence-to-supaprod.md`](./docs/operations/rename-cadence-to-supaprod.md).
 
 ## License
 

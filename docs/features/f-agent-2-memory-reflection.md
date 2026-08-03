@@ -10,7 +10,7 @@ After every clean run, every agent automatically distils what worked and what to
 
 ## Why it exists
 
-Without memory, every run started from scratch and trust never moved. F-AGENT-2 closes the "agents that learn run-over-run and earn autonomy" gap, so the operator's approvals compound into autonomy and the system stops asking about the same things twice. Full rationale: [`../../plan.md`](../../plan.md) §4 entry dated 2026-06-06 (F-AGENT-2).
+Without memory, every run started from scratch and trust never moved. F-AGENT-2 closes the "agents that learn run-over-run and earn autonomy" gap, so the operator's approvals compound into autonomy and the system stops asking about the same things twice. Full rationale: [`../../plan.md`](../planning/archive/build-log.md) §4 entry dated 2026-06-06 (F-AGENT-2).
 
 ## Where to find it
 
@@ -58,7 +58,7 @@ Without memory, every run started from scratch and trust never moved. F-AGENT-2 
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4, 2026-06-06 F-AGENT-2 entry
+- [`../../plan.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-2 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md), orchestration contract (F-AGENT-2 bullet)
 - [`./trust-and-autonomy.md`](./trust-and-autonomy.md), the trust arcs and how they gate approvals
 - [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), [`./f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md), [`./f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md)

@@ -8,7 +8,7 @@
 > and the specific breaks worth taking. It does not own the IA (settled in
 > [`../ia/FINAL-ia.md`](../ia/FINAL-ia.md)), the lexicon (settled in
 > [`../language/FINAL-language.md`](../language/FINAL-language.md)), or the visual system
-> (settled in [`../craft-law.md`](../craft-law.md) and `DESIGN-TEMPO.md`). Where this document
+> (settled in [`../craft-law.md`](../craft-law.md) and `docs/design/archive/tempo-v5.md`). Where this document
 > and those disagree on a word, a route or a pixel, they win. Where they are silent on whether
 > a convention should exist at all, this document answers.
 >

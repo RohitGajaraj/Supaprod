@@ -55,7 +55,7 @@ On a clean pass, in one commit:
 
 - Flip foundation-audit row **0.9** to ✅ with the run date and a one-line note.
 - Flip the Live status board's "Step 1 forced-restart test still ◑" → ✅.
-- Append a one-liner to [`../../plan.md`](../../plan.md) §4 with the run date and WHY.
+- Append a one-liner to [`../../plan.md`](../planning/archive/build-log.md) §4 with the run date and WHY.
 
 ## Out of scope
 

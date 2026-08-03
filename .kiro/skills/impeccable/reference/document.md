@@ -1,4 +1,4 @@
-Generate a `DESIGN.md` file at the project root that captures the current visual design system, so AI agents generating new screens stay on-brand.
+Generate a `docs/design/archive/ember-editorial-landing.md` file at the project root that captures the current visual design system, so AI agents generating new screens stay on-brand.
 
 DESIGN.md follows the [official DESIGN.md format spec](https://raw.githubusercontent.com/google-labs-code/design.md/main/docs/spec.md): YAML frontmatter carrying machine-readable design tokens, followed by a markdown body with exactly six sections in a fixed order. **Tokens are normative; prose provides context for how to apply them.** Sections may be omitted when not relevant, but **do not reorder them and do not rename them**. Section headers must match the spec character-for-character so the file stays parseable by other DESIGN.md-aware tools (Stitch itself, awesome-design-md, skill-rest, etc.).
 
@@ -62,11 +62,11 @@ Optional evocative subtitles are allowed in the form `## 2. Colors: The [Name] P
 ## When to run
 
 - The user just ran `/impeccable init` and needs the visual side documented.
-- The skill noticed no `DESIGN.md` exists and nudged the user to create one.
-- An existing `DESIGN.md` is stale (the design has drifted).
+- The skill noticed no `docs/design/archive/ember-editorial-landing.md` exists and nudged the user to create one.
+- An existing `docs/design/archive/ember-editorial-landing.md` is stale (the design has drifted).
 - Before a large redesign, to capture the current state as a reference.
 
-If a `DESIGN.md` already exists, **do not silently overwrite it**. Show the user the existing file and ask the user directly to clarify what you cannot infer. whether to refresh, overwrite, or merge.
+If a `docs/design/archive/ember-editorial-landing.md` already exists, **do not silently overwrite it**. Show the user the existing file and ask the user directly to clarify what you cannot infer. whether to refresh, overwrite, or merge.
 
 ## Two paths
 
@@ -258,7 +258,7 @@ Concrete, forceful guardrails. Lead each with "Do" or "Don't". Be specific: incl
 
 The frontmatter owns token primitives (colors, typography, rounded, spacing, components). The sidecar at `.impeccable/design.json` carries **what Stitch's schema can't hold**: tonal ramps per color, shadow/elevation tokens, motion tokens, breakpoints, full component HTML/CSS snippets (the panel renders these into a shadow DOM), and narrative (north star, rules, do's/don'ts). It extends the frontmatter, it doesn't duplicate it.
 
-Regenerate the sidecar whenever you regenerate root `DESIGN.md`. If the user only asks to refresh the sidecar (e.g., from the live panel's stale-hint), preserve `DESIGN.md` and write only `.impeccable/design.json`.
+Regenerate the sidecar whenever you regenerate root `docs/design/archive/ember-editorial-landing.md`. If the user only asks to refresh the sidecar (e.g., from the live panel's stale-hint), preserve `docs/design/archive/ember-editorial-landing.md` and write only `.impeccable/design.json`.
 
 #### Schema
 

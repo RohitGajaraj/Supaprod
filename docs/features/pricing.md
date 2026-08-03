@@ -89,7 +89,7 @@ Point the Stripe webhook at `https://<app>/api/public/payments/webhook` for the 
 - **Credit + limit engine: BUILT but DORMANT (reconciled 2026-06-21).** The whole credit and limit engine sits behind `credits_enabled()` / `limit_gates_enabled()` / `memory_expiry_enabled()`, all returning false, so no metering or gate bites yet. Test coverage is pure math only (`entitlements.test.ts`, `credits.test.ts`, `ai/pricing.test.ts`); there are zero automated tests for any Stripe server fn, the webhooks, the admin RPCs, or voucher redemption (tracked as `M-C-BILLING-TESTS` on the dashboard).
 - **FIXED 2026-06-21 (`M-C-TOPUP-BUG`):** the top-up webhook (`handleCheckoutCompleted`) now calls the `apply_topup_credits` RPC (records the `credit_topups` row, increments `account_credits.topup_credits`, writes a `credit_ledger` row, idempotent per session), and resolves the credit amount from the `lookup_key` via `creditsFromLookupKey`, so ANY catalog bundle credits correctly. Grant-on-subscribe + renewal-refill are wired (migration `20260621120000`).
 - Gating Critic-everywhere and other entitlements in the product surfaces (the map exists; the gates wire incrementally, claim-never-outruns-wiring).
-- ~~A public `/pricing` marketing page.~~ **Shipped 2026-06-17** (PLG Phase 1): `src/routes/pricing.tsx` renders the three tiers from `planPresentation` (this module), led by the "charge for memory persistence" positioning; a `PreSignupCTA` (`src/components/plg/PreSignupCTA.tsx`) was added to the public share pages (`/t/$slug`, `/d/$slug`). See `plan.md` §4.
+- ~~A public `/pricing` marketing page.~~ **Shipped 2026-06-17** (PLG Phase 1): `src/routes/pricing.tsx` renders the three tiers from `planPresentation` (this module), led by the "charge for memory persistence" positioning; a `PreSignupCTA` (`src/components/plg/PreSignupCTA.tsx`) was added to the public share pages (`/t/$slug`, `/d/$slug`). See `docs/planning/archive/build-log.md` §4.
 
 ## Verification checklist
 
@@ -103,4 +103,4 @@ Point the Stripe webhook at `https://<app>/api/public/payments/webhook` for the 
 - [`./billing.md`](./billing.md) and [`./credits.md`](./credits.md): the live Stripe rail (`payments.functions.ts` + `api/public/payments/webhook.ts`) and the credit ledger.
 - [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) section 9 (pricing) + section 8 (the gauntlet).
 - **Master register:** [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md), row `M-C-PRICE` plus the `M-C-*` / `ADM-*` rows (`F-ADMIN-CONSOLE`, `ADM-DB`, `M-C-TOPUP-BUG`, `M-C-DEDUPE-WEBHOOK`, `M-C-PRICE-SYNC`, `M-C-BILLING-TESTS`, `M-C-DB-HYGIENE`).
-- [`../../plan.md`](../../plan.md) section 4 build log.
+- [`../../plan.md`](../planning/archive/build-log.md) section 4 build log.

@@ -13,7 +13,7 @@
 >
 > **What it does not decide.** Routes, regions, layout, component anatomy, motion, pixels. Those are
 > [`../ia/FINAL-ia.md`](../ia/FINAL-ia.md), [`../interaction/FINAL-interaction.md`](../interaction/FINAL-interaction.md),
-> [`../craft-law.md`](../craft-law.md) and `DESIGN-TEMPO.md`. This file decides **what may appear at
+> [`../craft-law.md`](../craft-law.md) and `docs/design/archive/tempo-v5.md`. This file decides **what may appear at
 > all, and in which of three registers**.
 >
 > **Precedence.** Builds on [`../language/FINAL-language.md`](../language/FINAL-language.md) (every

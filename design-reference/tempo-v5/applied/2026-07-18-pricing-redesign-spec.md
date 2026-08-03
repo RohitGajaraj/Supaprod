@@ -513,4 +513,4 @@ design-reference/tempo-v5/applied/
 
 6. **Build-only mode:** no plan.md updates, no docs, no brand-feed. Commit message: one line WHY, cite this spec file.
 
-7. **Next designer:** read [`DESIGN-TEMPO.md`](../../../DESIGN-TEMPO.md), [`2026-07-15-landing-v2-ink-and-starfield.md`](./2026-07-15-landing-v2-ink-and-starfield.md), and this file in order before deviating from spec.
+7. **Next designer:** read [`docs/design/archive/tempo-v5.md`](../../../docs/design/archive/tempo-v5.md), [`2026-07-15-landing-v2-ink-and-starfield.md`](./2026-07-15-landing-v2-ink-and-starfield.md), and this file in order before deviating from spec.

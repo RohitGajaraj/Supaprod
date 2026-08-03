@@ -91,7 +91,7 @@ to a new dimension. See [`v12-self-improving-os.md`](../strategy/v12-self-improv
   identically to the bare name, so every exact-match/`.endsWith()` blocklist check could be
   bypassed just by appending `.` to a blocked host (`localhost.`, `metadata.google.internal.`,
   any `*.internal.`/`*.local.`). Found by automated security review, confirmed exploitable, fixed
-  with a regression test. See `plan.md` §4 ("SSRF trailing-dot bypass").
+  with a regression test. See `docs/planning/archive/build-log.md` §4 ("SSRF trailing-dot bypass").
 - Prompt injection: extracted title/content is screened with `assessAndQuarantine` before storage,
   and the prompt block that carries it into DEF-04 is explicitly framed as visual-style reference
   data only, with an instruction never to treat it as new content/links/forms/behavior.

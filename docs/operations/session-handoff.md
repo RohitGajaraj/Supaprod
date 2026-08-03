@@ -420,7 +420,7 @@ Written into `AGENTS.md` (canonical), `CLAUDE.md` and `README.md` so every tool 
 2. **Copy the proven pattern per surface.** Research the best product in the category and lift
    its information model and verbs outright. Named references: Build to Cursor / Claude Code,
    Design to Figma's fidelity ladder, Discover to Sentry's issue stream + Linear's triage.
-3. **The design baseline is production, not Tempo.** `DESIGN-TEMPO.md`, the `supaprod-tempo`
+3. **The design baseline is production, not Tempo.** `docs/design/archive/tempo-v5.md`, the `supaprod-tempo`
    and `supaprod-design` skills are LEGACY and below standard. The real system is
    `src/styles/ink.css` (`--sp-*`), `src/styles/primitives.css`, `src/components/shell/primitives.tsx`,
    and the binding standard is `docs/conventions/anti-slop.md`. **CLAUDE.md still points at

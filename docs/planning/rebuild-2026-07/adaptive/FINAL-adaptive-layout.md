@@ -45,7 +45,7 @@ is resolved here, in the open, with the loser's reasoning preserved.
 | # | Conflict | A said | B said | C said | **Resolution** |
 |---|---|---|---|---|---|
 | 1 | **Does type scale with the viewport?** | root `clamp(1em, 0.867em + 0.208vw, 1.2em)` - ×1.0 → ×1.2 across 1024→2560 | silent | "Nothing gets bigger. Abundance buys *more*, never *larger*." | **C wins the principle, A wins the mechanism.** The `vw` term is deleted. See §1.1. |
-| 2 | **What is the app's base font size?** | 14px (measured) | - | 13px (from `DESIGN-TEMPO.md`) | **14px.** Verified: `_authenticated.tsx:135` sets `data-obsidian` on `documentElement`; `styles.css:2359` raises `--tempo-text-base` to `14px` inside `[data-obsidian]`. C built on a value the app does not ship. |
+| 2 | **What is the app's base font size?** | 14px (measured) | - | 13px (from `docs/design/archive/tempo-v5.md`) | **14px.** Verified: `_authenticated.tsx:135` sets `data-obsidian` on `documentElement`; `styles.css:2359` raises `--tempo-text-base` to `14px` inside `[data-obsidian]`. C built on a value the app does not ship. |
 | 3 | **Threshold units** | `em` (density), `ch` (measure) | `rem` (composition), `ch` (measure), never `ch` for bands | `ch` for everything | **B's split, exactly: `rem` decides composition, `ch` decides measure.** A font swap may nudge a wrap point; it may never flip a band. `em` is dropped - see §1.2. |
 | 4 | **Does the shell query itself?** | - | "a component may not query itself" (§5.3) | `[data-shell]` declares `container: shell / size` **and** `@container shell (...) { [data-shell] { ... } }` | **B is right and C's shell is broken.** A container cannot be styled by its own query - C's tier rules would never match and the shell would be permanently non-adaptive. Fixed with a two-element shell. See §1.3. |
 | 5 | **Ultrawide** | fill in measure-capped regions, shell caps at `260ch` (~4400px) | 4 lanes max (`136rem`), then gutters grow; a **peripheral lane** lives in the right gutter | recompose to 4 capped columns, cap the band, center the surplus | **C's answer, C's cap (3159px, independently re-derived here), B's peripheral lane rejected.** See §7. |
@@ -759,7 +759,7 @@ proportion of the shell, so it holds at every height.
 Proposal A proposed four density tiers (`narrow`/`snug`/`default`/`roomy`) on the container axis,
 alongside B's eight composition bands on the same axis. Two ladders measuring the same quantity is
 one ladder too many. **Density is what the low bands do to padding**, and it never touches type
-size - matching `DESIGN-TEMPO.md` §8 ("Compact = rows lose one rhythm step; type NEVER changes").
+size - matching `docs/design/archive/tempo-v5.md` §8 ("Compact = rows lose one rhythm step; type NEVER changes").
 
 ```css
 [data-card] > [data-card-body] {
@@ -926,7 +926,7 @@ rules that it must never be the only path to an action, never the only rendering
 information, always dismissible, never carrying the needs-you ember.
 
 Those rules are correct, and taken together they prove the content is **redundant by construction**.
-Redundant content in the periphery is decoration, which the `DESIGN-TEMPO.md` restraint budget
+Redundant content in the periphery is decoration, which the `docs/design/archive/tempo-v5.md` restraint budget
 already forbids, and it competes for attention with the one thing this product exists to surface
 (§8, I1). The 140px-per-side gutter on the founder's actual monitor is not enough for it anyway.
 
@@ -1554,7 +1554,7 @@ Steps 1-4 ship no UI and are safe to land first; they make every later step fals
 3. **RTL.** The contract uses logical properties throughout (`inline-size`, `padding-inline`,
    `inset-inline-end`) and the proof harness has an `rtl` fixture, but no surface has been reviewed
    in RTL.
-4. **The `DESIGN-TEMPO.md` base-size discrepancy.** The contract says 13px; `[data-obsidian]` ships
+4. **The `docs/design/archive/tempo-v5.md` base-size discrepancy.** The contract says 13px; `[data-obsidian]` ships
    14px; this document builds on the measured 14px. Either the contract is corrected to match
    reality or the app is corrected to match the contract - the discrepancy must not survive the
    rebuild.

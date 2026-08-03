@@ -89,7 +89,7 @@ Strongest external validation of our thesis: **airfocus-by-Lucid research (June 
 
 ## 9. Deferred reference study (per-band notes + "Supaprod's take", 2026-05-29)
 
-> Originally a separate deferred reference (not a maintained scorecard); merged here 2026-06-19. We studied a few products to learn what good looks like and where the open ground is. The takeaways are baked into the feature catalog in [`../../plan.md`](../../plan.md) (section 2); this section retains the underlying notes and the band-by-band comparison.
+> Originally a separate deferred reference (not a maintained scorecard); merged here 2026-06-19. We studied a few products to learn what good looks like and where the open ground is. The takeaways are baked into the feature catalog in [`../../plan.md`](../planning/archive/build-log.md) (section 2); this section retains the underlying notes and the band-by-band comparison.
 
 ### Reference notes (per-capability, with Supaprod's take)
 

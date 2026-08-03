@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> TanStack Start patterns. Rules: [`AGENTS.md`](../AGENTS.md). UI/visual contract: [`DESIGN-OBSIDIAN.md`](../DESIGN-OBSIDIAN.md) (app surfaces, v3 "Obsidian", adopted 2026-07-02; the live parchment styles in `src/styles.css` are legacy until surfaces are ported) · [`DESIGN.md`](../DESIGN.md) (landing page). Data: [`data.md`](./data.md).
+> TanStack Start patterns. Rules: [`AGENTS.md`](../AGENTS.md). UI/visual contract: [`docs/design/archive/obsidian-v3.md`](../docs/design/archive/obsidian-v3.md) (app surfaces, v3 "Obsidian", adopted 2026-07-02; the live parchment styles in `src/styles.css` are legacy until surfaces are ported) · [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md) (landing page). Data: [`data.md`](./data.md).
 
 ## Stack
 
@@ -43,7 +43,7 @@ Mutations are optimistic where it helps (chat send, task toggle, decision approv
 
 ## Components
 
-shadcn/ui primitives; bespoke in `src/components/cadence/`. The shared AI-message component renders the full [AI message contract](../DESIGN.md) — no surface invents its own. Tokens only, never hex (see [`DESIGN.md`](../DESIGN.md)).
+shadcn/ui primitives; bespoke in `src/components/cadence/`. The shared AI-message component renders the full [AI message contract](../docs/design/archive/ember-editorial-landing.md) — no surface invents its own. Tokens only, never hex (see [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md)).
 
 ## Realtime & streaming
 
@@ -100,10 +100,10 @@ Use instead:
 
 - **Confirm / typed-name confirm** — `useConfirm()` from [`src/hooks/use-confirm.tsx`](../src/hooks/use-confirm.tsx). Promise-based, themed shadcn `AlertDialog`, focus-trapped. Pass `destructive: true` for delete flows, `typedConfirm: name` for irreversible ones.
 - **One-field prompt** — `usePrompt()` from the same module. For richer inputs build a proper shadcn `Dialog`.
-- **Non-blocking feedback** — `toast.success` / `toast.error` from `sonner`. Never use toasts for errors that require attention (use an inline `Alert` instead — see [`DESIGN.md`](../DESIGN.md) anti-patterns).
+- **Non-blocking feedback** — `toast.success` / `toast.error` from `sonner`. Never use toasts for errors that require attention (use an inline `Alert` instead — see [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md) anti-patterns).
 - **Unsaved-changes guards** — TanStack Router `useBlocker` wired to `useConfirm`.
 
-`ConfirmProvider` is mounted once in `src/routes/__root.tsx` inside `ThemeProvider`. Voice rules for the strings these primitives render live in [`../design.md`](../DESIGN.md) and the audit at [`../docs/strategy/archive/v3-audit-language-voice.md`](../docs/strategy/archive/v3-audit-language-voice.md).
+`ConfirmProvider` is mounted once in `src/routes/__root.tsx` inside `ThemeProvider`. Voice rules for the strings these primitives render live in [`../design.md`](../docs/design/archive/ember-editorial-landing.md) and the audit at [`../docs/strategy/archive/v3-audit-language-voice.md`](../docs/strategy/archive/v3-audit-language-voice.md).
 
 ## Inline workspace & product management
 

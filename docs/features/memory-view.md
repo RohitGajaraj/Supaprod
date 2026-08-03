@@ -10,7 +10,7 @@
 
 ## Why it exists
 
-The loop already distils every recorded outcome into a global-scope `agent_memory` row (Phase 2 / W1, see [`loop-runs-itself.md`](./loop-runs-itself.md) and `plan.md` §4) and threads recalled memories across hops. The data was wired but had no dedicated surface, so the moat (the Decision-System's compounding memory) was real but invisible. This view makes it visible without claiming more than the data shows.
+The loop already distils every recorded outcome into a global-scope `agent_memory` row (Phase 2 / W1, see [`loop-runs-itself.md`](./loop-runs-itself.md) and `docs/planning/archive/build-log.md` §4) and threads recalled memories across hops. The data was wired but had no dedicated surface, so the moat (the Decision-System's compounding memory) was real but invisible. This view makes it visible without claiming more than the data shows.
 
 ## Where to find it
 
@@ -53,7 +53,7 @@ Sidebar nav, "Loop" section, the "Memory" row (route `/memory`). It is a separat
 
 ## Related
 
-- `plan.md` §4 (the build-log entry for this surface)
+- `docs/planning/archive/build-log.md` §4 (the build-log entry for this surface)
 - [`loop-runs-itself.md`](./loop-runs-itself.md) and [`f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md) - how memory is written and recalled
 - [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) - milestone M-B status
 - Knowledge > Memory (the `learnings` audit feed) - the complementary human-facing view

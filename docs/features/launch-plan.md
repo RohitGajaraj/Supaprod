@@ -96,7 +96,7 @@ whether a launch worked. See [`v12-self-improving-os.md`](../strategy/v12-self-i
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.4
 - Siblings this reuses the idiom of: LCH-01 (`generateLaunchKit`, channel copy, not duplicated),
   CNV-01 (the `contract.intent`/`success_metrics` source), RF-01 (`outcome-tick`'s pending-

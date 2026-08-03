@@ -239,6 +239,6 @@ The palette is a stub-surface (not in the runnable HTML), so parity is against e
   - [`./OBS-03.md`](./OBS-03.md) · the primitive set (glass/slide-over chrome, StatusDot, MonoLabel) the palette reuses.
 - **Canon anchors:**
   - [`../../../design-reference/obsidian-extensions.md`](../../../design-reference/obsidian-extensions.md) **§1** (Command palette + capability catalog · the exact panel/input/rows/catalog/voice spec).
-  - [`../../../DESIGN-OBSIDIAN.md`](../../../DESIGN-OBSIDIAN.md) **§11** (the catalog + journey/discovery) and **§12.1** (rare = Cmd+K; features never get nav items).
+  - [`../../../DESIGN-OBSIDIAN.md`](../../design/archive/obsidian-v3.md) **§11** (the catalog + journey/discovery) and **§12.1** (rare = Cmd+K; features never get nav items).
   - [`../../../design-reference/obsidian-v3/components.md`](../../../design-reference/obsidian-v3/components.md) · "Mission slide-over" (the glass/scrim/`cadSlideIn` idiom the palette mirrors) and the mono-label/StatusDot anatomies.
 - **Board + strategy:** [`../feature-dashboard.md`](../feature-dashboard.md) (G14, OBS-11) · [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · [`../../strategy/v11-guiding-star.md`](../../strategy/v11-guiding-star.md) · [`../../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md) · [`../../conventions/humanized-output.md`](../../conventions/humanized-output.md).

@@ -181,7 +181,7 @@ Strict order. Each step is one commit. Per-step gates: tsc 0 + build green + tar
 5. **`admin-workspaces.functions.ts`** + Workspaces tab.
 6. **`admin-platform.functions.ts`** + Platform tab + `useFlag` hook + banner renderer in app shell.
 7. **Cron hook** for plan-override + invitation expiry. _(Shipped as a single hook `admin-expiry-tick.ts` -> `cron_tick_admin_expiries()`, not two; see section 6.)_
-8. **Doc-loop close:** flip `feature-dashboard.md` row, append `plan.md` §4 line, update `docs/features/admin-console.md` Status from "v2 planned" to "v2 shipped".
+8. **Doc-loop close:** flip `feature-dashboard.md` row, append `docs/planning/archive/build-log.md` §4 line, update `docs/features/admin-console.md` Status from "v2 planned" to "v2 shipped".
 
 ---
 

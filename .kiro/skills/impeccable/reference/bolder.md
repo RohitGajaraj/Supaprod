@@ -36,7 +36,7 @@ If any of these are unclear from the codebase, ask the user directly to clarify 
 
 ## Design-System Lock
 
-If the project has `DESIGN.md`, tokens, theme variables, or established component styles, treat that system as the boundary. Make the existing language stronger before adding new language.
+If the project has `docs/design/archive/ember-editorial-landing.md`, tokens, theme variables, or established component styles, treat that system as the boundary. Make the existing language stronger before adding new language.
 
 Do not invent new colors, gradients, radii, shadows, fonts, decorative backgrounds, or effects just because the request says "bolder." A bolder pass should usually change emphasis, proportion, rhythm, density, contrast, copy, artifact specificity, and layout relationships while staying inside the documented system.
 

@@ -136,7 +136,7 @@ limits.
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2
 - Sibling/precedent: [`house-rules.md`](./house-rules.md) (RF-04, the structural template this
   follows almost mechanically)

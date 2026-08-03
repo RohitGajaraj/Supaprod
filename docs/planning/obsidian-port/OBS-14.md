@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-02 · Last updated: 2026-07-02_
 
-> Self-contained build + implementation spec. Read [`README.md`](./README.md) (the hub) once for the shared canon, then build from here. Where a value below is quoted, it is copied verbatim from the hub, `DESIGN-OBSIDIAN.md`, `design-reference/obsidian-extensions.md`, or the frozen prototype `design-reference/obsidian-v3/design-reference/cadence-app.html`. The prototype is the floor; additions only add.
+> Self-contained build + implementation spec. Read [`README.md`](./README.md) (the hub) once for the shared canon, then build from here. Where a value below is quoted, it is copied verbatim from the hub, `docs/design/archive/obsidian-v3.md`, `design-reference/obsidian-extensions.md`, or the frozen prototype `design-reference/obsidian-v3/design-reference/cadence-app.html`. The prototype is the floor; additions only add.
 
 ## 1. Snapshot
 
@@ -195,7 +195,7 @@ Onboarding is off-shell, so the rail/top-bar points apply only to the landing on
 - **Restraint budget:** one ember CTA per screen, no aurora, no shimmer on onboarding screens, status color only on real status.
 - **impeccable / humanized scan:** grep every new string for `-`, `-`, `!`, and the banned words (seamlessly, leverage, empower, robust, unlock, delve). Zero hits.
 - **Manual checks:** with the seed live, walk Arrival to Today; confirm the butterfly choreography, the demo path, the pre-filled belief, the teardown appearing on Today, and the single coach mark dismissing forever. Repeat with `prefers-reduced-motion` on. Repeat with the seed disabled to confirm the never-trap path. Side-by-side prototype screenshots in the ship report.
-- **On completion:** flip the OBS-14 dashboard row + all four dashboard sections, remove the Active-claims line, update this folder + `../obsidian-port-plan.md` + `docs/features/obsidian-port.md` + `plan.md` §4, in the same unit of work.
+- **On completion:** flip the OBS-14 dashboard row + all four dashboard sections, remove the Active-claims line, update this folder + `../obsidian-port-plan.md` + `docs/features/obsidian-port.md` + `docs/planning/archive/build-log.md` §4, in the same unit of work.
 
 ## 13. Risks · gotchas · founder-gates
 
@@ -210,5 +210,5 @@ Onboarding is off-shell, so the rail/top-bar points apply only to the landing on
 
 - **Hub:** [`README.md`](./README.md) · shared canon: restraint budget §4, tokens/type/motion §5, iconography §5.8, parity checklist §5.9, keyboard map §5.11, a11y §5.12.
 - **Sibling OBS items (build-order neighbors):** [`OBS-10.md`](./OBS-10.md) (dependency · the rail and `/today` destination must be real), [`OBS-04.md`](./OBS-04.md) (lands here · hosts the coach mark · owns the badge anchor), [`OBS-13.md`](./OBS-13.md) (Settings · where connections and staff config live after onboarding), [`OBS-06.md`](./OBS-06.md) (Discover · where Challenge is first-class and the teardown surfaces).
-- **Canon anchors:** `DESIGN-OBSIDIAN.md` §11 (journey and capability discovery · golden path, contextual reveal, no tours) and §7 (the mark · arrival choreography · iconography); `design-reference/obsidian-extensions.md` §4 (onboarding, screen by screen · the five screens verbatim) and §8 (Connect shelf anatomy for the connection screen); `design-reference/obsidian-v3/tokens/*.css` (the exact token values); `design-reference/obsidian-v3/assets/butterfly-idle.svg` (the arrival mark, never redraw).
+- **Canon anchors:** `docs/design/archive/obsidian-v3.md` §11 (journey and capability discovery · golden path, contextual reveal, no tours) and §7 (the mark · arrival choreography · iconography); `design-reference/obsidian-extensions.md` §4 (onboarding, screen by screen · the five screens verbatim) and §8 (Connect shelf anatomy for the connection screen); `design-reference/obsidian-v3/tokens/*.css` (the exact token values); `design-reference/obsidian-v3/assets/butterfly-idle.svg` (the arrival mark, never redraw).
 - **Doctrine / strategy:** [`../../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md) (calm front, reveal on demand), [`../../conventions/humanized-output.md`](../../conventions/humanized-output.md) (the string law), [`../../strategy/v11-guiding-star.md`](../../strategy/v11-guiding-star.md) (the decision-and-outcome layer).

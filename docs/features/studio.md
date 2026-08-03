@@ -111,7 +111,7 @@ Approvals reuse the existing `agent_approvals` resolve/execute functions. Studio
 
 - `SpecsPanel.tsx` + `_authenticated.prds.$id.tsx`: "Send to Builder" → "Send to Studio", both dispatch via `dispatchStudioSession`, success navigates to `/studio/$missionId`.
 - Any other user-visible "Builder" strings in `src/` (grep sweep; e.g. Today call cards, agents roster copy).
-- Docs: this file is canonical; `bundle-9-builder.md` gets a superseded banner pointing here; CLAUDE.md gains the builder≡studio equivalence note beside the legacy-rename disclaimer; `plan.md` §4 build-log entry; `session-decisions.md` entries; v4 feature map gets a terminology note (agent #10 display name Studio).
+- Docs: this file is canonical; `bundle-9-builder.md` gets a superseded banner pointing here; CLAUDE.md gains the builder≡studio equivalence note beside the legacy-rename disclaimer; `docs/planning/archive/build-log.md` §4 build-log entry; `session-decisions.md` entries; v4 feature map gets a terminology note (agent #10 display name Studio).
 
 ## Tick hardening (KI-02, in scope)
 

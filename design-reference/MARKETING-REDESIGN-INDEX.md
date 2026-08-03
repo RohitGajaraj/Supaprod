@@ -9,10 +9,10 @@
 ## Quick Links by Role
 
 ### Builder / Developer (starting implementation now)
-1. **Start:** [`MARKETING-SITE-BUILD-CHECKLIST.md`](../../MARKETING-SITE-BUILD-CHECKLIST.md) (read top to bottom; commit-by-commit guide)
+1. **Start:** [`docs/Growth Strategy/marketing-site-build-checklist.md`](../../MARKETING-SITE-BUILD-CHECKLIST.md) (read top to bottom; commit-by-commit guide)
 2. **Reference:** [`2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (keep open; prescriptive detail)
 3. **Template:** [`src/routes/product.tsx`](../../src/routes/product.tsx) (live example; adapt for /features and /use-cases)
-4. **Law:** [`DESIGN-TEMPO.md`](../../DESIGN-TEMPO.md) (read first for 30 min; the base contract)
+4. **Law:** [`docs/design/archive/tempo-v5.md`](../../DESIGN-TEMPO.md) (read first for 30 min; the base contract)
 
 **Next steps:**
 - Commit 1: SectionAlternate + FramedVisual components (8–10 hours)
@@ -37,7 +37,7 @@
 
 ### Designer / Future Agent (understanding decisions + maintaining consistency)
 1. **Read in order:**
-   - [`DESIGN-TEMPO.md`](../../DESIGN-TEMPO.md) (30 min) — the law
+   - [`docs/design/archive/tempo-v5.md`](../../DESIGN-TEMPO.md) (30 min) — the law
    - [`2026-07-15-landing-v2-ink-and-starfield.md`](./tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) (45 min) — the precedent
    - [`2026-07-18-marketing-site-expansion.md`](./tempo-v5/applied/2026-07-18-marketing-site-expansion.md) (45 min) — strategy + patterns
    - [`2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (skim for reference)
@@ -54,7 +54,7 @@
 | Document | Path | Audience | Read Time | Purpose |
 | --- | --- | --- | --- | --- |
 | **This file** | `design-reference/MARKETING-REDESIGN-INDEX.md` | Everyone | 5 min | Navigation & role-based starting points |
-| **Delivery Summary** | `DELIVERY-SUMMARY-2026-07-18.md` | Everyone | 10 min | What was delivered, autonomy decisions, success criteria |
+| **Delivery Summary** | `docs/planning/archive/rebuild-2026-07-18/delivery-summary.md` | Everyone | 10 min | What was delivered, autonomy decisions, success criteria |
 | **Marketing Redesign Summary** | `design-reference/MARKETING-SITE-REDESIGN-SUMMARY.md` | Founder, Designer, Builder | 15 min | Executive overview: surfaces, components, phase roadmap |
 
 ### Strategy & Specification
@@ -68,13 +68,13 @@
 
 | Document | Path | Audience | Read Time | Purpose |
 | --- | --- | --- | --- | --- |
-| **Builder Checklist** | `MARKETING-SITE-BUILD-CHECKLIST.md` | Builder | 30 min upfront, ongoing | Commit-by-commit guide: 12 commits, phase breakdown, verification checklist, escalation paths |
+| **Builder Checklist** | `docs/Growth Strategy/marketing-site-build-checklist.md` | Builder | 30 min upfront, ongoing | Commit-by-commit guide: 12 commits, phase breakdown, verification checklist, escalation paths |
 
 ### Reference (Keep Handy)
 
 | Document | Path | Audience | Reference Time | Purpose |
 | --- | --- | --- | --- | --- |
-| **DESIGN-TEMPO.md** | `DESIGN-TEMPO.md` | Builder, Designer | 30 min initial | The law: colors, typography, materials, spacing, motion, theme, focus states |
+| **DESIGN-TEMPO.md** | `docs/design/archive/tempo-v5.md` | Builder, Designer | 30 min initial | The law: colors, typography, materials, spacing, motion, theme, focus states |
 | **Landing v2 Applied** | `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md` | Builder, Designer | 45 min initial | The precedent: what landed v2 shipped, composition grammar, founder decisions |
 | **Vercel Playbook** | `design-reference/tempo-v5/research/vercel-composition-playbook.md` | Designer | 30 min initial | Composition patterns, craft rules, waiting list (gated features with unlock conditions) |
 

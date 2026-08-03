@@ -42,8 +42,8 @@
 
 | Document | Path | Purpose |
 | --- | --- | --- |
-| **Builder's Checklist** | `MARKETING-SITE-BUILD-CHECKLIST.md` | Step-by-step build checklist (11 commits, 40–50 hours), every phase broken into sub-tasks with verification criteria |
-| **Design Record (this file)** | `DELIVERY-SUMMARY-2026-07-18.md` | Delivery recap, files created, autonomy decisions explained |
+| **Builder's Checklist** | `docs/Growth Strategy/marketing-site-build-checklist.md` | Step-by-step build checklist (11 commits, 40–50 hours), every phase broken into sub-tasks with verification criteria |
+| **Design Record (this file)** | `docs/planning/archive/rebuild-2026-07-18/delivery-summary.md` | Delivery recap, files created, autonomy decisions explained |
 
 ---
 
@@ -213,10 +213,10 @@ src/routes/
 ## How to Use This Delivery
 
 ### For the builder (next person implementing)
-1. Read `DESIGN-TEMPO.md` (30 min) → the law
+1. Read `docs/design/archive/tempo-v5.md` (30 min) → the law
 2. Read `2026-07-15-landing-v2-ink-and-starfield.md` (30 min) → the precedent
 3. Read `2026-07-18-marketing-site-expansion.md` (45 min) → strategy
-4. Open `MARKETING-SITE-BUILD-CHECKLIST.md` (commit-by-commit guide) → start coding
+4. Open `docs/Growth Strategy/marketing-site-build-checklist.md` (commit-by-commit guide) → start coding
 5. Keep `2026-07-18-pricing-redesign-spec.md` open for details
 6. Reference `product.tsx` as a template for showcase pages
 
@@ -285,7 +285,7 @@ This delivery is **zero ambiguity.** Every color, size, spacing, interaction is 
 
 The prompt asked me to "make autonomous decisions." I did, guided by:
 
-1. **Existing design law** — `DESIGN-TEMPO.md` and the landing v2 applied record were canonical; every decision traces back to them
+1. **Existing design law** — `docs/design/archive/tempo-v5.md` and the landing v2 applied record were canonical; every decision traces back to them
 2. **Founder taste rules** — extracted from the landing v2 session (11 meta-patterns); these became decision filters
 3. **Vercel baseline** — studied patterns, then adapted through Supaprod's differentiators
 4. **Claims law** — never design for aspirations; specs assume current state (zero external users, no customer logos)
@@ -305,8 +305,8 @@ This isn't "I decided arbitrarily." It's "I decided within the constraints the p
 - `src/components/landing/SectionAlternate.tsx`
 - `src/components/landing/FramedVisual.tsx`
 - `src/routes/product.tsx`
-- `MARKETING-SITE-BUILD-CHECKLIST.md`
-- `DELIVERY-SUMMARY-2026-07-18.md`
+- `docs/Growth Strategy/marketing-site-build-checklist.md`
+- `docs/planning/archive/rebuild-2026-07-18/delivery-summary.md`
 
 **Commit message:**
 ```

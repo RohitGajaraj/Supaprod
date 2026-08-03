@@ -7,7 +7,7 @@
 **Precedence.** On any disagreement about WHAT A THING IS CALLED, this file wins over
 `docs/conventions/ui-voice.md`, `src/lib/agent-vocabulary.ts`, `src/lib/nav-model.ts`, and every
 older strategy or design doc. It does not override `docs/conventions/humanized-output.md`
-(formatting law) or `DESIGN-TEMPO.md` (visual contract). Where it overrides something, section 9
+(formatting law) or `docs/design/archive/tempo-v5.md` (visual contract). Where it overrides something, section 9
 says so explicitly.
 
 **Two hard laws that make everything else fall out.**

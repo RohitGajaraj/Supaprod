@@ -21,7 +21,7 @@ CSS custom properties is the recommended match.
 
 ## Read order
 
-1. `DESIGN-OBSIDIAN.md` — THE design contract. Its 9 standing instructions
+1. `docs/design/archive/obsidian-v3.md` — THE design contract. Its 9 standing instructions
    are mandatory. When any other file disagrees with it, the contract wins.
 2. `design-reference/cadence-app.html` — the full six-surface prototype
    (self-contained; open in a browser). This is the primary spec.

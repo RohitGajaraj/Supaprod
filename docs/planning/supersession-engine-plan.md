@@ -106,7 +106,7 @@ try {
 ### Task 6: `.env.example` + doc-loop
 
 - [ ] Add `DECISION_BRAIN_SUPERSESSION=` to `.env.example` with an OFF/comment (the AI-spend gate; default off).
-- [ ] Doc-loop: `decision-brain.md` (flip the deferred-write-path note → "DBR-1.5 shipped ◐, dormant-with-no-data until the flag flips"); `knowledge-graph-explorer.md` (note the supersession seam now has a write-path); SSOT §0/§3/§6; `feature-dashboard.md` (the DBR row 148 sub-task or a new row); `plan.md` §4; `session-decisions.md`; the overnight report. Honest: write-path wired + logic unit-verified; no data until the founder enables.
+- [ ] Doc-loop: `decision-brain.md` (flip the deferred-write-path note → "DBR-1.5 shipped ◐, dormant-with-no-data until the flag flips"); `knowledge-graph-explorer.md` (note the supersession seam now has a write-path); SSOT §0/§3/§6; `feature-dashboard.md` (the DBR row 148 sub-task or a new row); `docs/planning/archive/build-log.md` §4; `session-decisions.md`; the overnight report. Honest: write-path wired + logic unit-verified; no data until the founder enables.
 
 ---
 

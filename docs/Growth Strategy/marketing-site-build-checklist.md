@@ -8,7 +8,7 @@
 
 ## Pre-Build Setup (1–2 hours)
 
-- [ ] Read [`DESIGN-TEMPO.md`](./DESIGN-TEMPO.md) — the base contract (30 min)
+- [ ] Read [`docs/design/archive/tempo-v5.md`](./DESIGN-TEMPO.md) — the base contract (30 min)
 - [ ] Read [`design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](./design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) — the landing precedent (30 min)
 - [ ] Read [`design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md`](./design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md) — strategy + patterns (30 min)
 - [ ] Skim [`design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md`](./design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) — detailed specs (20 min, keep open while coding)
@@ -402,7 +402,7 @@ Before closing the redesign project, verify:
 
 **ACTIVE (founder ruling 2026-07-04):** No documentation overhead during this phase.
 
-- [ ] Do NOT update `plan.md` with progress
+- [ ] Do NOT update `docs/planning/archive/build-log.md` with progress
 - [ ] Do NOT update `docs/planning/feature-dashboard.md`
 - [ ] Do NOT update `docs/planning/SOURCE-OF-TRUTH.md`
 - [ ] Do NOT write feature docs or design docs (except design-reference applied records, which are already done)

@@ -15,7 +15,7 @@ The Cadence landing page v2 (shipped 2026-07-15) established an ultra-premium ba
 3. **Trust & proof pages** — verify ink-and-starfield continuity on `/proof`, `/d/$slug`, `/t/$slug`
 4. **Learn/onboarding** — gates on content (phase 2)
 
-**Autonomous design decisions made:** all alignments follow `DESIGN-TEMPO.md` (the contract) and `2026-07-15-landing-v2-ink-and-starfield.md` (the applied record). Zero deviation from Tempo law; every extension is documented as such.
+**Autonomous design decisions made:** all alignments follow `docs/design/archive/tempo-v5.md` (the contract) and `2026-07-15-landing-v2-ink-and-starfield.md` (the applied record). Zero deviation from Tempo law; every extension is documented as such.
 
 ---
 
@@ -240,7 +240,7 @@ design-reference/
 ## How to Use This Delivery
 
 **For the builder:**
-1. Read `DESIGN-TEMPO.md` (the law)
+1. Read `docs/design/archive/tempo-v5.md` (the law)
 2. Read `2026-07-15-landing-v2-ink-and-starfield.md` (the precedent)
 3. Read `2026-07-18-marketing-site-expansion.md` (strategy + patterns)
 4. Read `2026-07-18-pricing-redesign-spec.md` (exact specs for pricing)

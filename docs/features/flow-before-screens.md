@@ -101,7 +101,7 @@ ever made the journey explicit. See [`v12-self-improving-os.md`](../strategy/v12
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6
 - Siblings this reuses the idiom of: CNV-01 (dual projection), CNV-02 (`deriveOracleClassifications`
   validation discipline), JNY-01's `competitor-tick.ts` (`derived-from` lineage direction)

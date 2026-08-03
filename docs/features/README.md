@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-06 · Last updated: 2026-06-19_
 
-> Every shipped, user-facing Supaprod feature gets one canonical page here. This is the **single place** to open when running a demo, onboarding a new operator, or remembering what a feature actually does months later. Strategy and bundle plans live in [`../strategy/`](../strategy/) and [`agent-ecosystem-plan.md`](./archive/agent-ecosystem-plan.md); architecture contracts live in [`../../architecture/`](../../architecture/); the build log lives in [`../../plan.md`](../../plan.md) §4. **These per-feature pages are the demo deliverable**: they consolidate, they do not invent.
+> Every shipped, user-facing Supaprod feature gets one canonical page here. This is the **single place** to open when running a demo, onboarding a new operator, or remembering what a feature actually does months later. Strategy and bundle plans live in [`../strategy/`](../strategy/) and [`agent-ecosystem-plan.md`](./archive/agent-ecosystem-plan.md); architecture contracts live in [`../../architecture/`](../../architecture/); the build log lives in [`../../plan.md`](../planning/archive/build-log.md) §4. **These per-feature pages are the demo deliverable**: they consolidate, they do not invent.
 
 ## When to add a file here
 
@@ -12,7 +12,7 @@ Add a `docs/features/<slug>.md` page in the same commit that ships any feature t
 - adds an agent capability the operator can see or approve, OR
 - you would point to during a demo or sales call.
 
-Internal-only refactors, schema-only changes, and pure infrastructure work do **not** need a feature page (they belong in `architecture/*.md` and `plan.md` §4 only).
+Internal-only refactors, schema-only changes, and pure infrastructure work do **not** need a feature page (they belong in `architecture/*.md` and `docs/planning/archive/build-log.md` §4 only).
 
 ## File template (every page follows this skeleton)
 
@@ -120,7 +120,7 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 
 ## Rules
 
-1. **Consolidate, don't restate.** A feature page links to its `plan.md` §4 entry and architecture bullet, and it doesn't duplicate them. If you find yourself rewriting an architectural contract here, move it to `architecture/*.md` and link.
+1. **Consolidate, don't restate.** A feature page links to its `docs/planning/archive/build-log.md` §4 entry and architecture bullet, and it doesn't duplicate them. If you find yourself rewriting an architectural contract here, move it to `architecture/*.md` and link.
 2. **Stay demo-ready.** The Demo script section must be runnable end-to-end on the seeded demo workspace (`demo@redcadence.app`). If a step breaks, fix the page in the same commit you fix the feature.
 3. **One source of "How to use / verify".** The detailed walkthrough lives here. `docs/planning/feature-dashboard.md` rows link to this page rather than duplicating the checklist.
 4. **Update the index above** whenever you add a page. A page that isn't in the index is invisible.
@@ -135,4 +135,4 @@ Internal-only refactors, schema-only changes, and pure infrastructure work do **
 - [`signal-fabric.md`](./signal-fabric.md), the Signal Fabric & Sense Engine, outside-in + inside-out signal ingestion → "Focus on this next" (Phase 0 keystone shipped)
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md), agent orchestration contract
 - [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md), the design anatomy + system reference behind the feature surfaces (card + detail-view anatomy, trace-ref registry, ranking/designation logic, color + naming), the long-form reference behind the DESIGN-LOOM dim 17 contract
-- [`../../plan.md`](../../plan.md) §4, active build log
+- [`../../plan.md`](../planning/archive/build-log.md) §4, active build log

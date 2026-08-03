@@ -60,4 +60,4 @@ Answers "why is this on the roadmap?" (the recurring senior-PM justification bur
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4 (2026-06-21) · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) row 8 · H2 base feature (shipped) · `src/components/product/RoadmapBoard.tsx`
+- [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-21) · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) row 8 · H2 base feature (shipped) · `src/components/product/RoadmapBoard.tsx`

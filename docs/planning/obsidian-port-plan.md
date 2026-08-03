@@ -19,7 +19,7 @@ Any lane can pick an unblocked ID cold.
 > depth.** The dashboard G14 rows link straight to each spec.
 
 **The doctrine chain (load before any ID):** invoke the `cadence-design`
-skill, which loads [`/DESIGN-OBSIDIAN.md`](../../DESIGN-OBSIDIAN.md) (the law)
+skill, which loads [`/DESIGN-OBSIDIAN.md`](../design/archive/obsidian-v3.md) (the law)
 
 - [`design-reference/obsidian-v3/`](../../design-reference/obsidian-v3/)
   (tokens, `components.md`, `implementation-notes.md`, the runnable prototype)

@@ -481,4 +481,4 @@ stateDiagram-v2
 - [`integrations.md`](./integrations.md): the connector registry and the `resolveProviderAuth` credential chain.
 - [`frontend.md`](./frontend.md): the app shell, routes, and the Today queue that renders the decision cards.
 - [`../docs/strategy/v7-agentic-product-os.md`](../docs/strategy/v7-agentic-product-os.md): the current positioning and build canon, including the verified state and the four blockers.
-- [`../plan.md`](../plan.md): the build log and milestone roadmap.
+- [`../plan.md`](../docs/planning/archive/build-log.md): the build log and milestone roadmap.

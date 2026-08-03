@@ -8,7 +8,7 @@
 
 ### ▶ 2026-07-02 16:50 — OBS-03 shipped (primitive library), board dry on real dependency, long-polling
 
-**Shipped this cycle:** OBS-03, the Obsidian v3 core primitive library. Claimed atomically (`lane.sh claim OBS-03`, precise file globs to avoid OBS-02's `_authenticated.*.tsx` overlap), built all 11 primitives + barrel in `src/components/obsidian/` (Button, MonoLabel, StatusDot, VerdictChip, AuroraCard, Citation, PencilNote, Toast singleton, SlideOver on `@radix-ui/react-dialog`, CallCard, MissionRow), wrote 15 pure-logic/shallow-element unit tests (this repo has zero jsdom/happy-dom, so tests call `Component.render(props, ref)` directly rather than adding new DOM-test infra). Ran a 5-lens adversarial-review Workflow (token-purity, restraint-budget, a11y, humanized-output, prototype-parity) + a skeptical verify pass; fixed every confirmed finding (wrong `StatusDot` queued-state token, `Toast`'s live region mounting/unmounting instead of staying persistent, `Citation`'s missing `aria-describedby`, a couple of off-token pixel values, `MonoLabel` reuse). Fixed a real tsconfig gap along the way (`*.test.tsx` wasn't excluded like `*.test.ts`, so the repo's first `.test.tsx` file would've typechecked without `bun:test`'s ambient types). Gates: tsc 0, 15 new / 1889 total tests pass. Committed + fast-forward pushed to `origin/main` (`6bb01ca121`), verified landed by `git cat-file -e origin/main:src/components/obsidian/index.ts`. Full detail: `docs/features/obsidian-port.md` OBS-03 section, `plan.md` §4.
+**Shipped this cycle:** OBS-03, the Obsidian v3 core primitive library. Claimed atomically (`lane.sh claim OBS-03`, precise file globs to avoid OBS-02's `_authenticated.*.tsx` overlap), built all 11 primitives + barrel in `src/components/obsidian/` (Button, MonoLabel, StatusDot, VerdictChip, AuroraCard, Citation, PencilNote, Toast singleton, SlideOver on `@radix-ui/react-dialog`, CallCard, MissionRow), wrote 15 pure-logic/shallow-element unit tests (this repo has zero jsdom/happy-dom, so tests call `Component.render(props, ref)` directly rather than adding new DOM-test infra). Ran a 5-lens adversarial-review Workflow (token-purity, restraint-budget, a11y, humanized-output, prototype-parity) + a skeptical verify pass; fixed every confirmed finding (wrong `StatusDot` queued-state token, `Toast`'s live region mounting/unmounting instead of staying persistent, `Citation`'s missing `aria-describedby`, a couple of off-token pixel values, `MonoLabel` reuse). Fixed a real tsconfig gap along the way (`*.test.tsx` wasn't excluded like `*.test.ts`, so the repo's first `.test.tsx` file would've typechecked without `bun:test`'s ambient types). Gates: tsc 0, 15 new / 1889 total tests pass. Committed + fast-forward pushed to `origin/main` (`6bb01ca121`), verified landed by `git cat-file -e origin/main:src/components/obsidian/index.ts`. Full detail: `docs/features/obsidian-port.md` OBS-03 section, `docs/planning/archive/build-log.md` §4.
 
 **Deliberately deferred, not skipped:** the dev-only `/obsidian-specimen` route. Its file (`src/routes/_authenticated.obsidian-specimen.tsx`) matches OBS-02's active claim glob on `src/routes/_authenticated.*.tsx`; `lane.sh claim` correctly refused it (exit 3, CONFLICT). Claim stays held (lane2, heartbeat fresh) until OBS-02 releases that glob, then the specimen route is a small follow-up. This does not block OBS-04..09 — they only need `@/components/obsidian`, which is complete.
 
@@ -160,7 +160,7 @@
 
 **Adversarial review (ts + security):** security clean. TS found 1 HIGH (brief gate query missing `.eq("user_id")` — could feed another user's gates into the brief) → **fixed + verified**.
 
-**Gate:** tsc 0 · **1346 full suite** · no migration · no chokepoint. Docs: dashboard #11 + top-summary, `plan.md` §4.
+**Gate:** tsc 0 · **1346 full suite** · no migration · no chokepoint. Docs: dashboard #11 + top-summary, `docs/planning/archive/build-log.md` §4.
 
 **Remaining (◐, autonomous, next):** cold-gateway first-run hardening (`WedgeTeardown`) + de-jargon `LoopStations`/`govern`.
 
@@ -182,7 +182,7 @@
 
 **Adversarial review (ts + security):** security — tenant isolation **clean** (workspace_id sole boundary, present everywhere, no cross-tenant leak); fixed the pre-existing `.or()` injection it flagged. TS — no remaining drift; fixed `groupByRoadmapBucket` non-string throw + NULL-ICE silent-drop. Regression-guarded.
 
-**Gate:** tsc 0 · **1318 full suite** · no migration · no chokepoint. Docs: `q1-mcp.md`, `known-issues.md` (KI-40), dashboard row #16 + top-summary #16, `plan.md` §4.
+**Gate:** tsc 0 · **1318 full suite** · no migration · no chokepoint. Docs: `q1-mcp.md`, `known-issues.md` (KI-40), dashboard row #16 + top-summary #16, `docs/planning/archive/build-log.md` §4.
 
 **Remaining (◐, founder-gated):** the outward WRITE/A2A scoped-token surface (scopes + audit).
 
@@ -200,7 +200,7 @@
 
 **Adversarial review (ts + security):** security **clean** (user_id + RLS double-fence, parameterized `.in()`, React-escaped, no new exposure). TS reviewer found 1 real defect — `failed`-execution gates (human-approved) silently dropped, understating the record — **fixed** (count as approved) + regression-guarded; the limit-1000 ceiling documented as benign.
 
-**Gate:** tsc 0 · **1300 full suite** · no migration · no chokepoint. Docs: dashboard row #10 + top-summary #10, `plan.md` §4.
+**Gate:** tsc 0 · **1300 full suite** · no migration · no chokepoint. Docs: dashboard row #10 + top-summary #10, `docs/planning/archive/build-log.md` §4.
 
 **Remaining (◐, parked to founder):** auto-clear reversible tool gates (agent gating-behavior change) + visible rejection-learning.
 
@@ -222,7 +222,7 @@
 
 **Adversarial review (ts + security):** security **clean** (RLS-scoped, no new sink, no cross-tenant path). TS reviewer found **2 real defects, both fixed + regression-guarded:** (1) `revisedBy` was drawing from the shared `supersededChildIds` (which lumps `contradicts` with `supersedes`), so a mere conflict read "now superseded by X" and could show as both revised AND unresolved — fixed with a `supersedes`-ONLY map keeping the two states disjoint; (2) the unresolved `count` under-counted when the list cap fired — now the honest pre-cap total.
 
-**Gate:** tsc 0 · **1278 full suite** · no migration · no chokepoint. Docs: `brain-insights.md`, dashboard row #8 + top-summary #8, `plan.md` §4.
+**Gate:** tsc 0 · **1278 full suite** · no migration · no chokepoint. Docs: `brain-insights.md`, dashboard row #8 + top-summary #8, `docs/planning/archive/build-log.md` §4.
 
 **State:** committed + FF-pushed to `origin/main`; claim **released** as ◐ (the AI open-analyst ceiling is the only remaining slice, chokepoint-gated → founder).
 
@@ -242,7 +242,7 @@
 
 **Gate:** tsc 0 / 21 shared-premise tests / **1102 full suite** / no em/en-dash in generated strings. Byte-identical + fail-safe until derivation edges + recorded outcomes both exist.
 
-**State:** committed + fast-forward pushed to `origin/main`. `DBR (H1)` claim **HELD** (heartbeat) for the next increment (next: extend the same resolver to the proactive precedent nudge, mirroring DBR-3b's Critic → nudge fan-out). Docs: `decision-brain.md` (DBR-3f), dashboard row (Increment 8), `plan.md` §4.
+**State:** committed + fast-forward pushed to `origin/main`. `DBR (H1)` claim **HELD** (heartbeat) for the next increment (next: extend the same resolver to the proactive precedent nudge, mirroring DBR-3b's Critic → nudge fan-out). Docs: `decision-brain.md` (DBR-3f), dashboard row (Increment 8), `docs/planning/archive/build-log.md` §4.
 
 ## 2026-06-22 — DBR-3g: shared-premise precedent on the proactive nudge (Critic → nudge fan-out)
 
@@ -290,7 +290,7 @@ Before building, the claim of `M1 / LRN-01` returned a false `HELD`: the atomic 
 
 **Gate:** tsc 0 / eslint 0 (5 files) / 33 support tests / **1146 full suite** / no em/en-dash in generated strings.
 
-**State:** committed + FF-pushed to `origin/main` (`f42e383846..c476c27c95`). `M1 / LRN-01` is **`done`-marked** (◐): the autonomous core is complete and NO further autonomous slice remains — all three remainders need the founder (UI-surface PLACEMENT is a taste/IA call; inbound channel = connector OAuth + spend; AI-written draft = chokepoint + spend). Docs: `docs/features/m1-support-triage.md` (new), dashboard row (◐), `plan.md` §4, `session-decisions.md`.
+**State:** committed + FF-pushed to `origin/main` (`f42e383846..c476c27c95`). `M1 / LRN-01` is **`done`-marked** (◐): the autonomous core is complete and NO further autonomous slice remains — all three remainders need the founder (UI-surface PLACEMENT is a taste/IA call; inbound channel = connector OAuth + spend; AI-written draft = chokepoint + spend). Docs: `docs/features/m1-support-triage.md` (new), dashboard row (◐), `docs/planning/archive/build-log.md` §4, `session-decisions.md`.
 
 **Board state after this cycle:** with the founder's constraint this run (untouched `⬜` only, no `◐` partials, no chokepoint / Stripe / BYO / input-needed), the autonomous pick-list went **dry** — `lane.sh next` returns only `DBR (H1)`, a `◐` PARTIAL. **Founder decision (2026-06-22): ALLOW `◐` partials** — the loop returns to its default (continue partials), still off chokepoint / Stripe / BYO / input-needed. Next cycle resumes the loop default starting with `DBR (H1)` (Decision Brain; shared-premise is complete, so the next slice is a NEW sub-area — e.g. dormant entity-resolution v1 / guardrail #4, compute-only, no chokepoint).
 
@@ -304,7 +304,7 @@ Before building, the claim of `M1 / LRN-01` returned a false `HELD`: the atomic 
 
 **Gate:** tsc 0 / eslint 0 (2 files) / 24 entity-resolution tests / **1184 full suite** / no em/en-dash.
 
-**State:** committed + FF-pushed to `origin/main` (`ff7fc5c695..7549f9001b`). `DBR (H1)` claim **HELD** for the next DBR slice. ◐ compute-only. Docs: `docs/features/decision-brain.md` (DBR-ENTITY-RES + guardrail #4), `plan.md` §4, `session-decisions.md`.
+**State:** committed + FF-pushed to `origin/main` (`ff7fc5c695..7549f9001b`). `DBR (H1)` claim **HELD** for the next DBR slice. ◐ compute-only. Docs: `docs/features/decision-brain.md` (DBR-ENTITY-RES + guardrail #4), `docs/planning/archive/build-log.md` §4, `session-decisions.md`.
 
 ## 2026-06-22 — DBR (H1): entity-resolution WIRING into the shared-premise walk (flag-gated OFF)
 
@@ -350,7 +350,7 @@ Founder paused the autonomous run. **Everything committed + fast-forward pushed 
 
 **WHY HOLDED:** the clean autonomous backlog within the founder's constraints (no chokepoint / Stripe / BYO / input-needed) is verifiably exhausted — the board's only eligible row (`DBR (H1)`) has only cross-lane (Lane 1's files) or founder-gated work left; the last injection surface (MCP/A2A) is in the chokepoint.
 
-**WHERE TO PICK UP (founder-gated, the founder's call):** (a) flip `DBR_ENTITY_ALIASING` after a precision review on real data; (b) connect a support inbound channel + make the M1 `/support` UI-placement call; (c) decide on chokepoint work (MCP/A2A screen, WM-M9) and/or cross-lane DBR wiring; (d) the queued founder activations (Stripe go-live, `credits_enabled()`/`AI_COST_ROUTING`, `DECISION_BRAIN_SUPERSESSION`); (e) the one-time §14 design pass when the product is final. Canonical pickup note: `SOURCE-OF-TRUTH.md` §0 (the SESSION CLOSED note at the top); full per-commit detail: `plan.md` §4 (2026-06-22 entries).
+**WHERE TO PICK UP (founder-gated, the founder's call):** (a) flip `DBR_ENTITY_ALIASING` after a precision review on real data; (b) connect a support inbound channel + make the M1 `/support` UI-placement call; (c) decide on chokepoint work (MCP/A2A screen, WM-M9) and/or cross-lane DBR wiring; (d) the queued founder activations (Stripe go-live, `credits_enabled()`/`AI_COST_ROUTING`, `DECISION_BRAIN_SUPERSESSION`); (e) the one-time §14 design pass when the product is final. Canonical pickup note: `SOURCE-OF-TRUTH.md` §0 (the SESSION CLOSED note at the top); full per-commit detail: `docs/planning/archive/build-log.md` §4 (2026-06-22 entries).
 
 ---
 

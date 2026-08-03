@@ -19,7 +19,7 @@
 - [x] Installed skills + design tools cataloged
 - [x] Founder questions identified (6 items for morning queue)
 
-**Deliverable:** `REBUILD-AUDIT-PHASE-0.md` (committed 0e2e2962)
+**Deliverable:** `docs/planning/archive/rebuild-2026-07-18/phase-0-audit.md` (committed 0e2e2962)
 
 ---
 
@@ -38,7 +38,7 @@
 - [x] Rename pass (Cadence → Supaprod + exceptions ledger)
 - [x] Morning decision queue (6 assumptions logged, all reversible)
 
-**Deliverable:** `REBUILD-PHASE-1-ARCHITECTURE.md` (531 lines, comprehensive, ready for Phase 2)
+**Deliverable:** `docs/planning/archive/rebuild-2026-07-18/phase-1-architecture.md` (531 lines, comprehensive, ready for Phase 2)
 **Status:** Awaiting founder review of 6 logged assumptions before Phase 2 (Design System Ink)
 
 ---
@@ -203,7 +203,7 @@
 
 - Master Brief: `docs/planning/Supaprod Final Sweep/Supaprod Front-End Rebuild.md`
 - Goal prompt: `docs/planning/Supaprod Final Sweep/Goal Prompt for Supaprod Rebuild.md`
-- Audit: `REBUILD-AUDIT-PHASE-0.md`
+- Audit: `docs/planning/archive/rebuild-2026-07-18/phase-0-audit.md`
 - Vercel study: `docs/planning/vercel-dissection-study-2026-07-17.md`
 - Landing page tokens: extracted in Audit section 1
 - Taste document: Audit section 0

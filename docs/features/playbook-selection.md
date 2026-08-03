@@ -91,6 +91,6 @@ existing playbook-registry UI if one is wired to it).
 
 ## Related
 
-- [`plan.md`](../../plan.md) §4 (2026-07-03 entry)
+- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
 - [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2
 - Sibling: PLAYBOOK-REGISTRY (v11 #17), `src/lib/playbooks/registry.ts` / `.test.ts`

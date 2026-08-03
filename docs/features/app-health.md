@@ -10,7 +10,7 @@ Exposes a public `GET /api/public/health` endpoint that an uptime monitor or loa
 
 ## Why it exists (one paragraph)
 
-`considerations.md` (SRE/Platform lens) flags **"App-level monitoring + alerting (not just AI telemetry)"** as a P0 gap — uptime/errors/latency of the platform itself, plus the trust signal enterprise buyers ask about (status page, SLOs). The existing `health.functions.ts` only checks migration DRIFT for the app's own flows (SSOT finding 4), so a real external health/readiness signal was unbuilt. See [`../../plan.md`](../../plan.md) §4 (cycle 50 entry).
+`considerations.md` (SRE/Platform lens) flags **"App-level monitoring + alerting (not just AI telemetry)"** as a P0 gap — uptime/errors/latency of the platform itself, plus the trust signal enterprise buyers ask about (status page, SLOs). The existing `health.functions.ts` only checks migration DRIFT for the app's own flows (SSOT finding 4), so a real external health/readiness signal was unbuilt. See [`../../plan.md`](../planning/archive/build-log.md) §4 (cycle 50 entry).
 
 ## Where to find it (nav path, route, panels)
 
@@ -41,5 +41,5 @@ Exposes a public `GET /api/public/health` endpoint that an uptime monitor or loa
 
 ## Related
 
-- [`../../plan.md`](../../plan.md) §4 (cycle 50) · [`../planning/considerations.md`](../planning/considerations.md) SRE/Platform lens · sibling (different concern) `health.functions.ts` (migration drift) · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md)
+- [`../../plan.md`](../planning/archive/build-log.md) §4 (cycle 50) · [`../planning/considerations.md`](../planning/considerations.md) SRE/Platform lens · sibling (different concern) `health.functions.ts` (migration drift) · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md)
 - **Successor / superset (planned, founder-gated):** [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md) — the **AFD initiative** (group G12, 14 task IDs `AFD-01..AFD-14`) wires this `/api/public/health` surface into Better Stack uptime probes (AFD-08 + AFD-13), adds the public status page at `status.supaprod.app`, and folds in the wider observability stack (PostHog EU + Sentry EU + in-house decision-velocity / agent-cost views). Façade contract: [`./observability-facade.md`](./observability-facade.md). Vendor ADR: [`../decisions/analytics-vendor-selection.md`](../decisions/analytics-vendor-selection.md).

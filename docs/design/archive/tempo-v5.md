@@ -2,8 +2,8 @@
 
 > _Adopted 2026-07-10 (founder ruling). **Tempo is THE standing design system for every
 > Supaprod surface — the authenticated app AND the public landing/marketing pages.** It
-> supersedes Loom v4 (`DESIGN-LOOM.md`), Obsidian v3 (`DESIGN-OBSIDIAN.md`), and the Ember
-> Editorial landing system (`DESIGN.md`); those files are retired history. When any other
+> supersedes Loom v4 (`docs/design/archive/loom-v4.md`), Obsidian v3 (`docs/design/archive/obsidian-v3.md`), and the Ember
+> Editorial landing system (`docs/design/archive/ember-editorial-landing.md`); those files are retired history. When any other
 > file disagrees with this one on look, feel, tokens, type, or component anatomy, this
 > contract wins. Lineage: v1 tokens · v2 Ember Editorial · v3 Obsidian · v4 Loom ·
 > **v5 Tempo**. Applied records (how surfaces implement this contract, with founder

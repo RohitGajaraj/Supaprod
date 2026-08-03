@@ -10,7 +10,7 @@ Untrusted content that the agent pulls into a prompt (retrieved workspace contex
 
 ## Why it exists
 
-Regex-only injection rules (one pattern per `guardrail_rules` row) catch exact strings and miss everything else. FND-0.7 raises the floor from "one regex per rule" to "weighted evidence across the whole message", so paraphrased and multi-signal attacks accumulate score instead of slipping through a single pattern. It is defense in depth layered behind the fence, not the sole defense. Build-log entry: [`../../plan.md`](../../plan.md) §4 (2026-06-21, lane 3).
+Regex-only injection rules (one pattern per `guardrail_rules` row) catch exact strings and miss everything else. FND-0.7 raises the floor from "one regex per rule" to "weighted evidence across the whole message", so paraphrased and multi-signal attacks accumulate score instead of slipping through a single pattern. It is defense in depth layered behind the fence, not the sole defense. Build-log entry: [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-21, lane 3).
 
 ## Where to find it
 
