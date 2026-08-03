@@ -343,7 +343,9 @@ function Ship() {
     : loading
       ? "Ship"
       : waitingCount === 0
-        ? "Nothing is waiting to go out."
+        ? // Said ONCE. The gate below used to repeat this exact sentence as its
+          // question, so the screen printed it twice; the gate now asks what to do.
+          "Nothing is waiting to go out."
         : waitingCount === 1
           ? "One announcement is waiting to go out."
           : `${waitingCount} announcements are waiting to go out.`;
@@ -494,7 +496,7 @@ function Ship() {
           ) : null}
         </Gate>
       ) : (
-        <Gate question="Nothing is waiting to go out.">
+        <Gate question="Write the first announcement?">
           {canContribute ? (
             <Button variant="primary" disabled={busy} onClick={startNew}>
               Write an announcement

@@ -567,6 +567,205 @@ export function ChangesPanel({
         ) : null}
       </Line>
 
+      {/* FILES FIRST, DIRECTLY UNDER THE TAB THAT SELECTS THEM.
+
+          This block used to render LAST, after Where it is live, Release notes,
+          Launch kit, Rollbacks, Revisions and Scope. The Changes tab sits at the
+          top of the panel, so pressing it moved the diff about six hundred pixels
+          below the control that asked for it, and the outcome of the run was
+          off screen. Founder hit this on the live app: the tab looked like it did
+          nothing.
+
+          A tab must reveal its content adjacent to itself. Everything else in this
+          panel is context ABOUT the change; the change itself is the answer to
+          'what did this run produce', so it goes first. */}
+      <Block title="Files">
+        {changes.length === 0 ? (
+          <Empty>{builderName} has not written a file into this changeset yet.</Empty>
+        ) : (
+          /* THE LIST AND THE DIFF SIT BESIDE EACH OTHER, not one above the other.
+             FOUNDER, 2026-08-01: "why don't we build this terminal next to each
+             other? Say, when I click the file in the file's name, it should open
+             on the right side immediately. We have the space left and right. Why
+             is it opening below? ... If it is below, we need to scroll a lot."
+
+             He is right, and the reference class is unanimous: VS Code, Cursor and
+             GitHub's pull-request review all put the changed-file list beside the
+             diff. The old stacked layout meant every file you clicked pushed its
+             own diff below the fold, so reading four files was four scroll
+             journeys down and back up, and the file you were comparing against
+             had already left the screen.
+
+             Each pane scrolls independently, which is what actually kills the
+             long scroll: the list stays put while the diff moves. */
+          <div className="sp-split">
+            <div className="sp-split-list" role="tablist" aria-label="Files this run changed">
+              {changes.map((c) => {
+                const active = c.path === activePath;
+                return (
+                  <Row
+                    key={c.id}
+                    tight
+                    focused={active}
+                    marks={<AgentMark slug={BUILDER} state="quiet" />}
+                    lead={<FileName path={c.path} />}
+                    sub={
+                      <>
+                        {c.op} · <Diffstat added={c.added_lines} removed={c.removed_lines} />
+                        {outOfPolicy.has(c.path) ? (
+                          <span style={{ color: "var(--sp-warn)" }}> · outside the list</span>
+                        ) : null}
+                      </>
+                    }
+                    // NO DESELECT. It used to toggle, which in a two-pane layout
+                    // empties the right half and leaves a person looking at
+                    // nothing after clicking the row they were already reading. A
+                    // file browser selects; it does not un-select.
+                    onClick={() => setSelectedPath(c.path)}
+                  />
+                );
+              })}
+            </div>
+
+            <div className="sp-split-view">
+              {/* NO HEADER ROW HERE. The path, the comparison and the file's own
+                  action all moved INTO the terminal's chrome and status line,
+                  because a header above a box that has its own header is two
+                  headers for one thing. That duplication is a good part of what
+                  read as congested, and it cost a whole row of height above the
+                  code on every file you opened. */}
+              {activePath && isMarkdownFile(activePath) ? (
+                <div className="sp-tabs" role="tablist" aria-label="How to read this file">
+                  {(["diff", "preview"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="tab"
+                      className="sp-tab"
+                      aria-selected={docView === mode}
+                      onClick={() => setDocView(mode)}
+                    >
+                      {mode === "diff" ? "Diff" : "Read it"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {diff.isError ? (
+                // A failed read is not an empty state. It names its cause and offers
+                // the retry, because "nothing here" and "we could not find out" are
+                // different facts.
+                <div className="sp-term">
+                  <div style={{ padding: "var(--sp-space-4) 14px" }}>
+                    <Failed onRetry={() => void diff.refetch()}>
+                      The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
+                    </Failed>
+                  </div>
+                </div>
+              ) : diff.isLoading || !selected ? (
+                // ONE LINE, NOT A 420px BOX. This was a fixed-height panel holding
+                // three words, which is the largest single piece of the "unexplained
+                // blank space" and it appeared on every file you opened.
+                <Loading>Reading the diff.</Loading>
+              ) : activePath && isMarkdownFile(activePath) && docView === "preview" ? (
+                <div className="sp-term">
+                  {/* No inner vertical scroller here either, for the same reason
+                      as the diff body: a scroll container nested inside the
+                      page's own scroller traps the wheel and the page reads as
+                      stuck. The document is as tall as it is and the page
+                      carries it. */}
+                  <div style={{ padding: "var(--sp-space-4) var(--sp-space-5)" }}>
+                    <ChatMarkdown content={selected.new_content ?? ""} />
+                  </div>
+                </div>
+              ) : (
+                <CodeDiff
+                  base={selected.base_content ?? ""}
+                  next={selected.new_content ?? ""}
+                  path={activePath ?? undefined}
+                  actions={
+                    canCurate && activePath ? (
+                      <button
+                        type="button"
+                        className="sp-term-ctl"
+                        disabled={rejectFileMut.isPending}
+                        onClick={() => rejectFileMut.mutate(activePath)}
+                      >
+                        {rejectFileMut.isPending ? "Dropping" : "Drop file"}
+                      </button>
+                    ) : null
+                  }
+                />
+              )}
+
+              {/* Per-hunk curation. These numbers ARE lines (computeHunks returns
+              base and modified line arrays), so the diffstat is honest here. */}
+              {canCurate && selected && hunks.length > 0 ? (
+                <>
+                  <Line
+                    label={
+                      <>
+                        <Num>{hunks.length}</Num> {hunks.length === 1 ? "hunk" : "hunks"}
+                      </>
+                    }
+                    sub="Tap one to reject it. Rejecting puts those lines back to base."
+                  >
+                    <Button
+                      disabled={applyMut.isPending || rejected.size === 0}
+                      title={
+                        rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined
+                      }
+                      onClick={() =>
+                        applyMut.mutate({
+                          path: activePath as string,
+                          rejectedHunkIds: [...rejected],
+                          expectedUpdatedAt: selected.updated_at,
+                        })
+                      }
+                    >
+                      {applyMut.isPending
+                        ? "Reverting them"
+                        : rejected.size === 0
+                          ? "Revert the rejected"
+                          : `Revert ${rejected.size}`}
+                    </Button>
+                  </Line>
+                  {hunks.map((h) => {
+                    const isRejected = rejected.has(h.id);
+                    const preview = (h.modifiedLines[0] ?? h.baseLines[0] ?? "")
+                      .trim()
+                      .slice(0, 80);
+                    return (
+                      <Row
+                        key={h.id}
+                        tight
+                        focused={isRejected}
+                        marks={<AgentMark slug={BUILDER} state="quiet" />}
+                        lead={<Num>{preview || "(blank line)"}</Num>}
+                        sub={
+                          <>
+                            <Diffstat added={h.modifiedLines.length} removed={h.baseLines.length} />{" "}
+                            {isRejected ? "Rejected, goes back to base" : `Hunk ${h.id + 1}`}
+                          </>
+                        }
+                        onClick={() =>
+                          setRejected((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(h.id)) next.delete(h.id);
+                            else next.add(h.id);
+                            return next;
+                          })
+                        }
+                      />
+                    );
+                  })}
+                </>
+              ) : null}
+            </div>
+          </div>
+        )}
+      </Block>
+
       {/* SEAM-2 SHIP: the preview, the one human promote, and the live URL. */}
       {changeset.status === "merged" ? (
         <Block title="Where it is live">
@@ -866,192 +1065,6 @@ export function ChangesPanel({
           half of the problem, since the real line counts were already in the
           payload. Now the unit and the colour agree, so the shape claims exactly
           what it is. */}
-      <Block title="Files">
-        {changes.length === 0 ? (
-          <Empty>{builderName} has not written a file into this changeset yet.</Empty>
-        ) : (
-          /* THE LIST AND THE DIFF SIT BESIDE EACH OTHER, not one above the other.
-             FOUNDER, 2026-08-01: "why don't we build this terminal next to each
-             other? Say, when I click the file in the file's name, it should open
-             on the right side immediately. We have the space left and right. Why
-             is it opening below? ... If it is below, we need to scroll a lot."
-
-             He is right, and the reference class is unanimous: VS Code, Cursor and
-             GitHub's pull-request review all put the changed-file list beside the
-             diff. The old stacked layout meant every file you clicked pushed its
-             own diff below the fold, so reading four files was four scroll
-             journeys down and back up, and the file you were comparing against
-             had already left the screen.
-
-             Each pane scrolls independently, which is what actually kills the
-             long scroll: the list stays put while the diff moves. */
-          <div className="sp-split">
-            <div className="sp-split-list" role="tablist" aria-label="Files this run changed">
-              {changes.map((c) => {
-                const active = c.path === activePath;
-                return (
-                  <Row
-                    key={c.id}
-                    tight
-                    focused={active}
-                    marks={<AgentMark slug={BUILDER} state="quiet" />}
-                    lead={<FileName path={c.path} />}
-                    sub={
-                      <>
-                        {c.op} · <Diffstat added={c.added_lines} removed={c.removed_lines} />
-                        {outOfPolicy.has(c.path) ? (
-                          <span style={{ color: "var(--sp-warn)" }}> · outside the list</span>
-                        ) : null}
-                      </>
-                    }
-                    // NO DESELECT. It used to toggle, which in a two-pane layout
-                    // empties the right half and leaves a person looking at
-                    // nothing after clicking the row they were already reading. A
-                    // file browser selects; it does not un-select.
-                    onClick={() => setSelectedPath(c.path)}
-                  />
-                );
-              })}
-            </div>
-
-            <div className="sp-split-view">
-              {/* NO HEADER ROW HERE. The path, the comparison and the file's own
-                  action all moved INTO the terminal's chrome and status line,
-                  because a header above a box that has its own header is two
-                  headers for one thing. That duplication is a good part of what
-                  read as congested, and it cost a whole row of height above the
-                  code on every file you opened. */}
-              {activePath && isMarkdownFile(activePath) ? (
-                <div className="sp-tabs" role="tablist" aria-label="How to read this file">
-                  {(["diff", "preview"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      role="tab"
-                      className="sp-tab"
-                      aria-selected={docView === mode}
-                      onClick={() => setDocView(mode)}
-                    >
-                      {mode === "diff" ? "Diff" : "Read it"}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-
-              {diff.isError ? (
-                // A failed read is not an empty state. It names its cause and offers
-                // the retry, because "nothing here" and "we could not find out" are
-                // different facts.
-                <div className="sp-term">
-                  <div style={{ padding: "var(--sp-space-4) 14px" }}>
-                    <Failed onRetry={() => void diff.refetch()}>
-                      The diff did not load. {(diff.error as Error)?.message?.slice(0, 160)}
-                    </Failed>
-                  </div>
-                </div>
-              ) : diff.isLoading || !selected ? (
-                // ONE LINE, NOT A 420px BOX. This was a fixed-height panel holding
-                // three words, which is the largest single piece of the "unexplained
-                // blank space" and it appeared on every file you opened.
-                <Loading>Reading the diff.</Loading>
-              ) : activePath && isMarkdownFile(activePath) && docView === "preview" ? (
-                <div className="sp-term">
-                  {/* No inner vertical scroller here either, for the same reason
-                      as the diff body: a scroll container nested inside the
-                      page's own scroller traps the wheel and the page reads as
-                      stuck. The document is as tall as it is and the page
-                      carries it. */}
-                  <div style={{ padding: "var(--sp-space-4) var(--sp-space-5)" }}>
-                    <ChatMarkdown content={selected.new_content ?? ""} />
-                  </div>
-                </div>
-              ) : (
-                <CodeDiff
-                  base={selected.base_content ?? ""}
-                  next={selected.new_content ?? ""}
-                  path={activePath ?? undefined}
-                  actions={
-                    canCurate && activePath ? (
-                      <button
-                        type="button"
-                        className="sp-term-ctl"
-                        disabled={rejectFileMut.isPending}
-                        onClick={() => rejectFileMut.mutate(activePath)}
-                      >
-                        {rejectFileMut.isPending ? "Dropping" : "Drop file"}
-                      </button>
-                    ) : null
-                  }
-                />
-              )}
-
-              {/* Per-hunk curation. These numbers ARE lines (computeHunks returns
-              base and modified line arrays), so the diffstat is honest here. */}
-              {canCurate && selected && hunks.length > 0 ? (
-                <>
-                  <Line
-                    label={
-                      <>
-                        <Num>{hunks.length}</Num> {hunks.length === 1 ? "hunk" : "hunks"}
-                      </>
-                    }
-                    sub="Tap one to reject it. Rejecting puts those lines back to base."
-                  >
-                    <Button
-                      disabled={applyMut.isPending || rejected.size === 0}
-                      title={
-                        rejected.size === 0 ? "Tap a hunk below to reject it first" : undefined
-                      }
-                      onClick={() =>
-                        applyMut.mutate({
-                          path: activePath as string,
-                          rejectedHunkIds: [...rejected],
-                          expectedUpdatedAt: selected.updated_at,
-                        })
-                      }
-                    >
-                      {applyMut.isPending
-                        ? "Reverting them"
-                        : rejected.size === 0
-                          ? "Revert the rejected"
-                          : `Revert ${rejected.size}`}
-                    </Button>
-                  </Line>
-                  {hunks.map((h) => {
-                    const isRejected = rejected.has(h.id);
-                    const preview = (h.modifiedLines[0] ?? h.baseLines[0] ?? "")
-                      .trim()
-                      .slice(0, 80);
-                    return (
-                      <Row
-                        key={h.id}
-                        tight
-                        focused={isRejected}
-                        marks={<AgentMark slug={BUILDER} state="quiet" />}
-                        lead={<Num>{preview || "(blank line)"}</Num>}
-                        sub={
-                          <>
-                            <Diffstat added={h.modifiedLines.length} removed={h.baseLines.length} />{" "}
-                            {isRejected ? "Rejected, goes back to base" : `Hunk ${h.id + 1}`}
-                          </>
-                        }
-                        onClick={() =>
-                          setRejected((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(h.id)) next.delete(h.id);
-                            else next.add(h.id);
-                            return next;
-                          })
-                        }
-                      />
-                    );
-                  })}
-                </>
-              ) : null}
-            </div>
-          </div>
-        )}
-      </Block>
     </>
   );
 }
