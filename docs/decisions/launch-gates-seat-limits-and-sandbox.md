@@ -112,6 +112,27 @@ cannot iterate. It is the right stopgap and the wrong destination.
 cap set at the account level from day one, since the failure mode of an agent with compute
 is an expensive loop rather than a broken build.
 
+> ### ⛔ SUPERSEDED 2026-08-03: the vendor is E2B, not Cloudflare
+>
+> The Cloudflare recommendation above rests on "no new vendor, no new billing
+> relationship, and the same account". **That premise is false and was not known when this
+> was written.** Lovable owns the Workers deployment (the app serves from
+> `supaprod.lovable.app`; `wrangler whoami` reports *not authenticated*). Our Cloudflare
+> account covers DNS and the registrar only. So Cloudflare is a new billing relationship
+> too, and its single largest advantage here disappears.
+>
+> With that gone the choice goes to fit, and **E2B wins**: executing untrusted
+> AI-generated code is its product rather than a feature, and its free tier is a one-time
+> $100 of credits with no card required. The one axis Cloudflare still wins, serving a
+> live preview from our own domain, turns out not to matter, because the build agent works
+> in the **customer's** repo and their pull requests already have their own preview
+> deploys.
+>
+> Everything else on this page still stands, including the cost analysis and the spend-cap
+> rule. Full reasoning, the comparison table, the caveat about E2B Pro at $150/month, and
+> the conditions that would flip us back to Cloudflare:
+> [`build-sandbox-vendor.md`](./build-sandbox-vendor.md).
+
 ---
 
 ## What is not blocked by either of these
