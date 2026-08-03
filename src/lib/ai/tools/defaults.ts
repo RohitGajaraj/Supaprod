@@ -92,7 +92,21 @@ export const TOOL_DEFAULTS: Readonly<
   // 01 Discover
   "signals.log": { mode: "confirm", enabled: true, label: "Log a signal" },
   "research.synthesize": { mode: "confirm", enabled: true, label: "Synthesise research" },
-  "cluster.trigger": { mode: "confirm", enabled: true, label: "Cluster signals" },
+  // AUTO, changed from "confirm" on 2026-08-03 after an audit of the live queue.
+  //
+  // 24 of the 60 pending approvals in production were this one tool, accumulating at
+  // about 12 a day, and EVERY ONE OF THEM WAS FUTILE: the workspace holds 152 signals
+  // with 1 unclustered, so the action returns {"themes": 0, "message": "No unclustered
+  // signals."} and nothing else. A human was being asked, repeatedly, to authorise an
+  // action that could not do anything.
+  //
+  // That is the governance canon's own words made literal ("a long approvals queue is a
+  // policy failure to surface, not a workload to render"), and the canon also settles
+  // what the mode should be: clustering groups existing signals into themes. It is
+  // reversible, invisible outside the product, spends no money past the model call the
+  // cap already bounds, and requires no judgement a human is better at. It fails all
+  // four tests for a gate, so the gate was the bug.
+  "cluster.trigger": { mode: "auto", enabled: true, label: "Cluster signals" },
   // 02 Decide
   "decision.record": { mode: "confirm", enabled: true, label: "Record a decision" },
   "decision.revise": { mode: "confirm", enabled: true, label: "Revise a decision" },
