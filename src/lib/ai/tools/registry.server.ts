@@ -200,11 +200,22 @@ const createTask = def({
     due_date: z.string().optional(),
   }),
   preview: (a) => `Create task: "${a.title}"${a.priority ? ` (${a.priority})` : ""}`,
-  run: async (a, { supabase, userId }) => {
+  // Same tenancy miss as `signals.log` above, same fix, found in the same sweep:
+  // `tasks` is in the NOT NULL workspace_id set, so an agent-created task died on
+  // the default resolving NULL. These two were the oldest write tools in the file
+  // and the only two the retrofit skipped; research.synthesize, prd.draft,
+  // decision.record and learning.record all already stamp it.
+  run: async (a, { supabase, userId, workspaceId }) => {
+    if (!workspaceId) {
+      throw new Error(
+        "No workspace is in context, so there is nowhere to file this task. This is a wiring fault, not something to retry.",
+      );
+    }
     const { data, error } = await supabase
       .from("tasks")
       .insert({
         user_id: userId,
+        workspace_id: workspaceId,
         title: a.title,
         priority: a.priority ?? "medium",
         estimate_hours: a.estimate_hours ?? null,
@@ -254,11 +265,42 @@ const logSignal = def({
     tags: z.array(z.string().max(40)).max(10).optional(),
   }),
   preview: (a) => `Log signal: "${(a.title ?? a.content).slice(0, 80)}"`,
-  run: async (a, { supabase, userId }) => {
+  /**
+   * THE WRITE THAT FROZE THE LOOP (found 2026-08-03 by walking the live product).
+   *
+   * This insert omitted `workspace_id`, and the tenancy retrofit
+   * (20260530120200_tenancy_c_tighten_policies.sql) made that fatal: it set the
+   * column NOT NULL with a DEFAULT of `current_user_default_workspace()`, which
+   * resolves off `auth.uid()`. An agent runs server-side with no end-user JWT, so
+   * the default resolved NULL against a NOT NULL column and EVERY agent-logged
+   * signal failed. That migration's own header predicted this exact miss: "Once
+   * request-context plumbing lands, set workspace_id + product_id explicitly in
+   * server functions." `signals.list` (immediately below) was updated; this was not.
+   *
+   * What it cost, visible on the live product: 14 consecutive runs on one track
+   * titled "finished, filing nothing", one of them naming the cause outright
+   * ("signals.log tool fails with null workspace_id error despite explicit
+   * 'helio-labs' parameter"), three tracks parked at Discover with every later
+   * station "not reached", and Plan reading "Nothing is committed yet". Evidence
+   * could not accumulate, so themes kept a seeded `frequency` with no linked rows,
+   * which is why a 40-signal cluster promoted carrying 0 signals of evidence.
+   *
+   * Fail LOUD, not soft. If the context carries no workspace there is nowhere
+   * correct to file this, and silently writing it somewhere else would put one
+   * tenant's evidence in another tenant's record. Saying so is the safe answer,
+   * and the agent can surface it instead of burning its remaining steps.
+   */
+  run: async (a, { supabase, userId, workspaceId }) => {
+    if (!workspaceId) {
+      throw new Error(
+        "No workspace is in context, so there is nowhere to file this signal. This is a wiring fault, not something to retry.",
+      );
+    }
     const { data, error } = await supabase
       .from("signals")
       .insert({
         user_id: userId,
+        workspace_id: workspaceId,
         content: a.content,
         title: a.title ?? null,
         source: a.source ?? "agent",
