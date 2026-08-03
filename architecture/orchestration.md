@@ -10,13 +10,13 @@
 
 ## Core concepts
 
-| Concept                | Definition                                                                                                                                                           |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Mission**            | A goal executed end-to-end (e.g. "discover→spec→plan→build→test→ship feature X"). Has an owner agent, a state machine, a budget, and a trace.                        |
-| **Session**            | One running execution of a mission (or sub-mission). Many sessions run in parallel across products.                                                                  |
-| **Orchestrator agent** | Plans the mission, spawns and coordinates sub-agents, routes approvals, manages parallelism. See roster in [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md).                                  |
-| **Sub-agent**          | An ephemeral specialist spawned by the orchestrator for a sub-task; inherits the chokepoint, a tool allow-list, and governance; returns its result and is torn down. |
-| **Step / node**        | A unit of work in the mission DAG (a tool call, an agent turn, an approval gate).                                                                                    |
+| Concept | Definition |
+| --- | --- |
+| **Mission** | A goal executed end-to-end (e.g. "discover→spec→plan→build→test→ship feature X"). Has an owner agent, a state machine, a budget, and a trace. |
+| **Session** | One running execution of a mission (or sub-mission). Many sessions run in parallel across products. |
+| **Orchestrator agent** | Plans the mission, spawns and coordinates sub-agents, routes approvals, manages parallelism. See roster in [`docs/planning/archive/build-log.md`](../docs/planning/archive/build-log.md). |
+| **Sub-agent** | An ephemeral specialist spawned by the orchestrator for a sub-task; inherits the chokepoint, a tool allow-list, and governance; returns its result and is torn down. |
+| **Step / node** | A unit of work in the mission DAG (a tool call, an agent turn, an approval gate). |
 
 ## Parallelism model
 

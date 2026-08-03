@@ -24,13 +24,13 @@ Five trust boundaries matter:
 
 ## 2. The assets worth defending
 
-| Asset                                                                     | Why an attacker wants it                                                   | Primary boundary                     |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------ |
-| **Tenant data** (PRDs, decisions, signals, missions, memory)              | The product's value and the moat. Cross-tenant read is the worst case.     | Worker to Postgres; anon to Postgres |
-| **Anon-read share surfaces** (`p/$slug`, `d/$slug`)                       | A public door into otherwise private tables. Column leak or full-row leak. | Anon to Postgres                     |
-| **The AI runtime**                                                        | Spend the user's budget, bypass guardrails, exfiltrate prompt context.     | Worker to providers                  |
-| **Secrets** (service role, gateway key, GitHub App key, connector tokens) | Total compromise. Service role bypasses RLS entirely.                      | Worker process; the vault            |
-| **Agent tool execution**                                                  | Real side effects: commits, PRs, merges, calendar events, issue creation.  | Worker to connectors                 |
+| Asset | Why an attacker wants it | Primary boundary |
+| --- | --- | --- |
+| **Tenant data** (PRDs, decisions, signals, missions, memory) | The product's value and the moat. Cross-tenant read is the worst case. | Worker to Postgres; anon to Postgres |
+| **Anon-read share surfaces** (`p/$slug`, `d/$slug`) | A public door into otherwise private tables. Column leak or full-row leak. | Anon to Postgres |
+| **The AI runtime** | Spend the user's budget, bypass guardrails, exfiltrate prompt context. | Worker to providers |
+| **Secrets** (service role, gateway key, GitHub App key, connector tokens) | Total compromise. Service role bypasses RLS entirely. | Worker process; the vault |
+| **Agent tool execution** | Real side effects: commits, PRs, merges, calendar events, issue creation. | Worker to connectors |
 
 ---
 

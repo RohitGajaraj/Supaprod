@@ -79,17 +79,17 @@ Structured row-level telemetry (the tables above) is the primary observability l
 
 ## Observability at a glance
 
-| Surface                | Where it lives                                                                                 | Status                           |
-| ---------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------- |
-| Cost and tokens        | `ai_events`, `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts`; chokepoint                | Built; Partial on real data      |
-| Execution traces       | `ai_events` (`trace_id` / `parent_event_id`), `tool_calls`, `agent_run_checkpoints`; `/traces` | Built                            |
-| Per-event evals        | `ai_evals`; `eval-tick` (judge: `gemini-2.5-flash-lite`, 7 dims)                               | Built; Partial coverage          |
-| Structured eval suites | `eval_suites`, `eval_case_results`; `eval-suite-tick` (3am)                                    | Built; coverage = authored cases |
-| Drift                  | `drift_snapshots`; `drift-tick` (4am)                                                          | Built; thin on signal pre-launch |
-| Guardrails             | `guardrail_rules`, `guardrail_hits`; chokepoint + kill switch                                  | Built                            |
-| Proof gauntlet         | `agent_approvals`, `ritual_sessions`, `is_unattended`; `/govern?tab=gauntlet`                  | Built; Partial on real data      |
-| Trust score            | `computeAllAgentTrust` over `agent_runs` / `agent_approvals` / `ai_evals`                      | Built                            |
-| Application logging    | `console.*` to Workers stream; `error-capture.ts`                                              | Partial; aggregation Missing     |
+| Surface | Where it lives | Status |
+| --- | --- | --- |
+| Cost and tokens | `ai_events`, `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts`; chokepoint | Built; Partial on real data |
+| Execution traces | `ai_events` (`trace_id` / `parent_event_id`), `tool_calls`, `agent_run_checkpoints`; `/traces` | Built |
+| Per-event evals | `ai_evals`; `eval-tick` (judge: `gemini-2.5-flash-lite`, 7 dims) | Built; Partial coverage |
+| Structured eval suites | `eval_suites`, `eval_case_results`; `eval-suite-tick` (3am) | Built; coverage = authored cases |
+| Drift | `drift_snapshots`; `drift-tick` (4am) | Built; thin on signal pre-launch |
+| Guardrails | `guardrail_rules`, `guardrail_hits`; chokepoint + kill switch | Built |
+| Proof gauntlet | `agent_approvals`, `ritual_sessions`, `is_unattended`; `/govern?tab=gauntlet` | Built; Partial on real data |
+| Trust score | `computeAllAgentTrust` over `agent_runs` / `agent_approvals` / `ai_evals` | Built |
+| Application logging | `console.*` to Workers stream; `error-capture.ts` | Partial; aggregation Missing |
 
 ---
 
@@ -158,20 +158,20 @@ This is the margin reality from v7 §9, stated plainly so it is not hand-waved: 
 
 ## Non-functional requirements at a glance
 
-| Requirement                 | Bar                                                    | Status                                               |
-| --------------------------- | ------------------------------------------------------ | ---------------------------------------------------- |
-| Interaction latency         | under 10s, felt single action                          | Target; measurable now via `latency_ms`/`ttft_ms`    |
-| Time-to-value               | under 10 min, signup to first closed loop on real data | Target; un-measurable until M-0/M-A                  |
-| Loop step budget            | role+arc adaptive, ceiling 40 steps                    | Built                                                |
-| Per-workspace concurrency   | 5 running runs, then queue                             | Built                                                |
-| Cron batch caps             | per-hook fixed batches (table above)                   | Built; tunable                                       |
-| Concurrency safety          | CAS dispatch + idempotent tools                        | Built                                                |
-| Availability / resumability | checkpoint + idempotency survive eviction; kill switch | Built; formal SLO Missing                            |
-| Inference margin            | BYOK + small-model routing + batch/cache               | Levers Built; routing policy + unit model Owed       |
-| Ingest cap                  | 50 signals/request, token-gated (KI-10)                | Built                                                |
-| RPS rate limit              | per-IP / per-token                                     | Missing/Planned                                      |
-| Memory retention            | decay at importance≤2 + 30d unused; free-tier expiry   | Decay Built; tier gating Planned                     |
-| Telemetry retention         | audit trail kept                                       | Built (no expiry by design); archival policy Planned |
+| Requirement | Bar | Status |
+| --- | --- | --- |
+| Interaction latency | under 10s, felt single action | Target; measurable now via `latency_ms`/`ttft_ms` |
+| Time-to-value | under 10 min, signup to first closed loop on real data | Target; un-measurable until M-0/M-A |
+| Loop step budget | role+arc adaptive, ceiling 40 steps | Built |
+| Per-workspace concurrency | 5 running runs, then queue | Built |
+| Cron batch caps | per-hook fixed batches (table above) | Built; tunable |
+| Concurrency safety | CAS dispatch + idempotent tools | Built |
+| Availability / resumability | checkpoint + idempotency survive eviction; kill switch | Built; formal SLO Missing |
+| Inference margin | BYOK + small-model routing + batch/cache | Levers Built; routing policy + unit model Owed |
+| Ingest cap | 50 signals/request, token-gated (KI-10) | Built |
+| RPS rate limit | per-IP / per-token | Missing/Planned |
+| Memory retention | decay at importance≤2 + 30d unused; free-tier expiry | Decay Built; tier gating Planned |
+| Telemetry retention | audit trail kept | Built (no expiry by design); archival policy Planned |
 
 ---
 

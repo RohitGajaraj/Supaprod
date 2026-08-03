@@ -42,7 +42,7 @@
 
 | Document | Path | Purpose |
 | --- | --- | --- |
-| **Builder's Checklist** | `docs/Growth Strategy/marketing-site-build-checklist.md` | Step-by-step build checklist (11 commits, 40–50 hours), every phase broken into sub-tasks with verification criteria |
+| **Builder's Checklist** | `docs/growth/marketing-site-build-checklist.md` | Step-by-step build checklist (11 commits, 40–50 hours), every phase broken into sub-tasks with verification criteria |
 | **Design Record (this file)** | `docs/planning/archive/rebuild-2026-07-18/delivery-summary.md` | Delivery recap, files created, autonomy decisions explained |
 
 ---
@@ -216,7 +216,7 @@ src/routes/
 1. Read `docs/design/archive/tempo-v5.md` (30 min) → the law
 2. Read `2026-07-15-landing-v2-ink-and-starfield.md` (30 min) → the precedent
 3. Read `2026-07-18-marketing-site-expansion.md` (45 min) → strategy
-4. Open `docs/Growth Strategy/marketing-site-build-checklist.md` (commit-by-commit guide) → start coding
+4. Open `docs/growth/marketing-site-build-checklist.md` (commit-by-commit guide) → start coding
 5. Keep `2026-07-18-pricing-redesign-spec.md` open for details
 6. Reference `product.tsx` as a template for showcase pages
 
@@ -305,7 +305,7 @@ This isn't "I decided arbitrarily." It's "I decided within the constraints the p
 - `src/components/landing/SectionAlternate.tsx`
 - `src/components/landing/FramedVisual.tsx`
 - `src/routes/product.tsx`
-- `docs/Growth Strategy/marketing-site-build-checklist.md`
+- `docs/growth/marketing-site-build-checklist.md`
 - `docs/planning/archive/rebuild-2026-07-18/delivery-summary.md`
 
 **Commit message:**

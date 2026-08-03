@@ -201,8 +201,8 @@
 
 ## REFERENCE MATERIALS
 
-- Master Brief: `docs/planning/Supaprod Final Sweep/Supaprod Front-End Rebuild.md`
-- Goal prompt: `docs/planning/Supaprod Final Sweep/Goal Prompt for Supaprod Rebuild.md`
+- Master Brief: `docs/planning/rebuild-2026-07/final-sweep/Supaprod Front-End Rebuild.md`
+- Goal prompt: `docs/planning/rebuild-2026-07/final-sweep/Goal Prompt for Supaprod Rebuild.md`
 - Audit: `docs/planning/archive/rebuild-2026-07-18/phase-0-audit.md`
 - Vercel study: `docs/planning/vercel-dissection-study-2026-07-17.md`
 - Landing page tokens: extracted in Audit section 1

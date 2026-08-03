@@ -1,7 +1,7 @@
 // Supaprod brand-kit generator (founder-directed, 2026-07-14). Emits every form
 // of the SupaprodMark as standalone SVGs from the SAME parametric curve the app
 // renders (src/components/supaprod/SupaprodMark.tsx), so the kit can never drift
-// from the product. Run:  bun "docs/Growth Strategy/branding/generate.ts"
+// from the product. Run:  bun "docs/growth/branding/generate.ts"
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";

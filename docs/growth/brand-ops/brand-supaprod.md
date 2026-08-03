@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-16 · Status: ACTIVE — brand decided, registration pending, in-product rename EXECUTED 2026-07-17_
 >
-> **The in-product rename executed 2026-07-17** — code, DB, envs, and UI now operate as "Supaprod." This document governs the outward brand (domains, handles, email, trademark, launch identity) for the name **Supaprod**, founder-locked 2026-07-16 after a five-round, ~30-agent, ~680-live-check naming study. The full evidence chain for all evaluated names lives in [`pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md).
+> **The in-product rename executed 2026-07-17** — code, DB, envs, and UI now operate as "Supaprod." This document governs the outward brand (domains, handles, email, trademark, launch identity) for the name **Supaprod**, founder-locked 2026-07-16 after a five-round, ~30-agent, ~680-live-check naming study. The full evidence chain for all evaluated names lives in [`pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md).
 >
 > **Audience:** (1) the founder, executing registration and launch steps; (2) a **US trademark attorney or Indian trademark advocate**, who should be able to run clearance and file directly from §8 without redoing our research.
 >
@@ -385,4 +385,4 @@ The single do-not-forget table. Everything parked anywhere in this document appe
 
 ---
 
-*Evidence chain and the full 5-round, ~19-name evaluation record: [`pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md). Registrar/email price verification and RDAP domain checks performed live on 2026-07-16 by this session's research workflows; re-verify prices at checkout.*
+*Evidence chain and the full 5-round, ~19-name evaluation record: [`pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md). Registrar/email price verification and RDAP domain checks performed live on 2026-07-16 by this session's research workflows; re-verify prices at checkout.*

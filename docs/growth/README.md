@@ -1,4 +1,4 @@
-# Growth Strategy — the launch operating manual
+# growth — the launch operating manual
 
 > _Created: 2026-07-12 · Status: **ACTIVE** — the GTM execution manual for opening the doors (waitlist wave → design partners → the listing)._
 >

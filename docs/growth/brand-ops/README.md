@@ -1,6 +1,6 @@
 # GTM — go-to-market operations
 
-> _Created: 2026-07-16 · This folder holds **brand-ownership operations**: naming, domains, social handles, email infrastructure, and trademark filings. It is the ownership twin of [`../pitch/`](../pitch/README.md) (the Pitch Room) — the Pitch Room holds what we **say** outward; this folder holds what we **do** to own and operate the brand. Channel/launch/growth **execution** (playbooks, outreach, experiments) lives in its sibling [`../Growth Strategy/`](../Growth%20Strategy/README.md) — don't blur the two._
+> _Created: 2026-07-16 · This folder holds **brand-ownership operations**: naming, domains, social handles, email infrastructure, and trademark filings. It is the ownership twin of [`../pitch/`](../../pitch/README.md) (the Pitch Room) — the Pitch Room holds what we **say** outward; this folder holds what we **do** to own and operate the brand. Channel/launch/growth **execution** (playbooks, outreach, experiments) lives in its sibling [`../growth/`](../README.md) — don't blur the two._
 
 ## The files
 
@@ -12,5 +12,5 @@
 ## Standing rules for this folder
 
 1. **The future-actions register in `brand-supaprod.md` is binding memory** — anything parked for budget reasons (deferred domains, deferred trademark jurisdictions) lives there with a cost, trigger, and risk-if-forgotten. Never re-derive; check the register first.
-2. **The naming decision itself** (why Supaprod, the full 19-name evidence chain) lives in the Pitch Room: [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md). This folder holds the operations that flow from it, not the reasoning.
+2. **The naming decision itself** (why Supaprod, the full 19-name evidence chain) lives in the Pitch Room: [`../pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md). This folder holds the operations that flow from it, not the reasoning.
 3. **The in-product rename executed 2026-07-17** (code, DB, envs, UI now read Supaprod) — see the CLAUDE.md product-name ruling. This folder's operations already matched that outcome.

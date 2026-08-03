@@ -32,11 +32,15 @@ for f in *.md; do
   case "$ROOT_WHITELIST" in *" $f "*) ;; *) echo "  FAIL stray root doc: $f  (move into docs/<subfolder>/ and link it from that folder's index)"; FAIL=1;; esac
 done
 
-echo "-- [2] stray .md at docs/ top level (belongs in a subfolder) --"
-for f in docs/*.md; do
-  [ -e "$f" ] || continue
+# Checks EVERY loose file, not just *.md. A founder mission prompt sat at docs/
+# top level for weeks with NO file extension ("Readiness Audit & Consumer
+# Production grade"), so the old *.md glob never saw it. An extensionless file is
+# the easiest kind to lose, which makes it the most important kind to catch.
+echo "-- [2] stray files at docs/ top level (everything belongs in a subfolder) --"
+for f in docs/*; do
+  [ -f "$f" ] || continue
   b="$(basename "$f")"
-  case "$DOCS_TOP_WHITELIST" in *" $b "*) ;; *) echo "  FAIL stray docs/ doc: $f  (belongs in docs/<subfolder>/)"; FAIL=1;; esac
+  case "$DOCS_TOP_WHITELIST" in *" $b "*) ;; *) echo "  FAIL stray docs/ file: $f  (belongs in docs/<subfolder>/ and linked from its index)"; FAIL=1;; esac
 done
 
 echo "-- [3] macOS ' 2' duplication artifacts --"
@@ -62,7 +66,7 @@ while IFS= read -r mdfile; do
   links="$(grep -oE '\]\([^) ]+\.md[^) ]*\)' "$mdfile" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//; s/#.*$//')"
   while IFS= read -r link; do
     case "$link" in ""|http*|/*|mailto:*) continue ;; esac
-    # Markdown percent-encodes spaces. "docs/Growth%20Strategy/x.md" is a VALID
+    # Markdown percent-encodes spaces. A link like "docs/some%20folder/x.md" is VALID
     # link to a real file; testing it undecoded reported 8 healthy links as broken,
     # which is how a warn list gets ignored. Decode before the existence test.
     dec="$(printf '%s' "$link" | sed 's/%20/ /g')"

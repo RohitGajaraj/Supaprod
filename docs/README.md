@@ -1,195 +1,98 @@
-# docs/ — Index
+# docs/
 
-> _Created: 2026-06-04 · Last updated: 2026-07-10_
+> _Created: 2026-06-04 · Last updated: 2026-08-03_
 
-> Parent index for everything under `docs/`. Every new doc added to this folder must be listed here so nothing lives in a silo. If you add a file and don't link it from this index (or its subfolder's index), the doc loop is open — close it in the same commit.
->
-> Operating rules live in [`../AGENTS.md`](../AGENTS.md). Product thesis lives in [`../README.md`](../README.md). Build log + roadmap live in [`planning/archive/build-log.md`](./planning/archive/build-log.md). Architecture contracts live in [`../architecture/`](../architecture/). This folder holds the _operator-facing_ and _strategic_ docs that wrap those contracts.
+**Fifteen folders, each answering one question.** This file says which folder answers which, and it is the placement policy: before creating any file, find its bucket here and link it from that bucket's index in the same commit.
 
----
-
-## 📍 Repository map & file-placement policy — READ BEFORE CREATING ANY FILE
-
-> **This is the standing anti-rot rule.** Every file has exactly one correct home and must be linked from that home's index in the same commit. This section exists so no tool (Claude Code · Antigravity · Gemini · Lovable · future me) ever re-scatters the repo. We have spent hours regrouping before — this is how we stop doing that.
-
-### Where everything lives
-
-| When you create… | Put it in… | And link it from… |
-| --- | --- | --- |
-| A strategy / positioning doc | `docs/strategy/vN-…-YYYY-MM-DD.md` (**which doc is current is decided by [`strategy/README.md`](./strategy/README.md), the arbiter; v10 is the current build canon**) | [`strategy/README.md`](./strategy/README.md) |
-| A **superseded** strategy doc | `docs/strategy/archive/` | [`strategy/README.md`](./strategy/README.md) (Archived) |
-| A planning / backlog / known-issue / handoff doc | `docs/planning/` | this file (§ Live status & backlog) |
-| The "where are we / what is next / what needs the founder" front door | `docs/planning/SOURCE-OF-TRUTH.md` (the SSOT; § 0 is the live cursor NOW; § 7 is the doc map) | this file (§ Live status & backlog) |
-| The master feature status matrix | `docs/planning/feature-dashboard.md` | this file (§ Live status & backlog) |
-| A **new multi-item initiative** (build bible) | `docs/planning/<initiative>-plan.md` + add a board group to `docs/planning/feature-dashboard.md` + an entry to SSOT § 3 | this file (§ Live status & backlog); full rule: [`../AGENTS.md`](../AGENTS.md) "The Documentation Operating System" |
-| A market / competitive / research reference | `docs/references/` | this file (§ References) |
-| **Outward-facing positioning: pitch, demo, application, objection-handling content** | `docs/pitch/` (**the Pitch Room** — update existing files in place, never parallel copies; PROVEN/WIRING/ROADMAP claim tags; standing routing rule, founder 2026-07-10) | [`pitch/README.md`](./pitch/README.md) |
-| A GTM / launch / growth **execution** doc (channel playbooks, outreach systems, experiments, launch sprints) | `docs/Growth Strategy/` (the launch operating manual, founder-created 2026-07-12; positioning stays in the Pitch Room — this folder executes, never re-states claims) | [`Growth Strategy/README.md`](./Growth%20Strategy/README.md) |
-| A **brand-operations** doc (naming execution, domains, social handles, email infrastructure, trademark filings) | `docs/gtm/` (brand **ownership** ops — the twin of the Pitch Room; its future-actions register is **binding memory** for budget-parked purchases/filings; channel/launch execution stays in `docs/Growth Strategy/`) | [`gtm/README.md`](./gtm/README.md) |
-| An ops runbook or policy (commits · hooks · memory · skills · subagents · tools · git-discipline · demo-credentials · runbooks) | `docs/operations/` | this file (§ Operator guides) |
-| A durable cross-tool convention (UI chrome · voice · destructive · inline · checklist) | `docs/conventions/` | [`conventions/README.md`](./conventions/README.md) |
-| A build-in-public / brand content doc | the separate **private** `build-in-public` repo (not this repo) | n/a (moved out 2026-06-15) |
-| A per-feature operator / demo spec | `docs/features/` | [`features/README.md`](./features/README.md) |
-| An architecture contract (runtime · orchestration · security · data · frontend · integrations) | `architecture/` | this file (links throughout) |
-| An ADR / technical decision | `docs/decisions/` | this file (§ Decisions) |
-| A **verification / QA** screenshot (proof a build rendered) | `docs/screenshots/<group>/` — **gitignored, local only** | n/a (not committed) |
-| A **canonical design-reference** image a parallel build must match | `design-reference/` (next to the `*.jsx` references) — **committed, curated** | the relevant spec / [`design/archive/obsidian-v3.md`](./design/archive/obsidian-v3.md) (app) / [`design/archive/ember-editorial-landing.md`](./design/archive/ember-editorial-landing.md) (landing) |
-
-### Repo root is reserved — do not add docs here
-
-Root holds **only**: AI-entry docs (`README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `README.md`, `docs/strategy/founding-constitution.md`), build/config (`package.json`, `vite.config.ts`, `wrangler.jsonc`, `tsconfig.json`, `eslint.config.js`, `components.json`, `bun.lock`, `bunfig.toml`, `.gitignore`, `.prettier*`, `.mcp.json`, `.lovable-config.txt`, `requirements.txt`, `.env*`), and the live cursors `docs/planning/archive/build-log.md` + `docs/design/archive/tempo-v5.md` (THE v5 design contract for all surfaces, adopted 2026-07-10) + the retired design-history contracts (`docs/design/archive/loom-v4.md`, `docs/design/archive/obsidian-v3.md`, `docs/design/archive/ember-editorial-landing.md` — history only, never build from them). **Nothing else.** (The old root `active-task.md` was folded into [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) § 0 "The live cursor (NOW)" on 2026-06-19; do not recreate it at root.)
-
-### Hard rules (the loop stays closed)
-
-1. **No new doc at repo root or at `docs/` top level** (except the reserved entries above). Pick a subfolder.
-2. **No redirect stubs, no duplicates.** One canonical file per topic. If a file moves, repoint its inbound links — never leave a pointer file behind.
-3. **Every new doc is linked from its folder's index in the same commit.** A doc nothing links to is an orphan — that is the open-loop defect.
-4. **Which strategy doc is current is decided by [`strategy/README.md`](./strategy/README.md)** (the arbiter) - do not hardcode a version here. As of 2026-06-19 the layered canon is v7 positioning / v8 structure / v9 wedge / v10 build, with **v10 the current build-next canon**; when a newer `vN` supersedes any layer it updates the arbiter, not this file.
-5. **Images split by purpose — input vs. artifact.** **Verification / QA screenshots** (proof a build rendered) are **local-only, gitignored** under `docs/screenshots/` — they are transient evidence and bloat git history (binaries never diff; every version is kept forever). **Canonical design-reference images** that a parallel build (Lovable · Gemini · Antigravity · Claude Code) must _match_ are **committed to `design-reference/`** — those tools only see `main`, not your local folder or chat image-cache, so a load-bearing reference must be in git or they're flying blind. Curate ruthlessly: **one canonical image per screen**, linked from its spec, exactly like the `*.jsx` references already there — not a dump of every crop. (Git images don't consume session context — they're inert until an agent opens one; the only cost is repo size, so the rule is "few and durable, never bulk.") If volume ever gets heavy, escalate to **Git LFS** or keep heavy assets in the design project and reference by URL. **The full bucket map (scenario to location), the retention windows, and the automatic sweep are the standing rule in [`conventions/workspace-hygiene.md`](./conventions/workspace-hygiene.md) — no image ever belongs at the repo root or the `docs/` top level.**
-
-> Entry docs ([`../README.md`](../README.md), [`../CLAUDE.md`](../CLAUDE.md), [`../AGENTS.md`](../AGENTS.md), [`../GEMINI.md`](../GEMINI.md), [`../.lovable-config.txt`](../.lovable-config.txt)) point here as the canonical map. Keep this section true; it is the contract.
+Start at [`../README.md`](../README.md) if you want to know what the product is. Start at [`../AGENTS.md`](../AGENTS.md) if you are about to write code.
 
 ---
 
-## Live status & backlog
+## The buckets
 
-| File | Purpose |
+### Why we build what we build
+
+| Folder | Question it answers |
 | --- | --- |
-| [`planning/feature-dashboard.md`](./planning/feature-dashboard.md) | **★ THE MASTER FEATURE STATUS BOARD (front door).** Every feature with status (Done / In Dev / Partial / Paused / Deferred / Blocked / Pending), a one-line "why it matters", a stable ID, and a build cue. **Standing rule: read it BEFORE starting any feature work** (respects In-Dev claims so parallel sessions never collide); flip a row to In Dev on pickup and Done on completion, same commit. Human-readable master view of the backlog board below. |
-| [`planning/archive/feature-backlog.md`](planning/archive/feature-backlog.md) | **Granular ledger + Build-order rollup** + full feature entries with "How to use / verify" blocks. The detail behind the dashboard above; its Live status board is mirrored at-a-glance in the dashboard. |
-| [`planning/archive/foundation-audit.md`](./planning/archive/foundation-audit.md) | Foundation-phase audit tickets and acceptance criteria. (Archived 2026-06-19.) |
-| [`planning/considerations.md`](./planning/considerations.md) | Cross-cutting concerns that don't fit a single architecture doc. |
-| [`planning/known-issues.md`](./planning/known-issues.md) | **Live known-issues tracker** — open bugs/blockers with stable KI-IDs; doubles as the June 22 demo punch list. The constitution concordance target for `KNOWN_ISSUES.md`. |
-| [`planning/archive/v4-rebuild-handoff.md`](./planning/archive/v4-rebuild-handoff.md) | **v4 rebuild session tracker** — what was decided/produced on 2026-06-11 and how a fresh session resumes without re-spending tokens. |
-| [`planning/archive/v7-trd.md`](./planning/archive/v7-trd.md) | **v7 Technical Requirements Document (archived, superseded by v10):** code-verified architecture snapshot (Part A) + the M-0 to M-D requirements as What/Why/Where/Acceptance with Built/Partial/Missing tags (Part B). The engineering contract for the v7 canon. |
-| [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) | **★ THE SINGLE SOURCE OF TRUTH (the front door - read first).** The one file to read: § 0 is the live cursor (NOW) - it folded in and replaced the old root `active-task.md` (2026-06-19); plus status, build queue, founder rulings, findings, progress, and § 7 the doc map. Updated every cycle. (Supersedes the archived `v7-build-status.md` as the build-state tracker.) |
-| [`planning/analytics-and-failure-detection-plan.md`](./planning/analytics-and-failure-detection-plan.md) | **AFD initiative build bible (group G12, founder-gated 2026-06-25).** V3 doctrine (BUILD moat / BUY commodity / INTEGRATE at a façade) + V1 phased build sequence (Phases 0-5) + 14 cold-buildable task IDs `AFD-01`..`AFD-14`. Vendor selection (PostHog EU + Sentry EU + Better Stack) + dormant-by-design gate + exit posture (leave-Lovable in ~1 day). Linked siblings: feature spec, façade, vendor ADR, alerting runbook. |
-| [`planning/byo-p5-managed-runtime-plan.md`](./planning/byo-p5-managed-runtime-plan.md) | **BYO-P5 ops/cost/security plan (group G11, founder-gated, produced 2026-07-01).** The precursor P5 was explicitly gated on: hosting provider (Cloudflare Workers for Platforms) + an `AppRuntimeProvider` seam design, tenant isolation model (pooled with RLS-audit + isolation-test gates), COGS estimate, security/compliance scope (GDPR now, SOC2/HIPAA/PCI deferred), build-vs-partner, and a P5a-P5f phased sequence. No code written; founder review + a directly-owned Cloudflare/Supabase account are the next steps. |
-| [`planning/research-sprint-lane-briefs.md`](./planning/research-sprint-lane-briefs.md) | **G18 research-sprint lane briefs (2026-07-10 research merge).** Three paste-ready parallel-session briefs (Lane A judgment/Fable · Lane B build/Sonnet · Lane C GTM/Sonnet) over dashboard group G18 (`RPT-01..50`, the merged research-derived product moves: 47 DECISIVE claimable + 3 FOUNDER-CALL gated): pickup filter, claim protocol, worktree isolation, correctness gates, done-definition. Header carries the consolidation method (evidence → fit test → adopt/defer/reject), the upstream/downstream extension, and the rejected-directions list. Authority: session-decisions 2026-07-10 decision 7. |
-| [`planning/archive/v7-feature-map.md`](./planning/archive/v7-feature-map.md) | **v7 feature map.** The shipped-state catalog by lifecycle station and surface; each feature tagged Built, Partial, or Missing-Planned. |
-| [`planning/archive/v7-functionality-map.md`](./planning/archive/v7-functionality-map.md) | **v7 functionality map.** How each major flow behaves: inputs, steps, the four states, the human-in-the-loop gates, and the data read and written. |
-| [`planning/archive/v7-prd.md`](./planning/archive/v7-prd.md) | **v7 PRD (archived, superseded by v10).** Problem, personas, epics as user stories with acceptance criteria and priorities tied to M-0 to M-D, and the launch-gating success metrics. |
-| [`operations/demo-credentials.md`](./operations/demo-credentials.md) | Pre-provisioned demo logins (two emails + shared password), what each account ships with, how they were created, and the re-seed SQL. Use for screen recordings, YC / investor demos, and anywhere a working login is needed. |
-| [`operations/domain-and-email-setup.md`](./operations/domain-and-email-setup.md) | `supaprod.ai`/`.com` domain + Cloudflare Email Routing setup: live status, every email address and why it exists, what's deliberately deferred, how it was configured, and the gotchas hit live (Redirect Rules `concat()` syntax, catch-all is a separate toggle, DNS negative-cache propagation lag). |
-| [`features/archive/agent-ecosystem-plan.md`](./features/archive/agent-ecosystem-plan.md) | **F-AGENT-1 → F-AGENT-4 bundle plan** — orchestrator (shipped), persistent memory + self-reflection + trust auto-advance, event reactor + auto-pipelines, Swarm HUD. The canonical, session-surviving plan for the agent-native behavior layer. |
-| [`features/auth-flows.md`](./features/auth-flows.md) | Authentication flows — sign-up, sign-in, password visibility toggle, forgot-password / reset-password flow, session lifecycle, demo accounts. |
+| **[`strategy/`](./strategy/README.md)** | Direction, the moat, positioning, pricing. Which doc is current is decided by its README, the arbiter. |
+| **[`references/`](./references/)** | What the market and competitors actually do. Dated primary sources. Cite artifacts and companies, never gurus. |
+| **[`prompts/`](./prompts/README.md)** | The founder's mission briefs, verbatim. Not rules, not plans; the original ask. |
 
-## Brand & build-in-public
+### What we are building
 
-The build-in-public brand system was **split into a separate private repo** (`RohitGajaraj/build-in-public`) on 2026-06-15, so the founder's personal brand, voice, drafts, and social tokens stay out of this (shareable) product repo. It is no longer in `docs/brand/`. **Standing rule for every tool working in this repo:** when a non-obvious build insight surfaces, append it to that repo's `content-well.md` (the one-way insight feed) so the weekly content routine can draft from it; never post to the founder's accounts without his explicit approval. Do not recreate `docs/brand/` here.
-
-## Architecture contracts (the `../architecture/` folder)
-
-| File | What it specifies |
+| Folder | Question it answers |
 | --- | --- |
-| [`../architecture/runtime.md`](../architecture/runtime.md) | The AI chokepoint: callModel, callModelStream, guardrails, cost, BYO keys. |
-| [`../architecture/orchestration.md`](../architecture/orchestration.md) | Missions, the agent loop, auto-advance, handoff, memory. |
-| [`../architecture/data.md`](../architecture/data.md) | The data layer: tables, RLS, key RPCs. |
-| [`../architecture/security.md`](../architecture/security.md) | Auth, tenancy, governance, the kill switch. |
-| [`../architecture/integrations.md`](../architecture/integrations.md) | Connectors, BYO keys, agent interop. |
-| [`../architecture/frontend.md`](../architecture/frontend.md) | Frontend patterns and the app shell. |
-| [`../architecture/diagrams.md`](../architecture/diagrams.md) | New. The visual companion: system, deployment, ERD, sequence, and state diagrams (Mermaid). |
-| [`../architecture/deployment.md`](../architecture/deployment.md) | New. Build and deploy path, runtime topology, secrets, the cron loop, migrations, rollback. |
-| [`../architecture/api.md`](../architecture/api.md) | New. The API and interface reference: public routes, server functions, the A2A and the planned MCP surface. |
-| [`../architecture/observability.md`](../architecture/observability.md) | New. Telemetry (cost, traces, evals, drift, the gauntlet) plus the non-functional requirements. |
-| [`../architecture/threat-model.md`](../architecture/threat-model.md) | New. STRIDE analysis, the anon-read surface inventory, secrets, the agent-washing posture. |
+| **[`planning/`](./planning/SOURCE-OF-TRUTH.md)** | Where we are, what is next, what needs the founder. **[`SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) §0 is the only live cursor.** Per-feature status is [`feature-dashboard.md`](./planning/feature-dashboard.md); open bugs are [`known-issues.md`](./planning/known-issues.md). |
+| **[`features/`](./features/README.md)** | How each shipped thing works, one page per feature. The loop's proof file is [`lifecycle-signal-to-learning.md`](./features/lifecycle-signal-to-learning.md). |
 
-## Operator guides (what surfaces mean and how to use them)
+### How it should look, and how it is built
 
-| File | What it explains | Tightly coupled to |
-| --- | --- | --- |
-| [`features/trust-and-autonomy.md`](./features/trust-and-autonomy.md) | Agent Trust score (0–100), qualitative bands, the three ingredients in the tooltip, and the four autonomy arcs (Observing → Proving → Trusted → Ambient) at the approval gate. | [`features/a2a-handoff.md`](./features/a2a-handoff.md), [`../architecture/security.md`](../architecture/security.md), [`../architecture/orchestration.md`](../architecture/orchestration.md) |
-| [`features/a2a-handoff.md`](./features/a2a-handoff.md) | Agent-to-agent handoff contract (Bundle 4 / E1–E5): missions, structured payloads, receiver-arc gating, failure policy. | [`features/trust-and-autonomy.md`](./features/trust-and-autonomy.md), [`../architecture/orchestration.md`](../architecture/orchestration.md) |
-| [`features/web-access.md`](./features/web-access.md) | Web I/O tools for agents (`web.search` / `fetch` / `map` / `crawl`) backed by Firecrawl — what they do, default approvals, safety model, setup. | [`features/trust-and-autonomy.md`](./features/trust-and-autonomy.md), [`features/a2a-handoff.md`](./features/a2a-handoff.md), [`../architecture/runtime.md`](../architecture/runtime.md), [`../architecture/integrations.md`](../architecture/integrations.md) |
-| [`features/github-issue-approval-flow.md`](./features/github-issue-approval-flow.md) | The `github.issue.create` → `prd.link_issue` approval flow (Bundle 6 lifecycle close): what happens on Approve, which repo/token, idempotency, failure modes, verification checklist, secret rotation. | [`features/trust-and-autonomy.md`](./features/trust-and-autonomy.md), [`features/a2a-handoff.md`](./features/a2a-handoff.md), [`../architecture/orchestration.md`](../architecture/orchestration.md), [`../architecture/integrations.md`](../architecture/integrations.md) |
-| [`operations/fnd-runtime-restart-playbook.md`](./operations/fnd-runtime-restart-playbook.md) | Forced-restart verification playbook for FND-RUNTIME 0.9 — operator steps to prove a long mission resumes from checkpoint with no duplicate external writes after a worker restart. | [`planning/archive/foundation-audit.md`](./planning/archive/foundation-audit.md), [`features/archive/bundle-9-builder.md`](./features/archive/bundle-9-builder.md), [`../architecture/runtime.md`](../architecture/runtime.md) |
-| [`operations/commits.md`](./operations/commits.md) | Cross-tool commit/push WHY discipline; enforced by hooks. | [`../AGENTS.md`](../AGENTS.md) |
-| [`operations/session-handoff.md`](./operations/session-handoff.md) | The durable, git-tracked half of the session handoff pair, and why there are two. `.remember/remember.md` is a one-shot mailbox the `remember` plugin clears as it reads, so it can carry the automatic context injection but never the committed record; this file carries the record. Write both before you pause or end. | [`../AGENTS.md`](../AGENTS.md) (session loop), [`operations/memory.md`](./operations/memory.md), [`../CLAUDE.md`](../CLAUDE.md) |
-| [`operations/git-recovery-and-orphan-guard.md`](./operations/git-recovery-and-orphan-guard.md) | The 2026-07-27 orphan-main incident: how a renamed checkout broke every linked worktree's back pointer, why `git init` was the wrong recovery (`git worktree repair` is the right one), the `pre-push` guard that now blocks orphan pushes to `main`, why server-side branch protection is unavailable, and the audited branch inventory with restore SHAs. Read before touching worktrees or force-pushing. | [`operations/commits.md`](./operations/commits.md), [`operations/parallel-build.md`](./operations/parallel-build.md), [`../AGENTS.md`](../AGENTS.md) |
-| [`operations/migration-check.md`](./operations/migration-check.md) | Migration drift check: the automated gate that verifies every `supabase/migrations/` file is applied; wired into `bun run build`, the `post-merge` git hook, and `bun run db:check`. Blocks deploys when migrations are pending. | [`operations/hooks.md`](./operations/hooks.md), [`../architecture/data.md`](../architecture/data.md) |
-| [`operations/autonomous-build-loop.md`](./operations/autonomous-build-loop.md) | Standing playbook for an unattended / overnight build run: the contract, the per-item loop, the gates, the doc-loop, collision-safe worktree isolation, context-continuity and handoff, and the usage-limit retry resilience. Re-invokable via `/overnight-build`. Live run status: [`planning/archive/overnight-build-report.md`](./planning/archive/overnight-build-report.md). | [`../AGENTS.md`](../AGENTS.md), [`planning/feature-dashboard.md`](./planning/feature-dashboard.md), [`operations/commits.md`](./operations/commits.md) |
-| [`operations/parallel-build.md`](./operations/parallel-build.md) | Plain "how to run it" manual for the numbered autonomous-build-lane worktree system (`cadence-lane-0`..`4`): the one-command launch (`ob N`), the atomic mkdir-based claim ledger at `~/.cadence-parallel/`, the `CHOKEPOINT` safety pin over the agent core, and the `lane.sh board`/`list`/`reap` commands. | [`operations/autonomous-build-loop.md`](./operations/autonomous-build-loop.md) §15-16, [`decisions/parallel-development-model.md`](./decisions/parallel-development-model.md), [`planning/feature-dashboard.md`](./planning/feature-dashboard.md) |
-| [`operations/auth-backend-migration-runbook.md`](./operations/auth-backend-migration-runbook.md) | PLANNED runbook to leave Lovable Cloud and own our Supabase project + Google OAuth. Why it is the right long-term call, the two moves, $0 cost, the Lovable bring-your-own-Supabase path, and a phased checklist with owner tags. | [`operations/demo-credentials.md`](./operations/demo-credentials.md), [`../architecture/security.md`](../architecture/security.md) |
-| [`operations/procurement-inventory.md`](./operations/procurement-inventory.md) | The single shopping list: every paid / metered / vendor dependency Supaprod may buy, with what it's for, why, the web-verified cost, vendor options, a recommendation, and a "when to buy" — so spend decisions are picked up cold at demo/launch time. STANDING RULE: update it on any new spend/vendor decision. | [`strategy/build-buy-integrate.md`](./strategy/build-buy-integrate.md), [`features/sandbox-spine.md`](./features/sandbox-spine.md), [`operations/credit-engine-go-live.md`](./operations/credit-engine-go-live.md), [`../AGENTS.md`](../AGENTS.md) |
-| [`operations/signal-fabric-live-test-playbook.md`](./operations/signal-fabric-live-test-playbook.md) | Operator script to live-test Signal Fabric (Phases 0-3 + SF-MCP) end to end on the published app: prerequisites, manual tick commands, 6 scenarios (pipeline check, forced tick, connector ingest, HITL Watch/Listen, auto-trigger, SF-MCP), pass criteria, fail modes. | [`features/signal-fabric.md`](./features/signal-fabric.md), [`features/sf-autotrigger.md`](./features/sf-autotrigger.md), [`features/sf-mcp.md`](./features/sf-mcp.md), [`operations/demo-credentials.md`](./operations/demo-credentials.md), [`operations/fnd-runtime-restart-playbook.md`](./operations/fnd-runtime-restart-playbook.md) |
-| [`operations/signal-fabric-connector-setup.md`](./operations/signal-fabric-connector-setup.md) | Founder-side checklist for activating the free-tier SF-CONNECTORS + SF-MCP fleet: which sources are worth it on a free tier, exact per-tool click path, known blockers (Stripe invite-only in India), and a live status table. | [`operations/signal-fabric-live-test-playbook.md`](./operations/signal-fabric-live-test-playbook.md), [`features/signal-fabric.md`](./features/signal-fabric.md), [`features/sf-mcp.md`](./features/sf-mcp.md) |
-| [`operations/connector-setup.md`](./operations/connector-setup.md) | Master native-OAuth connector registration table (every provider, secrets, redirect URL, live status) and the shared "Known caveats" section (Google verification/Testing status, Zendesk subdomain, Stripe/PKCE quirks, which adapters are still stubs). Folder index for the detailed per-connector runbooks: [`operations/connectors/README.md`](./operations/connectors/README.md). | [`operations/connectors/README.md`](./operations/connectors/README.md), [`../src/lib/connectors/registry.ts`](../src/lib/connectors/registry.ts) |
-| [`operations/connectors/README.md`](./operations/connectors/README.md) | Step-by-step, field-by-field registration runbooks for connectors already verified working or pending live re-test (GitHub, Slack, Google Suite, Microsoft Suite, Salesforce, Intercom): exact console navigation, exact secrets to paste into Lovable, and how to switch the connection to a different account/org later without re-registering. | [`operations/connector-setup.md`](./operations/connector-setup.md) |
-| [`operations/rename-cadence-to-supaprod.md`](./operations/rename-cadence-to-supaprod.md) | The Cadence → Supaprod rename equivalence ruling (2026-07-17): casing rules, what changed, and the short explicit list of internal legacy identifiers intentionally left unmigrated (demo credentials, the DB `cadence` schedule-frequency column, the local repo folder/git remote) — same convention as the Builder → Studio → Build disclaimer in `CLAUDE.md`. | [`../CLAUDE.md`](../CLAUDE.md), [`pitch/naming-decision-supaprod.md`](./pitch/naming-decision-supaprod.md), [`gtm/brand-supaprod.md`](./gtm/brand-supaprod.md) |
-
-## Per-feature operator & demo guides
-
-One canonical page per shipped, user-facing feature. The **single place** to open during a demo or when learning a feature months later. Strategy stays in [`strategy/`](./strategy/); architecture stays in [`../architecture/`](../architecture/); the build log stays in [`planning/archive/build-log.md`](./planning/archive/build-log.md) §4 — these pages consolidate, they do not invent. Folder index + template: [`features/README.md`](./features/README.md).
-
-| ID | Feature | Doc |
-| --- | --- | --- |
-| F-AGENT-1 | Orchestrator + multi-agent missions | [`features/f-agent-1-orchestrator.md`](./features/f-agent-1-orchestrator.md) |
-| F-AGENT-2 | Persistent memory + self-reflection + trust auto-advance | [`features/f-agent-2-memory-reflection.md`](./features/f-agent-2-memory-reflection.md) |
-| F-AGENT-3 | Event reactor + auto-pipelines | [`features/f-agent-3-event-reactor.md`](./features/f-agent-3-event-reactor.md) |
-| F-AGENT-4 | Swarm HUD | [`features/f-agent-4-swarm-hud.md`](./features/f-agent-4-swarm-hud.md) |
-| Bundle 9 | Builder agent · PR · CI loop · file-claim conflict guard — **superseded by F-STUDIO** | [`features/archive/bundle-9-builder.md`](./features/archive/bundle-9-builder.md) |
-| F-BRAIN | **Brain** — Perplexity-grade research over web+workspace AND the company brain (auto-retention, remember/capture actions, brain status); deep-linked citations, model switcher | [`features/brain.md`](./features/brain.md) |
-| F-STUDIO | **Studio** — the in-platform development engine: repo reads, multi-file DB-staged changesets, `studio/*` branches, PR + CI self-correct, in-platform merge behind gates; two doors (agent contract + `/studio` human surface with Monaco diffs and mid-session steering) | [`features/studio.md`](./features/studio.md) |
-
-## Strategy (versioned positioning)
-
-**[`strategy/README.md`](./strategy/README.md) is the single arbiter of which strategy doc is current for what** - it holds the full version index, the archive, the role map, and the cascade rule. Read it first; do not hardcode a "current" version here. As of 2026-06-19 the layered canon is v7 positioning / v8 structure / v9 wedge / **v10 the current build-next canon**. Engine / expansion map: [`strategy/archive/v4-feature-map.md`](./strategy/archive/v4-feature-map.md) (+ adversarial companion [`strategy/archive/v4-stress-test.md`](./strategy/archive/v4-stress-test.md)). Wedge UX detail: [`strategy/archive/v5-chief-of-staff.md`](./strategy/archive/v5-chief-of-staff.md). Personas: [`strategy/archive/v3-positioning-cadence.md`](./strategy/archive/v3-positioning-cadence.md). Superseded iterations (v1/v2/v3-audit\*) live in [`strategy/archive/`](./strategy/archive/). Cross-session decisions: [`strategy/session-decisions.md`](./strategy/session-decisions.md).
-
-**💳 Pricing & billing** has its own sub-hub: [`strategy/pricing/`](./strategy/pricing/README.md) is the single front door for the credit model, BYOK, model access, tiers, and the billing rail. Start at [`strategy/pricing/pricing-architecture.md`](./strategy/pricing/pricing-architecture.md) (the finalized end-to-end system).
-
-## Conventions (durable cross-tool rules)
-
-Git-tracked rules every tool follows. One file per rule. Index + how to add: [`conventions/README.md`](./conventions/README.md).
-
-| File | Rule |
+| Folder | Question it answers |
 | --- | --- |
-| [`conventions/ui-chrome.md`](./conventions/ui-chrome.md) | No native browser chrome. Use `useConfirm`/`usePrompt`/`sonner`/shadcn. |
-| [`conventions/ui-voice.md`](./conventions/ui-voice.md) | Voice anchor, length budgets, AI-tell denylist, no em/en dashes. |
-| [`conventions/destructive-actions.md`](./conventions/destructive-actions.md) | Typed-name match for irreversible deletes; Undo over confirm for reversible. |
-| [`conventions/inline-management.md`](./conventions/inline-management.md) | Workspace + product management inline, never a settings route. |
-| [`conventions/doc-update-cadence.md`](./conventions/doc-update-cadence.md) | 8-step per-feature checklist that closes the documentation loop. |
+| **[`design/`](./design/DESIGN-SYSTEM.md)** | The design contract. **[`DESIGN-SYSTEM.md`](./design/DESIGN-SYSTEM.md) is current**; the four earlier systems are in its [`archive/`](./design/archive/README.md). |
+| **[`conventions/`](./conventions/README.md)** | Durable cross-tool rules: voice, chrome, destructive actions, the Engine-Room doctrine, surface discipline, humanized output. |
+| **[`decisions/`](./decisions/)** | ADRs. Why a technical call went the way it did. |
+| **[`../architecture/`](../architecture/)** | The contracts: runtime, orchestration, security, data, frontend, integrations. Lives at repo root, not here. |
 
-## Decisions (ADRs)
+### How we run and verify it
 
-| File | Decision |
+| Folder | Question it answers |
 | --- | --- |
-| [`decisions/launch-gates-seat-limits-and-sandbox.md`](./decisions/launch-gates-seat-limits-and-sandbox.md) | **TWO FOUNDER DECISIONS.** Tier limits are switched off and cannot be flipped until the demo accounts are on a tier matching what they hold (ten are over today). And build agents have no sandbox, so they can read CI but never run a test themselves. Costs, options and the do-nothing alternative, with numbers. |
-| [`decisions/lineage-relation-vocabulary.md`](./decisions/lineage-relation-vocabulary.md) | **DECISION NEEDED.** `artifact_lineage.relation` holds sixteen strings for thirteen meanings (two writers, two conventions). Proposal to collapse them, including an endpoint flip on 105 rows, which is why it is here and not in `supabase/migrations/`. Nothing is broken while it waits. |
-| [`decisions/tech-stack.md`](./decisions/tech-stack.md) | Stack choices + keep-vs-change analysis. |
-| [`decisions/durable-runtime.md`](./decisions/durable-runtime.md) | Durable workflow / runtime choice. |
-| [`decisions/analytics-vendor-selection.md`](./decisions/analytics-vendor-selection.md) | AFD vendor selection (PostHog EU + Sentry EU + Better Stack); BUY commodity, BUILD moat, INTEGRATE at façade. |
-| [`decisions/parallel-development-model.md`](./decisions/parallel-development-model.md) | Multi-tool parallel development model. |
-| [`decisions/tenancy-retrofit.md`](./decisions/tenancy-retrofit.md) | Workspace/product tenancy retrofit. |
-| [`decisions/naming.md`](./decisions/naming.md) | Product naming. |
-| [`operations/calendar-oauth-setup-runbook.md`](./operations/calendar-oauth-setup-runbook.md) | **RETIRED 2026-07-17** - documented the old Lovable connector-gateway path, replaced wholesale by native OAuth (2026-07-09). Superseded by [`operations/connectors/google-suite.md`](./operations/connectors/google-suite.md) and [`operations/connectors/microsoft-suite.md`](./operations/connectors/microsoft-suite.md). |
+| **[`operations/`](./operations/README.md)** | Commits, hooks, skills, memory, demo logins, connectors, runbooks, go-live, procurement. |
+| **[`testing/`](./testing/README.md)** | How tests are written here. One live document; coverage snapshots are archived. |
+| **[`security/`](./security/README.md)** | Audit findings and remediation state. |
 
-## References (external research feeding the product)
+### What we say outward
 
-| File | Purpose |
+| Folder | Question it answers |
 | --- | --- |
-| [`references/competitive-landscape.md`](./references/competitive-landscape.md) | **June-2026 market scan with source links** (AI-PM tools, suite agents, autonomous engineering, MCP/A2A, naming, investor signal). Read this instead of re-researching. |
-| [`archive/competitive-reference.md`](./archive/competitive-reference.md) | Competitive landscape notes (older). |
-| [`archive/idea-origination-inputs.md`](./archive/idea-origination-inputs.md) | Inputs that shaped the original idea. |
-| [`references/research-references-aakash-gupta.md`](./references/research-references-aakash-gupta.md) | PM-voice research references. |
-| [`references/pm-voice-and-ai-tooling-research.md`](./references/pm-voice-and-ai-tooling-research.md) | **Jul-2026 sourced pain-point research** — real user voices (Reddit-adjacent/HN/G2/Capterra/Lenny's/Product Hunt) on incumbent PM tool complaints, AI-PM-tool sentiment (loved vs. gimmick), PM grunt work ranked, wishlist, fears/trust requirements, and cross-role handoff pain. 20-citation source table; every claim dated. |
-| [`references/launch-research-briefs.md`](./references/launch-research-briefs.md) | **Jul-2026 v13 evidence base (4 sourced briefs):** competitive landscape (grid + pricing + the confirmed empty white-space + ranked threats), frontier-agent UX patterns (Claude Code/Tag, Pulse, Jules, Hermes, Devin, Sierra), market sizing (TAM/SAM/SOM math + role-shift + pricing + distribution + frontier-survival precedents), and Airtable HyperAgent + the $20k credit ruling. Feeds [`strategy/archive/v13-proof-campaign.md`](./strategy/archive/v13-proof-campaign.md) and the YC application (PC-27). |
-| [`references/podcast-corpus-frontier.md`](./references/podcast-corpus-frontier.md) | **Jul-2026 frontier voices & launch-content corpus (transcript-mined):** 15 dated items (2025 → Jul 2026) — OpenAI (ChatGPT agent, DevDay/AgentKit/Codex, Frontier, GPT-5.6/ChatGPT Work), Anthropic (Agent SDK, Skills/MCP standardization, Cowork, Fable 5), Truell/Cursor, Karpathy, Nadella/Agent 365, Hassabis, Claire Vo + How I AI operators (Stripe Minions, evals-as-PRD), Sierra/a16z/YC pricing — verbatim quotes on end-to-end agent capability, the human-minimum role, pricing, and the unsolved layer; closes with top-10 insights + ranked "Product moves for Supaprod." Extends `pm-voice-and-ai-tooling-research.md` §14–15 and Brief 2 of the launch briefs. |
-| [`references/podcast-corpus-lenny.md`](./references/podcast-corpus-lenny.md) | **Jul-2026 Lenny's Podcast operator corpus (transcript-mined):** 16 episodes (2025 → Jul 2026), dated verbatim quotes from operators — Cherny/Claude Code, Mosseri/Instagram pods + "product staff", Lemkin/SaaStr 1.2-humans-20-agents, Ramanujam AI-pricing 2x2, Willison, Shipper/Every ×2, Husain-Shankar + Foody evals, Vo/OpenClaw + harness, Nystrom/Notion, Liu/Airtable, Reganti-Badam 50+ deployments, Ambrosino/OpenAI — on agentic production workflows, org collapse, pricing, trust/receipts, and governed autonomy; closes with top-10 insights + ranked "Product moves for Supaprod." Sibling of `podcast-corpus-frontier.md`; §12.4 citation rules apply. |
-| [`references/podcast-corpus-aakash.md`](./references/podcast-corpus-aakash.md) | **Jul-2026 Aakash Gupta "Product Growth" guest corpus (transcript-mined):** 16 episodes (2025-08 → 2026-06), dated verbatim GUEST quotes only (§12.4: host framing never cited as authority) — Jiaona Zhang/Laurel company OS, Abhi Muchhal + Ryan Lopopolo/OpenAI real setups + harness engineering, Wensing/customer.io, Stulberg/DoorDash Team OS, Meyer/Google 21 agents, Ankur Goyal/Braintrust ("the modern PRD is an eval"), Husain-Shankar, Burkhauser/Descript, Lloyd/Warp seat-pricing verdict, Xiankun Wu/Kuse, Olson/Pendo margins, Lavingia/Gumroad, Nan Yu/Linear agent accountability — on operator workflows, evals, pricing, org shape; closes with top-10 insights + ranked "Product moves for Supaprod." Third sibling of the frontier + Lenny corpora. |
-| [`references/investor-corpus-yc-vc.md`](./references/investor-corpus-yc-vc.md) | **Jul-2026 investor/accelerator voice corpus (transcript- + RFS-mined):** 11 dated items (2024-09 → 2026-05) on how company-builders and investors see the agent era — YC RFS Summer 2026 verbatim ("AI Operating System for Companies" / "Company Brain" / "Software for Agents"), Lightcone vertical-AI + Tokenmaxxing (Garry Tan 400x, $4M→$200 cost collapse), Sequoia AI Ascent 2026 "This is AGI" (MAD framework, autonomy ladder, $10T services), Altman one-person-unicorn betting pool, Casado "no endemic tech moat," a16z outcome-pricing, Elad Gil market clarity, PG Founder Mode, First Round positioning law, Garry Tan on YC selection. Every quote dated; VC book-talking flagged inline. Headline section: ranked "Product moves for Supaprod" + anti-patterns; short YC-application appendix. Fourth sibling of the corpus family. |
-| [`references/new-age-product-development-research.md`](./references/new-age-product-development-research.md) | **Jul-2026 new-age build-process research + artifact-stack proposal (founder ask):** how frontier teams actually ship, sourced — Claude Code origin (2-day prototype, 50% internal adoption in 5 days, prototypes-over-PRDs per Cherny/Cat Wu), OpenAI (92% Codex usage, every PR agent-reviewed, Sora Android in 18 days), Replit/Linear/Laurel/DoorDash/Descript/Gumroad patterns; the 8 working laws; the "should Supaprod even have PRDs?" answer (**artifacts are projections; the ledger is the source** — Outcome Contract + on-demand PRD/FRD projections + intent-vs-built diff + changelog heartbeat); and the strategy/positioning/USP/moat/pricing/distribution model table. Proposal status — feeds v11/v12/v13, founder to ratify. |
-| [`references/external-strategy-synthesis.md`](./references/external-strategy-synthesis.md) | **Synthesis (read first).** Fuses the two Google Cloud reports + the live market/WTP/investor research into the convergence thesis, validations, sharpening corrections, and the handoff to **v7**. |
-| [`references/ai-agent-trends-2026-gcp.md`](./references/ai-agent-trends-2026-gcp.md) | **Google Cloud + DeepMind "AI Agent Trends 2026"** (49 pp) — page-cited digest: the 5 enterprise shifts, all data points, frameworks (grounding · digital assembly line · A2A/MCP/AP2 · 5 Pillars), quotes, implications. Names the "Chief of Staff for AI" role we productize. |
-| [`references/future-of-ai-startups-2025-gcp.md`](./references/future-of-ai-startups-2025-gcp.md) | **Google Cloud "Future of AI: Perspectives for Startups 2025"** (75 pp) — page-cited digest: 20+ VC/founder voices, the 15 takeaways, moat/last-mile/ambient-agent/budget-replacement frameworks, the quote bank, and our **fundraising spine**. |
+| **[`pitch/`](./pitch/README.md)** | The Pitch Room. What we **say**: one-pager, Q&A bank, demo script, investor deck, applications. Updated in place, never forked into parallel copies. Claims carry `PROVEN` / `WIRING` / `ROADMAP`. |
+| **[`growth/`](./growth/README.md)** | What we **do** to grow: channel playbooks, launch sequencing, experiments, the brand kit, and [`brand-ops/`](./growth/brand-ops/README.md) for naming, domains, handles and trademark. |
 
-## Rule: keep this index true
+### History
 
-When you add a new file under `docs/`:
+| Folder | Holds |
+| --- | --- |
+| **[`archive/`](./archive/)** | Cross-cutting history that belongs to no single bucket. |
+| Per-folder `archive/` | Superseded material stays beside its bucket: [`design/archive/`](./design/archive/README.md), [`planning/archive/`](./planning/archive/README.md), `strategy/archive/`, `testing/archive/`, `features/archive/`. |
+| **`screenshots/`** | Local only, gitignored. Verification captures, never committed. |
 
-1. Add a row to the appropriate table above.
-2. Add a "Related" / cross-link block at the bottom of the new doc pointing to its tightly-coupled siblings (other `docs/*.md` and the relevant `architecture/*.md`).
-3. If the new doc explains an operator-facing surface, also add a "How to use / verify" block to its [`planning/archive/feature-backlog.md`](planning/archive/feature-backlog.md) entry.
-4. If it changes a contract documented in `architecture/*`, update that contract in the same commit.
+Two loose files are allowed at this level and no others: this index, and [`brand-feed.md`](./brand-feed.md), the one-way feed of postable build insights that the separate private build-in-public repo reads.
 
-A doc that nothing links to is invisible. Close the loop.
-test
+---
+
+## Placement policy
+
+**Before you create a file, find its bucket above.** Then:
+
+1. **Extend before you create.** If a doc already serves the purpose, add to it. A new file is for a genuinely new purpose.
+2. **Link it from its bucket's index in the same commit.** A file nothing links to is a file nobody finds. Nine such orphans were found on 2026-08-03, all in the three folders that had no index at all.
+3. **Never at repo root, never at `docs/` top level.** Root holds exactly four files: `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`.
+4. **Status lives only in the SSOT.** Never copy a status board or a canon paragraph into a second file. Link instead.
+5. **Archive, do not orphan.** A superseded doc moves to the nearest `archive/` **with a line saying why it went**, and its inbound links are retargeted in the same commit.
+6. **A date header on every doc**, directly under the H1: `> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_`. **No dates in filenames**, except a genuine dated record under `archive/` or `applied/`.
+7. **kebab-case, no spaces, no capitals** in folder names. Three folders broke this, and one of them, `Growth Strategy`, forced `%20` into every link that reached it.
+
+`scripts/docs-doctor.sh` enforces items 2, 3, 6 and 7, and it runs itself from the pre-commit hook whenever a commit touches markdown. You do not need to remember to run it.
+
+---
+
+## What the 2026-08-03 cleanup moved
+
+| Before | Now |
+| --- | --- |
+| 22 markdown files at repo root, 1.87 MB | 4 files, 49 KB |
+| `plan.md`, 1.3 MB, and every tool was told to read it | [`planning/archive/build-log.md`](./planning/archive/build-log.md). History, not a plan. |
+| `Ai_Cofounder.md` | [`strategy/founding-constitution.md`](./strategy/founding-constitution.md) |
+| `DESIGN.md`, `DESIGN-TEMPO.md`, `DESIGN-LOOM.md`, `DESIGN-OBSIDIAN.md` | [`design/archive/`](./design/archive/README.md). The live contract is [`design/DESIGN-SYSTEM.md`](./design/DESIGN-SYSTEM.md). |
+| `ENTRY.md` | Deleted. Its only job was the doc map, which [`../README.md`](../README.md) owns. |
+| 5 `REBUILD-*`, 3 `WAVE_*`, `DELIVERY-SUMMARY-*` at root | [`planning/archive/rebuild-2026-07-18/`](./planning/archive/rebuild-2026-07-18/README.md) |
+| `Growth Strategy/` and `gtm/`, two go-to-market folders | [`growth/`](./growth/README.md), with [`brand-ops/`](./growth/brand-ops/README.md) inside it |
+| `strategy/Prompts/`, a prompt filed as strategy canon | [`prompts/`](./prompts/README.md) |
+| A mission prompt loose at `docs/` top level with **no file extension** | [`prompts/production-readiness-audit.md`](./prompts/production-readiness-audit.md) |
+| `runbooks/`, a folder holding exactly one file | Folded into [`operations/`](./operations/README.md) |
+| `planning/`, 51 loose files | 18, with 30 orphaned reports in [`planning/archive/reports/`](./planning/archive/reports/README.md) |
+| `strategy/` declaring **seven** documents current at once | One per question, per the [arbiter](./strategy/README.md) |
+| `feature-dashboard.md`, 6.45 MB | 923 KB. 85% was table padding; removing it was verified lossless. |
+
+**Nothing was deleted except `ENTRY.md`.** Everything else moved, with a README at each destination recording what it was and why it stopped being current.

@@ -70,7 +70,7 @@ is a coherence sentence, not a navigation sentence. **A shell change treats the 
 ## 1. THE AUTOPSY: WHAT WAS ACTUALLY BUILT ON 2026-07-18
 
 Read from `archive-final-sweep-2026-07-18` (commit `b8266a6a`, 25 commits ahead of main at the time
-of archiving) and from the branch's own docs under `docs/planning/Supaprod Final Sweep/`.
+of archiving) and from the branch's own docs under `docs/planning/rebuild-2026-07/final-sweep/`.
 
 ### 1.1 It was an addition, not a replacement
 

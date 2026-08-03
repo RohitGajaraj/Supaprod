@@ -44,7 +44,7 @@ DMARC is set to `p=none` (monitor-only): it collects aggregate reports (both to 
 | `press@` | No dedicated press pipeline yet; the catch-all covers anyone who guesses it. | A real press pipeline starts. |
 | `noreply@` / `notifications@` | Only meaningful once transactional email is wired (see below) — not a routing concern today. | Transactional email ships. |
 | Transactional/system email (magic links, signup confirms, product notifications) | Currently sent through Supabase Auth's default mailer, not this domain — generic sender, fine for beta-scale testing. Founder call 2026-07-17: not needed yet, revisit later. | Real user volume makes deliverability/branding matter. Needs a provider (Resend/Postmark) wired via Supabase Auth → SMTP Settings, plus its own SPF/DKIM records on `supaprod.ai`. |
-| Cold-outreach warm-up domain | **Separate initiative, do not conflate with this doc.** See `docs/Growth Strategy/07-gtm-ground-truth.md` item #7. Cold-email tools (Instantly etc.) conventionally warm up a variant/lookalike domain, not the primary brand domain, so a deliverability problem there can't take down `supaprod.ai`'s reputation. | GTM checklist item #7 gets picked up. |
+| Cold-outreach warm-up domain | **Separate initiative, do not conflate with this doc.** See `docs/growth/07-gtm-ground-truth.md` item #7. Cold-email tools (Instantly etc.) conventionally warm up a variant/lookalike domain, not the primary brand domain, so a deliverability problem there can't take down `supaprod.ai`'s reputation. | GTM checklist item #7 gets picked up. |
 
 ## How it was set up
 
@@ -77,6 +77,6 @@ Verification for the four fixes above: `tsc --noEmit` clean across the project; 
 
 ## Related
 
-- [`Growth Strategy/07-gtm-ground-truth.md`](../Growth%20Strategy/07-gtm-ground-truth.md) — item #7 (email domain warm-up for cold outreach) is a separate, not-yet-started initiative; do not conflate its future domain with the routing above.
+- [`growth/07-gtm-ground-truth.md`](../growth/07-gtm-ground-truth.md) — item #7 (email domain warm-up for cold outreach) is a separate, not-yet-started initiative; do not conflate its future domain with the routing above.
 - [`src/routes/privacy.tsx`](../../src/routes/privacy.tsx), [`src/routes/security.tsx`](../../src/routes/security.tsx) — pages this doc's addresses are meant to be referenced from, once the open item above lands.
 - [`demo-credentials.md`](./demo-credentials.md) — sibling ops runbook, same style.

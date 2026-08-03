@@ -132,7 +132,7 @@ HTML to a GIF/MP4 if a raster animation is needed.
 The vectors are generated so they never drift from the product mark:
 
 ```bash
-bun "docs/Growth Strategy/branding/generate.ts"   # rewrites logo/*.svg
+bun "docs/growth/branding/generate.ts"   # rewrites logo/*.svg
 ```
 
 PNGs, the favicon.ico, and the social cards were rasterized from those SVGs

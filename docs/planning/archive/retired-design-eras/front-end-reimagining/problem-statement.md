@@ -32,7 +32,7 @@ Supaprod's engine is finished; its face is the last thing between the product an
 
 ## Hard invariants
 
-Supaprod naming · sandbox-only, production untouched · public landing untouched (approval-gated) · claim never outruns wiring · humanized output in all UI strings · no silent scope cuts (weather/focus-dock/liquid-glass/standalone-Ask retirements re-confirmed at the mockup gate) · no merge without explicit founder approval. Master Brief v2.2 (`docs/planning/Supaprod Final Sweep/Supaprod Front-End Rebuild.md`) remains the meet-or-beat baseline underneath this charter.
+Supaprod naming · sandbox-only, production untouched · public landing untouched (approval-gated) · claim never outruns wiring · humanized output in all UI strings · no silent scope cuts (weather/focus-dock/liquid-glass/standalone-Ask retirements re-confirmed at the mockup gate) · no merge without explicit founder approval. Master Brief v2.2 (`docs/planning/rebuild-2026-07/final-sweep/Supaprod Front-End Rebuild.md`) remains the meet-or-beat baseline underneath this charter.
 
 ## Visual direction
 

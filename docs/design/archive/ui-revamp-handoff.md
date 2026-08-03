@@ -47,7 +47,7 @@ _Last updated 2026-07-14 · branch `main` · everything below is VERIFIED GREEN.
 21. **Icon-only copy** — "Copy link" is icon-only in the share clusters (teardown, decision receipt); Share/Unshare stay labeled.
 22. **Ask panel redesign** — "Ask Supaprod" framing (platform-wide, current screen as a secondary cue), ember sparkle + ambient wash, and a liquid-glass composer with an ember send button + focus glow.
 23. **CadenceMark brand logo + loader** — `src/components/cadence/CadenceMark.tsx`: a seven-petal spiral (the loop) around a glowing ember/gold core (Brain + Pulse); theme-aware metallic (silver/white on dark, black on light); the animated `CadenceLoader` plays in the sidebar/ticker/Ask (via `AiWorking`) wherever AI works.
-24. **Brand kit (GTM)** — `docs/Growth Strategy/branding/`: the mark in every form (SVG + PNG at all sizes + favicon.ico + apple-touch/PWA icons + dark/light OG social) + an animated HTML reference + `generate.ts` + a full guidelines README. `.gitignore` exception keeps the raster set committed.
+24. **Brand kit (GTM)** — `docs/growth/branding/`: the mark in every form (SVG + PNG at all sizes + favicon.ico + apple-touch/PWA icons + dark/light OG social) + an animated HTML reference + `generate.ts` + a full guidelines README. `.gitignore` exception keeps the raster set committed.
 
 Design record for this pass: `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md` (2026-07-14 addendums 11-19).
 
@@ -56,7 +56,7 @@ Design record for this pass: `design-reference/tempo-v5/applied/2026-07-13-app-p
 
 ## PENDING (tomorrow's pickup — nothing blocking; foundations in place)
 
-- **Brand revisit (founder-owned):** the founder will revisit the brand mark/logo + the brand-kit logo files later; the favicon + app mark are set. The full GTM brand kit is at `docs/Growth Strategy/branding/` (SVG/PNG/favicon/social + `generate.ts` + guidelines README).
+- **Brand revisit (founder-owned):** the founder will revisit the brand mark/logo + the brand-kit logo files later; the favicon + app mark are set. The full GTM brand kit is at `docs/growth/branding/` (SVG/PNG/favicon/social + `generate.ts` + guidelines README).
 - **Liquid-glass / 3D-embossed rollout** to more content cards (`.glass-panel` + embossed hero/composer/avatar exist; extend to Today Spotlight, Pulse/Engine RoomCards, ui/card — glass only reads over the ambient wash, don't muddy flat cards).
 - **Metrics → Geist Pixel sweep:** finish applying `PixelStat` (blue = data tone) to every remaining numeral (Today + Pulse headline done; foundation + rule set).
 - **Migrate ad-hoc ember buttons to `variant="accent"`** (grammar defined in `src/components/ui/button.tsx`).

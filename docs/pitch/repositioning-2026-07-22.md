@@ -112,7 +112,7 @@ Each item converts a positioning claim from words to demo:
 
 ## 8. Customer-evidence rules (binding for all application copy)
 
-Zero first-party discovery interviews have occurred (0/25 outreach sent — `docs/Growth Strategy/03-customer-discovery-and-validation.md` is a plan, not a record). Therefore:
+Zero first-party discovery interviews have occurred (0/25 outreach sent — `docs/growth/03-customer-discovery-and-validation.md` is a plan, not a record). Therefore:
 
 - **Never** claim interviews, discovery-call counts, or "we spoke to N customers." YC states it may verify any number; the 10-minute interview probes exactly this; the application's own Law 1 ("true on the day you hit submit") already forbids it.
 - **Freely and strongly** cite the documented customer voice — with one format rule (founder ruling 2026-07-22): **on application/investor surfaces, cite named-company hand-rollers, never community point counts** (the founder doesn't relate to point-score evidence and partners may not either). Preferred citations: PMs at OpenAI and DoorDash hand-building their own rigs out of Claude Code + MCP + memory files (one describing 1,500 hours on her setup); Abhi Muchhal (OpenAI) on cognitive overload; Matthew Wensing (customer.io) on stale artifacts and the wish for a contradiction auditor; Gabor Meyer (Google, on Lovable) / Mike Ball (David's Bridal, on Replit) / Sahil Lavingia (on Codex) on AI trust collapse; PostHog's founders on the gatekeeper problem. The Reddit threads (the "why did we decide X" thread; the senior-PM build-log) remain internal evidence and demo-video material, not application citations.

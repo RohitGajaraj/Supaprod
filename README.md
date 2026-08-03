@@ -212,7 +212,7 @@ Database changes are timestamped, RLS-aware SQL in `supabase/migrations/`. Apply
 | **Ops: commits, hooks, skills, memory, demo logins** | [`docs/operations/`](./docs/operations/) |
 | **Pricing and billing** | [`docs/strategy/pricing/`](./docs/strategy/pricing/README.md), start at `pricing-architecture.md`. |
 | **Market and competitor evidence** | [`docs/references/`](./docs/references/) |
-| **GTM execution, brand ops** | [`docs/Growth Strategy/`](./docs/Growth%20Strategy/README.md) · [`docs/gtm/`](./docs/gtm/README.md) |
+| **GTM execution, brand ops** | [`docs/growth/`](./docs/growth/README.md) · [`docs/growth/brand-ops/`](./docs/growth/brand-ops/README.md) |
 | **The founding constitution** | [`docs/strategy/founding-constitution.md`](./docs/strategy/founding-constitution.md) |
 | **What shipped, historically** | [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) |
 
