@@ -64,6 +64,21 @@ export const MODEL_PRICING: Record<string, Pricing> = {
   // becomes a 3x UNDER-estimate for any request that ever crosses 256K input. If long
   // documents start being embedded in a single agent prompt, this needs a tier-aware
   // price lookup rather than a constant.
+  //
+  // THE LIST RATE RUNS ~1.8x HOT AGAINST THE ACTUAL INVOICE, and that is recorded here
+  // rather than corrected, deliberately. Measured against two real Alibaba bills:
+  //   2026-07: 2,451,419 in + 147,686 out -> list predicts $1.16, invoice was $0.67
+  //   2026-08 (to the 3rd): 9,139,828 in + 369,648 out -> predicts $4.10, invoice $2.21
+  // Two independent months both land at ~0.55 of list, almost certainly Alibaba's
+  // context caching: agent prompts carry long stable prefixes at ~4,700 tokens a call,
+  // so cache hits bill at a steep discount.
+  //
+  // The LIST rate is kept anyway, for two reasons. The cache discount is not
+  // contractual and evaporates the moment prompt prefixes change, and under-charging is
+  // unrecoverable whereas over-charging is visible and refundable. But this must not be
+  // mistaken for precision: the credit ledger currently debits Qwen work about 1.8x its
+  // true cost. The real answer is to meter from provider-reported usage instead of
+  // estimating from a rate table at all, at which point this entry stops mattering.
   "qwen/qwen-plus": { in_per_mtok: 0.4, out_per_mtok: 1.2 },
   "qwen/qwen-max-latest": { in_per_mtok: 1.6, out_per_mtok: 6.4 },
   "qwen/qwen-turbo-latest": { in_per_mtok: 0.05, out_per_mtok: 0.2 },
@@ -193,8 +208,34 @@ export function actionCreditRange(actionKind: string): CreditRange {
 // when the account pool cannot cover it. The real debit is exact (from the actual
 // post-call est_cost_usd); this projection is a conservative guard only.
 
-/** Default completion-token budget assumed for the pre-call projection. */
-export const ASSUMED_COMPLETION_TOKENS = 1200;
+/**
+ * Default completion-token budget assumed for the pre-call projection.
+ *
+ * CALIBRATED FROM LIVE DATA 2026-08-03, down from 1200. Over the previous 30 days,
+ * 6,524 successful calls: p50 122, p90 247, p95 337, p99 1,415, max 4,566, mean 158.
+ * The old 1200 sat around the 98th percentile, so it overestimated the typical call
+ * by roughly ten times.
+ *
+ * WHY THAT WAS NOT MERELY CONSERVATIVE, IT WAS HARMFUL. This projection exists to
+ * refuse a call the account cannot pay for. Overshooting it does not make the guard
+ * safer, it makes the guard refuse work the account CAN pay for. Live proof: an
+ * account holding 16 credits was blocked with "balance 16 below projected 19" for
+ * work whose actual debit was 12. It could afford the call three times over. Those
+ * are false refusals, and they were being counted as credit exhaustion.
+ *
+ * 400 is p95 plus about 19 percent headroom, so it still covers the overwhelming
+ * majority of calls while cutting the overshoot from ~7.6x the mean to ~2.5x. The
+ * asymmetry is deliberate: the real debit is always metered exactly after the call,
+ * so under-projecting risks a small recoverable overdraft, whereas over-projecting
+ * silently blocks legitimate work and looks identical to a genuinely empty account.
+ *
+ * A flat constant is still the wrong SHAPE, and this only makes it less wrong.
+ * Completion length varies by surface (reflection steps average ~115 tokens against
+ * ~170 for main agent calls) and the p99 of 1,415 shows a real long tail. The right
+ * fix is a per-surface or per-model budget derived from history rather than one
+ * number for every call in the product.
+ */
+export const ASSUMED_COMPLETION_TOKENS = 400;
 
 /** Rough prompt-token estimate from message text (~4 chars per token). Pure. */
 export function estimatePromptTokens(messages: { content?: string | null }[]): number {
