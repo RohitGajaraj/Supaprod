@@ -1,8 +1,59 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-08-02 22:30 IST. `main` clean, pushed through `3de9098e`. **Nine separately shipped features were found doing nothing in production, all passing tests. Every one is fixed, and the product can now tell you when it happens again.** Read the section immediately below; it is the live one._
+> _Last updated: 2026-08-03 23:15 IST. `main` clean, pushed through `8c6dd832`. **The documentation was cleaned end to end: root went from 22 markdown files to 4, and 1.87 MB to 50 KB.** Read the section immediately below; it is the live one._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
+
+---
+
+# 2026-08-03 (evening): the documentation cleanup
+
+## STATE: SAFE
+
+`main` = `8c6dd832`, pushed, working tree clean. **22 commits.** tsc 0 errors, `bun test` 7,159 pass / 0 fail across 402 files. No source behaviour changed; this was a documentation and repo session.
+
+## FIRST THING NEXT SESSION
+
+**One command needs you, because `rm -rf` is blocked for agents here:**
+
+```bash
+rm -rf "/Users/rohitgajaraj/Projects/My Projects/My Builds/Superprod/.claude/worktrees"
+```
+
+That is **84 MB** in two orphaned Workflow worktrees (`wf_3dd0ade5-50c-1`, `-2`). Verified disposable: unregistered in `git worktree list`, gitignored, broken with `fatal: not a git repository: (null)`, zero files newer than the 2026-07-17 rename, and every apparently-unique file is a pre-rename path in git history at `c5d479fd`.
+
+Also still present, harmless: the merged branch refs `parallel/lane-0-fresh` and `parallel/lane-1-fresh`. Deleting a branch was blocked by policy. `git branch -D parallel/lane-0-fresh parallel/lane-1-fresh` if you want them gone.
+
+## WHAT CHANGED, AND WHY IT MATTERED
+
+**Root: 22 markdown files and 1.87 MB, down to 4 files and 50 KB.** Every session was being told to read a 1.3 MB `plan.md`, four design contracts that were all retired on 2026-07-28, five phase docs for a rebuild superseded ten days later, and three wave handoffs describing an app shape that no longer exists.
+
+Each root file now answers exactly one question and says so in its first line: `README` what it is and where everything lives, `AGENTS` how to build it, `CLAUDE` and `GEMINI` per-tool notes kept thin because they auto-load every request.
+
+**Two founder rulings landed:**
+
+1. **It learns and guides; it does not remember.** "Remembers" describes storage, and storage is not defensible. README carries a vocabulary table so this cannot be re-flattened, and AGENTS turns it into a coding constraint: a feature that records something and stops has not finished, and breaking the Learn write-back is a moat regression however well it typechecks.
+2. **AI-fingerprint cleanup is consumer-facing only**, never backend source, comments, `.md` or `.sql`. Plus the positive half he added: removing fingerprints is the floor, not the standard. "An error occurred. Please try again." passes every automated check and still fails. Four tests now sit in `../conventions/humanized-output.md` with a worked before/after table.
+
+**The drift that was actively harmful:** three of the four root docs pointed agents at Tempo v5, and **Lovable's project Knowledge field still said the product was named Cadence** with Loom v4 as the design system. Lovable writes code into this repo, so it had been building from a six-week-stale brief. Replaced, and mirrored to [`lovable-knowledge.md`](./lovable-knowledge.md) so the next drift is a diff instead of a discovery.
+
+**6.4 MB of the corpus was whitespace.** `feature-dashboard.md` was 6.45 MB, of which 5.5 MB was prettier's table-cell padding. Collapsed, verified lossless (467 rows to 467, identical pipes per row, zero content changes), and `docs/**/*.md` added to `.prettierignore` so `bun run format` cannot re-inflate it.
+
+**`docs/strategy` declared seven documents simultaneously current.** Archived v7 to v10 and v13 with a reason next to each. New rule in its README: a version number is not a decision, do not open a v14.
+
+## THINGS TO KNOW BEFORE YOU TOUCH DOCS
+
+- **`docs-doctor.sh` now runs itself** from the pre-commit hook when a commit touches markdown. It prints and never blocks. Three of its checks were repaired because they could only ever pass or always failed; a check that cries wolf is worse than none.
+- **Root holds exactly four files.** The whitelist in `docs-doctor.sh` enforces it. Adding a fifth is how the last three cleanups started.
+- **Fifteen buckets in `docs/`, all kebab-case.** The map and placement policy is [`../README.md`](../README.md), which ends with a table of what moved where.
+- **A blind path-prefix rewrite edits prose, not only links.** Mine rewrote two of my own explanatory comments into nonsense before I caught it.
+- **Nothing was deleted except `ENTRY.md`**, whose only job was the doc map. Everything else moved with a README at the destination recording why it stopped being current.
+
+## OPEN, NOT BLOCKED
+
+- The `rm -rf` above.
+- `docs/planning/feature-dashboard.md` is still 923 KB and 467 rows. That is now real content, not padding, but it is a candidate for splitting live rows from done rows if it keeps growing.
+- Known coverage gap recorded in [`../testing/README.md`](../testing/README.md): nothing tests `discover/ranking` and `discover/format` together, so a format-helper change can reorder the Discover queue with all 212 unit cases green. A stale draft test for exactly this is preserved in `../testing/archive/`.
 
 ---
 
