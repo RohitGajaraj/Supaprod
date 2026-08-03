@@ -117,6 +117,47 @@ before it is load-bearing.**
 **Set the spend cap on day one, whichever vendor we are on.** The failure mode of an agent
 with compute is an expensive loop, not a broken build.
 
+## WIRED 2026-08-03. What the live API actually does, and what is still unproven
+
+The key was provisioned the same day and the backend shipped in commit `2ea9f4e9`
+(`src/lib/exec/e2b.server.ts`, the `studio.checks.run` tool, 46 tests). A smoke test
+against a real sandbox taught four things, none of which are in the docs and one of
+which would have produced a false green:
+
+1. **A non-zero exit THROWS.** `commands.run("exit 7")` raises `CommandExitError`
+   carrying `exitCode`; it does not return a result with a non-zero code. Code that
+   assumed the return value would have treated every failing test suite as an
+   infrastructure error, and an infrastructure error that is not mapped carefully
+   becomes "nothing to gate on", which allows the merge.
+2. **Bun is not in the default template.** The image carries node v20.9.0, npm,
+   python 3.11.6 and git. `which bun` finds nothing. Bun is installed during setup;
+   a custom E2B template would make that a one-time cost rather than per-run, and it
+   is the first optimisation to make once this is used in anger.
+3. **Sandbox creation is about 500ms**, and a full create-run-kill round trip about
+   2 seconds. Fast enough to sit inside an agent's loop, which was the open question.
+4. **git is present**, so cloning needs no extra install.
+
+**The second false green, and it was in our own code, not E2B's.**
+`overallFromChecks([])` returns `neutral`, and `mergeReadinessFromCi("neutral")`
+ALLOWS the merge, because for the GitHub Actions floor an empty check list honestly
+means "this repo has no CI configured". For a sandbox it means "nothing was
+verified", and a sandbox that fails to boot produces zero results too. Left alone it
+would have read as permission to merge unreviewed code. `execVerdictFromRun` now maps
+both an infrastructure failure and an empty result set to an explicit refusal.
+
+**What is NOT verified.** The SDK is proven against the live API from Bun and the
+seam is proven by unit tests, but it has not been exercised inside workerd. It
+bundles into its own chunk and the build is green; the first real mission run is what
+will confirm the Cloudflare runtime. Do not report this as production-proven until
+then.
+
+**Spend cap: deliberately not set.** The founder set no cap because there is no card
+on file and the account holds a one-time $100 credit, so the credit is itself the
+ceiling. That is sound, and it moves the whole burden onto the in-code bounds: every
+path kills the sandbox in a `finally`, and every sandbox carries a create-time
+`timeoutMs` so a lost kill (a Worker torn down mid-run, a real failure mode in this
+codebase) cannot bill indefinitely. **If a card is ever added, set the cap that day.**
+
 ## What we do after it works
 
 1. Wire `e2b` behind `ExecProvider` and make the Build agent run tests before opening a
