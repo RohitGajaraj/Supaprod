@@ -20,6 +20,7 @@ For anything current:
 | Folder or file | What it holds |
 | --- | --- |
 | [`build-log.md`](./build-log.md) | The dated record of what was built and why, from 2026-06-03. Was `plan.md` at the repo root; 1.3 MB. Search it for *why* something is the way it is. |
+| [`shipped-register.md`](./shipped-register.md) | The 371 shipped register rows. The dashboard was 92 percent done rows, so the board could not be read; this is that history. |
 | [`reports/`](./reports/README.md) | 30 session reports and audits that sat loose at the top of `docs/planning/`. Every one was an orphan that nothing linked to. |
 | [`retired-design-eras/`](./retired-design-eras/README.md) | Sixty files of planning for three design systems that no longer exist: the Obsidian port, Loom v4, and the front-end reimagining. |
 | [`rebuild-2026-07-18/`](./rebuild-2026-07-18/README.md) | The 2026-07-18 rebuild phase docs and the July waves, superseded by the 2026-07-28 rebuild-from-zero. |

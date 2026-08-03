@@ -13,7 +13,7 @@ This folder held 51 loose files as recently as 2026-08-03. Most were session wri
 | File | What it is |
 | --- | --- |
 | **[`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md)** | **§0 is the only live cursor in the repo.** What is in flight, what is next, what needs the founder. If a second file ever claims to hold status, that file is wrong. |
-| **[`feature-dashboard.md`](./feature-dashboard.md)** | Per-feature status, 467 rows, ranked. Flip a row's status when something ships; that is the one documentation trace required during BUILD-ONLY MODE. |
+| **[`feature-dashboard.md`](./feature-dashboard.md)** | **The live board: 31 open rows, and nothing else.** Flip a row when its state changes, and move it to the shipped register when it goes green. That row flip is the one documentation trace required during BUILD-ONLY MODE. |
 | **[`known-issues.md`](./known-issues.md)** | Open bugs and blockers. |
 
 Plus [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) for non-functional gaps that belong to no single feature. It was called `considerations.md`, which told a reader nothing.
