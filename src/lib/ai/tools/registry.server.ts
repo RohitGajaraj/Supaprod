@@ -10,6 +10,7 @@ import {
   defaultSetup,
   e2bAvailable,
   runInE2B,
+  withGitToken,
 } from "@/lib/exec/e2b.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { retrieve } from "@/lib/rag/retriever.server";
@@ -2153,15 +2154,20 @@ const studioChecksRun = def({
     const headers = ghHeaders(token);
     const ref = await changesetRef(changeset, repo, headers);
 
-    // The clone URL carries the installation token, so it is built here and never
-    // logged, never returned, and never put in the result the model sees.
-    const cloneUrl = `https://x-access-token:${token}@github.com/${repo}.git`;
+    // CREDENTIAL HANDLING. The installation token carries WRITE access to the
+    // customer's repo, and everything after the clone in this sandbox is UNTRUSTED
+    // code: `bun install` runs the repo's postinstall scripts, `bun test` runs its
+    // test files. So the token is handed to the clone step alone, as an env the
+    // sandbox's shell expands, and it is declared as a secret so any stream that
+    // echoes it (git prints the remote URL on a failed clone) is redacted before it
+    // reaches this result, the model, or the stored run record.
     const wanted = a.checks?.length ? new Set(a.checks) : null;
     const commands = defaultChecks().filter((c) => !wanted || wanted.has(c.name as never));
 
     const outcome = await runInE2B({
-      setup: defaultSetup(cloneUrl, ref),
+      setup: withGitToken(defaultSetup(repo, ref), token),
       commands,
+      secrets: [token],
     });
 
     return {

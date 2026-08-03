@@ -57,6 +57,17 @@ export interface ExecVerdict {
 export interface ExecCommandSpec {
   name: string;
   run: string;
+  /**
+   * Environment for THIS command only, merged over the run-wide `envs`.
+   *
+   * This exists for exactly one reason and it is a security one: a credential must
+   * be scoped to the single command that needs it. The sandbox runs UNTRUSTED code
+   * (a repo's postinstall scripts, its test files), so anything present in the
+   * environment of `bun install` or `bun test` is readable by an attacker who
+   * controls the repo. Put a token here, on the clone step, never in the run-wide
+   * `envs` and never interpolated into `run`.
+   */
+  envs?: Record<string, string>;
 }
 
 export interface ExecCommandResult {
@@ -80,8 +91,19 @@ export interface ExecRunSpec {
   setup?: ExecCommandSpec[];
   /** Hard ceiling for the whole run. The sandbox is killed when it elapses. */
   timeoutMs?: number;
-  /** Extra environment for every command. Never log these. */
+  /**
+   * Environment for EVERY command, including the ones running untrusted repo code.
+   * Never put a credential here; use {@link ExecCommandSpec.envs} on the one step
+   * that needs it.
+   */
   envs?: Record<string, string>;
+  /**
+   * Literal secret values to redact from every captured stream and from any error
+   * this run reports. Belt to the braces: even when a token is never placed in a
+   * command string, `git` will happily echo a remote URL into stderr on failure,
+   * and that stderr flows to the model, into the run record, and back into a prompt.
+   */
+  secrets?: string[];
 }
 
 export interface ExecRunOutcome {

@@ -9,11 +9,7 @@
 // network and never spends a cent of the credit.
 
 import { afterEach, describe, expect, it } from "bun:test";
-import {
-  checksFromResults,
-  execVerdictFromRun,
-  type ExecCommandResult,
-} from "./provider";
+import { checksFromResults, execVerdictFromRun, type ExecCommandResult } from "./provider";
 import {
   clampOutput,
   defaultChecks,
@@ -22,9 +18,11 @@ import {
   E2B_MAX_TIMEOUT_MS,
   e2bAvailable,
   e2bProvider,
+  redactSecrets,
   resolveTimeoutMs,
   runInE2B,
   toCommandResult,
+  withGitToken,
 } from "./e2b.server";
 
 const res = (over: Partial<ExecCommandResult> = {}): ExecCommandResult => ({
@@ -151,12 +149,89 @@ describe("bounds", () => {
   });
 });
 
+describe("credential handling: the sandbox runs UNTRUSTED code", () => {
+  const TOKEN = "ghs_abcdefghijklmnopqrstuvwxyz0123456789";
+
+  it("never puts the token in any command string", () => {
+    // `bun install` runs the repo's postinstall scripts and `bun test` runs its test
+    // files. Anything interpolated into a command is visible to all of it.
+    const setup = withGitToken(defaultSetup("acme/app", "main"), TOKEN);
+    for (const c of [...setup, ...defaultChecks()]) {
+      expect(c.run).not.toContain(TOKEN);
+    }
+  });
+
+  it("scopes the token to the CLONE step and to nothing else", () => {
+    const setup = withGitToken(defaultSetup("acme/app", "main"), TOKEN);
+    const withToken = setup.filter((c) => Object.values(c.envs ?? {}).includes(TOKEN));
+    expect(withToken.map((c) => c.name)).toEqual(["clone"]);
+    // deps runs untrusted postinstall scripts; it must not see the credential.
+    expect(setup.find((c) => c.name === "deps")!.envs ?? {}).toEqual({});
+  });
+
+  it("SCRUBS the credential out of .git/config, which git persists on clone", () => {
+    // `git clone https://user:tok@host/r` writes the credential into .git/config,
+    // where any postinstall script can read it. The rewrite must happen in the same
+    // command, before anything else runs.
+    const clone = defaultSetup("acme/app", "main").find((c) => c.name === "clone")!.run;
+    expect(clone).toContain("git remote set-url origin");
+    expect(clone).toContain("https://github.com/acme/app.git");
+  });
+
+  it("ASSERTS the scrub worked, so a survivor fails the run instead of leaking", () => {
+    const clone = defaultSetup("acme/app", "main").find((c) => c.name === "clone")!.run;
+    expect(clone).toContain('! grep -q "x-access-token" .git/config');
+  });
+
+  it("redacts a declared token from captured output", async () => {
+    process.env.E2B_API_KEY = "e2b_test";
+    const f = fakeSandbox({
+      "git clone": {
+        exitCode: 128,
+        // git really does echo the remote URL on a failed clone.
+        stderr: `fatal: could not read from 'https://x-access-token:${TOKEN}@github.com/acme/app.git'`,
+      },
+    });
+    const out = await runInE2B(
+      { setup: withGitToken(defaultSetup("acme/app", "main"), TOKEN), commands: defaultChecks() },
+      { createSandbox: async () => f.sbx },
+    );
+    // The infra error is what reaches the model, the run record and the next prompt.
+    expect(out.infraError).not.toContain(TOKEN);
+    expect(out.infraError).toContain("redacted");
+  });
+
+  it("redacts a declared literal that matches no known credential shape", () => {
+    // The primary mechanism. Patterns are the backstop for credentials we were
+    // never handed; a declared literal must be removed whatever it looks like.
+    const odd = "s3cr3t-deploy-value-not-matching-any-pattern";
+    expect(redactSecrets(`env had ${odd} in it`, [odd])).toBe("env had [redacted] in it");
+  });
+
+  it("redacts a token it was never told about, by shape", () => {
+    const leaked = "ghp_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+    expect(redactSecrets(`remote rejected, using ${leaked}`)).not.toContain(leaked);
+  });
+
+  it("redacts a credential embedded in a URL while keeping the URL readable", () => {
+    const out = redactSecrets("cloning https://x-access-token:sekrit@github.com/a/b.git");
+    expect(out).not.toContain("sekrit");
+    expect(out).toContain("github.com/a/b.git");
+  });
+
+  it("does not blank out ordinary build output over a short literal", () => {
+    // Redacting a 3-char "secret" would gut normal output and teach everyone to
+    // distrust the redaction.
+    expect(redactSecrets("3 tests failed in api", ["api"])).toBe("3 tests failed in api");
+  });
+});
+
 describe("setup and checks", () => {
   it("installs bun, because the default E2B template does not carry it", () => {
     // Verified against a live sandbox: `which bun` finds nothing; node, npm, python
     // and git are present. Dropping this step makes every check fail on "bun: not
     // found" and look like a broken repo.
-    expect(defaultSetup("https://x/r.git", "main").map((c) => c.name)).toEqual([
+    expect(defaultSetup("acme/app", "main").map((c) => c.name)).toEqual([
       "install-bun",
       "clone",
       "deps",
@@ -164,15 +239,15 @@ describe("setup and checks", () => {
   });
 
   it("pins the lockfile so a sandbox cannot resolve a different tree than CI", () => {
-    expect(defaultSetup("https://x/r.git", "main").find((c) => c.name === "deps")!.run).toContain(
+    expect(defaultSetup("acme/app", "main").find((c) => c.name === "deps")!.run).toContain(
       "--frozen-lockfile",
     );
   });
 
   it("clones the requested ref rather than whatever HEAD happens to be", () => {
-    expect(defaultSetup("https://x/r.git", "feat/a").find((c) => c.name === "clone")!.run).toContain(
-      "--branch feat/a",
-    );
+    expect(
+      defaultSetup("acme/app", "feat/a").find((c) => c.name === "clone")!.run,
+    ).toContain("--branch feat/a");
   });
 
   it("runs typecheck, test and lint", () => {
@@ -181,7 +256,9 @@ describe("setup and checks", () => {
 });
 
 // A sandbox double that records what ran and whether it was killed.
-function fakeSandbox(script: Record<string, { exitCode?: number; throws?: unknown }> = {}) {
+function fakeSandbox(
+  script: Record<string, { exitCode?: number; throws?: unknown; stderr?: string }> = {},
+) {
   const ran: string[] = [];
   let killed = 0;
   return {
@@ -201,7 +278,7 @@ function fakeSandbox(script: Record<string, { exitCode?: number; throws?: unknow
             throw Object.assign(new Error("exit"), {
               name: "CommandExitError",
               exitCode: s.exitCode,
-              stderr: "boom",
+              stderr: s.stderr ?? "boom",
             });
           }
           return { exitCode: 0, stdout: "ok", stderr: "" };

@@ -87,6 +87,52 @@ export function clampOutput(s: unknown, max = E2B_MAX_OUTPUT_CHARS): string {
 }
 
 /**
+ * Credential shapes that must never leave this module in captured output.
+ *
+ * Pattern matching is the SECOND line of defence, not the first. The first is not
+ * putting the credential in the command at all (see {@link defaultSetup}). This
+ * exists because `git` echoes the remote URL into stderr on a failed clone, and that
+ * stderr flows into the tool result, the model's context, and the stored run record.
+ * A leak there is durable and it is replayed into future prompts.
+ */
+const SECRET_PATTERNS: RegExp[] = [
+  // GitHub tokens: app installation (ghs_), classic PAT (ghp_), fine-grained, OAuth.
+  /\bgh[pousr]_[A-Za-z0-9]{16,}/g,
+  /\bgithub_pat_[A-Za-z0-9_]{20,}/g,
+  // Any credential embedded in a URL, which is the exact shape a clone URL takes.
+  /(https?:\/\/)[^/\s:@]+:[^/\s@]+@/g,
+  /\be2b_[A-Za-z0-9]{16,}/g,
+];
+
+const REDACTED = "[redacted]";
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * PURE: strip credentials from a captured stream.
+ *
+ * `literals` are the exact secret values this run was handed, which is the reliable
+ * half; the patterns catch a credential we were never told about (one baked into the
+ * repo's own CI config, say). Short literals are ignored deliberately: redacting a
+ * 3-character "secret" would blank out half of normal build output and teach everyone
+ * to distrust the redaction.
+ */
+export function redactSecrets(s: string, literals: string[] = []): string {
+  let out = typeof s === "string" ? s : "";
+  for (const lit of literals) {
+    if (typeof lit === "string" && lit.length >= 8) {
+      out = out.replace(new RegExp(escapeRe(lit), "g"), REDACTED);
+    }
+  }
+  for (const re of SECRET_PATTERNS) {
+    out = out.replace(re, (m) => (m.endsWith("@") ? `${m.split("//")[0]}//${REDACTED}@` : REDACTED));
+  }
+  return out;
+}
+
+/**
  * PURE: normalise whatever `commands.run` produced into one result.
  *
  * Handles BOTH shapes deliberately, because the SDK uses both: a resolved value for
@@ -121,22 +167,66 @@ export function toCommandResult(
   };
 }
 
+/** The env var the clone step reads its credential from. Scoped to that step only. */
+export const GIT_TOKEN_ENV = "SUPAPROD_GIT_TOKEN";
+
 /**
  * The commands that put this repo's toolchain in a fresh sandbox.
  *
  * Bun is installed per run because the default template does not carry it (smoke
  * test, finding 2). `--frozen-lockfile` so a sandbox can never silently resolve a
  * different dependency tree than CI would.
+ *
+ * THE CREDENTIAL HANDLING HERE IS THE SECURITY-CRITICAL PART. The threat model is
+ * not hypothetical: this sandbox exists precisely to run UNTRUSTED code. `bun
+ * install` executes the repo's postinstall scripts and `bun test` executes its test
+ * files, both of which an attacker controls if they control the repo. So the GitHub
+ * installation token, which carries WRITE access, must be unreachable by the time
+ * either runs. Three rules, and all three are needed:
+ *
+ *   1. THE TOKEN IS NEVER INTERPOLATED INTO A COMMAND STRING. It arrives in the
+ *      clone step's own `envs` and is expanded by the shell inside the sandbox, so
+ *      it never exists in anything we build, log, store, or hand to a model.
+ *   2. THE CLONE SCRUBS ITS OWN CREDENTIAL, IN THE SAME COMMAND. `git clone` with a
+ *      credential in the URL PERSISTS it into `.git/config`, where any postinstall
+ *      script can read it. `git remote set-url` rewrites it to the bare URL
+ *      immediately, before anything else runs.
+ *   3. THE SCRUB IS ASSERTED, NOT ASSUMED. The final `grep` fails the command if any
+ *      credential survived in `.git/config`. A failed setup step aborts the whole
+ *      run, so the failure mode is "no checks ran" rather than "untrusted code ran
+ *      next to a live write token". Fail closed, because the alternative is handing
+ *      an attacker push access to the customer's repository.
+ *
+ * The token is deliberately absent from the `deps` step and from every check.
  */
-export function defaultSetup(repoUrl: string, ref: string): ExecCommandSpec[] {
+export function defaultSetup(repo: string, ref: string): ExecCommandSpec[] {
+  const bare = `https://github.com/${repo}.git`;
   return [
     { name: "install-bun", run: "curl -fsSL https://bun.sh/install | bash" },
-    { name: "clone", run: `git clone --depth 1 --branch ${ref} ${repoUrl} /home/user/repo` },
+    {
+      name: "clone",
+      // `$SUPAPROD_GIT_TOKEN` is expanded by the sandbox's shell, never by us.
+      run: [
+        `git clone --depth 1 --branch ${ref} "https://x-access-token:$${GIT_TOKEN_ENV}@github.com/${repo}.git" /home/user/repo`,
+        `cd /home/user/repo`,
+        `git remote set-url origin "${bare}"`,
+        // Fail loudly if the credential outlived the rewrite.
+        `! grep -q "x-access-token" .git/config`,
+      ].join(" && "),
+      envs: {},
+    },
     {
       name: "deps",
       run: 'cd /home/user/repo && export PATH="$HOME/.bun/bin:$PATH" && bun install --frozen-lockfile',
     },
   ];
+}
+
+/** Attach the clone credential to the clone step, and to nothing else. */
+export function withGitToken(setup: ExecCommandSpec[], token: string): ExecCommandSpec[] {
+  return setup.map((s) =>
+    s.name === "clone" ? { ...s, envs: { ...s.envs, [GIT_TOKEN_ENV]: token } } : s,
+  );
 }
 
 /** The checks worth running before an agent opens a pull request. */
@@ -199,6 +289,14 @@ export async function runInE2B(
   let infraError: string | null = null;
   let sandbox: SandboxLike | undefined;
 
+  // Every literal the caller declared secret, plus every per-command env value,
+  // because a credential passed as an env is by definition a secret this run holds
+  // and the caller should not have to declare it twice.
+  const secrets = [
+    ...(spec.secrets ?? []),
+    ...[...(spec.setup ?? []), ...spec.commands].flatMap((c) => Object.values(c.envs ?? {})),
+  ];
+
   const runOne = async (c: ExecCommandSpec): Promise<ExecCommandResult> => {
     const started = Date.now();
     const remaining = deadline - started;
@@ -212,15 +310,23 @@ export async function runInE2B(
         timedOut: true,
       };
     }
+    // Per-command envs win, so a credential is scoped to the one step that needs it
+    // and is absent from every step that runs untrusted repo code.
+    const envs = { ...(spec.envs ?? {}), ...(c.envs ?? {}) };
+    let r: ExecCommandResult;
     try {
-      const v = await sandbox!.commands.run(c.run, {
-        timeoutMs: remaining,
-        envs: spec.envs,
-      });
-      return toCommandResult(c.name, Date.now() - started, v);
+      const v = await sandbox!.commands.run(c.run, { timeoutMs: remaining, envs });
+      r = toCommandResult(c.name, Date.now() - started, v);
     } catch (e) {
-      return toCommandResult(c.name, Date.now() - started, undefined, e);
+      r = toCommandResult(c.name, Date.now() - started, undefined, e);
     }
+    // Redact BEFORE the result escapes this function, so there is no path by which
+    // an unredacted stream reaches a caller, a prompt, or the run record.
+    return {
+      ...r,
+      stdout: redactSecrets(r.stdout, secrets),
+      stderr: redactSecrets(r.stderr, secrets),
+    };
   };
 
   try {
@@ -232,7 +338,12 @@ export async function runInE2B(
     for (const s of spec.setup ?? []) {
       const r = await runOne(s);
       if (r.exitCode !== 0) {
-        infraError = `setup step "${s.name}" failed (exit ${r.exitCode}): ${r.stderr.slice(0, 400)}`;
+        // r.stderr is already redacted by runOne. Redacting again is cheap and means
+        // this line stays safe even if someone later reorders the two.
+        infraError = redactSecrets(
+          `setup step "${s.name}" failed (exit ${r.exitCode}): ${r.stderr.slice(0, 400)}`,
+          secrets,
+        );
         break;
       }
     }
@@ -243,7 +354,10 @@ export async function runInE2B(
       }
     }
   } catch (e) {
-    infraError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    infraError = redactSecrets(
+      e instanceof Error ? `${e.name}: ${e.message}` : String(e),
+      secrets,
+    );
   } finally {
     // Billing is per second of sandbox life, so this kill is the cost control. It is
     // best-effort by necessity: if it throws we still have the create-time timeoutMs
@@ -257,7 +371,12 @@ export async function runInE2B(
     }
   }
 
-  return { provider, results, infraError, verdict: execVerdictFromRun(provider, results, infraError) };
+  return {
+    provider,
+    results,
+    infraError,
+    verdict: execVerdictFromRun(provider, results, infraError),
+  };
 }
 
 /**
