@@ -1,102 +1,49 @@
-# GEMINI.md — Google Antigravity & Gemini CLI entry point
+# GEMINI.md
 
-> _Created: 2026-06-03 · Last updated: 2026-07-10_
+> _Created: 2026-06-03 · Last updated: 2026-08-03_
 
-> **Antigravity and the Gemini CLI read this file with the highest precedence. The actual operating rules live in [`AGENTS.md`](./AGENTS.md) — treat it as canonical.** This file holds only Gemini/Antigravity-specific configuration and precedence notes so rules are never duplicated.
+**Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
----
-
-> [!IMPORTANT]
-> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `supaprod`/`Supaprod`.
+This file is deliberately short. Antigravity and the Gemini CLI load it with the highest precedence, so anything written here is paid for on every request. It holds only what is specific to those tools.
 
 ---
 
-## ⭐ THE CORE USP (founder-directed 2026-08-02, in session; exact wording not yet founder-reviewed) - the one claim, and the file that proves it
+## Precedence
 
-> **Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks the outcome, and remembers. Wired end to end, from signal to learning and back again.**
+Rules apply in this order; later files defer to earlier ones.
 
-- **One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended under boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
-- **Product knowledge compounds, and the RECORD is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped, so when a product manager leaves the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding. **Known limit, do not overstate it:** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the USER who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Closing that is tracked work; until it closes, say "the record travels" and not "the memory travels".
-- **Proof, not assertion.** The station-by-station, code-verified account of that loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
+1. **System rules**, immutable, set by the tool.
+2. **`GEMINI.md`**, this file, tool-specific notes only.
+3. **[`AGENTS.md`](./AGENTS.md)**, the canonical operating manual. **Every real rule is here.**
+4. **`.agent/rules/`** (Antigravity), additional modular workspace rules if present.
 
-Works with, not against, the Investor canon and the triple-RFS positioning (the same three layers: the director, the operating system, the company brain) and the six-month-forward doctrine; it replaces none of them. This block is identical in `README.md`, `CLAUDE.md`, `AGENTS.md` and `GEMINI.md` so it cannot drift. Change all four or none.
+Keep this file thin, and keep any global `~/.gemini/GEMINI.md` thin too. A fat global file conflicts with project rules.
 
-## Precedence (how this repo loads context)
+## Start of session
 
-Antigravity and Gemini CLI apply rules in this order; later files defer to earlier ones:
+1. `git pull origin main`. Claude Code, Lovable and other sessions all write here. The repository is the live source of truth; this file is orientation only.
+2. Read [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0 and [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md). Nothing else up front. The corpus is large; read the file you need, when you need it.
 
-1. **System rules** (immutable, set by the tool).
-2. **`GEMINI.md`** (this file) — Gemini/Antigravity overrides only.
-3. **`AGENTS.md`** — the canonical, tool-agnostic operating manual. **Read this for all real rules.**
-4. **`.agent/rules/`** (Antigravity) — additional modular workspace rules, if present.
+## Configuration
 
-Keep this file thin. Keep any global `~/.gemini/GEMINI.md` thin too — a fat global file conflicts with project rules.
+- **Antigravity**: mirror `.mcp.json` into its MCP settings so tool capability matches Claude Code's. Modular rules go in `.agent/rules/`.
+- **Gemini CLI**: set `context.fileName` in `.gemini/settings.json` to `["GEMINI.md", "AGENTS.md"]`, and bundle MCP servers as an extension.
+- **Skills, subagents and hooks under `.claude/` do not run here.** They are harness-bound to Claude Code. If a behaviour must hold across every tool, the rule belongs in `AGENTS.md`, not in a skill.
 
-## Read order
+## Commands
 
--1. **`git pull origin main`** — before anything else, sync all work from Claude Code, Lovable, Antigravity, and Gemini. The repository is the live source of truth; this file is orientation only. 0. **[`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md)** — the single front door for where we are / what is next / what needs the founder. Read this first; **section 0 (the live cursor) is the current in-progress task list and handoff status** (it folded in and replaced the old root `active-task.md`).
+Bun is the package manager and runner.
 
-0.5. [`docs/strategy/founding-constitution.md`](./docs/strategy/founding-constitution.md) — the **founding constitution**: co-founder operating posture, north star, agentic-first + model-agnostic (BYOK) mandates, documentation-first development. Its **Repo Concordance** section maps its 13 mandated living docs onto this repo's canon — never create those root files; update the mapped equivalents. For scope/agents/IA/sequencing, the v4 feature map (1.5) governs.
+```bash
+bun install
+bun run dev            # Vite dev server, use this to verify UI changes
+bunx tsc --noEmit      # typecheck
+bun test               # unit and integration
+bun run build          # production build to a Cloudflare Worker
+bun run docs:check     # doc anti-rot check, before committing doc changes
+```
 
-1. [`AGENTS.md`](./AGENTS.md) — pre-action protocol, engineering rules, skill-first protocol, escalation, founding principles.
-   1.5. **🚀 THE CURRENT CAMPAIGN (2026-07-10): [`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md) wins on what to do NEXT — the 25-day ship (3–4 day build sprint → beta → Show HN → Product Hunt; the YC application AFTER launch), users/proof/love over engine depth; execution + the Fable/Sonnet parallel-lane protocol: [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) (board group G17, PC-01..PC-27).** **⭐ [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md) is the direction canon (2026-06-23) — read it for direction, moat, defense, the core-user lens, market/pricing, and the agentic build plan; it supersedes v7 to v10 for direction. The ranked build front (what to build next, #1-21, each with a one-line Why) lives in [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md). The older layers below remain valid for their detailed reference role. **The depth layer under v11 is v12** ([`docs/strategy/v12-self-improving-os.md`](./docs/strategy/v12-self-improving-os.md), 2026-07-02, audit-grounded): the reinforcement/learning loop, foresight + the reach channel, the operable memory OS, the design third leg, the Outcome Contract / ARD conventions, and the end-to-end journey coverage; its 32 build rows are dashboard group G15 (ranked after the G14 Obsidian port). v12 wins on those build plans; v11 wins direction. **Strategy canon is layered; [`docs/strategy/README.md`](./docs/strategy/README.md) is the single arbiter of which doc to pick for what.** Detailed reference layers: **v10** ([`docs/strategy/v10-master-blueprint.md`](./docs/strategy/v10-master-blueprint.md)) is the master blueprint (what to build next, how it should look/behave, priority, build lanes; execution order in [`docs/planning/v10_implementation-plan.md`](./docs/planning/v10_implementation-plan.md)); **v7** ([`docs/strategy/v7-agentic-product-os.md`](./docs/strategy/v7-agentic-product-os.md)) wins positioning detail; **v8** ([`docs/strategy/v8-calm-front-deep-engine.md`](./docs/strategy/v8-calm-front-deep-engine.md)) wins structure/IA; **v9** ([`docs/strategy/v9-decision-wedge-and-build-next.md`](./docs/strategy/v9-decision-wedge-and-build-next.md)) wins the wedge / competitor / priority call. **How Supaprod actually builds (the code-gen engine dispatch layer, the twin of `RepoProvider`): [`docs/strategy/build-driver-and-dispatch.md`](./docs/strategy/build-driver-and-dispatch.md)** is the build-handoff canon (the `BuildDriver` seam; hybrid posture: native floor + owned Claude-Agent-SDK / OpenHands + BYO Devin/Codex/Cursor; June-2026 market study; board group G13, founder-gated; decided 2026-06-28). Engine / expansion map (7 laws · 6 stations · 19-agent mesh · handoff contract · HITL gates · M1-M5): [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md). Wedge UX detail: [`docs/strategy/archive/v5-chief-of-staff.md`](./docs/strategy/archive/v5-chief-of-staff.md). Personas: [`docs/strategy/archive/v3-positioning-cadence.md`](./docs/strategy/archive/v3-positioning-cadence.md). Index + archive: [`docs/strategy/README.md`](./docs/strategy/README.md).
-   1.55. **Repository map & file-placement policy** — before creating ANY file, follow [`docs/README.md`](./docs/README.md) § "Repository map & file-placement policy": every new doc goes in the right subfolder and is linked from that folder's index in the same commit; nothing new at repo root or `docs/` top level; no duplicates or redirect stubs; screenshots local-only under `docs/screenshots/`.
-   1.6. [`docs/conventions/`](./docs/conventions/): durable, cross-tool rules applied automatically on every task. **Top of the list: [`humanized-output.md`](./docs/conventions/humanized-output.md).** Zero AI fingerprints (no em/en dashes, no invisible Unicode, no AI-cliché phrasing) in BOTH what we author AND what the platform generates for users; the runtime sanitizer at the AI chokepoint is the hard gate. Plus UI chrome, voice ([`ui-voice.md`](./docs/conventions/ui-voice.md)), destructive actions, inline management, doc-closure, and the card/detail-view anatomy + design-system reference ([`design-anatomy.md`](./docs/conventions/design-anatomy.md)).
-   1.65. **Build-in-public brand system: moved to a separate PRIVATE repo** (`RohitGajaraj/build-in-public`), split out 2026-06-15 so the founder's personal brand, voice, drafts, and social tokens never live in this product repo (which may be shared). **Standing rule (one-way insight feed):** when a genuinely postable build insight surfaces here (high bar - only what would make a real social post, not a build log), append it to [`docs/brand-feed.md`](./docs/brand-feed.md) including a **capture cue\*\* (the screenshot, video, link, or handle to tag that would strengthen the post). The engine reads that file, drafts in the founder's voice, and auto-stages Buffer drafts for his review - it never publishes, and never post to his accounts without his explicit approval. Do not recreate `docs/brand/` in this repo.
-2. [`README.md`](./README.md) — product thesis, positioning, MOAT.
-3. [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) — build log + milestone roadmap. **Current build initiative (workspace / accounts / tenancy + monetization), the cross-tool build bible:** [`docs/planning/workspace-tenancy-and-monetization-plan.md`](./docs/planning/workspace-tenancy-and-monetization-plan.md) (live board group G10 in [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md)). **Moat / competition / positioning canon (lead with the decision layer):** [`docs/strategy/moat.md`](./docs/strategy/moat.md).
-   3.5. **⭐ CURRENT UI CONTRACT (corrected 2026-07-10): read [`docs/design/archive/tempo-v5.md`](./docs/design/archive/tempo-v5.md) FIRST (v5 "Tempo") — THE design system for ALL Supaprod surfaces (app AND landing). It SUPERSEDES Loom v4, Obsidian v3, and the Ember `docs/design/archive/ember-editorial-landing.md` landing system, which are retired history; never build new surfaces from them. The prior-contract detail below carries forward only via Tempo §10 (humanized output, affordance ≠ emphasis, one primary CTA per screen, restraint budget, grayscale test). Brand identity: the app/brand logo is the seven-petal `SupaprodMark` (`src/components/supaprod/SupaprodMark.tsx`); the GTM brand kit is at `docs/Growth Strategy/branding/`; live UI/UX state + the tomorrow-pickup pending list are in [`docs/design/archive/ui-revamp-handoff.md`](./docs/design/archive/ui-revamp-handoff.md).** _(Retired, kept for history:)_ **⭐ Design contract: read [`docs/design/archive/loom-v4.md`](./docs/design/archive/loom-v4.md) BEFORE designing, redesigning, or building any UI (v4 "Loom", additive over v3 [`docs/design/archive/obsidian-v3.md`](./docs/design/archive/obsidian-v3.md)).** Its §0.1 "Consumer Production Doctrine" (founder mission 2026-07-06) is the READ-FIRST law: affordance ≠ emphasis + the 4-tier button hierarchy (sentence-case, never mono-caps text-buttons), prominence/spotlight (`SpotlightCard`), the aurora/gradient quality bar (`AuroraCard`), mono-caps discipline, every-feature-has-a-home, IA-by-intent, outcome-first naming, zero AI-tells, impact-first PM language, interaction smoothness/feedback, anti-scroll positioning, restore-designed-elements, the 3D universe graph. Use the shared primitives; a bespoke inline text-button is a violation. v3's 9 standing instructions remain mandatory where Loom is silent (placement algorithm, role colors, restraint budget, grayscale test, humanized-output law). `docs/design/archive/ember-editorial-landing.md` now covers the public landing page only; when any other doc disagrees with the contract on look, feel, or IA, the contract wins. Handoff package (tokens, anatomies, prototypes): [`design-reference/README.md`](./design-reference/README.md).
-4. Then: [`docs/design/archive/obsidian-v3.md`](./docs/design/archive/obsidian-v3.md) (app design contract) / [`docs/design/archive/ember-editorial-landing.md`](./docs/design/archive/ember-editorial-landing.md) (landing page only), [`architecture/`](./architecture/), [`docs/operations/skills.md`](./docs/operations/skills.md), [`docs/operations/subagents.md`](./docs/operations/subagents.md), [`docs/operations/tools.md`](./docs/operations/tools.md).
-5. **Demo accounts** (for demos / screen recordings / any flow that needs a working login): [`docs/operations/demo-credentials.md`](./docs/operations/demo-credentials.md) — two pre-provisioned logins + shared password + seeded workspace contents.
+## Two things that catch every tool here
 
-## Gemini CLI configuration
-
-- To make Gemini CLI read the canonical file, set `context.fileName` in `.gemini/settings.json` to include `AGENTS.md`, e.g. `["GEMINI.md", "AGENTS.md"]`. The CLI loads these hierarchically (global, project root, subdirectories) and concatenates them.
-- **Custom commands:** TOML files in `.gemini/commands/` (project) or `~/.gemini/commands/` (global). Subfolders create namespaces (`git/commit.toml` becomes `/git:commit`).
-- **Extensions:** bundle commands plus MCP servers in an extension directory.
-
-## MANDATORY: Scan skills, agents, plugins, and MCPs before every task (all tools, non-negotiable)
-
-**This applies to Antigravity, Gemini CLI, and every tool reading this file. Before every task — code, docs, design, analysis — you MUST:**
-
-1. Scan the full available library of skills, agents, plugins, and MCP servers (session context is the source of truth)
-2. Include ALL types equally — skills, agents, plugins, MCPs — shortlist across ALL namespaces with no vendor bias
-3. Invoke the best fit before acting from scratch — do not wait for the user to ask
-
-This is a standing order, not a suggestion. Full protocol: [`AGENTS.md`](./AGENTS.md) §2 and the ⚡ standing order at the top of AGENTS.md.
-
-## Lovable is the first checkpoint for everything (query it directly, never guess)
-
-Supaprod was built on, is hosted on, and is published through **Lovable**, the live system of record for the whole project: the Supabase database (schema, RLS, rows), authentication and OAuth (providers, redirect URIs, connector and client credentials), edge functions, hosting, deploys, analytics, logs, and the project source. When you hit any gap, error, or unknown (a backend or infrastructure fact, a credential, a data point, a deployment status, an error or log, an analytics number, a SQL result, or a project or file detail), check Lovable directly first via the connected **Lovable MCP** (`mcp__lovable__*`, declared in `.mcp.json`; mirror it into your Antigravity/Gemini MCP config so the capability exists), and use the **Supabase MCP** (`mcp__supabase__*`) for SQL, logs, and advisors. Do not assume, infer, or fabricate it. One exception, secrets and env are local-first: certain key secrets live in this project folder's git-ignored `.env` and as wrangler secrets, so check local first for those rather than deferring to Lovable. Full standing rule: the Lovable callout in [`AGENTS.md`](./AGENTS.md) §0.
-
-## Antigravity configuration
-
-- Antigravity reads `GEMINI.md` (this file, highest user priority) and `AGENTS.md` (the foundation). Additional modular rules go in `.agent/rules/`. On-demand knowledge packages live in the Antigravity skills directory.
-- Do not duplicate `AGENTS.md` content into `.agent/rules/` — reference it.
-- **Before any task: scan available skills/agents/plugins. Shortlist candidates across ALL namespaces equally. Pick the best fit.** Full protocol: [`AGENTS.md`](./AGENTS.md) section 2. No vendor bias.
-
-## Git Discipline (Cross-Tool Standard)
-
-**Every git interaction — commit, push, pull, merge — requires a one-line WHY explaining context + impact.** This applies equally to Claude Code, Lovable, Antigravity, and Gemini. Canonical reference: [`docs/operations/git-discipline.md`](./docs/operations/commits.md).
-
-- **Commits:** Include a second sentence explaining why the change matters + ticket context
-- **Pushes:** One-liner with task ID + completion status (e.g., `git push — F1.2 Signal card complete; wired to /api/signals`)
-- **Pulls:** State sync intent before pulling (e.g., `git pull — syncing latest auth fixes; checking design.md conflicts`)
-
-## Behavioral guidelines (source: AGENTS.md §4)
-
-Before writing code: **Think. State assumptions. Surface tradeoffs.**
-While coding: **Surgical changes only — every line traces to the task.**
-Goals: **Minimum code. Simplicity first. Nothing speculative.**
-Success: **Define success criteria upfront. Verify before declaring done.**
-Velocity: **BUILD-ONLY MODE is active (founder ruling 2026-07-04). Skip all documentation overhead. Just build, verify (tsc + build + tests), commit with a WHY, push.** Full detail: [`AGENTS.md`](./AGENTS.md) §3.
-
-## The closed documentation loop (⏸️ SUSPENDED — BUILD-ONLY MODE active)
-
-> **BUILD-ONLY MODE is ACTIVE (founder ruling 2026-07-04).** The doc loop is PAUSED. During builds: no plan.md log, no SSOT updates, no feature docs, no brand-feed captures, no doc-closure ceremony. The ONE trace: flip the feature-dashboard row status + a one-line note when something is built. Em/en dashes in .md docs are fine (docs are not consumer-facing). Code-level humanization (source files, UI strings, generated output) still applies. Full details: [`AGENTS.md`](./AGENTS.md) §3 "BUILD-ONLY MODE". To re-enable: the founder says so.
->
-> **One-time documentation catch-up (founder exception, 2026-07-10):** a single reconciliation pass brought `docs/planning/archive/build-log.md`, `SOURCE-OF-TRUTH.md`, `feature-dashboard.md`, `session-decisions.md`, and several planning/ops docs back to true current state. BUILD-ONLY MODE remains ACTIVE afterward — this was a single reconciliation pass, not a re-enable of the full doc loop.
-
-## Multi-tool consistency rule
-
-This repo is co-developed across Claude Code, Lovable, Antigravity, and Gemini. There is exactly one source of operating rules: [`AGENTS.md`](./AGENTS.md). `CLAUDE.md`, this file, and any tool-native config are thin pointers plus tool-specific overrides only. If you change a rule, change it in `AGENTS.md`.
+- **Database access is through the Lovable MCP.** Lovable is the live system of record for schema, data, logs and deploys. Do not guess, and do not ask the founder to authorize Supabase directly; he does not hold that credential.
+- **Pushing does not deploy.** The founder must click publish in Lovable for app code to go live.

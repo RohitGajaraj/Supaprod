@@ -1,666 +1,278 @@
-# AGENTS.md — Operations & Engineering Manual
+# AGENTS.md, the build manual
 
-> _Created: 2026-06-03 · Last updated: 2026-07-24_
+> _Created: 2026-06-03 · Last updated: 2026-08-03_
 
-> **Canonical, tool-agnostic source of truth for every agent and human working in this repo.**
-> Read natively by Google Antigravity, Gemini CLI, OpenAI Codex, Cursor, and the agents behind Lovable. Claude Code reads [`CLAUDE.md`](./CLAUDE.md) (a thin pointer to this file). Antigravity/Gemini precedence notes live in [`GEMINI.md`](./GEMINI.md).
->
-> **Rule of the repo:** this file holds the operating rules. The founding constitution — co-founder posture, north star, model-agnostic mandate — is in [`docs/strategy/founding-constitution.md`](./docs/strategy/founding-constitution.md); its **Repo Concordance** section maps its mandated documents onto this doc system (never create its 13 root files; update the mapped equivalents). Product framing is in [`README.md`](./README.md). The build log and roadmap are in [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md). The UI contract is in [`docs/design/archive/tempo-v5.md`](./docs/design/archive/tempo-v5.md) (v5 "Tempo", all surfaces). Architecture contracts are in [`architecture/`](./architecture/). The build-in-public brand system lives in a separate PRIVATE repo (`RohitGajaraj/build-in-public`, split out 2026-06-15 to keep the founder's brand and social tokens out of this product repo); **capture postable build insights to [`docs/brand-feed.md`](./docs/brand-feed.md)** (the one-way feed the brand engine reads first, before scouting) with a **capture cue** (the screenshot, short video, link, or handle to tag that would strengthen the post). That file defines what qualifies and the voice; follow it. The engine drafts in the founder's voice and auto-stages Buffer drafts for his review — it never publishes. Keep entries public-safe, never post without his approval, and do not recreate `docs/brand/` here. Do not duplicate content between files — link instead.
+**This file holds the rules for building Supaprod.** It is tool-agnostic and canonical: Claude Code, Antigravity, Gemini CLI, Codex, Cursor and Lovable all work from it. Per-tool notes live in [`CLAUDE.md`](./CLAUDE.md) and [`GEMINI.md`](./GEMINI.md), and those files only *point* here.
 
----
+For what the product is and where every other document lives, read [`README.md`](./README.md).
 
-> [!IMPORTANT]
-> **PRODUCT NAME: SUPAPROD.** The product is **Supaprod**, and that is the only name to use. A brief 2026-06-10 rename experiment to a different brand was reverted on 2026-06-16; the retired name must not be reintroduced anywhere (code, docs, DB, env, caches, APIs). Any stray legacy token from that experiment is to be read as equivalent to `supaprod`/`Supaprod`.
+**If a rule here conflicts with an older document anywhere in the repo, this file wins.**
 
 ---
 
-## ⭐ THE CORE USP (founder-directed 2026-08-02, in session; exact wording not yet founder-reviewed) - the one claim, and the file that proves it
+## Read this first
 
-> **Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks the outcome, and remembers. Wired end to end, from signal to learning and back again.**
+Four things carry most of the value in this file. If you read nothing else:
 
-- **One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended under boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
-- **Product knowledge compounds, and the RECORD is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped, so when a product manager leaves the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding. **Known limit, do not overstate it:** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the USER who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Closing that is tracked work; until it closes, say "the record travels" and not "the memory travels".
-- **Proof, not assertion.** The station-by-station, code-verified account of that loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
-
-Works with, not against, the Investor canon and the triple-RFS positioning (the same three layers: the director, the operating system, the company brain) and the six-month-forward doctrine; it replaces none of them. This block is identical in `README.md`, `CLAUDE.md`, `AGENTS.md` and `GEMINI.md` so it cannot drift. Change all four or none.
-
-## ⭐ Investor canon (founder-ratified 2026-07-24, the deck session)
-
-Distilled from the investor-deck build; full artifacts at [`docs/pitch/investor-deck/`](./docs/pitch/investor-deck/README.md) (frozen deck v19, brand assets vault, usage notes). Supersedes conflicting outward-facing copy anywhere in this repo. Works with, not against, the 2026-07-22 triple-RFS positioning: same three layers, sharper words.
-
-- **Tagline (hero, all surfaces):** "Agents that know what to build, ship it, and remember." Support line: "One agentic operating system, every call on the record." Journey kicker: `signal -> shipped -> remembered` (supersedes "Signal to shipped").
-- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold #e8b44c) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (remembers, and it guides, green).
-- **The brain is never storage.** Banned framing: "where the record lives". Canon: it compounds; next time it tells you what is right, and warns before you repeat what was wrong.
-- **Public launch date on every external surface: September 2026** (supersedes August / "~Aug 4" phrasing).
-- **Market sizing ladder (retires the unsourced $18B TAM everywhere):** TAM $300B+/yr, the PM work budget (2.6M PMs x ~$115K loaded). SAM $2B -> $12B/yr (launch pricing to value pricing; Motion 1 Transform: 650K existing teams; Motion 2 Create: 500K new agent-native orgs by 2030). SOM ~$47M ARR (the agent-native tenth at launch pricing). Full arithmetic: deck appendix B.
-- **Engine positioning: not a wrapper.** The models are interchangeable parts; the system is ours: the loop, the gates, the ledger. Our own build engine runs frontier models via API in the customer's repo. Never say we dispatch work to Cursor, Lovable, or Devin; they are the era's proof, not our subcontractors.
-- **Investor-material never list:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only (user-zero framing allowed), no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM" (never "Intellect Design Arena"), founder role arc ISRO associate PM -> Infineon PM -> Intellect senior AI PM, education shows TUM only.
-- **Contact canon:** founder@supaprod.ai (founder surfaces) · investors@supaprod.ai (investor relations) · linkedin.com/in/rohit-gajaraj.
-
-## ⭐ THE SIX-MONTH-FORWARD DOCTRINE (founder ruling 2026-08-01), binding on every design, architecture and deliverable
-
-> **We are not building for today's problem. Every solution is designed for where the industry
-> will be six months from the current date, and it must also close the pain the user has
-> carried from the past.**
-
-The founder's concern, stated plainly: when a frontier lab ships a new model, or an enterprise
-AI vendor launches the vertical we serve, **we must not look like a wrapper.** Solving only
-today's pain guarantees that outcome. So five tests, and every design decision passes all five
-before it is built:
-
-1. **Assume the model layer commoditizes.** If a single frontier release could absorb this
-   feature, it is not a moat. Build the loop, the gates and the ledger _around_ the model,
-   never the thin layer on top of it. The models are interchangeable parts; the system is ours.
-2. **Assume a large vendor ships our vertical next quarter.** Ask of every feature: when they
-   launch it, what do we still have that they do not? The honest answer must be the
-   compounding decision-and-outcome record and the closed loop. If the answer is "nothing",
-   the design is wrong and gets redone, not shipped.
-3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end
-   under policy is already legacy on the day it ships. The human sets boundaries; the agent
-   does the work. This is the governance canon applied to design: policy in advance, not
-   permission in the moment.
-4. **Solve backwards and forwards.** Fix the pain the user carried from the past, serve the job
-   they have today, and leave the seam for the job they will have in six months.
-5. **Delight is a requirement, not a finishing pass.** The bar is what the best product teams
-   in the world would ship, per [`docs/conventions/anti-slop.md`](./docs/conventions/anti-slop.md).
-
-**How to apply, on every task:** state the six-month assumption explicitly when proposing a
-design, and say in one line what survives a frontier launch. An agent that cannot answer that
-has not finished thinking. This applies to every agent, every surface, and every deliverable in
-this repo, not only product features.
-
-**A companion standing rule (same ruling):** for each surface, research the best proven product
-in that category and lift its information model and verbs outright, even close to literally.
-Originality is not the goal; an experience customers already know and love is. Name the
-reference and the pattern before building, then express it in our own shipped primitives and
-voice. (Build -> Cursor / Claude Code · Design -> Figma's fidelity ladder · Discover -> Sentry's
-issue stream + Linear's triage inbox.)
-
-## 0. What we are building
-
-**Supaprod** is the **AI-native, agentic-first operating system for product teams — it tells you what to build, builds it, ships it, checks the outcome, and remembers** _(category headline founder-ratified 2026-07-22, the triple-RFS repositioning: Supaprod sits at the intersection of YC's own three requests — "Cursor for Product Managers" (Spring 2026) · "The AI Operating System for Companies" (Summer 2026) · "Company Brain" (Summer 2026) — one product at three altitudes, told door → body → brain, brain as the crescendo; canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md))_. Most "AI for product" tools are an AI feature bolted onto an app (drafts, suggests, waits) or a chatbot (hands you a paragraph, the work is still yours); Supaprod is the other thing, an **AI operating system that owns the loop** and an **action system where the work is done.** A swarm of governed agents runs the whole product lifecycle (sense, decide, define, build, ship, learn) as one continuous loop, while a human sets intent and owns the calls that matter; agents execute, the human decides and is accountable. Its **build engine is its own** (own-engine ruling 2026-07-22: the harness is owned, frontier models plug in per lifecycle job as commodities — no second vendor license, no data round-trip; enterprise BYO dispatch survives quietly in the architecture only) and it **owns the one thing no frontier model or single-suite incumbent can backfill or neutrally own**: a cross-tool, auditable, compounding record of what the team decided and whether it was right. That **decision-and-outcome layer over three pillars (own the loop, sense continuously, keep the receipts)** is the moat. It is **not** a PM tool with AI bolted on; AI is the core. Standing canon (the verbatim answer is its §1A): [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md); moat detail: [`docs/strategy/moat.md`](./docs/strategy/moat.md); full thesis + personas: [`README.md`](./README.md).
-
-> [!IMPORTANT]
-> **🚀 THE CURRENT CAMPAIGN (2026-07-10): [`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md) wins on what to do NOW.** The engine is finished and independently audited; market contact is zero — so users, proof, and love outrank engine depth. **Ship publicly in under 25 days** (3–4 day build sprint → beta → Show HN → Product Hunt; the YC application AFTER launch, consuming traction — binding rulings, [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md) 2026-07-10, decisions 5–6). Execution bible + the parallel-lane protocol with Fable/Sonnet model assignments: [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) (board group G17, rows PC-01..PC-27). Standing companions: the **Love Gate** (enterprise-credible AND consumer-grade simultaneously, verified on a fresh production account), the **ground-truth mandate** (every major claim carries user evidence or a named assumption), and the **subtraction bar** (the founder's overwhelm read is the felt-experience law). When v13 and any older doc disagree on what to do next, v13 wins; v11 still wins direction. **The Pitch Room routing rule (standing, founder 2026-07-10): any outward-facing positioning content a session produces (differentiation, USP defense, demo flows, objection answers, application material) is distilled INTO [`docs/pitch/`](./docs/pitch/README.md) in the same session — update in place; claims carry PROVEN/WIRING/ROADMAP tags; cite artifacts and companies, never gurus.**
-
-Three principles govern every decision in this repo:
-
-1. **AI is the operating system, not a feature.** Every workflow flows through an intelligent layer with telemetry, evals, guardrails, and approval gates.
-2. **Fully autonomous super-agents, governed.** Agents don't just assist — they run multi-step missions end to end (discover → build → test → ship → launch → support), in parallel, behind approval gates. Autonomy is the product; governance makes it safe.
-3. **The moat is the decision layer (what to build, and was it right); memory is one layer of it.** Vibe-coding owns the build layer (how to build, commoditizing); we own the decision layer (no fast oracle, does not commoditize) and dispatch the build. Supaprod is model-agnostic; frontier models are an input we orchestrate. Defensibility = the no-oracle asymmetry + outcome-labeled judgment + system-of-record + the orchestration position + governance. Full canon: [`docs/strategy/moat.md`](./docs/strategy/moat.md). See also [`README.md`](./README.md).
-4. **Build for agents first.** APIs, MCP, A2A, and CLIs over dashboards. The next users are agents. See [`architecture/integrations.md`](./architecture/integrations.md).
-
-> [!IMPORTANT]
-> **UI standing rule (updated 2026-07-10, founder ruling): every surface change follows [`docs/design/archive/tempo-v5.md`](./docs/design/archive/tempo-v5.md), the v5 "Tempo" contract — THE design system for ALL Supaprod surfaces (authenticated app AND public landing/marketing).** Tempo derives its base from Vercel's Geist design system (dark-first with light generated from the same tokens; the 10-scale × 10-step color role model; the materials/elevation presets; the text-heading/button/label/copy type class system; 32/36/40px controls; the swift motion easing) with Supaprod's identity on top: the ember `#FF6B2C` brand scale in the role Geist's blue plays, Geist Sans = all UI / Geist Mono = technical content / Geist Pixel = brand moments only, our icon/illustration/logo treatment, and the AI + enterprise pattern extensions. The reference package (verbatim tokens, per-component specs, pattern library, portable distribution) is [`design-reference/tempo-v5/`](./design-reference/tempo-v5/README.md); the agent entry point is the **`supaprod-tempo` skill**, invoked first on any design task. Tempo SUPERSEDES Loom v4, Obsidian v3, and the Ember parchment system — `docs/design/archive/loom-v4.md`, `docs/design/archive/obsidian-v3.md`, `docs/design/archive/ember-editorial-landing.md`, and `design-reference/obsidian-v3/` are retired history; never build new surfaces from them; the `supaprod-design` skill is a deprecation stub. Orthogonal laws carry forward via the contract's §10 (humanized output, plain-words voice, Engine-Room doctrine + IA, affordance ≠ emphasis, one primary CTA per screen, restraint budget + grayscale test). No feature ships that violates the contract; the shipping gate is the contract's §11 "Tempo test". When any other doc disagrees with the contract on look, feel, tokens, or anatomy, the contract wins. **Brand identity assets:** the app/brand logo is the seven-petal **SupaprodMark** (`src/components/supaprod/SupaprodMark.tsx` — the loop spiral around an ember/gold Brain+Pulse core; also the animated loader + the theme-aware favicon, white on dark / black on light); the ready-to-upload GTM **brand kit** (logo/favicon/social SVG+PNG + `generate.ts` + guidelines) is at `docs/Growth Strategy/branding/`; the applied UI/UX + brand rulings are recorded in `design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md` and the live `docs/design/archive/ui-revamp-handoff.md` (DONE list + the tomorrow-pickup PENDING list). The public landing and every public page it links to follow the 2026-07-15 applied record `design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md` (ink/starfield canvas, three-voice trace grammar, Pixel hero, founder vocabulary + interaction rulings, the reference canon + in-product candidates); read it before touching any public page. Companion reference study: `design-reference/tempo-v5/research/vercel-composition-playbook.md` (Vercel anatomy, extraction rules, blocked-pattern waiting list with unlock conditions).
-
-**Strategy canon and source reasoning** (read for any positioning, GTM, pricing, or fundraising work): the versioned canon lives in [`docs/strategy/`](./docs/strategy/) - **v13 ([`v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md), 2026-07-10, the CURRENT campaign canon: wins on what to do next — the 25-day ship, the launch/beta/YC-after sequencing, the one-liner, the pressure-test verdicts, the HyperAgent ruling; execution in [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md), board group G17)**, then **v11 (the Guiding Star, 2026-06-23, wins DIRECTION: the decision-and-outcome-layer moat over 3 pillars, the ambient self-initiating North Star, the core-user lens, the consumer-grade design layer, the orchestration economics, the villain/defense, and the ranked agentic build plan; supersedes v7 to v10 for direction)**. **The depth layer under v11 is v12 ([`docs/strategy/v12-self-improving-os.md`](./docs/strategy/v12-self-improving-os.md), 2026-07-02, audit-grounded): the reinforcement/learning loop, foresight + the reach channel, the operable memory OS, the design third leg, the Outcome Contract / ARD conventions, and the end-to-end journey coverage; its 32 build rows are dashboard group G15 (ranked after the G14 Obsidian port); v12 wins on those build plans, v11 wins direction.** **v7** (positioning + market), **v8** (calm-front structure + the hybrid Build spine), **v9** (the decision lens: the Critic-teardown wedge, the integrate/absorb/race/ignore competitor map, own-the-autonomous-engine, the tiered build-next plan), and **v10** (the master blueprint: every feature with its pain point and how it functions, the screen-by-screen spec, the analytical engine, and the disjoint-lane priority pick-list - **pick this first** for what to build and how, with execution order, the per-item build loop, and milestone gates in [`docs/planning/v10_implementation-plan.md`](./docs/planning/v10_implementation-plan.md)). **BYO Repo + All-in-One Platform reframe (2026-06-18):** the spec [`docs/strategy/byo-build-and-supaprod-cloud.md`](./docs/strategy/byo-build-and-supaprod-cloud.md) decomposes the product-repo attachment model, managed-vs-BYO paths, and the Build-to-Ship autonomy reframe; the all-phase implementation plan (P1-P5, work items + tasks) lives in [`docs/planning/byo-build-implementation-plan.md`](./docs/planning/byo-build-implementation-plan.md) (board group G11). **How Supaprod actually builds (the code-gen engine dispatch layer):** [`docs/strategy/build-driver-and-dispatch.md`](./docs/strategy/build-driver-and-dispatch.md) is the build-handoff canon: the `BuildDriver` seam (the code-gen-side twin of `RepoProvider`), the hybrid posture (native floor + owned Claude-Agent-SDK / OpenHands + BYO Devin/Codex/Cursor), the June-2026 market study, cost/white-label, and phases `BD-1..BD-6` (board group G13, founder-gated; decided 2026-06-28; implements moat.md §6/§8 "dispatch the builders"). **💳 PRICING & BILLING (credit model, BYOK, model access, tiers, billing rail):** the single front door is [`docs/strategy/pricing/`](./docs/strategy/pricing/README.md); start at [`pricing-architecture.md`](./docs/strategy/pricing/pricing-architecture.md) (the finalized end-to-end system, 2026-07-12; wins over older pricing docs once ratified). The role map in [`docs/strategy/README.md`](./docs/strategy/README.md) is the single arbiter of which doc to pick. Major decisions are logged in [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md); the **raw brainstorm reasoning** behind the canon, and the source narrative for **YC / accelerator / investor applications**, is preserved in [`docs/strategy/strategic-inputs-log.md`](./docs/strategy/strategic-inputs-log.md). Standing rule (founder, 2026-06-17): these are interlinked both ways and **never orphaned** - a new strategic input is captured in the inputs log, distilled into the canon, and logged in decisions, all in the same session. **The moat / competition / defensibility canon is [`docs/strategy/moat.md`](./docs/strategy/moat.md)** (lead with the decision layer; memory is one layer; the YC objection Q&A lives there). **Repositioning Ripple Review (standing, founder 2026-06-19):** when the positioning or moat shifts, re-check pricing/gating, feature priority, IA/messaging, build-next, tests, and the canon in the same session (checklist in [`docs/strategy/moat.md`](./docs/strategy/moat.md) §11), so a reposition is never a one-time patch. **Documentation bar:** strategy docs are comprehensive and thought-process-oriented (the reasoning + insights, not just conclusions), so they serve YC / investor applications and answer questions by reference.
-
-**Demo logins** (for screen-recording, investor / customer demos, any flow that needs a working login): two pre-provisioned accounts (`demo@redcadence.app`, `demo2@redcadence.app`, shared password `Cadence!Demo2026`) land in a fully populated Demo workspace. Full doc + re-seed instructions: [`docs/operations/demo-credentials.md`](./docs/operations/demo-credentials.md).
+1. **Query the live database before believing anything about production.** On 2026-08-02, nine separately shipped features were found doing nothing in production. All nine passed typecheck and tests. Two had unit tests asserting the defect as the contract. **Not one was found by reading code.**
+2. **The gate is the exception, not the loop.** Policy is set in advance and does not block. Permission is asked in the moment and does. Design for the first.
+3. **Correctness gates are never skipped:** `bunx tsc --noEmit`, `bun run build`, and the feature's tests. Everything else can be deferred; these cannot.
+4. **A capability with no door is not shipped.** This repo's most common defect is a feature built correctly and reachable from nowhere.
 
 ---
 
-> [!IMPORTANT]
-> **LOVABLE IS THE FIRST CHECKPOINT FOR EVERYTHING. QUERY IT DIRECTLY; NEVER GUESS.** Supaprod was built on, is hosted on, and is published through **Lovable**, and Lovable is the live system of record for the whole project, not just the backend. It provisions and manages the Supabase database (schema, RLS, rows), authentication and OAuth (providers, redirect URIs, connector and client credentials), edge functions, secrets and env, hosting, deploys, analytics, logs, and the project source itself. **Whenever you hit any gap, uncertainty, error, or unknown** (a backend or infrastructure fact, a credential, a schema or data point, an OAuth or connector config, a deployment or build status, an error or log line, an analytics number, a SQL query result, or a project or file detail), **the first checkpoint is Lovable, directly.** Do not assume, infer, fabricate, or guess, and do not stop at a local grep when the live answer is one MCP call away. Read it live from the connected, authenticated **Lovable MCP** (`mcp__lovable__*`, declared in `.mcp.json`) and resolve the task end to end through it: inspect the project, read files and diffs, query the database, run the SQL editor, check connections and connectors, read analytics, set project or workspace knowledge, or send a change request to the Lovable agent and deploy. **Do not request direct Supabase access** (the Supabase MCP's OAuth flow, an access token, or the Supabase CLI/dashboard): the founder does not hold Supabase credentials directly; Supabase is entirely Lovable-managed, and asking him to authorize a separate Supabase connection is a wrong turn, not a shortcut. For SQL (`execute_sql`-equivalent), logs, schema, or advisor facts, go through the **Lovable MCP** (`mcp__lovable__*`): it holds the Supabase connection and can run the SQL editor, read logs, and inspect the schema on your behalf. (Corrected 2026-07-01: a session asked the founder to OAuth into Supabase directly; he does not manage that access, Lovable does. This applies to every tool and every session, including ones running in parallel.) **One deliberate exception: secrets and env are local-first.** Certain key secrets and environment values are stored in this project folder's git-ignored `.env` and as wrangler secrets, under the documented client/server split (public `VITE_*` vs server `SUPABASE_*` / `SUPABASE_SERVICE_ROLE_KEY` / `LOVABLE_API_KEY` / `CONNECTOR_SECRETS_KEY`); for an env-var or secret value, check the local `.env` and that split first rather than blindly deferring to Lovable, and if it is missing in both, ask before assuming. Otherwise fall back to local files or assumption only when the MCP genuinely cannot answer, and say so; when unsure where a value lives, check both the local `.env` and Lovable and reconcile. This is a standing rule for every tool and every session; the notes in `CLAUDE.md`, `GEMINI.md`, `README.md`, `README.md`, `docs/design/archive/ember-editorial-landing.md`, and the `architecture/` contracts only point here.
+## 0. Before you touch anything
+
+**Pull first.** `git pull origin main`. Several tools and sessions write to this repo, including Lovable's bot, which commits and applies migrations on its own. Main moves under you.
+
+**Where truth lives.** Four places, and only four:
+
+| Question | File |
+| --- | --- |
+| What is in flight, what is next, what needs the founder | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0 |
+| Per-feature status and who is on what | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) |
+| What the last session did and left open | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
+| What is actually true in production | **The live database.** Not a doc. |
+
+Read the handoff and the SSOT cursor. Do not re-read the whole corpus; that is the cost this repo has been paying and the reason it was cleaned up.
+
+### Lovable is the first checkpoint, and you query it directly
+
+Supaprod is built on, hosted on, and published through **Lovable**, which is the live system of record: the Supabase database, auth and OAuth, edge functions, hosting, deploys, analytics, logs, and the project source.
+
+**When you hit any gap, error, or unknown**, a schema question, a data point, a log line, an analytics number, a connector config, a deployment status, go to Lovable through its MCP (`mcp__lovable__*` or `mcp__plugin_lovable_lovable__*`) and resolve it there. Do not guess, and do not stop at a local grep when the live answer is one call away.
+
+- **Do not request direct Supabase access.** The founder does not hold Supabase credentials; Supabase is entirely Lovable-managed. Asking him to authorize a separate Supabase connection is a wrong turn, not a shortcut. Run SQL through the Lovable MCP.
+- **Secrets and env are the one local-first exception.** They live in this project's git-ignored `.env` and as wrangler secrets. Check there first for a secret value.
+- **Pushing does not deploy.** The founder must click publish in Lovable for app code to go live. Database migrations applied through Lovable are live immediately; everything else waits on his publish.
 
 ---
 
-> ## THE DOCUMENTATION OPERATING SYSTEM (read first, every tool, every session)
->
-> **One front door, typed ledgers behind it, status in exactly ONE place.** This is the standing rule for how this repo's docs work, for every tool (Claude Code · Antigravity · Gemini · Lovable · any future tool). It exists so you never hunt across files, nothing drifts or gets orphaned, and a session starts without re-reading the whole corpus.
->
-> ### The one source of truth
->
-> [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) (SSOT) is the ONLY place for "where are we / what is next / what needs the founder." It carries: section 0 the live cursor (what is in flight + the next picks; this folded in the old root `active-task.md` on 2026-06-19), section 1 founder rulings, section 2 status, section 3 the build queue, section 4 the founder pickup list, section 5 findings, section 6 the dated progress log, section 7 the doc map. The boot hook surfaces it first.
->
-> ### Which doc owns what (never duplicate status into these)
->
-> | Concern                                                 | Owner                                                                                   |
-> | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-> | In-flight + next picks, status, founder to-do, progress | **SSOT** (sections 0-6)                                                                 |
-> | Per-feature status matrix + who-is-on-what claims       | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md)            |
-> | Per-feature acceptance criteria / scope (F-IDs)         | [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md)  |
-> | Current-initiative build specs (per-ID, cold-buildable) | the initiative's build bible in `docs/planning/` (G10 workspace-tenancy, G11 byo-build) |
-> | Open bugs / blockers                                    | [`docs/planning/known-issues.md`](./docs/planning/known-issues.md)                      |
-> | Cross-cutting non-functional gaps                       | [`docs/planning/considerations.md`](./docs/planning/considerations.md)                  |
-> | Dated build history (what shipped + why)                | [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) section 4                                                        |
-> | Strategy / positioning / moat                           | [`docs/strategy/README.md`](./docs/strategy/README.md) (the arbiter)                    |
->
-> ### The session loop (do this, in order)
->
-> 1. **Start:** read the SSOT (the boot hook surfaces it) for the live cursor + queue + founder list, and the handoff for the conversational context the docs do not carry. The handoff arrives two ways: the `remember` plugin injects `.remember/remember.md` into your context automatically at SessionStart (and clears it as it reads, so it is gone from disk by the time you look), and the durable copy is committed at [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) — read that one if the injected block is missing or truncated. That is enough to know where things stand. Do not re-read the whole corpus.
-> 2. **Before picking work:** take the next item from SSOT section 0 (cursor) or section 3 (queue). Check the Active-claims table in the dashboard so you do not collide with a parallel session.
-> 3. **On claim (before writing code, same commit):** add an Active-claims line in the dashboard (`<tool>`, date) and set the SSOT section 0 cursor to the pick.
-> 4. **On done (same unit of work as the change):** update (a) the SSOT (section 0 cursor + section 6 progress log) and (b) the ONE typed ledger you touched (the build-bible row, known-issues, etc.), then run [`docs/conventions/doc-closure-checklist.md`](./docs/conventions/doc-update-cadence.md). A change is not done until its docs are true.
-> 5. **Before you pause or end:** leave the boards true; write the handoff (what shipped with IDs, open work in priority order, founder-gated items, env notes) to **both** `.remember/remember.md` (untracked, plugin-owned, bought you the automatic injection above) **and** [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) (tracked, committed, survives the plugin's read-and-clear). Writing only the first loses the record the moment the next session starts; writing only the second loses the automatic injection. This is what lets the next session start without re-deriving context. Saving tokens is part of the job.
->
-> ### The new-initiative rule (when a new feature or strategy spawns several sub-items)
->
-> A new initiative that decomposes into multiple build items (e.g. 4-5 features) is logged as ONE unit, never scattered: (1) a **build bible** at `docs/planning/<initiative>-plan.md` with per-ID specs (context, files, migration, steps, acceptance, verify); (2) a **board group** in the dashboard (e.g. G10/G11) with the pick-order; (3) an **SSOT section 3** queue entry pointing to the bible; (4) the reasoning in [`docs/strategy/strategic-inputs-log.md`](./docs/strategy/strategic-inputs-log.md) and the decision in [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md). Sub-items live in the bible, mirrored as dashboard rows. Never create new root files; placement policy: [`docs/README.md`](./docs/README.md).
->
-> ### Keep the hierarchy thin (anti-rot: so this cleanup is the LAST one)
->
-> The doc set must stay thin and purpose-driven: ONE doc per purpose, each serving its full purpose, no duplicates, no orphans, no redirect stubs. This repo has been cleaned up repeatedly; these rules exist so it does not rot again. Every tool, every session:
->
-> - **Extend, do not create.** Before creating any doc, check the map above and [`docs/README.md`](./docs/README.md). If a doc already serves the purpose, ADD to it. Create a new file ONLY for a genuinely new purpose, in the right subfolder, linked from that folder's index in the same commit.
-> - **No duplicated status or content.** Status lives only in the SSOT. Never copy a status board, queue, or canon paragraph into a second file; link instead.
-> - **Merge on sight.** If two docs drift toward the same job, merge them immediately: overwrite the survivor with the union of the content, then archive or delete the other. Do not "deal with it later".
-> - **Archive, do not orphan.** When a doc is superseded, move it to the nearest `archive/` (`docs/planning/archive/`, `docs/strategy/archive/`) and remove inbound links. Delete outright only when it has zero unique data (capture anything unique into the survivor first).
-> - **Check before you commit.** Run `bun run docs:check` (wraps `scripts/docs-doctor.sh`) to catch rot early: stray files at repo root or `docs/` top level, macOS " 2" duplicates, more than one "single source of truth" / "Live status board" claim, orphaned docs (in `docs/` but linked from nowhere), and broken relative links. Fix what it flags in the same commit.
->
-> ### Naming and metadata (every file, archive included)
->
-> - **No dates in filenames.** The date lives in the file's header, not the name. Use clean, descriptive kebab-case. Versioned canon uses a `vN-slug` prefix (the number carries the ordering); the date moves to the header.
-> - **Every doc carries a header date line** right under its H1: `> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_`, and you update "Last updated" in the same change. So the dates are learned on open, never from the filename.
-> - **Versioned series: only the current canon lives outside; older versions move to that folder's `archive/`** (e.g. `docs/strategy/archive/`). The arbiter of which version is current is [`docs/strategy/README.md`](./docs/strategy/README.md).
-> - **Archive is NOT exempt.** Files under any `archive/` follow the same naming + header rules and are checked by `bun run docs:check`. Clean everything, in and out.
-> - **Format-native headers.** Put the date line where the file's format expects it: a markdown blockquote `> _Created: ... · Last updated: ..._` under the H1 for normal docs, or `created:` / `updated:` fields in the YAML frontmatter for frontmatter / machine-read files. NEVER break a file's machine-readability for the header.
-> - **Live trackers carry a precise time.** The SSOT and the feature-dashboard stamp `Last updated` as `YYYY-MM-DD HH:MM TZ` (not just the date), so the exact freshness is visible at a glance. Get the time from `date` when you update them.
->
-> ### Every feature ships a feature doc (part of the closure loop)
->
-> When you build a feature, create its canonical page in [`docs/features/`](./docs/features/) (named for the feature, linked from `docs/features/README.md`) in the SAME change. Even half a page, it MUST capture: the **feature ID** + a one-line what-it-is, the **category/tag + owner**, the **use cases / scenarios**, and a **how-to-run / how-to-verify manual**. The dashboard row points to it. Past features lacking a doc are backfilled over time; going forward this is mandatory. Full per-ship list: [`docs/conventions/doc-closure-checklist.md`](./docs/conventions/doc-update-cadence.md).
->
-> If you remember one rule, remember this: **status lives only in the SSOT; everything else is typed detail it points to. One purpose per doc, extend before you create, archive before you orphan, no dates in names, a date header on every doc, a feature doc with every feature.**
->
-> ### If you touch observability (analytics, errors, uptime, on-call, status page)
->
-> The single front-door is **[`docs/planning/analytics-and-failure-detection-plan.md`](./docs/planning/analytics-and-failure-detection-plan.md)** (AFD initiative, group G12, 14 task IDs `AFD-01`..`AFD-14`, founder-gated). Read it before adding vendor SDK imports or new telemetry. The vendor selection is decided (PostHog EU + Sentry EU + Better Stack), the dormant-by-design pattern + façade contract are spec'd, and the exit-posture is committed. **Do not import a vendor SDK outside `src/lib/observability/`** when AFD lands — the façade rule (see [`docs/features/observability-facade.md`](./docs/features/observability-facade.md)) is non-negotiable so leaving Lovable stays a 1-day redeploy.
+## 1. The doctrines
+
+Five rules that constrain *what gets designed*, not just how it is coded. Every proposal states how it satisfies them.
+
+### 1.1 Six-month-forward (founder ruling 2026-08-01)
+
+> We are not building for today's problem. Every solution is designed for where the industry will be **six months from the current date**, and it must also close the pain the user carried from the past.
+
+1. **Assume the model layer commoditizes.** If one frontier release could absorb this feature, it is not a moat. Build the loop, the gates and the ledger *around* the model, never the thin layer on top.
+2. **Assume a large vendor ships our vertical next quarter.** Name what we still have that they do not. If the answer is "nothing", the design is wrong and gets redone.
+3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end under policy is legacy the day it ships.
+4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for the six-month job.
+5. **Delight is a requirement, not a finishing pass.** The bar is [`docs/conventions/anti-slop.md`](./docs/conventions/anti-slop.md).
+
+**How to apply:** state the six-month assumption when proposing a design, and say in one line what survives a frontier launch. An agent that cannot answer that has not finished thinking.
+
+**Companion rule:** for each surface, research the best proven product in that category and **lift its information model and verbs outright**, even close to literally. Name the reference before building, then express it in our primitives and voice. Build points at Cursor and Claude Code; Design at Figma's fidelity ladder; Discover at Sentry's issue stream and Linear's triage inbox. Every research pass is appended to [`docs/design/REFERENCE-PATTERNS.md`](./docs/design/REFERENCE-PATTERNS.md) in the same session, so it is never paid for twice.
+
+### 1.2 Governance is policy, not permission (founder ruling 2026-07-29)
+
+> Policy is set in advance and does not block. Permission is asked in the moment and does. **Supaprod is built on policy.**
+
+The test: *"Even human in the loop, every approval, if it passes to a human, then what is the purpose of agents?"*
+
+**The human sets boundaries and judges the few things that cross them.** A long approvals queue is a policy failure to surface, not a workload to render. The product should offer to remove it: *"You approved 14 of these without changes. Let Engineer do it alone?"*
+
+Autonomy is the default and the code already does it: `loadAgentArc` returns `trusted` when no row exists, and a brand-new workspace is autonomous on arrival. Autonomy is paid for with **evidence**: fewer interrupts is only safe because the tamper-evident record proves what happened. Never trade the record for speed.
+
+**Four floors no boundary may lower:** anything irreversible from inside the product; genuine judgment with no oracle; a default the user never set (it must be visible and changeable, or it is our choice masquerading as their policy); and hard risk floors above any earned autonomy.
+
+Canonical: [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](./docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md).
+
+### 1.3 The Engine-Room doctrine
+
+Complexity lives in the engine, never in the experience. **The user meets the output of the machine, never the machine.** Traces, evals, prompts, budgets, raw logs and agent internals live behind one recessed Engine Room door, revealed on demand. Labels name the **outcome**, not the mechanism. Users connect their own sources through one Connect button and never touch keys or wiring.
+
+Every new user-facing surface runs the **Engine-Room Test**, "would a smart non-technical person feel this is for them, or does it expose how the machine works?", and carries a greppable `Engine-Room:` line. Body: [`docs/conventions/engine-room-doctrine.md`](./docs/conventions/engine-room-doctrine.md).
+
+### 1.4 Data minimalism: every field earns its place
+
+Capture nothing by default. No field, input, stored column or pixel exists unless a **named consumer** needs it. Run the **Value Test** (what value, to whom, where consumed, does anything change if absent?) and satisfy the **wiring rule**: a captured field ships in the *same change* as the surface or prompt that reads it. There is no "collect now, use later". Body: [`docs/conventions/data-minimalism.md`](./docs/conventions/data-minimalism.md).
+
+### 1.5 Build, Buy, or Integrate
+
+Run this before building any capability from core. **Default to build:** the USP lives in-house end to end.
+
+- **BUILD** the moat: the typed decision ontology, outcome-labeled supersession, the adversarial Critic, the system of record. Never wrap a provider's generic layer and call it ours.
+- **BUY** commodities: inference, embeddings, rerank, OCR, email, OAuth. Route through `runtime.server.ts` with a valid `CallSurface`; never call a provider directly.
+- **INTEGRATE** high-lock-in substrates behind a typed internal seam, with a native default and graceful fallback.
+
+The moat is the judgment. Borrow the plumbing. Full gate: [`docs/strategy/build-buy-integrate.md`](./docs/strategy/build-buy-integrate.md).
 
 ---
 
-## 1. Pre-action protocol (run before any non-trivial task)
+## 2. Pre-action protocol
 
-0. **Resolving "what is in flight or next to build":** `git pull origin main`, then read [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md): section 0 (the live cursor) for what is in flight, section 3 for the build queue, section 4 for founder-gated items. Check the Active-claims table in [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) so you do not collide with a parallel/other session. On pickup, flip the dashboard row to `🔨 In Dev (<tool>, date)` + an Active-claims line AND set the SSOT section 0 cursor, in the same commit, before writing feature code. On completion, flip the row to `✅`, clear the claim, and update the SSOT (section 0 + section 6). The full model is the **Documentation Operating System** block above. This is non-negotiable so concurrent sessions never duplicate or clobber work.
-1. **State the request in one sentence.** If ambiguous, ask before acting.
-2. **Scan skills and agents first, and then available plugins and tools (MCP, etc.) then act.** Surface candidate skills ([`docs/operations/skills.md`](./docs/operations/skills.md)) and subagents ([`docs/operations/subagents.md`](./docs/operations/subagents.md)) with a one-line "why," before invoking. Never reason from scratch when a skill exists. This is non-negotiable.
-3. **Invoke the smallest set that fits.** One or two skills, justified in one line. No invoking five overlapping skills "for completeness."
-4. **Track multi-step work as tasks.** Create tasks up front; update as you go. Do not batch-complete at the end.
-5. **Confirm destructive or shared-state actions.** Pushes, force-pushes, branch deletes, migrations, external sends. One past approval does not extend forward.
-6. **For UI work, run the dev server and verify visually.** Type-checking is not feature-checking. See [`architecture/frontend.md`](./architecture/frontend.md).
-7. **End with one or two sentences:** what changed, what is next.
+1. **State the request in one sentence.** If it is ambiguous in a way that changes the work, ask.
+2. **Scan available skills, agents, plugins and MCP servers, then pick the best fit.** The active list is in the session reminder; it is the source of truth, never invoke from memory. Shortlist across all namespaces with no vendor bias. Process skills before implementation skills. Selection logic: [`docs/operations/skills.md`](./docs/operations/skills.md), [`docs/operations/subagents.md`](./docs/operations/subagents.md).
+3. **Track multi-step work as tasks.** Create them up front, update as you go, never batch-complete at the end.
+4. **Confirm destructive or shared-state actions.** Migrations, force-pushes, branch deletes, external sends. One past approval does not extend forward.
+5. **For UI work, run the dev server and look at it.** Typechecking is not feature-checking.
+6. **Close with one or two sentences:** what changed, what is next.
 
-**Lovable is the first checkpoint for any gap.** If a step hits an unknown or gap (a backend, OAuth, connector, deployment, schema, data point, error, log, analytics, or SQL-query fact), check Lovable directly first via the connected Lovable MCP (`mcp__lovable__*`): never request direct Supabase OAuth/access-token access (the founder doesn't manage that credential; Lovable does), and never from assumption. Secrets and env are the one local-first exception (this project's git-ignored `.env` + wrangler secrets). Full standing rule: the Lovable callout in section 0 above.
-
-If you catch yourself thinking "this is a quick fix, I can skip the protocol" — that is the signal to follow it.
+If you catch yourself thinking "this is a quick fix, I can skip the protocol", that is the signal to follow it.
 
 ---
 
-## 2. Skill-first & Agent-first protocol (scan, shortlist, pick, code)
+## 3. Architecture invariants
 
-**Before any non-trivial task, follow this protocol:**
+Non-negotiable. A change that breaks one of these is wrong even if it works.
 
-1. Scan available skills/agents/plugins/MCP servers (active list in session reminder)
-2. Shortlist candidates across ALL namespaces (GStack, ecc, superpowers, ruflo, design, context7, user-installed, etc.)
-3. Pick the best fit (no namespace bias; best-fit wins)
-4. Invoke & execute, then code
-
-**Why scan?** 700+ skills exist. Skipping the scan means hallucinating, burning tokens, and missing the right tool. A 30-second scan prevents a 30-minute wrong path.
-
-**Selection priority - all equal:**
-
-1. **User instructions win.** If [`AGENTS.md`](./AGENTS.md), [`CLAUDE.md`](./CLAUDE.md), [`GEMINI.md`](./GEMINI.md), or the request says "use X," use X.
-2. **Scan the full installed set + project folders** — shortlist candidates across all namespaces.
-3. **Best fit wins.** Pick the most relevant skill for the task. All namespaces equal.
-4. **Process before implementation:** `superpowers:brainstorming` / `superpowers:debugging` before you code.
-5. **Specific over general:** `ecc:typescript-reviewer` for TypeScript beats a generic reviewer; `ecc:database-reviewer` for migrations; `ecc:security-reviewer` for security.
-6. **Repo-local convention beats cross-repo default** — see [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md).
-7. **When in doubt, ask.** A 10-second clarification beats a 10-minute wrong path.
-
-**Common skill categories (examples, not exhaustive):**
-
-| Category                       | Examples                                                                                                                                                                         | When to reach for                                                  |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Process & discipline**       | `superpowers:brainstorming`, `superpowers:debugging`, `superpowers:test-driven-development`, `superpowers:systematic-debugging` , etc.                                           | _Before_ implementation — these shape how you code.                |
-| **Code review**                | `ecc:typescript-reviewer`, `ecc:python-reviewer`, `ecc:rust-reviewer`, `ecc:go-reviewer`, `ecc:csharp-reviewer`, `ecc:java-reviewer`, `pr-review-toolkit:code-reviewer` , , etc. | Language-specific or pattern-specific review. Better than generic. |
-| **Security & compliance**      | `ecc:security-reviewer`, `ecc:a11y-architect`, `ecc:healthcare-reviewer` , etc.                                                                                                  | Security audits, accessibility, compliance. Domain-specific.       |
-| **Database & data**            | `ecc:database-reviewer`, `ecc:mle-workflow`, `ruflo-migrations:migrate-create` , etc.                                                                                            | Schema design, migrations, data patterns.                          |
-| **Build & deploy**             | `ecc:build-fix`, `ecc:go-build`, `ecc:rust-build`, `ecc:kotlin-build`, `ecc:cpp-build`, etc.                                                                                     | Build errors. Language-specific is better than generic.            |
-| **Design & frontend**          | `emil-design-eng`, `design-taste-frontend`, `frontend-design`, `ecc:frontend-design-direction` , etc.                                                                            | UI/UX work, motion, design systems.                                |
-| **Docs & context**             | `context7-plugin:docs`, `ecc:update-docs`, `claude-api:doc-coauthoring` , etc.                                                                                                   | Library docs, documentation, knowledge.                            |
-| **Architecture & planning**    | `ecc:plan`, `ecc:architecture-decision-records`, `ecc:blueprint` , etc.                                                                                                          | System design, ADR, multi-layer architecture.                      |
-| **Testing & validation**       | `ecc:tdd-workflow`, `ecc:e2e-testing`, `ecc:test-coverage` , etc.                                                                                                                | TDD, end-to-end tests, coverage analysis.                          |
-| **Performance & optimization** | `ecc:performance-optimizer`, `ecc:refactor-clean`, `ecc:cost-tracking` , etc.                                                                                                    | Speed, memory, bundle size, cost.                                  |
-| **Workflow shortcuts**         | `to-prd`, `to-issues`, `prototype`, and 700+ others                                                                                                                              | Domain-specific, user-installed, project-local.                    |
-
-Full skill-selection logic & anti-patterns: [`docs/operations/skills.md`](./docs/operations/skills.md). Subagent selection: [`docs/operations/subagents.md`](./docs/operations/subagents.md).
+1. **Every AI call goes through the chokepoint**, `src/lib/ai/runtime.server.ts`. No second path. A new AI surface needs a valid `CallSurface` literal from the exported union. Contract: [`architecture/runtime.md`](./architecture/runtime.md).
+2. **Every multi-step autonomous workflow goes through the orchestration layer.** No ad-hoc agent loops. New agentic tools are registered in `src/lib/ai/tools/registry.server.ts`. Contract: [`architecture/orchestration.md`](./architecture/orchestration.md).
+3. **RLS on every user table, scoped by membership.** No client-trusted role checks. Every write stamps `workspace_id`. Contract: [`architecture/security.md`](./architecture/security.md).
+4. **Server boundary integrity.** Files ending `.server.ts` run only in the Cloudflare Worker and are never bundled to the client. The service-role client is never imported from client code.
+5. **App logic is server functions**, one `src/lib/<domain>.functions.ts` module per domain, consumed by the matching `src/routes/_authenticated.<domain>.tsx` through TanStack Query. Cron-poked endpoints are `/api/public/hooks/*`. Follow an existing pair rather than inventing a new data-flow shape.
+6. **Loader and Suspense, not `useEffect` and fetch.** Boundaries on every route: error, not-found, and a root default.
+7. **Budget caps are sacred**, enforced server-side. Cache hits are still logged. Guardrails run on input and output.
+8. **Never add a `VITE_` prefix to a secret.** Client uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; the server uses unprefixed names plus `SUPABASE_SERVICE_ROLE_KEY` and `LOVABLE_API_KEY` as wrangler secrets.
+9. **Do not hand-edit generated files:** `src/routes/routeTree.gen.ts`, and migration SQL once applied.
 
 ---
 
-## 3. Engineering rules
+## 4. The gates
 
-> **§3.0 — The Engine-Room Doctrine (the product's first UX law, non-negotiable).** Complexity lives in the engine, never in the experience: the user meets the _output_ of the machine, never the machine. All observability/governance/internal machinery (traces, evals, prompts, budgets, raw logs, agent internals) lives behind one recessed "Engine Room" door, revealed on demand; user-facing labels name the _outcome_, not the mechanism; users bring their own sources via one Connect button and never touch keys/DBs/wiring. Every new user-facing surface runs the **Engine-Room Test** ("would a smart non-technical person feel this is for them, or does it expose how the machine works?") and carries a greppable `Engine-Room:` line. This rule outranks any single surface, feature, or metric, and constrains solutioning and architecture (one door not many; outcome objects not machine objects reach the front; progressive disclosure is a reused component contract). Body + how-to-achieve: [`docs/conventions/engine-room-doctrine.md`](./docs/conventions/engine-room-doctrine.md). Founder ruling 2026-06-16.
+**Every cycle, no exceptions:**
 
-> **§3.0b — Data minimalism: every field earns its place (non-negotiable).** Capture nothing by default. No field, input, stored column, or pixel of screen real estate exists unless a _named consumer_ needs it: run the **Value Test** (what value, to whom, where consumed, does anything change if absent?) and satisfy the **wiring rule** — a captured field ships in the _same change_ as the surface/prompt/behavior that reads it; there is no "collect now, use later." Speculative capture is allowed only with a documented, credible near-term consumer named at the point of capture. Unearned capture costs the user's time, our storage, privacy surface, and maintenance, forever. This is the data-and-input sibling of §3.0 (calm front). Body + worked example (the onboarding `role` removal): [`docs/conventions/data-minimalism.md`](./docs/conventions/data-minimalism.md). Founder ruling 2026-06-18.
-
-> **§3.0c — Build vs Buy vs Integrate (the BBI gate; run BEFORE building any capability from core; non-negotiable; STRENGTHENED 2026-06-20).** DEFAULT TO BUILD: the platform is NOT an assembly of external products, the USP lives in-house end to end, and the AGENT OWNS this call from its own web-grounded research (the founder is consulted only for a genuine spend approval, a secret / OAuth-client registration, or a taste/policy call - never a routine commodity-vs-moat classification). It applies forward AND RETROACTIVELY: re-audit shipped + pipeline work; a chokepoint-bypass, an external dep with no native fallback, or a wrapped commodity masquerading as moat is a finding to FIX, not grandfather. The MOAT is the judgment (the outcome label + signal->ontology normalization + the Critic's precedent-salience); BORROW the plumbing (bi-temporal storage mechanics are commodity). Classify every new capability: **BUILD** (the moat - typed decision ontology / outcome-labeled supersession / the adversarial Critic / system-of-record), **BUY** (a commodity API: inference, embeddings, rerank, OCR, email, OAuth), or **INTEGRATE** (a high-lock-in / autonomy-floor / residency-sensitive substrate). **Decision rule:** moat -> BUILD (own it end to end; never wrap a provider's generic layer); commodity + low-lock-in + residency-safe -> BUY (route through `runtime.server.ts` via a `CallSurface`; never call the provider directly); else -> INTEGRATE behind a typed internal seam with a NATIVE default + graceful fallback, cost-metered through credits. **Two side-constraints:** every model call routes through the chokepoint (a new capability needs a valid `CallSurface`); the autonomy floor holds (a native, zero-external-paid-dep default exists and is the automatic fallback; self-host only permissive weights/code - see §9). The moat is never bought or wrapped; commodity infra is never built. Carry a greppable `BBI:` stamp on the deciding doc/PR. Full gate (the 7 questions + the worked memory / Decision-Brain stack verdict): [`docs/strategy/build-buy-integrate.md`](./docs/strategy/build-buy-integrate.md). Founder ruling 2026-06-20.
-
-> **§3.0e — Surface discipline: the ratchet, the standard, and how space/scroll/colour work (non-negotiable, applies to every future change).** Two governing laws, then the mechanics. **(1) THE RATCHET: today's design is the FLOOR.** No change may make a surface worse in order to satisfy an instruction. "Reduce the vertical scroll", "tighten this", "fit more in" are requests for a BETTER surface, never a smaller one — founder ruling 2026-08-01: _"that doesn't mean you need to compromise on the look and feel... Don't just compress and shrink it and make it worse. Your baseline is what we have today. You need to enhance it on top of that."_ Reducing type, stripping padding, capping heights, hiding information or dropping a state to save rows is FORBIDDEN as an answer; the allowed moves are structural (use the horizontal axis, collapse what nobody reads, escape the 74ch measure for non-prose, delete genuine duplication). The test before committing: would someone who liked yesterday's screen prefer today's? **(2) THE STANDARD: Stripe / Google / Anthropic, at enterprise B2B scale** — founder ruling 2026-08-01. That means the states nobody screenshots (empty, partial, failed, denied, very long, very short, slow) are each composed rather than merely handled; AND that we are **past the reskin** — the `--sp-*` system is the built thing and work is now fine touches on top of it, so reaching for a new visual language on a surface that already has one is itself a ratchet regression. Mechanics (one page scroller, `@container` not `@media` inside a pane, fit-to-content heights, colour that survives greyscale, the wait, agent indicators): [`docs/conventions/surface-discipline.md`](./docs/conventions/surface-discipline.md). The mechanical rules are ENFORCED by `src/__tests__/surface-discipline.test.ts` (proven to fail by planting the defect, not just proven to pass), so they bind tomorrow's code and not only today's.
->
-> **§3.0d - The frontend build protocol (run on EVERY front-end build; non-negotiable).** Every FE screen, card, or surface is built with the FULL design-skill toolkit, not `impeccable` alone. Per build: load the brand canon (DESIGN.md/Ember + the design conventions); treat the founder's reference files as INTENT not gospel (where a reference detail conflicts with standard UI/a11y/interaction practice or a design skill, follow the better practice and keep the brand intent, noting the deviation); INVOKE the fitting design skills at build time (a visual/taste skill + an interaction/motion skill + a system/patterns skill as the surface needs, e.g. `design-taste-frontend`/`high-end-visual-design`/`emil-design-eng`/`ecc:make-interfaces-feel-better`/`ecc:motion-*`/`ecc:design-system`); reuse Ember primitives + mirror a wired sibling's data-flow; then GATE with `impeccable` (mandatory) plus, for a significant surface, a design-review (`gstack-design-review`/GAN) + accessibility (`ecc:accessibility`/`ecc:a11y-architect`). "Design once" = build each surface well the FIRST time; the deferred §14 holistic polish pass is a final tune, never a license to ship rough FE now. Full protocol: [`docs/conventions/design-context.md`](./docs/conventions/design-context.md) "The frontend build protocol". Founder ruling 2026-06-20.
-
-### Architecture
-
-1. **Every AI call goes through the chokepoint** (`src/lib/ai/runtime.server.ts`). No second path. Contract: [`architecture/runtime.md`](./architecture/runtime.md).
-2. **Every multi-step autonomous workflow goes through the orchestration layer.** No ad-hoc agent loops. Contract: [`architecture/orchestration.md`](./architecture/orchestration.md).
-3. **RLS on every user table; scope by `user_id` + `workspace_id` + `product_id`.** No client-trusted role checks. Auth/tenancy/governance contract: [`architecture/security.md`](./architecture/security.md). Data contract: [`architecture/data.md`](./architecture/data.md).
-4. **Server boundary integrity.** The service-role client is never imported from client code.
-5. **App logic = server functions. Cron-poked endpoints = `/api/public/hooks/*`.** Contract: [`architecture/frontend.md`](./architecture/frontend.md).
-6. **Loader + Suspense, not `useEffect + fetch`.**
-7. **Boundaries on every route** — error, not-found, and a root default.
-8. **Repo invariants are enforced by hooks** (commit policy, migration safety). See [`docs/operations/hooks.md`](./docs/operations/hooks.md) and [`docs/operations/commits.md`](./docs/operations/commits.md).
-
-### Visual / tokens
-
-7. **Semantic tokens only.** Hex literals in components are banned. See [`docs/design/archive/ember-editorial-landing.md`](./docs/design/archive/ember-editorial-landing.md). Card + detail-view anatomy, the trace-ref registry, and the color + naming conventions (the long-form reference behind the DESIGN-LOOM dim 17 contract): [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md).
-   7a. **Applied platform-wide as of 2026-07-07 (extend, do not re-audit).** The dim-17 doctrine, the shared DetailKit detail-view anatomy, and the trace-ref registry now hold across every canonical surface (Today, Discover, Decide, Define, Build, Brain, Trust Ledger, Engine Room, Settings, Connections, Auth), so new surface work EXTENDS the standard in [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md) rather than re-auditing from scratch. The flagged-migration, parked/gated, and deferred-design lists from that pass live in the overnight handoff: [`docs/planning/overnight-platform-pass.md`](./docs/planning/overnight-platform-pass.md).
-8. **Motion via the canonical motion library; respect `prefers-reduced-motion`.**
-9. **AI message UI contract** — every AI message exposes score, model+via, latency, tokens, cost, citations, feedback, View Trace, Replay-with. See [`docs/design/archive/ember-editorial-landing.md`](./docs/design/archive/ember-editorial-landing.md).
-   9a. **Humanized output, zero AI fingerprints (two levels, both mandatory).** No em/en dashes, no invisible Unicode (zero-width, non-breaking space, BOM, soft hyphen), no AI-cliché phrasing in: (1) anything we author (code, docs, UI copy, comments, commit messages, seed data) AND (2) anything the platform generates for a user (PRDs, drafts, chat, research, rationales). The runtime sanitizer at the AI chokepoint (`src/lib/ai/runtime.server.ts`) is the hard gate; the system-prompt directive (`prompts.server.ts`) is the soft one. Applies to every co-dev tool (Claude Code, Lovable, Gemini, Antigravity). See [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md). `ui-voice.md` is its UI-string application.
-   9b. **UI voice & language.** Length budgets, AI-tell denylist, no em/en dashes in UI copy. See [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md).
-   9c. **No native browser chrome.** No `alert`/`confirm`/`prompt`/`open`/`onbeforeunload`/native `<dialog>` in `src/**`. Use `useConfirm()` / `usePrompt()` + `sonner` + shadcn. ESLint-enforced. See [`docs/conventions/ui-chrome.md`](./docs/conventions/ui-chrome.md).
-   9d. **Destructive actions.** Typed-name match for irreversible deletes; `useConfirm` for other destructive flows; Undo over confirm for reversible. See [`docs/conventions/destructive-actions.md`](./docs/conventions/destructive-actions.md).
-   9e. **Manage X inline.** Workspace/product management lives next to the thing, never on a settings route. See [`docs/conventions/inline-management.md`](./docs/conventions/inline-management.md).
-
-### Process
-
-10. **No mocks, ever.** If it renders, it reads/writes real data.
-11. **No half-finished implementations.** Do not stub and ship.
-12. **Surgical changes only.** Touch only what the task requires. Every changed line traces to the request.
-13. **You're free to choose the style which goes well with the Objective & what is that being tried to achieve.**
-14. **Delete your own orphans.** Remove imports/vars your change made unused; do not delete pre-existing dead code without asking.
-15. **Comments default to none.** Comment only when the _why_ is non-obvious.
-
-### Velocity ruling: ship fast, batch deferrable quality passes to the end (founder ruling, 2026-06-19)
-
-Build the working product first. Any **non-trivial process that can be done correctly once at the end** (when the app is complete or near build-stage) is **batched to that final stage, not run every cycle**. It is never ignored: it is tracked and executed as a dedicated end-stage pass. This exists because per-cycle quality sweeps were slowing the build to a crawl.
-
-- **Deferred to the final pre-launch sweep (do NOT spend per-cycle effort here):**
-  - Humanized-output scanning of AUTHORED content (em/en dashes, AI-template phrasing, invisible Unicode) in docs, code comments, commit and build-log prose. This is Tier 2 in [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md), which already says it warrants no detect-fix-rescan pass: write clean by habit, do NOT scan-and-fix per cycle.
-  - AI-trace / observability / telemetry polish.
-  - Repo-wide lint / prettier / formatting cleanup and style-only lint findings (no-explicit-any, quote style). Do not introduce NEW correctness lint errors, but do not chase the pre-existing style backlog per cycle.
-  - Deep documentation prose-polish, cross-linking, de-duplication. The status doc-loop still runs every cycle (flip the dashboard row + one terse build-log line); only the heavy prose-polish defers.
-  - Design / UX polish (already the LAST, ONCE pass: playbook §14).
-- **NEVER deferred (every cycle, the 2026-06-18 K2-incident floor):** the correctness gates `bunx tsc --noEmit` + `bun run build` + the feature's tests; the adversarial review that hunts RUNTIME-FATAL bugs (Supabase column/table mismatch, missing NOT NULL on an insert, RLS referencing a non-existent column, claim-outruns-wiring); migration dry-run safety; honest status (◐ not ✅ unless behaviorally verified); worktree isolation + explicit-path commits with a WHY; never a red tree; never commit on `main` directly.
-- **The runtime humanization sanitizer (`humanizeText` at the AI chokepoint) stays ON always.** It is code that runs itself and protects user-facing GENERATED output, so it is not a manual per-cycle check and is not deferred.
-- **End-stage trigger is founder-gated (do NOT auto-run it).** As the app nears launch / build-stage, the loop does NOT kick off the deferred batch on its own. It **prompts the founder** ("we are near launch; the deferred quality passes are ready to run: humanization sweep, lint/prettier cleanup, AI-trace, §14 design pass") and waits for the founder to decide when to initiate them. The batch then runs as dedicated one-time activities.
-- **This is an operating instruction, not just documentation.** Going forward, do not spend effort or tokens chasing non-trivial deferrable items mid-build (a stray dash, a style-lint finding, prose polish). Note it, defer it to the end-stage checklist, and keep building.
-
-In one line: per cycle, gate on correctness (tsc + build + tests + runtime-fatal review) and move fast; batch the quality polish to one disciplined, founder-prompted end-stage pass.
-
-### BUILD-ONLY MODE (founder ruling, 2026-07-04, ACTIVE — supersedes the doc loop for builds)
-
-**The project is now in BUILD-ONLY MODE.** Tokens and time are scarce. Every session focuses purely on building platform capabilities. The documentation loop (§5 below) is SUSPENDED for build work until the founder explicitly re-enables it.
-
-**What is SUSPENDED (do NOT spend tokens on these during a build):**
-
-- Active-claims table updates, at-a-glance recomputes, v11 header block syncs
-- Feature doc creation per build (`docs/features/`)
-- `docs/planning/archive/build-log.md` §4 build-log appends
-- SSOT §0/§6 cursor and progress-log updates
-- Live status board updates in `feature-backlog.md`
-- `session-decisions.md` / `strategic-inputs-log.md` captures (unless the founder explicitly asks for strategy work)
-- `brand-feed.md` capture cues
-- `docs:check` / doc-closure-checklist runs
-- Deep comprehensive doc prose (the "thought-process-oriented" writing for investor docs)
-- Any documentation that is not consumer-facing code
-
-**What STILL APPLIES (non-negotiable, every build):**
-
-- **One-line build log in the feature dashboard:** when you finish building something, flip its row status (e.g. `⬜` to `✅` or `◐`) and add a SHORT note (one line: what was built). This is the ONE place we track "what got done." No full ceremony, no recomputes, no header-block sync, just the row flip + a note.
-- **Code quality:** no em/en dashes, no AI slop, no invisible Unicode in CODE (source files, UI strings, commit messages). The runtime `humanizeText` sanitizer stays ON.
-- **Correctness gates:** `tsc --noEmit` + `bun run build` + relevant tests must pass before declaring done
-- **Commit discipline:** commit with a WHY, push to `origin/main`
-- **Architecture contracts:** follow the chokepoint, RLS, server-boundary rules (these are code rules, not doc rules)
-- **Design contracts:** follow DESIGN-TEMPO.md when touching UI (it governs code output; Loom/Obsidian are retired)
-
-**Documentation in docs is NOT consumer-facing; em/en dashes or AI traces in .md files are acceptable.** The humanization rule applies strictly to: source code, UI copy, generated platform output, and commit messages. Markdown documentation files are internal-only and do not need scanning or fixing.
-
-**To exit BUILD-ONLY MODE:** the founder says "re-enable the doc loop" or "do the documentation pass." Until then, build.
-
-**One-time documentation catch-up (founder exception, 2026-07-10):** the founder ordered a single reconciliation pass to bring `docs/planning/archive/build-log.md`, `SOURCE-OF-TRUTH.md`, `feature-dashboard.md`, `session-decisions.md`, and several planning/ops docs back to true current state (what shipped, what's pending, what's deferred) after a run of BUILD-ONLY MODE sessions had left them stale. BUILD-ONLY MODE remains ACTIVE afterward — this was a single reconciliation pass, not a re-enable of the full doc loop; the trigger above still governs.
-
-### Build Sequence: pick strictly by the number (founder ruling, 2026-06-21)
-
-**The autonomous build order is a single PRIORITY-RANKED register, not a loose priority sort.** The canonical ranked list is the Master register in [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) (mirrored in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0): every row is sorted by priority and carries a **Rank** (the `#` column; `#1` = the single highest priority). **Any tool, lane, or worktree picks the LOWEST-`#` row whose Priority is a Tier (Tier 1/2/3/4) and that is unclaimed, and builds that next. Never pick out of order; never deliberate, the Rank is the decision.** Skip rows marked `Gated` (founder must unblock), `Lovable` (Lovable builds them in parallel), `Done`, and `Deferred`.
-
-**How priority is marked (the ONE uniform vocabulary, founder ruling 2026-06-21):** every row's Priority column is exactly one of `Tier 1` (fundamentals / foundation / core features / core enablements / USPs), `Tier 2` (design + eye-for-detail, founder-prompted), `Tier 3` (non-essential / privacy / ops hygiene / enterprise-readiness), `Tier 4` (final detailing + polish, founder-prompted, last), `Gated` (founder-gated, parked), `Lovable` (Lovable-owned), `Deferred` (cut / superseded), `Done` (shipped). The legacy `P0/P1/P2/WM-*/BYO-*` codes were retired into this scheme; do not reintroduce them.
-
-**The Rank is DERIVED, never hand-numbered** (like the % tally). To add or reprioritize an item: set its Priority class (and, for a Tier-1 item, place its row among the Tier-1 rows in the order you want), then run `python3 scripts/rerank-dashboard.py`. It re-sorts the register by priority and renumbers `#1..N`, so a new high-priority item moves up and everything below it shifts down (nothing is left siloed, stuck on top, or stranded at the bottom), then recompute the "At a glance" % in the same commit. The parallel-lane mechanics in [`docs/operations/parallel-build.md`](./docs/operations/parallel-build.md) (the atomic claim ledger) are unchanged; only the pick-ORDER is now this ranked register instead of a flat priority scan.
-
-**The loop every agent runs (the board is a live, real-time status board for agents AND for a human reviewer):**
-
-1. **Pick mechanically with `bash scripts/lane.sh next`** - it prints the next eligible item IDs (lowest Rank first; `⬜`/`◐` Tier-1/Tier-3, unclaimed, not DONE). No deliberation, no scoring, no judging whether a `◐` is "really done" - the command is the decision. A `◐` is partial (HAS remaining work) so you CONTINUE it; never skip a `◐` as "publish-verify-only". If `lane.sh next` prints ids, one of them IS your next build; it is "board dry" ONLY when it prints nothing (exit 2). **The pick is CHEAP - never over-engineer it (founder ruling 2026-06-21): do NOT launch a multi-agent triage, a buildability sweep, a scout fan-out, or any Workflow to choose what to build. The Rank already did the prioritizing. Claim down the `next` list by hand and build the first row that both claims successfully and shows an obvious buildable slice on a ~30-second read of its register row; if a higher row is plainly founder-gated / chokepoint-pinned / publish-verify-only / another lane's area (visible in the row text), skip it inline (`done`/`◐` + one-line note) and take the next. Spend agents and Workflows on BUILDING and adversarial REVIEW, never on the pick.**
-2. **Claim FIRST - the collision gate (mandatory, mechanical, this is what prevents two sessions colliding):** before reading, planning, or building ANYTHING, run `bash scripts/lane.sh claim <ID> <laneN> "<globs>"` and proceed ONLY if it returns success (exit 0 = you won the atomic claim). Any other result means STOP and pick the next item: `HELD` (another lane holds it), `CONFLICT` (overlapping files), or **`DONE` (another lane already COMPLETED it - the ledger remembers completions, so a finished item can never be re-picked and you never redo done work)**. **Never read, plan, or build before a successful claim.** The shared real-time space is the atomic ledger at `~/.cadence-parallel` (NOT git): every session on this Mac sees every claim + completion instantly via `bash scripts/lane.sh list` - no push/pull. **Then immediately:** flip the item's register row to `🔨 In Dev (laneN, <date time>)`, commit with a WHY, and **push right then** - so every other session sees "this is taken" in git at its next pull (the founder ruling: claim then immediately commit + push).
-   > **⛔ ANTI-DUPLICATION (founder ruling 2026-06-22, after repeated cross-session duplication wasted tokens). Two invariants, both were being violated:**
-   >
-   > - **(a) Claim the EXACT REGISTER-ROW id `lane.sh next` printed - NEVER a private sub-id.** A sub-id (e.g. `DBR-EDGE-CONF` instead of the register row `DBR (H1)`) leaves the whole item still showing eligible in every other lane's `lane.sh next`, so a second lane re-picks it. `lane.sh claim` now prints a `WARN:` when the id is not a register row - heed it; track sub-increments in the dashboard NOTE, not as new ledger ids.
-   > - **(b) The `🔨 In Dev` dashboard status is the cross-tool lock - HOLD it across the WHOLE item.** `lane.sh next` (and any tool reading the board, incl. Lovable) excludes a row whose status is not `⬜`/`◐`. So a row at `🔨 In Dev` is locked to you regardless of ledger timing. **Keep the row `🔨 In Dev` for every increment you build on that item; flip it to `◐`/`✅` ONLY when you PIVOT off it (a different register row) or finish it.** The bug was flipping back to `◐` after every micro-increment, which re-exposed the item to other lanes between cycles.
-3. **Build it** to the per-cycle correctness gates (tsc + build + the feature's tests + the runtime-fatal review).
-4. **Close it the instant it is done, and commit + push immediately:** flip the row to `✅` and run `bash scripts/lane.sh done <ID>` (frees the ledger AND records the completion so no other lane re-picks it); for a partial you are PIVOTING AWAY from, use `◐` with `[~NN%]` + `bash scripts/lane.sh release <ID>` (stays re-pickable so a later lane continues the remainder). Recompute the "At a glance" tally, update the linked detail doc + [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) §4, then **commit with a WHY and push right then** - so the completion is visible to every other session before any of them could re-pick it. **EXCEPTION - umbrella item you will keep building (anti-duplication invariant b):** if your next increment is on the SAME register item, do NOT flip to `◐` and do NOT release - **keep the row `🔨 In Dev` and keep the claim held** (heartbeat it), commit the increment, and continue. Release / flip only when you genuinely move to a DIFFERENT register row. This is what stops a second lane grabbing your item between increments.
-5. **Close the cycle cleanly, THEN reset context (mandatory per-cycle discipline, founder ruling 2026-06-21).** A cycle is only "done" when ALL of this is true, in this order:
-   - the item's status is updated on the board (register row `✅`/`◐`, at-a-glance % recomputed) so it is **closed and cannot be re-picked**;
-   - the claim is **released** (`bash scripts/lane.sh release <ID>`) so the ledger frees it (no other agent, now or later, takes the same item) - **UNLESS you will keep building the same register item next (anti-duplication invariant b): then KEEP it held + `🔨 In Dev` and heartbeat it across the `/clear`, so it is never re-exposed between increments; release only when you pivot to a different item;**
-   - the work is **committed with a WHY and pushed to `origin/main`**, and `git status` is **CLEAN** (nothing uncommitted, no work lost, the push confirmed).
-     **Only after that clean, pushed boundary: clear the context (`/clear`) so context drops to zero, then IMMEDIATELY re-invoke and start the NEXT build cycle** - `git pull`, claim the next free item (step 2), and build. **The `/clear` is a mid-loop RESET, never a stop:** a fresh-context session must start the next cycle back-to-back, so the lane keeps building continuously - close out -> clear to zero -> re-invoke -> claim -> build -> close out -> ... The lane runs under its `/loop` driver, which re-fires the cycle after each clear; if a cycle ever ends without the next one auto-starting, that is a failure - re-invoke. **Never clear context before the push + clean-tree check, and never mid-build** - context-clear at a clean, pushed boundary only, so a reset can never lose work or leave an item half-claimed. Never idle-stop (only a real usage-limit pauses, sub-5-minute recheck; only the founder ends the run).
-
-The board is the single live truth: the next agent reads it to know exactly what to pick and how, and a human reviewer reads it to see what is in flight, what is done, and what is pending, at a glance. **A change is not done until the board reflects it.** This restates the dashboard's "REGISTER FIRST, THEN BUILD" standing rule and binds it to the numbered pick-order.
-
-**The sequencing law (build substance before surface; non-core last):**
-
-1. **Tier 1, Fundamentals + core USP:** foundation, core features, core enablements, the USPs. The moat (the Decision Brain + its supersession engine), the closed loop (Sense to Decide to Define to Build to Ship to Learn), the Critic wedge, the neutral-brain interop, and chokepoint / autonomy-floor integrity. Build these first and most. This is where the autonomous lanes live.
-2. **Tier 2, Design + craft:** design layers, design elements, eye-for-detail on the core surfaces. The felt product. Founder-prompted, once, after the core is solid (standing ruling 2); does not auto-run.
-3. **Tier 3, Non-essential / non-foundational:** privacy details, reliability / ops hygiene, enterprise-readiness, edge cases, the nontrivial non-core work. Built only after Tier 1's buildable items are exhausted; it never outranks core.
-4. **Tier 4, Final detailing + polish:** the humanization sweep + lint/prettier + AI-trace + final design detailing across the whole product, pre-launch. Founder-prompted, once, last (this is the rulings 2 + 9 end-stage).
-
-This exists to fix the drift the 2026-06-21 strategy reconciliation found: the loop built Tier-3 ops hygiene (data-retention, health, provider-fallback) while the Tier-1 moat work (the supersession engine, the loop-closers) had no rows to claim. Canonical order: SSOT §0.
-
-### Whole-register coverage + the class-of-work order (founder ruling, 2026-06-24)
-
-**Do not stop when the v11 / v7 core front is exhausted.** The whole Master register is in scope, not just the v11 build front. A large number of items pending OUTSIDE v11 are yours to build; keep going down the register continuously until every autonomously-buildable item is done.
-
-**When choosing what to advance, go in this CLASS order (within each class, Rank still decides — lowest `#` first):**
-
-1. **Untouched / not-yet-developed (`⬜`) items FIRST.** Completely undeveloped rows are built before anything partial. Sweep the register top-to-bottom for `⬜` Tier rows and build them.
-2. **Partial (`◐`) items SECOND — closed from the TOP (`#1`) down the roadmap to the end.** Once the untouched rows are done, walk the `◐` rows in Rank order and finish their remaining buildable slices.
-3. **Pure design-level items THIRD.** Rows that are genuinely only a design/craft pass take last priority among buildable work.
-
-**The autonomy / halt boundary (build everything; halt ONLY on a true blocker).** Build, decide, and deliver the right solution autonomously — "touch every single bit and piece." A row is HALTED / PARKED **only** when it genuinely cannot proceed without one of:
-
-- **Founder creative or strategic input you cannot proceed without** — e.g. positioning / landing copy WORDING, or a serious product-level or product-test design decision that is the founder's call. (Build the surrounding structure; leave only the specific sentence / decision that needs the founder.)
-- **A secret / API key / OAuth credential / Linear-type connection** you do not hold.
-
-Nothing else halts. In particular: **a UI you cannot visually verify is NOT a halt condition** — build it, gate on `tsc` + tests, and live-verify on publish. A dependent slot can be tuned slightly later if a downstream change needs it; that is not a reason to skip it now. This rule is standing and strictly followed by every lane / tool / session.
-
-> **🔒 MONETIZATION / CREDIT / BILLING / ADMIN BLOCK — CLOSED, do NOT re-pick (founder ruling 2026-06-22, FINAL, applies to ALL sessions/lanes).** The 3rd verification pass of Lovable's monetization work is done; it is the LAST. The whole block is **build-complete + gate-green** and now sits in terminal states (`✅` for the built rows: `M-C-PRICE`/`WM-M3`/`WM-M6`/`WM-M13`/`WM-M15`/`WM-M18`/`M-C-BILLING-TESTS` + the prior credit/admin ✅ rows; **Gated 👤** for `WM-M9` chokepoint, `WM-M17`/`WM-M19` founder pricing numbers, `M-C-EXPIRY` flip-timing). The ONLY remaining work is the founder's go-live **config** (live Stripe keys + price IDs, the `credits_enabled()` / `AI_COST_ROUTING` flips, final pricing numbers — SSOT §4); that is NOT agent-buildable. **No lane re-picks, re-verifies, or re-maps any monetization/credit/billing item — ever.** They are no longer `◐`+Tier-1/3, so `lane.sh next` will not surface them (that combo is exactly why they were re-picked every run). The legacy `Lovable` priority class stays dead; do not reintroduce it. If an instruction points you at a monetization item: STOP — it is closed; the only open monetization work is the founder's, in SSOT §4. Full closure: the 🔒 banners in [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) (At a glance) + [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0.
-
-### AI-specific
-
-16. **Budget caps are sacred.** Enforced server-side. See [`architecture/runtime.md`](./architecture/runtime.md).
-17. **Cache hits still get logged.**
-18. **Guardrails run on input and output.**
-19. **Eval failure is a deploy gate.** A ≥10-point score regression (on the 0–100 eval scale — KI-14) on any "Supaprod core" case blocks merge unless explicitly waived.
-20. **Drift is a passive watcher, not a blocker.**
-
-### Testing
-
-21. **Unit tests** for pure logic (pricing, guardrails, chunker, ICE/cron helpers).
-22. **Integration tests** for chokepoint behavior (budget throw, cache short-circuit-but-log, guardrail block aborts, ticks idempotent).
-23. **Run the dev server for UI changes.** If you cannot test UI in this environment, say so explicitly.
-
-Full testing strategy: [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md).
-
----
-
-## 4. Behavioral guidelines (reduce LLM coding mistakes)
-
-These guidelines reduce common errors and ensure coordinated work. They apply to all tools (Claude Code, Antigravity, Gemini, Lovable) equally.
-
-### 4.1 Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-
-- State your assumptions explicitly. If uncertain, ask first.
-- If multiple interpretations exist, present them — do not pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-- State a brief plan before writing code (even for small tasks).
-
-### 4.2 Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-### 4.3 Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it — don't delete it.
-
-When your changes create orphans:
-
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the task request.
-
-### 4.4 Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
+```bash
+bunx tsc --noEmit     # 0 errors
+bun test              # 0 failures
+bun run build         # succeeds
 ```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+Plus an adversarial read for **runtime-fatal** bugs, the class typechecking cannot see:
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+- A Supabase column or table that does not exist. **`tsc` passes on a wrong column name inside a `.select()` string** and fails at runtime. Verify against `types.ts`.
+- A missing `NOT NULL` value on an insert, especially `workspace_id`.
+- RLS referencing a column that is not there.
+- **A capability with no door**: built, correct, and reachable from no route.
+- A claim that outruns its wiring.
 
----
+**Honest status.** Use `◐` for partial, never `✅`, unless the behaviour was verified. "I saw it resolve" is not evidence it resolved *correctly*.
 
-## 5. Cross-document update protocol (the closed documentation loop)
-
-> [!IMPORTANT]
-> **⏸️ SUSPENDED during BUILD-ONLY MODE (founder ruling 2026-07-04).** The full doc loop below is the long-term rule but is currently PAUSED for build sessions. See §3 "BUILD-ONLY MODE" for what applies now. When the founder re-enables the doc loop, this section governs again in full.
-
-**This is a document-driven project. Documentation is a closed loop, not an afterthought.** Every time a feature is built, a decision is made, a convention changes, or a non-obvious learning emerges, the relevant docs **must** be updated in the same unit of work — before the task is considered done. Concretely, on every meaningful change:
-
-- Update the doc(s) the change touches (table below).
-- **Flip the row in the [Feature Dashboard](./docs/planning/feature-dashboard.md)** (the master status board) the moment a feature changes state: `🔨 In Dev` on pickup (+ Active-claims line, pushed immediately), `✅` on completion, or `⏸️`/`⏭️`/`🚧` with a reason. This is the front-door status every session reads before starting work; keeping it live is what stops parallel sessions colliding.
-- **v11 header block sync (STANDING, non-negotiable, 2026-06-25):** The feature-dashboard has TWO representations for ranked items #1-21: (a) the register TABLE row (machine-regenerated, authoritative) and (b) the v11 header summary block (lines 1-35 of the file, human-read first). Whenever any item in #1-21 changes status, update BOTH the table row AND the header block entry in the SAME commit. Use exact ✅/◐/⬜ symbols + a one-line status note. A stale header is a navigation error for every session that reads the file cold — the founder and every parallel lane rely on the header as the at-a-glance build status. Never leave this block stale by more than one commit.
-- **Update the Live status board** at the top of [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md) — _Now building · Next up · Blocked · Progress · Recent log · Last updated_. This is the granular shared cursor every tool (Claude Code, Antigravity, Gemini, Lovable) reads to know where we stopped and what's next; leave it true at the end of every session, even a paused one. Keep it consistent with the dashboard.
-- Append a line to the **active build log** ([`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) section 4), and supersede the matching legacy entry (section 5) if one exists. (The board's _Recent log_ is a short rolling mirror; §4 is the full history — don't let them contradict.)
-- Capture durable learnings in memory ([`docs/operations/memory.md`](./docs/operations/memory.md)) and session-local notes in Project Memory.
-- **Capture comprehensively, thought-process-oriented (standing, founder 2026-06-19), applies to ALL strategy and decision docs.** When a chat produces an important decision, analysis, insight, or answer, write the reasoning and the _why_ (not just the conclusion) into the relevant canon in the same session: decisions to [`docs/strategy/session-decisions.md`](./docs/strategy/session-decisions.md); reasoning + insights to [`docs/strategy/strategic-inputs-log.md`](./docs/strategy/strategic-inputs-log.md); moat / competition to [`docs/strategy/moat.md`](./docs/strategy/moat.md). These docs must serve YC / investor applications and let any future question be answered by reference; brief high-level capture is not enough.
-- **Procurement / spend capture (STANDING, founder-set 2026-06-25).** Whenever a build surfaces a new **paid dependency, vendor choice, or spend decision** — or an existing one's cost/plan changes — add or update its row in [`docs/operations/procurement-inventory.md`](./docs/operations/procurement-inventory.md) in the same unit of work: what it's for, why, the cost (with a source + date), the vendor options, a recommendation, and a "when to buy". That sheet is the single shopping list picked up cold at demo/launch time, so no spend decision is ever re-derived from scratch. (It's the cost companion to the BUILD/BUY/INTEGRATE doctrine in [`docs/strategy/build-buy-integrate.md`](./docs/strategy/build-buy-integrate.md).)
-- If the change invalidates something written elsewhere, fix it now — do not leave drift.
-
-A change is not "done" until its documentation is true. An agent that ships code without updating docs has left the loop open. This rule is enforceable via a hook ([`docs/operations/hooks.md`](./docs/operations/hooks.md)) and is non-negotiable.
-
-| Change type                                          | Update                                                                                                                                                                                                                                                                                                                                              |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| New product capability                               | [`README.md`](./README.md) + [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md)                                                                                                                                                                                                                                                                                                 |
-| New convention or rule                               | this file or the relevant guidance doc                                                                                                                                                                                                                                                                                                              |
-| New skill/subagent for this repo                     | [`docs/operations/skills.md`](./docs/operations/skills.md) / [`docs/operations/subagents.md`](./docs/operations/subagents.md)                                                                                                                                                                                                                       |
-| Visual / motion / UI contract                        | [`docs/design/archive/ember-editorial-landing.md`](./docs/design/archive/ember-editorial-landing.md)                                                                                                                                                                                                                                                                                                                          |
-| AI runtime change                                    | [`architecture/runtime.md`](./architecture/runtime.md) + [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md)                                                                                                                                                                                                                                                                     |
-| Data schema change                                   | [`architecture/data.md`](./architecture/data.md) + [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) + a migration                                                                                                                                                                                                                                                             |
-| Frontend pattern change                              | [`architecture/frontend.md`](./architecture/frontend.md)                                                                                                                                                                                                                                                                                            |
-| Integration / connector / protocol change            | [`architecture/integrations.md`](./architecture/integrations.md) + [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md)                                                                                                                                                                                                                                                           |
-| Repo layout change                                   | [`README.md`](./README.md)                                                                                                                                                                                                                                                                                                                            |
-| New file (any kind)                                  | Follow the **file-placement policy** in [`docs/README.md`](./docs/README.md) § "Repository map & file-placement policy": put it in the correct subfolder, add a row/link in that folder's index, and a "Related" cross-link block at the bottom — all in the same commit. Never at repo root or `docs/` top level; no duplicates or redirect stubs. |
-| Start / pause / finish / block any feature           | **[Feature Dashboard](./docs/planning/feature-dashboard.md)** row (flip status + Active-claims) **first**, then the **Live status board** in [`docs/planning/archive/feature-backlog.md`](docs/planning/archive/feature-backlog.md) (+ rollup mark)                                                                                                 |
-| Phase / milestone completion                         | [`docs/planning/archive/build-log.md`](./docs/planning/archive/build-log.md) + [`docs/planning/archive/strategic-tasks.md`](./docs/planning/archive/strategic-tasks.md)                                                                                                                                                                                                                                   |
-| Tech-stack decision                                  | [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md)                                                                                                                                                                                                                                                                                    |
-| New paid dependency / vendor / spend decision        | [`docs/operations/procurement-inventory.md`](./docs/operations/procurement-inventory.md) (what / why / cost+source / vendor options / recommendation / when-to-buy) — the demo/launch shopping list                                                                                                                                                 |
-| Session-friction pattern                             | this file, section 7                                                                                                                                                                                                                                                                                                                                |
-| Durable rule / convention (cross-tool)               | New file under [`docs/conventions/`](./docs/conventions/) + reference from §3 above + thin pointer in tool memory if useful                                                                                                                                                                                                                         |
-| Voice / UI-chrome / destructive / inline-mgmt change | [`docs/conventions/`](./docs/conventions/) (rule body) + the matching contract in `architecture/*.md` or `docs/design/archive/ember-editorial-landing.md` (restatement)                                                                                                                                                                                                                  |
-| Add a captured field / input / stored column         | Run the Value Test + wiring rule in [`docs/conventions/data-minimalism.md`](./docs/conventions/data-minimalism.md) **before** adding; the consumer ships in the same change, or the field does not ship                                                                                                                                             |
-
-**If you change capability scope without updating both README and plan, you have created drift.** Drift is the most expensive failure mode here.
+**Deferred to one founder-prompted end-stage pass**, do not spend cycle effort here: humanization scanning of authored prose, lint and prettier backlog, telemetry polish, deep doc prose-polish. The runtime `humanizeText` sanitizer stays on always; it is code, not a manual check.
 
 ---
 
-## 6. When to escalate to the human
+## 5. Design
 
-Do not proceed silently. Ask first when:
+**The contract is [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md).** Read it before any UI work.
 
-- The task is ambiguous and you would have to guess intent.
-- A destructive operation is on the table.
-- The change touches shared infrastructure or secrets.
-- You discover unexpected state (unfamiliar files, in-progress branches, unstaged WIP).
-- A skill or hook is blocking and you are not authorized to disable it.
-- The work has exceeded the inferred scope of the request.
-- You are about to commit something not explicitly approved. See [`docs/operations/commits.md`](./docs/operations/commits.md).
+The short version, because it is easy to get wrong:
 
-The cost of one clarification is far below the cost of one unwanted action.
+- **The baseline is what is shipped**: `--sp-*` tokens in `src/styles/ink.css`, the primitives in `src/components/shell/primitives.tsx`. Compose from those.
+- **`--ds-*` in `src/styles.css` is the legacy Tempo layer** under `src/components/ui/`. It still runs. Never add to it, never style a new surface from it.
+- **Tempo v5, Loom v4, Obsidian v3 and Ember are retired**, rejected on 2026-07-28. They live in [`docs/design/archive/`](./docs/design/archive/README.md) as history. Never build from them, whatever an older doc or skill says.
+- **The ratchet:** today's design is the floor. "Tighten this" is a request for a better surface, never a smaller one. Shrinking type, stripping padding or hiding information to save rows is forbidden as an answer.
+- **Monochrome by default.** Ember is rare and is not the default for approvals or actions. Blue means agents running; green and red mean status. Colour must survive a greyscale test.
 
----
+Mechanics are enforced by `src/__tests__/surface-discipline.test.ts`, which was proven to fail by planting the defect.
 
-## 7. Session-friction patterns (closed loop)
+**Humanized output** applies to source, UI copy and everything the platform generates for a user: no em or en dashes, no invisible Unicode, no AI-cliché phrasing. Markdown docs are exempt. [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md), [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md).
 
-If you hit the same friction twice, add a row here before the third time. The cost of a note is far below repeated retries.
-
-### Fact-forcing gate blocks Edit/Write of existing files
-
-- **Symptom:** `[Fact-Forcing Gate] Before editing <path>, present these facts: …`
-- **Permanent behavior:** Before any batch of Edit/Write on existing files, present a facts block in the response text _before_ the tool calls fire — cross-references/importers, public interfaces affected (or N/A), data files touched (or N/A), and the instruction verbatim. For new files: name the callers, confirm no existing file serves the purpose, quote the instruction.
-- **If it persists across sessions:** set `ECC_GATEGUARD=off` or add `pre:edit-write:gateguard-fact-force` to `ECC_DISABLED_HOOKS`, then restart.
-
-### Case-insensitive filesystem collisions
-
-- **Symptom:** `File has not been read yet` when creating `AGENTS.md` while `agents.md` exists (macOS/Lovable filesystems are case-insensitive).
-- **Permanent behavior:** never rely on case to distinguish two files. This repo uses `AGENTS.md` (the cross-tool standard) and `subagents.md` (engineering-subagent guidance) — distinct names, no collision.
-
-### `git mv` invalidates Read tracking
-
-- **Symptom:** `File has not been read yet` on a file you read under its old path.
-- **Permanent behavior:** After any `git mv`/`mv`, re-Read the file at its new absolute path before the first Edit.
-
-### `fatal: not a git repository: (null)` inside a lane worktree
-
-- **Symptom:** every git command in a `cadence-lane-*` folder fails with `fatal: not a git repository: (null)`, even though the folder is obviously part of the project.
-- **Cause:** a linked worktree records its location in two places. Renaming the main checkout (`project_cadence_v5` -> `Superprod`) fixed the forward pointers but left each worktree's `.git` **file** naming the old path.
-- **Permanent behavior:** run `git -C <main-checkout> worktree repair <worktree-path>`. That is the whole fix. **Never `git init` inside the broken folder** — on 2026-07-27 that recovery, plus a force-push, replaced `origin/main` with a zero-parent history and orphaned 4,124 commits. A `pre-push` hook now blocks that push, but the hook lives in untracked `.git/hooks`, so run `bash scripts/install-git-hooks.sh` in every fresh clone and worktree. Full incident record, guard tests, and branch ledger: [`docs/operations/git-recovery-and-orphan-guard.md`](./docs/operations/git-recovery-and-orphan-guard.md).
-
-### Cost discipline
-
-- **Symptom:** repeated `COST WARNING`.
-- **Permanent behavior:** batch independent operations into one message with parallel tool calls. Do not narrate each step. Do not retry a blocked op in isolation — fix the pattern, then retry the batch.
-
-### Query the knowledge graph before grepping (applies to EVERY tool, not just Claude Code)
-
-- **Symptom:** an agent greps or reads many files to answer "where is X", "what calls Y", "what breaks if I change Z". Measured at ~206x more tokens than asking the graph.
-- **Permanent behavior:** a graphify knowledge graph covering all code (including every `supabase/migrations/*.sql`) plus the docs canon is built for this repo. Ask it first:
-  - `graphify explain "<symbol>"`: sharpest, exact file + line + every inbound/outbound edge.
-  - `graphify query "<question>" --budget 1500`: BFS walk, prefer specific nouns, generic words collide.
-  - `graphify affected "<symbol>"`: what breaks if this changes.
-- **The graph is NOT in git** (50 MB, rewritten every build), so no `git pull` will produce one. If the checkout has no `graphify-out/`, use the machine-wide copy: `--graph ~/.graphify/global-graph.json`. It works from any directory, and its node ids are prefixed `supaprod::`.
-- **Agents that cannot run a CLI** (cloud/web sessions) should read `graphify-out/wiki/index.md` and `graphify-out/GRAPH_REPORT.md` instead, where those exist in the checkout.
-- **It is read-only on the repo.** graphify parses files and writes only to `graphify-out/` (git-ignored) and `~/.graphify/`. It never edits source.
-- **It goes stale; nothing refreshes it automatically.** After code changes run `PYTHONHASHSEED=0 graphify update .` (AST only, free). Pin `PYTHONHASHSEED=0` or clustering is nondeterministic and community names churn. Full detail, including the two accuracy limits and the banned `--backend claude-cli`, lives in [`CLAUDE.md`](./CLAUDE.md) "Knowledge-graph note (graphify)".
+**No native browser chrome.** No `alert`, `confirm`, `prompt` or native `<dialog>` in `src/**`. Use `useConfirm()`, `usePrompt()`, `sonner` and shadcn. ESLint-enforced.
 
 ---
 
-### Canonical repo law (permanent, corrected 2026-07-01 — supersedes the 2026-06-26 ruling below)
+## 6. Writing code
 
-> [!IMPORTANT]
-> **`project_cadence_v5` (this repo, GitHub `RohitGajaraj/project_cadence_v5`, branch `main`) is the ONLY repository connected to Lovable.** Confirmed live 2026-07-01 via Lovable's own Git settings page (Repository connection: `RohitGajaraj/project_cadence_v5`, branch `main`, status Connected) and by observing Lovable auto-pick-up a push within seconds. **`Project-Cadence-v4` (and any `cadence-lane-N` worktree cloned from it) is NOT connected to anything live** — pushes there never reach the published app, however confident a session feels about it.
->
-> **Before pushing ANYTHING from ANY worktree, run `git remote -v` and confirm the URL is `project_cadence_v5`.** If it says `Project-Cadence-v4`, you are in the wrong repo — finish your work there if you must (e.g. mid-flight in a `cadence-lane-N` parallel session), but it is NOT shipped until the same change is ported into `project_cadence_v5` directly and pushed from there. Do not report a feature as "live" or "pushed to main" on the strength of a `Project-Cadence-v4` push alone.
->
-> **Why this happened:** the 2026-06-26 ruling below (kept for its historical context, but its central claims are now false) assumed `Project-Cadence-v4` was both the founder's viewing checkout AND the one Lovable deploys from, and assumed `cadence-lane-0..4` were git worktrees sharing one `.git`, auto-synced by a `post-push` hook. Neither holds anymore: at some point `cadence-lane-1` was reinitialized as a standalone repo (no longer `git worktree list`-visible from `Project-Cadence-v4`), and — separately — Lovable's own GitHub integration was pointed at `project_cadence_v5` instead, likely when this project moved workspaces. A session spent an entire night (2026-07-01) chasing a "Lovable won't sync" ghost that was actually just "wrong repo the whole time," including asking Lovable's own AI agent to debug its GitHub connection (it correctly reported the sandbox couldn't reach any commit pushed to v4 — that was never a bug, just confirmation the connection was fine and pointed elsewhere).
->
-> **What to actually do going forward:** treat `project_cadence_v5` as the one and only push target for anything that needs to reach the live app. If your session is a `cadence-lane-N` worktree of `Project-Cadence-v4` (parallel-session tooling still uses that structure for now), finish the unit of work there as normal, then before calling it done, `cd` to `project_cadence_v5`, apply the same change (diff/reconcile if it has independently diverged — it does have its own ongoing direct-session work, don't blind-overwrite), verify (`tsc` + tests), commit, and `git push origin main`. Lovable picks it up automatically within seconds of a push to the correct repo; no reconnect, no republish-only action needed. See [`docs/operations/signal-fabric-connector-setup.md`](./docs/operations/signal-fabric-connector-setup.md) for a worked example of exactly this port (SF-MCP + a runtime fix, ported from v4 to v5 the night this was discovered).
+**Think first.** State assumptions. If several readings exist, say so rather than picking silently. If a simpler approach exists, push back.
 
-<details>
-<summary>Original 2026-06-26 ruling (kept for history — its central claims are superseded above)</summary>
+**Simplicity.** Minimum code that solves the problem. No abstractions for single-use code, no configurability nobody asked for, no error handling for impossible states. If you wrote 200 lines and it could be 50, rewrite it.
 
-**`Project-Cadence-v4` on branch `main` is the founder's ONE source of truth.** He views code, reads the feature dashboard, and judges progress from there — not from any lane directory.
+**Surgical changes.** Every changed line traces to the request. Do not improve adjacent code, do not refactor what is not broken, match the surrounding style. Remove orphans *your* change created; mention pre-existing dead code rather than deleting it.
 
-- `cadence-lane-0` through `cadence-lane-4` are **git worktrees** (not separate clones). They all share `Project-Cadence-v4/.git`. No work is ever "in a lane and not in v4" — every push goes to `origin/main` and lands in the shared git history immediately.
-- The only gap that was occurring: the **working-tree files** in `Project-Cadence-v4/` did not auto-update when a lane pushed, because git does not rewrite a live working directory. This is now permanently fixed.
-- **Fix (2026-06-26):** `Project-Cadence-v4/.git/hooks/post-push` auto-syncs `Project-Cadence-v4` to `origin/main` after every push from any worktree. One hook in the shared `.git/hooks/` covers all lanes — now and any future worktrees added.
-- **Every agent / session must push to `origin/main` after every commit** (already the standard). The post-push hook then keeps the founder's view live automatically.
-- **CRITICAL — always use the explicit refspec:** `git push origin parallel/lane-N:main` (where N is your lane number). **Never** run bare `git push origin` — without the `:main` destination git defaults to pushing to `origin/parallel/lane-N` (the lane's own remote branch), which is NOT visible in `Project-Cadence-v4`. This is exactly what caused the gap: lane-1 pushed `origin/parallel/lane-1` instead of `origin/main` and the work sat invisible for the whole session.
-- Never tell the founder to run `git pull`. If the hook fails for any reason (dirty tree, conflict), the hook prints a one-line warning so the session notices.
+**No mocks and no stubs.** If it renders, it reads and writes real data.
 
-</details>
+**Comments default to none.** Comment only when the *why* is non-obvious. When you do, explain the trap, not the syntax.
 
-### Stale redirect rot (absolute `file://` links to other repos)
-
-18 redirect stubs (root `TASKS.md`, `commits.md`, `skills.md`, `memory.md`, `hooks.md`, `subagents.md`, `tools.md`, `docs/agent-ecosystem-plan.md`, and 11 under `docs/`) silently pointed into the retired `project-Cadence-v3` repo via absolute `file://` links — routing any tool that followed them out of this codebase (found and fixed 2026-06-11). **Rule:** redirect/pointer docs use relative in-repo links only — never absolute `file://` paths, never paths into another repo. When relocating a doc, retarget every stub in the same commit and verify with `grep -rn "file://" --include="*.md" .`.
-
-## 8. Founding principles we build by (YC + Anthropic 2026 playbook, applied)
-
-These are constraints on what we ship, not slogans.
-
-- **AI as OS, not tool.** Every workflow runs through an intelligent layer.
-- **Closed loops everywhere.** Every important process monitors its own output and self-corrects.
-- **Queryable company.** Every action produces an artifact the system can learn from.
-- **Software factories with a human in the loop.** Humans write specs and tests; agents implement and iterate until they pass.
-- **No human middleware.** Remove routing layers; velocity equals information-flow speed.
-- **Token-max in product value, token-optimize in our build.** Run a high inference bill where it replaces expensive headcount — but build the platform itself lean.
-- **Founder as orchestrator.** The founder leads agent strategy directly; does not delegate conviction.
-- **MVP-stage discipline.** Supaprod is MVP-stage. Do not conflate MVP tactics with Launch/Scale tactics. Avoid: AI-codegen tech debt, hype-over-evidence, late security, over-scoping, founder bottleneck.
+**Tests.** Unit tests for pure logic, integration tests for chokepoint behaviour. A test that encodes a bug as the contract is worse than no test; two of the nine dead features had exactly that.
 
 ---
 
-## 9. Open-source and licensing discipline
+## 7. Git discipline
 
-Lean toward open-source dependencies with permissive licenses (MIT / Apache-2.0 / BSD). Before adopting any dependency or vendor:
+**Every git interaction carries a one-line WHY.** Hooks enforce it. Canonical: [`docs/operations/commits.md`](./docs/operations/commits.md).
 
-- Confirm the license is permissive and compatible. Flag anything copyleft (GPL/AGPL) or source-available (BSL/SSPL) **before** it lands.
-- Flag any vendor lock-in (proprietary runtime, closed gateway, non-portable data) at the earliest point, not after build.
-- Full standing analysis and the keep-vs-change decision: [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md).
-
----
-
-## 10. Cross-tool co-development (Claude Code · Antigravity · Gemini · Lovable)
-
-This repo is built across several agentic tools at once. The hard rule that makes that safe: **the git repo is the only shared substrate. Each tool's agent layer sits on top of it and is NOT shared.** Do not assume one tool's capabilities exist in another.
-
-### 10.1 What is portable across tools, and what is not
-
-| Layer                     | Portable?        | Where it lives                                                      | Consumed by                                                                                           |
-| ------------------------- | ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Code + committed docs** | ✅ Fully         | git tree                                                            | every tool, via clone/sync                                                                            |
-| **Operating rules**       | ✅ As plain text | `AGENTS.md` (canonical) + thin pointers (`CLAUDE.md`, `GEMINI.md`)  | Claude Code, Antigravity, Gemini, Codex, Cursor natively; Lovable by pasting into its Knowledge field |
-| **MCP servers**           | ✅ Open standard | `.mcp.json` (repo root, env-driven, no secrets)                     | Claude Code + Antigravity read it directly; Gemini via extension; Lovable ✗                           |
-| **Claude Code skills**    | ❌ Harness-bound | `.claude/skills/`                                                   | Claude Code only                                                                                      |
-| **Claude Code subagents** | ❌ Harness-bound | `.claude/agents/`                                                   | Claude Code only                                                                                      |
-| **Claude Code hooks**     | ❌ Harness-bound | `.claude/settings.json` + `.claude/hooks/`                          | Claude Code only                                                                                      |
-| **Marketplace plugins**   | ❌ Harness-bound | `.claude/settings.json` → `enabledPlugins` (declared, not vendored) | Claude Code only                                                                                      |
-
-**Consequence:** moving skills/subagents/hooks into the repo does **not** make Antigravity or Lovable execute them — those tools have no Skill/subagent/hook runtime. The only way to give _every_ tool the same behavior is to distill the rule into `AGENTS.md` (or an MCP server). Skills/agents/hooks are a Claude-Code accelerator on top of the shared rules, never a substitute for them.
-
-### 10.2 Layer ownership (avoid duplicate tooling)
-
-- **`.mcp.json` owns MCP _servers_.** It is the single, tool-agnostic source for Supabase, Playwright, etc. Both Claude Code and Antigravity read it. **Do not** also source the same server from a Claude Code _plugin_ — that registers the tool twice. Plugins here are for skills/agents only.
-- **`enabledPlugins` (in `.claude/settings.json`) owns Claude-Code skills/agents** that you want pinned to the repo for any Claude Code instance (yours on another machine, a teammate, CI). Declare them; never vendor plugin source into the tree.
-- **`.claude/skills/` + `.claude/agents/`** hold only _project-specific_ skills/agents (ones that encode this repo's conventions). Do **not** bulk-copy a personal user-level library (`~/.claude/skills/`) in here — it bloats the repo, drifts from upstream, and most of it is irrelevant to this project. Copy the subset that is genuinely Supaprod-specific.
-
-### 10.3 Per-tool entry points
-
-- **Claude Code** → reads `CLAUDE.md` → `AGENTS.md`. Gets MCP from `.mcp.json`, skills/agents from `.claude/` + `enabledPlugins`.
-- **Antigravity** → reads `GEMINI.md` (highest precedence) → `AGENTS.md`, plus modular rules in `.agent/rules/`. Configure its MCP to mirror `.mcp.json`.
-- **Gemini CLI** → set `context.fileName` in `.gemini/settings.json` to `["GEMINI.md", "AGENTS.md"]`. Bundle MCP servers via an extension.
-- **Lovable** (browser) → reads **only** the git repo (via GitHub sync) + its own Knowledge/instructions field. It will not honor any of the above tooling. Paste the relevant `AGENTS.md` rules into its Knowledge field, and treat its scope as UI/code scaffolding that lands in the repo.
-
-### 10.4 The reconciliation workflow
-
-All tools meet at **git**, not at a shared brain. To co-develop without drift:
-
-1. **One canonical rule source.** If you change a rule, change it in `AGENTS.md`. The pointers (`CLAUDE.md`, `GEMINI.md`, Lovable Knowledge) only point.
-2. **MCP parity.** When you add a server to `.mcp.json`, mirror it into Antigravity/Gemini config in the same unit of work so the tools have matching capabilities.
-3. **Divide by strength.** Let Lovable handle UI scaffolding; let Claude Code/Antigravity handle agent-heavy, server, and migration work (where skills/subagents/hooks earn their keep). Both land in the same repo.
-4. **Reconcile through commits, frequently.** Two tools editing the same files diverge fast. Pull/sync before a session, commit small, and never let one tool sit on a long-lived uncommitted working tree while another edits.
-5. **Secrets never enter committed config.** `.mcp.json` and rules files use `${ENV_VAR}` placeholders; real values live in `.env` (git-ignored) or the tool's own secret store.
+- The one remote is `https://github.com/RohitGajaraj/Supaprod.git`, branch `main`. It is what Lovable reads. Verify with `git remote -v` if in doubt.
+- **Push with an explicit refspec:** `git push origin <branch>:main`. A bare `git push origin` from a lane branch is invisible on `main`.
+- **Stage explicit paths, never `git add -A`.** Lovable's bot and audit subagents both commit while you work; a blanket add sweeps their changes into your commit.
+- **Never `git init` inside a broken worktree.** If a worktree reports `fatal: not a git repository: (null)`, the fix is `git -C <main-checkout> worktree repair <path>`. On 2026-07-27 the `git init` recovery plus a force-push replaced `origin/main` with a zero-parent history and orphaned 4,124 commits. A `pre-push` hook blocks that now, but it lives in untracked `.git/hooks`: run `bash scripts/install-git-hooks.sh` in every fresh clone. Incident record: [`docs/operations/git-recovery-and-orphan-guard.md`](./docs/operations/git-recovery-and-orphan-guard.md).
+- Never commit directly on a red tree.
 
 ---
 
-> **Final note.** This repo is shipped by one operator working with a swarm of agents. Speed matters, but speed _with drift_ is worse than steady, doc-true work. Follow the protocol. Update the docs you change. Capture friction in section 7. Ask when unsure.
+## 8. Documentation
+
+**Current mode: BUILD-ONLY** (founder ruling 2026-07-04, still active). During build work, skip the full doc loop. The one trace required: flip the feature-dashboard row and add a one-line note. To exit, the founder says so.
+
+When you do write docs, four rules keep this from rotting again:
+
+1. **One purpose per doc. Extend before you create.** If a doc already serves the purpose, add to it.
+2. **Status lives only in the SSOT.** Never copy a status board or canon paragraph into a second file. Link instead.
+3. **Archive, do not orphan.** A superseded doc moves to the nearest `archive/` with a README saying why, and inbound links are retargeted in the same commit.
+4. **Every doc carries a date header** under its H1: `> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_`. No dates in filenames.
+
+**Root holds exactly four files:** `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`. Adding a fifth is how the last three cleanups started. Placement policy for everything else: [`docs/README.md`](./docs/README.md). Run `bun run docs:check` before committing doc changes.
+
+---
+
+## 9. Traps this repo has already paid for
+
+Each of these cost real time. Add a row before you hit the same thing a third time.
+
+**Production is not what the code says.** Nine shipped features were doing nothing, found only by querying the live database. Committed SQL is not applied SQL: verify a table with `to_regclass`, never with `schema_migrations`, which is not a trustworthy ledger here. Applied is also not correct: Lovable's bot applies migrations too.
+
+**`CREATE OR REPLACE FUNCTION` forks, it does not replace.** A changed argument list silently adds an overload. This broke live retrieval with "could not choose a best candidate function".
+
+**`tsc` misses bad Supabase columns.** A wrong column inside a `.select()` string typechecks clean and fails at runtime.
+
+**Capability built, door missing.** The dominant defect here. A route-reachability test now fails the build for it.
+
+**`src/styles.css` is a file; `src/styles/` is a directory.** Both exist. Grepping only the directory misses the 123 KB root sheet and falsely reports tokens as dead.
+
+**Ignore the `" 2"`-suffixed directories** (`src/components 2`, `src/integrations 2`). They are empty macOS case-insensitive-filesystem artifacts. Never edit, import from, or `cd` into them.
+
+**Internal identifiers do not follow the renames, on purpose.** The Build station was Builder, then Studio, then Build. The user-facing name is **Build** and the routes are `/build` and `/build/$missionId`, but `agent_slug='builder'`, `builder_file_claims`, `studio.functions.ts`, `src/components/studio/`, the `studio.*` engine tools and `studio_changesets` were all deliberately left unmigrated. Read them as Build. Same convention for the product rename: `Cadence` survives in a short list of internal identifiers, logged in [`docs/operations/rename-cadence-to-supaprod.md`](./docs/operations/rename-cadence-to-supaprod.md). Note the generic English word ("release cadence", the DB `cadence` schedule-frequency column) was never the brand and is untouched.
+
+**`git mv` invalidates read-tracking.** Re-read a file at its new path before the first edit.
+
+**`rtk` filters `ps` and `ls` output.** A bare `ps | grep` can show a live process as gone. Use absolute binary paths when it matters.
+
+**Query the knowledge graph before grepping**, measured at roughly 206x cheaper for "where is X" and "what calls Y". `graphify explain "<symbol>"` is the sharpest. The graph is not in git; if the checkout has no `graphify-out/`, use `--graph ~/.graphify/global-graph.json`, whose node ids are prefixed `supaprod::`. Refresh with `PYTHONHASHSEED=0 graphify update .` and always pin that variable, or clustering is nondeterministic. Never use `--backend claude-cli`; it returns a wrong-schema graph that gets discarded as hollow.
+
+**Redirect stubs use relative in-repo links only.** Eighteen once pointed into a retired repo via absolute `file://` paths, silently routing tools out of this codebase.
+
+---
+
+## 10. Cross-tool co-development
+
+Several agentic tools build this repo at once. The rule that makes that safe: **git is the only shared substrate. Each tool's agent layer sits on top and is not shared.**
+
+| Layer | Portable | Lives in |
+| --- | --- | --- |
+| Code and committed docs | Yes | the git tree |
+| Operating rules | Yes, as plain text | `AGENTS.md`, with thin pointers in `CLAUDE.md` and `GEMINI.md` |
+| MCP servers | Yes, open standard | `.mcp.json`, env-driven, no secrets |
+| Skills, subagents, hooks, plugins | **No**, harness-bound | `.claude/` |
+
+**Consequence:** moving a skill into the repo does not make Antigravity or Lovable execute it. The only way to give every tool the same behaviour is to write the rule into `AGENTS.md`. Skills are a Claude Code accelerator on top of the shared rules, never a substitute.
+
+- **Change a rule in `AGENTS.md`.** The pointers only point.
+- **`.mcp.json` owns MCP servers.** Do not also source the same server from a plugin; that registers it twice.
+- **`.claude/skills/` holds only project-specific skills.** Do not bulk-copy a personal library in here.
+- **Commit small and pull often.** Two tools on one long-lived uncommitted tree diverge fast.
+- **Secrets never enter committed config.** Use `${ENV_VAR}` placeholders.
+
+---
+
+## 11. When to escalate
+
+Stop and ask when the task is ambiguous in a way that changes the work; when a destructive operation is on the table; when the change touches shared infrastructure or secrets; when you find unexpected state; when a hook blocks you and you are not authorized to disable it; or when the work has outgrown the request.
+
+**The cost of one clarification is far below the cost of one unwanted action.**
+
+---
+
+> Speed matters here, but speed **with drift** is worse than steady, true work. Follow the protocol, verify against production, and add a trap to section 9 when this repo teaches you something new.
