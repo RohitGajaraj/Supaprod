@@ -13,6 +13,7 @@ import { callModel } from "@/lib/ai/runtime.server";
 import { asPlainObject } from "@/lib/ai/json-shape";
 import { formatDecisionPrecedent, type DecisionPrecedentRow } from "@/lib/ai/outcome-memory";
 import { loadDecisionPrecedent, type PrecedentMatch } from "@/lib/ai/decision-precedent.server";
+import { loadWorkspaceRecordBlock } from "@/lib/brain/judgment-search.server";
 import {
   selectContradictionHistory,
   formatContradictionHistory,
@@ -219,6 +220,27 @@ Return STRICT JSON only:
 {"verdict":"ship|revise|kill","summary":"max 240 chars","risks":["..."],"kill_criteria":["..."],"missing_evidence":["..."],"confidence":0.0-1.0}
 Be specific. No filler. Use "ship" only when risks are bounded and evidence is strong; "kill" when the bet is unsalvageable; "revise" otherwise.`;
 
+  // The WORKSPACE RECORD, semantically matched, started HERE and awaited far below.
+  //
+  // Every other recall block in this function reaches through `agent_memory`, which is
+  // scoped to the user who wrote the row - the limit CLAUDE.md names on the core claim
+  // ("the successor inherits the record today, and not yet the compounded recall").
+  // This one reads `decisions` and `learnings` directly, whose RLS SELECT policy is
+  // `is_workspace_member(workspace_id)`, so the Critic can cite a teammate's decision
+  // or a predecessor's outcome and not only the caller's own copy of one.
+  //
+  // It is kicked off before the precedent await, not written inline where it is used,
+  // for one reason: it depends on nothing below it, and awaiting it in place would add
+  // its embed round-trip to the Critic's critical path on every single review. Started
+  // here it overlaps the precedent + graph queries and costs no wall-clock at all.
+  // Fail-safe by contract ("" on any failure), so there is no rejection to handle.
+  const workspaceRecordPromise = loadWorkspaceRecordBlock(supabase, {
+    userId,
+    workspaceId: (row.workspace_id as string | null) ?? null,
+    text: subject,
+    excludeId: target.id,
+  });
+
   // DBR / Ambient Precedent: semantic precedent over the workspace's past outcomes.
   const precedentRows = await loadDecisionPrecedent(supabase, {
     userId,
@@ -282,7 +304,12 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
     sharedPremise = "";
   }
 
-  const blocks = [precedent, contradictions, governing, sharedPremise].filter(Boolean);
+  // Collect the workspace-record block started before the precedent query above.
+  const workspaceRecord = await workspaceRecordPromise;
+
+  const blocks = [precedent, workspaceRecord, contradictions, governing, sharedPremise].filter(
+    Boolean,
+  );
   const userContent = blocks.length ? `${subject}\n\n${blocks.join("\n\n")}` : subject;
   const guidance = [
     precedent
@@ -296,6 +323,9 @@ Be specific. No filler. Use "ship" only when risks are bounded and evidence is s
       : "",
     sharedPremise
       ? 'If a "Shared-premise precedent" block is present, it reports past decisions DERIVED FROM the same upstream signal/opportunity/theme as this one and the outcome each reached (a structural link a text-similarity search can miss): weigh a same-premise decision that MISSED as evidence the shared premise carries risk, and cite the relevant ones in risks or missing_evidence.'
+      : "",
+    workspaceRecord
+      ? 'If a "Workspace record" block is present, those are this workspace\'s OWN past decisions and recorded outcomes, written by anyone on the team and not only by the person asking now: treat a [DECISION] as the standing position to be consistent with or to explicitly overturn, and a [OUTCOME MISSED] on similar reasoning as direct evidence against repeating it. Weigh recency, which each line states. Never treat a mere text resemblance as precedent - say what makes the past row bear on this one, or leave it out.'
       : "",
   ]
     .filter(Boolean)
