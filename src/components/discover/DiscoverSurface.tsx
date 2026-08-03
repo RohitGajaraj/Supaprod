@@ -464,6 +464,11 @@ export function DiscoverSurface({
               createdAt: t.created_at,
               lastSignalAt: lastAt,
               novelty: t.novelty,
+              // HOW MANY PEOPLE SAID IT. Absent until 2026-08-03, which is why a
+              // single competitor blog post from 5 days ago sat above 40
+              // homeowners reporting the same support burden: frequency was only
+              // a tie-break AFTER the score, and floats never tie.
+              frequency: t.frequency,
             },
             nowMs,
           ),

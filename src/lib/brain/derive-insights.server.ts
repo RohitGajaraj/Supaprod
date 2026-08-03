@@ -45,6 +45,8 @@ type ThemeRow = {
   last_signal_at: string | null;
   novelty: number | null;
   status: string | null;
+  /** Backing signal count. Maintained by the signals_theme_frequency trigger. */
+  frequency: number | null;
 };
 
 const DERIVE_SYSTEM = `You are the Supaprod intelligence analyst. Given emerging product theme data, write a single insight.
@@ -84,7 +86,7 @@ async function fetchRankedThemes(
 ): Promise<Array<{ t: ThemeRow; s: number }>> {
   const { data: themes } = await supabase
     .from("themes")
-    .select("id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status")
+    .select("id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status,frequency")
     .eq("workspace_id", workspaceId)
     .neq("status", "archived")
     .order("created_at", { ascending: false })
@@ -100,6 +102,9 @@ async function fetchRankedThemes(
           createdAt: t.created_at,
           lastSignalAt: t.last_signal_at,
           novelty: t.novelty,
+          // Same scorer, same inputs. The Brain must not rank a theme differently
+          // from the surface the user just read it on.
+          frequency: t.frequency,
         },
         now,
       ),
