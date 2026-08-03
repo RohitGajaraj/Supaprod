@@ -214,7 +214,14 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
   const p = planPresentation(tier);
   // Retired with the band picker: price is flat per tier now.
   const credits = 0;
-  const [expanded, setExpanded] = useState(false);
+  // EXPANDED BY DEFAULT (founder ruling 2026-08-03). This was `false`, so every card
+  // opened showing a handful of bullets behind a "Show 8 more features" link. On a
+  // pricing page that is self-sabotage: the buyer is deciding whether the plan is worth
+  // it while most of what it does is hidden, and almost nobody clicks. Collapsing is
+  // for pages with too MUCH text to skim; a pricing card has exactly the text the buyer
+  // came for. The control stays, inverted, so anyone comparing tiers side by side can
+  // still shorten the cards themselves.
+  const [expanded, setExpanded] = useState(true);
 
   const isBusiness = tier === "team";
   const isEnterprise = tier === "enterprise";
@@ -450,7 +457,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* CTA — right after price + credit selector, before features */}
       {isEnterprise ? (
         <a
-          href="mailto:founder@supaprod.ai?subject=Enterprise enquiry"
+          href="mailto:sales@supaprod.ai?subject=Enterprise enquiry"
           style={{
             display: "block",
             textAlign: "center",

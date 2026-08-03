@@ -305,7 +305,10 @@ function Price({ amount, unit }: { amount: React.ReactNode; unit?: string }) {
 }
 
 function ExpandableBullets({ items }: { items: string[] }) {
-  const [expanded, setExpanded] = useState(false);
+  // Expanded by default, matching the public pricing page (founder ruling 2026-08-03):
+  // hiding most of a plan's capabilities behind "Show N more" while the buyer decides
+  // is self-sabotage. The control stays, inverted.
+  const [expanded, setExpanded] = useState(true);
   const PREVIEW = 5;
   const visible = expanded ? items : items.slice(0, PREVIEW);
   const hiddenCount = items.length - PREVIEW;
@@ -417,7 +420,7 @@ function EnterpriseCard({
           </p>
           <Button
             onClick={() => {
-              window.location.href = "mailto:founder@supaprod.ai?subject=Enterprise plan management";
+              window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise plan management";
             }}
             style={{ width: "100%", justifyContent: "center" }}
           >
@@ -427,7 +430,7 @@ function EnterpriseCard({
       ) : (
         <Button
           onClick={() => {
-            window.location.href = "mailto:founder@supaprod.ai?subject=Enterprise enquiry";
+            window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise enquiry";
           }}
           style={{ width: "100%", justifyContent: "center" }}
         >

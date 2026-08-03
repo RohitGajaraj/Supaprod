@@ -397,12 +397,14 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         // team appears. It is not a lock lifted on the solo user's memory.
         tagline: "Your team stops re-deciding things it already decided.",
         price: "$50/mo",
+        // Was "With one author, Pro already does this", which spent the buyer's first
+        // sentence disqualifying them. Say who it is FOR and what it changes.
         forWhom:
-          "Built for two or more people who each write decisions. With one author, Pro already does this.",
+          "Built for a team where more than one person makes the calls, and nobody wants to make the same one twice.",
         hasCreditDropdown: true,
         hasBillingToggle: true,
         highlights: [
-          "Two seats minimum. With one author there is nothing to pool, so Pro is the plan.",
+          "Two seats and up. Everyone reads and writes the same record, so a decision made once is never re-made.",
           "Everything in Pro, plus:",
           "One decision record every member writes into and reads from",
           "Members, seats, and role-based access",
