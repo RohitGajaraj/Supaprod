@@ -120,6 +120,13 @@ export const TOOL_DEFAULTS: Readonly<
   "studio.secrets.scan": { mode: "auto", enabled: true, label: "Scan for credentials" },
   "studio.tests.plan": { mode: "auto", enabled: true, label: "Plan the missing tests" },
   "studio.deps.audit": { mode: "auto", enabled: true, label: "Audit dependencies" },
+  // Runs code, and still "auto". The governance canon is that a gate is the
+  // exception, not the loop: this creates a throwaway sandbox, reads exit codes,
+  // and destroys it, changing nothing a user can see and nothing that survives the
+  // call. Asking a human to approve "may I check my own work" is the queue-instead
+  // -of-automation the canon rejects. The consequences it protects against
+  // (studio.commit, pr.open, pr.merge) keep their gates one line below.
+  "studio.checks.run": { mode: "auto", enabled: true, label: "Run the checks in a sandbox" },
   "studio.commit": { mode: "confirm", enabled: true, label: "Commit a change" },
   "studio.fix.commit": { mode: "auto", enabled: true, label: "Commit a fix" },
   "studio.sync_branch": { mode: "auto", enabled: true, label: "Sync a branch" },

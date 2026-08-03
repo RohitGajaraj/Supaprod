@@ -5,6 +5,12 @@
  * `confirm` or `review` mode are queued as agent_approvals instead of run.
  */
 import { z } from "zod";
+import {
+  defaultChecks,
+  defaultSetup,
+  e2bAvailable,
+  runInE2B,
+} from "@/lib/exec/e2b.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { retrieve } from "@/lib/rag/retriever.server";
 import { embedOne } from "@/lib/rag/embed.server";
@@ -1939,11 +1945,21 @@ const studioFixCommit = def({
 // be right before anything irreversible happens. Ship's floors (release.publish,
 // studio.pr.merge, studio.revert) stay exactly where they are.
 //
-// None of them executes anything. There is no Supaprod execution sandbox
-// (src/lib/exec/provider.ts, and ai/studio-ci.ts says the same): the only wired
-// backend is the connected repo's GitHub Actions CI, which runs after a push.
-// So these read, diff, match, and judge. A tool here that claimed to have RUN
-// the test suite would be a lie with a green tick on it.
+// The four READ-ONLY ones below read, diff, match and judge; none of them
+// executes anything, and each says so in its own description.
+//
+// SBX-1 (2026-08-03) added the fifth, `studio.checks.run`, which DOES execute, in
+// an E2B sandbox behind the `ExecProvider` seam. Until then the only wired backend
+// was the connected repo's GitHub Actions CI, which runs after a push, so an agent
+// could read a verdict and never produce one: every check cost a push and a CI wait,
+// and an agent that must push to learn anything cannot iterate.
+//
+// The old invariant here read "a tool that claimed to have RUN the test suite would
+// be a lie with a green tick on it". That is still exactly right, and it is now
+// enforced rather than avoided: `studio.checks.run` reports a real exit code from a
+// real process, and when the sandbox itself fails it returns a REFUSAL, never the
+// permissive "no CI configured, nothing to gate on" that an empty check list would
+// otherwise produce (see execVerdictFromRun in src/lib/exec/provider.ts).
 
 /**
  * Every test file on a ref, for the test plan's "already covered in the repo"
@@ -2090,6 +2106,84 @@ const studioTestsPlan = def({
       staged_test_files: plan.staged_test_files,
       not_applicable: plan.not_applicable,
       note: plan.note,
+    };
+  },
+});
+
+/**
+ * SBX-1: run this changeset's checks for real, in a sandbox, BEFORE opening a PR.
+ *
+ * The one tool in this section that executes. It is deliberately `category: "read"`
+ * despite running code, because it changes nothing a user can see: a fresh sandbox
+ * is created, the changeset's branch is cloned into it, checks run, and the sandbox
+ * is destroyed. Nothing is written to the repo, the PR, or the database. Classing it
+ * as a write would put it behind an approval gate for an action with no consequence,
+ * which is precisely the "queue instead of automation" the governance canon rejects.
+ *
+ * Availability is honest: with no E2B key configured the seam refuses and says so,
+ * rather than returning a green verdict on checks that never ran.
+ */
+const studioChecksRun = def({
+  name: "studio.checks.run",
+  description:
+    "Studio: actually RUN this changeset's checks (typecheck, tests, lint) in a disposable sandbox and report the real exit codes, before opening a pull request. This is the one build tool that executes: it clones the changeset's branch into a fresh sandbox, runs the checks, and destroys it. Use it to verify a fix before you commit to it, instead of pushing and waiting for CI. If the sandbox cannot run, it returns not-clear-to-merge and says why: it never reports green for checks that did not run.",
+  category: "read",
+  argsSchema: z.object({
+    checks: z
+      .array(z.enum(["typecheck", "test", "lint"]))
+      .optional()
+      .describe("Which checks to run. Defaults to all three."),
+  }),
+  preview: (a) => `Run ${a.checks?.length ? a.checks.join(", ") : "all"} checks in a sandbox`,
+  run: async (a, ctx) => {
+    const { supabase, missionId } = ctx;
+    if (!missionId) throw new Error("studio.checks.run requires a mission");
+    if (!e2bAvailable()) {
+      return {
+        available: false,
+        may_proceed: false,
+        reason:
+          "No execution sandbox is configured, so these checks cannot be run here. The repo's CI still runs them after a push; read it with ci.logs.",
+      };
+    }
+    const changeset = await getActiveChangeset(supabase, missionId);
+    if (!changeset) throw new Error("no active changeset, call studio.stage first");
+
+    const { token, repo } = await requireGithub(ctx);
+    const headers = ghHeaders(token);
+    const ref = await changesetRef(changeset, repo, headers);
+
+    // The clone URL carries the installation token, so it is built here and never
+    // logged, never returned, and never put in the result the model sees.
+    const cloneUrl = `https://x-access-token:${token}@github.com/${repo}.git`;
+    const wanted = a.checks?.length ? new Set(a.checks) : null;
+    const commands = defaultChecks().filter((c) => !wanted || wanted.has(c.name as never));
+
+    const outcome = await runInE2B({
+      setup: defaultSetup(cloneUrl, ref),
+      commands,
+    });
+
+    return {
+      available: true,
+      repo,
+      ref,
+      changeset_id: changeset.id,
+      may_proceed: outcome.verdict.mayProceed,
+      overall: outcome.verdict.overall,
+      reason: outcome.verdict.reason,
+      infra_error: outcome.infraError,
+      // Streams are capped upstream; stderr is what an agent needs to fix a failure,
+      // and stdout on a PASSING check is noise, so it is dropped for those.
+      checks: outcome.results.map((r) => ({
+        name: r.name,
+        passed: r.exitCode === 0 && !r.timedOut,
+        exit_code: r.exitCode,
+        duration_ms: r.durationMs,
+        timed_out: r.timedOut ?? false,
+        stderr: r.stderr || null,
+        stdout: r.exitCode === 0 ? null : r.stdout || null,
+      })),
     };
   },
 });
@@ -3973,6 +4067,7 @@ export const TOOL_REGISTRY: Record<string, ToolDef> = Object.fromEntries(
     studioFixCommit,
     studioSecretsScan,
     studioTestsPlan,
+    studioChecksRun,
     studioDepsAudit,
     studioReview,
     studioPrOpen,

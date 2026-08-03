@@ -41,6 +41,118 @@ export interface ExecVerdict {
   reason: string;
 }
 
+// ── The RUN contract (SBX-1) ───────────────────────────────────────────────────
+//
+// Everything above this line judges checks that ALREADY RAN somewhere else. The
+// types below let a backend run them itself, which is the whole point of adding a
+// sandbox: today an agent can read a verdict and cannot produce one, so every check
+// costs a push and a CI wait and the agent cannot iterate at all.
+//
+// These are pure types plus two pure mappers. The network adapter is server-only
+// (`e2b.server.ts`), because this file is imported by a CLIENT component
+// (`components/studio/PreviewPanel.tsx`) and an SDK import here would break the
+// build. Same split the `delegate/` seam uses.
+
+/** One check to run, named so a failure can be reported as "typecheck", not "step 2". */
+export interface ExecCommandSpec {
+  name: string;
+  run: string;
+}
+
+export interface ExecCommandResult {
+  name: string;
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+  durationMs: number;
+  /** True when the command never produced an exit code (killed by the wall clock). */
+  timedOut?: boolean;
+}
+
+export interface ExecRunSpec {
+  /** Commands whose exit codes decide the verdict. Order is preserved. */
+  commands: ExecCommandSpec[];
+  /**
+   * Commands run BEFORE the checks (clone, install, toolchain). A non-zero exit
+   * here aborts the run as an infrastructure failure rather than a red check: a
+   * checkout that failed tells you nothing about the code.
+   */
+  setup?: ExecCommandSpec[];
+  /** Hard ceiling for the whole run. The sandbox is killed when it elapses. */
+  timeoutMs?: number;
+  /** Extra environment for every command. Never log these. */
+  envs?: Record<string, string>;
+}
+
+export interface ExecRunOutcome {
+  provider: ExecProviderId;
+  results: ExecCommandResult[];
+  /** Non-null when the SANDBOX failed, as opposed to the code failing. */
+  infraError: string | null;
+  verdict: ExecVerdict;
+}
+
+/**
+ * PURE: map command results onto the check shape the merge gate already reads, so a
+ * sandbox verdict and a `studio.pr.merge` verdict cannot mean different things by
+ * "green". A non-zero exit is a `failure` conclusion; a timeout is `timed_out`,
+ * which `overallFromChecks` already treats as failing.
+ */
+export function checksFromResults(results: ExecCommandResult[]): CiCheckLite[] {
+  return results.map((r) => ({
+    status: "completed",
+    conclusion: r.timedOut ? "timed_out" : r.exitCode === 0 ? "success" : "failure",
+  }));
+}
+
+/**
+ * PURE: the verdict for one sandbox run.
+ *
+ * THE TRAP THIS EXISTS TO AVOID, and it is a false GREEN, which is the worst kind.
+ * `overallFromChecks([])` returns "neutral" and `mergeReadinessFromCi("neutral")`
+ * ALLOWS the merge, because an empty check list legitimately means "this repo has no
+ * CI configured, so there is nothing to gate on". That reading is correct for the
+ * GitHub Actions floor and catastrophic here: a sandbox that failed to boot, or a
+ * clone that never ran, also produces zero results, and it would read as permission
+ * to merge unreviewed code.
+ *
+ * So an infrastructure failure, and an empty result set, are both mapped to an
+ * explicit failing check. A sandbox that could not run must never be mistaken for a
+ * repo that had nothing to run.
+ */
+export function execVerdictFromRun(
+  provider: ExecProviderId,
+  results: ExecCommandResult[],
+  infraError: string | null,
+): ExecVerdict {
+  if (infraError) {
+    return {
+      provider,
+      overall: "failure",
+      mayProceed: false,
+      reason: `The checks could not be run: ${infraError}. Nothing was verified, so this is not clear to merge.`,
+    };
+  }
+  if (results.length === 0) {
+    return {
+      provider,
+      overall: "failure",
+      mayProceed: false,
+      reason: "No checks ran, so nothing was verified. Add at least one check before merging.",
+    };
+  }
+  const checks = checksFromResults(results);
+  const overall = overallFromChecks(checks);
+  const { allowed, reason } = mergeReadinessFromCi(overall);
+  const failed = results.filter((r) => r.timedOut || r.exitCode !== 0).map((r) => r.name);
+  return {
+    provider,
+    overall,
+    mayProceed: allowed,
+    reason: failed.length ? `${reason} Failing: ${failed.join(", ")}.` : reason,
+  };
+}
+
 export interface ExecProvider {
   readonly id: ExecProviderId;
   /**
@@ -59,6 +171,13 @@ export interface ExecProvider {
    * sandbox backend is wired).
    */
   readonly previewsBuilds: boolean;
+  /**
+   * Whether this backend can RUN checks itself, rather than only judging results
+   * something else produced. False for the GitHub Actions floor, which reads a
+   * verdict after a push. The executor is server-only, so this flag is how a client
+   * surface asks the question without importing it.
+   */
+  readonly executes: boolean;
   /** Derive a merge / preview verdict from this backend's check results. */
   verdictFromChecks(checks: CiCheckLite[]): ExecVerdict;
 }
@@ -74,6 +193,8 @@ export const githubActionsProvider: ExecProvider = {
   available: true,
   // The check floor runs CI; it does not serve a live build preview.
   previewsBuilds: false,
+  // It reads results after a push. It cannot run anything on request.
+  executes: false,
   verdictFromChecks(checks: CiCheckLite[]): ExecVerdict {
     const overall = overallFromChecks(checks);
     const { allowed, reason } = mergeReadinessFromCi(overall);
