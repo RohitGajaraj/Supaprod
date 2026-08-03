@@ -18,6 +18,27 @@ Write clean from the first keystroke. This rule is an authoring habit invoked **
 Enforcement is tiered (founder ruling, 2026-06-16):
 
 - **Tier 1, hard gate, non-negotiable: platform output and user-facing UI copy.** Anything the product generates or shows an end user (PRDs, chat replies, research summaries, decision rationales, drafts, and the in-app UI strings) is the verbatim that actually matters. The runtime sanitizer at the AI chokepoint (`humanizeText` in `runtime.server.ts`) is the real gate for generated text; UI copy is authored clean.
+> ### ⭐ Tier 2 is now NOT SCANNED AT ALL (founder ruling 2026-08-03). Read this before "fixing" a dash.
+>
+> The earlier wording ("write clean by habit, no enforcement pass") was still being read by agents as
+> a reason to go clean up backend source comments, and `scripts/check-humanized.sh` was still
+> reporting them, so the cost kept getting paid anyway. The ruling closes that:
+>
+> **Look for AI fingerprints only where a user can see them. Everywhere else, leave them and move on.**
+>
+> - **Fix:** UI copy, error and empty-state text, prompt text, seed data, anything the platform
+>   generates for a user, and any public-facing page.
+> - **Do not fix, do not scan, do not spend a token on:** code comments (including a whole JSDoc
+>   block), `.md` docs, `.sql` migration prose, commit messages, build logs. An em dash in an
+>   engineer's explanation of why a function exists is not an AI fingerprint. It never reaches a user.
+>
+> The checker enforces exactly this rather than relying on anyone remembering it: it scans `.ts` and
+> `.tsx` **code lines only**, skipping `//` lines, `*` JSDoc lines, `/* ... */` blocks and trailing
+> comment tails, and it no longer looks at `.md` or `.sql` at all. Passing a path explicitly still
+> scans that file whatever its extension, which is the deliberate opt-in for a public page authored
+> as markdown. If you find yourself editing a comment purely to remove a dash, stop: that is the
+> exact work this ruling deleted.
+
 - **Tier 2, write clean by habit, no enforcement pass: internal docs, code comments, commit messages, build logs.** Write these clean because it is the house style, but they do **not** warrant a dedicated detect-fix-rescan pass or a token spend chasing a stray dash. A residual fingerprint in an internal doc is acceptable; there is no required scan loop and no separate doc-cleanup stage for Tier 2. **Reinforced by the velocity ruling (founder, 2026-06-19, [`../../AGENTS.md`](../../AGENTS.md) §3):** do NOT run a per-cycle authored-content humanization scan; any whole-repo authored-text cleanup (HUMAN-SWEEP) is batched to the founder-prompted pre-launch stage. Tier 1 (the runtime sanitizer) stays the only live, non-deferred humanization gate.
 
 ---

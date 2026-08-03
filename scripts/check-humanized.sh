@@ -11,10 +11,26 @@
 # This is the deferred build-time half of that convention. The runtime half
 # (humanizeText at the AI chokepoint) already ships in src/lib/ai/humanize.ts.
 #
-# Scope: staged TEXT files only (*.md, *.ts, *.tsx, *.sql). It best-effort skips
-# obvious code so a legitimate dash inside a sample is not flagged: fenced
-# triple-backtick (or triple-tilde) blocks, and inline `backtick` code spans on
-# the same line.
+# SCOPE: WHAT A HUMAN OR A MODEL WILL ACTUALLY READ. Narrowed by founder ruling
+# 2026-08-03: the convention exists so no AI fingerprint reaches a USER, and the
+# checker was spending review time on places no user can see.
+#
+#   CHECKED    *.ts / *.tsx, code lines only. This is where UI copy, prompt text,
+#              error messages and generated output live, i.e. everything a user or
+#              a model reads.
+#   NOT CHECKED  comment lines and comment tails in those same files. A dash in an
+#              engineer's explanation of why a function exists is not an AI
+#              fingerprint, it never leaves the repo, and cleaning it is pure cost.
+#   NOT CHECKED  *.md and *.sql at all. Docs are internal (see BUILD-ONLY MODE in
+#              AGENTS.md) and migration prose is read by engineers, not users.
+#
+# The rule in one line: fix it where a user can see it, ignore it everywhere else.
+# If a public marketing page is ever authored as .md, scan it explicitly by passing
+# the path as an argument; that is the deliberate opt-in.
+#
+# It also best-effort skips obvious code samples so a legitimate dash inside one is
+# not flagged: fenced triple-backtick (or triple-tilde) blocks, and inline
+# `backtick` code spans on the same line.
 #
 # WARN-ONLY by default. It always exits 0 and prints a warning, so it can never
 # block a commit or a session. Set STRICT=1 to make it exit non-zero when it
@@ -36,7 +52,10 @@
 set -uo pipefail
 
 STRICT="${STRICT:-0}"
-TEXT_EXT_RE='\.(md|ts|tsx|sql)$'
+# Only the files that can carry user-visible text. .md and .sql are deliberately
+# absent; see SCOPE above. Passing a path explicitly still scans it whatever its
+# extension, which is the escape hatch for a public page authored as markdown.
+TEXT_EXT_RE='\.(ts|tsx)$'
 # Generated artifacts we commit but do not author. graphify builds graphify-out/wiki/*.md and
 # GRAPH_REPORT.md by quoting text extracted from the corpus, so any em-dash in them came from a
 # source file, not from us, and it reappears on every rebuild. Scanning them buried the real
@@ -52,6 +71,7 @@ run_scanner() {
   perl -CSD -e '
     my $file = shift;
     my $in_fence = 0;
+    my $in_block = 0;
     my $hits = 0;
     # Banned set: em dash, en dash, then the invisible / look-alike chars.
     my $banned = qr/[\x{2014}\x{2013}\x{200B}\x{200C}\x{200D}\x{2060}\x{FEFF}\x{00A0}\x{202F}\x{00AD}\x{200E}\x{200F}\x{FFFD}]/;
@@ -63,6 +83,24 @@ run_scanner() {
       # Toggle fenced-code state on a line that opens or closes ``` or ~~~ .
       if ($content =~ /^\s*(```|~~~)/) { $in_fence = $in_fence ? 0 : 1; next; }
       next if $in_fence;
+
+      # COMMENTS ARE NOT USER-FACING, so they are not scanned (founder ruling
+      # 2026-08-03). Track /* ... */ blocks across lines, drop whole-line // and *
+      # comments, and cut a trailing // tail off a code line.
+      #
+      # Deliberately naive about a "//" or "/*" appearing INSIDE a string literal
+      # (a URL, a regex): the cost of that miss is a fingerprint left in a rare
+      # string, and the cost of getting clever here is a scanner nobody trusts.
+      # Erring toward silence is the point of this whole change.
+      if ($in_block) {
+        if ($content =~ m{\*/}) { $in_block = 0; $content =~ s{^.*?\*/}{}; }
+        else { next; }
+      }
+      $content =~ s{/\*.*?\*/}{}g;                 # self-contained /* ... */
+      if ($content =~ m{/\*}) { $in_block = 1; $content =~ s{/\*.*$}{}; }
+      next if $content =~ m{^\s*(//|\*)};          # // line, or a jsdoc * line
+      $content =~ s{//.*$}{};                      # trailing // tail
+      next if $content =~ /^\s*$/;
 
       # Best-effort: drop inline `code` spans before checking.
       (my $stripped = $content) =~ s/`[^`]*`//g;
