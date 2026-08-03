@@ -68,6 +68,6 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). 
 | File | Status |
 | --- | --- |
 | [`rename-cadence-to-supaprod.md`](./rename-cadence-to-supaprod.md) | **Still useful.** The ledger of internal identifiers deliberately left unmigrated, so `agent_slug='builder'` and the `cadence` DB column read correctly rather than as brand leakage. |
-| [`autonomous-build-loop.md`](./autonomous-build-loop.md) | **Dormant.** The unattended overnight loop. Not the current mode of work; sessions are directed individually. Do not start it without an explicit instruction. |
-| [`parallel-build.md`](./parallel-build.md) | **Dormant.** The lane mechanics and atomic claim ledger that the loop above used. Verify it still works before trusting it. |
+| [`autonomous-build-loop.md`](./autonomous-build-loop.md) | **Retired 2026-08-03, description only.** The unattended overnight loop. Its skills (`overnight-build-0`, `overnight-build-1`), its `/overnight-build` command and its two lane worktrees were **deleted** on founder instruction: *"we do not need overnight build skill at all now."* Nothing can start it. Kept because the loop's discipline (never commit a red tree, never commit on main, skip-and-queue a blocked item) is worth reading. |
+| [`parallel-build.md`](./parallel-build.md) | **Retired 2026-08-03, description only.** The lane mechanics and the atomic claim ledger at `~/.cadence-parallel`. Reviving this means rebuilding the worktrees; do not assume the commands still work. |
 | [`security-audit-findings.md`](./security-audit-findings.md) | Superseded by [`../security/`](../security/README.md), which owns audit state now. |
