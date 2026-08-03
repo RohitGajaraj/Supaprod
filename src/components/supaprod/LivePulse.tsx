@@ -10,6 +10,7 @@ import { getLiveActivity, type LiveActivity } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { AiPulse } from "@/components/obsidian/AiPulse";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { approvalsQueueKey } from "@/lib/query-keys";
 
 /** Polls stop while the tab is hidden, resume on the next visible tick. */
 export function pollWhenVisible(ms: number) {
@@ -51,7 +52,7 @@ export function LiveTicker() {
   const { activeWorkspaceId } = useWorkspace();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const queue = useQuery({
-    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryKey: approvalsQueueKey(activeWorkspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     refetchInterval: pollWhenVisible(30_000),
     placeholderData: keepPreviousData,

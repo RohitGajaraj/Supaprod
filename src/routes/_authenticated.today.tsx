@@ -16,6 +16,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -119,11 +120,11 @@ function Today() {
   const snooze = useServerFn(snoozeApprovalItem);
 
   const queue = useQuery({
-    queryKey: ["today", "queue", workspaceId],
+    queryKey: approvalsQueueKey(workspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: workspaceId ?? undefined } }),
   });
   const missions = useQuery({
-    queryKey: ["today", "missions", workspaceId],
+    queryKey: missionsKey(workspaceId),
     queryFn: () => fetchMissions({ data: {} }),
   });
   const learnings = useQuery({
@@ -181,7 +182,7 @@ function Today() {
         ...r,
       ]);
       void qc.invalidateQueries({ queryKey: ["today"] });
-      void qc.invalidateQueries({ queryKey: ["shell"] });
+      invalidateShellReads(qc);
     },
     // A failed write still writes a receipt, and it goes honest immediately.
     onError: (e: Error) =>

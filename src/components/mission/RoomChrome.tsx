@@ -26,6 +26,7 @@ import { AccountMenu } from "@/components/mission/AccountMenu";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useOpenRoom } from "@/hooks/use-open-room";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
+import { approvalsQueueKey } from "@/lib/query-keys";
 
 export type RoomDoorId = "mission" | "approvals" | "brain" | "settings";
 
@@ -235,7 +236,7 @@ export function RoomChromeShell({
   const { activeWorkspaceId, activeProductId } = useWorkspace();
   const fetchQueue = useServerFn(getApprovalsQueue);
   const { data: queue } = useQuery({
-    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryKey: approvalsQueueKey(activeWorkspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     refetchInterval: pollWhenVisible(30_000),
   });

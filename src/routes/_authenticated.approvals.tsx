@@ -56,6 +56,7 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
+import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -151,7 +152,7 @@ function ApprovalsSurface() {
   // Today read, scoped to the active workspace, so this page's own count can
   // never disagree with theirs.
   const queue = useQuery({
-    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryKey: approvalsQueueKey(activeWorkspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
   // Unscoped read, this page only, so the quiet "N more in other workspaces"
@@ -249,10 +250,10 @@ function ApprovalsSurface() {
       ]);
     },
     onSettled: () => {
-      void qc.invalidateQueries({ queryKey: ["approvals", "queue"] });
+      void qc.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
       // The rail badge and Today read the same gates; settle one here and they
       // must not keep claiming it.
-      void qc.invalidateQueries({ queryKey: ["shell"] });
+      invalidateShellReads(qc);
       void qc.invalidateQueries({ queryKey: ["today"] });
     },
   });

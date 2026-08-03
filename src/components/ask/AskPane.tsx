@@ -145,6 +145,7 @@ import { IconMic } from "@/components/shell/icons";
 import { SuggestionMarquee } from "./SuggestionMarquee";
 import { AskSwitcher } from "./AskSwitcher";
 import { AskTurn, toTurns } from "./AskTurn";
+import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 
 /** The seat that answers. `api/chat.ts` runs the loop as `orchestrator`, so
  *  this is a wiring fact, not a flattering label. */
@@ -229,7 +230,7 @@ function AskPaneOpen() {
   const queue = useQuery({
     // The SAME key the shell's rail count uses, so one truth has one cache and
     // settling a gate here updates the badge without a second read.
-    queryKey: ["shell", "approvals", activeWorkspace?.id ?? null],
+    queryKey: approvalsQueueKey(activeWorkspace?.id ?? null),
     queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspace?.id ?? undefined } }),
     staleTime: 30_000,
   });
@@ -240,7 +241,7 @@ function AskPaneOpen() {
   // already resolved and Ask pays nothing for it.
   const fetchMissions = useServerFn(listMissions);
   const missions = useQuery({
-    queryKey: ["shell", "missions", activeWorkspace?.id ?? null],
+    queryKey: missionsKey(activeWorkspace?.id ?? null),
     queryFn: () => fetchMissions({ data: {} }),
     staleTime: 30_000,
   });

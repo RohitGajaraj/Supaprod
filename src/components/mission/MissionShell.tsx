@@ -60,6 +60,7 @@ import { CrewDrawer } from "./CrewDrawer";
 import { RoomTour } from "./RoomTour";
 import { AppIdleBackdrop } from "./AppIdleBackdrop";
 import { useLiveActivity } from "@/components/supaprod/LivePulse";
+import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX } from "@/lib/query-keys";
 
 /** Poll only while the tab is visible (the AppShell convention). */
 function pollWhenVisible(ms: number) {
@@ -140,7 +141,7 @@ export function MissionShell({
   // ONE COUNT ONE SOURCE: the exact key AppShell / Today / /approvals share.
   const fetchQueue = useServerFn(getApprovalsQueue);
   const { data: approvalsQueue } = useQuery({
-    queryKey: ["approvals", "queue", activeWorkspaceId],
+    queryKey: approvalsQueueKey(activeWorkspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
     refetchInterval: pollWhenVisible(30_000),
   });
@@ -206,7 +207,7 @@ export function MissionShell({
       toast("That decision did not save. Try again.");
     },
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["approvals"] });
+      void queryClient.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
       void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
     },
   });
@@ -233,7 +234,7 @@ export function MissionShell({
     },
     onSuccess: () => toast("Snoozed. It will resurface with tomorrow's briefing."),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["approvals"] });
+      void queryClient.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
       void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
     },
   });
@@ -262,7 +263,7 @@ export function MissionShell({
     },
     onSuccess: () => toast("Sent back with your note. The agent will revise it."),
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["approvals"] });
+      void queryClient.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
       void queryClient.invalidateQueries({ queryKey: ["loop-state"] });
     },
   });

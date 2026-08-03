@@ -119,6 +119,7 @@
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -390,7 +391,7 @@ function ThreadsSurface() {
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: ["threads"] });
       // A pending candidate is a call waiting on you, and the rail counts it.
-      void qc.invalidateQueries({ queryKey: ["shell"] });
+      invalidateShellReads(qc);
     },
   });
 

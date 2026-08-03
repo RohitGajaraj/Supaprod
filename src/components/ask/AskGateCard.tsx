@@ -21,6 +21,7 @@
  */
 
 import * as React from "react";
+import { APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -69,8 +70,8 @@ export function AskGateCard({
         consequence: verdict === "approve" ? item.approveConsequence : item.rejectConsequence,
       });
       // Both counts of this one truth: the rail badge and any open queue.
-      void qc.invalidateQueries({ queryKey: ["shell"] });
-      void qc.invalidateQueries({ queryKey: ["approvals"] });
+      invalidateShellReads(qc);
+      void qc.invalidateQueries({ queryKey: APPROVALS_QUEUE_PREFIX });
       onSettled?.();
     } catch (e) {
       // A failed write still writes a receipt and goes honest immediately.
@@ -96,7 +97,7 @@ export function AskGateCard({
           ? "It comes back with the next briefing."
           : `It comes back after ${until.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}.`,
       });
-      void qc.invalidateQueries({ queryKey: ["shell"] });
+      invalidateShellReads(qc);
       onSettled?.();
     } catch (e) {
       setSettled({

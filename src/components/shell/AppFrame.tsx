@@ -123,6 +123,7 @@
  */
 
 import * as React from "react";
+import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -371,12 +372,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const workspaceId = activeWorkspace?.id ?? null;
 
   const missions = useQuery({
-    queryKey: ["shell", "missions", workspaceId],
+    queryKey: missionsKey(workspaceId),
     queryFn: () => fetchMissions({ data: {} }),
     staleTime: 30_000,
   });
   const queue = useQuery({
-    queryKey: ["shell", "approvals", workspaceId],
+    queryKey: approvalsQueueKey(workspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: workspaceId ?? undefined } }),
     staleTime: 30_000,
   });
