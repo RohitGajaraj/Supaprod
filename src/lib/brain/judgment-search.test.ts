@@ -32,9 +32,7 @@ const hit = (over: Partial<JudgmentHit> = {}): JudgmentHit => ({
 });
 
 // A supabase double that records the RPC arguments it was handed.
-function fakeDb(
-  responses: Record<string, { data?: unknown[]; error?: { message: string } }> = {},
-) {
+function fakeDb(responses: Record<string, { data?: unknown[]; error?: { message: string } }> = {}) {
   const calls: Array<{ fn: string; args: Record<string, unknown> }> = [];
   return {
     calls,
@@ -108,9 +106,9 @@ describe("toHits", () => {
   });
 
   it("takes the body from the right column for each kind", () => {
-    expect(toHits("opportunity", [{ id: "o", problem: "Onboarding drops at step 3." }])[0].body).toBe(
-      "Onboarding drops at step 3.",
-    );
+    expect(
+      toHits("opportunity", [{ id: "o", problem: "Onboarding drops at step 3." }])[0].body,
+    ).toBe("Onboarding drops at step 3.");
     expect(toHits("prd", [{ id: "p", body_md: "## Goal\nCut it to one step." }])[0].body).toBe(
       "## Goal\nCut it to one step.",
     );
