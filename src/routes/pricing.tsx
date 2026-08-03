@@ -450,7 +450,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
       {/* CTA — right after price + credit selector, before features */}
       {isEnterprise ? (
         <a
-          href="mailto:sales@supaprod.ai?subject=Enterprise enquiry"
+          href="mailto:founder@supaprod.ai?subject=Enterprise enquiry"
           style={{
             display: "block",
             textAlign: "center",

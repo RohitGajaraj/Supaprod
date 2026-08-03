@@ -349,25 +349,21 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         hasCreditDropdown: true,
         hasBillingToggle: true,
         highlights: [
-          // Founder ruling 2026-08-02: sharing is never presented as a locked
-          // row. On a single seat there is exactly one author, so sharing is a
-          // no-op rather than a feature withheld. State that plainly, first.
-          "One seat. One author, so nothing in your memory is held back for a higher plan.",
-          // shareLinks is true on EVERY tier (see entitlementsFor). It is the
-          // pressure valve that lets a solo user show a colleague without
-          // buying a seat, so it must be legible, not buried.
-          "Share any decision by link. The reader needs no account and no seat.",
+          // Lead with the REASON TO PAY. This list used to open with two lines about
+          // what is NOT gated (one seat, sharing is free everywhere), which are true and
+          // worth saying but are not why anyone upgrades. On Free the record fades at 30
+          // days; that is the charge, so it goes first.
           "Everything in Free, plus:",
-          "Persistent decision memory that never fades",
-          // The real mechanic since 2026-08-03: ONE included allowance per tier, from
-          // the multipliers in this file, plus top-ups for capacity. A tier sells seats
-          // and capability; credits sell capacity. The band picker used to blur the two.
-          "3,750 credits a month included. Every action spends credits, and you can add more any time without changing plan.",
+          "Your decision record stops fading. It is kept for good.",
           "Every spec and bet gets torn apart by the Critic before you commit to it",
           "Connect your tools once, and signals arrive on their own",
           "Memory recalls across all your workspaces",
           "Up to 3 products, pooled workspaces",
           "Up to 3 agents running in parallel",
+          // Founder ruling 2026-08-02: sharing is never presented as a locked row, and
+          // shareLinks is true on EVERY tier. Kept legible, but below the reasons to pay.
+          "Share any decision by link. The reader needs no account and no seat.",
+          "One seat. One author, so nothing in your record is held back for a higher plan.",
           "Save around 17% with annual billing",
           "Email support, next-business-day",
         ],
@@ -388,7 +384,6 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         highlights: [
           "One seat. Sharing stays a link, not a plan change.",
           "Everything in Pro, plus:",
-          "15,000 credits a month included, four times Pro",
           "Up to 5 products",
           "Up to 5 agents running in parallel",
           "Priority routing",

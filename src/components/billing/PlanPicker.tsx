@@ -417,7 +417,7 @@ function EnterpriseCard({
           </p>
           <Button
             onClick={() => {
-              window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise plan management";
+              window.location.href = "mailto:founder@supaprod.ai?subject=Enterprise plan management";
             }}
             style={{ width: "100%", justifyContent: "center" }}
           >
@@ -427,7 +427,7 @@ function EnterpriseCard({
       ) : (
         <Button
           onClick={() => {
-            window.location.href = "mailto:sales@supaprod.ai?subject=Enterprise enquiry";
+            window.location.href = "mailto:founder@supaprod.ai?subject=Enterprise enquiry";
           }}
           style={{ width: "100%", justifyContent: "center" }}
         >
