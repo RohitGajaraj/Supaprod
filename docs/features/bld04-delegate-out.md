@@ -112,7 +112,7 @@ The `DelegateProvider` seam supports all three — it is a configuration questio
 3. Trigger a test mission: open a mission, gather 2-3 evidence items, then explicitly request "delegate to OpenHands"
 4. Confirm `agent_runs.delegate_meta` stores `external_job_id`; confirm `pollDelegateRun` folds the result back
 
-After the live test passes, BLD-04 moves to ✅. Full steps: [`docs/operations/openhands-activation.md`](../operations/openhands-activation.md).
+After the live test passes, BLD-04 moves to ✅. Full steps: [`operations/openhands-activation.md`](../operations/openhands-activation.md).
 
 ### LLM key decision (2026-06-29, updated)
 
@@ -130,7 +130,7 @@ The adapter now handles this automatically via `resolveLlmConfig()` (commit `cfa
 
 With `OPENAI_API_KEY` already configured in Lovable, the live test will use `openai/gpt-4o` automatically. No code change needed — just deploy OpenHands and wire the endpoint.
 
-See [`docs/strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-06-29 entry for the full BYOK model-agnostic rationale. Activation steps: [`docs/operations/openhands-activation.md`](../operations/openhands-activation.md).
+See [`strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-06-29 entry for the full BYOK model-agnostic rationale. Activation steps: [`operations/openhands-activation.md`](../operations/openhands-activation.md).
 
 ---
 

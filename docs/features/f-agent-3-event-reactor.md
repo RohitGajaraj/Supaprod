@@ -21,7 +21,7 @@ Turns Supaprod from "agents that act when summoned" into "agents that react." Ev
 
 ## Why it exists
 
-F-AGENT-1 gave Supaprod a planner; F-AGENT-2 gave it memory. Without a reactor the system still required the operator to push every button, defeating the agent-native premise. F-AGENT-3 closes the autonomous loop. Full rationale: [`../../plan.md`](../planning/archive/build-log.md) §4 entry dated 2026-06-06 (F-AGENT-3).
+F-AGENT-1 gave Supaprod a planner; F-AGENT-2 gave it memory. Without a reactor the system still required the operator to push every button, defeating the agent-native premise. F-AGENT-3 closes the autonomous loop. Full rationale: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 entry dated 2026-06-06 (F-AGENT-3).
 
 ## Where to find it
 
@@ -78,6 +78,6 @@ F-AGENT-1 gave Supaprod a planner; F-AGENT-2 gave it memory. Without a reactor t
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-3 entry
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-3 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md): orchestration contract (F-AGENT-3 bullet)
 - [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), [`./f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md), [`./f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md)

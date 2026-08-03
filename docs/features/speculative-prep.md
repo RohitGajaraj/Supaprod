@@ -17,7 +17,7 @@ reviewed," instead of a fresh generation call only starting once they click.
 The founder's latency ask (v12 §7.3): review latency and execution latency should overlap instead
 of stacking. This is the literal example the spec names ("the agent pre-fetches evidence,
 pre-binds context, pre-stages scaffolds; zero side effects until consent"). See
-[`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3 (AGT-03).
+[`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3 (AGT-03).
 
 ## Where to find it
 
@@ -92,7 +92,7 @@ prep fires automatically whenever a contract is drafted via CNV-04's one-line-in
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
 - Siblings this reuses the idiom of: DSN-03/JNY-04 (the `prd_flows`/`launch_plans` one-row-per-PRD
   upsert pattern); unblocks a future DSN-04 pick

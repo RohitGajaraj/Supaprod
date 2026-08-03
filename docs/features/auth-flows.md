@@ -127,10 +127,10 @@ Run `bun run dev` and, at minimum:
 
 ## Demo accounts
 
-See [`demo-credentials.md`](../operations/demo-credentials.md) for pre-provisioned accounts used in demos and screen recordings.
+See [`operations/demo-credentials.md`](../operations/demo-credentials.md) for pre-provisioned accounts used in demos and screen recordings.
 
 ## Related
 
 - [`architecture/security.md`](../../architecture/security.md): Auth, tenancy, RLS, and governance.
 - [`architecture/frontend.md`](../../architecture/frontend.md): Route and loader patterns.
-- [`demo-credentials.md`](../operations/demo-credentials.md): Demo login details.
+- [`operations/demo-credentials.md`](../operations/demo-credentials.md): Demo login details.

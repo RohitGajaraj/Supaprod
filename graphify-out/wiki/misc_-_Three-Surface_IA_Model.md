@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Three-Surface IA Model** (0 connections) — `REBUILD-PHASE-1-ARCHITECTURE.md`
+- **Three-Surface IA Model** (0 connections) — `docs/planning/archive/rebuild-2026-07-18/phase-1-architecture.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `REBUILD-PHASE-1-ARCHITECTURE.md`
+- `docs/planning/archive/rebuild-2026-07-18/phase-1-architecture.md`
 
 ## Audit Trail
 

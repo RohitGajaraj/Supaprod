@@ -62,11 +62,11 @@ The first cut of the onboarding basic-details step captured first name, last nam
 - **Name** passes: it is shown (the greeting addresses the user; the AppShell chip; it signs decisions). Real, immediate consumer.
 - **Role** fails: tracing every reader showed it was never mapped to anything — no role-based agent config, no settings, no feature gating. Its only "use" was being incidentally swept into the 6000-char chat-grounding JSON blob alongside the rest of the profile. The persona that actually customizes the workspace is the **onboarding track selector** (Solo PM / Founding PM / Tech Founder), which seeds different data — not a free-text role string.
 
-So `role` was removed from the capture step. It returns only when a real consumer is designed (e.g. role-based agent tone or examples), wired in the same change. Result: the step asks only for the name, the user is a few seconds faster, and nothing dead is stored. (Build log: [`../../plan.md`](../planning/archive/build-log.md) §4, 2026-06-18.)
+So `role` was removed from the capture step. It returns only when a real consumer is designed (e.g. role-based agent tone or examples), wired in the same change. Result: the step asks only for the name, the user is a few seconds faster, and nothing dead is stored. (Build log: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, 2026-06-18.)
 
 ## Related
 
 - [`engine-room-doctrine.md`](./engine-room-doctrine.md) — the first UX law (calm front, deep engine); this is its data-capture sibling.
 - [`home-and-today-ia.md`](./home-and-today-ia.md) — the same discipline applied to surface placement (Today is not a dashboard).
 - [`ui-voice.md`](./ui-voice.md) / [`humanized-output.md`](./humanized-output.md) — the same discipline applied to words (length budgets, no filler).
-- [`../../Ai_Cofounder.md`](../strategy/founding-constitution.md) ("Complexity exists in the engine, not in the user experience") and [`../../AGENTS.md`](../../AGENTS.md) §4 (behavioral guidelines: "Nothing speculative").
+- [`strategy/founding-constitution.md`](../strategy/founding-constitution.md) ("Complexity exists in the engine, not in the user experience") and [`../../AGENTS.md`](../../AGENTS.md) §4 (behavioral guidelines: "Nothing speculative").

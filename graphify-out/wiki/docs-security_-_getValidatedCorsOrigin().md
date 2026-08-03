@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **getValidatedCorsOrigin()** (0 connections) — `docs/security/audit-2026-07-18-remediation.md`
+- **getValidatedCorsOrigin()** (0 connections) — `docs/security/audit-remediation.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `docs/security/audit-2026-07-18-remediation.md`
+- `docs/security/audit-remediation.md`
 
 ## Audit Trail
 

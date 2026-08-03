@@ -3,8 +3,8 @@
 > _Created: 2026-07-17_
 
 The product shipped as **Cadence** from 2026-06-03. The brand rename to **Supaprod** was
-founder-locked 2026-07-16 (evidence chain: [`docs/pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md);
-operational playbook: [`docs/gtm/brand-supaprod.md`](../gtm/brand-supaprod.md)). The in-product
+founder-locked 2026-07-16 (evidence chain: [`pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md);
+operational playbook: [`gtm/brand-supaprod.md`](../gtm/brand-supaprod.md)). The in-product
 rename — every user-facing surface, all code, and all documentation — executed 2026-07-17.
 
 This doc is the equivalence ruling for the rename, following the same convention already

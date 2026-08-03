@@ -72,8 +72,8 @@ Every item below is marked with what was actually observed.
 
 ## Related
 
-- [`docs/features/sample-workspace-seed.md`](../../features/sample-workspace-seed.md) · the rich seed the room stands on
-- [`AGENTS.md`](../../../AGENTS.md) · the standing Love-Gate companion
+- [`features/sample-workspace-seed.md`](../../../../features/sample-workspace-seed.md) · the rich seed the room stands on
+- [`AGENTS.md`](../../../../../AGENTS.md) · the standing Love-Gate companion
 
 ---
 

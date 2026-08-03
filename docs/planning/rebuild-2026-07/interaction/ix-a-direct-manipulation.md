@@ -7,7 +7,7 @@ a thing and changing it, across every surface.
 > [`craft-law.md`](../craft-law.md) (anti-slop, the real brand mark),
 > [`ia/FINAL-ia.md`](../ia/FINAL-ia.md) (the Room, six regions, the URL grammar, the modal law),
 > [`language/lang-a-lexicon.md`](../language/lang-a-lexicon.md) (one word per concept),
-> [`docs/conventions/humanized-output.md`](../../../conventions/humanized-output.md).
+> [`conventions/humanized-output.md`](../../../conventions/humanized-output.md).
 > Every mechanism below is wired to code that exists today, cited by file and line.
 
 ---

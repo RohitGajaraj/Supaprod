@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-19 · Last updated: 2026-07-10 (research corroboration note added under §1 — 2026-07-10 research merge, session-decisions decision 7)_
 
-> **🚀 2026-07-10 ripple check (v13):** [v13: The Proof Campaign](./v13-proof-campaign.md) is now the campaign canon (what to do next). The moat thesis here is UNCHANGED and freshly re-verified by the 2026-07-10 competitor sweep ([evidence](../references/launch-research-briefs.md)): the white space is still empty on both axes (nobody reinforces ranking from outcomes; nobody spans signal→decision→build under one record); new facts folded into the map — Cycle → Atlassian, Kraftful → Amplitude, **Airtable ProductCentral is now a direct category competitor**, Linear Agent + Coding Sessions is the fastest-closing threat (12-18mo). Pricing/gating unchanged; §4's posture map stands.
+> **🚀 2026-07-10 ripple check (v13):** [v13: The Proof Campaign](./archive/v13-proof-campaign.md) is now the campaign canon (what to do next). The moat thesis here is UNCHANGED and freshly re-verified by the 2026-07-10 competitor sweep ([evidence](../references/launch-research-briefs.md)): the white space is still empty on both axes (nobody reinforces ranking from outcomes; nobody spans signal→decision→build under one record); new facts folded into the map — Cycle → Atlassian, Kraftful → Amplitude, **Airtable ProductCentral is now a direct category competitor**, Linear Agent + Coding Sessions is the fastest-closing threat (12-18mo). Pricing/gating unchanged; §4's posture map stands.
 >
 > **⭐ Superseded for direction by [v11: The Guiding Star](./v11-guiding-star.md) (2026-06-23).** v11 reconciles the headline thesis (the moat is the **decision-and-outcome layer**: own the loop, sense continuously, keep the receipts; memory is one component, not the headline), and carries the current villain/defense pressure-test, the market/pricing section, and the agentic build plan (now in the [feature dashboard](../planning/feature-dashboard.md) as the ranked v11 build front). This doc remains the detailed moat-stack + competition map + YC objection-Q&A reference.
 >
@@ -192,8 +192,8 @@ How we reached each position, so this is a reasoning reference, not a list of co
 
 - Build / tenancy / monetization plan: [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md)
 - Monetization canon (one-subscription, COGS): [`byo-build-and-supaprod-cloud.md`](./byo-build-and-supaprod-cloud.md) §5.5
-- Positioning canon: [`v7-agentic-product-os.md`](./v7-agentic-product-os.md)
-- Decision lens / wedge / competitor posture: [`v9-decision-wedge-and-build-next.md`](./v9-decision-wedge-and-build-next.md)
+- Positioning canon: [`archive/v7-agentic-product-os.md`](./archive/v7-agentic-product-os.md)
+- Decision lens / wedge / competitor posture: [`archive/v9-decision-wedge-and-build-next.md`](./archive/v9-decision-wedge-and-build-next.md)
 - Reasoning history (fundraising source narrative): [`strategic-inputs-log.md`](./strategic-inputs-log.md)
 - Decisions: [`session-decisions.md`](./session-decisions.md)
 - Product thesis + MOAT summary: [`../../README.md`](../../README.md)

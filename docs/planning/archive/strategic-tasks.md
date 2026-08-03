@@ -1,20 +1,20 @@
-> ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
+> ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/archive/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
 
 # Supaprod — Strategic Task Tracker
 
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
-> **▶ Looking for the concrete next task to build?** This file is the **strategic** P0–P3 view. The canonical, addressable task queue is the **[Build-order rollup in `docs/feature-backlog.md`](./docs/feature-backlog.md#build-order-rollup-status--build-sequence)** — resolve "what's next" there (lowest-numbered `◑`/`☐` step → its feature IDs → its ticket in [`docs/foundation-audit.md`](./docs/foundation-audit.md)). The deterministic rule lives in [`AGENTS.md`](./AGENTS.md) §1. Do **not** treat the buckets below as the task queue.
+> **▶ Looking for the concrete next task to build?** This file is the **strategic** P0–P3 view. The canonical, addressable task queue is the **[Build-order rollup in `docs/feature-backlog.md`](./feature-backlog.md#build-order-rollup-status--build-sequence)** — resolve "what's next" there (lowest-numbered `◑`/`☐` step → its feature IDs → its ticket in [`foundation-audit.md`](./foundation-audit.md)). The deterministic rule lives in [`AGENTS.md`](../../../AGENTS.md) §1. Do **not** treat the buckets below as the task queue.
 >
-> Living checklist. Feature scope + build order: [`docs/planning/archive/build-log.md`](./plan.md). Granular, build-ready scope: [`docs/feature-backlog.md`](./docs/feature-backlog.md). Operating rules: [`AGENTS.md`](./AGENTS.md). **No MVP1/2/3 gating** — we build the full scope on the current stack and ship continuously, straight into Claude Code / Lovable.
+> Living checklist. Feature scope + build order: [`build-log.md`](./build-log.md). Granular, build-ready scope: [`feature-backlog.md`](./feature-backlog.md). Operating rules: [`AGENTS.md`](../../../AGENTS.md). **No MVP1/2/3 gating** — we build the full scope on the current stack and ship continuously, straight into Claude Code / Lovable.
 
 ---
 
 ## P0 — Decisions to lock (cheap, unblock the build)
 
-- [ ] **Name** — pick from [`docs/decisions/naming.md`](./docs/decisions/naming.md), then find-replace "Cadence".
+- [ ] **Name** — pick from [`decisions/naming.md`](../../decisions/naming.md), then find-replace "Cadence".
 - [ ] **Master tagline** — confirm current tagline from README.md (positioning v2: "your product org, running itself").
-- [ ] **Stack** — confirm keep-and-build-full-scope-on-this-stack per [`docs/decisions/tech-stack.md`](./docs/decisions/tech-stack.md) (already your stated preference).
+- [ ] **Stack** — confirm keep-and-build-full-scope-on-this-stack per [`decisions/tech-stack.md`](../../decisions/tech-stack.md) (already your stated preference).
 - [ ] **License** — placeholder is "all rights reserved"; permissive/open-core decision deferred (see tech-stack doc).
 - [ ] **Pricing + GTM lane** — per-seat / per-team / usage / hybrid; SaaS vs open-core vs vertical. Not blocking the build.
 
@@ -22,16 +22,16 @@
 
 Make one full vertical slice bulletproof before widening — proves the loop + governance.
 
-- [ ] **Foundation hardening** — auth + tenancy (`user_id`+`workspace_id`+`product_id`), chokepoint, trust-stack tables, design tokens. Reuse legacy ([`docs/planning/archive/build-log.md`](./plan.md) section 5).
+- [ ] **Foundation hardening** — auth + tenancy (`user_id`+`workspace_id`+`product_id`), chokepoint, trust-stack tables, design tokens. Reuse legacy ([`build-log.md`](./build-log.md) section 5).
 - [ ] **Discover → Define → Plan** slice: signals → themes → ICE opportunities → cited spec → task graph. All states verified; real seed data.
 - [ ] Run `/gstack-qa` (and other relevant QA skills) on the slice; fix breakers.
 
 ## P1 — The autonomous core (the differentiator — do not defer)
 
-- [ ] **Orchestration layer** — parallel sub-agents + parallel sessions + live mission graph ([`architecture/orchestration.md`](./architecture/orchestration.md)).
+- [ ] **Orchestration layer** — parallel sub-agents + parallel sessions + live mission graph ([`architecture/orchestration.md`](../../../architecture/orchestration.md)).
 - [ ] **Build → Test → Ship (autonomous)** — Studio coding agents, agent-generated tests + QA gate, PR/deploy/release behind approval, "watch the agents build" surface.
 - [ ] **Multi-product / multi-workspace** — Product A/B/C under Workspaces A/B/C, isolated.
-- [ ] **Agent communication + transfer/handoff** — sub-agent spawning, A2A messaging, mission handoff across stages ([`docs/planning/archive/build-log.md`](./plan.md) section 2E).
+- [ ] **Agent communication + transfer/handoff** — sub-agent spawning, A2A messaging, mission handoff across stages ([`build-log.md`](./build-log.md) section 2E).
 
 ## P2 — Close the loop + open the platform
 
@@ -41,21 +41,21 @@ Make one full vertical slice bulletproof before widening — proves the loop + g
 
 ## P3 — Cross-cutting hardening (from the considerations review)
 
-- [ ] Work through the gaps in [`docs/considerations.md`](./docs/considerations.md) — observability/SRE, privacy/compliance, billing/metering, abuse/safety, DR/backup, CI/CD, etc. Pull each into the build as it becomes relevant; don't let them surprise an enterprise sale.
+- [ ] Work through the gaps in [`considerations.md`](../considerations.md) — observability/SRE, privacy/compliance, billing/metering, abuse/safety, DR/backup, CI/CD, etc. Pull each into the build as it becomes relevant; don't let them surprise an enterprise sale.
 
 ## P3 — Design + skills
 
-- [ ] Design system: use `/gstack-design-review` and the design skills in [`docs/design/archive/ember-editorial-landing.md`](./DESIGN.md); pilot Mission Control against the pillars.
-- [ ] Keep [`docs/planning/archive/build-log.md`](./plan.md) section 4 (active build log) updated as we ship; supersede legacy entries (section 5) as they're rebuilt.
+- [ ] Design system: use `/gstack-design-review` and the design skills in [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md); pilot Mission Control against the pillars.
+- [ ] Keep [`build-log.md`](./build-log.md) section 4 (active build log) updated as we ship; supersede legacy entries (section 5) as they're rebuilt.
 
 ---
 
 ## Completed
 
 - [x] **2026-05-29 — Documentation overhaul + strategic reframe.** Agent-first, fully-autonomous, full-lifecycle (build/ship/test/launch) positioning; MOAT rewritten (end-to-end governed loop, not data/model); `docs/planning/archive/build-log.md` rebuilt as full feature scope + granular catalog + build order + active/legacy logs; architecture deepened (orchestration, security/auth); `AGENTS.md` canonical with `CLAUDE.md`/`GEMINI.md` pointers; `tools.md`/`hooks.md` added; competitor study moved to deferred reference; duplicated headers removed; "wedge" terminology dropped.
-- [x] Legacy build (the earlier source): discovery, specs, planning, Studio, integrations, trust stack — retained as reuse reference in [`docs/planning/archive/build-log.md`](./plan.md) section 5.
+- [x] Legacy build (the earlier source): discovery, specs, planning, Studio, integrations, trust stack — retained as reuse reference in [`build-log.md`](./build-log.md) section 5.
 
 ## Notes
 
 - Positioning: independent AI-native product company; **fully autonomous super-agents**, governed; agent-first; no "40/60 split," no "wedge," no MVP-phase gating language.
-- The earlier positioning history is archived in [`docs/strategy/archive/v1-positioning.md`](./docs/strategy/archive/v1-positioning.md) (frozen).
+- The earlier positioning history is archived in [`strategy/archive/v1-positioning.md`](../../strategy/archive/v1-positioning.md) (frozen).

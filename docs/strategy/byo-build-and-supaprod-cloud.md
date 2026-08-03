@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-18 · Last updated: 2026-06-19_
 
-> **Status: DESIGN (2026-06-18). No code changed.** Brainstorm output, founder review pending. Decisions made this session are marked LOCKED; the one strategic fork is flagged for the founder. This reshapes how repos attach, how the Build to Ship chain runs, and whether Supaprod offers managed infrastructure. Pairs with [`../features/lifecycle-gap-map.md`](../planning/lifecycle-gap-map.md) (the deploy/review/ship capture gaps that feed straight into this).
+> **Status: DESIGN (2026-06-18). No code changed.** Brainstorm output, founder review pending. Decisions made this session are marked LOCKED; the one strategic fork is flagged for the founder. This reshapes how repos attach, how the Build to Ship chain runs, and whether Supaprod offers managed infrastructure. Pairs with [`planning/archive/reports/lifecycle-gap-map.md`](../planning/archive/reports/lifecycle-gap-map.md) (the deploy/review/ship capture gaps that feed straight into this).
 
 ---
 
@@ -174,7 +174,7 @@ Two guardrails so the ambition stays buildable and honest:
 
 - [`../planning/byo-p5-managed-runtime-plan.md`](../planning/byo-p5-managed-runtime-plan.md) - the P5 ops/cost/security plan this doc's Section 7 (Phase 5) said was needed before any build; produced 2026-07-01, answers the five open questions in Section 8 of this doc that pertain to hosting.
 - [`build-driver-and-dispatch.md`](./build-driver-and-dispatch.md) - **the code-gen-side twin of this doc.** This doc specced `RepoProvider` (WHERE code lives); that doc specs `BuildDriver` (WHO writes it), so the native loop becomes one adapter and external engines plug in behind one seam. Read both together for the full build picture. (board group G13, founder-gated; decided 2026-06-28).
-- [`../features/lifecycle-gap-map.md`](../planning/lifecycle-gap-map.md) - the Build/Deploy/Review/Ship capture gaps this builds on.
+- [`planning/archive/reports/lifecycle-gap-map.md`](../planning/archive/reports/lifecycle-gap-map.md) - the Build/Deploy/Review/Ship capture gaps this builds on.
 - [`README.md`](./README.md) - strategy doc role map (link this in when committed).
 - Engine-Room Doctrine ([`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md)) - the calm-front law D3/Section 4 implement.
 - [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) - operationalizes Section 5.5 (account-level billing, managed-credits-default with BYOK optional, memory-persistence as the charge) into the Account > Workspace > Product tenancy + the WM-\* build items.

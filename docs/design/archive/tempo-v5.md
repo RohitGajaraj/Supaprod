@@ -314,8 +314,8 @@ but never redefine them.
 **Named extensions shipped for the v5 app port:**
 - **Audit trace-tag** (founder ruling 2026-07-13: "everything should have a traceable audit id
   generated out of this platform") — the clickable `PREFIX·XXXXXX` id chip that opens an entity's
-  verifiable lineage. Documented at [`design-reference/tempo-v5/patterns/audit-trace-tag.md`](./design-reference/tempo-v5/patterns/audit-trace-tag.md);
-  feature: [`docs/features/audit-id-lineage.md`](./docs/features/audit-id-lineage.md).
+  verifiable lineage. Documented at [`design-reference/tempo-v5/patterns/audit-trace-tag.md`](../../../design-reference/tempo-v5/patterns/audit-trace-tag.md);
+  feature: [`features/audit-id-lineage.md`](../../features/audit-id-lineage.md).
 - **Empty-state pattern** — canonical `EmptyState` component; one small composition max per screen.
 - **Loading skeleton pattern** — minimal visual feedback, no noise.
 - **Error states** — 3-tier (inline validation, recovery path, fatal/full-page).
@@ -324,7 +324,7 @@ The full reasoning behind every design ruling applied when porting the authentic
 Tempo — the lifecycle IA ("The Supaprod Loop"), the **ember = needs-human / blue = machine**
 color grammar (with purple/indigo retired from all machine treatments), glass chrome, Geist Pixel usage,
 monotone source logos, agent liquid-glass gems, and the TopBar/PageHeader chrome — is recorded in
-[`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](./design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
+[`design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md`](../../../design-reference/tempo-v5/applied/2026-07-13-app-port-and-design-rulings.md).
 
 ## 10. Responsive behavior — breakpoints and adaptation
 

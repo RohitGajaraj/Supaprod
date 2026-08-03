@@ -10,7 +10,7 @@
 - **Autonomous Build Loop Operations** (1 connections) — `docs/operations/autonomous-build-loop.md`
 - **Build vs Buy vs Integrate Gate** (1 connections) — `docs/strategy/build-buy-integrate.md`
 - **Moat Canon** (1 connections) — `docs/strategy/moat.md`
-- **v10 Master Blueprint** (1 connections) — `docs/strategy/v10-master-blueprint.md`
+- **v10 Master Blueprint** (1 connections) — `docs/strategy/archive/v10-master-blueprint.md`
 
 ## Relationships
 
@@ -25,7 +25,7 @@
 - `docs/strategy/build-buy-integrate.md`
 - `docs/strategy/moat.md`
 - `docs/strategy/session-decisions.md`
-- `docs/strategy/v10-master-blueprint.md`
+- `docs/strategy/archive/v10-master-blueprint.md`
 
 ## Audit Trail
 

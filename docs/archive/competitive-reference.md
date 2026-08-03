@@ -2,11 +2,11 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-06-11_
 
-> Status: **DEFERRED / REFERENCE ONLY.** Moved out of [`../../plan.md`](../planning/archive/build-log.md) at the founder's request — plan.md absorbs the _inspiration_ into Cadence's own features; this file keeps the raw study for later reading. Not a maintained competitive analysis. Date: 2026-05-29.
+> Status: **DEFERRED / REFERENCE ONLY.** Moved out of [`planning/archive/build-log.md`](../planning/archive/build-log.md) at the founder's request — plan.md absorbs the _inspiration_ into Cadence's own features; this file keeps the raw study for later reading. Not a maintained competitive analysis. Date: 2026-05-29.
 
 ## Why this exists
 
-We studied a few products to learn what good looks like and where the open ground is. The takeaways are baked into the feature catalog in [`../../plan.md`](../planning/archive/build-log.md) (section 2). This page just retains the underlying notes.
+We studied a few products to learn what good looks like and where the open ground is. The takeaways are baked into the feature catalog in [`planning/archive/build-log.md`](../planning/archive/build-log.md) (section 2). This page just retains the underlying notes.
 
 ## The pattern
 

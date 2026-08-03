@@ -203,4 +203,4 @@ create policy "<name> write" on public.<name> for all    using (public.is_worksp
 - **O2 — App-layer context plumbing:** where does "current workspace/product" live? Proposed: a server-side context resolved from the request (header or session) + a client `WorkspaceProvider`; the workspace/product switcher (backlog B1/B3) writes it. Needed so server functions can set the keys.
 - **O3 — Include `conversations`/`messages` in the NOW set?** Yes if AI Chat stays active in the first slice.
 
-> When A/B/C land, flip 0.1 in [`../planning/archive/foundation-audit.md`](../planning/archive/foundation-audit.md) to ✅ and add the entry to [`../../plan.md`](../planning/archive/build-log.md) §4.
+> When A/B/C land, flip 0.1 in [`../planning/archive/foundation-audit.md`](../planning/archive/foundation-audit.md) to ✅ and add the entry to [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4.

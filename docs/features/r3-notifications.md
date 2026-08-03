@@ -55,4 +55,4 @@ The loop runs a lot unattended; the operator should hear about the few things th
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`notifications.functions.ts`](../../src/lib/notifications.functions.ts) · [`_authenticated.notifications.tsx`](../../src/routes/_authenticated.notifications.tsx) · [`notifications.test.ts`](../../src/lib/notifications.test.ts) · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md).
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`notifications.functions.ts`](../../src/lib/notifications.functions.ts) · [`_authenticated.notifications.tsx`](../../src/routes/_authenticated.notifications.tsx) · [`notifications.test.ts`](../../src/lib/notifications.test.ts) · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md).

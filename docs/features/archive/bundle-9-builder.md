@@ -3,7 +3,7 @@
 > _Created: 2026-06-06 · Last updated: 2026-06-14_
 
 > [!IMPORTANT]
-> **SUPERSEDED by F-STUDIO (2026-06-12).** The Builder handoff UX described here is replaced by **Studio**, the in-platform development engine: multi-file changesets, isolated `studio/*` branches, in-platform merge, live human surface at `/studio`. Canonical doc: [`studio.md`](./studio.md). The Builder _agent_ internals referenced below (`agent_slug='builder'`, `builder_file_claims`, the single-file `github.pr.open`/`github.commit.append` tools) remain in the codebase as legacy equivalents: read `builder` ≡ `studio`. `/build` now redirects to `/studio`.
+> **SUPERSEDED by F-STUDIO (2026-06-12).** The Builder handoff UX described here is replaced by **Studio**, the in-platform development engine: multi-file changesets, isolated `studio/*` branches, in-platform merge, live human surface at `/studio`. Canonical doc: [`studio.md`](../studio.md). The Builder _agent_ internals referenced below (`agent_slug='builder'`, `builder_file_claims`, the single-file `github.pr.open`/`github.commit.append` tools) remain in the codebase as legacy equivalents: read `builder` ≡ `studio`. `/build` now redirects to `/studio`.
 
 > **Status:** ✅ Shipped (Slice 1 2026-06-04 · Slice 2 + 3 2026-06-06) · superseded 2026-06-12 · **Route:** ~~`/build`~~ → `/studio` · **Owner agent:** `builder` (display name **Studio**)
 
@@ -15,7 +15,7 @@ The contract Builder ships under, in one breath: **one file per PR · approval-g
 
 ## Why it exists
 
-Bundle 9 is the build leg of the Proof Platform: claim C2 ("one governed loop") becomes literally true only when the Plan stage exits the platform into the engineering system of record under operator control. Slice 1 (PR-open) proved the loop end-to-end against a real repo; Slice 2 added the feedback half (read CI, react to red) so the Builder closes its own loop instead of leaving the operator to chase test failures; Slice 3 made the loop safe to run in parallel by adding per-(repo, path) claims so two missions can never accidentally collide on the same file. Full rationale: [`../../plan.md`](../../plan.md) §4 (entries dated 2026-06-04 and 2026-06-06).
+Bundle 9 is the build leg of the Proof Platform: claim C2 ("one governed loop") becomes literally true only when the Plan stage exits the platform into the engineering system of record under operator control. Slice 1 (PR-open) proved the loop end-to-end against a real repo; Slice 2 added the feedback half (read CI, react to red) so the Builder closes its own loop instead of leaving the operator to chase test failures; Slice 3 made the loop safe to run in parallel by adding per-(repo, path) claims so two missions can never accidentally collide on the same file. Full rationale: [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §4 (entries dated 2026-06-04 and 2026-06-06).
 
 ## Where to find it
 
@@ -37,7 +37,7 @@ The same CI chip and PR chip render inline in `/missions/$id` for each step in t
 
 ## Demo script (≤ 120 seconds)
 
-1. Sign in as `demo@redcadence.app` (see [`../operations/demo-credentials.md`](../operations/demo-credentials.md)).
+1. Sign in as `demo@redcadence.app` (see [`../operations/demo-credentials.md`](../../operations/demo-credentials.md)).
 2. Open any PRD on `/prds` that has a linked GitHub issue (the `#linked` chip in the dropdown). Click **Send to Builder**.
 3. You land on `/missions/$id` and the orchestrator hands off to the Builder. The Builder reads the issue, drafts a one-file diff, and queues `github.pr.open` at the **Decision Queue**. Approve it.
 4. A real PR opens on the connected repo from a `builder/issue-<n>-…` branch with **one file changed** and `Closes #N` in the body. No auto-merge.
@@ -95,9 +95,9 @@ The same CI chip and PR chip render inline in `/missions/$id` for each step in t
 
 ## Related
 
-- Build log: [`../../plan.md`](../../plan.md) §4, entries `2026-06-04 Bundle 9 Slice 1` and `2026-06-06 Bundle 9 Slices 2 + 3`.
-- Architecture: [`../../architecture/orchestration.md`](../../architecture/orchestration.md) (Bundle 9 paragraph) · [`../../architecture/runtime.md`](../../architecture/runtime.md) (idempotency, durable runtime).
-- GitHub approval flow: [`./github-issue-approval-flow.md`](./github-issue-approval-flow.md).
-- Foundation: [`../planning/archive/foundation-audit.md`](../planning/archive/foundation-audit.md) row 0.9 (durable runtime), proven against this Bundle.
-- Backlog row: [`../planning/feature-backlog.md`](../planning/feature-backlog.md) Bundle 9.
-- Sibling features: [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md) (dispatches Builder), [`./f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md) (can trigger Builder on `prd.approved`).
+- Build log: [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §4, entries `2026-06-04 Bundle 9 Slice 1` and `2026-06-06 Bundle 9 Slices 2 + 3`.
+- Architecture: [`../../architecture/orchestration.md`](../../../architecture/orchestration.md) (Bundle 9 paragraph) · [`../../architecture/runtime.md`](../../../architecture/runtime.md) (idempotency, durable runtime).
+- GitHub approval flow: [`./github-issue-approval-flow.md`](../github-issue-approval-flow.md).
+- Foundation: [`../planning/archive/foundation-audit.md`](../../planning/archive/foundation-audit.md) row 0.9 (durable runtime), proven against this Bundle.
+- Backlog row: [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md) Bundle 9.
+- Sibling features: [`./f-agent-1-orchestrator.md`](../f-agent-1-orchestrator.md) (dispatches Builder), [`./f-agent-3-event-reactor.md`](../f-agent-3-event-reactor.md) (can trigger Builder on `prd.approved`).

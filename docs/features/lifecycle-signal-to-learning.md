@@ -8,7 +8,7 @@ This is the account of Supaprod's seven-station lifecycle, written by opening th
 citing it. Every structural claim below carries a `file:line` that was read directly. Where a
 claim could not be verified, it says **not verified** instead of guessing.
 
-**It supersedes the station audits.** [`docs/design/README.md`](../design/README.md) carries a
+**It supersedes the station audits.** [`design/README.md`](../design/README.md) carries a
 standing provenance warning: the eight files in `docs/design/` were written by autonomous audit
 subagents, were never reviewed line by line, and are explicitly marked *"do not cite these as
 canon."* Two defects reached users from that session. Those files remain useful as leads. This
@@ -657,7 +657,7 @@ Roughly eight minutes. It ends on the loop closing, because that is the only par
 can assert without the record to back it.
 
 **Before you start.** Log in with a demo account
-([`docs/operations/demo-credentials.md`](../operations/demo-credentials.md)). Have a second
+([`operations/demo-credentials.md`](../operations/demo-credentials.md)). Have a second
 browser tab on `/boundary`. Confirm the workspace has clustering on, and that at least three
 outcomes have been recorded, otherwise the precedent recess on `/decide` stays hidden by design
 (`decide.tsx:280`).
@@ -763,7 +763,7 @@ Every row was confirmed by reading the cited code on this date.
 ## Related
 
 - [`spine-delivers.md`](./spine-delivers.md), the shipped feature page for the unattended loop.
-- [`docs/design/README.md`](../design/README.md), the provenance warning and the raw station
+- [`design/README.md`](../design/README.md), the provenance warning and the raw station
   audits this page supersedes.
 - [`opportunity-ranking.md`](./opportunity-ranking.md), the ranking surface in detail.
 - [`outcome-contract.md`](./outcome-contract.md), what a spec commits to being graded against.

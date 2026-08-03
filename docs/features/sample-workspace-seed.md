@@ -108,6 +108,6 @@ Legend for counts: **H** = Prism (hero), **P** = Trellis (second). Counts are th
 
 ## Related
 
-- [`docs/operations/demo-credentials.md`](../operations/demo-credentials.md) · the demo accounts + re-seed instructions
+- [`operations/demo-credentials.md`](../operations/demo-credentials.md) · the demo accounts + re-seed instructions
 - [`supabase/migrations/20260625150000_demo_seed_rich.sql`](../../supabase/migrations/20260625150000_demo_seed_rich.sql) · the prior rich seed this supersedes
 - [`supabase/migrations/20260626210000_demo_workspace_reset.sql`](../../supabase/migrations/20260626210000_demo_workspace_reset.sql) · the admin reset function

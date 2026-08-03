@@ -6,7 +6,7 @@
 >
 > **When to revisit.** When aligning agent system prompts, adjusting UX layouts, or introducing custom tenant integrations for enterprise clients.
 >
-> **Cross-references.** Product thesis ➔ [`../../README.md`](../../README.md). backlogs ➔ [`../planning/feature-backlog.md`](../planning/feature-backlog.md). Build roadmap ➔ [`../../plan.md`](../../plan.md). Rules ➔ [`../../AGENTS.md`](../../AGENTS.md).
+> **Cross-references.** Product thesis ➔ [`../../README.md`](../../README.md). backlogs ➔ [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md). Build roadmap ➔ [`planning/archive/build-log.md`](../../planning/archive/build-log.md). Rules ➔ [`../../AGENTS.md`](../../../AGENTS.md).
 
 ---
 
@@ -19,7 +19,7 @@
 
 ### Naming note (reverted)
 
-This v3 session briefly explored a rebrand away from Cadence on trademark and SEO grounds. That rename was **reverted on 2026-06-16** after the replacement proved to have its own collisions. The product name was Cadence until the 2026-07-17 rename; it is now **Supaprod**, see [`../decisions/naming.md`](../decisions/naming.md).
+This v3 session briefly explored a rebrand away from Cadence on trademark and SEO grounds. That rename was **reverted on 2026-06-16** after the replacement proved to have its own collisions. The product name was Cadence until the 2026-07-17 rename; it is now **Supaprod**, see [`../decisions/naming.md`](../../decisions/naming.md).
 
 ### The Closed-Loop Lifecycle
 

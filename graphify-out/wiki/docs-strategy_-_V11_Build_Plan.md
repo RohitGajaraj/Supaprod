@@ -8,8 +8,8 @@
 - **Playbook Registry** (2 connections) — `docs/strategy/v11-guiding-star.md`
 - **The Villain and the Defense** (2 connections) — `docs/strategy/v11-guiding-star.md`
 - **Program REINFORCE** (1 connections) — `docs/strategy/v12-self-improving-os.md`
-- **The Proof Campaign Thesis** (1 connections) — `docs/strategy/v13-proof-campaign.md`
-- **The Critic Teardown Wedge** (1 connections) — `docs/strategy/v9-decision-wedge-and-build-next.md`
+- **The Proof Campaign Thesis** (1 connections) — `docs/strategy/archive/v13-proof-campaign.md`
+- **The Critic Teardown Wedge** (1 connections) — `docs/strategy/archive/v9-decision-wedge-and-build-next.md`
 
 ## Relationships
 
@@ -19,8 +19,8 @@
 
 - `docs/strategy/v11-guiding-star.md`
 - `docs/strategy/v12-self-improving-os.md`
-- `docs/strategy/v13-proof-campaign.md`
-- `docs/strategy/v9-decision-wedge-and-build-next.md`
+- `docs/strategy/archive/v13-proof-campaign.md`
+- `docs/strategy/archive/v9-decision-wedge-and-build-next.md`
 
 ## Audit Trail
 

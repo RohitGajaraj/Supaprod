@@ -23,7 +23,7 @@ The founder reviewed six reference pricing pages (Lovable, Lovable with credit d
 4. **Enterprise = platform fee + per-seat + API usage rates.** Contact sales path. No public self-serve price.
 5. **Credits are account-level pooled**, not per-seat. Admins set per-user spend limits from the existing `credit_caps` engine (WM-M14). The pool is shared; control is per-user.
 
-These decisions supersede the 5-tier Anthropic-style packaging described in [`workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (which is retained as the historical reasoning). For public pricing presentation and WM-M17/M19 implementation, **this doc governs**.
+These decisions supersede the 5-tier Anthropic-style packaging described in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (which is retained as the historical reasoning). For public pricing presentation and WM-M17/M19 implementation, **this doc governs**.
 
 ---
 
@@ -410,7 +410,7 @@ Enterprise (Cosmos slug) is not a self-serve tier. The contact-sales path is del
 > | Surface connector tiers in settings/billing                          | `src/components/billing/PlanPicker.tsx` | Update highlights                                                           |
 > | Update `planPresentation()` highlights                               | `src/lib/entitlements.ts`               | Pro highlights get "read connectors"; Business gets "write-back connectors" |
 
-This section maps the strategy to the build items. Full per-file specs live in [`workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2.
+This section maps the strategy to the build items. Full per-file specs live in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2.
 
 | What                                                                   | File                                          | Change                                                                                                                                                                              |
 | ---------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -429,7 +429,7 @@ This section maps the strategy to the build items. Full per-file specs live in [
 
 ## 10. What this document supersedes
 
-- The 5-tier Anthropic-style packaging in [`workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (the "Max 5x/20x + Team Standard/Premium seat variants" framing). That section is retained as historical reasoning. **This doc's 4-tier model governs.**
+- The 5-tier Anthropic-style packaging in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (the "Max 5x/20x + Team Standard/Premium seat variants" framing). That section is retained as historical reasoning. **This doc's 4-tier model governs.**
 - The `billing.md` tier shape section (which describes an old 5-tier individual/business split). `billing.md` documents the technical rail; this doc documents the strategy it executes.
 - Any prior reference to "Constellation/Galaxy/Cosmos" as the public tier names. Those names are now internal only (slug presentation aliases). The public names are Free / Pro / Business / Enterprise.
 

@@ -37,6 +37,6 @@ rg -i "seamless|leverage|empower|unlock|delve|at the intersection" <changed file
 
 ## Related
 
-- [`../../DESIGN.md`](../design/archive/ember-editorial-landing.md) — "Voice & language" contract section (restatement that authors hit when designing).
+- [`design/archive/ember-editorial-landing.md`](../design/archive/ember-editorial-landing.md) — "Voice & language" contract section (restatement that authors hit when designing).
 - [`../strategy/archive/v3-audit-language-voice.md`](../strategy/archive/v3-audit-language-voice.md) — full AI-tell audit + P1 sweep targets.
 - [`../strategy/archive/v3-audit-language.md`](../strategy/archive/v3-audit-language.md) — naming integrity matrix, tooltip audit.

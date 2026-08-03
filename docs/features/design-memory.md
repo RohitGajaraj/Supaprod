@@ -21,7 +21,7 @@ v12 names this the empty cell in the design-tooling market: every mid-2026 tool 
 Figma agent, Magic Patterns style files, Lovable knowledge) grounds generation in a CONFIGURED
 design system. Nobody LEARNS a team's design language from what it ships, approves, and rejects.
 Design memory is decision memory pointed at design — the same compounding-decisions moat applied
-to a new dimension. See [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6.
+to a new dimension. See [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6.
 
 ## Where to find it
 
@@ -135,7 +135,7 @@ to a new dimension. See [`v12-self-improving-os.md`](../strategy/v12-self-improv
 
 ## Related
 
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6 — the design-leg canon
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6 — the design-leg canon
   (DSN-01 through DSN-05).
 - [`house-rules.md`](./house-rules.md) — the sibling standing-decision pattern this mirrors.
 - [`decision-brain.md`](./decision-brain.md) — the supersession/provenance vocabulary origin.

@@ -2,7 +2,7 @@
 
 > _Created 2026-07-13._ The comprehensive record of the Tempo V5 design work applied to the
 > **authenticated app** (the public marketing landing `src/routes/index.tsx` was deliberately
-> never touched). This is the "why + what" companion to the contract: [`/DESIGN-TEMPO.md`](../../../docs/design/archive/tempo-v5.md)
+> never touched). This is the "why + what" companion to the contract: [`docs/design/archive/tempo-v5.md`](../../../docs/design/archive/tempo-v5.md)
 > is the law; this file is the reasoning behind each ruling applied in this build, so tomorrow's
 > work knows the intent, not just the result. When this disagrees with the contract, the contract wins.
 >
@@ -215,10 +215,10 @@ AI fingerprints.
 
 ## Related
 
-- Contract: [`/DESIGN-TEMPO.md`](../../../docs/design/archive/tempo-v5.md) · portable brief: [`../TEMPO.md`](../TEMPO.md)
+- Contract: [`docs/design/archive/tempo-v5.md`](../../../docs/design/archive/tempo-v5.md) · portable brief: [`../TEMPO.md`](../TEMPO.md)
 - Pattern library: [`../patterns/`](../patterns/) (new: `audit-trace-tag.md`)
 - Feature: [`docs/features/audit-id-lineage.md`](../../../docs/features/audit-id-lineage.md)
-- Session handoff (full DONE list): [`/UI-REVAMP-HANDOFF.md`](../../../docs/design/archive/ui-revamp-handoff.md)
+- Session handoff (full DONE list): [`docs/design/archive/ui-revamp-handoff.md`](../../../docs/design/archive/ui-revamp-handoff.md)
 
 ---
 

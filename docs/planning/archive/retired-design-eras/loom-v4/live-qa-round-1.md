@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-04 · Last updated: 2026-07-06_
 
-> **STATUS: ALL 18 DEFECTS RESOLVED (2026-07-06, commits `03766768` + `f2125791`).** This catalog is now CLOSED. No future session should re-pick these items. The fixes are documented in [`docs/planning/archive/build-log.md`](../archive/build-log.md) §4 (2026-07-06 entry) with a standing rule for the `[auto]` prefix contract.
+> **STATUS: ALL 18 DEFECTS RESOLVED (2026-07-06, commits `03766768` + `f2125791`).** This catalog is now CLOSED. No future session should re-pick these items. The fixes are documented in [`build-log.md`](../../build-log.md) §4 (2026-07-06 entry) with a standing rule for the `[auto]` prefix contract.
 
 > _The first W5 production-validation pass: a meticulous Playwright tour of every
 > surface on `cadence-flow-beta.lovable.app` (demo account, 1440x900 + 1280x800),

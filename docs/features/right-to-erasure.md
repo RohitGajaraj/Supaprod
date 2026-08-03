@@ -10,7 +10,7 @@ Erases all of a tenant's data on a verified right-to-be-forgotten request, where
 
 ## Why it exists (one paragraph)
 
-GDPR Art. 17 / CCPA right-to-erasure is a legal requirement and a standard blocking item in enterprise security reviews; `considerations.md` flags it as a P1 Data/Privacy gap ("Data retention + deletion (GDPR/CCPA right-to-be-forgotten)"). It completes the data-governance triad alongside the retention purge (`DATA-RETENTION`, cycle 47), the export audit log (`U6-AUDIT`, cycle 48), and the sub-processor disclosure (`SUBPROC-DISCLOSURE`, cycle 49). See [`../../plan.md`](../planning/archive/build-log.md) §4.
+GDPR Art. 17 / CCPA right-to-erasure is a legal requirement and a standard blocking item in enterprise security reviews; `considerations.md` flags it as a P1 Data/Privacy gap ("Data retention + deletion (GDPR/CCPA right-to-be-forgotten)"). It completes the data-governance triad alongside the retention purge (`DATA-RETENTION`, cycle 47), the export audit log (`U6-AUDIT`, cycle 48), and the sub-processor disclosure (`SUBPROC-DISCLOSURE`, cycle 49). See [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4.
 
 ## How it works (migration, modules)
 
@@ -61,4 +61,4 @@ The erase runs only when (1) the founder flips `right_to_erasure_enabled()` to `
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4 · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · siblings [`subprocessor-disclosure.md`](./subprocessor-disclosure.md), [`u6-data-export.md`](./u6-data-export.md) · migration `supabase/migrations/20260621012900_data_retention_b_right_to_erasure.sql`
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · siblings [`subprocessor-disclosure.md`](./subprocessor-disclosure.md), [`u6-data-export.md`](./u6-data-export.md) · migration `supabase/migrations/20260621012900_data_retention_b_right_to_erasure.sql`

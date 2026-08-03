@@ -232,4 +232,4 @@ Why a positive allowlist: absence of `LANE.md` does NOT mean "not a lane", and t
 
 ---
 
-_Related: [`../../AGENTS.md`](../../AGENTS.md) (operating rules, doc-update protocol), [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (the master status board), [`git-discipline.md`](./commits.md), [`commits.md`](./commits.md), [`memory.md`](./memory.md)._
+_Related: [`../../AGENTS.md`](../../AGENTS.md) (operating rules, doc-update protocol), [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (the master status board), [`commits.md`](./commits.md), [`commits.md`](./commits.md), [`memory.md`](./memory.md)._

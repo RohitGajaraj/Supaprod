@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-12 · Status: **ACTIVE** — the GTM execution manual for opening the doors (waitlist wave → design partners → the listing)._
 >
-> **Canon relationships:** [`v13-proof-campaign.md`](../strategy/v13-proof-campaign.md) wins on sequence, claims discipline, and gates; this folder operationalizes its GTM surface under the founder's 2026-07-12 directive (launch-ready in 3 days, awareness wave inside 7). Outward-facing positioning is owned by the Pitch Room ([`docs/pitch/`](../pitch/README.md)) — the Show HN and Product Hunt copy live in [`launch-assets.md`](../pitch/launch-assets.md); this folder links to them and never forks parallel copies. **Standing rule: nothing outward sends without founder approval.**
+> **Canon relationships:** [`strategy/archive/v13-proof-campaign.md`](../strategy/archive/v13-proof-campaign.md) wins on sequence, claims discipline, and gates; this folder operationalizes its GTM surface under the founder's 2026-07-12 directive (launch-ready in 3 days, awareness wave inside 7). Outward-facing positioning is owned by the Pitch Room ([`docs/pitch/`](../pitch/README.md)) — the Show HN and Product Hunt copy live in [`pitch/launch-assets.md`](../pitch/launch-assets.md); this folder links to them and never forks parallel copies. **Standing rule: nothing outward sends without founder approval.**
 
 ## Reading order
 
@@ -13,7 +13,7 @@
 5. [`04-growth-engine-metrics-and-experiments.md`](./04-growth-engine-metrics-and-experiments.md) — growth loops, the experiment backlog, the metrics dashboard (vanity vs pull), the weekly review ritual.
 6. [`05-viral-and-guerrilla-playbook.md`](./05-viral-and-guerrilla-playbook.md) — 16 scored creative campaigns with top-5 execution briefs and the firing order.
 7. [`06-yc-and-fundraising-evidence.md`](./06-yc-and-fundraising-evidence.md) — the evidence engine feeding [`docs/pitch/yc/`](../pitch/yc/application-strategy.md): signal rankings, the quote vault, the gate-to-sentence map, the Friday evidence ritual.
-8. [`07-gtm-ground-truth-2026-07-14.md`](./07-gtm-ground-truth.md) — **the verified reality check (read before trusting the calendar):** the 11-item launch checklist audited against code and dashboard on Jul 14 (3 of 11 done; waitlist unbuilt; two clock-starter actions), plus the corrected firing order.
+8. [`07-gtm-ground-truth.md`](./07-gtm-ground-truth.md) — **the verified reality check (read before trusting the calendar):** the 11-item launch checklist audited against code and dashboard on Jul 14 (3 of 11 done; waitlist unbuilt; two clock-starter actions), plus the corrected firing order.
 9. [`GTM-launch-strategy.md`](./GTM-launch-strategy.md) — the founder's original requirements brief (2026-07-12); the manual above answers it.
 
 ## The one-paragraph summary

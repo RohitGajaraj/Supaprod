@@ -5,7 +5,7 @@
 ## Key Concepts
 
 - **scrubPII()** (1 connections) — `docs/runbooks/observability.md`
-- **sanitizeError()** (1 connections) — `docs/security/audit-2026-07-18-remediation.md`
+- **sanitizeError()** (1 connections) — `docs/security/audit-remediation.md`
 
 ## Relationships
 
@@ -14,7 +14,7 @@
 ## Source Files
 
 - `docs/runbooks/observability.md`
-- `docs/security/audit-2026-07-18-remediation.md`
+- `docs/security/audit-remediation.md`
 
 ## Audit Trail
 

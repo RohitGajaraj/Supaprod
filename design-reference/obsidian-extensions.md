@@ -6,7 +6,7 @@
 `implementation-notes.md` § "Out of scope"): the ⌘K palette UI, Settings,
 onboarding, Engine Room room details, plus patterns the contract names but does
 not draw (chart grammar, density modes, micro-interaction recipes). This file
-fills those gaps. **Authority chain:** [`/DESIGN-OBSIDIAN.md`](../docs/design/archive/obsidian-v3.md)
+fills those gaps. **Authority chain:** [`docs/design/archive/obsidian-v3.md`](../docs/design/archive/obsidian-v3.md)
 is the law and wins on any disagreement; every value below is composed from the
 package's own tokens (`design-reference/obsidian-v3/tokens/`); nothing here
 introduces a new hex, font, easing, or duration. Authored as Head-of-Design
@@ -214,7 +214,7 @@ Never a blank box, never an illustration, never an exclamation mark.
 ---
 
 **Linkage.** This file is referenced from the contract's Amendments section,
-[`design-reference/README.md`](./README.md), and the `cadence-design` skill.
+[`README.md`](./README.md), and the `cadence-design` skill.
 When any spec here is implemented, verify against the contract first; if a
 conflict surfaces, the contract wins and this file gets corrected in the same
 change.

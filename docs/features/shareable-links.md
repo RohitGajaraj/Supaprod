@@ -35,7 +35,7 @@ Any decision in Knowledge → Decisions can be made public and shared via a read
 
 ### Why it exists
 
-v6 §7 names a shareable decision link as the viral mechanism: proof of the swarm's work that an operator can post. See [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-14 · viral loop).
+v6 §7 names a shareable decision link as the viral mechanism: proof of the swarm's work that an operator can post. See [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-06-14 · viral loop).
 
 ### Where to find it
 
@@ -83,7 +83,7 @@ Any WEDGE Critic-teardown result in Today can be made public and shared via a re
 
 ### Why it exists
 
-The wedge (WEDGE / v9-wedge) names the Critic-teardown as the launch artifact and acquisition hook. A PM posts "here's the feature I believe in, here's the honest adversarial red-team" - the reasoning travels. Strategy canon: [`v9-decision-wedge-and-build-next`](../strategy/v9-decision-wedge-and-build-next.md) (the wedge as acquisition), [`v10-master-blueprint`](../strategy/v10-master-blueprint.md) §16 (monetize & growth lane).
+The wedge (WEDGE / v9-wedge) names the Critic-teardown as the launch artifact and acquisition hook. A PM posts "here's the feature I believe in, here's the honest adversarial red-team" - the reasoning travels. Strategy canon: [`v9-decision-wedge-and-build-next`](../strategy/archive/v9-decision-wedge-and-build-next.md) (the wedge as acquisition), [`v10-master-blueprint`](../strategy/archive/v10-master-blueprint.md) §16 (monetize & growth lane).
 
 ### Where to find it
 
@@ -130,8 +130,8 @@ The wedge (WEDGE / v9-wedge) names the Critic-teardown as the launch artifact an
 ## Related
 
 - [`wedge.md`](./wedge.md) - the Critic-teardown first-run the `/t` share feature hooks into.
-- [`../../plan.md`](../planning/archive/build-log.md) §4: build log entries (decision-share viral loop 2026-06-14; teardown-share 2026-06-17).
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4: build log entries (decision-share viral loop 2026-06-14; teardown-share 2026-06-17).
 - [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md) §7: the viral loop in the GTM plan.
-- [`../strategy/v9-decision-wedge-and-build-next.md`](../strategy/v9-decision-wedge-and-build-next.md): the wedge as acquisition.
-- [`../strategy/v10-master-blueprint.md`](../strategy/v10-master-blueprint.md) §16 (monetize & growth).
+- [`strategy/archive/v9-decision-wedge-and-build-next.md`](../strategy/archive/v9-decision-wedge-and-build-next.md): the wedge as acquisition.
+- [`strategy/archive/v10-master-blueprint.md`](../strategy/archive/v10-master-blueprint.md) §16 (monetize & growth).
 - `src/routes/p.$slug.tsx`: the prototype-share pattern the `/d` loop mirrors.

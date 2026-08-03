@@ -1,4 +1,4 @@
-> ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
+> ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/archive/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
 
 # v7 functionality map: how Supaprod behaves, flow by flow
 
@@ -6,7 +6,7 @@
 
 > **What this is.** The behavior reference, not the catalog. For each major flow it gives the inputs, the step-by-step behavior, the four states (loading, empty, error, success), the human-in-the-loop gates, and the data each step reads and writes. It answers "what happens when I click this" rather than "what tables exist." Grounded in a code read of `main` at commit `f515cfb` (2026-06-14).
 >
-> **Companions.** Route and feature catalog plus the agent roster: [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md) (engine and IA reference). Positioning and build canon: [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md). Sibling Phase-B docs: [`v7-feature-map.md`](./v7-feature-map.md), [`v7-trd.md`](./v7-trd.md), [`v7-prd.md`](./v7-prd.md). Open bugs and blockers with stable IDs: [`known-issues.md`](./known-issues.md). Sub-feature scope: [`feature-backlog.md`](./feature-backlog.md).
+> **Companions.** Route and feature catalog plus the agent roster: [`../strategy/archive/v6-agentic-product-os.md`](../../strategy/archive/v6-agentic-product-os.md) (engine and IA reference). Positioning and build canon: [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md). Sibling Phase-B docs: [`v7-feature-map.md`](./v7-feature-map.md), [`v7-trd.md`](./v7-trd.md), [`v7-prd.md`](./v7-prd.md). Open bugs and blockers with stable IDs: [`known-issues.md`](../known-issues.md). Sub-feature scope: [`feature-backlog.md`](./feature-backlog.md).
 >
 > **Honesty contract.** Claim never outruns wiring. Every flow below is tagged Built, Partial, or Missing/Planned, and every Partial names the exact code-verified gap. Verified ground truth: the autonomy, memory, and audit engine is real (deterministic auto-advance via the resume-runs cron, memory_refs threading, outcome-to-memory recall, bounded retry, adaptive budget, the unattended-execution audit, the Today decision card, and the three gauntlet metrics). The real gaps are the live orchestrator slug bug, KI-13 signup 500, connectors wired but not operational, and agents defaulting to observing. The shipped roster is four specialist agents plus the orchestrator, with Critic as an inline LLM call (`runCritic` in `discovery.functions.ts`), not 19 agents.
 
@@ -381,9 +381,9 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 
 ## Related
 
-- [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) : positioning and build canon; the claim-never-outruns-wiring stance this map enforces.
-- [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md) : the route and feature catalog and the agent roster that this behavior map sits on top of.
-- [`known-issues.md`](./known-issues.md) : the live `KI-` register every Partial above points to.
+- [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md) : positioning and build canon; the claim-never-outruns-wiring stance this map enforces.
+- [`../strategy/archive/v6-agentic-product-os.md`](../../strategy/archive/v6-agentic-product-os.md) : the route and feature catalog and the agent roster that this behavior map sits on top of.
+- [`known-issues.md`](../known-issues.md) : the live `KI-` register every Partial above points to.
 - [`feature-backlog.md`](./feature-backlog.md) : sub-feature scope and the live status board.
-- [`../strategy/session-decisions.md`](../strategy/session-decisions.md) : the 2026-06-14 entries on the orchestrator slug bug and observing-by-default.
-- [`../conventions/humanized-output.md`](../conventions/humanized-output.md) : the voice rule this document is written under.
+- [`../strategy/session-decisions.md`](../../strategy/session-decisions.md) : the 2026-06-14 entries on the orchestrator slug bug and observing-by-default.
+- [`../conventions/humanized-output.md`](../../conventions/humanized-output.md) : the voice rule this document is written under.

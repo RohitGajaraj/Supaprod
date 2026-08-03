@@ -10,7 +10,7 @@ Maintains the canonical list of the third parties that process customer data on 
 
 ## Why it exists (one paragraph)
 
-"List your sub-processors / where does our data go" is a standard, blocking question in every enterprise security review, and `considerations.md` flags it as a P1 Data/Privacy gap (needed before/at the first enterprise sale). It completes the data-governance triad alongside the retention purge (`DATA-RETENTION`, cycle 47) and the export audit log (`U6-AUDIT`, cycle 48). See [`../../plan.md`](../planning/archive/build-log.md) §4 (cycle 49 entry).
+"List your sub-processors / where does our data go" is a standard, blocking question in every enterprise security review, and `considerations.md` flags it as a P1 Data/Privacy gap (needed before/at the first enterprise sale). It completes the data-governance triad alongside the retention purge (`DATA-RETENTION`, cycle 47) and the export audit log (`U6-AUDIT`, cycle 48). See [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (cycle 49 entry).
 
 ## Where to find it (nav path, route, panels)
 
@@ -49,7 +49,7 @@ Maintains the canonical list of the third parties that process customer data on 
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4 (cycle 49) · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · siblings [`u6-data-export.md`](./u6-data-export.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · catalog [`../../src/lib/ai/models.ts`](../../src/lib/ai/models.ts)
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (cycle 49) · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · siblings [`u6-data-export.md`](./u6-data-export.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · catalog [`../../src/lib/ai/models.ts`](../../src/lib/ai/models.ts)
 
 ## Settings/connections audit note (2026-07-07)
 

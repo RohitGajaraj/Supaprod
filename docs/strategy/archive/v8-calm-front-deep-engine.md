@@ -10,7 +10,7 @@
 
 ## 0. The law and the two forks (all founder rulings, 2026-06-16)
 
-- **Law #1 — the Engine-Room Doctrine** ([`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md)): calm front, deep engine. Complexity lives in the engine, never in the experience; all machinery lives behind one "Engine Room" door, revealed on demand; user-facing labels name the outcome, not the mechanism. This outranks every surface decision below.
+- **Law #1 — the Engine-Room Doctrine** ([`../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md)): calm front, deep engine. Complexity lives in the engine, never in the experience; all machinery lives behind one "Engine Room" door, revealed on demand; user-facing labels name the outcome, not the mechanism. This outranks every surface decision below.
 - **Fork 1 — the Build engine is a HYBRID spine.** Supaprod owns a real, Cursor-feeling build engine for the common 80% path (plan, diff, steer, tests, preview, CI gate, ship) and rents external coding agents (Claude Code / Cursor / Devin) for the heavy 20%. We are not rebuilding an IDE; we are the OS with a build spine. Memory stays the moat.
 - **Fork 2 — two heroes, one loop.** We SELL on the decide-ritual (Today) and BUILD toward the ship-engine (Build). Same loop, two high-value moments. Center of gravity = decide -> ship; memory compounds under both.
 
@@ -53,7 +53,7 @@
 
 Approvals are surfaced as "your calls" on Today plus a badge, not a separate technical surface. Connectors are one **Connect** button (OAuth, no key paste).
 
-> **Forward bets (2026-06-20, [`horizon-bets.md`](./horizon-bets.md)).** Two structure-relevant bets sit on top of this map. **H1 the Decision Brain** (topmost priority) reshapes the **Memory/Brain** surface from a status view into an auto-built, Obsidian-style visual decision graph (the engine under the moat); spec [`../features/decision-brain.md`](../features/decision-brain.md). **H2 the Command Canvas** adds a natural-language command bar plus live-preview interaction _altitude_ over the calm GUI (an accelerator, never a primary-only path, so it stays inside Law #1); spec [`../features/command-canvas.md`](../features/command-canvas.md).
+> **Forward bets (2026-06-20, [`horizon-bets.md`](../horizon-bets.md)).** Two structure-relevant bets sit on top of this map. **H1 the Decision Brain** (topmost priority) reshapes the **Memory/Brain** surface from a status view into an auto-built, Obsidian-style visual decision graph (the engine under the moat); spec [`../features/decision-brain.md`](../../features/decision-brain.md). **H2 the Command Canvas** adds a natural-language command bar plus live-preview interaction _altitude_ over the calm GUI (an accelerator, never a primary-only path, so it stays inside Law #1); spec [`../features/command-canvas.md`](../../features/command-canvas.md).
 
 ---
 
@@ -102,7 +102,7 @@ The Build engine is the most genuinely-built node today: it reads the bound repo
 
 ## 5. The forward sequencing (what we build next)
 
-Each phase: real data only (no mocks), every new surface carries its `Engine-Room:` line, claim the row on the [feature dashboard](../planning/feature-dashboard.md) before coding.
+Each phase: real data only (no mocks), every new surface carries its `Engine-Room:` line, claim the row on the [feature dashboard](../../planning/feature-dashboard.md) before coding.
 
 - **Phase 1 — The calm front + the one door (IA: mostly regroup + rename).** Collapse the technical top-level/Govern surfaces into ONE Engine Room surface with outcome-named tabs; rename front surfaces to outcomes; surface approvals as "your calls" on Today. Most of this exists already as the Govern/Engine Room cluster, so it is regrouping + renaming + a single door, not new engine work. Highest leverage, lowest risk, delivers the "it feels simple now" win immediately.
 - **Phase 2 — The Build hero (finish the Cursor-grade feel).** Finish the in-flight I-series (per-hunk accept/reject I1, live build view I2), polish the diff / steer / CI / cost experience, make Build a true top-level hero. Mostly completion + polish. **Status (2026-06-16): largely complete.** Recon found Build already Cursor-grade (live cockpit, two-pane, conditional polling, merge gate); shipped a live "what's it doing now" caption + outcome-named polish (I2 ✅). True SSE streaming deferred as a nice-to-have.
@@ -120,6 +120,6 @@ Structure serves the proof gauntlet, not dates: at least 10 PMs paying at least 
 ## 7. Relationship to existing canon
 
 - **Positioning + market:** [`v7-agentic-product-os.md`](./v7-agentic-product-os.md) (wins on positioning).
-- **Engine / agent mesh / handoff contract / HITL gates:** [`v4-feature-map.md`](archive/v4-feature-map.md).
-- **Wedge UX:** [`v5-chief-of-staff.md`](archive/v5-chief-of-staff.md).
-- **The law:** [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md); surface placement: [`../conventions/home-and-today-ia.md`](../conventions/home-and-today-ia.md).
+- **Engine / agent mesh / handoff contract / HITL gates:** [`v4-feature-map.md`](./v4-feature-map.md).
+- **Wedge UX:** [`v5-chief-of-staff.md`](./v5-chief-of-staff.md).
+- **The law:** [`../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md); surface placement: [`../conventions/home-and-today-ia.md`](../../conventions/home-and-today-ia.md).

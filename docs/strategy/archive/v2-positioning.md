@@ -1,5 +1,5 @@
 > [!WARNING]
-> **ARCHIVED, historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](../v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](../v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
+> **ARCHIVED, historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](./v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](./v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
 
 # Product Positioning v2: Strategic Session Record
 
@@ -9,7 +9,7 @@
 >
 > **When to revisit.** When entering a new funding stage, onboarding a new co-founder, before a major pivot, or whenever the question "why are we building this?" needs a grounded answer.
 >
-> **Cross-references.** Positioning → [`../../README.md`](../../README.md). Features → [`../feature-backlog.md`](../feature-backlog.md). Build order → [`../../plan.md`](../../plan.md). Operating rules → [`../../AGENTS.md`](../../AGENTS.md).
+> **Cross-references.** Positioning → [`../../README.md`](../../README.md). Features → [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md). Build order → [`planning/archive/build-log.md`](../../planning/archive/build-log.md). Operating rules → [`../../AGENTS.md`](../../../AGENTS.md).
 
 ---
 
@@ -165,7 +165,7 @@ The Agent Trust Score and Autonomy Dial (feature C6 in `docs/feature-backlog.md`
 | Trusted   | Agents run autonomously across most tasks; operator sees outcomes and exceptions | Sets intent, reviews summaries, not individual actions |
 | Ambient   | Agents run the product org continuously; operator provides strategic direction   | Approves major decisions, reviews periodic briefs      |
 
-Full UX design requirements for surfacing this arc (Trust Score, Autonomy Dial, Loop Health Monitor): [`../../design.md`](../../DESIGN.md), "The trust arc" section.
+Full UX design requirements for surfacing this arc (Trust Score, Autonomy Dial, Loop Health Monitor): [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md), "The trust arc" section.
 
 **Why not Model C (Ambient OS / mobile-first)?** Model C is the eventual long-term destination for mature Cadence users (2+ years). It's worth designing for but not the day-one interaction model. Get to B first, design the B→A journey, let C emerge.
 
@@ -184,7 +184,7 @@ New features identified in this session that were missing from the backlog:
 | **Full Data Portability / Export**     | Export all signals, decisions, memory, PRDs, agent configs in open formats. Anti-lock-in feature that paradoxically builds trust and retention.         |
 | **Persona-specific onboarding tracks** | Three tracks: Solo PM / Founding PM / Technical Founder. Each emphasizes the pain point most relevant to that persona.                                  |
 
-All six are now in [`../feature-backlog.md`](../feature-backlog.md).
+All six are now in [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md).
 
 ---
 

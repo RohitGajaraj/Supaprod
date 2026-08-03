@@ -23,7 +23,7 @@ Data layer: `src/lib/today-lanes.functions.ts` (`getTodayLanes`, workspace-scope
 
 ## Why it exists
 
-Today is the felt product for the senior PM: it collapses "15 tools, human as glue" into one place where the loop brings you only the few calls that genuinely need you and shows its own work. It is the second half of the Today mandate (what needs me + what the loop did while I was away). Build log: [`../../plan.md`](../planning/archive/build-log.md) §4 (OBS-04 ritual; Loom W2-TODAY triage; the 2026-07-07 dim 17 pass).
+Today is the felt product for the senior PM: it collapses "15 tools, human as glue" into one place where the loop brings you only the few calls that genuinely need you and shows its own work. It is the second half of the Today mandate (what needs me + what the loop did while I was away). Build log: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (OBS-04 ritual; Loom W2-TODAY triage; the 2026-07-07 dim 17 pass).
 
 ## Where to find it
 
@@ -69,8 +69,8 @@ Nav: the first destination, `/today` (route `src/routes/_authenticated.today.tsx
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4, the dated build log (OBS-04, Loom W2-TODAY, the 2026-07-07 dim 17 pass)
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, the dated build log (OBS-04, Loom W2-TODAY, the 2026-07-07 dim 17 pass)
 - [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md), the binding card + detail anatomy, trace-ref registry (incl. the new `ASM` prefix), color/token palette
-- [`../../DESIGN-LOOM.md`](../design/archive/loom-v4.md) §0.1 dim 17 (the contract) + §8b (Today ritual)
+- [`design/archive/loom-v4.md`](../design/archive/loom-v4.md) §0.1 dim 17 (the contract) + §8b (Today ritual)
 - [`opportunity-ranking.md`](./opportunity-ranking.md), the Decide detail-sheet exemplar this surface aligns to
 - [`signal-fabric.md`](./signal-fabric.md) · [`foresight-generators.md`](./foresight-generators.md) · [`plg-memory-retention-nudge.md`](./plg-memory-retention-nudge.md), sibling capabilities that also render on Today

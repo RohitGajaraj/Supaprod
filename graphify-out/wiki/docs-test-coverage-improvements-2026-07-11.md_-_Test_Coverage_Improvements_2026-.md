@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Test Coverage Improvements 2026-07-11** (0 connections) — `docs/test-coverage-improvements-2026-07-11.md`
+- **Test Coverage Improvements 2026-07-11** (0 connections) — `docs/testing/test-coverage-improvements.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `docs/test-coverage-improvements-2026-07-11.md`
+- `docs/testing/test-coverage-improvements.md`
 
 ## Audit Trail
 

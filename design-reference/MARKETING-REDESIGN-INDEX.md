@@ -9,10 +9,10 @@
 ## Quick Links by Role
 
 ### Builder / Developer (starting implementation now)
-1. **Start:** [`docs/Growth Strategy/marketing-site-build-checklist.md`](../../MARKETING-SITE-BUILD-CHECKLIST.md) (read top to bottom; commit-by-commit guide)
-2. **Reference:** [`2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (keep open; prescriptive detail)
+1. **Start:** [`docs/Growth Strategy/marketing-site-build-checklist.md`](../docs/Growth%20Strategy/marketing-site-build-checklist.md) (read top to bottom; commit-by-commit guide)
+2. **Reference:** [`tempo-v5/applied/2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (keep open; prescriptive detail)
 3. **Template:** [`src/routes/product.tsx`](../../src/routes/product.tsx) (live example; adapt for /features and /use-cases)
-4. **Law:** [`docs/design/archive/tempo-v5.md`](../../DESIGN-TEMPO.md) (read first for 30 min; the base contract)
+4. **Law:** [`docs/design/archive/tempo-v5.md`](../docs/design/archive/tempo-v5.md) (read first for 30 min; the base contract)
 
 **Next steps:**
 - Commit 1: SectionAlternate + FramedVisual components (8–10 hours)
@@ -26,10 +26,10 @@
 ---
 
 ### Founder / Reviewer (design approval & visual QA)
-1. **Skim:** [`MARKETING-SITE-REDESIGN-SUMMARY.md`](../../design-reference/MARKETING-SITE-REDESIGN-SUMMARY.md) (5 min; what's shipping)
+1. **Skim:** [`MARKETING-SITE-REDESIGN-SUMMARY.md`](./MARKETING-SITE-REDESIGN-SUMMARY.md) (5 min; what's shipping)
 2. **Wait for:** Responsive screenshots at end of phase 1 (3 breakpoints: 320px, 768px, 1280px)
 3. **Provide feedback:** One pass; builder fixes, re-shares, ships with your sign-off
-4. **Reference:** [`2026-07-18-marketing-site-expansion.md`](./tempo-v5/applied/2026-07-18-marketing-site-expansion.md) § 13 (founder taste rules; if anything looks off, check here)
+4. **Reference:** [`tempo-v5/applied/2026-07-18-marketing-site-expansion.md`](./tempo-v5/applied/2026-07-18-marketing-site-expansion.md) § 13 (founder taste rules; if anything looks off, check here)
 
 **Timeline:** Phase 1 ships in 2–3 days of build time (EOW target). You'll see screens mid-week for QA.
 
@@ -37,10 +37,10 @@
 
 ### Designer / Future Agent (understanding decisions + maintaining consistency)
 1. **Read in order:**
-   - [`docs/design/archive/tempo-v5.md`](../../DESIGN-TEMPO.md) (30 min) — the law
-   - [`2026-07-15-landing-v2-ink-and-starfield.md`](./tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) (45 min) — the precedent
-   - [`2026-07-18-marketing-site-expansion.md`](./tempo-v5/applied/2026-07-18-marketing-site-expansion.md) (45 min) — strategy + patterns
-   - [`2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (skim for reference)
+   - [`docs/design/archive/tempo-v5.md`](../docs/design/archive/tempo-v5.md) (30 min) — the law
+   - [`tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](./tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) (45 min) — the precedent
+   - [`tempo-v5/applied/2026-07-18-marketing-site-expansion.md`](./tempo-v5/applied/2026-07-18-marketing-site-expansion.md) (45 min) — strategy + patterns
+   - [`tempo-v5/applied/2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (skim for reference)
 2. **Understand:** Every design decision is documented with reasoning (section-by-section in the docs)
 3. **Never:** Override Tempo law; all extensions are explicitly called out
 4. **Future work:** Section 6 of expansion doc has gated patterns (customer showcases, brand shader, journey film) with unlock conditions

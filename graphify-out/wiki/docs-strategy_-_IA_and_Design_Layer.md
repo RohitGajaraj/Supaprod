@@ -5,7 +5,7 @@
 ## Key Concepts
 
 - **IA and Design Layer** (1 connections) — `docs/strategy/v11-guiding-star.md`
-- **Engine-Room Doctrine** (1 connections) — `docs/strategy/v8-calm-front-deep-engine.md`
+- **Engine-Room Doctrine** (1 connections) — `docs/strategy/archive/v8-calm-front-deep-engine.md`
 
 ## Relationships
 
@@ -14,7 +14,7 @@
 ## Source Files
 
 - `docs/strategy/v11-guiding-star.md`
-- `docs/strategy/v8-calm-front-deep-engine.md`
+- `docs/strategy/archive/v8-calm-front-deep-engine.md`
 
 ## Audit Trail
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Test Coverage Gaps Analysis (2026-07-11)** (1 connections) — `docs/testing/coverage-gaps-2026-07-11.md`
+- **Test Coverage Gaps Analysis (2026-07-11)** (1 connections) — `docs/testing/coverage-gaps-early-july.md`
 - **Duplicate Test Consolidation Runbook** (1 connections) — `docs/testing/duplicate-test-consolidation.md`
 
 ## Relationships
@@ -13,7 +13,7 @@
 
 ## Source Files
 
-- `docs/testing/coverage-gaps-2026-07-11.md`
+- `docs/testing/coverage-gaps-early-july.md`
 - `docs/testing/duplicate-test-consolidation.md`
 
 ## Audit Trail

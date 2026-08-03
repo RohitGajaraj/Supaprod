@@ -15,7 +15,7 @@ Prompts) - this feature never activates anything itself.
 
 v12's Learning Ladder names this the eval-to-prompt leg of the reinforcement loop: graded failures
 become a concrete, versioned fix a human can approve, not just a dashboard number. See
-[`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2 (RF-07).
+[`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2 (RF-07).
 
 ## The chokepoint-gating question, resolved
 
@@ -30,7 +30,7 @@ same path - reuses `judge`, makes zero edits to any of the 5 pinned chokepoint f
 `memory.server.ts`). A 3-lens adversarial review (see Governance & guardrails) confirmed this
 holds: every place `CallSurface` actually branches behavior in the chokepoint is gated by a
 `CallOpts` field RF-07 already sets correctly, not by the surface string itself. Session decision
-recorded in [`session-decisions.md`](../strategy/session-decisions.md).
+recorded in [`strategy/session-decisions.md`](../strategy/session-decisions.md).
 
 The auto-pickup side needs no new wiring either: `loop.server.ts` already calls `resolvePrompt`
 with `promptKey: "planner_executor"` (the only one of 7 seeded templates actually live-wired to a
@@ -136,7 +136,7 @@ limits.
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2
 - Sibling/precedent: [`house-rules.md`](./house-rules.md) (RF-04, the structural template this
   follows almost mechanically)

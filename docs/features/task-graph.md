@@ -10,7 +10,7 @@ The Planner step of the golden path: it decomposes an approved spec (PRD) into a
 
 ## Why it exists
 
-Completes the M1 demo path: signals → opportunity → spec → **task graph** → Builder PR + CI. Spec H1 in [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md); build-log [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-14 · H1).
+Completes the M1 demo path: signals → opportunity → spec → **task graph** → Builder PR + CI. Spec H1 in [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md); build-log [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-06-14 · H1).
 
 ## Where to find it
 
@@ -45,6 +45,6 @@ Generation wrote the DAG; this makes it READABLE. The stored `seq` + `depends_on
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4, build log
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, build log
 - [`critic-agent.md`](./critic-agent.md): DEF-03, the spec red-team that runs before this
 - `src/lib/linear.functions.ts` / `src/lib/studio.functions.ts`: where the tasks flow next

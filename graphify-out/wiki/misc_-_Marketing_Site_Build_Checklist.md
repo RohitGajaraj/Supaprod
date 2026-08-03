@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Marketing Site Build Checklist** (0 connections) — `MARKETING-SITE-BUILD-CHECKLIST.md`
+- **Marketing Site Build Checklist** (0 connections) — `docs/Growth Strategy/marketing-site-build-checklist.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `MARKETING-SITE-BUILD-CHECKLIST.md`
+- `docs/Growth Strategy/marketing-site-build-checklist.md`
 
 ## Audit Trail
 

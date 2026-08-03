@@ -17,7 +17,7 @@ RF-01's outcome-tick pass will not draft a verdict for this PRD.
 The v12 journey audit graded "Launch / GTM / marketing" THIN: a launch-kit generator (LCH-01)
 already exists in Build, drafting channel copy from a shipped changeset, but nothing composes a
 launch plan from the decision graph's own WHY, and nothing arms a sensible window before judging
-whether a launch worked. See [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
+whether a launch worked. See [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
 §8.4 (JNY-04).
 
 ## Where to find it
@@ -96,8 +96,8 @@ whether a launch worked. See [`v12-self-improving-os.md`](../strategy/v12-self-i
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.4
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.4
 - Siblings this reuses the idiom of: LCH-01 (`generateLaunchKit`, channel copy, not duplicated),
   CNV-01 (the `contract.intent`/`success_metrics` source), RF-01 (`outcome-tick`'s pending-
   suggestion pass, now window-gated)

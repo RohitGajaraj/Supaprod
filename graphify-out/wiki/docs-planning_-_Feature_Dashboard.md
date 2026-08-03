@@ -6,17 +6,17 @@
 
 - **Feature Dashboard** (7 connections) — `docs/planning/feature-dashboard.md`
 - **Source of Truth** (7 connections) — `docs/planning/SOURCE-OF-TRUTH.md`
-- **v13 Proof Campaign Plan** (3 connections) — `docs/planning/v13-proof-campaign-plan.md`
+- **v13 Proof Campaign Plan** (3 connections) — `docs/planning/archive/v13-proof-campaign-plan.md`
 - **Project Documentation Index** (3 connections) — `docs/README.md`
 - **Design Partner Kit** (2 connections) — `docs/pitch/design-partner-kit.md`
 - **Launch Assets** (2 connections) — `docs/pitch/launch-assets.md`
 - **Onboarding Wedge (PC-02)** (2 connections) — `docs/planning/feature-dashboard.md`
-- **v13 Proof Campaign** (2 connections) — `docs/strategy/v13-proof-campaign.md`
+- **v13 Proof Campaign** (2 connections) — `docs/strategy/archive/v13-proof-campaign.md`
 - **Launch Operating Manual** (2 connections) — `docs/Growth Strategy/00-launch-operating-manual.md`
 - **Build-in-Public Insight Feed** (1 connections) — `docs/brand-feed.md`
 - **Trust Ledger Launch Plan** (1 connections) — `docs/pitch/trust-ledger-launch-plan.md`
 - **Standing Rule — Pick Correctly, Close Fully** (1 connections) — `docs/planning/STANDING-RULE-PICK-AND-CLOSE.md`
-- **v13 Proof Campaign Strategy** (1 connections) — `docs/strategy/v13-proof-campaign.md`
+- **v13 Proof Campaign Strategy** (1 connections) — `docs/strategy/archive/v13-proof-campaign.md`
 - **GEMINI.md** (1 connections) — `GEMINI.md`
 - **Customer Discovery & Validation** (1 connections) — `docs/Growth Strategy/03-customer-discovery-and-validation.md`
 - **Growth Engine Metrics & Experiments** (1 connections) — `docs/Growth Strategy/04-growth-engine-metrics-and-experiments.md`
@@ -42,8 +42,8 @@
 - `docs/planning/SOURCE-OF-TRUTH.md`
 - `docs/planning/STANDING-RULE-PICK-AND-CLOSE.md`
 - `docs/planning/feature-dashboard.md`
-- `docs/planning/v13-proof-campaign-plan.md`
-- `docs/strategy/v13-proof-campaign.md`
+- `docs/planning/archive/v13-proof-campaign-plan.md`
+- `docs/strategy/archive/v13-proof-campaign.md`
 
 ## Audit Trail
 

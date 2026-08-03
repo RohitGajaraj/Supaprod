@@ -10,7 +10,7 @@ On the Agents surface, the **Agent inspector** lets the operator pick any agent 
 
 ## Why it exists
 
-Trust in an agent comes from being able to see its track record, not just its current trust score. C4/E7 is that track record. Build note: [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4.
+Trust in an agent comes from being able to see its track record, not just its current trust score. C4/E7 is that track record. Build note: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4.
 
 ## Where to find it
 
@@ -46,4 +46,4 @@ Missions (`/missions`) > the **Agents** tab > the **Agent inspector** card (belo
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`agent-runs.functions.ts`](../../src/lib/agent-runs.functions.ts) · `swarm.functions.ts` (agent roster) · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycle 4).
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`agent-runs.functions.ts`](../../src/lib/agent-runs.functions.ts) · `swarm.functions.ts` (agent roster) · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycle 4).

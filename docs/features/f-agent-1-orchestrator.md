@@ -10,7 +10,7 @@ Turns a single operator goal into a multi-agent mission. The `orchestrator` agen
 
 ## Why it exists
 
-The substrate (chokepoint, agent runs, A2A handoffs, trust gates) had been in place since Bundle 4, but every "mission" was effectively single-agent, `agent.handoff` was a primitive without a planner above it. Without an orchestrator, "agent-native OS" was a marketing phrase for a single-agent planner-executor. Full rationale: [`../../plan.md`](../planning/archive/build-log.md) §4 entry dated 2026-06-06 (F-AGENT-1).
+The substrate (chokepoint, agent runs, A2A handoffs, trust gates) had been in place since Bundle 4, but every "mission" was effectively single-agent, `agent.handoff` was a primitive without a planner above it. Without an orchestrator, "agent-native OS" was a marketing phrase for a single-agent planner-executor. Full rationale: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 entry dated 2026-06-06 (F-AGENT-1).
 
 ## Where to find it
 
@@ -61,7 +61,7 @@ The substrate (chokepoint, agent runs, A2A handoffs, trust gates) had been in pl
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-1 entry
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-1 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md), orchestration contract (F-AGENT-1 bullet)
 - [`./a2a-handoff.md`](./a2a-handoff.md), A2A handoff contract used by `mission.dispatch`
 - [`./trust-and-autonomy.md`](./trust-and-autonomy.md), arcs that gate the specialists

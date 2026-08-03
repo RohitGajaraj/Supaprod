@@ -2,11 +2,11 @@
 
 > _Created: 2026-07-02 · Last updated: 2026-07-07_
 
-> Status · In progress (started 2026-07-02) · All authenticated app surfaces · Initiative bible: [`../planning/obsidian-port-plan.md`](../planning/archive/retired-design-eras/obsidian-port-plan.md)
+> Status · In progress (started 2026-07-02) · All authenticated app surfaces · Initiative bible: [`planning/archive/retired-design-eras/obsidian-port-plan.md`](../planning/archive/retired-design-eras/obsidian-port-plan.md)
 
 ## What it does
 
-Ports every authenticated app surface to the v3 "Obsidian" design system (the contract at [`/DESIGN-OBSIDIAN.md`](../design/archive/obsidian-v3.md)): jet-black cockpit, Ember strictly needs-a-human, Glacier the machine voice, mono-index rail, five destinations + Ask + one Engine Room door. The public landing page keeps parchment and is out of scope. THE PROTOTYPE IS THE FLOOR (founder ruling 2026-07-02): every ported surface must be indistinguishable from `design-reference/obsidian-v3/design-reference/cadence-app.html` at 1440px before anything is added.
+Ports every authenticated app surface to the v3 "Obsidian" design system (the contract at [`design/archive/obsidian-v3.md`](../design/archive/obsidian-v3.md)): jet-black cockpit, Ember strictly needs-a-human, Glacier the machine voice, mono-index rail, five destinations + Ask + one Engine Room door. The public landing page keeps parchment and is out of scope. THE PROTOTYPE IS THE FLOOR (founder ruling 2026-07-02): every ported surface must be indistinguishable from `design-reference/obsidian-v3/design-reference/cadence-app.html` at 1440px before anything is added.
 
 ## Why it exists
 
@@ -226,7 +226,7 @@ Also caught and fixed mid-build: a `perl -CSD` encoding mistake had mojibake-cor
 
 ## OBS-DIM17 · Plan (Define) + Build detail views deepened to dim 17 (✅ 2026-07-07, plan_build_surface)
 
-**What shipped:** the DEFINE (Plan) and BUILD detail views and objects brought up to the dim-17 + DetailKit standard (the binding contract in [`/DESIGN-LOOM.md`](../design/archive/loom-v4.md) §0.1 dim 17; long-form reference [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md)), so a spec, a mission, and a bet read identically to a Discover signal, a Decide opportunity, and a Today call. No new trace prefixes were needed (`PRD` specs, `MIS` missions, `OPP` opportunities are already registered). All fields map to real columns; nothing fabricated.
+**What shipped:** the DEFINE (Plan) and BUILD detail views and objects brought up to the dim-17 + DetailKit standard (the binding contract in [`design/archive/loom-v4.md`](../design/archive/loom-v4.md) §0.1 dim 17; long-form reference [`../conventions/design-anatomy.md`](../conventions/design-anatomy.md)), so a spec, a mission, and a bet read identically to a Discover signal, a Decide opportunity, and a Today call. No new trace prefixes were needed (`PRD` specs, `MIS` missions, `OPP` opportunities are already registered). All fields map to real columns; nothing fabricated.
 
 **Plan (Define):**
 

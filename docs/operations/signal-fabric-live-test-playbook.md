@@ -106,14 +106,14 @@ This is the highest-value scenario to run first tomorrow, since it's the only sh
 | Connector ingest always returns `source:"none"`                      | Missing env token, or workspace tier is Free                                                                                                        | Confirm the Lovable secret name matches exactly; check `plan_tier`                                                                            |
 | Watch/Listen mission never appears                                   | Threshold not actually cleared, or a mission with the same title is already open (dedup)                                                            | Check `signals` row counts in the last 24h; check Missions panel for an existing open one with the same title                                 |
 | Auto-trigger never fires even with the flag on                       | Another mission is `running`/`queued` (ambient-arc gate), or the daily cap (2) is already hit                                                       | Query `missions` for the workspace's current statuses and today's `auto_trigger_source='auto'` count                                          |
-| SF-MCP `mcp_servers` field always `none`                             | `MCP_<SERVER>_URL` or `_TOOL` env var missing/typo'd                                                                                                | Re-check exact env var names in [`sf-mcp.md`](../features/sf-mcp.md)                                                                          |
+| SF-MCP `mcp_servers` field always `none`                             | `MCP_<SERVER>_URL` or `_TOOL` env var missing/typo'd                                                                                                | Re-check exact env var names in [`features/sf-mcp.md`](../features/sf-mcp.md)                                                                          |
 | SF-MCP errors every call                                             | The hosted server's actual tool/arg schema doesn't match what was sent, or the server requires a session the lightweight handshake didn't establish | Check `mcp_connections.last_error` (sanitized, no secrets); call the server directly via curl/Postman to confirm its real `tools/list` output |
 
 ## Doc-loop closure on a clean pass
 
 When a scenario passes live for the first time, in one commit:
 
-- Note the pass + date in [`signal-fabric.md`](../features/signal-fabric.md)'s phase history.
+- Note the pass + date in [`features/signal-fabric.md`](../features/signal-fabric.md)'s phase history.
 - If this is the first full live pass, add a "LIVE-VERIFIED" line to the SOURCE-OF-TRUTH.md Signal Fabric callout, same convention as past live-verification passes (search that file for "LIVE-VERIFIED" for the established phrasing).
 
 ## Related

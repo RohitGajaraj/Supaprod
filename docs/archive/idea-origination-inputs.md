@@ -1,6 +1,6 @@
 > _Created: 2026-06-03 · Last updated: 2026-06-11_
 
-> **ARCHIVE — raw founder input (idea origination).** Preserved verbatim below as the original source material that shaped Cadence. Its ideas are now integrated into the live docs. For current truth, read: product → [`../../README.md`](../../README.md) · feature scope → [`../../plan.md`](../planning/archive/build-log.md) · operating rules → [`../../AGENTS.md`](../../AGENTS.md). Do not act on this file; act on the live docs.
+> **ARCHIVE — raw founder input (idea origination).** Preserved verbatim below as the original source material that shaped Cadence. Its ideas are now integrated into the live docs. For current truth, read: product → [`../../README.md`](../../README.md) · feature scope → [`planning/archive/build-log.md`](../planning/archive/build-log.md) · operating rules → [`../../AGENTS.md`](../../AGENTS.md). Do not act on this file; act on the live docs.
 
 ---
 

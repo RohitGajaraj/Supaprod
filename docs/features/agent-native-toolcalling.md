@@ -24,7 +24,7 @@ chokepoint switches in this codebase.
 The founder's latency ask (v12 §7.3): "retiring the regex-parsed JSON-in-text protocol for native
 structured outputs per provider at the chokepoint... removes the retry tax that is today's biggest
 hidden latency (the brittle-parse problem the v11 CTO villain correctly named)." See
-[`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3 (AGT-01).
+[`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3 (AGT-01).
 
 ## Where to find it
 
@@ -135,7 +135,7 @@ consuming a mission's step budget.
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
 - [`consent-scopes.md`](./consent-scopes.md) - AGT-02, shipped alongside this in the same
   chokepoint-attended session, sharing the `resolveToolMode` mode-composition chain

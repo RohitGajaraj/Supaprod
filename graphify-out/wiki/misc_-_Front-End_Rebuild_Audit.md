@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Front-End Rebuild Audit** (0 connections) — `REBUILD-AUDIT-PHASE-0.md`
+- **Front-End Rebuild Audit** (0 connections) — `docs/planning/archive/rebuild-2026-07-18/phase-0-audit.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `REBUILD-AUDIT-PHASE-0.md`
+- `docs/planning/archive/rebuild-2026-07-18/phase-0-audit.md`
 
 ## Audit Trail
 

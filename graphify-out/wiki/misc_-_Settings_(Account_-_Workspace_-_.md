@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Settings (Account / Workspace / Connections)** (0 connections) — `REBUILD-PHASE-3-STRATEGY.md`
+- **Settings (Account / Workspace / Connections)** (0 connections) — `docs/planning/archive/rebuild-2026-07-18/phase-3-strategy.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `REBUILD-PHASE-3-STRATEGY.md`
+- `docs/planning/archive/rebuild-2026-07-18/phase-3-strategy.md`
 
 ## Audit Trail
 

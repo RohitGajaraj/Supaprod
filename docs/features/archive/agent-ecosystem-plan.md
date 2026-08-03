@@ -4,7 +4,7 @@
 
 > **What this is.** The canonical plan for the "agent ecosystem" bundle: four sequential builds that turn Supaprod's substrate (chokepoint, runs, messages, missions, trust, guardrails) into actual agent-native behavior. Captured here so it survives sessions / tools and can be picked up by anyone (Claude Code · Antigravity · Gemini · Lovable).
 >
-> **Status (2026-06-06):** F-AGENT-1 ✅ shipped. F-AGENT-2 ☐ next. F-AGENT-3 ☐. F-AGENT-4 ☐. Live cursor lives in [`../planning/feature-backlog.md`](../planning/feature-backlog.md); active sub-steps in `../active-task.md` (root).
+> **Status (2026-06-06):** F-AGENT-1 ✅ shipped. F-AGENT-2 ☐ next. F-AGENT-3 ☐. F-AGENT-4 ☐. Live cursor lives in [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md); active sub-steps in `../active-task.md` (root).
 >
 > **Why this bundle exists.** Ground-truth survey of the running system found the substrate ~95% complete but the _behavior_ missing: single-agent planner loops, an unused `agent_memory` table (0 rows written), no event reactor, no self-reflection, no swarm-level surface, no meta-agent that decomposes a goal into a multi-agent plan. Everything that makes Supaprod "agent-native" rather than "AI-assisted" lives in this bundle. Operator explicitly deferred Restructure Phases 3 to 4 (UI/UX revamp) until this closes.
 
@@ -14,10 +14,10 @@
 
 | #         | Name                                                     | Outcome                                                                                                                 | Status                                                                                      |
 | --------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| F-AGENT-1 | Orchestrator + multi-agent missions                      | A goal becomes a DAG of specialist hops, dispatched and joined automatically.                                           | ✅ shipped 2026-06-06, [`f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md)           |
-| F-AGENT-2 | Persistent memory + self-reflection + trust auto-advance | Specialists actually learn between runs; trust arc advances on real outcomes, not operator clicks.                      | ✅ shipped 2026-06-06, [`f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md) |
-| F-AGENT-3 | Event reactor + auto-pipelines                           | Discover→Deliver→Ship loop runs without "click Advance": signals/opportunities/PRD-status changes wake the right agent. | ✅ shipped 2026-06-06, [`f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md)         |
-| F-AGENT-4 | Swarm HUD                                                | Single view of live missions, recent handoffs, pending approvals, auto-pipeline firings.                                | ✅ shipped 2026-06-06, [`f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md)                 |
+| F-AGENT-1 | Orchestrator + multi-agent missions                      | A goal becomes a DAG of specialist hops, dispatched and joined automatically.                                           | ✅ shipped 2026-06-06, [`f-agent-1-orchestrator.md`](../f-agent-1-orchestrator.md)           |
+| F-AGENT-2 | Persistent memory + self-reflection + trust auto-advance | Specialists actually learn between runs; trust arc advances on real outcomes, not operator clicks.                      | ✅ shipped 2026-06-06, [`f-agent-2-memory-reflection.md`](../f-agent-2-memory-reflection.md) |
+| F-AGENT-3 | Event reactor + auto-pipelines                           | Discover→Deliver→Ship loop runs without "click Advance": signals/opportunities/PRD-status changes wake the right agent. | ✅ shipped 2026-06-06, [`f-agent-3-event-reactor.md`](../f-agent-3-event-reactor.md)         |
+| F-AGENT-4 | Swarm HUD                                                | Single view of live missions, recent handoffs, pending approvals, auto-pipeline firings.                                | ✅ shipped 2026-06-06, [`f-agent-4-swarm-hud.md`](../f-agent-4-swarm-hud.md)                 |
 
 Each step depends on the one above it (you cannot meaningfully react to events without the orchestrator routing them; the HUD reads from all three).
 
@@ -25,7 +25,7 @@ Each step depends on the one above it (you cannot meaningfully react to events w
 
 ## F-AGENT-1: Orchestrator + multi-agent missions ✅
 
-Full shipped detail: [`feature-backlog.md`](../planning/feature-backlog.md) status board (2026-06-06 entry) and [`../../plan.md`](../../plan.md) §4. Architecture contract: [`../../architecture/orchestration.md`](../../architecture/orchestration.md).
+Full shipped detail: [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md) status board (2026-06-06 entry) and [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §4. Architecture contract: [`../../architecture/orchestration.md`](../../../architecture/orchestration.md).
 
 Headline:
 
@@ -79,7 +79,7 @@ Headline:
 
 ## F-AGENT-4: Swarm HUD ✅ shipped 2026-06-06
 
-**Canonical page:** [`f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md). Open this for the demo script, the full panel walkthrough, and the verification checklist. Summary kept below for historical context.
+**Canonical page:** [`f-agent-4-swarm-hud.md`](../f-agent-4-swarm-hud.md). Open this for the demo script, the full panel walkthrough, and the verification checklist. Summary kept below for historical context.
 
 **Goal:** a single page that answers "what are my agents doing right now?", the operator's flight-deck.
 
@@ -109,16 +109,16 @@ Headline:
 
 ## Done criteria for the bundle
 
-- All four F-AGENT-\* shipped; `active-task.md` (root) deleted; status board in [`feature-backlog.md`](../planning/feature-backlog.md) flipped to the next priority (Restructure Phases 3 to 4 or whichever is next-up at that moment).
+- All four F-AGENT-\* shipped; `active-task.md` (root) deleted; status board in [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md) flipped to the next priority (Restructure Phases 3 to 4 or whichever is next-up at that moment).
 - Demo: typing `"Investigate top churn signals, draft a PRD, and queue a build"` into `/missions` → orchestrator plans a 3+ agent DAG → specialists run end-to-end without further operator input, except at governance gates → Swarm HUD lights up live → an `opportunity.scored` event automatically wakes the Strategist for the next cycle.
 
 ---
 
 ## Related
 
-- Live cursor + per-bundle status: [`../planning/feature-backlog.md`](../planning/feature-backlog.md)
+- Live cursor + per-bundle status: [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md)
 - Active sub-steps (deleted on bundle completion): `../active-task.md`
-- Build log: [`../../plan.md`](../../plan.md) §4
-- Architecture contract: [`../../architecture/orchestration.md`](../../architecture/orchestration.md)
-- Trust arc + autonomy dial: [`./trust-and-autonomy.md`](./trust-and-autonomy.md)
-- A2A handoff primitives this bundle builds on: [`./a2a-handoff.md`](./a2a-handoff.md)
+- Build log: [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §4
+- Architecture contract: [`../../architecture/orchestration.md`](../../../architecture/orchestration.md)
+- Trust arc + autonomy dial: [`./trust-and-autonomy.md`](../trust-and-autonomy.md)
+- A2A handoff primitives this bundle builds on: [`./a2a-handoff.md`](../a2a-handoff.md)

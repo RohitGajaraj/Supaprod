@@ -10,7 +10,7 @@ A first-run user picks one of three personas (Solo PM, Founding PM, Tech Founder
 
 ## Why it exists
 
-The cold-start problem: a brand-new workspace has nothing to prioritize, so the loop has no fuel and the value is invisible. Persona seeds give every new user immediate, relatable material to run a teardown against and a first-win moment without any setup work. W6 is also the delivery surface for the launch WEDGE. Build-log entry: [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-06-17, W6).
+The cold-start problem: a brand-new workspace has nothing to prioritize, so the loop has no fuel and the value is invisible. Persona seeds give every new user immediate, relatable material to run a teardown against and a first-win moment without any setup work. W6 is also the delivery surface for the launch WEDGE. Build-log entry: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-06-17, W6).
 
 ## Where to find it
 
@@ -65,7 +65,7 @@ The cold-start problem: a brand-new workspace has nothing to prioritize, so the 
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4, build-log entry (2026-06-17, W6)
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, build-log entry (2026-06-17, W6)
 - [`wedge.md`](./wedge.md), the Critic-teardown first-run W6 feeds
 - [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md), G5 row + P0 pick-list
 - [`auth-flows.md`](./auth-flows.md), the auth + first-run gate that routes to `/onboarding`

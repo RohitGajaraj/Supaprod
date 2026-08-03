@@ -203,10 +203,10 @@ Database changes are timestamped, RLS-aware SQL in `supabase/migrations/`. Apply
 | **Where we are, what is next, what needs the founder** | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0. The only status file. |
 | **Per-feature status and claims** | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) |
 | **What the last session did and left open** | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
-| **Which strategy doc is current** | [`docs/strategy/README.md`](./docs/strategy/README.md), the arbiter. Direction: [`v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md). Moat: [`moat.md`](./docs/strategy/moat.md). |
+| **Which strategy doc is current** | [`docs/strategy/README.md`](./docs/strategy/README.md), the arbiter. Direction: [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md). Moat: [`docs/strategy/moat.md`](./docs/strategy/moat.md). |
 | **Pitch, demo, applications, objections** | [`docs/pitch/`](./docs/pitch/README.md), the Pitch Room. Update in place, never parallel copies. |
 | **Design: the live system** | [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md). The shipped `--sp-*` shell is the baseline; every earlier design contract is retired history. |
-| **How a feature works, end to end** | [`docs/features/`](./docs/features/README.md). The loop's proof file: [`lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). |
+| **How a feature works, end to end** | [`docs/features/`](./docs/features/README.md). The loop's proof file: [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). |
 | **Architecture contracts** | [`architecture/`](./architecture/): runtime · orchestration · security · data · frontend · integrations. |
 | **Durable conventions** (voice, chrome, destructive actions, engine room) | [`docs/conventions/`](./docs/conventions/README.md) |
 | **Ops: commits, hooks, skills, memory, demo logins** | [`docs/operations/`](./docs/operations/) |

@@ -66,7 +66,7 @@ motion:
 ---
 
 > **SUPERSEDED for the product app (2026-07-02).** The authenticated app now
-> follows [`docs/design/archive/obsidian-v3.md`](./DESIGN-OBSIDIAN.md) (v3 "Obsidian": jet-black
+> follows [`obsidian-v3.md`](./obsidian-v3.md) (v3 "Obsidian": jet-black
 > canvas, Ember & Glacier roles, restraint budget, standing instructions).
 > This file remains the contract for the public landing page only, plus the
 > historical record. Do not apply parchment styles to any app surface.
@@ -163,7 +163,7 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 
 ## Component contracts (must match the prototype)
 
-> **App surfaces: SUPERSEDED.** These parchment component contracts apply to the public landing page and the historical record only. App components follow [`docs/design/archive/obsidian-v3.md`](./DESIGN-OBSIDIAN.md) §9 and `design-reference/obsidian-v3/components.md`.
+> **App surfaces: SUPERSEDED.** These parchment component contracts apply to the public landing page and the historical record only. App components follow [`obsidian-v3.md`](./obsidian-v3.md) §9 and `design-reference/obsidian-v3/components.md`.
 
 | Component            | Contract                                                                                                                                                                                                              |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -183,7 +183,7 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 
 ## Inline verdict chips — annotate, don't bury (founder ruling 2026-06-12)
 
-> **App surfaces: SUPERSEDED.** The principle (verdicts annotate the row, never buried) carries into v3; the visual spec for app chips is [`docs/design/archive/obsidian-v3.md`](./DESIGN-OBSIDIAN.md) §9 (verdict chips). Below retained for the landing page + history.
+> **App surfaces: SUPERSEDED.** The principle (verdicts annotate the row, never buried) carries into v3; the visual spec for app chips is [`obsidian-v3.md`](./obsidian-v3.md) §9 (verdict chips). Below retained for the landing page + history.
 
 The annotation pattern from the founder's design-review reference: small
 mono-caps OUTLINE pills — `KEEP` `CORRECT` `ADD NEXT` — preceding the content
@@ -227,7 +227,7 @@ drift findings, review/feedback annotations, brief callouts, rescore deltas.
 
 ## Hand-sketched data marks (founder ruling 2026-06-12)
 
-> **App surfaces: UPDATED 2026-07-07 (a deliberate split).** App data charts are interactive and state their scale, split by kind: a line/area/TREND uses the modern exact `GraphSlider`; a multi-bar chart uses the hand-drawn pencil `SketchBarChart` (`src/components/cadence/Sketch.tsx`), which keeps this hand-sketched aesthetic (the warm, human look) and adds a per-bar readout plus peak/floor/baseline. Both draw in the data palette. Full standard: [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md) section 7 and the DESIGN-LOOM Infographic Law. The hand-drawn idea also lives on as the PM's pencil annotation layer (Caveat, [`docs/design/archive/obsidian-v3.md`](./DESIGN-OBSIDIAN.md) §9) and on this landing page. Below retained for the landing page + history.
+> **App surfaces: UPDATED 2026-07-07 (a deliberate split).** App data charts are interactive and state their scale, split by kind: a line/area/TREND uses the modern exact `GraphSlider`; a multi-bar chart uses the hand-drawn pencil `SketchBarChart` (`src/components/cadence/Sketch.tsx`), which keeps this hand-sketched aesthetic (the warm, human look) and adds a per-bar readout plus peak/floor/baseline. Both draw in the data palette. Full standard: [`conventions/design-anatomy.md`](../../conventions/design-anatomy.md) section 7 and the DESIGN-LOOM Infographic Law. The hand-drawn idea also lives on as the PM's pencil annotation layer (Caveat, [`obsidian-v3.md`](./obsidian-v3.md) §9) and on this landing page. Below retained for the landing page + history.
 
 **Every graph of data points — trend lines, sparklines, time-series bars,
 distributions — renders hand-sketched: a pencil-on-paper wobble, never a
@@ -276,9 +276,9 @@ weight never does.
 
 ## How to plan and build (instructions for any AI builder)
 
-> **STOP if you are building an app surface.** Any authenticated-app UI work follows [`docs/design/archive/obsidian-v3.md`](./DESIGN-OBSIDIAN.md) (the v3 contract) via the `supaprod-design` skill; do NOT apply this section to app surfaces. This section applies to public landing-page work only.
+> **STOP if you are building an app surface.** Any authenticated-app UI work follows [`obsidian-v3.md`](./obsidian-v3.md) (the v3 contract) via the `supaprod-design` skill; do NOT apply this section to app surfaces. This section applies to public landing-page work only.
 
-**Backend, data, and auth come from Lovable, live.** Supaprod is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase database, auth and OAuth, secrets, hosting). When a surface needs real data, an auth or OAuth flow, or any backend or connector fact, read it live from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](./AGENTS.md) §0.
+**Backend, data, and auth come from Lovable, live.** Supaprod is built on, hosted on, and published through Lovable, which provisions and manages the backend (Supabase database, auth and OAuth, secrets, hosting). When a surface needs real data, an auth or OAuth flow, or any backend or connector fact, read it live from the connected Lovable MCP (`mcp__lovable__*`), and the Supabase MCP (`mcp__supabase__*`) for direct DB reads, never assume it. Standing rule: [`AGENTS.md`](../../../AGENTS.md) §0.
 
 1. **Read before designing:** this file, then `supaprod/tokens.css`, then the
    relevant screen in `Cadence Prototype.html` / `supaprod/*.jsx`. The prototype
@@ -319,7 +319,7 @@ decoration (the aurora and cooking sweep are the only sanctioned washes).
 
 ## Production mapping (Project-Cadence-v4)
 
-> **Historical.** This mapping describes the parchment-era app implementation; the app design contract is now [`docs/design/archive/obsidian-v3.md`](./DESIGN-OBSIDIAN.md). The live parchment tokens in `src/styles.css` remain only until surfaces are ported.
+> **Historical.** This mapping describes the parchment-era app implementation; the app design contract is now [`obsidian-v3.md`](./obsidian-v3.md). The live parchment tokens in `src/styles.css` remain only until surfaces are ported.
 
 > Appended when the Ember Editorial system was applied to the production app
 > (2026-06-12). The sections above are verbatim from

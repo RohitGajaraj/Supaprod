@@ -2,13 +2,13 @@
 
 > _Created: 2026-06-19 · Last updated: 2026-06-19_
 
-> The visual, motion and interaction contract for Cadence. Product framing: [`README.md`](./README.md). Operating/engineering rules: [`AGENTS.md`](./AGENTS.md). Build log: [`docs/planning/archive/build-log.md`](./plan.md). Repo map: [`README.md`](./ENTRY.md).
+> The visual, motion and interaction contract for Cadence. Product framing: [`README.md`](../../README.md). Operating/engineering rules: [`AGENTS.md`](../../AGENTS.md). Build log: [`planning/archive/build-log.md`](../planning/archive/build-log.md). Repo map: [`README.md`](../../README.md).
 
 ---
 
 ## Design mandate (read before designing)
 
-The product must feel like a **light, calm, super modern, fast single-purpose app** sitting on top of a **heavy reasoning engine** — the "should feel like light surface, but powerful engine behind it" promise from [`README.md`](./README.md). It must read as a genuine enterprise-grade, AI-native product — not a card-grid SaaS template, and not a copy of any one site , but you can get inspired from get products out there.
+The product must feel like a **light, calm, super modern, fast single-purpose app** sitting on top of a **heavy reasoning engine** — the "should feel like light surface, but powerful engine behind it" promise from [`README.md`](../../README.md). It must read as a genuine enterprise-grade, AI-native product — not a card-grid SaaS template, and not a copy of any one site , but you can get inspired from get products out there.
 
 **This is a directive, not a suggestion:** before locking visual decisions, do real design research using the available design skills, plugins, and MCPs (e.g. `/emil-design-eng`, `/impeccable` , `/design-taste-frontend`, `/frontend-design-direction` , `/frontend-design`, `/gstack-design-review`, `/ecc:a11y-architect` , `/gstack-design-consultation` , and many more avaialble in the installed library, the design-system and Figma skills). Pull from a wide menu of references and **mix to a unique result**. Reach for the full modern toolkit where it earns its place: shaders, hero compositions, AI-chat components, gradient and text effects, glassmorphism/neumorphism used sparingly, liquid effects, hover/floating interactions, motion and so on. The pillars and tokens below are the _foundation and guardrails_, not a ceiling — improve on them when you can justify it.
 
@@ -39,7 +39,7 @@ The foundation craft inheritance — Apple's craftsmanship, Linear's clarity, No
 
 ## Tokens
 
-**All colors, gradients, and shadows are CSS custom properties in `src/styles.css`. Components consume tokens, never hex literals.** Enforced by [`AGENTS.md`](./AGENTS.md), section 3. Use **OKLCH** — it is perceptually uniform, which removes the class of dark-mode bugs where two colors look balanced in light mode but one disappears in dark.
+**All colors, gradients, and shadows are CSS custom properties in `src/styles.css`. Components consume tokens, never hex literals.** Enforced by [`AGENTS.md`](../../AGENTS.md), section 3. Use **OKLCH** — it is perceptually uniform, which removes the class of dark-mode bugs where two colors look balanced in light mode but one disappears in dark.
 
 **Semantic colors:** `--background`, `--foreground`, `--card`/`--card-foreground`, `--primary`/`--primary-foreground`/`--primary-glow`, `--secondary`, `--accent`, `--muted`/`--muted-foreground`, `--destructive`, `--border`, `--input`, `--ring`.
 
@@ -99,7 +99,7 @@ Token names `--violet`, `--indigo-grid`, `.ring-glow-violet`, `.neural-*` are re
    ```
 
 4. **Approval gate**
-   - Submit palette proposals to [`docs/feature-backlog.md`](./docs/feature-backlog.md) "Blocked / stuck" or in a design PR comment
+   - Submit palette proposals to [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) "Blocked / stuck" or in a design PR comment
    - Include link to this protocol + the Pantone reference numbers
    - Humans review for brand alignment + accessibility
    - Approved palettes move into `src/styles.css` tokens immediately after review
@@ -107,7 +107,7 @@ Token names `--violet`, `--indigo-grid`, `.ring-glow-violet`, `.neural-*` are re
 5. **Update documentation in the same commit**
    - Add Pantone tone to `docs/design/archive/ember-editorial-landing.md` §Tokens (this section)
    - Update `src/styles.css` with new `--color-*` tokens (never hardcoded hex)
-   - Document in [`AGENTS.md`](./AGENTS.md) §4 if a new color selection pattern emerges
+   - Document in [`AGENTS.md`](../../AGENTS.md) §4 if a new color selection pattern emerges
 
 **Why this matters:** Pantone grounds design decisions in industry standard language; agent autonomy accelerates iteration; documentation keeps future tools aligned.
 
@@ -162,8 +162,8 @@ Patterns: stagger-fade (60ms) on dashboards; spring on drag (`stiffness 360, dam
 
 The trust arc — how the operator-agent relationship evolves from close governance to greater autonomy as agents earn trust — is a **product behavior and feature specification**, not a design system concern. It lives in:
 
-- Feature C6 (Agent Trust Score + Autonomy Dial) in [`docs/feature-backlog.md`](./docs/feature-backlog.md)
-- Strategic rationale in [`docs/strategy/archive/v2-positioning.md`](./docs/strategy/archive/v2-positioning.md) §7
+- Feature C6 (Agent Trust Score + Autonomy Dial) in [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md)
+- Strategic rationale in [`strategy/archive/v2-positioning.md`](../strategy/archive/v2-positioning.md) §7
 
 The design system (this file) focuses on tokens, typography, motion, and component contracts. Feature-level behavior specifications belong in the feature backlog and strategy docs.
 
@@ -184,7 +184,7 @@ Built on **shadcn/ui** (Radix). Bespoke components in `src/components/cadence/`.
 
 ## Information architecture (v4 contract — 2026-06-11)
 
-> Canonical spec: [`docs/strategy/archive/v4-feature-map.md`](./docs/strategy/archive/v4-feature-map.md) §7. The rule: **≤7 user-facing surfaces; the engine is never primary navigation.** Every absorbed legacy route becomes a `beforeLoad` redirect (established pattern). No new top-level routes without a session decision.
+> Canonical spec: [`strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) §7. The rule: **≤7 user-facing surfaces; the engine is never primary navigation.** Every absorbed legacy route becomes a `beforeLoad` redirect (established pattern). No new top-level routes without a session decision.
 
 - **Pinned rail (3):** Home · Chat · Missions.
 - **Loop group:** Product (tabs: Signals · Opportunities · Specs · Roadmap · Releases) · Knowledge (Memory · Decisions · Docs · Calendar) · Learn (Support · Outcomes · Learnings).
@@ -201,7 +201,7 @@ Five widgets, each with its own skeleton/empty/error, none blocking page render:
 
 ## The AI message UI contract (non-negotiable)
 
-Every AI message — chat, copilot, PRD `/ai`, Studio chat, agent summaries, daily brief — exposes the same contract, rendered by one shared component. No surface invents its own. If you cannot fit the contract, redesign the surface, not the contract. Enforced by [`AGENTS.md`](./AGENTS.md), rule 9.
+Every AI message — chat, copilot, PRD `/ai`, Studio chat, agent summaries, daily brief — exposes the same contract, rendered by one shared component. No surface invents its own. If you cannot fit the contract, redesign the surface, not the contract. Enforced by [`AGENTS.md`](../../AGENTS.md), rule 9.
 
 | Element      | Purpose                                                                                                     |
 | ------------ | ----------------------------------------------------------------------------------------------------------- |
@@ -245,7 +245,7 @@ Used in traces and analytics. Starting palette (full authority to refine for a m
 
 ## Voice & language (non-negotiable)
 
-Canonical rule: [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md). Evidence + audit: [`docs/strategy/archive/v3-audit-language-voice.md`](./docs/strategy/archive/v3-audit-language-voice.md). This section is the contract restatement that authors hit while designing.
+Canonical rule: [`conventions/ui-voice.md`](../conventions/ui-voice.md). Evidence + audit: [`strategy/archive/v3-audit-language-voice.md`](../strategy/archive/v3-audit-language-voice.md). This section is the contract restatement that authors hit while designing.
 
 **Voice anchor.** Human, clear, lightly playful in safe places (empty states, success toasts). Dry in governance, errors, and destructive flows. Contractions on. Active voice. One idea per sentence. Linear-leaning, warmer in empty states.
 
@@ -262,6 +262,6 @@ Canonical rule: [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md)
 
 **Banned (AI tells).** Em dashes (`—`) and en dashes (`–`) anywhere in UI copy. Replace with period, comma, parentheses, or a line break. Hyphens stay only inside compound words. Buzzword denylist: _seamlessly · leverage · empower · robust · powerful · next-gen · AI-native · revolutionary · unlock · unleash · delve · navigate the landscape of · at the intersection of · elevate · supercharge · game-changing · cutting-edge_. Also banned: triple-pattern listicles ("faster, smarter, better"), preamble ("In today's…"), hedging in confirms ("might", "could potentially"), filler ("Let's dive in", "Feel free to…"), decorative emoji (🚀 ✨ 🎉), Title Case Everywhere (use sentence case except product/page names), trailing `!`.
 
-**Confirm copy pattern.** Direct, name the effect: _"This deletes 3 missions. Continue?"_, not _"Are you sure you want to proceed?"_. For reversible actions, prefer an Undo toast over a confirm. Confirmation primitives live in [`architecture/frontend.md`](./architecture/frontend.md) (Confirmation, toasts & dialogs).
+**Confirm copy pattern.** Direct, name the effect: _"This deletes 3 missions. Continue?"_, not _"Are you sure you want to proceed?"_. For reversible actions, prefer an Undo toast over a confirm. Confirmation primitives live in [`architecture/frontend.md`](../../architecture/frontend.md) (Confirmation, toasts & dialogs).
 
 **Author check before shipping copy.** Run `rg "—|–"` and the buzzword regex against changed files. Voice change → update this section + the audit doc in the same turn.

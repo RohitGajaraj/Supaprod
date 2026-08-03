@@ -5,7 +5,7 @@
 ## Key Concepts
 
 - **Program BRAIN** (1 connections) — `docs/strategy/v12-self-improving-os.md`
-- **Compounding Memory Moat** (1 connections) — `docs/strategy/v7-agentic-product-os.md`
+- **Compounding Memory Moat** (1 connections) — `docs/strategy/archive/v7-agentic-product-os.md`
 
 ## Relationships
 
@@ -14,7 +14,7 @@
 ## Source Files
 
 - `docs/strategy/v12-self-improving-os.md`
-- `docs/strategy/v7-agentic-product-os.md`
+- `docs/strategy/archive/v7-agentic-product-os.md`
 
 ## Audit Trail
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Test Coverage Audit & Gap Implementation Summary** (0 connections) — `docs/testing/test-coverage-gaps-2026-07-24.md`
+- **Test Coverage Audit & Gap Implementation Summary** (0 connections) — `docs/testing/coverage-gaps.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `docs/testing/test-coverage-gaps-2026-07-24.md`
+- `docs/testing/coverage-gaps.md`
 
 ## Audit Trail
 

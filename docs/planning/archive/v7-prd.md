@@ -4,7 +4,7 @@
 
 > **What this is.** The product requirements document for Supaprod at the v7 reset. It turns the v7 strategy canon into buildable scope: problem, personas, epics as user stories with acceptance criteria, priorities tied to the M-0 to M-D milestones, dependencies, and the success metrics that gate launch. It is held to one rule above all others: a requirement may claim only what the code already does or what this document explicitly asks us to build. Every line is marked Built, Partial, or Missing against `main` at commit `f515cfb` (2026-06-14).
 >
-> **Read alongside:** [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) (the positioning + build canon this PRD serves) · [`known-issues.md`](./known-issues.md) (the live blocker register the milestones clear) · [`feature-backlog.md`](./feature-backlog.md) (granular, build-ready scope) · [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md) (the engine/station/agent-mesh reference).
+> **Read alongside:** [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md) (the positioning + build canon this PRD serves) · [`known-issues.md`](../known-issues.md) (the live blocker register the milestones clear) · [`feature-backlog.md`](./feature-backlog.md) (granular, build-ready scope) · [`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md) (the engine/station/agent-mesh reference).
 
 ---
 
@@ -435,10 +435,10 @@ Founder launch gate (locked 2026-06-14): at least 10 PMs paying around $150/mo, 
 
 ## Related
 
-- [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md): the v7 positioning and build canon this PRD serves; milestones M-0 to M-D and founder rulings live there.
-- [`known-issues.md`](./known-issues.md): the live blocker register (KI-09 through KI-17) that the M-0 milestone clears.
+- [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md): the v7 positioning and build canon this PRD serves; milestones M-0 to M-D and founder rulings live there.
+- [`known-issues.md`](../known-issues.md): the live blocker register (KI-09 through KI-17) that the M-0 milestone clears.
 - [`feature-backlog.md`](./feature-backlog.md): the granular, build-ready scope and build-order rollup.
-- [`considerations.md`](./considerations.md): cross-cutting gaps (blast radius, inference economics, prompt injection) to fold in as they become relevant.
-- [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md): the engine, six stations, agent-mesh, and HITL-gate reference.
-- [`../strategy/session-decisions.md`](../strategy/session-decisions.md): the decisions log, including the 2026-06-14 slug-bug and observing-by-default entries.
-- [`../conventions/humanized-output.md`](../conventions/humanized-output.md): the voice rule this document is written to.
+- [`considerations.md`](../considerations.md): cross-cutting gaps (blast radius, inference economics, prompt injection) to fold in as they become relevant.
+- [`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md): the engine, six stations, agent-mesh, and HITL-gate reference.
+- [`../strategy/session-decisions.md`](../../strategy/session-decisions.md): the decisions log, including the 2026-06-14 slug-bug and observing-by-default entries.
+- [`../conventions/humanized-output.md`](../../conventions/humanized-output.md): the voice rule this document is written to.

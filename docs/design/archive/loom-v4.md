@@ -19,7 +19,7 @@ origin: founder mission 2026-07-04 (docs/Readiness Audit & Consumer Production
 
 # Supaprod Design v4 · "Loom" · Source of truth
 
-> **Campaign addendum (2026-07-10, v13 Proof Campaign — additive, changes no law here):** during the launch sprint, every design decision also clears the **Love Gate with the founder's subtraction bar** ("most of the things are there, but it's too much overwhelming… partially cooked"): nothing on a fresh account's screen it doesn't understand, one receipted value moment in the first session, warm-or-honest on every panel (never empty). This operationalizes §0.1's doctrine for the 25-day ship; rulings + the gate: [`docs/strategy/v13-proof-campaign.md`](./docs/strategy/v13-proof-campaign.md) + [`docs/planning/v13-proof-campaign-plan.md`](./docs/planning/v13-proof-campaign-plan.md) §0. The landing page stays on `docs/design/archive/ember-editorial-landing.md` (its v13 content ruling is noted there).
+> **Campaign addendum (2026-07-10, v13 Proof Campaign — additive, changes no law here):** during the launch sprint, every design decision also clears the **Love Gate with the founder's subtraction bar** ("most of the things are there, but it's too much overwhelming… partially cooked"): nothing on a fresh account's screen it doesn't understand, one receipted value moment in the first session, warm-or-honest on every panel (never empty). This operationalizes §0.1's doctrine for the 25-day ship; rulings + the gate: [`strategy/archive/v13-proof-campaign.md`](../../strategy/archive/v13-proof-campaign.md) + [`planning/archive/v13-proof-campaign-plan.md`](../../planning/archive/v13-proof-campaign-plan.md) §0. The landing page stays on `docs/design/archive/ember-editorial-landing.md` (its v13 content ruling is noted there).
 
 v3 built the calm instrument: a jet-black cockpit where machine work glows and
 only a needed human decision speaks ember. v4 keeps that soul and gives it
@@ -426,7 +426,7 @@ are brought into line as they are touched.
   The full long-form reference (the anatomy, the DetailKit primitives, the
   trace-ref registry, the color palette, the ranking and designation logic, the
   naming conventions, and the WHY behind each) lives in
-  [`docs/conventions/design-anatomy.md`](./docs/conventions/design-anatomy.md),
+  [`conventions/design-anatomy.md`](../../conventions/design-anatomy.md),
   the reference doc behind this binding contract.
 
 ### The anti-slop catalog (the 46 tells to keep OUT, forever)
@@ -733,7 +733,7 @@ approvals is a defect, not a queue. The laws:
 
 ## Addendum — the density doctrine (founder ruling, 2026-07-10)
 
-**Compact by default.** The platform reads too airy: paddings, gaps, control heights, and type sizes step DOWN to the density of world-class tools (Linear, Raycast, Vercel dashboards) while staying readable. The implementation is token-led — a density scale in `src/styles.css` applied through the shared primitives, never per-component hacks. Exact values, guardrails (12px readability floor for body-adjacent text; mono metadata stays 10–11px; tap targets ≥32px; hairlines/hierarchy/spotlight/aurora untouched), and acceptance gates live in the PC-37 spec ([`docs/planning/launch-sprint-specs.md`](./docs/planning/launch-sprint-specs.md)). Where older Loom/Obsidian examples show roomier paddings or larger type, the density tokens win. Love-Gate review is required before the density PR merges.
+**Compact by default.** The platform reads too airy: paddings, gaps, control heights, and type sizes step DOWN to the density of world-class tools (Linear, Raycast, Vercel dashboards) while staying readable. The implementation is token-led — a density scale in `src/styles.css` applied through the shared primitives, never per-component hacks. Exact values, guardrails (12px readability floor for body-adjacent text; mono metadata stays 10–11px; tap targets ≥32px; hairlines/hierarchy/spotlight/aurora untouched), and acceptance gates live in the PC-37 spec ([`planning/launch-sprint-specs.md`](../../planning/launch-sprint-specs.md)). Where older Loom/Obsidian examples show roomier paddings or larger type, the density tokens win. Love-Gate review is required before the density PR merges.
 
 ## Addendum — the naming and voice pass (PC-28, 2026-07-10)
 

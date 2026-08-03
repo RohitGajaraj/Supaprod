@@ -200,16 +200,16 @@ because a person cannot tell the inventions from the facts.
   `cron.cluster-tick` and needs a sweep. This is the first thing to verify.
 - **`AgentPulse` is wired into `TrackActivity` only.** The founder asked for it across
   every surface where an agent runs, with per-action detail (which file, which line, which
-  mockup). See the UX brief in [`session-handoff.md`](../operations/session-handoff.md).
+  mockup). See the UX brief in [`operations/session-handoff.md`](../operations/session-handoff.md).
 - The Build terminal does not yet show what changed; Claude Code's diff view is the
   reference to lift.
 
 ## Related
 
-- [`session-handoff.md`](../operations/session-handoff.md), the open UX brief, in the
+- [`operations/session-handoff.md`](../operations/session-handoff.md), the open UX brief, in the
   founder's own order and words
 - [`loop-runs-itself.md`](./loop-runs-itself.md), the June mission-level twin of this,
   one layer down: that one carries a mission's DAG, this one carries a piece of work
   across stations
-- [`GOVERNANCE-PRINCIPLE.md`](../planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md), why
+- [`planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](../planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md), why
   the bar is set in advance instead of queued for approval

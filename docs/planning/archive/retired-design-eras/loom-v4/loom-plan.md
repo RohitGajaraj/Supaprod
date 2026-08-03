@@ -5,7 +5,7 @@
 **What this is.** The execution plan for the founder's 2026-07-04 mission
 (`docs/Readiness Audit & Consumer Production grade`): the final
 consumer-grade transformation. The design law is
-[`/DESIGN-LOOM.md`](../../design/archive/loom-v4.md) (v4, additive over Obsidian v3).
+[`design/archive/loom-v4.md`](../../../../design/archive/loom-v4.md) (v4, additive over Obsidian v3).
 The evidence base is in this folder:
 [`audit-master-inventory.md`](./audit-master-inventory.md) (81 routes, 96
 features, defect register, copy issues, design principles) and

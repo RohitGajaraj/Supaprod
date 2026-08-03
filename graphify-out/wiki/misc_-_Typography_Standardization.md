@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Typography Standardization** (0 connections) — `WAVE_1_2_DESIGN_COMPLETION.md`
+- **Typography Standardization** (0 connections) — `docs/planning/archive/rebuild-2026-07-18/wave-1-2-design-completion.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `WAVE_1_2_DESIGN_COMPLETION.md`
+- `docs/planning/archive/rebuild-2026-07-18/wave-1-2-design-completion.md`
 
 ## Audit Trail
 

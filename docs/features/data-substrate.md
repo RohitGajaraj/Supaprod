@@ -43,7 +43,7 @@ Settings > Data pane (`/settings?section=data`), the first card above "Export yo
 
 ## Known limits / out of scope
 
-- "Forget" itself is not built (tracked separately, see the "Open / future" section of [`memory-on-delete.md`](../decisions/memory-on-delete.md)); this card names it honestly as a future step rather than implying it exists today.
+- "Forget" itself is not built (tracked separately, see the "Open / future" section of [`decisions/memory-on-delete.md`](../decisions/memory-on-delete.md)); this card names it honestly as a future step rather than implying it exists today.
 - The card does not duplicate the "Verify a saved fingerprint" flow already on `/trust-ledger`; it links there rather than re-implementing it.
 
 ## Related

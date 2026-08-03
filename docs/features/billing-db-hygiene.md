@@ -27,4 +27,4 @@ These are OR'd, and while "read membership" usually subsumes "see own", they are
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4 · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (`M-C-DB-HYGIENE`) · source of truth [`../../src/lib/entitlements.ts`](../../src/lib/entitlements.ts).
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 · [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (`M-C-DB-HYGIENE`) · source of truth [`../../src/lib/entitlements.ts`](../../src/lib/entitlements.ts).

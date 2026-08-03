@@ -20,7 +20,7 @@ Per the v12 audit's stage-by-stage journey grade, "Vision and strategy" was the 
 the top of the loop: free text, no formation flow, no watched assumptions, no receipts, no
 supersession. Every other decision in the product (a PRD, a contract clause, a spec's acceptance
 criterion) already gets typed, versioned, assumption-backed treatment. This closes that gap for the
-founder's own highest-level calls. See [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
+founder's own highest-level calls. See [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
 §8.4 (JNY-02).
 
 ## Where to find it
@@ -115,7 +115,7 @@ founder's own highest-level calls. See [`v12-self-improving-os.md`](../strategy/
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.4
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.4
 - Siblings this reuses: FS-02 (`assumptions`, `watchAssumptions`), CNV-02 (the `assumptions_source_chk`
   widening precedent), RF-04 (the chokepoint injection pattern)

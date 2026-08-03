@@ -154,7 +154,7 @@ useful thing you can be is blunt. OK to record for my notes?
 | 4   | "What have you already tried with AI for any of this? What happened?"                                             | Segment (S1 vs S2), tool graveyard    | "What made you stop / keep going?"                        | "Would you use an AI agent for this?" (hypothetical)             |
 | 5   | "What did that cost you — hours, a missed call, a fight?"                                                         | Pain quantification for the scorecard | "Is that typical or a bad week?"                          | Skipping this one (it prices the pain)                           |
 
-**Minutes 12-25 — Live product, their data.** Follow [`demo-script.md`](../pitch/demo-script.md)'s team-demo variant: they pick their own bet; connect one source or paste real notes; watch the Critic tear down THEIR bet. Say nothing during first read of the teardown. **Watch and log:** where they lean in, what they screenshot, the first feature they ask for, the first thing they distrust.
+**Minutes 12-25 — Live product, their data.** Follow [`pitch/demo-script.md`](../pitch/demo-script.md)'s team-demo variant: they pick their own bet; connect one source or paste real notes; watch the Critic tear down THEIR bet. Say nothing during first read of the teardown. **Watch and log:** where they lean in, what they screenshot, the first feature they ask for, the first thing they distrust.
 
 **Minutes 25-30 — Close with three extraction questions:**
 
@@ -297,4 +297,4 @@ Score every activated user weekly. **Purpose: aim founder time at buyers, not to
 
 ---
 
-_Related: [`00-launch-operating-manual.md`](./00-launch-operating-manual.md) (the sprint spine) · [`../pitch/design-partner-kit.md`](../pitch/design-partner-kit.md) (targets + templates) · [`../pitch/demo-script.md`](../pitch/demo-script.md) (the live-session demo doctrine) · [`../planning/v13-proof-campaign-plan.md`](../planning/v13-proof-campaign-plan.md) (G17 gates this system feeds)._
+_Related: [`00-launch-operating-manual.md`](./00-launch-operating-manual.md) (the sprint spine) · [`../pitch/design-partner-kit.md`](../pitch/design-partner-kit.md) (targets + templates) · [`../pitch/demo-script.md`](../pitch/demo-script.md) (the live-session demo doctrine) · [`planning/archive/v13-proof-campaign-plan.md`](../planning/archive/v13-proof-campaign-plan.md) (G17 gates this system feeds)._

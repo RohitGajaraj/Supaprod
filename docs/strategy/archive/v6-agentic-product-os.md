@@ -12,7 +12,7 @@
 > market-research streams (competition · customer pain · UX/pricing/GTM) + a 5-seat pressure test
 > (CTO red-team · CEO/GTM · investor · principal-PM · AI-architect). Every code-level claim below was
 > verified against the repo on 2026-06-13; sharp edges are flagged ⚠️. Findings + sources: Appendices
-> A to D. Competitive detail: [`docs/references/competitive-landscape.md`](../references/competitive-landscape.md).
+> A to D. Competitive detail: [`references/competitive-landscape.md`](../../references/competitive-landscape.md).
 
 ---
 
@@ -299,8 +299,8 @@ public launch. Gate on the §8 gauntlet, not a date.
 ## 11. Research persistence & standing context
 
 - This doc is the canonical strategy. Competitive + pain + UX findings:
-  [`docs/references/competitive-landscape.md`](../references/competitive-landscape.md).
-- Rulings logged in [`session-decisions.md`](./session-decisions.md); `docs/strategy/founding-constitution.md` Repo
+  [`references/competitive-landscape.md`](../../references/competitive-landscape.md).
+- Rulings logged in [`session-decisions.md`](../session-decisions.md); `docs/strategy/founding-constitution.md` Repo
   Concordance updated for the OS-position shift.
 - Read-order pointers to this doc live in `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.lovable-config.txt`.
 

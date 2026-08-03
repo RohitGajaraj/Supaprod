@@ -21,7 +21,7 @@
 - **Product Context Layer (PC-33)** (1 connections) — `docs/planning/feature-dashboard.md`
 - **Brain Restructured (PC-34)** (1 connections) — `docs/planning/feature-dashboard.md`
 - **Ship-week Seam 7 (SW-7)** (1 connections) — `docs/planning/feature-dashboard.md`
-- **Obsidian Port Plan** (1 connections) — `docs/planning/obsidian-port-plan.md`
+- **Obsidian Port Plan** (1 connections) — `docs/planning/archive/retired-design-eras/obsidian-port-plan.md`
 
 ## Relationships
 
@@ -35,7 +35,7 @@
 - `design-reference/README.md`
 - `design-reference/obsidian-extensions.md`
 - `docs/planning/feature-dashboard.md`
-- `docs/planning/obsidian-port-plan.md`
+- `docs/planning/archive/retired-design-eras/obsidian-port-plan.md`
 
 ## Audit Trail
 

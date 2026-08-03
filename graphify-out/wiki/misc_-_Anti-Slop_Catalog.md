@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Anti-Slop Catalog** (0 connections) — `DESIGN-LOOM.md`
+- **Anti-Slop Catalog** (0 connections) — `docs/design/archive/loom-v4.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `DESIGN-LOOM.md`
+- `docs/design/archive/loom-v4.md`
 
 ## Audit Trail
 

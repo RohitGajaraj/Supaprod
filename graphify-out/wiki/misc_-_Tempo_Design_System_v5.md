@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Tempo Design System v5** (0 connections) — `DESIGN-TEMPO.md`
+- **Tempo Design System v5** (0 connections) — `docs/design/archive/tempo-v5.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `DESIGN-TEMPO.md`
+- `docs/design/archive/tempo-v5.md`
 
 ## Audit Trail
 

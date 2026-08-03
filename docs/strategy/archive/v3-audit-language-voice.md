@@ -1,5 +1,5 @@
 > [!WARNING]
-> **ARCHIVED, historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](../v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](../v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
+> **ARCHIVED, historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](./v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](./v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
 
 # v3 Audit: Language, Voice, Popups & Inline Workspace Management
 
@@ -154,11 +154,11 @@ Operator-facing surfaces shipped in this pass and how to verify each:
 ## Related
 
 - [`../conventions/`](../conventions/): durable cross-tool rules extracted from this audit (UI chrome, voice, destructive actions, inline management, doc-closure checklist).
-- [`../../architecture/frontend.md`](../../architecture/frontend.md): Confirmation, toasts & dialogs · Inline workspace & product management.
-- [`../../architecture/security.md`](../../architecture/security.md): Owner-gating on workspace mutation server fns.
-- [`../../design.md`](../../DESIGN.md): Voice & language contract (canonical).
-- [`../feature-backlog.md`](../feature-backlog.md): Live status board + LANG / INLINE-MGMT entries.
-- [`./session-decisions.md`](./session-decisions.md): 2026-06-06 decisions.
-- [`../../plan.md`](../../plan.md) §4: Active build log.
+- [`../../architecture/frontend.md`](../../../architecture/frontend.md): Confirmation, toasts & dialogs · Inline workspace & product management.
+- [`../../architecture/security.md`](../../../architecture/security.md): Owner-gating on workspace mutation server fns.
+- [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md): Voice & language contract (canonical).
+- [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md): Live status board + LANG / INLINE-MGMT entries.
+- [`./session-decisions.md`](../session-decisions.md): 2026-06-06 decisions.
+- [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §4: Active build log.
 - `docs/strategy/v3-audit.md`: main audit.
 - `docs/strategy/v3-audit-language.md`: prior language pass.

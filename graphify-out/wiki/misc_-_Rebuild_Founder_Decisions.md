@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Rebuild Founder Decisions** (0 connections) — `REBUILD-FOUNDER-DECISIONS.md`
+- **Rebuild Founder Decisions** (0 connections) — `docs/planning/archive/rebuild-2026-07-18/founder-decisions.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `REBUILD-FOUNDER-DECISIONS.md`
+- `docs/planning/archive/rebuild-2026-07-18/founder-decisions.md`
 
 ## Audit Trail
 

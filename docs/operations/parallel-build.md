@@ -4,7 +4,7 @@
 
 > Plain operating manual for running the backlog in parallel across several worktrees at once. The deep rules live in `docs/operations/autonomous-build-loop.md` sections 15-16; this is the "just tell me how to run it" page. **Rewritten 2026-06-20** for the numbered-lane model: lanes pull live from the dashboard, claim atomically, roam the whole board, run in the VS Code integrated terminal, and never stop on their own.
 
-**Related:** for the tool-agnostic multi-tool coordination philosophy this mechanism implements, see [`docs/decisions/parallel-development-model.md`](../decisions/parallel-development-model.md).
+**Related:** for the tool-agnostic multi-tool coordination philosophy this mechanism implements, see [`decisions/parallel-development-model.md`](../decisions/parallel-development-model.md).
 
 ## The one rule
 

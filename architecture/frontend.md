@@ -103,7 +103,7 @@ Use instead:
 - **Non-blocking feedback** — `toast.success` / `toast.error` from `sonner`. Never use toasts for errors that require attention (use an inline `Alert` instead — see [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md) anti-patterns).
 - **Unsaved-changes guards** — TanStack Router `useBlocker` wired to `useConfirm`.
 
-`ConfirmProvider` is mounted once in `src/routes/__root.tsx` inside `ThemeProvider`. Voice rules for the strings these primitives render live in [`../design.md`](../docs/design/archive/ember-editorial-landing.md) and the audit at [`../docs/strategy/archive/v3-audit-language-voice.md`](../docs/strategy/archive/v3-audit-language-voice.md).
+`ConfirmProvider` is mounted once in `src/routes/__root.tsx` inside `ThemeProvider`. Voice rules for the strings these primitives render live in [`docs/design/archive/ember-editorial-landing.md`](../docs/design/archive/ember-editorial-landing.md) and the audit at [`../docs/strategy/archive/v3-audit-language-voice.md`](../docs/strategy/archive/v3-audit-language-voice.md).
 
 ## Inline workspace & product management
 

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Verdict Chips Pattern** (0 connections) — `DESIGN.md`
+- **Verdict Chips Pattern** (0 connections) — `docs/design/archive/ember-editorial-landing.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `DESIGN.md`
+- `docs/design/archive/ember-editorial-landing.md`
 
 ## Audit Trail
 

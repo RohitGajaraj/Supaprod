@@ -1,8 +1,8 @@
 # 02 — The Pre-Launch Copy Pack (days 3-7, ready to approve)
 
-> _Created: 2026-07-12. Part of the GTM launch operating manual ([README](./README.md)). Every asset below is ready-to-paste copy for the 7-day wave. The Show HN and Product Hunt copy already exist in [`docs/pitch/launch-assets.md`](../pitch/launch-assets.md) and are NOT duplicated here; they fire in the listing week._
+> _Created: 2026-07-12. Part of the GTM launch operating manual ([README](./README.md)). Every asset below is ready-to-paste copy for the 7-day wave. The Show HN and Product Hunt copy already exist in [`pitch/launch-assets.md`](../pitch/launch-assets.md) and are NOT duplicated here; they fire in the listing week._
 >
-> **Rules baked into every word:** humanized output (no em or en dashes, no AI-cliche phrasing), sharp plain-words PM voice, short sentences, specifics over adjectives. Claims follow [`one-pager.md`](../pitch/one-pager.md) tags: PROVEN facts speak in present tense; WIRING is "coming" or absent; the phrase "AI PM tool" never appears. On X, the link always goes in the first reply, never the post body.
+> **Rules baked into every word:** humanized output (no em or en dashes, no AI-cliche phrasing), sharp plain-words PM voice, short sentences, specifics over adjectives. Claims follow [`pitch/one-pager.md`](../pitch/one-pager.md) tags: PROVEN facts speak in present tense; WIRING is "coming" or absent; the phrase "AI PM tool" never appears. On X, the link always goes in the first reply, never the post body.
 >
 > **Numbers marked [refresh]:** the figures shown are 2026-07-10 live-DB values (133 missions, 129 agent runs, 72 decisions, 49 learnings, 2,162 AI events). Pull the current numbers the morning each asset posts. Never estimate.
 >

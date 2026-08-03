@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Notification Preferences** (0 connections) — `plan.md`
+- **Notification Preferences** (0 connections) — `docs/planning/archive/build-log.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `plan.md`
+- `docs/planning/archive/build-log.md`
 
 ## Audit Trail
 

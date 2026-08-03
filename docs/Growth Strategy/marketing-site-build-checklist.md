@@ -8,10 +8,10 @@
 
 ## Pre-Build Setup (1–2 hours)
 
-- [ ] Read [`docs/design/archive/tempo-v5.md`](./DESIGN-TEMPO.md) — the base contract (30 min)
-- [ ] Read [`design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](./design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) — the landing precedent (30 min)
-- [ ] Read [`design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md`](./design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md) — strategy + patterns (30 min)
-- [ ] Skim [`design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md`](./design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) — detailed specs (20 min, keep open while coding)
+- [ ] Read [`design/archive/tempo-v5.md`](../design/archive/tempo-v5.md) — the base contract (30 min)
+- [ ] Read [`design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md`](../../design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md) — the landing precedent (30 min)
+- [ ] Read [`design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md`](../../design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md) — strategy + patterns (30 min)
+- [ ] Skim [`design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md`](../../design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) — detailed specs (20 min, keep open while coding)
 - [ ] Review code examples: `src/routes/product.tsx`, `src/components/landing/{SectionAlternate,FramedVisual}.tsx` (15 min)
 - [ ] Verify `PUBLIC_INK_THEME` is defined in `src/components/landing/inkTheme.ts` (5 min)
 - [ ] Check that `LandingBackdrop.tsx` renders grid + starfield (5 min)
@@ -414,11 +414,11 @@ Before closing the redesign project, verify:
 
 ## Reference Documents (Keep Handy)
 
-1. **[DESIGN-TEMPO.md](./DESIGN-TEMPO.md)** — the law (colors, typography, materials, spacing, motion)
-2. **[2026-07-15 Landing Applied Record](./design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md)** — the precedent
-3. **[2026-07-18 Marketing Site Expansion](./design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md)** — strategy
-4. **[2026-07-18 Pricing Redesign Spec](./design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md)** — exact prescriptive detail
-5. **[Vercel Playbook](./design-reference/tempo-v5/research/vercel-composition-playbook.md)** — composition patterns and craft rules
+1. **[DESIGN-TEMPO.md](../design/archive/tempo-v5.md)** — the law (colors, typography, materials, spacing, motion)
+2. **[2026-07-15 Landing Applied Record](../../design-reference/tempo-v5/applied/2026-07-15-landing-v2-ink-and-starfield.md)** — the precedent
+3. **[2026-07-18 Marketing Site Expansion](../../design-reference/tempo-v5/applied/2026-07-18-marketing-site-expansion.md)** — strategy
+4. **[2026-07-18 Pricing Redesign Spec](../../design-reference/tempo-v5/applied/2026-07-18-pricing-redesign-spec.md)** — exact prescriptive detail
+5. **[Vercel Playbook](../../design-reference/tempo-v5/research/vercel-composition-playbook.md)** — composition patterns and craft rules
 
 ---
 

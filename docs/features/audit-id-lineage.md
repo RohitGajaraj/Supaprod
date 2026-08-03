@@ -16,7 +16,7 @@ It is the connective tissue over provenance the product already records ([Trust 
 
 ## Why it exists
 
-A buyer pays for trust, and trust is verifiable provenance. Before this, an entity's trace ref (`OPP·005C82`) was a static, copyable label — it looked auditable but did nothing. The founder ruling made the id a first-class, platform-generated primitive: if the platform shows you an id, that id must resolve to its own verifiable trail. This closes the gap between _looking_ auditable and _being_ auditable, and it does so uniformly (one resolver, one sheet, one tag component) so a new entity kind becomes traceable in one line. See the build-log entry in [`../../plan.md`](../planning/archive/build-log.md) §4 (2026-07-13).
+A buyer pays for trust, and trust is verifiable provenance. Before this, an entity's trace ref (`OPP·005C82`) was a static, copyable label — it looked auditable but did nothing. The founder ruling made the id a first-class, platform-generated primitive: if the platform shows you an id, that id must resolve to its own verifiable trail. This closes the gap between _looking_ auditable and _being_ auditable, and it does so uniformly (one resolver, one sheet, one tag component) so a new entity kind becomes traceable in one line. See the build-log entry in [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-13).
 
 ## Where to find it
 
@@ -57,7 +57,7 @@ The twelve traceable kinds (extend `AUDIT_KINDS` to add a thirteenth — resolve
 **P3 — the UI + Ask:**
 
 - `src/components/supaprod/AuditLineageSheet.tsx` — a single global sheet, opened by the `supaprod:open-lineage` event (`openLineage(ref)` helper). Renders the walk with each connected entity as a click-to-walk tag. **Mission enrichment:** when the resolved kind is `mission`, it additionally fetches [`getMissionChain`](./trust-ledger.md) and renders the `MissionChain` component under a "Trust chain" heading.
-- `src/components/supaprod/AuditTag.tsx` — the reusable clickable chip (design-system pattern: [`audit-trace-tag.md`](../../design-reference/tempo-v5/patterns/audit-trace-tag.md)). Rendered as a `<span role="button">` (not a `<button>`) so it nests safely inside clickable row `<button>`s without invalid DOM nesting. Optional `copyable` adds a secondary copy-the-full-id icon (used in entity detail views, replacing the old standalone copy button so one chip both traces and copies).
+- `src/components/supaprod/AuditTag.tsx` — the reusable clickable chip (design-system pattern: [`design-reference/tempo-v5/patterns/audit-trace-tag.md`](../../design-reference/tempo-v5/patterns/audit-trace-tag.md)). Rendered as a `<span role="button">` (not a `<button>`) so it nests safely inside clickable row `<button>`s without invalid DOM nesting. Optional `copyable` adds a secondary copy-the-full-id icon (used in entity detail views, replacing the old standalone copy button so one chip both traces and copies).
 - `src/components/obsidian/AskPanel.tsx` — on submit, `findAuditIds` scans the question; if it names an id, `openLineage` fires the lineage sheet deterministically (no model round-trip).
 
 ## How it works (map)

@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-12 · Owner: founder + GTM lane (Lane C) · Status: **ACTIVE — this is the week we open the doors.**_
 >
-> **How this folder relates to canon:** [`v13-proof-campaign.md`](../strategy/v13-proof-campaign.md) wins on sequence and claims discipline; this manual operationalizes its GTM surface under the founder's 2026-07-12 directive: **launch-ready in 3 days, the awareness wave fires inside 7.** Outward-facing positioning stays verbatim-consistent with the Pitch Room ([`docs/pitch/`](../pitch/README.md)) — the Show HN and Product Hunt copy live THERE ([`launch-assets.md`](../pitch/launch-assets.md)), not here; this folder never forks parallel copies. Standing rule (binding, plan §4): **nothing outward sends without founder approval.**
+> **How this folder relates to canon:** [`strategy/archive/v13-proof-campaign.md`](../strategy/archive/v13-proof-campaign.md) wins on sequence and claims discipline; this manual operationalizes its GTM surface under the founder's 2026-07-12 directive: **launch-ready in 3 days, the awareness wave fires inside 7.** Outward-facing positioning stays verbatim-consistent with the Pitch Room ([`docs/pitch/`](../pitch/README.md)) — the Show HN and Product Hunt copy live THERE ([`pitch/launch-assets.md`](../pitch/launch-assets.md)), not here; this folder never forks parallel copies. Standing rule (binding, plan §4): **nothing outward sends without founder approval.**
 
 ---
 
@@ -34,7 +34,7 @@ If we're below Floor on day 4, the decision framework in §6 forces a pivot, not
 
 **The single viral thesis:** Supaprod's shareable objects are its _receipts_ — Critic teardowns, the Trust Ledger, the "Supaprod built part of itself" PR. Every campaign this week ships a receipt, not an adjective. (Full mechanics: [`05`](./05-viral-and-guerrilla-playbook.md).)
 
-**The sequencing rule (binding):** the Show HN and Product Hunt cards are played ONCE. They fire in week 2–3, after the no-signup demo (PC-04) is live and 2–3 real beta stories exist — the drafted posts in [`launch-assets.md`](../pitch/launch-assets.md) say so themselves. This week's wave builds the waitlist, the beta pipeline, and the audience those listings will land on. Burning HN with no demo link and zero users would spend our best card on our weakest day. (Fast-track escape hatch: §6.)
+**The sequencing rule (binding):** the Show HN and Product Hunt cards are played ONCE. They fire in week 2–3, after the no-signup demo (PC-04) is live and 2–3 real beta stories exist — the drafted posts in [`pitch/launch-assets.md`](../pitch/launch-assets.md) say so themselves. This week's wave builds the waitlist, the beta pipeline, and the audience those listings will land on. Burning HN with no demo link and zero users would spend our best card on our weakest day. (Fast-track escape hatch: §6.)
 
 **The channel reality this week (from the 2026 research):**
 

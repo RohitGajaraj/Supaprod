@@ -31,10 +31,10 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 | Why a past decision was made (the log)             | [session-decisions.md](./session-decisions.md)                                                                          |
 | The moat stack + competition + YC Q&A (detail)     | [moat.md](./moat.md)                                                                                                    |
 | Build vs buy vs integrate (the gate)               | [build-buy-integrate.md](./build-buy-integrate.md) + [sourcing-map.md](./sourcing-map.md)                               |
-| Positioning argument + course-corrections (detail) | [v7](./v7-agentic-product-os.md)                                                                                        |
-| IA / structure / Engine-Room doctrine              | [v8](./v8-calm-front-deep-engine.md) + [../conventions/engine-room-doctrine.md](../conventions/engine-room-doctrine.md) |
-| The Critic-teardown wedge + competitor posture     | [v9](./v9-decision-wedge-and-build-next.md)                                                                             |
-| The file-grounded blueprint (detail)               | [v10](./v10-master-blueprint.md)                                                                                        |
+| Positioning argument + course-corrections (detail) | [v7](./archive/v7-agentic-product-os.md)                                                                                        |
+| IA / structure / Engine-Room doctrine              | [v8](./archive/v8-calm-front-deep-engine.md) + [../conventions/engine-room-doctrine.md](../conventions/engine-room-doctrine.md) |
+| The Critic-teardown wedge + competitor posture     | [v9](./archive/v9-decision-wedge-and-build-next.md)                                                                             |
+| The file-grounded blueprint (detail)               | [v10](./archive/v10-master-blueprint.md)                                                                                        |
 | The role map (arbiter of which doc to pick)        | [strategy/README.md](./README.md)                                                                                       |
 | Operating rules for all tools                      | [../../AGENTS.md](../../AGENTS.md)                                                                                      |
 
@@ -484,7 +484,7 @@ Produced 2026-06-23 from: 5 ground-truth probes (strategy-doc audit, build-state
 
 Market/pricing sources (flagged [V]/[E]/[A] in §10-11): PM population (llcbuddy, Retail Logistics); market size (datainsightsmarket $8.4B 2025, growthmarketreports, Fortune Business Insights PLM); pricing (Productboard, Atlassian Rovo, Asana, ClickUp, Notion); margin/NRR (saasmag, TechTimes, ICONIQ State of AI 2026, digitalapplied); comparables (Miro/Reforge, Tracxn $81M, TechCrunch Maze $60M, Sacra Linear $1.25B, getlatka Notion, Lovable $6.6B, Cursor $29.3B, Replit $3B). PM-future sources: 2025 State of B2B PM survey, Productboard AI report, Reforge, Lenny's analysis, The Last Product Manager, Marty Cagan/SVPG, Teresa Torres. Orchestration sources: OpenAI Codex SDK, Devin v3 API, Cursor Cloud Agents API, Claude Agent SDK, v0 Platform API, OpenHands. Full URLs are preserved in the 2026-06-23 research threads and should be reproduced in the deck's appendix.
 
-**Related canon:** [v7](./v7-agentic-product-os.md) · [v8](./v8-calm-front-deep-engine.md) · [v9](./v9-decision-wedge-and-build-next.md) · [v10](./v10-master-blueprint.md) · [moat.md](./moat.md) · [build-buy-integrate.md](./build-buy-integrate.md) · [sourcing-map.md](./sourcing-map.md) · [horizon-bets.md](./horizon-bets.md) · [the role map](./README.md) · [feature-dashboard.md](../planning/feature-dashboard.md) · [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md).
+**Related canon:** [v7](./archive/v7-agentic-product-os.md) · [v8](./archive/v8-calm-front-deep-engine.md) · [v9](./archive/v9-decision-wedge-and-build-next.md) · [v10](./archive/v10-master-blueprint.md) · [moat.md](./moat.md) · [build-buy-integrate.md](./build-buy-integrate.md) · [sourcing-map.md](./sourcing-map.md) · [horizon-bets.md](./horizon-bets.md) · [the role map](./README.md) · [feature-dashboard.md](../planning/feature-dashboard.md) · [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md).
 
 ---
 

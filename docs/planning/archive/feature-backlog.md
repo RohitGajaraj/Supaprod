@@ -3,23 +3,23 @@
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
 > [!WARNING]
-> **⚠ SUPERSEDED (2026-06-23). Do NOT add new items here; do NOT treat its ☐ markers as live status.** The single build register is now [`feature-dashboard.md`](./feature-dashboard.md) (the ranked rows + the v11 build front #1-21, each with a Why). Its ☐ markers below are STALE: most are already-shipped work the dashboard tracks correctly (the agent roster, A2A handoff, product memory, ship bundle, etc.). Per-feature acceptance detail now lives in the relevant [`../features/`](../features/) docs. The one genuinely-pending item not previously on the board, **DEF-04 (designer scaffolds)**, was salvaged into the dashboard on 2026-06-23. This file is retained only for historical F-ID references; its physical archive + a broader repo-structure declutter (it has ~25 live inbound links, so the move needs a same-commit link-update pass) is tracked as **`REPO-DECLUTTER-V11`** in the dashboard.
+> **⚠ SUPERSEDED (2026-06-23). Do NOT add new items here; do NOT treat its ☐ markers as live status.** The single build register is now [`feature-dashboard.md`](../feature-dashboard.md) (the ranked rows + the v11 build front #1-21, each with a Why). Its ☐ markers below are STALE: most are already-shipped work the dashboard tracks correctly (the agent roster, A2A handoff, product memory, ship bundle, etc.). Per-feature acceptance detail now lives in the relevant [`../features/`](../features/) docs. The one genuinely-pending item not previously on the board, **DEF-04 (designer scaffolds)**, was salvaged into the dashboard on 2026-06-23. This file is retained only for historical F-ID references; its physical archive + a broader repo-structure declutter (it has ~25 live inbound links, so the move needs a same-commit link-update pass) is tracked as **`REPO-DECLUTTER-V11`** in the dashboard.
 
-> **SSOT first.** The single front-door tracker is [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (status, build queue, founder rulings, findings, progress). This file is the granular acceptance-criteria and scope ledger (the F-ID detail) it points to, not the tracker to follow day-to-day.
+> **SSOT first.** The single front-door tracker is [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) (status, build queue, founder rulings, findings, progress). This file is the granular acceptance-criteria and scope ledger (the F-ID detail) it points to, not the tracker to follow day-to-day.
 
-> **What this is.** The exhaustive, sub-feature-level enumeration of _everything Supaprod is built to ship_ — the dev-ready expansion of [`../plan.md`](../../plan.md) §2 (granular catalog). Every feature has a **stable ID** (e.g. `F2.3`) so it can become an issue/PR/spec and be referenced by traces, decisions, and the build log without re-describing scope.
+> **What this is.** The exhaustive, sub-feature-level enumeration of _everything Supaprod is built to ship_ — the dev-ready expansion of [`build-log.md`](./build-log.md) §2 (granular catalog). Every feature has a **stable ID** (e.g. `F2.3`) so it can become an issue/PR/spec and be referenced by traces, decisions, and the build log without re-describing scope.
 >
-> **Relationship to other docs (no duplication of rules).** Product thesis + USP/MOAT: [`../README.md`](../README.md). Build _order_: [`../plan.md`](../../plan.md) §3. Cross-cutting non-functional rationale + P0/P1/P2 priorities: [`../docs/considerations.md`](./considerations.md). UI/IA/screen + AI-message contract: [`../design.md`](../../DESIGN.md). Architecture contracts: [`../architecture/`](../../architecture/). Operating rules: [`../AGENTS.md`](../../AGENTS.md).
+> **Relationship to other docs (no duplication of rules).** Product thesis + USP/MOAT: [`../README.md`](../README.md). Build _order_: [`build-log.md`](./build-log.md) §3. Cross-cutting non-functional rationale + P0/P1/P2 priorities: [`considerations.md`](../considerations.md). UI/IA/screen + AI-message contract: [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md). Architecture contracts: [`../architecture/`](../../architecture/). Operating rules: [`../AGENTS.md`](../../../AGENTS.md).
 >
-> **This file adds detail; it does not replace `docs/planning/archive/build-log.md`.** `docs/planning/archive/build-log.md` stays the narrative + build order; this is the flat, addressable scope list. Keep both true (closed doc loop, [`../AGENTS.md`](../../AGENTS.md) §5).
+> **This file adds detail; it does not replace `docs/planning/archive/build-log.md`.** `docs/planning/archive/build-log.md` stays the narrative + build order; this is the flat, addressable scope list. Keep both true (closed doc loop, [`../AGENTS.md`](../../../AGENTS.md) §5).
 >
-> **Looking for the next task to pick up?** Jump to the [Build-order rollup](#build-order-rollup-status--build-sequence) at the bottom - it is the canonical task queue. The live cursor (now / next / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (section 0 + section 3), which points back here for F-ID scope.
+> **Looking for the next task to pick up?** Jump to the [Build-order rollup](#build-order-rollup-status--build-sequence) at the bottom - it is the canonical task queue. The live cursor (now / next / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) (section 0 + section 3), which points back here for F-ID scope.
 
 ---
 
 ## ▶ Live status (moved) - this file is the F-ID scope ledger
 
-> **The live status board moved.** Where-are-we-now (now building / next up / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) - section 0 (the live cursor) + section 3. The per-station status matrix lives in [`feature-dashboard.md`](./feature-dashboard.md). The full append-only build history is [`../plan.md`](../../plan.md) section 4.
+> **The live status board moved.** Where-are-we-now (now building / next up / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) - section 0 (the live cursor) + section 3. The per-station status matrix lives in [`feature-dashboard.md`](../feature-dashboard.md). The full append-only build history is [`build-log.md`](./build-log.md) section 4.
 >
 > **This file** holds only the granular, per-F-ID scope + acceptance criteria (the pillar catalog and the [Build-order rollup](#build-order-rollup-status--build-sequence) below). Read the SSOT first for what to pick up; come here for the detail behind a given F-ID.
 
@@ -27,7 +27,7 @@
 
 ## ▶ v4 Feature Map overlay (2026-06-11) — the binding scope layer
 
-> **The v4 feature map ([`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md)) is now the binding scope source.** This overlay maps its station catalogs onto this backlog. The 8-Pillar grouping below remains as historical organization for existing F-IDs; new work is filed under v4 IDs. Where a v4 ID and a legacy F-ID cover the same thing, the row notes it — do not double-build.
+> **The v4 feature map ([`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md)) is now the binding scope source.** This overlay maps its station catalogs onto this backlog. The 8-Pillar grouping below remains as historical organization for existing F-IDs; new work is filed under v4 IDs. Where a v4 ID and a legacy F-ID cover the same thing, the row notes it — do not double-build.
 
 **New v4 feature IDs (station · ID · status · maps-to-legacy):**
 
@@ -59,7 +59,7 @@ Full L4 decomposition pattern: v4 map §9 M1 exemplar (every hop = HandoffEnvelo
 
 > **What this is.** A scope overlay — not a new roadmap. The exhaustive backlog below is unchanged. This section picks the smallest subset of existing features whose _combined, end-to-end behavior on real data_ proves that Supaprod delivers agentic-native product management that legacy PM tools (Jira, Linear, Productboard, ProductPlan, Aha) structurally cannot. **The YC demo is a by-product; the platform is the point.**
 >
-> **Locked decisions (2026-06-03):** Demo persona = **Founder-as-PM** ("run the product org you can't afford to hire"). Demo data = **real product** (default: Supaprod-on-Supaprod; design partner is additive). **v1.1 un-defers Build/Test/Ship/Launch/Support** to cover the whole PM lifecycle end-to-end — under one realism rule: _agents orchestrate existing tools (GitHub, CI, deploy, Slack/email, support channel) where the tool already exists; they don't replace IDEs, CI, or helpdesks._ See [`docs/strategy/session-decisions.md`](../strategy/session-decisions.md) for the reframe.
+> **Locked decisions (2026-06-03):** Demo persona = **Founder-as-PM** ("run the product org you can't afford to hire"). Demo data = **real product** (default: Supaprod-on-Supaprod; design partner is additive). **v1.1 un-defers Build/Test/Ship/Launch/Support** to cover the whole PM lifecycle end-to-end — under one realism rule: _agents orchestrate existing tools (GitHub, CI, deploy, Slack/email, support channel) where the tool already exists; they don't replace IDEs, CI, or helpdesks._ See [`strategy/session-decisions.md`](../../strategy/session-decisions.md) for the reframe.
 >
 > **From demo cut → proof cut.** Every bundle now ships against an explicit **proof bar** — the minimum behavior that makes the claim true on real data, not just visible in a screenshot. If a visitor cannot point to each of the four claims being true in the running product within ~5 minutes, the bundle hasn't shipped.
 
@@ -102,7 +102,7 @@ Each bundle composes existing backlog IDs; nothing here is a parallel scope. Bun
 | 6      | **Lifecycle slice — Discover → Define → Plan on real data**                                                                                | Real signals → real PRD → real sprint plan → one approval-gated item → on approval, **real GitHub issue created via MCP**. End-to-end, no human routing.                                                                                                                                                                                                          | F1, F2, F3, G1, H1 + **N1** (new, GitHub-issues sync)                   | C3         | ◑ (legacy parts reusable)    |
 | 7      | **Decision Queue + approval gates UX**                                                                                                     | Every gate the agents hit lands in the queue with context (what, why, cost-if-approved, who proposed); approve/reject changes downstream agent behavior.                                                                                                                                                                                                          | D3, P-approvals                                                         | C1, C4     | ◑ (reusable)                 |
 | 8      | **Product Memory + lineage + full data export**                                                                                            | Every artifact (signal → theme → opportunity → PRD → decision) has lineage backward to its source; "Export everything" produces a complete, re-importable archive.                                                                                                                                                                                                | O1, O2, U6 (new)                                                        | C3         | ☐                            |
-| **9**  | **Build + Test bundle** — Builder agent + scoped PR + CI read + parallel-safe conflict guard                                               | Builder opens a **real PR** on the connected repo for one planned task; reads CI status; on red proposes a one-file fix commit; two missions can't race on the same file. All gated by approval mode. **Shipped 2026-06-04 (Slice 1) + 2026-06-06 (Slices 2 + 3).** Per-feature doc: [`./features/bundle-9-builder.md`](../features/archive/bundle-9-builder.md). | **I-thin (S4)**, **J-thin (S5)** + GitHub MCP write scope               | C2, C3     | ✅                           |
+| **9**  | **Build + Test bundle** — Builder agent + scoped PR + CI read + parallel-safe conflict guard                                               | Builder opens a **real PR** on the connected repo for one planned task; reads CI status; on red proposes a one-file fix commit; two missions can't race on the same file. All gated by approval mode. **Shipped 2026-06-04 (Slice 1) + 2026-06-06 (Slices 2 + 3).** Per-feature doc: [`features/archive/bundle-9-builder.md`](../../features/archive/bundle-9-builder.md). | **I-thin (S4)**, **J-thin (S5)** + GitHub MCP write scope               | C2, C3     | ✅                           |
 | **10** | **Ship bundle** — approval-gated merge + deploy webhook ingest                                                                             | Operator approves merge → real merge → existing deploy webhook lands → Ship node lights up on Mission Graph with deploy URL + commit SHA.                                                                                                                                                                                                                         | **K-thin (S6)** + deploy webhook ingest                                 | C1, C3     | ☐                            |
 | **11** | **Launch bundle** — changelog + one outbound channel                                                                                       | Growth agent drafts changelog + outbound message on ship; operator approves; message is **really sent** to one real channel (Slack or email).                                                                                                                                                                                                                     | **L-thin** (changelog + one outbound integration)                       | C3         | ☐                            |
 | **12** | **Support → Learn loop** — one inbound channel + Analyst learn loop                                                                        | Real ticket arrives via one channel → Support agent triages and links to source PRD/opportunity → Analyst attaches outcome and re-scores → next Discovery cycle reflects it. **The loop closes.**                                                                                                                                                                 | **M-thin** (one inbound channel) + **Z1** (Analyst learn loop) on O1/O2 | C2, C3, C4 | ☐                            |
@@ -523,7 +523,7 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 - What: OKLCH token system in `src/styles.css`; components consume tokens only.
 - Build: semantic colors, gradients, shadows, `--surface-*` palette, type ramp, motion tokens, radii; `prefers-reduced-motion` hook; dark-first theme; lint/review guard against hex literals.
 - Done when: a token edit changes the surface globally; a11y spot-check passes 4.5:1; no hex literals in components.
-- Depends: —. See [`../design.md`](../../DESIGN.md).
+- Depends: —. See [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md).
 
 **0.5 — Agent blast-radius limits** `[new]` · `P0` · `FND/NFR`
 
@@ -880,7 +880,7 @@ _The base every later stage is an addition to, not a rewrite of. Build order ste
 
 ## New features — v2 Positioning Session (2026-06-02)
 
-_Derived from strategic repositioning to "autonomous product OS." Full reasoning: [`strategy/product-positioning-v2.md`](../strategy/archive/v2-positioning.md)._
+_Derived from strategic repositioning to "autonomous product OS." Full reasoning: [`strategy/archive/v2-positioning.md`](../../strategy/archive/v2-positioning.md)._
 
 **C5 — Strategic Briefing surface** `[status: ☑ shipped 2026-06-04]` · `P0` · `X1`
 
@@ -906,7 +906,7 @@ _Derived from strategic repositioning to "autonomous product OS." Full reasoning
 
 ##### How to use / verify
 
-- **Canonical explanation:** see [`docs/trust-and-autonomy.md`](../features/trust-and-autonomy.md) — operator-facing meaning of the 0–100 scale, the three ingredients (40/30/30), the four arc levels, safety floors, and the operator playbook. Linked from `architecture/orchestration.md`.
+- **Canonical explanation:** see [`features/trust-and-autonomy.md`](../../features/trust-and-autonomy.md) — operator-facing meaning of the 0–100 scale, the three ingredients (40/30/30), the four arc levels, safety floors, and the operator playbook. Linked from `architecture/orchestration.md`.
 - **Where to find it.** Route `/agents`. Trust chip appears on each agent in the left roster and at the top of the right-hand detail card. The Autonomy Dial sits inside the detail card, just under the agent persona.
 - **What each control does.** **Trust chip** (e.g. `Trust 72 · Trusted`) — the qualitative label is derived from the score band (`At-risk` / `Observing` / `Proving` / `Trusted` / `Ambient`; `New` until ≥3 samples). Hover (Radix tooltip) shows the 0–100 scale + Bayesian shrinkage explanation, then the weighted breakdown: Missions 40%, Approvals 30%, Evals 30% with raw counts and the suggested arc. **Autonomy Dial** — 4 buttons (Observing · Proving · Trusted · Ambient); each button has its own tooltip describing exactly what it does to `auto` / `confirm` / `review` tools. Clicking one writes `agent_autonomy` for that user+agent. The suggested arc is shown when it differs from the current arc.
 - **Server enforcement.** `setAgentArc` server fn writes via `requireSupabaseAuth`; RLS on `agent_autonomy` restricts everyone to their own rows. The agent loop (`src/lib/ai/loop.server.ts`) calls `loadAgentArc` once per run and `resolveApprovalMode(toolMode, arc)` at every tool-call gate. `review` mode is sticky (never downgraded). `calendar.create` is hard-locked: even at Ambient it forces `confirm`.
@@ -948,9 +948,9 @@ _Derived from strategic repositioning to "autonomous product OS." Full reasoning
 
 ## v3 Audit Triage (2026-06-06)
 
-_Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md) (22 product RECs) and [`./strategy/archive/v3-audit-language.md`](../strategy/archive/v3-audit-language.md) (10 LANG + tooltip + IA + outcome + chip recs). Operator-approved A→C→B sequence; this triage **is** Phase C. Each F-ID below is a thin entry pointing back to the audit doc for full body + impact/effort/horizon scoring — do not duplicate that prose here._
+_Derived from [`./strategy/archive/v3-audit.md`](../../strategy/archive/v3-audit.md) (22 product RECs) and [`./strategy/archive/v3-audit-language.md`](../../strategy/archive/v3-audit-language.md) (10 LANG + tooltip + IA + outcome + chip recs). Operator-approved A→C→B sequence; this triage **is** Phase C. Each F-ID below is a thin entry pointing back to the audit doc for full body + impact/effort/horizon scoring — do not duplicate that prose here._
 
-**Owner column:** any tool may pick a row whose own status isn't `☑`. Update Live status board's "Now building" before starting. Cross-tool rules: [`../AGENTS.md`](../../AGENTS.md) §10.
+**Owner column:** any tool may pick a row whose own status isn't `☑`. Update Live status board's "Now building" before starting. Cross-tool rules: [`../AGENTS.md`](../../../AGENTS.md) §10.
 
 **Status legend:** ☑ shipped · ◑ partial · ☐ not started · ⊘ closed/superseded.
 
@@ -1008,7 +1008,7 @@ _Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md
 | F-ID              | What                                                                                                                                                                                                                                          | Source recs |        Status        |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | :------------------: |
 | `F-VOICE-DIALOGS` | `window.prompt()`/`window.confirm()` flows in `AppShell` (workspace + product creation/rename/delete) replaced with `useConfirm` / `usePrompt` dialogs + sentence-case labels; ESLint guardrail blocks `alert/confirm/prompt/onbeforeunload`. | LANG-07     | ☑ shipped 2026-06-06 |
-| `F-VOICE-GUIDE`   | One-page voice guide published as [`./conventions/ui-voice.md`](../conventions/ui-voice.md); linked from `docs/design/archive/ember-editorial-landing.md`, `AGENTS.md` §3, `CLAUDE.md` + `GEMINI.md` read-order step 1.6.                                                          | LANG-10     | ☑ shipped 2026-06-06 |
+| `F-VOICE-GUIDE`   | One-page voice guide published as [`./conventions/ui-voice.md`](../../conventions/ui-voice.md); linked from `docs/design/archive/ember-editorial-landing.md`, `AGENTS.md` §3, `CLAUDE.md` + `GEMINI.md` read-order step 1.6.                                                          | LANG-10     | ☑ shipped 2026-06-06 |
 
 #### Security follow-up (ignored finding, tracked)
 
@@ -1021,7 +1021,7 @@ _Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md
 - **Most P0 rows are pure copy.** No schema change, no server-fn change, no migration. Estimate is hours-per-route, not days.
 - **`F-IA-*` merges break URLs.** Always add redirects in the same commit; never ship a rename without `<Navigate>` from old route.
 - **`F-AGENTS-ROSTER-CUT` is a data change**, not a code change — update seed data + the agent roster server fn, leave the spawn pipeline alone.
-- **`F-OUTCOME-SURFACE` is Phase B** - claim it via the SSOT live cursor ([`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) section 0) before another tool does; bundles 10-12 collapse into this one F-ID.
+- **`F-OUTCOME-SURFACE` is Phase B** - claim it via the SSOT live cursor ([`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) section 0) before another tool does; bundles 10-12 collapse into this one F-ID.
 - **Don't expand prose here.** Full bodies live in the two audit docs. This section is the addressable index.
 
 ---
@@ -1030,15 +1030,15 @@ _Derived from [`./strategy/archive/v3-audit.md`](../strategy/archive/v3-audit.md
 
 ## Build-order rollup (status × build sequence)
 
-Sequence from [`../plan.md`](../../plan.md) §3. Status: ☐ not started · ◑ legacy partial (harden) · ☑ verified into `docs/planning/archive/build-log.md` §4. **Per-item code-verified grades + step-1 tickets: [`archive/foundation-audit.md`](./archive/foundation-audit.md) (2026-05-30).**
+Sequence from [`build-log.md`](./build-log.md) §3. Status: ☐ not started · ◑ legacy partial (harden) · ☑ verified into `docs/planning/archive/build-log.md` §4. **Per-item code-verified grades + step-1 tickets: [`foundation-audit.md`](./foundation-audit.md) (2026-05-30).**
 
 > **▶ This table is the canonical "what do I build next?" source.** To resolve the next actionable task deterministically (any tool, any human):
 >
 > 1. Take the **lowest-numbered step** that is still `◑` or `☐` (the `∥` cross-cutting row is pulled into step 1, not sequenced separately).
 > 2. Expand its **Key IDs** to the feature entries above; pick the first whose own `[status]` is not `☑`.
-> 3. Open its concrete ticket in [`archive/foundation-audit.md`](./archive/foundation-audit.md) (step 1) or its entry above (later steps), then build.
+> 3. Open its concrete ticket in [`foundation-audit.md`](./foundation-audit.md) (step 1) or its entry above (later steps), then build.
 >
-> The SSOT, [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (section 0 + section 3), carries the live cursor and day-to-day build queue - it points here for the concrete F-ID scope behind the next step.
+> The SSOT, [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) (section 0 + section 3), carries the live cursor and day-to-day build queue - it points here for the concrete F-ID scope behind the next step.
 
 | Step | Scope                                                  | Key IDs                                       | Status |
 | ---- | ------------------------------------------------------ | --------------------------------------------- | ------ |

@@ -62,7 +62,11 @@ while IFS= read -r mdfile; do
   links="$(grep -oE '\]\([^) ]+\.md[^) ]*\)' "$mdfile" 2>/dev/null | sed -E 's/^\]\(//; s/\)$//; s/#.*$//')"
   while IFS= read -r link; do
     case "$link" in ""|http*|/*|mailto:*) continue ;; esac
-    if [ ! -f "$d/$link" ]; then BROKEN_LIST="${BROKEN_LIST}  BROKEN ${mdfile} -> ${link}"$'\n'; fi
+    # Markdown percent-encodes spaces. "docs/Growth%20Strategy/x.md" is a VALID
+    # link to a real file; testing it undecoded reported 8 healthy links as broken,
+    # which is how a warn list gets ignored. Decode before the existence test.
+    dec="$(printf '%s' "$link" | sed 's/%20/ /g')"
+    if [ ! -f "$d/$dec" ]; then BROKEN_LIST="${BROKEN_LIST}  BROKEN ${mdfile} -> ${link}"$'\n'; fi
   done <<< "$links"
   # Scope: docs WE own. Vendored tool libraries (.agents, .claude, .kiro, .gemini,
   # .conductor) ship their own broken cross-references and we do not maintain them;
@@ -122,10 +126,17 @@ if [ "$MISS" -ne 0 ]; then echo "  (add '> _Created: YYYY-MM-DD · Last updated:
 # docs were pointing agents at Tempo v5, a design contract the founder rejected
 # on 2026-07-28. Following the docs actively undid the rebuild. A doc that sends
 # a reader at a retired contract is worse than a missing doc.
-echo "-- [8] a retired design contract cited as if it were current --"
-RETIRED="$(grep -rIn -E '\]\((\./)?(\.\./)*DESIGN(-TEMPO|-LOOM|-OBSIDIAN)?\.md\)|`DESIGN(-TEMPO|-LOOM|-OBSIDIAN)?\.md`' . \
+#
+# Narrowed once, immediately: the first version also matched a BACKTICKED mention,
+# which flagged docs/design/DESIGN-SYSTEM.md for the sentence that names the four
+# contracts in order to retire them. Naming a dead contract as dead is the correct
+# behaviour and must not be a failure. Only a LINK can actually send a reader
+# somewhere, so only a link is a defect.
+echo "-- [8] a retired design contract LINKED as if it were current --"
+RETIRED="$(grep -rIn -E '\]\((\./)?(\.\./)*DESIGN(-TEMPO|-LOOM|-OBSIDIAN)?\.md\)' . \
   --include='*.md' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=graphify-out \
-  --exclude-dir=archive --exclude-dir=design-reference --exclude-dir=worktrees 2>/dev/null)"
+  --exclude-dir=archive --exclude-dir=design-reference --exclude-dir=worktrees \
+  --exclude-dir=.agents --exclude-dir=.kiro --exclude-dir=.gemini --exclude-dir=.conductor 2>/dev/null)"
 if [ -n "$RETIRED" ]; then
   echo "$RETIRED" | sed 's/^/  FAIL retired design contract cited: /'
   echo "  (DESIGN.md, DESIGN-TEMPO.md, DESIGN-LOOM.md and DESIGN-OBSIDIAN.md were all retired."

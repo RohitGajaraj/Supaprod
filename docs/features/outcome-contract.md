@@ -4,7 +4,7 @@
 
 The Outcome Contract is a typed projection of a spec (`prds`), sitting alongside the existing markdown narrative (`body_md`). It is the first piece of the v12 Program CONVENTIONS build: the artifact formerly known as the PRD, split into a human view (unchanged) and a machine view an agent can consume directly instead of re-parsing prose.
 
-**Why this exists:** the self-audit in [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7.1 names the gap directly — Supaprod's decision layer is typed and bi-temporal, yet `prds.body_md` is a TEXT blob. The moat doctrine stopped at the requirements boundary. This closes that: `contract` is queryable, diffable, and individually supersedable, the same standing/superseded idiom FS-02's `assumptions.status` already uses.
+**Why this exists:** the self-audit in [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 7.1 names the gap directly — Supaprod's decision layer is typed and bi-temporal, yet `prds.body_md` is a TEXT blob. The moat doctrine stopped at the requirements boundary. This closes that: `contract` is queryable, diffable, and individually supersedable, the same standing/superseded idiom FS-02's `assumptions.status` already uses.
 
 ## What ships
 

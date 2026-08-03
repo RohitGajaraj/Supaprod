@@ -16,7 +16,7 @@ Brief.
 
 v12's Learning Ladder names this L5 (self-revising method): the system drafts new standing
 judgment from outcome clusters, a human approves. Sierra Expert Answers is the market's reference
-implementation for the pattern paying off. See [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
+implementation for the pattern paying off. See [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
 §3.2 (RF-04) and §7.2 (house rules as one of the three "standing context" lifetimes).
 
 ## Where to find it
@@ -95,6 +95,6 @@ implementation for the pattern paying off. See [`v12-self-improving-os.md`](../s
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2, §7.2
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2, §7.2
 - Siblings: [`decision-brain.md`](./decision-brain.md) (the supersession convention this follows)

@@ -4,8 +4,8 @@
 
 ## Key Concepts
 
-- **Ambient Precedent** (1 connections) — `plan.md`
-- **Decision Brain Critic Precedent** (1 connections) — `plan.md`
+- **Ambient Precedent** (1 connections) — `docs/planning/archive/build-log.md`
+- **Decision Brain Critic Precedent** (1 connections) — `docs/planning/archive/build-log.md`
 
 ## Relationships
 
@@ -13,7 +13,7 @@
 
 ## Source Files
 
-- `plan.md`
+- `docs/planning/archive/build-log.md`
 
 ## Audit Trail
 

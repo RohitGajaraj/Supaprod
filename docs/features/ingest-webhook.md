@@ -203,6 +203,6 @@ curl -X POST https://supaprod.lovable.app/api/public/ingest-signals \
 
 ## Related docs
 
-- [`docs/operations/demo-credentials.md`](../operations/demo-credentials.md) — demo workspace logins
-- [`docs/planning/archive/v7-trd.md`](../planning/archive/v7-trd.md) (archived, superseded by v10), B.4 · Connector activation
-- [`docs/planning/known-issues.md`](../planning/known-issues.md) — KI-10, KI-12 (OAuth setup)
+- [`operations/demo-credentials.md`](../operations/demo-credentials.md) — demo workspace logins
+- [`planning/archive/v7-trd.md`](../planning/archive/v7-trd.md) (archived, superseded by v10), B.4 · Connector activation
+- [`planning/known-issues.md`](../planning/known-issues.md) — KI-10, KI-12 (OAuth setup)

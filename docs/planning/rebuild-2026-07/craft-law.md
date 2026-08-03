@@ -104,7 +104,7 @@ Each of these is greppable. A surface containing one is not done.
 **Copy**
 - "Effortlessly", "seamlessly", "unlock", "supercharge", "elevate", "in today's fast-paced".
 - Em dashes and en dashes. Banned outright by
-  [`docs/conventions/humanized-output.md`](../../conventions/humanized-output.md), in what we
+  [`conventions/humanized-output.md`](../../conventions/humanized-output.md), in what we
   author AND in what the platform generates for users.
 - Vague category words: bare "AI", bare "agents", "copilot", "operating system". Qualify them.
 

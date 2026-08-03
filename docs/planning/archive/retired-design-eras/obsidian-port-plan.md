@@ -9,7 +9,7 @@ Any lane can pick an unblocked ID cold.
 
 > **Finest-grain layer (2026-07-02).** Each ID now has a **self-contained
 > build+implementation spec** in [`obsidian-port/`](./obsidian-port/): open
-> [`obsidian-port/OBS-0X.md`](./obsidian-port/README.md#8-the-per-item-index)
+> [`obsidian-port/README.md`](./obsidian-port/README.md#8-the-per-item-index)
 > for the complete package - what, why, how (step by step), the structure, the
 > exact design elements, and every rename/restructure/modification - written so
 > an agent picks it cold and needs no other file. The shared design DNA, the
@@ -19,11 +19,11 @@ Any lane can pick an unblocked ID cold.
 > depth.** The dashboard G14 rows link straight to each spec.
 
 **The doctrine chain (load before any ID):** invoke the `cadence-design`
-skill, which loads [`/DESIGN-OBSIDIAN.md`](../design/archive/obsidian-v3.md) (the law)
+skill, which loads [`design/archive/obsidian-v3.md`](../../../design/archive/obsidian-v3.md) (the law)
 
 - [`design-reference/obsidian-v3/`](../../design-reference/obsidian-v3/)
   (tokens, `components.md`, `implementation-notes.md`, the runnable prototype)
-- [`design-reference/obsidian-extensions.md`](../../design-reference/obsidian-extensions.md)
+- [`design-reference/obsidian-extensions.md`](../../../../design-reference/obsidian-extensions.md)
   (the stub specs: palette, Ask, Settings, onboarding, room details, charts,
   micro-interactions, density, empty states).
 
@@ -144,7 +144,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   specimen route (`src/routes/_authenticated.obsidian-specimen.tsx`) shipped
   once OBS-02 released the `_authenticated.*.tsx` glob it had conflicted
   with; renders every primitive in every state (tsc 0, 1892 total tests).
-  Full detail: [`../features/obsidian-port.md`](../features/obsidian-port.md)
+  Full detail: [`../features/obsidian-port.md`](../../../features/obsidian-port.md)
   OBS-02 + OBS-03 sections.
 - **Verify:** grayscale screenshot still reads; tsc + tests.
 

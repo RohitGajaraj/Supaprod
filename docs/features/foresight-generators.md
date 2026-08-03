@@ -10,7 +10,7 @@ Supaprod's `derive-tick` cron watches emerging product themes and derives falsif
 
 ## Why it exists
 
-v12 sec 4: Today is not a dashboard. Foresight that only lives in a background `insights` table changes nothing; it has to reach the operator's attention, and it has to earn trust rather than assert it. Full reasoning: [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 4. Build log: [`../../plan.md`](../planning/archive/build-log.md) §4 (search "FS-04").
+v12 sec 4: Today is not a dashboard. Foresight that only lives in a background `insights` table changes nothing; it has to reach the operator's attention, and it has to earn trust rather than assert it. Full reasoning: [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 4. Build log: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (search "FS-04").
 
 ## Where to find it
 
@@ -52,6 +52,6 @@ v12 sec 4: Today is not a dashboard. Foresight that only lives in a background `
 
 ## Related
 
-- [`../../plan.md`](../planning/archive/build-log.md) §4 — FS-01 and FS-04 build log entries.
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 — FS-01 and FS-04 build log entries.
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) sec 4 — the foresight-in-the-brief reasoning.
 - [`outcome-contract.md`](./outcome-contract.md) — the sibling v12 CONVENTIONS arc (a different composition of already-shipped primitives into an existing surface).

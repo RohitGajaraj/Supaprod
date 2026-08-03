@@ -1,5 +1,5 @@
 > [!WARNING]
-> **ARCHIVED, historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](../v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](../v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
+> **ARCHIVED, historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](./v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](./v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
 
 # Product & Platform Audit v3, 2026-06-06
 
@@ -470,12 +470,12 @@ The single thing the team should internalize from this audit: **stop building fe
 ## Related
 
 - Current positioning anchor: [`v2-positioning.md`](./v2-positioning.md)
-- Strategic decisions log: [`session-decisions.md`](./session-decisions.md)
-- Feature backlog: [`../feature-backlog.md`](../feature-backlog.md)
-- Build plan: [`../../plan.md`](../../plan.md)
-- Operating rules: [`../../AGENTS.md`](../../AGENTS.md)
+- Strategic decisions log: [`session-decisions.md`](../session-decisions.md)
+- Feature backlog: [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md)
+- Build plan: [`planning/archive/build-log.md`](../../planning/archive/build-log.md)
+- Operating rules: [`../../AGENTS.md`](../../../AGENTS.md)
 - Architecture: [`../../architecture/`](../../architecture/) (runtime · orchestration · frontend · data · security · integrations)
-- Considerations (non-functional gaps): [`../considerations.md`](../considerations.md)
+- Considerations (non-functional gaps): [`planning/considerations.md`](../../planning/considerations.md)
 
 _Auditor: Lovable session, 2026-06-06. Method: full doc + code read, live preview walk against the seeded demo workspace, three parallel competitive-research subagents covering engineering-autonomy / product-OS / agent-OS+governance lanes. Posture: brutally honest per operator's standing instruction._
 
@@ -483,7 +483,7 @@ _Auditor: Lovable session, 2026-06-06. Method: full doc + code read, live previe
 
 ## Triage status (2026-06-06)
 
-✅ **Triaged.** All 22 RECs graduated into addressable F-IDs in [`../feature-backlog.md` § v3 Audit Triage](../feature-backlog.md#v3-audit-triage-2026-06-06). Mapping (rec → F-ID):
+✅ **Triaged.** All 22 RECs graduated into addressable F-IDs in [`../feature-backlog.md` § v3 Audit Triage](../../planning/archive/feature-backlog.md#v3-audit-triage-2026-06-06). Mapping (rec → F-ID):
 
 - REC-01 → `F-VOICE-LOGIN` (P0, with LANG-01)
 - REC-02 → `F-VOICE-AINATIVE` (P0)

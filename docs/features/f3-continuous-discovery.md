@@ -51,4 +51,4 @@ Pain #1 (v10): "signal is scattered; I miss things and react late." A live, per-
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`discovery.functions.ts`](../../src/lib/discovery.functions.ts) · `SignalsPanel.tsx` · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycles 11, 17).
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`discovery.functions.ts`](../../src/lib/discovery.functions.ts) · `SignalsPanel.tsx` · [autonomous-build-loop playbook](../operations/autonomous-build-loop.md) (cycles 11, 17).

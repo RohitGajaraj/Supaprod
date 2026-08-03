@@ -59,7 +59,7 @@ Day 0 actions with lead times longer than the wave:
 > - **Samepage Signals** (samepage.ai) — "second brain for product leaders," pushes insights across Jira/Linear/Productboard/Slack/Notion/Gong. 205 upvotes, Jun 25 2026, launched with a $4.85M raise (Craft Ventures; angels incl. Justin Kan). Differentiation line: _they surface insight; Supaprod closes the loop — decision to build to recorded outcome, with receipts._
 > - **Brief** (briefhq.ai) — "Navigate your agents to product-market fit," a Product Graph serving context to humans and agents via Slack/CLI/MCP, explicitly targets Cursor/Claude Code/Windsurf. 264 upvotes, Jun 2026. Differentiation line: _they feed context to agents; Supaprod governs agents end to end and keeps the outcome ledger — nobody else connects decide → build → outcome and learns from it._
 >
-> Their comment threads are a free preview of the objections our listing will get. Mine both; feed objections into the qa-bank ([`docs/pitch/qa-bank.md`](../pitch/qa-bank.md)).
+> Their comment threads are a free preview of the objections our listing will get. Mine both; feed objections into the qa-bank ([`pitch/qa-bank.md`](../pitch/qa-bank.md)).
 
 ---
 
@@ -69,7 +69,7 @@ Day 0 actions with lead times longer than the wave:
 
 **Audience fit:** engineers, product engineers, technical founders — exactly the expanded wedge (v13 §3). Skeptical of AI claims; rewards receipts and honest limitations.
 
-**Timing:** week 2–3 (v13 phase 3), Tue–Thu, start of US business hours (sources conflict ET vs PT; err toward 8–10am ET). Secondary window: Sunday ~6–9pm PT. **Hard gates before submitting** (from [`launch-assets.md`](../pitch/launch-assets.md), confirmed by the official rules):
+**Timing:** week 2–3 (v13 phase 3), Tue–Thu, start of US business hours (sources conflict ET vs PT; err toward 8–10am ET). Secondary window: Sunday ~6–9pm PT. **Hard gates before submitting** (from [`pitch/launch-assets.md`](../pitch/launch-assets.md), confirmed by the official rules):
 
 - **A no-signup demo path is REQUIRED.** Official Show HN rules: something people can actually try, "ideally without barriers such as signups or emails." A waitlist page is NOT Show HN eligible. PC-04 blocks the post — no workaround.
 - 2–3 real beta stories exist (the "who's using it" beat must be truthful).
@@ -78,7 +78,7 @@ Day 0 actions with lead times longer than the wave:
 **Posting strategy (VERIFIED rules + documented cases):**
 
 - Post from the founder's **personal** account with real karma history. Company-named accounts get soft-killed (DDL to Data, Jan 2026 — restored only after emailing hn@ycombinator.com).
-- Title: `Show HN: Supaprod – [one concrete thing]` — the drafted title lives in [`launch-assets.md`](../pitch/launch-assets.md); no adjectives, no exclamation marks. July 2026 calibration: agent-tool Show HNs land **20–220 points** (GitAgent 147, Understudy 120, Rowboat 217) — four-figure outcomes (Clippy 1,122) are personality/nostalgia outliers. Plan for the band, not the outlier.
+- Title: `Show HN: Supaprod – [one concrete thing]` — the drafted title lives in [`pitch/launch-assets.md`](../pitch/launch-assets.md); no adjectives, no exclamation marks. July 2026 calibration: agent-tool Show HNs land **20–220 points** (GitAgent 147, Understudy 120, Rowboat 217) — four-figure outcomes (Clippy 1,122) are personality/nostalgia outliers. Plan for the band, not the outlier.
 - **The post must read unmistakably human.** The 2025–26 norm: LLM-written launch copy gets detected and flamed — and we are an AI product, so the scrutiny doubles. The founder rewrites the final text in his own words even if the structure comes from the draft.
 - Maker's first comment goes up immediately: what/why/technical decisions + at least one honest limitation (the honest-limitations list is already drafted).
 
@@ -109,7 +109,7 @@ Day 0 actions with lead times longer than the wave:
 **Playbook:**
 
 - **Self-hunt** (~44% of 2026 launches do) with a maker profile active 30+ days prior — start founder PH activity day 0. External hunter only if one with top-30 recent hunts offers.
-- Assets: 8–12 visuals; the tagline and description are drafted in [`launch-assets.md`](../pitch/launch-assets.md). Gallery shot list exists there too.
+- Assets: 8–12 visuals; the tagline and description are drafted in [`pitch/launch-assets.md`](../pitch/launch-assets.md). Gallery shot list exists there too.
 - Early-hour velocity dominates: ~30 hour-1 upvotes from established accounts can outrank 200 spread across the day (~directional). Accounts created within 72h of launch are shadow-filtered — the warm list must be _existing_ PH users; identify them when they join the waitlist.
 - **VERIFIED rule:** asking or incentivizing upvotes is banned (the #1 removal cause). You MAY ask people to "check it out / try it / leave honest feedback." Paid upvote rings are AI-detected via social-graph analysis. We never touch them.
 - Founder responds to every comment within 15 min during the 6–10am PT peak; 3–4-deep genuine comment threads are a ranking multiplier (~directional).

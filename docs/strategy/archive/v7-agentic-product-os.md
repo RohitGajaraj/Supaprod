@@ -2,11 +2,11 @@
 
 > _Created: 2026-06-14 · Last updated: 2026-06-19_
 
-> **Status: CURRENT.** Supersedes [`v6-agentic-product-os.md`](archive/v6-agentic-product-os.md) (which remains the detailed engine/IA reference). This is the strategy canon after a code-verified truth audit + a holistic, independently-researched market study. Read this first for any positioning, product, pricing, GTM, or fundraising work.
+> **Status: CURRENT.** Supersedes [`v6-agentic-product-os.md`](./v6-agentic-product-os.md) (which remains the detailed engine/IA reference). This is the strategy canon after a code-verified truth audit + a holistic, independently-researched market study. Read this first for any positioning, product, pricing, GTM, or fundraising work.
 >
 > **What changed from v6 to v7.** (1) An honest, code-verified **state-of-the-product** replaces estimates. The autonomy/memory/audit engine is _real_ (better than a first scan suggested); the gaps are specific and fixable. (2) Four course-corrections are committed (founder, 2026-06-14): **moat = compounding memory** · **ambient + governed (not "autonomous")** · **hybrid + outcome pricing** · **complete the loop on real data before breadth.** (3) **Dual-persona** beachhead (senior/founding PM + individual PM/prosumer). (4) Positioning is held to _claim-never-outruns-wiring_, now a legal as well as an integrity stance.
 >
-> **Evidence base (holistic, not anchored to any single source).** Code truth-audit of `main` (2026-06-14) · our June market scan ([`../references/competitive-landscape.md`](../references/competitive-landscape.md)) · this session's live competitive/PM-pain/WTP/investor/trajectory research · third-party data (Gartner, McKinsey, MIT, Bessemer, Sequoia, a16z) · and, as two corroborating inputs among many, the GCP reference digests ([synthesis](../references/external-strategy-synthesis.md)). Where these disagree, the canon flags it.
+> **Evidence base (holistic, not anchored to any single source).** Code truth-audit of `main` (2026-06-14) · our June market scan ([`../references/competitive-landscape.md`](../../references/competitive-landscape.md)) · this session's live competitive/PM-pain/WTP/investor/trajectory research · third-party data (Gartner, McKinsey, MIT, Bessemer, Sequoia, a16z) · and, as two corroborating inputs among many, the GCP reference digests ([synthesis](../../references/external-strategy-synthesis.md)). Where these disagree, the canon flags it.
 
 ---
 
@@ -50,7 +50,7 @@
 
 ## 4. The market: holistic synthesis (sourced)
 
-**Whitespace is real but closing (~18 to 24-month window).** No verified owner of the _governed, autonomous, closed-loop PM system with compounding memory_. Edges converge from every side: **Productboard Spark** (insights→PRD + org memory), **Atlassian Rovo** (downstream execution at scale, ~90% enterprise reach), **Dovetail / Enterpret** (signal→action), **ChatPRD** (PRD, bootstrapped, ships inside Linear), **Notion AI agents**, **Linear for Agents** (eng coordination). Build/eng agents (Devin ~$26B, Cursor ~$29B, Factory, Replit, v0) own _Build_ but not the PM loop. Detail + sources: [`../references/competitive-landscape.md`](../references/competitive-landscape.md).
+**Whitespace is real but closing (~18 to 24-month window).** No verified owner of the _governed, autonomous, closed-loop PM system with compounding memory_. Edges converge from every side: **Productboard Spark** (insights→PRD + org memory), **Atlassian Rovo** (downstream execution at scale, ~90% enterprise reach), **Dovetail / Enterpret** (signal→action), **ChatPRD** (PRD, bootstrapped, ships inside Linear), **Notion AI agents**, **Linear for Agents** (eng coordination). Build/eng agents (Devin ~$26B, Cursor ~$29B, Factory, Replit, v0) own _Build_ but not the PM loop. Detail + sources: [`../references/competitive-landscape.md`](../../references/competitive-landscape.md).
 
 **The wedge: the PM firefighting/OpEx tax.** PMs spend ~45% of time on reactive work; orgs run ~101 apps and lose ~1 hr/day to tool-switching. The sharpest entry is _amplified judgment_ (sense → route → propose → 1-click approve → trigger downstream), not day-one autonomy.
 
@@ -133,9 +133,9 @@
 3. **Course-corrections committed:** moat = compounding memory · ambient + governed · hybrid + outcome pricing · complete the loop on real data before breadth. (§3, §6, §7, §9)
 4. **Deliverables phased:** this canon first; then feature map · functionality map · TRD · PRDs.
 5. **External reports are inputs, not the basis**, decisions take a holistic, independently-researched lens (founder steer). (§Evidence base)
-6. **Naming:** Supaprod (finalized 2026-07-17; was Cadence, unfinalized, at this 2026-06-14 ruling — see [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md)).
+6. **Naming:** Supaprod (finalized 2026-07-17; was Cadence, unfinalized, at this 2026-06-14 ruling — see [`../pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md)).
 7. **Gate on the proof gauntlet, not dates:** ≥10 PMs paying ≥$150/mo · the loop closes once on a partner's real data · autonomy ticks up on a real account.
-8. **Humanized output, zero AI fingerprints (standing rule, two levels):** no em/en dashes, no invisible Unicode, no AI-cliche phrasing in what we build OR what the platform generates for users (PRDs, drafts, chat). The runtime sanitizer at the AI chokepoint is the hard gate. The product should read as distinctly Supaprod, not one in a thousand AI apps. Convention: [`../conventions/humanized-output.md`](../conventions/humanized-output.md). (2026-06-14)
+8. **Humanized output, zero AI fingerprints (standing rule, two levels):** no em/en dashes, no invisible Unicode, no AI-cliche phrasing in what we build OR what the platform generates for users (PRDs, drafts, chat). The runtime sanitizer at the AI chokepoint is the hard gate. The product should read as distinctly Supaprod, not one in a thousand AI apps. Convention: [`../conventions/humanized-output.md`](../../conventions/humanized-output.md). (2026-06-14)
 
 ## 14. Risks & open questions
 
@@ -149,4 +149,4 @@
 
 ---
 
-**References:** [`../references/external-strategy-synthesis.md`](../references/external-strategy-synthesis.md) · [`../references/competitive-landscape.md`](../references/competitive-landscape.md) · [`../references/ai-agent-trends-2026-gcp.md`](../references/ai-agent-trends-2026-gcp.md) · [`../references/future-of-ai-startups-2025-gcp.md`](../references/future-of-ai-startups-2025-gcp.md) · engine/IA detail → [`v6-agentic-product-os.md`](archive/v6-agentic-product-os.md) · decisions log → [`session-decisions.md`](./session-decisions.md)
+**References:** [`../references/external-strategy-synthesis.md`](../../references/external-strategy-synthesis.md) · [`../references/competitive-landscape.md`](../../references/competitive-landscape.md) · [`../references/ai-agent-trends-2026-gcp.md`](../../references/ai-agent-trends-2026-gcp.md) · [`../references/future-of-ai-startups-2025-gcp.md`](../../references/future-of-ai-startups-2025-gcp.md) · engine/IA detail → [`v6-agentic-product-os.md`](./v6-agentic-product-os.md) · decisions log → [`session-decisions.md`](../session-decisions.md)

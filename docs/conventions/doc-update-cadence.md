@@ -25,8 +25,8 @@ The live cursors, logs, and trackers. Update these in the SAME commit as the cha
 
 The product-facing maps and specs. Refresh these when a feature set lands or a feature's status changes (Built, Partial, Missing), at a milestone boundary (each M-0 to M-D completion) or after roughly two weeks of progress, whichever comes first. Do not rewrite them on every small build.
 
-- `docs/strategy/v10-master-blueprint.md`: the current master blueprint (what we build, how it should look and behave, priority). See `docs/strategy/README.md` (the arbiter) for which strategy doc governs what.
-- `docs/planning/v10_implementation-plan.md`: the execution order (build loop, sprints, milestone gates).
+- `docs/strategy/archive/v10-master-blueprint.md`: the current master blueprint (what we build, how it should look and behave, priority). See `docs/strategy/README.md` (the arbiter) for which strategy doc governs what.
+- `docs/planning/archive/v10-implementation-plan.md`: the execution order (build loop, sprints, milestone gates).
 - `docs/planning/feature-dashboard.md`: the live board (status, board groups).
 - `docs/features/*`: per-feature operator specs.
 
@@ -50,7 +50,7 @@ Any "what are we building next?" question is answered by reading one chain, in o
 2. `docs/planning/SOURCE-OF-TRUTH.md` section 3 (the build queue): the explicit build queue (top pick first), plus the founder pickup list, open findings, and the milestone framing folded in.
 3. `docs/planning/feature-dashboard.md`: the per-feature register with status, board groups, and per-row notes. (The old `feature-backlog.md` is archived; per-feature how-to-verify details now live in the relevant `docs/features/*.md` file.)
 
-The milestone gates and execution order are defined in `docs/planning/v10_implementation-plan.md`; the build/structure canon is `docs/strategy/v10-master-blueprint.md` (with `docs/strategy/README.md` as the arbiter of which strategy doc governs what). The feature statuses come from `docs/planning/feature-dashboard.md`. The tracker (the SSOT) is the synthesis layer that joins them.
+The milestone gates and execution order are defined in `docs/planning/archive/v10-implementation-plan.md`; the build/structure canon is `docs/strategy/archive/v10-master-blueprint.md` (with `docs/strategy/README.md` as the arbiter of which strategy doc governs what). The feature statuses come from `docs/planning/feature-dashboard.md`. The tracker (the SSOT) is the synthesis layer that joins them.
 
 Rules:
 

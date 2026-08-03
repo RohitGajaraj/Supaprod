@@ -1,4 +1,4 @@
-> ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
+> ARCHIVED 2026-06-17. Superseded by [the v10 master blueprint](../../strategy/archive/v10-master-blueprint.md) and governed by the [role map](../../strategy/README.md). Kept for history only; do not use for current decisions. Internal links may be stale.
 
 # v7 Feature Map: the catalog of what Supaprod ships today (2026-06-14)
 
@@ -6,7 +6,7 @@
 
 > **What this is.** The shipped-state catalog of Supaprod: every feature we offer, organized by the six lifecycle stations (Sense, Decide, Define, Build, Ship, Learn) and by surface. Each entry carries a name, a one-line, the agent(s) and tool(s) behind it, a status (Built / Partial / Missing-Planned), and the surface or route it lives on. This is the _what we offer_ register, not behavior detail and not schema. It is code-verified against `main` at commit `f515cfb`.
 >
-> **Read with.** Positioning and the honest state-of-product live in [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md) (the canon). The full L0→L5 expansion superset (7 laws, 6 stations, the 19-agent mesh roadmap, handoff contract, HITL gates, milestones M1 to M5) lives in [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md). Live gaps are tracked in [`known-issues.md`](./known-issues.md); sub-feature scope in [`feature-backlog.md`](./feature-backlog.md).
+> **Read with.** Positioning and the honest state-of-product live in [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md) (the canon). The full L0→L5 expansion superset (7 laws, 6 stations, the 19-agent mesh roadmap, handoff contract, HITL gates, milestones M1 to M5) lives in [`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md). Live gaps are tracked in [`known-issues.md`](../known-issues.md); sub-feature scope in [`feature-backlog.md`](./feature-backlog.md).
 >
 > **The honesty rule (claim-never-outruns-wiring).** Every item below is marked against code. The autonomy and memory engine is real (deterministic auto-advance, memory threading, outcome-to-memory recall, the unattended-execution audit, the Today decision card, the gauntlet metrics). The shipped roster is 4 specialist agents plus the orchestrator, with Critic as an inline LLM call. Where a feature is wired but not operational on real data, it is marked Partial with the blocking gate named.
 
@@ -205,7 +205,7 @@ Shipped roster: **4 specialist agents (`discovery-scout`, `strategist`, `prd-wri
 
 ## 10. Cross-reference: the v4 expansion superset, and what v7 commits to first
 
-The full ambition is the [`v4 feature map`](../strategy/archive/v4-feature-map.md): 7 laws, 6 stations over a 12-stage engine, a **19-agent mesh** (17 specialists + 2 spine), the A2A handoff contract, the HITL gate matrix, and milestones M1 to M5. v7 is the honest subset of that superset that exists in code, plus the short list it commits to _first_.
+The full ambition is the [`v4 feature map`](../../strategy/archive/v4-feature-map.md): 7 laws, 6 stations over a 12-stage engine, a **19-agent mesh** (17 specialists + 2 spine), the A2A handoff contract, the HITL gate matrix, and milestones M1 to M5. v7 is the honest subset of that superset that exists in code, plus the short list it commits to _first_.
 
 **What the v4 superset names that v7 has not built (Missing-Planned):**
 
@@ -229,7 +229,7 @@ Breadth (the rest of the mesh, MCP/public API, dedicated Ship agent) comes after
 
 ## 11. Live gaps (consolidated)
 
-The named blockers that keep wired features from running on real data. Full register in [`known-issues.md`](./known-issues.md).
+The named blockers that keep wired features from running on real data. Full register in [`known-issues.md`](../known-issues.md).
 
 | ID                    | Gap                                                                                                                                                                                                                                                                      | Impact                                                                                                                                                | Status                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -266,8 +266,8 @@ The nouns this product uses. Use these, not stock SaaS terms.
 
 ## Related
 
-- [`../strategy/v7-agentic-product-os.md`](../strategy/v7-agentic-product-os.md), the current positioning and honest state-of-product canon.
-- [`../strategy/archive/v4-feature-map.md`](../strategy/archive/v4-feature-map.md), the L0→L5 expansion superset (7 laws, 19-agent mesh, HITL gates, M1 to M5).
-- [`known-issues.md`](./known-issues.md), the live-gaps register, by KI id.
+- [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md), the current positioning and honest state-of-product canon.
+- [`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md), the L0→L5 expansion superset (7 laws, 19-agent mesh, HITL gates, M1 to M5).
+- [`known-issues.md`](../known-issues.md), the live-gaps register, by KI id.
 - [`feature-backlog.md`](./feature-backlog.md), ticket-level sub-feature scope.
-- [`../strategy/session-decisions.md`](../strategy/session-decisions.md), the 2026-06-14 course-corrections and the slug-bug decision.
+- [`../strategy/session-decisions.md`](../../strategy/session-decisions.md), the 2026-06-14 course-corrections and the slug-bug decision.

@@ -51,4 +51,4 @@ A calm, silent-when-healthy `ReliabilityGlance` ([`../../src/components/cockpit/
 - Gap source: [`../planning/considerations.md`](../planning/considerations.md) (SRE / Platform / Reliability lens, P1).
 - Sibling: [`app-health.md`](./app-health.md) (liveness/readiness); [`p7-incidents.md`](./p7-incidents.md) + [`r3-notifications.md`](./r3-notifications.md) (where alerting would surface).
 - Board: `RELIABILITY-SLO` (row 152) in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md).
-- Build log: [`../../plan.md`](../planning/archive/build-log.md) §4.
+- Build log: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4.

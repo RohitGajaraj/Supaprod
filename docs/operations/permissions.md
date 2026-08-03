@@ -73,4 +73,4 @@ Read/Edit/Write/Glob/Grep on all paths; WebSearch + WebFetch; and the safe shell
 
 - [`autonomous-build-loop.md`](./autonomous-build-loop.md) §11 (how to run the loop hands-off) points here for the permission detail.
 - [`hooks.md`](./hooks.md) — the hooks that enforce commit/migration invariants (a separate guard rail from permissions).
-- [`git-discipline.md`](./commits.md) — why the deny list blocks force-push / hard-reset (parallel sessions share a working tree).
+- [`commits.md`](./commits.md) — why the deny list blocks force-push / hard-reset (parallel sessions share a working tree).

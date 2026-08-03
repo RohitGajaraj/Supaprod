@@ -17,8 +17,8 @@
 
 | ID     | Bet                | Drill-down doc                                       | Priority                                | Status                                                                                                                                                                                                                              |
 | ------ | ------------------ | ---------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **H1** | The Decision Brain | [`decision-brain.md`](../features/decision-brain.md) | **TOPMOST (founder ruling 2026-06-20)** | Increment 1 ([Ambient Precedent](../features/ambient-precedent.md)) SHIPPED to `main` (◐) 2026-06-20 cycle 55, all 6 tasks (engine + ranker ✅ unit-verified; 3 seams render-on-publish); deeper graph (DBR-1+) awaiting enrichment |
-| **H2** | The Command Canvas | [`command-canvas.md`](../features/command-canvas.md) | **Un-parked 2026-07-03 (founder)**      | CMD-0 shipped (lane3), `◐ [~40%]`: the preview/canvas blocks render inside the existing Ask panel; CMD-1 (NL intent bar) and CMD-2 (direct manipulation) remain                                                                     |
+| **H1** | The Decision Brain | [`features/decision-brain.md`](../features/decision-brain.md) | **TOPMOST (founder ruling 2026-06-20)** | Increment 1 ([Ambient Precedent](../features/ambient-precedent.md)) SHIPPED to `main` (◐) 2026-06-20 cycle 55, all 6 tasks (engine + ranker ✅ unit-verified; 3 seams render-on-publish); deeper graph (DBR-1+) awaiting enrichment |
+| **H2** | The Command Canvas | [`features/command-canvas.md`](../features/command-canvas.md) | **Un-parked 2026-07-03 (founder)**      | CMD-0 shipped (lane3), `◐ [~40%]`: the preview/canvas blocks render inside the existing Ask panel; CMD-1 (NL intent bar) and CMD-2 (direct manipulation) remain                                                                     |
 
 Both came from one founder session (2026-06-20) and are best read as one arc: a **second-brain product** where a knowledge graph is the engine and a command-plus-preview surface is the front. Graph in, canvas out. Each bet has a self-contained, shareable drill-down doc in [`../features/`](../features/) (linked above); this register holds the strategic view (thesis, wiring, multi-lens, roadmap).
 
@@ -213,7 +213,7 @@ These gaps _are_ the two bets. Wiring map:
 - Moat / competition / defensibility: [`moat.md`](./moat.md) (the Decision Brain is the engine under the memory layer).
 - Raw reasoning: [`strategic-inputs-log.md`](./strategic-inputs-log.md) (the 2026-06-20 entry).
 - Decision log: [`session-decisions.md`](./session-decisions.md) (the 2026-06-20 entry).
-- Interface law: [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md); structure: [`v8-calm-front-deep-engine.md`](./v8-calm-front-deep-engine.md); design: [`../conventions/design-context.md`](../conventions/design-context.md).
+- Interface law: [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md); structure: [`archive/v8-calm-front-deep-engine.md`](./archive/v8-calm-front-deep-engine.md); design: [`../conventions/design-context.md`](../conventions/design-context.md).
 - Current Brain surface: [`../features/brain.md`](../features/brain.md).
 - Live tracker: [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md).
 - Role map (which strategy doc to pick): [`README.md`](./README.md).

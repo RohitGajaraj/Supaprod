@@ -14,8 +14,8 @@
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Positioning, market, pricing, GTM, investor narrative                         | [`v7`](./v7-agentic-product-os.md)                                     | v9 strengthens v7's "memory is the moat" from first principles; does not alter the position.                     |
 | Surface map, the Engine Room door, the hybrid Build spine, 4-phase sequencing | [`v8`](./v8-calm-front-deep-engine.md)                                 | v9 confirms v8 Fork 1 (hybrid Build) and explains the end-to-end workflow it implies; does not re-map surfaces.  |
-| Engine / 19-agent mesh / handoff contract / HITL gates                        | [`v4`](archive/v4-feature-map.md)                                      | unchanged.                                                                                                       |
-| Live build status (the audit baseline)                                        | [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) | v9's audit reads from it (reconciled with file evidence 2026-06-16); v9 adds the strategic read, not new status. |
+| Engine / 19-agent mesh / handoff contract / HITL gates                        | [`v4`](./v4-feature-map.md)                                      | unchanged.                                                                                                       |
+| Live build status (the audit baseline)                                        | [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) | v9's audit reads from it (reconciled with file evidence 2026-06-16); v9 adds the strategic read, not new status. |
 
 **v9 is additive. It is the conceptual foundation + the launch wedge + the competitor posture + the build-next call.** Nothing here contradicts v7 or v8; where it sharpens them, it says so.
 
@@ -63,7 +63,7 @@ This refines v5 ("evidence-to-decision ritual") and v7 (general decide-ritual) t
 
 **Persona implication (sharpening v7 §5):** keep the dual-persona _destination_ and the serial-with-overlap _motion_, but collapse the _narrative_ to the individual PM (P2) until the single-player loop is addictive. "We are for everyone" is what pre-PMF companies say. The team tier is expansion, not a co-equal launch story.
 
-**Operating-model frame (added 2026-06-17, "the year of the agent manager"):** layer the 2026 agent-manager shift _underneath_ the wedge, never as the headline. The role Supaprod gives the PM (decide what is worth building, direct the agent fleet, review what shipped) is exactly the emerging "agent manager" job, so it is a free narrative amplifier on the landing page: lead with "the AI that red-teams your roadmap," then "the operating model is shifting from doing the work to directing agents, and Supaprod is where a PM does that for product." Do **not** make it the category ("agent manager / agent ops" commoditizes into infrastructure and shifts the ICP to platform / eng buyers), and do **not** build an in-app surface named "Agent Manager" (the Engine-Room Doctrine's "control-room creep"; the capability already exists, outcome-named, in the Engine Room). The end-user value of "how much are the agents consuming" is reframed as **cost-per-outcome** (what you got for what you spent), kept light on the calm front, with full per-agent telemetry behind the Engine Room door. Source reasoning: [`strategic-inputs-log.md`](./strategic-inputs-log.md) (2026-06-17); decision: [`session-decisions.md`](./session-decisions.md).
+**Operating-model frame (added 2026-06-17, "the year of the agent manager"):** layer the 2026 agent-manager shift _underneath_ the wedge, never as the headline. The role Supaprod gives the PM (decide what is worth building, direct the agent fleet, review what shipped) is exactly the emerging "agent manager" job, so it is a free narrative amplifier on the landing page: lead with "the AI that red-teams your roadmap," then "the operating model is shifting from doing the work to directing agents, and Supaprod is where a PM does that for product." Do **not** make it the category ("agent manager / agent ops" commoditizes into infrastructure and shifts the ICP to platform / eng buyers), and do **not** build an in-app surface named "Agent Manager" (the Engine-Room Doctrine's "control-room creep"; the capability already exists, outcome-named, in the Engine Room). The end-user value of "how much are the agents consuming" is reframed as **cost-per-outcome** (what you got for what you spent), kept light on the calm front, with full per-agent telemetry behind the Engine Room door. Source reasoning: [`strategic-inputs-log.md`](../strategic-inputs-log.md) (2026-06-17); decision: [`session-decisions.md`](../session-decisions.md).
 
 ---
 
@@ -133,7 +133,7 @@ So: zero-friction at the seams that exist; the work left is adding the two capab
 
 ## 5. The honest audit: what is good, what is not
 
-Build-state sourced from the reconciled [feature dashboard](../planning/feature-dashboard.md) (file-evidence reconciled 2026-06-16). The strategic read is v9's.
+Build-state sourced from the reconciled [feature dashboard](../../planning/feature-dashboard.md) (file-evidence reconciled 2026-06-16). The strategic read is v9's.
 
 **What is genuinely good (protect and lean on these):**
 
@@ -186,7 +186,7 @@ Sequenced by leverage, mapped to existing dashboard IDs and v8 phases. This is a
 - **Critic as a routable agent vs. inline** (v7/v8 open): the wedge raises the Critic's importance; deciding this affects whether the teardown is a first-class loop step (DEC-02-LOOP).
 - **How far to pull MCP forward:** read-only slice now (v9 recommends) vs. wait for M-D.
 - **Outcome-pricing unit:** still TBD (v7 §14); v9 recommends deferring it out of the launch story entirely.
-- **Naming reconciliation:** product is **Supaprod** (renamed 2026-07-17 from Cadence — see [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md)). Earlier history: the 2026-06-10 rebrand was reverted 2026-06-16, and the full repo was swept back to Cadence on 2026-06-17. The 2026-07-17 rename swept the repo to Supaprod in turn (only the unrelated engineering terms remain); no naming pass is outstanding.
+- **Naming reconciliation:** product is **Supaprod** (renamed 2026-07-17 from Cadence — see [`../pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md)). Earlier history: the 2026-06-10 rebrand was reverted 2026-06-16, and the full repo was swept back to Cadence on 2026-06-17. The 2026-07-17 rename swept the repo to Supaprod in turn (only the unrelated engineering terms remain); no naming pass is outstanding.
 
 ---
 
@@ -195,7 +195,7 @@ Sequenced by leverage, mapped to existing dashboard IDs and v8 phases. This is a
 - **Positioning + market:** [`v7`](./v7-agentic-product-os.md) wins.
 - **Structure + surfaces + build-order:** [`v8`](./v8-calm-front-deep-engine.md) wins.
 - **Launch wedge + competitor posture + build-next priority:** v9 (this doc).
-- **Engine / mesh / contract:** [`v4`](archive/v4-feature-map.md).
-- **Live status (audit baseline):** [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md).
+- **Engine / mesh / contract:** [`v4`](./v4-feature-map.md).
+- **Live status (audit baseline):** [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md).
 
-Cascade applied this session: strategy [`README.md`](./README.md) index, the session-decisions log, and the [`CLAUDE.md`](../../CLAUDE.md) read-order pointer. The README/v7 naming pass and any backlog re-priority from §6 are noted as follow-ups, not silently applied.
+Cascade applied this session: strategy [`README.md`](../../../README.md) index, the session-decisions log, and the [`CLAUDE.md`](../../../CLAUDE.md) read-order pointer. The README/v7 naming pass and any backlog re-priority from §6 are noted as follow-ups, not silently applied.

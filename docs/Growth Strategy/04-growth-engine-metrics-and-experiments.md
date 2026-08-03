@@ -1,7 +1,7 @@
 # 04 — Growth engine, metrics, and the experiment system
 
 > _Part of the [GTM Launch Operating Manual](./README.md). Created 2026-07-12. Owner: founder + GTM lane (Lane C)._
-> _Binding anchors: [v13 Proof Campaign](../strategy/v13-proof-campaign.md) (gates G-SPRINT → G-BETA → G-LAUNCH → G-REV; north star = weekly closed loops per workspace), [pricing architecture](../strategy/pricing/pricing-architecture.md) (credits-not-seats, free wedge), claim discipline PROVEN / WIRING / ROADMAP. Nothing here publishes without founder approval (standing rule, plan §4)._
+> _Binding anchors: [v13 Proof Campaign](../strategy/archive/v13-proof-campaign.md) (gates G-SPRINT → G-BETA → G-LAUNCH → G-REV; north star = weekly closed loops per workspace), [pricing architecture](../strategy/pricing/pricing-architecture.md) (credits-not-seats, free wedge), claim discipline PROVEN / WIRING / ROADMAP. Nothing here publishes without founder approval (standing rule, plan §4)._
 
 **Contents:** 1. Growth loops · 2. The four motions · 3. SEO + AI search · 4. Content engine · 5. Partnerships & integrations · 6. Weekly experiment system · 7. Metrics dashboard
 
@@ -63,7 +63,7 @@ For the 7-day wave (details and copy in [05-viral-and-guerrilla-playbook.md](./0
 
 ### 2.1 Founder-led (weeks 1–8 this is ~70% of growth; do not delegate it)
 
-- **Build-in-public arc with receipts.** The standing pipe exists: postable insights → [`docs/brand-feed.md`](../brand-feed.md) → the brand engine stages Buffer drafts → **founder approves every send** (never auto-publish; standing rule). The launch month arc: _"13 months building an autonomous product engine in silence. Opening the doors in 25 days. Receipts daily."_ Daily artifact-backed posts (a real trace, a real revert, a real ledger entry) — never announcements without receipts.
+- **Build-in-public arc with receipts.** The standing pipe exists: postable insights → [`brand-feed.md`](../brand-feed.md) → the brand engine stages Buffer drafts → **founder approves every send** (never auto-publish; standing rule). The launch month arc: _"13 months building an autonomous product engine in silence. Opening the doors in 25 days. Receipts daily."_ Daily artifact-backed posts (a real trace, a real revert, a real ledger entry) — never announcements without receipts.
 - **Founder-led sales IS the discovery system** — every beta first-session doubles as a discovery interview (ground-truth mandate; frameworks in [03-customer-discovery-and-validation.md](./03-customer-discovery-and-validation.md)).
 - Why: at zero market contact, credibility only transfers person-to-person. Impact: fills the 25-partner list (PC-13). Effort: 60–90 founder-min/day. Metric: replies + booked sessions/week. Next: the day-by-day script in [00-launch-operating-manual.md](./00-launch-operating-manual.md).
 

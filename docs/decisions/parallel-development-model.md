@@ -4,7 +4,7 @@
 
 > **How this repo is co-developed across Claude Code, Lovable, Antigravity, and Gemini without coordination overhead.** The model: files are shared, documentation is the boundary. Canonical rules: [`../../AGENTS.md`](../../AGENTS.md). This document is the detailed reference; AGENTS.md §10 is the summary pointer.
 
-**Related:** for the concrete numbered-lane worktree mechanism that implements this, see [`docs/operations/parallel-build.md`](../operations/parallel-build.md).
+**Related:** for the concrete numbered-lane worktree mechanism that implements this, see [`operations/parallel-build.md`](../operations/parallel-build.md).
 
 ---
 

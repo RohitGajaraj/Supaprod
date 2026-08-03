@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **The Supaprod Loop IA** (0 connections) — `UI-REVAMP-HANDOFF.md`
+- **The Supaprod Loop IA** (0 connections) — `docs/design/archive/ui-revamp-handoff.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `UI-REVAMP-HANDOFF.md`
+- `docs/design/archive/ui-revamp-handoff.md`
 
 ## Audit Trail
 

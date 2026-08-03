@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-11 · Last updated: 2026-06-19_
 
-> **Status: current for the felt product (wedge UX, nav, vocabulary, demo).** This does **not** supersede [`v4-feature-map.md`](./v4-feature-map.md). v4 remains the expansion map (stations, 19-agent mesh, M2 to M5, enterprise plane). v5 governs what a user _feels_ on day one and what ships by June 22. Founder-ratified 2026-06-11: identity = PM Chief of Staff · cut = mothball hard · ingest door = Slack. Decision entry: [`session-decisions.md`](./session-decisions.md).
+> **Status: current for the felt product (wedge UX, nav, vocabulary, demo).** This does **not** supersede [`v4-feature-map.md`](./v4-feature-map.md). v4 remains the expansion map (stations, 19-agent mesh, M2 to M5, enterprise plane). v5 governs what a user _feels_ on day one and what ships by June 22. Founder-ratified 2026-06-11: identity = PM Chief of Staff · cut = mothball hard · ingest door = Slack. Decision entry: [`session-decisions.md`](../session-decisions.md).
 
 ---
 
@@ -18,9 +18,9 @@ Founder verdict on the post-F-IA-V4 build: "overwhelming, disconnected, does not
 
 > **Supaprod is the senior PM's Chief of Staff: it runs the evidence-to-decision loop every day.** Agents read everything that came in, surface the 2 to 3 calls that need the PM's judgment, each with cited evidence and a Critic challenge, draft the artifacts that follow from the call, and remember every decision and outcome so the next call is sharper. Agents execute behind approval gates; the human judges. The org-cockpit (multi-seat, build/launch/support stations, MCP/A2A) is the expansion path, sold later, hidden now.
 
-**The daily ritual is the product.** Felt surface = **Today (the Calls queue) · Product (the work) · Knowledge (the contents) · Brain (the intelligence you talk to, see [`../features/brain.md`](../features/brain.md))** + a **Trust drawer** (kill-switch, budgets, approvals policy, Engine Room link). Everything else is engine room: intact, reachable, not navigation.
+**The daily ritual is the product.** Felt surface = **Today (the Calls queue) · Product (the work) · Knowledge (the contents) · Brain (the intelligence you talk to, see [`../features/brain.md`](../../features/brain.md))** + a **Trust drawer** (kill-switch, budgets, approvals policy, Engine Room link). Everything else is engine room: intact, reachable, not navigation.
 
-**UI vocabulary, five agents:** Scout (senses) · Strategist (ranks) · Critic (challenges) · Scribe (drafts) · **Chief of Staff** (orchestrates; UI rename of Orchestrator). The 19-agent mesh stays here in strategy as the expansion map. This realizes the constitution's "AI PM Chief of Staff" orchestrator and its smallest-viable-category mandate ([`../../Ai_Cofounder.md`](../../Ai_Cofounder.md)).
+**UI vocabulary, five agents:** Scout (senses) · Strategist (ranks) · Critic (challenges) · Scribe (drafts) · **Chief of Staff** (orchestrates; UI rename of Orchestrator). The 19-agent mesh stays here in strategy as the expansion map. This realizes the constitution's "AI PM Chief of Staff" orchestrator and its smallest-viable-category mandate ([`founding-constitution.md`](../founding-constitution.md)).
 
 ## Gap analysis (current state vs thesis)
 
@@ -49,8 +49,8 @@ Founder verdict on the post-F-IA-V4 build: "overwhelming, disconnected, does not
 2. **Door:** post in the connected Slack channel → signal appears, auto-clusters on next tick.
 3. **Loop:** approve PRD → issue → close issue → shipped event + outcome card → enter result → learning exists and a related opportunity's score visibly changes.
 4. **Cut:** nav shows 4 surfaces + drawer; `/govern`, `/build`, `/learn` deep links redirect; Engine Room reachable from drawer.
-5. `bun run lint` + build green; KI-02 passes per [`../operations/fnd-runtime-restart-playbook.md`](../operations/fnd-runtime-restart-playbook.md).
+5. `bun run lint` + build green; KI-02 passes per [`../operations/fnd-runtime-restart-playbook.md`](../../operations/fnd-runtime-restart-playbook.md).
 
 ## Related
 
-[`v4-feature-map.md`](./v4-feature-map.md) (expansion map) · [`v4-stress-test.md`](./v4-stress-test.md) (diagnosis) · [`session-decisions.md`](./session-decisions.md) (rulings) · [`../planning/feature-backlog.md`](../planning/feature-backlog.md) (F-V5 board) · [`../planning/known-issues.md`](../planning/known-issues.md) (KI-01/02/03) · [`../../Ai_Cofounder.md`](../../Ai_Cofounder.md) (constitution) · [`../../plan.md`](../../plan.md) §4 (build log)
+[`v4-feature-map.md`](./v4-feature-map.md) (expansion map) · [`v4-stress-test.md`](./v4-stress-test.md) (diagnosis) · [`session-decisions.md`](../session-decisions.md) (rulings) · [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md) (F-V5 board) · [`../planning/known-issues.md`](../../planning/known-issues.md) (KI-01/02/03) · [`founding-constitution.md`](../founding-constitution.md) (constitution) · [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §4 (build log)

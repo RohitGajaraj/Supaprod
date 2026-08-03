@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Per-item Build Loop** (0 connections) — `docs/planning/v10_implementation-plan.md`
+- **Per-item Build Loop** (0 connections) — `docs/planning/archive/v10-implementation-plan.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `docs/planning/v10_implementation-plan.md`
+- `docs/planning/archive/v10-implementation-plan.md`
 
 ## Audit Trail
 

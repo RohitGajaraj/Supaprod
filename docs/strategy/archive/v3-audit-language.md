@@ -1,5 +1,5 @@
 > [!WARNING]
-> **ARCHIVED. Historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](../v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](../v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
+> **ARCHIVED. Historical reference only.** Superseded by the current canon: positioning → [`../v6-agentic-product-os.md`](./v6-agentic-product-os.md); engine / expansion map → [`../v4-feature-map.md`](./v4-feature-map.md). Inline links below predate the 2026-06-13 docs reorganization and may point to pre-reorg paths. Strategy index: [`../README.md`](../README.md).
 
 # Language, Naming & Microcopy Audit v3, 2026-06-06
 
@@ -11,7 +11,7 @@
 >
 > **Scope.** Naming · sidebar/IA copy · page H1s · empty states · buttons & CTAs · placeholders & labels · tooltips · approval-gate prompts · agent/AI surface vocabulary · governance verbs · marketing/public copy · system voice.
 >
-> **Out of scope (this pass).** Implementation, i18n, renaming the product itself (see [`../naming.md`](../naming.md)).
+> **Out of scope (this pass).** Implementation, i18n, renaming the product itself (see [`decisions/naming.md`](../../decisions/naming.md)).
 
 ---
 
@@ -360,7 +360,7 @@ Each row: `Impact × Effort × Horizon × Strategic × Benefit`. Effort is the r
 ## 10. Open questions for the operator (≤5)
 
 1. **Binding rename?** Should LANG-05 (the renames) be treated as binding (auto-graduated to backlog F-IDs) or advisory? Default: advisory.
-2. **Cadence the product name itself.** v3 didn't reopen [`../naming.md`](../naming.md); do you want me to stress-test the name against the three personas in a sibling memo, or hold?
+2. **Cadence the product name itself.** v3 didn't reopen [`decisions/naming.md`](../../decisions/naming.md); do you want me to stress-test the name against the three personas in a sibling memo, or hold?
 3. **Outcome surface scope.** §9 P2 ships `/outcome` as an empty named surface to close the loop in language even before the feature ships. Acceptable, or wait until the actual feature lands?
 4. **Voice anchor.** §1 picked operator-grade from first principles. Want me to instead benchmark against Linear (terse-precise), Vercel (confident-minimal), or Paxel (machine-mode-explicit)?
 5. **Glossary enforcement.** §9 P2 proposes a CI check that flags banned synonyms (`Trajectory`, etc.). Worth a hook, or trust the operator?
@@ -371,16 +371,16 @@ Each row: `Impact × Effort × Horizon × Strategic × Benefit`. Effort is the r
 
 - Main audit: [`v3-audit.md`](./v3-audit.md)
 - Current positioning: [`v2-positioning.md`](./v2-positioning.md)
-- Strategy index: [`README.md`](./README.md)
-- Decision log: [`session-decisions.md`](./session-decisions.md)
-- UI/AI-message contract: [`../../design.md`](../../DESIGN.md)
+- Strategy index: [`README.md`](../../../README.md)
+- Decision log: [`session-decisions.md`](../session-decisions.md)
+- UI/AI-message contract: [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md)
 - Sidebar nav source: [`../../src/components/cadence/AppShell.tsx`](../../src/components/cadence/AppShell.tsx)
 
 ---
 
 ## Triage status (2026-06-06)
 
-✅ **Triaged.** All language recs graduated into [`../feature-backlog.md` § v3 Audit Triage](../feature-backlog.md#v3-audit-triage-2026-06-06). Mapping:
+✅ **Triaged.** All language recs graduated into [`../feature-backlog.md` § v3 Audit Triage](../../planning/archive/feature-backlog.md#v3-audit-triage-2026-06-06). Mapping:
 
 - LANG-01 → folded into `F-VOICE-LOGIN` (P0, with REC-01)
 - LANG-02 → folded into `F-VOICE-VERSIONS` (P0, with REC-18)
@@ -391,7 +391,7 @@ Each row: `Impact × Effort × Horizon × Strategic × Benefit`. Effort is the r
 - LANG-07 → ☑ **shipped** as `F-VOICE-DIALOGS` (2026-06-06 `useConfirm`/`usePrompt` rollout)
 - LANG-08 → `F-VOICE-CASE` (P0)
 - LANG-09 → folded into `F-GOV-APPROVAL-COPY` (P0, with REC-08 approval-copy aspect)
-- LANG-10 → ☑ **shipped** as `F-VOICE-GUIDE` ([`../conventions/ui-voice.md`](../conventions/ui-voice.md) + cross-tool wiring)
+- LANG-10 → ☑ **shipped** as `F-VOICE-GUIDE` ([`../conventions/ui-voice.md`](../../conventions/ui-voice.md) + cross-tool wiring)
 - TOOLTIP-DEL · TOOLTIP-REW → `F-VOICE-TOOLTIPS` (P1)
 - LANG-IA-12 → subsumed by `F-COCKPIT-MERGE` (P1) + the four `F-IA-*` merge entries
 - LANG-NEW-OUTCOME → folded into `F-OUTCOME-SURFACE` (Phase B target)

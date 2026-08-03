@@ -112,7 +112,7 @@ NOTHING outward is ever sent, posted, or published without the founder's explici
 ## Related
 
 - [`feature-dashboard.md`](./feature-dashboard.md) — group G18 (rows RPT-01..49): the register these briefs pick from; the claim ledger is the collision law
-- [`v13-proof-campaign-plan.md`](./v13-proof-campaign-plan.md) §3 — the parent parallel-lane protocol (G17); G18 lanes follow the same mechanics and yield to G17 claims on shared surfaces
+- [`archive/v13-proof-campaign-plan.md`](./archive/v13-proof-campaign-plan.md) §3 — the parent parallel-lane protocol (G17); G18 lanes follow the same mechanics and yield to G17 claims on shared surfaces
 - [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §16 + [`../references/investor-corpus-yc-vc.md`](../references/investor-corpus-yc-vc.md) §A + [`../references/podcast-corpus-aakash.md`](../references/podcast-corpus-aakash.md) + [`../references/podcast-corpus-lenny.md`](../references/podcast-corpus-lenny.md) + [`../references/podcast-corpus-frontier.md`](../references/podcast-corpus-frontier.md) + [`../references/new-age-product-development-research.md`](../references/new-age-product-development-research.md) — the evidence base
 - [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10 — decisions 1–7 (the authority + boundaries for this merge)
 

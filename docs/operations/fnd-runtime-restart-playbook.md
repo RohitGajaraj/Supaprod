@@ -55,7 +55,7 @@ On a clean pass, in one commit:
 
 - Flip foundation-audit row **0.9** to ✅ with the run date and a one-line note.
 - Flip the Live status board's "Step 1 forced-restart test still ◑" → ✅.
-- Append a one-liner to [`../../plan.md`](../planning/archive/build-log.md) §4 with the run date and WHY.
+- Append a one-liner to [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 with the run date and WHY.
 
 ## Out of scope
 
@@ -66,5 +66,5 @@ On a clean pass, in one commit:
 ## Related
 
 - Foundation audit: [`../planning/archive/foundation-audit.md`](../planning/archive/foundation-audit.md) row 0.9.
-- Bundle 9 (the mission this playbook runs against): [`../features/bundle-9-builder.md`](../features/archive/bundle-9-builder.md).
+- Bundle 9 (the mission this playbook runs against): [`features/archive/bundle-9-builder.md`](../features/archive/bundle-9-builder.md).
 - Runtime architecture: [`../../architecture/runtime.md`](../../architecture/runtime.md).

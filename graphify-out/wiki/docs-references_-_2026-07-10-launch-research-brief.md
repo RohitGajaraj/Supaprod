@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **2026-07-10-launch-research-briefs.md** (0 connections) — `docs/references/2026-07-10-launch-research-briefs.md`
+- **2026-07-10-launch-research-briefs.md** (0 connections) — `docs/references/launch-research-briefs.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `docs/references/2026-07-10-launch-research-briefs.md`
+- `docs/references/launch-research-briefs.md`
 
 ## Audit Trail
 

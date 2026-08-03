@@ -60,7 +60,7 @@ pretend otherwise.
 **And on churn: there is no churn.** v13, the current campaign canon, states it flatly: *"The market
 contact is zero. 8 users total: 4 gmail (founder + associates, newest 2026-06-17), 3 internal
 @redcadence.app accounts, 1 test account. No organic external user has ever touched the product."*
-([`docs/strategy/v13-proof-campaign.md` §1](../../../strategy/v13-proof-campaign.md)). The churn
+([`docs/strategy/archive/v13-proof-campaign.md` §1](../../../strategy/archive/v13-proof-campaign.md)). The churn
 being optimized is a hypothesis about a population that does not exist. The one observed user is the
 founder, and his own diagnosis is on the record: *"Everything is broken and not connecting."* That
 is a coherence sentence, not a navigation sentence. **A shell change treats the symptom.**
@@ -198,7 +198,7 @@ the briefing, inline gate cards, and streamed Ask messages, a docked `Composer.t
 `src/components/mission/` alone. That is on `main` today.
 
 Then read the fidelity audit it produced,
-[`docs/planning/front-end-reimagining/fidelity-audit.md:13`](../../front-end-reimagining/fidelity-audit.md):
+[`docs/planning/front-end-reimagining/fidelity-audit.md:13`](../../archive/retired-design-eras/front-end-reimagining/fidelity-audit.md):
 
 > **Shell incoherence (the bounce).** Only `/m`, `/threads`, `/artifacts` render in the reimagined
 > room shell. Every other surface, Settings, Brain, Approvals, Today, Build, Plan, etc., still
@@ -265,7 +265,7 @@ and test it.
 There is no retention curve, no funnel, no session recording, no drop-off point. The word "churn" is
 standing in for something real, but the something is not churn. It is the founder's own experience,
 and he described it precisely on 2026-07-19
-([`front-end-reimagining/problem-statement.md:13`](../../front-end-reimagining/problem-statement.md)):
+([`front-end-reimagining/problem-statement.md:13`](../../archive/retired-design-eras/front-end-reimagining/problem-statement.md)):
 
 > *"As the founder who designed this, I myself do not understand where to start, what to do, why to
 > do, how to end, and if I want to do only certain journeys instead of the entire lifecycle, I don't

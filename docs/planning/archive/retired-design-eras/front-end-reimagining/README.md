@@ -11,4 +11,4 @@ The active rebuild charter and its research base. Working branch: `sandbox/missi
 - [work-orders/](./work-orders/README.md) — **the Round-3 dispatch pack (2026-07-23)**: per-lane packets for parallel agents (account menu, strangler wrap, landing moment, ember sweep, functional-fidelity audits, Round-3 screen implementations, public-landing sweep, demo ops, integration gate, PC-35), plus the branch protocol. Start at its README.
 - [mockups/_round3-brief.md](./mockups/_round3-brief.md) — the Round-3 authoring law (Addenda overrides, TopBar v2, master timeline, review gates) governing screens 1b/3b/10–19.
 
-Baseline underneath: [`../Supaprod Final Sweep/Supaprod Front-End Rebuild.md`](../Supaprod%20Final%20Sweep/Supaprod%20Front-End%20Rebuild.md) (Master Brief v2.2, meet-or-beat).
+Baseline underneath: [`../Supaprod Final Sweep/Supaprod Front-End Rebuild.md`](../../../Supaprod%20Final%20Sweep/Supaprod%20Front-End%20Rebuild.md) (Master Brief v2.2, meet-or-beat).

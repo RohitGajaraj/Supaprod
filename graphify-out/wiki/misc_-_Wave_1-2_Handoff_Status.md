@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Wave 1-2 Handoff Status** (0 connections) — `WAVE_1_2_HANDOFF_STATUS.md`
+- **Wave 1-2 Handoff Status** (0 connections) — `docs/planning/archive/rebuild-2026-07-18/wave-1-2-handoff-status.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `WAVE_1_2_HANDOFF_STATUS.md`
+- `docs/planning/archive/rebuild-2026-07-18/wave-1-2-handoff-status.md`
 
 ## Audit Trail
 

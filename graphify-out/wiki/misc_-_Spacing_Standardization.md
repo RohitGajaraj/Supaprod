@@ -4,8 +4,8 @@
 
 ## Key Concepts
 
-- **Spacing Standardization** (1 connections) — `WAVE_1_2_DESIGN_COMPLETION.md`
-- **Materials & Spacing System** (1 connections) — `WAVE_3_IMPLEMENTATION_PLAN.md`
+- **Spacing Standardization** (1 connections) — `docs/planning/archive/rebuild-2026-07-18/wave-1-2-design-completion.md`
+- **Materials & Spacing System** (1 connections) — `docs/planning/archive/rebuild-2026-07-18/wave-3-implementation-plan.md`
 
 ## Relationships
 
@@ -13,8 +13,8 @@
 
 ## Source Files
 
-- `WAVE_1_2_DESIGN_COMPLETION.md`
-- `WAVE_3_IMPLEMENTATION_PLAN.md`
+- `docs/planning/archive/rebuild-2026-07-18/wave-1-2-design-completion.md`
+- `docs/planning/archive/rebuild-2026-07-18/wave-3-implementation-plan.md`
 
 ## Audit Trail
 

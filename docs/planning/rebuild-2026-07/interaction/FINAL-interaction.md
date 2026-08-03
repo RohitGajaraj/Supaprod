@@ -10,7 +10,7 @@
 >
 > Binding above this document: [`craft-law.md`](../craft-law.md),
 > [`ia/FINAL-ia.md`](../ia/FINAL-ia.md), [`language/FINAL-language.md`](../language/FINAL-language.md),
-> [`docs/conventions/humanized-output.md`](../../../conventions/humanized-output.md).
+> [`conventions/humanized-output.md`](../../../conventions/humanized-output.md).
 > Where this document extends those, it says so. Where it corrects them, it shows the arithmetic
 > or the line of code.
 

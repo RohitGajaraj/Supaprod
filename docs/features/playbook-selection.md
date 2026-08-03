@@ -18,7 +18,7 @@ terminal state (done or failed), a `playbook_runs` row is recorded automatically
 ever consumed it — the ranking sat unused. This closes PLAYBOOK-REGISTRY's loop and makes
 "institutional judgment as software" literally true: the method that keeps validating in a
 workspace rises to the top and gets picked automatically next time. See
-[`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2 (RF-05).
+[`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2 (RF-05).
 
 ## Where to find it
 
@@ -91,6 +91,6 @@ existing playbook-registry UI if one is wired to it).
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §3.2
 - Sibling: PLAYBOOK-REGISTRY (v11 #17), `src/lib/playbooks/registry.ts` / `.test.ts`

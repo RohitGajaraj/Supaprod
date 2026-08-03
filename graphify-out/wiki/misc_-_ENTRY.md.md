@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **ENTRY.md** (0 connections) — `ENTRY.md`
+- **ENTRY.md** (0 connections) — `README.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `ENTRY.md`
+- `README.md`
 
 ## Audit Trail
 

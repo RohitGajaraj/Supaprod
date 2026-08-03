@@ -19,7 +19,7 @@ The founder's latency ask (v12 §7.3, step 4): "Consent is granted at the plan l
 contract approves its reversible work as a scope; per-step gates remain only at irreversible
 boundaries (merge, deploy, spend, publish, outbound). Kills the residual approval round-trips
 without touching the safety floors." See
-[`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3 (AGT-02).
+[`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3 (AGT-02).
 
 ## Where to find it
 
@@ -114,8 +114,8 @@ true` - it falls back to normal per-step gating, the strictly safer default. Thi
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §7.3
 - [`agent-native-toolcalling.md`](./agent-native-toolcalling.md) - AGT-01, shipped alongside this in
   the same chokepoint-attended session
 - Sibling: AGT-03 ([`speculative-prep.md`](./speculative-prep.md)) - a different "reversible" concept

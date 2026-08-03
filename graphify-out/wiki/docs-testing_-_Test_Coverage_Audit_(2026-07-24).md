@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Test Coverage Audit (2026-07-24)** (1 connections) — `docs/testing/COVERAGE-AUDIT-2026-07-24.md`
+- **Test Coverage Audit (2026-07-24)** (1 connections) — `docs/testing/coverage-audit.md`
 - **Test Patterns & Conventions Guide** (1 connections) — `docs/testing/test-patterns-and-conventions.md`
 
 ## Relationships
@@ -13,7 +13,7 @@
 
 ## Source Files
 
-- `docs/testing/COVERAGE-AUDIT-2026-07-24.md`
+- `docs/testing/coverage-audit.md`
 - `docs/testing/test-patterns-and-conventions.md`
 
 ## Audit Trail

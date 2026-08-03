@@ -4,8 +4,8 @@
 
 ## Key Concepts
 
-- **Member Role Management** (1 connections) — `plan.md`
-- **Workspace Members UI** (1 connections) — `plan.md`
+- **Member Role Management** (1 connections) — `docs/planning/archive/build-log.md`
+- **Workspace Members UI** (1 connections) — `docs/planning/archive/build-log.md`
 
 ## Relationships
 
@@ -13,7 +13,7 @@
 
 ## Source Files
 
-- `plan.md`
+- `docs/planning/archive/build-log.md`
 
 ## Audit Trail
 

@@ -16,7 +16,7 @@ with each node's outgoing branches listed underneath it.
 
 The artifact designers actually start with is a flow, not a screen. One-shot screen generation
 (DEF-04) ships a "beautiful screen, broken journey" failure constantly because nothing upstream
-ever made the journey explicit. See [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
+ever made the journey explicit. See [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md)
 §6 (DSN-03).
 
 ## Where to find it
@@ -101,7 +101,7 @@ ever made the journey explicit. See [`v12-self-improving-os.md`](../strategy/v12
 
 ## Related
 
-- [`docs/planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
-- [`v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (2026-07-03 entry)
+- [`strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §6
 - Siblings this reuses the idiom of: CNV-01 (dual projection), CNV-02 (`deriveOracleClassifications`
   validation discipline), JNY-01's `competitor-tick.ts` (`derived-from` lineage direction)

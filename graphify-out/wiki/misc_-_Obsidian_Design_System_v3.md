@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- **Obsidian Design System v3** (0 connections) — `DESIGN-OBSIDIAN.md`
+- **Obsidian Design System v3** (0 connections) — `docs/design/archive/obsidian-v3.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `DESIGN-OBSIDIAN.md`
+- `docs/design/archive/obsidian-v3.md`
 
 ## Audit Trail
 
