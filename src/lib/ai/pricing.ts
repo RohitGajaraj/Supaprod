@@ -20,6 +20,19 @@ export const MODEL_PRICING: Record<string, Pricing> = {
   "openai/gpt-5.4-mini": { in_per_mtok: 0.4, out_per_mtok: 1.6 },
   "openai/gpt-5.5-pro": { in_per_mtok: 8.0, out_per_mtok: 24.0 },
   // Embeddings (input-only, out_per_mtok unused but required by type).
+  //
+  // These entries EARN their keep rather than merely completing the table. Before they
+  // existed, `cohere/embed-v4.0` fell through to DEFAULT_PRICING ($0.50/1M in), which
+  // priced a full month of live embedding (211,358 tokens over 1,630 calls,
+  // 2026-07-02 to 2026-08-02) at $0.106 when the real figure is around a fifth of that.
+  // The founder was deciding whether the Cohere spend was worth keeping off exactly
+  // that number, so a 5x overstatement on the cheapest call in the system was not a
+  // rounding error, it was a decision resting on a wrong premise.
+  //
+  // TO CONFIRM: the Cohere rate has NOT been read off the account. Check it against
+  // https://cohere.com/pricing or the billing dashboard and correct it here. Left no
+  // lower than expected on purpose, so while it stays unconfirmed the ledger errs
+  // toward overstating embedding cost rather than understating it.
   "openai/text-embedding-3-small": { in_per_mtok: 0.02, out_per_mtok: 0.0 },
   "openai/text-embedding-3-large": { in_per_mtok: 0.13, out_per_mtok: 0.0 },
   "cohere/embed-v4.0": { in_per_mtok: 0.1, out_per_mtok: 0.0 },

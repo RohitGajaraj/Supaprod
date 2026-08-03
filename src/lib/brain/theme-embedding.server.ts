@@ -22,7 +22,11 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
+import {
+  embedTexts,
+  embedThroughChokepointWithModel,
+  type EmbedResult,
+} from "@/lib/rag/embed.server";
 
 /** Themes embedded per sweep. Kept small: a theme is short text, but the batch shares
  *  the tick with the signal sweeper. */

@@ -32,7 +32,11 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
+import {
+  embedTexts,
+  embedThroughChokepointWithModel,
+  type EmbedResult,
+} from "@/lib/rag/embed.server";
 import { recordErrorEvent } from "@/lib/observability/errors";
 
 export const MEMORY_EMBED_BATCH = 64;

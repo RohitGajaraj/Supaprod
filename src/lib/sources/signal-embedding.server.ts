@@ -32,7 +32,11 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
+import {
+  embedTexts,
+  embedThroughChokepointWithModel,
+  type EmbedResult,
+} from "@/lib/rag/embed.server";
 
 /** Chars of a signal fed to the embedder. Titles carry most of the discriminating power. */
 const MAX_EMBED_CHARS = 8_000;

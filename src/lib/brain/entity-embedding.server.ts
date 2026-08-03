@@ -47,7 +47,11 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
+import {
+  embedTexts,
+  embedThroughChokepointWithModel,
+  type EmbedResult,
+} from "@/lib/rag/embed.server";
 import { recordErrorEvent } from "@/lib/observability/errors";
 
 /** Chars of any one entity fed to the embedder. Same budget the signal and theme
