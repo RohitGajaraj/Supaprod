@@ -9,9 +9,8 @@ import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
 import {
   planPresentation,
-  CREDIT_DROPDOWN_TIERS,
   type PlanTier,
-  type CreditTier,
+  includedCreditsFor,
 } from "@/lib/entitlements";
 import { priceForCredits } from "@/lib/billing-tier";
 
@@ -213,7 +212,8 @@ function BillingToggle({ annual, onChange }: { annual: boolean; onChange: (v: bo
 
 function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
   const p = planPresentation(tier);
-  const [credits, setCredits] = useState<CreditTier>(100);
+  // Retired with the band picker: price is flat per tier now.
+  const credits = 0;
   const [expanded, setExpanded] = useState(false);
 
   const isBusiness = tier === "team";
@@ -419,13 +419,17 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
         </div>
       )}
 
-      {/* Credit dropdown — per card, since users pick different tiers to compare */}
+      {/* INCLUDED CREDITS, one number per tier (founder ruling 2026-08-03).
+          This replaced a 100-to-10,000 band dropdown that scaled the price linearly.
+          The band made Pro's default 100 credits for $20 against Free's 750 for $0, so
+          the entry paid plan was 7.5x worse than free, and its top band rendered
+          "$2000/mo". A tier now sells seats and capability; CAPACITY is sold by top-ups,
+          which is why the line below names them. That keeps a paid path for a heavy solo
+          user instead of pushing them onto a team plan they do not want. */}
       {p.hasCreditDropdown && (
         <div style={{ marginBottom: 16 }}>
-          <label
-            htmlFor={`credits-${tier}`}
+          <div
             style={{
-              display: "block",
               fontSize: 9.5,
               color: "var(--ink-subtle, #6b6457)",
               letterSpacing: "0.08em",
@@ -433,28 +437,13 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             }}
           >
             CREDITS / MONTH
-          </label>
-          <select
-            id={`credits-${tier}`}
-            value={credits}
-            onChange={(e) => setCredits(Number(e.target.value) as CreditTier)}
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              fontSize: 13,
-              border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-              borderRadius: 7,
-              background: "var(--paper, #f6f2ea)",
-              color: "var(--ink, #1f1b16)",
-              cursor: "pointer",
-            }}
-          >
-            {CREDIT_DROPDOWN_TIERS.map((c) => (
-              <option key={c} value={c}>
-                {c.toLocaleString()} credits / month
-              </option>
-            ))}
-          </select>
+          </div>
+          <div style={{ fontSize: 15, color: "var(--ink, #1f1b16)", fontWeight: 500 }}>
+            {includedCreditsFor(tier)?.toLocaleString() ?? "Custom"} included
+          </div>
+          <div style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", marginTop: 3 }}>
+            Need more? Add credits any time, up to twice your monthly allowance. No plan change.
+          </div>
         </div>
       )}
 
@@ -763,8 +752,9 @@ function PricingPage() {
               }}
             >
               Every plan starts free. No credit card needed until you upgrade. Change or cancel
-              anytime from Settings. Every action in Supaprod spends credits, so the price follows
-              the credit band you pick, not a fixed multiplier.
+              anytime from Settings. Each plan includes a set number of credits a month, and every action spends them.
+              Need more capacity without changing plan? Add credits any time, up to twice your
+              monthly allowance. You move up a tier for people and capability, not for volume.
             </p>
           </div>
         </main>

@@ -39,7 +39,7 @@ import {
   planPresentation,
   CREDIT_DROPDOWN_TIERS,
   type PlanTier,
-  type CreditTier,
+  includedCreditsFor,
 } from "@/lib/entitlements";
 import { useConfirm } from "@/hooks/use-confirm";
 
@@ -456,7 +456,8 @@ function PaidTierCard({
   annual?: boolean;
 }) {
   const p = planPresentation(tier);
-  const [credits, setCredits] = useState<CreditTier>(100);
+  // Retired with the band picker: price is flat per tier now.
+  const credits = 0;
   const [open, setOpen] = useState(false);
   const confirm = useConfirm();
 
@@ -548,23 +549,19 @@ function PaidTierCard({
         </div>
       </div>
 
-      {/* Credits are chosen per card, so two plans can be compared at two
-          different volumes at the same time. */}
-      <label className="sp-field" htmlFor={selectId} style={{ marginTop: 0 }}>
+      {/* INCLUDED CREDITS, one number per tier (founder ruling 2026-08-03). Was a
+          100-to-10,000 band selector that scaled price linearly, which put Pro's entry
+          at 100 credits for $20 against Free's 750 for $0. Capacity is sold by top-ups
+          now, so a heavy solo user has a paid path that is not "join a team plan". */}
+      <div style={{ marginTop: 0 }}>
         <span className="sp-field-label">Credits a month</span>
-        <select
-          id={selectId}
-          className="sp-select"
-          value={credits}
-          onChange={(e) => setCredits(Number(e.target.value) as CreditTier)}
-        >
-          {CREDIT_DROPDOWN_TIERS.map((c) => (
-            <option key={c} value={c}>
-              {c.toLocaleString()} credits a month
-            </option>
-          ))}
-        </select>
-      </label>
+        <div style={{ fontSize: 15, fontWeight: 500 }}>
+          {includedCreditsFor(tier)?.toLocaleString() ?? "Custom"} included
+        </div>
+        <div className="sp-hint" style={{ marginTop: 3 }}>
+          Need more? Add credits any time, up to twice your monthly allowance. No plan change.
+        </div>
+      </div>
 
       {/* Honesty law: while payments are dormant there is NO upgrade button at
           all. The table stays a real comparison, and one quiet line says when

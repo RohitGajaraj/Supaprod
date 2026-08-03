@@ -69,6 +69,21 @@ export type CreditTier = (typeof CREDIT_DROPDOWN_TIERS)[number];
  */
 export const MAX_MONTHLY_USD = 99;
 
+/**
+ * The credits a tier INCLUDES each month: one number, not a band.
+ *
+ * Derived from the multipliers that already existed (Free 1x, Pro 5x, Business 20x)
+ * rather than a second table, so the page cannot drift from what the app actually
+ * grants. That drift was the bug: the pricing page advertised a 100-to-10,000 band
+ * "not a fixed multiplier" while the product granted creditMonthlyBase from exactly
+ * a fixed multiplier.
+ *
+ * null means custom (Enterprise), which the surface renders as "Custom".
+ */
+export function includedCreditsFor(tier: PlanTier): number | null {
+  return entitlementsFor(tier).creditMonthlyBase;
+}
+
 export const ANNUAL_DISCOUNT_FACTOR = 10 / 12;
 
 export const PLAN_TIERS: readonly PlanTier[] = [

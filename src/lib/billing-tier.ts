@@ -48,7 +48,22 @@ export function priceForCredits(
   if (tier === "max") return interval === "yearly" ? Math.round(MAX_MONTHLY_USD * (10 / 12)) : MAX_MONTHLY_USD;
   const base = TIER_BASE_MONTHLY_USD[tier as "pro" | "team"];
   if (!base) return null;
-  const monthly = base * (credits / 100);
+  // FLAT PER TIER since 2026-08-03 (founder ruling). `credits` is accepted for call-site
+  // compatibility and deliberately ignored.
+  //
+  // It used to scale the price linearly: BASE * (credits / 100). That is what produced
+  // two defects visible on the live public page. Pro's default band was 100 credits for
+  // 20 USD against a FREE tier granting 750, so the entry paid plan was 7.5x WORSE than
+  // free and matching the free grant cost 160 USD a month. And the top band rendered
+  // "$2000/mo" for volume whose underlying COGS is about 2 USD.
+  //
+  // The deeper error was conflating two axes. A tier sells SEATS AND CAPABILITY; credits
+  // sell CAPACITY. Making a solo user climb to a team plan to get volume charges them
+  // for collaboration they did not ask for, which the pricing copy itself contradicts
+  // ("Business starts at two seats"). Capacity now has its own control: top-ups, already
+  // implemented (entitlements.creditTopUps, topUpCycleCap = grant x 2), so a Pro user can
+  // reach 3x their allowance without ever changing plan.
+  const monthly = base;
   // Annual = monthly * (10/12) billed per month (or * 10 billed upfront).
   return interval === "yearly" ? Math.round(monthly * (10 / 12)) : monthly;
 }
