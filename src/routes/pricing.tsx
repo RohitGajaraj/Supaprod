@@ -223,32 +223,19 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
   // still shorten the cards themselves.
   const [expanded, setExpanded] = useState(true);
 
-  // SEATS, Business only. Two is the floor by design: with one author there is nothing
-  // to pool, which is Pro. The counter cannot go below it.
-  const MIN_SEATS = 2;
-  const [seats, setSeats] = useState(MIN_SEATS);
-
   const isBusiness = tier === "team";
   const isEnterprise = tier === "enterprise";
   const isFree = tier === "free";
   const TierIcon = TIER_ICONS[tier];
 
-  // Business is billed PER SEAT, so the headline is the real total the buyer will pay.
-  // Showing $50 next to a two-seat minimum would understate every Business price by at
-  // least half, which is the one thing a pricing page must never do.
-  const seatMultiplier = isBusiness ? seats : 1;
-
   const monthlyPrice = (() => {
     if (isFree || isEnterprise) return null;
-    const unit = priceForCredits(tier, credits, "monthly");
-    return unit === null ? null : unit * seatMultiplier;
+    return priceForCredits(tier, credits, "monthly");
   })();
 
   const displayPrice = (() => {
     if (monthlyPrice === null) return null;
-    if (!annual) return monthlyPrice;
-    const unit = priceForCredits(tier, credits, "yearly");
-    return unit === null ? null : unit * seatMultiplier;
+    return annual ? priceForCredits(tier, credits, "yearly") : monthlyPrice;
   })();
 
   // Exact savings: annual = 10 months, so 2 months free.
@@ -446,55 +433,6 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           "$2000/mo". A tier now sells seats and capability; CAPACITY is sold by top-ups,
           which is why the line below names them. That keeps a paid path for a heavy solo
           user instead of pushing them onto a team plan they do not want. */}
-      {isBusiness && (
-        <div style={{ marginBottom: 14 }}>
-          <div
-            style={{
-              fontSize: 9.5,
-              color: "var(--ink-subtle, #6b6457)",
-              letterSpacing: "0.08em",
-              marginBottom: 5,
-            }}
-          >
-            SEATS
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button
-              type="button"
-              aria-label="Remove a seat"
-              disabled={seats <= MIN_SEATS}
-              onClick={() => setSeats((n) => Math.max(MIN_SEATS, n - 1))}
-              style={{
-                width: 28, height: 28, borderRadius: 7, cursor: seats <= MIN_SEATS ? "not-allowed" : "pointer",
-                border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-                background: "var(--paper, #f6f2ea)", color: "var(--ink, #1f1b16)",
-                opacity: seats <= MIN_SEATS ? 0.4 : 1,
-              }}
-            >
-              -
-            </button>
-            <span style={{ fontSize: 15, fontWeight: 500, minWidth: 18, textAlign: "center" }}>
-              {seats}
-            </span>
-            <button
-              type="button"
-              aria-label="Add a seat"
-              onClick={() => setSeats((n) => n + 1)}
-              style={{
-                width: 28, height: 28, borderRadius: 7, cursor: "pointer",
-                border: "1px solid var(--hairline, rgba(0,0,0,0.12))",
-                background: "var(--paper, #f6f2ea)", color: "var(--ink, #1f1b16)",
-              }}
-            >
-              +
-            </button>
-            <span style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)" }}>
-              ${priceForCredits(tier, credits, annual ? "yearly" : "monthly")} per seat, two minimum
-            </span>
-          </div>
-        </div>
-      )}
-
       {p.hasCreditDropdown && (
         <div style={{ marginBottom: 16 }}>
           <div
@@ -541,7 +479,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           href={
             isFree
               ? "/signup?from=pricing"
-              : `/signup?from=pricing&plan=${tier}&credits=${credits}&seats=${seatMultiplier}&billing=${annual ? "annual" : "monthly"}`
+              : `/signup?from=pricing&plan=${tier}&credits=${credits}&billing=${annual ? "annual" : "monthly"}`
           }
           style={{
             display: "block",
