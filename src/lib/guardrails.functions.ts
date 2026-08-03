@@ -110,7 +110,12 @@ export const getGuardrailOverview = createServerFn({ method: "GET" })
        * zero CONFIGURED rules is now a true and unalarming statement, because the
        * floor is reported beside it.
        */
-      floor: GUARDRAIL_FLOOR.map((r) => ({ id: r.id, name: r.name, kind: r.kind, action: r.action })),
+      floor: GUARDRAIL_FLOOR.map((r) => ({
+        id: r.id,
+        name: r.name,
+        kind: r.kind,
+        action: r.action,
+      })),
     };
   });
 
@@ -166,10 +171,7 @@ export const deleteGuardrailRule = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("guardrail_rules")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await supabase.from("guardrail_rules").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

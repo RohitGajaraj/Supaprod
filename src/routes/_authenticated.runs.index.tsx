@@ -804,8 +804,8 @@ function BuildPage() {
                     </>
                   ) : (
                     <>
-                      We could not read where builds land, so this is not a statement about
-                      your setup. A build will still try, and will say what went wrong.
+                      We could not read where builds land, so this is not a statement about your
+                      setup. A build will still try, and will say what went wrong.
                     </>
                   )}
                 </div>
@@ -1013,8 +1013,8 @@ function BuildPage() {
             </Failed>
           ) : rows.length === 0 ? (
             <Empty>
-              Nothing has been built here yet. Describe the work above and the crew plans the
-              steps, writes the change, and opens the pull request.
+              Nothing has been built here yet. Describe the work above and the crew plans the steps,
+              writes the change, and opens the pull request.
             </Empty>
           ) : (
             visible.map((s) => {

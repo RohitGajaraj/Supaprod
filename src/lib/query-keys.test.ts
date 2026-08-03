@@ -19,7 +19,12 @@
 import { describe, test, expect } from "bun:test";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { approvalsQueueKey, missionsKey, APPROVALS_QUEUE_PREFIX, MISSIONS_PREFIX } from "./query-keys";
+import {
+  approvalsQueueKey,
+  missionsKey,
+  APPROVALS_QUEUE_PREFIX,
+  MISSIONS_PREFIX,
+} from "./query-keys";
 
 const SRC = join(import.meta.dir, "..");
 

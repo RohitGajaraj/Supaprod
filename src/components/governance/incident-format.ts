@@ -25,7 +25,9 @@ export function incidentTraceRef(id: string): string {
 
 /** Hex characters of a uuid, hyphens removed. A short is a prefix of this. */
 function hexOf(id: string): string {
-  return incidentRealId(id).replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+  return incidentRealId(id)
+    .replace(/[^0-9a-fA-F]/g, "")
+    .toLowerCase();
 }
 
 /**
