@@ -143,10 +143,25 @@ export const getObservabilityStatus = createServerFn({ method: "GET" })
     const nowMs = Date.now();
     const cronHealth = await Promise.all(
       EXPECTED_JOBS.map(async (exp) => {
+        // Only a run that actually SUCCEEDED counts as this job having ticked.
+        //
+        // Without the status filter this read was actively misleading rather than
+        // merely incomplete: a run killed mid-flight stays at status='running'
+        // forever (a torn-down Cloudflare IoContext writes no terminal status), and
+        // taking the newest started_at regardless of status made that stuck row look
+        // like a fresh tick. A job whose every run had been killed for a day reported
+        // stale=false. That is how embed-tick died unnoticed for 21 hours while this
+        // very surface said the fleet was healthy.
+        //
+        // `liveness/probe.ts` already filtered on status='ok' for exactly this reason,
+        // so the two health surfaces were contradicting each other. This aligns them.
+        // Started-but-never-finished is now the definition of stale, not the disguise
+        // for it.
         const { data: last } = await supabaseAdmin
           .from("job_runs")
           .select("started_at")
           .eq("job_name", exp.job)
+          .eq("status", "ok")
           .order("started_at", { ascending: false })
           .limit(1)
           .maybeSingle();
