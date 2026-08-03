@@ -41,9 +41,26 @@ if [ -f scripts/check-humanized.sh ]; then
     bash scripts/check-humanized.sh || true
   fi
 fi
+
+# DOC-ROT BACKSTOP, added 2026-08-03. Runs ONLY when the commit touches markdown,
+# so a code-only commit pays nothing.
+#
+# WHY IT IS A HOOK AND NOT A COMMAND. docs-doctor existed for weeks as
+# `bun run docs:check` and the founder never ran it once, which he said plainly.
+# A check nobody runs enforces nothing, and root had grown to 22 markdown files
+# with five separate "current" design contracts by the time anyone looked. The
+# fix is not to ask him to remember; it is to make the check run itself.
+#
+# It prints and never blocks. Structural rot here is cheap to fix later and
+# expensive to be blocked by mid-commit, and a hook that blocks gets disabled.
+if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.md$'; then
+  if [ -f scripts/docs-doctor.sh ]; then
+    bash scripts/docs-doctor.sh 2>/dev/null | grep -E '^  FAIL|broken link\(s\) in LIVE' || true
+  fi
+fi
 EOF
 chmod +x "$PRECOMMIT"
-echo "[git-hooks] pre-commit hook installed (humanized-output check)"
+echo "[git-hooks] pre-commit hook installed (humanized-output + doc-rot checks)"
 # F6 MERGE LOCK (founder ruling 2026-07-18): the archived front-end rebuild
 # (archive/final-sweep-2026-07-18) must never merge into main without the
 # founder's explicit, per-merge approval. Any merge whose message references
