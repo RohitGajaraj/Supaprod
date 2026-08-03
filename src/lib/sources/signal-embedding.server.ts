@@ -32,7 +32,7 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts } from "@/lib/rag/embed.server";
+import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
 
 /** Chars of a signal fed to the embedder. Titles carry most of the discriminating power. */
 const MAX_EMBED_CHARS = 8_000;
@@ -71,15 +71,17 @@ type EmbeddableRow = { title: string; content: string };
 export async function attachEmbeddings<T extends EmbeddableRow>(
   rows: T[],
   opts: { supabase?: SupabaseClient; userId?: string } = {},
-): Promise<Array<T & { embedding?: string }>> {
+): Promise<Array<T & { embedding?: string; embedding_model?: string }>> {
   if (rows.length === 0) return rows;
   try {
-    const vectors = await embedTexts(
+    const result = await embedThroughChokepointWithModel(
       rows.map((r) => signalEmbeddingText(r.title, r.content)),
       { ...opts, surfaceRef: "signal-embedding" },
     );
     return rows.map((r, i) =>
-      vectors[i] ? { ...r, embedding: vectors[i] as unknown as string } : r,
+      result.vectors[i]
+        ? { ...r, embedding: result.vectors[i] as unknown as string, embedding_model: result.model }
+        : r,
     );
   } catch (e) {
     console.error("attachEmbeddings failed, inserting without vectors:", e);
@@ -131,9 +133,9 @@ export async function backfillSignalEmbeddings(
   let embedded = 0;
   let failed = 0;
   for (const [userId, group] of byUser) {
-    let vectors: number[][];
+    let result: EmbedResult;
     try {
-      vectors = await embedTexts(
+      result = await embedThroughChokepointWithModel(
         group.map((r) => signalEmbeddingText(r.title, r.content)),
         { supabase: db, userId, surfaceRef: "signal-embedding-backfill" },
       );
@@ -146,14 +148,14 @@ export async function backfillSignalEmbeddings(
       continue;
     }
     for (let i = 0; i < group.length; i++) {
-      const vec = vectors[i];
+      const vec = result.vectors[i];
       if (!vec) {
         failed++;
         continue;
       }
       const { error: upErr } = await db
         .from("signals")
-        .update({ embedding: vec as unknown as string })
+        .update({ embedding: vec as unknown as string, embedding_model: result.model })
         .eq("id", group[i].id);
       if (upErr) {
         console.error("backfillSignalEmbeddings update failed", group[i].id, upErr.message);

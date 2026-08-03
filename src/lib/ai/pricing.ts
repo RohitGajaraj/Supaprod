@@ -19,6 +19,10 @@ export const MODEL_PRICING: Record<string, Pricing> = {
   "openai/gpt-5.4": { in_per_mtok: 3.0, out_per_mtok: 12.0 },
   "openai/gpt-5.4-mini": { in_per_mtok: 0.4, out_per_mtok: 1.6 },
   "openai/gpt-5.5-pro": { in_per_mtok: 8.0, out_per_mtok: 24.0 },
+  // Embeddings (input-only, out_per_mtok unused but required by type).
+  "openai/text-embedding-3-small": { in_per_mtok: 0.02, out_per_mtok: 0.0 },
+  "openai/text-embedding-3-large": { in_per_mtok: 0.13, out_per_mtok: 0.0 },
+  "cohere/embed-v4.0": { in_per_mtok: 0.1, out_per_mtok: 0.0 },
   // Adapter-ready providers (platform env key or enterprise BYO). Conservative rates;
   // tune as providers update. Unlisted models fall back to DEFAULT_PRICING.
   "anthropic/claude-opus-4": { in_per_mtok: 15.0, out_per_mtok: 75.0 },

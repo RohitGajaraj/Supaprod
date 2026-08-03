@@ -46,6 +46,8 @@
 >
 > _**🔎 FINAL CHECK PASS (2026-07-28, screenshots vs canon, founder present).** The 07-23 text surfaces are live on the form and match this sheet nearly verbatim. What changed tonight: (1) **launch phrasing is month-only** — "in September", no week or date (founder ruling 2026-07-28); both date-carrying paste blocks below are updated and need a re-paste. (2) **The company-brief pointer** (`https://supaprod.ai/brief`) joins the how-far-along close — the investor-spotlight the founder asked for; verified live, zero YC mentions inside the deck. (3) **Commit count 4,119** (2026-07-28): "4,000+" is settled wording in both fields; the form's "about ~4,000+ commits" mishmash gets cleaned by the re-paste. (4) **The five repos from the profile ruling went private** 2026-07-28 via authenticated API (Project-Cadence v1–v4 + build-in-public; verified, 46 public remain, all forks except `Test-Project-Cadence`, flagged to the founder). (5) **Demo-login queue re-armed** — the seeded 5-pending approval queues had decayed to 1 pending + 4 expired in EVERY demo workspace via `expires_at`; reset 2026-07-28 with a 60-day runway (details in the credentials note below). (6) **Demo video: replaced** — the 4:51 / ~46 MB Supaprod cut is up (the 11:46 Cadence video is retired); it runs past the form's stated 3:00 guidance, a deliberate founder call, wedge front-loaded. (7) **Founder video: still the submit-day 2:53/2:54** — Surface 4 remains the one open surface. (8) The "Are people using your product?" radio stays a founder-fact call: the ruling below still governs (No + availability is consistent; flip to Yes only with literal outside users, then state the true count)._
 
+> _**🔧 TECH-STACK PASS (2026-08-03, founder-requested, verified against the repo and the live database).** The tech-stack paste block is updated and needs a re-paste. Four changes, each checked before writing: (1) **Cohere embed-v4 named** as the embedding provider (`src/lib/rag/embed.server.ts:26`; 1,005 live `cohere/embed-v4.0` calls in `ai_events`). (2) **Qwen named, and a "running today" clause added** because the live model mix is Qwen and Gemini on the agent loop with GPT-5 occasional (14-day `ai_events`: qwen-plus 2,398, gemini-2.5-flash 1,748, gpt-5 33) — naming what actually runs proves the chokepoint is real rather than aspirational. (3) **Bun, Vite and shadcn added** (`bun.lock`, `bunfig.toml`, Vite 7, `components.json`). (4) **The PostHog/Sentry claim corrected.** It read "extended with PostHog … and Sentry", which implies live; neither SDK is installed (no `@sentry/*` or posthog package in `package.json`, no import anywhere in `src/`). Only the vendor-neutral facade in `src/lib/observability/` exists, so the line now says the facade is the thing and the vendors drop into it. **Deliberately EXCLUDED, do not re-add without a ruling:** ZeroEntropy (`zembed-1` is the embedding provider for the founder's local gbrain tool, NOT in Supaprod — zero hits in `src/`, `supabase/`, `scripts/`); the connector list (founder pass #3 ruling); and the delegate seam (OpenHands/Devin/swe-agent are wired in `src/lib/delegate/provider.ts`, but Investor canon forbids "we dispatch work to Cursor, Lovable, or Devin"). Paste-block wraps were also reflowed to one line per labelled item, per the standing formatting rule._
+
 ### The name, the referral, and why we do NOT file a new application (ruling, 2026-07-23)
 
 The company-name field is locked at `Cadence`. Do not start a fresh application over it:
@@ -166,19 +168,12 @@ _(The employment line states whatever is literally true the day you paste — "o
 - **PASTE THIS:**
 
 ```
-Coding agents: Claude Code, Codex, and Kimi K3 write the code; HyperAgent
-runs the agentic workflows; I direct them in parallel through Conductor,
-with Lovable and Antigravity in the mix.
-AI models: model-agnostic by design. Every AI call goes through one runtime
-chokepoint (budget, cache, guardrails, tracing, fallback, feature gates),
-so Claude, GPT, Gemini, DeepSeek, or local models plug in.
-Frontend: TanStack Start (React 19) with Tailwind.
-Backend and data: TypeScript and Supabase Postgres with row-level
-security; pgvector for retrieval; pg_cron schedules the autonomous engine.
+Coding agents: Claude Code, Codex, and Kimi K3 write the code; HyperAgent runs the agentic workflows; I direct them in parallel through Conductor, with Lovable and Antigravity in the mix.
+AI models: model-agnostic by design. Every AI call goes through one runtime chokepoint (budget, cache, guardrails, tracing, fallback, feature gates), so Claude, GPT, Gemini, Qwen, DeepSeek, or local models plug in. Running today: Qwen and Gemini carry the agent loop, GPT-5 where reasoning depth earns its cost, and Cohere embed-v4 for every retrieval vector.
+Frontend: TanStack Start (React 19, Vite) with Tailwind and shadcn.
+Backend and data: TypeScript and Supabase Postgres with row-level security; pgvector for retrieval; pg_cron schedules the autonomous engine; Bun for builds and packages.
 Deployment: Cloudflare Workers.
-Observability: the system captures its own telemetry by design, every agent
-action and AI call logged as a receipt, extended with PostHog for product
-analytics and Sentry for failure capture.
+Observability: the system captures its own telemetry by design, every agent action and AI call logged as a receipt, behind one vendor-neutral facade so PostHog and Sentry drop in without the product depending on either.
 ```
 
 _(Confirm the exact Kimi model name on paste day — the live field currently says just "Kimi.")_
@@ -872,7 +867,9 @@ _[Interview one-liner, locked 2026-07-23 — rehearse verbatim: "I'm a Senior AI
 
 ### 8c. "What tech stack are you using… Include AI models and AI coding tools you use."
 
-**Previous:** good. **New — same, updated and one line more honest about how it's built:**
+> **⛔ SUPERSEDED — do not paste from here.** The canonical, current tech-stack answer is the paste block under ["What tech stack are you using…?"](#what-tech-stack-are-you-using) near the top of this sheet (founder-finalized in his own six-label structure at pass #6, then updated by the 2026-08-03 tech-stack pass). This 2026-07-23 version is kept only as history: it predates the six-label structure, still names Cursor, and carries the "users can bring their own keys" clause the founder ruled OUT (the question asks what WE use, not what we offer customers). One answer, one place.
+
+_Archive — the 2026-07-23 version, preserved verbatim:_
 
 ```
 Built almost entirely with Claude Code, plus Lovable, Cursor, and Antigravity.

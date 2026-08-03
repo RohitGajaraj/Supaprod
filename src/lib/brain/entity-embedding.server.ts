@@ -47,7 +47,7 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts } from "@/lib/rag/embed.server";
+import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
 import { recordErrorEvent } from "@/lib/observability/errors";
 
 /** Chars of any one entity fed to the embedder. Same budget the signal and theme
@@ -390,12 +390,22 @@ export async function backfillEntityEmbeddings(
   let embedded = 0;
   let failed = 0;
   for (const [userId, group] of byUser) {
-    let vectors: number[][];
+    let result: EmbedResult | { vectors: number[][]; model: "" };
     try {
-      vectors = await embed(
-        group.map((r) => r.text),
-        { supabase: db, userId, surfaceRef: spec.surfaceRef },
-      );
+      // Use embedThroughChokepointWithModel in production (model-tracked); fall back
+      // to the injected embed function for tests (which only returns vectors).
+      if (opts.embed) {
+        const vectors = await opts.embed(
+          group.map((r) => r.text),
+          { supabase: db, userId, surfaceRef: spec.surfaceRef },
+        );
+        result = { vectors, model: "" };
+      } else {
+        result = await embedThroughChokepointWithModel(
+          group.map((r) => r.text),
+          { supabase: db, userId, surfaceRef: spec.surfaceRef },
+        );
+      }
     } catch (e) {
       // REPORTED, not just logged. console.error is not observability; error_events
       // is. This owner's batch failed (provider down, bad BYO key, budget), so leave
@@ -415,16 +425,22 @@ export async function backfillEntityEmbeddings(
     let writeFailures = 0;
     let firstWriteError: string | null = null;
     for (let i = 0; i < group.length; i++) {
-      const vec = vectors[i];
+      const vec = result.vectors[i];
       if (!vec) {
         failed++;
         writeFailures++;
         if (firstWriteError === null) firstWriteError = "embedder returned no vector for a row";
         continue;
       }
+      // Tag the vector with the model that produced it. Existing test paths pass
+      // an empty model string (they don't have model tracking); production always
+      // has the namespaced model from the chokepoint (e.g. "cohere/embed-v4.0").
       const { error: upErr } = await db
         .from(spec.table)
-        .update({ embedding: vec as unknown as string })
+        .update({
+          embedding: vec as unknown as string,
+          embedding_model: result.model || null,
+        })
         .eq("id", group[i].id);
       if (upErr) {
         failed++;

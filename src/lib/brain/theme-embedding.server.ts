@@ -22,7 +22,7 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts } from "@/lib/rag/embed.server";
+import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
 
 /** Themes embedded per sweep. Kept small: a theme is short text, but the batch shares
  *  the tick with the signal sweeper. */
@@ -77,9 +77,9 @@ export async function backfillThemeEmbeddings(
   let embedded = 0;
   let failed = 0;
   for (const [userId, group] of byUser) {
-    let vectors: number[][];
+    let result: EmbedResult;
     try {
-      vectors = await embedTexts(
+      result = await embedThroughChokepointWithModel(
         group.map((r) => themeEmbeddingText(r.title, r.summary)),
         { supabase: db, userId, surfaceRef: "theme-embedding-backfill" },
       );
@@ -89,14 +89,18 @@ export async function backfillThemeEmbeddings(
       continue;
     }
     for (let i = 0; i < group.length; i++) {
-      const vec = vectors[i];
+      const vec = result.vectors[i];
       if (!vec) {
         failed++;
         continue;
       }
       const { error: upErr } = await db
         .from("themes")
-        .update({ embedding: vec as unknown as string, scored_at: new Date().toISOString() })
+        .update({
+          embedding: vec as unknown as string,
+          embedding_model: result.model,
+          scored_at: new Date().toISOString(),
+        })
         .eq("id", group[i].id);
       if (upErr) {
         console.error("backfillThemeEmbeddings update failed", group[i].id, upErr.message);

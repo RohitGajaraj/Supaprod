@@ -32,7 +32,7 @@
  * Server-only.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { embedTexts } from "@/lib/rag/embed.server";
+import { embedTexts, embedThroughChokepointWithModel, type EmbedResult } from "@/lib/rag/embed.server";
 import { recordErrorEvent } from "@/lib/observability/errors";
 
 export const MEMORY_EMBED_BATCH = 64;
@@ -89,9 +89,9 @@ export async function backfillMemoryEmbeddings(
   let embedded = 0;
   let failed = 0;
   for (const [userId, group] of byUser) {
-    let vectors: number[][];
+    let result: EmbedResult;
     try {
-      vectors = await embedTexts(
+      result = await embedThroughChokepointWithModel(
         group.map((r) => memoryEmbeddingText(r.content)),
         { supabase: db, userId, surfaceRef: "memory-embedding-backfill" },
       );
@@ -112,14 +112,14 @@ export async function backfillMemoryEmbeddings(
       continue;
     }
     for (let i = 0; i < group.length; i++) {
-      const vec = vectors[i];
+      const vec = result.vectors[i];
       if (!vec) {
         failed++;
         continue;
       }
       const { error: upErr } = await db
         .from("agent_memory")
-        .update({ embedding: vec as unknown as string })
+        .update({ embedding: vec as unknown as string, embedding_model: result.model })
         .eq("id", group[i].id);
       if (upErr) {
         console.error("backfillMemoryEmbeddings update failed", group[i].id, upErr.message);

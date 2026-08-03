@@ -70,6 +70,11 @@ export type EmbedContext = {
   byoOverride?: { apiKey: string };
 };
 
+export type EmbedResult = {
+  vectors: number[][];
+  model: string; // the logModel string (e.g. "cohere/embed-v4.0") for tagging in the DB
+};
+
 type EmbedRoute = {
   via: "gateway" | "byo";
   provider: "lovable" | "openai" | "cohere";
@@ -180,11 +185,11 @@ async function logEmbedEvent(
   }
 }
 
-export async function embedThroughChokepoint(
+async function embedThroughChokepointInternal(
   inputs: string[],
   opts: EmbedContext = {},
-): Promise<number[][]> {
-  if (inputs.length === 0) return [];
+): Promise<EmbedResult> {
+  if (inputs.length === 0) return { vectors: [], model: "" };
   const route = await resolveEmbedRoute(opts);
   const started = Date.now();
   const out: number[][] = new Array(inputs.length);
@@ -244,7 +249,22 @@ export async function embedThroughChokepoint(
     const inTok = usageTokens > 0 ? usageTokens : estimateEmbedTokens(missTexts);
     await logEmbedEvent(opts, route, inTok, Date.now() - started);
   }
-  return out;
+  return { vectors: out, model: route.logModel };
+}
+
+export async function embedThroughChokepointWithModel(
+  inputs: string[],
+  opts: EmbedContext = {},
+): Promise<EmbedResult> {
+  return embedThroughChokepointInternal(inputs, opts);
+}
+
+export async function embedThroughChokepoint(
+  inputs: string[],
+  opts: EmbedContext = {},
+): Promise<number[][]> {
+  const result = await embedThroughChokepointInternal(inputs, opts);
+  return result.vectors;
 }
 
 // Back-compat wrappers: existing callers pass no opts and behave exactly as before (gateway, no
