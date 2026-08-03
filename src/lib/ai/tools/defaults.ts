@@ -91,7 +91,19 @@ export const TOOL_DEFAULTS: Readonly<
   // station hands to the next, so a tool missing here stops the loop dead.
   // 01 Discover
   "signals.log": { mode: "confirm", enabled: true, label: "Log a signal" },
-  "research.synthesize": { mode: "confirm", enabled: true, label: "Synthesise research" },
+  // GRADUATED TO AUTO 2026-08-03, on evidence rather than taste. Each of these had a
+  // PERFECT live record at the time (7 approvals, 0 rejections, 0 expiries) and each
+  // passes all four of the governance canon's tests for whether a gate belongs:
+  // nothing irreversible from inside the product, no judgement without an oracle, no
+  // spend past the mission cap, and no customer-visible effect. Drafting is not
+  // deciding: a spec, a task and a synthesis can all be deleted, and asking a human to
+  // authorise "write me a draft" is the queue-instead-of-automation the canon rejects.
+  //
+  // The tools DELIBERATELY left gated are the argument that this is not a blanket
+  // relaxation. studio.commit and github.issue.create leave the product and touch a
+  // customer's repo. studio.pr.merge stays "review" and its own record agrees: 21
+  // approvals against 7 REAL rejections, the only tool here a human genuinely overrules.
+  "research.synthesize": { mode: "auto", enabled: true, label: "Synthesise research" },
   // AUTO, changed from "confirm" on 2026-08-03 after an audit of the live queue.
   //
   // 24 of the 60 pending approvals in production were this one tool, accumulating at
@@ -111,10 +123,10 @@ export const TOOL_DEFAULTS: Readonly<
   "decision.record": { mode: "confirm", enabled: true, label: "Record a decision" },
   "decision.revise": { mode: "confirm", enabled: true, label: "Revise a decision" },
   // 03 Plan
-  "prd.draft": { mode: "confirm", enabled: true, label: "Draft a spec" },
+  "prd.draft": { mode: "auto", enabled: true, label: "Draft a spec" },
   "prd.revise": { mode: "confirm", enabled: true, label: "Revise a spec" },
   "prd.link_issue": { mode: "confirm", enabled: true, label: "Link a spec issue" },
-  "tasks.create": { mode: "confirm", enabled: true, label: "Create a task" },
+  "tasks.create": { mode: "auto", enabled: true, label: "Create a task" },
   "tasks.update_status": { mode: "confirm", enabled: true, label: "Update task status" },
   "backlog.prioritize": { mode: "confirm", enabled: true, label: "Prioritise backlog" },
   "roadmap.move": { mode: "confirm", enabled: true, label: "Move on the roadmap" },

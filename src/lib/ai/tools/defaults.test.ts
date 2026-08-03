@@ -131,3 +131,22 @@ describe("platform tool defaults", () => {
     expect(access).toEqual([{ tool_name: "brand.new.tool", mode: "confirm" }]);
   });
 });
+
+describe("risk floors stay above any earned record (governance canon)", () => {
+  // These three were left gated on 2026-08-03 while three others graduated to auto on a
+  // perfect approval record. The distinction is the point: a clean history earns
+  // autonomy for reversible, internal work, and never for work that leaves the product
+  // or cannot be undone. If a future change flips one of these to "auto", it should have
+  // to delete this test and say why in the message.
+  it("never lets a repo-touching or irreversible tool default to auto", () => {
+    for (const tool of ["studio.commit", "github.issue.create", "studio.pr.merge"]) {
+      expect(TOOL_DEFAULTS[tool]?.mode).not.toBe("auto");
+    }
+  });
+
+  it("keeps the merge gate at review, the strictest mode", () => {
+    // Its own record argues for it: 21 approvals against 7 genuine rejections, the only
+    // tool a human actually overrules.
+    expect(TOOL_DEFAULTS["studio.pr.merge"]?.mode).toBe("review");
+  });
+});
