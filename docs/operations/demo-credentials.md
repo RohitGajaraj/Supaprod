@@ -1,6 +1,24 @@
 # Demo credentials
 
-> _Created: 2026-06-04 · Last updated: 2026-07-25_
+> _Created: 2026-06-04 · Last updated: 2026-08-03_
+
+> ### STALE PASSWORDS, VERIFY BEFORE YOU TRUST ONE (2026-08-03)
+>
+> **The passwords below are not reliable.** They were rotated and this file was not
+> updated. On 2026-08-03 an agent followed it, tried the documented password twice, got
+> "That email or password isn't right", and burned a chunk of a session before the
+> founder said the credentials had changed.
+>
+> That is the whole cost of this file being wrong: `CLAUDE.md` points every tool at it
+> as the way to get a working login, so a stale value here does not fail loudly, it
+> sends the next reader down a debugging path that has nothing to do with the product.
+>
+> **Until a row is re-verified and re-dated, treat its password as unknown and ask the
+> founder.** The EMAILS and the workspace mapping are still correct and still useful.
+>
+> **Rule for whoever rotates next:** change the password and this file in the same
+> sitting, and stamp the row with the date it was verified. A credentials doc that is
+> occasionally right is worse than one that admits it does not know.
 
 ## ⭐ Investor logins, one per application (2026-07-25)
 
