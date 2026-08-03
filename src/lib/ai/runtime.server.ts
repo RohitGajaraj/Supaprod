@@ -379,7 +379,8 @@ export type CallOpts = {
   /**
    * Product the call is attributed to (WM-M14 per-product credit attribution + caps).
    * Null / omitted = unattributed (the account-pool default). Threaded into the credit
-   * ledger debit + the per-product cap check; inert while the credit engine is dormant.
+   * ledger debit + the per-product cap check; inert only where credits_enabled() is off,
+   * which production is not (live since 2026-08-03).
    *
    * Fed today only by the product-scoped paths (discovery clustering). Most call sites
    * leave it null, so their spend attributes to the account pool (per-MEMBER attribution,
@@ -441,6 +442,12 @@ export type CallResult = {
   provider: string;
   prompt_tokens: number;
   completion_tokens: number;
+  /**
+   * Input tokens the provider served from its own cache, as IT reported them. A subset
+   * of prompt_tokens. 0 when the provider reports no cache field. Exposed so a caller
+   * can explain a cost rather than only quote one.
+   */
+  cached_tokens?: number;
   est_cost_usd: number;
   latency_ms: number;
   error?: string;
@@ -632,7 +639,15 @@ async function callAnthropic(
     throw new Error(`Anthropic (${res.status}): ${maskKeyLike((await res.text()).slice(0, 200))}`);
   const j = (await res.json()) as {
     content?: { type?: string; text?: string; id?: string; name?: string; input?: unknown }[];
-    usage?: { input_tokens?: number; output_tokens?: number };
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      // Anthropic reports cache reads separately, and (unlike the OpenAI shape) these
+      // are NOT included in input_tokens. Left unpriced for now: no sourced cached
+      // rate is set for anthropic/* in MODEL_PRICING, so it bills at the full input
+      // rate, which over-estimates rather than under-estimates.
+      cache_read_input_tokens?: number;
+    };
   };
   // AGT-01: a tool_use block has no `text` field, so it contributes nothing
   // to the plain-text join below by construction - extracted separately here
@@ -647,8 +662,9 @@ async function callAnthropic(
         ?.map((c) => c.text ?? "")
         .join("")
         .trim() ?? "",
-    in_tok: j.usage?.input_tokens ?? 0,
+    in_tok: (j.usage?.input_tokens ?? 0) + (j.usage?.cache_read_input_tokens ?? 0),
     out_tok: j.usage?.output_tokens ?? 0,
+    cached_tok: j.usage?.cache_read_input_tokens ?? 0,
     latency,
     toolCalls: toolCalls.length ? toolCalls : undefined,
   };
@@ -725,12 +741,20 @@ async function callOpenAICompat(
         tool_calls?: { id?: string; function?: { name?: string; arguments?: string } }[];
       };
     }[];
-    usage?: { prompt_tokens?: number; completion_tokens?: number };
+    usage?: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      // Cached input the provider served from its context cache. This is a SUBSET of
+      // prompt_tokens, verified live against Qwen on 2026-08-03 (2521 prompt / 2432
+      // cached on a repeated prefix), so it must never be added to it.
+      prompt_tokens_details?: { cached_tokens?: number };
+    };
   };
   return {
     text: j.choices?.[0]?.message?.content?.trim() ?? "",
     in_tok: j.usage?.prompt_tokens ?? 0,
     out_tok: j.usage?.completion_tokens ?? 0,
+    cached_tok: j.usage?.prompt_tokens_details?.cached_tokens ?? 0,
     latency,
     toolCalls: extractOpenAiToolCalls(j.choices?.[0]?.message?.tool_calls),
   };
@@ -782,12 +806,20 @@ async function callGateway(
         tool_calls?: { id?: string; function?: { name?: string; arguments?: string } }[];
       };
     }[];
-    usage?: { prompt_tokens?: number; completion_tokens?: number };
+    usage?: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      // Cached input the provider served from its context cache. This is a SUBSET of
+      // prompt_tokens, verified live against Qwen on 2026-08-03 (2521 prompt / 2432
+      // cached on a repeated prefix), so it must never be added to it.
+      prompt_tokens_details?: { cached_tokens?: number };
+    };
   };
   return {
     text: j.choices?.[0]?.message?.content?.trim() ?? "",
     in_tok: j.usage?.prompt_tokens ?? 0,
     out_tok: j.usage?.completion_tokens ?? 0,
+    cached_tok: j.usage?.prompt_tokens_details?.cached_tokens ?? 0,
     latency,
     toolCalls: extractOpenAiToolCalls(j.choices?.[0]?.message?.tool_calls),
   };
@@ -985,7 +1017,8 @@ export class CreditCapError extends Error {
 
 // credits_enabled() is a rarely-flipped flag; cache it in-process so the dormant hot
 // path costs at most one RPC per process per TTL, not a round-trip per AI call. A
-// missing function / error keeps the engine dormant (false) and never blocks a call.
+// missing function / error reads the engine as OFF (false) and never blocks a call. Note
+// that production reads TRUE; this is the fail-open path, not the normal one.
 let _creditsEnabledCache: { value: boolean; at: number } | null = null;
 const CREDITS_FLAG_TTL_MS = 5 * 60 * 1000;
 
@@ -1034,7 +1067,7 @@ export async function resolveCreditAccountId(
 
 /**
  * Pre-call: when credits are enabled, halt with CreditExhaustedError if the account's
- * pool (included + top-up) is empty. No-op while dormant. Any read failure degrades to
+ * pool (included + top-up) is empty. No-op where the gate is off (not production). Any read failure degrades to
  * "allow" so the credit engine can never block a real call by accident.
  */
 // Log a blocked ai_events row when a call is halted for an empty pool (mirrors the
@@ -1151,7 +1184,7 @@ async function logAmbientDowngrade(
 /**
  * Pre-call: when credits are enabled, project the call's cost and halt with
  * CreditExhaustedError (after logging a blocked ai_events row) if the account pool
- * (included + top-up) cannot cover it. No-op while dormant. A read failure degrades to
+ * (included + top-up) cannot cover it. No-op where the gate is off (not production). A read failure degrades to
  * "allow" so the engine can never block a real call by accident.
  *
  * G-PRICE PR-D2 — returns a model-id OVERRIDE (or null) rather than plain void: an
@@ -1330,7 +1363,8 @@ async function assertCreditCaps(
  * Post-call: when credits are enabled, meter the call against the account pool via the
  * atomic `debit_account_credits` RPC (draws INCLUDED first, then TOP-UP, in one locked
  * transaction, and writes the credit_ledger debit tagged with the ai_event + surface).
- * No-op while dormant; never throws (a metering failure must not fail a completed call).
+ * No-op where the gate is off (not production); never throws (a metering failure must not
+ * fail a completed call).
  */
 async function debitAccountCredits(
   supabase: SupabaseClient,
@@ -1754,12 +1788,19 @@ export async function callModel(
     text: string;
     in_tok: number;
     out_tok: number;
+    /**
+     * Input tokens the provider served FROM ITS CACHE, as the provider reported them.
+     * A subset of in_tok, priced at the model's cached rate when one is sourced.
+     * 0 when the provider reports nothing, which prices the call exactly as before.
+     */
+    cached_tok?: number;
     latency: number;
     toolCalls?: { id: string; name: string; args: unknown }[];
   } = {
     text: "",
     in_tok: 0,
     out_tok: 0,
+    cached_tok: 0,
     latency: 0,
   };
   let via: "gateway" | "byo" | "cache" = "gateway";
@@ -1924,7 +1965,15 @@ export async function callModel(
   }
 
   // 5. Cost
-  const est = estimateCostUsd(modelUsed, providerOut.in_tok, providerOut.out_tok);
+  // METERED FROM PROVIDER-REPORTED USAGE. cached_tok is what the provider said it
+  // served from cache; it is a subset of in_tok and is priced at the model's cached
+  // rate. Providers that report nothing yield 0, which prices identically to before.
+  const est = estimateCostUsd(
+    modelUsed,
+    providerOut.in_tok,
+    providerOut.out_tok,
+    providerOut.cached_tok ?? 0,
+  );
   const totalTok = providerOut.in_tok + providerOut.out_tok;
 
   // 6. Persist event + hits
@@ -1950,6 +1999,9 @@ export async function callModel(
         fallback,
         prompt_tokens: providerOut.in_tok,
         completion_tokens: providerOut.out_tok,
+        // What the PROVIDER said it served from cache, so est_cost_usd can be audited
+        // against a real invoice rather than trusted. Subset of prompt_tokens.
+        cached_tokens: providerOut.cached_tok ?? 0,
         total_tokens: totalTok,
         est_cost_usd: est,
         latency_ms: providerOut.latency,
@@ -1998,7 +2050,7 @@ export async function callModel(
       await incrementBudget(supabase, userId, totalTok, est, opts.traceId ?? null);
       await incrementSurfaceBudget(supabase, userId, opts.surface, est, opts.traceId ?? null);
       await recordMissionUsage(supabase, opts.runId ?? null, totalTok, est);
-      // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
+      // WM-M4 seam + WM-M12 debit: account-level credit metering (live; a no-op only where the gate is off).
       await debitAccountCredits(supabase, userId, opts, est, eventId, modelUsed);
       // G-PRICE PR-C2: an enterprise BYOK call still accrues Supaprod's thin platform
       // fee on the rated spend, independent of the consumer credit meter above.
@@ -2065,6 +2117,7 @@ export async function callModel(
     provider,
     prompt_tokens: providerOut.in_tok,
     completion_tokens: providerOut.out_tok,
+    cached_tokens: providerOut.cached_tok ?? 0,
     est_cost_usd: est,
     latency_ms: providerOut.latency,
     fallback,
@@ -2717,7 +2770,7 @@ export async function callModelStream(
               opts.traceId ?? null,
             );
             await recordMissionUsage(supabase, opts.runId ?? null, inTok + outTok, estCost);
-            // WM-M4 seam + WM-M12 debit: dormant account-level credit metering (no-op while dormant).
+            // WM-M4 seam + WM-M12 debit: account-level credit metering (live; a no-op only where the gate is off).
             await debitAccountCredits(supabase, userId, opts, estCost, eventId, modelUsed);
             // G-PRICE PR-C2: an enterprise BYOK call still accrues Supaprod's thin
             // platform fee on the rated spend, independent of the credit meter above.

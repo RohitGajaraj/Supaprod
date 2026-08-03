@@ -3,7 +3,21 @@
  * update. Unknown models fall back to a neutral default so cost math never
  * crashes.
  */
-export type Pricing = { in_per_mtok: number; out_per_mtok: number };
+export type Pricing = {
+  in_per_mtok: number;
+  out_per_mtok: number;
+  /**
+   * Price of an input token the provider served FROM ITS CACHE, when that
+   * provider discounts one and we have a sourced figure for it.
+   *
+   * OMITTED MEANS "charge the full input rate", deliberately. An absent entry
+   * must over-estimate rather than under-estimate: a meter that quietly bills
+   * less than the provider does turns into a margin hole nobody notices, which
+   * is strictly worse than the over-estimate it replaces. So a model only gets
+   * a cached rate here once someone has read that provider's billing page.
+   */
+  cached_in_per_mtok?: number;
+};
 
 export const MODEL_PRICING: Record<string, Pricing> = {
   // Google Gemini (via Lovable AI Gateway)
@@ -79,9 +93,17 @@ export const MODEL_PRICING: Record<string, Pricing> = {
   // mistaken for precision: the credit ledger currently debits Qwen work about 1.8x its
   // true cost. The real answer is to meter from provider-reported usage instead of
   // estimating from a rate table at all, at which point this entry stops mattering.
-  "qwen/qwen-plus": { in_per_mtok: 0.4, out_per_mtok: 1.2 },
-  "qwen/qwen-max-latest": { in_per_mtok: 1.6, out_per_mtok: 6.4 },
-  "qwen/qwen-turbo-latest": { in_per_mtok: 0.05, out_per_mtok: 0.2 },
+  // CACHED INPUT, and this is the entry that closes a real overcharge. Alibaba Model
+  // Studio's implicit context cache bills a cache-hit input token at 20% of the input
+  // rate (their context-cache billing page). Measured live on 2026-08-03 against this
+  // exact endpoint: two identical-prefix calls returned prompt_tokens 2521 both times,
+  // with prompt_tokens_details.cached_tokens going 0 then 2432. So on a repeated prefix
+  // 96% of the input was cache-served, and the meter was charging every one of those
+  // tokens at the full rate. That is the shape of the gap between our computed spend
+  // and the real Alibaba invoice.
+  "qwen/qwen-plus": { in_per_mtok: 0.4, out_per_mtok: 1.2, cached_in_per_mtok: 0.08 },
+  "qwen/qwen-max-latest": { in_per_mtok: 1.6, out_per_mtok: 6.4, cached_in_per_mtok: 0.32 },
+  "qwen/qwen-turbo-latest": { in_per_mtok: 0.05, out_per_mtok: 0.2, cached_in_per_mtok: 0.01 },
   "minimax/minimax-text-01": { in_per_mtok: 0.2, out_per_mtok: 1.1 },
   "mistral/mistral-large-latest": { in_per_mtok: 2.0, out_per_mtok: 6.0 },
   "groq/llama-3.3-70b-versatile": { in_per_mtok: 0.59, out_per_mtok: 0.79 },
@@ -97,9 +119,37 @@ export function priceFor(model: string): Pricing {
   return MODEL_PRICING[model] ?? DEFAULT_PRICING;
 }
 
-export function estimateCostUsd(model: string, inTokens: number, outTokens: number): number {
+/**
+ * Cost of one call, metered from what the PROVIDER reported rather than from token
+ * counts we guessed.
+ *
+ * `cachedInTokens` is a SUBSET of `inTokens`, not an addition to it. Verified against
+ * the live Qwen endpoint on 2026-08-03: a call reported prompt_tokens 2521 and
+ * prompt_tokens_details.cached_tokens 2432, i.e. the cached figure counts tokens that
+ * are ALSO in prompt_tokens. Adding them would double-bill the cached portion, so the
+ * uncached remainder is what gets the full rate.
+ *
+ * Clamped, because a provider is free to report something we did not expect and a
+ * negative uncached count would silently produce a NEGATIVE cost, which flows into the
+ * credit ledger as a refund. Fail toward over-billing, never toward paying the user.
+ */
+export function estimateCostUsd(
+  model: string,
+  inTokens: number,
+  outTokens: number,
+  cachedInTokens = 0,
+): number {
   const p = priceFor(model);
-  return (inTokens * p.in_per_mtok + outTokens * p.out_per_mtok) / 1_000_000;
+  const inTok = Math.max(0, inTokens || 0);
+  const outTok = Math.max(0, outTokens || 0);
+  // A cached count larger than the total is a provider bug; trust the smaller number.
+  const cached = Math.min(Math.max(0, cachedInTokens || 0), inTok);
+  // No sourced cached rate means charge the full input rate (see Pricing.cached_in_per_mtok).
+  const cachedRate = p.cached_in_per_mtok ?? p.in_per_mtok;
+  const uncached = inTok - cached;
+  return (
+    (uncached * p.in_per_mtok + cached * cachedRate + outTok * p.out_per_mtok) / 1_000_000
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -110,7 +160,9 @@ export function estimateCostUsd(model: string, inTokens: number, outTokens: numb
 // grant-sizing (entitlements.creditMonthlyBase), NOT in the per-credit price, so
 // the meter stays calm and abundant. The numbers here are founder-tunable
 // placeholders (plan §7); the conversion MECHANISM is final. The whole credit
-// engine stays dormant behind credits_enabled() until the founder flips it.
+// engine is LIVE: credits_enabled() returns true in production (verified 2026-08-03,
+// and accounts are being debited). The gate remains so metering can be switched off
+// per deployment; it no longer describes the current state.
 // ---------------------------------------------------------------------------
 
 /**

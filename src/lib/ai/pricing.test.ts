@@ -188,3 +188,55 @@ describe("projectCallCredits (WM-M12 pre-call projection)", () => {
     );
   });
 });
+
+describe("estimateCostUsd: metering from provider-reported cached tokens", () => {
+  // Every number below comes from a real call made on 2026-08-03 against the same
+  // Qwen endpoint production uses, not from a doc and not from an example.
+  const QWEN = "qwen/qwen-plus";
+  const IN = 2521;
+  const CACHED = 2432;
+  const OUT = 1;
+
+  it("prices a cache MISS exactly as before, so nothing regresses on providers without a cache", () => {
+    expect(estimateCostUsd(QWEN, IN, OUT, 0)).toBeCloseTo((IN * 0.4 + OUT * 1.2) / 1e6, 12);
+  });
+
+  it("charges cache-served input at the cached rate, not the full one", () => {
+    // Alibaba bills a cache hit at 20% of the input rate.
+    const expected = ((IN - CACHED) * 0.4 + CACHED * 0.08 + OUT * 1.2) / 1e6;
+    expect(estimateCostUsd(QWEN, IN, OUT, CACHED)).toBeCloseTo(expected, 12);
+  });
+
+  it("is materially cheaper on a cached call, which is the whole point", () => {
+    const before = estimateCostUsd(QWEN, IN, OUT, 0);
+    const after = estimateCostUsd(QWEN, IN, OUT, CACHED);
+    // 96% of the input cache-served at 20% => the input half falls by ~77%.
+    expect(after).toBeLessThan(before * 0.3);
+  });
+
+  it("treats cached tokens as a SUBSET of input, never an addition", () => {
+    // If they were added, a fully-cached call would cost MORE than an uncached one.
+    expect(estimateCostUsd(QWEN, IN, OUT, IN)).toBeLessThan(estimateCostUsd(QWEN, IN, OUT, 0));
+  });
+
+  it("falls back to the full input rate for a model with no sourced cached rate", () => {
+    // Omission must OVER-estimate. A meter that quietly bills less than the provider
+    // is a margin hole nobody notices.
+    const m = "anthropic/claude-sonnet-4";
+    expect(estimateCostUsd(m, 1000, 100, 900)).toBe(estimateCostUsd(m, 1000, 100, 0));
+  });
+
+  it("never returns a negative cost, whatever the provider reports", () => {
+    // A negative cost flows into the credit ledger as a refund.
+    expect(estimateCostUsd(QWEN, 100, 10, 999_999)).toBeGreaterThanOrEqual(0);
+    expect(estimateCostUsd(QWEN, -5, -5, -5)).toBe(0);
+  });
+
+  it("clamps a cached count larger than the input count instead of trusting it", () => {
+    expect(estimateCostUsd(QWEN, 100, 0, 5000)).toBeCloseTo((100 * 0.08) / 1e6, 12);
+  });
+
+  it("defaults the cached argument to zero, so existing three-arg callers are unchanged", () => {
+    expect(estimateCostUsd(QWEN, IN, OUT)).toBe(estimateCostUsd(QWEN, IN, OUT, 0));
+  });
+});
