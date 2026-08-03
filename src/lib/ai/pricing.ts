@@ -46,6 +46,27 @@ export const MODEL_PRICING: Record<string, Pricing> = {
   "moonshot/kimi-k2": { in_per_mtok: 0.6, out_per_mtok: 2.5 },
   "qwen/qwen-2.5-max": { in_per_mtok: 1.6, out_per_mtok: 6.4 },
   "qwen/qwen-2.5-coder-32b": { in_per_mtok: 0.2, out_per_mtok: 0.6 },
+  // Alibaba Model Studio, INTERNATIONAL (Singapore) list, which is the one that applies:
+  // our endpoint is ap-southeast-1.maas.aliyuncs.com. The Mainland China list differs, so
+  // do not substitute it. Source: alibabacloud.com/help/en/model-studio/model-pricing.
+  //
+  // WHY THESE MATTER MORE THAN THE REST OF THIS TABLE. qwen-plus was absent here and so
+  // took the {0.5, 1.5} neutral default, and it is not a marginal model: it carries the
+  // majority of all agent traffic (2,837 calls, 11.5M input tokens since 2026-07-05,
+  // routed by AGENT_MODEL_PRIORITY in platform-keys.server.ts:95). Every credit debit on
+  // the product's busiest path was therefore computed from a placeholder that overstated
+  // input by 25% and output by 25%.
+  //
+  // TIERING, the one thing to watch. qwen-plus is priced by the input-token count of the
+  // SINGLE request: $0.4/$1.2 up to 256K input, then $1.2/$3.6 above it. This table has
+  // no way to express a tier, so the entry encodes the lower band. That is right today
+  // (live average input is ~4,700 tokens, three orders of magnitude inside the band) and
+  // becomes a 3x UNDER-estimate for any request that ever crosses 256K input. If long
+  // documents start being embedded in a single agent prompt, this needs a tier-aware
+  // price lookup rather than a constant.
+  "qwen/qwen-plus": { in_per_mtok: 0.4, out_per_mtok: 1.2 },
+  "qwen/qwen-max-latest": { in_per_mtok: 1.6, out_per_mtok: 6.4 },
+  "qwen/qwen-turbo-latest": { in_per_mtok: 0.05, out_per_mtok: 0.2 },
   "minimax/minimax-text-01": { in_per_mtok: 0.2, out_per_mtok: 1.1 },
   "mistral/mistral-large-latest": { in_per_mtok: 2.0, out_per_mtok: 6.0 },
   "groq/llama-3.3-70b-versatile": { in_per_mtok: 0.59, out_per_mtok: 0.79 },

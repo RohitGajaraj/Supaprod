@@ -9,7 +9,9 @@ import {
   estimatePromptTokens,
   projectCallCredits,
   priceFor,
+  MODEL_PRICING,
 } from "./pricing";
+import { MODELS } from "./models";
 
 describe("CREDIT_COGS_USD", () => {
   it("is a positive, margin-bearing constant", () => {
@@ -114,20 +116,36 @@ describe("actionCreditRange (legibility layer)", () => {
 });
 
 describe("MODEL_PRICING — opened (model-agnostic) catalog", () => {
-  it("prices the newly-added providers explicitly, not the neutral default", () => {
-    const ids = [
-      "qwen/qwen-2.5-max",
-      "groq/llama-3.3-70b-versatile",
-      "mistral/mistral-large-latest",
-      "moonshot/kimi-k2",
-      "minimax/minimax-text-01",
-      "together/llama-3.3-70b",
-    ];
-    for (const id of ids) {
-      const p = priceFor(id);
-      // a real entry differs from the {0.5, 1.5} neutral default on at least one axis
-      expect(p.in_per_mtok !== 0.5 || p.out_per_mtok !== 1.5).toBe(true);
-    }
+  /**
+   * EVERY shippable model must be priced, and this is checked against the registry
+   * rather than a hand-written list.
+   *
+   * WHY THIS REPLACED A SPOT CHECK. The previous version of this test asserted the
+   * same property against six ids typed out by hand. It passed continuously while
+   * `qwen/qwen-plus` went unpriced, because a hand-maintained list cannot know about
+   * a model added after it was written, and qwen-plus was added later. It then
+   * silently took the {0.5, 1.5} neutral default and went on to carry the majority of
+   * all agent traffic on it (2,837 calls, 11.5M input tokens), so every credit debit
+   * for the product's busiest path was computed from a placeholder. Five accounts
+   * drained. A test that enumerates its own subjects cannot catch the thing it was
+   * written to catch, so this one enumerates MODELS instead.
+   *
+   * DEFAULT_PRICING stays as the crash-proof floor for a genuinely unknown BYO model
+   * id (asserted below); it is not acceptable for a model WE ship in the picker.
+   *
+   * IT ASSERTS MEMBERSHIP, NOT VALUE, and that distinction is load-bearing. The first
+   * version of this test asked "does priceFor() return something other than {0.5, 1.5}",
+   * which flagged `openai/gpt-5-mini` even though it is correctly priced, because its
+   * real rate happens to BE $0.5/$1.5. Comparing against the default's value cannot
+   * distinguish a deliberate price that coincides with the default from a silent
+   * fallback. Only the presence of the key can.
+   */
+  it("prices every model in the registry explicitly, never the neutral default", () => {
+    const unpriced = MODELS.filter(
+      (m) => !Object.prototype.hasOwnProperty.call(MODEL_PRICING, m.id),
+    ).map((m) => `${m.id} (provider ${m.provider}, live=${m.live})`);
+
+    expect(unpriced).toEqual([]);
   });
 
   it("self-hosted Ollama has zero third-party API cost", () => {
