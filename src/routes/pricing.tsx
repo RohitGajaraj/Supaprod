@@ -479,7 +479,10 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           href={
             isFree
               ? "/signup?from=pricing"
-              : `/signup?from=pricing&plan=${tier}&credits=${credits}&billing=${annual ? "annual" : "monthly"}`
+              // Paid plans go to CHECKOUT, not signup. A visitor who has decided to pay
+              // should not have to create an account first and then hunt for billing:
+              // decide, price it, pay, and the account is provisioned after payment.
+              : `/checkout?plan=${tier}&billing=${annual ? "annual" : "monthly"}`
           }
           style={{
             display: "block",
