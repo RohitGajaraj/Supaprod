@@ -148,7 +148,17 @@ export function GraphCompoundingStrip({
             )}
           </Line>
 
-          <Line label="Calls it later revised" sub="Supersession threads live in the graph below">
+          {/* SCOPE, SAID ON THE LINE ITSELF. This reads 0 while Learn reports
+              "3 calls later replaced", and both are right: this counts
+              supersession threads among the nodes IN VIEW, Learn counts them
+              across the workspace. The section header already says "measured
+              over the nodes in view", but nobody reads a header to reconcile a
+              number, so the line carries its own scope and points at the
+              authoritative one. */}
+          <Line
+            label="Calls it later revised"
+            sub="Among the nodes in view; Learn carries the workspace total"
+          >
             <Value>
               <Num>{beliefsRevised}</Num>
             </Value>

@@ -1360,8 +1360,35 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
     }
   }
 
+  /**
+   * OUT OF STEPS IS NOT THE SAME AS EMPTY HANDED.
+   *
+   * This used to finalize with the bare string "Reached step limit.", which threw
+   * away everything the agent had actually established. Seen on the live product
+   * 2026-08-03: one Discover track carried three Researcher runs whose entire
+   * recorded output was "Reached step limit.", next to Scout runs on the same
+   * track that had found and reported real evidence. The budget was spent, the
+   * work existed, and the record kept none of it.
+   *
+   * The last assistant turn is what the agent had reasoned to just before the
+   * budget ran out, so it is the most useful thing available without spending
+   * another model call. Carrying it forward turns "filed nothing" into "here is
+   * where it got to", which a human can act on and the next run can resume from.
+   *
+   * The step-limit fact is kept in front of the summary rather than replaced by
+   * it: a run that stopped early must never read as a run that finished.
+   */
+  const lastSaid = [...conv]
+    .reverse()
+    .find((m) => m.role === "assistant" && typeof m.content === "string" && m.content.trim())
+    ?.content;
+  const carried = typeof lastSaid === "string" ? lastSaid.trim().slice(0, 1200) : "";
   steps.push({ kind: "final", message: "Reached step limit without finalizing." });
-  return s.finalize("Reached step limit.");
+  return s.finalize(
+    carried
+      ? `Reached the step limit before finishing. Where it got to: ${carried}`
+      : "Reached the step limit before finishing, with nothing established yet.",
+  );
 }
 
 /**
