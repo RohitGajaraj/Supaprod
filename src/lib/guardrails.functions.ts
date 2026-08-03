@@ -12,6 +12,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { evaluateGuardrails, type GuardrailRule } from "./ai/guardrails.server";
+import { GUARDRAIL_FLOOR } from "@/lib/ai/guardrail-floor";
 
 const BUILTIN_SEED = [
   {
@@ -82,17 +83,19 @@ const BUILTIN_SEED = [
 export const getGuardrailOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+    const { supabase } = context;
+    // WORKSPACE, NOT USER. Both halves of this used to filter by user_id, which is
+    // how the Safety room came to read "0 guardrails on - 7 incidents" with the
+    // blocks listed underneath: the viewer owned none of the rules that had been
+    // screening the workspace. Rules and hits are now read through the same lens,
+    // so the two numbers describe the same thing. RLS is membership-keyed after
+    // migration 20260803191000, so the select needs no explicit filter and cannot
+    // be widened by a caller.
     const [rulesRes, hitsRes] = await Promise.all([
-      supabase
-        .from("guardrail_rules")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
+      supabase.from("guardrail_rules").select("*").order("created_at", { ascending: false }),
       supabase
         .from("guardrail_hits")
         .select("*")
-        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(100),
     ]);
@@ -100,6 +103,14 @@ export const getGuardrailOverview = createServerFn({ method: "GET" })
       rules: rulesRes.data ?? [],
       hits: hitsRes.data ?? [],
       builtins: BUILTIN_SEED,
+      /**
+       * The rules that screen this workspace whether or not it configured any.
+       * Surfaced so the Safety room can stop saying "Nothing checks your AI calls
+       * yet" to a workspace whose calls are, in fact, being checked. A count of
+       * zero CONFIGURED rules is now a true and unalarming statement, because the
+       * floor is reported beside it.
+       */
+      floor: GUARDRAIL_FLOOR.map((r) => ({ id: r.id, name: r.name, kind: r.kind, action: r.action })),
     };
   });
 
@@ -129,8 +140,7 @@ export const upsertGuardrailRule = createServerFn({ method: "POST" })
           applies_to: data.applies_to,
           enabled: data.enabled,
         })
-        .eq("id", data.id)
-        .eq("user_id", userId);
+        .eq("id", data.id);
       if (error) throw new Error(error.message);
       return { ok: true, id: data.id };
     }
@@ -159,8 +169,7 @@ export const deleteGuardrailRule = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("guardrail_rules")
       .delete()
-      .eq("id", data.id)
-      .eq("user_id", userId);
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -175,8 +184,7 @@ export const toggleGuardrailRule = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("guardrail_rules")
       .update({ enabled: data.enabled })
-      .eq("id", data.id)
-      .eq("user_id", userId);
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -188,7 +196,6 @@ export const seedBuiltInGuardrails = createServerFn({ method: "POST" })
     const { data: existing } = await supabase
       .from("guardrail_rules")
       .select("name")
-      .eq("user_id", userId)
       .eq("built_in", true);
     const have = new Set((existing ?? []).map((r) => r.name));
     const toInsert = BUILTIN_SEED.filter((r) => !have.has(r.name)).map((r) => ({
@@ -238,11 +245,15 @@ export const testGuardrailRule = createServerFn({ method: "POST" })
 export const getGuardrailHitCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ count: number }> => {
-    const { supabase, userId } = context;
+    const { supabase } = context;
+    // The last user_id filter on a workspace-scoped table. It is why the Engine
+    // room reported 7 incidents for a workspace holding 14: the viewer was shown
+    // only the hits recorded under their own session, on a ledger that belongs to
+    // the tenant. Membership RLS now scopes it, so the count answers the question
+    // the surface is actually asking.
     const { count, error } = await supabase
       .from("guardrail_hits")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId);
+      .select("id", { count: "exact", head: true });
     if (error) throw new Error(error.message);
     return { count: count ?? 0 };
   });

@@ -32,6 +32,7 @@ import {
 } from "./credit-policy";
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
 import { evaluateGuardrails, type GuardrailRule } from "./guardrails.server";
+import { withFloor } from "./guardrail-floor";
 import { retrieve, formatContextBlock, type RetrievedChunk } from "../rag/retriever.server";
 import { resolvePrompt, logPromptRun, withHumanizeDirective } from "./prompts.server";
 import { humanizeText, isFenceOpen } from "./humanize";
@@ -876,13 +877,36 @@ function createStreamHumanizer() {
   };
 }
 
-async function loadGuardrails(supabase: SupabaseClient, userId: string): Promise<GuardrailRule[]> {
+/**
+ * The rules that screen this call: the platform floor, plus whatever this
+ * WORKSPACE configured on top of it.
+ *
+ * This used to filter `.eq("user_id", userId)`, which made screening a property
+ * of who was signed in rather than of the tenant. Found 2026-08-03: an admin had
+ * 27 enabled rules and a colleague in the same workspace was screened by none of
+ * them, with no PII redaction, no secret block and no injection check, while the
+ * Safety room showed that colleague the admin's incidents.
+ *
+ * Two changes, and both are needed. Workspace scope is the correct MODEL, and on
+ * its own it would have made the failing workspace worse, since a workspace that
+ * configured nothing would then get nothing. `withFloor` is what makes it safe:
+ * personal data, credentials and injection are screened on every call in every
+ * workspace, configured or not, brand new or years old. See guardrail-floor.ts.
+ *
+ * `workspaceId` is nullable at this seam, and a null one gets the floor alone
+ * rather than a colleague's rules. Fewer configured rules, never fewer floors.
+ */
+async function loadGuardrails(
+  supabase: SupabaseClient,
+  workspaceId: string | null | undefined,
+): Promise<GuardrailRule[]> {
+  if (!workspaceId) return withFloor([]);
   const { data } = await supabase
     .from("guardrail_rules")
     .select("id,name,kind,pattern,action,applies_to,enabled")
-    .eq("user_id", userId)
+    .eq("workspace_id", workspaceId)
     .eq("enabled", true);
-  return (data ?? []) as GuardrailRule[];
+  return withFloor((data ?? []) as GuardrailRule[]);
 }
 
 async function checkBudget(supabase: SupabaseClient, userId: string): Promise<void> {
@@ -1652,7 +1676,7 @@ export async function callModel(
   if (ambientOverride) effectiveModel = ambientOverride;
 
   // 2. Pre-guardrails on the user content
-  const rules = useGuards ? await loadGuardrails(supabase, userId) : [];
+  const rules = useGuards ? await loadGuardrails(supabase, opts.workspaceId) : [];
   const hits: {
     rule_id: string;
     rule_name: string;
@@ -2260,7 +2284,7 @@ export async function callModelStream(
   if (ambientOverride) effectiveModel = ambientOverride;
 
   // 2. Pre-guardrails on the user content
-  const rules = useGuards ? await loadGuardrails(supabase, userId) : [];
+  const rules = useGuards ? await loadGuardrails(supabase, opts.workspaceId) : [];
   const hits: {
     rule_id: string;
     rule_name: string;
