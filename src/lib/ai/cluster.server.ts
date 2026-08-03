@@ -223,7 +223,12 @@ Return STRICT JSON only, no prose, no markdown fences.`;
         summary: (t.summary ?? "").slice(0, 400),
         severity: Math.min(5, Math.max(1, Math.round(t.severity ?? 3))),
         confidence: Math.min(1, Math.max(0, t.confidence ?? 0.5)),
-        frequency: members.length,
+        // Zero, not members.length. The signals are stamped AFTER this insert and
+        // the claim is conditional, so members.length is a promise about rows that
+        // may not all land. The trigger raises this to the true count as each
+        // signal is actually claimed, and a theme that ends up claiming none stays
+        // honestly at zero instead of advertising evidence it never got.
+        frequency: 0,
         embedding: nov.embedding ? (nov.embedding as unknown as string) : null,
         novelty: nov.novelty,
         novelty_basis: nov.basis,
@@ -349,7 +354,27 @@ Return STRICT JSON only, no prose, no markdown fences.`;
 
     const nowIso = new Date().toISOString();
     {
-      const newFrequency = ((theme as { frequency?: number | null }).frequency ?? 0) + 1;
+      // READ THE COUNT BACK, DO NOT ADD ONE TO A STALE READ.
+      //
+      // The claim above just moved this signal's theme_id, and the
+      // `signals_theme_frequency` trigger (migration 20260803190000) recounted the
+      // theme from its rows as part of that statement. So the truth is already in
+      // the database, and `theme.frequency` in hand is a value read BEFORE the
+      // claim, from a row that may itself have been wrong.
+      //
+      // It was wrong, routinely. Measured 2026-08-03: themes claiming 179 signals
+      // against 21 that existed, one storing 40 against 0 and another 9 against 19.
+      // `stale + 1` preserved whatever error it started with forever, and wrote it
+      // back on top of the trigger's correct answer. Since `frequency` drives the
+      // Discover ranking, the "watch this week" designation, the Decide ICE order
+      // and the corroboration clause handed to the Critic, that error was load
+      // bearing rather than cosmetic.
+      const { data: recounted } = await supabase
+        .from("themes")
+        .select("frequency")
+        .eq("id", bestMatch.id)
+        .single();
+      const newFrequency = (recounted as { frequency?: number | null } | null)?.frequency ?? 0;
 
       // Conditional decline. The gate is measured against how big the theme was when
       // the human declined it, not against a fixed count. A flat "frequency >= 5"
@@ -366,10 +391,11 @@ Return STRICT JSON only, no prose, no markdown fences.`;
         (theme as { status?: string | null }).status === "dismissed" &&
         shouldEscalate(dismissedAt ?? null, newFrequency);
 
+      // `frequency` is deliberately absent from this payload. The trigger owns it;
+      // a second writer is how the two numbers diverged in the first place.
       const { error: upErr } = await supabase
         .from("themes")
         .update({
-          frequency: newFrequency,
           last_signal_at: nowIso,
           ...(reopening ? { status: "new", escalated_at: nowIso } : {}),
         })
