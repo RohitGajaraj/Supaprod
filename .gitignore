@@ -183,3 +183,6 @@ design-reference/Latest Design System - v3 /
 # them outright once the founder confirms nothing local is wanted.
 /supaprod/
 /supaprod-v1/
+
+# Temp screenshot dirs from verification sessions. One was committed by mistake.
+.tmp-*/

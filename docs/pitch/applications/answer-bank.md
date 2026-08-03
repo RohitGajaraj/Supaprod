@@ -59,9 +59,10 @@ Agents that know what to build, ship it, and remember.
 
 ### One sentence
 ```
-Supaprod is the agentic operating system for product teams: it tells you what
-to build from your signals, your market and your own decision history, then
-builds it, ships it, checks the outcome, and remembers.
+Supaprod is the agent-first operating system for product teams: it tells you
+what to build from your signals, your market and your own decision history,
+then builds it, ships it, checks what happened, and learns from it, so next
+time it guides the call instead of waiting to be asked.
 ```
 
 ### Two sentences (the layman telling, use when a human asks "so what is it?")

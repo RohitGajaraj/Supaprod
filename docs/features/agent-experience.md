@@ -47,7 +47,7 @@ The end-user/platform split is the direct answer to "are the new agents visible 
 
 ---
 
-## 2. The refined roster (clubbed from 19, all six stations populated)
+## 2. The refined roster (clubbed from 19, all seven stations populated)
 
 Internal DB slugs are never renamed (the rename-disclaimer rule). Naming and identity are a display layer over the slug. Names below are the proposed friendly-archetype set (section 4) and are easy to change.
 
@@ -101,7 +101,7 @@ The fix: a single three-tier catalog in `agent-vocabulary.ts` (stations, faces, 
 
 ## 5. The relay: showing agents working (in parallel) under a station
 
-The founder's requirement: the six stations are the stable top layer, and UNDER each station several agents operate, visibly, because multi-agent is the value. The research-validated way to show that calmly (so 3 to 4 parallel agents read as calm rows, not noise):
+The founder's requirement: the seven stations are the stable top layer, and UNDER each station several agents operate, visibly, because multi-agent is the value. The research-validated way to show that calmly (so 3 to 4 parallel agents read as calm rows, not noise):
 
 - Under a working station, the active cast agents render as **rows in one list** (station = parent, agents = sub-tasks). This is the task-list-with-sub-tasks layout that reads best for parallel work with dependencies (LukeW).
 - Each agent row shows **only its single latest line** (thought or action), **self-replacing / ephemeral** (Linear's `AgentSession` activity model). Four agents in parallel = four quiet rows, not four scrolling logs.
@@ -109,7 +109,7 @@ The founder's requirement: the six stations are the stable top layer, and UNDER 
 - **On completion, the stream collapses to a one-line summary + the artifact link**, so the user ends looking at the PRD / roadmap / release, not at agent logs.
 - The raw tool-calls, thoughts, and payloads stay in a "Full execution trace" disclosure (the existing per-hop trace), collapsed by default: reveal on demand.
 
-This relay reuses the shipped data and components: `getSwarmHud` / `getMission` for data; `HandoffFeed` and the per-hop `TraceHop` (with its inbound/outbound handoff chips) as the raw material to promote into one calm `<AgentRelay>` component (variants: `full` on mission/build detail, `mini` as one live line on Today). It is seeded across ALL six stations, not just Build (the founder's point): the orchestrator already plans a DAG of specialist steps by task type, and a station-grouped planner prompt makes parallel specialists in one station explicit.
+This relay reuses the shipped data and components: `getSwarmHud` / `getMission` for data; `HandoffFeed` and the per-hop `TraceHop` (with its inbound/outbound handoff chips) as the raw material to promote into one calm `<AgentRelay>` component (variants: `full` on mission/build detail, `mini` as one live line on Today). It is seeded across ALL seven stations, not just Build (the founder's point): the orchestrator already plans a DAG of specialist steps by task type, and a station-grouped planner prompt makes parallel specialists in one station explicit.
 
 **Anti-patterns to avoid** (from the competitive scan): the live orchestration graph / node-canvas as the primary surface (the engineer's control room, e.g. LangGraph Studio's auto-edge hairball); the data-dump of every log line (notification blindness); a roster of running bots with internals exposed at once plus per-step approval modals (Cursor 2.0's "absurd" multi-agent chrome). The calm default with depth one click away is the resolution; the show-vs-hide tension is genuinely unresolved in the field, so calm-by-default and user-controllable depth is the safe stance.
 

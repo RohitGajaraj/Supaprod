@@ -49,7 +49,7 @@ Position Supaprod at the intersection of three circles (founder Venn, 2026-07-22
 - **③ The brain — the part that compounds.** Blomfield's RFS verbatim: _"a living map of how a company works… turns it into an executable skills file for AI… I think every company in the world is going to need one."_ Supaprod's decision ledger + outcome memory, scoped to the product org first — plus the exportable agent-context bundle (the literal "executable skills file," see §7).
 
 **Category sentence (deck/investor surfaces):**
-> "Supaprod is the agentic operating system for product teams. It tells you what to build — from your signals, the market, and your own decision history — then builds it, ships it, checks the outcome, and remembers. The more it runs, the sharper it gets."
+> "Supaprod is the agentic operating system for product teams. It tells you what to build — from your signals, the market, and your own decision history — then builds it, ships it, checks what happened, and learns from it, so next time it guides the call. The more it runs, the sharper it gets."
 
 **⭐ The layman two-liner (canonical, founder-directed 2026-07-23 — the connected-path telling of all three circles without naming any of them; use when a human asks "so what is Supaprod?"):**
 > "Supaprod tells you what to build and gets it built: AI agents read everything you already know (your user feedback, product data, competitors, market), surface what is worth building, and once you approve, they build and ship it. Think of it like Cursor, but for the whole product lifecycle, not just writing code. And it remembers: every decision is recorded with its evidence and outcome, so the next time a similar call comes up, it shows you how you decided last time and whether it worked."

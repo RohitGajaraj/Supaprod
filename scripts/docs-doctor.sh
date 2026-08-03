@@ -148,6 +148,50 @@ if [ -n "$RETIRED" ]; then
   FAIL=1
 else echo "  ok"; fi
 
+# WHY THIS CHECK EXISTS (added 2026-08-04). Structure being clean does not make
+# CONTENT true. On the day this was written, a full-content scan of the live docs
+# found four real defects that every structural check passed over:
+#
+#   - docs/pitch/applications/answer-bank.md warned "Never close on 'remember'"
+#     and then, three lines later, its PASTE-READY block closed on "and
+#     remembers." The instruction and the artifact contradicted each other, and
+#     the artifact is the thing that gets pasted into an application.
+#   - the one-pager's category line had the same stale close.
+#   - the marketing checklist answered "what colour should this be?" by pointing
+#     at DESIGN-TEMPO.md, a contract the founder rejected on 2026-07-28.
+#   - agent-experience.md said "all six stations" when there are seven.
+#
+# So this greps for the specific phrasings that are now WRONG. It is deliberately
+# a small, literal list rather than a clever heuristic: each entry earned its place
+# by actually being found in a live doc. Add a line when a ruling retires a phrase.
+#
+# Scoped out: archive/ (history must stay accurate to its date), references/ and
+# prompts/ (verbatim source material), and the three append-forward logs, whose
+# job is to record what was said at the time.
+echo "-- [9] retired wording still present in LIVE docs --"
+STALE_SCOPE="--include=*.md docs architecture"
+stale_hits() {
+  grep -rInE "$1" $STALE_SCOPE ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md 2>/dev/null \
+    | grep -v '/archive/' | grep -v 'docs/references/' | grep -v 'docs/prompts/' \
+    | grep -v 'session-decisions\|strategic-inputs-log\|session-handoff\|build-log' \
+    | grep -viE 'never (say|close|call|write)|bans?\b|ban on|banned|do not (say|use)|retired|instead of|rather than|superseded|no longer|insists|forbidden|stale as of|\| \*\*"|^[^:]*:[0-9]+:\s*\||^[^:]*:[0-9]+:\s*-\s*"' || true
+}
+STALE=""
+# The claim closes on learning and guiding. "Remembers" describes storage.
+STALE="${STALE}$(stale_hits 'and remembers\.|where the record lives')"
+# Seven stations, and it is a route rather than a conveyor.
+STALE="${STALE}$(stale_hits 'six stations|five destinations|5 destinations')"
+# The design contract is docs/design/DESIGN-SYSTEM.md.
+STALE="${STALE}$(stale_hits 'DESIGN-TEMPO\.md|DESIGN-LOOM\.md|DESIGN-OBSIDIAN\.md')"
+# The launch date is September 2026.
+STALE="${STALE}$(stale_hits 'under 25 days|~Aug 4')"
+if [ -n "$STALE" ]; then
+  printf '%s\n' "$STALE" | sed 's/^/  FAIL stale wording: /' | cut -c1-160
+  echo "  (the claim LEARNS and GUIDES, never 'remembers' · SEVEN stations, a route not a conveyor ·"
+  echo "   the design contract is docs/design/DESIGN-SYSTEM.md · the launch date is September 2026)"
+  FAIL=1
+else echo "  ok"; fi
+
 echo ""
 if [ "$FAIL" -ne 0 ]; then echo "docs-doctor: ISSUES FOUND (hard rot). Fix the FAIL items in the same commit."; exit 1; fi
 [ "$WARN" -ne 0 ] && echo "docs-doctor: clean of hard rot; review the WARN items above." || echo "docs-doctor: clean."

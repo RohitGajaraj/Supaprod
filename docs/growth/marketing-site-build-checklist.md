@@ -425,8 +425,8 @@ Before closing the redesign project, verify:
 ## Questions? Escalation Path
 
 1. **"Where is X defined?"** → Search the spec files (cmd+F for keywords)
-2. **"What color should this be?"** → DESIGN-TEMPO.md § 2 (color law)
-3. **"What's the spacing rule?"** → DESIGN-TEMPO.md § 5 (layout, spacing, controls)
+2. **"What color should this be?"** → [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md). Monochrome by default; ember is rare and is NOT the default for actions; blue means agents running; green and red mean status. Tokens live in `src/styles/ink.css`.
+3. **"What's the spacing rule?"** → the `--sp-space-*` tokens in `src/styles/ink.css` and the primitives in `src/components/shell/primitives.tsx`. Tempo v5 was retired 2026-07-28; do not build from it.
 4. **"Does this match the founder's taste?"** → Marketing site expansion doc § 13 (founder taste rules observed)
 5. **"Am I overthinking this?"** → Probably yes. Ship fast, get feedback, iterate. Founder will review; concerns surface then.
 
