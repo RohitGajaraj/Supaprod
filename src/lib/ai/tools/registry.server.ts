@@ -3374,11 +3374,40 @@ const learningRecord = def({
     let prdTitle: string | null = null;
     let oppTitle: string | null = null;
 
-    if (a.prd_id) {
+    // RESOLVE THE SPEC WHEN THE AGENT DID NOT NAME ONE. `prd_id` is optional on this
+    // tool, and an outcome recorded without it is an ORPHAN: it carries a verdict but
+    // attaches to nothing, so it can never re-rank the bet that produced it. That is the
+    // compounding claim quietly failing. Measured on live data before this change: 119
+    // learnings, 35 with a spec, and 35 attached to NOTHING at all.
+    //
+    // A mission is the unit of work an outcome is being recorded about, and while
+    // missions carry no spec link of their own, the DECISION that mission produced does.
+    // So mission -> decision -> spec recovers the link the agent omitted, which is a
+    // real inference rather than a guess: the outcome belongs to whatever spec that
+    // mission decided on. Newest decision wins, since a mission that decided twice has
+    // superseded its earlier call.
+    //
+    // Fail-soft on purpose. If nothing resolves, the learning is still written with its
+    // verdict, exactly as before. An unlinked outcome is worth less than a linked one
+    // and far more than a lost one, so this never blocks the write.
+    let resolvedPrdId: string | null = a.prd_id ?? null;
+    if (!resolvedPrdId && missionId) {
+      const { data: fromMission } = await supabase
+        .from("decisions")
+        .select("prd_id")
+        .eq("mission_id", missionId)
+        .not("prd_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      resolvedPrdId = (fromMission as { prd_id?: string | null } | null)?.prd_id ?? null;
+    }
+
+    if (resolvedPrdId) {
       const { data: prd } = await supabase
         .from("prds")
         .select("id,workspace_id,opportunity_id,title")
-        .eq("id", a.prd_id)
+        .eq("id", resolvedPrdId)
         .maybeSingle();
       if (prd) {
         opportunityId = (prd.opportunity_id as string | null) ?? null;
@@ -3419,7 +3448,9 @@ const learningRecord = def({
         user_id: userId,
         workspace_id: resolvedWorkspace,
         mission_id: missionId ?? null,
-        prd_id: a.prd_id ?? null,
+        // The RESOLVED id, not the raw argument: an outcome the agent did not attach
+        // is linked through its mission rather than written as an orphan.
+        prd_id: resolvedPrdId,
         opportunity_id: opportunityId,
         summary: a.summary,
         verdict: a.verdict,
