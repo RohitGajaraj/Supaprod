@@ -1,17 +1,27 @@
 ---
 name: supaprod-design
-description: DEPRECATED (2026-07-10) — do not use. The Obsidian v3 / Loom v4 design system this skill loaded was superseded by v5 "Tempo". Invoke the supaprod-tempo skill instead for ALL design, UI, UX, styling, and component work.
+description: DEPRECATED, do not use. The Obsidian v3 and Loom v4 contracts this loaded are retired, and so is the Tempo v5 skill it used to redirect to. For any design, UI, UX, styling or component work, read docs/design/DESIGN-SYSTEM.md and the live code.
 user-invocable: false
 ---
 
-# DEPRECATED — use `supaprod-tempo`
+# DEPRECATED
 
-This skill loaded the retired Obsidian v3 / Loom v4 design contracts. As of the founder
-ruling on 2026-07-10, the standing design system for every Supaprod surface is **v5
-"Tempo"** (`/DESIGN-TEMPO.md` + `design-reference/tempo-v5/`).
+This skill loaded Obsidian v3 and Loom v4. Both are retired.
 
-**Stop. Invoke the `supaprod-tempo` skill instead.**
+It previously redirected to `supaprod-tempo`. **That skill is now deprecated too**: Tempo v5
+was rejected on 2026-07-28 when the founder rebuilt the app from zero and revoked every
+design constraint. A chain of deprecation stubs pointing at each other is how a session ends
+up three hops from anything true, so this one stops here and names the real source.
 
-The old contracts (`docs/design/archive/loom-v4.md`, `docs/design/archive/obsidian-v3.md`, `docs/design/archive/ember-editorial-landing.md`) and the
-`design-reference/obsidian-v3/` package remain in the repo as history only. Do not build
-new surfaces from them.
+## The design system
+
+**Contract:** [`docs/design/DESIGN-SYSTEM.md`](../../../docs/design/DESIGN-SYSTEM.md)
+
+**Baseline, which is code and not a document:**
+
+- `src/styles/ink.css`, the `--sp-*` tokens, the only namespace to write
+- `src/components/shell/primitives.tsx`, the primitives to compose from
+- `src/styles/shell.css` and `src/styles/primitives.css`
+
+The four retired contracts are history in
+[`docs/design/archive/`](../../../docs/design/archive/README.md). Never build from them.
