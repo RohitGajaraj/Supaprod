@@ -342,7 +342,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
       return {
         tier: "pro",
         name: "Pro",
-        price: "from $20/mo",
+        price: "$20/mo",
         tagline:
           "One author, and the whole record is yours. Memory never fades, and nothing about it is held back for a higher plan.",
         forWhom: "Built for one person doing product work that needs to compound. One seat.",
@@ -363,12 +363,11 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // the multipliers in this file, plus top-ups for capacity. A tier sells seats
           // and capability; credits sell capacity. The band picker used to blur the two.
           "3,750 credits a month included. Every action spends credits, and you can add more any time without changing plan.",
-          "Critic red-teams every spec and bet, automatically",
-          "Read connectors that pull signals in on their own",
+          "Every spec and bet gets torn apart by the Critic before you commit to it",
+          "Connect your tools once, and signals arrive on their own",
           "Memory recalls across all your workspaces",
           "Up to 3 products, pooled workspaces",
           "Up to 3 agents running in parallel",
-          "Fair-use top-ups when you need a boost",
           "Save around 17% with annual billing",
           "Email support, next-business-day",
         ],
@@ -381,15 +380,15 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
       return {
         tier: "max",
         name: "Max",
-        price: `from $${MAX_MONTHLY_USD}/mo`,
-        tagline: "The high credit band for one person. The same product as Pro, with more room.",
+        price: `$${MAX_MONTHLY_USD}/mo`,
+        tagline: "The same product as Pro, with far more room for one person.",
         forWhom: "Built for one person running the loop hard. Still one seat, never a small team.",
         hasCreditDropdown: false,
         hasBillingToggle: false,
         highlights: [
           "One seat. Sharing stays a link, not a plan change.",
           "Everything in Pro, plus:",
-          "A higher monthly credit band, because every action spends credits",
+          "15,000 credits a month included, four times Pro",
           "Up to 5 products",
           "Up to 5 agents running in parallel",
           "Priority routing",
@@ -402,7 +401,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         // Founder-ratified spine, 2026-08-02. Business is what appears when a
         // team appears. It is not a lock lifted on the solo user's memory.
         tagline: "Your team stops re-deciding things it already decided.",
-        price: "from $50/mo",
+        price: "$50/mo",
         forWhom:
           "Built for two or more people who each write decisions. With one author, Pro already does this.",
         hasCreditDropdown: true,

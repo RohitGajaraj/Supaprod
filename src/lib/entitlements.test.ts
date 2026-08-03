@@ -180,9 +180,11 @@ describe("planPresentation prices mirror the catalog recommended bundles (M-C-PR
     // retire the number; do not invent one here.
     // If the catalog changes, change both this test and planPresentation() in entitlements.ts.
     expect(planPresentation("free").price).toBe("$0");
-    expect(planPresentation("pro").price).toBe("from $20/mo");
-    expect(planPresentation("max").price).toBe("from $99/mo");
-    expect(planPresentation("team").price).toBe("from $50/mo");
+    // "from $X" implied a band the buyer could dial. The band was retired
+    // 2026-08-03; every self-serve tier is one flat price now.
+    expect(planPresentation("pro").price).toBe("$20/mo");
+    expect(planPresentation("max").price).toBe("$99/mo");
+    expect(planPresentation("team").price).toBe("$50/mo");
     expect(planPresentation("enterprise").price).toBe("Platform fee");
   });
 });
