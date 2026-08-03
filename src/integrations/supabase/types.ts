@@ -376,6 +376,7 @@ export type Database = {
           content: string
           created_at: string
           embedding: string | null
+          embedding_model: string | null
           expires_at: string | null
           id: string
           importance: number
@@ -394,6 +395,7 @@ export type Database = {
           content: string
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           expires_at?: string | null
           id?: string
           importance?: number
@@ -412,6 +414,7 @@ export type Database = {
           content?: string
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           expires_at?: string | null
           id?: string
           importance?: number
@@ -2654,6 +2657,7 @@ export type Database = {
           created_at: string
           decided_by_agent_slug: string | null
           embedding: string | null
+          embedding_model: string | null
           id: string
           is_public: boolean
           meeting_id: string | null
@@ -2676,6 +2680,7 @@ export type Database = {
           created_at?: string
           decided_by_agent_slug?: string | null
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           is_public?: boolean
           meeting_id?: string | null
@@ -2698,6 +2703,7 @@ export type Database = {
           created_at?: string
           decided_by_agent_slug?: string | null
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           is_public?: boolean
           meeting_id?: string | null
@@ -4534,6 +4540,7 @@ export type Database = {
         Row: {
           created_at: string
           embedding: string | null
+          embedding_model: string | null
           id: string
           metric_label: string | null
           metric_value: string | null
@@ -4552,6 +4559,7 @@ export type Database = {
         Insert: {
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           metric_label?: string | null
           metric_value?: string | null
@@ -4570,6 +4578,7 @@ export type Database = {
         Update: {
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           metric_label?: string | null
           metric_value?: string | null
@@ -5288,6 +5297,7 @@ export type Database = {
           critic_review: Json | null
           ease: number
           embedding: string | null
+          embedding_model: string | null
           goal_id: string | null
           hypothesis: string | null
           ice_score: number | null
@@ -5319,6 +5329,7 @@ export type Database = {
           critic_review?: Json | null
           ease?: number
           embedding?: string | null
+          embedding_model?: string | null
           goal_id?: string | null
           hypothesis?: string | null
           ice_score?: number | null
@@ -5350,6 +5361,7 @@ export type Database = {
           critic_review?: Json | null
           ease?: number
           embedding?: string | null
+          embedding_model?: string | null
           goal_id?: string | null
           hypothesis?: string | null
           ice_score?: number | null
@@ -5621,6 +5633,7 @@ export type Database = {
           design_decided_by: string | null
           design_gate_status: string
           embedding: string | null
+          embedding_model: string | null
           github_issue_url: string | null
           id: string
           model: string | null
@@ -5648,6 +5661,7 @@ export type Database = {
           design_decided_by?: string | null
           design_gate_status?: string
           embedding?: string | null
+          embedding_model?: string | null
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -5675,6 +5689,7 @@ export type Database = {
           design_decided_by?: string | null
           design_gate_status?: string
           embedding?: string | null
+          embedding_model?: string | null
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -6480,6 +6495,7 @@ export type Database = {
           content_hash: string | null
           created_at: string
           embedding: string | null
+          embedding_model: string | null
           id: string
           metadata: Json
           product_id: string | null
@@ -6497,6 +6513,7 @@ export type Database = {
           content_hash?: string | null
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           metadata?: Json
           product_id?: string | null
@@ -6514,6 +6531,7 @@ export type Database = {
           content_hash?: string | null
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           id?: string
           metadata?: Json
           product_id?: string | null
@@ -6999,6 +7017,7 @@ export type Database = {
           content: string
           created_at: string
           embedding: string | null
+          embedding_model: string | null
           external_id: string | null
           id: string
           product_id: string | null
@@ -7018,6 +7037,7 @@ export type Database = {
           content: string
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           external_id?: string | null
           id?: string
           product_id?: string | null
@@ -7037,6 +7057,7 @@ export type Database = {
           content?: string
           created_at?: string
           embedding?: string | null
+          embedding_model?: string | null
           external_id?: string | null
           id?: string
           product_id?: string | null
@@ -7873,6 +7894,7 @@ export type Database = {
           created_at: string
           dismissed_at_frequency: number | null
           embedding: string | null
+          embedding_model: string | null
           escalated_at: string | null
           frequency: number
           id: string
@@ -7894,6 +7916,7 @@ export type Database = {
           created_at?: string
           dismissed_at_frequency?: number | null
           embedding?: string | null
+          embedding_model?: string | null
           escalated_at?: string | null
           frequency?: number
           id?: string
@@ -7915,6 +7938,7 @@ export type Database = {
           created_at?: string
           dismissed_at_frequency?: number | null
           embedding?: string | null
+          embedding_model?: string | null
           escalated_at?: string | null
           frequency?: number
           id?: string
