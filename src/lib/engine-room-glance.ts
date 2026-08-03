@@ -274,6 +274,19 @@ export interface SpendGlanceInput {
   } | null;
   /** `getAnalyticsOverview({ days: 7 }).summary.totalCost`: this week's spend. */
   costThisWeek: number;
+  /**
+   * The workspace's per-run ceiling (`workspaces.default_mission_spend_cap_usd`,
+   * default 10 USD, null only when a human deliberately cleared it).
+   *
+   * Added 2026-08-03. This room used to say "no cap set" whenever the ai_budgets
+   * meter was unconfigured, which is a true statement about ONE control read as a
+   * claim about all of them. Meanwhile every workspace in the database carried a
+   * 10 USD per-run ceiling, /build displayed it, and /runs said "Nothing caps
+   * this yet" a third time. Three surfaces, three answers, and the reassuring one
+   * was wrong. A governance surface that understates its own controls teaches the
+   * user to distrust it in both directions.
+   */
+  missionCapUsd?: number | null;
 }
 
 export function buildSpendGlance(input: SpendGlanceInput): RoomGlance {
@@ -299,11 +312,16 @@ export function buildSpendGlance(input: SpendGlanceInput): RoomGlance {
           : undefined,
     };
   }
+  // No period budget. Say what DOES bound spend rather than implying nothing does.
+  const perRun = input.missionCapUsd;
   return {
     key: "spend",
     name: ROOM_NAMES.spend,
     question: ROOM_QUESTIONS.spend,
-    verdict: `${fmtUsd(costThisWeek)} this week · no cap set`,
+    verdict:
+      perRun != null
+        ? `${fmtUsd(costThisWeek)} this week · no weekly cap · ${fmtUsd(perRun)} a run`
+        : `${fmtUsd(costThisWeek)} this week · nothing caps this`,
     state: "healthy",
   };
 }

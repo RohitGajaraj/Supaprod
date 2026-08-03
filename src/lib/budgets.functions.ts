@@ -24,10 +24,46 @@ export async function getBudgetOverviewImpl(supabase: SupabaseClient, userId: st
       .order("created_at", { ascending: false })
       .limit(20),
   ]);
+  /**
+   * The PER-RUN ceiling, read here because this is the "what bounds spend" call
+   * and a caller that has to ask two places will eventually ask one.
+   *
+   * Added 2026-08-03: the Engine room said "no cap set", /runs said "Nothing
+   * caps this yet", and /build displayed 10.00, while every workspace in the
+   * database carried a 10 USD per-run ceiling. Two of the three were reporting
+   * the absence of the ai_budgets meter as the absence of any control at all.
+   *
+   * RLS-scoped, so this returns the caller's own workspaces and nothing else. A
+   * failed or empty read yields null, which the surfaces render as "nothing caps
+   * this" rather than inventing a ceiling that may not hold.
+   */
+  // Guarded: this is an ADDITION to an existing overview, and a ceiling nobody
+  // could read must not take the budget page down with it. On any failure the
+  // answer is null, which the surfaces render as "nothing caps this" rather than
+  // asserting a ceiling that may not hold. Understating a control is recoverable;
+  // claiming one that is not there is not.
+  let missionCapUsd: number | null = null;
+  try {
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("default_mission_spend_cap_usd")
+      .limit(1)
+      .maybeSingle();
+    const rawCap = (ws as { default_mission_spend_cap_usd?: number | string | null } | null)
+      ?.default_mission_spend_cap_usd;
+    missionCapUsd =
+      rawCap === null || rawCap === undefined || Number.isNaN(Number(rawCap))
+        ? null
+        : Number(rawCap);
+  } catch {
+    missionCapUsd = null;
+  }
+
   return {
     global: g.data ?? null,
     surfaces: s.data ?? [],
     alerts: a.data ?? [],
+    missionCapUsd,
   };
 }
 

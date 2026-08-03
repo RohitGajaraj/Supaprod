@@ -841,7 +841,7 @@ function BuildPage() {
                 <div className="sp-ctx-head">What these runs cost</div>
                 <div className="sp-ctx-body">
                   <Num>{usd(spend)}</Num> across <Num>{rows.length}</Num>{" "}
-                  {rows.length === 1 ? "run" : "runs"}. Nothing caps this yet.
+                  {rows.length === 1 ? "run" : "runs"}. Each run stops at the ceiling set in Build.
                 </div>
               </>
             ) : null}

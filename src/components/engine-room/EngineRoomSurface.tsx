@@ -135,6 +135,7 @@ export function useEngineRoomGlance(): {
       buildSpendGlance({
         global: budgetQ.data?.global ?? null,
         costThisWeek: cost7Q.data?.summary.totalCost ?? 0,
+        missionCapUsd: budgetQ.data?.missionCapUsd ?? null,
       }),
     ),
     roomStatus("quality", [evalHealthQ, driftQ], () =>

@@ -38,18 +38,35 @@ describe("engine-room-glance builders (LOOM honesty law: real numbers or none)",
     expect(spend.state).toBe("healthy");
   });
 
-  it("reports spend honestly with no cap configured, window labeled", () => {
+  it("reports spend honestly with no cap of ANY kind configured", () => {
+    // Wording changed 2026-08-03, deliberately. It used to read "no cap set"
+    // whenever the ai_budgets meter was empty, which is a true statement about one
+    // control read as a claim about every control. Every workspace in the live
+    // database carried a 10 USD per-run ceiling at the time, /build displayed it,
+    // and /runs said "Nothing caps this yet" a third time. This branch is now the
+    // genuinely uncapped case: no period budget AND no per-run ceiling.
     const spend = buildSpendGlance({
       global: { daily_usd_cap: null, monthly_usd_cap: null },
       costThisWeek: 12,
+      missionCapUsd: null,
     });
     expect(spend.state).toBe("healthy");
-    expect(spend.verdict).toBe("$12 this week · no cap set");
+    expect(spend.verdict).toBe("$12 this week · nothing caps this");
+  });
+
+  it("names the per-run ceiling when there is no period budget", () => {
+    // The case that was being misreported: unbounded per week, bounded per run.
+    const spend = buildSpendGlance({
+      global: { daily_usd_cap: null, monthly_usd_cap: null },
+      costThisWeek: 2.16,
+      missionCapUsd: 10,
+    });
+    expect(spend.verdict).toBe("$2.16 this week · no weekly cap · $10 a run");
   });
 
   it("never rounds a small real amount to a fabricated $0", () => {
-    const spend = buildSpendGlance({ global: null, costThisWeek: 0.01 });
-    expect(spend.verdict).toBe("$0.01 this week · no cap set");
+    const spend = buildSpendGlance({ global: null, costThisWeek: 0.01, missionCapUsd: null });
+    expect(spend.verdict).toBe("$0.01 this week · nothing caps this");
   });
 
   it("reads the pass-rate report (the room's own source) with the scope labeled", () => {
