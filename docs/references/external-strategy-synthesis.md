@@ -12,14 +12,14 @@
 
 ## 1. The convergence thesis (what everyone agrees on)
 
-| Theme                | GCP Enterprise (Trends 2026)                                      | GCP Startups (2025)                                                    | Third-party data (our research)                                                  | Our read                                                                        |
-| -------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| **Moat**             | Grounding in proprietary enterprise data is _the_ differentiator  | "Follow the data" — reasoning traces + eval methods; no LLM wrappers   | Orchestration commoditizing via MCP/A2A (~97M MCP installs); memory = defensible | **Moat = compounding PM decision-memory + grounding**, not models/orchestration |
-| **Autonomy**         | Humans remain orchestrators; semi-autonomous w/ human escalation  | "Not bullish on fully autonomous agents"; ambient + HITL               | Approve-by-exception > mandatory approval; 21% have mature agent governance      | **Ambient + governed HITL is the target**, not unattended execution             |
-| **Pricing**          | (n/a — buyer ROI emphasis)                                        | Per-seat is broken; value-based; budget/OpEx replacement               | Per-seat 60%→30% over decade; outcome pricing (Sierra ~$150M, Fin ~$100M ARR)    | **Hybrid + outcome; charge for memory + decisions**, not per-run/seat           |
-| **Where value sits** | AI-first refactor of workflows + stack                            | Stack inverts to the **application layer**; avoid middle-layer squeeze | Vertical agents 40%+ efficiency vs horizontal                                    | **Application-layer vertical product** — invest in PM depth, not plumbing       |
-| **The real work**    | Adoption/skills/governance is the blocker                         | Last mile + "product-algo fit"; "prompt-and-pray is over"              | 95% of pilots don't scale; 42% scrapped ≥1 AI initiative in 2025                 | **Reliability/last-mile = moat-building**, not catch-up                         |
-| **The role**         | Names "**Chief of Staff for AI**" — skills gap, doesn't exist yet | AI-native org; orchestrator persona                                    | "Agentic PM" / governed closed loop = unclaimed whitespace                       | **We productize the exact named role**                                          |
+| Theme | GCP Enterprise (Trends 2026) | GCP Startups (2025) | Third-party data (our research) | Our read |
+| --- | --- | --- | --- | --- |
+| **Moat** | Grounding in proprietary enterprise data is _the_ differentiator | "Follow the data" — reasoning traces + eval methods; no LLM wrappers | Orchestration commoditizing via MCP/A2A (~97M MCP installs); memory = defensible | **Moat = compounding PM decision-memory + grounding**, not models/orchestration |
+| **Autonomy** | Humans remain orchestrators; semi-autonomous w/ human escalation | "Not bullish on fully autonomous agents"; ambient + HITL | Approve-by-exception > mandatory approval; 21% have mature agent governance | **Ambient + governed HITL is the target**, not unattended execution |
+| **Pricing** | (n/a — buyer ROI emphasis) | Per-seat is broken; value-based; budget/OpEx replacement | Per-seat 60%→30% over decade; outcome pricing (Sierra ~$150M, Fin ~$100M ARR) | **Hybrid + outcome; charge for memory + decisions**, not per-run/seat |
+| **Where value sits** | AI-first refactor of workflows + stack | Stack inverts to the **application layer**; avoid middle-layer squeeze | Vertical agents 40%+ efficiency vs horizontal | **Application-layer vertical product** — invest in PM depth, not plumbing |
+| **The real work** | Adoption/skills/governance is the blocker | Last mile + "product-algo fit"; "prompt-and-pray is over" | 95% of pilots don't scale; 42% scrapped ≥1 AI initiative in 2025 | **Reliability/last-mile = moat-building**, not catch-up |
+| **The role** | Names "**Chief of Staff for AI**" — skills gap, doesn't exist yet | AI-native org; orchestrator persona | "Agentic PM" / governed closed loop = unclaimed whitespace | **We productize the exact named role** |
 
 ## 2. What this validates in our strategy
 

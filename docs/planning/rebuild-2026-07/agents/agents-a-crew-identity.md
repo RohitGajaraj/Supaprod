@@ -45,7 +45,7 @@ Six rulings. Each is argued below; each names the code that makes it real.
 The substance is real and largely complete. The surface is the whole gap.
 
 | Asset | File | State |
-|---|---|---|
+| --- | --- | --- |
 | The roster | `src/lib/agent-vocabulary.ts` `SPECIALIST_CATALOG` | 13 active cast + 2 crew + 21 deprecated aliases. Real, single source of truth. |
 | Trust score | `src/lib/ai/trust.server.ts` `computeAllAgentTrust` | Real. `0.3·mission + 0.2·approval + 0.2·eval + 0.3·outcome`, Bayesian-shrunk (`PRIOR 0.5`, `PRIOR_WEIGHT 10`). |
 | The arc | same, `Arc = observing\|proving\|trusted\|ambient` | Real. `suggestArc(score, samples)`; **default is `trusted`, not `observing`** (`loadAgentArc` line 254, founder ruling 2026-07-08 SW-7). |
@@ -104,7 +104,7 @@ agent per judgment, because the trust machinery is keyed per agent (`computeAllA
 agent and you lose the ability to say which one you can trust.
 
 | # | Slug (never renamed) | Today's name | **New name** | Stage | The judgment it owns, in the user's words |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 1 | `discovery-scout` | Watch | **Scout** | 01 Discover | Is anything different in the tools you connected? |
 | 2 | `researcher` | Research | **Researcher** | 01 Discover | What does the outside world say about this question? |
 | 3 | `customer-insights` | Listen | **Listener** | 01 Discover | What are your customers actually saying, grouped? |
@@ -123,7 +123,7 @@ agent and you lose the ability to say which one you can trust.
 no controls):
 
 | Slug | Today | **New name** | What it does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `reactor` | Reactor | **Dispatcher** | Wakes the right agent when something happens in a connected source. |
 | `archivist` | Archivist | **Archivist** | Consolidates what was learned into durable memory. |
 
@@ -235,7 +235,7 @@ Voice is assigned by **what kind of judgment the agent makes**, not by character
 thirteen agents, no drift surface.
 
 | Register | Agents | The rule | Example |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Reporting** | Scout, Researcher, Listener, Analyst | State findings with the source attached. Never an opinion without a citation. | "Four support threads this week name the same export bug. `SIG-204` `SIG-207` `SIG-211` `SIG-219`" |
 | **Judging** | Strategist, Critic, Reviewer | State the verdict, the reason, **and what would change it**. The third part is mandatory. | "Revise. The success metric is not instrumented, so this cannot be measured after ship. It would pass with an event on the export action." |
 | **Making** | Writer, Planner, Designer, Engineer, Announcer | State what was made and what was assumed. Assumptions are always listed, never buried. | "Draft spec, six sections. I assumed enterprise tier only; the bet did not say." |
@@ -287,7 +287,7 @@ Meanwhile a **second** identity system exists: `AgentChip` in
 > means *what is happening*.**
 
 | Mark state | Colour | Meaning | Source |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | idle | `--ink-muted` monochrome | this agent exists and is not working | default |
 | running | glacier shimmer (`.agent-live`, already built) | working right now | `agent_runs.status` in (`running`, `dispatched`, ...) via `agent-fleet.RUN_STATE` |
 | waiting on you | ember `--ember` | this agent is blocked on your decision | `agent_approvals` pending for this `agent_id` |
@@ -316,7 +316,7 @@ CrewRow    glyph + name + charter + state     roster and pane rows
 ```
 
 | Size | Where | Anatomy |
-|---|---|---|
+| --- | --- | --- |
 | 14 | inside a sentence, a receipt line, a lineage chip | glyph only, name follows in text |
 | 18 | Crew Bar collapsed roster, Thread step lines | glyph + state dot |
 | 24 | crew pane rows, gate cards | glyph + name + one live line |
@@ -338,7 +338,7 @@ specific marks.
 Every agent has exactly four user-facing strings. The catalog has three; the fourth is new.
 
 | Field | Status | Rule | Example (Listener) |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `name` | exists, renamed | one word, agent-noun | `Listener` |
 | `charter` | exists as `blurb`, rewritten | one sentence, **second person**, says what it does *for you* | "Groups what your customers are saying into themes you can act on." |
 | `relayVerb` | exists | present participle, what it is doing now | "clustering customer signals" |
@@ -437,7 +437,7 @@ instructions is the Engineer's next run. The result of moving the Critic's arc i
 do or do not see. They belong on the agent page, one scroll from the record they change.
 
 | Section today | Goes to |
-|---|---|
+| --- | --- |
 | `agents / staff` (Roster) | The crew pane + agent pages. Deleted from Settings. |
 | `agents / autonomy` (Autonomy & approvals) | Agent page → Permissions, per agent. The cross-agent view is the crew pane's Autonomy column. Deleted from Settings. |
 | `agents / ai` (Models & keys) | Genuinely account-level. **Stays**, and the group is renamed `?config=models` since it is now the only member. |
@@ -449,7 +449,7 @@ answer to every question that starts "what is this agent allowed to".
 ### 5.3 The full home table for the crew
 
 | Thing | Home | URL | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Is anyone working right now | **Crew Bar**, permanent | - | 0 |
 | The thirteen, at a glance | Crew pane | `?pane=crew` | 1 (`c`, or click the Bar count) |
 | One agent, everything about it | Crew child | `/crew/$agentSlug` | 2, or 1 from any `CrewChip` |
@@ -598,7 +598,7 @@ in `src/lib/` and renders nowhere.
 **Permissions.** Four controls, all wired:
 
 | Control | Writes | Real effect |
-|---|---|---|
+| --- | --- | --- |
 | The arc (4 positions, `suggested` marked) | `setAgentArc` → `agent_autonomy.arc` | `resolveApprovalMode` composes it with each tool's own mode, every run |
 | Blast radius (`low` / `medium` / `high` / none) | `setAgentToolCap` → `agents.max_tool_risk` | `capToolsByRisk` removes over-cap tools from the agent's prompt entirely - it cannot see them |
 | Tool matrix (this agent's tools × auto/confirm/review) | `agent_tool_modes` | the mode the loop resolves at the gate |
@@ -630,7 +630,7 @@ the Chief of Staff routes around it. That is the cheapest large trust win availa
 Per the IA's zero-count law, extended to people:
 
 | State | What it says |
-|---|---|
+| --- | --- |
 | Brand new workspace | Crew Bar: thirteen dim marks + "Thirteen agents, none working yet. Say what you are building and the Scout starts." |
 | Agent with zero runs | "Has not run yet. It starts when you {the one action}." Never a `0/0`. |
 | Agent with 1-2 judgments | "Not enough history yet - 1 judgment so far." No score. |
@@ -814,7 +814,7 @@ anyway:
 Four positions, named in the user's words, on the agent page and nowhere else:
 
 | Arc | The words | What it means mechanically |
-|---|---|---|
+| --- | --- | --- |
 | `observing` | **Shows you everything** | every action queues a review, even reads |
 | `proving` | **Asks before it acts** | `auto` tools demote to `confirm` |
 | `trusted` | **Acts, asks before anything it cannot undo** | `confirm` tools run inline; `review` tools hold |
@@ -854,7 +854,7 @@ I do not redesign FINAL-ia's journeys; I name where the crew is visible in each,
 is a property of the journey table rather than a bolted-on surface.
 
 | Journey | The crew moment |
-|---|---|
+| --- | --- |
 | J1 what should we build next | Three Discover marks light at once. Three agents working in parallel is the frame that sells the product, and it is real (`agent.spawn` fans out on a split budget). |
 | J2 tear this idea down | The Critic, alone, named, with its own record on the card. The wedge has a face. |
 | J3 just write the PRD | Writer → Planner handoff line with its `handoffLine` and evidence count. |

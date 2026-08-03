@@ -58,11 +58,11 @@ The evidence and tooling live in [`design-reference/tempo-v5/`](./design-referen
 
 Ten scales × ten steps (`--ds-<scale>-100…1000`), identical role semantics in every scale:
 
-| Steps    | Role                                             |
-| -------- | ------------------------------------------------ |
-| 100–300  | Component backgrounds: default / hover / active  |
-| 400–600  | Borders: default / hover / active                |
-| 700–800  | High-contrast backgrounds (solid fills)          |
+| Steps | Role |
+| --- | --- |
+| 100–300 | Component backgrounds: default / hover / active |
+| 400–600 | Borders: default / hover / active |
+| 700–800 | High-contrast backgrounds (solid fills) |
 | 900–1000 | Text and icons: secondary / primary (accessible) |
 
 - **Gray carries the interface.** A screen is neutral by default; chromatic color appears
@@ -331,13 +331,13 @@ monotone source logos, agent liquid-glass gems, and the TopBar/PageHeader chrome
 Supaprod is a desktop-first product (the primary user is a PM planning on a multi-monitor
 desk), but all surfaces must be responsive and touch-friendly. Breakpoints (via Tailwind):
 
-| Breakpoint | Width  | Adaptation                                                      |
-| ---------- | ------ | --------------------------------------------------------------- |
-| **Default**| ≥1280  | Full layout: rail sidebar + content + optional right panel.     |
-| `lg`       | ≥1024  | Rail stays fixed; content adjusts; side panels may collapse.    |
-| `md`       | ≥768   | Rail collapses to icon-only; TopBar may truncate breadcrumbs.   |
-| `sm`       | ≥640   | Navigation moves to bottom nav (mobile-style); sidebar hidden.   |
-| `xs`       | ≥320   | Single-column, full-width content; all chrome min-viable.       |
+| Breakpoint | Width | Adaptation |
+| --- | --- | --- |
+| **Default** | ≥1280 | Full layout: rail sidebar + content + optional right panel. |
+| `lg` | ≥1024 | Rail stays fixed; content adjusts; side panels may collapse. |
+| `md` | ≥768 | Rail collapses to icon-only; TopBar may truncate breadcrumbs. |
+| `sm` | ≥640 | Navigation moves to bottom nav (mobile-style); sidebar hidden. |
+| `xs` | ≥320 | Single-column, full-width content; all chrome min-viable. |
 
 **Mobile touch targets** (all platforms ≤768px):
 - Control hit target floor: **44px** (WCAG touch recommendation). The 32/36/40px grid
@@ -394,7 +394,7 @@ and the numeral-index navigation.
 Geist Pixel is THE brand display face — one moment per surface max. Wave 1-2 audit results:
 
 | Surface | Pixel moment | Component |
-|---------|-------------|-----------|
+| --- | --- | --- |
 | Today | ✓ Hero headline, autonomy counter, PixelStat counts | `TodayHeroCard`, `ColdStartOnramp`, `AutonomyCard`, `PixelStat` |
 | Discover | ✓ Page header h1 (via `PageHeader`) + confidence annotation | `PageHeader`, `OpportunityRow`, `DiscoverSurface` |
 | Plan | ✓ Page header h1 (via `PageHeader`) | `PageHeader` |

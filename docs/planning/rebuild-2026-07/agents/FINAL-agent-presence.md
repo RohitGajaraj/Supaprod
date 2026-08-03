@@ -44,7 +44,7 @@ chip counting how many of them exist.
 Each is argued below and names the code that makes it real.
 
 | # | Ruling | Where |
-|---|---|---|
+| --- | --- | --- |
 | **R1** | **Roles, not characters.** The crew are professional names with one exclusive verb each and a public track record. No personas, no quips, no first person - not even for the Chief of Staff. The differentiator is the record, not charm. | §3.1, §11 |
 | **R2** | **The names in `language/FINAL-language.md` are final and are adopted verbatim,** including **Publisher** over A's Announcer. Display-only; DB slugs never move. | §3.2 |
 | **R3** | **Identity is shape. Colour is state.** The glyph is the identity. The thirteen hues are frozen at their current values (language R-freeze honoured) and **may render only at 24px and above**. Below 24px a mark is monochrome ink and any colour on it means *running*, *needs you*, *failed* or *benched*. | §3.3 |
@@ -61,7 +61,7 @@ Each is argued below and names the code that makes it real.
 ### 0.3 The four collisions with `language/FINAL-language.md`, resolved
 
 | Collision | Ruling |
-|---|---|
+| --- | --- |
 | A names `release` **Announcer** because "Publisher out-claims the wiring - we Copy, never Post". Language R6 rules **Publisher** on the stranger test. | **Publisher.** Language wins the word. A's honesty concern is real and is met the way language R22 already meets it: the ceiling copy says *"Publisher drafts the launch note and you post it."* The name is a job title, not a claim about distribution; the Ship face still offers Copy and never Post (IA §4.2 J6). |
 | A kills the thirteen-hue palette. B confines hue to the glyph gem (founder ruling C, 2026-07-11). Language §3.4 rule 5 says *"Fixed glyph and hue, never re-skinned. Carry the existing values unchanged."* | **All three are satisfied by separating value from placement.** No hue value changes (language honoured literally - we do not re-skin). Hue renders at **24px and above only** (founder ruling honoured - hue lives inside the mark and nowhere else). Below 24px the mark is monochrome (A honoured - the Crew Bar reads as three lit against ten quiet). |
 | A gives the Chief of Staff the exclusive right to say "I". C bans first person entirely. | **C wins.** Attribution must survive being copied out of the app; the actor belongs in the sentence, not in the chrome. The Chief of Staff is distinguished by *what it addresses* (the whole run, and you), not by a pronoun. |
@@ -74,7 +74,7 @@ Each is argued below and names the code that makes it real.
 ### 1.1 The surface, as it exists
 
 | Fact | Verified at |
-|---|---|
+| --- | --- |
 | `/agents` is a 9-line redirect stub to `/engine-room?room=safety&view=team` | `src/routes/_authenticated.agents.tsx` |
 | `/swarm` is the same redirect to the same place | `src/routes/_authenticated.swarm.tsx` |
 | The roster lives under `governance/` | `src/components/governance/AgentRosterPanel.tsx` (149 lines) |
@@ -84,7 +84,7 @@ Each is argued below and names the code that makes it real.
 ### 1.2 The substance, as it exists - every one of these is real and unrendered
 
 | Mechanic | Where | What it gives this design |
-|---|---|---|
+| --- | --- | --- |
 | The catalog: 12 seats + 1 conductor + 2 machinery + 21 deprecated aliases | `agent-vocabulary.ts` `SPECIALIST_CATALOG` | stable slugs, glyph, hue, relay verb, blurb, stage |
 | Adaptive step budget, computed **before the first model call** | `budget.ts` `adaptiveStepBudget` | orchestrator 14 + 2/planned step · builder 24 · specialist 6 · arc bonus 0/0/2/4 · `STEP_CEILING = 40` |
 | Per-step checkpoint written **before** the provider call; compare-and-swap resume | `loop.server.ts:827-868,909`; `agent_run_checkpoints` | an honest heartbeat, and a resume that can never double-spend |
@@ -106,7 +106,7 @@ Each is argued below and names the code that makes it real.
 ### 1.3 Eleven corrections. Three of the proposals would have shipped a lying UI.
 
 | # | The claim | The verified fact | Consequence |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C1 | "the runtime REJECTS an evidence-free handoff" (brief, and C §9.3 builds on it) | `handoffEvidenceGateEnforced()` reads `process.env.HANDOFF_EVIDENCE_GATE` and is **OFF by default** (`handoff.server.ts:85-88`). The validator computes a verdict and proceeds. The source comment states no live handoff carries `evidence_ids` today. | The seam renders `Evidence: none cited` as today's normal case, neutral register. Arming the flag is build gate **G3**. C's "the gesture passes the gate by construction" is rewritten as "the gesture is the first path that will populate it." |
 | C2 | "50 tools, modes `auto`/`confirm`/`off`" | **46** tool defs. Modes are `auto` / `confirm` / **`review`**. There is no `off`. `review` means *queue and show me*, not *disabled*. | Every autonomy sentence in the product says `review` correctly. |
 | C3 | "`mission.plan` builds a 1-6 step DAG" (brief, A, C) | Up to **8**. `orchestrator.server.ts:204` throws `"mission.plan: too many steps (>8)."` | The Floor's row budget is 8 plus brood. |
@@ -172,7 +172,7 @@ colour or a name**:
 ### 3.2 The thirteen (adopted verbatim from `language/FINAL-language.md` §3.2)
 
 | Seat | Name | Exclusive verb | Charter (second person, new) | DB slug (frozen) | Was |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 01 | **Scout** | watches | Watches the sources you connected and tells you what changed. | `discovery-scout` | Watch |
 | 01 | **Researcher** | digs | Digs into one question across the web and your workspace. | `researcher` | Research |
 | 01 | **Listener** | clusters | Groups what your customers are saying into patterns you can act on. | `customer-insights` | Listen |
@@ -218,7 +218,7 @@ glyph. Two identity systems, one product.
 > It means *what is happening*.**
 
 | State | Colour | Meaning | Source |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | idle | `--ink-muted`, monochrome | this agent exists and is not working | default |
 | running | `.ink-working` pulse, `--voice-machine` | working right now | `agent_runs.status`, via `agent-fleet.RUN_STATE` |
 | needs you | `--ember` | blocked on your decision | pending `agent_approvals` for this agent |
@@ -247,7 +247,7 @@ src/components/crew/CrewMark.tsx
 ```
 
 | Size | Where | Anatomy |
-|---|---|---|
+| --- | --- | --- |
 | 14 | inside a sentence, a receipt line, a lineage chip | glyph only, monochrome; name follows in text |
 | 18 | Crew Bar, Floor rows, Thread step lines | glyph + state; monochrome |
 | 24 | crew pane rows, gate cards, `@` picker | glyph + name; hue permitted |
@@ -272,7 +272,7 @@ tabs, and the byline peel. C's own exit clause applies: nothing else in the desi
 ### 3.4 The five strings, and only five
 
 | Field | Status | Rule | Example (Listener) |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `name` | renamed | one word, agent-noun, never a stage name | `Listener` |
 | `verb` | ratified by language | exclusive across the crew, a uniqueness constraint | `clusters` |
 | `charter` | `blurb`, rewritten | one sentence, **second person**, what it does *for you* | "Groups what your customers are saying into patterns you can act on." |
@@ -302,7 +302,7 @@ ONE ROOM survives this document intact. **No new destination is created.** The c
 destination; it needed a region, a face on every object, a record, and four dials that already work.
 
 | # | `FINAL-ia.md` says | This doctrine rules | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **O1** | §1.3: the WorkingStrip is one line - `● Engineer is writing tests · 2 agents working · Stop everything` | **The WorkingStrip becomes the Crew Bar: a permanent 32px region carrying all thirteen marks, the live locus, the census and the stop.** §5.1 | A line with one name slot is silent about the other four things happening, and on a quiet day it is silent about the entire workforce. Hidden is a function of silence - the IA's own thesis, applied to the region whose whole job is the crew. |
 | **O2** | (no such region) | **The Bar expands in place into the Floor,** `?floor=open`, key `w`, pushing the Canvas, never covering it. §5.2 | A count with no place to expand into is the exact failure the depth rail exists to fix. An overlay would say "this is a detour"; watching the crew work is not a detour from the product, it is the product. |
 | **O3** | §2.2 tile 5: **"Who is working"**, count = agents working now, owning presence *and* record | **Tile 5 becomes "Your crew", and it owns the record only. Its count is open graduation proposals plus agents whose standing changed this week.** §5.3 | The Bar already carries the working census permanently at zero clicks. A second working count on the rail is the two-counts disease the IA bans in its own §7.5. A rail count should count *what changed*. |
@@ -318,7 +318,7 @@ and are extended rather than amended: the zero-count law (§2.2), the one-count 
 ### 4.2 The full home table for the crew
 
 | Thing | Home | URL | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Is anyone working right now | **Crew Bar**, permanent | - | 0 |
 | Who is working, on what, in what order | **The Floor** | `?floor=open` | 1 (`w`, chevron, or the census) |
 | Who made this object | the **Byline**, on the object | - | 0 |
@@ -452,7 +452,7 @@ in. That is how a sceptic tells execution from improvisation.
 **The status vocabulary is corrected in two places** (`relay.ts` `mapRelayStatus`, build item B7):
 
 | Status | Today | Ruling | Glyph / colour | The word |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `halted` | maps to `failed` | **its own state** | `⏸` `--ink-subtle` | stopped on purpose |
 | `skipped` | falls through to `idle` | **its own state** | `⊘` `--ink-faint` | never got its turn |
 
@@ -613,7 +613,7 @@ nowhere.
 **Permissions.** Five controls, all wired except the last:
 
 | Control | Writes | Real effect |
-|---|---|---|
+| --- | --- | --- |
 | The arc, 4 positions, `suggested` marked | `setAgentArc` → `agent_autonomy.arc` | `resolveToolMode` composes it with each tool's own mode, every run |
 | Blast radius (`low`/`medium`/`high`/none) | `setAgentToolCap` → `agents.max_tool_risk` | `capToolsByRisk` removes over-cap tools from the prompt entirely - the agent cannot see them |
 | Tool matrix (this agent's tools × auto/confirm/review) | `agent_tool_modes` | the mode the loop resolves at the gate |
@@ -642,7 +642,7 @@ build. A benched agent renders at 40% throughout the product with *"you benched 
 ### 5.5 What leaves Settings
 
 | Section today | Goes to |
-|---|---|
+| --- | --- |
 | `agents / staff` (Roster) | The crew pane + agent pages. **Deleted from Settings.** |
 | `agents / autonomy` | Agent page → Permissions, per agent. Cross-agent view is the crew pane. **Deleted.** |
 | `agents / ai` (Models & keys) | Genuinely account-level. **Stays**, and the group is renamed `?config=models`. |
@@ -672,7 +672,7 @@ crew's contribution is erased. Rendered as "agent", the human is misquoted. Both
 notices within a day.
 
 | State | Rendering | Backed by |
-|---|---|---|
+| --- | --- | --- |
 | **By an agent** | `CrewMark` (rounded square, 16px) + name | `authored_by_agent` |
 | **By you** | your avatar (circle, 16px) + "You" | `authored_by_agent is null` |
 | **Agent drafted, you changed it** | both marks, square then circle, joined by a hairline, and the word **edited** as a link | `authored_by_agent` set **and** `human_edited_at` set |
@@ -784,7 +784,7 @@ permanently.
 > a quotation. No line is ever both.**
 
 | | DID | SAID |
-|---|---|---|
+| --- | --- | --- |
 | Source | `tool_calls` (`ok`, `latency_ms`, `result`, `error`) plus the row it wrote | the model's `thought` steps, `ai_events.output_preview` |
 | Typeface | mono for the id and the count, sans for the label | sans, quoted, indented |
 | Anatomy | `Scout read 41 pages · 12 signals · 14:31 · tc_8813` | `Scout: "Two of these look like the same complaint."` |
@@ -810,7 +810,7 @@ tool call is a fact; facts lead.
 ### 7.2 The Receipt Ladder - four rungs, one click each
 
 | Rung | What | Backed by |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Who.** The Byline. | `authored_by_agent` |
 | 2 | **What, when, and an id.** The receipt line. | `tool_calls`: `tool_name`, `ok`, `latency_ms`, `created_at` |
 | 3 | **The step.** Args in, result out, error if any. | the trace child, `?step=n`; `agent_run_checkpoints.step_index` |
@@ -862,7 +862,7 @@ The flattering version is *"agents start watched and earn their way up."* It is 
 Two independent axes, and conflating them is the easiest mistake here:
 
 | Axis | Stored | Set by | Scope |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **The rung** | `agent_autonomy.arc` | `setAgentArc`, a human click; a background nudge that only ever moves observing → proving → trusted, never to ambient | per agent |
 | **The graduated mode** | `agent_tool_modes` (`source: 'graduation' \| 'operator'`) | **only** `decideTrustGraduation` on human acceptance | per (agent, tool) |
 
@@ -874,7 +874,7 @@ The four rungs, in the user's words, with the mechanics beside them, on the agen
 else:
 
 | Arc | The words | Mechanically |
-|---|---|---|
+| --- | --- | --- |
 | `observing` | **Shows you everything** | every action queues a review, even reads |
 | `proving` | **Asks before it acts** | `auto` tools demote to `confirm` |
 | `trusted` | **Acts, and asks before anything it cannot undo** | `confirm` runs inline; `review` holds |
@@ -1105,7 +1105,7 @@ workspace has none. Researcher digs into one question across the web, which is t
 first light.
 
 | Region | First light |
-|---|---|
+| --- | --- |
 | Spine | seven stages; **01 Discover is already working**, its node carrying Researcher's shimmering mark |
 | **Crew Bar** | thirteen marks, one lit: `● Researcher · reading the web for what people say about Relay · 18s` |
 | Thread | the aiming card, below |
@@ -1172,7 +1172,7 @@ past simple for a receipt, `your crew` in sentences and `Crew` as a label, and t
 vocabulary.
 
 | Concept | The words | Never |
-|---|---|---|
+| --- | --- | --- |
 | An agent working with no gate | **without asking** | autonomously, unsupervised, hands-free, on autopilot |
 | An agent that has to stop | **asks you first** | requires approval, is gated, needs permission |
 | Work done while you were away | **on its own** | automatically, in the background |
@@ -1230,7 +1230,7 @@ Every place the three proposals risk claiming capability the wiring lacks, with 
 ships instead. **Four are hard gates: the feature does not ship at all until the wiring does.**
 
 | # | The overclaim | The honest state that ships | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **G1** | The Evidence Underline and Receipt Ladder rung 2, joined through `agent_run_checkpoints.state->>'traceId'` | **Do not ship.** Without `tool_calls.run_id` the resolver silently returns nothing and every honest claim renders unbacked, which is worse than the feature's absence. | **hard gate** (B1a) |
 | **G2** | The graduation card saying *"it will not ask again for 30 days"* | **Do not say it** until `TRUST_RAMP_COOLDOWN_MS` and the predicate ship. Copy and predicate in one commit. | **hard gate** (B4) |
 | **G3** | "The runtime rejects an evidence-free handoff" | The seam renders `Evidence: none cited` in `--ink-subtle` with `[why this matters]` - **that is today's normal case**, and the aggregate on the crew pane reads *"Evidence cited on 14 of 61 handoffs this month."* That number going up is what earns `HANDOFF_EVIDENCE_GATE=enforce`. **The interface becomes the instrument that lets us arm the flag.** | **honest state now, gate later** (B4-evidence) |
@@ -1254,7 +1254,7 @@ Folded into `FINAL-ia.md`'s phases. No new phases.
 **Backend, and the four that are gates are marked.**
 
 | # | Work | Why it is not optional |
-|---|---|---|
+| --- | --- | --- |
 | **B1** | `authored_by_agent`, `authored_by_run`, `human_edited_at` on 7 artifact tables + `setAuthorship` + backfill from lineage edges | §6 is impossible without it. Rides IA P4. |
 | **B1a** | `tool_calls.run_id` and `mission_id`, backfilled from `trace_id` | **G1.** Rides IA P4. |
 | **B2** | `getFloorState` - one batched server fn: live runs + mission/step context + brood counts + census | The Floor must not be five polling queries. `getSwarmHud` returns *latest run per agent*, not all live runs. |
@@ -1272,7 +1272,7 @@ Folded into `FINAL-ia.md`'s phases. No new phases.
 **Front end, by IA phase.**
 
 | Phase | What lands |
-|---|---|
+| --- | --- |
 | **P1** one shell | The Crew Bar becomes a real permanent region: thirteen marks, live locus, census, the honest-idle line with the watch statement, silence age. `CookingBanner`, `AmbientChip`, `MachineNow`, `FocusDock` die as the IA already rules. |
 | **P1.5** identity | `crew.ts` rename; the thirteen names, charters in second person, `handoffLine`; `CrewMark`/`CrewChip`/`CrewRow` replacing `AgentMark`/`AgentBadge`/`AgentChip`; hue confined to 24px+; build fails on an unmapped glyph. |
 | **P2** depth visible | Rail tile 5 → **Your crew**, count = graduations + standing changes. **The Floor ships here** with B2 and B7 - a count with no place to expand into is the failure P2 exists to fix. |
@@ -1290,7 +1290,7 @@ Folded into `FINAL-ia.md`'s phases. No new phases.
 A document that rots is a document; a test is a contract. Same idiom as `FINAL-ia.md` §9.
 
 | Test | Fails when |
-|---|---|
+| --- | --- |
 | `crew.test.ts` | an active catalog entry lacks a distinct glyph, a distinct name, a distinct exclusive verb, a second-person charter, or a `handoffLine` · a name equals a stage name, a button verb, an object status or an autonomy mode |
 | `crew-identity.test.ts` | any agent-identity component renders a per-agent hue below 24px · a `CrewMark` uses a colour outside the six state tokens · a fourth identity component exists |
 | `presence.test.ts` | the room renders with a live run and no agent name is on screen, at any breakpoint · the Crew Bar renders fewer than thirteen marks on desktop · the Bar's zero state renders without a last-event or next-wake line |
@@ -1355,7 +1355,7 @@ no standing to enforce it anywhere.
 ## 16. THE RISKS I AM TAKING
 
 | # | Risk | Mitigation |
-|---|---|---|
+| --- | --- | --- |
 | R1 | **The Byline is on sixteen surfaces and everything gets noisier.** A lot of restraint budget spent in one place. | It buys the founder's central complaint, so it is the right place to spend it. The mark is the only non-grey element; the name is grey at 12.5px; the verb appears only at header size. If it still reads busy, drop the name in row context and keep the mark - the glyph is the recognisable part. |
 | R2 | **The Floor is a poll, not a stream.** There is no run-level SSE; runs are polled at 2-6s. At 4s a 20-second step looks static. | The clock advances client-side; the step counter never does. The surface is never frozen even when the data is stale, and it never invents a fact. |
 | R3 | **Five polling consumers** (Bar, Floor, Ledger, rail counts, Spine) against a Workers subrequest budget. | One `getFloorState` (B2), one query key, 4s stale time, shared by all five. Optimistic decrement on a gate decision. |

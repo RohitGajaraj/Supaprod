@@ -19,7 +19,7 @@ The reason this is a durable metric and not a packaging trick: **the record is g
 Slugs are canonical (`src/lib/entitlements.ts`); display names are a skin. `max` is a legacy internal slug, not a public tier.
 
 | Slug | Display | The memory promise on the page | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `free` | Free | Your own memory. The recall cache rolls on a 30 day window and then fades. The decision record itself never expires and exports forever. | **[PROVEN]** `FREE_MEMORY_RETENTION_DAYS`, single expiry cron on `agent_memory` only |
 | `pro` | Pro | Your own memory, kept. No expiry. Recall pools across all of your workspaces. | **[PROVEN]** `memoryPersists`, `crossWorkspaceMemory` resolved per account tier at recall time |
 | `max` | Pro (legacy) | Same as Pro. Not on the public page. | **[PROVEN]** |
@@ -61,7 +61,7 @@ _Packaging consequence: the row in §4 that said reflections were still author-s
 Each of these is a specific reason a pricing line must be softened until it closes.
 
 | Gap | Effect on the page | Status |
-|---|---|---|
+| --- | --- | --- |
 | **The claim's audit trail does not survive workspace deletion.** It rides on `workspace_audit_log`, whose `workspace_id` is `on delete cascade`. Deleting a claimed workspace erases the organisation's proof of how it acquired the work. | The Enterprise "prove what they knew" line cannot be sold as durable evidence. Say what it does today and name this limit rather than burying it. This is the single largest blocker between the claim and an enterprise pitch. | **[ROADMAP]** |
 | No product control for `visibility`. One surface now reads the column (the claim inventory splits shared and private counts), but nothing in `src/` writes it and the generated Supabase types do not carry it yet. | Do not write "choose what stays private". Write "private is supported in the data model" or say nothing. | **[WIRING]** |
 | Memory recall does not return the author. The row carries `user_id` and the write rules enforce it, but `match_agent_memory` returns no author column and no surface displays one. | Do not write "see who contributed what" about recall. Write "authorship is immutable and attributable". The claim trail is the one place attribution is displayed, and it may be described. | **[WIRING]** |

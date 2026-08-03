@@ -11,7 +11,7 @@
 ### Tier 1: Critical Foundations ✅ COMPLETE
 
 | Work | Status | Evidence |
-|------|--------|----------|
+| --- | --- | --- |
 | Geist Pixel moments | ✅ Complete | All 7 surfaces use PageHeader with Pixel h1 |
 | Focus rings | ✅ Complete | 236+ uses, all visible, all ember-colored |
 | Material elevation | ✅ Complete | 101/101 uses correct (no inline shadows) |
@@ -27,7 +27,7 @@
 ### Tier 2: High-Impact Visual Polish ✅ 80% COMPLETE
 
 | Work | Status | Details |
-|------|--------|---------|
+| --- | --- | --- |
 | Icon sizing | ✅ 80% | 70+ standardized in Settings/Today/Discover/Plan/Brain. ~30 remaining in studio/missions/observe (mostly intentional 14px for metadata). |
 | Icon stroke | ✅ 100% | All 1.5px stroke (compliant with icon-sizing.ts) |
 | Typography classes | ⚠️ 40% | IntegrationsTab, NotificationsTab, ProductsTab fully migrated. 1600+ violations remain across codebase, prioritize Today/Discover/Plan. |
@@ -41,7 +41,7 @@
 ### Tier 3: Research & Strategy ✅ COMPLETE
 
 | Work | Status | Details |
-|------|--------|---------|
+| --- | --- | --- |
 | Vercel dissection study | ✅ Complete | 7 design principles documented; Supaprod alignment assessed. Key insight: Premium = Consistency, not complexity. |
 | Design system audit | ✅ Complete | Tempo v5 verified compliant across all contract sections. |
 | Typography hierarchy | ✅ Analyzed | Supaprod class system (text-heading-*, text-label-*, text-copy-*, text-button-*) matches Vercel's discrete sizing ladder. |

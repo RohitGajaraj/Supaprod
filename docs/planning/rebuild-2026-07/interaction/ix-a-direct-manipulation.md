@@ -36,7 +36,7 @@ the workspace what you like so the next render does not need the mark at all.
 ### 1.1 The four references, as interaction models
 
 | Reference | What I took | What I refused |
-|---|---|---|
+| --- | --- | --- |
 | **Vercel Toolbar comments** | The anchor model is right: a comment is pinned to an element plus a viewport, survives redeploys by re-anchoring, and shows as a numbered pin. Also right: the preview is a real deployment at a real URL before it is real in production. | Their comment **never changes the code**. It is a note for a human to go implement. That gap is the entire product opportunity and we close it. |
 | **devouringdetails.com** (Rauno) | Hit targets larger than their visual bounds. State in the URL, always. Optimistic writes, so the interface never waits to acknowledge you. Feedback at the pointer, not in a corner toast. | Nothing. This is the standard. |
 | **interfacecraft.dev** | The system's state must be legible at rest, without hovering to discover it. Motion confirms, it does not perform. | Nothing. |
@@ -50,7 +50,7 @@ the workspace what you like so the next render does not need the mark at all.
 **What exists and is load-bearing for this design.**
 
 | Fact | Where |
-|---|---|
+| --- | --- |
 | Generated mockup HTML is real, persisted, and rendered in an iframe via `srcDoc` | `design-scaffold.functions.ts:245` `generateDesignScaffold`, `:268` `getPersistedScaffold`, rendered at `faces.tsx:1283`, `DesignScaffoldPanel.tsx:272`, `PreviewPanel.tsx:171`, `p.$slug.tsx:141` |
 | The generator is instructed to use a **fixed class vocabulary**: `btn btn-primary`, `btn-secondary`, `input`, `.card`, `.badge`, plus `MOCKUP_CSS`'s `.form-group .section-title .empty-state .sidebar` | `design-scaffold.functions.ts:99` and `MOCKUP_CSS` at `:44-83` |
 | `prototype_messages` exists, is empty, and has exactly the right columns: `role` (`user`/`assistant`/`system`), `content` text, `changes_json` jsonb, `applied` boolean, workspace-scoped | `supabase/migrations/20260602204826_*.sql:390`, workspace column added `20260619212731_*.sql:430` |
@@ -123,7 +123,7 @@ mode", never "annotation layer".
 Six, and every one is visible without hovering.
 
 | State | Pin | Thread row | Means |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `open` | `◉n` ember filled | full colour | placed, not sent |
 | `sent` | `◉n` ember outline, slow 1.4s pulse | full colour, working caret | in flight to the crew |
 | `done` | `✓n` in `--verdict-pass` | full colour, verdict line | the proposal addressed it |
@@ -284,7 +284,7 @@ decision with a number behind it, and it is the reason five marks cost one call 
 `src/lib/mark/ontology.ts`, deterministic, no model:
 
 | Match | Role rendered |
-|---|---|
+| --- | --- |
 | `.btn.btn-primary` | `primary action` |
 | `.btn.btn-secondary` | `secondary action` |
 | `input[type=email]` with a `<label>` | `field · email` |
@@ -398,7 +398,7 @@ the interface carries it without words.
 `classify(el)` in `src/lib/mark/ontology.ts`:
 
 | Class | Test | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **text** | exactly one text-node child, no element children, no interactive descendants | a heading, a paragraph, a label, a button's label, a cell, a badge |
 | **value** | an `input`/`textarea`/`select` with a value or placeholder, or a leaf whose whole text is a number, currency, date, or an enum from a known set | a price, a count, a date field, a roadmap bucket, an owner, an estimate |
 | **none** | everything else | containers, layout, structure, nav, anything with element children, anything whose change moves other things |
@@ -435,7 +435,7 @@ The second signal is **who is named**:
 **On a `text` target:**
 
 | Input | Result |
-|---|---|
+| --- | --- |
 | click | select (ticks, pin slot reserved, no pin yet) |
 | click again, or `Enter`, or type any character | edit in place. `contenteditable` inside the frame, caret at the click point or select-all if typed into |
 | `Enter` in the field | commit |
@@ -468,7 +468,7 @@ is what makes a hand edit auditable without inventing a table.
 loved this" test, and typing the word `Now` fails it.
 
 | Value kind | Control at the pin |
-|---|---|
+| --- | --- |
 | enum (roadmap bucket) | 3-position segmented control, `Now / Next / Later`, 32px |
 | person (owner) | person picker, 6 recent, then search |
 | date | date field, with `today` and `+1w` shortcuts |
@@ -831,7 +831,7 @@ The mark **stays open** through Keep. `re-point` returns you to Point mode carry
 The gesture is fixed. Three things vary, and only three.
 
 | Artifact | Target unit | Ontology source (exists today) | Direct-edit classes | Executes via (exists today) | Lands in |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Prototype**, scaffold | DOM element, text range | probe + `MOCKUP_CSS` class vocabulary | text, value | `callModel` surface `prd` + `persistScaffold` | `prd_scaffolds.html` |
 | **Prototype**, promoted | same | same | text, value | `dispatchStudioSession` with a mark-derived touch list | `prototype_files`, `studio_changes` |
 | **Spec** | a heading, a numbered clause, a paragraph, a table row | `parseSpecSections()` `faces.tsx:620`, which already returns `{title, items:[{num,text}], prose}` | text (a clause's words), value (a number in a metric) | `prd.revise({prd_id, instruction})` `registry.server.ts:2489`, which already snapshots `snapshot_before` for one-key rewind and writes the `revised` lineage edge | `prds.body_md` |
@@ -959,7 +959,7 @@ The founder: "Too much scroll we need to avoid: what can the user see within a p
 Reserved and untouched: `1`-`7` (Spine), `g k r m t c e` (depth rail), `⌘K` (palette), `⌘J` (Ask).
 
 | Key | Context | Does |
-|---|---|---|
+| --- | --- | --- |
 | `p` | canvas | toggle Point mode |
 | hold `⌥` | canvas | momentary Point mode |
 | click | Point mode | select |
@@ -992,7 +992,7 @@ Craft law bans `linear` and `ease-in-out`, and bans animating `width`, `height`,
 Everything here is `transform` and `opacity` only.
 
 | Moment | Duration | Curve | Property |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | ticks appear on hover | 90ms | `cubic-bezier(.2,0,0,1)` | opacity |
 | mark flies to the Thread | 180ms | `cubic-bezier(.22,1,.36,1)` | transform, opacity |
 | pin appears | 140ms | `cubic-bezier(.34,1.56,.64,1)` | transform: scale |
@@ -1060,7 +1060,7 @@ already there.
 ## 12. WHAT THIS KILLS
 
 | Killed | Why |
-|---|---|
+| --- | --- |
 | `DesignRail()` `faces.tsx:1046` | Read-only annotation rail with no data behind it. Right instinct, no substance. |
 | The hardcoded `relay.heliolabs.com/inbox/digest` `faces.tsx:1267` and `Interactive · V4` `:1276` | Demo fiction in a shipped component. The URL comes from the prototype, the version from the revision count. |
 | The four state chips' hardcoded bodies `faces.tsx:1293-1315` | Three of four chips render a lie. Honest replacement: the chips stay, but `Empty` and `Error` render only if the generator produced those variants, and if it did not, the chip is a **mark affordance**: click `Empty`, and the composer opens pre-filled with `there is no empty state yet`, addressed to Designer. A missing state becomes a request instead of a fake. |

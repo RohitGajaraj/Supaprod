@@ -102,7 +102,7 @@ catching up to the deck.
 **Why each word.**
 
 | Fragment | Doing what | Why not the alternative |
-|---|---|---|
+| --- | --- | --- |
 | `Your crew` | The ratified possessive, §1 R7. Warm, and true. | `The crew` is the label form, not the sentence form. |
 | `does the work` | The spine. Present simple, continuous, unglamorous. | `runs the rest` was already killed by R22 on honesty. `runs everything` fails the same test: a human still merges, still posts. |
 | `You decide` | The human act is a decision, and it is a real one. Keeps the founder's own accountability claim intact. | `You set` is colder and reads like configuration. `You own` is a claim about liability we should make in contracts, not on a door. |
@@ -111,7 +111,7 @@ catching up to the deck.
 ### 2.2 The candidates I rejected, and why, so nobody relitigates
 
 | Candidate | Verdict | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `Your crew does the work. You set the boundaries, and you hear about it when something reaches one.` (the founder's own reframe, `GOVERNANCE-PRINCIPLE.md` §"The reframe") | **Rejected as the tagline. Kept as the doctrine sentence.** | It is correct doctrine and I am not softening it. But its third clause names the exception, and **a tagline that names the exception makes the exception feel like the loop.** That is the exact defect we are fixing. Twenty-one words is also three times the door budget. |
 | `You set the rules. Your crew does the rest.` | Rejected | `the rest` is dead by R22 precedent, and `rules` collides with `House rule` in a way that will confuse the surface name. |
 | `You set the limits. Your crew works inside them.` | Rejected | Symmetrical and clean, but `limits` reads as restriction, so the sentence sells the cage rather than the work. Also carries no accountability claim. |
@@ -134,7 +134,7 @@ pre-auth data leak); platform status only.
 ## 3. Test 1: the investor canon (`CLAUDE.md`, founder-ratified 2026-07-24)
 
 | Layer | Canon | Old line | New line |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **01 the director** (tells you what to build) | The machine has an opinion. | **Contradicted.** If the human "makes the calls", the machine proposes and does not direct. | **Compatible.** The crew does the work, and deciding what to propose is work. |
 | **02 the operating system** (runs the whole lifecycle) | The closed loop. | Partially. Describes an OS that hands you decisions. | **Carried.** `does the work` is the lifecycle claim. |
 | **03 the company brain** (remembers, and it guides) | Never storage. It compounds. | **Absent.** The old line says nothing about the record or about compounding. | **Carried, indirectly and then explicitly.** The grant in `may do alone` is only safe because the record justified it, and the companion line states it. |
@@ -237,7 +237,7 @@ arriving later as a card in a tray.
 **The symmetry, and it is the whole model in four rows.**
 
 | Direction | Where it lives | The words | Who may act |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Loosen** | on the receipt that follows a verdict, with the count | `stop asking me` -> the graduation card | **Human only.** R-13. |
 | **Tighten** | on any receipt of unattended work | `ask me next time` | Human, one click, no ceremony |
 | **Auto-tighten** | invisible, on evidence of harm | none | The machine may |
@@ -310,7 +310,7 @@ to be 'half-visible' or 'shown subtly', it is a Call that somebody is embarrasse
 ### 6.3 The two controls that may appear, and no others
 
 | Control | When | Reversible | Tier |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `Ask me next time` | on any receipt of unattended work | yes | quiet |
 | the object's own reversal verb (`Undo`, `Roll back release`, `Revert version`) | only where the act is genuinely reversible, per §5.6 of the language contract | yes, by definition | quiet |
 
@@ -364,7 +364,7 @@ register is dead code. Mounting it is the cheapest possible proof that the frame
 ### 6.6 Register, in one sentence each
 
 | Register | What is true | Object | Tense | Controls | Default user act |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Silent** | absorbed; nothing changed that the user got | none | none | none | none |
 | **Informed** | the crew did it, under a rule you set | **Receipt** | past, actor first | optional, reversible only | **nothing** |
 | **Asked** | it crossed a line you drew | **Call** | present, consequence stated | `Approve` + one of `Send back`/`Decline`, optional `Snooze` | a verdict |
@@ -378,7 +378,7 @@ Proposed amendments, each with the reason. Nothing here deletes a ratified word;
 re-pointed and one law is added.
 
 | § | Item | Amendment | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | §1 R22 | in-app tagline | **`Your crew does the work. You decide what it may do alone.`** Companion line where the record is the subject: `All of it is on the record.` | R22's own honesty test, applied one level up. §1, §2. |
 | §2.4 | **House rule** definition | From *"a standing rule you wrote that decides when your crew must **stop and ask you**"* to **"A standing rule you wrote that says what your crew may do alone, and what it must stop and ask you about."** | **This definition is how the gate frame entered the vocabulary.** A rule that can only express stopping gives the product no word for the permission it grants ninety-nine times a day. |
 | §2.7 | **Autonomy** definition | From *"How far an agent may go before it stops and asks you"* to **"What one agent may do without asking you."** | Same defect. The new form is also the enterprise buyer's question verbatim, which is worth a lot. |
@@ -756,7 +756,7 @@ The buyer's own 2026 checklist maps onto this almost one to one, which is why th
 building rather than describing:
 
 | What they ask for | What we have | Status |
-|---|---|---|
+| --- | --- | --- |
 | Tiered autonomy with approval boundaries | four arcs, per-tool modes, per-tool grants | real |
 | Customer-administered kill switch | `kill_switches`, `setWorkspacePause` | real, needs to be findable (F7) |
 | Immutable action logs with export | the record, sealed | real; export needs verifying |
@@ -774,7 +774,7 @@ Symmetry matters, or this document becomes a list of reasons to build nothing. T
 floors and are not, and the corrected frame should absorb every one of them.
 
 | Feels like a floor | Actually | Why |
-|---|---|---|
+| --- | --- | --- |
 | A branch, a commit, a draft PR | absorbed | Reversible, contained, invisible outside the workspace. Already ruled, edge §3.1, and already exempted in code by `BUILD_LANE_AUTONOMOUS` (founder ruling 2026-07-08). |
 | Reading a connected source | absorbed | Read access was granted once, at Connect. Re-asking is theatre. |
 | Drafting anything | absorbed | A draft nobody has seen has no consequence. |

@@ -10,7 +10,7 @@
 ## Scorecard
 
 | Class | Count | What it means |
-|---|---|---|
+| --- | --- | --- |
 | **LIES** | **41** | The control is present, the label/hint promises X, the handler does Y |
 | **DEAD** | **34** | Present and clickable, does nothing - or renders but is unreachable |
 | **SILENT** | **25** | The action happens (or fails) with no feedback the user can perceive |
@@ -34,7 +34,7 @@ Ranked by probability of being hit during: sign in → land → a gate needs you
 agents work → an artifact appears → it ships → the brain records it.
 
 | Rank | ID | Finding | Class | Step it breaks |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 | **D-01** | Ask shows no text and no chats, on every surface, for every user | DEAD | any moment you press ⌘J |
 | 2 | **D-02** | Every send mints a brand-new conversation row | DEAD | the whole conversation |
 | 3 | **D-03** | `/threads` renders raw markdown source (`## Heading`, `**bold**`) | LIES | "open the thread" |
@@ -65,7 +65,7 @@ agents work → an artifact appears → it ships → the brain records it.
 ### LIES - 41
 
 | ID | File · line | Label | Expect | Actual | Fix |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | L-01 | `src/components/mission/primitives/GateChip.tsx:173,186,195,222` + `MissionShell.tsx:432-451` | `Approve and run [1]` · `Send back [2]` · `Decline [3]` · `Open the evidence [⏎]` | `1` approves the gate on screen | The room binds bare digits to the Spine: `const idx = Number(e.key) - 1; onStageChange(SPINE_STAGES[idx].id)`. `1` navigates the Canvas to **01 Discover**. `⏎` does nothing. The keys only work inside `ApprovalsTray` (which sets `aria-modal` and suppresses the Spine handler). **Verified at source.** | Render the `Kbd` hints only when a `keysActive` prop is true; pass it from `ApprovalsTray` and nowhere else |
 | L-02 | 18 sites, 8 files (below) | approve · send back · later · keep · drop · adopt · refresh brief · create task · capture · focus · mission actions · strategic brief | A failed action says it failed | `onError: (e: Error) => toast.success(e.message)`. Failures render as **green success toasts whose body is the error string**. `toast.error` exists and is simply not called. Compounded by `src/lib/notify.ts:71-74`, which **holds** non-critical success toasts during a focus block - so in Flow mode a failed approval produces *no output at all* | Replace all 18 with `toast.error(e.message)` |
 | L-03 | `MissionShell.tsx:598-602` (no `children`) vs `GlobalComposer.tsx:133-151` | Room `Ask` / ⌘J | You type in the box and the answer appears there | Room passes `{...composerSurface}` with **no children**, so the overlay renders only an input. `submitIntent` fires then `setOverlayOpen(false)`. The box vanishes, the draft is cleared, the answer streams into the 380px rail below the day divider, the Briefing card and up to 3 gate cards. Off-room the *same* overlay renders the thread. One control, two behaviours. **Verified at source.** | Pass the same `ThreadMessage` list into the room's `ComposerOverlay`, or keep the overlay open while the answer streams |
@@ -118,7 +118,7 @@ agents work → an artifact appears → it ships → the brain records it.
 ### DEAD - 34
 
 | ID | File · line | Control | Actual | Fix |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **X-01** | `conversations.functions.ts:28` | Ask history hydration | `.select("id,role,content,model,created_at,mission_id,metadata")` - **both trailing columns are absent from the live database** (42703, verified). `if (msgRes.error) throw` fires **every call, every user, every conversation**. `hydration.error`/`isError` is read **nowhere**. Falls through to the empty state | Drop `,mission_id,metadata` from the select |
 | **X-02** | `use-ask-stream.ts:195-220` | (send, any Ask input) | `try { fetchQuery(getConversation) } catch { }` then `fCreate({data:{}})`. X-01 makes the fetch always reject, so **every question mints a new `conversations` row** and overwrites the stored id. This is why `/threads` fills with one-exchange stubs | Fixed by X-01; separately distinguish "not found" from "read failed" |
 | **X-03** | `ThreadsSurface.tsx:334, 404, 594-596` | `/threads` "This product" scope | `conversations.product_id` is **never written by any code path** (`createConversation` inserts only `user_id, title, model, project_id`; verified across all 18 `from("conversations")` sites). Default scope is `"product"`, so with an active product selected - the demo state - every thread is filtered out and the component renders the literal string **`No threads match ""`** with an empty search box | Stamp `product_id` on create, or default the scope to `"all"`; fix the copy |
@@ -159,7 +159,7 @@ agents work → an artifact appears → it ships → the brain records it.
 ### SILENT - 25
 
 | ID | File · line | Control | Actual | Fix |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **S-01** | `MissionShellView.tsx:239-244` and `:247-252` | Streaming scroll (the 2026-07-27 patch) | **Effect 1 has no near-bottom guard at all** - `el.scrollTo({top: scrollHeight, behavior:"smooth"})` on every `messageCount` change, yanking a reader out of history. The commit's guard claim applies only to effect 2. **Effect 2's guard is measured after the fact**, so one token adding >240px (a code block, a table) pushes distance past the threshold and the pin **permanently disengages for the rest of that answer**. The two fight: effect 1 starts a smooth animation, effect 2 cancels it next frame with a direct `scrollTop` write. The correct pattern (a pre-update `nearBottomRef` fed by `onScroll`) exists at `AskPanel.tsx:1125-1131` and was not carried over. **Verified at source.** | Port `nearBottomRef`; one effect, one behaviour, guard read before the update |
 | **S-02** | `GlobalComposer.tsx:133-136` | Ask overlay answer area | `<div className="mb-2 flex max-h-[45vh] flex-col gap-3 overflow-y-auto">` has **no ref and no scroll effect**. The 2026-07-27 fix landed only in the room. On all ~68 AppShell routes - where the founder actually presses ⌘J - the second and later answers stream below the fold of a 45vh box that never moves | Port the `MissionShellView` scroll pair into the overlay thread |
 | **S-03** | `use-ask-stream.ts:517-525` + `GlobalComposer.tsx:56` (`enabled: open`) | Ask overlay | `enabled:false` runs `abortControllerRef.current.abort()`. Pressing Esc, clicking away, or hitting ⌘J again **kills the in-flight answer**. The partial bubble stays in state, no toast, no "cancelled" line. Reopening shows a truncated answer with no explanation. **This is the founder's "I typed, it vanished".** | Keep the stream alive while the conversation is open; mark cancelled answers |
@@ -193,7 +193,7 @@ agents work → an artifact appears → it ships → the brain records it.
 Components with **zero runtime importers**. Every one calls real server functions or renders real UI.
 
 | ID | File | Size | What is lost | Fix |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **O-01** | `src/components/obsidian/AskPanel.tsx` | 1438 lines | The complete Ask UI. **Zero non-test importers - all 3 apparent hits are comments** (`ShimmerText.tsx:7`, `use-ask-stream.ts:42`, `_authenticated.chat.tsx:6`). Unreachable with it: "New" conversation, scope chip, product-scope chip, slash palette, "Start a project from this", `PendingApprovalsStrip`, suggested asks, day dividers, the meta footer + "How I got this →", read-aloud, "Open in Build →", `MissionCanvasBlocks`, and **the correct `nearBottomRef` scroll**. `AskPanel.test.tsx` runs 6 green integration tests against dead code | Delete file + test, or remount as the single Ask implementation |
 | **O-02** | `src/components/supaprod/CommandPalette.tsx` (the dialog) | 336 of 454 lines | A five-section palette (JUMP / SETTINGS / ACT / RECENT / CATALOG / ASK) with arrow navigation, `Try it` buttons, an empty state, `getRecents()` and `filterCatalog()`. Its ⌘K binding and `supaprod:open-cmdk` listener never register. **Only `GotoShortcuts` from the same file is live** | Mount it, or delete it and stop referencing "the palette" in comments across 8 files |
 | **O-03** | `src/components/supaprod/AttentionBell.tsx` | 97 lines | The notification bell. Calls `getNotifications` on a 60s poll. **The authenticated app has no notification bell at all** | Mount in both TopBars, or delete it and the server fn |

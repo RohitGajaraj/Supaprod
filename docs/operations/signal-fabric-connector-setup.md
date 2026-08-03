@@ -12,14 +12,14 @@ The SF-CONNECTORS fleet (Stripe/Slack/Zendesk/HubSpot/Salesforce/Canny/Productbo
 
 ## Status
 
-| Source          | Status                                                  | Env var(s)                                                                                                                    |
-| --------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Slack           | ✅ Done (2026-07-01)                                    | `SLACK_BOT_TOKEN`, `SLACK_SIGNAL_CHANNEL`                                                                                     |
-| Stripe          | ❌ Blocked — see below                                  | `STRIPE_API_KEY`                                                                                                              |
-| HubSpot         | ✅ Done (2026-07-01, via Service Keys, not Legacy Apps) | `HUBSPOT_ACCESS_TOKEN`                                                                                                        |
-| Salesforce      | ✅ Done (2026-07-01)                                    | `SALESFORCE_ACCESS_TOKEN`, `SALESFORCE_INSTANCE_URL`                                                                          |
-| Linear (SF-MCP) | ✅ Done (2026-07-01)                                    | `MCP_LINEAR_URL`, `MCP_LINEAR_TOKEN`, `MCP_LINEAR_TOOL`=`list_issues`, `MCP_LINEAR_ARGS`=`{"limit":20,"orderBy":"updatedAt"}` |
-| Canny           | ✅ Done (2026-07-01)                                    | `CANNY_API_KEY`                                                                                                               |
+| Source | Status | Env var(s) |
+| --- | --- | --- |
+| Slack | ✅ Done (2026-07-01) | `SLACK_BOT_TOKEN`, `SLACK_SIGNAL_CHANNEL` |
+| Stripe | ❌ Blocked — see below | `STRIPE_API_KEY` |
+| HubSpot | ✅ Done (2026-07-01, via Service Keys, not Legacy Apps) | `HUBSPOT_ACCESS_TOKEN` |
+| Salesforce | ✅ Done (2026-07-01) | `SALESFORCE_ACCESS_TOKEN`, `SALESFORCE_INSTANCE_URL` |
+| Linear (SF-MCP) | ✅ Done (2026-07-01) | `MCP_LINEAR_URL`, `MCP_LINEAR_TOKEN`, `MCP_LINEAR_TOOL`=`list_issues`, `MCP_LINEAR_ARGS`=`{"limit":20,"orderBy":"updatedAt"}` |
+| Canny | ✅ Done (2026-07-01) | `CANNY_API_KEY` |
 
 ## Stripe — blocked, not a quick task
 
@@ -111,10 +111,10 @@ Caveat: tokens from this flow can expire per your org's session-timeout setting 
 
 ## Skipped entirely — and why
 
-| Source                   | Why skipped                                                                                                             |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| Zendesk                  | No permanent free tier — only a 14-day trial, or a "sponsored" dev account gated to Zendesk Marketplace app developers. |
-| Productboard             | Has a free-forever plan, but API access is paid-only on every tier.                                                     |
-| Delighted                | Free plan caps at 25 responses/month; API access appears gated to their $249/mo Premium tier.                           |
-| Granola (SF-MCP)         | Has a free "Basic" plan, but the hosted MCP server specifically requires a paid plan.                                   |
-| Gong, Enterpret (SF-MCP) | No self-serve signup at all — enterprise sales-only, no public API/MCP path.                                            |
+| Source | Why skipped |
+| --- | --- |
+| Zendesk | No permanent free tier — only a 14-day trial, or a "sponsored" dev account gated to Zendesk Marketplace app developers. |
+| Productboard | Has a free-forever plan, but API access is paid-only on every tier. |
+| Delighted | Free plan caps at 25 responses/month; API access appears gated to their $249/mo Premium tier. |
+| Granola (SF-MCP) | Has a free "Basic" plan, but the hosted MCP server specifically requires a paid plan. |
+| Gong, Enterpret (SF-MCP) | No self-serve signup at all — enterprise sales-only, no public API/MCP path. |

@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ID            | OBS-14                                                                                                                                                                                                                                           |
-| Rank          | #15                                                                                                                                                                                                                                              |
-| Tier          | 2                                                                                                                                                                                                                                                |
-| Status        | pending (founder-gated on the demo seed)                                                                                                                                                                                                         |
-| Category      | Cockpit                                                                                                                                                                                                                                          |
-| Depends on    | OBS-10 (IA consolidation · the rail + `/today` destination are real), OBS-04 (lands on the ported Today, hosts the coach mark), OBS-03 (primitives: Button, MonoLabel, StatusDot), demo seed live (DEMO-SEED-RICH / `ONBOARDING_SEED_ENABLED=1`) |
-| Blocks        | nothing downstream                                                                                                                                                                                                                               |
-| One-line what | The five-screen golden path: Arrival (butterfly choreography) to track pick to one connection or seeded demo to point the Critic to land on Today with one glacier coach mark. Every step carries a time estimate. No tour.                      |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-14                                                                                                                                                                       |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                           |
+| Field | Value |
+| --- | --- |
+| ID | OBS-14 |
+| Rank | #15 |
+| Tier | 2 |
+| Status | pending (founder-gated on the demo seed) |
+| Category | Cockpit |
+| Depends on | OBS-10 (IA consolidation · the rail + `/today` destination are real), OBS-04 (lands on the ported Today, hosts the coach mark), OBS-03 (primitives: Button, MonoLabel, StatusDot), demo seed live (DEMO-SEED-RICH / `ONBOARDING_SEED_ENABLED=1`) |
+| Blocks | nothing downstream |
+| One-line what | The five-screen golden path: Arrival (butterfly choreography) to track pick to one connection or seeded demo to point the Critic to land on Today with one glacier coach mark. Every step carries a time estimate. No tour. |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-14 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
 

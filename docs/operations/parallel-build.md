@@ -14,10 +14,10 @@
 
 **Two** equal peer worktrees (`cadence-lane-0`, `cadence-lane-1`). Neither is reserved for anything; each claims one item at a time from the ledger.
 
-| Lane  | Skill                    | Folder           | Branch                  | Prefers (then roams the whole board) |
-| ----- | ------------------------ | ---------------- | ----------------------- | ------------------------------------ |
-| **0** | (open the "Lane 0" task) | `cadence-lane-0` | `parallel/lane-0-fresh` | Monetization, Credit, Foundational   |
-| **1** | `/overnight-build-1`     | `cadence-lane-1` | `parallel/lane-1-fresh` | Cockpit, then Governance             |
+| Lane | Skill | Folder | Branch | Prefers (then roams the whole board) |
+| --- | --- | --- | --- | --- |
+| **0** | (open the "Lane 0" task) | `cadence-lane-0` | `parallel/lane-0-fresh` | Monetization, Credit, Foundational |
+| **1** | `/overnight-build-1` | `cadence-lane-1` | `parallel/lane-1-fresh` | Cockpit, then Governance |
 
 The lane folders are siblings of this repo, under `~/Projects/My Projects/My Builds/`. The _number_ is the identity, not the folder word; branch names are stable internal handles and are not renamed. Lane 0 used to be the special whole-product "WM/overnight" lane; as of 2026-06-21 it is a normal peer that claims per item like the rest.
 

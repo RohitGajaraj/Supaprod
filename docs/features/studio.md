@@ -69,15 +69,15 @@ Same migration: `UPDATE agents SET name='Studio', system_prompt=<dev-engine prom
 
 ## Tools (added to `TOOL_REGISTRY`, standard ToolDef shape: zod args, category, plain-language `preview`, idempotent `run`)
 
-| name              | args                                                    | behavior                                                                                                                                                                                                                                                 |
-| ----------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `repo.tree`       | `{ path?, ref? }`                                       | Git Trees API (recursive); returns paths+types+sizes, cap ~400 entries with truncation notice                                                                                                                                                            |
-| `repo.read`       | `{ paths: string[] (max 8), ref? }`                     | Contents API per path; returns decoded contents, flags binaries/too-large                                                                                                                                                                                |
-| `repo.search`     | `{ query }`                                             | GitHub code search scoped to the bound repo; path + fragment per hit                                                                                                                                                                                     |
-| `studio.stage`    | `{ changes: [{path, op, content?}], title?, summary? }` | Upserts into the mission's active changeset (creates it lazily). Snapshots `base_content`/`base_sha` from the repo on first stage of a path. **No GitHub write.** Forbidden paths rejected here (`.github/`, `supabase/migrations/`, lockfiles, `.env*`) |
-| `studio.commit`   | `{ message }`                                           | Creates branch `studio/<mission-short-id>` from default-branch head if absent; Git Data API blobs→tree→commit→ref for ALL staged changes; claims every path in `builder_file_claims`; sets changeset `committed` + `branch`/`base_sha`                   |
-| `studio.pr.open`  | `{ title, body }`                                       | Opens PR from the changeset branch; sets `pr_open` + `pr_url`/`pr_number`. Distinct from legacy single-file `github.pr.open` (untouched)                                                                                                                 |
-| `studio.pr.merge` | `{ method? = 'squash' }`                                | `PUT /pulls/{n}/merge`; sets `merged`; releases file claims                                                                                                                                                                                              |
+| name | args | behavior |
+| --- | --- | --- |
+| `repo.tree` | `{ path?, ref? }` | Git Trees API (recursive); returns paths+types+sizes, cap ~400 entries with truncation notice |
+| `repo.read` | `{ paths: string[] (max 8), ref? }` | Contents API per path; returns decoded contents, flags binaries/too-large |
+| `repo.search` | `{ query }` | GitHub code search scoped to the bound repo; path + fragment per hit |
+| `studio.stage` | `{ changes: [{path, op, content?}], title?, summary? }` | Upserts into the mission's active changeset (creates it lazily). Snapshots `base_content`/`base_sha` from the repo on first stage of a path. **No GitHub write.** Forbidden paths rejected here (`.github/`, `supabase/migrations/`, lockfiles, `.env*`) |
+| `studio.commit` | `{ message }` | Creates branch `studio/<mission-short-id>` from default-branch head if absent; Git Data API blobs→tree→commit→ref for ALL staged changes; claims every path in `builder_file_claims`; sets changeset `committed` + `branch`/`base_sha` |
+| `studio.pr.open` | `{ title, body }` | Opens PR from the changeset branch; sets `pr_open` + `pr_url`/`pr_number`. Distinct from legacy single-file `github.pr.open` (untouched) |
+| `studio.pr.merge` | `{ method? = 'squash' }` | `PUT /pulls/{n}/merge`; sets `merged`; releases file claims |
 
 All tool outputs XML-wrapped as untrusted (existing convention). All GitHub mutations wrapped in `withIdempotency`.
 
@@ -183,11 +183,11 @@ A Studio changeset can carry a **pre-declared touch list** (the only paths the o
 
 ## Trust & governance (operator terms)
 
-| Action                                      | Gate    | Who can change it                            |
-| ------------------------------------------- | ------- | -------------------------------------------- |
-| Read repo (tree/read/search), stage changes | auto    | per-tool mode in Agents settings             |
-| `studio.commit`, `studio.pr.open`           | confirm | floor: dial can tighten, never below confirm |
-| `studio.pr.merge`                           | review  | hard floor: not overridable                  |
+| Action | Gate | Who can change it |
+| --- | --- | --- |
+| Read repo (tree/read/search), stage changes | auto | per-tool mode in Agents settings |
+| `studio.commit`, `studio.pr.open` | confirm | floor: dial can tighten, never below confirm |
+| `studio.pr.merge` | review | hard floor: not overridable |
 
 Every model call rides the existing chokepoint (`callModel`, surface `'agent'`): guardrails, budgets, BYOK, cost logging all inherited. Every GitHub mutation is idempotent (`withIdempotency`): a worker eviction or re-approval never double-commits, double-opens, or double-merges. All tool output re-enters the loop XML-wrapped as untrusted.
 
@@ -211,19 +211,19 @@ Every model call rides the existing chokepoint (`callModel`, surface `'agent'`):
 
 ## Implementation map
 
-| Piece                                                                                                                | Where                                                                                                    |
-| -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Migration (tables, RLS, approval ctx columns, `agent_runs.model`, Studio prompt + tool seeds)                        | `supabase/migrations/20260612100000_f_studio_engine.sql`                                                 |
-| Engine tools (`repo.*`, `studio.*`)                                                                                  | `src/lib/ai/tools/registry.server.ts` (§ "Studio engine tools")                                          |
-| Loop: 24 steps, steer injection, pause-on-gate, resume outcome injection, gate floors, `executeApproval` mission ctx | `src/lib/ai/loop.server.ts`                                                                              |
-| Steer-vs-handoff separation (`kind='handoff'` filter)                                                                | `src/lib/ai/handoff.server.ts` (`consumeInboundHandoff`)                                                 |
-| Server functions (dispatch/list/get/steer/diff/CI)                                                                   | `src/lib/studio.functions.ts`                                                                            |
-| `mission` artifact kind (lineage)                                                                                    | `src/lib/lineage.functions.ts` · `src/components/supaprod/LineageDrawer.tsx`                              |
-| KI-02 sweeper fixes (NULL checkpoint, `waiting_approval` pickup)                                                     | `src/routes/api/public/hooks/resume-runs.ts`                                                             |
-| Surface routes                                                                                                       | `src/routes/_authenticated.studio.{index,$missionId}.tsx`                                                |
-| Surface components (timeline, gate cards, changes/CI/cost panels)                                                    | `src/components/studio/`                                                                                 |
-| Redirect + palette                                                                                                   | `src/routes/_authenticated.build.tsx` · `src/components/supaprod/CommandPalette.tsx`                      |
-| Legacy internals (kept, ≡ Studio)                                                                                    | `src/lib/build.functions.ts`, `builder_file_claims`, single-file `github.pr.open`/`github.commit.append` |
+| Piece | Where |
+| --- | --- |
+| Migration (tables, RLS, approval ctx columns, `agent_runs.model`, Studio prompt + tool seeds) | `supabase/migrations/20260612100000_f_studio_engine.sql` |
+| Engine tools (`repo.*`, `studio.*`) | `src/lib/ai/tools/registry.server.ts` (§ "Studio engine tools") |
+| Loop: 24 steps, steer injection, pause-on-gate, resume outcome injection, gate floors, `executeApproval` mission ctx | `src/lib/ai/loop.server.ts` |
+| Steer-vs-handoff separation (`kind='handoff'` filter) | `src/lib/ai/handoff.server.ts` (`consumeInboundHandoff`) |
+| Server functions (dispatch/list/get/steer/diff/CI) | `src/lib/studio.functions.ts` |
+| `mission` artifact kind (lineage) | `src/lib/lineage.functions.ts` · `src/components/supaprod/LineageDrawer.tsx` |
+| KI-02 sweeper fixes (NULL checkpoint, `waiting_approval` pickup) | `src/routes/api/public/hooks/resume-runs.ts` |
+| Surface routes | `src/routes/_authenticated.studio.{index,$missionId}.tsx` |
+| Surface components (timeline, gate cards, changes/CI/cost panels) | `src/components/studio/` |
+| Redirect + palette | `src/routes/_authenticated.build.tsx` · `src/components/supaprod/CommandPalette.tsx` |
+| Legacy internals (kept, ≡ Studio) | `src/lib/build.functions.ts`, `builder_file_claims`, single-file `github.pr.open`/`github.commit.append` |
 
 ## Notable history
 

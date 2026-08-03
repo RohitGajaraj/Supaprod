@@ -26,7 +26,7 @@
 ## Progress Summary
 
 | Category | Complete | Pending | Total |
-|----------|----------|---------|-------|
+| --- | --- | --- | --- |
 | Wave 1 | ✅ | — | — |
 | Batch 1 (Buttons) | ✅ | — | 5 files |
 | Batch 2.1 (TodayLanes) | ✅ | — | 1 file |

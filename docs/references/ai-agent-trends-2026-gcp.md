@@ -18,13 +18,13 @@ Agentic AI (systems that _understand a goal, make a plan, and take actions acros
 
 ## The five shifts (the report's spine)
 
-| #   | Shift                         | One-line thesis                                                                                   | Pages |
-| --- | ----------------------------- | ------------------------------------------------------------------------------------------------- | ----- |
-| 1   | **Agents for every Employee** | Employees move from task-doers to _orchestrators_ of specialized agents (intent-based computing). | 6–14  |
-| 2   | **Agents for every Workflow** | "Digital assembly lines" run multi-step processes end-to-end across silos via A2A/MCP.            | 15–23 |
-| 3   | **Agents for your Customers** | Pre-programmed chatbots → grounded "agentic concierges" that remember context.                    | 24–30 |
-| 4   | **Agents for Security**       | SOC moves from alert fatigue to semi-autonomous triage/investigation/response.                    | 31–37 |
-| 5   | **Agents for Scale**          | Upskilling people is the ultimate driver of value (the hidden blocker).                           | 38–46 |
+| # | Shift | One-line thesis | Pages |
+| --- | --- | --- | --- |
+| 1 | **Agents for every Employee** | Employees move from task-doers to _orchestrators_ of specialized agents (intent-based computing). | 6–14 |
+| 2 | **Agents for every Workflow** | "Digital assembly lines" run multi-step processes end-to-end across silos via A2A/MCP. | 15–23 |
+| 3 | **Agents for your Customers** | Pre-programmed chatbots → grounded "agentic concierges" that remember context. | 24–30 |
+| 4 | **Agents for Security** | SOC moves from alert fatigue to semi-autonomous triage/investigation/response. | 31–37 |
+| 5 | **Agents for Scale** | Upskilling people is the ultimate driver of value (the hidden blocker). | 38–46 |
 
 ## Hard data points (verbatim, with page refs)
 

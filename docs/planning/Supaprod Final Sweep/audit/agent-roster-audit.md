@@ -39,7 +39,7 @@ This is the **2026-07-09** version (`20260709070000_orchestrator_in_default_rost
 ### 3. Live `agents` table (queried directly, 8 accounts / 62 rows / 19 distinct slugs)
 
 | slug | display `name` in DB | accounts w/ row (enabled/disabled) | in current SPECIALIST_CATALOG as |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | discovery-scout | Discovery Scout | 4 on | active cast → "Watch" |
 | researcher | Researcher | 3 on / 1 off | active cast → "Research" |
 | customer-insights | Customer Insights | 0 on / **1 off** | active cast → "Listen" — **never enabled anywhere live** |
@@ -74,7 +74,7 @@ Slugs **seeded/enabled somewhere but with zero runs ever**: `copilot`, `stakehol
 ## Part 2 — Full roster (consolidated, one row per real identity)
 
 | Slug (canonical) | Display name (catalog) | Station | Declared purpose | Invoked by (call site) | Tools | Instructions | Runs (DB) | Verdict |
-|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `discovery-scout` | Watch | Sense | Mines connected sources, frames opportunities | `runAgentLoop` via reactor/tick crons, discovery flows | `workspace.search`, `signals.log`, `memory.remember` | System prompt baked into `seed_default_agents` SQL (`agent-vocabulary.ts` mirrors as display only) | 30 | **Real, active** |
 | `researcher` | Research | Sense | Answers one question across web + workspace | `agent_loop.functions.ts`, chat | `workspace.search`, `web.search/fetch/map/crawl` | Same pattern | 8 | **Real, active** |
 | `customer-insights` | Listen | Sense | Clusters feedback into named themes | never dispatched live | `workspace.search`, `signals.log` | Full prompt exists (20260618200000) | 1 | **Real but dormant** — 0 accounts have it enabled |

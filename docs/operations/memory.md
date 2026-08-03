@@ -6,10 +6,10 @@
 
 ## The two layers at a glance
 
-| Layer | Clear name                    | Scope                                                            | Where it is stored                                                              | What goes in it                                                            |
-| ----- | ----------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| 1     | **User Memory** (auto-memory) | The _person_, across **all** their projects (user/account level) | The Claude Code auto-memory store (outside this repo), indexed in a `MEMORY.md` | Durable facts about the user, validated preferences, cross-project context |
-| 2     | **Project Memory**            | **This project only**                                            | The project-local `.remember/` folder in this repo                              | Session logs, decisions, and learnings specific to Supaprod                 |
+| Layer | Clear name | Scope | Where it is stored | What goes in it |
+| --- | --- | --- | --- | --- |
+| 1 | **User Memory** (auto-memory) | The _person_, across **all** their projects (user/account level) | The Claude Code auto-memory store (outside this repo), indexed in a `MEMORY.md` | Durable facts about the user, validated preferences, cross-project context |
+| 2 | **Project Memory** | **This project only** | The project-local `.remember/` folder in this repo | Session logs, decisions, and learnings specific to Supaprod |
 
 Rule of thumb: _"Is this true no matter what project I'm in?"_ → **User Memory.** _"Is this about Supaprod specifically?"_ → **Project Memory** (`.remember/`). If both, write both and keep them in sync.
 
@@ -21,12 +21,12 @@ Rule of thumb: _"Is this true no matter what project I'm in?"_ → **User Memory
 
 Persistent across sessions and projects. Four types: `user`, `feedback`, `project`, `reference`. Files use frontmatter (`name`, `description`, `metadata.type`); indexed in `MEMORY.md`.
 
-| Type        | Save when                                                                                                                               |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `user`      | Durable facts about the person (role, preferences, knowledge). Not negative judgments.                                                  |
-| `feedback`  | The user corrects your approach OR validates a non-obvious one. Save both. Lead with the rule, then `**Why:**` and `**How to apply:**`. |
-| `project`   | Cross-project initiatives, deadlines, motivations. Convert relative dates to absolute.                                                  |
-| `reference` | Pointers to external systems (Linear projects, Slack channels, dashboards).                                                             |
+| Type | Save when |
+| --- | --- |
+| `user` | Durable facts about the person (role, preferences, knowledge). Not negative judgments. |
+| `feedback` | The user corrects your approach OR validates a non-obvious one. Save both. Lead with the rule, then `**Why:**` and `**How to apply:**`. |
+| `project` | Cross-project initiatives, deadlines, motivations. Convert relative dates to absolute. |
+| `reference` | Pointers to external systems (Linear projects, Slack channels, dashboards). |
 
 **Do not save:** code patterns, conventions, architecture, file paths (read current state instead); git history (use `git log`/`blame`); debugging recipes (the fix is in the code); anything already in [`AGENTS.md`](../../AGENTS.md) or its linked docs; ephemeral task state (use tasks). These hold even when asked — if asked to save a list, ask what was _surprising_ or _non-obvious_.
 
@@ -36,13 +36,13 @@ Persistent across sessions and projects. Four types: `user`, `feedback`, `projec
 
 Visible at session start (via the SessionStart hook). Append after non-trivial work on Supaprod.
 
-| File                  | Purpose                              |
-| --------------------- | ------------------------------------ |
-| `now.md`              | Live buffer for the active session.  |
-| `today-YYYY-MM-DD.md` | Daily log.                           |
-| `recent.md`           | Last 7 days.                         |
-| `archive.md`          | Older history.                       |
-| `core-memories.md`    | Pivotal, identity-shaping decisions. |
+| File | Purpose |
+| --- | --- |
+| `now.md` | Live buffer for the active session. |
+| `today-YYYY-MM-DD.md` | Daily log. |
+| `recent.md` | Last 7 days. |
+| `archive.md` | Older history. |
+| `core-memories.md` | Pivotal, identity-shaping decisions. |
 
 Append after shipping a non-trivial change, discovering a non-obvious fact future-you will want, or a framing shift. This is part of the **closed documentation loop** ([`AGENTS.md`](../../AGENTS.md), section 5): learnings get logged, not lost. When in doubt, search `.remember/` before re-deriving knowledge a past session produced.
 

@@ -44,7 +44,7 @@ enabled: enabled && !!storedConvId && messages.length === 0,
 Enumerating every way this path fails to put history on screen:
 
 | # | Condition | Result | Real today? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `queryFn` rejects (`getConversation` throws on the missing columns) | `data` stays `undefined`, effect returns at `if (!data ...)`, thread stays empty, **no error shown** | **YES - always, 100% of calls** |
 | 2 | `storedConvId` null because `readScopedConversationId` returned nothing for this scope | empty panel, new conversation on send | YES - every scope switch |
 | 3 | `messages.length > 0` before the query resolves | query is disabled; survives ONLY because `ensureConversation`'s `fetchQuery` shares the key and back-fills the cache - but that fetch also rejects (#1), so nothing back-fills | YES |
@@ -73,7 +73,7 @@ is painted where you cannot see it.
 **Eight entry points, three of them dead, two live hook instances that fork state.**
 
 | Entry | File | Reaches | State |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `ComposerOverlay` via Cmd+J / Cmd+K / `supaprod:open-ask` / `supaprod:open-cmdk` | `GlobalComposer.tsx:70-86` | ~68 old-app routes | `useAskStream` instance **A** (scope = `activeProductId`) |
 | Docked `Composer` strip | `MissionShellView.tsx:425` | the room | `useAskStream` instance **B** (scope = routed product) |
 | Room `ComposerOverlay` (Cmd+J/K in the room) | `MissionShell.tsx:398-427` | the room | instance **B** (shared - correct) |
@@ -119,7 +119,7 @@ different speaker label ("Agent" vs "Supaprod").
 ## Findings - worst first
 
 | # | File:line | Label / control | Expected | Actual | Class | Fix |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | C-01 | `src/lib/conversations.functions.ts:28` | (Ask history hydration) | Opening Ask shows the prior conversation | `.select("id,role,content,model,created_at,mission_id,metadata")` - both trailing columns are absent live (42703). `if (msgRes.error) throw` fires every call. The `useQuery` at `use-ask-stream.ts:222` rejects, `data` is `undefined` forever, the hydrate effect returns at `if (!data \|\| !storedConvId ...)`, `messages` stays `[]`, empty state renders. `hydration.error`/`isError` is read **nowhere** in either consumer. | **DEAD** | Drop `,mission_id,metadata` from the select (or apply the two `ADD COLUMN IF NOT EXISTS` migrations that never landed). |
 | C-02 | `use-ask-stream.ts:195-220`, `AskPanel.tsx:796-822` | (send, any Ask input) | The message lands in the existing thread | `try { fetchQuery(getConversation) } catch { /* fall through */ }` then `fCreate({data:{}})`. C-01 makes the fetch always reject, so the `catch` always fires: **every question mints a new `conversations` row** and overwrites the stored id. Also costs `retry: 1` = two failed round trips of latency before each stream starts. | **DEAD** | Fixed by C-01. Separately, distinguish "not found" from "read failed" so a transient error never silently forks the thread. |
 | C-03 | `src/components/obsidian/AskPanel.tsx` (whole file, 1438 lines) | "Ask Supaprod" panel | Cmd+J opens the panel the code describes | **Zero non-test importers.** `_authenticated.tsx:204`: *"The retired CommandPalette and AskPanel components stay in the tree source but are unmounted"*. Unreachable with it: "New" conversation (`:1221`), scope chip (`:1264`), product-scope chip (`:1291`), slash palette (`:527`), "Start a project from this" (`:661`), `PendingApprovalsStrip` (`:1326`), suggested asks (`:1363`), day dividers (`:1390`), meta footer + "How I got this →" (`:317-357`), read-aloud (`:296`), "Open in Build →" (`:252`), `MissionCanvasBlocks` (`:251`), and the correct `nearBottomRef` scroll (`:1125`). `AskPanel.test.tsx` runs 6 green integration tests against it. | **ORPHAN** | Delete the file + its test, or re-mount it. Green tests on dead code are worse than no tests. |

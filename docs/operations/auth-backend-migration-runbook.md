@@ -37,13 +37,13 @@ start.
 
 ## What is actually wired today (repo facts, verified 2026-06-17)
 
-| File                                                                   | Role                                                                                    | Lovable-specific?        |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
-| `src/integrations/supabase/client.ts`                                  | Browser Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`      | No (plain supabase-js)   |
-| `src/integrations/supabase/auth-middleware.ts` (`requireSupabaseAuth`) | Server verifies Bearer token via `supabase.auth.getClaims`                              | No                       |
-| `src/integrations/supabase/auth-attacher.ts` (`attachSupabaseAuth`)    | Attaches `supabase.auth.getSession()` token to server RPCs                              | No                       |
-| `src/integrations/lovable/index.ts`                                    | `createLovableAuth().signInWithOAuth('google')` then `supabase.auth.setSession(tokens)` | **Yes (the only piece)** |
-| `src/routes/login.tsx:47`, `src/routes/signup.tsx:70`                  | Call `lovable.auth.signInWithOAuth('google')`                                           | Import sites of the shim |
+| File | Role | Lovable-specific? |
+| --- | --- | --- |
+| `src/integrations/supabase/client.ts` | Browser Supabase client from `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` | No (plain supabase-js) |
+| `src/integrations/supabase/auth-middleware.ts` (`requireSupabaseAuth`) | Server verifies Bearer token via `supabase.auth.getClaims` | No |
+| `src/integrations/supabase/auth-attacher.ts` (`attachSupabaseAuth`) | Attaches `supabase.auth.getSession()` token to server RPCs | No |
+| `src/integrations/lovable/index.ts` | `createLovableAuth().signInWithOAuth('google')` then `supabase.auth.setSession(tokens)` | **Yes (the only piece)** |
+| `src/routes/login.tsx:47`, `src/routes/signup.tsx:70` | Call `lovable.auth.signInWithOAuth('google')` | Import sites of the shim |
 
 So the migration replaces the **broker** and repoints the **project**. Everything else is already
 Supabase.

@@ -49,18 +49,18 @@ Cadence has the most complete substrate I've seen for an autonomous product OS a
 
 ## 1. Top 10 Critical Findings (ranked by user × business impact)
 
-| #   | Finding                                                                                                                                                                                                                                                                                                  | Where the evidence is                                        |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 1   | **First-impression collapse.** Login + Today fail the 10-second "what is this?" test. Login says "AI-native" (contradicts v2). Today says `No brief yet — hit refresh`. An OS doesn't ask you to refresh it.                                                                                             | live `/login`, `/` screenshots                               |
-| 2   | **The closed loop is asserted, not shipped.** Discover→Define→Plan→Build works against a real repo. **Test→Ship→Launch→Support→Learn surfaces don't exist**, no surface for releases, no GTM page, no support inbox, no outcome scorecard. `docs/planning/archive/build-log.md` §1 promises 9 stages; the IA shows 4.               | `docs/planning/archive/build-log.md` §1 vs. `src/routes/_authenticated.*`               |
-| 3   | **31 authenticated routes for a "calm, fast" product.** Discovery + Opportunities + PRDs + Roadmap + Tasks (5 deliverable surfaces). Inbox + Approvals + Governance + Swarm + Decisions (4-5 governance surfaces). Analytics + Traces + Drift + Evals + Guardrails + Budgets (6 observability surfaces). | `src/components/cadence/AppShell.tsx` nav config             |
-| 4   | **18-agent roster on day one.** The Swarm HUD shows 18 seeded agents on a fresh workspace; 14 are `Idle · no recent run`. Three "equal" personas × this roster = nobody sees a wedge.                                                                                                                    | `/swarm` live screenshot                                     |
-| 5   | **"Watch the agents build" is four half-built surfaces.** `/swarm` (read-only board), `/missions` (orchestrator DAG), `/build` (Builder Kanban), `/traces` (call graph) overlap in mental model but split the eye. None alone is the live cockpit the README promises.                                   | `/swarm`, `/missions`, `/build`, `/traces`                   |
-| 6   | **Builder ships single-file PRs.** The headline "agents ship features end-to-end" is, in 2026, a snippet generator with approval gates. Augment Cosmos, Factory, Devin all do multi-file feature-level autonomy.                                                                                         | `src/routes/_authenticated.build.tsx`, Builder system prompt |
-| 7   | **Internal jargon bleeds into the operator surface.** `Phase 2 · Reasoning engine` (Discovery), `BUILD · BUNDLE 9` (Build Console), `Agent-to-Agent` (Missions), `Mission mode` (sidebar CTA). These help no one and confuse everyone.                                                                   | every screenshot above                                       |
-| 8   | **No Machine Mode.** Every surface assumes one operator clicking one thing at a time. The Paxel insight, that running 18 agents _requires_ a different UI than authoring one PRD, is unaddressed.                                                                                                        | full nav walk                                                |
-| 9   | **Governance is presented as one feature; it's actually four** (kill switch, approvals, autonomy dial, reactor rules). They live across `/governance`, `/inbox`, `/agents`, and `/swarm`. The "trust stack" moat is not legible.                                                                         | all four routes                                              |
-| 10  | **The Trust Score moat is invisible to the value buyer.** The autonomy dial + trust arc are real and well-implemented, and gated behind two clicks on `/agents`. The thing that differentiates from Devin / Factory is not on any first-load surface.                                                    | `/agents` detail view                                        |
+| # | Finding | Where the evidence is |
+| --- | --- | --- |
+| 1 | **First-impression collapse.** Login + Today fail the 10-second "what is this?" test. Login says "AI-native" (contradicts v2). Today says `No brief yet — hit refresh`. An OS doesn't ask you to refresh it. | live `/login`, `/` screenshots |
+| 2 | **The closed loop is asserted, not shipped.** Discover→Define→Plan→Build works against a real repo. **Test→Ship→Launch→Support→Learn surfaces don't exist**, no surface for releases, no GTM page, no support inbox, no outcome scorecard. `docs/planning/archive/build-log.md` §1 promises 9 stages; the IA shows 4. | `docs/planning/archive/build-log.md` §1 vs. `src/routes/_authenticated.*` |
+| 3 | **31 authenticated routes for a "calm, fast" product.** Discovery + Opportunities + PRDs + Roadmap + Tasks (5 deliverable surfaces). Inbox + Approvals + Governance + Swarm + Decisions (4-5 governance surfaces). Analytics + Traces + Drift + Evals + Guardrails + Budgets (6 observability surfaces). | `src/components/cadence/AppShell.tsx` nav config |
+| 4 | **18-agent roster on day one.** The Swarm HUD shows 18 seeded agents on a fresh workspace; 14 are `Idle · no recent run`. Three "equal" personas × this roster = nobody sees a wedge. | `/swarm` live screenshot |
+| 5 | **"Watch the agents build" is four half-built surfaces.** `/swarm` (read-only board), `/missions` (orchestrator DAG), `/build` (Builder Kanban), `/traces` (call graph) overlap in mental model but split the eye. None alone is the live cockpit the README promises. | `/swarm`, `/missions`, `/build`, `/traces` |
+| 6 | **Builder ships single-file PRs.** The headline "agents ship features end-to-end" is, in 2026, a snippet generator with approval gates. Augment Cosmos, Factory, Devin all do multi-file feature-level autonomy. | `src/routes/_authenticated.build.tsx`, Builder system prompt |
+| 7 | **Internal jargon bleeds into the operator surface.** `Phase 2 · Reasoning engine` (Discovery), `BUILD · BUNDLE 9` (Build Console), `Agent-to-Agent` (Missions), `Mission mode` (sidebar CTA). These help no one and confuse everyone. | every screenshot above |
+| 8 | **No Machine Mode.** Every surface assumes one operator clicking one thing at a time. The Paxel insight, that running 18 agents _requires_ a different UI than authoring one PRD, is unaddressed. | full nav walk |
+| 9 | **Governance is presented as one feature; it's actually four** (kill switch, approvals, autonomy dial, reactor rules). They live across `/governance`, `/inbox`, `/agents`, and `/swarm`. The "trust stack" moat is not legible. | all four routes |
+| 10 | **The Trust Score moat is invisible to the value buyer.** The autonomy dial + trust arc are real and well-implemented, and gated behind two clicks on `/agents`. The thing that differentiates from Devin / Factory is not on any first-load surface. | `/agents` detail view |
 
 ---
 
@@ -112,15 +112,15 @@ Footer:         Settings
 
 ### 3.2 Cognitive-load map (worst offenders)
 
-| Surface       | Score (1 to 5, lower = better) | Why                                                                                                                                                     |
-| ------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/` Today     | 4                              | Hero card occupies 60% of viewport, communicates nothing about the swarm; tabs below split Overview/Work/Agents/Pulse, four mental models on one screen |
-| `/swarm`      | 3                              | Information-dense but mostly empty cells on a real demo; "Swarm is humming" copy lies when nothing is running                                           |
-| `/missions`   | 3                              | "0 hops" badges on completed missions contradict the "Agent-to-Agent" eyebrow; mission titles bleed across the whole row                                |
-| `/agents`     | 4                              | 18 cards on first paint, equal weight; no opinion about which ones matter to _me_                                                                       |
-| `/build`      | 2                              | Best surface in the product. Tight, focused, single job. Use as the IA reference for everything else.                                                   |
-| `/discovery`  | 2                              | Good, three columns (capture · bulk · signals + themes). The only flaw is the "Phase 2 · Reasoning engine" eyebrow leaking internal language.           |
-| `/governance` | 4                              | Mixes kill switch + approvals + reactor rules + reactor queue on one scroll, four products on one route                                                 |
+| Surface | Score (1 to 5, lower = better) | Why |
+| --- | --- | --- |
+| `/` Today | 4 | Hero card occupies 60% of viewport, communicates nothing about the swarm; tabs below split Overview/Work/Agents/Pulse, four mental models on one screen |
+| `/swarm` | 3 | Information-dense but mostly empty cells on a real demo; "Swarm is humming" copy lies when nothing is running |
+| `/missions` | 3 | "0 hops" badges on completed missions contradict the "Agent-to-Agent" eyebrow; mission titles bleed across the whole row |
+| `/agents` | 4 | 18 cards on first paint, equal weight; no opinion about which ones matter to _me_ |
+| `/build` | 2 | Best surface in the product. Tight, focused, single job. Use as the IA reference for everything else. |
+| `/discovery` | 2 | Good, three columns (capture · bulk · signals + themes). The only flaw is the "Phase 2 · Reasoning engine" eyebrow leaking internal language. |
+| `/governance` | 4 | Mixes kill switch + approvals + reactor rules + reactor queue on one scroll, four products on one route |
 
 ### 3.3 The closed-loop walk
 
@@ -185,42 +185,42 @@ Paxel (YC W25), now an analyzer of Claude/Codex/Cursor sessions, surfaces a stru
 
 The full route × verdict table. _Verdicts: K = Keep, M = Merge, R = Remove, D = Differentiator, C = Commodity, Mi = Missing._
 
-| Route                            | Verdict | Why                                                                              |
-| -------------------------------- | ------- | -------------------------------------------------------------------------------- |
-| `/` Today                        | M       | Merge with `/briefing` as the workspace home, one surface, two tabs              |
-| `/briefing`                      | M       | Settings-shaped; should be a section inside Today, not a sibling                 |
-| `/inbox` Approvals               | M       | Merge into `/governance`                                                         |
-| `/calendar`                      | R       | Cadence is not a calendar tool. Keep an inline today-only widget; kill the page. |
-| `/meetings`, `/meetings/$id`     | R       | Same, not the wedge. Surface meeting _signals_ in Discovery instead.             |
-| `/chat` AI Chat                  | K       | Genuine, operator-with-swarm conversation                                        |
-| `/discovery`                     | K       | Strong, keep                                                                     |
-| `/opportunities`                 | M       | Could collapse into `/discovery` as a tab                                        |
-| `/prds`, `/prds/$id`             | K       | Strong                                                                           |
-| `/docs`                          | R       | Notion / Coda is two clicks away; do not compete on docs                         |
-| `/roadmap`                       | K       | Differentiator (outcome-oriented roadmap is real)                                |
-| `/tasks`                         | M       | Linear is one MCP server away; do not compete on tasks                           |
-| `/build` Build Console           | K       | **The best surface in the product.** Use as the IA reference.                    |
-| `/agents`                        | M       | Roster + autonomy dial live here; trust surface should move into the new cockpit |
-| `/missions`, `/missions/$id`     | M       | Merge with `/swarm` into one **Cockpit**                                         |
-| `/swarm` Swarm HUD               | M       | Merge with `/missions` into **Cockpit**                                          |
-| `/prompts` Prompt Studio         | M       | Move under `/agents`                                                             |
-| `/sync` Sync Inbox               | R       | Unclear purpose; folding it into `/integrations` is enough                       |
-| `/analytics`                     | M       | Merge with `/traces` + `/drift` into **Observability**                           |
-| `/traces`, `/traces/$id`         | M       | Same                                                                             |
-| `/drift`                         | M       | Same                                                                             |
-| `/evals` Eval Harness            | K       | Differentiator; keep separate                                                    |
-| `/guardrails`                    | M       | Move under **Governance**                                                        |
-| `/governance`                    | K       | Keep as the trust hub; absorb `/inbox` + `/guardrails`                           |
-| `/budgets`                       | M       | Move under **Governance** (it's an autonomy guard, not a finance tool)           |
-| `/integrations`                  | K       | Keep                                                                             |
-| `/settings`                      | K       | Keep                                                                             |
-| `/swarm/cockpit` Machine Mode    | **Mi**  | Missing. See REC-22.                                                             |
-| Release surface                  | **Mi**  | The "Ship" stage in the v2 loop has no UI                                        |
-| Launch surface                   | **Mi**  | The "Launch / GTM / Price" stage has no UI                                       |
-| Support surface                  | **Mi**  | The "Operate / Support" stage has no UI                                          |
-| Outcome surface                  | **Mi**  | The "Learn" stage has no closed-loop UI                                          |
-| Memory Inspector                 | **Mi**  | Product Memory is the moat in v2; no first-class surface                         |
-| MCP Server / Capability Registry | **Mi**  | The thing other agents call                                                      |
+| Route | Verdict | Why |
+| --- | --- | --- |
+| `/` Today | M | Merge with `/briefing` as the workspace home, one surface, two tabs |
+| `/briefing` | M | Settings-shaped; should be a section inside Today, not a sibling |
+| `/inbox` Approvals | M | Merge into `/governance` |
+| `/calendar` | R | Cadence is not a calendar tool. Keep an inline today-only widget; kill the page. |
+| `/meetings`, `/meetings/$id` | R | Same, not the wedge. Surface meeting _signals_ in Discovery instead. |
+| `/chat` AI Chat | K | Genuine, operator-with-swarm conversation |
+| `/discovery` | K | Strong, keep |
+| `/opportunities` | M | Could collapse into `/discovery` as a tab |
+| `/prds`, `/prds/$id` | K | Strong |
+| `/docs` | R | Notion / Coda is two clicks away; do not compete on docs |
+| `/roadmap` | K | Differentiator (outcome-oriented roadmap is real) |
+| `/tasks` | M | Linear is one MCP server away; do not compete on tasks |
+| `/build` Build Console | K | **The best surface in the product.** Use as the IA reference. |
+| `/agents` | M | Roster + autonomy dial live here; trust surface should move into the new cockpit |
+| `/missions`, `/missions/$id` | M | Merge with `/swarm` into one **Cockpit** |
+| `/swarm` Swarm HUD | M | Merge with `/missions` into **Cockpit** |
+| `/prompts` Prompt Studio | M | Move under `/agents` |
+| `/sync` Sync Inbox | R | Unclear purpose; folding it into `/integrations` is enough |
+| `/analytics` | M | Merge with `/traces` + `/drift` into **Observability** |
+| `/traces`, `/traces/$id` | M | Same |
+| `/drift` | M | Same |
+| `/evals` Eval Harness | K | Differentiator; keep separate |
+| `/guardrails` | M | Move under **Governance** |
+| `/governance` | K | Keep as the trust hub; absorb `/inbox` + `/guardrails` |
+| `/budgets` | M | Move under **Governance** (it's an autonomy guard, not a finance tool) |
+| `/integrations` | K | Keep |
+| `/settings` | K | Keep |
+| `/swarm/cockpit` Machine Mode | **Mi** | Missing. See REC-22. |
+| Release surface | **Mi** | The "Ship" stage in the v2 loop has no UI |
+| Launch surface | **Mi** | The "Launch / GTM / Price" stage has no UI |
+| Support surface | **Mi** | The "Operate / Support" stage has no UI |
+| Outcome surface | **Mi** | The "Learn" stage has no closed-loop UI |
+| Memory Inspector | **Mi** | Product Memory is the moat in v2; no first-class surface |
+| MCP Server / Capability Registry | **Mi** | The thing other agents call |
 
 **Target IA after consolidation: 12 routes** (vs. 31). Discover · Opportunities (or 1) · PRDs · Roadmap · Build · Cockpit · Observability · Evals · Governance · Memory · Integrations · Settings, with Today on `/`.
 
@@ -264,15 +264,15 @@ Strong typographic system (Instrument Serif + Inter + JetBrains Mono). Cohere-ed
 
 Compressed, full version in a follow-up workbook if requested.
 
-| Persona                         | Lands on `/`; what's their first 60s?                                              | Where they drop off                | Time-to-value today       | Time-to-value with REC-01..18 |
-| ------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------- | ------------------------- | ----------------------------- |
-| **First-time visitor**          | Sees "AI-native" tagline, no demo, no problem framing. Bounces.                    | Login                              | Never                     | Day 1                         |
-| **Returning solo PM**           | Sees "Good morning"; no overnight summary; clicks Discovery; works there.          | Today (skips it)                   | 1 week to first PRD       | 1 hour                        |
-| **Power user**                  | Lives in `/build` + `/missions`. Doesn't need Today.                               | Today is dead weight; loves Build. | Already                   | Same                          |
-| **Enterprise eval**             | Asks "audit trail, RBAC, SSO, data residency"; finds traces; finds no SSO.         | Governance + Integrations gaps     | Cannot buy                | 6 months                      |
-| **Founder (P2)**                | Wants "run the org I can't afford." Sees 31 routes + 18 agents. Overwhelmed.       | Today                              | 1 month with hand-holding | 1 day with REC-04             |
-| **Investor**                    | Wants narrative. Asks for live demo. Gets confused by Swarm HUD showing 0 mission. | Live demo                          | Negative                  | Positive with cockpit         |
-| **External AI agent (via MCP)** | Has nothing to call.                                                               | At the gate                        | Never                     | Day 1 with REC-09             |
+| Persona | Lands on `/`; what's their first 60s? | Where they drop off | Time-to-value today | Time-to-value with REC-01..18 |
+| --- | --- | --- | --- | --- |
+| **First-time visitor** | Sees "AI-native" tagline, no demo, no problem framing. Bounces. | Login | Never | Day 1 |
+| **Returning solo PM** | Sees "Good morning"; no overnight summary; clicks Discovery; works there. | Today (skips it) | 1 week to first PRD | 1 hour |
+| **Power user** | Lives in `/build` + `/missions`. Doesn't need Today. | Today is dead weight; loves Build. | Already | Same |
+| **Enterprise eval** | Asks "audit trail, RBAC, SSO, data residency"; finds traces; finds no SSO. | Governance + Integrations gaps | Cannot buy | 6 months |
+| **Founder (P2)** | Wants "run the org I can't afford." Sees 31 routes + 18 agents. Overwhelmed. | Today | 1 month with hand-holding | 1 day with REC-04 |
+| **Investor** | Wants narrative. Asks for live demo. Gets confused by Swarm HUD showing 0 mission. | Live demo | Negative | Positive with cockpit |
+| **External AI agent (via MCP)** | Has nothing to call. | At the gate | Never | Day 1 with REC-09 |
 
 The dominant pattern: **the product is shaped for the power user it does not yet have, not the first-time operator it must acquire.** This is the single biggest leverage point in the audit.
 
@@ -371,12 +371,12 @@ What concerns them: 31 routes, 18 agents, no GTM surface, no pricing model, no M
 
 The operator asked for the thesis to be challenged. Three credible alternatives, scored against the current v2 thesis.
 
-| Alternative                                   | Pitch                                                          | Pros                                                                                               | Cons                                                                                 | Verdict                                                              |
-| --------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| **A: Agent-Native PM Cockpit**                | "The cockpit where a PM runs their swarm."                     | Sharper noun; concrete surface; single-persona; matches the strongest finding in the lane research | Loses some of the "OS" ambition; needs the cockpit surface built (REC-16)            | **Adopt.** Best ROI from this audit.                                 |
-| **B: Governed MCP Hub**                       | "The governance perimeter for any AI agent your company runs." | Genuinely differentiated; rides MCP wave; addresses enterprise unlock                              | SMB doesn't care; risk of becoming a Langfuse competitor (commoditizing fast)        | **Hold** as enterprise expansion.                                    |
-| **C: Vertical Product OS for AI-native SaaS** | "Cadence for AI-native SaaS PMs specifically."                 | Tightest ICP; cleanest GTM; defensible against horizontal Linear+Notion                            | Sacrifices the founder & technical-founder personas; smaller TAM in year 1           | **Test** as the first acquisition wedge while v2 stays the long arc. |
-| **v2 (current): Autonomous Product OS**       | "The autonomous product OS."                                   | Most ambitious; matches the substrate; founder-team can articulate it                              | "OS" is operator-vague; "autonomous" gets benchmarked against Devin/Factory unfairly | **Refine into A.** Same product, sharper surface.                    |
+| Alternative | Pitch | Pros | Cons | Verdict |
+| --- | --- | --- | --- | --- |
+| **A: Agent-Native PM Cockpit** | "The cockpit where a PM runs their swarm." | Sharper noun; concrete surface; single-persona; matches the strongest finding in the lane research | Loses some of the "OS" ambition; needs the cockpit surface built (REC-16) | **Adopt.** Best ROI from this audit. |
+| **B: Governed MCP Hub** | "The governance perimeter for any AI agent your company runs." | Genuinely differentiated; rides MCP wave; addresses enterprise unlock | SMB doesn't care; risk of becoming a Langfuse competitor (commoditizing fast) | **Hold** as enterprise expansion. |
+| **C: Vertical Product OS for AI-native SaaS** | "Cadence for AI-native SaaS PMs specifically." | Tightest ICP; cleanest GTM; defensible against horizontal Linear+Notion | Sacrifices the founder & technical-founder personas; smaller TAM in year 1 | **Test** as the first acquisition wedge while v2 stays the long arc. |
+| **v2 (current): Autonomous Product OS** | "The autonomous product OS." | Most ambitious; matches the substrate; founder-team can articulate it | "OS" is operator-vague; "autonomous" gets benchmarked against Devin/Factory unfairly | **Refine into A.** Same product, sharper surface. |
 
 **Recommendation:** Refine v2 framing into **A**. Keep B as the _enterprise upgrade story_. Use C as the _first acquisition motion_. All three are compatible; they differ only in which is the _headline_ this quarter.
 
@@ -444,16 +444,16 @@ All recommendations tagged consistently. Top-5 / Top-10 / Top-20 are derived str
 
 Each dimension 1 to 10. Median: **6.5**.
 
-| Dimension       | Score | Why                                                                                                |
-| --------------- | ----- | -------------------------------------------------------------------------------------------------- |
-| Problem         | 8     | Real, sharp, well-articulated in README + v2                                                       |
-| Market          | 7     | Timing is right; competitors crowding from both flanks                                             |
-| Product         | 6     | Substrate is 8; surface is 4; averaged here                                                        |
-| UX              | 4     | 31 routes; 18 agents on day one; first-run does not pass the 10-second test                        |
-| AI Readiness    | 8     | Chokepoint, autonomy arc, reactor, trust score are genuinely ahead                                 |
-| Differentiation | 5     | Governance moat is real; "OS" framing is generic; cockpit + Machine Mode would push to 8           |
-| Scalability     | 6     | Architecture is sound; durable runtime + cost economics still partial                              |
-| Vision          | 8     | The v2 thesis is sharper than 90% of the lane; closed-doc-loop discipline is unusual at this stage |
+| Dimension | Score | Why |
+| --- | --- | --- |
+| Problem | 8 | Real, sharp, well-articulated in README + v2 |
+| Market | 7 | Timing is right; competitors crowding from both flanks |
+| Product | 6 | Substrate is 8; surface is 4; averaged here |
+| UX | 4 | 31 routes; 18 agents on day one; first-run does not pass the 10-second test |
+| AI Readiness | 8 | Chokepoint, autonomy arc, reactor, trust score are genuinely ahead |
+| Differentiation | 5 | Governance moat is real; "OS" framing is generic; cockpit + Machine Mode would push to 8 |
+| Scalability | 6 | Architecture is sound; durable runtime + cost economics still partial |
+| Vision | 8 | The v2 thesis is sharper than 90% of the lane; closed-doc-loop discipline is unusual at this stage |
 
 **The shape is asymmetric:** vision and AI readiness are investor-ready; UX and differentiation are blocking. Closing the latter two does not require new tech, it requires the Top-10 of §15.
 

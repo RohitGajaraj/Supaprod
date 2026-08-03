@@ -74,12 +74,12 @@ on confused agents that just keep failing the same way.
 autonomy arc (`agent_autonomy.arc`) composes with that via
 `resolveApprovalMode`:
 
-| Receiver-side intent                  | Sender's arc | Effective behavior                                                          |
-| ------------------------------------- | ------------ | --------------------------------------------------------------------------- |
-| Send a handoff (sender's arc decides) | observing    | queues a review, operator sees the payload + receiver before anything moves |
-|                                       | proving      | one-click confirm before enqueuing                                          |
-|                                       | trusted      | runs inline (handoff enqueued without confirmation)                         |
-|                                       | ambient      | runs inline                                                                 |
+| Receiver-side intent | Sender's arc | Effective behavior |
+| --- | --- | --- |
+| Send a handoff (sender's arc decides) | observing | queues a review, operator sees the payload + receiver before anything moves |
+| | proving | one-click confirm before enqueuing |
+| | trusted | runs inline (handoff enqueued without confirmation) |
+| | ambient | runs inline |
 
 The receiver's own tools then run under the receiver's arc. There is no
 separate "handoff acceptance" gate. The receiver simply starts its run and

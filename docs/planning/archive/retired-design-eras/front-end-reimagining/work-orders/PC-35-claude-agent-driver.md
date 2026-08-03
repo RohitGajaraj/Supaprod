@@ -32,7 +32,7 @@ Inject `ANTHROPIC_BASE_URL` → a thin metering proxy route on our Worker: (a) p
 ## Phases + gates
 
 | Phase | Work | Size | Gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | P0 | Naming honesty (`claude-sdk`→`patch` or label re-scope) + capability-class table + patch-driver dry run on a test repo | S–M | FOUNDER: small real-credit budget |
 | P1 | Sandbox spike: wrangler containers/DO bindings, runner image (Node+git+Agent SDK), boot/clone/exec/kill smoke test | M | FOUNDER: CF paid-containers spend |
 | P2 | `claude-agent` driver E2E: dispatch→checkout→iterate→PR→poll/cancel; heartbeat hook; zero UI changes needed | L | security review of secret injection |

@@ -6,3 +6,12 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+
+# Markdown docs: prettier's table formatter pads every cell to the widest in its
+# column. One long note therefore inflates all 467 rows of the feature dashboard,
+# which is how that file reached 6.45 MB of which 5.5 MB (85%) was whitespace.
+# Collapsing the padding on 2026-08-03 was verified lossless (identical rows,
+# identical pipes per row, zero content changes) and reclaimed 6.4 MB in total.
+# Formatting docs would undo it on the next `bun run format`.
+docs/**/*.md
+*.md

@@ -4,7 +4,7 @@
 
 ## The facts
 
-| | |
+| --- | --- |
 | --- | --- |
 | **Program** | SPC Founder Fellowship, Fall 2026 |
 | **Deadline** | **Sunday 2026-08-02, 11:59pm PT** (verified on SPC's own announcement) |

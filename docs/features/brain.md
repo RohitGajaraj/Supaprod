@@ -10,13 +10,13 @@
 
 One classifier call per message routes the mode:
 
-| Mode       | Trigger                                                           | What runs                                                                                                                                                                                                                            |
-| ---------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `web`      | Current external facts: weather, news, prices, competitors        | 1 to 3 focused sub-queries → **parallel** web searches (top 6 deduped sources, scraped)                                                                                                                                              |
+| Mode | Trigger | What runs |
+| --- | --- | --- |
+| `web` | Current external facts: weather, news, prices, competitors | 1 to 3 focused sub-queries → **parallel** web searches (top 6 deduped sources, scraped) |
 | `internal` | Your product: "what am I building next?", roadmap, specs, signals | Workspace RAG (k=8, MMR) **+ structured snapshots**: top-5 opportunities by ICE, roadmap lanes (now/next/later/shipped: lanes read `opportunities` statuses; no separate roadmap table exists), 5 newest decisions, running missions |
-| `both`     | Comparative/strategic questions touching both worlds              | Both pipelines, merged into **one numbered citation space** (web sources first, workspace continues the sequence)                                                                                                                    |
-| `chat`     | Small talk / simple knowledge                                     | Lightweight path (RAG k=4, no numbered cites)                                                                                                                                                                                        |
-| mission    | "Run/dispatch…" intent                                            | Unchanged orchestrator dispatch with inline cockpit                                                                                                                                                                                  |
+| `both` | Comparative/strategic questions touching both worlds | Both pipelines, merged into **one numbered citation space** (web sources first, workspace continues the sequence) |
+| `chat` | Small talk / simple knowledge | Lightweight path (RAG k=4, no numbered cites) |
+| mission | "Run/dispatch…" intent | Unchanged orchestrator dispatch with inline cockpit |
 
 While researching, the thread streams live progress ("Searching: … · Read 6 sources · Reading your workspace · Synthesizing"); after the answer a quiet summary row persists. Synthesis is Perplexity-style: direct answer first, structure after, `[n]` cites on every sourced claim, never fabricated.
 

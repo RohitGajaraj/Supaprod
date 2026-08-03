@@ -58,18 +58,18 @@ Given a merged changeset `CS` (`status='merged'`, has `pr_number`):
 
 **New table** `studio_rollbacks` (new timestamped migration `…_k2_rollbacks.sql` under `supabase/migrations/`, RLS workspace-scoped, mirroring `studio_changesets`):
 
-| column                      | type                                          | notes                                                                          |
-| --------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------ |
-| `id`                        | uuid pk                                       |                                                                                |
-| `user_id`                   | uuid                                          | RLS owner                                                                      |
-| `workspace_id`              | uuid                                          | RLS scope                                                                      |
-| `product_id`                | uuid null                                     |                                                                                |
-| `original_changeset_id`     | uuid fk studio_changesets                     | the release being rolled back                                                  |
-| `revert_changeset_id`       | uuid fk studio_changesets null                | the inverse changeset (null until created)                                     |
-| `reason`                    | text                                          | operator-supplied                                                              |
-| `status`                    | text check(`initiated`\|`reverted`\|`failed`) | `initiated` on revert-changeset creation, `reverted` when the revert PR merges |
-| `note`                      | text null                                     | humanized rollback note (K1 chokepoint)                                        |
-| `created_at` / `updated_at` | timestamptz                                   |                                                                                |
+| column | type | notes |
+| --- | --- | --- |
+| `id` | uuid pk | |
+| `user_id` | uuid | RLS owner |
+| `workspace_id` | uuid | RLS scope |
+| `product_id` | uuid null | |
+| `original_changeset_id` | uuid fk studio_changesets | the release being rolled back |
+| `revert_changeset_id` | uuid fk studio_changesets null | the inverse changeset (null until created) |
+| `reason` | text | operator-supplied |
+| `status` | text check(`initiated`\|`reverted`\|`failed`) | `initiated` on revert-changeset creation, `reverted` when the revert PR merges |
+| `note` | text null | humanized rollback note (K1 chokepoint) |
+| `created_at` / `updated_at` | timestamptz | |
 
 No change to existing tables. The revert reuses `studio_changesets` / `studio_changes` as-is.
 

@@ -9,7 +9,7 @@
 ## EXECUTIVE SUMMARY
 
 | Audit Section | Status | P0 | P1 | P2 | Notes |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **1. Geist Pixel Moments** | ❌ BLOCKING | 11 | 0 | 0 | 11 of 14 surfaces missing brand display moments |
 | **2. Color Restraint & Semantic** | ⚠️ VIOLATIONS | 0 | 5 | 248 | Obsolete color tokens still in use; glacier narrowing enforced but legacy tokens not removed |
 | **3. Responsive Behavior** | ✓ MOSTLY OK | 0 | 1 | 2 | 4 surfaces are stubs; responsive classes present but sparse |
@@ -30,7 +30,7 @@
 ### Findings
 
 | Surface | Pixel Usage | Component | Status | Issue |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Today** | ✓ 4 moments | `TodayHeroCard`, `PixelStat` (3x), autonomy counter | ⚠️ EXCESS | **P0: 4 moments = violation (max 1)** |
 | **Discover** | ✗ 0 moments | None | ❌ MISSING | **P0: No brand display face** |
 | **Plan** | ✗ 0 moments | None | ❌ MISSING | **P0: No brand display face** |
@@ -226,7 +226,7 @@
 ## SECTION 9: SURFACE-BY-SURFACE RATINGS
 
 | Surface | Status | Summary | Next Steps |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Today** | ⚠️ REFINEMENT-NEEDED | 4 Pixel moments (max 1) | Remove 3 PixelStat renders |
 | **Discover** | ❌ NEEDS PIXEL | No brand display moment | Add Pixel h1 to PageHeader |
 | **Plan** | ❌ NEEDS PIXEL | No brand display moment | Add Pixel h1 to PageHeader |
@@ -279,7 +279,7 @@
 ### Tier 1 (Launch blocker)
 
 | File | Issue | Fix | Effort |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `_authenticated.today.tsx` | 4 Pixel moments (max 1) | Remove 2x PixelStat | 10 min |
 | `_authenticated.discover.tsx` | No Pixel | Add Pixel h1 to PageHeader | 20 min |
 | `_authenticated.plan.index.tsx` | No Pixel | Add Pixel h1 to PageHeader | 20 min |

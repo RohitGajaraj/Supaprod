@@ -218,13 +218,13 @@ Several worktrees build in parallel off `origin/main` at once (the WM/overnight 
 
 **Lane map (folder · branch · number) - five equal peer worktrees, nothing reserved per lane.** Folder and branch now line up (`cadence-lane-N` ↔ `parallel/lane-N`):
 
-| Lane | Folder           | Branch            | Preferred categories (soft; then roam) |
-| ---- | ---------------- | ----------------- | -------------------------------------- |
-| 0    | `cadence-lane-0` | `parallel/lane-0` | Monetization, Credit, Foundational     |
-| 1    | `cadence-lane-1` | `parallel/lane-1` | Cockpit, then Governance               |
-| 2    | `cadence-lane-2` | `parallel/lane-2` | Sense, Decide, Interop                 |
-| 3    | `cadence-lane-3` | `parallel/lane-3` | Governance, then Cockpit               |
-| 4    | `cadence-lane-4` | `parallel/lane-4` | Build, then Interop                    |
+| Lane | Folder | Branch | Preferred categories (soft; then roam) |
+| --- | --- | --- | --- |
+| 0 | `cadence-lane-0` | `parallel/lane-0` | Monetization, Credit, Foundational |
+| 1 | `cadence-lane-1` | `parallel/lane-1` | Cockpit, then Governance |
+| 2 | `cadence-lane-2` | `parallel/lane-2` | Sense, Decide, Interop |
+| 3 | `cadence-lane-3` | `parallel/lane-3` | Governance, then Cockpit |
+| 4 | `cadence-lane-4` | `parallel/lane-4` | Build, then Interop |
 
 The only standing ledger reservation is `CHOKEPOINT` (the AI agent core), kept as a SAFETY guard against concurrent/incidental edits to that high-blast-radius shared code - it is not a per-lane category fence. See `bash scripts/lane.sh board` for the live per-lane view.
 

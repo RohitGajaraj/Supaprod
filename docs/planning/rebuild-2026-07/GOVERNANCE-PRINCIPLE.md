@@ -34,7 +34,7 @@ is still rendering a bottleneck.
 ## The distinction that resolves it
 
 | | Permission | Policy |
-|---|---|---|
+| --- | --- | --- |
 | When it is decided | in the moment, per action | in advance, once |
 | What it does to the work | **blocks** until answered | **does not block** |
 | Cost per agent action | one human interrupt | zero |
@@ -68,7 +68,7 @@ This is the important finding. Supaprod already has a policy layer. Tonight's de
 gates anyway.
 
 | Capability | Where | What it already does |
-|---|---|---|
+| --- | --- | --- |
 | Per-tool modes | `resolveToolMode`, `loop.server.ts:153` | classifies every one of 50 tools `auto` / `confirm` / `off`, composing the agent's arc with per-tool overrides |
 | Risk floors | `toolRisk`, same file | forces high-risk tools to confirm regardless of arc, so autonomy can never be granted past a hard floor |
 | **Trust arcs** | `ai/trust.server.ts` | `computeAllAgentTrust`, `suggestArc`, `loadAgentArc`. **Agents earn autonomy from their record.** |

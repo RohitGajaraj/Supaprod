@@ -22,7 +22,7 @@ active-voice forms come from application code. Neither is wrong alone. Together 
 vocabulary.
 
 | Stored | Rows | Meaning | Writer |
-| --- | ---: | --- | --- |
+| --- | --- | --- | --- |
 | `promoted` | 141 | A gave rise to B | app + seed |
 | `informed_by` | 49 | A informed B | seed |
 | `validated_by` | 42 | B validated A | seed |

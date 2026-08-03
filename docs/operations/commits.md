@@ -104,16 +104,16 @@ Only commit when the user requests it. After a long task, default to **stage, do
 
 ## Quick reference
 
-| Action            | Required            | Format                                                                                |
-| ----------------- | ------------------- | ------------------------------------------------------------------------------------- |
-| **Commit**        | Yes                 | `<type>(<scope>): <what>` + newline + `<why this matters>` + newline + `Ticket: <ID>` |
-| **Push**          | Yes                 | `git push - <ticket> · <task summary>`                                                |
-| **Pull**          | Yes                 | `git pull - <reason for sync> · <what to check after>`                                |
-| **Merge**         | Yes                 | `git merge <branch> - <why needed>` + note any breaking changes                       |
-| **Branch create** | Yes                 | `git checkout -b <branch> - <purpose>`                                                |
-| **Rebase**        | Yes (with approval) | Ask first, include reason, document in the SSOT section 0 (the live cursor)           |
-| **Force-push**    | No (to main)        | Refuse. Allow to feature branches with dated approval only.                           |
-| **Reset --hard**  | No (to main)        | Refuse. Allow to local branches with confirmation.                                    |
+| Action | Required | Format |
+| --- | --- | --- |
+| **Commit** | Yes | `<type>(<scope>): <what>` + newline + `<why this matters>` + newline + `Ticket: <ID>` |
+| **Push** | Yes | `git push - <ticket> · <task summary>` |
+| **Pull** | Yes | `git pull - <reason for sync> · <what to check after>` |
+| **Merge** | Yes | `git merge <branch> - <why needed>` + note any breaking changes |
+| **Branch create** | Yes | `git checkout -b <branch> - <purpose>` |
+| **Rebase** | Yes (with approval) | Ask first, include reason, document in the SSOT section 0 (the live cursor) |
+| **Force-push** | No (to main) | Refuse. Allow to feature branches with dated approval only. |
+| **Reset --hard** | No (to main) | Refuse. Allow to local branches with confirmation. |
 
 ## What this enables
 

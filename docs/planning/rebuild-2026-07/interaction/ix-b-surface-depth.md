@@ -45,7 +45,7 @@ The brief was right about the shape of the problem and wrong on four facts. Corr
 what gets built.
 
 | # | The brief said | Verified reality | Consequence |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C1 | Hunk-level accept and reject "exists in the backend and is not surfaced" | **It is surfaced.** `src/components/studio/ChangesPanel.tsx` (1367 lines) imports `computeHunks` at line 24, renders a per-hunk tap-to-reject list at lines 1259 to 1362, and calls `applyStagedHunkSelection` (line 176) and `rejectStagedFile` (line 177). It has exactly one importer: `src/routes/_authenticated.build.$missionId.tsx`. | The work is not "surface a hidden capability". It is: (a) the interaction is **reject-only** and framed as damage, not judgment; (b) it lives on a route [FINAL-ia §7.2](../ia/FINAL-ia.md) re-homes; (c) the room's own Build face renders a **second, entirely read-only** diff. Two diff implementations, neither one judgeable. §5.1 rewrites one and deletes the other. |
 | C2 | (implied) one diff renderer | **Two.** `ChangesPanel.tsx` (curation, `--hairline` / `--surface-raised` / `--text-*` / `--geist-space-2x` tokens) and `faces.tsx:1696-1875` (`lineDiff`, `DiffFile`, `DiffPanel`, read-only, `--ink-*` tokens). Two line-diff algorithms too: `studio-hunks.ts:diffLines` and `faces.tsx:lineDiff`, both hand-rolled LCS. | One diff component, one hunk engine (`studio-hunks.ts`, already unit-tested), one token set. Delete `faces.tsx:1705-1875` outright. |
 | C3 | `prototype_messages` / `prototype_attachments` are "unused tables" | True, and better than the brief implies: both are **fully provisioned**. `supabase/migrations/20260619212731_*.sql:430-447` gives each a `workspace_id` (backfilled, NOT NULL, indexed), a `set_row_workspace_from_user` trigger, and an RLS policy `own X in member workspace`. They appear in `src/integrations/supabase/types.ts:6139` and `:6240`. | **Comment-on-prototype needs zero migration.** The founder's headline ask ships on storage that already exists and is already secured. §5.3. |
@@ -137,7 +137,7 @@ on a prototype is durable, addressable, and lives in `prototype_messages` (§5.3
 **How it renders, everywhere, identically.**
 
 | Surface | Rendering |
-|---|---|
+| --- | --- |
 | The thing itself | 1px `--voice-human` inset ring plus a 2px `--ink-bg` gap. Never a fill, never a shadow. |
 | The composer placeholder | swaps from `Ask or tell Supaprod to do something` to `Ask about hunk 3 of studio.functions.ts` |
 | The composer, left of the caret | a dismissable mono chip carrying `label`, with an `×`. `Esc` clears the selection before it closes anything else. |
@@ -164,7 +164,7 @@ of state and one context formatter. Build it once and eleven surfaces get deep a
 Five parts, always in this order, always these words:
 
 | Part | Rule |
-|---|---|
+| --- | --- |
 | **1. The claim** | One sentence naming who proposed it and why. `Engineer staged 3 files to add the rollout gate.` Sourced from the `tool_call.reason` on the step that produced it. Never "AI suggested changes". |
 | **2. The units** | The judgeable atoms. Hunks, suggested spans, revised elements, moved rows. Each carries `in` or `out`. **Default is `in`**, because the machine already argued for it and a wall of undecided checkboxes is a tax on the common case. |
 | **3. The count** | Live, in the header, mono: `3 files · 9 hunks · 8 in, 1 out`. Never a percentage. Never a progress bar. |
@@ -218,8 +218,8 @@ count in the file header, and on each hunk a one-line `why` sourced from the `st
 produced it, whose mono `trc_*` chip peels the trace step. `faces.tsx:1705-1875` is deleted; the room
 and the mission workbench render the same component.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click a hunk. It toggles `in`/`out` and becomes the selection. (Today's tap-to-reject, made two-way and given a count.) |
 | **Hover** | The hunk's left gutter rises from `--ink-faint` to `--ink-body` and shows `y  x`. The `why` line and the `trc_*` chip are present at rest, dimmed. Zero layout shift (L3). |
 | **Selection** | `{ kind:"changeset", id }`, locus `{type:"hunk", path, hunkId}`. Drag-select across lines instead gives `{type:"lines", path, from, to}`. |
@@ -264,8 +264,8 @@ Four rules make this work: one line per step, errors expanded by default and eve
 collapsed, every failure carrying its own recovery door, and the raw stream still exactly one key
 away (`\`) so nobody feels lied to.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click a step row. It expands in place (a peel, no URL) showing `args`, `result` or `error`, and the recovery door. |
 | **Hover** | Row background to `--ink-raised`; the duration and the `trc_*` chip rise from `--ink-faint`. |
 | **Selection** | `{ kind:"run", id: run_id }`, locus `{type:"step", index}`. |
@@ -294,7 +294,7 @@ is a `postMessage` protocol plus one injected script.
 row on a fake URL (`relay.heliolabs.com/inbox/digest`, `faces.tsx:1267`, a hardcoded lie that goes).
 
 | Mode | Key | What a click does |
-|---|---|---|
+| --- | --- | --- |
 | **Look** | `1` (frame-local) | The prototype behaves as the real thing. Clicks go to the page. |
 | **Point** | `2` | Click selects an element. Double-click on a text node makes it editable in place. |
 | **Note** | `3` | Click drops a numbered pin and opens a one-line input. |
@@ -336,8 +336,8 @@ have four, `Apply all 4 notes` dispatches **one** revision carrying all four sel
 instructions, which is both cheaper and produces a coherent result. Each note resolves to
 `applied`, `skipped` with the agent's reason, or `needs you`.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click an element (in Point mode). Outline plus label chip: `button.btn-primary "Send digest"`. |
 | **Hover** | 1px `--voice-machine` outline on the element under the cursor, plus a small tag label at its top-left corner, inside the frame. Nothing outside the frame moves. |
 | **Selection** | `{ kind:"prototype", id }`, locus `{type:"element", selector, tag, rect}`. |
@@ -373,8 +373,8 @@ document, insertions in `--verdict-pass` tint, deletions struck through, with `�
 discard. Same grammar as a code diff (§4). A PM who has judged one hunk knows how to judge a
 paragraph.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Select text. The QuillBar appears anchored below the selection. |
 | **Hover** | A claim with citations shows its `CitationList` chips at rest, dimmed; hover raises them and reveals the source title. (`CitationList.tsx`, 53 lines, currently unmounted, homed here by [FINAL-ia §2.7](../ia/FINAL-ia.md).) |
 | **Selection** | `{ kind:"prd", id }`, locus `{type:"text", blockId, from, to}` with the `quote`. |
@@ -402,8 +402,8 @@ The primary gesture is deliberately not an action. It is **reading what else was
 decision card's most valuable region is the alternatives and the reason, and today that is the region
 nobody renders.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click the decision. It peels to show: what was decided, by whom, when, what else was considered, why not, and what evidence existed **at the time**. |
 | **Hover** | The `ReceiptLine` and the `/d/$slug` share affordance rise. The decision body itself has no hover state, on purpose: nothing here is clickable, and pretending otherwise is a lie. |
 | **Selection** | `{ kind:"decision", id }`, no locus. |
@@ -429,8 +429,8 @@ a confirm dialog. The move lands, and a quiet line appears under the board: *"Yo
 to Now. Last time you shipped without one it cost about two days."* with `Undo` and `See the chain`.
 Interruption is a cost; a footnote with an undo is not.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Drag a card between Now / Next / Later. Optimistic, instant, with an undo line. |
 | **Hover** | The card's ICE bar and its `updated_at` tail rise from `--ink-faint`. A grab affordance appears in reserved space (L3). |
 | **Selection** | `{ kind:"roadmap_item", id }`; multi-select `{type:"rows", rowIds}` via `Shift`+click. |
@@ -458,8 +458,8 @@ The generic contract every list inherits. Four rules kill the four ways tables u
 4. **Sort, filter and page live in the URL** (`&sort=`, `&q=`), functional form only, per
    [FINAL-ia §6.4](../ia/FINAL-ia.md).
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click a row: opens it (peel or child, per the row's kind). `Space` selects without opening. The two must never be the same gesture. |
 | **Hover** | Row background to `--ink-raised`; row-end actions rise in reserved space; a checkbox appears in the reserved gutter. |
 | **Selection** | `{type:"row"}` or `{type:"rows"}`. `Shift`+click ranges, `⌘A` selects the filtered set (never the unfiltered set: that is the classic destructive surprise). |
@@ -493,8 +493,8 @@ drawn but counted (`+14 further`). Edge labels are the real relation words alrea
 `GRAPH_RELATIONS` (`promoted`, `cites`, `derived-from`, `depends-on`, `validates`, `supersedes`,
 `contradicts`), drawn on the edge, always. An unlabelled edge is a decoration.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click a node: it becomes the focus, rings recompute, history pushes. Navigation by re-focus, never by pan and zoom. |
 | **Hover** | Node and its incident edges to full opacity, everything else to 30%. The node's title and kind appear in reserved space in the corner, never as a cursor-following tooltip. |
 | **Selection** | `{ kind:"<node kind>", id }`, locus `{type:"node", nodeKey}` matching `nodeKey()` exactly, so one grammar spans the Map, `?focus=`, and the panes. |
@@ -521,8 +521,8 @@ Anatomy, fixed: `value · delta with its window · the deploy markers on the ser
 this was meant to validate · who attested it`. And the copy law from
 [FINAL-ia §4.2](../ia/FINAL-ia.md) holds: `record how it landed`, never `we measured how it landed`.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Hover the series: a vertical rule tracks the cursor and the header value swaps to that point's value, in place. The number you are reading is always the number under your cursor. |
 | **Hover** | A deploy marker shows the release title and its `ReceiptLine`. The number is `PixelStat` blue per the applied rulings; the marker is machine-voice. |
 | **Selection** | Drag across the series gives `{type:"window", fromTs, toTs, series}`. This is the highest-value selection in the product: it turns "what happened here" into one keystroke. |
@@ -549,8 +549,8 @@ whitespace with three clumps. So the axis is **event-proportional with real gaps
 tightly and an idle stretch collapses to a labelled break (`4 hours quiet`). Time is respected without
 being obeyed.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Click a run: peels to its verdict, cost, duration, and the door to its log. |
 | **Hover** | The lane's agent name and the run's outcome glyph rise. A run that is still going carries the live caret already in use at `faces.tsx:1681`. |
 | **Selection** | `{ kind:"run", id }`. |
@@ -573,8 +573,8 @@ message-level extraction. The highest-value control in a thread is not `Copy`, i
 a paragraph becomes a signal, a task, a spec section, or a decision, with the message recorded as its
 source. That is how a chat log stops being sediment.
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **Primary gesture** | Select text inside a message. The same QuillBar as §5.4 appears, with thread verbs: `Turn into... · Quote · Ask ⌘.`. One selection primitive, two surfaces. |
 | **Hover** | Message-end actions rise in reserved space: `Copy · Quote · Turn into... · ⋯`. Reserved, not conjured (L3). |
 | **Selection** | `{ kind:"thread", id }`, locus `{type:"text", blockId: messageId, from, to}` or `{type:"message", messageId}`. |
@@ -613,7 +613,7 @@ passes §6.3. Nothing else exists.
 ### 6.2 The eight shapes
 
 | Shape | Use for | Width / anchor | URL | Escape | Hard limits |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Inline** | editing a value where it reads | in flow | no | reverts the edit | the default; never asks permission |
 | **Peel** | one more level of the row you are on | in flow, pushes siblings | no | collapses | never nests: a second peel promotes to a page |
 | **Popover** | a pick, a key legend, an agent card | anchored, ≤ 280px | no | closes | no data fetch, at most one input, never contains a decision |
@@ -648,7 +648,7 @@ Fail any one and it is an inline confirm, or an optimistic action with an undo l
 **The whole product's modal whitelist. Six. Anything else is a defect.**
 
 | Modal | Why all three hold | Must show |
-|---|---|---|
+| --- | --- | --- |
 | Merge to main | external, irreversible, no undo | the CI gate verdict, the file count, the target branch |
 | Delete a product or workspace | irreversible, cascades | the exact counts that will be deleted |
 | Revoke a member | external, immediate | who, and what they lose access to |
@@ -672,7 +672,7 @@ Two axes exist globally ([FINAL-ia §2.2](../ia/FINAL-ia.md)) and this lane must
 them. The reservation is the contract.
 
 | Band | Keys | Owner | Live when |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Spine** | `1`-`7` | the seven stages | shell focus |
 | **Rail** | `g k r m t c e` | the seven depth tiles | shell focus |
 | **Global** | `⌘K` palette · `⌘J` composer · `⌘.` ask about selection · `⌘Z` undo · `Esc` up one layer | the shell | always |
@@ -706,7 +706,7 @@ edge, so you can always see that there is more and where it ends.
 and no pane, before any gesture.
 
 | Artifact | Visible without scrolling | One gesture away |
-|---|---|---|
+| --- | --- | --- |
 | Code diff | verdict bar, count tally, up to 8 file rows, first file's first 2 hunks | remaining files (`[`/`]`), full context (`Space`) |
 | Run log | header (steps, errors, duration, cost), last 12 steps, every error expanded | older steps (scroll the ledger), raw (`\`) |
 | Prototype | full device frame, mode row, states row, up to 5 notes in the rail | full screen (`o`), remaining notes |
@@ -751,7 +751,7 @@ exists) are the sharpest example of why this needs to be a system and not nine j
 ### 10.1 New client primitives
 
 | Component | Job |
-|---|---|
+| --- | --- |
 | `SelectionProvider` / `useSelection()` | §3. The bus. Mounted once, beside the Escape-stack owner. |
 | `formatSelection(ref)` | §3. The one context formatter feeding the existing composer path. |
 | `AskAnchor` | the `⌘.` affordance on any selection. The only floating element in the design. |
@@ -770,7 +770,7 @@ exists) are the sharpest example of why this needs to be a system and not nine j
 ### 10.2 New server functions (small, and mostly over existing tables)
 
 | Function | Table | Migration |
-|---|---|---|
+| --- | --- | --- |
 | `applyPrototypeTextEdit({ prototypeId, selector, before, after })` | `prototype_files` / `prd_scaffolds` | none |
 | `reviseScaffoldElement({ prototypeId, selector, instruction })` | same, `surface:"prd"` reused | none |
 | `listPrototypeNotes` / `addPrototypeNote` / `resolvePrototypeNote` | `prototype_messages` | **none** (C3) |

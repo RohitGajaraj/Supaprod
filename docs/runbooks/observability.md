@@ -43,17 +43,17 @@
 
 ## Failure-kind taxonomy (`agent_runs.failure_kind`)
 
-| kind              | trigger                                      |
-| ----------------- | -------------------------------------------- |
-| `timeout`         | provider timed out                           |
-| `user_aborted`    | request was cancelled / aborted              |
-| `budget_kill`     | per-mission cap or account credits exhausted |
-| `guardrail_block` | output guardrail blocked the response        |
-| `injection_block` | input guardrail blocked the prompt           |
-| `rls_denied`      | Postgres permission denied (RLS)             |
-| `tool_error`      | tool-call / function-call failed             |
-| `model_error`     | provider returned an error (default)         |
-| `unknown`         | no error message captured                    |
+| kind | trigger |
+| --- | --- |
+| `timeout` | provider timed out |
+| `user_aborted` | request was cancelled / aborted |
+| `budget_kill` | per-mission cap or account credits exhausted |
+| `guardrail_block` | output guardrail blocked the response |
+| `injection_block` | input guardrail blocked the prompt |
+| `rls_denied` | Postgres permission denied (RLS) |
+| `tool_error` | tool-call / function-call failed |
+| `model_error` | provider returned an error (default) |
+| `unknown` | no error message captured |
 
 ## Materialised views (refreshed by `refresh_observability_mvs()`)
 

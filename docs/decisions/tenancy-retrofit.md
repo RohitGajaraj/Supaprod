@@ -98,51 +98,51 @@ create policy "owner manages members" on public.workspace_members
 
 ### NOW — foundation
 
-| Table                             | WS  | PROD | Notes                                      |
-| --------------------------------- | :-: | :--: | ------------------------------------------ |
-| `workspaces`, `workspace_members` |  —  |  —   | new (scaffolding)                          |
-| `projects` (→ product)            | ✅  |  —   | `id` is the `product_id` target            |
-| `profiles`                        |  —  |  —   | user identity; RLS stays `auth.uid() = id` |
+| Table | WS | PROD | Notes |
+| --- | --- | --- | --- |
+| `workspaces`, `workspace_members` | — | — | new (scaffolding) |
+| `projects` (→ product) | ✅ | — | `id` is the `product_id` target |
+| `profiles` | — | — | user identity; RLS stays `auth.uid() = id` |
 
 ### NOW — first slice (Discover→Define→Plan) + RAG
 
-| Table                  | WS  |     PROD     | Notes                                        |
-| ---------------------- | :-: | :----------: | -------------------------------------------- |
-| `signals`              | ✅  |      ✅      |                                              |
-| `themes`               | ✅  |      ✅      |                                              |
-| `opportunities`        | ✅  |      ✅      |                                              |
-| `prds`                 | ✅  |      ✅      |                                              |
-| `docs`, `doc_versions` | ✅  | ✅(nullable) | versions can inherit product via parent doc  |
-| `tasks`                | ✅  |      ✅      |                                              |
-| `decisions`            | ✅  |      ✅      |                                              |
-| `artifact_lineage`     | ✅  |      ✅      |                                              |
-| `rag_chunks`           | ✅  |      ✅      | **isolation-critical**; update `match_*` fns |
+| Table | WS | PROD | Notes |
+| --- | --- | --- | --- |
+| `signals` | ✅ | ✅ | |
+| `themes` | ✅ | ✅ | |
+| `opportunities` | ✅ | ✅ | |
+| `prds` | ✅ | ✅ | |
+| `docs`, `doc_versions` | ✅ | ✅(nullable) | versions can inherit product via parent doc |
+| `tasks` | ✅ | ✅ | |
+| `decisions` | ✅ | ✅ | |
+| `artifact_lineage` | ✅ | ✅ | |
+| `rag_chunks` | ✅ | ✅ | **isolation-critical**; update `match_*` fns |
 
 ### NOW — trust stack (chokepoint runs in the first slice, so its writes must be scoped from day 1)
 
-| Table                                                                    | WS  |     PROD     | Notes                                                                                  |
-| ------------------------------------------------------------------------ | :-: | :----------: | -------------------------------------------------------------------------------------- |
-| `ai_events`                                                              | ✅  | ✅(nullable) | workspace-level chat allowed                                                           |
-| `ai_evals`, `ai_feedback`, `guardrail_hits`, `tool_calls`, `prompt_runs` | ✅  |      —       | **denormalize `workspace_id`** (don't join to `ai_events` in the policy — high-volume) |
-| `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts`                   | ✅  | ✅(nullable) | caps are workspace-level; per-product optional                                         |
+| Table | WS | PROD | Notes |
+| --- | --- | --- | --- |
+| `ai_events` | ✅ | ✅(nullable) | workspace-level chat allowed |
+| `ai_evals`, `ai_feedback`, `guardrail_hits`, `tool_calls`, `prompt_runs` | ✅ | — | **denormalize `workspace_id`** (don't join to `ai_events` in the policy — high-volume) |
+| `ai_budgets`, `ai_surface_budgets`, `ai_budget_alerts` | ✅ | ✅(nullable) | caps are workspace-level; per-product optional |
 
 ### NOW — optional (founder call)
 
-| Table                       | WS  |     PROD     | Notes                                                                          |
-| --------------------------- | :-: | :----------: | ------------------------------------------------------------------------------ |
-| `conversations`, `messages` | ✅  | ✅(nullable) | AI Chat is a pinned surface; include now if it stays active in the first slice |
+| Table | WS | PROD | Notes |
+| --- | --- | --- | --- |
+| `conversations`, `messages` | ✅ | ✅(nullable) | AI Chat is a pinned surface; include now if it stays active in the first slice |
 
 ### LATER — apply when the owning epic is built
 
-| Tables                                                                         | Owning epic                                                                        |
-| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `agents`, `agent_runs`, `agent_memory`, `agent_tools`, `agent_approvals`       | C/D/E (agents + orchestration)                                                     |
-| `prototypes`, `prototype_files`, `prototype_messages`, `prototype_attachments` | I (Build/Studio)                                                                   |
-| `eval_suites`, `eval_cases`, `eval_runs`, `eval_case_results`                  | P4 (eval harness)                                                                  |
-| `drift_snapshots`, `drift_baselines`, `drift_incidents`                        | P5 (drift)                                                                         |
-| `prompt_templates`, `prompt_versions`, `prompt_assignments`                    | P3 (prompt studio)                                                                 |
-| `meetings`, `calendar_events`, `user_integrations`, `sync_mappings`            | R2 (connectors) / Discover meetings                                                |
-| `user_api_keys`                                                                | stays **user-scoped** (BYO keys are personal); revisit for workspace sharing in A6 |
+| Tables | Owning epic |
+| --- | --- |
+| `agents`, `agent_runs`, `agent_memory`, `agent_tools`, `agent_approvals` | C/D/E (agents + orchestration) |
+| `prototypes`, `prototype_files`, `prototype_messages`, `prototype_attachments` | I (Build/Studio) |
+| `eval_suites`, `eval_cases`, `eval_runs`, `eval_case_results` | P4 (eval harness) |
+| `drift_snapshots`, `drift_baselines`, `drift_incidents` | P5 (drift) |
+| `prompt_templates`, `prompt_versions`, `prompt_assignments` | P3 (prompt studio) |
+| `meetings`, `calendar_events`, `user_integrations`, `sync_mappings` | R2 (connectors) / Discover meetings |
+| `user_api_keys` | stays **user-scoped** (BYO keys are personal); revisit for workspace sharing in A6 |
 
 ---
 

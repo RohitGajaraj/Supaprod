@@ -8,10 +8,10 @@
 
 Permissions live in two files, by design:
 
-| File                          | Scope                                                              | Holds                                                                                                             | Committed?           |
-| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `.claude/settings.json`       | **Shared** (travels with the repo, every session + tool + machine) | the **allow list** (pre-approved safe commands) + the **deny list** (destructive commands blocked for everyone)   | **Yes** (checked in) |
-| `.claude/settings.local.json` | **Local** (this machine only)                                      | **`"defaultMode": "bypassPermissions"`** + the same allow/deny as a belt-and-suspenders + `additionalDirectories` | **No** (gitignored)  |
+| File | Scope | Holds | Committed? |
+| --- | --- | --- | --- |
+| `.claude/settings.json` | **Shared** (travels with the repo, every session + tool + machine) | the **allow list** (pre-approved safe commands) + the **deny list** (destructive commands blocked for everyone) | **Yes** (checked in) |
+| `.claude/settings.local.json` | **Local** (this machine only) | **`"defaultMode": "bypassPermissions"`** + the same allow/deny as a belt-and-suspenders + `additionalDirectories` | **No** (gitignored) |
 
 **Why the split.** The allow/deny lists are safe to share, so they live in the committed `settings.json` and protect every clone (the deny list holds even under bypass). **`bypassPermissions` is a per-machine, opt-in choice** — it must NEVER be committed, or anyone who clones the repo would silently get a hands-off agent. So bypass lives only in the local, gitignored `settings.local.json`.
 

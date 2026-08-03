@@ -16,11 +16,11 @@ The founder's stated ambition: a few million waitlist signups inside a week. Her
 
 **The week's tiered targets (measure against these, not hope):**
 
-| Tier                 | Waitlist (qualified) | DP conversations  | Beta onboarded         | Money signals                      | Awareness                                                                   |
-| -------------------- | -------------------- | ----------------- | ---------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
-| **Floor** (must hit) | 300+                 | 25 booked         | 10 started             | 3 paid-pilot/concierge commitments | 50k+ impressions, 5 usable quotes                                           |
-| **Strong**           | 1,500+               | 50 booked         | 15 started             | first real card on credits         | 250k+ impressions, 1 post >100k views                                       |
-| **Breakout**         | 10,000+              | 100+ applications | waitlist-gated cohorts | 10+ commitments                    | a genuine viral moment (1M+ impressions or a front-page HN-adjacent thread) |
+| Tier | Waitlist (qualified) | DP conversations | Beta onboarded | Money signals | Awareness |
+| --- | --- | --- | --- | --- | --- |
+| **Floor** (must hit) | 300+ | 25 booked | 10 started | 3 paid-pilot/concierge commitments | 50k+ impressions, 5 usable quotes |
+| **Strong** | 1,500+ | 50 booked | 15 started | first real card on credits | 250k+ impressions, 1 post >100k views |
+| **Breakout** | 10,000+ | 100+ applications | waitlist-gated cohorts | 10+ commitments | a genuine viral moment (1M+ impressions or a front-page HN-adjacent thread) |
 
 If we're below Floor on day 4, the decision framework in §6 forces a pivot, not a harder push on the same actions.
 
@@ -127,43 +127,43 @@ Each day: theme → founder actions (~time) → agent-lane actions → success c
 
 ## 3. Stage ladder (maps to v13 gates — no parallel gate system)
 
-| Stage                         | This week's form                           | Entry                                       | Exit (= the v13 gate)                                                |
-| ----------------------------- | ------------------------------------------ | ------------------------------------------- | -------------------------------------------------------------------- |
-| Private alpha                 | founder dogfood (done, 13 months)          | —                                           | engine warm [PROVEN]                                                 |
-| **Waitlist + wave**           | **Days 1–7 (this manual)**                 | homepage live                               | Floor tier hit; ≥10 DP sessions booked                               |
-| Design partners / closed beta | week 2: 25 contacted, ≥10 onboarded        | signed simple terms                         | **G-BETA:** 10+ active external workspaces, a real card buys credits |
-| The listing                   | week 2–3: stories → Show HN → PH same week | PC-04 live + 2–3 beta stories + failure GIF | **G-LAUNCH:** ≥50 external workspaces, ≥20 weekly-active             |
-| Public beta → revenue         | post-listing                               | listing survived contact                    | **G-REV:** ≥10 paying workspaces                                     |
+| Stage | This week's form | Entry | Exit (= the v13 gate) |
+| --- | --- | --- | --- |
+| Private alpha | founder dogfood (done, 13 months) | — | engine warm [PROVEN] |
+| **Waitlist + wave** | **Days 1–7 (this manual)** | homepage live | Floor tier hit; ≥10 DP sessions booked |
+| Design partners / closed beta | week 2: 25 contacted, ≥10 onboarded | signed simple terms | **G-BETA:** 10+ active external workspaces, a real card buys credits |
+| The listing | week 2–3: stories → Show HN → PH same week | PC-04 live + 2–3 beta stories + failure GIF | **G-LAUNCH:** ≥50 external workspaces, ≥20 weekly-active |
+| Public beta → revenue | post-listing | listing survived contact | **G-REV:** ≥10 paying workspaces |
 
 ---
 
 ## 4. The launch checklist (blockers, owner, deadline)
 
-| #   | Item                                                                                                                                                             | Owner                        | Needed by                         | Status source                                     |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- | ------------------------------------------------- |
-| 1   | LOOM publish + 3 migrations                                                                                                                                      | Founder                      | Day 0                             | plan §4                                           |
-| 2   | Public homepage + waitlist + funnel events — **verify events actually fire** (38 of 49 audited Show HN launches had dead analytics on their biggest traffic day) | Founder + lane               | Day 1                             | G-SPRINT                                          |
-| 3   | Google OAuth verification submitted                                                                                                                              | Founder                      | Day 1                             | plan §4                                           |
-| 4   | Failure-path GIF + 3 demo GIFs + 60s video                                                                                                                       | Founder records, lane briefs | Day 2                             | launch-assets.md                                  |
-| 5   | Copy pack approved (nothing sends unapproved)                                                                                                                    | Founder                      | Day 2                             | [`02`](./02-prelaunch-copy-pack.md)               |
-| 6   | Prospect list 300+ w/ personalization hooks                                                                                                                      | Lane + HyperAgent            | Day 2                             | [`03`](./03-customer-discovery-and-validation.md) |
-| 7   | Email domain warm-up started                                                                                                                                     | Lane                         | Day 0                             | §1                                                |
-| 8   | DP terms + simple agreement ready                                                                                                                                | Founder                      | Day 2                             | Common Paper template                             |
-| 9   | No-signup demo (PC-04)                                                                                                                                           | Lane B                       | before Show HN (hard gate)        | launch-assets.md                                  |
-| 10  | ToS + privacy page live (OAuth + trust)                                                                                                                          | Lane                         | Day 1                             | plan §4                                           |
-| 11  | Billing path decision executed (Stripe default)                                                                                                                  | Founder                      | week 2 (G-BETA needs a real card) | plan §4                                           |
+| # | Item | Owner | Needed by | Status source |
+| --- | --- | --- | --- | --- |
+| 1 | LOOM publish + 3 migrations | Founder | Day 0 | plan §4 |
+| 2 | Public homepage + waitlist + funnel events — **verify events actually fire** (38 of 49 audited Show HN launches had dead analytics on their biggest traffic day) | Founder + lane | Day 1 | G-SPRINT |
+| 3 | Google OAuth verification submitted | Founder | Day 1 | plan §4 |
+| 4 | Failure-path GIF + 3 demo GIFs + 60s video | Founder records, lane briefs | Day 2 | launch-assets.md |
+| 5 | Copy pack approved (nothing sends unapproved) | Founder | Day 2 | [`02`](./02-prelaunch-copy-pack.md) |
+| 6 | Prospect list 300+ w/ personalization hooks | Lane + HyperAgent | Day 2 | [`03`](./03-customer-discovery-and-validation.md) |
+| 7 | Email domain warm-up started | Lane | Day 0 | §1 |
+| 8 | DP terms + simple agreement ready | Founder | Day 2 | Common Paper template |
+| 9 | No-signup demo (PC-04) | Lane B | before Show HN (hard gate) | launch-assets.md |
+| 10 | ToS + privacy page live (OAuth + trust) | Lane | Day 1 | plan §4 |
+| 11 | Billing path decision executed (Stripe default) | Founder | week 2 (G-BETA needs a real card) | plan §4 |
 
 ---
 
 ## 5. Content calendar (the week, platform × day)
 
-| Day   | X                                | LinkedIn                           | Communities                     | Direct                               |
-| ----- | -------------------------------- | ---------------------------------- | ------------------------------- | ------------------------------------ |
-| 3 Tue | founder story thread             | long-form version                  | — (observe)                     | DM wave 1 (25)                       |
-| 4 Wed | "built itself" receipts          | receipts, eng-lead angle           | first value-posts               | pitches ×10                          |
-| 5 Thu | public teardown #1 + challenge   | teardown essay                     | challenge mention where allowed | DM wave 2 (25) + teardown deliveries |
-| 6 Fri | AMA/Space + while-you-sleep post | "what I learned opening the doors" | AMA invite                      | DP session booking                   |
-| 7 Sat | Launch Ledger recap              | week recap                         | —                               | —                                    |
+| Day | X | LinkedIn | Communities | Direct |
+| --- | --- | --- | --- | --- |
+| 3 Tue | founder story thread | long-form version | — (observe) | DM wave 1 (25) |
+| 4 Wed | "built itself" receipts | receipts, eng-lead angle | first value-posts | pitches ×10 |
+| 5 Thu | public teardown #1 + challenge | teardown essay | challenge mention where allowed | DM wave 2 (25) + teardown deliveries |
+| 6 Fri | AMA/Space + while-you-sleep post | "what I learned opening the doors" | AMA invite | DP session booking |
+| 7 Sat | Launch Ledger recap | week recap | — | — |
 
 Timing: post 8–10am ET; founder in replies for 2h after every post (the algorithm and the audience both reward presence). Every post's link goes in the first reply, not the body.
 
@@ -181,16 +181,16 @@ Timing: post 8–10am ET; founder in replies for 2h after every post (the algori
 
 ## 7. Risks and mitigations
 
-| Risk                                                                                                   | Likelihood  | Mitigation                                                                                                                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Wave lands flat (no breakout)                                                                          | Medium-high | Floor tier is achievable on DMs + teardown gifts alone; the plan converts attention it doesn't need virality to book 10 sessions                                                                                               |
-| A viral moment before the product can absorb it                                                        | Low         | waitlist gates access; teardown delivery scales through the dogfood workspace; beta stays invite-paced                                                                                                                         |
-| Skeptics attack the agentic claims                                                                     | Medium      | receipts-first posture; the failure-path GIF; honest-limitations list; never argue, always show the ledger                                                                                                                     |
-| Founder time overload (posting + DMs + sessions)                                                       | High        | agent lanes draft/monitor/synthesize everything; founder's day is capped at ~4h of GTM in the calendar                                                                                                                         |
-| Google verification not cleared for beta                                                               | Medium      | gate Google tiles "request access" (documented trap, plan §4); Linear/Notion connectors carry onboarding                                                                                                                       |
-| Community bans for self-promo                                                                          | Medium      | per-community etiquette in [`01`](./01-channel-playbooks.md); value-first posts; links only where allowed                                                                                                                      |
-| Waitlist fills with tourists                                                                           | Medium      | the bet-submission mechanic self-qualifies; scoring rubric separates buyers from browsers ([`03`](./03-customer-discovery-and-validation.md))                                                                                  |
-| Positioning collision with fresh entrants (Samepage Signals, $4.85M raise, Jun 2026; Brief/briefhq.ai) | Medium      | read their PH threads before copy freeze; lead with what they don't have — the closed decide→build→outcome loop with receipts; the one-liner and ledger framing are already differentiated ([`01`](./01-channel-playbooks.md)) |
+| Risk | Likelihood | Mitigation |
+| --- | --- | --- |
+| Wave lands flat (no breakout) | Medium-high | Floor tier is achievable on DMs + teardown gifts alone; the plan converts attention it doesn't need virality to book 10 sessions |
+| A viral moment before the product can absorb it | Low | waitlist gates access; teardown delivery scales through the dogfood workspace; beta stays invite-paced |
+| Skeptics attack the agentic claims | Medium | receipts-first posture; the failure-path GIF; honest-limitations list; never argue, always show the ledger |
+| Founder time overload (posting + DMs + sessions) | High | agent lanes draft/monitor/synthesize everything; founder's day is capped at ~4h of GTM in the calendar |
+| Google verification not cleared for beta | Medium | gate Google tiles "request access" (documented trap, plan §4); Linear/Notion connectors carry onboarding |
+| Community bans for self-promo | Medium | per-community etiquette in [`01`](./01-channel-playbooks.md); value-first posts; links only where allowed |
+| Waitlist fills with tourists | Medium | the bet-submission mechanic self-qualifies; scoring rubric separates buyers from browsers ([`03`](./03-customer-discovery-and-validation.md)) |
+| Positioning collision with fresh entrants (Samepage Signals, $4.85M raise, Jun 2026; Brief/briefhq.ai) | Medium | read their PH threads before copy freeze; lead with what they don't have — the closed decide→build→outcome loop with receipts; the one-liner and ledger framing are already differentiated ([`01`](./01-channel-playbooks.md)) |
 
 ---
 
@@ -205,14 +205,14 @@ Timing: post 8–10am ET; founder in replies for 2h after every post (the algori
 
 ## 9. This folder
 
-| File                                                                                           | What it holds                                                                         |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [`README.md`](./README.md)                                                                     | index + reading order                                                                 |
-| **`00-launch-operating-manual.md`**                                                            | this file — the spine: targets, day-by-day, checklist, decisions                      |
-| [`01-channel-playbooks.md`](./01-channel-playbooks.md)                                         | every channel: why/when/how, etiquette, metrics, examples                             |
-| [`02-prelaunch-copy-pack.md`](./02-prelaunch-copy-pack.md)                                     | the wave's copy: threads, posts, DMs, pitches (HN/PH copy stays in the Pitch Room)    |
-| [`03-customer-discovery-and-validation.md`](./03-customer-discovery-and-validation.md)         | ICP, sourcing, outreach, interviews, pricing/WTP, design partners, the capture system |
-| [`04-growth-engine-metrics-and-experiments.md`](./04-growth-engine-metrics-and-experiments.md) | growth loops, experiments backlog, metrics dashboard, weekly review                   |
-| [`05-viral-and-guerrilla-playbook.md`](./05-viral-and-guerrilla-playbook.md)                   | ranked creative campaigns + top-5 execution briefs                                    |
-| [`06-yc-and-fundraising-evidence.md`](./06-yc-and-fundraising-evidence.md)                     | the evidence engine feeding docs/pitch/yc/                                            |
-| [`GTM-launch-strategy.md`](./GTM-launch-strategy.md)                                           | the founder's original requirements brief (the input this manual answers)             |
+| File | What it holds |
+| --- | --- |
+| [`README.md`](./README.md) | index + reading order |
+| **`00-launch-operating-manual.md`** | this file — the spine: targets, day-by-day, checklist, decisions |
+| [`01-channel-playbooks.md`](./01-channel-playbooks.md) | every channel: why/when/how, etiquette, metrics, examples |
+| [`02-prelaunch-copy-pack.md`](./02-prelaunch-copy-pack.md) | the wave's copy: threads, posts, DMs, pitches (HN/PH copy stays in the Pitch Room) |
+| [`03-customer-discovery-and-validation.md`](./03-customer-discovery-and-validation.md) | ICP, sourcing, outreach, interviews, pricing/WTP, design partners, the capture system |
+| [`04-growth-engine-metrics-and-experiments.md`](./04-growth-engine-metrics-and-experiments.md) | growth loops, experiments backlog, metrics dashboard, weekly review |
+| [`05-viral-and-guerrilla-playbook.md`](./05-viral-and-guerrilla-playbook.md) | ranked creative campaigns + top-5 execution briefs |
+| [`06-yc-and-fundraising-evidence.md`](./06-yc-and-fundraising-evidence.md) | the evidence engine feeding docs/pitch/yc/ |
+| [`GTM-launch-strategy.md`](./GTM-launch-strategy.md) | the founder's original requirements brief (the input this manual answers) |

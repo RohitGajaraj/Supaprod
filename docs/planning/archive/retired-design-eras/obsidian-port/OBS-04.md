@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                                                                                                        |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-04                                                                                                                                                                                                                                                                                                                                                                                       |
-| Rank          | #5                                                                                                                                                                                                                                                                                                                                                                                           |
-| Tier          | 1 (foundation surface)                                                                                                                                                                                                                                                                                                                                                                       |
-| Status        | pending                                                                                                                                                                                                                                                                                                                                                                                      |
-| Category      | Cockpit                                                                                                                                                                                                                                                                                                                                                                                      |
-| Depends on    | OBS-03 (primitives: Button, StatusDot, MonoLabel, Toast, CallCard, MissionRow, AuroraCard, Citation)                                                                                                                                                                                                                                                                                         |
-| Blocks        | OBS-14 (onboarding golden path lands the user on Today)                                                                                                                                                                                                                                                                                                                                      |
+| Field | Value |
+| --- | --- |
+| ID | OBS-04 |
+| Rank | #5 |
+| Tier | 1 (foundation surface) |
+| Status | pending |
+| Category | Cockpit |
+| Depends on | OBS-03 (primitives: Button, StatusDot, MonoLabel, Toast, CallCard, MissionRow, AuroraCard, Citation) |
+| Blocks | OBS-14 (onboarding golden path lands the user on Today) |
 | One-line what | Today ported to Obsidian: the hero (Newsreader 34px, one ember italic count word that rewrites as calls clear), the Call queue (canonical CallCard, cross-object sync to missions), What changed with causes, the loop strip (SENSE · DECIDE · DEFINE · BUILD · LEARN with live counts, DECIDE ember when calls pend), the ONE Loop Health aurora card, and the machine-right-now mini-list. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-04                                                                                                                                                                                                                                                                                                                   |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                                                                                       |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-04 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
 

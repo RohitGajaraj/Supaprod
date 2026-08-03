@@ -312,8 +312,8 @@ It did NOT work this morning. Four independent silent failures, each hiding the 
 
 ### Known-good live numbers
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | Signals / sources | 308 across 26 |
 | Clustered | 307 (99.7%) into 181 themes |
 | Cost per agent run | ~$0.03 |

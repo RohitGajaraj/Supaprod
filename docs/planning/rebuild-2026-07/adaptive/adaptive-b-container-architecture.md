@@ -34,7 +34,7 @@ This is not a stylistic preference. It is arithmetic on the live shell.
 One shell, two regions. Run the numbers for the canvas region across the founder's real range:
 
 | Viewport | Thread pane | Canvas pane | Same `lg:` fires? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1280 (split half of 2560) | 380 | 900 | yes |
 | 1470 (13" MacBook Air, default scaling) | 380 | 1090 | yes |
 | 1920 (external 1080p) | 380 | 1540 | yes |
@@ -78,7 +78,7 @@ at all**, and the mechanism that would have made it responsive has never been us
 ### 2.1 Inline (width)
 
 | Band of the **frame** | CSS px | Real situations | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | below `rail` (272) | < 272 | nothing real | **unsupported.** Content scrolls; no guarantee. |
 | `rail` -> `col` | 272 - 544 | phone portrait, a 1440p half-window at 400% zoom | **functional.** One pane, thread as a sheet, no depth lane. Not the design target. |
 | `col` -> `duo` | 544 - 1088 | 13" laptop at 200% zoom (1470/2 = 735), half of a 1080p window (960), iPad portrait | **fully supported, single-pane composition.** |
@@ -252,7 +252,7 @@ custom property.
 Every other px literal in the adaptive layer is banned by CI (§9.3). These three stay:
 
 | Value | Where | Why it is invariant |
-|---|---|---|
+| --- | --- | --- |
 | `1px` | hairlines (`--ink-hairline`) | A hairline is "the thinnest visible line". It is a device concept, not a layout concept, and it must not scale with the type ramp or it stops being a hairline. |
 | `2px` | focus ring (`.ink-focus`, ink.css:126) | WCAG 2.2 SC 2.4.13 specifies a minimum ring thickness in CSS px. Deriving it from a content scale would let a small-type surface ship a sub-minimum ring. |
 | `44px` | minimum touch target under `pointer: coarse` | A fingertip is ~9mm. This is a human anatomy constant, not a design token, and it is already the threshold asserted in `e2e/03-surfaces-responsive.spec.ts:39`. |
@@ -267,7 +267,7 @@ Bands are how a designer reasons; thresholds are how CSS reasons. Each archetype
 bands it uses; most use two or three, never all eight.
 
 | Band | Inline size of the nearest `measure` container | What becomes possible |
-|---|---|---|
+| --- | --- | --- |
 | `nub` | < 8.5rem | icon only, no text |
 | `rail` | 8.5 - 17rem | one line, primary text truncated |
 | `slat` | 17 - 25.5rem | stacked block, secondary meta hidden |
@@ -288,7 +288,7 @@ content it does not itself control.** Allocators declare. Consumers only read. A
 does both (a card holding a stat row) declares.
 
 | Element | Selector | `container-type` | `container-name` | Why |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | App frame | `[data-frame]` | `size` | `frame` | Owns region composition and the only block-size decisions. Has a definite `100dvh` height, so `size` is legal. |
 | Region pane | `[data-pane]` | `inline-size` | `pane measure` | Thread, canvas, drawer body, tray, sheet. Allocates to arbitrary caller content. |
 | Lane | `[data-lane]` | `inline-size` | `pane measure` | A lane inside a pane is itself an allocator; a card in the left lane must ask the lane, not the canvas. |
@@ -891,7 +891,7 @@ Measured this session: 275 `style={{` occurrences in `_authenticated.settings.ts
 `build.index.tsx`, 49 in `today.tsx`. Broken down for settings:
 
 | Shape | Count | Verdict |
-|---|---|---|
+| --- | --- | --- |
 | `style={{ fontSize: ... }}` | 44 | must become a class |
 | `style={{ display: ... }}` | 37 | must become a class |
 | `style={{ color: "var(--...)" }}` | 34 | must become a class |
@@ -968,7 +968,7 @@ Now `text-ink-subtle`, `bg-ink-panel`, `border-ink-hairline`, `rounded-panel`, `
 and the mechanical codemod becomes a lookup table:
 
 | Inline (found in the tree today) | Replacement |
-|---|---|
+| --- | --- |
 | `style={{ color: "var(--ink-subtle)" }}` | `className="text-ink-subtle"` |
 | `style={{ background: "var(--ink-raised)" }}` | `className="bg-ink-raised"` |
 | `style={{ borderColor: "var(--ink-hairline)" }}` | `className="border-ink-hairline"` |
@@ -1008,7 +1008,7 @@ sends no app markup; React renders after the client bundle boots. There are exac
 a layout adapt, and only one of them works here:
 
 | Mechanism | Works before hydration? | Behaviour on first paint |
-|---|---|---|
+| --- | --- | --- |
 | JS measurement (`useMediaQuery`, `window.innerWidth`, `ResizeObserver` -> state) | **No** | Renders a guessed default, then reflows once JS measures. A visible snap on every load, and worse on a cold Worker start. |
 | CSS container queries | **Yes** | Correct at the first paint, with zero JS. |
 

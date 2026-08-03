@@ -200,14 +200,14 @@ function nextActionFor(opp: RankableOpportunity): string {
 
 ## Consolidation & Implementation Roadmap
 
-| Priority     | Item                                 | Effort | Status                                         |
-| ------------ | ------------------------------------ | ------ | ---------------------------------------------- |
-| **CRITICAL** | FigmaEmbed round-trip test skeleton  | 60m    | Added `.skip` test suite in FigmaEmbed.test.ts |
-| **CRITICAL** | ranking.nextActionFor fix + tests    | 30m    | Added `.skip` test suite in ranking.test.ts    |
-| **HIGH**     | Consolidate graph-visual test suites | 20m    | Runbook in `duplicate-test-consolidation.md`   |
-| **HIGH**     | Consolidate ship-format test suites  | 20m    | Runbook in `duplicate-test-consolidation.md`   |
-| **MEDIUM**   | signal humanization edge cases       | 15m    | Optional enhancement                           |
-| **MEDIUM**   | ResearchActivity component tests     | 30m    | Optional enhancement                           |
+| Priority | Item | Effort | Status |
+| --- | --- | --- | --- |
+| **CRITICAL** | FigmaEmbed round-trip test skeleton | 60m | Added `.skip` test suite in FigmaEmbed.test.ts |
+| **CRITICAL** | ranking.nextActionFor fix + tests | 30m | Added `.skip` test suite in ranking.test.ts |
+| **HIGH** | Consolidate graph-visual test suites | 20m | Runbook in `duplicate-test-consolidation.md` |
+| **HIGH** | Consolidate ship-format test suites | 20m | Runbook in `duplicate-test-consolidation.md` |
+| **MEDIUM** | signal humanization edge cases | 15m | Optional enhancement |
+| **MEDIUM** | ResearchActivity component tests | 30m | Optional enhancement |
 
 ---
 

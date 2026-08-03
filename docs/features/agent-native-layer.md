@@ -24,15 +24,15 @@ This initiative makes Supaprod agent-native at every level: readable, queryable,
 
 ## Market context (research-backed)
 
-| Signal                                                                         | Source                        | Implication                                                               |
-| ------------------------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------- |
-| 70% of major SaaS vendors have remote MCP servers by Apr 2026                  | MCP Ecosystem Reference 2026  | Table stakes for enterprise procurement                                   |
-| `llms.txt` adopted by Anthropic, Cursor, thousands of doc sites                | llms.txt Complete Guide 2026  | Industry standard for LLM-readable site context                           |
-| Chrome 146 ships WebMCP (May 2026) — agents call registered JS tools directly  | Chrome at Google I/O 2026     | Browser-level agent access is standardizing                               |
-| Academic paper (arxiv 2606.19116, Jun 2026) recommends dual-layer architecture | Towards an Agent-First Web    | Dual-layer (HTML + ATML/markdown) is the canonical pattern                |
-| Notion 3.0 (Sep 2025): "hub for AI agents" positioning                         | TechCrunch 2026               | Full-org platforms are making agent-native a category claim               |
-| Linear + Notion + GitHub + Stripe all shipped MCP servers within 6 months      | Albato Multi-Tenant MCP Guide | The MCP ecosystem is real and fast-moving                                 |
-| Twilio grew 50% revenue, 70% customer base on API-first platform model         | API-First SaaS analysis       | Platform/infrastructure model dramatically outperforms standalone product |
+| Signal | Source | Implication |
+| --- | --- | --- |
+| 70% of major SaaS vendors have remote MCP servers by Apr 2026 | MCP Ecosystem Reference 2026 | Table stakes for enterprise procurement |
+| `llms.txt` adopted by Anthropic, Cursor, thousands of doc sites | llms.txt Complete Guide 2026 | Industry standard for LLM-readable site context |
+| Chrome 146 ships WebMCP (May 2026) — agents call registered JS tools directly | Chrome at Google I/O 2026 | Browser-level agent access is standardizing |
+| Academic paper (arxiv 2606.19116, Jun 2026) recommends dual-layer architecture | Towards an Agent-First Web | Dual-layer (HTML + ATML/markdown) is the canonical pattern |
+| Notion 3.0 (Sep 2025): "hub for AI agents" positioning | TechCrunch 2026 | Full-org platforms are making agent-native a category claim |
+| Linear + Notion + GitHub + Stripe all shipped MCP servers within 6 months | Albato Multi-Tenant MCP Guide | The MCP ecosystem is real and fast-moving |
+| Twilio grew 50% revenue, 70% customer base on API-first platform model | API-First SaaS analysis | Platform/infrastructure model dramatically outperforms standalone product |
 
 **Sources on file:**
 
@@ -81,13 +81,13 @@ For Supaprod:
 
 ### Threats and mitigations
 
-| Threat                                                                                                          | Severity        | Mitigation                                                                                                                                                                                  |
-| --------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cross-tenant data leak (the Asana incident — they took their MCP offline for 2 weeks after a cross-tenant leak) | Critical        | Workspace-scoped OAuth tokens + row-level validation on every MCP tool response, not just at query time. Supaprod's existing RLS is the foundation.                                          |
-| Prompt injection via MCP tool calls                                                                             | High            | Extend the existing AI chokepoint injection screening to all inbound MCP queries. Same structural gate, new surface.                                                                        |
-| Write-back data pollution (agents writing garbage outcomes)                                                     | Medium          | Write-back tools gated behind explicit `write:outcomes` permission scope, separate from read access. Every write goes through a structural validation gate.                                 |
-| Commodity trap (expose everything, own nothing above it)                                                        | High            | The decision brain, supersession engine, and trust ledger are NOT exposed as raw data. What agents get is a clean query surface; what Supaprod users get is interpretation and intelligence. |
-| Regulatory exposure (agent-to-agent data flows across GDPR/CCPA)                                                | Medium (future) | Data residency story for the MCP layer; explicit data-processing agreements for enterprise. Deferred to enterprise tier.                                                                    |
+| Threat | Severity | Mitigation |
+| --- | --- | --- |
+| Cross-tenant data leak (the Asana incident — they took their MCP offline for 2 weeks after a cross-tenant leak) | Critical | Workspace-scoped OAuth tokens + row-level validation on every MCP tool response, not just at query time. Supaprod's existing RLS is the foundation. |
+| Prompt injection via MCP tool calls | High | Extend the existing AI chokepoint injection screening to all inbound MCP queries. Same structural gate, new surface. |
+| Write-back data pollution (agents writing garbage outcomes) | Medium | Write-back tools gated behind explicit `write:outcomes` permission scope, separate from read access. Every write goes through a structural validation gate. |
+| Commodity trap (expose everything, own nothing above it) | High | The decision brain, supersession engine, and trust ledger are NOT exposed as raw data. What agents get is a clean query surface; what Supaprod users get is interpretation and intelligence. |
+| Regulatory exposure (agent-to-agent data flows across GDPR/CCPA) | Medium (future) | Data residency story for the MCP layer; explicit data-processing agreements for enterprise. Deferred to enterprise tier. |
 
 ---
 
@@ -128,15 +128,15 @@ Active option rendered in Supaprod orange (`var(--ember, #e8642c)`). Inactive in
 
 **MCP tools (planned):**
 
-| Tool                            | Description                                                                   | Scope            |
-| ------------------------------- | ----------------------------------------------------------------------------- | ---------------- |
-| `supaprod_get_workspace_context` | One-shot context dump: goals, recent decisions, active missions, signal queue | `read:context`   |
-| `supaprod_query_decisions`       | Query decision history by product, topic, date range, or confidence           | `read:decisions` |
-| `supaprod_get_memory`            | Fetch current belief state on a topic (follows the supersession chain)        | `read:memory`    |
-| `supaprod_list_missions`         | List active / recent missions with status, agent, started_at                  | `read:missions`  |
-| `supaprod_get_trust_ledger`      | Fetch recent trust ledger entries (decisions + outcomes)                      | `read:ledger`    |
-| `supaprod_record_outcome`        | Write an outcome back to a decision (enriches the brain)                      | `write:outcomes` |
-| `supaprod_trigger_mission`       | Start a mission with a goal and assigned agent                                | `write:missions` |
+| Tool | Description | Scope |
+| --- | --- | --- |
+| `supaprod_get_workspace_context` | One-shot context dump: goals, recent decisions, active missions, signal queue | `read:context` |
+| `supaprod_query_decisions` | Query decision history by product, topic, date range, or confidence | `read:decisions` |
+| `supaprod_get_memory` | Fetch current belief state on a topic (follows the supersession chain) | `read:memory` |
+| `supaprod_list_missions` | List active / recent missions with status, agent, started_at | `read:missions` |
+| `supaprod_get_trust_ledger` | Fetch recent trust ledger entries (decisions + outcomes) | `read:ledger` |
+| `supaprod_record_outcome` | Write an outcome back to a decision (enriches the brain) | `write:outcomes` |
+| `supaprod_trigger_mission` | Start a mission with a goal and assigned agent | `write:missions` |
 
 **Auth pattern:** Workspace-scoped OAuth 2.1 tokens. Read-only vs. write scopes are separate grants. All writes go through the existing AI chokepoint injection screen. The pattern follows what Linear, GitHub, and Stripe converged on (Cloudflare-style remote OAuth + Streamable HTTP transport).
 

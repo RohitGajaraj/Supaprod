@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                                          |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ID            | OBS-02                                                                                                                                                                                                                                                                                                                         |
-| Rank          | #3                                                                                                                                                                                                                                                                                                                             |
-| Tier          | 1 (foundation, strictly ordered)                                                                                                                                                                                                                                                                                               |
-| Status        | pending                                                                                                                                                                                                                                                                                                                        |
-| Category      | Cockpit                                                                                                                                                                                                                                                                                                                        |
-| Depends on    | OBS-01 (tokens + fonts + 8 keyframes + `[data-obsidian]`)                                                                                                                                                                                                                                                                      |
-| Blocks        | OBS-03 (primitives), and transitively every surface (OBS-04..09) and the IA fold (OBS-10)                                                                                                                                                                                                                                      |
+| Field | Value |
+| --- | --- |
+| ID | OBS-02 |
+| Rank | #3 |
+| Tier | 1 (foundation, strictly ordered) |
+| Status | pending |
+| Category | Cockpit |
+| Depends on | OBS-01 (tokens + fonts + 8 keyframes + `[data-obsidian]`) |
+| Blocks | OBS-03 (primitives), and transitively every surface (OBS-04..09) and the IA fold (OBS-10) |
 | One-line what | The app shell: a 236px rail on `--rail` with a mono numeral nav 01-05 (NO icons, lucide removed from the rail), the Butterfly mark with flutter, the one Today badge, the shimmer working line, the Engine Room door, the user chip, a 52px top bar, the surface container with `cadRise`, and the keyboard map 1-5 / g / Esc. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-02                                                                                                                                                                                                                                                     |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                         |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-02 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ---
 

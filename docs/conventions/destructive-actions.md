@@ -4,11 +4,11 @@
 
 **Rule.**
 
-| Action class                                                                                  | Pattern                                                                                                                                   |
-| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Delete workspace · delete product · any irreversible action with peer impact                  | `useConfirm({ destructive: true, typedConfirm: <exact name> })`. Operator types the exact name; action button stays disabled until match. |
-| Other destructive flows (delete eval case, delete guardrail rule, delete doc, delete mission) | `useConfirm({ destructive: true })`. No typed-name required.                                                                              |
-| Reversible flows (archive, hide, mark complete)                                               | No confirm. Show an Undo toast for ~5s.                                                                                                   |
+| Action class | Pattern |
+| --- | --- |
+| Delete workspace · delete product · any irreversible action with peer impact | `useConfirm({ destructive: true, typedConfirm: <exact name> })`. Operator types the exact name; action button stays disabled until match. |
+| Other destructive flows (delete eval case, delete guardrail rule, delete doc, delete mission) | `useConfirm({ destructive: true })`. No typed-name required. |
+| Reversible flows (archive, hide, mark complete) | No confirm. Show an Undo toast for ~5s. |
 
 **Copy pattern.** Name the effect. _"This deletes 3 missions. Continue?"_ — not _"Are you sure you want to proceed?"_.
 

@@ -4,18 +4,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ID            | OBS-12                                                                                                                                                                                                                                                                                                 |
-| Rank          | #13                                                                                                                                                                                                                                                                                                    |
-| Tier          | 2                                                                                                                                                                                                                                                                                                      |
-| Status        | pending                                                                                                                                                                                                                                                                                                |
-| Category      | Cockpit                                                                                                                                                                                                                                                                                                |
-| Depends on    | OBS-10 (IA consolidation; the five destinations exist and legacy routes fold) · transitively OBS-03 (`SlideOver` chassis)                                                                                                                                                                              |
-| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                     |
+| Field | Value |
+| --- | --- |
+| ID | OBS-12 |
+| Rank | #13 |
+| Tier | 2 |
+| Status | pending |
+| Category | Cockpit |
+| Depends on | OBS-10 (IA consolidation; the five destinations exist and legacy routes fold) · transitively OBS-03 (`SlideOver` chassis) |
+| Blocks | nothing downstream |
 | One-line what | Ask (⌘J) summonable, context-aware AI panel: a right-docked 420px slide-over over any screen, canonical AI-message anatomy (body + sources + cost in mono + "How I got this" one click deeper), shimmer-while-thinking on a three-word status. A panel, never a destination. Ask leaves the rail here. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-12                                                                                                                                                                                                                             |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                 |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-12 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
 

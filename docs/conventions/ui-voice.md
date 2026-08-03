@@ -8,13 +8,13 @@
 
 **Length budgets.**
 
-| Surface          | Budget        |
-| ---------------- | ------------- |
-| H1               | ≤ 6 words     |
-| Subhead          | ≤ 14 words    |
-| Button label     | ≤ 3 words     |
-| Tooltip          | ≤ 10 words    |
-| Toast            | ≤ 12 words    |
+| Surface | Budget |
+| --- | --- |
+| H1 | ≤ 6 words |
+| Subhead | ≤ 14 words |
+| Button label | ≤ 3 words |
+| Tooltip | ≤ 10 words |
+| Toast | ≤ 12 words |
 | Empty-state copy | ≤ 2 sentences |
 
 **Banned (AI tells).**

@@ -31,7 +31,7 @@ doctrine word, the way `register` and `absorbed` are doctrine words in `edge/FIN
 **A house rule has exactly three shapes, and all three already have storage:**
 
 | Shape | The sentence | Where it is stored today | Enforced today |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Standing** | `Engineer opens pull requests on its own.` | `agent_tools.mode`, `agent_tool_modes.mode`, `agent_autonomy.arc` | **yes**, `resolveToolMode` |
 | **Reach** | `Scout never touches anything outside this workspace.` | `agents.max_tool_risk` | **yes**, `capToolsByRisk` |
 | **Ceiling** | `Nothing spends past $5 on one run.` | `agent_runs.mission_spend_cap_usd`, `mission_token_cap` | **yes**, `runtime.server.ts:233` |
@@ -73,7 +73,7 @@ it.** Its inventory is wrong in six places. Four are minor, two change what we b
 ### 1.1 Corrections to `GOVERNANCE-PRINCIPLE.md`
 
 | # | The claim | The verified truth |
-|---|---|---|
+| --- | --- | --- |
 | C1 | *"`resolveToolMode` classifies all 50 registry tools `auto` / `confirm` / `off`"* | The runtime modes are **`auto` / `confirm` / `review`** (`trust.server.ts:17`). `off` is a legal value of the `agent_tools.mode` column and of `updateToolMode`, but it is a **disablement**, not a mode: `ControlsPanel` filters `mode !== "off"` rows out entirely, and the loop's real disablement path is `agent_tools.enabled`. Three modes, one separate on/off. |
 | C2 | *"the mode default is `?? "confirm"`... permission is the fallback and autonomy is the exception, which is the principle inverted in code"* | **This is the one claim that is materially wrong, and it is the document's own headline tell.** `loop.server.ts:1126` fails closed *before* that line: a tool not in `modeOf` is refused outright with `Tool not enabled`. The only calls that reach `?? "confirm"` are the five `ORCHESTRATION_CONTROL_FLOW_TOOLS`, and `isControlFlow` short-circuits the queue branch below, so they never gate. **The `?? "confirm"` fallback cannot cause a single approval.** It is dead defensive code, not an inverted default. |
 | C3 | *"Trust arcs... agents earn autonomy from their own record"* | Half true, and the half that is missing matters. `loadAgentArc` returns **`"trusted"`** for an agent with no row (`trust.server.ts:254`, founder ruling 2026-07-08). A new agent does not earn its way up. It **starts** at rung three of four and tightens on evidence of harm. `edge/FINAL-edge.md` §4.2 already ratified this and ruled the default stays. |
@@ -138,7 +138,7 @@ Four consequence classes, derived from the same `isSideEffectingTool` / `isExter
 primitives the loop enforces with, each with a plain-words posture and a one-line rationale:
 
 | Class | Posture | Rationale, verbatim |
-|---|---|---|
+| --- | --- | --- |
 | Read-only research | Auto-run | `Safe to run on its own. Nothing to undo.` |
 | Internal writes | Ask first | `A quick confirm before each run. Reversible if one slips through.` |
 | Stakeholder-facing and external | Draft to you, batch-approve daily | `Supaprod drafts, you release. Auto-send is opt-in, per destination.` |
@@ -159,7 +159,7 @@ is the default.
 **F6. The same three modes render in three different vocabularies.**
 
 | Where | The words |
-|---|---|
+| --- | --- |
 | `language/FINAL-language.md` §4.4, ratified divergence | `Runs on its own` / `Asks me first` / `I check the output` |
 | `ControlsPanel.tsx:113` `OVERSIGHT_STOPS` | `Auto` / `Ask first` / `Review` |
 | `_authenticated.settings.tsx:2472` `approvalForAgent` | `runs alone` / `asks first` / `needs review` |
@@ -270,7 +270,7 @@ year of roadmap: it makes the enforcement gap visible to us every time we open t
 The lexicon's ratified divergence table wins, verbatim, everywhere:
 
 | Stored value | The user reads | Never |
-|---|---|---|
+| --- | --- | --- |
 | `auto` | **Runs on its own** | Auto, Autonomous, Unattended, Hands-off, Runs alone |
 | `confirm` | **Asks me first** | Confirm, Ask first, Needs confirmation, Gated |
 | `review` | **I check the output** | Review, Needs review, Reviewed, Supervised |
@@ -383,7 +383,7 @@ floored, the illegal option is not hidden, it is present and disabled with the r
 **Slot 3, what kind of work.** Two levels, and this is where `consent-classes.ts` earns its place:
 
 | Level | Entries | Source |
-|---|---|---|
+| --- | --- | --- |
 | Class (default, four entries) | Read-only research · Internal writes · Stakeholder-facing and external · Repo writes and irreversible | `CONSEQUENCE_CLASS_ORDER` |
 | One kind of work (expand) | the enabled tools inside that class, by `display_name` | `listTools` filtered `enabled && mode !== "off"` |
 
@@ -399,7 +399,7 @@ that renders directly to users, which puts it in the §4.5 "freeze is not accept
 **The optional ceiling clause.** Only thresholds with a real enforcement path may appear:
 
 | Clause | Enforced by | Status |
-|---|---|---|
+| --- | --- | --- |
 | `stops if it would spend past $N` | `runtime.server.ts:233` | **plumbing exists, no workspace-level setting.** B2. |
 | `stops after N thousand tokens` | same | same. Probably never exposed; spend is the word a PM has. |
 | `only on bets scoring above N` | `event_subscriptions.filter.min_score` | exists, currently buried in `Auto-pipelines` |
@@ -538,7 +538,7 @@ the engine room's Safety room), and the recent-runs usage table.
 Every row states where its rule came from, and there are exactly four values:
 
 | Value | Meaning | Source of truth |
-|---|---|---|
+| --- | --- | --- |
 | `our default` | Nobody chose this. We did, and here is why. | no row exists |
 | `you, 12 Jul` | You wrote it. | `agent_tool_modes.source = 'operator'`, `agent_autonomy.set_by` |
 | `earned, 12 clean runs` | It asked, you said yes, here is the evidence. | `agent_tool_modes.source = 'graduation'` |
@@ -581,7 +581,7 @@ A new user gets `seed_default_agent_tools` + `seed_studio_tools`, no `agent_auto
 `trusted`) and then `resolveToolMode`:
 
 | Kind of work | Seeded | Resolved | Because |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Reads, search, repo tree, web search | `auto` | **runs on its own** | never gates: only `write` and `planning` categories reach the queue at all (`loop.server.ts:1150`) |
 | Memory | `auto` | **runs on its own** | same |
 | Internal writes: tasks, notes, signals, specs, prioritisation | `confirm` | **runs on its own** | `trusted` lifts `confirm` to `auto`; then the low-risk auto-clear would have done it anyway (internal + reversible = `low`) |
@@ -601,7 +601,7 @@ The principle document's third constitutional clause requires these to be defens
 visible. Each of these sentences is printable in the row's expansion.
 
 | Default | The defence |
-|---|---|
+| --- | --- |
 | Reading runs on its own | Reading changes nothing. There is nothing to undo, so there is nothing to approve. |
 | Internal writes run on their own | A task, a note or a draft spec lives in your workspace and you can delete it in one click. Asking first would buy a confirmation and cost the whole point. |
 | The build lane runs on its own | A branch and a draft pull request are isolated from your code. Nothing reaches your codebase except through the merge, and the merge always stops. |
@@ -734,7 +734,7 @@ Acceptance through `decideTrustGraduation` is the only write path to a graduated
 ### 8.2 Four suggestion families, three of which are new connections of existing data
 
 | Family | Trigger, from real data | The sentence |
-|---|---|---|
+| --- | --- | --- |
 | **Loosen one kind of work** (exists) | 5 consecutive `executed` for one (agent, tool) | `Reviewer wants to stop asking.` |
 | **Loosen a whole class** (new) | every tool in a `consent-classes` class is at `auto` except one, and that one has a clean streak | `Everything else that stays inside your workspace already runs alone. This is the last one asking.` |
 | **Tighten** (new, and it must exist) | 2 `rejected` or `sent back` in a row on a tool currently at `auto`, or one `missed` learning attributed to the agent | `Engineer opened three pull requests you sent back. Want to see them first from now on?` |
@@ -897,7 +897,7 @@ the whole argument of this document fails. **It is a precondition, not a compani
 Ranked by whether the thing above it is a lie without it.
 
 | # | Item | Why it is here | Size |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **B0** | Mount `ExecutedCard` / "Done without you" | `edge/FINAL-edge.md` C2. Without it the defaults in §6 are opacity. Precondition for everything below. | component exists, needs a home |
 | **B1** | `createHouseRule` server fn | F3. The ratified definition says "you wrote"; no such function exists. | small |
 | **B2** | Workspace-level spend ceiling, read by `executeLoop` | §6.2. The one indefensible default. Enforcement already exists at `runtime.server.ts:233`. | small |
@@ -925,7 +925,7 @@ page it exists to replace.
 ## 12. AMENDMENTS TO RATIFIED CONTRACTS
 
 | Document | Amendment | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `language/FINAL-language.md` §2.4 | House rule's definition gains the granting half; `boundary`, `rule engine`, `policy engine`, `automation rule` join its ban list | §2.1 |
 | `language/FINAL-language.md` §2.7 | `Autonomy` keeps its definition but is no longer a rendered noun. It names the concept in docs. On screen, the three mode words carry it. | §3.1 |
 | `language/FINAL-language.md` in-app line | `You make the calls. Your crew does the work between them.` is replaced by `You write the house rules. Your crew works inside them.` | §2.2 |

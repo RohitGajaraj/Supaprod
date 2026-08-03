@@ -270,7 +270,7 @@ Original: box-shadow: "0 20px 25px rgba(0,0,0,0.2)"
 ## Success Metrics
 
 | Metric | Target | Verification |
-|---|---|---|
+| --- | --- | --- |
 | Spacing instances migrated | ≥90% (3600+ of 4079) | grep count before/after |
 | Build success | 0 errors | `bun run build` passes |
 | Lint clean | 0 warnings | `bun run lint` passes |

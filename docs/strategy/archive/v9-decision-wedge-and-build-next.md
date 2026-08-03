@@ -10,12 +10,12 @@
 
 ## 0. What v9 adds, and what it explicitly does not change
 
-| Stays the canon                                                               | Where                                                                  | v9's relationship to it                                                                                          |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Positioning, market, pricing, GTM, investor narrative                         | [`v7`](./v7-agentic-product-os.md)                                     | v9 strengthens v7's "memory is the moat" from first principles; does not alter the position.                     |
-| Surface map, the Engine Room door, the hybrid Build spine, 4-phase sequencing | [`v8`](./v8-calm-front-deep-engine.md)                                 | v9 confirms v8 Fork 1 (hybrid Build) and explains the end-to-end workflow it implies; does not re-map surfaces.  |
-| Engine / 19-agent mesh / handoff contract / HITL gates                        | [`v4`](./v4-feature-map.md)                                      | unchanged.                                                                                                       |
-| Live build status (the audit baseline)                                        | [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) | v9's audit reads from it (reconciled with file evidence 2026-06-16); v9 adds the strategic read, not new status. |
+| Stays the canon | Where | v9's relationship to it |
+| --- | --- | --- |
+| Positioning, market, pricing, GTM, investor narrative | [`v7`](./v7-agentic-product-os.md) | v9 strengthens v7's "memory is the moat" from first principles; does not alter the position. |
+| Surface map, the Engine Room door, the hybrid Build spine, 4-phase sequencing | [`v8`](./v8-calm-front-deep-engine.md) | v9 confirms v8 Fork 1 (hybrid Build) and explains the end-to-end workflow it implies; does not re-map surfaces. |
+| Engine / 19-agent mesh / handoff contract / HITL gates | [`v4`](./v4-feature-map.md) | unchanged. |
+| Live build status (the audit baseline) | [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) | v9's audit reads from it (reconciled with file evidence 2026-06-16); v9 adds the strategic read, not new status. |
 
 **v9 is additive. It is the conceptual foundation + the launch wedge + the competitor posture + the build-next call.** Nothing here contradicts v7 or v8; where it sharpens them, it says so.
 
@@ -71,12 +71,12 @@ This refines v5 ("evidence-to-decision ritual") and v7 (general decide-ritual) t
 
 In an agentic world where orchestration is commoditizing (MCP at ~97M installs, A2A, Agent Skills, MS Agent Framework), the buy / partner / build / ignore map _is_ the strategy. The rule: **own the ends of the loop (SENSE, LEARN/memory), integrate the middle, absorb the thin wrappers, and only race the players chasing the same closed loop.**
 
-| Posture                                                            | Players                                                                      | Why                                                                                                                                                                                                                                      |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Integrate and orchestrate** (be Switzerland on top of them)      | Linear, Jira, GitHub, Cursor / Devin / Factory, Figma, Notion docs           | They own a workspace or an execution surface you cannot dislodge. Speak MCP / A2A both ways; let Supaprod be the decision-and-memory brain that drives them. Fighting them for the surface is suicide; sitting above them is leverage.    |
-| **Absorb as a feature** (their whole product is one of your steps) | ChatPRD, generic AI-PRD tools, prompt-library PM GPTs                        | A PRD generator is one step in DEFINE. Their defensibility is distribution, not the artifact. You out-feature them by connecting the PRD to the signal that justified it and the outcome that judged it, which they structurally cannot. |
-| **Race on the moat** (same ambition; you must out-data them)       | Productboard (Spark), Atlassian Rovo, Dovetail / Enterpret, Notion AI agents | The real fight. They have the data and distribution you lack. Your only durable edge is the outcome-memory flywheel and being cross-tool-neutral.                                                                                        |
-| **Ignore / let plug in**                                           | Foundation labs shipping a horizontal "PM agent"                             | A lab's PM agent is a model you route to, not a competitor, _iff_ your value lives in proprietary outcome data plus governance plus PM-domain depth. The model-agnostic chokepoint already encodes this.                                 |
+| Posture | Players | Why |
+| --- | --- | --- |
+| **Integrate and orchestrate** (be Switzerland on top of them) | Linear, Jira, GitHub, Cursor / Devin / Factory, Figma, Notion docs | They own a workspace or an execution surface you cannot dislodge. Speak MCP / A2A both ways; let Supaprod be the decision-and-memory brain that drives them. Fighting them for the surface is suicide; sitting above them is leverage. |
+| **Absorb as a feature** (their whole product is one of your steps) | ChatPRD, generic AI-PRD tools, prompt-library PM GPTs | A PRD generator is one step in DEFINE. Their defensibility is distribution, not the artifact. You out-feature them by connecting the PRD to the signal that justified it and the outcome that judged it, which they structurally cannot. |
+| **Race on the moat** (same ambition; you must out-data them) | Productboard (Spark), Atlassian Rovo, Dovetail / Enterpret, Notion AI agents | The real fight. They have the data and distribution you lack. Your only durable edge is the outcome-memory flywheel and being cross-tool-neutral. |
+| **Ignore / let plug in** | Foundation labs shipping a horizontal "PM agent" | A lab's PM agent is a model you route to, not a competitor, _iff_ your value lives in proprietary outcome data plus governance plus PM-domain depth. The model-agnostic chokepoint already encodes this. |
 
 **The strategic punchline (sharpening v7 §14):** the existential threat is not the labs. It is that **Linear / Notion / Productboard / Atlassian already own the workspace, the data, and the distribution, and "discovery to spec to tickets" is a natural feature extension for all of them.** Productboard Spark and Linear-for-Agents are the canary. Plan for the short end of v7's 6-to-18-month window. The only two defenses that survive a bundled-feature attack are (a) the outcome-memory data they cannot backfill, and (b) being the neutral brain across tools so you are more valuable than any one of them locked-in.
 

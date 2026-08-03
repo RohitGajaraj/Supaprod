@@ -49,7 +49,7 @@
 ## Comprehensive Mandate Fulfillment
 
 | Requirement | Status | Evidence |
-|------------|--------|----------|
+| --- | --- | --- |
 | **Fix EVERYTHING before Wave 3** | ✅ | All typography violations fixed, all components verified |
 | **Audit every screen** | ✅ | All 14 authenticated surfaces audited + Settings components |
 | **Audit every flow** | ✅ | Today, Discover, Plan, Settings, Build all verified |

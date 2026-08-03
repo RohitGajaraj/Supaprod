@@ -5,7 +5,7 @@
 ## The 13
 
 | Agent | Job (one line) | Invoked when | Work appears in | Tools it holds | How you instruct it |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Chief of Staff** (orchestrator) | Plans the mission, dispatches the right specialist, never does specialist work itself | Every command-bar intent that needs more than one step; re-plans stalled passes | The spine, the activity trace, Approvals | mission plan/dispatch/observe, handoff | Workspace memory + house rules shape its planning; its system prompt is versioned in the prompt store |
 | **Watch** (discovery-scout) | Mines connected sources for signals and frames opportunities | Signal crons (sense), "watch X" intents | Evidence doors, what-to-build proposals | workspace search, signal log, memory | Connect or disconnect sources; house rules for what counts as signal |
 | **Research** (researcher) | Answers one question across the web and the workspace | "research X" intents, plan-stage gaps | Plan documents, evidence lines | workspace + web search/fetch/crawl | Scope in the intent itself; memory recalls prior findings |

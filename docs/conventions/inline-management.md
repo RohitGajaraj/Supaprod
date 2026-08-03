@@ -6,11 +6,11 @@
 
 **Current implementation.**
 
-| Surface                   | Where                                                                   | Actions                                                                               |
-| ------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Workspace switcher        | `AppShell` top-left popover                                             | Switch · Rename · Workspace settings · Leave · Delete (typed-name) · Create workspace |
-| Product rows              | Sidebar, `MoreHorizontal` dropdown per row                              | Set active · Rename · Delete (typed-name)                                             |
-| Workspace Strategic brief | `Settings` → inline section (deep-linked via `/settings?section=brief`) | Edit + Save; reused by every agent mission (no separate page)                         |
+| Surface | Where | Actions |
+| --- | --- | --- |
+| Workspace switcher | `AppShell` top-left popover | Switch · Rename · Workspace settings · Leave · Delete (typed-name) · Create workspace |
+| Product rows | Sidebar, `MoreHorizontal` dropdown per row | Set active · Rename · Delete (typed-name) |
+| Workspace Strategic brief | `Settings` → inline section (deep-linked via `/settings?section=brief`) | Edit + Save; reused by every agent mission (no separate page) |
 
 **Server functions.**
 

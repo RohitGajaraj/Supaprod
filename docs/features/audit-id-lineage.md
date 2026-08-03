@@ -37,20 +37,20 @@ A buyer pays for trust, and trust is verifiable provenance. Before this, an enti
 
 The twelve traceable kinds (extend `AUDIT_KINDS` to add a thirteenth — resolver, lineage, tag, and Ask all pick it up):
 
-| Prefix | Kind        | Table               | Loop stage |
-| ------ | ----------- | ------------------- | ---------- |
-| SIG    | signal      | `signals`           | Discover   |
-| OPP    | opportunity | `opportunities`     | Decide     |
-| DEC    | decision    | `decisions`         | Decide     |
-| PRD    | spec        | `prds`              | Plan       |
-| GOL    | goal        | `goals`             | Plan       |
-| PRO    | prototype   | `prototypes`        | Design     |
-| MIS    | mission     | `missions`          | Build      |
-| REL    | release     | `changelog_entries` | Ship       |
-| LRN    | learning    | `learnings`         | Learn      |
-| MTG    | meeting     | `meetings`          | Today      |
-| MEM    | memory      | `agent_memory`      | Brain      |
-| DOC    | doc         | `docs`              | Brain      |
+| Prefix | Kind | Table | Loop stage |
+| --- | --- | --- | --- |
+| SIG | signal | `signals` | Discover |
+| OPP | opportunity | `opportunities` | Decide |
+| DEC | decision | `decisions` | Decide |
+| PRD | spec | `prds` | Plan |
+| GOL | goal | `goals` | Plan |
+| PRO | prototype | `prototypes` | Design |
+| MIS | mission | `missions` | Build |
+| REL | release | `changelog_entries` | Ship |
+| LRN | learning | `learnings` | Learn |
+| MTG | meeting | `meetings` | Today |
+| MEM | memory | `agent_memory` | Brain |
+| DOC | doc | `docs` | Brain |
 
 **P2 — lineage retrieval** (`src/lib/audit-lineage.functions.ts`, `getEntityLineage` server fn): resolves a tag to its real row and composes the walk. It is **generic over all kinds** — it never assumes a column exists: it `select *`s a bounded recent window (RLS-scoped), matches by the same short trace the tag shows, then normalizes title / status / created / updated / actor from candidate-column lists. It emits steps (entered the record → connected entities via best-effort FK columns → current status → last change) and returns the full `entityId` (uuid) so the client can fetch richer, kind-specific lineage. A raw-uuid actor is suppressed (a name or nothing, never an id).
 

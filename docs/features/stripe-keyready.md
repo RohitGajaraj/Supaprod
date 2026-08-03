@@ -6,14 +6,14 @@
 
 ## The build state (audited 2026-06-22, 6-agent readiness sweep)
 
-| Surface                                  | State                                                             | Notes                                                                                                                                                         |
-| ---------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Checkout session (subscription + top-up) | ✅ complete                                                       | Real line items, price-by-`lookup_key`, resolved customer, `return_url`, webhook-reconcilable metadata. Works the moment live keys + the price catalog exist. |
-| Webhook handlers                         | ✅ fixed                                                          | All 6 events handled; the Basil-API `invoice.subscription` blocker is fixed (below).                                                                          |
-| Pricing config + entitlements            | ✅ defined + parity-tested (product/workspace limits); copy fixed | Free-tier credit copy corrected 100 → 500 to match the engine.                                                                                                |
-| Credit-pack top-up                       | ✅ apply path complete; ◐ cap hardening                           | Atomic/idempotent/ledgered grant; per-cycle ceiling is a soft pre-checkout guard (see remaining).                                                             |
-| Vouchers                                 | ✅ engine fixed                                                   | Redemption no longer rolls back; race-safe. ◐ no in-app redeem surface yet.                                                                                   |
-| Entitlement enforcement                  | ◐ wired but dormant                                               | Caps defined + DB triggers exist, gated behind `limit_gates_enabled()` (ships `false`). Seat caps unenforced.                                                 |
+| Surface | State | Notes |
+| --- | --- | --- |
+| Checkout session (subscription + top-up) | ✅ complete | Real line items, price-by-`lookup_key`, resolved customer, `return_url`, webhook-reconcilable metadata. Works the moment live keys + the price catalog exist. |
+| Webhook handlers | ✅ fixed | All 6 events handled; the Basil-API `invoice.subscription` blocker is fixed (below). |
+| Pricing config + entitlements | ✅ defined + parity-tested (product/workspace limits); copy fixed | Free-tier credit copy corrected 100 → 500 to match the engine. |
+| Credit-pack top-up | ✅ apply path complete; ◐ cap hardening | Atomic/idempotent/ledgered grant; per-cycle ceiling is a soft pre-checkout guard (see remaining). |
+| Vouchers | ✅ engine fixed | Redemption no longer rolls back; race-safe. ◐ no in-app redeem surface yet. |
+| Entitlement enforcement | ◐ wired but dormant | Caps defined + DB triggers exist, gated behind `limit_gates_enabled()` (ships `false`). Seat caps unenforced. |
 
 ## Defects fixed (buildable code, not key-gated) — 2026-06-22
 

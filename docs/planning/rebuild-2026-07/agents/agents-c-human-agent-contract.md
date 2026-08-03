@@ -64,7 +64,7 @@ become visible by being **on everything they touched**.
 ### 1.1 The surface, as it exists
 
 | Fact | Verified at |
-|---|---|
+| --- | --- |
 | `/agents` is a pure redirect stub to `/engine-room?room=safety&view=team` | `src/routes/_authenticated.agents.tsx` (9 lines, `beforeLoad` throws a redirect) |
 | `/swarm` is the same redirect, to the same place | `src/routes/_authenticated.swarm.tsx` |
 | The roster component lives under `governance/` | `src/components/governance/AgentRosterPanel.tsx` (149 lines) |
@@ -81,7 +81,7 @@ the working surfaces as a chip that says how many agents exist.
 The engine is not the problem. Every mechanic below is real, populated, and shipping today.
 
 | Mechanic | Where | What it gives this design |
-|---|---|---|
+| --- | --- | --- |
 | The catalog: 12 seats + 1 conductor + 2 machinery entries + 20 deprecated aliases | `src/lib/agent-vocabulary.ts`, `SPECIALIST_CATALOG` | Stable slugs, per-agent hue and glyph, present-tense relay verb, one-line blurb |
 | The loop: adaptive step budget, per-step checkpoint, pause on approval, clean resume | `src/lib/ai/loop.server.ts` (1698 lines), `budget.ts`, `agent_run_checkpoints` | A **known step bound before the run starts** and a resumable pause. Section 6. |
 | The plan: a 1 to 6 step DAG built before work begins | `mission.plan` in `tools/orchestrator.server.ts`, table `mission_steps` (`idx`, `depends_on`, `agent_slug`, `sub_goal`, `status`) | **The single most valuable asset in this document.** Section 6.2. |
@@ -118,7 +118,7 @@ deployments     : triggered_by only, and it is not an agent slug
 The only agent attribution that exists today:
 
 | Column | Table | Written by |
-|---|---|---|
+| --- | --- | --- |
 | `created_by_agent` | `artifact_lineage` (the **edge**, not the row) | `recordLineage`, called from 8 non-test modules only |
 | `decided_by_agent_slug` | `decisions` | the decide paths |
 | `recorded_by_agent_slug` | `learnings` | outcome recording |
@@ -175,7 +175,7 @@ same split as `governance/`, moved 48 pixels.
 **Correction, and it is narrow:**
 
 | | `FINAL-ia.md` | This lane |
-|---|---|---|
+| --- | --- | --- |
 | Tile 5 label | "Who is working" | **"The crew's record"** |
 | Tile 5 job | live presence + roster + scorecards + capabilities + autonomy | scorecards, autonomy, capabilities, graduation history, per-agent run history. **The record, not the presence.** |
 | Tile 5 count | agents working right now | **open graduation proposals, plus agents whose standing changed this week.** A count of things that changed, which is what a rail count is for |
@@ -275,7 +275,7 @@ renders as "human", the crew's contribution is erased. If it renders as "agent",
 misquoted. Both are lies, and a PM notices within a day.
 
 | State | Rendering | Backed by |
-|---|---|---|
+| --- | --- | --- |
 | **By an agent** | agent mark (rounded square, 16px) + name | `authored_by_agent` (section 4.4) |
 | **By you** | your avatar (circle, 16px) + "You" | `authored_by_agent is null` |
 | **Agent drafted, you changed it** | both marks, mark then avatar, joined by a hairline, and the word **edited** as a link | `authored_by_agent` set **and** `human_edited_at` set |
@@ -330,7 +330,7 @@ Not a sample. If a surface renders one of these objects and does not render its 
 fails.
 
 | Object | Surface | Byline position |
-|---|---|---|
+| --- | --- | --- |
 | Spec | spec workbench child header; every row in the Plan face list | header; row leading edge |
 | Bet | Decide face queue row; the bet's own focus panel | row leading edge; header |
 | Pattern | Discover face cluster card | card header |
@@ -432,7 +432,7 @@ masquerading as the second, they stop believing all of it, permanently.
 > as a quotation. They never share a typographic treatment, and no line is ever both.**
 
 | | DID | SAID |
-|---|---|---|
+| --- | --- | --- |
 | Source of truth | `tool_calls` (`ok`, `latency_ms`, `result`, `error`), plus the artifact row it wrote | `agent_messages`, `ai_events.output_preview`, the model's `thought` steps |
 | Typeface | mono for the id and the count, sans for the label | sans, quoted, indented |
 | Anatomy | `[mark] Scout read 41 pages · 12 signals · 14:31 · tc_8813` | `[mark] Scout: "Two of these look like the same complaint."` |
@@ -454,7 +454,7 @@ should be, because the alternative is the product lying on the model's behalf.
 Every claim of agent work must be inspectable down to something that is not ours.
 
 | Rung | What | Backed by |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Who.** The Byline. | `authored_by_agent` |
 | 2 | **What, when, and an id.** The receipt line. | `tool_calls` row: `tool_name`, `latency_ms`, `ok`, `created_at` |
 | 3 | **The step.** Args in, result out, error if any, the model call that chose it. | the trace child, `?step=n`; `agent_run_checkpoints.step_index`; `ai_events` |
@@ -578,7 +578,7 @@ the only region of the shell whose entire job is the crew, and it is currently a
 **Promote it to the crew line: a permanent 44px region, always occupied, never a placeholder.**
 
 | State | What it renders | Source |
-|---|---|---|
+| --- | --- | --- |
 | One run | `[mark] Engineer is writing the change · step 3 of 5 · Run 41` and, on the right, `stop` | `getSwarmHud` (`SwarmAgent.latest_run`), `mission_steps` |
 | Two or more | the marks of every working agent, then the most recent verb, then `and 2 more` which expands the strip to 3 rows | `SwarmHud.agents` |
 | A handoff in the last 30s | the two marks with the arrow between them, held for 6 seconds, then settling to the receiver | `agent_messages` (`from_agent_slug`, `to_agent_slug`) |
@@ -760,7 +760,7 @@ interface over a model. Almost all of it is already built. None of it is legible
 Two independent axes, and conflating them is the easiest mistake to make here:
 
 | Axis | Stored | Set by | Scope |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **The rung** | `agent_autonomy.arc` | `setAgentArc`, a human click; plus a background nudge that only ever promotes observing to proving to trusted, never to ambient | per agent |
 | **The graduated mode** | `agent_tool_modes` (`source: 'graduation' \| 'operator'`) | **only** `decideTrustGraduation` on human acceptance | per (agent, tool) |
 
@@ -1053,7 +1053,7 @@ a new user is reading the screen anyway.
 So the first frame is not a quiet skeleton. It is:
 
 | Region | First light, corrected |
-|---|---|
+| --- | --- |
 | Spine | seven stages, each with its owning agent's mark beneath it. **01 Discover is already working**, its mark shimmering |
 | **Crew line** | `[mark] Scout is reading the web for what people say about Relay · 18s` |
 | Thread | one card, below |
@@ -1128,7 +1128,7 @@ What follows is only the contract vocabulary, which Lane A does not cover.
 ### 11.1 The three sentences, and where each one lives
 
 | Sentence | Lives |
-|---|---|
+| --- | --- |
 | **The crew does the work. You make the calls.** | sign-in screen, and the crew record header. Nowhere else. |
 | **An agent is a named worker with one job, a track record you can read, and a limit on what it may do without asking you.** | the definition, wherever "agent" is first explained: the crew record, the `@` picker footer, the empty state of the crew tile |
 | **You are here for the three calls the crew will never make: what is worth building, what is good enough, and what goes live.** | the gates tray header, and the autonomy section of the crew record |
@@ -1136,7 +1136,7 @@ What follows is only the contract vocabulary, which Lane A does not cover.
 ### 11.2 The contract vocabulary
 
 | Concept | The words | Never |
-|---|---|---|
+| --- | --- | --- |
 | An agent doing work with no gate | **without asking** | autonomously, unsupervised, hands-free, on autopilot |
 | An agent that has to stop | **asks you first** | requires approval, is gated, needs permission, is restricted |
 | Work done while you were away | **on its own** | automatically, autonomously, in the background |
@@ -1204,7 +1204,7 @@ is not, and no copy in this document depends on an unbuilt thing without saying 
 ### 12.1 Already built, only unrendered (the cheap half)
 
 | Capability | Where |
-|---|---|
+| --- | --- |
 | Per-agent identity: name, hue, glyph, verb, blurb, stage | `agent-vocabulary.ts` |
 | Live presence, per-agent latest run, handoffs, pending approvals, throughput | `getSwarmHud` |
 | Trust score from four signals with shrinkage, plus suggested rung | `computeAllAgentTrust`, `suggestArc` |
@@ -1227,7 +1227,7 @@ is not, and no copy in this document depends on an unbuilt thing without saying 
 ### 12.2 Must be built (the honest half)
 
 | # | What | Size | Why it is load-bearing |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **B1** | `authored_by_agent`, `authored_by_run`, `human_edited_at` on 7 artifact tables, plus `setAuthorship` and the backfill | migration + one helper + write-path edits | Section 4 is impossible without it. Rides P4. |
 | **B2** | `Byline` component, three states, two sizes, plus `byline.test.ts` | one component, one test | The attribution grammar itself |
 | **B3** | `revokeTrustGraduation({agentSlug, toolName})` | one server fn + a `capability_changes` receipt | **Today a user can grant and cannot ungrant. This is a safety gap, not a polish item.** |
@@ -1264,7 +1264,7 @@ migration phases: all from `ia/FINAL-ia.md`. The visual laws: `craft-law.md` and
 **What I hand over, marked, so it is not decided twice.**
 
 | To | Item | My position, stated once |
-|---|---|---|
+| --- | --- | --- |
 | The lane owning presence and the run surface | The crew line is a permanent 44px region, not a status string. Its quiet state names what is being watched and when it wakes. | Section 6.4. The quiet state is non-negotiable; a crew line that ever reads "idle" defeats the whole design |
 | The lane owning the run surface | Runs render as the pre-computed DAG, with future steps and their gates drawn before they happen. No DAG means the degraded two-number rendering, never a fake plan. | Section 6.2 and 6.3 |
 | The IA lane | Three narrow overrides to `FINAL-ia.md`: tile 5 becomes the crew's record not its presence; the Spine carries agent marks; first light starts a real run instead of saying "Nobody is working yet". | Section 2.2. Everything else in the IA is adopted intact |
@@ -1277,7 +1277,7 @@ migration phases: all from `ia/FINAL-ia.md`. The visual laws: `craft-law.md` and
 ## 14. THE RISKS I AM TAKING, NAMED
 
 | # | Risk | Why it is real | What I would do about it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | R1 | **The Byline is on everything, and everything gets noisier.** Sixteen surfaces gain a 16px mark and a name. | The restraint budget is a real law here, and I am spending a lot of it in one place | It buys the founder's central complaint, so it is the right place to spend it. Mitigation: the mark is the only coloured element, the name is grey at 12.5px, the verb appears only at header size. If it still reads busy, drop the name in row context and keep the mark alone; the glyph is the recognisable part |
 | R2 | **The trust ring is illegible at small sizes and may read as a spinner.** | Four quarter-arcs at 1px on a 16px square is genuinely marginal | 16px floor, stated. Static, never animated, stated. Test it against the crew record's own 22px rendering before shipping the 16px one. If it fails, the ring is dropped entirely and the rung stays in the record only; nothing else in the design depends on it |
 | R3 | **The first-light auto-run costs credits on a user who may never return**, and it can fail in front of a brand-new user | Real money and a real first impression | Cap it: one run, researcher only, hard credit ceiling, no repeats. And rehearse the failure copy as carefully as the success copy. A brand-new user seeing "Scout could not reach the web. Connect a source and it will try again." is still better than "Nobody is working yet" |

@@ -14,12 +14,12 @@
 
 **Product one-liner:** Supaprod is the agentic product OS where a PM decides what is worth building and watches it get built and shipped. Agents run the loop; you make the calls that matter; every decision and outcome compounds into memory the team can trust.
 
-| Context                  | Verbatim                                                          | Why                                                                                            |
-| ------------------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Launch hook (marketing)  | **"The AI that red-teams your roadmap."**                         | Enters an existing emotional category; leads with judgment (v9 section 2). The shareable hook. |
-| Site hero (positioning)  | **"Decide what's worth building. Watch it ship."**                | The two heroes in one breath (v8 Fork 2).                                                      |
-| In-product footer (live) | **"Supaprod - agents execute, you govern."**                       | Keep. The governance promise in five words.                                                    |
-| Investor / category      | **"The decision and memory system of record for product teams."** | The moat framing (v7).                                                                         |
+| Context | Verbatim | Why |
+| --- | --- | --- |
+| Launch hook (marketing) | **"The AI that red-teams your roadmap."** | Enters an existing emotional category; leads with judgment (v9 section 2). The shareable hook. |
+| Site hero (positioning) | **"Decide what's worth building. Watch it ship."** | The two heroes in one breath (v8 Fork 2). |
+| In-product footer (live) | **"Supaprod - agents execute, you govern."** | Keep. The governance promise in five words. |
+| Investor / category | **"The decision and memory system of record for product teams."** | The moat framing (v7). |
 
 Do not ship "Agentic Product OS" as a public tagline (internal north star only).
 
@@ -51,31 +51,31 @@ Two human gates (the decision call, the merge approval); everything else runs un
 
 The "why" behind the build. These are the PM pains the loop must remove; each maps to a catalog feature in section 15.
 
-| #   | Pain (the PM's words)                                                       | Today's broken workaround                       | The Supaprod feature that kills it                                             | Lane     |
-| --- | --------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
-| 1   | "Signal is scattered across 15 tools; I miss things and react late."        | Manual triage across Intercom/Gong/Notion/email | Live ingest + clustering (SEN-01, F3, SEN-05)                                 | A        |
-| 2   | "I can't defend my roadmap calls; I get overruled or burned."               | Gut + slides                                    | Critic red-team with evidence (DEC-02, the teardown)                          | C        |
-| 3   | "Writing PRDs and breaking down tasks eats my week."                        | Docs + Jira by hand                             | Cited PRD + task graph (H1)                                                   | C/Define |
-| 4   | "Shipping needs eng I don't control; my context gets lost across the seam." | Tickets + waiting                               | Autonomous build engine, one dispatch from an approved PRD (F-STUDIO + spine) | D        |
-| 5   | "I never learn whether a bet paid off; nothing compounds."                  | Memory in my head, lost at handover             | Outcome reviews + compounding memory (LRN-02, outcome-memory)                 | B        |
-| 6   | "I don't trust the AI; one confident wrong answer and I'm done."            | Avoid AI for real calls                         | Citations, the Critic, the audit trail, governed autonomy                     | B/Gov    |
-| 7   | "Too many tools; the switching tax is brutal."                              | 93 apps, 1 hr/day lost                          | One platform, the whole loop; BYO-key, OAuth Connect                          | A/D      |
-| 8   | "I want help without buying enterprise tooling."                            | Spreadsheets + ChatGPT tabs                     | Individual PM tier, self-serve, $39 (PLG, W6)                                 | E        |
+| # | Pain (the PM's words) | Today's broken workaround | The Supaprod feature that kills it | Lane |
+| --- | --- | --- | --- | --- |
+| 1 | "Signal is scattered across 15 tools; I miss things and react late." | Manual triage across Intercom/Gong/Notion/email | Live ingest + clustering (SEN-01, F3, SEN-05) | A |
+| 2 | "I can't defend my roadmap calls; I get overruled or burned." | Gut + slides | Critic red-team with evidence (DEC-02, the teardown) | C |
+| 3 | "Writing PRDs and breaking down tasks eats my week." | Docs + Jira by hand | Cited PRD + task graph (H1) | C/Define |
+| 4 | "Shipping needs eng I don't control; my context gets lost across the seam." | Tickets + waiting | Autonomous build engine, one dispatch from an approved PRD (F-STUDIO + spine) | D |
+| 5 | "I never learn whether a bet paid off; nothing compounds." | Memory in my head, lost at handover | Outcome reviews + compounding memory (LRN-02, outcome-memory) | B |
+| 6 | "I don't trust the AI; one confident wrong answer and I'm done." | Avoid AI for real calls | Citations, the Critic, the audit trail, governed autonomy | B/Gov |
+| 7 | "Too many tools; the switching tax is brutal." | 93 apps, 1 hr/day lost | One platform, the whole loop; BYO-key, OAuth Connect | A/D |
+| 8 | "I want help without buying enterprise tooling." | Spreadsheets + ChatGPT tabs | Individual PM tier, self-serve, $39 (PLG, W6) | E |
 
 ---
 
 ## 5. Current state vs target (vis-a-vis scan, file-grounded `main` 2026-06-17)
 
-| Station  | Built (real)                                                                                                                                                 | Gap to close                                                                        | Lane  |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ----- |
-| SENSE    | Webhook ingest (KI-10); connector registry OAuth-wired (github/linear/notion/gdocs/gcal/outlook); signals to themes to opportunities (ICE)                   | Connectors operational; >=2 live sources; continuous feed; analytics inbound; audio | A     |
-| DECIDE   | Critic on opportunities (DEC-02); decision card + badge (F-DEC-CARD); shareable link (F-SHARE)                                                               | Critic as routable step; the packaged teardown first-run; roadmap live writes       | C     |
-| DEFINE   | Cited PRD (H1); Critic-on-spec (DEF-03); prd to mission lineage                                                                                              | Task graph from PRD                                                                 | C     |
-| BUILD    | Full hybrid engine (I1/I2/I3/J1/J2/K1)                                                                                                                       | Sandbox+preview; BYO-key delegate-out; rollback; ambient arc                        | D     |
-| SHIP     | PR gated; release notes                                                                                                                                      | Launch-kit mission; announce pages; deploy trigger (deferred)                       | D/G   |
-| LEARN    | Outcome roll-ups; memory recall + handoff threading (W1); compounding view (N3); brief insight (N2)                                                          | Real outcome reviews (LRN-02); outcome-memory auto-trigger; cohort analytics        | B     |
-| Engine   | Chokepoint (kill-switch to budget to guards to RAG to provider to humanize to log); BYO-key; auto-advance; 19-mesh to 5 faces; 31 tools; trust/autonomy dial | Ambient arc seeding; outcome-compound; MCP server; analytical depth                 | B/D/F |
-| Monetize | plan_tier/entitlements; Stripe (REST) + webhook; expiry engine dormant                                                                                       | Switch on; PLG; persona onboarding                                                  | E     |
+| Station | Built (real) | Gap to close | Lane |
+| --- | --- | --- | --- |
+| SENSE | Webhook ingest (KI-10); connector registry OAuth-wired (github/linear/notion/gdocs/gcal/outlook); signals to themes to opportunities (ICE) | Connectors operational; >=2 live sources; continuous feed; analytics inbound; audio | A |
+| DECIDE | Critic on opportunities (DEC-02); decision card + badge (F-DEC-CARD); shareable link (F-SHARE) | Critic as routable step; the packaged teardown first-run; roadmap live writes | C |
+| DEFINE | Cited PRD (H1); Critic-on-spec (DEF-03); prd to mission lineage | Task graph from PRD | C |
+| BUILD | Full hybrid engine (I1/I2/I3/J1/J2/K1) | Sandbox+preview; BYO-key delegate-out; rollback; ambient arc | D |
+| SHIP | PR gated; release notes | Launch-kit mission; announce pages; deploy trigger (deferred) | D/G |
+| LEARN | Outcome roll-ups; memory recall + handoff threading (W1); compounding view (N3); brief insight (N2) | Real outcome reviews (LRN-02); outcome-memory auto-trigger; cohort analytics | B |
+| Engine | Chokepoint (kill-switch to budget to guards to RAG to provider to humanize to log); BYO-key; auto-advance; 19-mesh to 5 faces; 31 tools; trust/autonomy dial | Ambient arc seeding; outcome-compound; MCP server; analytical depth | B/D/F |
+| Monetize | plan_tier/entitlements; Stripe (REST) + webhook; expiry engine dormant | Switch on; PLG; persona onboarding | E |
 
 **Verdict:** engine + build spine real; the loop _ends_ (live ingest, real outcome learning) and the _packaging_ (wedge, onboarding, interop, analytical depth) are the unfinished, highest-leverage work.
 
@@ -96,16 +96,16 @@ Five calm top-level surfaces + Trust row + one Engine Room door. No new top-leve
 
 ## 7. Screen-by-screen (current, gap, how it should function)
 
-| Surface                        | Hero                 | Now                                                                                                                                | Gap / how it should function                                                                                                                                                                                          |
-| ------------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Today** `/`                  | DECIDE               | call-count line, vitals, cleared ring, decision cards, pulse, top priorities, bottlenecks, what-changed, brief, agents rail, tasks | Add the **Critic-teardown first-run** as cold-start hero + a "challenge a bet" card; make it the shareable artifact. Answers "what needs me, what to push, what changed" in 1 to 3 clicks; never a passive dashboard. |
-| **Product** `/product`         | sense→decide→define  | signals, opportunities (ICE), specs, roadmap (H2), portfolio (B3)                                                                  | Continuous discovery feed; Critic verdict inline on opportunity detail; roadmap place-into-bucket writes (migration sync). The work surface where signal becomes a Critic-checked decision.                           |
-| **Build** `/build`             | SHIP                 | live cockpit, per-hunk curation, branch isolation, CI gate, release notes; PRD picker dispatches a mission                         | Sandbox+preview so self-correct is a loop action; BYO-key delegate-out; rollback. Feels like Cursor but autonomous; one dispatch in, merge approval out.                                                              |
-| **Brain** `/knowledge`         | LEARN / moat visible | Memory, Learnings, Decisions, Docs, Calendar                                                                                       | "this learning moved these priorities"; outcome reviews (LRN-02) as a first-class Learnings view. The company brain a competitor cannot backfill.                                                                     |
-| **Ask** `/chat`                | cross-cut            | web-grounded + RAG chat, model switcher, message footer (model/via/cost/latency/sources/feedback)                                  | "Red-team this" + "Capture decision" inline; deep-linked citations. Grounded, cited, never a raw error; can spawn a mission.                                                                                          |
-| **Missions** `/missions`       | the loop, visible    | orchestrated missions, agent roster, swarm HUD, compounding view (N3), loop-health banner (E8)                                     | Cancel/replay/checkpoints (D4); @-mentionable agents (later). Watch the mesh run; every hop cites the memory it drew on.                                                                                              |
-| **Engine Room** `/govern`      | the one door         | 10 outcome-named tabs, fully drillable; audit trail first-class                                                                    | Cost-per-mission chips (ENG-06); incidents log (P7). The 95% never open it; operator gets full depth one click in.                                                                                                    |
-| **Settings/Connectors/Public** | -                    | Plan tab; Connect button (OAuth) + webhook card; anon-safe `/d`,`/p` share                                                         | PLG-aware onboarding; the share link is the viral loop.                                                                                                                                                               |
+| Surface | Hero | Now | Gap / how it should function |
+| --- | --- | --- | --- |
+| **Today** `/` | DECIDE | call-count line, vitals, cleared ring, decision cards, pulse, top priorities, bottlenecks, what-changed, brief, agents rail, tasks | Add the **Critic-teardown first-run** as cold-start hero + a "challenge a bet" card; make it the shareable artifact. Answers "what needs me, what to push, what changed" in 1 to 3 clicks; never a passive dashboard. |
+| **Product** `/product` | sense→decide→define | signals, opportunities (ICE), specs, roadmap (H2), portfolio (B3) | Continuous discovery feed; Critic verdict inline on opportunity detail; roadmap place-into-bucket writes (migration sync). The work surface where signal becomes a Critic-checked decision. |
+| **Build** `/build` | SHIP | live cockpit, per-hunk curation, branch isolation, CI gate, release notes; PRD picker dispatches a mission | Sandbox+preview so self-correct is a loop action; BYO-key delegate-out; rollback. Feels like Cursor but autonomous; one dispatch in, merge approval out. |
+| **Brain** `/knowledge` | LEARN / moat visible | Memory, Learnings, Decisions, Docs, Calendar | "this learning moved these priorities"; outcome reviews (LRN-02) as a first-class Learnings view. The company brain a competitor cannot backfill. |
+| **Ask** `/chat` | cross-cut | web-grounded + RAG chat, model switcher, message footer (model/via/cost/latency/sources/feedback) | "Red-team this" + "Capture decision" inline; deep-linked citations. Grounded, cited, never a raw error; can spawn a mission. |
+| **Missions** `/missions` | the loop, visible | orchestrated missions, agent roster, swarm HUD, compounding view (N3), loop-health banner (E8) | Cancel/replay/checkpoints (D4); @-mentionable agents (later). Watch the mesh run; every hop cites the memory it drew on. |
+| **Engine Room** `/govern` | the one door | 10 outcome-named tabs, fully drillable; audit trail first-class | Cost-per-mission chips (ENG-06); incidents log (P7). The 95% never open it; operator gets full depth one click in. |
+| **Settings/Connectors/Public** | - | Plan tab; Connect button (OAuth) + webhook card; anon-safe `/d`,`/p` share | PLG-aware onboarding; the share link is the viral loop. |
 
 ---
 
@@ -151,13 +151,13 @@ Layers: client (TanStack Start/React 19/Vite, Cloudflare Worker) → auth+tenanc
 
 The current model is the 5-tier **Constellation** ladder presented Anthropic-style as **two toggles** (Individual: Free / Pro / Max; Business: Team / Enterprise), with usage **variants inside Max and Team**. This table is a summary; the canonical matrix + the variant packaging live in [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4 + §2.4.1.
 
-| Tier (toggle)         | Price (founder-gated)                                          | Sold on                                                                                   | State                                             |
-| --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Free (Individual)     | $0                                                             | features; starter usage; memory decays ~30d                                               | built; expiry dormant                             |
-| Pro (Individual)      | ~$20/mo                                                        | features only (persistent memory, Critic everywhere, share links); no public usage number | rails built; needs Stripe secrets                 |
-| Max (Individual)      | one card: "5x" / "20x more usage than Pro" (~$100 / ~$200)     | the power-individual usage step; deepest memory + priority                                | WM-M17 (deferred, post-core)                      |
-| Team (Business)       | one card: Standard (~$25-30/seat) / Premium seat               | shared/pooled memory, per-role lanes, RBAC, per-member caps                               | entitlements built; WM-M17 seat variants deferred |
-| Enterprise (Business) | per-seat + API-rate usage + per-user allocation; contact sales | SSO, audit, residency, governance                                                         | WM-M19 (deferred); architecture ready             |
+| Tier (toggle) | Price (founder-gated) | Sold on | State |
+| --- | --- | --- | --- |
+| Free (Individual) | $0 | features; starter usage; memory decays ~30d | built; expiry dormant |
+| Pro (Individual) | ~$20/mo | features only (persistent memory, Critic everywhere, share links); no public usage number | rails built; needs Stripe secrets |
+| Max (Individual) | one card: "5x" / "20x more usage than Pro" (~$100 / ~$200) | the power-individual usage step; deepest memory + priority | WM-M17 (deferred, post-core) |
+| Team (Business) | one card: Standard (~$25-30/seat) / Premium seat | shared/pooled memory, per-role lanes, RBAC, per-member caps | entitlements built; WM-M17 seat variants deferred |
+| Enterprise (Business) | per-seat + API-rate usage + per-user allocation; contact sales | SSO, audit, residency, governance | WM-M19 (deferred); architecture ready |
 
 Margin is held by **right-sized credit grants + cost-aware routing + caching** (WM-M15), not BYO-key (self-serve BYOK was removed 2026-06-19; enterprise-only). Usage multipliers show only on Max + Team seats; Free/Pro are feature-led (§2.4.1 copy rule). Outcome pricing stays a later experiment (unit unsolved); ship seat/usage first. Switch-on: founder sets Stripe secrets + the variant numbers (bible §7); flip memory-expiry only when first-win is reliable.
 

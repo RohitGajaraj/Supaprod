@@ -51,23 +51,23 @@ The end-user/platform split is the direct answer to "are the new agents visible 
 
 Internal DB slugs are never renamed (the rename-disclaimer rule). Naming and identity are a display layer over the slug. Names below are the proposed friendly-archetype set (section 4) and are easy to change.
 
-| Station     | Agent (face)   | slug                                | Tier           | One-liner (outcome-framed)                                |
-| ----------- | -------------- | ----------------------------------- | -------------- | --------------------------------------------------------- |
-| **Sense**   | Scout          | `discovery-scout`                   | cast           | Watches your connected sources and surfaces what changed. |
-| Sense       | Researcher     | `researcher` (re-enable)            | cast           | Digs into a question across the web and your workspace.   |
-| Sense       | Voice          | `voice` (NEW)                       | cast           | Clusters what customers are saying into themes.           |
-| **Decide**  | Strategist     | `strategist`                        | cast           | Ranks and re-scores the bets by impact.                   |
-| Decide      | Critic         | `critic` (NEW agent row)            | cast           | Red-teams the call before you commit.                     |
-| **Define**  | Scribe         | `prd-writer`                        | cast           | Turns the decision into a clear spec.                     |
-| Define      | Planner        | `sprint-planner` (re-enable)        | cast           | Breaks the spec into sprint-ready work.                   |
-| **Design**  | Design         | `ux-architect` (2026-07-17: moved off Define onto its own station - the Tempo nav revamp gave Design a first-class loop stage, but the agent canon still had this cast member bucketed under Define, so its relay showed Plan's activity instead of its own) | cast | Maps the experience and renders it through your brand.    |
-| **Build**   | Maker          | `builder` (display "Studio" today)  | cast           | Writes the change in your codebase.                       |
-| Build       | Reviewer       | `reviewer` (NEW; or re-enable `qa`) | cast           | Checks the diff before it ships.                          |
-| **Ship**    | Herald         | `herald` (NEW)                      | cast           | Announces what shipped: notes, changelog, post.           |
-| **Learn**   | Echo           | `echo` (NEW)                        | cast           | Reads the outcome against the bet and feeds memory.       |
-| (conductor) | Chief of Staff | `orchestrator`                      | cast (special) | Runs the loop and brings you only what needs you.         |
-| -           | Reactor        | `reactor`                           | **crew**       | Engine event fan-out (hidden).                            |
-| -           | Archivist      | `archivist` (NEW)                   | **crew**       | Memory consolidation (hidden).                            |
+| Station | Agent (face) | slug | Tier | One-liner (outcome-framed) |
+| --- | --- | --- | --- | --- |
+| **Sense** | Scout | `discovery-scout` | cast | Watches your connected sources and surfaces what changed. |
+| Sense | Researcher | `researcher` (re-enable) | cast | Digs into a question across the web and your workspace. |
+| Sense | Voice | `voice` (NEW) | cast | Clusters what customers are saying into themes. |
+| **Decide** | Strategist | `strategist` | cast | Ranks and re-scores the bets by impact. |
+| Decide | Critic | `critic` (NEW agent row) | cast | Red-teams the call before you commit. |
+| **Define** | Scribe | `prd-writer` | cast | Turns the decision into a clear spec. |
+| Define | Planner | `sprint-planner` (re-enable) | cast | Breaks the spec into sprint-ready work. |
+| **Design** | Design | `ux-architect` (2026-07-17: moved off Define onto its own station - the Tempo nav revamp gave Design a first-class loop stage, but the agent canon still had this cast member bucketed under Define, so its relay showed Plan's activity instead of its own) | cast | Maps the experience and renders it through your brand. |
+| **Build** | Maker | `builder` (display "Studio" today) | cast | Writes the change in your codebase. |
+| Build | Reviewer | `reviewer` (NEW; or re-enable `qa`) | cast | Checks the diff before it ships. |
+| **Ship** | Herald | `herald` (NEW) | cast | Announces what shipped: notes, changelog, post. |
+| **Learn** | Echo | `echo` (NEW) | cast | Reads the outcome against the bet and feeds memory. |
+| (conductor) | Chief of Staff | `orchestrator` | cast (special) | Runs the loop and brings you only what needs you. |
+| - | Reactor | `reactor` | **crew** | Engine event fan-out (hidden). |
+| - | Archivist | `archivist` (NEW) | **crew** | Memory consolidation (hidden). |
 
 Clubbed / deprecated (map-only: render a face on historical runs, never seeded): `operations` -> Chief of Staff; `growth-strategist` / `data-analyst` -> Strategist; `customer-insights` / `competitor-watcher` -> Scout; `engineer` -> Maker; `copilot` -> Chief of Staff; `stakeholder` / `release` -> Herald.
 

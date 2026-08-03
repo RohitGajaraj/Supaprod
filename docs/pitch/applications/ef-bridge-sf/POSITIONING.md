@@ -4,7 +4,7 @@
 
 ## The facts
 
-| | |
+| --- | --- |
 | --- | --- |
 | **Program** | The Bridge Residency, Fall 2026 |
 | **Deadline** | **2026-08-30** (final) |

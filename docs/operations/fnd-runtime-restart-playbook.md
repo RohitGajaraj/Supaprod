@@ -42,12 +42,12 @@ The proof has been waiting on one thing: nobody has deliberately killed a worker
 
 ## Fail modes & what they mean
 
-| Symptom                                                          | Likely cause                                                                       | Where to look                                                                                                                            |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Two PRs on the branch                                            | `withIdempotency` not wrapping `github.pr.open`                                    | `src/lib/ai/tools/registry.server.ts` — the PR-open tool should be inside `withIdempotency(supabase, "github_pr", a.idempotency_key, …)` |
-| Mission stays stuck `running` after restart                      | Sweeper isn't running, or run's `last_checkpoint_at` is fresh enough to be skipped | `/api/public/hooks/resume-runs` logs; the pg_cron job `resume-runs-tick`                                                                 |
-| Mission flips `failed` after restart                             | Loop tried to call an external tool whose result wasn't yet checkpointed           | Confirm checkpoint happens _before_ the provider call (`loop.server.ts`)                                                                 |
-| Duplicate `tool_calls` for `github.ci.read` with same `head_sha` | CI-read idempotency cache key not hit                                              | Confirm Slice 2 wraps `github.ci.read` in `withIdempotency('github_ci', '<pr>-<head_sha>', …)`                                           |
+| Symptom | Likely cause | Where to look |
+| --- | --- | --- |
+| Two PRs on the branch | `withIdempotency` not wrapping `github.pr.open` | `src/lib/ai/tools/registry.server.ts` — the PR-open tool should be inside `withIdempotency(supabase, "github_pr", a.idempotency_key, …)` |
+| Mission stays stuck `running` after restart | Sweeper isn't running, or run's `last_checkpoint_at` is fresh enough to be skipped | `/api/public/hooks/resume-runs` logs; the pg_cron job `resume-runs-tick` |
+| Mission flips `failed` after restart | Loop tried to call an external tool whose result wasn't yet checkpointed | Confirm checkpoint happens _before_ the provider call (`loop.server.ts`) |
+| Duplicate `tool_calls` for `github.ci.read` with same `head_sha` | CI-read idempotency cache key not hit | Confirm Slice 2 wraps `github.ci.read` in `withIdempotency('github_ci', '<pr>-<head_sha>', …)` |
 
 ## Doc-loop closure on pass
 

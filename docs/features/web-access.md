@@ -12,12 +12,12 @@ Supaprod agents reason over workspace data by default. The moment a mission need
 
 All four are registered in `src/lib/ai/tools/registry.server.ts` and call the helper in `src/lib/ai/tools/firecrawl.server.ts`.
 
-| Tool         | Category | Default approval | What it does                                                                                                                   |
-| ------------ | -------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `web.search` | read     | `auto`           | Ranked search results (url, title, snippet). Optional `scrape: true` includes markdown. Caps: `limit ≤ 10`, query ≤ 300 chars. |
-| `web.fetch`  | read     | `auto`           | Fetches a single URL → markdown + metadata. Output is clipped (default 8 KB, max 20 KB).                                       |
-| `web.map`    | read     | `auto`           | Lists URLs on a domain. Cheap discovery before a `web.crawl`.                                                                  |
-| `web.crawl`  | read     | `confirm`        | Bounded crawl (max 25 pages, depth 2). Spends real Firecrawl credits, which is why it asks for approval.                       |
+| Tool | Category | Default approval | What it does |
+| --- | --- | --- | --- |
+| `web.search` | read | `auto` | Ranked search results (url, title, snippet). Optional `scrape: true` includes markdown. Caps: `limit ≤ 10`, query ≤ 300 chars. |
+| `web.fetch` | read | `auto` | Fetches a single URL → markdown + metadata. Output is clipped (default 8 KB, max 20 KB). |
+| `web.map` | read | `auto` | Lists URLs on a domain. Cheap discovery before a `web.crawl`. |
+| `web.crawl` | read | `confirm` | Bounded crawl (max 25 pages, depth 2). Spends real Firecrawl credits, which is why it asks for approval. |
 
 Approval mode is the user's per-tool setting in `agent_tools.mode` and is modulated by the agent's trust arc (see [`trust-and-autonomy.md`](./trust-and-autonomy.md)). Operators can flip any of them to `confirm` / `review` / `off` in the agent edit panel.
 

@@ -14,7 +14,7 @@ partial journey. Read against the code, that is not a vagueness problem. It is f
 structural defects:
 
 | # | Defect | Evidence in code |
-|---|---|---|
+| --- | --- | --- |
 | D1 | **Two shells fight over one app.** | `src/routes/_authenticated.tsx:157-180` picks shell A vs shell B from a hardcoded pathname allowlist. Cross a boundary and the chrome, the nav model, the shortcuts, and the account menu all change under you. |
 | D2 | **The nav rail confuses two orthogonal axes.** | `src/lib/nav-model.ts` puts `Discover..Learn` (WHERE IN THE LOOP) in the same list as `Brain` and `Pulse` (WHAT IS BEHIND THE LOOP). Nothing tells you these are different kinds of thing, so neither reads as anything. |
 | D3 | **Destinations exist to make a story true.** | `/decide` is 70 lines with zero queries of its own - a header wrapped around `OpportunityQueue`, the exact component `/discover?tab=queue` renders. `/ship` and `/learn` mount lazy panels (`ShipHistoryPanel`, `ChangelogPanel`, `AnnouncementsPanel`, `LearningsPanel`, `ImpactLedgerPanel`) whose only own query is a presence chip. Three rail rows own nothing. |
@@ -50,7 +50,7 @@ If yes it is a destination. If the Spine, the Thread, the Composer and the depth
 live and only a region changes, it is a layer.
 
 | Kind | Count | What it is | Passes the test? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Destination** | 1 | `/$ws/$product` - The Room | - |
 | **Workbench children** | 4 | `/$ws/$product/spec/$id`, `/mission/$id`, `/trace/$id`, `/prototype/$id` | No. Same TopBar, same Spine, same depth rail. Only the Thread and Canvas swap. Back returns to the exact canvas state. |
 | **Depth panes** | 7 | `?pane=` (6) + `?gate=` (1). Over-panels sliding across the Canvas | No. Spine, Thread, Composer stay live behind them. |
@@ -70,7 +70,7 @@ in Mission Control". The chrome carries the mark and the switcher; the *place* i
 The four canvas-region names, in the user's words, appear only as labels on the thing itself:
 
 | Region | On-screen name | Answers |
-|---|---|---|
+| --- | --- | --- |
 | Spine | `01 Discover ... 07 Learn` | Where in the loop is this? |
 | Thread | *(unlabelled - it is the conversation)* | What is going on, and what does it want from me? |
 | Canvas | the stage's own name | What is the work in front of me? |
@@ -79,7 +79,7 @@ The four canvas-region names, in the user's words, appear only as labels on the 
 ### 1.4 What I rejected, and why
 
 | Rejected | Why it is not a destination |
-|---|---|
+| --- | --- |
 | **Today** | It is the disease, not the cure. `_authenticated.today.tsx` is 1543 lines pulling `getGreeting`, `getTodayLanes`, `getApprovalsQueue`, `listFanoutBatches`, `listLearnings`, `getProductContext`, `getAgentFleet` - a dashboard *about* the loop, sitting next to the loop, guaranteeing that everything appears twice and nothing connects. Its own onboarding exits point here (`ObsidianOnboarding.tsx:684,1132`; `MissionOnboarding.tsx:63,72`) while the landing sends returning users to `/m`, which is the three-way split. A dashboard is what you build when you do not trust your product to be legible. The room is legible. |
 | **Discover / Decide / Plan / Design / Build / Ship / Learn as seven pages** | Seven pages is seven contexts, seven headers, seven scroll positions, and seven chances to lose the artifact you were carrying. The Spine already renders all seven, always, with per-stage state (`Spine.tsx`, `StageLoopState`). Making them pages duplicates the Spine and then contradicts it. They become **canvas faces**, which is what `faces.tsx` already built. |
 | **Decide, Ship, Learn** (specifically) | They own nothing. Founder's own rule: a destination that exists to make a story true is a defect. Confirmed above (D3). They die hardest. |
@@ -111,7 +111,7 @@ for a daily user.
 The Canvas shows exactly one stage face. `?stage=` selects it; the Spine and keys `1`-`7` set it.
 
 | Stage | URL | Absorbs (real code) | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 01 Discover | `?stage=discover` | `/discover` + `DiscoverSurface` (Signals), `/discovery`, `/opportunities`, `researcher.functions` targets, `AudioTranscriptPanel` recordings lane, meetings-as-signal | 1 (`1`) |
 | 02 Decide | `?stage=decide` | `OpportunityQueue` (from `/decide` and `/discover?tab=queue`), teardown verdicts, `gauntlet`, `contradiction-auditor`, `shared-premise`, `decision-currency` | 1 (`2`) |
 | 03 Plan | `?stage=plan&view=` | `/plan` + `PlanSurface` five views (`goals`, `loops`, `roadmap`, `specs`, `stakeholders`), `/prds`, `/roadmap`, `/stakeholder`, `task-graph` | 1 (`3`) |
@@ -133,7 +133,7 @@ always in `aria-label` and the tooltip. Clicking opens a **420px over-panel** ac
 The Spine stays. The Thread stays. The Composer stays. The URL gains `?pane=`.
 
 | Tile | Label (the user's words) | Key | URL | Owns |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | ◆ ember | **Your call** | `g` | `?gate=open` | The approvals queue (`getApprovalsQueue`, `decideApprovalItem`, `sendBackApprovalItem`), all 10 gate families, plus a second section **Heads up** for `notifications` + `announcements` (this is where `AttentionBell.tsx` finally mounts), plus **What your calls taught us** (`gate-signals.functions.getGateSignals`) |
 | 1 | **What we know** | `k` | `?pane=brain` | `/brain`'s four tabs (Decisions, Learnings, Docs, Graph) + `memory`, `memory-candidates`, `MemoryList`, `MemoryReviewQueue`, `MemoryView`, `MemoryExpiryBanner`, `decision-precedent`, `brain-insights`, `knowledge-graph-*`, `strategy-registry`, `playbooks` |
 | 2 | **What happened** | `r` | `?pane=record` | Engine Room's Record room whole: `verify`, `receipts` (the tamper-evident ledger + share controls), `traces` (`TracesPanel`), `approvals` log, `support`. Plus `ExecutedCard`, `lineage`, `audit-lineage`, `trust-chain`, `artifact-rewind` |
@@ -170,7 +170,7 @@ overlay over the room (the room stays mounted; Escape returns you to the exact c
 every legacy `?section=` id preserved by `normalizeSection`.
 
 | Group | Sections | URL | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | You | profile, notifications | `?config=you&section=profile` | 2 |
 | Workspace | workspace (Brief & voice), brand, products, memory | `?config=workspace&section=brand` | 2 |
 | Agents | staff (Roster), autonomy (Autonomy & approvals), ai (Models & keys) | `?config=agents&section=autonomy` | 2 |
@@ -188,7 +188,7 @@ configuration, not content, and it lives under Workspace as `memory-policy`.
 ### 2.4 Admin - the one deliberate 3-click path
 
 | Surface | URL | Clicks |
-|---|---|---|
+| --- | --- | --- |
 | Admin overview | `?config=admin&section=overview` | 3 |
 | People, Workspaces, Platform, Routing, Pricing, Health (observability), Spend (ai-costs), Proof (incl. `ActivationFunnelPanel`) | `?config=admin&section=<id>` | 3 |
 
@@ -209,7 +209,7 @@ TopBar, same Spine, same depth rail - with the Thread column replaced by that ob
 sequence and the Canvas given to the work.
 
 | Child | URL | Replaces | Thread column becomes | Clicks |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Spec editor | `/$ws/$product/spec/$specId?tab=` | `/plan/spec/$id` (1084 lines), `/prds/$id` | The spec's provenance: citations, the signals it came from, the decision that authorized it | 2 (Plan face → row) |
 | Mission | `/$ws/$product/mission/$missionId` | `/build/$missionId` (870), `/missions/$id`, `/studio/$id` | The mission's step log, live | 2 (Build face → row) |
 | Trace | `/$ws/$product/trace/$traceId` | `/traces/$traceId` (861) | The run's steps, replayable | 2 (Record pane → row) or 1 from any receipt |
@@ -225,7 +225,7 @@ TopBar. There is no such thing as arriving somewhere that is not the room.
 **The 13 unmounted components** (verified this session: zero references anywhere in `src/`):
 
 | Component | Home | Clicks |
-|---|---|---|
+| --- | --- | --- |
 | `supaprod/AttentionBell.tsx` (97, real notifications query) | Gates tray → **Heads up** section | 1 (`g`) |
 | `audio/AudioTranscriptPanel.tsx` (393, complete transcription backend) | Two doors, one render: the **composer mic verb** dictates; the **Discover face → Recordings lane** lists and opens transcripts, and `extractActionsFromTranscript` promotes a line to a signal | 1 |
 | `observe/TracesPanel.tsx` | Record pane → **Every run** | 1 (`r`) |
@@ -243,7 +243,7 @@ TopBar. There is no such thing as arriving somewhere that is not the room.
 **The 4 orphaned server-function domains:**
 
 | Domain | Exports | Home | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `researcher.functions` | `getResearcherTargets`, `updateResearcherTargets` | Discover face → **Watching** strip, edited inline (the Engine-Room doctrine's "name the outcome, not the mechanism": the label is "What the crew is watching", not "researcher targets") | 1 |
 | `design-parity.functions` | `getDesignParity`, `checkDesignParity` | Build face → changeset card → **Matches the design** row; failure opens the diff against the mockup | 1 |
 | `gate-signals.functions` | `getGateSignals` (the write half is already wired from `discovery.functions` and `agent_loop.functions`) | Gates tray footer → **What your calls taught us** | 1 (`g`) |
@@ -252,7 +252,7 @@ TopBar. There is no such thing as arriving somewhere that is not the room.
 **The four broken legacy redirects - fixed, with one correction to the brief:**
 
 | Path | Reality (verified) | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `/impact` | Redirects to `/brain?tab=insights` → `LEGACY_TABS` folds `insights` → `decisions`, but `ImpactLedgerPanel` is only mounted on `/learn`. Genuinely broken. | → `?stage=learn&view=impact` |
 | `/calendar` | → `/brain?tab=calendar` → folds to `decisions`; `CalendarPanel` is unmounted. Broken. | → `?stage=discover&view=meetings` |
 | `/meetings/$id` | Same fold, and `?meeting=` is silently dropped. Broken. | → `?stage=discover&view=meetings&item=<id>` |
@@ -262,7 +262,7 @@ TopBar. There is no such thing as arriving somewhere that is not the room.
 **The remaining named surfaces:**
 
 | Surface | Home | Clicks |
-|---|---|---|
+| --- | --- | --- |
 | `/sync` (842) | Settings → Connections → Sync & bindings | 2 |
 | `/settings` (3433) | The config overlay | 1-2 |
 | `/today` (1543) | Dissolved: greeting + `IntelBriefPanel` + `getProductContext` → the **Thread briefing card**; `JudgmentLane` → the **Gates tray**; `WatchLane` → **Discover face**; `ReceiptsStrip` → **Record pane**; `ColdStartOnramp` → **first light**; `DeskRail`/PM Desk → the **WorkingStrip + Composer** | - |
@@ -290,7 +290,7 @@ visible where the work is, not only where the queue is.
 The current three-way disagreement is resolved by deleting two of the three answers:
 
 | Today | Tomorrow |
-|---|---|
+| --- | --- |
 | Login → `window.location.assign("/")` → landing detects session → `window.location.replace("/m")` → resolve → room | Login → `/m` directly (one hop, no public-page bounce), `/m` resolves last-active product and replaces with the room URL |
 | Onboarding completion → `/today` (`ObsidianOnboarding.tsx:684,1132`, `MissionOnboarding.tsx:63,72`) | There is no onboarding completion event, because there is no onboarding route (§3.2) |
 | `nav-model.ts` "home" → `/today` | There is no nav model |
@@ -304,7 +304,7 @@ The same shell. Not a wizard, not a different route, not a full-viewport chromel
 room, in its **first-light** state.
 
 | Region | First light |
-|---|---|
+| --- | --- |
 | TopBar | Mark, `Your workspace / your first product`, gear, account, depth rail on the right with all counts at zero and one at `1` |
 | Spine | All seven stages present and quiet. This is the single most important pixel in the product: on the first frame you can see the whole thing you bought. |
 | Thread | One card: **"What are you building?"** - this is the `/start` component (`MissionOnboarding`), mounted here instead of stranded. One sentence in, `saveBrief` runs, `finish()` marks the profile onboarded, and the card is replaced by the crew's first briefing. Skipping is a link, not a wall. |
@@ -370,7 +370,7 @@ without a door.
 **J1 - "What should we build next?"** · `?journey=j1` · Spine `01→02`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Discover face | H | Say it, or click the card. Works from zero: with no sources, the Researcher fetches market signal first (`researcher.functions` targets). |
 | 1 | Discover face | M | `clusterSignals` groups raw signal into themes; Watch lane shows sources moving |
 | 2 | Discover face | M | Themes become ranked bets with evidence chains |
@@ -382,7 +382,7 @@ without a door.
 **J2 - "Tear this idea down"** · `?journey=j2` · Spine `02`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Decide face, with a bet or spec in `?focus=` | H | Requires an artifact - honest scoping, per the catalog's GAP note. From free text, the composer first creates the opportunity, then tears it down; the Thread says so. |
 | 1 | Decide face | M | `runWedgeTeardown` builds the strongest case against |
 | 2 | Decide face | M | `dispatchExploration` fans out counter-evidence across the crew |
@@ -393,7 +393,7 @@ without a door.
 **J3 - "Just write the PRD"** · `?journey=j3` · Spine `03`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Plan face, or the composer from an approved bet, **or a bare idea typed with no upstream at all** | H | The founder's named slice. No discovery required. |
 | 1 | Plan face | M | `generatePrd` drafts; citations resolve against the Brain live |
 | 2 | **Spec workbench** `/spec/$id` | H+M | Edit alongside `prdAssist`. Thread column shows provenance: which signals, which decision. |
@@ -405,7 +405,7 @@ without a door.
 **J5 - "Design this"** · `?journey=j5` · Spine `04`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Design face with a spec in `?focus=` | H | Spec may be draft or approved |
 | 1 | Design face | M | `generateDesignScaffold` produces the prototype in your brand (Brand Kit from Settings → Workspace → Brand) |
 | 2 | Prototype workbench | M | `runScaffoldDesignCritic` reviews against the brand and the spec |
@@ -416,7 +416,7 @@ without a door.
 **J4 - "Build this feature"** · `?journey=j4` · Spine `05`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Build face with an approved spec | H | No repo? `canDispatchToRepo` says so and `provisionRepoForSpec` offers to create one in your GitHub. Never a dead end. |
 | 1 | Build face | M | `dispatchStudioSession` - agents write real code |
 | 2 | **Mission workbench** `/mission/$id` | M | Live steps; WorkingStrip carries the verb; checkpointing loop pauses at tool-approval boundaries |
@@ -429,7 +429,7 @@ without a door.
 **J6 - "Launch what we shipped"** · `?journey=j6` · Spine `06`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Ship face with a shippable changeset | H | |
 | 1 | **Gate** | **H** | `promoteToProduction` - preview to production is a human call, always |
 | 2 | Ship face | M | `generateReleaseNotes` + `generateLaunchKit` + `generateLaunchPlan` |
@@ -441,7 +441,7 @@ without a door.
 **J7 - "How did it land?"** · `?journey=j7` · Spine `07`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | **The gate finds you.** This is the only journey whose primary entry is `gate`, not a chip: the armed outcome check fires and lands in the Gates tray on its date. | M | `checkPrdShipped` |
 | 1 | Learn face | M | `getOutcomeData` assembles what happened against the outcome contract |
 | 2 | Learn face | **H** | `recordOutcome`. **Honest edge:** human-attested. The UI says "record how it landed", never "we measured how it landed". |
@@ -477,7 +477,7 @@ This is the "what needs to be interlinked" answer.
 before clicking. This is the direct answer to "if I click this, what will happen?"**
 
 | Type | Renders as | What happens | Never |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Trace link** (backward, "where did this come from") | A mono chip, e.g. `SIG-204`, `SPEC-52`, `trc_9` | Opens that entity in a **pane or peel over the current canvas**. You do not lose your place. | Never navigates away |
 | **Move link** (forward, "the next step") | An ember `NextLine` door with a verb, e.g. "Write the spec" | **Moves the room**: sets `?stage=` and `?focus=`, lights the journey slice | Never opens a modal |
 | **Deep link** (sideways, "the full workbench") | A quiet "Open" affordance on a row | Navigates to a **workbench child** (spec/mission/trace/prototype) | Never a modal that traps state |
@@ -492,7 +492,7 @@ the UI. **D** marks a rendered, clickable door. Everything unmarked is a real da
 is queryable but deliberately not surfaced as chrome (the restraint budget).
 
 | Entity | Home surface | FORWARD to | BACK to |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Signal** | Discover face | **D** Bet it clustered into · **D** Spec that cites it · Learning that re-scored it | **D** Source (connector / meeting / recording / support ticket) · **D** Raw item |
 | **Bet** (opportunity) | Decide face | **D** Decision (keep/kill) · **D** Teardown verdict · **D** Spec generated from it · Roadmap slot | **D** Signals it clusters (count chip → peels the evidence chain) · **D** Brief alignment score |
 | **Decision** | Brain pane → Decisions (record) · rendered at the gate where it is made | **D** Spec it authorized · **D** Outcome that judged it · Precedent it set for future decisions | **D** The bet or spec it ruled on · **D** Evidence chain · **D** Receipt in the ledger · **D** Who decided, when |
@@ -510,7 +510,7 @@ is queryable but deliberately not surfaced as chrome (the restraint budget).
 Four things thread through every entity above and get one consistent rendering each:
 
 | Spine | Rendering | Reached from |
-|---|---|---|
+| --- | --- | --- |
 | **Receipt** | A `ReceiptLine` on every artifact card: who, what, when, with a mono id | **D** → Record pane, that receipt, its tamper seal, its trace |
 | **Trace** | A `trc_*` chip on anything an agent produced | **D** → `/trace/$id` workbench |
 | **Agent** | An `AgentChip` on every machine-authored thing | **D** → Crew pane, that agent, its runs and its scorecard |
@@ -577,7 +577,7 @@ state. That is what "everything is in the same thing" means mechanically.
 ### 6.3 Modal vs page - the law
 
 | Shape | Use for | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **Page** (workbench child route) | Anything worked on for more than a minute, or handed to someone outside the loop | Spec editor, mission, trace, prototype |
 | **Pane** (`?pane=`, over-panel, 420px) | Anything scanned, referenced, or picked from while working | Brain, Record, Made, Threads, Crew, Engine |
 | **Tray** (`?gate=`, over-panel, ember) | Judgment. Distinct chrome because judgment is a distinct act. | Approvals |
@@ -594,7 +594,7 @@ already enforce the shape.
 Ranked, and every branch ends somewhere real:
 
 | Missing | Behaviour |
-|---|---|
+| --- | --- |
 | No workspace/product in the URL (`/settings?section=x`, `/brain`, any legacy path) | The legacy resolver mounts, calls the same last-active-product resolution `/m` uses, and **replaces** the URL with the new room URL carrying the translated params. One frame, no flash of a wrong shell. |
 | Product slug unknown, or a workspace you cannot see | The `RoomDeadEnd` pattern already in `$workspaceSlug.$productSlug.tsx:104-138`: honest line, honest hint, a door back - **wearing the room chrome**, so the switcher and sign-out are present. RLS makes "does not exist" and "not yours" indistinguishable on purpose; the copy does not leak which. |
 | `?focus=spec:SPEC-52` and the spec is gone | The Plan face renders its list normally, with an inline honest note at the top: "That spec is gone or you cannot see it." The list beneath it is the recovery. Never a blank, never a bounce. |
@@ -621,7 +621,7 @@ palette with zero importers, and search is currently unreachable because Cmd+K o
 Fixed by splitting the two keys, which are two different questions:
 
 | Key | Opens | Question |
-|---|---|---|
+| --- | --- | --- |
 | `⌘K` | The palette | "Take me to a thing I can name" - any entity, stage, pane, setting, journey, agent |
 | `⌘J` | The composer | "Do something for me" - the existing `supaprod:open-ask` path, unchanged |
 
@@ -635,7 +635,7 @@ the rail and the Spine cannot; it is an accelerator, never a second IA.
 ### 7.1 Routes deleted outright (component gone; path becomes a resolver entry)
 
 | Route | Lines | Absorbed by |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.today.tsx` | 1543 | Thread briefing + Gates tray + Discover face + Record pane + first light |
 | `_authenticated.decide.tsx` | 70 | `?stage=decide` (it already only wrapped `OpportunityQueue`) |
 | `_authenticated.ship.tsx` | - | `?stage=ship` |
@@ -658,7 +658,7 @@ the rail and the Spine cannot; it is an accelerator, never a second IA.
 ### 7.2 Routes that move (not deleted - re-homed under the room)
 
 | From | To |
-|---|---|
+| --- | --- |
 | `/plan/spec/$id` (1084) | `/$ws/$product/spec/$specId` |
 | `/build/$missionId` (870) | `/$ws/$product/mission/$missionId` |
 | `/traces/$traceId` (861) | `/$ws/$product/trace/$traceId` |
@@ -667,7 +667,7 @@ the rail and the Spine cannot; it is an accelerator, never a second IA.
 ### 7.3 Components deleted
 
 | Component | Lines | Absorbed by |
-|---|---|---|
+| --- | --- | --- |
 | `supaprod/AppShell.tsx` | 1033 | `RoomChromeShell` + the depth rail |
 | `supaprod/TopBar.tsx`, `supaprod/PageHeader.tsx` | - | `RoomTopBar` + `CanvasFace`'s `SurfaceHeader` |
 | `supaprod/FocusDock.tsx` | - | `WorkingStrip`. It already fights the composer for the bottom-center of the screen (`_authenticated.tsx:210-216` documents the collision). |
@@ -679,7 +679,7 @@ the rail and the Spine cannot; it is an accelerator, never a second IA.
 ### 7.4 Modules deleted or rewritten
 
 | Module | Fate |
-|---|---|
+| --- | --- |
 | `src/lib/nav-model.ts` | **Deleted.** Ten destinations in three zones is the thing being removed. |
 | `src/lib/legacy-redirects.ts` | **Deleted**, replaced by `legacy-resolver.ts` (§6.5) |
 | `src/lib/delegate-poll.functions.ts` | **Deleted.** No caller, no future caller. |
@@ -690,7 +690,7 @@ the rail and the Spine cannot; it is an accelerator, never a second IA.
 ### 7.5 Concepts killed
 
 | Concept | Why |
-|---|---|
+| --- | --- |
 | **Two shells** | The `_authenticated.tsx:157-180` allowlist is deleted. One shell, no branch. |
 | **"Today"** | A dashboard next to the loop guarantees duplication. |
 | **"Pulse"** as a nav label | A label that hid `/engine-room`, appearing in no URL and in no user's vocabulary. |
@@ -710,7 +710,7 @@ the old shell) happens only after depth is already visible (P2) - reverse those 
 the 2026-07-18 failure exactly.
 
 | P | Ships | Work | Risk gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **P0** | Nothing visible | Extend `room-url.ts` to build every param in §6.1. Add `pane`, `pview`, `item`, `gate`, `config`, `section`, `focus`, `first` to the room's `validateSearch` as accepted no-ops. Write `legacy-resolver.ts` with today's mapping and point the existing 41 stubs at it (behaviour identical). | Route tests green; `legacy-redirects.test.ts` ported and passing against the new resolver |
 | **P1** | **One shell** | Delete the pathname allowlist in `_authenticated.tsx`. Every authenticated route renders inside `RoomChromeShell`. Legacy page bodies render full-width where the Canvas will go. Delete the duplicate `ProductSwitcher`. Nothing has moved yet - but the shell disagreement, the bounce to the retired rail, and the stranded account menu are all gone in one release. | Every one of the ~68 routes renders with a TopBar, a switcher and a sign-out |
 | **P2** | **Depth becomes visible** | Build the 48px rail with all seven tiles and their live counts. Each tile opens the **existing** surface inside the over-panel - `/brain`'s body, the Engine Room's rooms, `ApprovalsTray`, `ThreadsSurface`, `ArtifactsSurface`, `CrewDrawer`. Routes still exist and still work. Bind `g k r m t c e`. | A user can reach Crew, Record, Engine and Threads without knowing a URL - the thing that has never been true |
@@ -730,7 +730,7 @@ The stance's assigned burden was: show that admin, engine room, settings and the
 genuinely reachable and do not feel hidden.
 
 | Depth | Reachable in | Advertises itself by | Addressable as |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **The ledger** (tamper-evident receipts, traces, approvals log) | 1 click (`r`), or 0 from any receipt chip on any artifact | A permanent rail tile with a count of receipts since your last look | `?pane=record&pview=receipts&item=<id>` |
 | **The engine room** (spend, quality, safety, routines, incidents) | 1 click (`e`) | A permanent rail tile that turns amber when any of the four rooms is on watch, carrying that room's one-line action | `?pane=engine&pview=drift` |
 | **The crew** (13 agents, trust, runs, scorecards) | 1 click (`c`), or 0 from any `AgentChip` anywhere | A permanent rail tile with a count of agents working right now | `?pane=crew&item=critic` |

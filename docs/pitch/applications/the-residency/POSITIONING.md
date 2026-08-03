@@ -4,7 +4,7 @@
 
 ## The facts
 
-| | |
+| --- | --- |
 | --- | --- |
 | **Program** | The Residency, Fall 2026 cohort |
 | **Cohort dates** | **7 September to 29 November 2026** (stated on the form) |

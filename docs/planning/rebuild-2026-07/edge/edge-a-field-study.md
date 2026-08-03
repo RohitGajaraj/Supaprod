@@ -91,7 +91,7 @@ corrected in section 10.2, because it is load-bearing for the moat.
 The reference model, and the one the founder named.
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | git entirely: init, branch, commit, push, merge. Supabase provisioning, RLS, edge function deploy, hosting, DNS. Every project syncs bidirectionally to a GitHub repo with every AI change committed in real time, and the user is told this once, in docs, not in the flow. |
 | **Surfaced, and in what form** | A **preview**, always live, always current. A **version history** panel behind a clock icon, grouped by date like a document editor, with any version restorable in one click and stable versions favouritable. A **publish** button. Connectors as buttons. |
 | **Vocabulary required** | Four words: prompt, preview, publish, version. Optionally "credits". Nothing else. Branch switching exists but is a Labs feature the user must go to Settings and turn on, which is the correct treatment of a mechanism: available, off, unnamed by default. |
@@ -110,7 +110,7 @@ constraints in the execution path. You cannot absorb the decision and leave the 
 ### 2.2 v0 (Vercel)
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Build, bundling, hosting, CDN, environment provisioning. Deploy is one click to a real URL on production-grade infrastructure. |
 | **Surfaced** | A **Git panel** (2026) that creates a branch per chat, opens PRs against main, and deploys on merge. Previews map to real deployments. This is the deliberate inverse of Lovable: v0 chose to surface git because its 2026 positioning is "anyone on a team, not just engineers, can ship production code through proper git workflows". |
 | **Vocabulary required** | Branch, PR, main, merge, preview, deploy. Six mechanism words. |
@@ -132,7 +132,7 @@ in conflict because they are different readers of the same object.
 The clearest cautionary tale about a leaked unit of account.
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Environment, build, deploy. |
 | **Surfaced** | **Tokens.** Constantly. The token balance is the most present number in the product. |
 | **Vocabulary required** | Token, and the folk-economics of token burn. |
@@ -150,7 +150,7 @@ this study leads with it.
 ### 2.4 Replit Agent 3
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Environment, dependency install, hosting, database provisioning, deploy. Genuinely deep absorption. |
 | **Surfaced** | **Checkpoints**, which are simultaneously the progress unit and the billing unit. Effort-based pricing measures time and computation per request; a simple change is one checkpoint typically under $0.25, a complex task bundles into one larger checkpoint. Per-checkpoint cost is visible in the Agent tab; aggregate usage in a dashboard that can lag 30 minutes. |
 | **Vocabulary required** | Checkpoint, effort, and the dashboard's lag. |
@@ -168,7 +168,7 @@ cost backlash is the field's best documented case.
 ### 2.5 Devin (Cognition)
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | VM lifecycle, environment setup, browser use, repo operations. |
 | **Surfaced** | **Interactive Planning**: a blueprint with a **confidence score**, produced before execution, that the team reviews, adjusts and approves before any code is written. Sessions are first-class and concurrent (up to 10 on Core, unlimited on Team as of the February 2026 update). A knowledge base and playbooks the user curates. |
 | **Vocabulary required** | Session, ACU, playbook, knowledge, confidence. An **ACU** is a normalised measure of VM time plus inference plus bandwidth, roughly 15 minutes of active work, charged only while actively working. |
@@ -190,7 +190,7 @@ checkpoint, ACU), three identical complaint patterns.
 ### 2.6 Cursor
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Little, by design. Cursor's user is an engineer. |
 | **Surfaced** | **Plan Mode** (propose before executing), **Background Agents** and Subagents (v3, early 2026) that plan, edit multiple files and return a result, and a first-class Composer diff view and Agent panel native to the editor. |
 | **Vocabulary required** | The full engineering vocabulary, plus agent, subagent, background agent, plan mode. |
@@ -207,7 +207,7 @@ this study produced and it is named in section 7.4 as **the Evaluability Test**.
 ### 2.7 Claude Code
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Nothing structurally, but a great deal *procedurally*: the tool loop, retries, context assembly, and file state tracking are invisible. |
 | **Surfaced** | **Permission modes** as a session-wide posture (ask before each write, accept edits, auto with a classifier reviewing each action first, bypass). **Plan mode** as an explicit two-phase pattern: research and propose, exit, then execute. **Checkpoints and rewind**: state is snapshotted automatically before each user prompt and Escape twice returns to a prior state. A visible todo list. |
 | **Vocabulary required** | Permission mode, plan mode, checkpoint, rewind, tool, skill, subagent. Large, but the user is a developer. |
@@ -232,7 +232,7 @@ was rebuilt as **Copilot Coding Agent**, GA since September 2025, and folded int
 Code.
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **What it did** | Presented a plan-and-specification surface between an issue and a PR: a dedicated place to see the agent's understanding, edit it, and steer. |
 | **Why it did not survive as a product** | It created a **new destination with new vocabulary for a workflow that already had a home**. The same capability, delivered inside the surfaces developers were already in (the issue, the PR, the editor), survived and shipped to every paid subscriber. |
 
@@ -252,7 +252,7 @@ The most important product in this study for Supaprod, because Linear absorbed a
 workflow tool for non-engineers-adjacent users and did it with almost no new vocabulary.
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | The agent runtime entirely: prompting, tool calls, model choice, retries, context. |
 | **Surfaced** | **The agent is a workspace member.** It has your app's name and icon and appears the way any teammate appears. An **AgentSession** is created automatically when an agent is mentioned or delegated an issue. Sessions have exactly **six states, visible to users: pending, active, error, awaitingInput, complete, stale.** Agent activity appears as **agent session cards in the activity feed** on the issue. Agent user pages show issue activity and contributions. Delegated issues **still appear in My Issues**, so the human keeps visibility. Insights can be sliced by Delegate. |
 | **Vocabulary required** | **Essentially none that is new.** Mention, delegate, assign, issue, activity. The user reuses the model they already had for working with a human colleague. |
@@ -271,7 +271,7 @@ absorption becomes disappearance.
 ### 3.2 Notion (3.0 through 3.6)
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Model selection, tool orchestration, retrieval, multi-step planning. Personal Agents run autonomously for up to 20 minutes; Custom Agents (GA 4 May 2026) are shareable and schedulable. |
 | **Surfaced** | Agent work **appears in the same workspace where the team already collaborates**, showing what is running, who approved it, and what it did. Every run is logged and **all changes are reversible**. A **credits dashboard** broken down by agent, with spend trends, status and recent activity. Admin controls (May 2026) for who may create agents, what each may access, and **per-agent credit limits**. |
 | **Vocabulary required** | Agent, custom agent, credits. Three words. |
@@ -296,7 +296,7 @@ exactly the PM's position.
 ### 4.1 Abridge (clinical documentation) - the single best model in this study
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | ASR, diarisation, medical entity extraction, coding, EHR integration. A clinician sees none of it; the note lands in Epic. |
 | **Surfaced** | **Linked Evidence.** Every section of the generated note links back to the specific portion of the transcript and audio that produced it. The clinician clicks any part of the note and hears or reads the exact conversation segment that informed that clinical detail. |
 | **Vocabulary required** | Effectively none. "Note", "transcript", "recording". Words a clinician already uses. |
@@ -318,7 +318,7 @@ and never as a retrieval score.
 ### 4.2 Harvey (legal)
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Plumbing hidden** | Retrieval, chunking, model routing, multi-doc orchestration. |
 | **Surfaced** | Four products: **Assistant** (chat, drafting, document analysis), **Vault** (bulk cross-document review), **Knowledge** (research with citations), **Workflow Agents** (multi-step, no code). **Sentence-level citations** and transparent reasoning are the 2026 headline improvements. |
 | **Vocabulary required** | Four product nouns, all of which map to legal work rather than to machinery. |
@@ -357,7 +357,7 @@ says an approval was required.
 ### 4.5 Sierra (customer-facing agents)
 
 | Question | Finding |
-|---|---|
+| --- | --- |
 | **Surfaced to the builder** | **Agent Traces**: a step-by-step view of the agent's decision-making, so builders understand not just what happened but why. Accuracy-over-time dashboards wired into existing observability. Conversation-level audit trails with configurable PII redaction. |
 | **Surfaced to the end customer** | Nothing. The end user of a Sierra agent sees a conversation. |
 | **Failure** | QA teams flag incorrect resolutions, which feed a weekly fine-tuning cadence, and **every correction requires human approval before it affects production behaviour**. Explicitly not unsupervised drift. |
@@ -588,7 +588,7 @@ A fourth marker, **standing**, means it is decided once in configuration and nev
 ### 8.1 Source control
 
 | Mechanism | Verdict | What the user sees instead | Grounding |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Branch | **absorbed** | Nothing, ever. The **Run** is the isolation boundary and the user already has that word. | Lovable puts branch switching behind a Labs toggle, off by default. `studio.functions.ts` already creates `studio/*` branches with no user involvement. |
 | Commit | **absorbed** | The step receipt: `Engineer changed 4 files in checkout`. | Lovable's version history is grouped by date, shows no SHAs. |
 | Merge | **decision**, named by consequence | One control, once, irreversible: **`Send it to your repo`**, with helper text naming the branch it lands on. Never the word merge. | Devin gates the plan; v0 deploys on merge; every product in the field puts a human on the irreversible step. |
@@ -601,7 +601,7 @@ A fourth marker, **standing**, means it is decided once in configuration and nev
 ### 8.2 Checks and review
 
 | Mechanism | Verdict | What the user sees instead | Grounding |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | CI running | **absorbed** | The working line only: `Reviewer is checking the change.` No check names, no counts, no logs. | P4: a state, not a narration. |
 | CI green | **evidence** | One line on the receipt: `Checks passed.` The check list is one click down, in the engine room. | |
 | CI failure | **decision** + free retry | `Reviewer found 2 problems.` then `[Let Engineer fix it]` (primary, **free**), `[Show me]` (quiet), `[Send it back]` (secondary). The raw log is behind "Show me", never in the first frame. | Lovable's "Try to Fix", the field's best failure UX, plus P6 and M3. |
@@ -612,7 +612,7 @@ A fourth marker, **standing**, means it is decided once in configuration and nev
 ### 8.3 Shipping
 
 | Mechanism | Verdict | What the user sees instead |
-|---|---|---|
+| --- | --- | --- |
 | Preview deploy | **absorbed** | A link: `See it working`. The universal field pattern; Lovable and v0 both make the live preview the primary proof artifact. |
 | Production deploy | **decision**, always, no exception | `Put Relay 2.4 live` with what changed listed above the button. Already `promoteToProduction` in code and already a human gate in `FINAL-ia.md` J6 step 1. |
 | Rollback | **decision**, permanently available on a live release | `Take it back`, with the version that returns named. Must actually work, tested, because a rollback that fails is how the Replit incident became unrecoverable. |
@@ -622,7 +622,7 @@ A fourth marker, **standing**, means it is decided once in configuration and nev
 ### 8.4 The engine
 
 | Mechanism | Verdict | What the user sees instead | Grounding |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Model choice | **absorbed**, with a **standing** setting | Nothing in the flow. In Settings: `Prefer speed` · `Prefer depth` · `Use my own key`, in outcome words. | Harvey, Abridge, Ramp, Sierra: none expose model choice in the flow. Notion does, per agent, in config. |
 | Model fallback | **absorbed**, then **evidence** | Never in flow. One receipt line, in the engine room: which model produced this output. | Needed for the record's integrity, not for the user's decision. |
 | Token counts | **absorbed and deleted** | Nothing. The word `token` is already engine-room-only in the ratified lexicon and this study says keep it that way with maximum severity. | M2. Bolt is the whole argument. |
@@ -636,7 +636,7 @@ A fourth marker, **standing**, means it is decided once in configuration and nev
 ### 8.5 Trust, permissions and connections
 
 | Mechanism | Verdict | What the user sees instead | Grounding |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Approval modes | **standing decision**, in plain words | Already ratified and already right: `Runs on its own` · `Asks me first` · `I check the output`, with the stored enum frozen. | `FINAL-language.md` 4.4 divergence template. Notion's progressive trust. |
 | The trust arc | **absorbed**, surfaced only as an **offer** | Never a score, never the words observing / proving / trusted / ambient. One sentence when a threshold is crossed: `You have approved this 12 times. Want Engineer to stop asking?` with `[Yes]` and `[Keep asking]`. | Notion's progressive trust paced by the user; `FINAL-ia.md` 2.3 already grafts the graduation moment into Beliefs. `trust.server.ts` computes the score on read with Bayesian shrinkage and a safety floor, all of which is correctly invisible. |
 | Connector OAuth | **absorbed** | One Connect button and the provider's logo. | Engine-room doctrine rule 4, and universal in the field. |

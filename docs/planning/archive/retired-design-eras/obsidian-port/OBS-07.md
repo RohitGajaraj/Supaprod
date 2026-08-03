@@ -4,19 +4,19 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-07                                                                                                                                                                                                                                                                                                                                                               |
-| Rank          | #8                                                                                                                                                                                                                                                                                                                                                                   |
-| Tier          | 1                                                                                                                                                                                                                                                                                                                                                                    |
-| Status        | Pending (not started)                                                                                                                                                                                                                                                                                                                                                |
-| Category      | Define                                                                                                                                                                                                                                                                                                                                                               |
-| Depends on    | OBS-03 (Obsidian primitives) · assumes OBS-01 (tokens/fonts) + OBS-02 (shell) landed                                                                                                                                                                                                                                                                                 |
-| Blocks        | nothing downstream (OBS-10 folds routes into this destination)                                                                                                                                                                                                                                                                                                       |
+| Field | Value |
+| --- | --- |
+| ID | OBS-07 |
+| Rank | #8 |
+| Tier | 1 |
+| Status | Pending (not started) |
+| Category | Define |
+| Depends on | OBS-03 (Obsidian primitives) · assumes OBS-01 (tokens/fonts) + OBS-02 (shell) landed |
+| Blocks | nothing downstream (OBS-10 folds routes into this destination) |
 | One-line what | Plan as the definition desk: a 1160px surface with an outcome-declared roadmap (Now / Next / Later, each bet carrying its mono measure line, Now ember-tinted, Later deep and dimmed) plus a cited spec list (state chips, blossom cites count, serif body in a read slide-over), and a commit-to-Now ceremony that states the promise + measure before a bet lands. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) line 238 (group G14)                                                                                                                                                                                                                                                                                            |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-07 entry)                                                                                                                                                                                                                                                                                                |
-| Hub           | [`./README.md`](./README.md)                                                                                                                                                                                                                                                                                                                                         |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) line 238 (group G14) |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-07 entry) |
+| Hub | [`./README.md`](./README.md) |
 
 ## 2. Why we are doing it
 
@@ -101,11 +101,11 @@ src/components/plan/
 
 **Roadmap columns.** Three-column CSS grid, `gap: 16px (--space-4)`. Column header: `MonoLabel` 9.5px caps, `0.11em` tracking, middot separators. Card `--radius-card 12`, padding `16px 18px`, gap between cards `12px`.
 
-| Column    | Header color             | Card background               | Card border                                   | Ink                           |
-| --------- | ------------------------ | ----------------------------- | --------------------------------------------- | ----------------------------- |
-| **Now**   | `--ember #FF6B2C`        | `--card #111113`              | `1px rgba(255,107,44,0.25)` (ember-tinted)    | `--text-primary` title        |
-| **Next**  | `--text-primary #F2F0ED` | `--card #111113`              | `1px --hairline rgba(255,255,255,0.07)`       | `--text-primary` title        |
-| **Later** | `--text-muted #9C978F`   | `--surface-card-deep #0E0E10` | `1px --hairline-faint rgba(255,255,255,0.05)` | `--text-muted` title (dimmed) |
+| Column | Header color | Card background | Card border | Ink |
+| --- | --- | --- | --- | --- |
+| **Now** | `--ember #FF6B2C` | `--card #111113` | `1px rgba(255,107,44,0.25)` (ember-tinted) | `--text-primary` title |
+| **Next** | `--text-primary #F2F0ED` | `--card #111113` | `1px --hairline rgba(255,255,255,0.07)` | `--text-primary` title |
+| **Later** | `--text-muted #9C978F` | `--surface-card-deep #0E0E10` | `1px --hairline-faint rgba(255,255,255,0.05)` | `--text-muted` title (dimmed) |
 
 **Bet card anatomy** (`BetCard`, from components.md "Roadmap columns"):
 

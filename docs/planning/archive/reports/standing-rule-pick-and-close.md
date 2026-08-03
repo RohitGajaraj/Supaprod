@@ -49,21 +49,21 @@ If none of these are available (all claimed or founder-gated), **stop and report
 
 These items cannot be completed without a founder action. **Never claim them, never start them, never re-map them:**
 
-| Item                      | What the founder needs to do                                             |
-| ------------------------- | ------------------------------------------------------------------------ |
-| `DBR_ENTITY_ALIASING`     | `wrangler secret put DBR_ENTITY_ALIASING` → `1` (after precision review) |
-| Ambient pg_cron schedules | Apply migration `20260625000000` via Lovable dashboard                   |
-| Stripe go-live            | Live keys + price IDs + `credits_enabled()` flip                         |
-| `SEN-01` / `F-CONN`       | Register OAuth client (GitHub App or Linear)                             |
-| `EMBED-CHOKEPOINT`        | Attended session editing `memory.server.ts` + `registry.server.ts`       |
-| `FIRECRAWL-FLOOR` (live)  | Deploy SearXNG, set `SEARXNG_URL` wrangler secret                        |
-| `SANDBOX` (paid)          | Pick Cloudflare Sandbox SDK, approve ~$5/mo spend                        |
-| `BLD-04` (OpenHands)      | Set `OPENHANDS_ENDPOINT` + key                                           |
-| `M-C-EXPIRY`              | Flip `memory_expiry_enabled()` when timing is right                      |
-| `WM-M9`                   | Attended chokepoint edit in `runtime.server.ts`                          |
-| Monetization go-live      | All under the 🔒 banner in the dashboard — founder-only config           |
-| `BYO-P*` rows             | ONE greenlight unblocks the whole BYO lane                               |
-| `CMD (H2)`                | Founder un-parks when H2 enrichment scope is decided                     |
+| Item | What the founder needs to do |
+| --- | --- |
+| `DBR_ENTITY_ALIASING` | `wrangler secret put DBR_ENTITY_ALIASING` → `1` (after precision review) |
+| Ambient pg_cron schedules | Apply migration `20260625000000` via Lovable dashboard |
+| Stripe go-live | Live keys + price IDs + `credits_enabled()` flip |
+| `SEN-01` / `F-CONN` | Register OAuth client (GitHub App or Linear) |
+| `EMBED-CHOKEPOINT` | Attended session editing `memory.server.ts` + `registry.server.ts` |
+| `FIRECRAWL-FLOOR` (live) | Deploy SearXNG, set `SEARXNG_URL` wrangler secret |
+| `SANDBOX` (paid) | Pick Cloudflare Sandbox SDK, approve ~$5/mo spend |
+| `BLD-04` (OpenHands) | Set `OPENHANDS_ENDPOINT` + key |
+| `M-C-EXPIRY` | Flip `memory_expiry_enabled()` when timing is right |
+| `WM-M9` | Attended chokepoint edit in `runtime.server.ts` |
+| Monetization go-live | All under the 🔒 banner in the dashboard — founder-only config |
+| `BYO-P*` rows | ONE greenlight unblocks the whole BYO lane |
+| `CMD (H2)` | Founder un-parks when H2 enrichment scope is decided |
 
 ---
 
@@ -92,14 +92,14 @@ If you pick up an item that is ◐ (partial), **drive it to ✅ before releasing
 
 ## What is the current honest state (2026-06-25)
 
-| Tier                     | Items                                  | Status                                |
-| ------------------------ | -------------------------------------- | ------------------------------------- |
-| Tier 1 (v11 build front) | All 21 items                           | ✅ done or Gated (DBR at #22 is ✅)   |
-| Tier 2                   | IA-DEPTH-V11 (◐), DESIGN-V11 (⬜)      | Build next                            |
-| Tier 3                   | CORE-UX-FELT remaining de-jargon slice | Merge into IA-DEPTH-V11 pick          |
-| Tier 4                   | DEMO-SEED-RICH, SHIP-V11               | Build last, after capabilities proven |
-| Gated                    | 22 rows                                | Founder action needed (table above)   |
-| Deferred                 | 10 rows                                | Post-PMF                              |
-| Done                     | 168 rows                               | Do not touch                          |
+| Tier | Items | Status |
+| --- | --- | --- |
+| Tier 1 (v11 build front) | All 21 items | ✅ done or Gated (DBR at #22 is ✅) |
+| Tier 2 | IA-DEPTH-V11 (◐), DESIGN-V11 (⬜) | Build next |
+| Tier 3 | CORE-UX-FELT remaining de-jargon slice | Merge into IA-DEPTH-V11 pick |
+| Tier 4 | DEMO-SEED-RICH, SHIP-V11 | Build last, after capabilities proven |
+| Gated | 22 rows | Founder action needed (table above) |
+| Deferred | 10 rows | Post-PMF |
+| Done | 168 rows | Do not touch |
 
 **Total: 213 rows. 168 done (78.9% strict). The only autonomous work left is IA-DEPTH-V11 + DESIGN-V11.**

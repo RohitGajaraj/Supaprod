@@ -8,20 +8,20 @@
 
 ## Phase 1 ship log (2026-06-25, lovable, autonomous)
 
-| AFD ID     | What landed                        | Where                                                                                                                                   | Posture                                           |
-| ---------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| AFD-01     | Façade scaffold                    | `src/lib/observability/{index,analytics,errors,uptime,jobs,config}.ts`                                                                  | ✅ live, no-op until keys + gate                  |
-| AFD-02     | Master gate + admin RPC + audit    | migration `20260626100000_afd_observability` (`observability_enabled()` + `admin_set_observability_enabled`)                            | ✅ live                                           |
-| AFD-03     | Env contract                       | `.env.example` updated; runbook `docs/runbooks/observability.md`                                                                        | ✅ live                                           |
-| AFD-04     | PostHog EU analytics call          | `src/lib/observability/analytics.ts` (envelope via fetch, EU host default)                                                              | 🟡 keyless                                        |
-| AFD-05     | Sentry EU error capture            | `src/lib/observability/errors.ts` (envelope API, Workers-safe)                                                                          | 🟡 keyless                                        |
-| AFD-06     | `agent_runs.failure_kind` taxonomy | migration adds column + index; `src/lib/ai/runtime.server.ts` tags on every error path                                                  | ✅ live                                           |
-| AFD-07     | `withJobRun()` + `job_runs` ledger | migration adds table + RLS; wrapper in `src/lib/observability/jobs.ts`; wired into `sense-tick` cron                                    | ✅ live                                           |
-| AFD-08     | Better Stack heartbeats            | `src/lib/observability/uptime.ts` (called from `withJobRun` on start / ok / fail)                                                       | 🟡 keyless                                        |
-| AFD-09..11 | The 3 moat MVs                     | `mv_decision_velocity`, `mv_supersession_rate`, `mv_agent_cost_per_decision` + `refresh_observability_mvs()`                            | ✅ live (refresh schedule = founder pg_cron step) |
-| AFD-12     | Admin Observability surface        | `src/routes/_authenticated.admin.observability.tsx` + `src/lib/observability.functions.ts`; nav tab added to `_authenticated.admin.tsx` | ✅ live                                           |
-| AFD-13     | Status page                        | DNS + Better Stack page creation are founder steps in §10                                                                               | 🟡 keyless                                        |
-| AFD-14     | Sev policy + alerting              | Better Stack alerting rules are founder steps in §10                                                                                    | 🟡 keyless                                        |
+| AFD ID | What landed | Where | Posture |
+| --- | --- | --- | --- |
+| AFD-01 | Façade scaffold | `src/lib/observability/{index,analytics,errors,uptime,jobs,config}.ts` | ✅ live, no-op until keys + gate |
+| AFD-02 | Master gate + admin RPC + audit | migration `20260626100000_afd_observability` (`observability_enabled()` + `admin_set_observability_enabled`) | ✅ live |
+| AFD-03 | Env contract | `.env.example` updated; runbook `docs/runbooks/observability.md` | ✅ live |
+| AFD-04 | PostHog EU analytics call | `src/lib/observability/analytics.ts` (envelope via fetch, EU host default) | 🟡 keyless |
+| AFD-05 | Sentry EU error capture | `src/lib/observability/errors.ts` (envelope API, Workers-safe) | 🟡 keyless |
+| AFD-06 | `agent_runs.failure_kind` taxonomy | migration adds column + index; `src/lib/ai/runtime.server.ts` tags on every error path | ✅ live |
+| AFD-07 | `withJobRun()` + `job_runs` ledger | migration adds table + RLS; wrapper in `src/lib/observability/jobs.ts`; wired into `sense-tick` cron | ✅ live |
+| AFD-08 | Better Stack heartbeats | `src/lib/observability/uptime.ts` (called from `withJobRun` on start / ok / fail) | 🟡 keyless |
+| AFD-09..11 | The 3 moat MVs | `mv_decision_velocity`, `mv_supersession_rate`, `mv_agent_cost_per_decision` + `refresh_observability_mvs()` | ✅ live (refresh schedule = founder pg_cron step) |
+| AFD-12 | Admin Observability surface | `src/routes/_authenticated.admin.observability.tsx` + `src/lib/observability.functions.ts`; nav tab added to `_authenticated.admin.tsx` | ✅ live |
+| AFD-13 | Status page | DNS + Better Stack page creation are founder steps in §10 | 🟡 keyless |
+| AFD-14 | Sev policy + alerting | Better Stack alerting rules are founder steps in §10 | 🟡 keyless |
 
 **Activation order for the founder** (when ready to flip on):
 
@@ -49,18 +49,18 @@
 
 ### In scope
 
-| Capability                                                                                                 | In-house?       | Vendor                                                                           | Notes                                                                                                                    |
-| ---------------------------------------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Product usage (page views, feature adoption, funnels, retention, session replay, feature flags)            | BUY             | **PostHog EU**                                                                   | One SDK covers analytics + replay + flags + A/B.                                                                         |
-| Agent/AI run analytics (per-mission cost, latency, tool-call mix, model mix, budget burn)                  | **BUILD**       | —                                                                                | Crosses `agent_runs`, `model_costs`, `mission_runs`. SQL views + a `/admin/ai-costs` surface. Moat.                      |
-| Business / outcome analytics (decisions shipped, signal→outcome funnel, supersession rate, agent hit-rate) | **BUILD**       | —                                                                                | Crosses `decisions`, `artifact_lineage`, `outcomes`. SQL views feed the existing PM Impact Ledger + Trust Ledger. Moat.  |
-| Infra / perf analytics (Worker p50/p95, route error rates, cold starts, DB latency)                        | BUY             | **Sentry EU** Performance + **Cloudflare Analytics** (free)                      | Sentry already covers transactions; Cloudflare's per-Worker analytics is free.                                           |
-| Server function & route errors                                                                             | BUY             | **Sentry EU**                                                                    | Source-maps + release tracking.                                                                                          |
-| AI runtime failures (model errors, guardrail blocks, budget kills, injection screen blocks)                | **BUILD** + BUY | Sentry for the exception; in-house for the structured `agent_runs.failure_kind`. | The chokepoint (`callModel`) already writes the row; we add a typed `failure_kind` column and an in-app Incidents panel. |
-| DB failures (RLS denials, constraint violations, slow queries)                                             | BUY             | Supabase logs + Sentry breadcrumbs                                               | RLS denials are noisy; sample at 1%, alert only on >N/min per workspace.                                                 |
-| Background-job failures (cron `sense-tick`, `trigger-tick`, ingest, `resume-runs`)                         | **BUILD** + BUY | In-house `job_runs` table + Sentry for the exception + Better Stack heartbeat.   | Heartbeat misses = "the cron did not run", which Sentry can't see.                                                       |
-| Uptime monitoring + on-call escalation + public status page                                                | BUY             | **Better Stack**                                                                 | One vendor, free tier covers 10 monitors.                                                                                |
-| In-app Incidents panel (the founder/admin's single pane)                                                   | **BUILD**       | —                                                                                | Already exists at `src/components/governance/IncidentsPanel.tsx`; AFD wires the new feeds into it.                       |
+| Capability | In-house? | Vendor | Notes |
+| --- | --- | --- | --- |
+| Product usage (page views, feature adoption, funnels, retention, session replay, feature flags) | BUY | **PostHog EU** | One SDK covers analytics + replay + flags + A/B. |
+| Agent/AI run analytics (per-mission cost, latency, tool-call mix, model mix, budget burn) | **BUILD** | — | Crosses `agent_runs`, `model_costs`, `mission_runs`. SQL views + a `/admin/ai-costs` surface. Moat. |
+| Business / outcome analytics (decisions shipped, signal→outcome funnel, supersession rate, agent hit-rate) | **BUILD** | — | Crosses `decisions`, `artifact_lineage`, `outcomes`. SQL views feed the existing PM Impact Ledger + Trust Ledger. Moat. |
+| Infra / perf analytics (Worker p50/p95, route error rates, cold starts, DB latency) | BUY | **Sentry EU** Performance + **Cloudflare Analytics** (free) | Sentry already covers transactions; Cloudflare's per-Worker analytics is free. |
+| Server function & route errors | BUY | **Sentry EU** | Source-maps + release tracking. |
+| AI runtime failures (model errors, guardrail blocks, budget kills, injection screen blocks) | **BUILD** + BUY | Sentry for the exception; in-house for the structured `agent_runs.failure_kind`. | The chokepoint (`callModel`) already writes the row; we add a typed `failure_kind` column and an in-app Incidents panel. |
+| DB failures (RLS denials, constraint violations, slow queries) | BUY | Supabase logs + Sentry breadcrumbs | RLS denials are noisy; sample at 1%, alert only on >N/min per workspace. |
+| Background-job failures (cron `sense-tick`, `trigger-tick`, ingest, `resume-runs`) | **BUILD** + BUY | In-house `job_runs` table + Sentry for the exception + Better Stack heartbeat. | Heartbeat misses = "the cron did not run", which Sentry can't see. |
+| Uptime monitoring + on-call escalation + public status page | BUY | **Better Stack** | One vendor, free tier covers 10 monitors. |
+| In-app Incidents panel (the founder/admin's single pane) | **BUILD** | — | Already exists at `src/components/governance/IncidentsPanel.tsx`; AFD wires the new feeds into it. |
 
 ### Out of scope (explicit)
 
@@ -87,32 +87,32 @@ Product usage (page views, funnels, retention, replay), error capture (stack tra
 
 ### 2.3 Why PostHog (and not Mixpanel / Amplitude / GA4)
 
-| Vendor                              | Verdict                    | Why                                                                                                                                                                                                                                                                                     |
-| ----------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PostHog (EU cloud or self-host)** | **PICKED**                 | MIT-licensed core (escape hatch: self-host if pricing turns); one SDK covers product analytics + session replay + feature flags + A/B + surveys; native EU region; generous free tier (1M events/mo + 5k replays); reverse-proxy support to bypass ad-blockers; first-class Worker SDK. |
-| Mixpanel                            | Rejected                   | Closed-source (no self-host escape); no integrated replay/flags (need 2nd vendor); EU tenancy is Enterprise-tier.                                                                                                                                                                       |
-| Amplitude                           | Rejected                   | Closed-source; replay is a separate paid SKU; pricing climbs faster at 100k+ MAU.                                                                                                                                                                                                       |
-| GA4                                 | Rejected                   | Built for marketing, not product; sampled at scale; no event-stream export on free tier; no replay/flags.                                                                                                                                                                               |
-| Self-built on Postgres              | Rejected for product usage | Reinventing funnels/retention/replay is months of work for an inferior result. Reserve build budget for the moat.                                                                                                                                                                       |
+| Vendor | Verdict | Why |
+| --- | --- | --- |
+| **PostHog (EU cloud or self-host)** | **PICKED** | MIT-licensed core (escape hatch: self-host if pricing turns); one SDK covers product analytics + session replay + feature flags + A/B + surveys; native EU region; generous free tier (1M events/mo + 5k replays); reverse-proxy support to bypass ad-blockers; first-class Worker SDK. |
+| Mixpanel | Rejected | Closed-source (no self-host escape); no integrated replay/flags (need 2nd vendor); EU tenancy is Enterprise-tier. |
+| Amplitude | Rejected | Closed-source; replay is a separate paid SKU; pricing climbs faster at 100k+ MAU. |
+| GA4 | Rejected | Built for marketing, not product; sampled at scale; no event-stream export on free tier; no replay/flags. |
+| Self-built on Postgres | Rejected for product usage | Reinventing funnels/retention/replay is months of work for an inferior result. Reserve build budget for the moat. |
 
 ### 2.4 Why Sentry (and not Honeybadger / Rollbar / Bugsnag / Datadog)
 
-| Vendor                             | Verdict    | Why                                                                                                                                                                                                                                                       |
-| ---------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vendor | Verdict | Why |
+| --- | --- | --- |
 | **Sentry (EU cloud or self-host)** | **PICKED** | Best Cloudflare Workers SDK (we ship on Workers); source-map upload at build; release tracking ties errors to a commit SHA; transaction tracing (Performance) covers infra-perf in the same product; native EU region; generous free tier (5k errors/mo). |
-| Honeybadger                        | Rejected   | Smaller community; weaker Worker support; no integrated performance product.                                                                                                                                                                              |
-| Rollbar                            | Rejected   | UI dated; EU residency is Enterprise.                                                                                                                                                                                                                     |
-| Bugsnag (SmartBear)                | Rejected   | Enterprise focus; pricing climbs fast.                                                                                                                                                                                                                    |
-| Datadog                            | Rejected   | Excellent product, wrong cost — $15/host/mo + APM SKUs is overkill for a single-Worker app; lock-in is high.                                                                                                                                              |
+| Honeybadger | Rejected | Smaller community; weaker Worker support; no integrated performance product. |
+| Rollbar | Rejected | UI dated; EU residency is Enterprise. |
+| Bugsnag (SmartBear) | Rejected | Enterprise focus; pricing climbs fast. |
+| Datadog | Rejected | Excellent product, wrong cost — $15/host/mo + APM SKUs is overkill for a single-Worker app; lock-in is high. |
 
 ### 2.5 Why Better Stack (and not PagerDuty + Statuspage + UptimeRobot)
 
-| Vendor                                              | Verdict    | Why                                                                                                                                                                                                                                                                                    |
-| --------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Better Stack (Uptime + Incident.io)**             | **PICKED** | One vendor covers uptime probes + on-call rotation (phone/SMS/Slack) + public status page; free tier = 10 monitors + 3-min checks + 1 status page; EU region; integrates with Sentry + PostHog via webhook out of the box. Solo-founder-friendly: one vendor, one bill, one dashboard. |
-| PagerDuty                                           | Rejected   | On-call best-in-class but expensive ($21/user/mo) and you still need a separate uptime vendor + status page. Multi-vendor overhead is wrong for a solo founder.                                                                                                                        |
-| Statuspage (Atlassian) + UptimeRobot + PagerDuty    | Rejected   | Three vendors, three bills, three dashboards. Better Stack does it in one.                                                                                                                                                                                                             |
-| Self-hosted (Uptime Kuma + Cachet + custom on-call) | Rejected   | The uptime monitor must run **outside** Cloudflare — if the Worker is down, our own monitor on Workers is also down. Hosting it ourselves means another VPS, another thing to babysit. Pay $0 for someone else to do this right.                                                       |
+| Vendor | Verdict | Why |
+| --- | --- | --- |
+| **Better Stack (Uptime + Incident.io)** | **PICKED** | One vendor covers uptime probes + on-call rotation (phone/SMS/Slack) + public status page; free tier = 10 monitors + 3-min checks + 1 status page; EU region; integrates with Sentry + PostHog via webhook out of the box. Solo-founder-friendly: one vendor, one bill, one dashboard. |
+| PagerDuty | Rejected | On-call best-in-class but expensive ($21/user/mo) and you still need a separate uptime vendor + status page. Multi-vendor overhead is wrong for a solo founder. |
+| Statuspage (Atlassian) + UptimeRobot + PagerDuty | Rejected | Three vendors, three bills, three dashboards. Better Stack does it in one. |
+| Self-hosted (Uptime Kuma + Cachet + custom on-call) | Rejected | The uptime monitor must run **outside** Cloudflare — if the Worker is down, our own monitor on Workers is also down. Hosting it ourselves means another VPS, another thing to babysit. Pay $0 for someone else to do this right. |
 
 ### 2.6 The façade rule (the exit posture)
 
@@ -230,12 +230,12 @@ Spec: [`../features/observability-facade.md`](../features/observability-facade.m
 
 ## 4. Alerting policy (Sev tiers + escalation)
 
-| Sev       | Definition                                                                                                           | Channel                                       | Ack time          |
-| --------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ----------------- |
-| **Sev 1** | App down (uptime probe fails) · DB down · go-live guard tripped · spend over hard cap                                | Better Stack phone + SMS + Slack `#incidents` | 5 min             |
-| **Sev 2** | Error rate > 1% over 5 min · cron heartbeat missed > 2× period · p95 latency > 5s for 10 min · injection-block spike | Better Stack SMS + Slack `#incidents`         | 30 min            |
-| **Sev 3** | Error rate > 0.1% over 1h · budget burn > 80% of monthly cap · agent hit-rate drop > 20pt week-over-week             | Slack `#observability`                        | 4h                |
-| **Sev 4** | Single workspace anomaly · single feature-flag regression · slow-query warn                                          | In-app Incidents panel only                   | next business day |
+| Sev | Definition | Channel | Ack time |
+| --- | --- | --- | --- |
+| **Sev 1** | App down (uptime probe fails) · DB down · go-live guard tripped · spend over hard cap | Better Stack phone + SMS + Slack `#incidents` | 5 min |
+| **Sev 2** | Error rate > 1% over 5 min · cron heartbeat missed > 2× period · p95 latency > 5s for 10 min · injection-block spike | Better Stack SMS + Slack `#incidents` | 30 min |
+| **Sev 3** | Error rate > 0.1% over 1h · budget burn > 80% of monthly cap · agent hit-rate drop > 20pt week-over-week | Slack `#observability` | 4h |
+| **Sev 4** | Single workspace anomaly · single feature-flag regression · slow-query warn | In-app Incidents panel only | next business day |
 
 Runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md).
 
@@ -285,22 +285,22 @@ Lovable hosts the CF Worker + Supabase project. Leaving means redeploying the sa
 
 > Each task is a single PR-sized unit of work, dependency-ordered. Status starts at ⬜ across the board. Picked from `feature-dashboard.md` (group G12) via `bash scripts/lane.sh next` after the founder unblocks.
 
-| ID         | What it does                                                                                                                                                                                    | Depends on                               | Surface / file                                                                       | Size |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------ | ---- |
-| **AFD-01** | Vendor account setup (PostHog EU + Sentry EU + Better Stack), owner = founder inbox, secrets stored in CF                                                                                       | — (founder-gated)                        | Procurement inventory updated; secrets in CF                                         | XS   |
-| **AFD-02** | Build the `src/lib/observability/` façade: `analytics.ts` + `errors.ts` + `uptime.ts` + `config.ts` + `index.ts`. Façade no-ops when env absent.                                                | AFD-01                                   | `src/lib/observability/*` + unit tests                                               | S    |
-| **AFD-03** | Admin gate: `admin_set_observability_enabled(boolean)` RPC + `observability_enabled()` SQL function (mirror credit-engine). Audited via `admin_audit_log`.                                      | AFD-02                                   | Migration `2026MMDD_observability_gate.sql`                                          | S    |
-| **AFD-04** | Wire PostHog `pageView` + `identify` at the auth boundary; wire `track('agent_run_finished', …)` at the chokepoint (`callModel`); document the typed event taxonomy.                            | AFD-02, AFD-03                           | `src/lib/ai/chokepoint.ts` + `App.tsx` + `docs/features/analytics-event-taxonomy.md` | M    |
-| **AFD-05** | Wire Sentry: install `@sentry/cloudflare`, init in `worker.ts`, source-map upload in `bun run build`, release tagging via commit SHA, `beforeSend` PII stripper.                                | AFD-02, AFD-03                           | `src/worker.ts` + build script                                                       | M    |
-| **AFD-06** | Add `agent_runs.failure_kind` column + chokepoint writes the typed failure kind on every error path.                                                                                            | AFD-05                                   | Migration + `src/lib/ai/chokepoint.ts`                                               | S    |
-| **AFD-07** | Add `job_runs` table + a `withJobRun(name, fn)` wrapper used by every `/api/public/hooks/*` cron.                                                                                               | AFD-02                                   | Migration + `src/lib/observability/job-runs.ts` + wrap all 5 cron routes             | M    |
-| **AFD-08** | Wire Better Stack heartbeats from every cron's `withJobRun` (fire heartbeat on `ok`).                                                                                                           | AFD-07                                   | `src/lib/observability/uptime.ts`                                                    | S    |
-| **AFD-09** | SQL views: `v_agent_cost_by_mission` + `v_decision_velocity` + `v_agent_hit_rate` + `v_job_health`. RLS-respecting.                                                                             | AFD-06, AFD-07                           | Migration                                                                            | M    |
-| **AFD-10** | Surface: `/admin/ai-costs` — agent-cost-by-mission + budget burn + cost-per-decision. Reads the views.                                                                                          | AFD-09                                   | `src/routes/_admin.ai-costs.tsx`                                                     | M    |
-| **AFD-11** | Extend `IncidentsPanel`: pull last 24h of Sentry top error_kinds via API + last cron heartbeat status + recent `job_runs` errors.                                                               | AFD-08                                   | `src/components/governance/IncidentsPanel.tsx`                                       | M    |
-| **AFD-12** | Surface: `/admin/observability` — the kill-switch + sample-rate sliders + vendor reachability (PostHog/Sentry/Better Stack ping).                                                               | AFD-03, AFD-10                           | `src/routes/_admin.observability.tsx`                                                | M    |
-| **AFD-13** | Configure Better Stack monitors (`/api/public/health`, `/`) + on-call escalation policy (Sev 1 → phone, Sev 2 → SMS, Sev 3+ → Slack) + public status page at `status.supaprod.app` (renameable). | AFD-01, app-health endpoint already live | Better Stack dashboard config; runbook updated                                       | S    |
-| **AFD-14** | Subprocessor disclosure + privacy policy update + right-to-erasure façade `forget(userId)` wired to PostHog/Sentry delete APIs.                                                                 | AFD-04, AFD-05                           | `docs/features/subprocessor-disclosure.md` + `src/lib/observability/forget.ts`       | S    |
+| ID | What it does | Depends on | Surface / file | Size |
+| --- | --- | --- | --- | --- |
+| **AFD-01** | Vendor account setup (PostHog EU + Sentry EU + Better Stack), owner = founder inbox, secrets stored in CF | — (founder-gated) | Procurement inventory updated; secrets in CF | XS |
+| **AFD-02** | Build the `src/lib/observability/` façade: `analytics.ts` + `errors.ts` + `uptime.ts` + `config.ts` + `index.ts`. Façade no-ops when env absent. | AFD-01 | `src/lib/observability/*` + unit tests | S |
+| **AFD-03** | Admin gate: `admin_set_observability_enabled(boolean)` RPC + `observability_enabled()` SQL function (mirror credit-engine). Audited via `admin_audit_log`. | AFD-02 | Migration `2026MMDD_observability_gate.sql` | S |
+| **AFD-04** | Wire PostHog `pageView` + `identify` at the auth boundary; wire `track('agent_run_finished', …)` at the chokepoint (`callModel`); document the typed event taxonomy. | AFD-02, AFD-03 | `src/lib/ai/chokepoint.ts` + `App.tsx` + `docs/features/analytics-event-taxonomy.md` | M |
+| **AFD-05** | Wire Sentry: install `@sentry/cloudflare`, init in `worker.ts`, source-map upload in `bun run build`, release tagging via commit SHA, `beforeSend` PII stripper. | AFD-02, AFD-03 | `src/worker.ts` + build script | M |
+| **AFD-06** | Add `agent_runs.failure_kind` column + chokepoint writes the typed failure kind on every error path. | AFD-05 | Migration + `src/lib/ai/chokepoint.ts` | S |
+| **AFD-07** | Add `job_runs` table + a `withJobRun(name, fn)` wrapper used by every `/api/public/hooks/*` cron. | AFD-02 | Migration + `src/lib/observability/job-runs.ts` + wrap all 5 cron routes | M |
+| **AFD-08** | Wire Better Stack heartbeats from every cron's `withJobRun` (fire heartbeat on `ok`). | AFD-07 | `src/lib/observability/uptime.ts` | S |
+| **AFD-09** | SQL views: `v_agent_cost_by_mission` + `v_decision_velocity` + `v_agent_hit_rate` + `v_job_health`. RLS-respecting. | AFD-06, AFD-07 | Migration | M |
+| **AFD-10** | Surface: `/admin/ai-costs` — agent-cost-by-mission + budget burn + cost-per-decision. Reads the views. | AFD-09 | `src/routes/_admin.ai-costs.tsx` | M |
+| **AFD-11** | Extend `IncidentsPanel`: pull last 24h of Sentry top error_kinds via API + last cron heartbeat status + recent `job_runs` errors. | AFD-08 | `src/components/governance/IncidentsPanel.tsx` | M |
+| **AFD-12** | Surface: `/admin/observability` — the kill-switch + sample-rate sliders + vendor reachability (PostHog/Sentry/Better Stack ping). | AFD-03, AFD-10 | `src/routes/_admin.observability.tsx` | M |
+| **AFD-13** | Configure Better Stack monitors (`/api/public/health`, `/`) + on-call escalation policy (Sev 1 → phone, Sev 2 → SMS, Sev 3+ → Slack) + public status page at `status.supaprod.app` (renameable). | AFD-01, app-health endpoint already live | Better Stack dashboard config; runbook updated | S |
+| **AFD-14** | Subprocessor disclosure + privacy policy update + right-to-erasure façade `forget(userId)` wired to PostHog/Sentry delete APIs. | AFD-04, AFD-05 | `docs/features/subprocessor-disclosure.md` + `src/lib/observability/forget.ts` | S |
 
 **Total estimate:** ~3-5 build days when picked up.
 
@@ -325,13 +325,13 @@ The initiative is **done** when:
 
 ## 9. Risks + mitigations
 
-| Risk                                          | Likelihood                                                          | Mitigation                                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Ad-blockers eat PostHog events (Brave/uBlock) | High                                                                | PostHog reverse-proxy through the Worker (`/_ph/*` → `https://eu.i.posthog.com/*`); first-party cookie. |
-| Sentry quota explosion from a noisy error     | Medium                                                              | `beforeSend` rate-limiter + `Sentry.init({ sampleRate: 0.1 })` on known-noisy routes.                   |
-| Cron heartbeat false-positives during deploys | Low                                                                 | Better Stack grace period = 2× the cron period.                                                         |
-| PostHog/Sentry pricing climbs at scale        | Low (we self-host escape with PostHog; Sentry self-host is heavier) | PostHog has MIT self-host; Sentry has self-host but it's an ops cost. Re-evaluate at 1M events/mo.      |
-| Vendor lock-in                                | **Mitigated by the façade.** Swapping vendors = 1 file edit.        | See §6.2.                                                                                               |
+| Risk | Likelihood | Mitigation |
+| --- | --- | --- |
+| Ad-blockers eat PostHog events (Brave/uBlock) | High | PostHog reverse-proxy through the Worker (`/_ph/*` → `https://eu.i.posthog.com/*`); first-party cookie. |
+| Sentry quota explosion from a noisy error | Medium | `beforeSend` rate-limiter + `Sentry.init({ sampleRate: 0.1 })` on known-noisy routes. |
+| Cron heartbeat false-positives during deploys | Low | Better Stack grace period = 2× the cron period. |
+| PostHog/Sentry pricing climbs at scale | Low (we self-host escape with PostHog; Sentry self-host is heavier) | PostHog has MIT self-host; Sentry has self-host but it's an ops cost. Re-evaluate at 1M events/mo. |
+| Vendor lock-in | **Mitigated by the façade.** Swapping vendors = 1 file edit. | See §6.2. |
 
 ---
 
@@ -415,30 +415,30 @@ The picker MUST NOT start AFD until:
 
 ## 13. Cross-doc map (so nothing sits orphaned)
 
-| Doc                                                                     | What it carries about AFD                                                                                        |
-| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **This file** (`docs/planning/analytics-and-failure-detection-plan.md`) | The front door. Doctrine + task IDs + sequence + exit posture.                                                   |
-| `docs/features/analytics-and-failure-detection.md`                      | The feature-level spec (what it is, where to find it, how it works at runtime).                                  |
-| `docs/features/observability-facade.md`                                 | The façade contract (`track` / `captureError` / `heartbeat` / `forget`).                                         |
-| `docs/decisions/analytics-vendor-selection.md`                          | The vendor selection ADR (PostHog vs Mixpanel vs Amplitude; Sentry vs Honeybadger; Better Stack vs PagerDuty).   |
-| `docs/operations/alerting-runbook.md`                                   | Sev 1/2/3/4 channels + ack times + on-call rotation.                                                             |
-| `docs/operations/procurement-inventory.md`                              | PostHog + Sentry + Better Stack rows (cost, vendor option, recommendation, when to buy).                         |
-| `docs/planning/SOURCE-OF-TRUTH.md` §3 + §7                              | The build queue entry (deferred until founder unblocks) + doc-map row.                                           |
-| `docs/planning/feature-dashboard.md` G12 (AFD-01..14)                   | The 14 rows (status, picker target).                                                                             |
-| `docs/planning/considerations.md`                                       | The SRE/Platform-lens "App-level monitoring + alerting" gap now points HERE for the full spec.                   |
-| `docs/strategy/strategic-inputs-log.md`                                 | The 2026-06-25 vendor-comparison thought-process is archived here.                                               |
-| `docs/strategy/session-decisions.md`                                    | The 2026-06-25 founder ruling "V3 + V1" is logged here.                                                          |
-| `architecture/runtime.md`                                               | The chokepoint + cron wrappers gain `track()` / `withJobRun()` (call out the façade).                            |
-| `architecture/integrations.md`                                          | PostHog + Sentry + Better Stack listed as outbound integrations behind the façade.                               |
-| `architecture/data.md`                                                  | `job_runs` + `agent_runs.failure_kind` + the 4 views documented.                                                 |
-| `docs/features/app-health.md`                                           | Linked as the seed Better Stack monitor target.                                                                  |
-| `docs/features/p7-incidents.md`                                         | Linked as the in-app surface AFD extends.                                                                        |
-| `docs/features/subprocessor-disclosure.md`                              | Updated with PostHog/Sentry/Better Stack at go-live (AFD-14).                                                    |
-| `docs/features/README.md`                                               | Index row added.                                                                                                 |
-| `docs/operations/credit-engine-go-live.md`                              | Referenced as the dormant-by-design pattern AFD mirrors.                                                         |
-| `AGENTS.md`                                                             | "If you touch observability, the spec is this file."                                                             |
-| `CLAUDE.md`                                                             | Same pointer.                                                                                                    |
-| `docs/planning/archive/build-log.md`                                                               | A dated line in §4 ("2026-06-25 — committed AFD doc-only plan, 14 task IDs, group G12, build is founder-gated"). |
-| `docs/README.md`                                                        | New row in the doc map.                                                                                          |
+| Doc | What it carries about AFD |
+| --- | --- |
+| **This file** (`docs/planning/analytics-and-failure-detection-plan.md`) | The front door. Doctrine + task IDs + sequence + exit posture. |
+| `docs/features/analytics-and-failure-detection.md` | The feature-level spec (what it is, where to find it, how it works at runtime). |
+| `docs/features/observability-facade.md` | The façade contract (`track` / `captureError` / `heartbeat` / `forget`). |
+| `docs/decisions/analytics-vendor-selection.md` | The vendor selection ADR (PostHog vs Mixpanel vs Amplitude; Sentry vs Honeybadger; Better Stack vs PagerDuty). |
+| `docs/operations/alerting-runbook.md` | Sev 1/2/3/4 channels + ack times + on-call rotation. |
+| `docs/operations/procurement-inventory.md` | PostHog + Sentry + Better Stack rows (cost, vendor option, recommendation, when to buy). |
+| `docs/planning/SOURCE-OF-TRUTH.md` §3 + §7 | The build queue entry (deferred until founder unblocks) + doc-map row. |
+| `docs/planning/feature-dashboard.md` G12 (AFD-01..14) | The 14 rows (status, picker target). |
+| `docs/planning/considerations.md` | The SRE/Platform-lens "App-level monitoring + alerting" gap now points HERE for the full spec. |
+| `docs/strategy/strategic-inputs-log.md` | The 2026-06-25 vendor-comparison thought-process is archived here. |
+| `docs/strategy/session-decisions.md` | The 2026-06-25 founder ruling "V3 + V1" is logged here. |
+| `architecture/runtime.md` | The chokepoint + cron wrappers gain `track()` / `withJobRun()` (call out the façade). |
+| `architecture/integrations.md` | PostHog + Sentry + Better Stack listed as outbound integrations behind the façade. |
+| `architecture/data.md` | `job_runs` + `agent_runs.failure_kind` + the 4 views documented. |
+| `docs/features/app-health.md` | Linked as the seed Better Stack monitor target. |
+| `docs/features/p7-incidents.md` | Linked as the in-app surface AFD extends. |
+| `docs/features/subprocessor-disclosure.md` | Updated with PostHog/Sentry/Better Stack at go-live (AFD-14). |
+| `docs/features/README.md` | Index row added. |
+| `docs/operations/credit-engine-go-live.md` | Referenced as the dormant-by-design pattern AFD mirrors. |
+| `AGENTS.md` | "If you touch observability, the spec is this file." |
+| `CLAUDE.md` | Same pointer. |
+| `docs/planning/archive/build-log.md` | A dated line in §4 ("2026-06-25 — committed AFD doc-only plan, 14 task IDs, group G12, build is founder-gated"). |
+| `docs/README.md` | New row in the doc map. |
 
 If you add a doc that touches observability, add a row HERE so it never sits orphaned.

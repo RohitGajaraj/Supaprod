@@ -12,8 +12,8 @@
 
 ## Where it lives
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | `src/styles/ink.css` | 146 `--sp-*` tokens, dark on `:root`, light on `[data-theme="light"]`. Below a fence: the legacy `--ink-*`/`--voice-*` layer, kept until its call sites are gone. |
 | `src/styles/shell.css` | the four shell regions |
 | `src/styles/primitives.css` | what every primitive renders as |
@@ -119,7 +119,7 @@ you were standing on. If a rule can lose by accident, tie the specificity and wi
 For any panel interior still on the old system:
 
 | legacy | new |
-|---|---|
+| --- | --- |
 | `--ink-bg`, canvas | `--sp-bg` |
 | `--card`, `--surface-*`, a panel | `--sp-sheet`, or `--sp-sink` for a recess |
 | a raised control | `--sp-lift`; floating: `--sp-float` |

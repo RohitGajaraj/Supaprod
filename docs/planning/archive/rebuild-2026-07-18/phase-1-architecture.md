@@ -179,7 +179,7 @@ Right-most: Settings icon (gear → Settings modal/drawer)
 ## 2. ROUTE MAP: OLD → NEW HOMES
 
 | Old Route | Decision | New Home | Access Path | Default View |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `_authenticated.today` | MERGE | Home | Direct (/home) | Recent projects + suggestions |
 | `_authenticated.onboarding` | MERGE | Home onboarding | Signup flow → Home steps 1–3 | Conversational flow |
 | `_authenticated.build.$id` | MERGE | Project/Build | /project/$id (route infers stage) | Canvas in Build mode |
@@ -284,7 +284,7 @@ Right-most: Settings icon (gear → Settings modal/drawer)
 Every motion reduces to the same primitive: **(signal or intent) → agent proposal → human gate → scoped execution pass on a stage.**
 
 | Motion | Trigger | Affordance | Agent Behavior | User Flow |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Interrupt** | Urgent work lands mid-pass | Priority indicator on timeline | Pause current pass, queue new work | Click urgency flag or use command bar |
 | **Break** | Agent/build/deploy fails | Visible pause + plain-word reason + recovery options | Stop progress, explain failure, propose fix or rollback | See failure state, choose action |
 | **Go back** | Rework earlier stage | Click stage on spine (reopen stage) | Re-enter that stage, scoped, pull Memory context | Click "Redesign checkout" from spine |
@@ -303,7 +303,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 **Every current capability stays reachable. Justify-or-cut applies to surfaces, not features.**
 
 | Capability | Current Route | New Home | Access Path | Default/On-Demand |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **User auth** | /login, /signup | Auth doorway | Public links | Default |
 | **Workspace creation** | Part of onboarding | Onboarding stage 1 | Signup flow | Default |
 | **Project CRUD** | _authenticated.today + admin | Home + Settings | Home card or Settings/Workspace | Default + Settings |
@@ -339,7 +339,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 **Full PM discipline mapped to design surfaces.** If a working PM would have to leave Supaprod to do any part of their job, it isn't mapped yet.
 
 | PM Practice | Where It Lives | Canvas / Surface | Access Path |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Discovery research** | Project/Plan (via signals) | Plan mode | Home suggestion or command "research signal X" |
 | **User interviews** | Signals → Approvals | Signal digest | Project/Grow + Approvals |
 | **Opportunity framing** | Project/Plan | Plan canvas | /project/$id > Plan stage |
@@ -369,7 +369,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ### Navigation & Global
 
 | Context | Current | Proposed Supaprod | Rationale |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | App title | "Cadence" | "Supaprod" | Brand (founder ruling) |
 | Platform claim | — | "The product OS that decides what to build" | 1-liner (from positioning) |
 | Home label | "Today" | "Home" | Clearer intent |
@@ -379,7 +379,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ### Home Surface
 
 | Element | Copy | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Command bar placeholder | "What are we building?" | Conversational entry, works at any stage |
 | Empty state primary | "Start your first project" | Warm, direct |
 | Empty state actions | "Plan a feature" / "Design a mockup" / "Import existing app" | Three modes, all equal weight |
@@ -389,7 +389,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ### Project Surface
 
 | Element | Copy | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Spine stages | Plan / Design / Build / Ship / Launch / Grow | One word each, verbs not nouns |
 | Build stage label | "Now executing" | When agents are active |
 | Agent activity | "[Agent name] generated code mockup" | Verb + object, plain language |
@@ -399,7 +399,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ### Approvals Surface
 
 | Element | Copy | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Queue label | "Approvals" | Clear, simple |
 | Item type | "Plan change" / "Deploy gate" / "Copy review" | Specific, descriptive |
 | Proposal | "[Agent name] proposes: Replace guest checkout with SSO" | Agent + clear what/why |
@@ -410,7 +410,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ### Settings
 
 | Element | Copy | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Section groups | Account / Workspace / Connections / AI / Billing / Advanced | 5 main + 1 recessed |
 | Workspace Memory | "How Supaprod learns your preferences" | Stickiness + trust |
 | Model Routing | "Assign agents to models by task (optional)" | Operator control, not required |
@@ -419,7 +419,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ### Empty, Loading, Error States
 
 | State | Copy | Example |
-|---|---|---|
+| --- | --- | --- |
 | Empty | "[Noun]. None yet — start one." | "Plans. None yet — draft the first one." |
 | Loading | "[Verb]..." | "Loading project..." (optional, if > 1s) |
 | Error | "Couldn't [action]. [Reason]. Try [fix]." | "Couldn't save plan. Network issue. Try again?" |
@@ -429,7 +429,7 @@ Every motion leaves a recorded cycle on the spine. History is never overwritten.
 ## 7. RENAME PASS (Cadence → Supaprod)
 
 | Old Name | New Name | Rationale | Impact |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Cadence (product) | Supaprod | Founder ruling 2026-07-16 | App title, metadata, public links |
 | CadenceMark | SupaprodMark | Logo brand (interim: Geist Pixel wordmark) | Favicon, mark in nav, empty states |
 | cadence_* (DB columns) | Leave unchanged per exception ledger | Generic English word "cadence" (frequency) stays | DB (no migration needed) |

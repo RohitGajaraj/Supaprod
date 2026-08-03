@@ -31,7 +31,7 @@ record, a Call. That sort is right and incomplete. There is a fourth class, and 
 gate, it is a capability we refuse to build.
 
 | Register | What is true | The human's part | Expected share |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Silent** | absorbed, nothing the user got changed | none | high |
 | **Informed** | the crew did it, under a grant that is on the surface | **nothing**, and that is the design | **the bulk of everything the user sees** |
 | **Asked** | it crossed a floor, or it needs judgment with no oracle | a verdict | ~4 per shipped feature, falling |
@@ -121,7 +121,7 @@ Companion line, used only where the record is the subject (the empty tray, the g
 buyer artifact): **`All of it is on the record.`**
 
 | Fragment | What it does |
-|---|---|
+| --- | --- |
 | `Your crew` | The ratified possessive (`language` R7). Warm, and true. |
 | `does the work` | The spine, in the subject position where it belongs. Present simple, unglamorous, and it is the claim the product actually makes. |
 | `You decide` | The human act is a real decision with real authority. Keeps the accountability claim, which we need in a contract and a procurement questionnaire. |
@@ -230,7 +230,7 @@ or 'shown subtly', it is a Call that somebody is embarrassed by."*
 **Exactly two optional controls may appear, and no third:**
 
 | Control | When | Why it is legal |
-|---|---|---|
+| --- | --- | --- |
 | `ask me next time` | on any receipt of unattended work | Tightening. It is the primary rule-authoring gesture in the product (§7.4). |
 | the object's own reversal verb (`Undo`, `Roll back release`, `Revert version`) | only where the act is genuinely reversible | It names a real inverse. |
 
@@ -319,7 +319,7 @@ receipt that follows the verdict, with the count attached**, and only when there
 **The symmetry, which is the whole model in four rows:**
 
 | Direction | Where it lives | The words | Who may act |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Loosen** | on the receipt following a verdict, with the count | `stop asking me` -> the graduation card | **Human only.** R-13. |
 | **Tighten** | on any receipt of unattended work | `ask me next time` | Human, one click, no ceremony |
 | **Auto-tighten** | invisible, with a receipt naming the evidence | none | The machine may |
@@ -340,7 +340,7 @@ House rules surface as a **locked row with its reason on the row**, which is wha
 controllable rows feel safe.
 
 | # | Floor | Backed by | The reason, in the words that ship |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **1** | **Anything irreversible outside the product** | Q3 | production deploy · anything a customer sees · a merge into your codebase · handing work to an outside coding agent · a revoked or issued credential · spend past your cap |
 | **2** | **A schema change in your repo** | `registry.server.ts:1069-1076,1172-1183` | *"A schema change is a Call at every autonomy level and is the one Call that can never be granted to `Runs on its own`."* Quote it verbatim; it is the best-written sentence in the nine documents. |
 | **3** | **Which bet to keep or drop** | judgment, no oracle | `edge` §6 already names Bet as *"the one stage the product will never do for you"* |
@@ -366,7 +366,7 @@ Six rows. Nobody may authorize these, including the workspace owner, including a
 render on the buyer artifact under the heading `Never, at any setting`.
 
 | # | Never | Why it is a refusal and not a gate |
-|---|---|---|
+| --- | --- | --- |
 | **N1** | Score, rank or evaluate a **named human teammate** | EU AI Act Annex III point 4. The moment trust or gate-signal machinery points at a person, we are a regulated high-risk system from 2 August 2026, inheriting Articles 9 to 15 and handing an Article 26 burden to every customer. §11.2. |
 | **N2** | **Final task allocation to a named human.** The crew may propose work for a person; a person enacts it | Same. The trigger is a *material influence* standard, so a formal human rubber stamp does not save it. |
 | **N3** | Turn its own record off, or edit or backfill a receipt | The record is the consideration the customer receives for the clicks we removed. A record that can be turned off was never a record. |
@@ -380,7 +380,7 @@ N1 and N2 are also a product boundary, not only a legal one: **the moment the cr
 ### 4.3 What is not a floor, so this does not become a list of reasons to build nothing
 
 | Feels like a floor | Actually | Why |
-|---|---|---|
+| --- | --- | --- |
 | A branch, a commit, a draft PR | absorbed | Reversible, contained, invisible outside the workspace. Already exempted in code by `BUILD_LANE_AUTONOMOUS`, founder ruling 2026-07-08. |
 | Reading a connected source | absorbed | Read access was granted once, at Connect. Re-asking is theatre. |
 | Drafting anything | absorbed | A draft nobody has seen has no consequence. |
@@ -419,7 +419,7 @@ No `agent_autonomy` rows, no `agent_tool_modes` rows, `max_tool_risk = NULL`, se
 Through `loadAgentArc` (returns `trusted`) and `resolveToolMode`:
 
 | Kind of work | Seeded | Resolves to | The defence, printable in the row |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Reads, search, repo tree, web search, memory | `auto` | **runs on its own** | Reading changes nothing. There is nothing to undo, so there is nothing to approve. |
 | Internal writes: tasks, notes, signals, specs, prioritisation | `confirm` | **runs on its own** | It lives in your workspace and you can delete it in one click. Asking first would buy a confirmation and cost the whole point. |
 | Build lane: stage, commit, open PR, sync branch | `auto` | **runs on its own** | A branch and a draft pull request are isolated from your code. Nothing reaches your codebase except through the merge, and the merge always stops. |
@@ -561,7 +561,7 @@ interruption. The new form is also the enterprise buyer's question verbatim.
 ### 7.2 The three shapes we may offer, and the one we may not
 
 | Shape | The sentence | Stored | Enforced today |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Standing** | `Engineer opens pull requests on its own.` | `agent_tools.mode`, `agent_tool_modes.mode`, `agent_autonomy.arc` | **yes**, `resolveToolMode` |
 | **Reach** | `Scout never touches anything outside this workspace.` | `agents.max_tool_risk` | **yes**, `capToolsByRisk`, which removes the tool from the prompt entirely |
 | **Ceiling** | `Nothing spends past $5 on one run.` | `mission_spend_cap_usd`, `mission_token_cap` | **yes**, `runtime.server.ts:226-238`, fail-closed |
@@ -648,7 +648,7 @@ rung names, and the recent-runs usage table.
 Every row states where its rule came from. Exactly four values, three of which need no new storage:
 
 | Value | Meaning | Source |
-|---|---|---|
+| --- | --- | --- |
 | `our default` | Nobody chose this. We did, and here is why. | no row exists |
 | `you, 12 Jul` | You wrote it. | `agent_tool_modes.source = 'operator'`, `agent_autonomy.set_by` |
 | `earned, 12 clean runs` | It asked, you said yes, here is the evidence. | `agent_tool_modes.source = 'graduation'` |
@@ -700,7 +700,7 @@ absence teaches nothing.
 ### 7.6 Editing, and work already in flight. The asymmetry is the design.
 
 | Case | Ruling |
-|---|---|
+| --- | --- |
 | **Loosening** | Takes effect on the next run, never retroactively. Items already waiting stay, and the pane says so: `From now on Engineer opens pull requests on its own. Three are still waiting on you from before.` `[ Approve all three ]` is offered because the user is standing right there, and it is **secondary, never the default, never automatic.** Auto-approving in-flight items on a rule change converts one click into N irreversible acts with no per-item read. |
 | **Tightening** | Binds the current run at its next tool call. Safety needs no permission, and a tightening that waits politely for the run that worried you is not a control. One indexed read per gated call. |
 | **Deleting** | Superseded, never erased. The row reverts to `our default` and the change stays in the record, so a user can ask *why did this change in July* and get an answer. |
@@ -717,7 +717,7 @@ and the tool then ran clean.**
 Four suggestion families. Three are new connections of data that already exists:
 
 | Family | Trigger | The sentence |
-|---|---|---|
+| --- | --- | --- |
 | **Loosen one kind of work** (exists) | 5 consecutive `executed` for one (agent, tool) | `Reviewer wants to stop asking.` |
 | **Loosen a whole class** (new) | every tool in a class is at `auto` except one, and that one has a clean streak | `Everything else that stays inside your workspace already runs alone. This is the last one asking.` |
 | **Tighten** (new, and it must exist) | 2 `rejected` or sent back in a row on a tool at `auto`, or one `missed` outcome attributed to the agent | `Engineer opened three pull requests you sent back. Want to see them first from now on?` |
@@ -761,7 +761,7 @@ every **reversible** step under it is pre-consented and takes no per-step confir
 guarded four ways, and unit-tested.
 
 | Retired | Was | Now |
-|---|---|---|
+| --- | --- | --- |
 | `ia` J4 step 3, mid-run tool approval | Gate, inline | **Informed.** The spec approval at J3 step 4 **is** the authorization. Asking again is asking twice for the same consent. |
 | `shell` form 8, "mid-run tool approvals, inline" | Judge slot | **Informed.** |
 | `shell` form 9, "approve / deny when the tool is `confirm`" | Judge slot | **Informed**, except the honest residue of two: the merge, and the hand-off to an outside coding agent. |
@@ -772,7 +772,7 @@ guarded four ways, and unit-tested.
 ### 8.2 Become house rules, with a default
 
 | Retired | Rule name | Default |
-|---|---|---|
+| --- | --- | --- |
 | `shell` form 1, judge each raw signal (`Is this real? Keep / Ignore`) | **What reaches you** | only patterns with two or more corroborating sources. Everything else is kept and searchable and never asked about. |
 | `shell` form 2, `Does this add up? Promote / Split / Drop` | **Promote a pattern to a bet** | at three corroborating sources. The human judges bets, not patterns. |
 | `ia` J2 step 3, `decideFanoutBatch` per branch | **Teardown depth** | the strongest three counters, the rest one click away. Judging each branch is judging retrieval. |
@@ -793,7 +793,7 @@ guarded four ways, and unit-tested.
 ### 8.3 Become informed, with a receipt and controls
 
 | Retired | Why it was never a gate |
-|---|---|
+| --- | --- |
 | `edge` §3.2 / §3.4, a terminal run failure or a failure after the budget | Its own copy disproves it: *"The change is not in your codebase and nothing shipped."* **Nothing is waiting on the answer.** A receipt with three controls: `Try again`, `Send back`, `Take it over`. |
 | `edge` §3.4, the stall at 8 minutes | Already correctly written as a receipt with controls. Do not count it in the gate budget. |
 | `edge` §3.5, a connector refresh that fails | Its own justification is a notification argument. Nothing needs judgment; the crew needs a credential. A receipt with `Reconnect Linear`. |
@@ -830,7 +830,7 @@ reversible acts have several. Fix those before removing a single reversible gate
 ### 8.6 Deleted outright
 
 | Deleted | Why |
-|---|---|
+| --- | --- |
 | Judging each raw signal | The queue disease in its purest form. §8.2. |
 | `Revert version` and `Roll back release` as Calls | §8.4. |
 | The `off` tool mode | §13.4. It is a permissive failure, not a disablement. |
@@ -844,7 +844,7 @@ Nine files. Three need structural rework; six need row edits. Named here so noth
 reconciled later.
 
 | Doctrine | What changes |
-|---|---|
+| --- | --- |
 | **`agents/FINAL-agent-presence.md`** | **Structural.** R10's signature moment keeps all four beats and changes subject from the approval to **the grant** (§6.2); §8.2's graduation card becomes the flagship instance and gains beat 4, the rule landing on the House rules pane; §8.3's claw-back and the `Ask me next time` affordance become **one component with two entry points**; §2's three-calls sentence is promoted from a line to **the gate budget**; A-12's `Send back` becomes reachable without a gate; §5.4's tool matrix is set **per consequence class first**, per tool only as a named exception, because 46 tools by 13 agents is not a boundary a human can set and four classes is; R11's unasked first Researcher run must be **disclosed as a default** on the sign-up screen and stoppable in one click. §5.4's locked-rows-with-reasons drawing becomes the model for the whole surface. |
 | **`edge/FINAL-edge.md`** | **Structural.** §0's sorter gains Q0, Q1 and Q3b (§2); the Call register **splits into `Call` and `Control`** (§8.4); §3 re-runs through the new sorter, which changes 11 of its 29 rows and none of its four constitutional clauses; §3.6's one-table summary shrinks from 14 Calls to the floors in §4.1; §3.5's Friday example receipt is replaced with a shape that compiles (§7.2); §4.2's `tighten silently, loosen by Call` is **ratified verbatim and strengthened**: a self-applied tightening writes a receipt naming its evidence; C2's absorption price is **unpaid for 21 tools** and §12.6's build-time invariant is raised to a hard gate. |
 | **`adaptive/FINAL-adaptive-layout.md`** | **Structural.** §9's *"A human is in this app to make judgment calls at gates"* is the gate frame compiled into a CSS invariant and is the deepest place it is buried. It is also self-defeating: **a layout whose top invariant is a gate has an empty top invariant on every healthy day.** New **I1: "What the crew is doing, what it did on its own since you last looked, and the open call if there is one."** The gate keeps its slot inside I1 and stops being I1. New **I6: the House rules row, one key (`⌘B`)** - if the human's job is setting grants, the grant must survive to S0 alongside the gate. The ordering rule changes from *rank by distance from the gate* to **rank by distance from the work**. `⌘G` survives for the residue. `shell-composition.test.ts` follows mechanically. |
@@ -867,7 +867,7 @@ reconciled later.
 **Counted, for a team running five missions a week with nightly signal sweeps.**
 
 | | Gate-centric (the nine doctrines as authored) | This frame |
-|---|---|---|
+| --- | --- | --- |
 | Raw signals judged | ~77 (Judge slot on every signal at even 10% surfacing) | **0** |
 | Patterns triaged | ~10 | **0** |
 | Bets kept or dropped | 5 (one sitting per mission) | **5** |
@@ -1372,7 +1372,7 @@ consent panel renders an explicit `not catalogued` class rather than folding int
 Every disagreement between the three lanes, ruled, so nobody relitigates.
 
 | # | The conflict | Ruling | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **The in-app line.** gov-b: `You write the house rules. Your crew works inside them.` gov-c: `Your crew does the work. You decide what it may do alone.` | **gov-c.** | gov-b puts the human's labour back in the subject position, relabelled from approving to configuring, and it is false on day one when the user has written zero rules. §1.2. |
 | 2 | **The product word for the surface.** gov-a: `boundary`. gov-b and gov-c: `House rules`, with `boundary` banned. | **gov-b and gov-c.** gov-a's content model is adopted whole; its label is doctrine-only. | Law 1: words get deleted, not added. Both concepts already have ratified words. §1.3. |
 | 3 | **The signature moment.** gov-a: any boundary act. gov-b: the graduation. gov-c: defers. | **Both, unified.** The ceremony fires on **any change to the standing grant**; the graduation is its flagship instance and gains beat 4. | gov-a is right that a ceremony reserved for graduations is too rare to be seen; gov-b is right that graduation is the emotional peak because the machine is the one asking. §6.2. |
@@ -1394,7 +1394,7 @@ Ranked by whether the thing above it is a lie without it. The first five are **p
 improvements: no gate may be retired before they land.
 
 | # | Item | Why it is a precondition |
-|---|---|---|
+| --- | --- | --- |
 | **P0** | **Mount `ExecutedCard` / "Done without you"** | 547 lines, zero importers. Without it every default in §5 is opacity rather than delegation, and the informed register has no component. |
 | **P1** | **Delete the promotion branch of `auto_advance_agent_arc`** | §11.1, §13.1. The machine currently loosens itself and only ever undoes a human's tightening. One migration. |
 | **P2** | **`createHouseRule`, and a direction check on machine-written rules** | §11.1. The human cannot author a rule; the machine authors live ones. The frame has no code path without this. |

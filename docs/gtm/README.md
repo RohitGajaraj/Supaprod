@@ -4,9 +4,9 @@
 
 ## The files
 
-| File                                           | Open it when…                                                                                                                                                                                                                                                                     |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [**brand-supaprod.md**](./brand-supaprod.md)   | Anything touching the **Supaprod** brand (decided 2026-07-16): the domain buy list (today vs parked), registrar rationale (Cloudflare), social-handle convention (@supaprodhq), email architecture (phased $0 → $7/mo), the trademark strategy summary, the launch/YC checklist, and the future-actions register (the do-not-forget table). |
+| File | Open it when… |
+| --- | --- |
+| [**brand-supaprod.md**](./brand-supaprod.md) | Anything touching the **Supaprod** brand (decided 2026-07-16): the domain buy list (today vs parked), registrar rationale (Cloudflare), social-handle convention (@supaprodhq), email architecture (phased $0 → $7/mo), the trademark strategy summary, the launch/YC checklist, and the future-actions register (the do-not-forget table). |
 | [**trademark-brief-supaprod.md**](./trademark-brief-supaprod.md) | You're handing trademark work to an external attorney/advocate (US or India): the fully self-contained filing brief — the mark, applicant fill-in slots, draft class 9+42 goods/services wording, every prior-rights finding with source URLs (Superprod dossier, Supabase/supa- context, SupaPro, producer-tag uses), jurisdiction plan (US now · India near-term · EU parked class-42-only), and the numbered questions for counsel. Send this file; no other inputs needed. |
 
 ## Standing rules for this folder

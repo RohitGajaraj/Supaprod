@@ -8,18 +8,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                                         |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-05                                                                                                                                                                                                                                                                                                                        |
-| Rank          | #6 (dashboard)                                                                                                                                                                                                                                                                                                                |
-| Tier          | 1                                                                                                                                                                                                                                                                                                                             |
-| Status        | pending (build after OBS-03 lands primitives)                                                                                                                                                                                                                                                                                 |
-| Category      | Build                                                                                                                                                                                                                                                                                                                         |
-| Depends on    | OBS-03 (core primitives: `MissionRow`, `SlideOver`, `CallCard`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast`, `Button`)                                                                                                                                                                                                   |
-| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                                            |
+| Field | Value |
+| --- | --- |
+| ID | OBS-05 |
+| Rank | #6 (dashboard) |
+| Tier | 1 |
+| Status | pending (build after OBS-03 lands primitives) |
+| Category | Build |
+| Depends on | OBS-03 (core primitives: `MissionRow`, `SlideOver`, `CallCard`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast`, `Button`) |
+| Blocks | nothing downstream |
 | One-line what | Port the Build surface to Obsidian: mission rows (status dot · title · verdict chip when done · step label · cost) plus the mission slide-over (numbered steps, live pulses, inline gate as a compressed CallCard, raw-trace toggle with per-hop cost, `?mission=` deep link). The slide-over is the app's one overlay depth. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14 · row OBS-05                                                                                                                                                                                                                                                   |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                        |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14 · row OBS-05 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ---
 

@@ -21,7 +21,7 @@ width. That is my contract's edge.
 **I hand off:**
 
 | Seam | Who | What I promise them | What I need from them |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Type + spacing scale | Proposal A (scale/density) | I consume `--fs-body`, `--space-*`, `--ink-control-*`, and `data-density`. Every width I compute is a `calc()` over their tokens, so if they retune the ramp my layout retunes with it and CI re-checks the algebra. | One canonical `--fs-body` (today `--tempo-text-base: 13px`) and a pinned per-font `ch` correction constant. |
 | Inside a pane | Proposal B (surface adaptation) | Every slot is `container: pane / inline-size` with a known `--pane-w`. A face may assume it is between `--col-min` and `--canvas-max` and never anything else. | Faces query `@container pane`, never `@media`. Faces never set their own width. |
 | Content primitives | Proposal B | Slot width, a `data-scroll="x"` opt-out for genuinely wide content (diffs, terminals, wide tables). | Every horizontally-overflowing element carries `data-scroll="x"`, or my CI gate fails it. |
@@ -69,7 +69,7 @@ scaling, browser zoom, and a split-screen half-window all change exactly this nu
 mechanism covers all three and there is no separate "zoom story".
 
 | Band | Range (shell inline-size) | Commitment |
-|---|---|---|
+| --- | --- | --- |
 | **Designed** | `1054px` - `3159px` | Tuned, screenshotted, demoed. Covers 1280×800 laptops, 1440/1512 MacBooks, 1920 and 2560 desktops, 3440 ultrawide. |
 | **Supported** | `431px` - `5120px` | Fully functional, every invariant present, CI-swept. Covers a half-window of a 1440 display (720), a 13" laptop at 175% zoom (823), a 1920 at 200% zoom (960), a 5K in landscape. |
 | **Survived** | `360px` - unbounded | Usable, not tuned. Phone-width stack. Not screenshotted, not demoed, no visual regression baseline. |
@@ -79,7 +79,7 @@ mechanism covers all three and there is no separate "zoom story".
 **Vertical**, same idea, because 200% zoom is mostly a height problem:
 
 | Band | Range (shell block-size) | Commitment |
-|---|---|---|
+| --- | --- | --- |
 | Designed | `448px` - unbounded | Full chrome. |
 | Supported | `351px` - `448px` | Chrome compresses along §6's vertical ladder. A 1440×900 display at 200% zoom is 720×450 → supported on both axes. |
 | Outside, low | `< 351px` | Bottom docks (activity strip + composer) become one overlay sheet summoned by `⌘J`; the work area keeps the whole viewport. Still no wall. |
@@ -245,7 +245,7 @@ export function tierFor(width: number): TierId {
 Resolved floors:
 
 | Tier | Resident regions | Floor | Derivation |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **S0** | - (out of range) | `< 431` | below one column plus two rails |
 | **S1 Stack** | one focused pane + two rails | `≥ 431` | `col-min + 2·rail` |
 | **S2 Pair** | thread, canvas | `≥ 1054` | `col-min + canvas-min + 1` |
@@ -256,7 +256,7 @@ Resolved floors:
 Vertical, same machinery (`VTIERS` in the same file):
 
 | VTier | Chrome | Floor | Derivation |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **H0** | docks become a summoned sheet | `< 351` | |
 | **H1 Compressed** | spine numeric, strip merged into the composer's top line | `≥ 351` | `topbar + spine-numeric + dock + work-floor` |
 | **H2 Standard** | spine labeled, strip one line | `≥ 396` | |
@@ -446,7 +446,7 @@ edge with a badge. Below 431 the shell stops and you pan. No step is a device.
 ### 6.1 The invariant set - never sacrificed at any width or height
 
 | # | Invariant | Why it cannot go |
-|---|---|---|
+| --- | --- | --- |
 | I1 | **The open gate**: its claim, its evidence line, and both buttons | This is the product. A layout that hides the decision has inverted the job. |
 | I2 | **The composer** (collapsed strip at minimum) | If the human cannot answer, the app is broken. |
 | I3 | **The activity truth** - at minimum `N working · M waiting on you` | Honesty rule already in `WorkingStrip`: the machine must never work invisibly. It may compress to a count. It may never become nothing. |
@@ -462,7 +462,7 @@ Ordering rule, stated once: **rank by distance from the gate.** A thing is cheap
 recoverable from what remains on screen.
 
 | # | What gives | How | Justification |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Spine return-edge caption + `Starts from:` / `Ends with:` caps | hidden | Pure ornament. `Spine.tsx` already renders them behind optional props. |
 | 2 | Topbar recessed doors - Crew, Under the hood, Artifacts, Threads | collapse into one `More` menu | Already off-nav by the Engine-Room doctrine; they are depth, not chrome. Today they use `hidden sm:flex`, which is the right instinct with the wrong query. |
 | 3 | **Ledger column** | back to the approvals tray | The column is a *promoted view of the tray*. The tray is its permanent home and is one key away (`⌘K` → Approvals, or the topbar pill). |
@@ -481,7 +481,7 @@ The exact reverse, and it is the same code path read the other way. This is the 
 systems never write down, and it is the half the founder actually asked for.
 
 | # | What arrives | At |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Canvas gains a sub-column (2 → 3) | continuously, via `auto-fit`, from ~1750 up |
 | 2 | **Context** promotes from drawer to resident column | S3, `≥ 1746` |
 | 3 | Spine gains receipts, state words, and the drawn return edge | H3, `≥ 448` tall |
@@ -607,7 +607,7 @@ palette). It is wrong for a region that has a resident form.
 ### 8.3 The transitions themselves
 
 | Change | Motion | Duration |
-|---|---|---|
+| --- | --- | --- |
 | Within a tier (columns breathe on `cqi`) | none; the `clamp()` tracks it continuously | - |
 | Peel / unpeel | `inline-size` on the region | `--tier-dur` 200ms |
 | Tier change (a column arrives) | grid track count changes → **grid snaps instantly**; the arriving region does `opacity 0→1` + `translateX(1rem→0)` from its own edge | `--tier-dur` 200ms |
@@ -671,7 +671,7 @@ box" to "probe the four corners of a 44px square with `elementFromPoint` and con
 the same control" (§12, Gate 3c).
 
 | Input | Behaviour |
-|---|---|
+| --- | --- |
 | `pointer: fine` | Column separators become drag handles; dragging re-proportions within `[min, max]` and writes the result into `intent` as a `cqi` override. Hover previews a peeled rail (translucent peek at 30% width, no state change). |
 | `pointer: coarse` | No drag handles (a 1px handle is a lie on a touchscreen). No hover-peek; peeled rails get a persistent chevron affordance instead of a hover-revealed one. Peel toggles on tap. |
 | `hover: none` | Every hover-only affordance in the shell gets a visible equivalent. Enforced by a lint rule: `:hover` in `shell.css` must be paired with a `:focus-visible` or a `[data-touch]` sibling rule. |
@@ -756,7 +756,7 @@ product. Beyond `--shell-band-max`, `margin-inline: auto` centers the band and t
 Run against the real tree this session:
 
 | Count | What |
-|---|---|
+| --- | --- |
 | **992** | `style={{` occurrences in `src/routes/_authenticated*.tsx` |
 | **255** | of those carrying *any* layout property |
 | **97** | of those carrying a **reflow-critical** property (`gridTemplateColumns`, `gridTemplateRows`, `minWidth`, `maxWidth`, `flexBasis`) |
@@ -1017,7 +1017,7 @@ inline styles rises above the committed baseline.
 ### What each gate would have caught
 
 | Gate | Would have caught |
-|---|---|
+| --- | --- |
 | 1 | a hand-typed `1440px` breakpoint anywhere in the shell |
 | 2 | "the context panel disappears between 1740 and 1760"; "the gate is unreachable at 700px"; "shrink-then-grow lost my columns" |
 | 3a | the `132px minmax(0,1fr) 46px 104px 132px 40px 22px` roster clipping at any pane width |
@@ -1032,7 +1032,7 @@ inline styles rises above the committed baseline.
 ## 13. Build order
 
 | # | Deliverable | Depends on | Gate it unlocks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `src/lib/shell/composition.ts` + `intent.ts` (pure, no React) | - | 1, 2 |
 | 2 | `src/styles/shell.css` token block (§3) + `scripts/read-shell-tokens.mjs` | 1 | 1 |
 | 3 | `scripts/gen-shell-css.ts` → `src/styles/shell.generated.css`, wired into `prebuild` | 1, 2 | 1 |

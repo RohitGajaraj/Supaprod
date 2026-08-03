@@ -1955,14 +1955,14 @@ Gates: `tsc --noEmit` 0 new errors, `bun test` 2098 pass, 0 regressions; offline
 
 The roster is kept narrow and delivery-oriented. Each agent owns a clear band of the product lifecycle. Fixed seats for micro-roles are avoided — those collapse into ephemeral specialists.
 
-| Agent            | Lifecycle band                                                  | Owns                                                                                                             | Primary pain point addressed                                    |
-| ---------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Orchestrator** | All stages                                                      | Mission coordination, spawns ephemeral specialists, manages approval routing, parallelism                        | Coordination overhead, context loss between stages              |
-| **Discovery**    | S1 Signal Capture + S2 Audio Sync                               | Signal Ingest (Zendesk/Intercom/Slack), clustering opportunities, WhisperFlow transcription and audio extraction | Shallow discovery, anecdotal signals, missing verbal alignments |
-| **Strategist**   | S3 ICE Prioritization + S4 Spec Definition + S5 Sprint Planning | Opportunity scoring, cited PRD generation, Linear/GitHub Issues sync, dependency-aware task graphs               | Spec drafting overhead, weak prioritization, feature factories  |
-| **Builder**      | S6 Agentic Build + S7 Visual QA + S8 Safe Release               | Multi-file coding, file claims ledger, sandbox previews, PR merge checks and deploy monitoring                   | Developer bottlenecks, styling drift, release quality checks    |
-| **Growth**       | S9 GTM Launch                                                   | Outbound changelogs, blog posts, Slack notifications and release announcements                                   | Launch overhead, delayed go-to-market communication             |
-| **Analyst**      | S10 Support Triage + S11 Cohort Analytics + S12 Learn & Reflect | Support ticket routing to S1, adoption funnels, performance metrics vs PRD specs, Product Memory                 | Closed-loop support, un-measured features, memory decay         |
+| Agent | Lifecycle band | Owns | Primary pain point addressed |
+| --- | --- | --- | --- |
+| **Orchestrator** | All stages | Mission coordination, spawns ephemeral specialists, manages approval routing, parallelism | Coordination overhead, context loss between stages |
+| **Discovery** | S1 Signal Capture + S2 Audio Sync | Signal Ingest (Zendesk/Intercom/Slack), clustering opportunities, WhisperFlow transcription and audio extraction | Shallow discovery, anecdotal signals, missing verbal alignments |
+| **Strategist** | S3 ICE Prioritization + S4 Spec Definition + S5 Sprint Planning | Opportunity scoring, cited PRD generation, Linear/GitHub Issues sync, dependency-aware task graphs | Spec drafting overhead, weak prioritization, feature factories |
+| **Builder** | S6 Agentic Build + S7 Visual QA + S8 Safe Release | Multi-file coding, file claims ledger, sandbox previews, PR merge checks and deploy monitoring | Developer bottlenecks, styling drift, release quality checks |
+| **Growth** | S9 GTM Launch | Outbound changelogs, blog posts, Slack notifications and release announcements | Launch overhead, delayed go-to-market communication |
+| **Analyst** | S10 Support Triage + S11 Cohort Analytics + S12 Learn & Reflect | Support ticket routing to S1, adoption funnels, performance metrics vs PRD specs, Product Memory | Closed-loop support, un-measured features, memory decay |
 
 **Ephemeral specialists (spawned by Orchestrator per task):** competitor scan, UX critique, stakeholder brief, data analysis, security review, code review, and any other short-lived specialist. They inherit the chokepoint, tool allow-list, and governance. No permanent seats for micro-roles.
 

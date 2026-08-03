@@ -39,16 +39,16 @@ To point Supaprod at a different repo: rotate `GITHUB_REPO` (and `GITHUB_TOKEN` 
 
 ## 4. Failure modes (and how each surfaces)
 
-| Failure                                               | Where it surfaces                                                                          | Operator action                                                   |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| `GITHUB_REPO` missing or malformed (not `owner/name`) | Approval `executed=false`, `error` on the `agent_approvals` row, red node in Mission Graph | Fix the secret, re-dispatch the mission                           |
-| `GITHUB_TOKEN` missing                                | Same as above                                                                              | Set the secret                                                    |
-| GitHub `401 Unauthorized`                             | `error` on the approval row contains the GitHub message                                    | PAT expired or wrong scope, rotate                                |
-| GitHub `403 Forbidden`                                | Same                                                                                       | PAT is valid but lacks Issues:Write on this repo                  |
-| GitHub `404`                                          | Same                                                                                       | `GITHUB_REPO` points at a repo the token can't see                |
-| GitHub `422` (validation)                             | Same                                                                                       | Title empty or label doesn't exist on the repo                    |
-| Rate limit (`403` with `X-RateLimit-Remaining: 0`)    | Same                                                                                       | Wait, then re-approve. Idempotency key protects you               |
-| Network / timeout                                     | Approval marked `failed`; the loop will not retry automatically                            | Re-approve; cached result wins if the issue actually went through |
+| Failure | Where it surfaces | Operator action |
+| --- | --- | --- |
+| `GITHUB_REPO` missing or malformed (not `owner/name`) | Approval `executed=false`, `error` on the `agent_approvals` row, red node in Mission Graph | Fix the secret, re-dispatch the mission |
+| `GITHUB_TOKEN` missing | Same as above | Set the secret |
+| GitHub `401 Unauthorized` | `error` on the approval row contains the GitHub message | PAT expired or wrong scope, rotate |
+| GitHub `403 Forbidden` | Same | PAT is valid but lacks Issues:Write on this repo |
+| GitHub `404` | Same | `GITHUB_REPO` points at a repo the token can't see |
+| GitHub `422` (validation) | Same | Title empty or label doesn't exist on the repo |
+| Rate limit (`403` with `X-RateLimit-Remaining: 0`) | Same | Wait, then re-approve. Idempotency key protects you |
+| Network / timeout | Approval marked `failed`; the loop will not retry automatically | Re-approve; cached result wins if the issue actually went through |
 
 Every outcome is logged to `tool_calls` (joined to the run's `traceId`) with latency, args, and result/error, visible on `/traces/$traceId` and on the Mission Graph node detail.
 

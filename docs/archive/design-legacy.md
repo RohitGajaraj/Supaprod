@@ -56,17 +56,17 @@ The theme is **dark-mode first** (a Google Products-inspired "Neural Expressive"
 
 Supersedes "Midnight Indigo." Factory.ai-adjacent industrial dark — carbon-black canvas, molten Pantone Orange 021 C as the signature accent, with amber warmth and a thin ice counterpoint for data viz. Conveys "heavy reasoning engine" without the generic AI-blue trope.
 
-| Role               | Token                                      | Pantone                     | OKLCH                  | Notes                                    |
-| ------------------ | ------------------------------------------ | --------------------------- | ---------------------- | ---------------------------------------- |
-| Background (paper) | `--paper`                                  | Black 6 C (~#101820)        | `oklch(0.13 0.006 60)` | Warm carbon, never pure #000             |
-| Elevated surface   | `--paper-elevated`                         | —                           | `oklch(0.17 0.008 60)` | Graphite plate for cards                 |
-| Foreground (ink)   | `--ink`                                    | Cool Gray 1 C               | `oklch(0.97 0.004 75)` | Bone white, faint warmth                 |
-| Muted ink          | `--ink-muted`                              | Cool Gray 7 C               | `oklch(0.64 0.012 65)` | Concrete                                 |
-| **Primary accent** | `--violet` _(retained name)_ / `--primary` | **Orange 021 C (~#FE5000)** | `oklch(0.70 0.22 38)`  | Signature ember — CTAs, rings, gradients |
-| Warm halo          | `--amber`                                  | 7548 C                      | `oklch(0.84 0.16 78)`  | Gradient companion                       |
-| Cool counterpoint  | `--cyan`                                   | 7541 C                      | `oklch(0.82 0.08 220)` | Charts, info states                      |
-| Success            | `--emerald`                                | 7480 C                      | `oklch(0.78 0.16 158)` |                                          |
-| Alert              | `--rose` / `--destructive`                 | Red 032 C                   | `oklch(0.70 0.22 22)`  | Reads warm next to ember                 |
+| Role | Token | Pantone | OKLCH | Notes |
+| --- | --- | --- | --- | --- |
+| Background (paper) | `--paper` | Black 6 C (~#101820) | `oklch(0.13 0.006 60)` | Warm carbon, never pure #000 |
+| Elevated surface | `--paper-elevated` | — | `oklch(0.17 0.008 60)` | Graphite plate for cards |
+| Foreground (ink) | `--ink` | Cool Gray 1 C | `oklch(0.97 0.004 75)` | Bone white, faint warmth |
+| Muted ink | `--ink-muted` | Cool Gray 7 C | `oklch(0.64 0.012 65)` | Concrete |
+| **Primary accent** | `--violet` _(retained name)_ / `--primary` | **Orange 021 C (~#FE5000)** | `oklch(0.70 0.22 38)` | Signature ember — CTAs, rings, gradients |
+| Warm halo | `--amber` | 7548 C | `oklch(0.84 0.16 78)` | Gradient companion |
+| Cool counterpoint | `--cyan` | 7541 C | `oklch(0.82 0.08 220)` | Charts, info states |
+| Success | `--emerald` | 7480 C | `oklch(0.78 0.16 158)` | |
+| Alert | `--rose` / `--destructive` | Red 032 C | `oklch(0.70 0.22 22)` | Reads warm next to ember |
 
 Token names `--violet`, `--indigo-grid`, `.ring-glow-violet`, `.neural-*` are retained for backwards compatibility — only their values shifted to the Carbon & Ember language. WCAG AA: ember (`0.70 .22 38`) on carbon (`0.13 .006 60`) ≈ 7.4:1 for text and large UI.
 
@@ -117,16 +117,16 @@ Token names `--violet`, `--indigo-grid`, `.ring-glow-violet`, `.neural-*` are re
 
 System font stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, …`); monospace `ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo`.
 
-| Role    | Weight | Size         | Line height | Use                          |
-| ------- | ------ | ------------ | ----------- | ---------------------------- |
-| Display | 600    | text-4xl     | 1.1         | Hero, login. Rare.           |
-| H1      | 600    | text-3xl     | 1.2         | Route titles.                |
-| H2      | 600    | text-2xl     | 1.3         | Section headers.             |
-| H3      | 500    | text-xl      | 1.35        | Sub-sections.                |
-| Body    | 400    | text-base    | 1.6         | Default.                     |
-| Body-sm | 400    | text-sm      | 1.5         | Lists, table cells.          |
-| Caption | 400    | text-xs      | 1.4         | Metadata badges, timestamps. |
-| Code    | 400    | text-sm mono | 1.6         | Inline code, blocks.         |
+| Role | Weight | Size | Line height | Use |
+| --- | --- | --- | --- | --- |
+| Display | 600 | text-4xl | 1.1 | Hero, login. Rare. |
+| H1 | 600 | text-3xl | 1.2 | Route titles. |
+| H2 | 600 | text-2xl | 1.3 | Section headers. |
+| H3 | 500 | text-xl | 1.35 | Sub-sections. |
+| Body | 400 | text-base | 1.6 | Default. |
+| Body-sm | 400 | text-sm | 1.5 | Lists, table cells. |
+| Caption | 400 | text-xs | 1.4 | Metadata badges, timestamps. |
+| Code | 400 | text-sm mono | 1.6 | Inline code, blocks. |
 
 Default to `text-sm` on dense surfaces. Reserve `text-2xl`+ for true hierarchy. Numerals in tables use `tabular-nums`.
 
@@ -146,13 +146,13 @@ Tailwind 4px base. Common rhythm: 2/4/8/12/16/24/32/48px. Radii: `rounded-sm` (b
 
 **Framer Motion** is canonical (CSS transitions ok for trivial hover).
 
-| Token             | Duration | Easing    | Use                        |
-| ----------------- | -------- | --------- | -------------------------- |
-| motion-instant    | 80ms     | easeOut   | Hover, focus ring.         |
-| motion-quick      | 160ms    | easeOut   | Dropdown, tooltip.         |
-| motion-default    | 240ms    | easeInOut | Modal, page transition.    |
-| motion-deliberate | 480ms    | easeInOut | Hero entrance, onboarding. |
-| motion-glacial    | 1200ms   | easeInOut | Aurora pulse, skeleton.    |
+| Token | Duration | Easing | Use |
+| --- | --- | --- | --- |
+| motion-instant | 80ms | easeOut | Hover, focus ring. |
+| motion-quick | 160ms | easeOut | Dropdown, tooltip. |
+| motion-default | 240ms | easeInOut | Modal, page transition. |
+| motion-deliberate | 480ms | easeInOut | Hero entrance, onboarding. |
+| motion-glacial | 1200ms | easeInOut | Aurora pulse, skeleton. |
 
 Patterns: stagger-fade (60ms) on dashboards; spring on drag (`stiffness 360, damping 28`); streaming text uses a CSS-blinking cursor (not Framer — high-frequency Framer animation janks); trace spans expand L→R with a soft pop. **Reduced motion:** any `animate` prop lives in a component that checks `useReducedMotion()` and degrades to instant. Essential fades stay; stagger and aurora pulse are removed. Skeleton pulse stays (it signals state).
 
@@ -203,17 +203,17 @@ Five widgets, each with its own skeleton/empty/error, none blocking page render:
 
 Every AI message — chat, copilot, PRD `/ai`, Studio chat, agent summaries, daily brief — exposes the same contract, rendered by one shared component. No surface invents its own. If you cannot fit the contract, redesign the surface, not the contract. Enforced by [`AGENTS.md`](../../AGENTS.md), rule 9.
 
-| Element      | Purpose                                                                                                     |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| Score badge  | LLM-as-judge composite; green/amber/red ramp; tooltip shows groundedness/relevance/coherence/hallucination. |
-| Model + via  | e.g. `model-x · gateway` or `claude-… · byo`.                                                               |
-| Latency      | e2e and ttft if streamed (`1.4s · 240ms ttft`).                                                             |
-| Tokens       | in / out, tabular.                                                                                          |
-| Cost         | `$0.0042` (4 dp under 1¢, 2 dp above); show `$0.0000` for cache hits — explicit zero beats blank.           |
-| Citations    | `[1][2]` via CitationList; render nothing (not an empty box) if `retrieval=false`.                          |
-| Feedback     | 👍/👎 writes `ai_feedback`; 👎 opens a one-line comment.                                                    |
-| View Trace   | deep-link to `/traces/$traceId`.                                                                            |
-| Replay with… | re-run from this exact input against a different model/prompt; show the diff.                               |
+| Element | Purpose |
+| --- | --- |
+| Score badge | LLM-as-judge composite; green/amber/red ramp; tooltip shows groundedness/relevance/coherence/hallucination. |
+| Model + via | e.g. `model-x · gateway` or `claude-… · byo`. |
+| Latency | e2e and ttft if streamed (`1.4s · 240ms ttft`). |
+| Tokens | in / out, tabular. |
+| Cost | `$0.0042` (4 dp under 1¢, 2 dp above); show `$0.0000` for cache hits — explicit zero beats blank. |
+| Citations | `[1][2]` via CitationList; render nothing (not an empty box) if `retrieval=false`. |
+| Feedback | 👍/👎 writes `ai_feedback`; 👎 opens a one-line comment. |
+| View Trace | deep-link to `/traces/$traceId`. |
+| Replay with… | re-run from this exact input against a different model/prompt; show the diff. |
 
 ## Inline Mission Cockpit UI contract
 
@@ -251,13 +251,13 @@ Canonical rule: [`conventions/ui-voice.md`](../conventions/ui-voice.md). Evidenc
 
 **Length budgets.**
 
-| Surface          | Budget        |
-| ---------------- | ------------- |
-| H1               | ≤ 6 words     |
-| Subhead          | ≤ 14 words    |
-| Button label     | ≤ 3 words     |
-| Tooltip          | ≤ 10 words    |
-| Toast            | ≤ 12 words    |
+| Surface | Budget |
+| --- | --- |
+| H1 | ≤ 6 words |
+| Subhead | ≤ 14 words |
+| Button label | ≤ 3 words |
+| Tooltip | ≤ 10 words |
+| Toast | ≤ 12 words |
 | Empty-state copy | ≤ 2 sentences |
 
 **Banned (AI tells).** Em dashes (`—`) and en dashes (`–`) anywhere in UI copy. Replace with period, comma, parentheses, or a line break. Hyphens stay only inside compound words. Buzzword denylist: _seamlessly · leverage · empower · robust · powerful · next-gen · AI-native · revolutionary · unlock · unleash · delve · navigate the landscape of · at the intersection of · elevate · supercharge · game-changing · cutting-edge_. Also banned: triple-pattern listicles ("faster, smarter, better"), preamble ("In today's…"), hedging in confirms ("might", "could potentially"), filler ("Let's dive in", "Feel free to…"), decorative emoji (🚀 ✨ 🎉), Title Case Everywhere (use sentence case except product/page names), trailing `!`.

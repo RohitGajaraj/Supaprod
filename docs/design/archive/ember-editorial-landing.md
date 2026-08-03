@@ -110,15 +110,15 @@ Nothing may be mistakable for Anthropic/Claude at a glance:
 Every accent has exactly ONE job. This is the system's trust mechanism — color
 tells the user WHO is acting and WHAT is being asked:
 
-| Accent              | Exclusive job                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------ |
-| Ember               | Needs-human only: gates, calls, primary CTA. The only voice that asks for attention. |
-| Indigo              | Live/running state + links                                                           |
-| Orchid              | Agent actions only: tool calls, agent names in traces, ai-glow                       |
-| Saffron             | Highlights / celebration                                                             |
-| Moss                | Outcomes — success only                                                              |
-| Madder              | Outcomes — failure/alert only                                                        |
-| Deep espresso green | The approve button fill (premium, solid)                                             |
+| Accent | Exclusive job |
+| --- | --- |
+| Ember | Needs-human only: gates, calls, primary CTA. The only voice that asks for attention. |
+| Indigo | Live/running state + links |
+| Orchid | Agent actions only: tool calls, agent names in traces, ai-glow |
+| Saffron | Highlights / celebration |
+| Moss | Outcomes — success only |
+| Madder | Outcomes — failure/alert only |
+| Deep espresso green | The approve button fill (premium, solid) |
 
 Surfaces: warm parchment ramp, depth from surface tints — hairlines whisper-
 light, shadows rare. Dark theme: char near-black floors (hue 60, chroma ≤0.01,
@@ -165,21 +165,21 @@ flutter 3.2s. ALL motion gated by `data-motion="off"` and
 
 > **App surfaces: SUPERSEDED.** These parchment component contracts apply to the public landing page and the historical record only. App components follow [`obsidian-v3.md`](./obsidian-v3.md) §9 and `design-reference/obsidian-v3/components.md`.
 
-| Component            | Contract                                                                                                                                                                                                              |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Approval card        | Who wants which tool, in which mission · evidence summary · expiry · consequence-labeled approve/reject · open-mission link                                                                                           |
-| Mission Cockpit      | Title + status · numbered specialist steps with live dots · inline gate when pending · raw trace toggle · `.ai-glow` while running. Identical wherever a mission renders                                              |
-| AI message footer    | judge · model · latency · tokens · cost · feedback · trace · replay                                                                                                                                                   |
-| Citation chip        | [n] inline → hover card, source name + verbatim quote                                                                                                                                                                 |
-| Hero band            | Plum-umber, aurora wash, engraved rings, ghost butterfly, calls-cleared ring (X/Y — never an abstract score)                                                                                                          |
-| Cooking banner       | Mission ticker on every screen; ember sweep; names what's running                                                                                                                                                     |
-| Construction pill    | TEMPORARY fixed top-center mono pill ("Agents are building in the back — we'll serve you soon"). Remove at GA                                                                                                         |
-| Footer stamp         | "Last build · date time" from `document.lastModified`                                                                                                                                                                 |
+| Component | Contract |
+| --- | --- |
+| Approval card | Who wants which tool, in which mission · evidence summary · expiry · consequence-labeled approve/reject · open-mission link |
+| Mission Cockpit | Title + status · numbered specialist steps with live dots · inline gate when pending · raw trace toggle · `.ai-glow` while running. Identical wherever a mission renders |
+| AI message footer | judge · model · latency · tokens · cost · feedback · trace · replay |
+| Citation chip | [n] inline → hover card, source name + verbatim quote |
+| Hero band | Plum-umber, aurora wash, engraved rings, ghost butterfly, calls-cleared ring (X/Y — never an abstract score) |
+| Cooking banner | Mission ticker on every screen; ember sweep; names what's running |
+| Construction pill | TEMPORARY fixed top-center mono pill ("Agents are building in the back — we'll serve you soon"). Remove at GA |
+| Footer stamp | "Last build · date time" from `document.lastModified` |
 | Govern observability | Drill-down, never static: list rows (eval suites, agents, traces, drift surfaces) open detail screens with sub-tabs (runs / cases / config) and time-range tabs. `supaprod/govern-detail.jsx` is the pattern reference |
-| Chat authorship      | User = ember-ringed initials chip (right); AI = Butterfly. Legible at a glance                                                                                                                                        |
-| Status placement     | Running status at sidebar bottom (above Trust). Topbar = breadcrumbs + date + weather only                                                                                                                            |
-| Calendar             | Contribution-style pixel month, ‹ › nav + Today, weekends de-emphasized (pref in Settings → Profile), quick-add syncs back                                                                                            |
-| Docs                 | Notion-style: click = preview, double-click = full editor (serif title/body, Push to Signals / Share / Delete / Save·syncs-to-brain). Knowledge opens with the "Company brain" strip                                  |
+| Chat authorship | User = ember-ringed initials chip (right); AI = Butterfly. Legible at a glance |
+| Status placement | Running status at sidebar bottom (above Trust). Topbar = breadcrumbs + date + weather only |
+| Calendar | Contribution-style pixel month, ‹ › nav + Today, weekends de-emphasized (pref in Settings → Profile), quick-add syncs back |
+| Docs | Notion-style: click = preview, double-click = full editor (serif title/body, Push to Signals / Share / Delete / Save·syncs-to-brain). Knowledge opens with the "Company brain" strip |
 
 ## Inline verdict chips — annotate, don't bury (founder ruling 2026-06-12)
 
@@ -200,14 +200,14 @@ border-radius 99, padding 2px 9px, 1px outline at 40% color-mix of the role
 color, **no fill** (selected state may carry a 10% fill), **no dot, no icon**.
 The word + the role color carry the entire meaning.
 
-| Tone      | Role color | Means                               |
-| --------- | ---------- | ----------------------------------- |
-| `moss`    | moss       | confirmed · keep · validated · ship |
-| `ember`   | ember      | needs correction · the human's call |
-| `indigo`  | indigo     | next action · do this now           |
-| `orchid`  | orchid     | agent-performed                     |
-| `saffron` | saffron    | highlight · celebrate               |
-| `madder`  | madder     | failed · missed · kill              |
+| Tone | Role color | Means |
+| --- | --- | --- |
+| `moss` | moss | confirmed · keep · validated · ship |
+| `ember` | ember | needs correction · the human's call |
+| `indigo` | indigo | next action · do this now |
+| `orchid` | orchid | agent-performed |
+| `saffron` | saffron | highlight · celebrate |
+| `madder` | madder | failed · missed · kill |
 
 Distinctions that keep the system honest:
 
@@ -259,14 +259,14 @@ Rules that keep it honest and calm:
 hand-drawn, never cartoon-loose"). These numbers ARE the law; do not retune
 without a founder ruling, and reuse them for any new mark type:**
 
-| Metric                   | SketchLine                                                             | SketchBar                                   |
-| ------------------------ | ---------------------------------------------------------------------- | ------------------------------------------- |
-| Wobble amplitude (px, y) | pass A **1.7** · pass B **1.1**                                        | outline **1.2**                             |
-| Subdivision step (px)    | ~7                                                                     | ~9 (corners overshoot like crossed strokes) |
-| Stroke width / opacity   | 1.3 @ 0.85 over 0.9 @ 0.45 (graphite double-pass)                      | outline 1.4 @ 0.85 · hatch 1.0 @ 0.38       |
-| Hatch                    | —                                                                      | diagonal ↗, ~8.5u spacing, jitter ±0.8      |
-| Endpoints                | pinned exact (first/last point never jittered); hand-set end dot r 2.4 | bar baseline/top from the exact value       |
-| Determinism              | seed = hash(data series)                                               | seed = bar index                            |
+| Metric | SketchLine | SketchBar |
+| --- | --- | --- |
+| Wobble amplitude (px, y) | pass A **1.7** · pass B **1.1** | outline **1.2** |
+| Subdivision step (px) | ~7 | ~9 (corners overshoot like crossed strokes) |
+| Stroke width / opacity | 1.3 @ 0.85 over 0.9 @ 0.45 (graphite double-pass) | outline 1.4 @ 0.85 · hatch 1.0 @ 0.38 |
+| Hatch | — | diagonal ↗, ~8.5u spacing, jitter ±0.8 |
+| Endpoints | pinned exact (first/last point never jittered); hand-set end dot r 2.4 | bar baseline/top from the exact value |
+| Determinism | seed = hash(data series) | seed = bar index |
 
 Anatomy notes: x-jitter is half the y-amplitude (pencil drifts more vertically
 along a stroke than across it); two passes use different seeds so the strokes
@@ -325,13 +325,13 @@ decoration (the aurora and cooking sweep are the only sanctioned washes).
 > (2026-06-12). The sections above are verbatim from
 > `Project Cadence - Design v1/DESIGN.md` — keep them in sync.
 
-| Canonical artifact (design project)                                                                                  | Production equivalent (this repo)                                                                                                                                                                |
-| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `supaprod/tokens.css`                                                                                                | `src/styles.css` — Tailwind v4 `@theme` + `:root`/`.dark` token blocks (Ember light + Char night). Legacy aliases: `--coral`→ember, `--violet`→orchid agent, `--cyan`→indigo, `--amber`→saffron. |
-| `styles.css` font import                                                                                             | Google Fonts link in `src/routes/__root.tsx` (Newsreader · Schibsted Grotesk · JetBrains Mono)                                                                                                   |
-| Theme switching (`data-theme="dark"`)                                                                                | `.dark` class on `<html>` via `src/hooks/use-theme.tsx` (light = default parchment, dark = char; aurora retired 2026-06-12)                                                                      |
-| `.bento`, `.mono-label`, `.hero-editorial`, `.ai-glow`, `.dot-*`, `.cite`                                            | `@layer utilities` in `src/styles.css`                                                                                                                                                           |
-| Verdict chips (founder ruling above — not yet in the design project; sync it back on the next design-project update) | `VerdictChip` in `src/components/cadence/Primitives.tsx` (applied: CriticBadge, OutcomeCard)                                                                                                     |
-| Hand-sketched data marks (founder ruling above — not yet in the design project; sync back on its next update)        | `SketchLine` / `SketchBar` in `src/components/cadence/Sketch.tsx` (applied: drift trends, analytics daily bars, swarm telemetry buckets)                                                         |
-| Cooking banner                                                                                                       | `src/components/cadence/CookingBanner.tsx` (ember sweep)                                                                                                                                         |
-| Specimens / UI kit                                                                                                   | `Project Cadence - Design v1/design-system/` + `Cadence Prototype.html` (not bundled into the app)                                                                                               |
+| Canonical artifact (design project) | Production equivalent (this repo) |
+| --- | --- |
+| `supaprod/tokens.css` | `src/styles.css` — Tailwind v4 `@theme` + `:root`/`.dark` token blocks (Ember light + Char night). Legacy aliases: `--coral`→ember, `--violet`→orchid agent, `--cyan`→indigo, `--amber`→saffron. |
+| `styles.css` font import | Google Fonts link in `src/routes/__root.tsx` (Newsreader · Schibsted Grotesk · JetBrains Mono) |
+| Theme switching (`data-theme="dark"`) | `.dark` class on `<html>` via `src/hooks/use-theme.tsx` (light = default parchment, dark = char; aurora retired 2026-06-12) |
+| `.bento`, `.mono-label`, `.hero-editorial`, `.ai-glow`, `.dot-*`, `.cite` | `@layer utilities` in `src/styles.css` |
+| Verdict chips (founder ruling above — not yet in the design project; sync it back on the next design-project update) | `VerdictChip` in `src/components/cadence/Primitives.tsx` (applied: CriticBadge, OutcomeCard) |
+| Hand-sketched data marks (founder ruling above — not yet in the design project; sync back on its next update) | `SketchLine` / `SketchBar` in `src/components/cadence/Sketch.tsx` (applied: drift trends, analytics daily bars, swarm telemetry buckets) |
+| Cooking banner | `src/components/cadence/CookingBanner.tsx` (ember sweep) |
+| Specimens / UI kit | `Project Cadence - Design v1/design-system/` + `Cadence Prototype.html` (not bundled into the app) |

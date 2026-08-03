@@ -14,16 +14,16 @@ Each reference product owns one band of the lifecycle. **Nobody owns the whole l
 
 ## Reference notes
 
-| Capability           | factory.ai                                                 | hyperagent                                                        | Linear                                                                           | Cadence's take                                         |
-| -------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Core                 | Autonomous SWE "Droids" run the SDLC; multi-day "Missions" | Build a team of agents (own tools/memory/budget); watch them live | Product system of record (issues/projects/roadmaps); agents as first-class users | The full lifecycle as one governed autonomous loop     |
-| Autonomy             | High — merge-ready PRs, incident response                  | High — multi-step workflows, self-improving skills                | Emerging — assignable/@mentionable agents, coding agent on roadmap               | Fully autonomous super-agents across all stages, gated |
-| Parallelism          | Parallel droids/missions                                   | Team of agents in parallel                                        | —                                                                                | Many sub-agents + many sessions in parallel, live view |
-| Multi-project        | Per-repo missions                                          | Per-workflow                                                      | Multiple teams/projects                                                          | Products A/B/C under workspaces, isolated              |
-| Enterprise           | GitHub/Linear/Notion/Slack/Sentry; self-host, SSO, SOC2    | Slack-triggerable; business automation                            | Skills + event automations (Business/Enterprise)                                 | Connectors + MCP/A2A + governance + audit              |
-| Self-improvement     | —                                                          | Sessions generate skills/memories                                 | —                                                                                | Product Memory: decisions→outcomes graph + skill packs |
-| Target customer      | Enterprise eng teams                                       | Business/ops teams                                                | Product + eng teams                                                              | The native product team of one                         |
-| Live "watch it work" | Mission view                                               | Real-time terminal                                                | In-app diffs                                                                     | "Watch the agents build/ship" across the whole loop    |
+| Capability | factory.ai | hyperagent | Linear | Cadence's take |
+| --- | --- | --- | --- | --- |
+| Core | Autonomous SWE "Droids" run the SDLC; multi-day "Missions" | Build a team of agents (own tools/memory/budget); watch them live | Product system of record (issues/projects/roadmaps); agents as first-class users | The full lifecycle as one governed autonomous loop |
+| Autonomy | High — merge-ready PRs, incident response | High — multi-step workflows, self-improving skills | Emerging — assignable/@mentionable agents, coding agent on roadmap | Fully autonomous super-agents across all stages, gated |
+| Parallelism | Parallel droids/missions | Team of agents in parallel | — | Many sub-agents + many sessions in parallel, live view |
+| Multi-project | Per-repo missions | Per-workflow | Multiple teams/projects | Products A/B/C under workspaces, isolated |
+| Enterprise | GitHub/Linear/Notion/Slack/Sentry; self-host, SSO, SOC2 | Slack-triggerable; business automation | Skills + event automations (Business/Enterprise) | Connectors + MCP/A2A + governance + audit |
+| Self-improvement | — | Sessions generate skills/memories | — | Product Memory: decisions→outcomes graph + skill packs |
+| Target customer | Enterprise eng teams | Business/ops teams | Product + eng teams | The native product team of one |
+| Live "watch it work" | Mission view | Real-time terminal | In-app diffs | "Watch the agents build/ship" across the whole loop |
 
 ## What we took (now in plan.md features)
 

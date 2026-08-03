@@ -14,22 +14,22 @@ The auth family is the first and last thing a user sees, so it reads as one conf
 
 ## Form states (every auth form)
 
-| State      | Behavior                                                                                                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Idle       | Fields editable; primary CTA enabled.                                                                                                                                                      |
-| Submitting | The submit shows a spinner and is disabled; a `busy` guard also disables the Google/OAuth button so the two paths cannot fire together (no double-submit).                                 |
-| Success    | A success toast, then the real redirect (or an inline confirmation for forgot-password / reset-password).                                                                                  |
-| Error      | A clear, specific, human message via `authErrorMessage()` (never the raw Supabase string), shown inline (`role="alert"`, `--madder`) AND as a toast. Typing in any field clears the error. |
+| State | Behavior |
+| --- | --- |
+| Idle | Fields editable; primary CTA enabled. |
+| Submitting | The submit shows a spinner and is disabled; a `busy` guard also disables the Google/OAuth button so the two paths cannot fire together (no double-submit). |
+| Success | A success toast, then the real redirect (or an inline confirmation for forgot-password / reset-password). |
+| Error | A clear, specific, human message via `authErrorMessage()` (never the raw Supabase string), shown inline (`role="alert"`, `--madder`) AND as a toast. Typing in any field clears the error. |
 
 **`authErrorMessage(error, context)`** (`src/lib/auth-errors.ts`, pure + unit-tested) maps raw provider errors to ui-voice copy: wrong password, unverified email, already-registered, short password, rate-limited, expired/invalid reset link, invalid/expired invite token, bad email, network failure, with a calm per-context fallback. It never surfaces the raw dump. The `signin` mapping is deliberately neutral (no user enumeration).
 
 ## Supported methods
 
-| Method           | Route                                  | Notes                                          |
-| ---------------- | -------------------------------------- | ---------------------------------------------- |
-| Email + password | `/login`                               | Primary path. Password must be ≥ 6 characters. |
-| Google OAuth     | `/login`, `/signup`                    | Brokered through Lovable auth.                 |
-| Password reset   | `/forgot-password` → `/reset-password` | Self-service, email-delivered link.            |
+| Method | Route | Notes |
+| --- | --- | --- |
+| Email + password | `/login` | Primary path. Password must be ≥ 6 characters. |
+| Google OAuth | `/login`, `/signup` | Brokered through Lovable auth. |
+| Password reset | `/forgot-password` → `/reset-password` | Self-service, email-delivered link. |
 
 ## Sign-up (`/signup`)
 

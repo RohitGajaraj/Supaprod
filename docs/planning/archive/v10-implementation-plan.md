@@ -36,13 +36,13 @@ Lanes are file-disjoint (v10 section 15), so different sessions can build differ
 
 The only sprint that matters until it is done. Target: the loop closes once on a real account, and a new PM feels the wedge in 10 minutes.
 
-| Pick | Item                                                      | Lane | Parallel-safe with | Gate it moves        |
-| ---- | --------------------------------------------------------- | ---- | ------------------ | -------------------- |
-| 1    | `LRN-02` + `W1-AUTO` (outcome reviews + auto-compound)    | B    | C, E               | M-B (moat visible)   |
-| 2    | `WEDGE` (Critic-teardown first-run)                       | C    | B, A               | M-C (the felt entry) |
-| 3    | `MOAT-VIS` (compounding visible)                          | B    | C                  | M-B                  |
-| 4    | `SEN-01` (2nd live source; founder registers OAuth first) | A    | B, C               | M-A (real data)      |
-| 5    | `W6` (persona onboarding)                                 | E    | A, B, C            | M-C                  |
+| Pick | Item | Lane | Parallel-safe with | Gate it moves |
+| --- | --- | --- | --- | --- |
+| 1 | `LRN-02` + `W1-AUTO` (outcome reviews + auto-compound) | B | C, E | M-B (moat visible) |
+| 2 | `WEDGE` (Critic-teardown first-run) | C | B, A | M-C (the felt entry) |
+| 3 | `MOAT-VIS` (compounding visible) | B | C | M-B |
+| 4 | `SEN-01` (2nd live source; founder registers OAuth first) | A | B, C | M-A (real data) |
+| 5 | `W6` (persona onboarding) | E | A, B, C | M-C |
 
 **Sprint P0 exit (the gate):** on a real account, a signal enters, becomes a Critic-checked decision, ships, and the outcome rescores a priority that is _visible_ on Today/Brain; a brand-new user reaches a cited teardown inside 10 minutes. This is v7 milestones M-A + M-B + the start of M-C.
 

@@ -16,7 +16,7 @@ Five claims in my brief do not survive contact with the code. Three of them woul
 UI that lies, which is the one failure this rebuild cannot afford.
 
 | Claim | Verified reality | Consequence for the design |
-|---|---|---|
+| --- | --- | --- |
 | "`enqueueHandoff` **requires** `evidence_ids`; the runtime REJECTS an evidence-free handoff" | `handoffEvidenceGateEnforced()` reads `process.env.HANDOFF_EVIDENCE_GATE` and is **OFF by default** (`handoff.server.ts:85-88`). The source comment states plainly: *"no handoff in the live loop carries `evidence_ids` today"*. The gate computes a verdict and proceeds. | The seam must render `Evidence: none cited` as today's normal case, in a neutral register. Designing the celebration first would be exactly the slop the craft law bans. §8 turns the surface into the instrument that earns the flag. |
 | "`agent.spawn` fans out parallel sub-agents" (present tense) | Gated OFF by `AGENT_FANOUT=1` (`registry.server.ts:3009-3010`). `FANOUT_MAX_CHILDREN = 8`, `FANOUT_MAX_DEPTH = 1` - exactly one level, a spawned worker can never itself spawn (`fanout.ts:34,42`). | The parallel design (§6) must work from `mission_steps` waves, which are live today, and treat brood rows as the additive case. |
 | "50 tools, approval mode `auto` / `confirm` / `off`" | **46** tool defs (`grep -c "def({"` = 46; `TOOL_REGISTRY` composes 46 entries). Modes are `auto` / `confirm` / **`review`** (`ToolMode` in `trust.server.ts:17`). There is no `off`. | `review` is a real third state that means *queue and show me*, not *disabled*. The Floor's autonomy sentence (§10) has to say it correctly. |
@@ -81,7 +81,7 @@ is that you never see *who* and *what*. Second, the tile bundles two different q
 different treatments:
 
 | Question | When you ask it | Right shape |
-|---|---|---|
+| --- | --- | --- |
 | "who is working right now, on what" | constantly, peripherally, while doing something else | **ambient and permanent** - the Strip and the Floor |
 | "who is on my team, what have they earned, what are they allowed to do" | occasionally, deliberately | **a pane** |
 
@@ -171,7 +171,7 @@ Three consequences, and they are the spine of everything below:
 Not by data volume. Not by page. By how much attention the user is currently spending.
 
 | Register | Attention | Region | Question | Source | Refresh |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Ambient** | zero, peripheral | the **Strip**, 28px, permanent, every surface | "is anything happening, and should I care" | `getFloorState` (B2) | 6s |
 | **Glance** | one second | the **Floor**, the Strip expanded, pushes the Canvas | "three agents, what is each one on" | same query, same key | 4s |
 | **Deep** | sustained | the **Ledger**, the mission child's Thread column | "show me the plan, the step, the tools, the files, the terminal" | `getMission` / `getStudioSession` | 2s while running |
@@ -197,7 +197,7 @@ Three status vocabularies exist and they do not match each other. `relay.ts:26-5
 into one calm set. That mapping is correct and this design uses it as the single vocabulary.
 
 | Real status | Table | Relay state | Glyph | Colour | The word |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `queued`, `dispatched` | `agent_runs`, `mission_steps` | running | `◌` | `--ink-faint` | queued |
 | `running` | both | running | `●` | `--voice-machine` | working |
 | `waiting_approval`, `awaiting_review` | `agent_runs`, `agent_approvals` | gate | `▲` | `--voice-human` | needs you |
@@ -242,7 +242,7 @@ phrase · the object · elapsed · the step counter · the census · the chevron
 **Where every token comes from:**
 
 | Token | Source |
-|---|---|
+| --- | --- |
 | pulse dot | `.ink-working`, 2.4s, `--voice-machine`. Only on the live locus. |
 | glyph gem | `AgentMark(slug, 16)`. Per-agent hue lives here and nowhere else (founder ruling C, 2026-07-11). |
 | display name | `agentDisplayName(slug)` - never the DB slug. |
@@ -446,7 +446,7 @@ STEP 2 · Review                                            running · step 2 of
 The brief asked for "the terminal." There are three honest candidates and they are different things:
 
 | "Terminal" | What it actually is | Where |
-|---|---|---|
+| --- | --- | --- |
 | the run's step log | `LoopStep[]` + `tool_calls`, above | the Ledger, default |
 | the raw model exchange | `agent_run_messages` | `?tab=timeline&raw=1` |
 | **the build's real output** | CI check runs and log tails via `ci.logs`, `StudioCi.checks[].summary` | `?tab=checks` |
@@ -466,7 +466,7 @@ fake terminal is slop; a real check log is proof.
 ### 8.1 The Receipt Ladder - three descents, each one click, each one URL
 
 | Descent | What you see | Source | Address |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **1. The sentence** | "Engineer changed 6 files across 2 commits and opened PR #204." | `ReceiptLine` on any artifact card, anywhere in the room | wherever you are |
 | **2. The step** | which tool, the args preview, `ok`, `latency_ms`, the timestamp | `tool_calls` joined to the run | the Ledger, or `?pane=record&pview=traces&item=trc_9` |
 | **3. The artifact** | the diff, the PR, the CI check, the file | `getChangesetDiff`, `StudioCi`, `StudioPreview`, the PR url | `/mission/$id?tab=diff` |
@@ -519,7 +519,7 @@ without passing through the `<Evidenced>` resolver.
 ### 8.3 The three things a sceptic checks in the first minute, and where each lives
 
 | The check | The answer, and it is one click |
-|---|---|
+| --- | --- |
 | "Show me it ran the tests, not that it said so." | Ledger → the `github.ci.read` row: `ok`, `310ms`, `14:03:50`, and `?tab=checks` has the check names and conclusions from GitHub. |
 | "Show me the code it wrote." | Ledger → the `studio.stage` row expands to the file list with line counts; `?tab=diff` is `getChangesetDiff`. |
 | "Show me it did not just make that up." | The handoff seam's evidence list, and the Evidence Underline on the sentence itself. Where evidence is absent, it says `none cited` (§8.4). |
@@ -549,7 +549,7 @@ Trust is won or lost here, so each class gets its own treatment. Collapsing them
 is the mistake.
 
 | Class | Data | What it means | Treatment |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Failed** | `mission_steps.status='failed'` + `.error`; `agent_runs.status='failed'` | it tried and could not | `✕` `--verdict-fail`. The real `error` in plain words. Two doors: **Try again with what we learned** (re-dispatch same `sub_goal`, failure context attached) and **Take it over** (opens the artifact). Never "Something went wrong." |
 | **Poisoned** | `status='skipped'`, `error='Skipped: upstream step #N failed'`, written by `cascadeSkipFailedDependents` | it never got its turn | `⊘` `--ink-faint`. **Never N independent failures.** See §9.1. |
 | **Recovered** | checkpoint gap > `STALE_MS` (2 min), run resumed by the sweeper | the worker was evicted and the run was picked back up | **Not a failure.** See §9.2. |
@@ -685,7 +685,7 @@ done by the agent. This is that table.
 word "AI".** Attribution is the message. `AgentChip` is the mechanism.
 
 | Moment | What the user sees | Who acted | Source |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | You ask | the Composer, your words, `--voice-human` | you | - |
 | It is understood | Thread, machine voice, one line: `Chief of Staff is planning this.` | Chief of Staff | `mission.plan` in flight |
 | The plan lands | `3 steps: Engineer writes it, Review checks it, Announce writes the note.` **The Floor opens once, for 3 seconds, then settles to the Strip.** | Chief of Staff | `mission_steps` rows |
@@ -779,7 +779,7 @@ Per `craft-law.md` and `src/styles/ink.css`. Every rule is a decision and every 
 Honest, ordered, each with the reason it is not optional.
 
 | # | Work | Why | Gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **B1** | Add `run_id uuid` and `mission_id uuid` to `tool_calls`; backfill from the existing `trace_id` join | the Receipt Ladder and the Evidence Underline both need a run → tool_calls join. Today it goes through `agent_run_checkpoints.state->>'traceId'` (`missions.functions.ts:380-388`), a jsonb path that fails silently when a checkpoint row is absent. A silently-empty resolver makes every honest claim look unbacked. | **hard gate** for §8 |
 | **B2** | `getFloorState` - one batched server fn: all live runs + their mission/step context + brood counts + the census | the Floor must not be five polling queries. `getSwarmHud` is close but returns *latest run per agent*, not *all live runs*, and cannot see brood children. Same mitigation FINAL-ia R1 names for the rail counts. | before the Floor ships |
 | **B3** | Return per-step durations (consecutive `agent_run_checkpoints.created_at` deltas) through the mission read | the honest clock. Derivable today, not returned. | with the Ledger |
@@ -796,7 +796,7 @@ Honest, ordered, each with the reason it is not optional.
 Same shape as FINAL-ia §9. A document that rots is a document; a test is a contract.
 
 | Test | Fails when |
-|---|---|
+| --- | --- |
 | `presence.test.ts` | the room renders with a live run and no agent name is on screen at any breakpoint |
 | `evidence-underline.test.ts` | a machine-authored string renders without passing through the `<Evidenced>` resolver |
 | `no-spinner.test.ts` | any component outside the composer imports a generic spinner or renders an indeterminate progress element |
@@ -813,7 +813,7 @@ Same shape as FINAL-ia §9. A document that rots is a document; a test is a cont
 No new phases. Everything here rides an existing one.
 
 | Phase | What this angle adds |
-|---|---|
+| --- | --- |
 | **P1** one shell | The Strip becomes a real permanent region with the census and the zero-state last event. `PulseLine` mounts there. `CookingBanner`, `AmbientChip`, `MachineNow`, `FocusDock` die as FINAL-ia already rules. |
 | **P2** depth becomes visible | Tile 5 renamed **Your crew**. **The Floor ships here, with the tile**, because a count with no place to expand into is the exact failure P2 exists to fix. B2 and B7 land. |
 | **P4** the graph | **B1 rides this phase.** Same argument FINAL-ia makes for its own §5.1: the Evidence Underline is unbuildable without it, and a stubbed version would be worse than none. |
@@ -860,7 +860,7 @@ rail counts have to know their job before they ship.
 ## 18. The real risks, and the honest gaps
 
 | # | Risk | Why it is real | Mitigation |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | R1 | **The Floor is a poll, not a stream.** There is no run-level SSE. At 4s, a 20-second step looks static. | this is the single largest gap between the design and the runtime | the clock advances **client-side** between polls (elapsed is computable from `created_at`); the step counter never does. The surface is never frozen even when the data is stale, and it never invents a fact. |
 | R2 | **Five polling consumers** - Strip, Floor, Ledger, rail counts, Spine | Cloudflare Workers have a subrequest budget; this is FINAL-ia R1 again with more clients | one `getFloorState` (B2), one query key, 4s stale time, shared by all five. Optimistic decrement on a gate decision. |
 | R3 | **The Floor competes with the Composer for the bottom.** `_authenticated.tsx:210-216` already documents the FocusDock/composer collision. | the exact bug that killed `FocusDock` | the Floor **pushes the Canvas** and never overlaps the Composer. The Composer is the lowest region, always, no exception, no breakpoint. |

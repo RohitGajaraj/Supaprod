@@ -41,7 +41,7 @@ It is not. Twelve modules write to `artifact_lineage` **directly**, with no type
 `ARTIFACT_KINDS` at all:
 
 | File | Line | What it writes |
-|---|---|---|
+| --- | --- | --- |
 | `src/lib/ai/cluster.server.ts` | 210 | `signal --promoted--> theme` (batch) |
 | `src/lib/ai/edge-extractor.server.ts` | 23 | `prd --validates\|contradicts--> opportunity` |
 | `src/lib/ai/supersession.server.ts` | 130, 139 | typed supersession edges + bi-temporal retirement |
@@ -236,7 +236,7 @@ surface consumes the same relation.
 There are three systems. The user must never learn that.
 
 | | **Lineage** | **Trace** | **Audit ID** |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Question it answers | What caused what | What the machine did | How you refer to it |
 | Substrate | `artifact_lineage` (edges between entities) | `ai_events` + `tool_calls` + `guardrail_hits` + `ai_evals`, keyed by `trace_id` | `AUDIT_KINDS` prefix + first 6 alphanumerics of the uuid |
 | Shape | A directed, bi-temporal graph | A time-ordered waterfall of spans | A short string, `MIS·7E7D59` |
@@ -266,7 +266,7 @@ These eleven hand-maintained maps all encode overlapping facts about the same en
 they have already drifted:
 
 | # | File | Line | Map |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `src/lib/audit-id.ts` | 44 | `AUDIT_KINDS` (kind, prefix, table, label, stage) |
 | 2 | `src/lib/lineage.functions.ts` | 7 | `ARTIFACT_KINDS` |
 | 3 | `src/lib/lineage.functions.ts` | 93 | `TITLE_COLUMN` |
@@ -393,7 +393,7 @@ Legend: **E** = exists in some vocabulary today · **N** = new.
 #### Front half (Discover → Design) - mostly present, three corrections
 
 | # | kind | prefix | table | label | stage | lineage | graph | audit | status |
-|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | `signal` | SIG | `signals` | Signal | Discover | ✓ | ✓ | ✓ | E |
 | 2 | `theme` | THM | `themes` | Theme | Discover | ✓ | ✓ | ✓ **new** | E, audit added |
 | 3 | `opportunity` | OPP | `opportunities` | Opportunity | Decide | ✓ | ✓ | ✓ | E |
@@ -416,7 +416,7 @@ Promote it.
 #### Back half (Build → Learn) - **this is the hole**
 
 | # | kind | prefix | table | label | stage | lineage | graph | audit | status |
-|---|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 13 | `mission` | MIS | `missions` | Build session | Build | ✓ | ✓ | ✓ | E |
 | 14 | `changeset` | CHG | `studio_changesets` | Change | Build | ✓ **new** | ✓ **new** | ✓ **new** | **N** |
 | 15 | `approval` | APR | `agent_approvals` | Approval | Govern | ✓ **new** | ✓ **new** | ✓ **new** | **N** |
@@ -454,7 +454,7 @@ verbs are needed and they are additive (the column is free-text `TEXT NOT NULL D
 'promoted'`, so no migration):
 
 | relation | meaning | written by |
-|---|---|---|
+| --- | --- | --- |
 | `produced` | this entity was materially created by that one | mission → changeset, changeset → deployment |
 | `gated-by` | this could not proceed until that was decided by a human | changeset → approval, deployment → approval |
 | `measured-by` | this bet was scored by that outcome | prd → learning, mission → learning |
@@ -674,7 +674,7 @@ are tests and 1 is the global sheet mount (`AppShell.tsx:1030`), leaving **16 re
 Kinds actually rendered:
 
 | kind | rendered? | where |
-|---|---|---|
+| --- | --- | --- |
 | `signal` | ✅ | `SignalCard.tsx:233`, `SignalRecord.tsx:271` |
 | `opportunity` | ✅ | `OpportunityRow.tsx:161`, `OpportunityDetailSheet.tsx:422`, `BetCard.tsx:363`, `ask-blocks.tsx:110` |
 | `spec` (`prd`) | ✅ | `SpecList.tsx:328`, `SpecDetail.tsx:252`, `CallDetailSheet.tsx` map |
@@ -699,7 +699,7 @@ Beyond the declared-but-unrendered, these entities have **no kind, no prefix, no
 be referred to** - and every one of them is something a user will point at and ask about:
 
 | entity | table | why it needs an id |
-|---|---|---|
+| --- | --- | --- |
 | changeset | `studio_changesets` | "what code shipped for this?" is unanswerable without a name for the code |
 | deployment | `deployments` | "when did this go live, and where?" |
 | approval | `agent_approvals` | **"who allowed this?"** - the single most important governance question |
@@ -889,7 +889,7 @@ When PRD Writer drafted this spec it had in front of it:
 Every one of these is already recorded and none is currently shown next to the artifact:
 
 | evidence type | where it lives today |
-|---|---|
+| --- | --- |
 | recalled memories | `memory_recall_log` (has `trace_id`, `memory_id`, `outcome`), written at `src/lib/ai/memory.server.ts:193` |
 | cited learnings | `learning_citations` (has `trace_id`, `learning_id`, `cited_by`), written at `src/lib/decision-judgment.functions.ts:302` |
 | RAG chunks | `resolveAnswerBlocks` / `ChunkRef` (`src/lib/ask-blocks.server.ts`), consumed at `chat.ts:12` but not persisted per artifact |
@@ -1070,7 +1070,7 @@ graph, everything."* One question. All three substrates. No choice about where t
 ### 9.2 The collapse, concretely
 
 | The user does | The system does | The user never learns |
-|---|---|---|
+| --- | --- | --- |
 | Alt-clicks a roadmap row | resolves the element to `(kind, id)`, opens the Record | that "kind" is a vocabulary |
 | Reads the sentences | walked `artifact_lineage` both directions, bounded, hydrated titles | the word "lineage" |
 | Clicks an id in a sentence | re-focuses the Record on that entity | that ids are derived from uuids |
@@ -1241,7 +1241,7 @@ silently emptying a sheet - which is exactly the failure class of §1.3 and §1.
 Ordered so each step is shippable and each unblocks the next. Two weeks of focused work.
 
 | # | Work | Type | Files |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `src/lib/provenance/kinds.ts` + `kinds.test.ts`, 21 rows, derived exports | BUILD | 1 new, 1 new test |
 | 2 | Repoint the 11 maps; delete `GRAPH_AUDIT_KIND` and `CALL_AUDIT_KIND` | WIRING | 8 edits |
 | 3 | `audit_short` generated column + index + SQL parity test; rewrite `audit-lineage.functions.ts:106`; collision UI | BUILD | 1 migration, 2 edits |

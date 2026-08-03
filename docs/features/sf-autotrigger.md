@@ -85,21 +85,21 @@ Set `BRAIN_AUTO_TRIGGER=0` (or remove the variable). Takes effect on the next tr
 
 ## Cost model
 
-| Scenario                  | Spend                                  |
-| ------------------------- | -------------------------------------- |
-| Flag OFF (default)        | $0.00 — no auto-runs                   |
-| Flag ON, 2 Watch runs/day | ~$0.03 × 2 = ~$0.06/day/workspace      |
-| Flag ON, cap hit          | $0.06 max/day/workspace (hard ceiling) |
+| Scenario | Spend |
+| --- | --- |
+| Flag OFF (default) | $0.00 — no auto-runs |
+| Flag ON, 2 Watch runs/day | ~$0.03 × 2 = ~$0.06/day/workspace |
+| Flag ON, cap hit | $0.06 max/day/workspace (hard ceiling) |
 
 ## Related files
 
-| File                                                         | Role                                                                     |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| `src/lib/sensing/trigger.ts`                                 | `shouldAutoPromote()` pure policy fn + `AUTO_TRIGGER_DAILY_CAP` constant |
-| `src/lib/sensing/trigger.test.ts`                            | 7 unit tests for `shouldAutoPromote` (all conditions × combinations)     |
-| `src/routes/api/public/hooks/trigger-tick.ts`                | Auto-promotion wiring; ambient + cap queries; the DB status flip         |
-| `supabase/migrations/20260701000000_auto_trigger_source.sql` | Adds `auto_trigger_source` column to `missions`                          |
-| `docs/features/signal-fabric.md`                             | Parent spec; Phase 3 section updated                                     |
+| File | Role |
+| --- | --- |
+| `src/lib/sensing/trigger.ts` | `shouldAutoPromote()` pure policy fn + `AUTO_TRIGGER_DAILY_CAP` constant |
+| `src/lib/sensing/trigger.test.ts` | 7 unit tests for `shouldAutoPromote` (all conditions × combinations) |
+| `src/routes/api/public/hooks/trigger-tick.ts` | Auto-promotion wiring; ambient + cap queries; the DB status flip |
+| `supabase/migrations/20260701000000_auto_trigger_source.sql` | Adds `auto_trigger_source` column to `missions` |
+| `docs/features/signal-fabric.md` | Parent spec; Phase 3 section updated |
 
 ## See also
 

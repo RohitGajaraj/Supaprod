@@ -158,12 +158,12 @@ The Agent Trust Score and Autonomy Dial (feature C6 in `docs/feature-backlog.md`
 
 **The four stages (UX reference, not a development schedule; progression is driven by earned trust, not elapsed time):**
 
-| Stage     | Agent behavior                                                                   | Operator experience                                    |
-| --------- | -------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Observing | All actions require approval; agents propose, operator reviews everything        | Close contact, frequent approvals, watching closely    |
-| Proving   | Routine low-risk actions auto-execute; high-stakes still require approval        | Governs exceptions, not routine work                   |
-| Trusted   | Agents run autonomously across most tasks; operator sees outcomes and exceptions | Sets intent, reviews summaries, not individual actions |
-| Ambient   | Agents run the product org continuously; operator provides strategic direction   | Approves major decisions, reviews periodic briefs      |
+| Stage | Agent behavior | Operator experience |
+| --- | --- | --- |
+| Observing | All actions require approval; agents propose, operator reviews everything | Close contact, frequent approvals, watching closely |
+| Proving | Routine low-risk actions auto-execute; high-stakes still require approval | Governs exceptions, not routine work |
+| Trusted | Agents run autonomously across most tasks; operator sees outcomes and exceptions | Sets intent, reviews summaries, not individual actions |
+| Ambient | Agents run the product org continuously; operator provides strategic direction | Approves major decisions, reviews periodic briefs |
 
 Full UX design requirements for surfacing this arc (Trust Score, Autonomy Dial, Loop Health Monitor): [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md), "The trust arc" section.
 
@@ -175,14 +175,14 @@ Full UX design requirements for surfacing this arc (Trust Score, Autonomy Dial, 
 
 New features identified in this session that were missing from the backlog:
 
-| Feature                                | Rationale                                                                                                                                               |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Strategic Briefing Surface**         | Set product north star, goals, and constraints once; all agents read it as their operating context. The "brief the team" mechanism.                     |
-| **Agent Trust Score + Autonomy Dial**  | Make the trust-building journey visible. Each agent earns autonomy through demonstrated performance. Governance feels like policy, not micromanagement. |
-| **Loop Health Monitor**                | Is the autonomous loop running? Where is it stuck? Single view showing whether the product org is operating or needs attention.                         |
-| **Mission Compounding View**           | Show how each mission built on previous memory. Make the compounding visible so users feel the platform getting smarter.                                |
-| **Full Data Portability / Export**     | Export all signals, decisions, memory, PRDs, agent configs in open formats. Anti-lock-in feature that paradoxically builds trust and retention.         |
-| **Persona-specific onboarding tracks** | Three tracks: Solo PM / Founding PM / Technical Founder. Each emphasizes the pain point most relevant to that persona.                                  |
+| Feature | Rationale |
+| --- | --- |
+| **Strategic Briefing Surface** | Set product north star, goals, and constraints once; all agents read it as their operating context. The "brief the team" mechanism. |
+| **Agent Trust Score + Autonomy Dial** | Make the trust-building journey visible. Each agent earns autonomy through demonstrated performance. Governance feels like policy, not micromanagement. |
+| **Loop Health Monitor** | Is the autonomous loop running? Where is it stuck? Single view showing whether the product org is operating or needs attention. |
+| **Mission Compounding View** | Show how each mission built on previous memory. Make the compounding visible so users feel the platform getting smarter. |
+| **Full Data Portability / Export** | Export all signals, decisions, memory, PRDs, agent configs in open formats. Anti-lock-in feature that paradoxically builds trust and retention. |
+| **Persona-specific onboarding tracks** | Three tracks: Solo PM / Founding PM / Technical Founder. Each emphasizes the pain point most relevant to that persona. |
 
 All six are now in [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md).
 
@@ -216,16 +216,16 @@ All six are now in [`planning/archive/feature-backlog.md`](../../planning/archiv
 
 ### 11. Framing Changes Committed
 
-| Old framing                  | New framing                                          | Where applied         |
-| ---------------------------- | ---------------------------------------------------- | --------------------- |
-| "AI-native product OS"       | "autonomous product OS"                              | README, all docs      |
-| "stay in the loop"           | "govern the calls that matter"                       | README, positioning   |
-| "human does X%, AI does Y%"  | "agents do, humans govern"                           | All docs              |
-| "AI helps human write specs" | "agents define, human approves"                      | Feature descriptions  |
-| "Mission Control"            | "Command Center" (or keep MC, reframe as commanding) | Design, IA            |
-| "development platform"       | "operating system"                                   | All docs, positioning |
-| "build tool"                 | "continuous operating system"                        | All docs              |
-| Lock-in as moat              | Compounding value + full portability                 | README, MOAT section  |
+| Old framing | New framing | Where applied |
+| --- | --- | --- |
+| "AI-native product OS" | "autonomous product OS" | README, all docs |
+| "stay in the loop" | "govern the calls that matter" | README, positioning |
+| "human does X%, AI does Y%" | "agents do, humans govern" | All docs |
+| "AI helps human write specs" | "agents define, human approves" | Feature descriptions |
+| "Mission Control" | "Command Center" (or keep MC, reframe as commanding) | Design, IA |
+| "development platform" | "operating system" | All docs, positioning |
+| "build tool" | "continuous operating system" | All docs |
+| Lock-in as moat | Compounding value + full portability | README, MOAT section |
 
 ---
 

@@ -34,11 +34,11 @@ Salesforce is Supaprod's win/loss signal source: it pulls recently **closed-lost
 
 Three secrets, all going into **Lovable Cloud → Project → Secrets** - not the local `.env` file (that's dev-only and git-ignored, per this repo's env-var split convention):
 
-| Lovable secret               | Value                                             |
-| ----------------------------- | -------------------------------------------------- |
-| `SALESFORCE_CLIENT_ID`         | the Consumer Key from step 10                     |
-| `SALESFORCE_CLIENT_SECRET`     | the Consumer Secret from step 10                  |
-| `SALESFORCE_INSTANCE_URL`      | the org's REST API host from step 11              |
+| Lovable secret | Value |
+| --- | --- |
+| `SALESFORCE_CLIENT_ID` | the Consumer Key from step 10 |
+| `SALESFORCE_CLIENT_SECRET` | the Consumer Secret from step 10 |
+| `SALESFORCE_INSTANCE_URL` | the org's REST API host from step 11 |
 
 `SALESFORCE_INSTANCE_URL` needs a callout: Salesforce's own token response *does* return a per-connection `instance_url`, and the OAuth callback (`callback.ts`) does capture it into that connection's `metadata.instance_url` - but nothing downstream reads that per-connection value today. The adapter's `validate()` (`salesforce.server.ts`) and the ingest job (`salesforce-ingest.server.ts`) both read `process.env.SALESFORCE_INSTANCE_URL` directly instead. Practically: this one secret is **global, not per-user** - every Supaprod workspace's Salesforce ingest points at whichever org this secret names, regardless of which org any individual user's OAuth connection actually authorized against. Set it, or ingest silently no-ops (`{ inserted: 0, skipped: 0, source: "none" }`) even after a fully successful Connect.
 

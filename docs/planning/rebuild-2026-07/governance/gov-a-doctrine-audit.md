@@ -24,7 +24,7 @@
 Deduplicated across documents, they are 48 distinct decisions:**
 
 | | Count | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **(a) stays a Call** | **14 families** | keep or drop a bet · approve the spec · approve the design · go live · what the outcome meant · a schema change · Reviewer dissents · widen an agent's rope · the six modals |
 | **(b) becomes policy** | **21 policies**, 9 of them backed by a column that already exists | autonomy per agent · blast radius · consequence classes · house rules · triggers · spend caps · who merges · source scopes · bench · fix budget · what I check on a change |
 | **(c) silent with a receipt** | **9** | every mid-run tool call under an approved contract · a run that failed and changed nothing · a stall · a lost connector token · autonomy tightening |
@@ -136,7 +136,7 @@ is already ratified, already in the crew doctrine, already provable against
 Counted, per document, before classification.
 
 | Doctrine | Decision points | Blocking gates | Policy-shaped | Controls miscounted as gates |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `edge/FINAL-edge.md` | 29 | **14 Calls** | 6 | 4 |
 | `agents/FINAL-agent-presence.md` | 18 | 6 | 8 | 4 |
 | `shell-question/FINAL-shell-ruling.md` | 16 | 12 (the Judge slot on all 14 forms) | 1 | 0 |
@@ -163,7 +163,7 @@ shipped send-back (`L-05`). The approve path is the most defect-dense path in th
 The brief said to verify every claim and carry the corrected fact. Eleven.
 
 | # | The claim | The verified fact | Consequence for the re-frame |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **P1** | `GOVERNANCE-PRINCIPLE.md`: *"classifies every one of 50 tools"* | **46** tool definitions in `registry.server.ts` (counted this session; `agents/FINAL-agent-presence.md` §1.3 C2 already corrected this and the principle repeated the stale number) | Cosmetic, but the principle is being quoted as ground truth and must be right |
 | **P2** | `GOVERNANCE-PRINCIPLE.md`: modes are `auto` / `confirm` / **`off`** | Modes are `auto` / `confirm` / **`review`** (`trust.server.ts:17`). `review` means *queue and show me*, not *disabled*. `"off"` exists in exactly one place, `ToolModeSchema` in `agent_loop.functions.ts:176`, is filtered out of the only UI that lists tools (`ControlsPanel.tsx:317`), and is **unhandled by `resolveToolMode`** | See P3. Every policy sentence in the product must say `review` correctly, per the agents doctrine |
 | **P3** | implied: `off` disables a tool | **`off` is a permissive failure.** `resolveToolMode` passes it through unchanged, and the loop's gate is `if (isWrite && (mode === "confirm" \|\| mode === "review"))` (`loop.server.ts:1150`). A tool at `mode:"off"` and `enabled:true` **executes with no gate**. Unreachable from today's UI, reachable from the server function | A live permissive write path. Delete `"off"` from `ToolModeSchema` or handle it as a refusal. Correctness, not design |
@@ -183,7 +183,7 @@ The brief said to verify every claim and carry the corrected fact. Eleven.
 Six more, all shipped, none named in any of the nine doctrines.
 
 | Layer | Where | What it already does | State |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Consequence classes** | `src/lib/consent-classes.ts` (RPT-36) | Partitions the tool set into four classes with a **default posture each**: read-only -> `auto`, internal write -> `confirm`, stakeholder-facing -> `confirm` ("draft to you"), repo write / irreversible -> `review`. Its own headline is **`"Supaprod drafts. You release. Nothing stakeholder-facing sends itself."`** | **Rendered read-only** in the Engine Room (`ControlsPanel.tsx:751-781`). **There is no writer.** The user can see the classes and cannot set them. This is the boundary surface, already designed, three quarters built, and absent from every doctrine |
 | **Blast-radius cap** | `agents.max_tool_risk`, `setAgentToolCap`, `capToolsByRisk` (`loop.server.ts:541-546`) | Removes over-cap tools **from the prompt entirely**. The agent cannot see them, so there is nothing to gate | **Strictly better than a gate** and the best existing model for pre-authorization: it changes what is possible instead of interrupting what is attempted |
 | **Event subscriptions** | `event_subscriptions`, `reactor.functions.ts:46-120` | Per (event type, target agent) with `approval_mode: "auto" \| "confirm"`, a `filter`, and an `is_default` flag. This is a trigger-scoped policy row and it is the most policy-shaped object in the codebase | Live, CRUD-able in the Engine Room, **named in zero doctrines** |
@@ -196,7 +196,7 @@ Six more, all shipped, none named in any of the nine doctrines.
 ## 4. THE CLASSIFICATION KEY
 
 | Class | Meaning | Test it must pass |
-|---|---|---|
+| --- | --- | --- |
 | **(a) CALL** | Stays a blocking human decision | Fails Q2 (irreversible outside the product) **or** fails Q1 (judgment with no oracle) **and** fails Q2b (not the same question twice) |
 | **(b) POLICY** | The user answers once, in advance, in the boundary surface. Named, with a stated default | Passes Q2b: the same question, answerable without the instance |
 | **(c) SILENT + RECEIPT** | It happens. It lands in "Done without you". The receipt carries the policy that authorized it and a one-click `Ask me next time` | Passes Q0 or clears Q1 and Q2 |
@@ -212,7 +212,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.1 `edge/FINAL-edge.md` (29)
 
 | ID | Decision point, quoted | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | E-01 | §3.1 *"Merge \| **Call** \| Q2 fails: other people's work now contains it"*; §8.1 *"**The human merge.** The ceiling line stands verbatim and proudly: `Your crew opens the pull request. A human merges it.`"* | Call | **b -> a** | **`Who merges`**, per product. Default **`A human merges`** (today's behaviour, ceiling copy intact). Settable to `Merge when your tests pass and Reviewer agrees`. The machinery exists as `AUTO_SHIP_ENABLED`; promote the env secret to a policy row (P10). Residue (a): tests red, Reviewer dissenting, or the change touches a path the user marked protected. §8.1's real argument is not irreversibility, it is *"absorbing somebody else's governance, which is not our right"* - and the answer to that is that the customer sets the rule, not that we ask them every time |
 | E-02 | §3.1 *"Semantic conflict (two runs, one intent) \| **Call** \| Q1 fails: which is right is judgment"* | Call | **a KEEP** | No oracle. Note the residue is already tiny: `builder_file_claims` makes most of these structurally impossible, *"which is the product already voting for absorption"* |
 | E-03 | §3.1 *"Revert an artifact version \| **Call**, always available"* | Call | **d as a Call** | Category error. *Always available* is a control, not a Call. It never blocks anything, no machine waits on it. Remove from the Call register; keep as an affordance with a consequence line |
@@ -246,7 +246,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.2 `agents/FINAL-agent-presence.md` (18). The signature moment is the rework.
 
 | ID | Decision point, quoted | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | A-01 | R10 *"**The signature moment is the Commit:** an approval does not vanish into a toast, it becomes a receipt, draws an arrow to whoever picks the work up, moves the Bar, and moves the Spine. 1.2 seconds, four regions, one causal chain."* §9: *"**Approving something must visibly set the crew in motion.**"* | signature moment | **STRUCTURAL REWORK** | The craft survives and the subject changes. Under the principle the ceremony must fire on **any human act that changes what the crew may do**: granting rope, writing a house rule, taking rope back, approving a contract. Not on approving a step. Beat 1's argument is untouched by the change and is the reason to keep it: *"An approval that erases itself teaches the user that their judgment left no trace."* A **boundary** that erases itself teaches the same thing, and a boundary is used a hundred times |
 | A-02 | §8.2 the graduation card, *"`Reviewer wants to stop asking.`"* ... *"`[ Let it ] [ Not yet ]`"* | gate family | **a, PROMOTED to the signature moment** | Exactly as `GOVERNANCE-PRINCIPLE.md` rules: *"The signature moment becomes **an agent earning autonomy** ... It is also uncopyable, because it is computed from this workspace's own record."* Ship the card verbatim. It is the only moment in the product where the human's leverage visibly increases |
 | A-03 | §8.3 *"Where the claw-back lives is the design decision that matters: not in settings. On any receipt of unattended work, as a quiet `ask me next time`."* | control | **b, and it is E-23** | One component, two entry points. Requires `revokeTrustGraduation` (G4/B3), which does not exist (P9). **Policy without withdrawal is not policy**, so this is a correctness item |
@@ -269,7 +269,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.3 `shell-question/FINAL-shell-ruling.md` (16). The Judge slot on all fourteen forms.
 
 | ID | Decision point, quoted (§2.4 "Judge slot asks") | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | S-01 | §3.2 #3 *"What is being asked of me about this thing \| the Judge slot, a permanent frame slot, empty not absent"* | permanent region | **KEEP the slot, reframe the region** | A slot that is empty most of the time is honest. The problem is #6, not #3 |
 | S-02 | §3.2 #6 *"What is waiting on me anywhere ... five labelled rail rows with live counts"* | permanent count | **b, reframed** | `GOVERNANCE-PRINCIPLE.md`: *"it should usually read **zero**, and a healthy product is one where it does."* The primary number on that rail becomes **what the crew did on its own**, and `Your call` is the exception number beside it. Same query, inverted emphasis |
 | S-03 | Signal: *"Is this real? Keep / Ignore"* | Judge slot | **d** | Asking a human to judge each raw signal is the queue disease in its purest form. Policy: **`What reaches you`**, default **only patterns with two or more corroborating sources**. Everything else is kept, searchable, never asked about |
@@ -290,7 +290,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.4 `interaction/FINAL-interaction.md` (12). The modal whitelist needs no rework.
 
 | ID | Decision point, quoted | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | I-01 | §6.5 *"Each carries `in` or `out`. **Default is `in`**, because the machine already argued for it and a wall of undecided checkboxes taxes the common case."* | default | **KEEP, and hold it up** | The principle in miniature, written a day early. Every proposal in the product should default to the machine's answer |
 | I-02 | §6.5 *"**4. The commit** \| One button naming its blast radius: `Approve 8 changes`, never `Apply`."* | verdict | **b -> a** | = S-11 |
 | I-03 | §6.5 *"**5. The send back** \| ... `Send back` returns it to the crew with your reason, and the work is kept."* | verdict | **a KEEP** | = A-12 |
@@ -307,7 +307,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.5 `ia/FINAL-ia.md` (16). The journey gates.
 
 | ID | Decision point, quoted (§4.2, "**H** = the human decides") | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | IA-01 | J1 step 4 *"**Gate** (ember Spine node 02 + tray card + inline in Thread) \| **H** \| Keep or kill each bet"* | gate | **a KEEP** | = S-05. Floor 2 |
 | IA-02 | J2 step 3 *"**Gate** \| **H** \| `decideFanoutBatch` - accept, reject, or send back each branch"* | gate | **c** | Counter-evidence from a teardown fan-out is research output. Judging each branch is judging retrieval. Policy: **`Teardown depth`**, default **the strongest three counters, with the rest one click away**. The verdict on the teardown (J2 End) stays; the per-branch triage goes |
 | IA-03 | J3 step 4 *"**Gate** \| **H** \| Approve the spec. Assumptions go on watch with dates."* | gate | **a KEEP, and it is the authorization** | = S-07 |
@@ -328,7 +328,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.6 `depth/FINAL-depth.md` (7)
 
 | ID | Decision point, quoted | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | D-01 | §7.2 the gate card, *"`[ Approve ] [ Deny ] [ Change something ]` / `runs it now  I stand down  tell me what to do instead`"* | 3 verbs | **a for the residue, and un-gate the third verb** | **`Change something` is the best idea in the depth doctrine and it is trapped inside a gate.** It routes through `injectSteer`, which the loop already consumes at the top of every step (`loop.server.ts:876-922`), *"and that machinery is correct and has never had a UI."* Under the re-frame, **steering must be available at any moment, not only when the machine stopped to ask.** That single change converts the gate from a blocking question into an optional intervention |
 | D-02 | R-13 *"a usage rule may auto-apply a demotion (tightening on evidence of harm) and may only propose a promotion (loosening on evidence of comfort)"* | law | **KEEP verbatim** | = E-22. And it does not exist yet (P8) |
 | D-03 | H-2 *"`/approvals`: 'Rejected. Noted for next time.' \| Nothing is noted anywhere a model reads"* | live lie | **fix** | Either capture the reason and route it through `injectSteer`, or cut the sentence. Under the re-frame it must be the first: the reason is the policy signal |
@@ -340,7 +340,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.7 `language/FINAL-language.md` (8)
 
 | ID | Decision point, quoted | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | L-01 | §2.3 *"Something waiting for your judgment \| **Call** \| One thing your crew has stopped on and cannot pass without you."* | lexicon | **KEEP the word, shrink the population** | The definition survives and becomes accurate for a small set |
 | L-02 | §5.4 the verdict verbs, `Approve` / `Send back` / `Decline` / `Snooze` with `a` / `s` / `d` / `z` | lexicon | **KEEP** | Ratified, and the keys are currently unsafe in three surfaces (`clicks` L-24, L-25, L-26). Fix the bindings, keep the words |
 | L-03 | R18 *"The triad `Approve / Send back / Decline` governs **calls**. `Keep / Drop` govern **bets**"* | lexicon | **KEEP** | Correct |
@@ -353,7 +353,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.8 `adaptive/FINAL-adaptive-layout.md` (5). The frame buried as a layout invariant.
 
 | ID | Decision point, quoted | Now | Verdict | Policy name and default, or why it stays |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | AD-01 | §9 *"**A human is in this app to make judgment calls at gates.** Everything else - the loop rail, the ... - the gate is the last thing to give way, and it never gives way."* | layout law | **STRUCTURAL REWORK** | This is the gate-centric frame compiled into a CSS invariant, and it is the deepest place it is buried. It is also self-defeating: a layout whose top invariant is a gate has an **empty top invariant on a healthy day**, which is every day the product is working |
 | AD-02 | §9 invariant *"**I1** \| **The open gate** - its claim, its evidence line, and both buttons \| This is the product."* | invariant 1 | **REWRITE** | Proposed I1: **"What the crew is doing, what it did on its own since you last looked, and the open call if there is one."** The gate keeps its slot inside I1 and stops being I1 |
 | AD-03 | §9 invariant list I1..I5 | invariants | **ADD ONE** | There is **no invariant for the boundary**. If the human's job is setting boundaries, the boundary must survive to S0 alongside the gate. Add I6: one key (`⌘B`) and one row that reaches what the crew may do alone |
@@ -363,7 +363,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.9 `clicks/FINAL-click-register.md` (10). Every one is on the approve path.
 
 | ID | Finding, quoted | Class | What it proves |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C-01 | L-24 *"`onMouseEnter={() => onFocusChange(item.id)}` on every card - focus follows the mouse. Move the pointer across the list, press `1`, approve whatever the cursor last crossed. No confirm, no undo; `decideApprovalItem` is a real write"* | LIES | A queue we cannot operate safely is not governance |
 | C-02 | L-25 *"A single bare `a` **approves** the focused approval; `r` rejects. No confirmation, no undo, no on-screen hint"* | LIES | Same |
 | C-03 | L-26 *"Three keyboard grammars for one action ... A demo touching both surfaces teaches two contradictory things"* | LIES | Same |
@@ -378,7 +378,7 @@ Rows marked **KEEP** are correct as written and are listed so nobody relitigates
 ### 5.10 `FOUNDER-VERDICT-2026-07-29.md` (3)
 
 | ID | Quoted | Verdict |
-|---|---|---|
+| --- | --- | --- |
 | F-01 | §2.5 *"You see the verbatim across approvals and all those things. It has to be just one line, two line ... If a user wants to know, he will click deeper"* | **Consistent with the re-frame and reinforced by it.** A one-line approval card is only possible when the population is small and the reader already set the boundary. Verbosity is what a card needs when the reader is being asked cold |
 | F-02 | §3 *"On top right I'll give something, an Ask button. If the user clicks on that it opens up a panel"* | Lane B. Note the boundary surface has the same shape and the same problem: it is a pane, not a destination |
 | F-03 | §2.8 *"Do we really need that standard toolbar where we showcase all our seven surfaces ... Is there any other way we can only showcase the section that is actually being worked on?"* | Lane B. Under the re-frame the Spine's honest job changes: it stops being a map of gates and becomes a map of where the crew is |
@@ -391,7 +391,7 @@ Rarer, and each one is worse than an unnecessary gate, because an unnecessary ga
 this is a boundary nobody set. Fifteen, ordered by severity.
 
 | # | Where | The assumed autonomy | Why a human is owed something | The fix |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **INV-1** | `agents` R11 / §10.2 | *"**Sign-up completes, the room paints, and one real Researcher run starts immediately, unasked.** ... **It costs credits**, it writes real `signals` rows"* | Real money, on the first screen, before the user has typed a word or seen a boundary. The doctrine's own mitigation (R6) bounds the cost and **not the consent** | Legal, and it must be **stated as a default** on the sign-up screen and stoppable from the Crew Bar in one click: *"Your crew starts working the moment you land. Stop it any time."* That converts an undisclosed default into a policy the user can see. Principle clause 3 |
 | **INV-2** | `edge` §3.2 *"A failure inside the fix budget \| **silent** \| Q1 absorb: the engine already appends fix commits"* | `studio.fix.commit` is exempt from the high-risk demotion entirely and runs at its **seeded mode** (`loop.server.ts:170-177`), appending commits to a human-opened PR branch unattended | Correct as a design, and **no policy governs the budget**, no doctrine names one, and the user cannot see or change it | Name it: **`Fix budget`**, default **3 attempts**, visible on the boundary surface. E-06's receipt names it when it runs out |
 | **INV-3** | `edge` §3.1 and §8.1 | Merge is a Call *"always, no exception"*, and the ceiling copy says *"A human merges it."* | `AUTO_SHIP_ENABLED` (`STUDIO_AUTO_SHIP=1`) makes `studio.pr.merge` follow the trust arc. If it is ever set, the doctrine's proudest ceiling sentence becomes a lie in production, silently | E-01. Promote the env secret to a named workspace policy with the current behaviour as its default. Copy that describes a safety property is versioned with that property (`agents` §2) |
@@ -417,7 +417,7 @@ it looks like. This lane owns what is on it, because a surface is only as honest
 renders. **Nine policies. Every one is backed by a column that already exists.**
 
 | # | Policy | Default | Stored | Enforced by | Today |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 1 | **What each agent does on its own** | `trusted`: *acts, and asks before anything it cannot undo* | `agent_autonomy.arc` | `resolveApprovalMode` | Settings row |
 | 2 | **How far each agent may reach** | unrestricted | `agents.max_tool_risk` | `capToolsByRisk`, removes the tool from the prompt | Settings row |
 | 3 | **What kind of act needs you** (four consequence classes) | read-only `auto` · internal write `confirm` · stakeholder-facing `confirm` · repo write `review` | none. **Needs one column** | `resolveToolMode` | `consent-classes.ts`, rendered read-only, **no writer** |
@@ -486,7 +486,7 @@ Stated so the design pass cannot over-correct.
 Everything else is row-level edits. These three have a load-bearing structure built on the old frame.
 
 | Document | What breaks | The rework |
-|---|---|---|
+| --- | --- | --- |
 | **`agents/FINAL-agent-presence.md`** | R10 makes the approval the product's signature moment (§9, four beats, 1.2 seconds). §13 P8 schedules it | **Re-point the ceremony, keep every beat.** The Commit fires on a **boundary act**: granting rope, writing a rule, taking rope back, approving a contract. §8.2's graduation card becomes the moment the camera is on. Beat 2's *"never an arrow to nowhere"* rule already handles the case where nothing picks the work up, which is what a boundary act looks like: *"Now a standing rule. It will stop your crew next time."* That sentence is already in the document |
 | **`edge/FINAL-edge.md`** | §3's ruling tables are keyed on three registers, and the Call register carries both gates and controls (Finding 2). §0's sorter has no Q0 | **Add Q0 and Q2b to §0's sorter. Split the Call register into `Call` and `Control`. Re-run §3 through the new sorter**, which changes 11 of its 29 rows and none of its four constitutional clauses. §3.6's one-table summary is the deliverable and it shrinks from 14 Calls to 8 |
 | **`adaptive/FINAL-adaptive-layout.md`** | §9's invariant I1 is the open gate, and the demotion order is *"rank by distance from the gate"*. On a healthy day the layout's first principle is absent | **Rewrite I1 and the ordering rule (AD-02, AD-04). Add I6, the boundary.** Gate 0's composition table and the I1..I5 assertions in `shell-composition.test.ts` are the enforcement, so the rewrite is mechanical: change the invariant, the test follows |

@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-11                                                                                                                                                                                                                                                                                                        |
-| Rank          | #12                                                                                                                                                                                                                                                                                                           |
-| Tier          | 2                                                                                                                                                                                                                                                                                                             |
-| Status        | pending (pick after OBS-10 lands)                                                                                                                                                                                                                                                                             |
-| Category      | Cockpit                                                                                                                                                                                                                                                                                                       |
-| Depends on    | OBS-10 (route consolidation → the five canonical destinations must be real) · OBS-01/02/03 (tokens, shell, primitives)                                                                                                                                                                                        |
-| Blocks        | nothing downstream                                                                                                                                                                                                                                                                                            |
+| Field | Value |
+| --- | --- |
+| ID | OBS-11 |
+| Rank | #12 |
+| Tier | 2 |
+| Status | pending (pick after OBS-10 lands) |
+| Category | Cockpit |
+| Depends on | OBS-10 (route consolidation → the five canonical destinations must be real) · OBS-01/02/03 (tokens, shell, primitives) |
+| Blocks | nothing downstream |
 | One-line what | Supersede the parchment cmdk palette with the glass ⌘K palette (560px, sections JUMP · ACT · ASK · CATALOG, mono index rows) plus the "What can it do?" capability catalog: every capability as a plain-words pitch with a "Try it on real data" action. The answer to 250+ features without growing the nav. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-11                                                                                                                                                                                                                                    |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-11 one-paragraph index)                                                                                                                                                                                                                           |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-11 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-11 one-paragraph index) |
 
 ## 2. Why we are doing it
 

@@ -4,18 +4,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                                |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-08                                                                                                                                                                                                                                                                                                               |
-| Rank          | #9                                                                                                                                                                                                                                                                                                                   |
-| Tier          | 1                                                                                                                                                                                                                                                                                                                    |
-| Status        | pending                                                                                                                                                                                                                                                                                                              |
-| Category      | Knowledge                                                                                                                                                                                                                                                                                                            |
-| Depends on    | OBS-03 (Obsidian primitives) · transitively OBS-01, OBS-02                                                                                                                                                                                                                                                           |
-| Blocks        | nothing downstream (OBS-10 folds routes after all five surfaces exist, but does not block on this presentation port)                                                                                                                                                                                                 |
+| Field | Value |
+| --- | --- |
+| ID | OBS-08 |
+| Rank | #9 |
+| Tier | 1 |
+| Status | pending |
+| Category | Knowledge |
+| Depends on | OBS-03 (Obsidian primitives) · transitively OBS-01, OBS-02 |
+| Blocks | nothing downstream (OBS-10 folds routes after all five surfaces exist, but does not block on this presentation port) |
 | One-line what | Brain ported: a stat trio (Newsreader numerals + mono micro-labels) with "Export my record", decision rows with outcome verdict chips, learning rows with what-they-moved lines in glacier mono, and the belief graph surface reusing the existing F-IA-BRAIN-GRAPH data flow (presentation ported, data untouched). |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-08                                                                                                                                                                                                                                           |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                               |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-08 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
 

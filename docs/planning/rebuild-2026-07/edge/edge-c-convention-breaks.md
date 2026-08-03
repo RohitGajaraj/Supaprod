@@ -147,7 +147,7 @@ Where a mechanism appears twice, it is because the causal test genuinely gives d
 different days, which is the whole point of Law 1.
 
 | Mechanism | Verdict | What the user sees instead | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Branch, created** | silent | `Engineer is working on a copy of your code. Nothing live has changed.` The isolation is named once, at the start of the first run only. | Absorbed by `dispatchStudioSession` today. The branch name is jargon; the isolation is the reassurance. Name the second, delete the first. |
 | **Commits** | silent, then receipt | Inside the run's step list: `Wrote 4 files.` A SHA appears only in the record pane and inside the seal, where it is the correct word. | A commit that behaved changed nothing about what the user got. |
 | **Merge** | **call** | The merge gate is a Call: `Approve` / `Send back`. Toast: `Approved. It is going live now.` The word "merge" appears nowhere in prose; `Open the pull request` survives as a link label. | This is the one git act the human performs, and the ceiling line in the language contract already commits to it: "Your crew opens the pull request. A human merges it." |
@@ -876,7 +876,7 @@ the synthesis is not earning its place and the position becomes a header over a 
 ## 5. THE RANKING
 
 | # | Break | Leverage | Risk | Grounded in shipped code | Clears break-test 3 (hard to copy) | Phase |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | **B1** | Gate shows the consequence, not the request | very high | low | yes, `tool-consequences.ts` written and unused | partly (the catalogue is taste; the precedent line is not) | 1 |
 | **B2** | Onboarding is a teardown | very high | high, variance | yes, `FirstTeardownCard` 689 lines, stranded | yes, needs the Critic and the evidence discipline | 1 |
 | **B3** | Settings written by declining | very high | medium | yes, `house_rules` + prompt injection live; `getGateSignals` unrendered | **yes, strongest**, needs a gate history nobody else has | 2 |
@@ -909,7 +909,7 @@ A list of breaks without a list of refusals is a manifesto, not a plan. These ar
 exist for good reasons and that we keep on purpose.
 
 | Convention | Kept because |
-|---|---|
+| --- | --- |
 | **The verdict triad** (`Approve` / `Send back` / `Decline`) | The highest-stakes moment in the product must use words the user already owns. Inventing judgment verbs here would be the exact failure the break test question 2 exists to catch. |
 | **Undo over confirm** | Reversibility beats interrogation. Already law (language contract 7.3). It is a convention and it is correct. |
 | **Input conventions** | Escape closes, `Cmd+K` searches, arrows move, Enter submits, Tab focuses. **Break structure conventions, never input conventions.** A product that redefines Escape is not brave, it is broken. |
@@ -1012,7 +1012,7 @@ not a build. It is a decision about what to put on the screen.
 Every code claim in this document, with the file it came from. Read this session.
 
 | Claim | Source |
-|---|---|
+| --- | --- |
 | Static per-tool effect, reversibility and undo, never model-generated | `src/lib/tool-consequences.ts`, header comment plus the `CONSEQUENCES` map |
 | Trust score: shrinkage, four weighted terms, validated-outcome rate at 0.3 | `src/lib/ai/trust.server.ts:45-51, 203-209` |
 | `resolveApprovalMode` is the safety floor; `review` sticky; `ambient` grants auto | `src/lib/ai/trust.server.ts:76-92` |

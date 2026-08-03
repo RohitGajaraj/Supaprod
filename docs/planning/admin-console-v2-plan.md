@@ -38,16 +38,16 @@ One migration file. All new tables in `public`. Every table gets GRANT + RLS + p
 
 ### 2.1 New tables
 
-| Table                  | Purpose                                               | Key columns                                                                                                                                                                                                                             |
-| ---------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin_audit_log`      | Append-only record of every admin mutation.           | `actor_user_id`, `action`, `target_kind` (`user`/`workspace`/`voucher`/`flag`/`banner`), `target_id`, `payload` (jsonb), `created_at`                                                                                                   |
-| `vouchers`             | Promo codes.                                          | `code` (unique), `kind` (`signup`/`credit_grant`/`plan_upgrade`), `plan_id` (nullable), `credits` (int, nullable), `auto_login` (bool, signup only), `max_redemptions` (nullable), `expires_at`, `campaign_tag`, `created_by`, `active` |
-| `voucher_redemptions`  | Who redeemed what, when.                              | `voucher_id`, `user_id`, `workspace_id` (nullable), `redeemed_at`, `meta` (jsonb)                                                                                                                                                       |
-| `invitations`          | Admin-issued invites (single + bulk).                 | `email`, `workspace_id` (nullable = signup-only invite), `role`, `token` (unique), `state` (`pending`/`accepted`/`revoked`/`expired`), `invited_by`, `expires_at`                                                                       |
-| `auto_approve_domains` | Email-domain auto-accept rules.                       | `domain` (unique), `workspace_id` (nullable), `default_role`, `created_by`                                                                                                                                                              |
-| `signup_approvals`     | Manual-review queue when auto-approve does not match. | `email`, `requested_workspace_id`, `state` (`pending`/`approved`/`rejected`), `reviewed_by`, `reviewed_at`, `note`                                                                                                                      |
-| `feature_flags`        | Server-readable kill switches.                        | `key` (unique), `enabled` (bool), `payload` (jsonb), `updated_by`, `updated_at`                                                                                                                                                         |
-| `system_banner`        | Global banner (one-row-active).                       | `message`, `level` (`info`/`warn`/`alert`), `active`, `expires_at`, `updated_by`                                                                                                                                                        |
+| Table | Purpose | Key columns |
+| --- | --- | --- |
+| `admin_audit_log` | Append-only record of every admin mutation. | `actor_user_id`, `action`, `target_kind` (`user`/`workspace`/`voucher`/`flag`/`banner`), `target_id`, `payload` (jsonb), `created_at` |
+| `vouchers` | Promo codes. | `code` (unique), `kind` (`signup`/`credit_grant`/`plan_upgrade`), `plan_id` (nullable), `credits` (int, nullable), `auto_login` (bool, signup only), `max_redemptions` (nullable), `expires_at`, `campaign_tag`, `created_by`, `active` |
+| `voucher_redemptions` | Who redeemed what, when. | `voucher_id`, `user_id`, `workspace_id` (nullable), `redeemed_at`, `meta` (jsonb) |
+| `invitations` | Admin-issued invites (single + bulk). | `email`, `workspace_id` (nullable = signup-only invite), `role`, `token` (unique), `state` (`pending`/`accepted`/`revoked`/`expired`), `invited_by`, `expires_at` |
+| `auto_approve_domains` | Email-domain auto-accept rules. | `domain` (unique), `workspace_id` (nullable), `default_role`, `created_by` |
+| `signup_approvals` | Manual-review queue when auto-approve does not match. | `email`, `requested_workspace_id`, `state` (`pending`/`approved`/`rejected`), `reviewed_by`, `reviewed_at`, `note` |
+| `feature_flags` | Server-readable kill switches. | `key` (unique), `enabled` (bool), `payload` (jsonb), `updated_by`, `updated_at` |
+| `system_banner` | Global banner (one-row-active). | `message`, `level` (`info`/`warn`/`alert`), `active`, `expires_at`, `updated_by` |
 
 ### 2.2 Column additions
 

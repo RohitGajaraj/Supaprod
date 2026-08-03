@@ -89,11 +89,11 @@ Two sub-perspectives exist here and both are valid:
 
 ### Recommended model architecture (the hybrid)
 
-| Customer type                    | Coding agent model                       | Who hosts it | Supaprod's role                |
-| -------------------------------- | ----------------------------------------- | ------------ | ------------------------------- |
-| Individual / SMB                 | Supaprod-managed OpenHands               | Supaprod     | Full stack: govern + execute   |
-| Enterprise (has Devin/etc.)      | BYO endpoint                              | Customer     | Governance + memory layer only |
-| Enterprise (wants consolidation) | Supaprod-managed OpenHands (white-label) | Supaprod     | Full stack: govern + execute   |
+| Customer type | Coding agent model | Who hosts it | Supaprod's role |
+| --- | --- | --- | --- |
+| Individual / SMB | Supaprod-managed OpenHands | Supaprod | Full stack: govern + execute |
+| Enterprise (has Devin/etc.) | BYO endpoint | Customer | Governance + memory layer only |
+| Enterprise (wants consolidation) | Supaprod-managed OpenHands (white-label) | Supaprod | Full stack: govern + execute |
 
 The `DelegateProvider` seam supports all three — it is a configuration question, not an architecture change. The customer either points to their own endpoint or Supaprod routes to its internal managed instance.
 
@@ -120,13 +120,13 @@ The original plan was to use Supaprod's own Anthropic API key in OpenHands. **Th
 
 The adapter now handles this automatically via `resolveLlmConfig()` (commit `cfaa0d9575`):
 
-| Priority | Env var             | Model                                         |
-| -------- | ------------------- | --------------------------------------------- |
-| 1        | `ANTHROPIC_API_KEY` | `anthropic/claude-sonnet-4-6`                 |
-| 2        | `OPENAI_API_KEY`    | `openai/gpt-4o`                               |
-| 3        | `GEMINI_API_KEY`    | `gemini/gemini-2.0-flash`                     |
-| 4        | `COHERE_API_KEY`    | `cohere/command-r-plus`                       |
-| none     | —                   | falls back to OpenHands instance-level config |
+| Priority | Env var | Model |
+| --- | --- | --- |
+| 1 | `ANTHROPIC_API_KEY` | `anthropic/claude-sonnet-4-6` |
+| 2 | `OPENAI_API_KEY` | `openai/gpt-4o` |
+| 3 | `GEMINI_API_KEY` | `gemini/gemini-2.0-flash` |
+| 4 | `COHERE_API_KEY` | `cohere/command-r-plus` |
+| none | — | falls back to OpenHands instance-level config |
 
 With `OPENAI_API_KEY` already configured in Lovable, the live test will use `openai/gpt-4o` automatically. No code change needed — just deploy OpenHands and wire the endpoint.
 
@@ -142,12 +142,12 @@ The founder signed up for All-Hands Cloud Individual plan (`app.all-hands.dev`) 
 
 Multiple payload and auth configurations were tested against `https://app.all-hands.dev/api/v1/tasks`:
 
-| Attempt | Auth header                       | Body                       | Result                 |
-| ------- | --------------------------------- | -------------------------- | ---------------------- |
-| 1       | `Authorization: Bearer sk-oh-...` | standard                   | 405 Method Not Allowed |
-| 2       | `X-User-Token: sk-oh-...`         | standard                   | 401 NoCredentialsError |
-| 3       | `Authorization: Bearer sk-oh-...` | with Gemini LLM key inline | 401 NoCredentialsError |
-| 4       | `Authorization: Bearer sk-oh-...` | no repo field              | 401 NoCredentialsError |
+| Attempt | Auth header | Body | Result |
+| --- | --- | --- | --- |
+| 1 | `Authorization: Bearer sk-oh-...` | standard | 405 Method Not Allowed |
+| 2 | `X-User-Token: sk-oh-...` | standard | 401 NoCredentialsError |
+| 3 | `Authorization: Bearer sk-oh-...` | with Gemini LLM key inline | 401 NoCredentialsError |
+| 4 | `Authorization: Bearer sk-oh-...` | no repo field | 401 NoCredentialsError |
 
 A test mission was also run in the Supaprod platform while All-Hands Cloud envvars were set in Lovable. The mission produced 10 queue steps but routed through the Studio pipeline (`studio.commit`, `studio.pr.*` tools) rather than `delegate.openhands`, because the mission goal did not include evidence-gathering steps before delegation.
 

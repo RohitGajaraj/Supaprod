@@ -137,7 +137,7 @@ const searchError = search.isError
 ## Tier 3 Compliance Score
 
 | Category | Status | Notes |
-|----------|--------|-------|
+| --- | --- | --- |
 | Token usage | 100% ✓ | All v5 tokens, legacy names safely aliased |
 | Typography | 100% ✓ | Geist Sans/Mono/Pixel only; no retired faces |
 | Color discipline | 100% ✓ | Blue usage legitimate; ember restraint honored |

@@ -9,14 +9,14 @@ happened overnight, what to look at, and the calls parked for you.
 
 ## What shipped (all pushed to main; Lovable auto-deploys)
 
-| Commit     | What                                                                                                                                                                                                                                                     |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `3549fc2e` | Repo-wide prettier sweep, code only (~7,800 lint findings cleared)                                                                                                                                                                                       |
-| `24fccc59` | Dormant-payments crash chain fixed (the recurring prod console error) + a real cross-tenant security hole in audio transcription closed                                                                                                                  |
-| `41d4b3b1` | The portal theme escape fixed: dropdowns, dialogs, palette, toasts now inherit the dark theme (the "white workspace switcher" bug)                                                                                                                       |
-| `ba05bd3f` | DESIGN-LOOM v4 adopted (the contract) + the build bible + all audit evidence committed                                                                                                                                                                   |
+| Commit | What |
+| --- | --- |
+| `3549fc2e` | Repo-wide prettier sweep, code only (~7,800 lint findings cleared) |
+| `24fccc59` | Dormant-payments crash chain fixed (the recurring prod console error) + a real cross-tenant security hole in audio transcription closed |
+| `41d4b3b1` | The portal theme escape fixed: dropdowns, dialogs, palette, toasts now inherit the dark theme (the "white workspace switcher" bug) |
+| `ba05bd3f` | DESIGN-LOOM v4 adopted (the contract) + the build bible + all audit evidence committed |
 | `34bea876` | W1: the rail now shows every home (THE LOOP 01-05 · THE ENGINE 06-08 · Settings/Admin/account), v4 tokens, /knowledge is now /brain, no more blank-frame navigation, quiet top bar, complete command palette, Lovable/gpt-engineer fingerprints stripped |
-| `3b6b3018` | W2: all seven surfaces transformed (detail below)                                                                                                                                                                                                        |
+| `3b6b3018` | W2: all seven surfaces transformed (detail below) |
 
 ## The audit, in numbers
 

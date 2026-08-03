@@ -46,7 +46,7 @@ session. Two of the three lanes were right and one inherited an error from the b
 ### 1.1 The four corrections
 
 | # | Claim | Verified | Consequence |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **G1** | The Design face renders "same-origin `srcDoc`" (brief, and IX-C §9.2 repeats it) | **False.** All four render sites are `sandbox="allow-scripts"` with **no `allow-same-origin`**: `faces.tsx:1284`, `DesignScaffoldPanel.tsx:273`, `PreviewPanel.tsx:171`, `p.$slug.tsx:141`. A sandboxed frame without that flag runs at an opaque origin, so the parent cannot touch `contentDocument` at all. The comment at `faces.tsx:1150` saying "rendered same-origin via srcDoc" is wrong and is deleted. | Reach-in is **`postMessage` only**, forever. `allow-scripts` plus `allow-same-origin` is a documented sandbox escape (the frame reaches `parent.frameElement.removeAttribute('sandbox')`), so adding it is banned and lint-enforced. Every design in §3 follows from this. IX-A and IX-B win; IX-C's §9.2 mechanism survives, its premise does not. |
 | **G2** | Hunk-level accept and reject "exists in the backend and is not surfaced" | **Half false.** It is surfaced, in `src/components/studio/ChangesPanel.tsx` (1367 lines): `computeHunks` at `:24`, per-hunk reject list at `:1259-1362`, `applyStagedHunkSelection` at `:176`, `rejectStagedFile` at `:177`. Its one importer is `_authenticated.build.$missionId.tsx`. **There are three `computeHunks` call sites**: `ChangesPanel.tsx:408`, `VerifyCockpit.tsx:348`, and a second hand-rolled line differ at `faces.tsx:1705-1875`. | The work is not "surface a hidden capability". It is: the interaction is **reject-only and framed as damage** (`Apply (2 rejected)` gives no signal when you agree), and there are **three diff renderers and two diff algorithms**. §7.3 rewrites one and deletes the others. IX-B wins this correction outright. |
 | **G3** | `prototype_messages` / `prototype_attachments` are unused tables | **True, and better than that.** `prototype_messages` (migration `20260602204826_*.sql:390`) carries exactly `role ('user'/'assistant'/'system')`, `content`, `changes_json jsonb`, `applied boolean`, `created_at`; `prototype_attachments` (`:405`) carries `message_id`, `kind`, `storage_path`, `size_bytes`, `extracted_text`. Both got `workspace_id` backfilled NOT NULL, indexed, with a `set_row_workspace_from_user` trigger and an RLS policy in `20260619212731_*.sql:430-452`. Both appear in `types.ts:6139` and `:6240`. Neither is referenced anywhere in `src/`. | **The founder's headline ask needs zero migration for its storage.** `changes_json` is where a `SelectionRef` lives, `applied` is the whole proposal state machine, and `message_id` on an attachment means "this screenshot belongs to this comment". Somebody designed this and stopped. |
@@ -55,7 +55,7 @@ session. Two of the three lanes were right and one inherited an error from the b
 ### 1.2 What we build on, all real
 
 | Capability | Where |
-|---|---|
+| --- | --- |
 | Generated mockup HTML, persisted, rendered in a device frame | `design-scaffold.functions.ts:245` `generateDesignScaffold`, `:268` `getPersistedScaffold`, `:294` `prepareScaffoldSpeculative` (fire and forget, idempotent, never throws into its caller: the named `speculative prep` pattern) |
 | A **pre-agreed element vocabulary the generator already emits**: `btn btn-primary`, `btn btn-secondary`, `input`, `.card`, `.badge`, plus `MOCKUP_CSS`'s `.form-group .section-title .empty-state .sidebar .brand` | `design-scaffold.functions.ts:99`, `MOCKUP_CSS` at `:44-83` |
 | Hunk-level accept and reject with optimistic concurrency (`expectedUpdatedAt`) | `studio.functions.ts:1816` `applyStagedHunkSelection`, `:1872` `rejectStagedFile` |
@@ -296,7 +296,7 @@ it, and it is why five marks cost one call instead of five.
 **How `role` is computed**, deterministically, no model, in `src/lib/mark/ontology.ts`:
 
 | Match | Role rendered |
-|---|---|
+| --- | --- |
 | `.btn.btn-primary` | `primary action` |
 | `.btn.btn-secondary` | `secondary action` |
 | `input[type=email]` with a `<label>` | `field · email` |
@@ -479,7 +479,7 @@ precedence guard, written when Path B ships.
 `classify(el)` in `src/lib/mark/ontology.ts`:
 
 | Class | Test | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **text** | exactly one text-node child, no element children, no interactive descendants | a heading, a paragraph, a label, a button's label, a cell, a badge |
 | **value** | an `input`/`textarea`/`select` with a value or placeholder, or a leaf whose whole text is a number, currency, date, or an enum from a known set | a price, a count, a date field, a roadmap bucket, an owner, an estimate |
 | **none** | everything else | containers, layout, structure, nav, anything with element children, anything whose change moves other things |
@@ -510,7 +510,7 @@ The second signal is **who is named**:
 **On a `text` target:**
 
 | Input | Result |
-|---|---|
+| --- | --- |
 | click | select (ticks, pin slot reserved, no pin yet) |
 | click again, or `Enter`, or type any character | edit in place; `contenteditable` inside the frame, caret at the click point, or select-all if typed into |
 | `Enter` in the field | commit |
@@ -543,7 +543,7 @@ what makes a hand edit auditable without inventing a table.
 box fails the "would you have loved this" test.
 
 | Value kind | Control at the pin |
-|---|---|
+| --- | --- |
 | enum (roadmap bucket) | 3-position segmented control, `Now / Next / Later`, 32px |
 | person (owner) | person picker, 6 recent, then search |
 | date | date field, with `today` and `+1w` shortcuts |
@@ -672,7 +672,7 @@ The Thread footer carries the count and the send: `3 marks · Send ⌘⏎`.
 Six, and every one is visible without hovering (L4).
 
 | State | Pin | Thread row | Means |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `open` | `◉n` ember filled | full colour | placed, not sent |
 | `sent` | `◉n` ember outline, 1.4s pulse | full colour, working caret | in flight to the crew |
 | `done` | `✓n` in `--verdict-pass` | full colour, verdict line | the proposal addressed it |
@@ -689,7 +689,7 @@ Every machine proposal renders **on the thing it changes**, judged at the smalle
 Five parts, always in this order, always these words.
 
 | Part | Rule |
-|---|---|
+| --- | --- |
 | **1. The claim** | One sentence naming who proposed it and why: `Designer changed 3 things you marked.` Sourced from the `tool_call.reason` on the step that produced it. Never "AI suggested changes". |
 | **2. The units** | The judgeable atoms: hunks, revised elements, suggested spans, moved rows. Each carries `in` or `out`. **Default is `in`**, because the machine already argued for it and a wall of undecided checkboxes taxes the common case. |
 | **3. The count** | Live, in the header, mono: `3 files · 9 hunks · 8 in, 1 out`. Never a percentage, never a progress bar. |
@@ -841,7 +841,7 @@ pin; the Thread row shows their name; a send takes all open marks including thei
 The gesture is fixed. Three things vary, and only three.
 
 | Artifact | Primary gesture (L5) | Target unit | Ontology source (exists) | Direct-edit classes | Executes via (exists) | Lands in |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | **Prototype**, scaffold | click an element in Point mode | DOM element, text range | probe + the `MOCKUP_CSS` class vocabulary | text, value | `callModel` surface `prd` + `persistScaffold` | `prd_scaffolds.html` + revisions |
 | **Prototype**, promoted | same | same | same | text, value | `dispatchStudioSession` with a mark-derived touch list | `prototype_files`, `studio_changes` |
 | **Code diff** | click a hunk (toggles `in`/`out`, and becomes the selection) | hunk, line range, file | `computeHunks()` `studio-hunks.ts:90` | none | `applyStagedHunkSelection`, `rejectStagedFile`, `steerStudioSession` | `studio_changes.new_content` |
@@ -902,7 +902,7 @@ passes §8.3. Nothing else exists.
 ### 8.2 The eight shapes
 
 | Shape | Use for | Width / anchor | URL | Escape | Hard limits |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **Inline** | editing a value where it reads | in flow | no | reverts the edit | the default; never asks permission |
 | **Peel** | one more level of the row you are on | in flow, pushes siblings | no | collapses | never nests: a second peel promotes to a page |
 | **Popover** | a pick, a key legend, an agent card | anchored, ≤ 280px | no | closes | no data fetch, at most one input, **never contains a decision** |
@@ -928,7 +928,7 @@ the decision needs information not currently on screen; undo is physically impos
 **The whole product's modal whitelist. Six. Anything else is a defect.**
 
 | Modal | Must show |
-|---|---|
+| --- | --- |
 | Merge to main | the CI verdict, the file count, the target branch |
 | Delete a product or workspace | the exact counts that will be deleted |
 | Revoke a member | who, and what they lose access to |
@@ -961,7 +961,7 @@ therefore correct.
 The shell is `h-dvh` (`MissionShellView.tsx:255`), so its block-size is the browser's `innerHeight`.
 
 | Machine, maximized | Shell block-size |
-|---|---|
+| --- | --- |
 | 1280x800 laptop, macOS, Dock visible | **618** |
 | Windows 1366x768, Chrome | **641** |
 | MacBook Pro 14" (1512x982), Dock visible | **800** |
@@ -1003,7 +1003,7 @@ something cheap, and the cheapness is the point.
 > exact count of what is below. A surface missing any of the five is not done.**
 
 | # | Name | Rendered by |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Identity** | `SurfaceHeader` stage marker plus title |
 | 2 | **State** | `SurfaceHeader` state chip plus the agent attribution atom |
 | 3 | **Subject** | at least one whole object, never a fragment of one |
@@ -1072,7 +1072,7 @@ root of all six defects: no component knows how tall it may be because no token 
 Every scrolling region declares `data-scroll-type`. An undeclared one fails CI.
 
 | Type | Contract | Where |
-|---|---|---|
+| --- | --- | --- |
 | **T0 None** | never scrolls at any height, ever. If it would, it recomposes. | the gate card, the composer, the Spine, every face footer, the map, the prototype face |
 | **T1 One reach** | at most two screens; the horizon carries an **exact** count; the end carries a terminal line, never a blank stop | every stage face body, every pane landing |
 | **T2 Document** | a **section rail** on the region's right edge, 4px, one mark per section with per-section read state; the primary stays pinned; position persists per artifact | the spec, release notes, a transcript |
@@ -1116,7 +1116,7 @@ about its own affordances has admitted they are not discoverable.
 ### 9.6 The per-surface first-screen contract
 
 | Surface | ABOVE, at the 600 floor | PRIMARY | HORIZON | Scroll |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 01 Discover | three top-ranked themes, each with its evidence count and one-line why | `Rank these into bets` | `+9 more signals` | T1 |
 | 02 Decide | the top bet with its verdict and ICE; the precedent card beneath it; the second bet clipped | the gate's `Approve` / `Send back` pair | `+4 more bets` | T1 |
 | 03 Plan | spec title, outcome contract (3 lines), first section heading | `Approve the spec` | `9 sections, 2 unread` | T2 |
@@ -1144,7 +1144,7 @@ about its own affordances has admitted they are not discoverable.
 ### 9.7 The fold ladder: what falls first as height shrinks
 
 | # | What gives | Recovered by |
-|---|---|---|
+| --- | --- | --- |
 | 1 | the Spine return edge and the `Starts from:` caps | nothing lost, it is ornament |
 | 2-3 | the face's third, then second object | the horizon count, one flick |
 | 4 | the foresight line collapses into **a mark on the object it warns about** | hover or focus peeks the full sentence |
@@ -1184,7 +1184,7 @@ they know things, they tell you at the wrong moment, and the layout jumps.
 ### 10.2 The next-question table
 
 | Moment | The question forming | Where the answer already sits |
-|---|---|---|
+| --- | --- | --- |
 | First frame after sign-in | *What happened while I was gone?* | the rail deltas and the Thread's briefing card, both painted before you focus anything |
 | Scanning a bet | *Have we tried this before?* | the precedent card under the bet, at rest, not behind a click |
 | Reading a spec | *What did I not read?* | the T2 section rail: hollow ticks for sections you never reached |
@@ -1205,7 +1205,7 @@ they know things, they tell you at the wrong moment, and the layout jumps.
 irreversible button, built from real data, never a tooltip explaining what a button is:
 
 | Button | Consequence line | Source |
-|---|---|---|
+| --- | --- | --- |
 | `Approve the changeset` | `Opens PR on relay/main. 7 files, 2 outside your touch list.` | `getChangesetDiff`, `enforceTouchList` |
 | `Send back` | `Returns to Engineer with your note. The branch stays; nothing is lost.` | `sendBackApprovalItem` |
 | `Promote to production` | `Live for everyone. Last time you skipped the canary it cost 2 days.` | `promoteToProduction` + the Brain's belief row |
@@ -1214,7 +1214,7 @@ irreversible button, built from real data, never a tooltip explaining what a but
 ### 10.3 The peek, with real timings
 
 | Level | Gesture | What renders | Fetches? | URL |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **0 Trace** | none, at rest | noun, count, age | no | no |
 | **1 Peek** | 180ms hover hold, or `Space` on a focused row | a 320px card: the first three facts and the receipt | **never** | no |
 | **1.5 Consequence** | hover an irreversible button | one sentence of what will change, from real data | no | no |
@@ -1243,7 +1243,7 @@ Anticipation needs somewhere to render that cannot damage the layout. One slot, 
 `SurfaceHeader`, three claimants, fixed priority:
 
 | Priority | Claimant | Example |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Working** (a run is live on this stage) | `4/7 · Engineer is writing tests · 40s` |
 | 2 | **Foresight** (the Brain has something you need before you act) | `You shipped something like this in March. It moved retention 0.4 points.` |
 | 3 | **empty** | the slot collapses to 0 and the body gains 40px |
@@ -1268,7 +1268,7 @@ than it saves. Not a chatbot volunteering. The crew speaks in the Thread, in rec
 Countable, so it can be enforced. Each number has a reason and the reason is not taste.
 
 | # | Budget | Limit | Why this number |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Primary actions per screen | **1** | Already the repo's law. Two primaries is no primary. |
 | 2 | Secondary actions visible at once | **3** | One primary plus three secondaries is four choices, the top of comfortable choice without triage. The fourth goes in the kebab. |
 | 3 | Whole objects above the fold, per face | **3** | Derived: 280px body / 72px object at the 600 floor. Not a preference. |
@@ -1304,7 +1304,7 @@ the user see within a particular screen", and it is the one idiosyncratic detail
 ### 11.2 Enforcement
 
 | Test | Fails when |
-|---|---|
+| --- | --- |
 | `one-screen.spec.ts` | at 1366x600 or 1512x800, at `scrollTop: 0`, a surface's `[data-primary]` box is not fully in the viewport, or any of the five contract elements is absent |
 | `fold.spec.ts` | a face renders more than 3 whole objects, or a pane more than 6 whole rows, above its fold |
 | `horizon.spec.ts` | a region with `scrollHeight > clientHeight + 1` has no `[data-horizon]` with a numeric count and a noun |
@@ -1330,7 +1330,7 @@ desktop), 1258 (the 27"), plus one at 448, the honest stop.
 Four bands, disjoint by construction, so no binding can ever collide.
 
 | Band | Keys | Owner | Live when |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Spine** | `1`-`7` | the seven stages | shell focus |
 | **Rail** | `g k r m t c e` | the seven depth tiles | shell focus |
 | **Global** | `⌘K` palette · `⌘J` composer · `⌘.` ask about the selection · `⌘Z` undo · `Esc` up one layer | the shell | always |
@@ -1344,7 +1344,7 @@ Four bands, disjoint by construction, so no binding can ever collide.
 > instance.
 
 | Key | Context | Does |
-|---|---|---|
+| --- | --- | --- |
 | `v` | canvas | toggle Point mode (the select tool, universally) |
 | hold `⌥` | canvas | momentary Point mode |
 | click | Point mode | select |
@@ -1380,7 +1380,7 @@ Craft law bans `linear` and `ease-in-out`, and bans animating `width`, `height`,
 Everything here is `transform` and `opacity` only.
 
 | Moment | Duration | Curve | Property |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | ticks appear on hover | 90ms | `cubic-bezier(.2,0,0,1)` | opacity |
 | mark flies to the Thread | 180ms | `cubic-bezier(.22,1,.36,1)` | transform, opacity |
 | pin appears | 140ms | `cubic-bezier(.34,1.56,.64,1)` | transform: scale |
@@ -1465,7 +1465,7 @@ tables that are already there.
 ### 14.3 What gets deleted
 
 | Deleted | Why |
-|---|---|
+| --- | --- |
 | `faces.tsx:1705-1875` (`lineDiff`, `DiffFile`, `DiffPanel`) | the second diff renderer and the second hand-rolled LCS. One diff, one hunk engine (`studio-hunks.ts`, already unit-tested). |
 | `faces.tsx:1647-1688` `BuildTerminal`'s `<pre>` of `output.slice(-2000)` | the clearest case in the codebase of structure thrown away at the last inch. `LoopStep[]` is already on the client. |
 | `faces.tsx:1046` `DesignRail()` | a read-only annotation rail with no data behind it. Marks replace it. |
@@ -1535,7 +1535,7 @@ design-memory entry, and once accepted, the next generated mockup does not need 
 Every disagreement between the three lanes, resolved, with the loser named.
 
 | # | Conflict | Ruling | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **Is the prototype iframe same-origin?** IX-C says yes, IX-A/IX-B say no. | **No.** IX-C loses on fact. | Verified at four render sites: `sandbox="allow-scripts"`, never `allow-same-origin`. The wrong comment at `faces.tsx:1150` is the source of the error and is deleted. IX-C's postMessage mechanism survives; its premise does not. |
 | 2 | **How many modes?** IX-A: 2 (Use/Point). IX-B: 3 (Look/Point/Note). | **Two.** IX-B loses. | A mark **is** the note. A third mode is a third thing to learn for zero capability. Budget 24. |
 | 3 | **What is the object called?** "mark" (IX-A) vs "note"/"comment" (IX-B, IX-C). | **Mark.** IX-A wins. | The lexicon's one-word-per-concept law, and the proof reader's mark hands us the entire visual grammar for free. |
@@ -1619,7 +1619,7 @@ the next render does not need the comment at all.
 ## 19. WHAT IS STILL OPEN
 
 | # | Open | Why it is not closed here |
-|---|---|---|
+| --- | --- | --- |
 | O1 | Whether a promoted prototype's `prototype_files` row and a live `studio_changes` row can point at the same path at once. | They cannot collide today; the promote path is thin enough that a future change could make them. One precedence guard, written when Path B ships. |
 | O2 | The probe's threat surface. Our own generated HTML, no `allow-same-origin`, four message types, two-factor guard. | Defensible, not proven. Security review signs it off before it ships publicly. |
 | O3 | Whether the T2 section rail sits on the region's right edge or its left. I lean right. | Needs a real spec at real length in front of a real reader. |

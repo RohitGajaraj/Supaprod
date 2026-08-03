@@ -96,13 +96,13 @@ OPENHANDS_API_KEY=<your OpenHands instance auth token, or leave blank>
 
 OpenHands needs an LLM to write code. Supaprod's adapter (`openhands.server.ts`) automatically passes the best available LLM key inline via `resolveLlmConfig()`:
 
-| Priority | Env var (in Supaprod/Lovable) | LiteLLM model passed to OpenHands   |
-| -------- | ---------------------------- | ----------------------------------- |
-| 1        | `ANTHROPIC_API_KEY`          | `anthropic/claude-sonnet-4-6`       |
-| 2        | `OPENAI_API_KEY`             | `openai/gpt-4o`                     |
-| 3        | `GEMINI_API_KEY`             | `gemini/gemini-2.0-flash`           |
-| 4        | `COHERE_API_KEY`             | `cohere/command-r-plus`             |
-| none     | —                            | OpenHands instance-level LLM config |
+| Priority | Env var (in Supaprod/Lovable) | LiteLLM model passed to OpenHands |
+| --- | --- | --- |
+| 1 | `ANTHROPIC_API_KEY` | `anthropic/claude-sonnet-4-6` |
+| 2 | `OPENAI_API_KEY` | `openai/gpt-4o` |
+| 3 | `GEMINI_API_KEY` | `gemini/gemini-2.0-flash` |
+| 4 | `COHERE_API_KEY` | `cohere/command-r-plus` |
+| none | — | OpenHands instance-level LLM config |
 
 As of 2026-06-29, `OPENAI_API_KEY` is configured in Lovable, so the live test will use `openai/gpt-4o` automatically. No extra setup needed.
 

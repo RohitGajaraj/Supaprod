@@ -19,12 +19,12 @@ Supaprod is **product / decision-first** (a PM Chief of Staff), not code-first. 
 
 ## 1. Decisions LOCKED this session
 
-| #   | Decision                                                     | Detail                                                                                                                                                                                                                                                                                                                                                                                         |
-| --- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | **Unit of work = Product**                                   | A workspace holds many Products. The DB table is named `projects` (legacy); the UI standardizes on **Product**. Label change only, no migration.                                                                                                                                                                                                                                               |
-| D2  | **Repo attaches at the Product level, optional until Build** | Each Product can BYO a repo (any provider) or have Supaprod create/manage one, attached only when it reaches Build. A Product with no repo is valid (discovery/strategy needs none).                                                                                                                                                                                                            |
-| D3  | **Autonomy = trust-graduated**                               | The agent runs the entire Build to Ship chain (branch, commit, PR, CI, self-correct, merge, deploy, release notes) in the backend. On a NEW repo it pauses ONCE at a single product-framed decision ("Ready to ship X to <Product>. Go?"). That pause graduates to silent (ship-then-notify) as trust accrues. Git mechanics are never shown by default; reveal-on-demand for technical users. |
-| D4  | **Ship outbound = in-app only for now**                      | In-app changelog from release notes. Email / social / PR distribution deferred to a later, founder-gated phase.                                                                                                                                                                                                                                                                                |
+| # | Decision | Detail |
+| --- | --- | --- |
+| D1 | **Unit of work = Product** | A workspace holds many Products. The DB table is named `projects` (legacy); the UI standardizes on **Product**. Label change only, no migration. |
+| D2 | **Repo attaches at the Product level, optional until Build** | Each Product can BYO a repo (any provider) or have Supaprod create/manage one, attached only when it reaches Build. A Product with no repo is valid (discovery/strategy needs none). |
+| D3 | **Autonomy = trust-graduated** | The agent runs the entire Build to Ship chain (branch, commit, PR, CI, self-correct, merge, deploy, release notes) in the backend. On a NEW repo it pauses ONCE at a single product-framed decision ("Ready to ship X to <Product>. Go?"). That pause graduates to silent (ship-then-notify) as trust accrues. Git mechanics are never shown by default; reveal-on-demand for technical users. |
+| D4 | **Ship outbound = in-app only for now** | In-app changelog from release notes. Email / social / PR distribution deferred to a later, founder-gated phase. |
 
 ---
 
@@ -74,11 +74,11 @@ interface RepoProvider {
 
 Three layers, very different scope. Conflating them is the trap.
 
-| Layer                                               | What                                                                                  | Cost / risk                                                  | Recommendation                                                                                                       |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **L1 - Managed AI credits**                         | Metered AI through our gateway so the user needs no LLM key (vs BYOK).                | Low (gateway exists); mostly packaging + metering + billing. | **Do it**, as the default with BYOK optional. Biggest friction-kill for a non-technical user.                        |
-| **L2 - Managed PM data**                            | The user's products / decisions / PRDs / memory live in our Supabase already.         | None (already true).                                         | **Position it**, no build. "Plan everything, migrate nothing" is already real for the PM work.                       |
-| **L3 - Managed runtime for the user's shipped app** | DB + auth + hosting for the app the agent builds (literal Lovable Cloud, and beyond). | Very high: ops, cost, security, compliance, on-call.         | **In scope, sequenced late** (founder ruling: the all-in-one North Star). Build after the loop + BYO path is proven. |
+| Layer | What | Cost / risk | Recommendation |
+| --- | --- | --- | --- |
+| **L1 - Managed AI credits** | Metered AI through our gateway so the user needs no LLM key (vs BYOK). | Low (gateway exists); mostly packaging + metering + billing. | **Do it**, as the default with BYOK optional. Biggest friction-kill for a non-technical user. |
+| **L2 - Managed PM data** | The user's products / decisions / PRDs / memory live in our Supabase already. | None (already true). | **Position it**, no build. "Plan everything, migrate nothing" is already real for the PM work. |
+| **L3 - Managed runtime for the user's shipped app** | DB + auth + hosting for the app the agent builds (literal Lovable Cloud, and beyond). | Very high: ops, cost, security, compliance, on-call. | **In scope, sequenced late** (founder ruling: the all-in-one North Star). Build after the loop + BYO path is proven. |
 
 A **managed repo** (Supaprod creates the repo) sits between L2 and L3 and is already part of the repo model (D2 / auto-create); reasonable to include now.
 

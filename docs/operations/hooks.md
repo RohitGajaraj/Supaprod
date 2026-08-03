@@ -40,13 +40,13 @@ This matters — they are not the same:
 
 Set these in `.claude/settings.json` (committed). Keep them deterministic — enforcement + workflow automation, not model reasoning.
 
-| Event                   | Matcher / when                                           | Action                                                                                                                                                                     | Purpose                                                                                       |
-| ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `PreToolUse`            | `Bash(git commit *)` / `Bash(git push *)`                | Block `--no-verify`/`--no-gpg-sign`; require use of a commit skill (gstack-ship, commit-commands:commit, or similar — check available skills); refuse force-push to `main` | Enforce [`commits.md`](./commits.md) mechanically                                             |
-| `PreToolUse`            | `Edit\|Write` on `supabase/migrations/*` already applied | Block                                                                                                                                                                      | Never edit applied migrations in place ([`architecture/data.md`](../../architecture/data.md)) |
-| `PostToolUse`           | `Edit\|Write` on source files                            | Run formatter/linter; report                                                                                                                                               | Keep the tree clean automatically                                                             |
-| `Stop` / `SubagentStop` | end of a work turn                                       | Remind/verify the **closed documentation loop**: were the relevant docs + the active build log ([`planning/archive/build-log.md`](../planning/archive/build-log.md) section 4) updated?                             | Make [`AGENTS.md`](../../AGENTS.md) section 5 non-optional                                    |
-| `SessionStart`          | new session                                              | Surface Project Memory (`.remember/`) + the active task list                                                                                                               | Boot with context ([`memory.md`](./memory.md))                                                |
+| Event | Matcher / when | Action | Purpose |
+| --- | --- | --- | --- |
+| `PreToolUse` | `Bash(git commit *)` / `Bash(git push *)` | Block `--no-verify`/`--no-gpg-sign`; require use of a commit skill (gstack-ship, commit-commands:commit, or similar — check available skills); refuse force-push to `main` | Enforce [`commits.md`](./commits.md) mechanically |
+| `PreToolUse` | `Edit\|Write` on `supabase/migrations/*` already applied | Block | Never edit applied migrations in place ([`architecture/data.md`](../../architecture/data.md)) |
+| `PostToolUse` | `Edit\|Write` on source files | Run formatter/linter; report | Keep the tree clean automatically |
+| `Stop` / `SubagentStop` | end of a work turn | Remind/verify the **closed documentation loop**: were the relevant docs + the active build log ([`planning/archive/build-log.md`](../planning/archive/build-log.md) section 4) updated? | Make [`AGENTS.md`](../../AGENTS.md) section 5 non-optional |
+| `SessionStart` | new session | Surface Project Memory (`.remember/`) + the active task list | Boot with context ([`memory.md`](./memory.md)) |
 
 ### Sample `.claude/settings.json` (illustrative shape)
 

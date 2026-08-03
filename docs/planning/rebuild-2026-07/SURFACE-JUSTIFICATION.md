@@ -108,7 +108,7 @@ and it fails.
 From the verdict and the decided list, so no surface relitigates them:
 
 | | Ruling |
-|---|---|
+| --- | --- |
 | Ground | Pure dark, shades of black. The interface is **monochrome**: black, grey, white, slate, silver. |
 | Ember | **Rare.** Not the default for primary actions, approve buttons, or tasks. It marks the human and the one call in front of you. |
 | Agents | Colour arrives only when something happens: stage hue while running, ember while waiting on you, red on failure. Crew is monochrome everywhere except the Crew page. |

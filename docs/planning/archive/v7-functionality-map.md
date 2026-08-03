@@ -126,11 +126,11 @@ Every flow follows the same shape so you can scan:
 
 **Behavior.** Three proof metrics, each with a recent-7-days-versus-prior-7-days trend:
 
-| Metric | Label            | Source                                                                           | Formula                                                                                                                           |
-| ------ | ---------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| A      | Acceptance rate  | `agent_approvals` with `decided_at` set                                          | `approved / (approved + rejected)`, where accepted counts `{approved, executed, failed}`, over a 14-day window with a 7-day trend |
-| B      | Ritual retention | `ritual_sessions`                                                                | distinct UTC days Today was opened, over 7, 14, and 30 days, plus current streak                                                  |
-| C      | Autonomy ratio   | `tool_calls` (ok=true, side-effecting) versus `agent_approvals` (side-effecting) | `unattended / (unattended + gated)`; a rising number means the loop carries more reversible work on its own                       |
+| Metric | Label | Source | Formula |
+| --- | --- | --- | --- |
+| A | Acceptance rate | `agent_approvals` with `decided_at` set | `approved / (approved + rejected)`, where accepted counts `{approved, executed, failed}`, over a 14-day window with a 7-day trend |
+| B | Ritual retention | `ritual_sessions` | distinct UTC days Today was opened, over 7, 14, and 30 days, plus current streak |
+| C | Autonomy ratio | `tool_calls` (ok=true, side-effecting) versus `agent_approvals` (side-effecting) | `unattended / (unattended + gated)`; a rising number means the loop carries more reversible work on its own |
 
 Each metric computes Bayesian-shrunk where sample size is small, and shows "Not enough data yet" rather than an invented number when the window is sparse.
 
@@ -363,19 +363,19 @@ Each metric computes Bayesian-shrunk where sample size is small, and shows "Not 
 
 ## Quick status table
 
-| Flow                                  | Status                 | The gap, named                                                                    |
-| ------------------------------------- | ---------------------- | --------------------------------------------------------------------------------- |
-| A. Signup and onboarding              | Partial                | KI-13 signup 500 on live until migration syncs                                    |
-| B. Today decision queue               | Built                  | none                                                                              |
-| C. Decision card approve/reject/defer | Built                  | none                                                                              |
-| D. Gauntlet metrics                   | Built                  | Metric C reads low on new accounts (see J/flow F)                                 |
-| E. Mission planning and auto-advance  | Built engine, live bug | orchestrator slug bug kills multi-agent missions; KI-02 durable resume unverified |
-| F. Trust arc and modes                | Built, structural gap  | observing-by-default gates everything new                                         |
-| G. Executed-unattended audit          | Built                  | ratio near zero until arc advances                                                |
-| H. Memory and outcome compounding     | Built                  | none; this is the moat                                                            |
-| I. Ingest to reactor to mission       | Partial                | KI-09 endpoint blocked until migration syncs; KI-10 no rate limit                 |
-| J. Build loop to PR to CI to merge    | Partial                | KI-12 GitHub App not registered; PR and CI non-operational on live                |
-| K. Chat and research                  | Built                  | none                                                                              |
+| Flow | Status | The gap, named |
+| --- | --- | --- |
+| A. Signup and onboarding | Partial | KI-13 signup 500 on live until migration syncs |
+| B. Today decision queue | Built | none |
+| C. Decision card approve/reject/defer | Built | none |
+| D. Gauntlet metrics | Built | Metric C reads low on new accounts (see J/flow F) |
+| E. Mission planning and auto-advance | Built engine, live bug | orchestrator slug bug kills multi-agent missions; KI-02 durable resume unverified |
+| F. Trust arc and modes | Built, structural gap | observing-by-default gates everything new |
+| G. Executed-unattended audit | Built | ratio near zero until arc advances |
+| H. Memory and outcome compounding | Built | none; this is the moat |
+| I. Ingest to reactor to mission | Partial | KI-09 endpoint blocked until migration syncs; KI-10 no rate limit |
+| J. Build loop to PR to CI to merge | Partial | KI-12 GitHub App not registered; PR and CI non-operational on live |
+| K. Chat and research | Built | none |
 
 ---
 

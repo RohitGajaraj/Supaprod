@@ -71,12 +71,12 @@ The test for every Decision Brain surface: _did the user get a useful, specific,
 
 ## Why a graph beats more vectors (the evidence)
 
-| Hard query a PM brain must answer                        | Flat vectors            | Decision graph               |
-| -------------------------------------------------------- | ----------------------- | ---------------------------- |
-| "What is the _current_ belief, not the similar old one?" | Fails (returns similar) | Bi-temporal validity         |
-| "What contradicts this assumption?"                      | Cannot express          | `contradicts` edge traversal |
-| "What happened last time we reasoned this way?"          | Cannot walk the chain   | Multi-hop traversal          |
-| "Trace why this shipped, back to the root signal"        | Keyword guess           | Provenance walk              |
+| Hard query a PM brain must answer | Flat vectors | Decision graph |
+| --- | --- | --- |
+| "What is the _current_ belief, not the similar old one?" | Fails (returns similar) | Bi-temporal validity |
+| "What contradicts this assumption?" | Cannot express | `contradicts` edge traversal |
+| "What happened last time we reasoned this way?" | Cannot walk the chain | Multi-hop traversal |
+| "Trace why this shipped, back to the root signal" | Keyword guess | Provenance walk |
 
 Published benchmarks on exactly these cases: Zep/Graphiti **63.8%** vs Mem0 **49.0%** on LongMemEval, with gains concentrated in **temporal (+29.6 points)** and **multi-hop (+23.1 points)** ([Mem0](https://mem0.ai/blog/state-of-ai-agent-memory-2026), [Zep](https://blog.getzep.com/stop-using-rag-for-agent-memory/)); GraphRAG roughly **86%** vs vector roughly **32%** on a Microsoft enterprise benchmark ([agentmarketcap](https://agentmarketcap.ai/blog/2026/04/07/graph-rag-vs-vector-rag-agent-memory-neo4j-pgvector)). The whole agent-memory frontier (Zep/Graphiti, Mem0, Letta, Cognee, Microsoft GraphRAG) has converged on graph memory, and the decision-intelligence literature names the moat: "decision #10,001 is smarter than #10,000," and replicating institutional memory carries a "structurally infinite" cost ([Decision DNA](https://chancecurtiss.substack.com/p/decision-dna-how-institutional-memory)).
 

@@ -27,24 +27,24 @@ The three assets no competitor can copy this week, which every idea exploits:
 
 ## 3. The ranked board (16 ideas)
 
-| #   | Idea                                                                                | Reach | Cost | Effort | Risk | P(hit)        | EV rank                   |
-| --- | ----------------------------------------------------------------------------------- | ----- | ---- | ------ | ---- | ------------- | ------------------------- |
-| 1   | **The Launch Ledger** — the launch runs as a live, public Supaprod mission           | 4     | $0   | M      | low  | 55%           | **1**                     |
-| 2   | **The Decision Autopsy engine** — public Critic teardowns + submit-your-bet hook    | 5     | $0   | M      | med  | 45%           | **2**                     |
-| 3   | **"It built part of itself" receipts drop** — the opening shot                      | 4     | $0   | S      | low  | 50%           | **3**                     |
-| 4   | **Founder week arc** — "agents ran my product org for a week", daily receipts       | 4     | $0   | S/day  | low  | 45%           | **4**                     |
-| 5   | **Micro-influencer personal teardowns** — 10 PM voices get THEIR product red-teamed | 4     | $0   | M      | med  | 40%           | **5**                     |
-| 6   | **The failure-path GIF** — wrong call, one-key revert, receipt lands                | 3     | $0   | S      | low  | 60%           | 6 (asset, feeds all)      |
-| 7   | **Skin-in-the-game waitlist** — position jumps for submitting a real product bet    | 3     | $0   | M      | low  | 50%           | 7 (mechanic, feeds #2)    |
-| 8   | **Worst-decision challenge** — community submits, Critic autopsies the top 10       | 4     | $0   | M      | med  | 35%           | 8                         |
-| 9   | **"The ICE table that never learns"** — interactive static-score vs ledger page     | 3     | $0   | M      | low  | 35%           | 9                         |
-| 10  | **PM-vs-engineer agent-envy meme pack** — 6-8 formats, seeded with the wave         | 3     | $0   | S      | low  | 35%           | 10                        |
-| 11  | **AI-announcement hijack kit** — pre-written "the labs shipped the hands" responses | 3     | $0   | S      | low  | 30%           | 11                        |
-| 12  | **The Receipts Page** — live dogfood counters (2,162 AI events, 133 missions...)    | 2     | $0   | S      | low  | 45%           | 12                        |
-| 13  | **ARD open spec** — "ADR for product decisions", GitHub spec, Supaprod as reference  | 4     | $0   | M      | low  | 25% this week | 13 (compounds later)      |
-| 14  | **X Spaces / LinkedIn Live** — "watch the ledger live" AMA, day 6-7                 | 2     | $0   | S      | low  | 30%           | 14                        |
-| 15  | **Decision-debt calculator** — 6-question free tool, share-your-score               | 3     | $0   | L      | low  | 25%           | 15 (build post-wave)      |
-| 16  | **PM-course cohort seeding** — Reforge/Product School alumni workshop offers        | 2     | $0   | S      | low  | 30%           | 16 (slow burn, start now) |
+| # | Idea | Reach | Cost | Effort | Risk | P(hit) | EV rank |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | **The Launch Ledger** — the launch runs as a live, public Supaprod mission | 4 | $0 | M | low | 55% | **1** |
+| 2 | **The Decision Autopsy engine** — public Critic teardowns + submit-your-bet hook | 5 | $0 | M | med | 45% | **2** |
+| 3 | **"It built part of itself" receipts drop** — the opening shot | 4 | $0 | S | low | 50% | **3** |
+| 4 | **Founder week arc** — "agents ran my product org for a week", daily receipts | 4 | $0 | S/day | low | 45% | **4** |
+| 5 | **Micro-influencer personal teardowns** — 10 PM voices get THEIR product red-teamed | 4 | $0 | M | med | 40% | **5** |
+| 6 | **The failure-path GIF** — wrong call, one-key revert, receipt lands | 3 | $0 | S | low | 60% | 6 (asset, feeds all) |
+| 7 | **Skin-in-the-game waitlist** — position jumps for submitting a real product bet | 3 | $0 | M | low | 50% | 7 (mechanic, feeds #2) |
+| 8 | **Worst-decision challenge** — community submits, Critic autopsies the top 10 | 4 | $0 | M | med | 35% | 8 |
+| 9 | **"The ICE table that never learns"** — interactive static-score vs ledger page | 3 | $0 | M | low | 35% | 9 |
+| 10 | **PM-vs-engineer agent-envy meme pack** — 6-8 formats, seeded with the wave | 3 | $0 | S | low | 35% | 10 |
+| 11 | **AI-announcement hijack kit** — pre-written "the labs shipped the hands" responses | 3 | $0 | S | low | 30% | 11 |
+| 12 | **The Receipts Page** — live dogfood counters (2,162 AI events, 133 missions...) | 2 | $0 | S | low | 45% | 12 |
+| 13 | **ARD open spec** — "ADR for product decisions", GitHub spec, Supaprod as reference | 4 | $0 | M | low | 25% this week | 13 (compounds later) |
+| 14 | **X Spaces / LinkedIn Live** — "watch the ledger live" AMA, day 6-7 | 2 | $0 | S | low | 30% | 14 |
+| 15 | **Decision-debt calculator** — 6-question free tool, share-your-score | 3 | $0 | L | low | 25% | 15 (build post-wave) |
+| 16 | **PM-course cohort seeding** — Reforge/Product School alumni workshop offers | 2 | $0 | S | low | 30% | 16 (slow burn, start now) |
 
 Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply the top 5.
 
@@ -163,13 +163,13 @@ Ideas 6 and 7 rank as "assets/mechanics": they don't fire alone, they multiply t
 
 ## 6. The firing order (days 3-7 at a glance)
 
-| Day | Main fire                                       | Supporting                                      |
-| --- | ----------------------------------------------- | ----------------------------------------------- |
-| 3   | Receipts drop (Brief 3) + Launch Ledger live    | failure-path GIF first-reply; arc post 1        |
-| 4   | Decision Autopsy #1 (Brief 2)                   | arc post 2; meme 1; respond to every reply      |
-| 5   | Arc twist post (the wrong call) + Autopsy #2    | worst-decision challenge opens; meme 2          |
-| 6   | Influencer teardown reactions surface (Brief 5) | ICE-table page OR hold for listing week; Spaces |
-| 7   | Week-in-receipts recap + design-partner ask     | challenge reminder; recap pinned                |
+| Day | Main fire | Supporting |
+| --- | --- | --- |
+| 3 | Receipts drop (Brief 3) + Launch Ledger live | failure-path GIF first-reply; arc post 1 |
+| 4 | Decision Autopsy #1 (Brief 2) | arc post 2; meme 1; respond to every reply |
+| 5 | Arc twist post (the wrong call) + Autopsy #2 | worst-decision challenge opens; meme 2 |
+| 6 | Influencer teardown reactions surface (Brief 5) | ICE-table page OR hold for listing week; Spaces |
+| 7 | Week-in-receipts recap + design-partner ask | challenge reminder; recap pinned |
 
 Every post carries exactly one CTA (waitlist or design-partner call, never both), and every asset links back to the Launch Ledger. If any single fire catches (2x expected numbers), the next day's plan bends toward it: feed the fire that's burning, don't light the next one on schedule.
 

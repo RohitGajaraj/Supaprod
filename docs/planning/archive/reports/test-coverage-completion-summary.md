@@ -11,15 +11,15 @@ Generated **6 comprehensive test files** with **260 passing test cases** that cl
 
 ### Tests Generated and Passing
 
-| Test File                                                     | Test Count | Status          | Coverage Focus                                 |
-| ------------------------------------------------------------- | ---------- | --------------- | ---------------------------------------------- |
-| `src/components/cadence/__tests__/Sketch.test.ts`             | 53         | ✅ Pass         | PRNG, geometry, path generation, formatting    |
-| `src/components/chat/__tests__/ResearchActivity.test.ts`      | 21         | ✅ Pass         | SSE parsing, phase counting, conditional logic |
-| `src/components/discover/__tests__/ranking-coverage.test.ts`  | 49         | ✅ Pass         | Branch coverage, tie-breaks, determinism       |
-| `src/components/governance/__tests__/incident-format.test.ts` | 32         | ✅ Pass         | Constants, namespace stripping, tone mapping   |
-| `src/components/knowledge/__tests__/decisions-shared.test.ts` | 36         | ✅ Pass         | Constants, time formatting, source detection   |
-| `src/components/discover/__tests__/format-coverage.test.ts`   | 69         | ✅ Pass         | Edge cases, timeout handling, UUID extraction  |
-| **Total**                                                     | **260**    | **✅ All Pass** | Comprehensive coverage across all gaps         |
+| Test File | Test Count | Status | Coverage Focus |
+| --- | --- | --- | --- |
+| `src/components/cadence/__tests__/Sketch.test.ts` | 53 | ✅ Pass | PRNG, geometry, path generation, formatting |
+| `src/components/chat/__tests__/ResearchActivity.test.ts` | 21 | ✅ Pass | SSE parsing, phase counting, conditional logic |
+| `src/components/discover/__tests__/ranking-coverage.test.ts` | 49 | ✅ Pass | Branch coverage, tie-breaks, determinism |
+| `src/components/governance/__tests__/incident-format.test.ts` | 32 | ✅ Pass | Constants, namespace stripping, tone mapping |
+| `src/components/knowledge/__tests__/decisions-shared.test.ts` | 36 | ✅ Pass | Constants, time formatting, source detection |
+| `src/components/discover/__tests__/format-coverage.test.ts` | 69 | ✅ Pass | Edge cases, timeout handling, UUID extraction |
+| **Total** | **260** | **✅ All Pass** | Comprehensive coverage across all gaps |
 
 **Test Execution Result**:
 
@@ -144,14 +144,14 @@ Ran 6 files in 2.03s
 
 ## Test Quality Metrics
 
-| Metric                  | Value          |
-| ----------------------- | -------------- |
-| Total Test Files        | 6              |
-| Total Test Cases        | 260            |
-| Total Expect Statements | 553            |
-| Pass Rate               | 100% (260/260) |
-| Execution Time          | 2.03 seconds   |
-| Lines of Test Code      | ~2,500         |
+| Metric | Value |
+| --- | --- |
+| Total Test Files | 6 |
+| Total Test Cases | 260 |
+| Total Expect Statements | 553 |
+| Pass Rate | 100% (260/260) |
+| Execution Time | 2.03 seconds |
+| Lines of Test Code | ~2,500 |
 
 ---
 
@@ -196,14 +196,14 @@ Ran 6 files in 2.03s
 
 ## Coverage Before/After (Estimated)
 
-| Category                  | Before  | After   | Δ       |
-| ------------------------- | ------- | ------- | ------- |
-| Pure Functions (Sketch)   | 10%     | 95%     | +85     |
-| Pure Functions (Research) | 35%     | 95%     | +60     |
-| Branch Coverage (Ranking) | 75%     | 96%     | +21     |
-| Constants Coverage        | 20%     | 98%     | +78     |
-| Format Utilities          | 40%     | 93%     | +53     |
-| **Overall Average**       | **54%** | **92%** | **+38** |
+| Category | Before | After | Δ |
+| --- | --- | --- | --- |
+| Pure Functions (Sketch) | 10% | 95% | +85 |
+| Pure Functions (Research) | 35% | 95% | +60 |
+| Branch Coverage (Ranking) | 75% | 96% | +21 |
+| Constants Coverage | 20% | 98% | +78 |
+| Format Utilities | 40% | 93% | +53 |
+| **Overall Average** | **54%** | **92%** | **+38** |
 
 ---
 

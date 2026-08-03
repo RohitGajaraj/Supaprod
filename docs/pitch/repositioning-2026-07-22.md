@@ -26,7 +26,7 @@ Position Supaprod at the intersection of three circles (founder Venn, 2026-07-22
 **The intersection cell is genuinely unoccupied — and the window is short (1–2 quarters).** Every adjacent player stops one step before the loop closes:
 
 | Player | State (July 2026) | Where they stop |
-|---|---|---|
+| --- | --- | --- |
 | Samepage Signals | $4.85M seed (Craft, Freestyle; angels Justin Kan, Matt Mullenweg), launched late June 2026; "the AI-powered second brain for product leaders", 35+ tool connections | Surfaces/monitors only — no execution, no outcome loop |
 | Brief (briefhq.ai) | a16z Speedrun-backed, 2 people; "AI Ships. Brief Navigates."; decision capture into a "Product Graph" | **Nearest neighbor on decision memory** — retrieval/context only, no execution, no outcome verification. Watch closely. |
 | ChatPRD | ~2 people, claims 100k+ PMs / 750k+ docs | Document generation; no loop |
@@ -84,7 +84,7 @@ Full corrected texts: the four complete RFS entries are preserved in the session
 ## 5. Vocabulary rules per surface
 
 | Surface | Leads with | Allowed | Never |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | YC application | The anchor (Cursor for PMs) → scope escalation | "operating system" in later fields; RFS cells quoted in 9a | "agentic" in any first line; "AI PM tool"; interview/user counts that aren't real |
 | Deck / investor | Category sentence (§3) | All three cells named on the Venn slide | "company brain" as self-description (it's YC's phrase, quoted) |
 | Landing page | Current hero (unchanged) | — | "operating system" stays banned on-site per the 2026-07-15 ruling **until the founder re-rules** |

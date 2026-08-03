@@ -24,13 +24,13 @@ Run management (archive / delete on a Build session) raised a real design questi
 
 The FK rules on `missions(id)` already encode exactly this contract, so deletion is moat-safe at the database layer, not just the UI:
 
-| Child of a deleted mission             | `ON DELETE` rule | Meaning                                               |
-| -------------------------------------- | ---------------- | ----------------------------------------------------- |
-| `mission_steps`                        | **CASCADE**      | working log — removed                                 |
-| `studio_changesets` → `studio_changes` | **CASCADE**      | staged files — removed                                |
-| `agent_messages`                       | **CASCADE**      | working chatter — removed                             |
-| **`decisions`**                        | **SET NULL**     | **memory moat — PRESERVED** (detaches from the build) |
-| `builder_file_claims`                  | SET NULL         | preserved/detached                                    |
+| Child of a deleted mission | `ON DELETE` rule | Meaning |
+| --- | --- | --- |
+| `mission_steps` | **CASCADE** | working log — removed |
+| `studio_changesets` → `studio_changes` | **CASCADE** | staged files — removed |
+| `agent_messages` | **CASCADE** | working chatter — removed |
+| **`decisions`** | **SET NULL** | **memory moat — PRESERVED** (detaches from the build) |
+| `builder_file_claims` | SET NULL | preserved/detached |
 
 `agent_runs` has no FK to `missions`, so `deleteStudioSession` deletes the mission's runs explicitly (their checkpoints + idempotency keys cascade) to avoid orphans. Net effect of a hard delete: the build's working product is gone; **what was decided/learned remains in the Brain.**
 

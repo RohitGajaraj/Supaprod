@@ -12,15 +12,15 @@ Completed full-codebase security audit identifying **7 distinct vulnerabilities*
 
 ## Vulnerabilities Identified
 
-| #   | Severity   | Category   | Finding                                                                                                   | Status        | Remediation                                                                                                 |
-| --- | ---------- | ---------- | --------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------- |
-| 1   | **HIGH**   | Dependency | @tanstack/start-server-core <1.167.30 (GHSA-9m65-766c-r333): server-function deserialization RCE          | ✅ Deployed   | Currently 1.168.27; upgrade path clear if regression. Monitor upstream.                                     |
-| 2   | **HIGH**   | Dependency | undici <7.28.0: TLS cert validation bypass + cross-origin proxy pool reuse + WebSocket DoS                | ⚠️ Partial    | Transitive dep via @tanstack/start. Verify next patch applies.                                              |
-| 3   | **MEDIUM** | API Proxy  | ambient.functions.ts `fetchWeather`: unauthenticated, no input validation, no rate limit                  | ✅ Fixed      | Added requireSupabaseAuth + Zod lat/lon validation (geographic bounds). Commit `aa420d41`.                  |
-| 4   | **MEDIUM** | CORS       | /api/chat SSE endpoint: "Access-Control-Allow-Origin": "\*" on authenticated endpoint                     | ✅ Fixed      | Dynamic origin validation via getValidatedCorsOrigin(). Commit `aa420d41`.                                  |
-| 5   | **MEDIUM** | Dependency | vite 8.1.4: Windows server.fs.deny bypass + ws memory-exhaustion DoS (dev tooling)                        | 📋 Deferred   | Dev-only; low runtime impact. Backlog for routine update cycle.                                             |
-| 6   | **LOW**    | RLS        | computeCreditAttribution (credits.functions.ts line 233): relies on comment to prevent supabaseAdmin leak | 📋 Documented | RLS enforced at table level (account_credentials, credit_ledger). Add runtime assertion in future refactor. |
-| 7   | **LOW**    | Dependency | js-yaml, @babel/core, esbuild: dev tooling CVEs                                                           | 📋 Deferred   | Build-only; no production runtime exposure. Standard dependency update cycle.                               |
+| # | Severity | Category | Finding | Status | Remediation |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **HIGH** | Dependency | @tanstack/start-server-core <1.167.30 (GHSA-9m65-766c-r333): server-function deserialization RCE | ✅ Deployed | Currently 1.168.27; upgrade path clear if regression. Monitor upstream. |
+| 2 | **HIGH** | Dependency | undici <7.28.0: TLS cert validation bypass + cross-origin proxy pool reuse + WebSocket DoS | ⚠️ Partial | Transitive dep via @tanstack/start. Verify next patch applies. |
+| 3 | **MEDIUM** | API Proxy | ambient.functions.ts `fetchWeather`: unauthenticated, no input validation, no rate limit | ✅ Fixed | Added requireSupabaseAuth + Zod lat/lon validation (geographic bounds). Commit `aa420d41`. |
+| 4 | **MEDIUM** | CORS | /api/chat SSE endpoint: "Access-Control-Allow-Origin": "\*" on authenticated endpoint | ✅ Fixed | Dynamic origin validation via getValidatedCorsOrigin(). Commit `aa420d41`. |
+| 5 | **MEDIUM** | Dependency | vite 8.1.4: Windows server.fs.deny bypass + ws memory-exhaustion DoS (dev tooling) | 📋 Deferred | Dev-only; low runtime impact. Backlog for routine update cycle. |
+| 6 | **LOW** | RLS | computeCreditAttribution (credits.functions.ts line 233): relies on comment to prevent supabaseAdmin leak | 📋 Documented | RLS enforced at table level (account_credentials, credit_ledger). Add runtime assertion in future refactor. |
+| 7 | **LOW** | Dependency | js-yaml, @babel/core, esbuild: dev tooling CVEs | 📋 Deferred | Build-only; no production runtime exposure. Standard dependency update cycle. |
 
 ---
 
@@ -113,16 +113,16 @@ function getSseHeaders(origin: string) {
 
 ### Dependency Upgrades
 
-| Package                       | Current    | Issue                             | Risk | Next Step                                           |
-| ----------------------------- | ---------- | --------------------------------- | ---- | --------------------------------------------------- |
-| vite                          | 8.1.4      | Windows fs.deny bypass (dev-only) | LOW  | Routine update cycle; monitor 8.x releases          |
-| ws                            | transitive | Memory DoS (dev-only)             | LOW  | Will upgrade when vite/other transitive deps update |
-| js-yaml, @babel/core, esbuild | various    | Dev tooling CVEs                  | LOW  | Include in next patch cycle                         |
+| Package | Current | Issue | Risk | Next Step |
+| --- | --- | --- | --- | --- |
+| vite | 8.1.4 | Windows fs.deny bypass (dev-only) | LOW | Routine update cycle; monitor 8.x releases |
+| ws | transitive | Memory DoS (dev-only) | LOW | Will upgrade when vite/other transitive deps update |
+| js-yaml, @babel/core, esbuild | various | Dev tooling CVEs | LOW | Include in next patch cycle |
 
 ### Code Assertions
 
-| Finding                                | Location                         | Remediation                                                                   | Timeline            |
-| -------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- | ------------------- |
+| Finding | Location | Remediation | Timeline |
+| --- | --- | --- | --- |
 | computeCreditAttribution RLS leak risk | src/lib/credits.functions.ts:233 | Add runtime assertion: `if (supabase === supabaseAdmin) throw new Error(...)` | Next refactor cycle |
 
 ---

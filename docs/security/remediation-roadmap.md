@@ -10,7 +10,7 @@
 ## Executive Summary
 
 | Category | Finding | Severity | Status |
-|----------|---------|----------|--------|
+| --- | --- | --- | --- |
 | Session Management | Weak ID generation (Date.now + Math.random) | **HIGH** | 🔧 FIXED |
 | Script Injection | Token validation missing (__IMPECCABLE_TOKEN__) | **HIGH** | 🔧 IN PROGRESS |
 | Data Protection | Unencrypted localStorage | **MEDIUM** | 🔧 IN PROGRESS |

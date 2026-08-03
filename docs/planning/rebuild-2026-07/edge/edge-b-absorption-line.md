@@ -91,7 +91,7 @@ us provision one never learns the word at all, and that is the target state.
 I did not take the brief on trust. Load-bearing claims, checked this session:
 
 | Claim | Verdict | Evidence |
-|---|---|---|
+| --- | --- | --- |
 | The build engine absorbs git end to end | **CONFIRMED** | `studio.functions.ts` stages into `studio_changesets`, commits to a `studio/*` branch, opens a PR, reads CI, appends fix commits (`studio.fix.commit`), merges on green plus approval |
 | Only four tools actually pause the run | **CONFIRMED** | `loop.server.ts:74-79`: `studio.commit`, `studio.pr.open`, `studio.pr.merge`, `delegate.openhands` |
 | Merge is CI-green gated, not just approval gated | **CONFIRMED** | `registry.server.ts:1928` "J2 - CI-green merge gate. `studio.pr.merge` is review-gated, but we also..." |
@@ -132,7 +132,7 @@ is reading branch names, which is the friction we are removing.
 **"The work" names two different things and the tension lives entirely in the equivocation.**
 
 | | Labor | Judgment |
-|---|---|---|
+| --- | --- | --- |
 | What it is | The machine doing the machine's job | Someone choosing among options with no oracle |
 | Examples | branching, committing, retrying, embedding, chunking, refreshing a token, falling back a model | which bet to keep, whether this ships to customers, whether the spec is right, what the outcome means |
 | Has a fast oracle | Yes: it compiled, it passed, it returned 200 | No: the answer arrives in weeks, confounded |
@@ -175,7 +175,7 @@ Every mechanism in the product lands in exactly one of three, and the names belo
 vocabulary, not new words.
 
 | Register | What the user experiences | Ratified vocabulary |
-|---|---|---|
+| --- | --- | --- |
 | **Absorbed** | Nothing. It never earns a sentence on a calm surface, never appears in a receipt, never enters a working line. It is reachable in the **engine room** by deliberate query, forever. | engine room (`FINAL-language` 2.6, 2.8) |
 | **On the record** | A **receipt**: `{Actor} {past-tense verb} {object}{, on {N} {evidence}}. {time}`. It does not interrupt. The user meets it when they look at the thing it produced, or when they audit. | Receipt, the record (2.5), receipt grammar (9.2) |
 | **A Call** | The machine stops and waits. `Approve` / `Send back` or `Decline` / optionally `Snooze`. A Call becomes a **Decision** the moment you act. | Call, Decision (2.4), verdict verbs (5.4) |
@@ -259,7 +259,7 @@ instead, in ratified vocabulary.
 ### 4.1 Git branches, commits, merges, conflicts, reverts
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | Branch | **Silent** | Q1 absorb, Q2 contained, Q3 no durable artifact of its own |
 | Commit | **On the record** | Q1 absorb, Q2 contained, Q3 yes, it changed the codebase |
 | Merge | **Call** | Q2 fails: other people's work now contains it |
@@ -301,7 +301,7 @@ instead, in ratified vocabulary.
 ### 4.2 CI runs, failures, flaky tests
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | A CI run | **Silent while green** | CI *is* the fast oracle; narrating an oracle is noise |
 | The verdict | **On the record** | Q3: it constrains the next Call (merge is gated on it) |
 | A failure inside the fix budget | **Silent** | Q1 absorb: the engine already appends fix commits |
@@ -346,7 +346,7 @@ could design, and it costs one word.
 ### 4.3 Pull requests and code review
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | The PR object | **On the record, with an external door** | Q3 yes; and it lives in a tool the user may legitimately want to open |
 | Reviewer agreeing with Engineer | **On the record** | Q1 absorb: it is verification against a spec |
 | Reviewer dissenting | **Call** | Q1 fails: two agents disagree, and there is no oracle for who is right |
@@ -376,7 +376,7 @@ could design, and it costs one word.
 ### 4.4 Deploys, previews, rollbacks, environments
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | Preview | **On the record, and loud** | Q1/Q2 absorb; it is the single best evidence artifact we have |
 | Deploy to production | **Call** | Q2 fails: customers |
 | Rollback | **Call** | see 4.1 |
@@ -405,7 +405,7 @@ could design, and it costs one word.
 ### 4.5 Model choice and model fallback
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | Which model runs a step | **Silent by default; named on the Call that authorizes the spend; configurable in Settings** | Q1 absorb (evals, cost and latency are oracles); Q3 yes, it is their money |
 | A fallback firing | **Silent** | Q1/Q2 absorb; Q3 only via cost, which the record already carries |
 | A fallback to a materially worse model, on output the user is about to rely on | **On the record, and stated on the Call** | 6.13 ceiling law: state the gap before the user relies on it |
@@ -428,7 +428,7 @@ could design, and it costs one word.
 ### 4.6 Token counts, credits, cost
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | Token counts | **Silent, permanently, everywhere** | already engine-room-only in 2.8; a PM's decisions never turn on a token count |
 | Credit balance | **State, and a Call only at the threshold** | Q2: running out stops their crew |
 | Cost of a run | **On the record, as an outcome, not as a spend** | Q3: their money |
@@ -451,7 +451,7 @@ could design, and it costs one word.
 ### 4.7 Agent retries and failures
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | A retry that succeeds | **Silent** | Q1/Q2/Q3 all absorb |
 | A retry that changes the model or the cost | **On the record** | Q3: money |
 | A stall | **On the record, in place, honestly** | Q3: it constrains what the user does next |
@@ -476,7 +476,7 @@ could design, and it costs one word.
 ### 4.8 RAG retrieval and citations
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | Embedding, chunking, vector search, reranking, top-k, the graph walk | **Silent, permanently** | Q1/Q2/Q3 all absorb; no judgment, no escape, no artifact |
 | Which sources the claim rests on | **On the record, in place, at the moment of reading the claim** | the whole product |
 
@@ -499,7 +499,7 @@ could design, and it costs one word.
 ### 4.9 Approval modes and trust arcs
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | The trust score, the Bayesian shrinkage, the arc enum | **Silent** | Q1 absorb: computed from real outcomes with an oracle |
 | The current setting | **A setting, in diverged labels** | the user owns it |
 | Narrowing an agent's rope after a bad outcome | **Silent, on the record** | safety needs no permission; P2 |
@@ -534,7 +534,7 @@ could design, and it costs one word.
 ### 4.10 Connector OAuth, scopes, token expiry
 
 | Mechanism | Register | Rule path |
-|---|---|---|
+| --- | --- | --- |
 | The OAuth dance, PKCE, state, redirect | **Silent** | Q1/Q2/Q3 all absorb |
 | What the crew will do with the access | **A decision, once, at connect time, phrased as outcomes** | Q2: it is the user's data in someone else's system |
 | The literal scope strings | **Silent** | `repo:read` is our vocabulary, not theirs |
@@ -598,7 +598,7 @@ top floor. The user sees:
 ### 4.12 Summary table
 
 | Mechanism | Register | What appears instead |
-|---|---|---|
+| --- | --- | --- |
 | branch | silent | nothing; `Run 41 · Fix the checkout redirect` |
 | commit | record | `Engineer wrote the change in 6 steps.` |
 | merge | **Call** | `Run 41 is ready.` + Approve / Send back |
@@ -951,7 +951,7 @@ Correct technical words for the audience that opens that door, banned everywhere
 ### 10.3 Lexicon additions
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Undoing a live release | **Roll back** | Putting the previous version back in front of customers. The change stays on the record and can roll forward again. | revert (taken, artifact versions), undeploy, unship, restore |
 | The user's code, after connection | **your codebase** | The code your crew writes in. | repo (connect moment only), repository, project, source tree |
 | The user's own automated tests | **your tests** | The checks your codebase already runs on every change. | CI, checks (Reviewer's verb), pipeline, build |
@@ -959,7 +959,7 @@ Correct technical words for the audience that opens that door, banned everywhere
 ### 10.4 Action registry additions (`FINAL-language` §9.1)
 
 | Act | Button | Helper | Toast |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Approve a change into the codebase | `Approve` | `Your tests passed. Approving puts it in your codebase.` | `Approved. The change is in your codebase.` |
 | Approve a release to customers | `Approve` | `Customers see it within minutes.` | `Approved. It is live. Publisher is drafting the note.` |
 | Approve over an agent's objection | `Approve anyway` | `Reviewer's objection stays on the record.` | `Approved over Reviewer's objection. Both are on the record.` |
@@ -971,7 +971,7 @@ Correct technical words for the audience that opens that door, banned everywhere
 ### 10.5 Corrections to files ratified tonight
 
 | File | Item | Correction | Reason |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `ia/FINAL-ia.md` §2.3 | Beliefs draft: "It **has started** running them without asking" | **CORRECTION.** Ship `It could stop asking, on bets over $50k impact. Your call.` with `[Let it run]` / `[Keep asking me]` | Autonomy widened by the machine and announced afterwards fails the containment test the rest of the contract depends on. Tighten silently, loosen by Call (§3.3 P2, §4.9) |
 | `ia/FINAL-ia.md` §4.2 J7 | the `07 -> 01` return edge | Mark **mandatory, not decorative** | It is what stops the ordinals from teaching a pipeline (§5.2 Ruling A) |
 | `language/FINAL-language.md` §9.4 | `Model` on card density | Confirm this is the **only** placement outside Settings | §4.5 |
@@ -980,7 +980,7 @@ Correct technical words for the audience that opens that door, banned everywhere
 ### 10.6 Code fixes this file requires
 
 | File | Line | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `src/components/studio/EngineRoomDisclosure.tsx` | 98-113 | `ShippedLine` renders `PR #418` and the raw branch outside the disclosure toggle. Both move inside. Outside becomes `Shipped Jul 14, 16:12.` |
 | `src/components/studio/CiPanel.tsx` | 117-119, 199 | `CI passed` / `CI not green` / `CI not run` / `Refresh · re-reads CI` are calm-front mechanism strings. Front becomes `Your tests passed. 12 of 12.`; the panel itself is engine-room-only and may keep its technical labels there |
 | `src/components/today/ExecutedCard.tsx` | whole file | Zero importers. Mount it. C2 makes the entire absorbed register illegitimate until it exists |

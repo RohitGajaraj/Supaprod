@@ -29,7 +29,7 @@ meanings.** That is why the app reads as half-finished. It is not a polish probl
 The worst one is not in the brief. It is this:
 
 | Live in the UI today | Live in the catalog today | File |
-|---|---|---|
+| --- | --- | --- |
 | `"The Critic flagged this bet. Your call moves it out of backlog."` | agent `critic` is displayed as **"Challenge"** | `src/routes/_authenticated.today.tsx:695` vs `src/lib/agent-vocabulary.ts:251` |
 | `"No Critic review yet."` | same | `_authenticated.today.tsx:128` |
 | `"A dozen is enough for Scout to find the first themes."` | agent `discovery-scout` is displayed as **"Watch"** | today onboarding copy vs `agent-vocabulary.ts:202` |
@@ -54,7 +54,7 @@ in the app as a name for this thing, including in generated output.
 ### 1.1 The container words
 
 | Concept | The one word | Definition (one sentence) | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The company account everyone shares | **Workspace** | The shared account your team, your connected sources, and your billing live in. | org, organization, team, tenant, account (account survives in billing only) |
 | The thing you are building | **Product** | One product inside the workspace, with its own loop, brief, and repo. | project, app, initiative, workstream |
 | The whole seven-stage cycle | **The loop** | Discover, Decide, Plan, Design, Build, Ship, Learn, entered and left at any point. | pipeline, workflow, journey, lifecycle, arc, funnel, process |
@@ -70,7 +70,7 @@ The seven words are fixed. Each is a **verb** (see the naming grammar in section
 verbs, agents are nouns, which is what makes them structurally uncollidable).
 
 | # | Word | Definition (one sentence) | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 01 | **Discover** | Connected sources are read and what changed becomes evidence you can act on. | Sense, Listen, Intake, Research, Signals (as a stage name) |
 | 02 | **Decide** | Ranked bets are kept or killed, and this is the one thing the product will never do for you. | Triage, Prioritize, Judge, Queue, Review (as a stage name) |
 | 03 | **Plan** | A kept bet becomes a cited spec and a sequenced piece of work. | Define, Spec, Scope, Groom, Refine |
@@ -90,7 +90,7 @@ the agent relay. **Discover wins. "Sense" is deleted.**
 ### 1.3 The work objects, in the order a user meets them
 
 | Concept | The one word | Definition (one sentence) | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | One piece of evidence from a connected source | **Signal** | One thing a source said, captured with where it came from and when. | insight, mention, item, event, datapoint, feedback |
 | Many signals that say the same thing | **Pattern** | A group of signals the crew found saying the same thing. | theme, cluster, topic, trend |
 | Something worth doing, ranked | **Bet** | A thing worth building, with an argued case, a rank, and a stated risk. | opportunity, idea, candidate, initiative, item, ticket |
@@ -119,7 +119,7 @@ over-promise and lose.
 ### 1.4 The judgment vocabulary (the product's whole thesis, so it gets its own table)
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The thing waiting | **Call** | See 1.3. | approval, gate, decision (before you act) |
 | Saying yes | **Approve** | You accept it and the crew continues. | accept, confirm, OK, ship it, sign off, LGTM |
 | Saying not like this | **Send back** | You reject the attempt but keep the work, with a reason attached. | reject, request changes, decline (that is the third verb), deny, needs work |
@@ -142,7 +142,7 @@ and it is teachable in one line. It also kills "approval" and "gate" from user c
 ### 1.5 The record layer
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The record of one agent action | **Receipt** | What one agent did, what it read, what it produced, and what it cost. | trace, log, audit entry, event, span, proof |
 | The chain every receipt is written to | **The Ledger** | The tamper-evident chain every receipt is written to, always singular, always "the Ledger". | audit log, trust ledger, paper trail, chain, history |
 | The crew's judgment on something | **Verdict** | One agent's stated call on a thing, with its confidence and its reasoning. | assessment, score, rating, opinion, take |
@@ -156,7 +156,7 @@ and both live inside Pulse. "Trace" survives as an engineer word inside Pulse on
 ### 1.6 The always-on layers
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | What the company knows | **Brain** | Every call the team made, what it became, and what it now tells you before you decide again. | memory, knowledge, knowledge base, recall, second brain, wiki, vault, storage |
 | How the machine is running | **Pulse** | Spend, quality, safety, and the Ledger, in one place, for when you want to look under the hood. | Engine Room, ops, observability, console, command center, admin (admin is a different thing), monitoring |
 | Everything the loop made | **Library** | Every finished thing the loop produced, promoted here on purpose. | artifacts, assets, files, output, deliverables, docs (docs is a tab inside Brain) |
@@ -174,7 +174,7 @@ Brain copy that reads like a filing cabinet is wrong, even if every word is on t
 ### 1.7 Setup and control words
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A place data comes from | **Source** | A tool you connected that the crew reads from. | integration, connector, provider, channel, feed, app |
 | The act of connecting one | **Connect** | Giving the crew read access to a source. | integrate, link, authorize, install, sync (sync is a different thing) |
 | How much rope an agent has | **Autonomy** | How far an agent may go before it has to stop and ask you. | permissions, trust level, mode, access, freedom |
@@ -199,7 +199,7 @@ The six from the brief, then the fourteen found by reading code.
 ### From the brief
 
 | # | The collision | Ruling | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C1 | Nav label **"Pulse"** · route **`/engine-room`** · code and docs **"Engine Room"** | **Pulse.** Route becomes `/pulse`. "Engine Room" is deleted as a surface name in code, copy, and route. `docs/conventions/engine-room-doctrine.md` keeps its filename because it names a doctrine (calm front, deep engine), not a screen. | A user cannot talk about a thing whose URL and label disagree. Pulse is one word, already the label, and names the outcome (the vital signs) not the machine. |
 | C2 | Route **`/artifacts`** · prior ruling **"Library"** | **Library.** Route `/library`. "Artifacts" is deleted from user copy; `artifact_versions` and `artifact_lineage` stay in the DB. | "Artifacts" is engineer register on a PM surface. The objection to "Library" was that it implies accumulation, but accumulation is a behavior you fix with an entry gate, not with a word. Nothing lands in the Library automatically; a thing is promoted into it. |
 | C3 | **Studio** vs **Build** vs **Builder** | **Build** for the stage (verb), **Run** for the object (noun). Every TypeScript-level `studio*` identifier migrates because the rebuild rewrites those files anyway. Every DB-level one freezes. Split in section 7. | The rebuild makes TS renames free and DB renames still expensive. That asymmetry, not sentiment, decides which frozen identifiers are acceptable. |
@@ -210,7 +210,7 @@ The six from the brief, then the fourteen found by reading code.
 ### Found by reading the code
 
 | # | The collision | Evidence | Ruling |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C7 | **Two live name sets for the same agents.** `AGENT_FACES` names (Scout, Strategist, Critic, Scribe) render in 20+ strings while `SPECIALIST_CATALOG` renames the same agents to verbs (Watch, Prioritize, Challenge, Draft). | `agent-vocabulary.ts:66-84` vs `:197-362`; live strings at `_authenticated.today.tsx:128,695` and across `src/components/**` | **Delete `AGENT_FACES` and the `AgentFace` type entirely.** The thirteen names in section 6 are the only agent names. This is the single largest naming defect in the app. |
 | C8 | **"Sense" vs "Discover"** for stage 01 | `agent-vocabulary.ts:113` vs `nav-model.ts:82` | Discover. Delete "Sense" including the station id. |
 | C9 | **"Define" vs "Plan"** for stage 03, id and label disagree in the same object literal | `agent-vocabulary.ts:124` | Plan. Delete "Define" including the id. |
@@ -257,7 +257,7 @@ text. This lane changes no part of that.
 ## 4. THE RENAME LEDGER: destinations
 
 | Current | New | Where it appears | Identifier |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `/engine-room` label "Pulse" | **`/pulse`** label "Pulse" | `nav-model.ts:144-149`, `_authenticated.engine-room.tsx`, `ENGINE_ROOM_PATHS`, `engineRoomActive()`, `src/components/engine-room/*`, `src/lib/engine-room-glance.ts` | **Migrate.** Route, file names, component dir `src/components/pulse/`, `PULSE_PATHS`, `pulseActive()`. One redirect `/engine-room` to `/pulse` for one release. |
 | `/artifacts` label "Artifacts" | **`/library`** label "Library" | `_authenticated.artifacts.tsx`, `ArtifactsSurface.tsx`, `artifacts.functions.ts`, `"Rename artifact"` / `"Delete this artifact?"` dialog copy | **Migrate** the route, the component, and all copy. **Freeze** `artifact_versions`, `artifact_lineage`. One redirect for one release. |
 | `/missions`, `/missions/$missionId` | **deleted** | `_authenticated.missions.index.tsx`, `_authenticated.missions.$missionId.tsx` | **Delete.** No redirect. |
@@ -277,7 +277,7 @@ text. This lane changes no part of that.
 Verbatim current string on the left. Every one was read this session.
 
 | Current string | File:line | New string |
-|---|---|---|
+| --- | --- | --- |
 | `"Mission running."` | `build.index.tsx:266` | `"Run in progress."` |
 | `"Mission running · 1 approval waits for you."` | `build.index.tsx:268` | `"Run in progress. One call needs you."` |
 | `"Mission title (optional)"` | `build.index.tsx:372` | `"Name this run (optional)"` |
@@ -357,7 +357,7 @@ mascot register by implication. Role names, used as proper names, get the warmth
 ### 6.2 The grammar
 
 | Rule | Right | Wrong |
-|---|---|---|
+| --- | --- | --- |
 | No article, ever. Agent names are proper names. | `Critic flagged this bet.` | `The Critic flagged this bet.` |
 | Present continuous for live work. | `Engineer is writing the change.` | `Engineer writes the change.` |
 | Past simple for a receipt. | `Reviewer checked the diff.` | `The diff has been checked.` |
@@ -373,7 +373,7 @@ Fixing the article alone repairs a live inconsistency: the app currently ships b
 Twelve seats across the seven stages, plus one conductor who has no seat.
 
 | Seat | Name | Owns this verb, exclusively | One line | DB slug (frozen) | Was called |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 01 | **Scout** | watches | Watches your connected sources and surfaces what changed. | `discovery-scout` | Watch |
 | 01 | **Researcher** | digs | Digs into one question across the web and your workspace. | `researcher` | Research |
 | 01 | **Listener** | clusters | Clusters what customers are saying into patterns. | `customer-insights` | Listen |
@@ -436,7 +436,7 @@ what keeps it a crew and not a directory, and it is the reason `SPECIALIST_CATAL
 ### 7.1 Migrate. The rebuild rewrites these files anyway, so the rename is free.
 
 | Current | New | Kind |
-|---|---|---|
+| --- | --- | --- |
 | `src/lib/agent-vocabulary.ts` | `src/lib/crew.ts` | module |
 | `AGENT_FACES`, `AgentFace`, `AGENT_FACE_ORDER`, `agentFace()`, `agentVerb()` | **deleted** | the C7 fix |
 | `AgentStation` | `LoopStage` | type |
@@ -473,7 +473,7 @@ what keeps it a crew and not a directory, and it is the reason `SPECIALIST_CATAL
 ### 7.2 Freeze. Acceptable debt. Never rendered, migration cost is real, no user can see it.
 
 | Frozen identifier | Reads as | Why acceptable |
-|---|---|---|
+| --- | --- | --- |
 | `projects` table | Product | Renaming a table this central touches every server function and every RLS policy for zero user benefit. Documented in `use-workspace.tsx:95` and now here. |
 | `missions`, `mission_steps` | Run, Step | The run header row and its steps. Column-level rename with no user surface. |
 | `studio_changesets`, `studio_changes`, `studio_changeset_revisions`, `studio_changeset_constraints` | Change | The established rename convention from Builder to Studio to Build already froze these twice. |
@@ -498,7 +498,7 @@ The tool autonomy modes are stored as `auto` / `confirm` / `review` and enforced
 the verb "review" used elsewhere. The DB value freezes; the label diverges:
 
 | Stored value | Label the user reads |
-|---|---|
+| --- | --- |
 | `auto` | Runs on its own |
 | `confirm` | Asks me first |
 | `review` | I check the output |
@@ -511,7 +511,7 @@ promise, and the mapping lives in exactly one place.
 Four items. Each one leaks a dead name onto a screen.
 
 | Item | Why it must migrate | Fix |
-|---|---|---|
+| --- | --- | --- |
 | **`agents.name` seeded values** in `seed_default_agents`, `seed_orchestrator_agent`, `seed_demo_workspace`, `seed_sample_workspace` | `agentDisplayName()` falls back to the DB `name` column for any slug not in the catalog (`agent-vocabulary.ts:691`). A stale seed value renders directly to a user. | Re-seed all four functions with the section 6.3 names. |
 | **Free-text rows containing dead names**: `announcements`, `changelog_entries`, `learnings`, `decisions.rationale`, `daily_briefs` | These render verbatim. Any row saying "Cadence", "mission", "Engine Room", "Watch", "Challenge" is a visible ghost. | One migration sweep over the five tables. Historical narrative describing what happened before a rename stays accurate; product-name references get corrected. |
 | **`agent_tools` / `TOOL_REGISTRY` ids surfaced through `ACTION_LABEL`** | `ACTION_LABEL` (`agent-vocabulary.ts:759`) maps tool ids to captions and falls through to the literal `"working"` for anything unmapped. Four `studio.*` ids are mapped; a fifth would leak. | Keep the id frozen, but make the fallback total: an unmapped tool renders `"working"`, never the raw id. Already true; add the test. |
@@ -546,7 +546,7 @@ canon and is not this sweep's to change.
 ## 9. What this file overrides
 
 | Document | What is overridden |
-|---|---|
+| --- | --- |
 | `src/lib/agent-vocabulary.ts` header comment, "THE VOICE GRAMMAR (PC-28)" | The claim that surfaces are the D-family (Discover, Decide, Define, Design). "Define" is deleted. The claim that the catalog "is the single source of truth and the one growable axis" is overridden by the crew cap of thirteen in 6.5. |
 | `src/lib/agent-vocabulary.ts:16` "Hard rule: DB slugs are NEVER renamed" | Upheld for slugs, but narrowed: the rule never covered seeded `agents.name` values, which must migrate (7.4). |
 | `src/lib/agent-vocabulary.ts:9` and `:54` "CREW: engine-only mechanisms" | "Crew" now means the thirteen user-facing agents. The engine-only tier is renamed "machinery" and loses its names. |

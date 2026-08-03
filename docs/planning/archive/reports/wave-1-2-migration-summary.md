@@ -75,7 +75,7 @@
 ## KEY METRICS
 
 | Metric | Status | Details |
-|--------|--------|---------|
+| --- | --- | --- |
 | fontSize Migration | ✓ 98.6% | 1771/1796 instances processed |
 | Files Modified | ✓ 405+ | All major component directories |
 | Build Status | ✓ Pass | No TypeScript or compilation errors |

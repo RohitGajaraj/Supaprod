@@ -16,7 +16,7 @@ Comprehensive audit of 14 authenticated surfaces vs. DESIGN-TEMPO.md v5 contract
 **Priority:** CRITICAL (visual identity gap)
 
 | Surface | Action | Location | Est. Time |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Today | Remove 3 excess PixelStat renders; keep 1 | `_authenticated.today.tsx:1400–1401` | 10 min |
 | Discover | Add Pixel h1 to PageHeader | `_authenticated.discover.tsx` | 20 min |
 | Plan | Add Pixel h1 to PageHeader | `_authenticated.plan.index.tsx` | 20 min |
@@ -42,7 +42,7 @@ Comprehensive audit of 14 authenticated surfaces vs. DESIGN-TEMPO.md v5 contract
 **Priority:** CRITICAL (violates Tempo contract)
 
 | Location | Current | Fix | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `_authenticated.settings.tsx:1183` | `color: "var(--madder, #E06557)"` | `color: "var(--ds-red-600)"` | Remove hex fallback |
 | `_authenticated.settings.tsx:1296` | `color: "var(--madder, #E06557)"` | `color: "var(--ds-red-600)"` | Remove hex fallback |
 | `_authenticated.settings.tsx:1469` | `color: "var(--madder, #E06557)"` | `color: "var(--ds-red-600)"` | Remove hex fallback |
@@ -161,7 +161,7 @@ sed -i 's/var(--madder)/var(--ds-red-600)/g' <file>
 ## Summary Table
 
 | Category | Count | Est. Effort | Priority | Status |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Tier 1: Launch Blockers** | | **5 hours** | CRITICAL | ❌ TODO |
 | Pixel moments (11 surfaces) | 11 | 3.5 hrs | P0 | ❌ |
 | Hardcoded color fallbacks | 5 | 0.33 hrs | P1 | ❌ |

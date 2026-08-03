@@ -240,15 +240,15 @@ Run this on any change that touches a surface. It is short on purpose.
 Guards outlast documents, so the mechanical rules are tests rather than prose. See
 `src/styles/__tests__/surface-discipline.test.ts`.
 
-| Rule                                          | How it holds     |
-| --------------------------------------------- | ---------------- |
-| No nested vertical scroller in the work column | test             |
-| Pane-level selectors use `@container`          | test             |
-| No fixed height on the diff body               | test             |
-| Diff delta uses the token pair, not hex        | test             |
-| The loader carries no product name             | test             |
-| The ratchet, §0.1                              | review, and taste |
-| The standard, §0.2                             | review, and taste |
+| Rule | How it holds |
+| --- | --- |
+| No nested vertical scroller in the work column | test |
+| Pane-level selectors use `@container` | test |
+| No fixed height on the diff body | test |
+| Diff delta uses the token pair, not hex | test |
+| The loader carries no product name | test |
+| The ratchet, §0.1 | review, and taste |
+| The standard, §0.2 | review, and taste |
 
 ---
 

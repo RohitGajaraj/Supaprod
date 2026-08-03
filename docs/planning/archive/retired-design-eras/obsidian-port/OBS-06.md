@@ -5,18 +5,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                                          |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ID            | OBS-06                                                                                                                                                                                                                                                                                                                         |
-| Rank          | #7                                                                                                                                                                                                                                                                                                                             |
-| Tier          | 1                                                                                                                                                                                                                                                                                                                              |
-| Status        | pending                                                                                                                                                                                                                                                                                                                        |
-| Category      | Sense                                                                                                                                                                                                                                                                                                                          |
-| Depends on    | OBS-03 (core primitives)                                                                                                                                                                                                                                                                                                       |
-| Blocks        | nothing downstream (OBS-10 folds legacy routes into this surface once it exists)                                                                                                                                                                                                                                               |
+| Field | Value |
+| --- | --- |
+| ID | OBS-06 |
+| Rank | #7 |
+| Tier | 1 |
+| Status | pending |
+| Category | Sense |
+| Depends on | OBS-03 (core primitives) |
+| Blocks | nothing downstream (OBS-10 folds legacy routes into this surface once it exists) |
 | One-line what | Discover as the evidence desk: two-column 1160px surface, a signal feed (blossom source pills, verbatim quotes, theme lines) on the left and ICE-ranked opportunity rows (Newsreader score, verdict chip, Challenge action, one pencil on the top bet) on the right, Critic verdict inline, column footers in the house voice. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-06                                                                                                                                                                                                                                                     |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                                         |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-06 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
 

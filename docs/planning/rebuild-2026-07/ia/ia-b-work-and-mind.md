@@ -16,7 +16,7 @@ A PM's head holds exactly two questions. **What is happening, and does it need m
 ### 1.1 The answer: two
 
 | # | Destination | The user's words for it | Route | Key | What it owns (entities) |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 1 | **Work** | "what's moving, and what needs me" | `/$ws/$product` | `W` | live loop state, gates, threads, missions, changesets, drafts in progress, the crew's live activity |
 | 2 | **Mind** | "what we know, and what it keeps telling us" | `/$ws/mind` | `M` | beliefs, calls (decisions) and their aftermath, outcomes, the lineage map, receipts (runs, spend, checks, seal, incidents) |
 
@@ -27,7 +27,7 @@ That is the entire top-level navigation. There is no third.
 These are on the frame of every screen. They are not nav peers because you do not go to them to think about your product; you touch them to change or verify how the product behaves.
 
 | Object | Where | Route | Key | Why it is not a destination |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **The gate pill** (ember, counts what needs your judgment) | top bar, right of the halves | opens `?panel=queue` over the current screen | `Q` | Its good state is empty. A destination that is empty most days trains you to stop looking at it. It is a *state of Work*, so it renders as a tray over Work, never as a page you visit. |
 | **The account chip** (you, workspace, plan, Settings, Admin console, sign out) | top bar, far right | `/$ws/settings?section=` · `/admin/*` | `,` | Settings is policy, not product thinking. Admin is a different tenancy (operator, not user). Promoting either to a half would be a third concept for a fraction of sessions. |
 | **Ask** (the one input) | top bar button + docked composer in Work | `Cmd+J` overlay, no route | `Cmd+J` | An input is not a place. |
@@ -38,7 +38,7 @@ These are on the frame of every screen. They are not nav peers because you do no
 Every capability in the codebase answers exactly one of these three questions. This is the test that resolves the current three-homes-for-Memory problem and every other one.
 
 | Question | Home |
-|---|---|
+| --- | --- |
 | **Is it happening?** (state, live, in flight, waiting on me) | **Work** |
 | **Is it allowed?** (policy, instruction, limit, connection, key, roster permission) | **Settings** (account chip) |
 | **Did it happen, and what did it teach us?** (record, receipt, outcome, belief, cost, score) | **Mind** |
@@ -54,7 +54,7 @@ Worked example, Memory (three homes today: `/memory` stub, `/brain?tab=memory`, 
 ### 1.4 What I rejected, and why
 
 | Rejected shape | Why it fails |
-|---|---|
+| --- | --- |
 | **Today's 10 rows** (Today, 01..07, Brain, Pulse) | Seven of the ten are loop stages. A stage is not a place you go, it is where your work already is. Nav rows say "go here to do a thing"; a stage says "your thing is here". And three of them own nothing: `/decide` has zero queries of its own and renders the exact `OpportunityQueue` that `/discover?tab=queue` renders; `/learn` and `/ship` mount lazy panels that also render inside `/brain`, and their only own query is a presence chip. Those three exist to make the 01-07 story true on screen. That is the defect this proposal is named against. |
 | **The 4 doors** (Mission Control, Approvals, Brain, Settings) | Closest to right, and it is what I build on. It fails on two counts: Approvals is a state of Work, not a place (see 1.2), and Settings is policy sitting as a peer of product thinking, which is why the current top bar has four items of three different kinds. Also it has no home for the record layer other than Brain, which is why traces, spend, drift, evals and the ledger are stranded inside `/engine-room`'s inner rail. |
 | **Three halves: Work · Mind · Machine** | "Machine" is the Engine Room, and the Engine Room is exactly where the current mess lives, because it mixes record (traces, receipts, spend), live control (kill switch), and configuration (prompts, guardrail rules, budget caps) under one word. Split by the law in 1.3 and it disappears cleanly. A third half is where the mess re-forms. |
@@ -100,7 +100,7 @@ Storage-shaped views still exist. They are demoted to the **evidence drawer bene
 Mind is rendered *into* Work at the four points where a PM actually needs the record, as in-place components, not links:
 
 | Where in the journey | What Mind renders inside Work | Backed by |
-|---|---|---|
+| --- | --- | --- |
 | 02 Decide, on every bet in the queue | precedent card: "you have decided this shape 3 times; here is what happened" | `decision-precedent.functions.ts`, `PrecedentNudge.tsx` (currently unmounted) |
 | 03 Plan, inside the spec editor | citation chips on every claim, hover to see the source signal or prior outcome | `CitationList.tsx` (currently unmounted, 53 lines), `lineage.functions.ts:getProvenance` |
 | Composer, as you type | "we tried this before and it did not land" contradiction warning | `contradiction-auditor.functions.ts`, `SharedPremiseNudge.tsx` (unmounted) |
@@ -136,7 +136,7 @@ Admin:       admin rail 200px / page content          (same top bar, plus an "op
 **Shortcuts** (the "shortcut equals what you see" law from `nav-model.ts` survives, retargeted):
 
 | Key | Does | Note |
-|---|---|---|
+| --- | --- | --- |
 | `W` / `M` | Work / Mind | letters, because the digits belong to the loop |
 | `1`..`7` | jump the Spine to stage 01..07 | matches the printed numbers. Pressed from Mind, jumps to Work at that stage (a legal cross: it is a journey *entry*) |
 | `Q` | open/close the gate tray | |
@@ -154,7 +154,7 @@ Every real surface, every partial surface, every buried capability, every unmoun
 ### 2.1 Work
 
 | # | Capability (from ground truth) | Home in Work | URL | Clicks from login | Notes |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | W-01 | the room (`/:ws/:product`, `MissionShellView`) | **Work itself** | `/$ws/$product` | 0 | canonical landing |
 | W-02 | `/discover` (signals, clustering, ranked bets) | Canvas face 01 | `?stage=discover` | 1 (Spine) | |
 | W-03 | `/decide` + `OpportunityQueue` (the judgment queue) | Canvas face 02 | `?stage=decide` | 1 | `/decide` the route dies; the stage lives |
@@ -192,7 +192,7 @@ Every real surface, every partial surface, every buried capability, every unmoun
 `/$ws/mind`, five tabs. `mind` is a reserved product slug (DB-enforced, same mechanism as `reserved_workspace_slugs`).
 
 | # | Capability | Home in Mind | URL | Clicks | Notes |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | M-01 | the landing: what it now believes | **Beliefs** | `/$ws/mind` | 1 | `brain-insights.functions`, `memory-compounding.ts`, `decision-precedent.functions` |
 | M-02 | `/brain?tab=memory` + `/memory` stub + agent memory | Beliefs, evidence drawer | `/$ws/mind?belief=<id>` | 2 | the raw memory rows sit *under* a belief, never as the front |
 | M-03 | `memory-candidates.functions` (graduation gate) | written from Work's gate tray; **shown** in Beliefs as "just learned" | `/$ws/mind` | 1 | policy split: the *decision* to graduate is Work (a gate), the *result* is Mind |
@@ -219,7 +219,7 @@ Every real surface, every partial surface, every buried capability, every unmoun
 Every `?section=` id in `SectionId` survives unchanged, so no deep link anywhere breaks. Route moves from `/settings` to `/$ws/settings` (workspace-scoped, which it already was in behavior); `/settings` stays alive forever as a resolver.
 
 | # | Capability | Home | URL | Clicks |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | S-01 | profile, appearance | You > Profile | `/$ws/settings?section=profile` | 2 |
 | S-02 | notification preferences (`notifications.functions` write side) | You > Notifications | `?section=notifications` | 3 |
 | S-03 | strategic brief, voice (`briefs.functions`) | Workspace > Brief & voice | `?section=workspace` | 3 |
@@ -242,7 +242,7 @@ Three clicks for a specific settings section is correct and I am not softening i
 ### 2.4 Admin console (account chip, role-gated). Unchanged surfaces, one rail
 
 | # | Surface | URL | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A-01 | overview (354) | `/admin` | 2 |
 | A-02 | people, roles, invitations (854) | `/admin/people` | 3 |
 | A-03 | workspaces / tenants (640) | `/admin/workspaces` | 3 |
@@ -256,7 +256,7 @@ Three clicks for a specific settings section is correct and I am not softening i
 ### 2.5 Deleted with nothing absorbing them
 
 | Thing | Why nothing absorbs it |
-|---|---|
+| --- | --- |
 | `AmbientChip.tsx` (213 lines, `ambient.functions:fetchWeather`) | Weather is not product work. It answers none of the three questions. Delete the component and the server function. |
 | `delegate-poll.functions.ts` (`pollDelegateRun`) | Dead poller for the retired delegate desk. Nothing calls it. |
 | `PendingApprovalsBar.tsx` | Duplicates the gate pill + tray. |
@@ -271,7 +271,7 @@ Three clicks for a specific settings section is correct and I am not softening i
 ### 3.1 The current three-way disagreement, resolved
 
 | Path today | What happens | Verdict |
-|---|---|---|
+| --- | --- | --- |
 | login → `window.location.assign("/")` (`login.tsx:100`) → landing detects session → `window.location.replace("/m")` (`index.tsx:130`) → `/m/index` resolver → room | two full page loads and a public-page flash to get to the app | **fixed:** login navigates in-router straight to the resolved room |
 | `ObsidianOnboarding.tsx:684,1132` → `/today` | a brand-new user's first authenticated screen is the retired 10-rail shell | **fixed:** `/today` dies |
 | `MissionOnboarding.tsx:63,72` → `/today` | same | **fixed** |
@@ -331,7 +331,7 @@ Entry is always one of three, and only three: a **composer chip**, a **Spine nod
 ### 4.1 "What should we build next?" (J1, stages 01-02)
 
 | Step | Screen | Machine does | Human decides | Mind renders in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | Work, composer chip `What should we build next?` | - | picks the chip | - |
 | 1 | Canvas 01 | Watch + Listen pull sources; Research fetches market signal when sources are thin (`clusterSignals`) | nothing | "you have seen this signal shape before" chip on repeat clusters |
 | 2 | Canvas 01 | clusters signals into themes, ranks bets | may re-rank by dragging | - |
@@ -344,7 +344,7 @@ Entry is always one of three, and only three: a **composer chip**, a **Spine nod
 ### 4.2 "Just write the PRD" (J3, stage 03)
 
 | Step | Screen | Machine | Human | Mind in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | composer chip, or Spine 03, or the J1 handoff door | - | picks | - |
 | 1 | Canvas 03 | Draft generates a cited spec from the bet or from one typed line (`generatePrd`) | - | **citation chips on every claim** (`CitationList`), sourced from signals and prior outcomes |
 | 2 | spec page `/$ws/$product/spec/$id` | `prdAssist` fills sections on demand; assumptions get put on watch | edits inline | "this assumption was wrong last time" flag |
@@ -356,7 +356,7 @@ Entry is always one of three, and only three: a **composer chip**, a **Spine nod
 ### 4.3 "Tear this idea down" (J2, stage 02)
 
 | Step | Screen | Machine | Human | Mind in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | composer chip on an existing opportunity or spec, or `FirstTeardownCard` on a cold workspace | - | picks the target | - |
 | 1 | Canvas 02 | Challenge runs the wedge teardown (`runWedgeTeardown`) | - | "the strongest case against this, last time" from prior teardowns |
 | 2 | Canvas 02 | `dispatchExploration` fans out parallel angles | - | - |
@@ -369,7 +369,7 @@ Honesty edge held from `journeys.ts`: J2 attaches to an artifact, never to free 
 ### 4.4 "Design this" (J5, stage 04)
 
 | Step | Screen | Machine | Human | Mind in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | composer chip or Spine 04 or the J3 handoff | - | - | - |
 | 1 | Canvas 04 | Design generates the scaffold in your brand (`generateDesignScaffold`, reading `design_memory` from Settings > Workspace > Brand) | - | "your brand rules" chip, linking to the brand section |
 | 2 | Canvas 04 | runs the design critic (`runScaffoldDesignCritic`) | - | - |
@@ -380,7 +380,7 @@ Honesty edge held from `journeys.ts`: J2 attaches to an artifact, never to free 
 ### 4.5 "Build this feature" (J4, stage 05)
 
 | Step | Screen | Machine | Human | Mind in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | composer chip, Spine 05, or the J5/J3 handoff | - | - | - |
 | 0 | Canvas 05 | `canDispatchToRepo` checks for a reachable repo; if none, `provisionRepoForSpec` offers to create one | **confirm repo creation** | - |
 | 1 | mission page `/$ws/$product/mission/$id` | Engineer dispatches the build (`dispatchStudioSession`); the working strip narrates | - | - |
@@ -392,7 +392,7 @@ Honesty edge held from `journeys.ts`: J2 attaches to an artifact, never to free 
 ### 4.6 "Launch what we shipped" (J6, stage 06)
 
 | Step | Screen | Machine | Human | Mind in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | composer chip, Spine 06, or the J4 handoff | - | - | - |
 | 1 | Canvas 06 | promotes preview to production (`promoteToProduction`) | **approve the promotion** | "last time you skipped the canary" belief warning, if it applies |
 | 2 | Canvas 06 | Announce writes release notes + launch kit (`generateReleaseNotes`, `generateLaunchKit`, `generateLaunchPlan`) | edits the copy | prior announcement voice from Settings > Workspace > Brief & voice |
@@ -405,7 +405,7 @@ Honesty edge from `journeys.ts`: the launch kit is copy-out only. Nothing is pub
 ### 4.7 "How did it land?" (J7, stage 07)
 
 | Step | Screen | Machine | Human | Mind in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | start | **a gate in the tray** (the outcome check firing on its date), or Spine 07 | `checkPrdShipped` fires the check | - | - |
 | 1 | Canvas 07 | pulls what it can measure (`getOutcomeData`) and states plainly what it cannot | - | **the assumptions this ship was meant to validate**, pre-filled |
 | 2 | Canvas 07 | - | **records the verdict** (`recordOutcome`), human-attested, the UI says "record how it landed" and never "we measured" | - |
@@ -420,7 +420,7 @@ Honesty edge from `journeys.ts`: the launch kit is copy-out only. Nothing is pub
 ### 4.9 Nothing dead-ends: the terminal-state register
 
 | Terminal state | The next move offered |
-|---|---|
+| --- | --- |
 | bet approved | write the PRD · tear it down first |
 | bet killed | what should we build next |
 | teardown survived | write the PRD |
@@ -447,7 +447,7 @@ The graph exists in `artifact_lineage`, written by `recordLineage`, with `GRAPH_
 ### 5.1 The entity graph
 
 | Entity | Links FORWARD to | Links BACK to | Which links are clickable doors, and where they render |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **signal** | theme (`promoted`), opportunity (`promoted`) | source connection, meeting, support ticket, audio transcript | **forward:** "this became a bet" chip on the signal row, Canvas 01. **back:** "from Slack #feedback, 3 days ago", opens the source in Settings > Connections when it is a binding question. |
 | **bet** (opportunity) | decision (`promoted`), spec (`promoted`), teardown verdict (`validates`/`contradicts`) | signals (`derived-from`), theme, prior bet (`supersedes`) | **forward:** "the call" and "the spec" chips on the bet row, Canvas 02. **back:** "built on 6 signals" opens the evidence list inline; "supersedes the Q2 bet" opens Mind > Calls. |
 | **decision** (call) | spec (`promoted`), outcome (`validates`), belief (`promoted`) | bet, prior decision (`supersedes`), precedent set (`cites`) | **forward:** "what it produced" on the Calls row. **back:** "3 precedents" renders as the precedent card **inside Work's Decide gate**, not as a link out. Its `/d/$slug` public share stays. |
@@ -533,7 +533,7 @@ Rules that hold everywhere, no exceptions:
 Resolution runs in this order, and it never bounces you to the landing.
 
 | Case | What happens |
-|---|---|
+| --- | --- |
 | **The entity exists and its parent is derivable** | Hydrate the shell *from the entity*. A `spec/$id` resolves its product, its workspace, and its stage; the frame sets the workspace context, lights Spine 03, and opens the spec. Never 404 a thing that exists just because the context was cold. This generalizes what `$workspaceSlug.$productSlug.tsx:48-52` already does for workspace context. |
 | **The entity exists, you lack access** | The exact same answer as "does not exist": one line, no name oracle. The room route already holds this rule and it stays. |
 | **The entity is gone** | The **gone card**, rendered in place inside `AppFrame`, not a redirect: "That spec was deleted on 12 Jul. Its decisions are still on the record." plus one door forward. |
@@ -545,7 +545,7 @@ Resolution runs in this order, and it never bounces you to the landing.
 ### 6.5 The four broken redirects, fixed by name
 
 | Broken today | What actually happens | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `/briefing` → `/settings?section=brief` | `brief` is not a `SectionId`; it survives only because `LEGACY_SECTION_MAP` aliases it to `workspace`. One prune of that map and the link dies silently. | point it at the real id: `/$ws/settings?section=workspace` |
 | `/calendar` → `/brain?tab=calendar&meeting=<id>` | `LEGACY_TABS.calendar = "decisions"`, and the Brain route parses `meeting` but never renders it ("meetings render on Today now", and Today is being deleted). The meeting id is silently dropped. | `/$ws/$product?stage=discover&focus=meeting:<id>` (W-22) |
 | `/meetings/$id` | same drop | same fix, id preserved |
@@ -558,7 +558,7 @@ Resolution runs in this order, and it never bounces you to the landing.
 ### 7.1 Routes deleted outright (the file is removed, the URL is served by `url-history.ts`)
 
 | Route | Absorbed by |
-|---|---|
+| --- | --- |
 | `_authenticated.today.tsx` (1543) | Work: Briefing card (W-23), Spine state (W-24), gate tray (W-11/12/13/15), face 01 desk rail (W-22) |
 | `_authenticated.decide.tsx` | Work face 02 (`?stage=decide`). It had zero queries of its own |
 | `_authenticated.ship.tsx` | Work face 06 |
@@ -576,7 +576,7 @@ Resolution runs in this order, and it never bounces you to the landing.
 ### 7.2 Concepts deleted
 
 | Concept | Why | Absorbed by |
-|---|---|---|
+| --- | --- | --- |
 | **Two shells** (`AppShell` 1033 lines + `RoomChrome`) and the pathname allowlist at `_authenticated.tsx:146-185` | this is the disease, not a symptom | one `AppFrame` |
 | **"Today" as a surface** | a dashboard of everything is a destination that owns nothing | the Briefing card, the Spine, the tray |
 | **The loop as navigation** (7 rail rows, `PRIMARY_NAV` zone `loop`) | a stage is state, not a place | the Spine, which is state drawn once |
@@ -720,7 +720,7 @@ MIND  /helio-labs/mind
 ## Appendix B: the one-line answer to each founder sentence
 
 | The founder said | The answer |
-|---|---|
+| --- | --- |
 | "I do not understand where to start" | You land in Work. The Spine shows where your loop already is, and the Canvas opens on the stage that moved most recently. |
 | "what to do" | The gate pill is the only red thing on screen. If it is empty, the composer's seven chips are what to do. |
 | "why to do" | Every gate carries the precedent behind it and every claim in a spec carries its citation, rendered in place. |

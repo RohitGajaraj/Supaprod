@@ -167,13 +167,13 @@ Completed comprehensive test coverage audit of the Cadence codebase. Identified 
 
 ### New Test Files Created
 
-| File                     | Tests | Lines | Coverage Target               |
-| ------------------------ | ----- | ----- | ----------------------------- |
-| MessageMeta.test.ts      | 47    | 289   | Tolerant parser, XSS guards   |
-| ResearchActivity.test.ts | 20    | 160   | Parser, pluralization logic   |
-| use-workspace.test.ts    | 35    | 195   | Multi-tenancy selection       |
-| aurora.test.ts           | 12    | 110   | Color mapping                 |
-| FigmaEmbed.test.ts       | +10   | +120  | Node config, iframe rendering |
+| File | Tests | Lines | Coverage Target |
+| --- | --- | --- | --- |
+| MessageMeta.test.ts | 47 | 289 | Tolerant parser, XSS guards |
+| ResearchActivity.test.ts | 20 | 160 | Parser, pluralization logic |
+| use-workspace.test.ts | 35 | 195 | Multi-tenancy selection |
+| aurora.test.ts | 12 | 110 | Color mapping |
+| FigmaEmbed.test.ts | +10 | +120 | Node config, iframe rendering |
 
 **Total New Tests**: 70+ test cases  
 **Total New Lines**: 874 lines of test code  
@@ -181,13 +181,13 @@ Completed comprehensive test coverage audit of the Cadence codebase. Identified 
 
 ### Refactored Source Files
 
-| File                 | Functions Extracted               | Behavioral Changes                     |
-| -------------------- | --------------------------------- | -------------------------------------- |
-| MessageMeta.tsx      | 5 functions                       | ✅ Zero (exports only)                 |
-| ResearchActivity.tsx | 1 function                        | ✅ Zero (export only)                  |
-| use-workspace.tsx    | 2 functions + refactored hooks    | ✅ Zero (logic extracted, not changed) |
-| aurora.tsx           | 1 function + component refactored | ✅ Zero                                |
-| FigmaEmbed.ts        | 0 (tests only)                    | ✅ Zero                                |
+| File | Functions Extracted | Behavioral Changes |
+| --- | --- | --- |
+| MessageMeta.tsx | 5 functions | ✅ Zero (exports only) |
+| ResearchActivity.tsx | 1 function | ✅ Zero (export only) |
+| use-workspace.tsx | 2 functions + refactored hooks | ✅ Zero (logic extracted, not changed) |
+| aurora.tsx | 1 function + component refactored | ✅ Zero |
+| FigmaEmbed.ts | 0 (tests only) | ✅ Zero |
 
 ---
 
@@ -304,15 +304,15 @@ If jsdom support added in future:
 
 ## Metrics Summary
 
-| Metric              | Before | After        | Change                     |
-| ------------------- | ------ | ------------ | -------------------------- |
-| Untested modules    | 8      | 0            | ✅ All covered             |
-| Test files          | 193    | 199          | +6 new files               |
-| Test cases          | ~2460  | ~2530+       | +70+ new cases             |
-| Critical logic gaps | 8      | 0            | ✅ Closed                  |
-| Code coverage %     | 59.90% | ~60.0%\*     | (pure logic, not inflated) |
-| Build time          | --     | ~458ms       | Fast (bun:test)            |
-| All tests pass      | --     | ✅ 2516/2516 | No regressions             |
+| Metric | Before | After | Change |
+| --- | --- | --- | --- |
+| Untested modules | 8 | 0 | ✅ All covered |
+| Test files | 193 | 199 | +6 new files |
+| Test cases | ~2460 | ~2530+ | +70+ new cases |
+| Critical logic gaps | 8 | 0 | ✅ Closed |
+| Code coverage % | 59.90% | ~60.0%\* | (pure logic, not inflated) |
+| Build time | -- | ~458ms | Fast (bun:test) |
+| All tests pass | -- | ✅ 2516/2516 | No regressions |
 
 \*Coverage unchanged because extracted functions are pure logic (already counted in original coverage math); tests improve confidence, not percentages.
 

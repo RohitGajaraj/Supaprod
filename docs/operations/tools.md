@@ -6,13 +6,13 @@
 
 ## File and search tools (use the dedicated tool, not Bash)
 
-| Need                          | Tool              | Not                   |
-| ----------------------------- | ----------------- | --------------------- |
-| Find files by name/pattern    | `Glob`            | `find`, `ls`          |
-| Search file contents          | `Grep`            | `grep`, `rg` in Bash  |
-| Read a known file             | `Read`            | `cat`, `head`, `tail` |
-| Edit an existing file         | `Edit`            | `sed`, `awk`          |
-| Create / fully rewrite a file | `Write`           | `echo >`, heredoc     |
+| Need | Tool | Not |
+| --- | --- | --- |
+| Find files by name/pattern | `Glob` | `find`, `ls` |
+| Search file contents | `Grep` | `grep`, `rg` in Bash |
+| Read a known file | `Read` | `cat`, `head`, `tail` |
+| Edit an existing file | `Edit` | `sed`, `awk` |
+| Create / fully rewrite a file | `Write` | `echo >`, heredoc |
 | Open-ended multi-round search | `Agent` (Explore) | repeated manual greps |
 
 Reserve `Bash` for actually running things (installs, builds, tests, migrations, git). Quote paths with spaces.

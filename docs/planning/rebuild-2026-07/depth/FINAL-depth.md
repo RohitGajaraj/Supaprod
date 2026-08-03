@@ -58,7 +58,7 @@ does real work: five items are genuinely demo-critical, everything else is right
 I did not take the three proposals on trust. Load-bearing claims, re-verified:
 
 | Claim | Verdict | Evidence |
-|---|---|---|
+| --- | --- | --- |
 | `checkpoint()` drops `conv`/`steps`; resume gates on `cp.state.conv` | **CONFIRMED** | `loop.server.ts:827-867`, `:1411` |
 | `agent_run_steps` / `agent_run_messages` do not exist | **CONFIRMED** | one grep hit, the comment at `:832` |
 | `chat.ts` has zero `agent_approvals` references | **CONFIRMED** | `grep -c` → 0 |
@@ -182,7 +182,7 @@ query asks for are never emitted by the app anyway.
 There are three systems. **The user must never learn that.**
 
 | | **The chain** (lineage) | **The run** (trace) | **The ref** (audit id) |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Question | What caused what | What the machine did | How you refer to it |
 | Substrate | `artifact_lineage` | `ai_events` + `tool_calls` + `guardrail_hits` + `ai_evals`, keyed on `trace_id` | prefix + first 6 alphanumerics of the uuid |
 | Time model | Bi-temporal; edges retire via `valid_to`, never delete | Immutable, append-only, per-episode | Immutable, permanent |
@@ -438,7 +438,7 @@ failures stacked on one vocabulary mismatch.
 `TEXT NOT NULL DEFAULT 'promoted'`, so no migration):
 
 | relation | meaning | written by |
-|---|---|---|
+| --- | --- | --- |
 | `produced` | materially created by | mission → changeset, changeset → deployment |
 | `gated-by` | could not proceed until a human decided | changeset → approval, deployment → approval |
 | `measured-by` | this bet was scored by that outcome | prd → learning, mission → learning |
@@ -457,7 +457,7 @@ That sentence is the product. It has never once been renderable.
 **Demo-critical six** (these six make the chain cross Plan → Build → Ship → Learn once):
 
 | # | File:line | Edge | Note |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `ai/tools/registry.server.ts:1470` (`studio.stage`, after `changeset = created`) | `mission --produced--> changeset` | The single edge whose absence makes the loop feel disconnected. Today the only path from a mission to its code is an FK the graph cannot read. |
 | 2 | `deployments.functions.ts:95` (`captureDeployments`, after upsert; re-select for ids) | `changeset --produced--> deployment` | |
 | 3 | `deployments.functions.ts:243` (after the promote-receipt `agent_approvals` insert at `:229`) | `deployment --gated-by--> approval` | **Hard, not fail-soft.** Machine-readable proof a human cleared production. If we cannot record who authorised a prod deploy, the promote must not report success quietly. |
@@ -583,7 +583,7 @@ pre-migration fallback and is then deleted.
 Verified divergence:
 
 | Surface | Function | `escalation_state` | `human_gate_events` | `decision_reason` |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `/approvals`, Mission Control | `resolveApproval` (`governance.functions.ts:384`) | ✅ `resolved` | ❌ **never** | ✅ |
 | Ask canvas (unmounted) | `decideApproval` (`agent_loop.functions.ts:74`) | ❌ stays `pending` | ✅ | ❌ no param |
 
@@ -705,7 +705,7 @@ assertion would have caught `2d73a156` on the day it landed.
 > trip, with no cron in the loop.
 
 | | The conversation (inline) | `/approvals` (the queue) |
-|---|---|---|
+| --- | --- | --- |
 | Question | "This turn produced a gate. Decide it without leaving." | "What is waiting on me across everything?" |
 | Scope | Gates whose run belongs to this thread | Workspace-wide, all 10 families |
 | Shows | Full args, the why-chain, the streak, three verbs | Grouped by project, j/k nav, filters, batch |
@@ -797,7 +797,7 @@ promising the rest by Friday and neither should the plan.
 Every place a proposal, or the product, claims something the wiring lacks.
 
 | # | Claim | Reality | Ruling |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | H-1 | `chat.ts:568`: *"approve their decisions inline below"* | Nothing appears below, off `/m/*` | **Delete the sentence today**, in whatever commit ships first. This is live in production. |
 | H-2 | `/approvals`: *"Rejected. Noted for next time."* | Nothing is noted anywhere a model reads | Either capture the reason and route it through `injectSteer`, or cut the second sentence. Not both ways. |
 | H-3 | depth-b's gate copy: *"2 more and I stop asking"* | Under R-13 graduation needs a human | Rewrite: *"2 more clean runs and I'll ask you to let me stop asking."* |
@@ -824,7 +824,7 @@ I am separating what a credible demo requires from what is right, rather than pr
 ### 11.1 DEMO LANE - five items, must land by Jul 30 EOD
 
 | # | Item | Why it is demo-critical | Size |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **D1** | **Restore `conv` (and `steps`) to `checkpoint()`; add the resume regression test** | `loop.server.ts:827,1411`. The demo's central beat is approve-and-continue. Today the agent resumes amnesiac at step 4 of 6. On camera this looks like the agent forgetting what it was doing, because it is. | ~30 lines |
 | **D2** | **One decide path: `decideGate` + the `surface` param; rewire all three callers** | Without it, deciding inline leaves the queue stale for up to a minute, and the correction signal is lost from the surface where decisions happen. Also a correctness fix that should land regardless of this plan. | ~90 lines |
 | **D3** | **Inline gate in the live composer** - repoint `useApprovalPush` at the live keys, mount it at the shell, render a mission-scoped gate card in `ThreadMessage` with `legibleArgs` + the why-line + three verbs | The founder's loudest ask, and the agency test. Rides the realtime channel that already exists (R-10) - no `run_events`, no SSE change, no risk to `parseSseLine`. | ~250 lines |

@@ -19,7 +19,7 @@ Logged into the running app, walked each surface, screenshotted it, and rendered
 Legend: ✅ at bar · ◐ right shell/skeleton, thin vs mockup · ❌ wrong shell or far from mockup · ⬜ no mockup, build to standard.
 
 | # | Surface | Route | Mockup | State | The concrete delta to close |
-|---|---------|-------|--------|-------|------------------------------|
+| --- | --- | --- | --- | --- | --- |
 | 1 | Post-login landing | `/` → app | (charter: land in the room) | ✅ FIXED | Was `/today` (old shell); now `/m`. Verified live. |
 | 2 | Room at rest | `/m/$productId` | screen-2 | ◐ | Right shell + spine + briefing. MISSING vs mockup: the **"What memory holds"** column (moat cards w/ provenance), the **"Shipped"** column, rich **per-stage narratives** (currently terse / "inferred"), **composer journey chips** on the face, **working-strip activity** (left side reads only "nothing running"). Partly seed-driven. |
 | 3 | Settings (all groups) | `/settings` | screen-7 | ❌ | Renders in OLD AppShell. Current = cramped numbered index + flat agent **card grid** with clipped text + lone "Tool reach" dropdown. Target = room TopBar (Settings active) + **5-group settings-nav (20 doors)** + roster **TABLE** (Agent·Job·Stage·Approval·Tools·Last activity·On) + **expandable agent** with 3 ledgers (Skills / Tool access / Knowledge & instructions) + roster lede + working strip. Biggest single gap. |

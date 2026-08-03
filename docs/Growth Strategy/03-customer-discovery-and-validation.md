@@ -14,13 +14,13 @@
 
 **Why this exact person (the tiebreakers — apply in order when choosing who to pursue):**
 
-| Tiebreaker                                                                     | Test                             | Why it predicts pain                                                                                                                                                     |
-| ------------------------------------------------------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1: Already spent hours on a DIY rig, or publicly wished for one               | Their own post/comment history   | They have pre-validated the problem with their own time. No education needed; the sale is "same idea, none of the plumbing."                                             |
-| T2: Owns outcomes alone or near-alone (PM:eng ratio 1:8+)                      | Ask in first reply, or team page | Solo accountability = the "why did we decide X" excavation lands on them personally.                                                                                     |
-| T3: Startup stage seed to Series B                                             | Company stage                    | Big-co PMs hit procurement/security walls (a later segment); pre-seed founders often have no product surface yet. Seed to B has real signal volume AND freedom to adopt. |
-| T4: Tool sprawl of 5+ sources (Slack, Linear/Jira, Notion, analytics, support) | Ask; usually volunteered         | The glue-cost pain scales with seams. Fewer than 4 tools = pain below purchase threshold.                                                                                |
-| T5: Has shipped something that failed quietly in the last 2 quarters           | Surfaces in interview Q3         | The outcome-ledger pitch only lands on someone who has recently felt "nobody checked if the call was right."                                                             |
+| Tiebreaker | Test | Why it predicts pain |
+| --- | --- | --- |
+| T1: Already spent hours on a DIY rig, or publicly wished for one | Their own post/comment history | They have pre-validated the problem with their own time. No education needed; the sale is "same idea, none of the plumbing." |
+| T2: Owns outcomes alone or near-alone (PM:eng ratio 1:8+) | Ask in first reply, or team page | Solo accountability = the "why did we decide X" excavation lands on them personally. |
+| T3: Startup stage seed to Series B | Company stage | Big-co PMs hit procurement/security walls (a later segment); pre-seed founders often have no product surface yet. Seed to B has real signal volume AND freedom to adopt. |
+| T4: Tool sprawl of 5+ sources (Slack, Linear/Jira, Notion, analytics, support) | Ask; usually volunteered | The glue-cost pain scales with seams. Fewer than 4 tools = pain below purchase threshold. |
+| T5: Has shipped something that failed quietly in the last 2 quarters | Surfaces in interview Q3 | The outcome-ledger pitch only lands on someone who has recently felt "nobody checked if the call was right." |
 
 A prospect matching T1+T2 is worth ten who match only T3. **Rank every list by T1 first.**
 
@@ -28,12 +28,12 @@ A prospect matching T1+T2 is worth ten who match only T3. **Rank every list by T
 
 Four segments, each with a falsifiable pain hypothesis, ordered by expected willingness to pay. Validation status uses the claim discipline: what we KNOW vs what we're testing.
 
-| #   | Segment                                                                    | Pain hypothesis (falsifiable)                                                                                     | Evidence today                                                                           | WTP guess                                   | Kill signal                                            |
-| --- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------ |
-| S1  | **DIY-builder PM** (built or started a Claude Code/MCP rig)                | "Maintaining my hand-rolled rig costs me 2+ hrs/week and my team can't share it."                                 | PROVEN demand shape: the 838-pt thread; commenters describing upkeep pain                | High — already pays in time; Pro/Team fast  | They say the rig IS the fun part (hobbyist, not buyer) |
-| S2  | **Wants-the-outcome PM** (saw the thread, said "out of my wheelhouse")     | "I want signal-to-decision leverage but will not touch a terminal or MCP config."                                 | PROVEN: multiple verbatim comments in the same thread                                    | Medium-high — cleanest product-shaped buyer | They won't connect a single real tool (fear/IT)        |
-| S3  | **Governance-blocked PM** (enterprise; Claude Code failed security review) | "I'm blocked at the IT layer, and an auditable, scoped, receipts-first layer would pass where raw agents fail."   | PROVEN pain, WIRING for us as the answer (needs SSO/DPA maturity we price at Enterprise) | High later, slow now                        | Procurement cycle > 60 days (park for post-launch)     |
-| S4  | **Product engineer / solo founder** (one person = whole product org)       | "I ship fast with Cursor but decide alone with nothing; a decision layer with receipts is my missing co-founder." | Directional: the PM:eng inversion trend; needs interview confirmation                    | Medium — price-sensitive but fast to close  | They only want build tooling, not decisions            |
+| # | Segment | Pain hypothesis (falsifiable) | Evidence today | WTP guess | Kill signal |
+| --- | --- | --- | --- | --- | --- |
+| S1 | **DIY-builder PM** (built or started a Claude Code/MCP rig) | "Maintaining my hand-rolled rig costs me 2+ hrs/week and my team can't share it." | PROVEN demand shape: the 838-pt thread; commenters describing upkeep pain | High — already pays in time; Pro/Team fast | They say the rig IS the fun part (hobbyist, not buyer) |
+| S2 | **Wants-the-outcome PM** (saw the thread, said "out of my wheelhouse") | "I want signal-to-decision leverage but will not touch a terminal or MCP config." | PROVEN: multiple verbatim comments in the same thread | Medium-high — cleanest product-shaped buyer | They won't connect a single real tool (fear/IT) |
+| S3 | **Governance-blocked PM** (enterprise; Claude Code failed security review) | "I'm blocked at the IT layer, and an auditable, scoped, receipts-first layer would pass where raw agents fail." | PROVEN pain, WIRING for us as the answer (needs SSO/DPA maturity we price at Enterprise) | High later, slow now | Procurement cycle > 60 days (park for post-launch) |
+| S4 | **Product engineer / solo founder** (one person = whole product org) | "I ship fast with Cursor but decide alone with nothing; a decision layer with receipts is my missing co-founder." | Directional: the PM:eng inversion trend; needs interview confirmation | Medium — price-sensitive but fast to close | They only want build tooling, not decisions |
 
 **Discovery quota per segment for the beta wave: S1×10, S2×8, S3×3 (interview only, do not onboard yet), S4×4.** The quota forces us to learn where pain is worst instead of onboarding whoever is easiest.
 
@@ -41,12 +41,12 @@ Four segments, each with a falsifiable pain hypothesis, ordered by expected will
 
 Wave 1 exists and is done: **25 verified targets** in the [design-partner kit](../pitch/design-partner-kit.md) (24 sendable + 1 design-twin). Waves 2-4 get us to 200-500 without violating the kit's privacy discipline (no cross-source identity compilation; contact people on the channel where they surfaced).
 
-| Wave                                  | Method                                                                                                                                                                                                                                       | Target count      | Effort                                                      | Why it works                                                                                             | Next action                                                                          |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| W2: More build-log threads            | Search Reddit (r/ProductManagement, r/prodmgmt, r/UXDesign, r/SaaS), HN comments, and X for "Claude Code PM", "MCP product manager", "AI product workflow" posts from the last 6 months; harvest engaged commenters exactly like the kit did | +75-125           | 2-3 hrs with the HyperAgent rig (PC-26, its designated use) | Same receipts-first quality as Wave 1: every name comes with their own words as the personalization hook | Run the rig day 1; founder approves the harvested list before any drafting           |
-| W3: Public pain-posters on LinkedIn/X | People who posted (not liked — posted) about roadmap chaos, PRD drudgery, "three versions of the same roadmap", AI tool sprawl in the last 90 days                                                                                           | +50-100           | 30 min/day of founder scroll + save; rig-assisted search    | Self-identified pain, contactable on the platform they posted on                                         | Start a saved list day 1; 10 adds/day                                                |
-| W4: YC + recently-funded directories  | YC startup directory (filter: B2B SaaS, 11-50 headcount) + last-6-months seed/Series-A announcements; identify the product person from the company site/launch post only                                                                     | +100-200          | 3-4 hrs, rig-assisted                                       | T3 stage filter built in; funded teams have budget and urgency                                           | Build day 2-3; this is the EMAIL list (company emails are fair game where published) |
-| W5: Community members                 | Lenny's community, Mind the Product Slack, Product-Led Alliance, AI tinkerers meetups — participate first, DM only people you've genuinely interacted with                                                                                   | +25-50 over weeks | Ongoing                                                     | Highest trust, slowest; violating community self-promo norms would burn the channel                      | Join day 1, first genuine (non-promotional) contribution day 2                       |
+| Wave | Method | Target count | Effort | Why it works | Next action |
+| --- | --- | --- | --- | --- | --- |
+| W2: More build-log threads | Search Reddit (r/ProductManagement, r/prodmgmt, r/UXDesign, r/SaaS), HN comments, and X for "Claude Code PM", "MCP product manager", "AI product workflow" posts from the last 6 months; harvest engaged commenters exactly like the kit did | +75-125 | 2-3 hrs with the HyperAgent rig (PC-26, its designated use) | Same receipts-first quality as Wave 1: every name comes with their own words as the personalization hook | Run the rig day 1; founder approves the harvested list before any drafting |
+| W3: Public pain-posters on LinkedIn/X | People who posted (not liked — posted) about roadmap chaos, PRD drudgery, "three versions of the same roadmap", AI tool sprawl in the last 90 days | +50-100 | 30 min/day of founder scroll + save; rig-assisted search | Self-identified pain, contactable on the platform they posted on | Start a saved list day 1; 10 adds/day |
+| W4: YC + recently-funded directories | YC startup directory (filter: B2B SaaS, 11-50 headcount) + last-6-months seed/Series-A announcements; identify the product person from the company site/launch post only | +100-200 | 3-4 hrs, rig-assisted | T3 stage filter built in; funded teams have budget and urgency | Build day 2-3; this is the EMAIL list (company emails are fair game where published) |
+| W5: Community members | Lenny's community, Mind the Product Slack, Product-Led Alliance, AI tinkerers meetups — participate first, DM only people you've genuinely interacted with | +25-50 over weeks | Ongoing | Highest trust, slowest; violating community self-promo norms would burn the channel | Join day 1, first genuine (non-promotional) contribution day 2 |
 
 **Success metric:** 250+ named prospects with a personalization hook each by day 5. **Not** a scraped CSV — a name without their own words attached is below the send bar.
 
@@ -109,25 +109,25 @@ If the timing is wrong, a plain "not now" is a totally fine answer.
 
 Cold works, warm converts ~3-4x better. A pre-seed founder without a network manufactures warmth three ways, all startable this week:
 
-| Play                                 | Mechanics                                                                                                                                                      | Effort          | Expected yield                                            | Metric                          |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | --------------------------------------------------------- | ------------------------------- |
-| **The build-in-public reply ladder** | Founder replies substantively (not "great post!") to 5 PM/AI posts daily on X/LinkedIn for 7 days before any ask. By day 5, DMs to those authors are warm.     | 30 min/day      | 10-15 warm-enough DM channels by day 7                    | Reply→conversation rate         |
-| **The demo-as-gift**                 | End every single call (any call, including rejections) with "who is one person who'd find this useful?" A specific ask ("one person") beats "anyone you know." | 10 seconds/call | 1 referral per 3 calls once sessions start                | Referrals/session               |
-| **Community citizenship first**      | In Lenny's/MTP/PLA Slack: answer 3 questions genuinely before mentioning Supaprod exists. Then the mention is a member sharing their work, not an ad.           | 20 min/day      | Channel permission to share at launch + 5-10 warm members | Non-founder mentions of Supaprod |
+| Play | Mechanics | Effort | Expected yield | Metric |
+| --- | --- | --- | --- | --- |
+| **The build-in-public reply ladder** | Founder replies substantively (not "great post!") to 5 PM/AI posts daily on X/LinkedIn for 7 days before any ask. By day 5, DMs to those authors are warm. | 30 min/day | 10-15 warm-enough DM channels by day 7 | Reply→conversation rate |
+| **The demo-as-gift** | End every single call (any call, including rejections) with "who is one person who'd find this useful?" A specific ask ("one person") beats "anyone you know." | 10 seconds/call | 1 referral per 3 calls once sessions start | Referrals/session |
+| **Community citizenship first** | In Lenny's/MTP/PLA Slack: answer 3 questions genuinely before mentioning Supaprod exists. Then the mention is a member sharing their work, not an ad. | 20 min/day | Channel permission to share at launch + 5-10 warm members | Non-founder mentions of Supaprod |
 
 ## 6. Founder-led sales pipeline
 
 Seven stages. Every prospect lives in exactly one. **Exit criteria are behavioral, never vibes.**
 
-| Stage             | Definition                                                                       | Exit criteria (advance when…)                             | Kill criteria (drop when…)                              |
-| ----------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------- |
-| 0. Named          | On a list with a personalization hook                                            | Message drafted + founder-approved                        | No hook findable                                        |
-| 1. Contacted      | First message sent                                                               | Any reply                                                 | No reply after 1 bump                                   |
-| 2. Conversation   | They replied                                                                     | 15-min session booked                                     | Two reschedules or ghost                                |
-| 3. First session  | The 30-min script (§7) ran                                                       | They connect a real source OR paste real notes in-session | "Cool, good luck" with no artifact touched              |
-| 4. Activated beta | Their own data produced a teardown/brief they reacted to                         | Return visit within 7 days without prompting              | No second session + no product return in 10 days        |
-| 5. Design partner | Signed the mutual commitment (§11)                                               | Weekly ritual running 2+ consecutive weeks                | Two silent weeks                                        |
-| 6. Paying         | Real card, real credits ([pricing](../strategy/pricing/pricing-architecture.md)) | — (this is the win; feed the case study machine)          | Churn → exit interview within 48 hrs, logged as signals |
+| Stage | Definition | Exit criteria (advance when…) | Kill criteria (drop when…) |
+| --- | --- | --- | --- |
+| 0. Named | On a list with a personalization hook | Message drafted + founder-approved | No hook findable |
+| 1. Contacted | First message sent | Any reply | No reply after 1 bump |
+| 2. Conversation | They replied | 15-min session booked | Two reschedules or ghost |
+| 3. First session | The 30-min script (§7) ran | They connect a real source OR paste real notes in-session | "Cool, good luck" with no artifact touched |
+| 4. Activated beta | Their own data produced a teardown/brief they reacted to | Return visit within 7 days without prompting | No second session + no product return in 10 days |
+| 5. Design partner | Signed the mutual commitment (§11) | Weekly ritual running 2+ consecutive weeks | Two silent weeks |
+| 6. Paying | Real card, real credits ([pricing](../strategy/pricing/pricing-architecture.md)) | — (this is the win; feed the case study machine) | Churn → exit interview within 48 hrs, logged as signals |
 
 **The one pipeline metric that matters this month: stage-3→4 conversion (activation).** It is the product-truth number — G-SPRINT's "stranger gets a receipted value moment in under 10 minutes" made measurable. Below 40% = fix the first-session experience before adding more top-of-funnel. **Track in:** the founder's own Supaprod workspace (§13), not a separate CRM — dogfood or admit the product can't do it.
 
@@ -146,13 +146,13 @@ useful thing you can be is blunt. OK to record for my notes?
 
 **Minutes 3-12 — Past-behavior discovery (before showing ANYTHING — order matters; the demo contaminates memory):**
 
-| #   | Question                                                                                                          | What it validates                     | Follow-up                                                 | Never ask instead                                                |
-| --- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
-| 1   | "Walk me through the last decision your team made about what to build next. Start from where the idea came from." | The loop shape; who holds it          | "What did you have open on your screen while doing that?" | "Is prioritization hard for you?" (yes/no, leading)              |
-| 2   | "When did someone last ask why you decided something, and you had to go digging? What did that look like?"        | The excavation pain (our wedge)       | "How long did it take? What did you find?"                | "Wouldn't a decision ledger help?" (pitch disguised as question) |
-| 3   | "Of things you shipped last quarter, how do you know which ones worked?"                                          | Outcome-tracking absence              | "Who checked? When? Where does that live?"                | "Do you track outcomes?" (invites aspirational lying)            |
-| 4   | "What have you already tried with AI for any of this? What happened?"                                             | Segment (S1 vs S2), tool graveyard    | "What made you stop / keep going?"                        | "Would you use an AI agent for this?" (hypothetical)             |
-| 5   | "What did that cost you — hours, a missed call, a fight?"                                                         | Pain quantification for the scorecard | "Is that typical or a bad week?"                          | Skipping this one (it prices the pain)                           |
+| # | Question | What it validates | Follow-up | Never ask instead |
+| --- | --- | --- | --- | --- |
+| 1 | "Walk me through the last decision your team made about what to build next. Start from where the idea came from." | The loop shape; who holds it | "What did you have open on your screen while doing that?" | "Is prioritization hard for you?" (yes/no, leading) |
+| 2 | "When did someone last ask why you decided something, and you had to go digging? What did that look like?" | The excavation pain (our wedge) | "How long did it take? What did you find?" | "Wouldn't a decision ledger help?" (pitch disguised as question) |
+| 3 | "Of things you shipped last quarter, how do you know which ones worked?" | Outcome-tracking absence | "Who checked? When? Where does that live?" | "Do you track outcomes?" (invites aspirational lying) |
+| 4 | "What have you already tried with AI for any of this? What happened?" | Segment (S1 vs S2), tool graveyard | "What made you stop / keep going?" | "Would you use an AI agent for this?" (hypothetical) |
+| 5 | "What did that cost you — hours, a missed call, a fight?" | Pain quantification for the scorecard | "Is that typical or a bad week?" | Skipping this one (it prices the pain) |
 
 **Minutes 12-25 — Live product, their data.** Follow [`pitch/demo-script.md`](../pitch/demo-script.md)'s team-demo variant: they pick their own bet; connect one source or paste real notes; watch the Critic tear down THEIR bet. Say nothing during first read of the teardown. **Watch and log:** where they lean in, what they screenshot, the first feature they ask for, the first thing they distrust.
 
@@ -170,13 +170,13 @@ Then the design-partner ask if stage-3 exit criteria were met (§11).
 
 Score every first session within 24 hours. 5 dimensions, 0-2 each; max 10.
 
-| Dimension         | 0                        | 1                   | 2                                                               |
-| ----------------- | ------------------------ | ------------------- | --------------------------------------------------------------- |
-| Pain recency      | Can't recall an instance | Within the quarter  | Within 2 weeks, unprompted detail                               |
-| Pain cost         | "Annoying"               | Hours named         | Hours + a consequence (missed call, conflict, churned customer) |
-| Active workaround | None                     | Manual doc/ritual   | Built or bought something (spent money or 5+ hours)             |
-| Pull in session   | Polite                   | Asked questions     | Asked for access / next step / pricing unprompted               |
-| Loop ownership    | Decision made elsewhere  | Shares the decision | Owns it and is accountable for outcomes                         |
+| Dimension | 0 | 1 | 2 |
+| --- | --- | --- | --- |
+| Pain recency | Can't recall an instance | Within the quarter | Within 2 weeks, unprompted detail |
+| Pain cost | "Annoying" | Hours named | Hours + a consequence (missed call, conflict, churned customer) |
+| Active workaround | None | Manual doc/ritual | Built or bought something (spent money or 5+ hours) |
+| Pull in session | Polite | Asked questions | Asked for access / next step / pricing unprompted |
+| Loop ownership | Decision made elsewhere | Shares the decision | Owns it and is accountable for outcomes |
 
 **Reading the numbers: 8-10** = design-partner track, same day. **5-7** = beta cohort, nurture. **0-4** = thank them, log the learning, do not onboard (they will churn silently and pollute activation data). **Segment-level read:** after 10 sessions, if a segment's average is under 5, its pain hypothesis is failing — say so in the weekly synthesis and shift quota to the strongest segment. That reallocation decision is exactly what the capture system (§13) exists to force.
 
@@ -244,15 +244,15 @@ Assemble AFTER 15+ first sessions (week 3-4, not launch week — earlier = guess
 
 **Fields per interaction (one signal entry each):**
 
-| Field       | Content                                                                                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Source      | Handle/name + segment (S1-S4) + pipeline stage                                                                          |
-| Verbatim    | Their exact words, 1-3 quotes, no paraphrase (paraphrase launders evidence)                                             |
-| Scorecard   | The §8 score + 4 Van Westendorp numbers when collected                                                                  |
-| Moment      | What they leaned into / recoiled from during the live section                                                           |
-| Ask         | Feature/change they requested, in their words                                                                           |
-| Commitment  | What THEY agreed to do next (Mom Test law: a meeting that ends without their commitment was a compliment, not progress) |
-| Buyer score | §14 rubric                                                                                                              |
+| Field | Content |
+| --- | --- |
+| Source | Handle/name + segment (S1-S4) + pipeline stage |
+| Verbatim | Their exact words, 1-3 quotes, no paraphrase (paraphrase launders evidence) |
+| Scorecard | The §8 score + 4 Van Westendorp numbers when collected |
+| Moment | What they leaned into / recoiled from during the live section |
+| Ask | Feature/change they requested, in their words |
+| Commitment | What THEY agreed to do next (Mom Test law: a meeting that ends without their commitment was a compliment, not progress) |
+| Buyer score | §14 rubric |
 
 **The weekly synthesis ritual (Friday, 60 min, non-negotiable):**
 
@@ -268,32 +268,32 @@ Assemble AFTER 15+ first sessions (week 3-4, not launch week — earlier = guess
 
 Score every activated user weekly. **Purpose: aim founder time at buyers, not tourists.** Behavioral only — what they DID, never what they said they'd do.
 
-| Signal                                                         | Points |
-| -------------------------------------------------------------- | ------ |
-| Connected a real tool (not sample data)                        | +3     |
-| Returned unprompted within 7 days                              | +3     |
-| Asked about pricing unprompted                                 | +3     |
-| Invited a teammate                                             | +4     |
-| Ran a decision they were personally accountable for through it | +3     |
-| Shared an artifact externally (teardown/ledger link)           | +2     |
-| Asked for an integration by name                               | +2     |
-| Verbal yes on the 9b commitment test                           | +4     |
-| Only used sample/demo data after week 1                        | −3     |
-| Engaged only when founder prompted                             | −2     |
+| Signal | Points |
+| --- | --- |
+| Connected a real tool (not sample data) | +3 |
+| Returned unprompted within 7 days | +3 |
+| Asked about pricing unprompted | +3 |
+| Invited a teammate | +4 |
+| Ran a decision they were personally accountable for through it | +3 |
+| Shared an artifact externally (teardown/ledger link) | +2 |
+| Asked for an integration by name | +2 |
+| Verbal yes on the 9b commitment test | +4 |
+| Only used sample/demo data after week 1 | −3 |
+| Engaged only when founder prompted | −2 |
 
 **Read: 12+ = hot** (founder deal conversation this week). **6-11 = warm** (nurture, weekly ritual). **≤5 = tourist** (product can serve them; founder time cannot). **Meta-metric:** by day 21 we should have ≥5 hot accounts. Fewer means the funnel is filling with the wrong segment — retarget using §8's segment-level scores.
 
 ## 15. What happens in the first 7 days
 
-| Day | Discovery actions (this file's slice of the sprint — full day-by-day: [`00-launch-operating-manual.md`](./00-launch-operating-manual.md))                               |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | HyperAgent rig harvests Wave 2 (+75-125 names); founder joins 2 communities; reply-ladder starts; capture workspace set up (segments, pipeline stages, signal template) |
-| 2   | Founder approves Wave-2 list; **first 5 kit DMs send**; Wave-4 company list build starts; 5 more reply-ladder touches                                                   |
-| 3   | 10 more sends; first booked sessions expected; concierge offer added to session closes                                                                                  |
-| 4   | Sessions run (2-3/day max — synthesis needs air); scorecards same-day; first bump wave                                                                                  |
-| 5   | Sessions + sends continue; 250-name milestone check; first mini-synthesis (are S1/S2 hypotheses holding?)                                                               |
-| 6   | Sessions; Van Westendorp starts (session #6+); referral asks compounding                                                                                                |
-| 7   | **First full weekly synthesis**; pipeline review: 15+ sessions booked, ≥6 run, ≥3 activated, ≥2 design partners signed → on track for G-BETA's ≥10 by day 14            |
+| Day | Discovery actions (this file's slice of the sprint — full day-by-day: [`00-launch-operating-manual.md`](./00-launch-operating-manual.md)) |
+| --- | --- |
+| 1 | HyperAgent rig harvests Wave 2 (+75-125 names); founder joins 2 communities; reply-ladder starts; capture workspace set up (segments, pipeline stages, signal template) |
+| 2 | Founder approves Wave-2 list; **first 5 kit DMs send**; Wave-4 company list build starts; 5 more reply-ladder touches |
+| 3 | 10 more sends; first booked sessions expected; concierge offer added to session closes |
+| 4 | Sessions run (2-3/day max — synthesis needs air); scorecards same-day; first bump wave |
+| 5 | Sessions + sends continue; 250-name milestone check; first mini-synthesis (are S1/S2 hypotheses holding?) |
+| 6 | Sessions; Van Westendorp starts (session #6+); referral asks compounding |
+| 7 | **First full weekly synthesis**; pipeline review: 15+ sessions booked, ≥6 run, ≥3 activated, ≥2 design partners signed → on track for G-BETA's ≥10 by day 14 |
 
 ---
 

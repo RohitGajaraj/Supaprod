@@ -650,23 +650,23 @@ either way. I would rather build it at YC speed.
 
 ## 1. Founders — Role
 
-| Field                          | Previous | New                                                                   |
-| ------------------------------ | -------- | --------------------------------------------------------------------- |
-| Title                          | CEO      | **KEEP**                                                              |
-| Equity %                       | 100      | **KEEP**                                                              |
-| At least 10% equity            | yes      | **KEEP**                                                              |
-| Technical founder              | no       | **KEEP** (honest; the "who writes code" answer carries this — see §4) |
-| Currently in school            | no       | **KEEP**                                                              |
-| Commit exclusively if accepted | yes      | **KEEP**                                                              |
+| Field | Previous | New |
+| --- | --- | --- |
+| Title | CEO | **KEEP** |
+| Equity % | 100 | **KEEP** |
+| At least 10% equity | yes | **KEEP** |
+| Technical founder | no | **KEEP** (honest; the "who writes code" answer carries this — see §4) |
+| Currently in school | no | **KEEP** |
+| Commit exclusively if accepted | yes | **KEEP** |
 
 ## 2. Founders — Background / Social
 
-| Field                       | Previous                                   | New                                                                                                                                                      |
-| --------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LinkedIn / Education / Work | filled                                     | **KEEP** (make sure LinkedIn is current before submit — partners open it)                                                                                |
-| Personal website            | github.com/RohitGajaraj/Project-Cadence-v2 | **CHANGE** → `https://cadence-flow-beta.lovable.app` (the live product beats a stale repo; the v2 repo stays linked in "things you've built" as history) |
-| X URL                       | twitter.com/rohit_gajaraj                  | **KEEP**                                                                                                                                                 |
-| GitHub URL                  | github.com/RohitGajaraj                    | **KEEP**                                                                                                                                                 |
+| Field | Previous | New |
+| --- | --- | --- |
+| LinkedIn / Education / Work | filled | **KEEP** (make sure LinkedIn is current before submit — partners open it) |
+| Personal website | github.com/RohitGajaraj/Project-Cadence-v2 | **CHANGE** → `https://cadence-flow-beta.lovable.app` (the live product beats a stale repo; the v2 repo stays linked in "things you've built" as history) |
+| X URL | twitter.com/rohit_gajaraj | **KEEP** |
+| GitHub URL | github.com/RohitGajaraj | **KEEP** |
 
 ## 3. Founders — Accomplishments
 
@@ -1043,12 +1043,12 @@ this month.
 
 ## 10. Equity
 
-| Field                 | Previous                                                       | New                                                    |
-| --------------------- | -------------------------------------------------------------- | ------------------------------------------------------ |
-| Legal entity formed   | no                                                             | **KEEP** _(if you incorporate before July 27, update)_ |
-| Planned ownership     | Rohit 100%, meaningful equity for right cofounder, option pool | **KEEP**                                               |
-| Investment taken      | no                                                             | **KEEP**                                               |
-| Currently fundraising | no                                                             | **KEEP**                                               |
+| Field | Previous | New |
+| --- | --- | --- |
+| Legal entity formed | no | **KEEP** _(if you incorporate before July 27, update)_ |
+| Planned ownership | Rohit 100%, meaningful equity for right cofounder, option pool | **KEEP** |
+| Investment taken | no | **KEEP** |
+| Currently fundraising | no | **KEEP** |
 
 ## 11. Curious
 

@@ -16,12 +16,12 @@ Supaprod is a Cloudflare-Worker + Supabase app, EU-residency-aware, solo-founder
 
 **Hybrid (V3): BUY the commodity, BUILD the moat.**
 
-| Capability                                                                                            | Choice                         | Why                                                                                                                                          |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Product usage + session replay + feature flags + A/B                                                  | **PostHog EU**                 | MIT core (self-host escape), one SDK covers 4 capabilities, EU region, generous free tier (1M events/mo + 5k replays), excellent Worker SDK. |
-| Server / route / Worker errors + performance                                                          | **Sentry EU**                  | Best Cloudflare Workers SDK, source-map upload, release tracking, transaction tracing, EU region, free tier 5k errors/mo.                    |
-| Uptime probes + on-call + status page                                                                 | **Better Stack**               | One vendor covers all three (vs PagerDuty + Statuspage + UptimeRobot = three bills), free tier 10 monitors, EU region.                       |
-| Agent-cost analytics, decision-velocity analytics, business-outcome analytics, in-app incidents panel | **BUILD in-house** on Postgres | This is the moat. Crosses private tables. Drives the Trust Ledger + PM Impact Ledger + admin surfaces.                                       |
+| Capability | Choice | Why |
+| --- | --- | --- |
+| Product usage + session replay + feature flags + A/B | **PostHog EU** | MIT core (self-host escape), one SDK covers 4 capabilities, EU region, generous free tier (1M events/mo + 5k replays), excellent Worker SDK. |
+| Server / route / Worker errors + performance | **Sentry EU** | Best Cloudflare Workers SDK, source-map upload, release tracking, transaction tracing, EU region, free tier 5k errors/mo. |
+| Uptime probes + on-call + status page | **Better Stack** | One vendor covers all three (vs PagerDuty + Statuspage + UptimeRobot = three bills), free tier 10 monitors, EU region. |
+| Agent-cost analytics, decision-velocity analytics, business-outcome analytics, in-app incidents panel | **BUILD in-house** on Postgres | This is the moat. Crosses private tables. Drives the Trust Ledger + PM Impact Ledger + admin surfaces. |
 
 ## Alternatives considered + rejected
 
@@ -51,11 +51,11 @@ Supaprod is a global consumer-facing PM tool; users will be from the EU. GDPR po
 
 ## Cost posture (web-verified 2026-06-25)
 
-| Vendor       | Free tier                                  | First paid trigger                            | Source                  |
-| ------------ | ------------------------------------------ | --------------------------------------------- | ----------------------- |
-| PostHog EU   | 1M events/mo + 5k replays                  | Beyond free is usage-priced (~$0.00031/event) | posthog.com/pricing     |
-| Sentry EU    | 5k errors/mo + 10k performance units       | Team plan $26/mo                              | sentry.io/pricing       |
-| Better Stack | 10 monitors + 3-min checks + 1 status page | Team plan $25/mo                              | betterstack.com/pricing |
+| Vendor | Free tier | First paid trigger | Source |
+| --- | --- | --- | --- |
+| PostHog EU | 1M events/mo + 5k replays | Beyond free is usage-priced (~$0.00031/event) | posthog.com/pricing |
+| Sentry EU | 5k errors/mo + 10k performance units | Team plan $26/mo | sentry.io/pricing |
+| Better Stack | 10 monitors + 3-min checks + 1 status page | Team plan $25/mo | betterstack.com/pricing |
 
 **Demo + early users = $0/mo.** Re-verify before paying.
 

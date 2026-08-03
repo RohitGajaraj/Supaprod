@@ -17,11 +17,11 @@ Blast radius is two STATIC axes (safe to state plainly — never model output, s
 
 `toolRisk(name)` folds them into one tier:
 
-|              | internal   | external   |
-| ------------ | ---------- | ---------- |
-| reversible   | **low**    | **medium** |
-| partial      | **medium** | **high**   |
-| irreversible | **high**   | **high**   |
+| | internal | external |
+| --- | --- | --- |
+| reversible | **low** | **medium** |
+| partial | **medium** | **high** |
+| irreversible | **high** | **high** |
 
 An uncatalogued tool is **medium** (unknown blast radius → prompt review, never silently low or loud high).
 

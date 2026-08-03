@@ -17,7 +17,7 @@ I was handed a ground-truth block. Four items in it are wrong, one is right and 
 **False.** AFD-03, AFD-04, AFD-05, AFD-07 and AFD-12 are built, shipped, and load-bearing.
 
 | Piece | File | State |
-|---|---|---|
+| --- | --- | --- |
 | Config + gate + PII scrub | `src/lib/observability/config.ts` (109 lines) | **EXISTS**, complete |
 | Analytics facade (`track`, `identify`) | `src/lib/observability/analytics.ts` (87) | **EXISTS**, complete |
 | Error facade (`captureError`, `recordErrorEvent`) | `src/lib/observability/errors.ts` (177) | **EXISTS**, complete, unit-tested (`errors.test.ts`, 261) |
@@ -213,7 +213,7 @@ Deliberately **not** in the contract, and each for a reason:
 The GDPR posture splits cleanly along one line that this codebase already draws elsewhere:
 
 | Class | Legal basis | Consent needed | Gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Service operation**: `error_events`, `job_runs`, `ai_events` (cost + billing), `api_calls` | Contract performance, Art. 6(1)(b) | No | Always on |
 | **Product improvement**: `usage_events` first-party | Legitimate interest, Art. 6(1)(f), with a documented LIA | No, but must be objectable | `telemetry_mode != 'off'` |
 | **Vendor projection**: anything leaving to PostHog or Sentry | Legitimate interest **plus** a transfer to a processor | Opt-out, workspace level | `telemetry_mode == 'full'` AND `observability_enabled()` |
@@ -234,7 +234,7 @@ Three concrete constraints that follow:
 Before designing new capture, here is every telemetry store that already works. **Most of the taxonomy in §3 is a projection of these, not new capture.** That is the point: this product's first-party instrumentation is already richer than what a PostHog install would give it.
 
 | Store | Written by | Carries | State |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `ai_events` | `src/lib/ai/runtime.server.ts` (single chokepoint) | surface, model, provider, tokens, cost, latency, ttft, cache_hit, fallback, **`trace_id`**, `parent_event_id`, status, error_code | **EXISTS**, complete |
 | `job_runs` | `withJobRun`, 37 cron routes | job_name, status, duration, error_kind/message | **EXISTS**, complete |
 | `error_events` | `recordErrorEvent` | surface, error_kind/message, stack, request path/method, user, workspace, deployment_id | **EXISTS**, missing trace linkage (§5) |
@@ -329,7 +329,7 @@ Naming rule: `noun_verbpast`, snake_case, stable forever. A kind is never rename
 #### A. Evidence consumption, the depth layer's own proof
 
 | Kind | Fires when | Props |
-|---|---|---|
+| --- | --- | --- |
 | `lineage_opened` | `AuditLineageSheet` mounts | `entry` (card \| ask \| deeplink \| incident), `node_count`, `depth_reached`, `latency_ms` |
 | `lineage_traversed` | a node in the sheet or graph is clicked | `from_kind`, `to_kind`, `relation`, `hop_index` |
 | `trace_opened` | `/traces/$traceId` renders | `entry` (entity \| list \| incident \| ask), `event_count`, `has_guardrail_hit`, `has_eval` |
@@ -341,7 +341,7 @@ Naming rule: `noun_verbpast`, snake_case, stable forever. A kind is never rename
 #### B. Agency, the Ask-does-actions mandate
 
 | Kind | Fires when | Props |
-|---|---|---|
+| --- | --- | --- |
 | `agent_action_proposed` | `loop.server.ts:1137` writes an `agent_approvals` row | `tool_name`, `consequence_class` (from `consent-classes.ts:134`), `mode`, `risk`, `forced_by_risk` (bool) |
 | `agent_action_decided` | a gate resolves | `tool_name`, `verdict` (approved \| rejected \| sent_back \| snoozed), `seconds_to_decide`, **`in_conversation`** (bool), `decided_at_surface` |
 | `agent_action_executed` | an approved call runs, or an auto-mode `tool_calls` row is written | `tool_name`, `ok`, `duration_ms`, `mode` |
@@ -352,7 +352,7 @@ Naming rule: `noun_verbpast`, snake_case, stable forever. A kind is never rename
 #### C. Judgment, the calibration loop
 
 | Kind | Fires when | Props |
-|---|---|---|
+| --- | --- | --- |
 | `forecast_made` | an `insights` row with a claim + horizon is created | `forecast_kind` (prediction \| risk), `confidence_bucket` (0-2 \| 2-4 \| ... ), `horizon_days`, `generator` |
 | `forecast_resolved` | `calibrateExpiredInsights` scores one | `forecast_kind`, `outcome` (hit \| miss \| inconclusive), `brier`, `confidence_bucket`, `days_to_resolve`, `judged_by` (model \| measured) |
 | `precedent_surfaced` | a memory is recalled into a human-visible surface | `recall_rank`, `similarity_bucket`, `surface`, `memory_ref` (HMAC, §4.3) |
@@ -363,7 +363,7 @@ Naming rule: `noun_verbpast`, snake_case, stable forever. A kind is never rename
 #### D. Delivery, the loop's own completion
 
 | Kind | Fires when | Props |
-|---|---|---|
+| --- | --- | --- |
 | `spec_shipped` | `deployments.functions.ts:141` promotes to production | `days_from_signal`, `gate_count`, `human_edit_count`, `agent_slugs` (count, not names) |
 | `outcome_recorded` | `outcome.functions.ts:180` `recordOutcome` | `verdict`, `days_from_ship`, `moved_ice` (bool), `had_forecast` (bool) |
 | **`loop_closed`** | an outcome resolves and the chain back to a signal is walked | **`complete` (bool), `hop_count`, `span_days`, `broke_at_stage`** |
@@ -373,7 +373,7 @@ Naming rule: `noun_verbpast`, snake_case, stable forever. A kind is never rename
 #### E. Friction, the negative space
 
 | Kind | Fires when | Props |
-|---|---|---|
+| --- | --- | --- |
 | `surface_abandoned` | a *started* intent is dropped: a composer with text and no send, a gate opened and left undecided > 60s then navigated away | `surface`, `dwell_ms`, `had_draft` (bool) |
 | `gate_snoozed_repeat` | `snoozeApprovalItem` on an item already snoozed | `kind`, `snooze_count` |
 
@@ -453,7 +453,7 @@ Three consequences, all intended:
 **BUILD.** `workspace_settings.telemetry_mode text NOT NULL DEFAULT 'full' CHECK (telemetry_mode IN ('full','first_party_only','off'))`
 
 | Mode | `usage_events` | Vendor projection | `error_events` / `job_runs` / `ai_events` |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `full` (default) | yes | yes | yes |
 | `first_party_only` | yes | **no** | yes |
 | `off` | **no** | no | **yes** |
@@ -494,7 +494,7 @@ This surface is the reason the taxonomy in §3 is austere. Designing every event
 Extend `purge_old_telemetry` (called by `src/routes/api/public/hooks/retention-tick.ts:35`, currently 180 days for `ai_events` / `prompt_runs` / `tool_calls`, dormant behind `data_retention_enabled()`):
 
 | Store | Raw | Then |
-|---|---|---|
+| --- | --- | --- |
 | `usage_events` | 90 days | rolled into `usage_rollup_daily`, kept 400 days |
 | `error_events` | 30 days (already swept) | fingerprint + count kept 400 days |
 | `ai_events`, `tool_calls`, `prompt_runs` | 180 days (unchanged) | dropped |
@@ -597,7 +597,7 @@ This is where Supaprod becomes user-zero of its own machinery instead of merely 
 `src/lib/self-improve.ts:194`, `composeProposals(signals)`, is a **pure, deterministic, AI-free** function that reads three signal families and emits flagged proposals with named thresholds:
 
 | Family | Source | Floor | Trigger |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `EvalSignal` | `getEvalHealthImpl` | 3 runs | pass rate < 0.60 |
 | `AgentSignal` | `human_gate_events` via `summarizeGateSignals` | 5 decisions | human-correction rate > 0.50 |
 | `PlaybookSignal` | `playbook_runs` via `rankPlaybooksByOutcome` | 3 runs | win rate < 0.50 |
@@ -686,7 +686,7 @@ Acceptance rate passes: count your approvals, count your rejections, divide. Mem
 #### SHOW. Earned, honest, already computed.
 
 | Number | Source | Why it is honest |
-|---|---|---|
+| --- | --- | --- |
 | **Acceptance rate** | `getAcceptanceRate`, `gauntlet.functions.ts:63` | Real head count of decided calls. The accepted set is enumerated explicitly (`approved`/`executed`/`failed`) rather than inferred, with a comment explaining why. Exemplary. |
 | **Work the loop carried** | `getAutonomyRatio`, `:143` | Measured, and the denominator is exactly what still comes to you. **Rename it.** See below. |
 | **Ritual retention / streak** | `getRitualRetention`, `:240` | A fact about the user's own behavior, with a `realData` flag so a demo account is never mislabeled. |
@@ -727,7 +727,7 @@ Ordered by dependency and by risk. **Phase 0 is blocking: no vendor key may be a
 ### Phase 0 · Correctness, before any key
 
 | # | Task | Where | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T-01 | Fix or retire the cross-tenant HogQL query | `src/lib/analytics-ingest.server.ts:54-70`, caller `src/routes/api/public/hooks/sense-tick.ts:134` | WIRING |
 | T-02 | Delete `insertSpikeSignals`; a signal must never be derived from another tenant | `src/lib/analytics-ingest.server.ts:119-158` | WIRING |
 | T-03 | Enforce the facade seam: `no-restricted-imports` for `posthog-js`, `posthog-node`, `@sentry/*`, `@betterstack/*`, excluding `src/lib/observability/**` | `eslint.config.js:23` | BUILD |
@@ -736,7 +736,7 @@ Ordered by dependency and by risk. **Phase 0 is blocking: no vendor key may be a
 ### Phase 1 · The spine
 
 | # | Task | Where | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T-05 | `usage_events` + `usage_rollup_daily` migration | `supabase/migrations/` | BUILD |
 | T-06 | `recordUsage()` + the static per-kind prop schema | `src/lib/observability/usage.ts`, `usage-schema.ts` | BUILD |
 | T-07 | Rewrite `track()` to write first-party then project; HMAC de-identification | `src/lib/observability/analytics.ts:33`, new `project.ts` | WIRING |
@@ -746,7 +746,7 @@ Ordered by dependency and by risk. **Phase 0 is blocking: no vendor key may be a
 ### Phase 2 · Incidents (highest depth-per-hour in this angle)
 
 | # | Task | Where | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T-10 | `error_events` migration: `incident_ref`, `fingerprint`, `occurrence_count`, `trace_id`, `agent_run_id`, `audit_kind`, `audit_id`, `status` | `supabase/migrations/` | BUILD |
 | T-11 | Upsert-on-fingerprint; storm guard counts instead of dropping; return `IncidentRef` | `src/lib/observability/errors.ts:37-44, 67-97` | WIRING |
 | T-12 | Pass `traceId` (already in scope) into the capture | `src/lib/ai/runtime.server.ts:1901` | WIRING, one line |
@@ -757,7 +757,7 @@ Ordered by dependency and by risk. **Phase 0 is blocking: no vendor key may be a
 ### Phase 3 · Emit the taxonomy
 
 | # | Task | Where | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T-16 | `agent_action_proposed` at the approval write | `src/lib/ai/loop.server.ts:1137` | WIRING |
 | T-17 | `agent_action_decided` with **`in_conversation`** | `src/lib/approvals-queue.functions.ts:718` (`decideApprovalItem`), `:824` (`snooze`), `:885` (`sendBack`) | WIRING |
 | T-18 | `agent_action_executed` / `_reverted` | `tool_calls` write path, `src/lib/studio-rollbacks.ts:318` | WIRING |
@@ -771,7 +771,7 @@ Ordered by dependency and by risk. **Phase 0 is blocking: no vendor key may be a
 ### Phase 4 · The loop
 
 | # | Task | Where | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T-25 | `UsageSignal` + `usageProposal()` + the seven named thresholds | `src/lib/self-improve.ts` | BUILD |
 | T-26 | `readUsageSignals()`; add to the `Promise.all` | `src/lib/self-improve.functions.ts` | WIRING |
 | T-27 | Rules U-1 (dead ends) and U-3 (incomplete loop) | in T-25 | BUILD |
@@ -784,7 +784,7 @@ Ordered by dependency and by risk. **Phase 0 is blocking: no vendor key may be a
 ### Phase 5 · Surfaces and honesty
 
 | # | Task | Where | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T-33 | `/settings/telemetry`: every kind, the last 50 rows verbatim, mode control, export, delete | new route | BUILD |
 | T-34 | `forget(userId)` + wire into account deletion | `src/lib/observability/` + auth path | BUILD |
 | T-35 | Rename "Autonomy ratio" -> "Work the loop carried" everywhere | `gauntlet.functions.ts` consumers | WIRING |

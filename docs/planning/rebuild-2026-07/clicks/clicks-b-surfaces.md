@@ -21,7 +21,7 @@ Worst first. "Label" is what the user sees; "Expect" is what the label promises;
 what the handler does.
 
 | # | File · line | Label | Expect | Actual | Class | Fix |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | 1 | `src/routes/_authenticated.today.tsx:1071-1090` + `src/components/supaprod/CommandPalette.tsx:419-452` | `A approves · S sends back` (rendered at `today.tsx:235`) | Press `a` to approve the featured call | **Two window listeners fire.** Today's handler runs `current.props.onOk()` (approves, executes the tool server-side); `GotoShortcuts` matches `navKeyHint("/admin") === "a"` and **also** navigates to `/admin`. `s` rejects the call **and** navigates to `/settings`. `e.preventDefault()` does not stop a sibling `window` listener. No confirm, no undo, and the user is yanked off Today mid-decision. | LIES | Namespace the Today keys (or make `GotoShortcuts` skip a route that declares its own single-letter bindings); `a`/`s` on Today must not double as global nav. |
 | 2 | `today.tsx:529, 619, 645, 663, 681, 698, 716, 737` and `_authenticated.approvals.tsx:147` | approve / send back / later / keep / drop / adopt / refresh brief | A failed decision says it failed | Every one of these nine mutations has `onError: (e: Error) => toast.success(e.message)`. A rejected approval, a failed spec save, a failed snooze all render as a **green success toast whose body is the error string**. `src/lib/notify.ts` exposes a real `toast.error`; it is simply not called. | LIES | Replace all nine with `toast.error(e.message)`. |
 | 3 | `src/hooks/use-ask-stream.ts:517-525` + `src/components/mission/composer/GlobalComposer.tsx:56` (`enabled: open`) | Ask overlay (⌘J / ⌘K / the TopBar Ask button) | Closing the panel leaves the answer to finish | `enabled:false` runs `abortControllerRef.current.abort()`. Pressing Esc, clicking away, or hitting ⌘J again **kills the in-flight answer**. The partial assistant bubble stays in state, no toast, no "cancelled" line. Reopening shows a truncated answer with no explanation. This is the founder's "I typed, it vanished". | SILENT | Keep the stream alive while the conversation is open (abort only on unmount / explicit stop), and mark a cancelled answer in the thread. |
@@ -90,7 +90,7 @@ Verified against each stub's `beforeLoad`, the target route's `validateSearch`, 
 surface's actual rendering. **8 of 41 do not honour the link's promise.**
 
 | Stub | Sends | Lands on | Verdict |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `/discovery` | `/discover?tab=signals` | Signals | OK |
 | `/opportunities` | `/discover?tab=queue` | **Signals** (tab hardcoded) | **BROKEN** - #6 |
 | `/product` | - | **the public marketing page** (no authed stub) | **BROKEN** - #14 |
@@ -155,7 +155,7 @@ surface's actual rendering. **8 of 41 do not honour the link's promise.**
 
 **Data changed with no confirmation and no undo**
 | Control | File · line |
-|---|---|
+| --- | --- |
 | `a` / `s` on Today - approve, executes the tool server-side | `today.tsx:1080-1086` |
 | `a` / `r` on Approvals | `approvals.tsx:172-177` |
 | Remove BYO AI key | `settings.tsx:2346` |

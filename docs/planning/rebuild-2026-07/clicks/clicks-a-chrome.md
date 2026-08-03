@@ -8,7 +8,7 @@
 ## Scorecard
 
 | Class | Count |
-|---|---|
+| --- | --- |
 | LIES | 15 |
 | DEAD | 12 |
 | SILENT | 8 |
@@ -51,7 +51,7 @@ loop's 10 other destinations across. That single fact generates roughly a third 
 ## Findings
 
 | # | File:line | Visible label | What a user EXPECTS | What ACTUALLY happens | Class | One-line fix |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | **A1** | `src/components/mission/primitives/GateChip.tsx:173,186,195,222` (rendered by `composer/Thread.tsx:135-157`) + `src/components/mission/MissionShell.tsx:432-451` | `Approve and run [1]` · `Send back [2]` · `Decline [3]` · `Open the evidence [⏎]` on every gate card in the room's Thread column | Pressing `1` approves the gate on screen | The room binds bare digits to the Spine: `const idx = Number(e.key) - 1; ... onStageChange(SPINE_STAGES[idx].id)`. Pressing `1` navigates the Canvas to **01 Discover**. `3` goes to **03 Plan**. `⏎` does nothing (no Enter handler outside the tray). The keys only work inside `ApprovalsTray`, which sets `role="dialog" aria-modal` and therefore suppresses the Spine handler. | **LIES** | Render the `Kbd` hints on `GateChip` only when a `keysActive` prop is true; pass it from `ApprovalsTray` and nowhere else. |
 | **A2** | `src/components/supaprod/AppShell.tsx:844-857` → `composer/GlobalComposer.tsx:64-84` → `composer/ComposerOverlay.tsx:50` | Rail button reading **`Search`** with a `⌘K` badge | A search palette | `onClick={() => window.dispatchEvent(new CustomEvent("supaprod:open-cmdk"))}`. `CommandPalette.tsx` (454 lines, the actual search UI) has **zero importers**, so the only listener left is `GlobalComposer`, which opens a dialog whose accessible name is literally `aria-label="Ask Supaprod"` and whose placeholder is "Ask anything, or name the work." A screen-reader user clicks "Search" and lands in "Ask Supaprod". | **LIES** | Relabel the button "Ask" (matching the `TopBar` Ask button), or mount `CommandPalette` and give it back `⌘K`. |
 | **A3** | `src/components/mission/RoomChrome.tsx:32-37` (`DOORS`) and `MissionShellView.tsx:36-41` | The room top bar's four doors: `Mission Control · Approvals · Brain · Settings` | Somewhere to go back to Today / Discover / Decide / Plan / Design / Build / Ship / Learn / Pulse | There is no such door. Once you are on `/settings`, `/brain`, `/approvals`, `/threads` or `/artifacts` the entire 12-row rail is unmounted and nothing in the chrome links back to any of the 10 loop or intelligence destinations. Only the room itself has an escape hatch (the recessed `Under the hood` button → `/engine-room`, `MissionShellView.tsx:314-323`) - and that button is `hidden ... sm:flex`, so it disappears on a phone. The browser back button is the real answer. | **DEAD** | Add the loop destinations to the room top bar (or make the brand lockup open a full destination menu) before any surface is demoed. |
@@ -104,7 +104,7 @@ loop's 10 other destinations across. That single fact generates roughly a third 
 ### Always visible, only sometimes meaningful
 
 | Control | Where | When it is meaningless |
-|---|---|---|
+| --- | --- | --- |
 | The **Spine** (`MissionShellView.tsx:368-371`) | Every room render | Loading, error, and every empty/new product - seven identical quiet nodes plus a return-edge caption (A13) |
 | The **`WorkingStrip`** (`MissionShell.tsx:566-575`) | Every room render | `activeLines.length === 0` → the strip renders only `Nothing running, nothing waiting on you` and still costs a bordered 36px row (A44) |
 | The **`Under the hood` / `Crew` / `Artifacts` / `Threads`** buttons (`MissionShellView.tsx:304-344`) | Room top bar | All four are `hidden ... sm:flex` - they simply do not exist below 640px, so those four destinations are unreachable on a phone |
@@ -131,7 +131,7 @@ loop's 10 other destinations across. That single fact generates roughly a third 
 ### Changes data with no confirmation and no undo
 
 | Control | File:line | Risk |
-|---|---|---|
+| --- | --- | --- |
 | Tray `1` / `3` (approve / decline) | `ApprovalsTray.tsx:106-114` | Single bare keystroke, target follows the mouse (A7), real write via `decideApprovalItem` |
 | `/approvals` `a` / `r` | `_authenticated.approvals.tsx:171-177` | Single bare keystroke, **no on-screen hint that the keys exist** (A6) |
 | `GateChip` `Approve and run` | `GateChip.tsx:167-174` | One click, no confirm. The consequence line is copy, not a gate |
@@ -142,7 +142,7 @@ loop's 10 other destinations across. That single fact generates roughly a third 
 ### Keyboard binding matrix (what the hint claims vs where it lands)
 
 | Key | Hint shown where | AppShell routes | Room (`/$ws/$prod`) | Settings / Brain / Approvals / Threads / Artifacts |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `0` | Rail chip, composer JUMP | → `/today` | nothing | nothing |
 | `1` - `7` | Rail chips, composer JUMP, **`GateChip` cards** | → loop stage route | → Spine stage (not the gate the card promises) | nothing |
 | `8` | Rail chip, composer JUMP | → `/brain` | nothing | nothing |

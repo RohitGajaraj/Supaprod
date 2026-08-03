@@ -57,33 +57,33 @@ Scope: June 2025 – May 2026. Sources: Product Growth newsletter (157 posts, �
 
 ## 2. Subject Snapshot
 
-| Attribute | Value                                                                                        |
-| --------- | -------------------------------------------------------------------------------------------- |
-| Identity  | Aakash Gupta — ex-PM leader (Apollo, Affirm, Epic Games), now full-time creator              |
-| Flagship  | "Product Growth" newsletter (Substack), ~215K subscribers                                    |
-| Channels  | LinkedIn (~311K), X @aakashgupta (~255K), Product Growth Podcast, YouTube @growproduct (41K) |
-| Cadence   | ~3 newsletter posts/week · ~1–2 podcast episodes/week · near-daily LinkedIn                  |
-| Posture   | Prolific, tactical, generous-with-free-resources, authority-borrowing via guests             |
+| Attribute | Value |
+| --- | --- |
+| Identity | Aakash Gupta — ex-PM leader (Apollo, Affirm, Epic Games), now full-time creator |
+| Flagship | "Product Growth" newsletter (Substack), ~215K subscribers |
+| Channels | LinkedIn (~311K), X @aakashgupta (~255K), Product Growth Podcast, YouTube @growproduct (41K) |
+| Cadence | ~3 newsletter posts/week · ~1–2 podcast episodes/week · near-daily LinkedIn |
+| Posture | Prolific, tactical, generous-with-free-resources, authority-borrowing via guests |
 
 ---
 
 ## 3. Topic Map — What He Publishes (with counts)
 
-| Rank | Topic cluster                                   | Threads | AI-native?            |
-| ---- | ----------------------------------------------- | ------- | --------------------- |
-| 1    | PM Interviews & Prep                            | 42      | Mostly (AI-reskinned) |
-| 2    | AI Tooling & Workflows for PMs                  | 37      | Yes                   |
-| 3    | AI Evals & Observability                        | 24      | Yes                   |
-| 3    | AI Prototyping & Design                         | 24      | Yes                   |
-| 5    | PM Career, Job Search & Comp                    | 23      | Mostly (AI-reskinned) |
-| 6    | AI Agents (Building & Distribution)             | 22      | Yes                   |
-| 7    | Weekly "AI Update" News Series                  | 14      | Yes                   |
-| 7    | AI Product Strategy, PRDs, Roadmaps & Discovery | 14      | Yes                   |
-| 9    | Builder PM & Creator / Solo Business            | 12      | Yes                   |
-| 10   | PM Craft, Fundamentals & Legends                | 6       | Partial               |
-| 11   | AI in PM — General / Other                      | 4       | Yes                   |
-| 12   | Growth, Pricing & Metrics                       | 3       | Partial               |
-|      | **Total**                                       | **225** |                       |
+| Rank | Topic cluster | Threads | AI-native? |
+| --- | --- | --- | --- |
+| 1 | PM Interviews & Prep | 42 | Mostly (AI-reskinned) |
+| 2 | AI Tooling & Workflows for PMs | 37 | Yes |
+| 3 | AI Evals & Observability | 24 | Yes |
+| 3 | AI Prototyping & Design | 24 | Yes |
+| 5 | PM Career, Job Search & Comp | 23 | Mostly (AI-reskinned) |
+| 6 | AI Agents (Building & Distribution) | 22 | Yes |
+| 7 | Weekly "AI Update" News Series | 14 | Yes |
+| 7 | AI Product Strategy, PRDs, Roadmaps & Discovery | 14 | Yes |
+| 9 | Builder PM & Creator / Solo Business | 12 | Yes |
+| 10 | PM Craft, Fundamentals & Legends | 6 | Partial |
+| 11 | AI in PM — General / Other | 4 | Yes |
+| 12 | Growth, Pricing & Metrics | 3 | Partial |
+| | **Total** | **225** | |
 
 **Interpretation:** The top 9 clusters are AI-native or AI-reskinned and account for **~95% of output**. The two "classic PM" clusters (Craft/Legends 6, Growth/Metrics 3) are now a rounding error — a deliberate, market-following pivot.
 
@@ -117,16 +117,16 @@ These are the recurring messages, framed as what the audience is buying:
 
 ## 6. Whitespace & Saturation Analysis (the strategic core)
 
-| Lane                                                     | State                             | Implication for us                                          |
-| -------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
-| AI tooling guides / tool bakeoffs                        | **Saturated** (he + many others)  | Avoid head-on; commoditizing fast                           |
-| "Learn AI PM" content / courses                          | **Saturated**                     | Crowded; hard to differentiate on content alone             |
-| Interview/career _content_                               | **Saturated**                     | But the _doing_ (practice w/ real feedback) is under-served |
-| **Evals & prototyping — operationalized**                | **Talked about, not productized** | **Open:** turn the #1 thesis into a _doing_ tool            |
-| **Classic growth/PLG, pricing, metrics rigor**           | **Vacated** (3/225)               | Open lane if your audience still needs it                   |
-| **Discovery / user-research craft**                      | **Thin**                          | Open; AI-augmented discovery under-built                    |
-| **Depth / practice / community** vs. one-to-many content | **Under-served**                  | Open: cohorts, simulators, feedback loops                   |
-| **Engagement data on what actually resonates**           | **Opaque** (metrics bot-walled)   | Whoever measures demand precisely has an edge               |
+| Lane | State | Implication for us |
+| --- | --- | --- |
+| AI tooling guides / tool bakeoffs | **Saturated** (he + many others) | Avoid head-on; commoditizing fast |
+| "Learn AI PM" content / courses | **Saturated** | Crowded; hard to differentiate on content alone |
+| Interview/career _content_ | **Saturated** | But the _doing_ (practice w/ real feedback) is under-served |
+| **Evals & prototyping — operationalized** | **Talked about, not productized** | **Open:** turn the #1 thesis into a _doing_ tool |
+| **Classic growth/PLG, pricing, metrics rigor** | **Vacated** (3/225) | Open lane if your audience still needs it |
+| **Discovery / user-research craft** | **Thin** | Open; AI-augmented discovery under-built |
+| **Depth / practice / community** vs. one-to-many content | **Under-served** | Open: cohorts, simulators, feedback loops |
+| **Engagement data on what actually resonates** | **Opaque** (metrics bot-walled) | Whoever measures demand precisely has an edge |
 
 **Synthesis:** The loudest demand (AI enablement, career) is also the most saturated _as content_. The leverage is to **productize the doing** — especially **evals + prototyping + interview/skill practice with real feedback** — and/or to **re-enter the rigor lanes he abandoned** (growth, metrics, discovery) for audiences who still need them.
 

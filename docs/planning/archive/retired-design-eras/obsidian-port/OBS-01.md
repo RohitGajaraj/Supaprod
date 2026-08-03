@@ -10,19 +10,19 @@ This is the complete, self-contained build package for OBS-01. It embeds every t
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-01                                                                                                                                                                                                                                                |
-| Rank          | #2                                                                                                                                                                                                                                                    |
-| Tier          | 1 (foundation)                                                                                                                                                                                                                                        |
-| Status        | In dev (claimed on lane1; this worktree has no Obsidian layer yet, see §4)                                                                                                                                                                            |
-| Category      | Cockpit                                                                                                                                                                                                                                               |
-| Depends on    | none (this is the root of the graph)                                                                                                                                                                                                                  |
-| Blocks        | OBS-02 (shell consumes the tokens/fonts), and transitively every OBS-03..15                                                                                                                                                                           |
+| Field | Value |
+| --- | --- |
+| ID | OBS-01 |
+| Rank | #2 |
+| Tier | 1 (foundation) |
+| Status | In dev (claimed on lane1; this worktree has no Obsidian layer yet, see §4) |
+| Category | Cockpit |
+| Depends on | none (this is the root of the graph) |
+| Blocks | OBS-02 (shell consumes the tokens/fonts), and transitively every OBS-03..15 |
 | One-line what | Port the 5 obsidian-v3 token files verbatim as app-scoped `[data-obsidian]` CSS custom properties, load the 2 new fonts, port the 8 `cad*` keyframes + the reduced-motion gate + the `data-density` attribute; the landing page stays byte-untouched. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-01                                                                                                                                                                            |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                |
-| Hub           | [`./README.md`](./README.md)                                                                                                                                                                                                                          |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-01 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
+| Hub | [`./README.md`](./README.md) |
 
 ---
 

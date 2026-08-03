@@ -11,7 +11,7 @@
 The pure grouping model lives in `settings-sections.ts`: four panes (You, Workspace, Connections, Billing), every `SectionId` in exactly one pane, `?section=` is the routing key, legacy aliases (`brief`, `calendar`, `plan`, `you`) still resolve.
 
 | # | Pane | Section (`SectionId`) | One-line contents |
-|---|------|----------------------|-------------------|
+| --- | --- | --- | --- |
 | 1 | You | Profile (`profile`) | Name, account identity; renders with two embedded extras (below) |
 | 2 | You | Notifications (`notifications`) | Preference matrix for 4 alert rows: Approvals Needed, Loop Health & Stalls, Spend & Budgets, Output Quality & Trends; plus interaction-feedback prefs |
 | 3 | You | Data (`data`) | Five stacked cards: DataSubstrateCard (what Supaprod stores), ValueReceiptsCard (what the data earned you), DataExportCard (raw JSON export), SkillsFileExportCard (AGENTS.md-style lessons bundle for external coding agents), SubprocessorsCard (who touches the data) |
@@ -29,7 +29,7 @@ The pure grouping model lives in `settings-sections.ts`: four panes (You, Worksp
 Embedded sub-surfaces (not `SectionId`s but real, findable-or-lost units):
 
 | # | Lives inside | Unit | Contents |
-|---|--------------|------|----------|
+| --- | --- | --- | --- |
 | 14 | Profile | AppearanceSection | Theme choice |
 | 15 | Profile | DensityToggle | UI density |
 | 16 | Brief & voice | AdminDoor | Role-gated link to /admin, plus the one-time "claim admin" bootstrap card when zero admins exist |
@@ -40,7 +40,7 @@ Embedded sub-surfaces (not `SectionId`s but real, findable-or-lost units):
 Nine tabs, header question "Who runs this workspace, and what is it costing?":
 
 | Tab | Route | Contents |
-|-----|-------|----------|
+| --- | --- | --- |
 | Overview | /admin | Landing summary |
 | Pricing | /admin/pricing | Tier and price administration |
 | People | /admin/people | Members, roles, audit |
@@ -113,7 +113,7 @@ Unchanged shape: a role-gated door (now from Workspace > People), nine tabs inta
 ### Full mapping check (nothing orphaned)
 
 | Current unit | New home |
-|---|---|
+| --- | --- |
 | profile | You > Profile |
 | AppearanceSection + DensityToggle | You > Appearance |
 | notifications | You > Notifications |
@@ -162,7 +162,7 @@ Rule of thumb: **Settings holds standing policy (survives every mission); the cr
 ### Lives in Settings > Agents (durable policy)
 
 | Concern | Exists in code today | Status |
-|---|---|---|
+| --- | --- | --- |
 | Roster on/off + tool reach cap | `agents.enabled` (change gated), `max_tool_risk` via setAgentToolCap | EXISTS, relocate from AI staff |
 | Per-tool approval modes (auto/confirm/review) | `agent_tools.mode`, updateToolMode, composed at runtime by `resolveGate` in loop.server.ts with the trust arc; review sticky, high-risk pinned, plan-approval loosens reversible confirms | EXISTS, relocate from governance ControlsPanel |
 | Trust dial / graduation | `agent_autonomy.arc`, suggestArc, TrustDial, TrustGraduations | EXISTS, relocate |
@@ -195,7 +195,7 @@ GAP: per-agent custom instructions do not exist; only one workspace-wide voice a
 ### Groups
 
 | Name | One-liner under the label |
-|---|---|
+| --- | --- |
 | You | Your profile, look, and alerts. |
 | Workspace | What you are building, your brand, and your team. |
 | Agents | Your AI staff: what they may do, and on whose approval. |
@@ -205,7 +205,7 @@ GAP: per-agent custom instructions do not exist; only one workspace-wide voice a
 ### Items
 
 | Item (group) | One-liner |
-|---|---|
+| --- | --- |
 | Profile (You) | Your name and account. |
 | Appearance (You) | Theme and density. |
 | Notifications (You) | What we interrupt you for. |

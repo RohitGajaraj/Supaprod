@@ -134,7 +134,7 @@
 ## Decisions Logged (Will Reverse if Founder Guidance Differs)
 
 | Decision | Why | Reversible? |
-|----------|-----|-------------|
+| --- | --- | --- |
 | Project stages: only Plan/Design/Build live, Ship/Launch/Grow are stubs | MVP scope (Build is the main stage) | Yes, easy to add stubs |
 | Approvals mock data instead of backend integration | Faster MVP, backend schema TBD | Yes, swap mock → real when ready |
 | CodeSurface (Monaco) deferred to Phase 4 | Adds complexity, Build stage can show plain markdown for MVP | Yes, add later |

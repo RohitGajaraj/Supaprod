@@ -35,15 +35,15 @@ When you end a session, the next tool must be able to continue without asking yo
 
 ## The handoff mechanism (replaces code ownership)
 
-| Artifact                                                             | Purpose                                          | Updated when                                 |
-| -------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------- |
-| SSOT section 0 (the live cursor, `docs/planning/SOURCE-OF-TRUTH.md`) | Exact checklist of in-flight sub-steps           | Start of task, each sub-step, end of session |
-| Live status board (`docs/planning/feature-dashboard.md` top)         | "Now building," "Next up," "Blocked," recent log | Start and end of every session               |
-| Git commits                                                          | What changed, why it changed (one-line WHY)      | Every logical chunk of work                  |
-| `docs/strategy/session-decisions.md`                                 | Major strategic decisions from sessions          | When a strategic decision is made            |
-| `docs/planning/feature-dashboard.md`                                 | Feature state (✅/◐/⬜)                          | When feature is started or completed         |
-| Architecture docs (`architecture/`)                                  | How the system works                             | When architecture changes                    |
-| `docs/design/archive/ember-editorial-landing.md`                                                          | Design tokens, component contracts               | When UI patterns change                      |
+| Artifact | Purpose | Updated when |
+| --- | --- | --- |
+| SSOT section 0 (the live cursor, `docs/planning/SOURCE-OF-TRUTH.md`) | Exact checklist of in-flight sub-steps | Start of task, each sub-step, end of session |
+| Live status board (`docs/planning/feature-dashboard.md` top) | "Now building," "Next up," "Blocked," recent log | Start and end of every session |
+| Git commits | What changed, why it changed (one-line WHY) | Every logical chunk of work |
+| `docs/strategy/session-decisions.md` | Major strategic decisions from sessions | When a strategic decision is made |
+| `docs/planning/feature-dashboard.md` | Feature state (✅/◐/⬜) | When feature is started or completed |
+| Architecture docs (`architecture/`) | How the system works | When architecture changes |
+| `docs/design/archive/ember-editorial-landing.md` | Design tokens, component contracts | When UI patterns change |
 
 ---
 

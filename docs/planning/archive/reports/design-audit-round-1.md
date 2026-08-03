@@ -114,19 +114,19 @@
 
 **Tempo Test** (DESIGN-TEMPO.md §11):
 
-| Criterion                                            | Status     | Notes                                                                          |
-| ---------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
-| Both themes render from same tokens                  | ✅ Pass    | Verified via dark/light CSS blocks                                             |
-| Every color traces to `--ds-*` token in correct role | ⚠️ FIXED   | Focus ring color bug fixed; legacy vars still aliased correctly                |
-| Type only via class system, three faces in lanes     | ✅ Pass    | Geist Sans/Mono/Pixel in use; retired fonts only via aliases                   |
-| Elevation only via material presets                  | ⚠️ Partial | Some inline shadows/styles exist; new components follow presets                |
-| Controls on 32/36/40 grid                            | ✅ Pass    | ui/Button uses `--ds-size-small/medium/large`; obsidian uses fixed px (legacy) |
-| Matching spec or pattern doc followed                | ✅ Pass    | design-reference/tempo-v5/research/ complete                                   |
-| Grayscale pass still reads                           | ✅ Pass    | Focus ring fix ensures semantic meaning without color                          |
-| Focus ring intact                                    | ✅ FIXED   | Was broken (blue), now fixed (ember); all UI components use `--ds-focus-ring`  |
-| `prefers-reduced-motion` respected                   | ✅ Pass    | Verified in motion classes (motion-reduce:transition-none, etc.)               |
-| Humanized voice on every string                      | ✅ Pass    | Linter enforces no em/en dashes; 0 AI fingerprints detected                    |
-| At most one personality touch, costs nothing         | ✅ Pass    | Today aurora, brand watermark, Pixel moments used sparingly                    |
+| Criterion | Status | Notes |
+| --- | --- | --- |
+| Both themes render from same tokens | ✅ Pass | Verified via dark/light CSS blocks |
+| Every color traces to `--ds-*` token in correct role | ⚠️ FIXED | Focus ring color bug fixed; legacy vars still aliased correctly |
+| Type only via class system, three faces in lanes | ✅ Pass | Geist Sans/Mono/Pixel in use; retired fonts only via aliases |
+| Elevation only via material presets | ⚠️ Partial | Some inline shadows/styles exist; new components follow presets |
+| Controls on 32/36/40 grid | ✅ Pass | ui/Button uses `--ds-size-small/medium/large`; obsidian uses fixed px (legacy) |
+| Matching spec or pattern doc followed | ✅ Pass | design-reference/tempo-v5/research/ complete |
+| Grayscale pass still reads | ✅ Pass | Focus ring fix ensures semantic meaning without color |
+| Focus ring intact | ✅ FIXED | Was broken (blue), now fixed (ember); all UI components use `--ds-focus-ring` |
+| `prefers-reduced-motion` respected | ✅ Pass | Verified in motion classes (motion-reduce:transition-none, etc.) |
+| Humanized voice on every string | ✅ Pass | Linter enforces no em/en dashes; 0 AI fingerprints detected |
+| At most one personality touch, costs nothing | ✅ Pass | Today aurora, brand watermark, Pixel moments used sparingly |
 
 ---
 

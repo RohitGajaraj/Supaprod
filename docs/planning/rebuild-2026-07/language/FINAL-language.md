@@ -44,7 +44,7 @@ opening the losing lane file.
 ### 1.1 The big four
 
 | # | The disagreement | Ruling | Why this way |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **R1** | **Pulse (A, C) vs engine room (B)** for the machinery surface | **Engine room.** Label `Engine room`, route `/engine-room`, prose "the engine room". `Pulse` is deleted product-wide, including `pulseSentence()`. | Verified in code: `nav-model.ts:145` ships `label: "Pulse"` on `to: "/engine-room"`, and the file comment at `:28` literally says "Pulse keeps the `/engine-room` route". That is the say-it-out-loud failure written into the source. Two ways to end it. Choosing Pulse renames a route, a component directory, a doctrine file, and the greppable `Engine-Room:` stamp. Choosing engine room renames one string. It also survives the stranger test better: in a nav of Today, Discover, Decide, Plan, Design, Build, Ship, Learn, Brain, Library, `Pulse` is the only word that does not tell a first-time reader what is inside. "Engine room" tells them: the machinery, under the hood, on purpose. It is the founder's own doctrine word (`engine-room-doctrine.md`), so this ruling restores canon rather than inventing one. **This is the one ruling that overrides two lanes out of three; see open question Q1.** |
 | **R2** | **Run (A) vs build (B)** for the unit of work | **Run.** `Run 41 · Fix the checkout redirect`. `build` as a noun joins the banned list. | Law 2 decides it. Stage 05 is **Build**, a verb. If the object is also "a build", the word names two things, which is the exact defect that forced Planner and Designer. Second: `agent_runs`, `loop_runs`, `job_runs`, `prompt_runs`, `eval_runs`, `playbook_runs` already exist, so the schema was right and only the UI was wrong. Third, honesty: a run that fails is still a run, and calling a failure "a build" borrows a CI convention we do not otherwise use. Lang C's ban on `run` as plumbing is lifted, because it was written when five nouns competed; once four die, `run` is not plumbing, it is the word. |
 | **R3** | **the Ledger (A) vs the record (B, C)** | **The record.** One noun in all app copy. `Ledger` is deleted from every user-facing string including the engine room. Where the seal itself is the object, the words are `sealed` and `tamper-evident`, never "ledger". `ledger_seals` freezes in the DB. | The one-word test does not exempt the engine room; it is still in the app. "On the record" is a sentence a person says; "in the ledger" is a sentence a person reads. See Q3 for the outward-facing tension. |
@@ -53,7 +53,7 @@ opening the losing lane file.
 ### 1.2 The rest
 
 | # | The disagreement | Ruling | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | R5 | Settings "Memory": delete (A) vs rename to Retention (B) | **Delete.** | Settled by reading the code, not by argument. `settings.tsx:468-500` shows the section renders one card whose heading is `Memory lives in Brain` and whose body is a link to `/brain`. It holds no setting. A nav section that exists to apologise for its own name is deleted, along with the second apology at `settings.tsx:197`. |
 | R6 | `release` agent: **Publisher** (A) vs **Herald** (C) | **Publisher.** | Stranger test. No PM says "Herald". Lang C already named it as the trade it would make first. |
 | R7 | Collective: **the crew** (A) vs **your crew** (C) | **Both, split by position.** `Crew` is the label (settings section, roster heading). `your crew` is the form inside every sentence. Never `the crew`, never `the agents`. | Label and sentence are different jobs. Possessive is warmer and is true: it is their crew. |
@@ -84,7 +84,7 @@ name for this thing, including in generated output.
 ### 2.1 Containers
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The company account everyone shares | **Workspace** | The shared account your team, your connected sources and your billing live in. | org, organization, team, tenant, account (account survives in billing only) |
 | The thing you are building | **Product** | One product inside the workspace, with its own loop, brief and repo. | project, app, initiative, workstream |
 | The whole seven-stage cycle | **the loop** | Discover, Decide, Plan, Design, Build, Ship, Learn, entered and left at any point. | pipeline, workflow, journey, lifecycle, arc, funnel, process |
@@ -93,7 +93,7 @@ name for this thing, including in generated output.
 ### 2.2 The seven stages (verbs, fixed)
 
 | # | Word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 01 | **Discover** | Connected sources are read and what changed becomes evidence you can act on. | Sense, Listen, Intake, Research, Signals as a stage name |
 | 02 | **Decide** | Ranked bets are kept or dropped, and this is the one thing the product will never do for you. | Triage, Prioritize, Judge, Queue, Review as a stage name |
 | 03 | **Plan** | A kept bet becomes a cited spec and a sequenced piece of work. | Define, Spec, Scope, Groom, Refine |
@@ -112,7 +112,7 @@ does not require seven URLs.
 ### 2.3 Work objects, in the order a user meets them
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | One piece of evidence from a source | **Signal** | One thing a source said, captured with where it came from and when. | insight, mention, item, event, datapoint, feedback |
 | Many signals saying the same thing | **Pattern** | A group of signals your crew found saying the same thing. | theme, cluster, topic, trend |
 | Something worth doing, ranked | **Bet** | A thing worth building, with an argued case, a rank and a stated risk. | opportunity, idea, candidate, initiative, item, ticket |
@@ -133,7 +133,7 @@ list, the goal gives it meaning.
 ### 2.4 The judgment vocabulary
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The thing waiting | **Call** | See 2.3. | approval, gate, decision (before you act) |
 | Saying yes | **Approve** | You accept it and your crew continues. | accept, confirm, OK, ship it, sign off, LGTM |
 | Saying not like this | **Send back** | You reject the attempt but keep the work, with a reason attached. | reject, request changes, decline, deny, needs work |
@@ -149,7 +149,7 @@ is teachable in one line. It also removes "approval" and "gate" from user copy i
 ### 2.5 The record layer
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The record of one agent action | **Receipt** | What one agent did, what it read, what it produced and what it cost. | trace, log, audit entry, event, span, proof |
 | The whole tamper-evident chain | **the record** | Everything every agent and every person did here, sealed so it cannot be quietly edited. | ledger, audit log, paper trail, chain, history |
 | Your crew's judgment on something | **Verdict** | One agent's stated call on a thing, with its confidence and its reasoning. | assessment, score, rating, opinion, take |
@@ -162,7 +162,7 @@ whole, both live in the engine room.
 ### 2.6 The always-on layers
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | What the company knows | **Brain** | Every call your team made, what it became, and what it now tells you before you decide again. | memory, knowledge, knowledge base, recall, second brain, wiki, vault, storage |
 | How the machine is running | **Engine room** | Spend, quality, safety and every receipt, in one place, for when you want to look under the hood. | Pulse, ops, observability, console, command center, cockpit, monitoring, vitals |
 | Everything the loop made | **Library** | Every finished thing the loop produced, promoted here on purpose. | artifacts, assets, files, output, deliverables |
@@ -180,7 +180,7 @@ live" is wrong even though every word is on this list.
 ### 2.7 Setup and control
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A place data comes from | **Source** | A tool you connected that your crew reads from. | integration, connector, provider, channel, feed, app |
 | The act of connecting one | **Connect** | Giving your crew read access to a source. | integrate, link, authorize, install, sync |
 | How much rope an agent has | **Autonomy** | How far an agent may go before it stops and asks you. | permissions, trust level, mode, access, freedom, blast radius |
@@ -230,7 +230,7 @@ work and left a record. Role names used as proper names get the warmth without t
 Twelve seats across the seven stages, plus one conductor with no seat.
 
 | Seat | Name | Owns this verb, exclusively | One line | DB slug (frozen) | Was called |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 01 | **Scout** | watches | Watches your connected sources and surfaces what changed. | `discovery-scout` | Watch |
 | 01 | **Researcher** | digs | Digs into one question across the web and your workspace. | `researcher` | Research |
 | 01 | **Listener** | clusters | Clusters what customers are saying into patterns. | `customer-insights` | Listen |
@@ -255,7 +255,7 @@ and a memory consolidator. In the engine room they appear as lowercase mechanism
 ### 3.3 The grammar
 
 | Rule | Right | Wrong |
-|---|---|---|
+| --- | --- | --- |
 | No article. Agent names are proper names. | `Critic flagged this bet.` | `The Critic flagged this bet.` |
 | Present continuous for live work. | `Engineer is writing the change.` | `Engineer writes the change.` |
 | Past simple for a receipt. | `Reviewer checked the diff.` | `The diff has been checked.` |
@@ -291,7 +291,7 @@ internal identifiers) · **freeze** (identifier stays, label diverges, mapping l
 ### 4.1 Destinations
 
 | From | To | Scope | Note |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `/engine-room` labelled "Pulse" | `/engine-room` labelled **Engine room** | label | Route, component directory, `ENGINE_ROOM_PATHS`, `engineRoomActive()` and the doctrine file all stay. One string changes. |
 | `/artifacts` "Artifacts" | **`/library`** "Library" | code | Migrate route, `ArtifactsSurface.tsx`, `artifacts.functions.ts` and all dialog copy. Freeze `artifact_versions`, `artifact_lineage`. One redirect for one release. |
 | `/build/$missionId` | **`/build/$runId`** | code | Param rename. |
@@ -307,7 +307,7 @@ internal identifiers) · **freeze** (identifier stays, label diverges, mapping l
 ### 4.2 Strings (verbatim current on the left)
 
 | Current string | File:line | Ship this |
-|---|---|---|
+| --- | --- | --- |
 | `"Mission running."` | `build.index.tsx:266` | `"Started. Engineer is reading the repo."` |
 | `"Mission running · 1 approval waits for you."` | `build.index.tsx:268` | `"Started. One call already waits on you."` |
 | `"Mission title (optional)"` | `build.index.tsx:372` | `"Name this run (optional)"` |
@@ -395,7 +395,7 @@ internal identifiers) · **freeze** (identifier stays, label diverges, mapping l
 The rebuild rewrites these files anyway, so the rename is free.
 
 | From | To | Kind |
-|---|---|---|
+| --- | --- | --- |
 | `src/lib/agent-vocabulary.ts` | `src/lib/crew.ts` | module |
 | `AGENT_FACES`, `AgentFace`, `AGENT_FACE_ORDER`, `agentFace()`, `agentVerb()` | **deleted** | the two-name-set fix |
 | `AgentStation` | `LoopStage` | type |
@@ -431,7 +431,7 @@ The rebuild rewrites these files anyway, so the rename is free.
 Acceptable debt. Never rendered, migration cost is real, no user can see it.
 
 | Frozen identifier | Reads as | Why acceptable |
-|---|---|---|
+| --- | --- | --- |
 | `projects` table | Product | Central to every server function and RLS policy, for zero user benefit. The confession already lives at `use-workspace.tsx:95`. Documented here so nobody "corrects" the UI back toward the schema. |
 | `missions`, `mission_steps` | Run, Step | Header row and steps. No user surface. |
 | `studio_changesets` and its three siblings | Change | The established convention froze these twice already. |
@@ -453,7 +453,7 @@ Acceptable debt. Never rendered, migration cost is real, no user can see it.
 value freezes and the label diverges, with the mapping in exactly one place:
 
 | Stored value | Label the user reads |
-|---|---|
+| --- | --- |
 | `auto` | Runs on its own |
 | `confirm` | Asks me first |
 | `review` | I check the output |
@@ -463,7 +463,7 @@ value freezes and the label diverges, with the mapping in exactly one place:
 Four items. Each leaks a dead name onto a screen.
 
 | Item | Why it must migrate | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `agents.name` seeded values in `seed_default_agents`, `seed_orchestrator_agent`, `seed_demo_workspace`, `seed_sample_workspace` | `agentDisplayName()` falls back to the DB `name` column for any slug not in the catalog. A stale seed renders directly to a user. | Re-seed all four with the section 3.2 names. |
 | Free-text rows in `announcements`, `changelog_entries`, `learnings`, `decisions.rationale`, `daily_briefs` | These render verbatim. A row saying "Cadence", "mission", "Watch" or "Challenge" is a visible ghost. | One migration sweep. Historical narrative describing what happened before a rename stays accurate; product-name references get corrected. |
 | `ACTION_LABEL` fallback | It falls through to the literal `"working"` for anything unmapped, which is a banned string. | Make the fallback total and silent: an unmapped tool renders no label, never the raw id and never "working". Add the test. |
@@ -490,7 +490,7 @@ Four items. Each leaks a dead name onto a screen.
 ### 5.2 The three tiers
 
 | Tier | Use | Budget | Article | Examples |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Primary** | The one act the screen exists for. Solid ember. One visible at a time. | 1 to 3 words | Yes when it reads as spoken English | `Start a run`, `Approve`, `Connect a repo` |
 | **Secondary** | Real alternatives to the primary act. Outlined. | 1 to 3 words | Prefer none | `Send back`, `Snooze`, `Show archived`, `Manage billing` |
 | **Quiet / link** | Reversible, low-stakes or navigational. Text only. | Up to 5 words | Yes | `Read the full brief`, `Try again`, `Open Decide` |
@@ -515,7 +515,7 @@ wearing a button (`Save draft · not yet live`), pipeline vocabulary (`Set up in
 ### 5.4 The verdict verbs, the highest-stakes labels in the product
 
 | Verdict | Button | Toast | Meaning | Reversible | Key |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | Approve | `Approve` | `Approved. <who moves now>` | Yes, proceed. | No | `a` |
 | Send back | `Send back` | `Sent back. <who has it now>` | Not as written. Return it for revision. The work survives. | Yes | `s` |
 | Decline | `Decline` | `Declined. <what stands instead>` | No, and it does not come back. | No | `d` |
@@ -537,7 +537,7 @@ codebase currently mixes the real ellipsis character (30-plus sites) with three 
 (`BillingBanner.tsx:131`, `checkout.return.tsx:36`). Both die.
 
 | Idle | Pending | Toast |
-|---|---|---|
+| --- | --- | --- |
 | `Save` | `Saving` | `Saved.` |
 | `Start a run` | `Starting` | `Started. Engineer is reading the repo.` |
 | `Delete run` | `Deleting` | `Run deleted. Its decisions stay in the Brain.` |
@@ -554,7 +554,7 @@ reader modes and loses the focus ring. `settings.tsx:834,846,854,1978` all do th
 ### 5.6 Destructive phrasing
 
 | Verb | Means | Reversible | Confirm dialog | Never use for |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `Delete` | The object is gone. | No | Yes, always | Anything recoverable |
 | `Archive` | Hidden from the default list. Restorable. | Yes | No, Undo toast | Anything that actually deletes |
 | `Remove` | Detached from this place. Exists elsewhere. | Yes | No, Undo toast | A permanent delete |
@@ -574,13 +574,13 @@ reader modes and loses the focus ring. `settings.tsx:834,846,854,1978` all do th
 what is missing. What they do. `build.index.tsx:543` is the correct existing precedent.
 
 | Control | Where the reason lives |
-|---|---|
+| --- | --- |
 | Primary CTA | Visible helper line directly beneath the button. Never tooltip-only; touch has no hover. |
 | Secondary / quiet | `title` plus `aria-describedby` pointing at a visually hidden span |
 | A row of choices | On the disabled choice itself, as a short inline note |
 
 | Reason | Template | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **Precondition unmet** | `<Do the thing> to <get the outcome>.` | `Describe the goal in a few words.` · `Approve a bet in Decide to draft a spec here.` |
 | **Permission** | `Only <role> can <verb> <object>. Ask <who> in Settings.` | `Only an owner can change the plan. Ask your workspace owner.` |
 | **Quota** | `<What is exhausted>. <The one move that fixes it>.` | `No credits left. Top up to run this.` · `This bundle exceeds your per-cycle top-up limit. Pick a smaller one.` |
@@ -653,7 +653,7 @@ The empty state is the product's first sentence to a stranger. It teaches the lo
 never apologetic, never "no results".
 
 | Surface | Now | Ship |
-|---|---|---|
+| --- | --- | --- |
 | Build, first visit | `Nothing building. Approve a spec and Engineer writes the change on an isolated branch.` (`faces.tsx:2142`) | `No runs yet.` / `Approve a spec in Plan and Engineer writes the change on its own branch.` / `[Start a run]` |
 | Brain, first visit | `No outcomes recorded yet` | `The Brain is empty.` / `It fills as you decide, ship, and record what happened. Nothing to set up.` / no action |
 
@@ -671,7 +671,7 @@ The steady state of a healthy loop, and the state the founder will look at most.
 ```
 
 | Surface | Ship |
-|---|---|
+| --- | --- |
 | Calls queue, clear | `Nothing needs you.` / `Engineer is writing the change. The next call lands here.` / meta `LAST CALL ANSWERED 2H AGO` |
 | Calls queue, nothing running | `Nothing needs you.` / `Nothing is running either.` / meta `LAST RUN FINISHED 6H AGO` |
 | Today spotlight, all quiet | see 7.3, it branches on real state |
@@ -694,7 +694,7 @@ emptiness is not absence, it is sequence.
 ```
 
 | Surface | Ship |
-|---|---|
+| --- | --- |
 | Plan, no approved bets | `No specs yet.` / `Decide owes Plan an approved bet. Keep one and Writer drafts the spec.` / `[Open Decide]` plus quiet `[Just write the spec]` |
 | Ship, nothing green | `Nothing shipped yet.` / `Publisher stages the release once a run goes green.` / `[Open Build]` |
 
@@ -716,7 +716,7 @@ filter, because that number is the whole reason the state is confusing.
 ### 6.7 Loading and refreshing
 
 | State | What renders | Copy |
-|---|---|---|
+| --- | --- | --- |
 | **loading** (first load) | Skeletons shaped like the real rows. Never a spinner, never a centered blob. | **None.** A skeleton that says "Loading" is a skeleton that failed. |
 | **loading past 6s** | Skeletons stay, one mono line appears below | `Taking longer than usual.` |
 | **loading past 15s** | Becomes the error state | `The server took too long to answer. Retry in a moment.` (the existing `withTimeout` string, now canonical) |
@@ -741,7 +741,7 @@ The state nobody writes and everybody needs.
 ```
 
 | Surface | Ship |
-|---|---|
+| --- | --- |
 | Today lanes, one failed | `3 of 4 lanes loaded.` / `Scout did not answer. Everything else is current.` / `[Retry Scout]` / meta `ERR 4F2A91` |
 | Composite review, one angle silent | `2 of 3 angles reported.` / `Risks did not come back in time. The draft and eval paths below are complete.` / `[Retry risks]` |
 
@@ -769,7 +769,7 @@ slot 1 says so: `Spend is incomplete. One source did not report.`
 4. **An error tied to a visible control renders inline next to that control, never as a toast.**
 
 | Surface | Ship |
-|---|---|
+| --- | --- |
 | Calls load failure | `Could not load the queue.` / `Your calls are safe. Nothing was answered.` / `Try again` / `ERR 7C31A0` |
 | Run detail load failure | `Could not open this run.` / `The run is still going. Its steps will be here when the page loads.` / `Try again` / `ERR 2B9F04` |
 
@@ -788,7 +788,7 @@ The highest-conversion state in the product, currently written five different wa
 ```
 
 | Surface | Ship |
-|---|---|
+| --- | --- |
 | Build, no repo | `Build needs a repo first.` / `Connect one and your crew opens pull requests against it. One click, no keys to paste.` / `[Connect a repo]` |
 | Discover, no sources | `Discover needs a source first.` / `Connect one and signals arrive on the next sweep, about ten minutes.` / `[Connect a source]` |
 
@@ -820,7 +820,7 @@ administrator".
 ```
 
 | Threshold | Line | Placement |
-|---|---|---|
+| --- | --- | --- |
 | Low (under 15% of the cycle) | `12 credits left.` / `Enough for about one more run. Top up when you want.` / `[Add credits]` | Dismissible strip, once per session |
 | Out | `No credits left.` / `Reading and answering calls still work. Your crew resumes the moment you top up.` / `[Add credits]` | Persistent strip |
 | Payment failed | `Your last renewal payment failed.` / `Your plan stays active for 7 days. Update your card to keep it.` / `[Update card]` | Persistent strip |
@@ -844,7 +844,7 @@ Two sentences, second one short, placed as helper text under the control. Never 
 in a skippable modal, never after the fact.
 
 | Where | Ship |
-|---|---|
+| --- | --- |
 | Launch note, after Ship stages a release | `Publisher drafts the launch note. You post it. Supaprod holds no publishing keys.` |
 | Stakeholder update | `Drafted and ready to send. Nothing sends itself, ever.` |
 | Build, on the PR | `Your crew opens the pull request. A human merges it.` |
@@ -859,7 +859,7 @@ Banned: `Coming soon` without a named gate. `Beta` as an excuse. `Not yet suppor
 ### 6.14 The matrix
 
 | State | Line ends in | Action | Warmth | Meta | `aria-live` |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | empty | `yet.` or a period | Yes, the create verb | No | No | off |
 | zero | period | No | Yes | Yes, a receipt | polite |
 | upstream | `yet.` | Yes, link tier | No | No | off |
@@ -879,7 +879,7 @@ Banned: `Coming soon` without a named gate. `Beta` as an excuse. `Not yet suppor
 ### 7.1 Which channel
 
 | The message is | Channel | Persists |
-|---|---|---|
+| --- | --- | --- |
 | The result of a click the screen does not already show | **Toast** | 4s |
 | The result of a click the screen **does** show changing | **Nothing.** The change is the feedback. | n/a |
 | A failure of a specific control | **Inline, beside that control** | Until resolved |
@@ -897,7 +897,7 @@ banner. The one legal exception is a toast naming a destination the user cannot 
 **`<Object or actor> <past-tense verb>. <One consequence worth knowing.>`**
 
 | Rule | Detail |
-|---|---|
+| --- | --- |
 | Tense | Past. `Saved.` never `Saving complete`. |
 | Length | 10 words total: 6 in the state sentence, 4 in the consequence. |
 | Subject | The object or the named actor, never "we". `Run deleted.` not `We deleted the run.` |
@@ -939,7 +939,7 @@ CONFIRM  The destructive verb plus the object. Never "Confirm", "Yes", "OK", or 
 ```
 
 | Ship |
-|---|
+| --- |
 | `Delete this run?` · `The run and its steps are gone. Its decisions stay in the Brain.` · `Cancel` · `Delete run` |
 | `Decline this playbook?` · `It will not be proposed again. The learnings behind it stay on the record.` · `Cancel` · `Decline playbook` |
 | `Rotate this token?` · `The old token stops working immediately. Anything using it fails until you paste the new one.` · `Cancel` · `Rotate token` |
@@ -957,7 +957,7 @@ sentence is not enough, the body sentence is wrong.
 `<Who> <did what>. <What it needs from you.>`
 
 | Kind | Subject | Body first line |
-|---|---|---|
+| --- | --- | --- |
 | A call needs judgment | `Engineer needs your call on checkout retries.` | `Approve, send back, or snooze it.` |
 | A run finished | `Run finished: guest checkout.` | `12 files changed. The pull request is open.` |
 | A run stopped | `Run stopped: guest checkout.` | `Tests failed on the second step. Nothing merged.` |
@@ -975,7 +975,7 @@ is a label and gets the plain register.
 sign-up, reset and invite accept.
 
 | Slot | Ship |
-|---|---|
+| --- | --- |
 | Tagline | `You make the calls. Your crew does the work between them.` |
 | Title | `Welcome back` (keep, it is the one correct greeting in the app) |
 | Value line, sign-in | `Your crew kept working. Sign in to see what needs you.` |
@@ -1002,7 +1002,7 @@ currently ships `All clear. The loop is running itself.` on a workspace where no
 at all. **The all-clear line branches on whether a run is actually live.**
 
 | Real state | Lead | Tail |
-|---|---|---|
+| --- | --- | --- |
 | Nothing pending, at least one run live | `All clear.` | `Engineer is on the checkout change.` (newest live actor and object, same query as the ticker) |
 | Nothing pending, nothing running, sources connected | `All clear.` | `Nothing is running. Scout reads your sources again at 2am.` (real next sweep time, or the clause is dropped) |
 | Nothing pending, nothing running, nothing connected | `Quiet.` | `Nothing is connected yet. Give your crew something to read.` |
@@ -1030,7 +1030,7 @@ in the repo.
 Four things defeat it in practice and all four are fixed here:
 
 | Defect | Evidence | Fix |
-|---|---|---|
+| --- | --- | --- |
 | The global ticker never uses it | `agents.functions.ts:114` sets `let action = "Working"`, `:131` `"Starting up"` | The ticker draws from the deck, always |
 | `stepLabel` falls back to a single word | `agent-vocabulary.ts:773-777` returns `"working"` / `"thinking"` / `"starting up"` | No generic fallback ships (8.3) |
 | `ACTION_LABEL` covers ten tool ids | `agent-vocabulary.ts:759-770` | An outcome label becomes a **required field on tool registration**, with a CI check |
@@ -1042,7 +1042,7 @@ A rotating verb deck is honest only when a named agent is genuinely doing multi-
 work. A CSV export is not thinking.
 
 | Kind of wait | Deck | What shows |
-|---|---|---|
+| --- | --- | --- |
 | An agent running a step in the loop | **Yes** | `{Actor} is {deck line}` |
 | An agent between steps, no owner yet | Bridge deck only | `handing the work to the next agent` |
 | The composer thinking about your message | Chief of Staff deck | `Chief of Staff is checking memory before starting` |
@@ -1069,7 +1069,7 @@ Rotating verbs forever imply progress that may not exist. The line escalates on 
 and stops rotating when the underlying step stops moving.
 
 | Elapsed | What shows | Rotating |
-|---|---|---|
+| --- | --- | --- |
 | 0 to 2.5s | The mark turning. No text. | n/a |
 | 2.5s to 25s | `{Actor} is {line}` | Yes |
 | 25s to 2min | plus elapsed, mono, dim: `1m 04s` | Yes |
@@ -1085,7 +1085,7 @@ unless the run contract carries a real per-step estimate. It does not today, so:
 ### 8.5 Placement and yield
 
 | Placement | Shows | Yields to |
-|---|---|---|
+| --- | --- | --- |
 | Global ticker (top bar) | Newest live actor and predicate, no object title | Anything below it on the same object |
 | Object strip | Actor, predicate, real object, elapsed | Nothing. It is the most specific. |
 | Spine / stage marker | Actor initial plus a dot. No words. | Always |
@@ -1102,7 +1102,7 @@ only in the composer and in toasts.
 ### 8.6 The plain waits, no personality ever
 
 | Situation | Ship |
-|---|---|
+| --- | --- |
 | Sign-in submit | `Signing in` |
 | OAuth redirect | `Opening Google` |
 | Export | `Preparing your export` |
@@ -1122,7 +1122,7 @@ Every primary button resolves an id from this table. The button and its receipt 
 together, never separately.
 
 | Act | Button | Helper (the consequence) | Toast (the receipt) |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Approve a call | `Approve` | `{Actor} runs it the moment you approve.` | `Approved. Engineer is running it now.` |
 | Send it back | `Send back` | `Returns it with your note. Nothing runs until it is revised.` | `Sent back. Writer has your note and is revising.` |
 | Decline for good | `Decline` | `Closes this line of work. Your reason stays on the record.` | `Declined. Your reason is on the record.` |
@@ -1166,7 +1166,7 @@ The founder's law: a 3-minute build makes no logical sense. Numbers are copy and
 scrutiny.
 
 | Rule | Effect |
-|---|---|
+| --- | --- |
 | A run-class receipt whose real elapsed is under 60 seconds shows **step count, not duration** | `Engineer wrote the change in 6 steps.` never `Engineer built it in 47 seconds.` |
 | Durations are never rounded up to look substantial, nor down to look fast | Render real elapsed, or render nothing |
 | A count of zero is stated, never hidden | `on 0 signals` renders as `with no signals behind it`, and that receipt is a warning, not a receipt |
@@ -1213,7 +1213,7 @@ This is the one place the product's whole claim is stated, and it is stated enti
 ### 9.6 Receipt anti-patterns
 
 | Anti-pattern | Why it reads as noise | Instead |
-|---|---|---|
+| --- | --- | --- |
 | Leading with the id or trace ref | The reader parses a hash before a fact | Actor first, id in the mono tail |
 | Dumping every source inline | Nine sources is a wall, not evidence | One count, one door |
 | Repeating the receipt three times on one screen | Fails the purpose test | One receipt per object per screen |
@@ -1239,7 +1239,7 @@ a named actor, and the actor is either a crew member or you.**
 ### 10.2 Person, by speaker
 
 | Speaker | Person | Where it is legal | Example |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A named crew member | Third person, named | Every working line, every receipt, every state that names who acts next | `Engineer is fixing the failing check.` |
 | You | Second person | Everything addressed to the human | `Your call. Approving starts the rollout.` |
 | Chief of Staff, in conversation only | **First person singular** | The composer and thread ONLY, where a human typed at it and expects a reply | `I read the last six weeks of tickets. Three patterns hold up.` |
@@ -1253,7 +1253,7 @@ never says `I` in a toast, a card, a header or a receipt.
 ### 10.3 Tense, by state
 
 | State | Tense | Shape | Example |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Running | Present progressive | `{Actor} is {predicate}` | `Writer is tightening the acceptance criteria` |
 | Waiting on you | Simple present, second person | `{what waits}. {why yours}. {what approving starts}` | `Engineer wants to open a pull request. Approving pushes the branch and opens it on your repo.` |
 | Finished | **Simple past** | `{Actor} {verb}ed {object}{, evidence}. {time}` | `Writer drafted the checkout spec on 9 signals. 14 minutes ago` |
@@ -1268,7 +1268,7 @@ No passive voice anywhere a human or an agent did the thing.
 ### 10.4 How the machine refers to itself
 
 | Situation | Say | Never say |
-|---|---|---|
+| --- | --- | --- |
 | One agent doing the work | `Engineer` | `the agent`, `the AI`, `Supaprod` |
 | Two agents on one object | `Writer and Critic` | `the agents`, `the swarm` |
 | Three or more | `your crew` | `the agents`, `the team`, `the fleet` |
@@ -1284,7 +1284,7 @@ takes `your`. `Supaprod` is never possessive on a user's object: `your workspace
 ### 10.5 The do / do-not table, with the live failure each rule was written against
 
 | # | Do | Do not | The live string that failed |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Name the actor first | Use a nameless machine | `Approved. The agent is unblocked.` (`today.tsx:616`) |
 | 2 | Say `you` and `your` | Say `the user`, or the person's name outside the one greeting | `How Supaprod and your agents will greet you.` (`settings.tsx:3319`) |
 | 3 | State what is true right now | Claim a standing property you cannot prove at that instant | `The loop is running itself.` (`Hero.tsx:11`) with zero runs live |
@@ -1318,7 +1318,7 @@ takes `your`. `Supaprod` is never possessive on a user's object: `your workspace
 ### 10.7 Already right. Do not touch.
 
 | File:line | String | Why it is the target |
-|---|---|---|
+| --- | --- | --- |
 | `approvals.tsx:201` | `Everything that needs you. Nothing that doesn't.` | Two sentences, a promise and its limit, zero mechanism. The high-water mark. |
 | `settings.tsx:2472-2474` | `needs review` / `asks first` / `runs alone` | Three postures in seven words, each unambiguous, none jargon |
 | `today.tsx:1401` | `{n} answered · {m} open` | Two real numbers, no shifting denominator, correct middot use |
@@ -1369,7 +1369,7 @@ class of "the chip says 12M AGO and the row says 11m ago" drift.
 ### 11.2 Relative time
 
 | Delta from now | Output | Note |
-|---|---|---|
+| --- | --- | --- |
 | Future by more than 2 minutes | the `until()` forms | A "created" field in the future is clock skew, not the future |
 | Future by up to 2 minutes, on a past-event field | `just now` | Never render a negative |
 | 0 to 44 seconds | `just now` | **Seconds are never shown in a relative time.** |
@@ -1393,7 +1393,7 @@ If a surface cannot tick, it uses `absDate` instead.
 ### 11.3 Absolute dates and clocks
 
 | Case | Format | Example |
-|---|---|---|
+| --- | --- | --- |
 | Date, current year | `MMM d` | `Jul 21` |
 | Date, other year | `MMM d, yyyy` | `Jul 21, 2025` |
 | Date with time | `MMM d, HH:mm` | `Jul 21, 14:20` |
@@ -1414,7 +1414,7 @@ column that also uses dates; pick one form per column.
 ### 11.4 Durations
 
 | Length | Format | Example |
-|---|---|---|
+| --- | --- | --- |
 | Under 60s | `<n>s` | `48s` |
 | 1m to 59m | `<n>m` | `12m` |
 | 1h to 23h | `<n>h <n>m`, second unit dropped when zero | `1h 20m`, `2h` |
@@ -1431,7 +1431,7 @@ in section 9.3 governs what is withheld.
 second form. The 25-plus inline ternaries and the two local `plural` consts all go.
 
 | n | Output | Rule |
-|---|---|---|
+| --- | --- | --- |
 | 0 | **A sentence, not a number.** | Zero is a state and the state block owns it. Never `0 specs`, never `No specs (0)`. |
 | 1 | `1 spec` | Digit, not the word, in any string that also shows other counts |
 | 1, alone in prose | `One call is waiting.` | The word, when it is the only number in a prose sentence |
@@ -1527,7 +1527,7 @@ copy, because nobody speaks in semicolons; use two sentences or a middot.
 ### 12.2 What this file overrides
 
 | Document | What is overridden |
-|---|---|
+| --- | --- |
 | `docs/conventions/ui-voice.md` | Button budget replaced by the three tiers (5.2); toast budget tightened from 12 to 10 words split 6+4; empty-state budget replaced by the four-slot anatomy with a 2-sentence prose cap; "lightly playful in safe places" replaced by the warmth-everywhere / playfulness-in-two-places split (R8). Length budgets for H1 and subhead, the buzzword denylist, sentence case and the confirm pattern all stand and are extended, never reversed. |
 | `docs/conventions/humanized-output.md` | Nothing reversed. Extended with the ellipsis ban, the semicolon ban, and the narrowing that "our nouns" means the nouns on the surface the reader is standing on, not the nouns in the schema. The Tier 2 relaxation for internal docs stands for docs but is suspended for the rebuild's UI strings: every authored string is Tier 1 from the first keystroke. |
 | `src/lib/agent-vocabulary.ts` header, "THE VOICE GRAMMAR (PC-28)" | The D-family claim (Discover, Decide, Define, Design): "Define" is deleted. The claim that the catalog "is the single source of truth and the one growable axis" is overridden by the crew cap of thirteen. |
@@ -1541,7 +1541,7 @@ copy, because nobody speaks in semicolons; use two sentences or a middot.
 ### 12.3 Lint rules to wire (extends `scripts/check-humanized.sh`)
 
 | Rule | Check | Blocks |
-|---|---|---|
+| --- | --- | --- |
 | `no-ellipsis` | any `...` or `\.\.\.` in a UI string | yes |
 | `no-dashes` | em dash, en dash, invisible Unicode | yes |
 | `no-raw-date-format` | `toLocaleDateString` / `toLocaleTimeString` / `Intl.DateTimeFormat` outside `src/lib/format/` | yes |
@@ -1562,7 +1562,7 @@ copy, because nobody speaks in semicolons; use two sentences or a middot.
 ## 13. WHAT SHIPS AS CODE
 
 | Path | Contents |
-|---|---|
+| --- | --- |
 | `src/lib/crew.ts` | The thirteen display names from 3.2, keyed by frozen slug, plus `LOOP_STAGES`, `crewAtStage()`, `machinery()`. The single source; nothing hardcodes an agent name in a string. |
 | `src/lib/voice/decks.ts` | `mission-vocabulary.ts` carried over unchanged, plus the bridge deck as the level-5 fallback and a `drawWorkingLine` that **cannot return a generic word**. |
 | `src/lib/voice/actions.ts` | The 9.1 table as `ActionSpec { id, button, helper, toast }`. Primary buttons take an `action` id, never a raw label. |

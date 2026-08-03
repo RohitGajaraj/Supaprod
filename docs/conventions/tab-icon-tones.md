@@ -16,13 +16,13 @@ Tabbed surfaces (Observe, Governance, and any future grouped page) get a small c
 
 Pick the closest semantic tone; do not invent new ones without updating this doc.
 
-| Tone    | Use for                                                             |
-| ------- | ------------------------------------------------------------------- |
-| violet  | Control / orchestration / primary action surface (Controls, Traces) |
-| emerald | Approvals / success / human-in-the-loop                             |
-| sky     | Analytics / data / read-only insight (Analytics, Guardrails)        |
-| amber   | Risk / drift / spend caps (Drift, Budgets)                          |
-| rose    | Destructive / halted / blocked states                               |
+| Tone | Use for |
+| --- | --- |
+| violet | Control / orchestration / primary action surface (Controls, Traces) |
+| emerald | Approvals / success / human-in-the-loop |
+| sky | Analytics / data / read-only insight (Analytics, Guardrails) |
+| amber | Risk / drift / spend caps (Drift, Budgets) |
+| rose | Destructive / halted / blocked states |
 
 ## Where it's applied
 

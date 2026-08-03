@@ -17,7 +17,7 @@ It is written to the standing rule that **a claim never outruns the wiring**. Ev
 tagged:
 
 | Tag | Meaning |
-|---|---|
+| --- | --- |
 | **EXISTS** | Working in the tree today. I read it. |
 | **WIRE** | Both ends exist; nothing connects them. Small, high-leverage. |
 | **BUILD** | Genuinely new code. |
@@ -93,7 +93,7 @@ share a write path.
 The real defect is that the **Ask surface uses a different one**:
 
 | Surface | Server fn | Sets `escalation_state` | Records `human_gate_events` | Captures `decision_reason` |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `/approvals`, Mission Control thread | `resolveApproval` (`governance.functions.ts:384`) | ✅ `resolved` | ❌ **never** | ✅ |
 | Ask canvas (`ask-canvas.tsx`) | `decideApproval` (`agent_loop.functions.ts:74`) | ❌ leaves `pending` | ✅ `recordGateSignalCore` | ❌ no param |
 
@@ -265,7 +265,7 @@ canvas column takes a `?canvas=` search param so any state is a shareable deep l
 ### 2.2 What survives from the current work
 
 | Keep | Where it goes |
-|---|---|
+| --- | --- |
 | `useAskStream` (`src/hooks/use-ask-stream.ts`) | The conversation's engine, unchanged in shape, extended in §3 |
 | `parseSseLine` (`src/lib/ask-sse.ts`) | Extended additively; contract preserved (§3.1) |
 | `ask-canvas.tsx` blocks | Ported out of `obsidian/` into `src/components/converse/`, un-truncated |
@@ -401,7 +401,7 @@ export function legibleArgs(toolName: string, args: unknown): LegibleArg[];
 Worked examples, drawn from the four tools that actually pause a run:
 
 | Tool | What the card shows |
-|---|---|
+| --- | --- |
 | `studio.pr.open` | `repo` · `branch` · `N files` · the touch-list from `studio_changesets.allowed_paths` |
 | `studio.pr.merge` | `PR #123` · `into main` · `CI green (4 checks)` · **`Cannot be undone`** |
 | `studio.commit` | `N files` · the paths, capped at 5 with `+N more` · `message` |
@@ -637,7 +637,7 @@ Grep-enforceable: `agent_approvals` + `.update({ status:` should return exactly 
 ### 4.3 The two surfaces
 
 | | The conversation (inline) | `/approvals` (the queue) |
-|---|---|---|
+| --- | --- | --- |
 | **Question it answers** | "This turn produced a gate. Decide it without leaving." | "What is waiting on me across everything?" |
 | **Scope** | Gates whose `run_id` belongs to this thread's runs | Workspace-wide, all 10 families |
 | **Shows** | Full args, the why-chain, the streak, three verbs | Grouped by project, j/k navigation, filter tabs, batch |
@@ -746,7 +746,7 @@ const emit = async (kind: RunEventKind, payload: unknown, approvalId?: string) =
 Call sites, all inside the existing `for (let i = s.startStep; ...)` loop:
 
 | Where | Emit |
-|---|---|
+| --- | --- |
 | after `resolveModelAction` returns a `thought` | `emit("thought", { text })` |
 | before the mode check, `loop.server.ts:1132` | `emit("tool_proposed", { name, args, reason })` |
 | the approval insert, `:1136-1160` | `emit("gate_opened", {...}, appr.id)` |
@@ -859,7 +859,7 @@ time."` (`_authenticated.approvals.tsx:40`). The second is a promise the product
 The gate card gets **three verbs**, not two:
 
 | Verb | What it does |
-|---|---|
+| --- | --- |
 | **Approve** | `decideGate({ decision: "approved" })` → `executeApproval` → receipt |
 | **Deny** | `decideGate({ decision: "rejected", reason })` - reason optional but prompted once |
 | **Change something** | `decideGate({ decision: "rejected", steer })` - the steer is required |
@@ -966,7 +966,7 @@ export function explainToolMode(
 Copy per cause - plain, first person, never the mechanism:
 
 | Cause | What the card says |
-|---|---|
+| --- | --- |
 | `review_pinned` | "This one always comes to you. It ships code, and that decision stays yours." |
 | `risk_floor` | "This writes outside Supaprod, so it sits above the automatic line no matter how much I've earned." |
 | `arc_dial` | "I'm still proving myself on this workspace. Everything I do comes to you until that changes." |
@@ -1025,7 +1025,7 @@ copy is "Build runs on its own · tighten", not "Build: trusted ✓".
 Against tables that exist. Nothing here waits on the AFD initiative (§1.5).
 
 | Question | Source |
-|---|---|
+| --- | --- |
 | Does Ask actually act, or only talk? | `ai_events` where `surface='chat'`, joined to `missions` on `surface_ref` → conversation → `messages.mission_id`. The ratio of mission-class turns to chat turns is the headline number for this whole rebuild. |
 | Do people decide inline or bounce to the queue? | `human_gate_events` needs a `surface` column - **BUILD**, one nullable text column, set by `decideGate` from a new caller-supplied `surface: "conversation" \| "queue" \| "build"`. Without it this question is unanswerable. |
 | Time from gate opened to gate decided | `agent_approvals.created_at → decided_at`. `listGovernApprovals` already computes the median (`governance.functions.ts:288-294`); surface it per-surface once the column above lands. |
@@ -1045,7 +1045,7 @@ Each step is independently shippable and independently verifiable. Steps 1-4 imp
 surface without touching it; step 5 is the surface change.
 
 | # | Work | Tag | Files | Gate |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 | Restore `conv` to the checkpoint; rehydrate `steps` from `run_events`; add the regression test | **FIX** | `ai/loop.server.ts:827,1409`, `ai/loop.server.test.ts:193` | A run checkpointed at step 3 resumes with its conversation intact |
 | 2 | `run_events` table + `emit()` at the 8 loop call sites + the 90-day prune hook | **BUILD** | migration, `ai/loop.server.ts` | A completed run has a readable narrative in `run_events` |
 | 3 | One decide path: `decideGate`; rewire all three callers; add `human_gate_events.surface` | **FIX** | `governance.functions.ts:384`, `agent_loop.functions.ts:74`, `approvals-queue.functions.ts:723` | Every gate decision writes a `human_gate_events` row, from every surface |
@@ -1097,7 +1097,7 @@ including every failure path.
 Everything asserted above was read this session. Load-bearing anchors:
 
 | Claim | Where I verified it |
-|---|---|
+| --- | --- |
 | `chat.ts` fires the loop and closes the stream | `src/routes/api/chat.ts:552-651` |
 | The SSE parser dispatches on key presence, unknown keys ignored | `src/lib/ask-sse.ts:28-53` |
 | `AskPanel` and its canvas are unmounted | `src/routes/_authenticated.tsx:201-208` |

@@ -83,17 +83,17 @@ OBS-01  tokens+fonts ──▶ OBS-02  shell ──▶ OBS-03  primitives ──
 
 ### 5.1 Surfaces (depth from tint, never shadow)
 
-| Token                 | Value                    | Use                                            |
-| --------------------- | ------------------------ | ---------------------------------------------- |
-| `--canvas`            | `#0A0A0B`                | page background                                |
-| `--rail`              | `#0D0D0F`                | sidebar                                        |
-| `--card`              | `#111113`                | default card                                   |
-| `--surface-card-deep` | `#0E0E10`                | alternating rows, CallCard base                |
-| `--raised`            | `#17171A`                | raised surface, table header, secondary button |
-| `--hover`             | `#1D1D21`                | hover fill, avatar chip                        |
-| `--hairline`          | `rgba(255,255,255,0.07)` | replaces shadows                               |
-| `--hairline-strong`   | `rgba(255,255,255,0.09)` | slide-over / raised edges                      |
-| `--hairline-faint`    | `rgba(255,255,255,0.05)` | faint dividers                                 |
+| Token | Value | Use |
+| --- | --- | --- |
+| `--canvas` | `#0A0A0B` | page background |
+| `--rail` | `#0D0D0F` | sidebar |
+| `--card` | `#111113` | default card |
+| `--surface-card-deep` | `#0E0E10` | alternating rows, CallCard base |
+| `--raised` | `#17171A` | raised surface, table header, secondary button |
+| `--hover` | `#1D1D21` | hover fill, avatar chip |
+| `--hairline` | `rgba(255,255,255,0.07)` | replaces shadows |
+| `--hairline-strong` | `rgba(255,255,255,0.09)` | slide-over / raised edges |
+| `--hairline-faint` | `rgba(255,255,255,0.05)` | faint dividers |
 
 Glass (slide-overs, hover cards): backdrop blur 20, 8% white hairline.
 
@@ -119,13 +119,13 @@ Spend/cost: `--tangerine #F97316` · `--marigold-data #E8A33D` · `--melon #FF94
 
 ### 5.5 Type
 
-| Token           | Value                                              | Voice                                                                                             |
-| --------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `--font-serif`  | `"Newsreader", ui-serif, Georgia, serif`           | display, heroes, spec bodies, ICE scores. 400-470. **One italic emotional word per screen, max.** |
-| `--font-ui`     | `"Schibsted Grotesk", ui-sans-serif, system-ui`    | ALL UI. 13px base, 1.55 line height, 600 headings.                                                |
-| `--font-mono`   | `"JetBrains Mono", ui-monospace, "SF Mono", Menlo` | metadata. 9.5-10px caps, 0.10-0.12em tracking, middot `·` separators.                             |
-| `--font-dotted` | `"Codystar", cursive`                              | dotted-matrix numerals on **aurora score cards only**.                                            |
-| `--font-pencil` | `"Caveat", cursive`                                | **pencil annotations only.**                                                                      |
+| Token | Value | Voice |
+| --- | --- | --- |
+| `--font-serif` | `"Newsreader", ui-serif, Georgia, serif` | display, heroes, spec bodies, ICE scores. 400-470. **One italic emotional word per screen, max.** |
+| `--font-ui` | `"Schibsted Grotesk", ui-sans-serif, system-ui` | ALL UI. 13px base, 1.55 line height, 600 headings. |
+| `--font-mono` | `"JetBrains Mono", ui-monospace, "SF Mono", Menlo` | metadata. 9.5-10px caps, 0.10-0.12em tracking, middot `·` separators. |
+| `--font-dotted` | `"Codystar", cursive` | dotted-matrix numerals on **aurora score cards only**. |
+| `--font-pencil` | `"Caveat", cursive` | **pencil annotations only.** |
 
 Scale: `--text-hero 34px` (Newsreader 420-440, -0.015em, 1.15) · `--text-h2 28px` · `--text-card-title 20px` (Newsreader 450-460, 1.3) · `--text-score 52px` (Codystar) · `--text-base 13px` (1.55) · `--text-sm 12px` · `--text-helper 11.5px` · `--text-mono-label 9.5px` · `--text-mono-micro 8.5px`. Never Inter, Roboto, or Fraunces.
 
@@ -193,16 +193,16 @@ Focus 2px glacier outline offset 2 (`:focus-visible`). Selection ember 28%. **Al
 
 **Features NEVER add nav items.** The rail is fixed at five outcome-named destinations, mono-indexed:
 
-| Index | Destination           | What it is                                                                                                                        | Ported by |
-| ----- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 01    | **Today**             | the ritual - Call queue, what changed, machine status, the loop strip                                                             | OBS-04    |
-| 02    | **Discover**          | signal feed + ICE-ranked opportunities, Critic verdict inline, Challenge as first-class                                           | OBS-06    |
-| 03    | **Plan**              | cited specs (serif body) + outcome-declared roadmap (Now/Next/Later, each bet with its measure)                                   | OBS-07    |
-| 04    | **Build**             | ONE cockpit for all missions - numbered steps, live pulses, inline gate, trace, cost                                              | OBS-05    |
-| 05    | **Brain**             | decisions with outcome verdicts, learnings with what-they-moved, belief graph, exportable record                                  | OBS-08    |
-| -     | **Ask** (⌘J)          | context-aware AI panel over any screen - **a panel, never a destination**                                                         | OBS-12    |
-| door  | **Engine Room** (`g`) | one door → health summary → four rooms (Spend, Quality, Safety, Record). **Approvals never live here** (they are Calls on Today). | OBS-09    |
-| -     | **Settings**          | four panes (You · Workspace · Connections · Plan) + role-gated Admin door                                                         | OBS-13    |
+| Index | Destination | What it is | Ported by |
+| --- | --- | --- | --- |
+| 01 | **Today** | the ritual - Call queue, what changed, machine status, the loop strip | OBS-04 |
+| 02 | **Discover** | signal feed + ICE-ranked opportunities, Critic verdict inline, Challenge as first-class | OBS-06 |
+| 03 | **Plan** | cited specs (serif body) + outcome-declared roadmap (Now/Next/Later, each bet with its measure) | OBS-07 |
+| 04 | **Build** | ONE cockpit for all missions - numbered steps, live pulses, inline gate, trace, cost | OBS-05 |
+| 05 | **Brain** | decisions with outcome verdicts, learnings with what-they-moved, belief graph, exportable record | OBS-08 |
+| - | **Ask** (⌘J) | context-aware AI panel over any screen - **a panel, never a destination** | OBS-12 |
+| door | **Engine Room** (`g`) | one door → health summary → four rooms (Spend, Quality, Safety, Record). **Approvals never live here** (they are Calls on Today). | OBS-09 |
+| - | **Settings** | four panes (You · Workspace · Connections · Plan) + role-gated Admin door | OBS-13 |
 
 ---
 
@@ -224,23 +224,23 @@ Focus 2px glacier outline offset 2 (`:focus-visible`). Selection ember 28%. **Al
 
 ## 8. The per-item index
 
-| ID     | Rank | Tier | Depends on        | What it delivers                                                                                                                      | Spec                       |
-| ------ | ---- | ---- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| OBS-01 | #2   | 1    | -                 | Tokens + fonts foundation (`[data-obsidian]` layer, 5 fonts, 8 keyframes, density attr)                                               | [`OBS-01.md`](./OBS-01.md) |
-| OBS-02 | #3   | 1    | 01                | App shell (236px mono-index rail, no icons, top bar, keyboard map)                                                                    | [`OBS-02.md`](./OBS-02.md) |
-| OBS-03 | #4   | 1    | 02                | Core primitives (Button, StatusDot, VerdictChip, MonoLabel, Toast, SlideOver, CallCard, MissionRow, AuroraCard, Citation, PencilNote) | [`OBS-03.md`](./OBS-03.md) |
-| OBS-04 | #5   | 1    | 03                | Today ported (hero, Call queue, what-changed, loop strip, Loop Health aurora)                                                         | [`OBS-04.md`](./OBS-04.md) |
-| OBS-05 | #6   | 1    | 03                | Build ported (mission rows + slide-over, inline gate, trace, `?mission=`)                                                             | [`OBS-05.md`](./OBS-05.md) |
-| OBS-06 | #7   | 1    | 03                | Discover ported (signal feed + ICE opportunity rows, Challenge, one pencil)                                                           | [`OBS-06.md`](./OBS-06.md) |
-| OBS-07 | #8   | 1    | 03                | Plan ported (cited spec list + Now/Next/Later roadmap, commit ceremony)                                                               | [`OBS-07.md`](./OBS-07.md) |
-| OBS-08 | #9   | 1    | 03                | Brain ported (stat trio + export, decisions, learnings, belief graph)                                                                 | [`OBS-08.md`](./OBS-08.md) |
-| OBS-09 | #10  | 1    | 03                | Engine Room ported (health + 2×2 rooms + room-detail pattern + connection strip)                                                      | [`OBS-09.md`](./OBS-09.md) |
-| OBS-10 | #11  | 1    | 04-09             | IA consolidation (all routes → 5 destinations + one door; redirects)                                                                  | [`OBS-10.md`](./OBS-10.md) |
-| OBS-11 | #12  | 2    | 10                | ⌘K palette + capability catalog (glass panel, JUMP·ACT·ASK·CATALOG)                                                                   | [`OBS-11.md`](./OBS-11.md) |
-| OBS-12 | #13  | 2    | 10                | Ask (⌘J) summonable AI panel                                                                                                          | [`OBS-12.md`](./OBS-12.md) |
-| OBS-13 | #14  | 2    | 10                | Settings four panes + role-gated Admin door                                                                                           | [`OBS-13.md`](./OBS-13.md) |
-| OBS-14 | #15  | 2    | 10, 04, demo seed | Onboarding golden path                                                                                                                | [`OBS-14.md`](./OBS-14.md) |
-| OBS-15 | #16  | 2    | 05/08/09          | Chart grammar adoption (incl. the pencil layer)                                                                                       | [`OBS-15.md`](./OBS-15.md) |
+| ID | Rank | Tier | Depends on | What it delivers | Spec |
+| --- | --- | --- | --- | --- | --- |
+| OBS-01 | #2 | 1 | - | Tokens + fonts foundation (`[data-obsidian]` layer, 5 fonts, 8 keyframes, density attr) | [`OBS-01.md`](./OBS-01.md) |
+| OBS-02 | #3 | 1 | 01 | App shell (236px mono-index rail, no icons, top bar, keyboard map) | [`OBS-02.md`](./OBS-02.md) |
+| OBS-03 | #4 | 1 | 02 | Core primitives (Button, StatusDot, VerdictChip, MonoLabel, Toast, SlideOver, CallCard, MissionRow, AuroraCard, Citation, PencilNote) | [`OBS-03.md`](./OBS-03.md) |
+| OBS-04 | #5 | 1 | 03 | Today ported (hero, Call queue, what-changed, loop strip, Loop Health aurora) | [`OBS-04.md`](./OBS-04.md) |
+| OBS-05 | #6 | 1 | 03 | Build ported (mission rows + slide-over, inline gate, trace, `?mission=`) | [`OBS-05.md`](./OBS-05.md) |
+| OBS-06 | #7 | 1 | 03 | Discover ported (signal feed + ICE opportunity rows, Challenge, one pencil) | [`OBS-06.md`](./OBS-06.md) |
+| OBS-07 | #8 | 1 | 03 | Plan ported (cited spec list + Now/Next/Later roadmap, commit ceremony) | [`OBS-07.md`](./OBS-07.md) |
+| OBS-08 | #9 | 1 | 03 | Brain ported (stat trio + export, decisions, learnings, belief graph) | [`OBS-08.md`](./OBS-08.md) |
+| OBS-09 | #10 | 1 | 03 | Engine Room ported (health + 2×2 rooms + room-detail pattern + connection strip) | [`OBS-09.md`](./OBS-09.md) |
+| OBS-10 | #11 | 1 | 04-09 | IA consolidation (all routes → 5 destinations + one door; redirects) | [`OBS-10.md`](./OBS-10.md) |
+| OBS-11 | #12 | 2 | 10 | ⌘K palette + capability catalog (glass panel, JUMP·ACT·ASK·CATALOG) | [`OBS-11.md`](./OBS-11.md) |
+| OBS-12 | #13 | 2 | 10 | Ask (⌘J) summonable AI panel | [`OBS-12.md`](./OBS-12.md) |
+| OBS-13 | #14 | 2 | 10 | Settings four panes + role-gated Admin door | [`OBS-13.md`](./OBS-13.md) |
+| OBS-14 | #15 | 2 | 10, 04, demo seed | Onboarding golden path | [`OBS-14.md`](./OBS-14.md) |
+| OBS-15 | #16 | 2 | 05/08/09 | Chart grammar adoption (incl. the pencil layer) | [`OBS-15.md`](./OBS-15.md) |
 
 ---
 

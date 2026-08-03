@@ -80,7 +80,7 @@ Before today the driver dispatched **one** agent per station, so 7 of 13 active 
 and six never ran at all. Three seats were then genuinely missing and were created:
 
 | Seat | Station | Why it had to exist |
-|---|---|---|
+| --- | --- | --- |
 | `design-critic` | Design | The only station with nobody reading the work back |
 | `release-verifier` | Ship | Nothing checked readiness before the one irreversible station; a person was the only check, which is the gate doing policy's job |
 | `insight-keeper` | Learn | Measure graded one outcome and nothing carried the grade forward. A station that only writes a `learnings` row is storage, and the brain is not storage |
@@ -126,7 +126,7 @@ backfill. `tools/defaults.test.ts` fails the build if you add one without the ot
 ### Three ceilings, and why the middle one had to exist
 
 | Layer | Bounds | Default |
-|---|---|---|
+| --- | --- | --- |
 | Run / mission | one dispatch, or one mission's runs | $10, fail-closed |
 | **Track** | one piece of work end to end | **$5** |
 | Workspace / day | everything | operator-set |
@@ -177,8 +177,8 @@ because a person cannot tell the inventions from the facts.
 
 ## What this cost, measured
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | One agent run | ~$0.03 |
 | Full track pass | ~16 runs, ~$0.50 |
 | Same with every station retried to the ceiling | ~$1.50 |
@@ -186,7 +186,7 @@ because a person cannot tell the inventions from the facts.
 ## Guards that keep it from regressing
 
 | Test | Fails the build when |
-|---|---|
+| --- | --- |
 | `tools/defaults.test.ts` | a registered tool has no platform default |
 | `spine/agent-roster-seed.test.ts` | a catalog agent has no roster row |
 | `spine/driver.test.ts` | an active agent is in no crew, or a station drops below a maker and a reader |

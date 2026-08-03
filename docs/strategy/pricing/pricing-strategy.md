@@ -69,23 +69,23 @@ Presentation follows the metric: the pricing page and the in-app meter lead with
 
 The database, Stripe, and all RLS checks key on slugs. Display names are a skin over the slug, changeable with a one-file edit and no migration.
 
-| Slug         | Display name | Who it is for                                                               |
-| ------------ | ------------ | --------------------------------------------------------------------------- |
-| `free`       | Free         | Solo PM or indie trying the loop. Enough to feel the aha.                   |
-| `pro`        | Pro          | Power individual who needs persistent memory + the full loop.               |
-| `team`       | Business     | Team whose decisions need shared memory, approval lanes, and admin control. |
-| `enterprise` | Enterprise   | Org with governance, compliance, SSO, and negotiated pricing needs.         |
+| Slug | Display name | Who it is for |
+| --- | --- | --- |
+| `free` | Free | Solo PM or indie trying the loop. Enough to feel the aha. |
+| `pro` | Pro | Power individual who needs persistent memory + the full loop. |
+| `team` | Business | Team whose decisions need shared memory, approval lanes, and admin control. |
+| `enterprise` | Enterprise | Org with governance, compliance, SSO, and negotiated pricing needs. |
 
 > Note: the `max` slug remains valid in the database (existing data) but is NOT a public pricing tier. The Pro credit dropdown covers the persona that Max was designed for. No migration needed; `max` stays as a backward-compat slug.
 
 ### Base prices (placeholder values; set final numbers in Stripe and Admin console)
 
-| Tier       | Monthly price (base)         | Annual price (base)                | Included credits |
-| ---------- | ---------------------------- | ---------------------------------- | ---------------- |
-| Free       | $0                           | $0                                 | 50 credits/mo    |
-| Pro        | $20/mo                       | $17/mo (billed annually, ~17% off) | 100 credits/mo   |
-| Business   | $50/mo                       | $42/mo (billed annually, ~17% off) | 100 credits/mo   |
-| Enterprise | Platform fee (contact sales) | Negotiated                         | Custom           |
+| Tier | Monthly price (base) | Annual price (base) | Included credits |
+| --- | --- | --- | --- |
+| Free | $0 | $0 | 50 credits/mo |
+| Pro | $20/mo | $17/mo (billed annually, ~17% off) | 100 credits/mo |
+| Business | $50/mo | $42/mo (billed annually, ~17% off) | 100 credits/mo |
+| Enterprise | Platform fee (contact sales) | Negotiated | Custom |
 
 Annual toggle shows a "Save X%" nudge on the Pro and Business cards only. Free and Enterprise do not have annual toggles.
 
@@ -94,18 +94,18 @@ Annual toggle shows a "Save X%" nudge on the Pro and Business cards only. Free a
 Same ladder for both tiers. Price per rung is the per-tier base price multiplied linearly by the credit ratio (no volume discount):
 
 | Credits/mo | Pro monthly price | Business monthly price |
-| ---------- | ----------------- | ---------------------- |
-| 100 (base) | $20               | $50                    |
-| 200        | $40               | $100                   |
-| 400        | $80               | $200                   |
-| 800        | $160              | $400                   |
-| 1,200      | $240              | $600                   |
-| 2,000      | $400              | $1,000                 |
-| 3,000      | $600              | $1,500                 |
-| 4,000      | $800              | $2,000                 |
-| 5,000      | $1,000            | $2,500                 |
-| 7,500      | $1,500            | $3,750                 |
-| 10,000     | $2,000            | $5,000                 |
+| --- | --- | --- |
+| 100 (base) | $20 | $50 |
+| 200 | $40 | $100 |
+| 400 | $80 | $200 |
+| 800 | $160 | $400 |
+| 1,200 | $240 | $600 |
+| 2,000 | $400 | $1,000 |
+| 3,000 | $600 | $1,500 |
+| 4,000 | $800 | $2,000 |
+| 5,000 | $1,000 | $2,500 |
+| 7,500 | $1,500 | $3,750 |
+| 10,000 | $2,000 | $5,000 |
 
 > **These are placeholder linear prices; the actual values are set in Stripe by the founder and flow through the admin pricing catalog (`pricing_bundles` table). The table above records the model, not the final numbers.**
 
@@ -121,12 +121,12 @@ The matrix is organized by value dimension, not just credits and workspace limit
 
 Memory is why someone pays. It is the primary charge lever and the lock-in mechanism. A user's decisions, outcomes, and "was I right?" loop are the moat. Memory limits are the clearest upgrade signal because the user FEELS the decay.
 
-| Dimension                            | Free                                                                                  | Pro                                       | Business                                   | Enterprise                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------ | -------------------------------------------- |
-| Memory persistence                   | 30-day rolling decay                                                                  | Persistent, never expires                 | Persistent, never expires                  | Persistent, custom retention                 |
-| Cross-workspace recall               | No                                                                                    | Within your own workspaces (paid benefit) | Pooled across all team members' workspaces | Org-wide, cross-workspace                    |
-| Decision Brain (supersession engine) | Critic teardown included (capped by the credit allowance — see 2026-07-10 note below) | Yes (Critic red-teams every PRD + bet)    | Yes + custom Critic profiles               | Yes + approved-model lists + custom profiles |
-| Trust Ledger history                 | 30 days (mirrors memory)                                                              | Full persistent history                   | Full persistent history                    | Full + compliance-grade export + legal hold  |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Memory persistence | 30-day rolling decay | Persistent, never expires | Persistent, never expires | Persistent, custom retention |
+| Cross-workspace recall | No | Within your own workspaces (paid benefit) | Pooled across all team members' workspaces | Org-wide, cross-workspace |
+| Decision Brain (supersession engine) | Critic teardown included (capped by the credit allowance — see 2026-07-10 note below) | Yes (Critic red-teams every PRD + bet) | Yes + custom Critic profiles | Yes + approved-model lists + custom profiles |
+| Trust Ledger history | 30 days (mirrors memory) | Full persistent history | Full persistent history | Full + compliance-grade export + legal hold |
 
 > **2026-07-10 research merge — the Critic teardown moves INTO Free (supersedes the old "No" in the cell above and §7.1's old first sentence; authority: [`session-decisions.md`](../session-decisions.md) 2026-07-10 decision 7).** The teardown IS the first-ten-minutes wedge ([`moat.md`](../moat.md); v13 PC-02), and a wedge behind a paywall is not a wedge — this resolves the pricing-strategy-§7.1-vs-moat.md contradiction surfaced by [`../references/pm-voice-and-ai-tooling-research.md`](../../references/pm-voice-and-ai-tooling-research.md) §16.2.1. It is an entitlement flip, not a new meter: Free's existing credit allowance already caps usage, and **memory decay stays the Free→Pro lever** (§5/§6 unchanged in that role). Fits because the product's first undeniable receipt — a red-teamed bet with checkable evidence — must land in the wedge persona's first session: the $28K bakeoff's survivors won by being narrow and evidence-grounded in minutes (research §2), and the founder's overwhelm bar makes a first-session receipt launch-gating (research §10). Pro keeps Critic-everywhere depth; Business keeps custom profiles; Enterprise keeps approved-model lists.
 
@@ -134,14 +134,14 @@ Memory is why someone pays. It is the primary charge lever and the lock-in mecha
 
 This is what "credits" actually buy: the amount of autonomous loop execution the user gets per month. More credits = more missions run autonomously, more Critic passes, more research cycles.
 
-| Dimension                  | Free             | Pro                                 | Business                                  | Enterprise                                  |
-| -------------------------- | ---------------- | ----------------------------------- | ----------------------------------------- | ------------------------------------------- |
-| Monthly AI credits         | 50 (starter aha) | 100-10,000 (dropdown)               | 100-10,000 (dropdown, pooled across team) | Custom (committed pool or API-rate metered) |
-| Parallel missions          | Limited (2)      | More (5)                            | Team-level (based on seat count and pool) | Custom                                      |
-| Agent loop depth           | 3 steps max      | 6 steps (full)                      | 6 steps + approval gates                  | 6 steps + custom gates                      |
-| Credit top-ups             | Not available    | Capped fair-use top-ups             | Capped fair-use top-ups                   | Custom volume / postpaid                    |
-| Rollover                   | No               | No                                  | No                                        | Negotiated                                  |
-| Billing frequency discount | N/A              | Monthly or Annual (~17% off annual) | Monthly or Annual (~17% off annual)       | N/A (negotiated)                            |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Monthly AI credits | 50 (starter aha) | 100-10,000 (dropdown) | 100-10,000 (dropdown, pooled across team) | Custom (committed pool or API-rate metered) |
+| Parallel missions | Limited (2) | More (5) | Team-level (based on seat count and pool) | Custom |
+| Agent loop depth | 3 steps max | 6 steps (full) | 6 steps + approval gates | 6 steps + custom gates |
+| Credit top-ups | Not available | Capped fair-use top-ups | Capped fair-use top-ups | Custom volume / postpaid |
+| Rollover | No | No | No | Negotiated |
+| Billing frequency discount | N/A | Monthly or Annual (~17% off annual) | Monthly or Annual (~17% off annual) | N/A (negotiated) |
 
 ### 3.3 Research and Signal Ingestion (the Sense layer)
 
@@ -152,12 +152,12 @@ How much context the loop can pull from the outside world — and how far it can
 
 **Connector tier definitions (enforced at the server credential chokepoint — `resolve.server.ts`):**
 
-| Tier       | Connector access                                                                                                                                                                                                                             |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Free       | Manual input only. No live connectors.                                                                                                                                                                                                       |
-| Pro        | Read connectors — pull signals in (GitHub issues/PRs, Linear cycles, Notion pages, Jira tickets). No write-back.                                                                                                                             |
-| Business   | Read + Write connectors — read signals in AND push decisions back (create GitHub issues from PRDs, update Linear/Jira ticket status, write Supaprod decisions to Notion pages). Team-shared sources (one GitHub OAuth covers the whole team). |
-| Enterprise | Custom connectors + connector development. Full API rates. Dedicated pipelines.                                                                                                                                                              |
+| Tier | Connector access |
+| --- | --- |
+| Free | Manual input only. No live connectors. |
+| Pro | Read connectors — pull signals in (GitHub issues/PRs, Linear cycles, Notion pages, Jira tickets). No write-back. |
+| Business | Read + Write connectors — read signals in AND push decisions back (create GitHub issues from PRDs, update Linear/Jira ticket status, write Supaprod decisions to Notion pages). Team-shared sources (one GitHub OAuth covers the whole team). |
+| Enterprise | Custom connectors + connector development. Full API rates. Dedicated pipelines. |
 
 **Why read-only on Pro:** a solo PM who pulls signals in gets enormous value. They can see their GitHub repo health, their Linear backlog health, their Notion docs. That is the aha moment. But write-back is a TEAM operation — creating a GitHub issue from a PRD should be reviewed before it lands in the repo. Governance belongs to Business. This creates a clear, felt upgrade reason even before a second seat is added.
 
@@ -165,76 +165,76 @@ How much context the loop can pull from the outside world — and how far it can
 
 **Per-connector capability map:**
 
-| Provider          | Reads in (Pro+)                   | Writes out (Business+)                                 |
-| ----------------- | --------------------------------- | ------------------------------------------------------ |
-| GitHub            | Issues, PRs, commits, repo health | Create issues from PRDs; auto-close on ship            |
-| Linear            | Cycles, issues, project status    | Create/update issues; link PRDs to cycles              |
-| Jira              | Tickets, sprints, epic health     | Create tickets; transition status from agent decisions |
-| Notion            | Pages, databases, docs            | Write decision records; update PRD status              |
-| Google Docs       | Documents as signal source        | Write Supaprod summaries to docs                        |
-| Figma             | Design files (reference only)     | N/A (read-only by nature)                              |
-| Google Calendar   | Meeting events for context        | N/A (read-only)                                        |
-| Microsoft Outlook | Meeting events for context        | N/A (read-only)                                        |
+| Provider | Reads in (Pro+) | Writes out (Business+) |
+| --- | --- | --- |
+| GitHub | Issues, PRs, commits, repo health | Create issues from PRDs; auto-close on ship |
+| Linear | Cycles, issues, project status | Create/update issues; link PRDs to cycles |
+| Jira | Tickets, sprints, epic health | Create tickets; transition status from agent decisions |
+| Notion | Pages, databases, docs | Write decision records; update PRD status |
+| Google Docs | Documents as signal source | Write Supaprod summaries to docs |
+| Figma | Design files (reference only) | N/A (read-only by nature) |
+| Google Calendar | Meeting events for context | N/A (read-only) |
+| Microsoft Outlook | Meeting events for context | N/A (read-only) |
 
 **Implementation:** `connectorTier: 'none' | 'read' | 'read_write' | 'custom'` field in `Entitlements`. The enforcement chokepoint is `assertConnectorCapability(planTier, capability)` in `entitlements.ts`, called in every server function that triggers an outflow operation.
 
-| Dimension                               | Free                | Pro                               | Business                        | Enterprise                 |
-| --------------------------------------- | ------------------- | --------------------------------- | ------------------------------- | -------------------------- |
-| Connector tier                          | None (manual input) | Read (inflow only)                | Read + Write (inflow + outflow) | Custom + write-back        |
-| Max connectors                          | 0 live              | Unlimited (read-only)             | Unlimited (read + write)        | Unlimited + bespoke        |
-| Write-back to GitHub/Linear/Jira/Notion | No                  | No                                | Yes                             | Yes                        |
-| Team-shared connector pool              | No                  | No (personal per-user OAuth)      | Yes (one OAuth covers team)     | Yes + dedicated pipelines  |
-| Ambient signal ingestion                | Manual              | Auto (sense-tick on your account) | Auto + team-shared sources      | Auto + dedicated pipelines |
-| Custom connector development            | No                  | No                                | No                              | Yes                        |
-| Web research                            | Basic               | Full                              | Full                            | Full                       |
-| Research depth (concurrent agents)      | 1                   | 3                                 | 5+                              | Custom                     |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Connector tier | None (manual input) | Read (inflow only) | Read + Write (inflow + outflow) | Custom + write-back |
+| Max connectors | 0 live | Unlimited (read-only) | Unlimited (read + write) | Unlimited + bespoke |
+| Write-back to GitHub/Linear/Jira/Notion | No | No | Yes | Yes |
+| Team-shared connector pool | No | No (personal per-user OAuth) | Yes (one OAuth covers team) | Yes + dedicated pipelines |
+| Ambient signal ingestion | Manual | Auto (sense-tick on your account) | Auto + team-shared sources | Auto + dedicated pipelines |
+| Custom connector development | No | No | No | Yes |
+| Web research | Basic | Full | Full | Full |
+| Research depth (concurrent agents) | 1 | 3 | 5+ | Custom |
 
 ### 3.4 Collaboration and Governance (the team layer)
 
 The sharpest Pro-to-Business differentiator. This is not about seats as a number — it is about shared accountability for what the agents decide and do.
 
-| Dimension                    | Free     | Pro           | Business                                  | Enterprise                       |
-| ---------------------------- | -------- | ------------- | ----------------------------------------- | -------------------------------- |
-| Seats                        | 1 (solo) | 1 (solo)      | Many                                      | Many (per-seat billed)           |
-| Roles (RBAC)                 | No       | No            | Owner / Admin / Member / Viewer           | Full + custom role definitions   |
-| Approval lanes               | No       | No            | Yes (per-role gating for agent actions)   | Yes + custom gate policies       |
-| Shared playbook library      | No       | Personal only | Team-shared (everyone can access and run) | Org-wide                         |
-| Per-user credit spend limits | No       | No            | Yes (admin sets via `credit_caps`)        | Yes + org-level spend limits     |
-| Team-wide agent audit trail  | No       | No            | Yes                                       | Yes + compliance export          |
-| Workspace guardrails         | Personal | Personal      | Workspace-level (admin sets)              | Org-level + approved-model lists |
-| Centralized billing          | No       | No            | Yes                                       | Yes                              |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Seats | 1 (solo) | 1 (solo) | Many | Many (per-seat billed) |
+| Roles (RBAC) | No | No | Owner / Admin / Member / Viewer | Full + custom role definitions |
+| Approval lanes | No | No | Yes (per-role gating for agent actions) | Yes + custom gate policies |
+| Shared playbook library | No | Personal only | Team-shared (everyone can access and run) | Org-wide |
+| Per-user credit spend limits | No | No | Yes (admin sets via `credit_caps`) | Yes + org-level spend limits |
+| Team-wide agent audit trail | No | No | Yes | Yes + compliance export |
+| Workspace guardrails | Personal | Personal | Workspace-level (admin sets) | Org-level + approved-model lists |
+| Centralized billing | No | No | Yes | Yes |
 
 ### 3.5 Workspace and Product Organization
 
 These are upgrade signals, but they are secondary to memory and governance. The workspace and product limits exist to create a natural feel of "I've outgrown this tier," not to punish users.
 
-| Dimension                    | Free | Pro                    | Business                 | Enterprise |
-| ---------------------------- | ---- | ---------------------- | ------------------------ | ---------- |
-| Workspaces                   | 1    | Pooled (no hard limit) | Pooled                   | Custom     |
-| Products (projects)          | 2    | 3                      | Generous (no hard limit) | Custom     |
-| Connectors per product       | 1    | Unlimited              | Unlimited                | Unlimited  |
-| Custom workspace brief/voice | No   | Yes                    | Yes                      | Yes        |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Workspaces | 1 | Pooled (no hard limit) | Pooled | Custom |
+| Products (projects) | 2 | 3 | Generous (no hard limit) | Custom |
+| Connectors per product | 1 | Unlimited | Unlimited | Unlimited |
+| Custom workspace brief/voice | No | Yes | Yes | Yes |
 
 ### 3.6 Support and SLA
 
-| Dimension         | Free       | Pro                       | Business                     | Enterprise                     |
-| ----------------- | ---------- | ------------------------- | ---------------------------- | ------------------------------ |
-| Support channel   | Community  | Email (next-business-day) | Chat (same-business-day SLA) | Dedicated CSM + named contacts |
-| Incident response | Community  | Best effort               | Priority                     | 24/7                           |
-| Onboarding        | Self-serve | Self-serve                | Onboarding session           | Custom                         |
-| SLA               | No         | No                        | Yes                          | Signed SLA                     |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Support channel | Community | Email (next-business-day) | Chat (same-business-day SLA) | Dedicated CSM + named contacts |
+| Incident response | Community | Best effort | Priority | 24/7 |
+| Onboarding | Self-serve | Self-serve | Onboarding session | Custom |
+| SLA | No | No | Yes | Signed SLA |
 
 ### 3.7 Privacy, Security, and Compliance
 
-| Dimension                    | Free                   | Pro                    | Business             | Enterprise               |
-| ---------------------------- | ---------------------- | ---------------------- | -------------------- | ------------------------ |
+| Dimension | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
 | No model training on content | Default Supaprod policy | Default Supaprod policy | Explicitly confirmed | Contractually guaranteed |
-| SSO                          | No                     | No                     | No                   | Yes (SAML/OIDC)          |
-| SCIM provisioning            | No                     | No                     | No                   | Yes                      |
-| Data residency               | No                     | No                     | No                   | Custom                   |
-| DPA / BAA                    | No                     | No                     | No                   | Yes                      |
-| Audit export                 | No                     | No                     | Full (last 90 days)  | Full + custom retention  |
-| HIPAA-ready                  | No                     | No                     | No                   | Offering available       |
+| SSO | No | No | No | Yes (SAML/OIDC) |
+| SCIM provisioning | No | No | No | Yes |
+| Data residency | No | No | No | Custom |
+| DPA / BAA | No | No | No | Yes |
+| Audit export | No | No | Full (last 90 days) | Full + custom retention |
+| HIPAA-ready | No | No | No | Offering available |
 
 ---
 
@@ -412,18 +412,18 @@ Enterprise (Cosmos slug) is not a self-serve tier. The contact-sales path is del
 
 This section maps the strategy to the build items. Full per-file specs live in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2.
 
-| What                                                                   | File                                          | Change                                                                                                                                                                              |
-| ---------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Drop Max from public pricing; rename Team → "Business" in presentation | `src/lib/entitlements.ts`                     | `planPresentation("team")` display name → "Business"; `planPresentation("max")` marked internal/deprecated; add `creditAmount?` param so price line updates dynamically             |
-| Credit dropdown tiers + linear pricing                                 | `src/lib/billing-tier.ts`                     | Add `CREDIT_DROPDOWN_TIERS` constant + `priceForCredits(tier, credits, interval)` — the pricing table mapping (tier, credits, interval) to dollars; annual discount factor constant |
-| Variant-aware checkout                                                 | `src/lib/payments.functions.ts`               | `CheckoutInput` adds `credits` field; `createCheckoutSession` routes to the right Stripe lookup key via `lookupKeyFor`                                                              |
-| Store credit tier on account                                           | `src/routes/api/public/payments/webhook.ts`   | Parse credits from lookup key via `creditsFromLookupKey`; store on account for grant calculation                                                                                    |
-| 4-tier pricing page with dropdown                                      | `src/routes/pricing.tsx`                      | Full redesign: 4-column layout, credit dropdown on Pro + Business, annual/monthly toggle per card with % savings nudge, "includes everything in X, plus:" feature lists             |
-| In-app billing tab with credit dropdown                                | `src/routes/_authenticated.settings.tsx`      | BillingTab: credit dropdown for upgrade, "Current plan" tag, annual toggle                                                                                                          |
-| Monthly grant reflects selected credits                                | `src/lib/credits.functions.ts`                | `monthlyGrantCredits(tier, creditAmount)` resolves from account's stored credit tier                                                                                                |
-| Enterprise admin allocation surface                                    | `src/lib/credits.functions.ts` + new admin UI | Per-user credit allocation write path on `credit_caps` member scope; org spend limit                                                                                                |
-| DB: no new tier schema needed                                          | —                                             | `max` slug stays valid; `team` slug is "Business" in presentation. No migration for this change.                                                                                    |
-| DB: enterprise per-user allocation                                     | Migration                                     | If needed: new `enterprise_seat_allocation` table, or reuse `credit_caps` (WM-M14)                                                                                                  |
+| What | File | Change |
+| --- | --- | --- |
+| Drop Max from public pricing; rename Team → "Business" in presentation | `src/lib/entitlements.ts` | `planPresentation("team")` display name → "Business"; `planPresentation("max")` marked internal/deprecated; add `creditAmount?` param so price line updates dynamically |
+| Credit dropdown tiers + linear pricing | `src/lib/billing-tier.ts` | Add `CREDIT_DROPDOWN_TIERS` constant + `priceForCredits(tier, credits, interval)` — the pricing table mapping (tier, credits, interval) to dollars; annual discount factor constant |
+| Variant-aware checkout | `src/lib/payments.functions.ts` | `CheckoutInput` adds `credits` field; `createCheckoutSession` routes to the right Stripe lookup key via `lookupKeyFor` |
+| Store credit tier on account | `src/routes/api/public/payments/webhook.ts` | Parse credits from lookup key via `creditsFromLookupKey`; store on account for grant calculation |
+| 4-tier pricing page with dropdown | `src/routes/pricing.tsx` | Full redesign: 4-column layout, credit dropdown on Pro + Business, annual/monthly toggle per card with % savings nudge, "includes everything in X, plus:" feature lists |
+| In-app billing tab with credit dropdown | `src/routes/_authenticated.settings.tsx` | BillingTab: credit dropdown for upgrade, "Current plan" tag, annual toggle |
+| Monthly grant reflects selected credits | `src/lib/credits.functions.ts` | `monthlyGrantCredits(tier, creditAmount)` resolves from account's stored credit tier |
+| Enterprise admin allocation surface | `src/lib/credits.functions.ts` + new admin UI | Per-user credit allocation write path on `credit_caps` member scope; org spend limit |
+| DB: no new tier schema needed | — | `max` slug stays valid; `team` slug is "Business" in presentation. No migration for this change. |
+| DB: enterprise per-user allocation | Migration | If needed: new `enterprise_seat_allocation` table, or reuse `credit_caps` (WM-M14) |
 
 ---
 

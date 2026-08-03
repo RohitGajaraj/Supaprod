@@ -6,30 +6,30 @@ Registrar + DNS: Cloudflare (both `supaprod.ai` and `supaprod.com`, same account
 
 ## Domains — live status
 
-| Hostname          | Purpose                          | Points to                     | Status                       |
-| ------------------ | --------------------------------- | ------------------------------ | ------------------------------ |
-| `supaprod.ai`      | Canonical app domain               | Lovable (Supaprod app)          | Live                          |
-| `www.supaprod.ai`  | `www` alias                        | Lovable (Supaprod app)          | Live — 302-redirects to `supaprod.ai` (Lovable's "primary domain" toggle, already set); no code change needed here |
-| `supaprod.com`     | Secondary TLD, redirects to `.ai`  | Cloudflare Redirect Rule (301) | Live — verified path + query string preserved |
+| Hostname | Purpose | Points to | Status |
+| --- | --- | --- | --- |
+| `supaprod.ai` | Canonical app domain | Lovable (Supaprod app) | Live |
+| `www.supaprod.ai` | `www` alias | Lovable (Supaprod app) | Live — 302-redirects to `supaprod.ai` (Lovable's "primary domain" toggle, already set); no code change needed here |
+| `supaprod.com` | Secondary TLD, redirects to `.ai` | Cloudflare Redirect Rule (301) | Live — verified path + query string preserved |
 
 ## Email — live addresses
 
 All currently route to the same personal inbox (`rohit.gajaraj@gmail.com`) — reasonable at single-founder stage. Splitting any one of these to a different inbox or teammate later is purely additive; it doesn't require touching the others.
 
-| Address              | Purpose                          | Why it exists / when to use it                                                                                                   | Status |
-| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| `*@supaprod.ai` (catch-all) | Safety net                    | Anything not explicitly listed below still reaches the founder instead of silently bouncing. Configured as Email Routing's dedicated catch-all toggle, not a custom address. | Active |
-| `hello@supaprod.ai`   | General public contact             | The default address to put on the site, in outreach signatures, on "join the beta" confirmations. Catches press/partnership/general inbound until volume justifies a split. | Active |
-| `founder@supaprod.ai` | Personal / high-trust line         | 1:1 conversations that benefit from feeling personal — YC follow-ups, warm intros, early beta relationships worth nurturing directly. | Active |
-| `security@supaprod.ai`| Security disclosure contact        | Matches the public `/security` page already in the app nav. Expected to exist by anyone doing diligence (YC partners, an enterprise beta prospect, a security researcher). | Active |
-| `sales@supaprod.ai`   | Enterprise plan inquiries           | Already the live destination on 3 in-app "Contact sales" `mailto:` links — see Open items below, they currently point at the wrong domain. | Active |
-| `privacy@supaprod.ai` | GDPR / data-subject requests        | Satisfies GDPR Art. 13/14's expectation of a named privacy contact for access/export/delete requests. Referenced (once the open item below lands) from `/privacy` and `/security`. | Active |
-| `investors@supaprod.ai` | Investor inbound                  | Added ahead of the YC application push. | Active |
+| Address | Purpose | Why it exists / when to use it | Status |
+| --- | --- | --- | --- |
+| `*@supaprod.ai` (catch-all) | Safety net | Anything not explicitly listed below still reaches the founder instead of silently bouncing. Configured as Email Routing's dedicated catch-all toggle, not a custom address. | Active |
+| `hello@supaprod.ai` | General public contact | The default address to put on the site, in outreach signatures, on "join the beta" confirmations. Catches press/partnership/general inbound until volume justifies a split. | Active |
+| `founder@supaprod.ai` | Personal / high-trust line | 1:1 conversations that benefit from feeling personal — YC follow-ups, warm intros, early beta relationships worth nurturing directly. | Active |
+| `security@supaprod.ai` | Security disclosure contact | Matches the public `/security` page already in the app nav. Expected to exist by anyone doing diligence (YC partners, an enterprise beta prospect, a security researcher). | Active |
+| `sales@supaprod.ai` | Enterprise plan inquiries | Already the live destination on 3 in-app "Contact sales" `mailto:` links — see Open items below, they currently point at the wrong domain. | Active |
+| `privacy@supaprod.ai` | GDPR / data-subject requests | Satisfies GDPR Art. 13/14's expectation of a named privacy contact for access/export/delete requests. Referenced (once the open item below lands) from `/privacy` and `/security`. | Active |
+| `investors@supaprod.ai` | Investor inbound | Added ahead of the YC application push. | Active |
 
 ## Email authentication (SPF / DMARC)
 
 | Record | Value | Status |
-| -------- | ------- | -------- |
+| --- | --- | --- |
 | SPF (`supaprod.ai` TXT) | `v=spf1 include:_spf.mx.cloudflare.net ~all` | Live — auto-added by Cloudflare Email Routing |
 | DMARC (`_dmarc.supaprod.ai` TXT) | `v=DMARC1; p=none; rua=mailto:94e9e0462e5e497ab702ed5b139249db@dmarc-reports.cloudflare.net,mailto:privacy@supaprod.ai` | Live — added 2026-07-17 via Cloudflare API, then enhanced via Cloudflare's DMARC Management tool (added its own reporting mailbox alongside `privacy@supaprod.ai`, enabling the report dashboard at Email → DMARC Management) |
 | DKIM (`cf2024-1._domainkey.supaprod.ai` TXT) | Cloudflare-managed signing key | Live — auto-created by Email Routing, no action taken |
@@ -38,13 +38,13 @@ DMARC is set to `p=none` (monitor-only): it collects aggregate reports (both to 
 
 ## Not created yet — deliberately deferred
 
-| Address / item              | Why it's deferred                                                                                      | Revisit when…                              |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `support@`                    | Folds into `hello@` for now — splitting a support queue before there's real beta support volume is premature. | Beta support volume actually needs its own queue. |
-| `press@`                      | No dedicated press pipeline yet; the catch-all covers anyone who guesses it.                                | A real press pipeline starts.                |
-| `noreply@` / `notifications@` | Only meaningful once transactional email is wired (see below) — not a routing concern today.                | Transactional email ships.                    |
+| Address / item | Why it's deferred | Revisit when… |
+| --- | --- | --- |
+| `support@` | Folds into `hello@` for now — splitting a support queue before there's real beta support volume is premature. | Beta support volume actually needs its own queue. |
+| `press@` | No dedicated press pipeline yet; the catch-all covers anyone who guesses it. | A real press pipeline starts. |
+| `noreply@` / `notifications@` | Only meaningful once transactional email is wired (see below) — not a routing concern today. | Transactional email ships. |
 | Transactional/system email (magic links, signup confirms, product notifications) | Currently sent through Supabase Auth's default mailer, not this domain — generic sender, fine for beta-scale testing. Founder call 2026-07-17: not needed yet, revisit later. | Real user volume makes deliverability/branding matter. Needs a provider (Resend/Postmark) wired via Supabase Auth → SMTP Settings, plus its own SPF/DKIM records on `supaprod.ai`. |
-| Cold-outreach warm-up domain   | **Separate initiative, do not conflate with this doc.** See `docs/Growth Strategy/07-gtm-ground-truth.md` item #7. Cold-email tools (Instantly etc.) conventionally warm up a variant/lookalike domain, not the primary brand domain, so a deliverability problem there can't take down `supaprod.ai`'s reputation. | GTM checklist item #7 gets picked up. |
+| Cold-outreach warm-up domain | **Separate initiative, do not conflate with this doc.** See `docs/Growth Strategy/07-gtm-ground-truth.md` item #7. Cold-email tools (Instantly etc.) conventionally warm up a variant/lookalike domain, not the primary brand domain, so a deliverability problem there can't take down `supaprod.ai`'s reputation. | GTM checklist item #7 gets picked up. |
 
 ## How it was set up
 

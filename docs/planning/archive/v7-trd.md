@@ -136,15 +136,15 @@ Each requirement is **What / Why / Where in code / Acceptance criteria** with a 
 
 ## Status summary
 
-| Req                                              | Milestone | Status                      |
-| ------------------------------------------------ | --------- | --------------------------- |
-| B.1 `humanizeText()` runtime sanitizer           | M-B       | Missing/Planned             |
-| B.2 Orchestrator slug-bug fix                    | M-0       | Missing/Planned (fix first) |
-| B.3 Migration-sync + KI-13 owned apply/verify    | M-0       | Partial                     |
-| B.4 Connector activation (OAuth + 1 live ingest) | M-0 / M-A | Partial                     |
-| B.5 Ambient-default on-ramp                      | M-A       | Partial                     |
-| B.6 Dual-user MCP server + public API            | M-D       | Missing/Planned             |
-| B.7 Pre-commit trace hook                        | M-B       | Missing/Planned             |
+| Req | Milestone | Status |
+| --- | --- | --- |
+| B.1 `humanizeText()` runtime sanitizer | M-B | Missing/Planned |
+| B.2 Orchestrator slug-bug fix | M-0 | Missing/Planned (fix first) |
+| B.3 Migration-sync + KI-13 owned apply/verify | M-0 | Partial |
+| B.4 Connector activation (OAuth + 1 live ingest) | M-0 / M-A | Partial |
+| B.5 Ambient-default on-ramp | M-A | Partial |
+| B.6 Dual-user MCP server + public API | M-D | Missing/Planned |
+| B.7 Pre-commit trace hook | M-B | Missing/Planned |
 
 The engine underneath every one of these is real (Part A is code-verified): the deterministic auto-advance loop, the memory_refs threading, outcome-to-memory recall, bounded retry, adaptive budgets, the unattended-execution audit, the decision card, and the gauntlet metrics. The seven requirements are the last mile, and per the market read in the canon the last mile is the moat.
 

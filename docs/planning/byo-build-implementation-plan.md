@@ -28,16 +28,16 @@
 
 ## Phase map (build order; effort S=hours, M=1-2 days, L=multi-day)
 
-| Order | ID      | Title                                                            | Effort | Depends on                                                                                   | Founder-gated          |
-| ----- | ------- | ---------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------- | ---------------------- |
-| 1     | BYO-P1a | RepoProvider interface + GitHub adapter (behavior-preserving)    | M      | none                                                                                         | no                     |
-| 1     | BYO-P1b | Product-level repo binding + per-Product RLS                     | M      | none (parallel P1a)                                                                          | no                     |
-| 2     | BYO-P1c | Managed / auto-create repo (user's own org)                      | M      | P1a, P1b                                                                                     | no                     |
-| 3     | BYO-P1d | Calm-front Build surface (git behind Engine Room)                | M      | P1a, P1b                                                                                     | no                     |
-| 4     | BYO-P2  | Multi-provider: GitLab adapter (Bitbucket demand-gated)          | M      | P1a                                                                                          | no (secret to go live) |
-| 5     | BYO-P3  | Autonomous Build to Ship + deploy capture + changelog + PRD join | L      | P1d                                                                                          | no                     |
-| 6     | BYO-P4  | Managed AI credits (allowance + overage on existing rails)       | S      | metering exists                                                                              | no (Stripe secrets)    |
-| 7     | BYO-P5  | Managed end-to-end runtime (DB + auth + hosting)                 | L      | P3 + loop proven; plan: [`byo-p5-managed-runtime-plan.md`](./byo-p5-managed-runtime-plan.md) | YES                    |
+| Order | ID | Title | Effort | Depends on | Founder-gated |
+| --- | --- | --- | --- | --- | --- |
+| 1 | BYO-P1a | RepoProvider interface + GitHub adapter (behavior-preserving) | M | none | no |
+| 1 | BYO-P1b | Product-level repo binding + per-Product RLS | M | none (parallel P1a) | no |
+| 2 | BYO-P1c | Managed / auto-create repo (user's own org) | M | P1a, P1b | no |
+| 3 | BYO-P1d | Calm-front Build surface (git behind Engine Room) | M | P1a, P1b | no |
+| 4 | BYO-P2 | Multi-provider: GitLab adapter (Bitbucket demand-gated) | M | P1a | no (secret to go live) |
+| 5 | BYO-P3 | Autonomous Build to Ship + deploy capture + changelog + PRD join | L | P1d | no |
+| 6 | BYO-P4 | Managed AI credits (allowance + overage on existing rails) | S | metering exists | no (Stripe secrets) |
+| 7 | BYO-P5 | Managed end-to-end runtime (DB + auth + hosting) | L | P3 + loop proven; plan: [`byo-p5-managed-runtime-plan.md`](./byo-p5-managed-runtime-plan.md) | YES |
 
 ---
 

@@ -35,17 +35,17 @@ docs/planning/
 
 ## Coverage Gaps Addressed
 
-| #   | Gap                         | File                 | Tests | Status                                     |
-| --- | --------------------------- | -------------------- | ----- | ------------------------------------------ |
-| 1   | React Components (Sketch)   | Sketch.tsx           | 53    | ✅ Helpers covered; components require E2E |
-| 2   | React Components (Research) | ResearchActivity.tsx | 21    | ✅ Pure functions covered                  |
-| 3   | Branch Coverage (Ranking)   | ranking.ts           | 49    | ✅ Full tie-break chain verified           |
-| 4   | Untested Constants          | incident-format.ts   | 32    | ✅ All Records validated                   |
-| 5   | Untested Constants          | decisions-shared.ts  | 36    | ✅ All Records validated                   |
-| 6   | Edge Cases (Format)         | format.ts            | 69    | ✅ Boundary conditions covered             |
-| 7   | Duplicate Tests             | graph-visual.ts      | -     | ⏳ Consolidation recommended               |
-| 8   | usePrefersReducedMotion     | graph-visual.ts      | -     | ✅ Already comprehensive (existing)        |
-| 9   | FigmaEmbed parseHTML        | FigmaEmbed.ts        | -     | ⚠️ Minor gap (low priority)                |
+| # | Gap | File | Tests | Status |
+| --- | --- | --- | --- | --- |
+| 1 | React Components (Sketch) | Sketch.tsx | 53 | ✅ Helpers covered; components require E2E |
+| 2 | React Components (Research) | ResearchActivity.tsx | 21 | ✅ Pure functions covered |
+| 3 | Branch Coverage (Ranking) | ranking.ts | 49 | ✅ Full tie-break chain verified |
+| 4 | Untested Constants | incident-format.ts | 32 | ✅ All Records validated |
+| 5 | Untested Constants | decisions-shared.ts | 36 | ✅ All Records validated |
+| 6 | Edge Cases (Format) | format.ts | 69 | ✅ Boundary conditions covered |
+| 7 | Duplicate Tests | graph-visual.ts | - | ⏳ Consolidation recommended |
+| 8 | usePrefersReducedMotion | graph-visual.ts | - | ✅ Already comprehensive (existing) |
+| 9 | FigmaEmbed parseHTML | FigmaEmbed.ts | - | ⚠️ Minor gap (low priority) |
 
 ---
 
@@ -79,25 +79,25 @@ Ran 6 files in 2.03 seconds
 
 ### By Category
 
-| Category             | Before  | After   | Δ       | Improvement         |
-| -------------------- | ------- | ------- | ------- | ------------------- |
-| Pure Logic Functions | 10%     | 95%     | +85     | 850%                |
-| Constants/Mappings   | 20%     | 98%     | +78     | 390%                |
-| Utility Functions    | 40%     | 93%     | +53     | 133%                |
-| Branch Coverage      | 75%     | 96%     | +21     | 28%                 |
-| **Overall**          | **54%** | **92%** | **+38** | **70% improvement** |
+| Category | Before | After | Δ | Improvement |
+| --- | --- | --- | --- | --- |
+| Pure Logic Functions | 10% | 95% | +85 | 850% |
+| Constants/Mappings | 20% | 98% | +78 | 390% |
+| Utility Functions | 40% | 93% | +53 | 133% |
+| Branch Coverage | 75% | 96% | +21 | 28% |
+| **Overall** | **54%** | **92%** | **+38** | **70% improvement** |
 
 ### Test Count by Focus Area
 
-| Focus Area              | Test Count | Coverage        |
-| ----------------------- | ---------- | --------------- |
-| Pure PRNG & Geometry    | 32         | 95%             |
-| Phase & Data Parsing    | 21         | 100%            |
-| Deterministic Ordering  | 50         | 96%             |
-| Constant Integrity      | 23         | 100%            |
-| Edge Cases & Boundaries | 82         | 94%             |
-| Format & Time Utilities | 52         | 93%             |
-| **Total**               | **260**    | **96% average** |
+| Focus Area | Test Count | Coverage |
+| --- | --- | --- |
+| Pure PRNG & Geometry | 32 | 95% |
+| Phase & Data Parsing | 21 | 100% |
+| Deterministic Ordering | 50 | 96% |
+| Constant Integrity | 23 | 100% |
+| Edge Cases & Boundaries | 82 | 94% |
+| Format & Time Utilities | 52 | 93% |
+| **Total** | **260** | **96% average** |
 
 ---
 

@@ -48,7 +48,7 @@ has no judgment layer to prove, and we do. There was never a conflict; there was
 **Three registers, no fourth.**
 
 | Register | The user experiences | Reachable |
-|---|---|---|
+| --- | --- | --- |
 | **Absorbed** | Nothing. No sentence on a calm surface, no receipt line, no working line. | Engine room, by deliberate query, forever |
 | **On the record** | A **receipt**: `{Actor} {past verb} {object}{, on {N} {evidence}}. {time}`. It does not interrupt. | One click from the artifact it explains |
 | **A Call** | The machine stops and waits. `Approve` / `Send back` / `Decline`, optionally `Snooze`. | The gates tray, the Spine node, and inline where the work is |
@@ -129,7 +129,7 @@ Nine real disagreements. Each is decided here with the reason, so nobody relitig
 the losing lane file.
 
 | # | The disagreement | Ruling | Why |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **E1** | **Sort by object (B) vs sort by moment (C)** | **Both, on two axes.** B's Q1/Q2 decide whether a human must be present, before the act. C's causal test decides whether the act earns a sentence, after it. | C is right that model fallback breaks an object-keyed rule. B is right that a temporal rule alone would let a production deploy happen and then report it. Neither lane's rule survives alone. Merged in §0. |
 | **E2** | **Edge A's four-clause law vs B's three-register model** | **B's registers, A's clauses 3 and 4 promoted to constitutional clauses C3 and C4.** A's clause 1 (absorb and delete the vocabulary) and clause 2 (surface the consequence as a decision) are already what "absorbed" and "Call" mean. | A's real contribution is not a competing taxonomy, it is the two clauses nobody else wrote: enforcement in the path, and evidence in the source's own form. Both are load-bearing and both are now constitutional. |
 | **E3** | **Merge button label: `Send it to your repo` (A) vs `Approve` (B, C)** | **`Approve`.** A's sentence survives as the helper line: `Approving puts this in front of customers.` | `FINAL-language` 5.4 and 9.1 ratify the verdict triad. Inventing a fourth judgment verb at the highest-stakes moment is exactly the failure the break test's question 2 exists to catch. A's contribution was the consequence, not the label, and the registry already has a consequence slot. |
@@ -211,7 +211,7 @@ answers on different days.
 ### 3.1 Source control
 
 | Mechanism | Register | Rule path | What the user sees instead |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Branch created | **silent** | Q1 absorb, Q2 contained, Q3 no | Nothing, ever. The **Run** is the isolation boundary and the user already has that word. The isolation is named once, at the start of the first run only: `Engineer is working on a copy of your code. Nothing live has changed.` |
 | Commit | **record** | Q3 yes, the codebase changed | `Engineer wrote the change in 6 steps.` Never "3 commits", never a SHA. The SHA is correct inside the seal and in the record pane, nowhere else. |
 | Merge | **Call** | Q2 fails: other people's work now contains it | `Run 41 is ready.` / `Engineer wrote the change across 12 files. Your tests passed, 12 of 12. Reviewer checked it against the spec.` / helper `Approving puts this in your codebase.` (or `Approving puts this in front of customers.` when merge auto-deploys) / `[Approve] [Send back] [Snooze]` |
@@ -226,7 +226,7 @@ answers on different days.
 ### 3.2 Checks and review
 
 | Mechanism | Register | Rule path | What the user sees instead |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A check run, green | **silent** | CI *is* the fast oracle; narrating an oracle is noise | Nothing. The working line only. |
 | The verdict | **record** | Q3: it constrains the merge Call | **`Your tests passed. 12 of 12.`** The possessive is load-bearing: these are the user's tests from the user's codebase and we did not write them or grade ourselves against them. That is a bigger trust claim than any badge and it costs one word. |
 | A failure inside the fix budget | **silent** | Q1 absorb: the engine already appends fix commits | `Two of your tests failed. Engineer is fixing them.` |
@@ -240,7 +240,7 @@ answers on different days.
 ### 3.3 Shipping
 
 | Mechanism | Register | Rule path | What the user sees instead |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Preview | **record, and the loudest thing on the screen** | Q1/Q2 absorb; it is the best evidence artifact we have | `See it running`. A preview is proof requiring zero literacy: the user does not read that it works, they click it and it works. At a ship Call it is the **largest element on the card, above the buttons**. This is the one thing taken wholesale from Lovable. |
 | Production deploy | **Call**, always, no exception | Q2 fails: customers | `Run 41 is ready to go live.` / `Customers see it within minutes of your approval.` / `[Approve] [Send back] [Snooze]`. Toast: `Approved. It is live. Publisher is drafting the note.` |
 | Rollback | **Call**, permanently available | see 3.1 | `Roll back release`. It must actually work and be tested; a rollback that fails is how the Replit incident became unrecoverable. |
@@ -251,7 +251,7 @@ answers on different days.
 ### 3.4 The engine
 
 | Mechanism | Register | Rule path | What the user sees instead |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Model choice | **silent**, named only on the Call that authorizes spend, configurable in Settings | Q1 absorb (evals, cost, latency are oracles); Q3 yes, their money | Nothing on an activity row, a working line, a toast or a line receipt. On a Call: `Model` sits beside `Spend so far $0.42`, because authorizing spend without knowing what you are buying is not consent. In Settings: `Prefer speed` / `Prefer depth` / `Use my own key`. |
 | Model fallback, ordinary | **silent** | Q3 no | Nothing. |
 | Model fallback to a materially weaker model, on output about to be relied on | **record, and stated on the Call** | Q3 yes: it changed what the user got | `Written with the backup model. Your usual model was unavailable.` Only when true. This is the ceiling law applied to routing and it is the difference between absorbing a fallback and concealing a degradation. |
@@ -267,7 +267,7 @@ answers on different days.
 ### 3.5 Trust, permissions and connections
 
 | Mechanism | Register | Rule path | What the user sees instead |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The trust score, the shrinkage, the arc enum | **silent** | Q1 absorb: computed from real outcomes with an oracle | Never a number, never a meter, never a badge, never a progress bar. The word `arc` is already deleted product-wide, code included. |
 | The current setting | **a setting, in diverged labels** | the user owns it | `Runs on its own` / `Asks me first` / `I check the output`, with the stored enum frozen. |
 | Narrowing an agent's rope after a bad outcome | **silent, on the record** | safety needs no permission | It happens. The receipt says so. |
@@ -282,7 +282,7 @@ answers on different days.
 ### 3.6 The whole list, one table
 
 | Mechanism | Register | What appears instead |
-|---|---|---|
+| --- | --- | --- |
 | branch | silent | nothing; `Run 41 · Fix the checkout redirect` |
 | commit | record | `Engineer wrote the change in 6 steps.` |
 | merge | **Call** | `Run 41 is ready.` + Approve / Send back |
@@ -477,7 +477,7 @@ honest answer requires separating three classes, because "learn" means different
 **Class 1: words that must be understood before the product makes sense. Thirteen.**
 
 | | Word | Why it is load-bearing | Cost |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1-7 | **Discover, Decide, Plan, Design, Build, Ship, Learn** | The map. Without them the Spine is decoration. | **Recognition, not learning.** A PM already owns all seven for exactly these things. |
 | 8 | **Call** | Answers "what needs me?". The whole model is one sentence: *a Call becomes a Decision the moment you act on it.* | One sentence |
 | 9 | **Run** | Answers "what did it do?". The unit of work and the unit of receipt. | One sentence |
@@ -517,7 +517,7 @@ stops the next capability from earning its own noun.
 files.** Walked against the working tree this session:
 
 | # | Where | What stops them | Verdict |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Connect | `Build needs a repo first.` | **Legal.** Once, at connect, and only if they have one. The `[Let us set one up]` door means they may never meet it. Not a failure. |
 | 2 | `_authenticated.build.$missionId.tsx:151-205` | The journey strip literally renders `build -> PR -> CI ->` as stages, with `PR #418` as a stage label | **FAIL.** Three mechanism words on the calm front, rendered as the primary progress model. |
 | 3 | `CiPanel.tsx:38,66-70` | `PR & CI tab`, `No PR yet`, `The session opens one after the changeset commits.` | **FAIL.** Four mechanism words in an empty state. |
@@ -587,7 +587,7 @@ a written component with no new logic.
 **Lands by Jul 31:**
 
 | Item | Class | Size |
-|---|---|---|
+| --- | --- | --- |
 | **The vocabulary sweep** (§7.1's seven stop points, five files) | strings only | hours |
 | **`ExecutedCard` mounted** as "Done without you" | mount, no new logic | ~1 hour, C2 requires it |
 | **`CostPerOutcomeChip` mounted** on the receipt footer | mount, no new logic | ~1 hour |
@@ -627,7 +627,7 @@ outright.
    break must do that job better, not delegate it.
 
 | # | Break | Leverage | Risk | Copyable in a quarter | By Jul 31 |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **B1** | The gate shows the consequence, not the request | very high | low | partly | **yes**, on top of D3 |
 | **B2** | Settings are written by declining | very high | medium | **no, strongest** | no |
 | **B3** | The roadmap is a forecast that grades itself | high | medium, integrity | **no** | no |
@@ -681,7 +681,7 @@ expression of the investor canon's ban on "where the record lives".
 ### 8.1 What we refuse to break
 
 | Convention | Kept because |
-|---|---|
+| --- | --- |
 | **The verdict triad** (`Approve` / `Send back` / `Decline`) | The highest-stakes moment must use words the user already owns. Inventing judgment verbs here is exactly what break-test 2 exists to catch. |
 | **Undo over confirm** | Reversibility beats interrogation. Already law. |
 | **Input conventions** | Escape closes, `Cmd+K` searches, arrows move, Enter submits, Tab focuses. **Break structure conventions, never input conventions.** A product that redefines Escape is not brave, it is broken. |
@@ -812,7 +812,7 @@ rendered prototype passes. That is the shape of the work.
 ### 12.1 Amendments to ratified contracts
 
 | File | Item | Amendment | Reason |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `language/FINAL-language.md` §2.8 | `changeset` listed as engine-room-legal | **Delete `changeset` from every register, engine room included.** `studio_changesets` stays frozen in the DB. | Law 1 does not exempt the engine room. 2.3 already renamed the object to `Change`; §2.5 already applied this exact reasoning to kill `ledger`. See E6. |
 | `language/FINAL-language.md` §9.6 | "a cost on a row the user never authorised" | **Extend to a hard ban on any live-ticking cost anywhere in the product.** | A meter changes behaviour; a receipt informs it. Replit merged the progress unit and the billing unit and every glance at progress became a glance at the meter. |
 | `language/FINAL-language.md` §9.4 | `Model` on card density | **Confirm this is the only placement outside Settings.** | §3.4. |
@@ -823,7 +823,7 @@ rendered prototype passes. That is the shape of the work.
 ### 12.2 Lexicon additions
 
 | Concept | The one word | Definition | Banned beside it |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Undoing a live release | **Roll back** | Putting the previous version back in front of customers. The change stays on the record and can roll forward again. | revert (taken by artifact versions), undeploy, unship, restore |
 | The user's code, after connection | **your codebase** | The code your crew writes in. | repo (connect moment only), repository, project, source tree |
 | The user's own automated tests | **your tests** | The checks your codebase already runs on every change. | CI, checks (Reviewer's verb), pipeline, build |
@@ -831,7 +831,7 @@ rendered prototype passes. That is the shape of the work.
 ### 12.3 Action registry additions
 
 | Act | Button | Helper | Toast |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Approve a change into the codebase | `Approve` | `Your tests passed. Approving puts it in your codebase.` | `Approved. The change is in your codebase.` |
 | Approve a release to customers | `Approve` | `Customers see it within minutes.` | `Approved. It is live. Publisher is drafting the note.` |
 | Approve over an agent's objection | `Approve anyway` | `Reviewer's objection stays on the record.` | `Approved over Reviewer's objection. Both are on the record.` |
@@ -862,7 +862,7 @@ in any room. Queryable, never rendered.
 ### 12.6 Code fixes this doctrine requires
 
 | File | Line | Fix | Class |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `src/lib/ai/handoff.server.ts` | 73-88 | Require the **field**, not the content. Typed evidence declaration mandatory; an empty declaration is a stated recorded claim, not an absence. Then enable the gate. | **highest severity**, §10.1 |
 | `src/routes/_authenticated.build.$missionId.tsx` | 151-205 | The journey strip renders `build -> PR -> CI ->` with `PR #418` as a stage label. Restage to the Run's own steps. | strings + strip model |
 | `src/components/studio/CiPanel.tsx` | 38, 66-70, 117-119, 149-169, 185, 199 | Calm front becomes `Your tests passed. 12 of 12.` The panel itself is engine-room-only and may keep technical labels **there**. `ChangesetChip` renamed. | strings |

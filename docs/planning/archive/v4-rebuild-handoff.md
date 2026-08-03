@@ -37,13 +37,13 @@
 
 ## Doc map after this rebuild (what changed where)
 
-| Doc                                               | Role after v4 rebuild                                                                     |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `docs/strategy/archive/v4-feature-map.md`         | **Canonical feature scope + agent mesh + IA + milestones (read before any feature work)** |
-| `docs/strategy/archive/v4-stress-test.md`         | Why v3 wasn't enough — the argued verdict                                                 |
-| `docs/references/competitive-landscape.md`        | Market research with links (don't re-research)                                            |
-| `docs/planning/archive/build-log.md`                                         | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here            |
-| `docs/planning/feature-backlog.md`                | Ticket-level F-IDs; v4 overlay section maps backlog → stations                            |
-| `README.md`                                       | Product thesis, updated to v4 framing                                                     |
-| `docs/strategy/archive/v3-positioning-cadence.md` | Historical — superseded by v4 for scope; persona definitions still valid                  |
-| `docs/decisions/naming.md`                        | Naming deferred; fresh directions; final activity                                         |
+| Doc | Role after v4 rebuild |
+| --- | --- |
+| `docs/strategy/archive/v4-feature-map.md` | **Canonical feature scope + agent mesh + IA + milestones (read before any feature work)** |
+| `docs/strategy/archive/v4-stress-test.md` | Why v3 wasn't enough — the argued verdict |
+| `docs/references/competitive-landscape.md` | Market research with links (don't re-research) |
+| `docs/planning/archive/build-log.md` | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here |
+| `docs/planning/feature-backlog.md` | Ticket-level F-IDs; v4 overlay section maps backlog → stations |
+| `README.md` | Product thesis, updated to v4 framing |
+| `docs/strategy/archive/v3-positioning-cadence.md` | Historical — superseded by v4 for scope; persona definitions still valid |
+| `docs/decisions/naming.md` | Naming deferred; fresh directions; final activity |

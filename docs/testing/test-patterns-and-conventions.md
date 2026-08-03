@@ -429,17 +429,17 @@ bun test --reporter=spec  # Detailed output per test
 
 ## Summary
 
-| Pattern                  | Files                        | Use Case                           |
-| ------------------------ | ---------------------------- | ---------------------------------- |
-| Pure function testing    | format, ranking, ship-format | Most common; no dependencies       |
-| Component via invocation | ResearchActivity             | JSX inspection without RTL         |
-| Fixture builders         | ranking, format              | Reduce duplication in test data    |
-| Hook testing (RTL)       | graph-visual                 | React hooks with side effects      |
-| Relative timestamps      | decisions-shared, format     | Time-sensitive logic               |
-| Error/fallback testing   | format, ranking              | Graceful degradation               |
-| Enum coverage            | decisions-shared             | All cases mapped                   |
-| Deterministic order      | ranking                      | Reproducible results               |
-| Skipped test skeletons   | This audit                   | Document gaps without false passes |
+| Pattern | Files | Use Case |
+| --- | --- | --- |
+| Pure function testing | format, ranking, ship-format | Most common; no dependencies |
+| Component via invocation | ResearchActivity | JSX inspection without RTL |
+| Fixture builders | ranking, format | Reduce duplication in test data |
+| Hook testing (RTL) | graph-visual | React hooks with side effects |
+| Relative timestamps | decisions-shared, format | Time-sensitive logic |
+| Error/fallback testing | format, ranking | Graceful degradation |
+| Enum coverage | decisions-shared | All cases mapped |
+| Deterministic order | ranking | Reproducible results |
+| Skipped test skeletons | This audit | Document gaps without false passes |
 
 ---
 

@@ -60,14 +60,14 @@
 
 ## 5. The customer: dual-persona, JTBD, WTP
 
-|                    | **P1 · Senior/founding PM @ 50 to 400 B2B SaaS**                                                                                | **P2 · Individual PM / prosumer**                                                |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| | **P1 · Senior/founding PM @ 50 to 400 B2B SaaS** | **P2 · Individual PM / prosumer** |
+| --- | --- | --- |
 | **Job-to-be-done** | "Stop drowning in signal triage, status, and synthesis; make defensible calls fast; keep the evidence→decision→outcome thread." | "Have a sharp Chief-of-Staff for my own work without buying enterprise tooling." |
-| **Buyer / budget** | Product leader (VP/Head of Product), OpEx, not the tool line item                                                               | Self-serve; personal/credit-card                                                 |
-| **Wedge framing**  | **Budget/OpEx replacement** (the cost of PM inefficiency)                                                                       | **Long-tail personalization / PLG**                                              |
-| **Pricing fit**    | Team tier: value/outcome-anchored (>$150/mo effective)                                                                          | **~$39/mo Pro** (persistent memory); Free (memory expires)                       |
-| **Acquisition**    | Land single-player → expand to team; design-partner program                                                                     | PM communities, Product Hunt, build-in-public, content                           |
-| **Risk**           | Slower cold-start; needs real ROI proof                                                                                         | Lower ACV; churn if not sticky                                                   |
+| **Buyer / budget** | Product leader (VP/Head of Product), OpEx, not the tool line item | Self-serve; personal/credit-card |
+| **Wedge framing** | **Budget/OpEx replacement** (the cost of PM inefficiency) | **Long-tail personalization / PLG** |
+| **Pricing fit** | Team tier: value/outcome-anchored (>$150/mo effective) | **~$39/mo Pro** (persistent memory); Free (memory expires) |
+| **Acquisition** | Land single-player → expand to team; design-partner program | PM communities, Product Hunt, build-in-public, content |
+| **Risk** | Slower cold-start; needs real ROI proof | Lower ACV; churn if not sticky |
 
 **WTP benchmarks:** ChatPRD ~$15 to 29 · Productboard ~$15 to 19/maker + AI credits · Dovetail ~$39 to 49 · Linear ~$8 to 14 · Aha! ~$59. **$39 individual is in-band.** The **>$150/mo team bar is a 2.5 to 10× premium over these tools, a _hypothesis to validate_, not a decided price.** It only holds if we anchor on _value/outcome_ (OpEx-replacement) and prove retention (churn <5%/mo across ≥10 paying teams); until then, pilot fixed-fee outcome contracts with P1 design partners rather than asserting the number. (Per-seat is itself declining 60%→30% over the decade.) Outcome unit TBD, see §14.
 

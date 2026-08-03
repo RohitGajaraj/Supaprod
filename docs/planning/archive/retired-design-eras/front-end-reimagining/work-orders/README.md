@@ -35,7 +35,7 @@ finally:
 ## Packet index
 
 | Packet | File | Size | Branch | Status |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | WO-A Account menu + sign-out | [WO-A-account-menu.md](./WO-A-account-menu.md) | S/M | `wo/a-account-menu` | dispatchable NOW (first) |
 | WO-B Strangler chrome-wrap | [WO-B-strangler-wrap.md](./WO-B-strangler-wrap.md) | M | `wo/b-strangler-wrap` | dispatchable NOW (parallel w/ A) |
 | WO-C Landing moment /start | [WO-C-landing-moment.md](./WO-C-landing-moment.md) | M | `wo/c-landing-moment` | after WO-B merges |

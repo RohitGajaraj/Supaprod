@@ -12,7 +12,7 @@
 ### Completed Replacements
 
 | Value | Token | Instances | Examples |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `8` | `var(--geist-space-2x)` | 147 | gap, padding, margin values |
 | `12` | `var(--geist-space-3x)` | 101 | section spacing, form padding |
 | `16` | `var(--geist-space-4x)` | 22 | card padding, control spacing |
@@ -23,7 +23,7 @@
 ### Files Modified (Top 20)
 
 | File | Changes | Category |
-|---|---|---|
+| --- | --- | --- |
 | governance/EvalSuiteDetail.tsx | 16 | Evaluation controls |
 | landing/replay/Replay.tsx | 11 | Landing visual effects |
 | governance/GuardrailsPanel.tsx | 9 | Governance/controls |
@@ -93,7 +93,7 @@
 These 102+ instances lack direct token mappings and were preserved:
 
 | Value | Count | Typical Use | Recommendation |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1px | 3 | Hairline borders, 1px dividers | Use CSS border instead |
 | 2px | 19 | Thin spacing, borders | Consider --border-width or --geist-space-0.5x |
 | 3px | 13 | Thin elements, indicators | Design-justified |
@@ -133,7 +133,7 @@ These 102+ instances lack direct token mappings and were preserved:
 ## Metrics Summary
 
 | Metric | Target | Actual | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Spacing instances migrated | ≥90% of high-confidence | 303/303 | ✅ 100% |
 | Build success | 0 errors | 0 errors | ✅ PASS |
 | Lint clean | 0 violations | 0 violations | ✅ PASS |

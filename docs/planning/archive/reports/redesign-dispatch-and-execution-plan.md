@@ -247,7 +247,7 @@ The 2026-07-24 Fable session completed:
 ## Part G: Risk & Mitigation
 
 | Risk | Probability | Mitigation |
-|------|-------------|-----------|
+| --- | --- | --- |
 | Coexisting shells cause merge conflicts | Medium | File ownership is exclusive per packet; WO-B (strangler) is Wave 1 first |
 | Existing surfaces don't wire cleanly to Composer | Medium | WO-FID packets include wiring specifications; test on one surface first |
 | Mockups don't match backend capabilities | Low | Mockups were authored with backend spec in hand; any gap is in spec |

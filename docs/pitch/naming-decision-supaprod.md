@@ -11,8 +11,8 @@
 
 ## 1. The decision at a glance
 
-| | |
-|---|---|
+| --- | --- |
+| --- | --- |
 | **New brand name** | **Supaprod** |
 | **Construction** | `supa` + `prod` — the Supabase naming formula (supa + meaningful word-chunk). "Prod" carries a double meaning that is true of the product: **prod**uct (the domain: PM chief-of-staff, discovery, PRD, roadmap) **and** production — the autonomous engine literally ships to prod. |
 | **Decided** | 2026-07-16, founder-locked after a 2–1 agent vote and explicit acceptance of the three taxes (below) |
@@ -53,7 +53,7 @@ The rename was driven by ownability, and the baseline research proved the instin
 Ownability score is 0–10 (what a startup could actually secure and own: domains, socials, registrable mark). Names deep-dived in later rounds show `round-1 → deep-dive` scores.
 
 | # | Name | Source | Score | Verdict | The deciding fact |
-|---|------|--------|-------|---------|-------------------|
+| --- | --- | --- | --- | --- | --- |
 | 1 | **Supaprod** | Founder invention (tweak of Supaduct) | **8.5** | ✅ **WINNER** | Only clean two-TLD sweep (.com + .ai free) with no fatal conflict; taxes known and accepted |
 | 2 | Stokehold | Generated (round 1) | 8.5 | ❌ Rejected on founder taste | Near-clean sweep, but "not something I'm liking" — founder call, respected |
 | 3 | Supaduct | Founder invention | 9 (domains) / high risk | ❌ Rejected | Literally the registered name of NZ culvert pipes + UK duct insulation; SuperDuct is US HVAC incl. Class-9 duct smoke detectors |
@@ -181,7 +181,7 @@ Covered above inline: ProductMatter (§5.4), OrangeLoop (§5.5), Supermount (§5
 Key insight that produced the winner: *Supabase works because "base" alone still means foundation; "duct" alone means pipes — the compression kept the letters but dropped the meaning. Swap the chunk, keep the formula.* Quick-vetted (RDAP both TLDs + one conflict search each, 2026-07-16):
 
 | Name | .ai | .com | One-line verdict |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Supaprod** | free | **free** | "Prod" = product AND ships-to-prod; risks: Superprod studio one vowel away, supa- read → **advanced to round 5** |
 | Supachief | free | **free** | Cleanest conflict profile (zero hits); names the chief-of-staff persona; slangy tone risk; engine half unsaid |
 | Prodship | free | registered (parked; no company found) | "Product, shipped" in one word; no supa- dependency; minor podship mishear |
@@ -195,7 +195,7 @@ Key insight that produced the winner: *Supabase works because "base" alone still
 Verified 2026-07-16 via authoritative registry RDAP:
 
 | Asset | Status | Evidence |
-|---|---|---|
+| --- | --- | --- |
 | `supaprod.ai` `.com` `.io` `.dev` `.app` `.so` | **all unregistered** at standard fee | RDAP 404 (Identity Digital / Verisign / Google Registry / nic.so) |
 | `getsupaprod.com`, `supaprodhq.com` | unregistered | RDAP 404 |
 | `superprod.ai`, `superprod.io` (defensive) | unregistered | RDAP 404 — the studio uses `.net` |

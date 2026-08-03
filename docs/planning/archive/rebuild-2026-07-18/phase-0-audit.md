@@ -54,7 +54,7 @@ Extracted from `src/routes/index.tsx` and `src/styles.css`:
 
 ### **HOME SURFACE** (replacement for Today + onboarding)
 | Current Route(s) | Decision | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.today` | **MERGE** | Daily entry point → becomes Home. Keep live counters + approvals badge. |
 | `_authenticated.onboarding` | **MERGE** | First-run flow → onboarding steps 1-3, then lands in Home. |
 | `_authenticated.opportunities` | **KILL** | Replaces stray signal inbox. Signals surface as one quiet suggestion per the loop primitive. |
@@ -62,7 +62,7 @@ Extracted from `src/routes/index.tsx` and `src/styles.css`:
 
 ### **PROJECT SURFACE** (replaces Build, Design, studio, plan pages)
 | Current Route(s) | Decision | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.build.$missionId` | **MERGE** | Mission canvas + agent activity → Project/Build mode. |
 | `_authenticated.studio.$missionId` | **MERGE** | Design + code preview tabs → canvas adapts to mode. Single canvas, many faces. |
 | `_authenticated.design` | **MERGE** | Design work lives as a stage in Project lifecycle spine. |
@@ -73,12 +73,12 @@ Extracted from `src/routes/index.tsx` and `src/styles.css`:
 
 ### **APPROVALS SURFACE** (new, central decision queue)
 | Current Route(s) | Decision | Reason |
-|---|---|---|
+| --- | --- | --- |
 | None (new) | **BUILD** | Approvals queue: all items awaiting human judgment (plan changes, spend, deploy gates). Central cognitive hub. |
 
 ### **SETTINGS/SHELL** (absorbs workspace + account config)
 | Current Route(s) | Decision | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.settings` | **MERGE** | Existing settings → stays as Settings. Reorganize into 5 groups (Account/Workspace/Connections/AI/Billing/Advanced). |
 | `_authenticated.sync` | **MOVE** | Connected sources → Settings > Connections. |
 | `_authenticated.integrations` | **MOVE** | Integrations → Settings > Connections. |
@@ -90,7 +90,7 @@ Extracted from `src/routes/index.tsx` and `src/styles.css`:
 
 ### **DEEP AFFORDANCES** (visible on demand, not full routes)
 | Current Route(s) | Decision | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.traces` | **MOVE** | Agent traces → Engine Room disclosure in Project. For power users + enterprise only. |
 | `_authenticated.evals` | **MOVE** | Evals + guardrails → Engine Room. |
 | `_authenticated.guardrails` | **MOVE** | Guardrails config → Engine Room. |
@@ -99,7 +99,7 @@ Extracted from `src/routes/index.tsx` and `src/styles.css`:
 
 ### **CUT ENTIRELY (verify with Rohit in morning queue)**
 | Route | Reason |
-|---|---|
+| --- | --- |
 | `_authenticated.analytics` | Signals digested → Approvals. Raw analytics not a user surface. |
 | `_authenticated.briefing` | Brief content lives in Project. No separate surface. |
 | `_authenticated.changelog` | Historical records kept in backend; not a user surface in rebuild. |
@@ -113,7 +113,7 @@ Extracted from `src/routes/index.tsx` and `src/styles.css`:
 
 ### **KEEP (reachable from stage or command surface)**
 | Route | New Home | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.learn` | Project/Learn stage | Outcome digest + suggested next work. |
 | `_authenticated.roadmap` | Project > Command "show roadmap" | Roadmap view. Routable from Home or within Project. |
 | `_authenticated.impact` | Settings > Impact (or modal from Project) | PM's portable impact ledger. Reference-only, not a must-visit. |

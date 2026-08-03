@@ -87,13 +87,13 @@ Runner-up video (different creator, adjacent lessons): "Why YC rejected me 7 tim
 
 ### 3.1 Batch composition (agent-saturated)
 
-| Batch     | Size | AI/agent share                                                                                                                                                 |
-| --------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| W25       | ~160 | ~80% AI-focused (https://techcrunch.com/2025/03/13/10-startups-to-watch-from-y-combinators-w25-demo-day/)                                                      |
-| S25       | ~160 | ~50% agentic; ~30% build for eng/PM/design (https://pitchbook.com/news/articles/y-combinator-is-going-all-in-on-ai-agents-making-up-nearly-50-of-latest-batch) |
-| F25       | 116  | 92% AI at core (https://www.cbinsights.com/research/y-combinator-fall2025/)                                                                                    |
-| W26       | 199  | >90% AI; 41.5% agent plumbing; 22 solo founders (https://www.extruct.ai/research/ycw26/)                                                                       |
-| Spring 26 | 190+ | 60% of one-liners mention AI/agents; 62% B2B (https://www.neweconomies.co/p/y-combinator-spring-2026-batch)                                                    |
+| Batch | Size | AI/agent share |
+| --- | --- | --- |
+| W25 | ~160 | ~80% AI-focused (https://techcrunch.com/2025/03/13/10-startups-to-watch-from-y-combinators-w25-demo-day/) |
+| S25 | ~160 | ~50% agentic; ~30% build for eng/PM/design (https://pitchbook.com/news/articles/y-combinator-is-going-all-in-on-ai-agents-making-up-nearly-50-of-latest-batch) |
+| F25 | 116 | 92% AI at core (https://www.cbinsights.com/research/y-combinator-fall2025/) |
+| W26 | 199 | >90% AI; 41.5% agent plumbing; 22 solo founders (https://www.extruct.ai/research/ycw26/) |
+| Spring 26 | 190+ | 60% of one-liners mention AI/agents; 62% B2B (https://www.neweconomies.co/p/y-combinator-spring-2026-batch) |
 
 Implication: "AI agent for X" is the most crowded pattern in YC history — differentiation must be structural (the receipts/outcome record), not adjectival.
 

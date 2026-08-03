@@ -24,7 +24,7 @@ much may compete for attention at once.
 **I hand off:**
 
 | Seam | To | What I promise | What I need back |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Inline axis, region composition | `adaptive/` (A, B, C) | Every budget below is a `calc()` over their tokens. Retune the ramp and my budgets retune with it. | One shell-level custom property, `--work-h`, and the four chrome tokens resolved (§2). |
 | Direct manipulation grammar | the sibling interaction angles | The manipulation layer gets zero new regions and zero new columns, and I show why that is a gift rather than a constraint (§9). | Gesture semantics and the selection model; I only rule on where they may live. |
 | Words on every count, horizon, and peek | `language/` | Every scent affordance needs three words or fewer. | The nouns. I use FINAL-ia's ("Your call", "What we know", "What happened") as placeholders. |
@@ -46,7 +46,7 @@ own chrome. Constants used: macOS menu bar 25, macOS Dock at default size 70, Ch
 87 (tab strip plus omnibox, no bookmarks bar), Windows taskbar 40.
 
 | Machine and window | Screen CSS px | Shell block-size |
-|---|---|---|
+| --- | --- | --- |
 | 1280x800 laptop, macOS, maximized, Dock visible | 1280x800 | **618** |
 | Windows 1366x768, Chrome maximized | 1366x768 | **641** |
 | 1280x800, macOS, fullscreen | 1280x800 | 713 |
@@ -136,7 +136,7 @@ is a wall on the laptop, and a wall is what the founder is looking at.
 Not opinions. Line numbers.
 
 | # | Defect | Where | Consequence |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **D1** | **The face footer is inside the scroll container.** `CanvasFace.tsx:212` wraps all `children` in one `overflow-y-auto`. Every face's `ReceiptLine` and `NextLine` live inside `children` (`faces.tsx:1330-1356` is the clearest case). | every face | **The receipt and the forward door scroll out of view.** The no-dead-end law (FINAL-ia §4.3) depends on a door that is, mechanically, below the fold. This one defect explains most of the complaint. |
 | **D2** | **A scroll inside a scroll.** `SpecDoc` sets `max-h-[460px] overflow-y-auto` (`faces.tsx:682`) inside the body's `overflow-y-auto`. | Plan face | At the floor the outer body is 280 and the inner claims 460, so the inner never scrolls, the outer always does, and a wheel event lands on whichever the pointer happens to be over. This is the "which thing am I scrolling" feeling. |
 | **D3** | **A fixed minimum taller than the whole body.** The prototype device frame is `min-h-[440px]` with a `min-h-[400px]` iframe (`faces.tsx:1249, 1285`). | Design face | On the surface whose entire job is to show the artifact, the artifact does not fit and must be scrolled to. |
@@ -152,7 +152,7 @@ token tells it.** Fixed in §2.
 The three adaptive proposals do not agree, and pretending otherwise would poison every number here.
 
 | Quantity | Adaptive A | Adaptive B | Adaptive C |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Column width | derived from a fluid root, no named column | `--container-col: 34rem` = **544** | `--col-ideal` = **459**, `--col-max` **518** |
 | Band cap | `--shell-max`, >4096 | **2176** (4 lanes x 544) | **3159** (518+1602+518+518+3) |
 | Type behaviour on a big screen | interpolates x1.0 to x1.2 | fixed, `rem` | fixed, `ch`-expressed |
@@ -179,7 +179,7 @@ addition: C's tiers say when chrome compresses. They do not say when the *conten
 Those are different lines and both are needed.
 
 | Line | Value | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | **Contract band** | shell block-size >= **600** | The full one-screen contract holds. Tuned, screenshotted, demoed. |
 | **Degraded band** | **448 to 600** | The contract degrades along the stated fold ladder (§3.7). Every invariant present. |
 | C's H2 / H1 / H0 | 448 / 396 / 351 | Chrome compression, C's machinery, unchanged. |
@@ -208,7 +208,7 @@ instead of seven.
 The five, named, because they get referred to constantly below:
 
 | # | Name | Rendered by |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Identity** | `SurfaceHeader` stage marker plus title |
 | 2 | **State** | `SurfaceHeader` state chip plus the agent attribution atom |
 | 3 | **Subject** | at least one whole object, never a fragment of one |
@@ -286,7 +286,7 @@ at the edge of what a person can take in without triage. The tenth thing is why 
 versions felt overwhelming, and every one of the nine has exactly one rendering.
 
 | # | Thing | Region | Cost |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Where the product is in its loop | Spine, 7 stages with per-stage state | 64 |
 | 2 | What the machine is doing right now | WorkingStrip, one line | 34 |
 | 3 | What waits on you | the ember, one count | 0, inside 1 and 7 |
@@ -302,7 +302,7 @@ is 378. It fits, with 70px spare. Between 448 and 530 it does not fit, and the h
 is:
 
 | Shell height | Rail |
-|---|---|
+| --- | --- |
 | >= 530 | seven 44px tiles, each with icon and delta count |
 | 448 to 530 | **one 44px tile** carrying the summed delta and a ring segmented into seven arcs, one per tile, each arc lit in proportion to its own delta. Click or `⌥D` opens a 7-row menu with the full scent triple on every row. |
 | < 448 | the same single tile, moved into the composer's overflow, per adaptive C's H0 sheet behaviour |
@@ -317,7 +317,7 @@ The block-axis analogue of adaptive C's §6.2, ordered by the same principle (di
 gate), and it is the thing C is missing.
 
 | # | What gives | How | Recovered by |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Spine return edge and the `Starts from:` caps | hidden (already C's step 1) | nothing lost, it is ornament |
 | 2 | The face's third object | falls below the fold | the horizon count, one flick |
 | 3 | The face's second object | falls below the fold | same |
@@ -345,7 +345,7 @@ scrolls.
 `DecisionFace`, `SpecFace`, `PrototypeFace`, `CodeFace`, `ShipFace`, `GrowthFace`).
 
 | Face | ABOVE (3 objects at the floor) | PRIMARY | HORIZON | BELOW | Scroll type |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **01 Discover** `EvidenceFace` | the three top-ranked themes, each with its evidence count chip and its one-line why | `Rank these into bets` | `+9 more signals` | raw signal rows, the watch strip's sources, the recordings lane | T1 |
 | **02 Decide** `DecisionFace` | the top bet with its Critic verdict and ICE bars; the precedent card beneath it; the second bet, clipped | the gate's `Keep it` / `Kill it` pair | `+4 more bets` | the rest of the queue, teardown detail, fanout branches | T1 |
 | **03 Plan** `SpecFace` | the spec title, its outcome contract (3 lines), the first section heading | `Approve the spec` | `9 sections, 2 unread` | the whole document | **T2** |
@@ -364,7 +364,7 @@ chrome budget, and it exists only for artifact surfaces.
 **The five workbench children.**
 
 | Child | ABOVE | PRIMARY | HORIZON | Scroll type |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `spec/$id` | title, outcome contract, current section heading, the citation chips on the visible claims | `Approve the spec` | a **section rail** on the region's right edge with per-section read state, not a page count | **T2** |
 | `mission/$id` | the live step with its honest time, the changeset summary, `CiStrip` | the open gate, or `Open the PR` | `+11 files`, `+38 steps` | T1, tab bodies vary |
 | `trace/$id` | the current step centred in the list, one step of context each side | `Replay from here` | `step 14 of 38` | **T3, opens centred on the current step, never at the top** |
@@ -376,7 +376,7 @@ the floor. Header 44, search or filter row 44, so **290px of rows, which is six 
 the horizon.**
 
 | Pane | Landing shows at the floor | Horizon |
-|---|---|---|
+| --- | --- | --- |
 | Your call (`?gate=open`) | the oldest gate whole (claim, evidence, precedent, both buttons: 186px), the next gate clipped | `+3 waiting` |
 | What we know (`?pane=brain`) | **three beliefs** (a belief row is 88px: claim, confidence, what it changed) | `+14 beliefs, 3 expire in 6 days` |
 | What happened | six receipt rows | `+120 since Tuesday` |
@@ -440,7 +440,7 @@ exists because the four defects in §1.4 all come from regions that scroll witho
 decided what kind of scrolling they are.
 
 | Type | Definition | Contract | Where |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **T0 None** | fits at the floor, always | never scrolls, at any height, ever. If it would, it recomposes instead. | the gate card, the composer, the Spine, every face footer, the map, the prototype face |
 | **T1 One reach** | at most two screens; the end is one flick away | the horizon carries an **exact** count; the end carries a terminal line, never a blank stop | every stage face body, every pane landing |
 | **T2 Document** | a bounded artifact read top to bottom | a **section rail** on the region's right edge (not the page's) with a mark per section and per-section read state; the primary action stays pinned; position persists per artifact | the spec doc, release notes, a transcript |
@@ -548,7 +548,7 @@ previous version of this product skipped. Its absence is why counted doors still
 without a peek, every open is a gamble on whether it was worth losing your place.
 
 | Level | Gesture | What renders | Fetches? | URL |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **0 Trace** | none, at rest | noun, count, age | no | no |
 | **1 Peek** | 180ms hover hold, or `Space` on a focused row | a 320px card anchored to the row: the first three facts and the receipt | **never** | no |
 | **1.5 Consequence** | hover an irreversible button | one sentence stating what will change, from real data | no | no |
@@ -575,7 +575,7 @@ that spins is worse than no peek, because it teaches the user that pointing at t
 a button is. It is a statement of what will happen, built from real data:
 
 | Button | Consequence line | Source |
-|---|---|---|
+| --- | --- | --- |
 | `Approve the changeset` | `Opens PR on relay/main. 7 files, 2 outside your touch list.` | `getChangesetDiff`, `enforceTouchList` policy report |
 | `Send it back` | `Returns to Engineer with your note. The branch stays; nothing is lost.` | `sendBackApprovalItem` |
 | `Promote to production` | `Live for everyone. Last time you skipped the canary it cost 2 days.` | `promoteToProduction` plus the Brain's belief row |
@@ -591,7 +591,7 @@ entire screen, momentarily, and it costs the user their place.
 Every navigable target in the product appears in one table, and `scent.test.ts` walks it.
 
 | Target class | Level 0 trace | Peek | Count | Age |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | rail tile | 44px tile, always | yes, 7-row summary | delta and total | yes |
 | Spine stage | numbered node with per-stage state | yes, that stage's receipts | gate count when nonzero | last event |
 | face object row | the row itself | yes | its own children count | its receipt |
@@ -632,7 +632,7 @@ A disclosure is legitimate only if it satisfies **all six** conditions. Four are
 because they are correct. Two are mine and they are the ones the last rebuild lacked.
 
 | # | Condition | Failure it prevents |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Named** at rest, in the user's own words, never an icon alone and never `More` | the unlabelled kebab |
 | 2 | **Counted** at rest, with a delta | the silent rail row |
 | 3 | **Keyed**, reachable without hunting with a pointer | the mouse-only door |
@@ -649,7 +649,7 @@ level down that is none of those.**
 ### 6.3 The ladder, with its pixel cost
 
 | Level | Block cost | Inline cost | Reflows? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 0 Trace | 44 for a tile, 0 for a chip or a count on something already drawn | 44 rail | no |
 | 1 Peek | **0** | 0, it overlays | **no, ever** |
 | 1.5 Consequence | **0** | 0 | no |
@@ -717,7 +717,7 @@ chaotic: they know things, and they tell you at the wrong moment, and the layout
 Each row: the moment, the specific question forming, where the answer already is, and the real source.
 
 | Moment | The question | Where the answer already sits | Source |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | First frame after sign-in | *What happened while I was gone?* | the rail deltas and the Thread's briefing card, both painted before you focus anything | `getRailCounts`, `getBriefing` (`briefing.functions.ts:249`) |
 | Scanning a bet in Decide | *Have we tried this before?* | the precedent card under the bet, at rest, not behind a click | `PrecedentNudge`, `decision-precedent.functions` |
 | Reading a spec | *What did I not read?* | the T2 section rail: hollow ticks for sections you never reached | scroll tracking on the doc region |
@@ -748,7 +748,7 @@ Anticipation needs somewhere to render that cannot damage the layout. So: **one 
 under the `SurfaceHeader`, shared by three claimants with a fixed priority.**
 
 | Priority | Claimant | Example |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Working** (a run is live on this stage) | `4/7 · Engineer is writing tests · 40s` |
 | 2 | **Foresight** (the Brain has something you need before you act) | `You shipped something like this in March. It moved retention 0.4 points.` |
 | 3 | **empty** | the slot collapses to 0 and the body gains 40px |
@@ -772,7 +772,7 @@ presentations, chosen by `--work-h`, never remounted.
 Countable, so it can be enforced. Each number has a reason, and the reason is not taste.
 
 | # | Budget | Limit | Why this number |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Primary actions per screen | **1** | Already the repo's law. Two primaries is no primary. |
 | 2 | Secondary actions visible at once | **3** | One primary plus three secondaries is four choices, the top of comfortable choice without triage. The fourth goes in the kebab. |
 | 3 | Whole objects above the fold, per face | **3** | Derived: 280px body / 72px object at the 600 floor. Not a preference. |
@@ -797,7 +797,7 @@ Countable, so it can be enforced. Each number has a reason, and the reason is no
 ### 8.1 How each is enforced
 
 | Budget | Enforcement |
-|---|---|
+| --- | --- |
 | 1, 2 | `overwhelm.spec.ts` counts `[data-primary]` and `[data-secondary]` per `[data-region="canvas"]` |
 | 3, 4, 5 | `fold.spec.ts` at 1366x600 counts elements whose bounding box lies entirely above the region's fold |
 | 6, 7 | computed-style sweep: collect every non-neutral colour in the work row, assert the set size |
@@ -805,7 +805,7 @@ Countable, so it can be enforced. Each number has a reason, and the reason is no
 | 10 | count elements matching `[data-count]` in the composite first screen |
 | 11 | computed `font-size` set size per surface |
 | 12 | `getAnimations()` on the document at rest, filtered to infinite iteration |
-| 15, 16 | walk the DOM for `overflow-y: auto|scroll`, assert count and assert no ancestor chain has two |
+| 15, 16 | walk the DOM for `overflow-y: auto | scroll`, assert count and assert no ancestor chain has two |
 | 17 | the existing lint rule in `shell.css` extended to all component CSS |
 | 20 | `no-new-region.spec.ts` asserts `[data-region]` count is exactly 8 |
 
@@ -860,7 +860,7 @@ frame  -> parent  { type: "edited", selector, text }
 **The gestures, and what each does to the underlying data.**
 
 | Gesture | Key | On screen | Underlying data |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Click an element | pointer | a 2px ember outline and a 28px pin at its top right. Selection goes in the URL as `?sel=<selector-hash>`. | nothing yet |
 | Move selection | `Tab` / `Shift+Tab` siblings, `⌥↑` parent, `⌥↓` first child | the outline moves | nothing |
 | Start typing with a selection | any character | the composer's placeholder becomes `Change the selected primary button...` and the pin turns solid | nothing until send |
@@ -892,7 +892,7 @@ and it is why the Design face needs no critic panel, which is why it fits.
 accept and reject is already built in the backend and has no interface.**
 
 | Gesture | Key | On screen | Underlying data |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Move between hunks | `↓` / `↑` with the diff focused | the hunk band highlights; the gutter minimap mark follows | nothing |
 | Accept a hunk | `A` | the hunk goes solid; the file's count decrements | nothing (accepted is the default state) |
 | Reject a hunk | `X` | the hunk goes struck and dim; the count decrements | `applyStagedHunkSelection({ changesetId, path, rejectedHunkIds, expectedUpdatedAt })` |
@@ -917,7 +917,7 @@ tiptap is already a dependency. Selecting text in the spec workbench raises a 32
 exactly three verbs, and three is budget 2.
 
 | Verb | Underlying data |
-|---|---|
+| --- | --- |
 | `Rewrite` | `prdAssist` on the selection only, returning a suggestion rendered as an inline diff the user accepts with `Enter` |
 | `Cite` | opens the citation picker as a peek; on pick, writes an `artifact_lineage` edge with relation `cites` via `recordLineage` |
 | `Challenge` | `decisions.functions.resolveAssumptionChallenge`, which puts the claim on watch with a date |
@@ -943,7 +943,7 @@ Written so it can be handed to an engineer as-is. Every test runs at **1366x600 
 and **1512x800 (the founder's laptop)** at minimum, and `fold.spec.ts` sweeps the whole table in §1.1.
 
 | Test | Fails when |
-|---|---|
+| --- | --- |
 | `one-screen.spec.ts` | at either reference size, at `scrollTop: 0`, any surface's `[data-primary]` bounding box is not fully inside the viewport, or any of the five contract elements (§3.1) is absent |
 | `fold.spec.ts` | a face renders more than 3 whole objects, or a pane more than 6 whole rows, above its region's fold at the floor |
 | `horizon.spec.ts` | a region with `scrollHeight > clientHeight + 1` has no `[data-horizon]` carrying a numeric count and a noun |
@@ -982,7 +982,7 @@ opinion, and each is offered with the fix attached.
 **Open, and I will not pretend otherwise.**
 
 | # | Open question | Why it is not mine to close |
-|---|---|---|
+| --- | --- | --- |
 | O1 | The inline width of the peek (I say 320) needs to survive whichever adaptive proposal wins, since 320 exceeds nothing in A or C but is over half a `--container-rail` in B. | It is an inline decision. |
 | O2 | Whether the T2 section rail belongs on the region's right edge or its left. Right places it beside the scrollbar (redundant channel) and left places it beside the text (competes with the measure). I lean right. | Needs a real spec at real length in front of a real reader. |
 | O3 | The `rail_marks` seen-at semantics for multi-device use. If you read the gates on your phone, does the laptop's delta clear? I think yes, per user, not per device, but that is a product call. | Founder call. |

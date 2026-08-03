@@ -97,12 +97,12 @@ Post-G-REV: credits-for-referrals both ways (giver and receiver get a mission pa
 
 **Voice: sharp PM, plain words, receipts over adjectives ([humanized-output](../conventions/humanized-output.md) applies to every public word — no AI-fingerprint phrasing, no em dashes in posted copy).**
 
-| Pillar                                | Format                                                                                                                           | Cadence                   | Why it works                                                                                  |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| **Decision autopsies**                | A real decision (ours or a public company's), the evidence at the time, the call, the outcome, what the ledger would have caught | 2/week                    | The wedge as content; infinitely repeatable; communities allow it (it is analysis, not promo) |
-| **What the agents did while I slept** | Morning screenshot of the brief: missions advanced, drift caught, rankings moved — with receipts                                 | Daily during launch month | The USP as a daily proof-object; the series title is the hook                                 |
-| **Build-in-public with receipts**     | Traces, reverts, the failure path, real numbers (users, revenue: zero until it isn't)                                            | Daily                     | Honesty is the differentiator; zero→N is the most-followed startup arc                        |
-| **The open-loop essays**              | "Your roadmap is an open loop," "The ledger is the compiler for judgment"                                                        | 1/week                    | Category creation; feeds newsletters/podcasts                                                 |
+| Pillar | Format | Cadence | Why it works |
+| --- | --- | --- | --- |
+| **Decision autopsies** | A real decision (ours or a public company's), the evidence at the time, the call, the outcome, what the ledger would have caught | 2/week | The wedge as content; infinitely repeatable; communities allow it (it is analysis, not promo) |
+| **What the agents did while I slept** | Morning screenshot of the brief: missions advanced, drift caught, rankings moved — with receipts | Daily during launch month | The USP as a daily proof-object; the series title is the hook |
+| **Build-in-public with receipts** | Traces, reverts, the failure path, real numbers (users, revenue: zero until it isn't) | Daily | Honesty is the differentiator; zero→N is the most-followed startup arc |
+| **The open-loop essays** | "Your roadmap is an open loop," "The ledger is the compiler for judgment" | 1/week | Category creation; feeds newsletters/podcasts |
 
 **Repurposing chain (one artifact, four surfaces):** X thread (day 0) → LinkedIn narrative rewrite (day 1, never a crosspost) → the strongest of the week becomes a long-form essay (personal site/Substack) → essay excerpts feed newsletter pitches. HyperAgent or the brand engine drafts derivatives; **founder approves every send.**
 
@@ -120,22 +120,22 @@ Post-G-REV: credits-for-referrals both ways (giver and receiver get a mission pa
 
 **Rules:** every experiment pre-registers hypothesis, metric, and a kill/scale/iterate decision rule before it runs. Max 3 concurrent. Reviewed in the weekly ritual. ICE-scored (Impact, Confidence, Ease, 1–10; run order = score).
 
-| #   | Experiment                                                                                                             | Hypothesis                                                                                            | Success metric (7-day unless noted)                                         | Effort   | ICE | Decision rule                                                     |
-| --- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------- | --- | ----------------------------------------------------------------- |
-| E1  | Concierge teardown offer ("reply with your hardest roadmap call, I'll run the Critic on it") on X/LinkedIn/communities | The wedge sells itself when demonstrated on the prospect's own problem                                | ≥10 requests, ≥5 delivered, ≥3 → beta signups                               | M        | 9.3 | Scale if ≥5 requests; it becomes the standing CTA everywhere      |
-| E2  | Waitlist referral ladder (utility rewards, §1)                                                                         | Product people share for utility, not swag                                                            | Referral K-factor ≥0.4; ≥15% of signups from referrals                      | M        | 8.7 | Kill rewards nobody claims; keep the teardown reward              |
-| E3  | Public teardown of a famous product decision (e.g. a well-covered feature flop), posted as analysis                    | The wedge format earns organic reach without self-promo                                               | ≥50k impressions or 1 front-page community thread; ≥200 site visits         | L        | 8.7 | Scale to 2/week if either threshold hits                          |
-| E4  | Cold outreach A/B: "watch Supaprod red-team YOUR bet" vs generic demo ask                                               | Specific artifact offer beats demo ask ≥2x on booked calls                                            | ≥8% positive reply on the winner (n≥50/arm)                                 | L        | 8.3 | Winner becomes the standing sequence                              |
-| E5  | Founder "open ledger" page — our own Supaprod workspace's decision ledger, public                                       | Radical dogfood transparency drives return visits + trust                                             | ≥500 unique visits, ≥3 unprompted shares                                    | M        | 8.0 | Keep if it earns links; it costs nothing after setup              |
-| E6  | LinkedIn DM to PMs who complained publicly about roadmap/stakeholder pain (signal-sourced list)                        | Pain-expressers convert 3x cold lists                                                                 | ≥15% reply, ≥5 sessions booked (n≥40)                                       | M        | 7.7 | Scale via HyperAgent list-building if reply ≥10%                  |
-| E7  | "Decision log template" lead magnet (Notion/Sheet) gated on email                                                      | Templates out-convert product waitlists for PM audiences                                              | ≥300 downloads, ≥25% join waitlist                                          | L        | 7.7 | Keep the template public forever either way (SEO object)          |
-| E8  | 2-min failure-path video (wrong call → revert → receipt) as the pinned demo                                            | The failure path converts skeptics better than the win path (research: skeptics judge the error path) | View-through ≥40%; demo-link CTR ≥8%                                        | M        | 7.3 | If it beats the win-path video, it leads everywhere incl. Show HN |
-| E9  | Newsletter classifieds (Lenny's/Product Growth tier-2 slots)                                                           | Paid PM newsletter reach converts at ≥$5/waitlist signup                                              | CPL ≤$5, ≥100 signups                                                       | L (cash) | 6.7 | One test slot only pre-launch; scale post-revenue                 |
-| E10 | University/bootcamp PM communities (Reforge/Product School alumni Slacks)                                              | Cohort communities are an overlooked high-trust channel                                               | ≥30 signups, ≥2 design partners                                             | M        | 6.3 | Keep only channels that produce a partner                         |
-| E11 | Live "roast my roadmap" session (Zoom/X Space, Critic on screen)                                                       | Live wedge demo creates clip-able moments + trust                                                     | ≥30 live, ≥3 clips, ≥10 signups                                             | M        | 6.0 | Monthly if ≥30 attend; the clips are the real yield               |
-| E12 | Comparison pages (§3) probe                                                                                            | Bottom-funnel intent exists pre-authority via long-tail                                               | Any impressions in Search Console in 14 days; 1 AI-assistant citation in 30 | L        | 6.0 | Iterate titles; this is a slow lever, never kill early            |
-| E13 | Time-to-first-receipt onboarding A/B (connect source vs paste notes first)                                             | Paste-notes path activates faster for cold signups                                                    | Activation Δ ≥15% (n≥60/arm)                                                | M        | 7.0 | Winner becomes default; loser stays as fallback                   |
-| E14 | "Supaprod built this" PR badge — public PRs merged via Supaprod link back                                                | Eng-side receipts recruit the HN audience passively                                                   | ≥50 badge clicks/month                                                      | L        | 5.7 | Set-and-forget if >0; remove if partners object                   |
+| # | Experiment | Hypothesis | Success metric (7-day unless noted) | Effort | ICE | Decision rule |
+| --- | --- | --- | --- | --- | --- | --- |
+| E1 | Concierge teardown offer ("reply with your hardest roadmap call, I'll run the Critic on it") on X/LinkedIn/communities | The wedge sells itself when demonstrated on the prospect's own problem | ≥10 requests, ≥5 delivered, ≥3 → beta signups | M | 9.3 | Scale if ≥5 requests; it becomes the standing CTA everywhere |
+| E2 | Waitlist referral ladder (utility rewards, §1) | Product people share for utility, not swag | Referral K-factor ≥0.4; ≥15% of signups from referrals | M | 8.7 | Kill rewards nobody claims; keep the teardown reward |
+| E3 | Public teardown of a famous product decision (e.g. a well-covered feature flop), posted as analysis | The wedge format earns organic reach without self-promo | ≥50k impressions or 1 front-page community thread; ≥200 site visits | L | 8.7 | Scale to 2/week if either threshold hits |
+| E4 | Cold outreach A/B: "watch Supaprod red-team YOUR bet" vs generic demo ask | Specific artifact offer beats demo ask ≥2x on booked calls | ≥8% positive reply on the winner (n≥50/arm) | L | 8.3 | Winner becomes the standing sequence |
+| E5 | Founder "open ledger" page — our own Supaprod workspace's decision ledger, public | Radical dogfood transparency drives return visits + trust | ≥500 unique visits, ≥3 unprompted shares | M | 8.0 | Keep if it earns links; it costs nothing after setup |
+| E6 | LinkedIn DM to PMs who complained publicly about roadmap/stakeholder pain (signal-sourced list) | Pain-expressers convert 3x cold lists | ≥15% reply, ≥5 sessions booked (n≥40) | M | 7.7 | Scale via HyperAgent list-building if reply ≥10% |
+| E7 | "Decision log template" lead magnet (Notion/Sheet) gated on email | Templates out-convert product waitlists for PM audiences | ≥300 downloads, ≥25% join waitlist | L | 7.7 | Keep the template public forever either way (SEO object) |
+| E8 | 2-min failure-path video (wrong call → revert → receipt) as the pinned demo | The failure path converts skeptics better than the win path (research: skeptics judge the error path) | View-through ≥40%; demo-link CTR ≥8% | M | 7.3 | If it beats the win-path video, it leads everywhere incl. Show HN |
+| E9 | Newsletter classifieds (Lenny's/Product Growth tier-2 slots) | Paid PM newsletter reach converts at ≥$5/waitlist signup | CPL ≤$5, ≥100 signups | L (cash) | 6.7 | One test slot only pre-launch; scale post-revenue |
+| E10 | University/bootcamp PM communities (Reforge/Product School alumni Slacks) | Cohort communities are an overlooked high-trust channel | ≥30 signups, ≥2 design partners | M | 6.3 | Keep only channels that produce a partner |
+| E11 | Live "roast my roadmap" session (Zoom/X Space, Critic on screen) | Live wedge demo creates clip-able moments + trust | ≥30 live, ≥3 clips, ≥10 signups | M | 6.0 | Monthly if ≥30 attend; the clips are the real yield |
+| E12 | Comparison pages (§3) probe | Bottom-funnel intent exists pre-authority via long-tail | Any impressions in Search Console in 14 days; 1 AI-assistant citation in 30 | L | 6.0 | Iterate titles; this is a slow lever, never kill early |
+| E13 | Time-to-first-receipt onboarding A/B (connect source vs paste notes first) | Paste-notes path activates faster for cold signups | Activation Δ ≥15% (n≥60/arm) | M | 7.0 | Winner becomes default; loser stays as fallback |
+| E14 | "Supaprod built this" PR badge — public PRs merged via Supaprod link back | Eng-side receipts recruit the HN audience passively | ≥50 badge clicks/month | L | 5.7 | Set-and-forget if >0; remove if partners object |
 
 **The weekly growth review (30 min, Friday — run it INSIDE Supaprod as a mission; the review itself generates ledger receipts we can show):**
 
@@ -153,25 +153,25 @@ Post-G-REV: credits-for-referrals both ways (giver and receiver get a mission pa
 
 **The funnel (all-zero baselines as of 2026-07-12 — honest by design):**
 
-| Stage             | Definition                                              | Baseline | 7-day target              | G-LAUNCH target (day ~25)     |
-| ----------------- | ------------------------------------------------------- | -------- | ------------------------- | ----------------------------- |
-| Visit             | Unique on public pages                                  | 0        | 3,000–10,000              | 25,000+                       |
-| Waitlist / signup | Email captured (pre-launch) or account (post)           | 0        | 500–2,000 quality signups | 2,000–5,000                   |
-| Activated         | G-SPRINT moment: own bet torn down, <10 min, unassisted | 0        | 10 (concierge counts)     | ≥50 external workspaces       |
-| Weekly-active     | ≥1 session + ≥1 receipt generated that week             | 0        | 5                         | ≥20                           |
-| Paying            | Real card bought credits                                | 0        | 0–1                       | first purchases (G-BETA exit) |
-| Expanding         | 2nd member or 2nd credit pack                           | 0        | —                         | first instances               |
+| Stage | Definition | Baseline | 7-day target | G-LAUNCH target (day ~25) |
+| --- | --- | --- | --- | --- |
+| Visit | Unique on public pages | 0 | 3,000–10,000 | 25,000+ |
+| Waitlist / signup | Email captured (pre-launch) or account (post) | 0 | 500–2,000 quality signups | 2,000–5,000 |
+| Activated | G-SPRINT moment: own bet torn down, <10 min, unassisted | 0 | 10 (concierge counts) | ≥50 external workspaces |
+| Weekly-active | ≥1 session + ≥1 receipt generated that week | 0 | 5 | ≥20 |
+| Paying | Real card bought credits | 0 | 0–1 | first purchases (G-BETA exit) |
+| Expanding | 2nd member or 2nd credit pack | 0 | — | first instances |
 
 Targets are calibrated to comparable B2B launches, not to hope. A "few million waitlist" is not a planning number any real B2B launch supports; if the wave dramatically overperforms, the plan scales up gracefully — the constraint becomes concierge capacity, which is a good problem the decision framework in [00](./00-launch-operating-manual.md) covers.
 
 **Vanity vs pull (the investor-facing discipline — report the right column, track both):**
 
-| Vanity (context only)                          | Pull (evidence of product-market pull)                                                                       |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Waitlist size, impressions, upvotes, followers | Unprompted teardown/ledger shares by users                                                                   |
-| Signups                                        | Week-2 return; weekly closed loops                                                                           |
-| Demo views                                     | "Can I pay you today?" asks; real-card credit purchases (unprompted payment attempts logged verbatim, dated) |
-| Community applause                             | Users inviting their eng lead unprompted                                                                     |
-| Press/newsletter mentions                      | Design partners renewing past the free period; users angry when something breaks (they depend on it)         |
+| Vanity (context only) | Pull (evidence of product-market pull) |
+| --- | --- |
+| Waitlist size, impressions, upvotes, followers | Unprompted teardown/ledger shares by users |
+| Signups | Week-2 return; weekly closed loops |
+| Demo views | "Can I pay you today?" asks; real-card credit purchases (unprompted payment attempts logged verbatim, dated) |
+| Community applause | Users inviting their eng lead unprompted |
+| Press/newsletter mentions | Design partners renewing past the free period; users angry when something breaks (they depend on it) |
 
 **Gate tie-in (no parallel gate system — these are v13's own):** G-SPRINT = activation is real · G-BETA = 10+ external workspaces active + a real card · G-LAUNCH = listed, ≥50 workspaces, ≥20 weekly-active · G-REV = ≥10 paying. The dashboard exists to tell us which gate is nearest and what blocks it — any metric that doesn't inform a gate or a kill/scale decision gets deleted from the dashboard.

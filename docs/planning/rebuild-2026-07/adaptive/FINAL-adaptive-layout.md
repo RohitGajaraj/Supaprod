@@ -43,7 +43,7 @@ seven places, and a contract that ships both sides of a contradiction is not a c
 is resolved here, in the open, with the loser's reasoning preserved.
 
 | # | Conflict | A said | B said | C said | **Resolution** |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 1 | **Does type scale with the viewport?** | root `clamp(1em, 0.867em + 0.208vw, 1.2em)` - ×1.0 → ×1.2 across 1024→2560 | silent | "Nothing gets bigger. Abundance buys *more*, never *larger*." | **C wins the principle, A wins the mechanism.** The `vw` term is deleted. See §1.1. |
 | 2 | **What is the app's base font size?** | 14px (measured) | - | 13px (from `docs/design/archive/tempo-v5.md`) | **14px.** Verified: `_authenticated.tsx:135` sets `data-obsidian` on `documentElement`; `styles.css:2359` raises `--tempo-text-base` to `14px` inside `[data-obsidian]`. C built on a value the app does not ship. |
 | 3 | **Threshold units** | `em` (density), `ch` (measure) | `rem` (composition), `ch` (measure), never `ch` for bands | `ch` for everything | **B's split, exactly: `rem` decides composition, `ch` decides measure.** A font swap may nudge a wrap point; it may never flip a band. `em` is dropped - see §1.2. |
@@ -139,7 +139,7 @@ three, and there is no separate "zoom story".
 ### 2.1 Inline (width)
 
 | Tier | Range | Composition | Commitment |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **S0 Stack** | `320 - 447` | one region at a time + a region switcher; composer docked; gate inline | **Supported, CI-swept, not designed.** No visual baselines. This is the WCAG 1.4.10 floor (1280px at 400% zoom = 320px) and the phone-portrait case. Vertical scrolling only - never horizontal. |
 | **S1 Focus** | `448 - 1224` | one focused pane + two `44px` rails | **Supported.** Half a 1440 window (720), a 13" at 175% zoom (823), a 1080p at 200% (960), a 1280 at 200% (640). |
 | **S2 Pair** | `1225 - 1945` | thread + canvas | **Designed.** Every laptop: 1280, 1440, 1512, 1680, 1728, and 1920 externals. The primary composition. |
@@ -151,7 +151,7 @@ three, and there is no separate "zoom story".
 ### 2.2 Block (height)
 
 | VTier | Range | Chrome |
-|---|---|---|
+| --- | --- | --- |
 | **H0** | `< 364` | activity strip + composer become one overlay sheet summoned by `⌘J`; the work area keeps the whole viewport |
 | **H1 Compressed** | `364 - 405` | spine numeric; strip merges into the composer's top line |
 | **H2 Standard** | `406 - 429` | spine labeled; strip one line |
@@ -198,7 +198,7 @@ points the current system already uses. **Always `em`, never px.** This is the s
 keeps headings from falling apart when anything rescales.
 
 | Token | Step | `rem` | px | `line-height` | `letter-spacing` | Role |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | `--text-micro` | −1 | `0.7292rem` | 11.67 | `1.66` | `-0.016em` | metadata, timestamps, counts, badge text |
 | `--text-body` | 0 | `0.875rem` | **14.00** | `1.55` | `-0.020em` | **base.** all UI copy, labels, table cells, inputs |
 | `--text-lead` | 1 | `1.05rem` | 16.80 | `1.46` | `-0.024em` | panel titles, emphasized copy, empty-state body |
@@ -247,7 +247,7 @@ hierarchy.
 **Migration mapping** (nearest step in log space; this table is the codemod's input):
 
 | Legacy | Count | → | | Legacy | Count | → |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | 9px | 27 | `text-micro` | | 15px | 8 | `text-body` |
 | 9.5px | 19 | `text-micro` | | 16px | 2 | `text-lead` |
 | 10px | 151 | `text-micro` | | 17px | 3 | `text-lead` |
@@ -272,7 +272,7 @@ mean 1.414). This reproduces the repo's existing 4/8/12/16/24 rhythm exactly and
 properly. The one casualty is `--space-10: 40px`, off-scale between `l` and `xl`; it maps to `l`.
 
 | Token | ×0.25rem | `rem` | px | | Radius | `rem` | px | Applies to |
-|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `--spacing-4xs` | 0.5 | `0.125rem` | 2 | | `--radius-xs` | `0.25rem` | 4 | chips, inline badges |
 | `--spacing-3xs` | 1 | `0.25rem` | 4 | | `--radius-s` | `0.375rem` | 6 | inputs, small buttons |
 | `--spacing-2xs` | 2 | `0.5rem` | 8 | | `--radius-m` | `0.5rem` | 8 | controls |
@@ -303,7 +303,7 @@ as the same design rather than a stretched one.
 Every other px literal in the adaptive layer is a defect and CI fails on one.
 
 | Value | Why it is genuinely invariant |
-|---|---|
+| --- | --- |
 | `--stroke-hairline: 1px` | A device concern. Carries no semantic size and must not scale. |
 | `--focus-ring-width: 2px` | WCAG 2.4.11 / 2.4.13 minimum focus indicator thickness. A standard, not a preference. |
 | `--hit-min: 44px` | A fingertip is ~9mm. Human anatomy, not a type ramp. It must **not** scale with `--ui-scale`, which is exactly why it cannot be expressed in `ch` or `rem`. |
@@ -380,7 +380,7 @@ The switch point and the cap cannot drift apart, because they are one custom pro
 Verified character capacity (content width ÷ 6.972px):
 
 | Band | px | characters |
-|---|---|---|
+| --- | --- | --- |
 | `slat` | 360 | **46.9** ≈ the 48-char minimum |
 | `col` | 480 | **64.0** ← the anchor, by construction |
 | `colmax` | 556 | **74.9** ≈ the 75-char ceiling |
@@ -430,7 +430,7 @@ the real font arrives:
 > control.** Allocators declare. Consumers only read.
 
 | Element | Selector | `container-type` | `container-name` | Why |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Shell | `[data-shell]` | `size` | `shell` | Owns region composition and the only block-size decisions. `100dvh` makes `size` legal. |
 | Region pane | `[data-region]` | `inline-size` | `pane measure` | thread, canvas, context, ledger, and every drawer/tray body. Allocates to arbitrary caller content. |
 | Lane | `[data-lane]` | `inline-size` | `pane measure` | A canvas sub-column is itself an allocator; a card in the left lane must ask the lane, not the canvas. |
@@ -550,7 +550,7 @@ every pane, asserted by §11.2 check S8.
 ### 5.1 Regions, and the one elastic region
 
 | Region | rank | kind | width | Notes |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `canvas` | 0 | core | `minmax(--canvas-min, 1fr)`, field capped at `--canvas-max` | **the only elastic region** |
 | `thread` | 1 | core | `var(--container-col)` - 480px, fixed | |
 | `context` | 2 | aux | `var(--container-col)` - 480px, fixed | promoted from its drawer |
@@ -590,7 +590,7 @@ The **promotion law**: an auxiliary region is admitted only when every incumbent
 *ideal*. An inspector never starves the canvas.
 
 | Tier | Derivation | Floor |
-|---|---|---|
+| --- | --- | --- |
 | S0 | WCAG 1.4.10 reflow floor | `320` |
 | S1 | `slat + 2 x rail-w` = 360 + 88 | **`448`** |
 | S2 | `col + canvas-min + 1` = 480 + 744 + 1 | **`1225`** |
@@ -601,7 +601,7 @@ The **promotion law**: an auxiliary region is admitted only when every incumbent
 Boundary behaviour, computed:
 
 | At | Below the floor | At the floor | What moved |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1946 | thread 480, canvas 1464 | thread 480, **canvas 984**, context 480 | canvas −480, context +480. Thread unchanged. |
 | 2427 | thread 480, context 480, canvas 1464 | thread 480, context 480, **canvas 984**, ledger 480 | canvas −480, ledger +480. Everything else unchanged. |
 
@@ -804,7 +804,7 @@ and a popover. Full CSS lives in `src/styles/archetypes.css` inside `@layer comp
 utilities can still override per instance. Contracts, in brief:
 
 | Archetype | Selector | Default (narrowest) | `slat` 360 | `col` 480 | `wide` 720 | `duo` 960 | `trio` 1440 |
-|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- |
 | Work card | `[data-card="work"]` | status + truncated title, actions below | + meta line | | title/meta/actions share rows | + inline preview strip (diff summary, CI dots) | |
 | List row | `[data-row="list"]` | icon only | + trailing value | + secondary line, stacked | secondary inline; hover actions | | |
 | Data table | `[data-table]` | stacked label/value list | | real table, priority 1-2 | + priority 3 | + priority 4 | |
@@ -948,7 +948,7 @@ The product's job, stated once because everything below is justified against it:
 > preserve the dashboard has inverted the product.
 
 | # | Invariant | Why it cannot go |
-|---|---|---|
+| --- | --- | --- |
 | **I1** | **The open gate** - its claim, its evidence line, and both buttons | This is the product. |
 | **I2** | **The composer**, collapsed to a strip at minimum | If the human cannot answer, the app is broken. |
 | **I3** | **The activity truth** - at minimum `N working · M waiting on you` | The machine must never work invisibly. It may compress to a count. It may never become nothing. |
@@ -965,7 +965,7 @@ is (a) decoration, (b) has a permanent home one click away, or (c) is recoverabl
 on screen.
 
 | # | What gives | How | Why it is cheap |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Spine return-edge caption, `Starts from:` / `Ends with:` caps | hidden | Pure ornament; `Spine.tsx` already renders them behind optional props. |
 | 2 | Topbar recessed doors - Crew, Under the hood, Artifacts, Threads | one `More` menu (overflow row, §6.1) | Already off-nav by the Engine-Room doctrine: depth, not chrome. |
 | 3 | **Ledger column** | back to the approvals tray | The column is a *promoted view of the tray*. The tray is its permanent home, one key away. |
@@ -984,7 +984,7 @@ composer's top line) → composer body becomes a summoned sheet. I2 and I3 survi
 ### 8.3 The promotion ladder - the half most systems never write down
 
 | # | What arrives | At |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Thread promotes from rail to resident column | S2, `≥ 1225` |
 | 2 | Canvas gains a second sub-column | canvas `≥ 744` |
 | 3 | Canvas gains a third sub-column | canvas `≥ 1128` |
@@ -1087,7 +1087,7 @@ sends no app markup; React renders after the client bundle boots. There are exac
 a layout adapt and only one survives that:
 
 | Mechanism | Correct before hydration? | First paint |
-|---|---|---|
+| --- | --- | --- |
 | JS measurement (`useMediaQuery`, `innerWidth`, `ResizeObserver` → state) | **No** | renders a guessed default, then reflows once JS measures. A visible snap on every load, worse on a cold Worker start. |
 | CSS container queries | **Yes** | correct at first paint, zero JS. |
 
@@ -1139,7 +1139,7 @@ URL-bar delta, so mobile chrome collapse cannot flip a band.
 Measured this session:
 
 | Count | Scope |
-|---|---|
+| --- | --- |
 | **992** | `style={{` occurrences across `src/routes/_authenticated*.tsx` |
 | **275 / 67 / 54 / 49** | the worst files: `settings`, `sync`, `build.index`, `today` |
 | **97** | of the 992 carrying a **reflow-critical** property (`gridTemplateColumns`, `gridTemplateRows`, `minWidth`, `maxWidth`, `flexBasis`) |
@@ -1197,7 +1197,7 @@ table:
 ```
 
 | Inline, found in the tree today | Replacement |
-|---|---|
+| --- | --- |
 | `style={{ color: "var(--ink-subtle)" }}` | `className="text-ink-subtle"` |
 | `style={{ background: "var(--ink-raised)" }}` | `className="bg-ink-raised"` |
 | `style={{ fontSize: 12.5 }}` | `className="text-micro"` |
@@ -1217,7 +1217,7 @@ one-way ratchet: the lint rule blocks new sites immediately, and a committed bas
 ever go down. The number reaches zero on its own schedule.
 
 | Tranche | Rule | Scope | Baseline | When |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **1** | ban `width\|minWidth\|maxWidth\|height\|minHeight\|maxHeight\|gridTemplate*\|flexBasis\|columnCount` in `style={{}}` | `src/routes/**`, `src/components/**` | **100** (97 + 3, measured) | now - this is the one that unblocks adaptivity |
 | **2** | ban `fontSize\|letterSpacing\|lineHeight\|fontWeight` in `style={{}}`, and `text-[...px]` / `leading-[...px]` / `tracking-[...px]` | same | measured at landing (~805) | after §3.1's `@theme` block ships |
 | **3** | **custom properties only** | `src/app/**` (the rebuilt tree) | **0**, no grandfather | from commit one |
@@ -1396,7 +1396,7 @@ The original defect, exactly: "the app is designed for 1440." A layout with no w
 ### 11.2 Gate 1 - the static scan (`bun test`, sub-second)
 
 | # | Check | Fails on |
-|---|---|---|
+| --- | --- | --- |
 | S1 | inline style declarations | any `style={{}}` key not starting with `--`, in `src/app/**`; the tranche-1/2 property sets elsewhere |
 | S2 | viewport breakpoints | `sm:`/`md:`/`lg:`/`xl:`/`2xl:` anywhere in `src/app/**` |
 | S3 | `@media` outside the allowlist | any `@media` outside `src/styles/environment.css`, or any size feature (`min-width`/`max-width`) anywhere |
@@ -1512,7 +1512,7 @@ want.
 Steps 1-4 ship no UI and are safe to land first; they make every later step falsifiable.
 
 | # | Deliverable | Depends on | Unlocks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `--text-*` → `--ink-*` rename (§3.4a); delete `--container-standard` / `--container-work` (§3.4b) | - | everything |
 | 2 | `src/styles/tokens/{scale,type,space}.css` - the `@theme` blocks (§3.1-3.3) + `html { font-size: calc(100% * var(--ui-scale,1)) }` | 1 | tranche 2 |
 | 3 | `src/styles/adaptive.css` - the band ladder + container declarations (§3.5, §4.2) | 2 | Gate 0 |
@@ -1533,7 +1533,7 @@ Steps 1-4 ship no UI and are safe to land first; they make every later step fals
 ## 13. The six tests, answered
 
 | Test | How this contract passes it |
-|---|---|
+| --- | --- |
 | **1. Resize** | Only the canvas ever changes width, and inside a tier it changes as `1fr` - continuously, sub-pixel. At the two promotion boundaries it gives up exactly `481px` while every other region stays pixel-identical. Asserted at every 1px step from 320 to 5120 (§11.0). |
 | **2. Monitor switch** | Composition, not stretch: 1440 laptop → thread + canvas; 1920 → thread + 3-column canvas; 2560 → four regions; 3440 → four regions at the 3159px cap with 140px gutters. No column ever exceeds 75 characters, on any monitor, in any tier, in focus mode. |
 | **3. Zoom** | `effective CSS px = physical px / zoom`, exactly, so zoom walks *down* the same tier ladder: 1440×900 at 200% → `720×450` → S1/H3, fully composed; at 400% → `360×225` → S0/H0, still functional, still no horizontal scroll. The 320px floor is the WCAG 1.4.10 requirement, met deliberately. |

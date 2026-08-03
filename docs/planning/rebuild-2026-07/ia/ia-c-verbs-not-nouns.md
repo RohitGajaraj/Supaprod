@@ -25,7 +25,7 @@ The fix is not a better menu. It is to stop asking for the translation.
 A verb-first app fails when the verb surface is a blinking cursor. That is what got the 2026-07-18 rebuild called "any-AI-chat-app". Four always-on teaching devices, none of which is a menu, answer that:
 
 | Device | What it teaches | Built from |
-|---|---|---|
+| --- | --- | --- |
 | **The Deck** | The full inventory of what the product can do, in plain words, browsable and grouped by the question each verb answers. An empty Ask bar shows the Deck, never a blank field. This is the table of contents. | `CommandPalette.tsx` (454 lines, currently zero importers), `palette-catalog.ts` (20 entries), `palette-sections.ts` `ACT_VERBS`, `SuggestionPopover.tsx`, `JourneyChips.tsx` |
 | **The Trace** | The seven-stage lifecycle, and where this specific run sits inside it. Shape by state, not by nav. | `Spine.tsx` (`SPINE_STAGES`, `resolveLoopState`, `isStageDimmed`), `loop-state.functions.ts` |
 | **Context chips** | What is worth doing *here, now*. Three to five chips above the Ask bar, recomputed per surface and per selection. The machine routing you, made visible. | `JourneyChips.tsx` + `journeyForIntent()` |
@@ -55,7 +55,7 @@ The Deck carries the enforcement law that `journeys.ts` already established: **e
 ```
 
 | # | Label | The sentence a user says | Route | Owns |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 | **Ask** | "I want to do a thing." | no route; docked bar + `⌘K` + `?ask=` on any URL | The Deck, free text, object search, run kickoff |
 | 2 | **Working** | "What is happening, and what did it make?" | `/working` | Every run, live or finished, and everything runs produced |
 | 3 | **Waiting** | "What needs me?" | `/waiting` | Every gate. The one count. The human's whole job |
@@ -79,7 +79,7 @@ The Deck carries the enforcement law that `journeys.ts` already established: **e
 ### What I rejected, and why
 
 | Rejected | Why it is a defect under this stance |
-|---|---|
+| --- | --- |
 | **The seven loop stages as destinations** (`/discover`, `/decide`, `/plan`, `/design`, `/build`, `/ship`, `/learn`) | A stage is a state a piece of work is in, not a place a person goes. The code already proves it: `/decide` fires zero queries and renders the same `OpportunityQueue` that `/discover?tab=queue` renders. `/ship` and `/learn` mount lazy panels that also render inside `/brain`, and their only own query is a presence chip. Three of seven destinations exist purely to make the "seven-stage loop" story legible in a rail. The story is real; the rail is the wrong place to tell it. The Trace tells it better because it tells it about *your* work. |
 | **Object destinations** (Specs, Prototypes, Missions, Artifacts, Threads, Signals) | They answer "where is the file", which is a question you only ask after the app has already failed to bring the file to you. They collapse into lenses on Working, all URL-addressable, none in the nav. |
 | **"Mission Control" as a destination** | It names chrome, not an action. Its three regions split cleanly: Spine to the Trace, Thread to Ask, Canvas to the run view. Nothing is lost and one place-name dies. |
@@ -100,7 +100,7 @@ The Deck carries the enforcement law that `journeys.ts` already established: **e
 ### 2.1 Ask (no route, present everywhere)
 
 | Capability | Home | Reached by | Clicks | Absorbed from |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | The Deck (verb catalogue, grouped) | Ask bar, empty state | `⌘K` or click the bar | 1 | `CommandPalette.tsx` (dead), `palette-catalog.ts`, `ACT_VERBS` |
 | Journey kickoff (J0..J7) | Ask > **Do** group | type or pick a chip | 1 | `JourneyChips.tsx`, `journeys.ts` |
 | Object search by name | Ask > **Open** group | type a name | 1 | `palette-recents.ts`, new cross-entity search |
@@ -114,7 +114,7 @@ The Deck carries the enforcement law that `journeys.ts` already established: **e
 The list is **runs**, newest first. A run is one intent moving through a slice of the loop. Lenses are query params on the same list, never separate routes.
 
 | Capability | Home | Clicks | Absorbed from |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | All runs, live and finished | `/working` (default lens) | 0 | `/build` (989), `/missions`, `/cockpit`, `/m` |
 | **The run view** (Trace + Thread + stage face + Ask) | `/open/run/$id` | 1 | `/build/$missionId` (870), the whole Mission Control room (`MissionShell` + `MissionShellView` + `faces.tsx` 2781 lines) |
 | By agent | `/working?lens=agents` | 2 | `/fleet`, `FleetView`, `computeAgentFleet` |
@@ -138,7 +138,7 @@ The list is **runs**, newest first. A run is one intent moving through a slice o
 One queue. Workspace-wide. Ten kinds, all already returned by `getApprovalsQueue`.
 
 | Capability | Home | Clicks | Absorbed from |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | The gate queue, all kinds | `/waiting` | 1 | `/approvals` (270), `ApprovalsTray.tsx` (317) |
 | Filter by kind | `/waiting?kind=<kindKey>` | 2 | `FilterTabs.tsx` |
 | **The judgment view** (the case, evidence chain, receipt, approve / send back / decline) | `/open/gate/$id` | 2 | new; composed from `ApprovalCard` + `getProvenance` + `getLineage` |
@@ -159,7 +159,7 @@ One queue. Workspace-wide. Ten kinds, all already returned by `getApprovalsQueue
 ### 2.4 Recall (`/recall`) - "what do we know"
 
 | Capability | Home | Clicks | Absorbed from |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Decisions | `/recall` (default view) | 1 | `/brain?tab=decisions` |
 | Learnings and outcome memos | `/recall?view=learnings` | 2 | `/brain?tab=learnings`, `/learn`'s `LearningsPanel`, `/outcome` |
 | **Memory (THE one home)** | `/recall?view=memory` | 2 | **`MemoryView.tsx` (201, unmounted)** + `/settings?section=memory` + `/brain?tab=memory` + `/memory`. Three homes collapse to one |
@@ -180,7 +180,7 @@ One queue. Workspace-wide. Ten kinds, all already returned by `getApprovalsQueue
 Seven groups. Group 7 renders only for platform admins (`amIAdmin`). Every existing `?section=` id and every existing `?room=&view=` pair keeps resolving (§6).
 
 | Group | Route | Owns | Absorbed from |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **You** | `/tune/you` | Profile, theme, what Supaprod sends you (briefing schedule, notification prefs) | `/settings?section=profile\|notifications`, `/briefing` (**currently broken**: points at a nonexistent section id) |
 | **Workspace** | `/tune/workspace` | Brief and voice, brand kit, products, teammates and invites | `/settings?section=workspace\|brand\|products`, `/design`'s Brand Kit pane (`DesignMemoryPanel`) |
 | **Agents** | `/tune/agents` | Roster and blurbs, autonomy and approval modes, models and BYO keys, guardrails, house rules, emergency stop, background routines, researcher watch targets | `/settings?section=staff\|autonomy\|ai`, `/engine-room?room=safety` (all six views), `/agents`, `/swarm`, `/guardrails`, `/governance`, **`researcher.functions.ts` (orphan)** |
@@ -196,7 +196,7 @@ Every group has a 2-click floor: click 1 Tune, click 2 the group. Sections insid
 Every item from the ground truth that had no door now has one.
 
 | Item | Status before | HOME now |
-|---|---|---|
+| --- | --- | --- |
 | `AudioTranscriptPanel.tsx` (386) + 4 server fns | complete backend, zero doors anywhere | `/open/transcript/$id` + Ask verb "Turn a recording into signals" + `/working?lens=made&kind=transcript` |
 | `CommandPalette.tsx` (454) | zero importers; search unreachable | Ask, the Deck |
 | `AttentionBell.tsx` (97) | zero importers; no bell exists in the live UI | `/waiting?kind=news` |
@@ -226,7 +226,7 @@ Today there is a three-way disagreement in code: `login.tsx:100` sends to `/`; `
 **Resolved: one shell, one landing, no state-dependent branching.**
 
 | Who | First authenticated screen | Why |
-|---|---|---|
+| --- | --- | --- |
 | **Returning user** | `/working` | The most recent run is the top row. If `getApprovalsQueue().length > 0`, the Waiting strip pins above it with the stakes summary and a single "Take these" button. The Ask bar is docked and focused-on-`/`. Time to comprehension: one glance, one sentence per row. |
 | **Brand-new user, mid-onboarding** | `/start` | One question, chromeless. `MissionOnboarding` already renders this; it is currently unreachable. `_authenticated.tsx` `beforeLoad` sends `needsOnboarding` users here instead of `/onboarding`. |
 | **Brand-new user, onboarding just finished** | `/open/run/$id` of the run onboarding kicked off | The first thing they see is **the machine working for them**, with the Trace lit on the J1 slice. Not a dashboard, not a tour. |
@@ -237,7 +237,7 @@ Today there is a three-way disagreement in code: `login.tsx:100` sends to `/`; `
 **Changes required to make this true:**
 
 | File | Line | Change |
-|---|---|---|
+| --- | --- | --- |
 | `src/routes/login.tsx` | 100 | `window.location.assign("/")` becomes `assign("/working")` |
 | `src/routes/index.tsx` | 130 | session detect replaces to `/working`, not `/m` |
 | `src/routes/_authenticated.tsx` | 37 | `redirect({ to: "/onboarding" })` becomes `redirect({ to: "/start" })` |
@@ -260,7 +260,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J1 - "What should we build next?"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Ask bar, anywhere | matches intent to J1 (`journeyForIntent`), creates the run | types it, or picks the chip |
 | 2 | `/open/run/$id`, Trace lit 01-02 | Scout clusters signals (`clusterSignals`); Researcher fetches market signal if the workspace has none | watches, or leaves |
 | 3 | same, Discover face | Critic reviews each cluster (`runCriticReview`), ICE-scores, ranks | reads the ranked list |
@@ -272,7 +272,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J2 - "Tear this idea down"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Ask bar **with an object attached** (a bet or spec) | requires the attachment; the Deck row is disabled with an honest reason when nothing is selected | picks the target |
 | 2 | `/open/run/$id`, Trace lit 02 | Critic runs the wedge teardown (`runWedgeTeardown`); fans out parallel explorations (`dispatchExploration`) | reads the strongest case against |
 | 3 | same | posts each exploration verdict | **accepts or rejects the batch** (`decideFanoutBatch`) |
@@ -285,7 +285,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J3 - "Just write the PRD"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Ask bar | accepts an approved bet **or** a bare typed idea | types it |
 | 2 | `/open/run/$id`, Trace lit 03 | PRD Writer drafts with citations (`generatePrd`) | reads |
 | 3 | same, Plan face | assist edits on request (`prdAssist`); builds the task graph (`generateTaskGraph`) | edits inline, asks for changes |
@@ -297,7 +297,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J4 - "Build this feature"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Ask bar, or the J3 rejoin door | checks repo reachability (`canDispatchToRepo`); offers to create one (`provisionRepoForSpec`) if none | confirms the repo |
 | 2 | `/open/run/$id`, Trace lit 05 | Builder dispatches the session (`dispatchStudioSession`); plan, files changed, terminal, CI strip all stream into the Build face | watches, or leaves and comes back |
 | 3 | tool gates inline + `/waiting?kind=tool_call` | pauses on any tool in `confirm` or `review` mode | **approves the tool call** |
@@ -309,7 +309,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J5 - "Design this"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Ask bar, or the J3 rejoin door | attaches the spec | picks the spec |
 | 2 | `/open/run/$id`, Trace lit 04 | UX Architect generates the scaffold in the workspace brand (`generateDesignScaffold`) | views the prototype |
 | 3 | same | Design Critic reviews (`runScaffoldDesignCritic`); parity check against brand (`checkDesignParity`) | reads the critique |
@@ -321,7 +321,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J6 - "Launch what we shipped"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Ask bar, or the J4 rejoin door | attaches the changeset | picks |
 | 2 | `/open/run/$id`, Trace lit 06 | Release promotes preview to production (`promoteToProduction`) | **approves the promotion** |
 | 3 | same, Ship face | writes release notes (`generateReleaseNotes`), the launch kit (`generateLaunchKit`), the launch plan (`generateLaunchPlan`) | edits, copies out |
@@ -335,7 +335,7 @@ Every journey below is grounded in `src/lib/journeys.ts`, whose `wiredVia` list 
 ### J7 - "How did it land?"
 
 | Step | Screen | Machine does | Human does |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | the armed date fires a gate into `/waiting?kind=assumption_challenge`, or Ask bar | pulls outcome data (`getOutcomeData`), confirms shipped (`checkPrdShipped`) | opens the gate |
 | 2 | `/open/run/$id`, Trace lit 07 | shows the outcome contract next to what actually happened; flags challenged assumptions | **records the verdict** (`recordOutcome`) |
 | 3 | same | writes the learning into the brain; links it back to the spec, the bet, and the originating signals | reads the compounding line |
@@ -354,7 +354,7 @@ Not a separate machine. The chain `J1 -> J2 -> J3 -> J5 -> J4 -> J6 -> J7` (`FUL
 ### The dead-end audit
 
 | Terminal state | Forward door |
-|---|---|
+| --- | --- |
 | Run finished, journey done | `journeyHandoffFor()` line, one door |
 | Run failed | "Try again with what we learned" (re-dispatch, same intent, failure context attached) + "Ask why" |
 | Gate declined | "Tell it what to do instead" (opens Ask prefilled with the decline reason) |
@@ -374,7 +374,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 **The rule that fixes the disconnection.** Every entity detail view renders a **Chain strip**: back-links on the left, forward-links on the right, each one a clickable door with the peer title and the agent that made the edge. No entity view ships without it. This is one shared component (`ChainStrip`) reading `getLineage`, not eleven bespoke implementations.
 
 | Entity | Route | Links FORWARD to | Links BACK to | Clickable doors in the UI |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Signal** | `/open/signal/$id` | theme, bet | source (connection), meeting, transcript | ChainStrip both sides; "Source" chip opens `/tune/sources`; "Rank these" starts J1 |
 | **Theme** | `/open/theme/$id` | bet | signals (many) | ChainStrip; "Signals (7)" expands inline, each row a door |
 | **Bet** (opportunity) | `/open/bet/$id` | decision, spec, teardown verdict | theme, signals, learning that raised it | ChainStrip; "Evidence" opens the provenance tree; "Tear down" starts J2; "Write the spec" starts J3; "Keep or kill" opens `/open/gate/$id` |
@@ -403,7 +403,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 ### 6.1 The scheme
 
 | Shape | Rule | Example |
-|---|---|---|
+| --- | --- | --- |
 | Destination | one flat path segment, a verb | `/working` `/waiting` `/recall` `/tune` |
 | Group (Tune only) | second segment | `/tune/agents` |
 | Lens, tab, view, filter | **always a query param, never a route** | `/working?lens=traces` `/recall?view=memory` `/waiting?kind=spec` `/tune/plan?view=caps` |
@@ -418,7 +418,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 ### 6.2 Modal versus page versus drawer
 
 | Rule | Binding |
-|---|---|
+| --- | --- |
 | **Anything with its own data fetch is a page.** | If it calls a server function to render, it gets a URL. No exceptions. This is the rule `/plan`'s seven child panels break today. |
 | **Modals are transient only.** | Confirm, compose, connect. No fetch, no deep link, dismiss loses nothing. `ApiKeyConnectDialog` is the correct shape; `MissionSlideOver` is not. |
 | **Drawers are addressable overlays.** | `?drawer=` restores over the parent page on reload, so a shared link opens the drawer in context rather than stranding the reader. Crew, receipt details, agent scorecard. |
@@ -430,7 +430,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 **Resolve, never bounce.** The one existing good precedent is `_authenticated.$workspaceSlug.$productSlug.tsx`, which points the workspace context at the routed workspace before reading any product. Generalise it.
 
 | Situation | Behaviour |
-|---|---|
+| --- | --- |
 | Object exists, different workspace, you are a member | switch workspace context silently, render the object, flash the switcher |
 | Object exists, you are not a member | named dead-end: "You do not have access to this spec." One door: "Ask to be added". Never leak whether it exists (RLS already gives the same answer for absent and forbidden) |
 | Object id is malformed or gone | "That link points at something that is not here any more." Two doors: "Search for it" (opens Ask prefilled with the id) and "Back to Working" |
@@ -442,7 +442,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 **The four currently broken redirects, fixed:**
 
 | Broken today | Fixed |
-|---|---|
+| --- | --- |
 | `/briefing` points at a settings section id that does not exist | `/tune/you?view=sends` (a real section that owns the briefing schedule) |
 | `/calendar` folds to Decisions and drops `?meeting=` | `/recall?view=meetings`, `?meeting=` forwarded as `/open/meeting/$id` |
 | `/meetings/$id` folds to Decisions and drops the id | `/open/meeting/$id` |
@@ -455,7 +455,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 ### 7.1 Routes deleted
 
 | Route(s) | Absorbed by |
-|---|---|
+| --- | --- |
 | `/today` (1543) | `/working` (the loop pulse becomes the Trace, the spotlight and needs-judgment become the Waiting strip, the desk composers become Ask verbs, tasks become `/working?lens=mine`) |
 | `/decide` (zero own queries) | `/waiting?kind=opportunity` |
 | `/ship`, `/learn` (presence chip only) | `/working?lens=releases`, `/recall?view=learnings\|impact\|support` |
@@ -480,7 +480,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 ### 7.2 Components and modules deleted
 
 | File | Reason | Absorbed by |
-|---|---|---|
+| --- | --- | --- |
 | `src/components/supaprod/AppShell.tsx` (1033) | the 236px 10-destination rail is the stage-shaped IA in code | one shell (§8 step 1) |
 | `src/components/mission/RoomChrome.tsx` (282) | the 4-door top bar is place-shaped | the same one shell; `RoomTopBar` survives as its ancestor |
 | `src/lib/nav-model.ts` (246) | `PRIMARY_NAV` is the seven-stage rail as data | a new `destinations.ts` with five verbs |
@@ -496,7 +496,7 @@ This is the answer to "what are the set of features that needs to be interlinked
 ### 7.3 Concepts retired
 
 | Concept | Why | What replaces it |
-|---|---|---|
+| --- | --- | --- |
 | **The nav rail** | the 236px 10-destination zone list is the disease | a 52px top bar with five verbs and a docked input |
 | **Two shells chosen by a pathname allowlist** (`_authenticated.tsx:146-185`) | any route added outside the allowlist silently renders in the retired shell. That is how a brand-new user's first screen ended up in the wrong app | one shell for every authenticated route, with two body modes: chromeless (`/start`) and normal. No allowlist |
 | **"Stage as destination"** | the root cause of `/decide`, `/ship`, `/learn` | the Trace, scoped to a run |
@@ -539,7 +539,7 @@ Change the four entry points (§3 table). `/start` becomes the only first-run ro
 Delete all 41 redirect stub files, replaced by one catch-all reading a single forward map. Delete `AppShell`, `RoomChrome`, `nav-model.ts`, `FocusDock`, `AmbientChip`, `ambient.functions.ts`, `delegate-poll.functions.ts`, `MissionSlideOver`, `src/components/today/*`, the Obsidian `TopBar`/`PageHeader` pair. Then turn the enforcement on:
 
 | Test | Fails when |
-|---|---|
+| --- | --- |
 | `surface-registry.test.ts` | any entry is `status: 'planned'`, or any `*.functions.ts` on disk has no entry, or any entry has no `opensFrom` |
 | `destinations.test.ts` | the top bar has anything other than the five verbs, or a feature added a nav item |
 | `deck.test.ts` | a Deck row's named server function does not exist (the `journeys.ts` `wiredVia` law, extended to the whole catalogue) |

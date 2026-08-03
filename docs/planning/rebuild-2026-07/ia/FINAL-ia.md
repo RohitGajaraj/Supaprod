@@ -22,7 +22,7 @@ room. You leave it by signing out.
 ### 0.2 Why A wins, against the five tests
 
 | Test | A | B | C |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **1. Ten-second** | **Wins.** First frame draws the whole machine: seven numbered stages on the Spine, a Thread that says what is happening, an ember that says what is yours, seven journey cards that say what you can ask for. The anatomy teaches; copy confirms. | Same Work body, so nearly as strong, minus a ten-second tax on the word "Mind" (a second top-level whose meaning is not self-evident on frame one). | **Loses.** Landing is `/working`, a reverse-chron list of runs, and the seven-stage loop is invisible until a run is open (the Trace is per-run). A brand-new user with zero runs sees an empty list plus a Deck of commands. A command catalogue teaches what you can type, not what the machine is. This is an activity feed with a better input, and an activity feed is the dashboard failure in different clothes. |
 | **2. Partial-journey** | Strong. `?journey=j3` lights the slice, dims the rest, caps the Thread, hands off at the end. Three doors in. A journey is a filter on the room, so it costs nothing. | Identical mechanism (same Work body). Tie. | Strong, and holds the single best idea in the three docs: a journey is a property of **one run**, so a partial journey visibly *is* a partial run. But entry is Ask-only, so you must already know the verb. |
 | **3. No-orphan, ≤2 clicks** | **Wins.** One deliberate failure class: Admin's 9 surfaces at 3 clicks, argued and correct. Everything else at 1 or 2. | Worse: 16 Settings sections at 3 clicks (defended), researcher targets at 4, and `/artifacts` dissolved into `Cmd+K` with no browsable home - a real orphan by its own law. | **Worst.** All of Tune (16 settings sections plus the engine room's ~22 views) at 3 clicks by browsing, "1 click by Ask". That is depth behind a palette, by the author's own admission. |
@@ -74,7 +74,7 @@ Spine, the Thread, the Composer and the depth rail stay live and only a region c
 layer.
 
 | Kind | Count | What | Destination? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Destination** | 1 | `/$ws/$product` | - |
 | **Workbench children** | 5 | `spec/$id`, `mission/$id`, `trace/$id`, `prototype/$id`, `map` | No. Same TopBar, same Spine, same rail. Thread and Canvas swap. |
 | **Depth panes** | 7 | `?pane=` (6) + `?gate=` (1) | No. Over-panels; everything behind stays live. |
@@ -113,7 +113,7 @@ WorkingStrip · Composer**, plus the **depth rail** on the right edge.
 The Spine is state, never navigation. It renders in one of two modes and always says which:
 
 | Mode | When | Source | What it shows |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Product** (default) | no run focused | `getLoopState` | where this *product* is in its loop; per-stage state, receipts, gate counts |
 | **Run** | `?focus=mission:*` or any workbench child, or `?journey=` active | that run's slice | where this *piece of work* is; the slice lit, everything else present and dim |
 
@@ -124,7 +124,7 @@ questions, two modes, one drawing, always labelled.
 ### 1.5 What was rejected, and why
 
 | Rejected | Why |
-|---|---|
+| --- | --- |
 | **Today** | The disease, not the cure. `_authenticated.today.tsx` is 1543 lines pulling `getGreeting`, `getTodayLanes`, `getApprovalsQueue`, `listFanoutBatches`, `listLearnings`, `getProductContext`, `getAgentFleet` - a dashboard *about* the loop sitting next to the loop, guaranteeing everything appears twice and nothing connects. A dashboard is what you build when you do not trust your product to be legible. |
 | **Seven stages as seven pages** | Seven contexts, seven headers, seven scroll positions, seven chances to lose the artifact you were carrying. The Spine already renders all seven with per-stage state. Pages duplicate the Spine and then contradict it. They become canvas faces, which `faces.tsx` already built (102KB of it). |
 | **Decide, Ship, Learn specifically** | They own nothing. `/decide` is a header around `OpportunityQueue`, the exact component `/discover?tab=queue` renders, with zero queries of its own. `/ship` and `/learn` mount lazy panels that also render inside `/brain`; their only own query is a presence chip. A destination that exists to make a story true is a defect. |
@@ -155,7 +155,7 @@ the room as it opens. Keyboard equivalents are the real answer for a daily user.
 `?stage=` selects the face; the Spine and keys `1`-`7` set it.
 
 | Stage | URL | Absorbs | Keys |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 01 Discover | `?stage=discover` | `/discover` + `DiscoverSurface` signals, `/discovery`, `/opportunities`, researcher targets ("What the crew is watching"), the Recordings lane (`AudioTranscriptPanel`), meetings-as-signal, `/today`'s `WatchLane` | `1` |
 | 02 Decide | `?stage=decide` | `OpportunityQueue` (from `/decide` and `/discover?tab=queue`), teardown verdicts, `gauntlet`, `contradiction-auditor`, `shared-premise`, `decision-currency`, `fanout` parallel exploration, `FirstTeardownCard` | `2` |
 | 03 Plan | `?stage=plan&view=` | `/plan` + `PlanSurface` five views (`goals`, `loops`, `roadmap`, `specs`, `stakeholders`), `/prds`, `/roadmap`, `/stakeholder`, `task-graph` | `3` |
@@ -182,7 +182,7 @@ focus expands the strip to 240px and reveals the question label; the label is al
 Thread, Composer and WorkingStrip all stay live. The URL gains `?pane=`.
 
 | Tile | Label (the user's words) | Key | URL | Owns |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | ◆ ember | **Your call** | `g` | `?gate=open` | The approvals queue (`getApprovalsQueue`, `decideApprovalItem`, `sendBackApprovalItem`), all 10 gate kinds, plus **Heads up** (`notifications` + `announcements`, where `AttentionBell.tsx` finally mounts), **Done without you** (`ExecutedCard.tsx`, `getRecentExecutedUnattended`), and **What your calls taught us** (`gate-signals.functions.getGateSignals`) |
 | 1 | **What we know** | `k` | `?pane=brain` | Beliefs (landing, §2.3), Calls, Learnings, Docs, Memory, and a door to the Map child. Absorbs `/brain`'s four tabs + `memory`, `memory-candidates`, `MemoryList`, `MemoryReviewQueue`, `MemoryView`, `MemoryExpiryBanner`, `decision-precedent`, `brain-insights`, `knowledge-graph-*`, `strategy-registry`, `playbooks`, `moat`, `value-receipts` |
 | 2 | **What happened** | `r` | `?pane=record` | Engine Room's Record room whole: `verify`, `receipts` (the SHA-256 tamper-evident ledger + share controls), `traces` (`TracesPanel`), the approvals log, `support`. Plus `lineage`, `audit-lineage`, `trust-chain`, `artifact-rewind`, `incidents` |
@@ -269,7 +269,7 @@ the room (the room stays mounted; Escape returns you to the exact canvas state).
 sections, every legacy `?section=` id preserved by `normalizeSection`.
 
 | Group | Sections | URL | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | You | profile, notifications | `?config=you&section=profile` | 2 |
 | Workspace | workspace (Brief & voice), brand, products, memory-policy | `?config=workspace&section=brand` | 2 |
 | Agents | staff (Roster, incl. researcher watch targets), autonomy (Autonomy & approvals), ai (Models & keys) | `?config=agents&section=autonomy` | 2 |
@@ -291,7 +291,7 @@ same screen. The defence B gives ("settings are visited rarely") is the same arg
 ### 2.5 Admin - the one deliberate 3-click path
 
 | Surface | URL | Clicks |
-|---|---|---|
+| --- | --- | --- |
 | Admin overview (354 + 187 layout) | `?config=admin&section=overview` | 3 |
 | People (854), Workspaces (640), Platform (840), Routing (122), Pricing (636), Health/observability (427), Spend/ai-costs (249), Proof (318, incl. `ActivationFunnelPanel`) | `?config=admin&section=<id>` | 3 |
 
@@ -311,7 +311,7 @@ Spine (in run mode), same depth rail - with the Thread column replaced by that o
 sequence and the Canvas given to the work.
 
 | Child | URL | Replaces | Thread column becomes | Clicks |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Spec editor | `/$ws/$product/spec/$specId?tab=` | `/plan/spec/$id` (1084) , `/prds/$id` | provenance: citations, the signals it came from, the decision that authorized it | 2 |
 | Mission | `/$ws/$product/mission/$missionId?tab=` | `/build/$missionId` (870), `/missions/$id`, `/studio/$id` | the mission's step log, live | 2 |
 | Trace | `/$ws/$product/trace/$traceId?step=` | `/traces/$traceId` (861) | the run's steps, replayable | 2, or 1 from any receipt |
@@ -333,7 +333,7 @@ Every zero-importer component was re-verified this session (`grep -rl <name> src
 file). Where a proposal was wrong, the corrected fact is stated.
 
 | Component | Lines | Importers (verified) | Home | Clicks |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `audio/AudioTranscriptPanel.tsx` | 386 | **0** | Two doors, one render: the **composer mic verb** dictates; **Discover face → Recordings lane** lists and opens transcripts, and `extractActionsFromTranscript` promotes a line to a signal | 1 |
 | `supaprod/CommandPalette.tsx` | 454 | **2, but neither mounts the palette** - `_authenticated.tsx:4` imports only `GotoShortcuts` from it, and `_authenticated.tsx:204` calls it "the retired CommandPalette". The palette UI is dead; the file is alive as a shortcut binder. | Mounted on `⌘K` (§6.6); `GotoShortcuts` retargets to the rail/Spine keys | 0 |
 | `supaprod/AttentionBell.tsx` | 97 | **0** | Gates tray → **Heads up** | 1 (`g`) |
@@ -362,7 +362,7 @@ file). Where a proposal was wrong, the corrected fact is stated.
 **The 4 orphaned server-function domains:**
 
 | Domain | Exports | Home | Clicks |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `researcher.functions` | `getResearcherTargets`, `updateResearcherTargets` | **Two-sided, one render each, no duplication:** the *setting* is Settings → Agents → Roster → Research ("what to watch"); the *output* is the Discover face's **Watching** strip, edited inline. Per the Engine-Room doctrine the label is "What the crew is watching", never "researcher targets". | 1 / 2 |
 | `design-parity.functions` | `getDesignParity`, `checkDesignParity` | Build face → changeset card → **Matches the design** row; failure opens the diff against the mockup. Result also files a Record-pane check row. | 1 |
 | `gate-signals.functions` | `getGateSignals` (write half already wired from `discovery.functions` and `agent_loop.functions`) | Gates tray footer → **What your calls taught us**, and the Beliefs surface aggregate (§2.3) | 1 (`g`) |
@@ -371,7 +371,7 @@ file). Where a proposal was wrong, the corrected fact is stated.
 **The four broken legacy redirects, fixed - with A's correction to the brief carried forward:**
 
 | Path | Verified reality | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `/impact` | → `/brain?tab=insights`; `LEGACY_TABS` folds `insights` → `decisions`, but `ImpactLedgerPanel` only mounts on `/learn`. Genuinely broken. | → `?stage=learn&view=impact` |
 | `/calendar` | → `/brain?tab=calendar` → folds to `decisions`; `CalendarPanel` unmounted; `?meeting=` silently dropped. Broken. | → `?stage=discover&view=meetings` (`&item=<id>` when present) |
 | `/meetings/$id` | Same fold, id dropped. Broken. | → `?stage=discover&view=meetings&item=<id>` |
@@ -381,7 +381,7 @@ file). Where a proposal was wrong, the corrected fact is stated.
 **The remaining named surfaces:**
 
 | Surface | Home | Clicks |
-|---|---|---|
+| --- | --- | --- |
 | `/sync` (842) | Settings → Connections → Sync & bindings | 2 |
 | `/settings` (3433) | The config overlay | 1-2 |
 | `/today` (1543) | Dissolved: greeting + `IntelBriefPanel` + `getProductContext` → **Thread briefing card**; `JudgmentLane` → **Gates tray**; `WatchLane` → **Discover face**; `ReceiptsStrip` → **Record pane**; `ColdStartOnramp` → **first light**; `DeskRail` → **WorkingStrip + Composer** | - |
@@ -412,7 +412,7 @@ queue length, product count or onboarding status is exactly the incoherence bein
 The current three-way disagreement is closed by deleting two of the three answers:
 
 | Today | Tomorrow |
-|---|---|
+| --- | --- |
 | Login → `window.location.assign("/")` → public landing detects a session → `window.location.replace("/m")` → resolve → room (two full page loads and a public-page flash) | Login navigates **in-router** to the resolved room. One hop, no bounce. |
 | Onboarding completion → `/today` (`ObsidianOnboarding.tsx:684,1132`, `MissionOnboarding.tsx:63,72`) | There is no onboarding completion event, because there is no onboarding route |
 | `nav-model.ts` "home" → `/today` | There is no nav model |
@@ -426,7 +426,7 @@ The same shell. Not a wizard, not a different route, not a full-viewport chromel
 in its **first-light** state.
 
 | Region | First light |
-|---|---|
+| --- | --- |
 | TopBar | Mark, `Your workspace / your first product`, gear, account; depth rail present with counts at zero, each carrying its one-line invitation on expand |
 | Spine | All seven stages present and quiet, in product mode. **This is the single most important pixel in the product: on frame one you can see the whole thing you bought.** |
 | Thread | One card: **"What are you building?"** - the `/start` component (`MissionOnboarding`) mounted here instead of stranded. One sentence in, `saveBrief` runs, `finish()` marks the profile onboarded, the card is replaced by the crew's first briefing. Skipping is a link, not a wall. |
@@ -443,7 +443,7 @@ not trapped; a user who answers never changes context.
 Same room, same shell, different Thread card - never a blank room and never the public landing:
 
 | State | Thread card |
-|---|---|
+| --- | --- |
 | Workspace with several products, none last-active | "helio-labs has 3 products. Which one are you here for?" plus "or start a new one" |
 | Invited user, first login | "You have been added to helio-labs. Here is what the crew has been doing." Briefing card seeded from `getProductContext`, Spine painted from real state. |
 | Workspace with zero products | The first-light card (§3.2) |
@@ -503,7 +503,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J1 - "What should we build next?"** · `?journey=j1` · Spine `01→02`
 
 | Step | Where | Who | What | Brain renders in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Start | Discover face | H | Say it, or click the card. Works from zero: with no sources, the Researcher fetches market signal first. | - |
 | 1 | Discover face | M | `clusterSignals` groups raw signal into themes; the Watch lane shows sources moving | "you have seen this signal shape before" on repeat clusters |
 | 2 | Discover face | M | Themes become ranked bets with evidence chains | - |
@@ -515,7 +515,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J2 - "Tear this idea down"** · `?journey=j2` · Spine `02`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Decide face, with a bet or spec in `?focus=` | H | Requires an artifact - honest scoping per the catalog GAP. From free text the composer first creates the opportunity, then tears it down, and the Thread says so. The card is disabled with a plain-words reason until a target is picked. |
 | 1 | Decide face | M | `runWedgeTeardown` builds the strongest case against |
 | 2 | Decide face | M | `dispatchExploration` fans out counter-evidence across the crew |
@@ -526,7 +526,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J3 - "Just write the PRD"** · `?journey=j3` · Spine `03`
 
 | Step | Where | Who | What | Brain in place |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Start | Plan face, the composer from an approved bet, **or a bare idea typed with no upstream at all** | H | The founder's named slice. No discovery required. | - |
 | 1 | Plan face | M | `generatePrd` drafts; citations resolve against the Brain live | **citation chips on every claim** (`CitationList`) |
 | 2 | **Spec workbench** `/spec/$id` | H+M | Edit alongside `prdAssist`; Thread column shows provenance | "this assumption was wrong last time" flag |
@@ -538,7 +538,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J5 - "Design this"** · `?journey=j5` · Spine `04`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Design face with a spec in `?focus=` | H | Spec may be draft or approved |
 | 1 | Design face | M | `generateDesignScaffold` produces the prototype in your brand (Brand Kit from Settings → Workspace → Brand) |
 | 2 | Prototype workbench | M | `runScaffoldDesignCritic` reviews against the brand and the spec |
@@ -549,7 +549,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J4 - "Build this feature"** · `?journey=j4` · Spine `05`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Build face with an approved spec | H | No repo? `canDispatchToRepo` says so and `provisionRepoForSpec` offers to create one in your GitHub. Never a dead end. |
 | 1 | Build face | M | `dispatchStudioSession` - agents write real code |
 | 2 | **Mission workbench** `/mission/$id` | M | Live steps; the WorkingStrip carries the verb; the checkpointing loop pauses at tool-approval boundaries |
@@ -562,7 +562,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J6 - "Launch what we shipped"** · `?journey=j6` · Spine `06`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | Ship face with a shippable changeset | H | |
 | 1 | **Gate** | **H** | `promoteToProduction` - preview to production is a human call, always. Brain warns "last time you skipped the canary" if it applies. |
 | 2 | Ship face | M | `generateReleaseNotes` + `generateLaunchKit` + `generateLaunchPlan`, in the voice from Settings → Workspace → Brief & voice |
@@ -574,7 +574,7 @@ typing intent in the Composer (`journeyForIntent` already matches "what should w
 **J7 - "How did it land?"** · `?journey=j7` · Spine `07`
 
 | Step | Where | Who | What |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Start | **The gate finds you.** The only journey whose primary entry is `gate`: the armed outcome check fires into the tray on its date. | M | `checkPrdShipped` |
 | 1 | Learn face | M | `getOutcomeData` assembles what happened against the outcome contract, and states plainly what it cannot measure. The assumptions this ship was meant to validate are pre-filled. |
 | 2 | Learn face | **H** | `recordOutcome`. **Honest edge: human-attested. The UI says "record how it landed", never "we measured how it landed".** |
@@ -601,7 +601,7 @@ Three enforcement points, all with code today:
    `$workspaceSlug.$productSlug.tsx:104-138` already does this correctly and is the model.
 
 | Terminal state | The door offered |
-|---|---|
+| --- | --- |
 | bet approved | write the PRD · tear it down first |
 | bet killed | what should we build next |
 | teardown survived | write the PRD |
@@ -670,7 +670,7 @@ Required:
 The direct answer to "if I click this, what will happen?"
 
 | Type | Renders as | What happens | Never |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Trace link** (backward, "where did this come from") | a mono chip: `SIG-204`, `SPEC-52`, `trc_9` | opens that entity in a **pane or peel over the current canvas**; you do not lose your place | never navigates away |
 | **Move link** (forward, "the next step") | an ember `NextLine` door with a verb: "Write the spec" | **moves the room**: sets `?stage=` and `?focus=`, lights the journey slice | never opens a modal |
 | **Deep link** (sideways, "the full workbench") | a quiet "Open" affordance on a row | navigates to a **workbench child** | never a modal that traps state |
@@ -703,7 +703,7 @@ That single wiring makes the 13-agent crew visible on every screen without a cre
 chrome (the restraint budget).
 
 | Entity | Home surface | FORWARD to | BACK to |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Signal** | Discover face | **D** the bet it clustered into · **D** the spec that cites it · the learning that re-scored it | **D** source (connector / meeting / recording / support ticket) · **D** raw item |
 | **Bet** (opportunity) | Decide face | **D** decision (keep/kill) · **D** teardown verdict · **D** spec generated from it · roadmap slot | **D** signals it clusters (count chip peels the evidence chain) · **D** brief alignment score · **D** prior bet it supersedes |
 | **Decision** | Brain pane → Calls; rendered at the gate where it is made | **D** spec it authorized · **D** outcome that judged it · **D** belief it promoted to · precedent it set | **D** the bet or spec it ruled on · **D** evidence chain · **D** receipt in the ledger · **D** who decided, when · `/d/$slug` public share |
@@ -722,7 +722,7 @@ chrome (the restraint budget).
 ### 5.5 The four cross-cutting spines
 
 | Spine | Rendering | Reached |
-|---|---|---|
+| --- | --- | --- |
 | **Receipt** | a `ReceiptLine` on every artifact card: who, what, when, mono id | **D** → Record pane, that receipt, its tamper seal, its trace |
 | **Trace** | a `trc_*` chip on anything an agent produced | **D** → the trace workbench child |
 | **Agent** | an `AgentChip` on every machine-authored thing, from `created_by_agent` | **D** → Crew pane, that agent, its runs and scorecard |
@@ -734,7 +734,7 @@ The record is never something you navigate away to consult. Four in-place render
 components that exist:
 
 | Where | What renders | Component / fn |
-|---|---|---|
+| --- | --- | --- |
 | 02 Decide, on every bet in the queue | precedent card: "you have decided this shape 3 times; here is what happened" | `PrecedentNudge.tsx` (already mounted on the spec page; add the gate-card rendering) |
 | 03 Plan, inside the spec editor | citation chips on every claim; hover reveals the source signal or prior outcome | `CitationList.tsx` (53 lines, unmounted), `lineage.functions.getProvenance` |
 | Composer, as you type | "we tried this before and it did not land" contradiction warning | `contradiction-auditor.functions`, `SharedPremiseNudge.tsx` |
@@ -828,7 +828,7 @@ lift it into the shell and give it **one owner**.
 ### 6.4 Modal vs page vs pane - the law
 
 | Shape | Use for | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **Page** (workbench child) | worked on for more than a minute, or handed to someone outside the loop, or has tabs of its own | spec, mission, trace, prototype, map |
 | **Pane** (`?pane=`, 420px over-panel) | scanned, referenced, or picked from while working | Brain, Record, Made, Threads, Crew, Engine |
 | **Tray** (`?gate=`, ember over-panel) | judgment. Distinct chrome because judgment is a distinct act. | approvals |
@@ -858,7 +858,7 @@ precedent in the codebase (`$workspaceSlug.$productSlug.tsx:48-52`): **resolve, 
 hydrate the shell from the entity.**
 
 | Missing | Behaviour |
-|---|---|
+| --- | --- |
 | No workspace/product in the URL (`/settings?section=x`, `/brain`, any legacy path) | the legacy resolver mounts, runs the same last-active-product resolution `/m` uses, and **replaces** the URL with the room URL carrying translated params. One frame, no flash of a wrong shell. |
 | Entity exists, parent derivable | hydrate from the entity. `spec/$id` resolves its product, workspace and stage; the frame sets workspace context, lights Spine 03 in run mode, opens the spec. **Never 404 a thing that exists just because the context was cold.** |
 | Entity exists, in a different workspace you belong to | switch context silently, render it, flash the switcher, and say so in one Thread line: "Switched to Relay - that run belongs there." |
@@ -895,7 +895,7 @@ Search is currently unreachable because `⌘K` opens the composer. Fixed by spli
 questions onto two keys:
 
 | Key | Opens | Question |
-|---|---|---|
+| --- | --- | --- |
 | `⌘K` | the palette | "take me to a thing I can name" - any entity, stage, pane, setting, journey, agent |
 | `⌘J` | the composer | "do something for me" - the existing `supaprod:open-ask` path, unchanged |
 
@@ -920,7 +920,7 @@ line C crossed and this design does not.
 ### 7.1 Routes deleted outright (component gone; path becomes a resolver entry)
 
 | Route | Lines | Absorbed by |
-|---|---|---|
+| --- | --- | --- |
 | `_authenticated.today.tsx` | 1543 | Thread briefing + Gates tray + Discover face + Record pane + first light |
 | `_authenticated.decide.tsx` | 70 | `?stage=decide` (it already only wrapped `OpportunityQueue`) |
 | `_authenticated.ship.tsx` | - | `?stage=ship` |
@@ -943,7 +943,7 @@ line C crossed and this design does not.
 ### 7.2 Routes that move (re-homed, not deleted)
 
 | From | To |
-|---|---|
+| --- | --- |
 | `/plan/spec/$id` (1084) | `/$ws/$product/spec/$specId` |
 | `/build/$missionId` (870) | `/$ws/$product/mission/$missionId` |
 | `/traces/$traceId` (861) | `/$ws/$product/trace/$traceId` |
@@ -953,7 +953,7 @@ line C crossed and this design does not.
 ### 7.3 Components deleted
 
 | Component | Lines | Absorbed by |
-|---|---|---|
+| --- | --- | --- |
 | `supaprod/AppShell.tsx` | 1033 | the one shell + the depth rail |
 | `mission/RoomChrome.tsx`'s duplicate `ProductSwitcher` | - | one `ProductSwitcher`, one file. It is currently written twice, `RoomChrome.tsx:57-131` and `MissionShellView.tsx:122-201`, near-identically. Two copies of the workspace switcher is the shell split in miniature. |
 | `supaprod/TopBar.tsx`, `supaprod/PageHeader.tsx` | - | `RoomTopBar` + `CanvasFace`'s `SurfaceHeader` |
@@ -967,7 +967,7 @@ line C crossed and this design does not.
 ### 7.4 Modules deleted or rewritten
 
 | Module | Fate |
-|---|---|
+| --- | --- |
 | `src/lib/nav-model.ts` | **Deleted.** Ten destinations in three zones is the thing being removed. `navKeyHint`'s derivation law moves to the new rail/Spine key table. |
 | `src/lib/legacy-redirects.ts` | **Deleted**, replaced by `legacy-resolver.ts` with per-entry arrival notes (§6.6) |
 | `src/lib/delegate-poll.functions.ts` | **Deleted.** No caller, no future caller. |
@@ -980,7 +980,7 @@ line C crossed and this design does not.
 ### 7.5 Concepts killed
 
 | Concept | Why |
-|---|---|
+| --- | --- |
 | **Two shells** | The `_authenticated.tsx:146-185` allowlist is deleted. One shell, no branch. Verified today it branches on `isOnboarding`, `isMissionControl` (route-id matched) and `isReimaginedSurface` (a hand-maintained pathname list of `/threads`, `/artifacts`, `/settings`, `/approvals`, `/brain`). Any route added outside that list silently renders in the retired shell. That is how a brand-new user's first screen ended up in the wrong app. |
 | **"Today"** | A dashboard next to the loop guarantees duplication. |
 | **"Pulse" as a label** | One word covering spend, evals, guardrails and the ledger, appearing in no URL and no user's vocabulary. |
@@ -1005,7 +1005,7 @@ start of the phase still works at the end.** The ordering is load-bearing: the i
 and you rebuild the 2026-07-18 failure exactly.
 
 | P | Ships | Work | Gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **P0** | nothing visible | Extend `room-url.ts` to build every param in §6.1. Add `pane`, `pview`, `item`, `gate`, `config`, `section`, `focus`, `journey`, `first` to the room's `validateSearch` as accepted no-ops. Write `legacy-resolver.ts` with today's mapping plus arrival notes; point the 41 stubs at it (behaviour identical). | route tests green; `legacy-redirects.test.ts` ported and passing against the new resolver |
 | **P1** | **one shell** | Delete the pathname allowlist in `_authenticated.tsx`. Every authenticated route renders inside the room shell. Legacy page bodies render full-width where the Canvas will go. Delete the duplicate `ProductSwitcher`. Nothing has moved yet, but the shell disagreement, the bounce to the retired rail, and the stranded account menu are all gone in one release. | all ~68 routes render with a TopBar, a switcher and a sign-out. Screenshot every route. |
 | **P2** | **depth becomes visible** | Build the 48px rail: seven tiles, live counts via **one batched `getRailCounts` server fn** (see risk 1), the zero-count law, `g k r m t c e`. Each tile opens the **existing** surface inside the over-panel: `/brain`'s body, the Engine Room's rooms, `ApprovalsTray`, `ThreadsSurface`, `ArtifactsSurface`, `CrewDrawer`. Routes still exist and still work. | a user reaches Crew, Record, Engine and Threads without knowing a URL - the thing that has never been true |
@@ -1024,7 +1024,7 @@ and you rebuild the 2026-07-18 failure exactly.
 The home table becomes an executable contract instead of a document that rots.
 
 | Test | Fails when |
-|---|---|
+| --- | --- |
 | `surface-registry.test.ts` | any `*.functions.ts` on disk has no entry · any entry has no `opensFrom` · any entry is `status: 'planned'` · **any `home` is not constructible into a real URL by `room-url.ts`** |
 | `one-home.test.ts` | two surfaces claim the same capability as HOME |
 | `destinations.test.ts` | the shell exposes anything other than the room, the seven Spine stages, the seven rail tiles and the gear · a feature added a nav item |
@@ -1043,7 +1043,7 @@ The home table becomes an executable contract instead of a document that rots.
 ## 10. THE BURDEN OF PROOF, ANSWERED
 
 | Depth | Reachable in | Advertises itself by | Addressable as |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **The ledger** (tamper-evident receipts, traces, approvals log) | 1 click (`r`), or 0 from any receipt chip on any artifact | a permanent rail tile counting receipts since your last look | `?pane=record&pview=receipts&item=<id>` |
 | **The engine room** (spend, quality, safety, prompts, guardrails, caps, routines) | 1 click (`e`) | a permanent rail tile that turns amber when any of the three rooms is on watch, carrying that room's one-line action | `?pane=engine&pview=quality` |
 | **The crew** (13 agents, trust, runs, scorecards) | 1 click (`c`), or 0 from any `AgentChip` anywhere | a permanent rail tile counting agents working right now | `?pane=crew&item=critic` |
@@ -1065,7 +1065,7 @@ Five things this architecture does not fully home. Each has a proposed resolutio
 pretended away.
 
 | # | Homeless | Why it falls out | Proposed resolution (not yet ruled) |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | H1 | **The workspace-level view.** A workspace with 3 products has a *switcher* and no *surface*. There is no answer to "what is happening across all my products" and no cross-product Brain. B caught this by making Mind workspace-scoped, and paid for it with a scope discontinuity. | one destination, product-scoped | a **scope toggle** on the Brain, Record and Crew panes ("this product / all products"), defaulting to product. The Brain genuinely should compound across products; the Spine genuinely should not. The *list* of products stays in Settings → Workspace → Products. Decide before P2, because the rail counts must know their scope. |
 | H2 | **Cross-product search.** The palette is product-scoped in current code. | same root cause | the same scope toggle inside `⌘K`. Cheap, but it must be built, not assumed. |
 | H3 | **A notification archive.** `AttentionBell`'s query lands in the tray's Heads up section, which shows current notices. Anything older has no browsable home. | the tray is a queue, not a record | an "Earlier" filter on the Heads up section, backed by the same query with a date range. Low stakes, but name it or it becomes the next orphan. |
@@ -1077,7 +1077,7 @@ pretended away.
 ## 12. THE REAL RISKS
 
 | # | Risk | Why it is real | Mitigation |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | R1 | **The rail's counts are seven live queries on every room render.** Cloudflare Workers have a subrequest budget, and seven polling queries plus the room's own loaders will show up as jank and cost. | the counts are the entire thesis of the winning design; if they are slow or stale the rail degrades into seven silent glyphs, i.e. the 10-rail failure at 48px | **one batched `getRailCounts` server fn**, one query key, 60s stale time, optimistic decrement on gate decisions, and a skeleton that never shows a wrong number. This is a P2 gate, not a P9 cleanup. |
 | R2 | **The zero-count rail is the original disease.** A tile that reads `0` forever is exactly a rail row that never changes. | the mechanism's power is entirely in the counts being meaningful | the zero-count law (§2.2): never a silent glyph; a hairline dot plus last-event age, or the tile's one-line invitation. Verify with a genuinely empty seeded workspace before P2 ships. |
 | R3 | **One route absorbing 7 faces + 7 panes + 5 children.** `faces.tsx` is already 102KB. The room risks becoming a 5000-line surface and a single enormous bundle. | this is the predictable failure mode of one-destination IAs | hard CI file-size gate; lazy chunk per face and per pane; the room route itself must stay a composition shell that owns no rendering. Settings' 3433 lines must never be in the room's initial chunk. |

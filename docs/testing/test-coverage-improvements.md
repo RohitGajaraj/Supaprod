@@ -133,15 +133,15 @@ expect(screen.queryByText("Planning")).toBeNull();
 
 ## Test Statistics
 
-| Metric                     | Before                         | After          | Δ    |
-| -------------------------- | ------------------------------ | -------------- | ---- |
-| Component DOM tests        | 0                              | 60+            | +60  |
-| ResearchActivityLine tests | 6                              | 10             | +4   |
-| ResearchSummaryRow tests   | 7                              | 12             | +5   |
-| Sketch-related tests       | 313 (duplicate Sketch.test.ts) | 313 + 30 (new) | +30  |
-| Hand-rolled JSX mirrors    | ~400 LOC                       | 0 (replaced)   | -400 |
-| Real DOM assertions        | 0                              | ~80            | +80  |
-| Total test file size       | ResearchActivity: 259 LOC      | 400+ LOC       | +150 |
+| Metric | Before | After | Δ |
+| --- | --- | --- | --- |
+| Component DOM tests | 0 | 60+ | +60 |
+| ResearchActivityLine tests | 6 | 10 | +4 |
+| ResearchSummaryRow tests | 7 | 12 | +5 |
+| Sketch-related tests | 313 (duplicate Sketch.test.ts) | 313 + 30 (new) | +30 |
+| Hand-rolled JSX mirrors | ~400 LOC | 0 (replaced) | -400 |
+| Real DOM assertions | 0 | ~80 | +80 |
+| Total test file size | ResearchActivity: 259 LOC | 400+ LOC | +150 |
 
 ---
 
@@ -168,15 +168,15 @@ expect(screen.queryByText("Planning")).toBeNull();
 
 Pure function coverage remains **exceptional** and needs no changes:
 
-| Function                     | Coverage | Notes                                               |
-| ---------------------------- | -------- | --------------------------------------------------- |
-| barInsight                   | 100%     | Edge cases: upward/downward/flat trends, single bar |
-| fmtUsd                       | 100%     | Negative numbers, sub-cent precision ($0.01), zero  |
-| withTimeout (rejection path) | 100%     | Timeout rejection tested                            |
-| signalCleanBody              | 100%     | Depth-bounded recursion edge cases                  |
-| deriveDesignation            | 100%     | Full boundary matrix (5 rules × 4 inputs each)      |
-| summarySegments              | 100%     | All combinations tested                             |
-| parseResearchStatus          | 100%     | Type validation, null handling                      |
+| Function | Coverage | Notes |
+| --- | --- | --- |
+| barInsight | 100% | Edge cases: upward/downward/flat trends, single bar |
+| fmtUsd | 100% | Negative numbers, sub-cent precision ($0.01), zero |
+| withTimeout (rejection path) | 100% | Timeout rejection tested |
+| signalCleanBody | 100% | Depth-bounded recursion edge cases |
+| deriveDesignation | 100% | Full boundary matrix (5 rules × 4 inputs each) |
+| summarySegments | 100% | All combinations tested |
+| parseResearchStatus | 100% | Type validation, null handling |
 
 **No changes needed** to these test suites.
 

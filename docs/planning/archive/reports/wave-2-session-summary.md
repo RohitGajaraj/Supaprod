@@ -46,7 +46,7 @@ docs(planning): Wave 2 completion spec + methodology (Batches 2-7)
 ## Progress Metrics
 
 | Batch | Status | Files | Instances | Commits |
-|-------|--------|-------|-----------|---------|
+| --- | --- | --- | --- | --- |
 | 1 (Buttons) | ✅ COMPLETE | 5 | 11 | d78d0c6d |
 | 2.1 (Type) | ✅ COMPLETE | 1 | 12 | 725356ee |
 | 2.2+ (Type) | 📋 SCOPED | 24+ | ~550 | — |

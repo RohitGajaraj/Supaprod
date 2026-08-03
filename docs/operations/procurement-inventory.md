@@ -20,21 +20,21 @@ Supaprod is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudfl
 
 ### Demo-day shopping list (buy before the demo)
 
-| Buy?     | Item                                            | Cost                             | Why                                                                                                       |
-| -------- | ----------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Optional | Lovable **Pro** plan                            | ~$21/mo annual (~$25/mo monthly) | Only if you want a **custom domain** for the demo (Free tier = `*.lovable.app` only) + more build credits |
-| Optional | Custom domain (`.com`) via Cloudflare Registrar | ~$10.46/yr                       | Branded URL for the demo                                                                                  |
-| —        | Everything else                                 | **$0**                           | BYO AI keys + free tiers + the $0 sandboxed-iframe preview cover the demo                                 |
+| Buy? | Item | Cost | Why |
+| --- | --- | --- | --- |
+| Optional | Lovable **Pro** plan | ~$21/mo annual (~$25/mo monthly) | Only if you want a **custom domain** for the demo (Free tier = `*.lovable.app` only) + more build credits |
+| Optional | Custom domain (`.com`) via Cloudflare Registrar | ~$10.46/yr | Branded URL for the demo |
+| — | Everything else | **$0** | BYO AI keys + free tiers + the $0 sandboxed-iframe preview cover the demo |
 
 ### Go-live shopping list (buy when you have users / revenue, not before)
 
-| Trigger                         | Item                                                   | Cost                                                        |
-| ------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
-| Want live repo-build previews   | **Cloudflare Sandbox SDK** (Workers Paid + Containers) | ~$12/mo (range $8–20)                                       |
-| First paid customer             | **Stripe** (processing + Billing)                      | 2.9% + $0.30 per charge + 0.7% Billing; $0 until you charge |
-| Email volume > free tier        | **Resend Pro**                                         | $20/mo (50k emails)                                         |
-| Ingestion > 1,000 pages/mo      | **Firecrawl Hobby**                                    | ~$16/mo annual                                              |
-| AI cost not covered by BYO keys | OpenAI/Voyage embeddings + cheap inference             | ~$10–30/mo blended                                          |
+| Trigger | Item | Cost |
+| --- | --- | --- |
+| Want live repo-build previews | **Cloudflare Sandbox SDK** (Workers Paid + Containers) | ~$12/mo (range $8–20) |
+| First paid customer | **Stripe** (processing + Billing) | 2.9% + $0.30 per charge + 0.7% Billing; $0 until you charge |
+| Email volume > free tier | **Resend Pro** | $20/mo (50k emails) |
+| Ingestion > 1,000 pages/mo | **Firecrawl Hobby** | ~$16/mo annual |
+| AI cost not covered by BYO keys | OpenAI/Voyage embeddings + cheap inference | ~$10–30/mo blended |
 
 ---
 
@@ -141,12 +141,12 @@ Supaprod is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudfl
 
 ## Total cost picture
 
-| Stage                                      | Monthly run-rate                                                                                           | One-time                  |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ------------------------- |
-| **Demo (bare)**                            | **$0**                                                                                                     | $0                        |
-| **Demo (polished)**                        | ~$25/mo (Lovable Pro)                                                                                      | ~$10 (.com domain)        |
+| Stage | Monthly run-rate | One-time |
+| --- | --- | --- |
+| **Demo (bare)** | **$0** | $0 |
+| **Demo (polished)** | ~$25/mo (Lovable Pro) | ~$10 (.com domain) |
 | **Early go-live (some users, no revenue)** | ~$25–60/mo (Lovable Pro + Cloudflare Sandbox ~$12 + AI ~$10–30 if not all BYO; email/ingest on free tiers) | + ~$160 if a `.ai` domain |
-| **Revenue stage**                          | the above + Stripe ~4.6% of MRR + Resend/Firecrawl paid tiers as volume grows                              | —                         |
+| **Revenue stage** | the above + Stripe ~4.6% of MRR + Resend/Firecrawl paid tiers as volume grows | — |
 
 **Bottom line:** the demo is free; the first meaningful recurring spend is **Lovable Pro (~$25/mo, for a custom domain)** and **Cloudflare Sandbox (~$12/mo, only when you want live build previews)**. Stripe and the rest follow real usage. None of it is a moat — it's all commodity plumbing behind swappable seams, so we fund it on the demo/revenue schedule, not ahead of it. (Doctrine: [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md).)
 

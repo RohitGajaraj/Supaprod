@@ -11,7 +11,7 @@
 ### Coverage Status by Category
 
 | Category | Status | Count | Notes |
-|----------|--------|-------|-------|
+| --- | --- | --- | --- |
 | **Utility modules** (pure functions) | ✅ COMPLETE | 7 | format, ranking, decisions-shared, governance-shared, incident-format, reliance, edge utilities |
 | **Ink components** | ✅ MOSTLY COMPLETE | 15/17 | 15 have tests; ModeToggle and input variants need coverage |
 | **Detail/discovery components** | 🟡 PARTIAL | 4 new + existing | DetailKit now has full coverage (DetailHeader, StatCell, StatStrip, DetailSection) |
@@ -168,7 +168,7 @@ async function submit() {
 Priority: URGENT — these panels are used by multiple user flows
 
 | Component | Location | Lines | Tests | Impact |
-|-----------|----------|-------|-------|--------|
+| --- | --- | --- | --- | --- |
 | **ApprovalsPanel** | `discover/` | 800+ | ❌ ZERO | Decision approval, task routing — _high friction_ |
 | **IncidentsPanel** | `governance/` | 600+ | ❌ ZERO | Risk tracking, incident lifecycle — _governance-critical_ |
 | **SignalFeed** | `discover/` | 500+ | ❌ ZERO | Signal discovery, filtering — _core intelligence surface_ |
@@ -182,7 +182,7 @@ Priority: URGENT — these panels are used by multiple user flows
 Priority: IMPORTANT — used in secondary workflows
 
 | Component | Location | Lines | Tests | Gap Type |
-|-----------|----------|-------|-------|----------|
+| --- | --- | --- | --- | --- |
 | **OutcomeCard** | `discover/` | 250+ | ❌ ZERO | Outcome display, editing |
 | **OpportunityDetail** | `discover/` | 350+ | ❌ ZERO | Opportunity drill-down, context |
 | **MeetingScheduler** | `knowledge/` | 400+ | ❌ ZERO | Attendee proposals, conflict detection |

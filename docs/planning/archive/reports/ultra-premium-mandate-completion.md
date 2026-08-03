@@ -101,7 +101,7 @@ The ultra-premium mandate required elevation to Vercel parity across three dimen
 
 ### Cross-Layer Consistency
 | Element | Product (Tempo) | Marketing (Ink) | Alignment |
-|---------|---|---|---|
+| --- | --- | --- | --- |
 | Typography | Geist Sans/Mono/Pixel | Geist Sans/Mono/Pixel | ✅ Identical faces |
 | Color grammar | Ember (brand) / Blue (status) / Gray (neutral) | Ember (you) / Blue (agent) / Gold (memory) | ✅ Three-voice system |
 | Spacing grid | 4px base | 4px base | ✅ Consistent rhythm |

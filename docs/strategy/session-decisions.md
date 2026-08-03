@@ -1263,11 +1263,11 @@
 
 **Decision:** Three personas are all primary targets with equal priority. No P1 > P2 > P3 ranking. Each has its own pain point and hook.
 
-| Persona                                    | Pain                                | Hook                                                       |
-| ------------------------------------------ | ----------------------------------- | ---------------------------------------------------------- |
-| Solo / Lead PM at AI-native B2B SaaS       | Mechanical work crowds out judgment | "Your agents handle the process. You handle the judgment." |
-| Founder operating as the whole product org | Tool sprawl + being the glue        | "Run the product org you can't afford to hire."            |
-| Technical Founder / Indie Hacker           | Everything not coding falls on them | "Your product org, running itself."                        |
+| Persona | Pain | Hook |
+| --- | --- | --- |
+| Solo / Lead PM at AI-native B2B SaaS | Mechanical work crowds out judgment | "Your agents handle the process. You handle the judgment." |
+| Founder operating as the whole product org | Tool sprawl + being the glue | "Run the product org you can't afford to hire." |
+| Technical Founder / Indie Hacker | Everything not coding falls on them | "Your product org, running itself." |
 
 **Why:** All three face the same root problem (they are the glue across a fragmented lifecycle) but with different framing needs. Serving all three from day one allows faster validation and prevents premature narrowing.
 
@@ -1390,14 +1390,14 @@
 
 **Decision:** Six features were added to `docs/planning/feature-backlog.md` derived from the autonomous product OS repositioning.
 
-| ID  | Feature                            | Why added                                                                  |
-| --- | ---------------------------------- | -------------------------------------------------------------------------- |
-| C5  | Strategic Briefing surface         | Agents need context once, not per-mission. The "brief the team" mechanism. |
-| C6  | Agent Trust Score + Autonomy Dial  | Makes trust arc tangible. Governance as policy, not micromanagement.       |
-| E8  | Loop Health Monitor                | "Is my product org running?", single view.                                 |
-| N3  | Mission Compounding View           | Makes Product Memory accumulation visible and rewarding.                   |
-| U6  | Full data portability / export     | Anti-lock-in commitment made concrete. Export everything in open formats.  |
-| W6  | Persona-specific onboarding tracks | Three tracks for three equal personas. Time-to-value measured per track.   |
+| ID | Feature | Why added |
+| --- | --- | --- |
+| C5 | Strategic Briefing surface | Agents need context once, not per-mission. The "brief the team" mechanism. |
+| C6 | Agent Trust Score + Autonomy Dial | Makes trust arc tangible. Governance as policy, not micromanagement. |
+| E8 | Loop Health Monitor | "Is my product org running?", single view. |
+| N3 | Mission Compounding View | Makes Product Memory accumulation visible and rewarding. |
+| U6 | Full data portability / export | Anti-lock-in commitment made concrete. Export everything in open formats. |
+| W6 | Persona-specific onboarding tracks | Three tracks for three equal personas. Time-to-value measured per track. |
 
 **Impact:** docs/planning/feature-backlog.md "New features" section added. All six are linked to the autonomy/trust/portability positioning decisions above.
 

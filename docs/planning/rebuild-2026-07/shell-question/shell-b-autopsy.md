@@ -281,7 +281,7 @@ Each of these survives a shell change untouched, and each of them is a direct ca
 being attributed to navigation.
 
 | # | Defect | Evidence | Effect the user feels |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **Two shells, hand-allowlisted** | `_authenticated.tsx:166-180`; 62 of 75 authed routes outside the list; `nav-model.ts` still defines the 10-rail | "It clicks me back to the shell again" |
 | 2 | **Ask history never hydrates** | `getConversation` selects `messages.mission_id` and `messages.metadata`; `conversations.functions.ts:27-39` documents them as optional-at-runtime because two migrations race; the clicks-C audit verified live PostgREST returns `42703 column does not exist` and the server fn throws, and nothing reads `hydration.error` | "My chats are gone" |
 | 3 | **A new conversation row per send** | same failure makes `ensureConversation` fall into `catch` | `/threads` fills with one-exchange stubs |
@@ -382,7 +382,7 @@ The optionality is deliberate: the unscoped read is "everything waiting on me an
 the properties of that answer and of a chat message, side by side.
 
 | Property | The queue | A conversation |
-|---|---|---|
+| --- | --- | --- |
 | Order | priority, recomputed on every read | chronological, immutable |
 | Membership | rows appear and vanish without you acting | messages only append |
 | Scope | cross-product, cross-workspace | one thread, one scope |
@@ -460,7 +460,7 @@ Two poles have failed here, and the founder's proposal is not a third position. 
 the second pole with better intentions.
 
 | | Pole 1 | Pole 2 | The proposal |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Shape | 10-destination rail, everything visible | Home + palette, everything summoned | one composer + preview, everything summoned |
 | Verdict | "overwhelming, real learning curve, never states what the platform is for" | "felt generic, hid the features, depth behind the palette read as empty" | untested |
 | Mechanism of failure | noise: rows that never change | silence: affordances with no count, no key, no URL | silence, maximized |

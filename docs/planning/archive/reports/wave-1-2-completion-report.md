@@ -40,7 +40,7 @@ Wave 1-2 of the Tempo v5 design system migration is **complete and validated**. 
 ## Overall Scorecard
 
 | Phase | Tests | Passed | Failed | Pass Rate |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 — Responsive Design | 21 | 21 | 0 | **100%** |
 | 2 — Interactive States | 7 | 7 | 0 | **100%** |
 | 3 — Loading & Error | 5 | 5 | 0 | **100%** |

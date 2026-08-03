@@ -38,7 +38,7 @@ the entire difference between this and the 2026-07-18 shell, whose composer lite
 ### 1.1 Confirmed
 
 | Claim | Verified |
-|---|---|
+| --- | --- |
 | One CanvasFace contract, many renderers, already built | `CanvasFace.tsx` (231 lines) + `faces.tsx` (2781 lines): `EvidenceFace:238`, `DecisionFace:481`, `SpecFace:772`, `PrototypeFace:1132`, `CodeFace:2091`, `ShipFace:2197`, `GrowthFace:2315`, `RestFace:2444`, router `StageCanvasFace:2764` |
 | Prototypes render as live generated UI in an iframe | `faces.tsx:1281-1288`, `srcDoc={scaffoldHtml}` |
 | Hunk-level accept and reject already implemented | `studio.functions.ts:1816` `applyStagedHunkSelection` (with `expectedUpdatedAt` optimistic concurrency), `:1872` `rejectStagedFile`; surfaced in `ChangesPanel.tsx` (1367 lines) |
@@ -53,7 +53,7 @@ the entire difference between this and the 2026-07-18 shell, whose composer lite
 ### 1.2 Corrections to the brief
 
 | # | The brief said | Verified |
-|---|---|---|
+| --- | --- | --- |
 | G1 | "721 server functions" | **726** `createServerFn` call sites across **153** modules in `src/lib`. Directionally right, cite the measured number. |
 | G2 | "`CommandPalette.tsx` is 454 lines ... with **zero importers**" | Almost right, and the precise version is worse for the palette. The file has two exports: `CommandPalette()` at `:83` and `GotoShortcuts()` at `:419`. The **only** import anywhere in `src/` is `GotoShortcuts` (`_authenticated.tsx:4`), a keybinding helper. `<CommandPalette />` is rendered nowhere. `_authenticated.tsx:204` says so in a comment: *"The retired CommandPalette and AskPanel components stay in the tree source but are unmounted."* So: 336 lines of JUMP/SETTINGS/ACT/RECENT/ASK/CATALOG surface, deliberately unmounted, ten days after being the designated home of depth. |
 | G3 | (implied) prototypes render same-origin | They do not. All four render sites set `sandbox="allow-scripts"` with **no** `allow-same-origin`, so the frame runs at a null origin and the parent cannot touch its DOM. Reach-in must be `postMessage`, validated on `event.source`, never `event.origin`. This is a correctness fact and it constrains §3.3. |
@@ -132,7 +132,7 @@ the work in hand :=
 Five properties fall out, and each one answers an objection that killed a previous attempt:
 
 | Property | Consequence |
-|---|---|
+| --- | --- |
 | **It survives sentences.** Its identity is a row, not the last message. | You can ask ten questions and the pane does not move. Candidate C's failure is structurally impossible. |
 | **It survives sessions.** The default is a server query, not client state. | Resume is free, identical on a new device, in incognito, and for the teammate you paste the link to. §6. |
 | **It changes exactly when the work changes.** | Which is the only time anyone wants the largest region on screen to move. And when it moves it *teaches*, because the stage strip animates. §4. |
@@ -191,7 +191,7 @@ because a chat app's side panel has none of the three.
 `⟨strip⟩` = the seven-stage drawing on the pane header, with the current stage lit.
 
 | # | Form | Stage | Pane body | Verdict bar asks | Composer means, with this in hand | Built? |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | 1 | **Signal** | 01 | The evidence card: source, verbatim quote, who said it, when, link out | *Is this real?* Keep / Ignore | "find more like this" | `EvidenceFace:238` |
 | 2 | **Pattern** | 01 | The cluster: N signals stacked under the shared claim, each peelable to its signal | *Does this add up?* Promote to bet / Split / Drop | "what else supports this" | `EvidenceFace` (clustering exists, `clusterTrigger` tool) |
 | 3 | **Bet** | 02 | The case, the rank, the stated risk, Critic's counter-argument beside it | *Keep or drop?* | "tear this down" · "what would it cost" | `DecisionFace:481`, `OpportunityQueue` |
@@ -216,7 +216,7 @@ the client (Step, Change, Preview, Learning), and two are new bodies inside an e
 One journey, one product, one pane. Nothing below is a navigation.
 
 | Moment | Pane holds | Strip says | Thread's newest row |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | You type "what should we build next?" | patterns from the last sweep, ranked | `Scout read 4 sources · 2m ago` | `Scout watched 4 sources.` |
 | Strategist finishes ranking | the top bet, its case, its risk | `Strategist ranked 11 bets · done` | `Strategist ranked 11 bets.` |
 | Critic red-teams it | same bet, Critic's counter beside the case | `Critic challenging · 40s` | `Critic flagged the pricing assumption.` |
@@ -370,7 +370,7 @@ Three things can happen when you press enter. The interface must say which **bef
 after.
 
 | Intent | What happens | Pane |
-|---|---|---|
+| --- | --- | --- |
 | **Question** | Answered in the thread, with citations | does not move |
 | **Instruction** | Creates or advances work | moves to the new work in hand, **visibly**, stage strip animating |
 | **Judgment** | Applies to the call in the pane's verdict bar | verdict bar resolves in place |
@@ -561,7 +561,7 @@ composer that navigates is a menu with a text field in it. That is why three doo
 ### 8.2 The inversion
 
 | 2026-07-18 | This design |
-|---|---|
+| --- | --- |
 | Composer calls `navigate()` | Composer changes what is in front of you, in place. There is nowhere to navigate to. |
 | Home screen at rest: date, input, cards | At rest: the work in hand, with its stage strip, its verdict bar, its receipts |
 | One voice, unattributed | Thirteen named voices, one owned verb each, every output attributed |
@@ -610,7 +610,7 @@ hold a **subject**.
 ## 9. WHAT THIS DELETES
 
 | Dies | Count today |
-|---|---|
+| --- | --- |
 | Authenticated destinations | 75 route files → **1** destination + 5 workbench children |
 | The 10-destination loop rail | gone; the loop is drawn on the artifact |
 | `/today` | 1543 lines pulling `getGreeting`, `getTodayLanes`, `getApprovalsQueue`, `listFanoutBatches`, `listLearnings`, `getProductContext`, `getAgentFleet`. Every one of those has a home in this shell. |
@@ -630,7 +630,7 @@ what "simplifies the product enormously" means mechanically.**
 ## 10. WHAT WOULD BREAK IT (honest, and each has a gate)
 
 | # | Risk | Why it is real | Gate |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A1 | **The work-in-hand query must be one server call.** It joins gates, runs and recency. Five calls on every room render is jank on a Cloudflare Workers subrequest budget, and the whole thesis is that the pane is right instantly. | the entire resume story is this query | one `getWorkInHand` server fn, one query key, optimistic decrement on gate decisions, and a skeleton that never shows a wrong subject. P1 gate, not cleanup. |
 | A2 | **Misclassification in the input path.** "I asked a question and it started a run" is the sharpest failure this shell can have, and the classifier is a model call. | `chat.ts:377` is already a live model call on every non-`@` input | the pre-commit intent stamp (§4), the `@Agent` bypass, and a 5-second one-key undo on a fresh run. Measure the classifier against a labelled set before P3. |
 | A3 | **The pane is singular; real work is plural.** A customer with three runs will hit this in week one. | the design optimizes for the single work-in-hand PM, which is the right first user and not the only one | the Floor is not optional. It ships in the same phase as the pane, not after. |
@@ -666,7 +666,7 @@ That is one thing changing form fourteen times, and this is the window onto it.
 ## APPENDIX: evidence index
 
 | Claim | File:line |
-|---|---|
+| --- | --- |
 | One canvas contract | `src/components/mission/CanvasFace.tsx:1-24`, `:55-80` |
 | Eight renderers, one router | `src/components/mission/faces.tsx:238, 481, 772, 1132, 2091, 2197, 2315, 2444, 2764` |
 | Prototype iframe, null origin | `faces.tsx:1281-1288` (`sandbox="allow-scripts"`, no `allow-same-origin`) |

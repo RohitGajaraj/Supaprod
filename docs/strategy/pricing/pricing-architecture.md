@@ -109,19 +109,19 @@ This is the honest answer to "should they just plug in their providers while we 
 
 The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) stands — memory, connectors (read on Pro / write on Business), collaboration/governance, workspaces, support, security are **confirmed as written**. This section locks the **prices**, the **new model/BYOK dimensions**, and the **enterprise pricing revision**, and consolidates everything into one table the pricing page renders from.
 
-| Dimension                                                         | **Free**                                                                            | **Pro** (Tier 1 paid)                                                | **Business** (Tier 2)                                                                    | **Enterprise** (Tier 3)                                                                          |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| **Target customer**                                               | Solo PM trying the loop                                                             | Power individual PM                                                  | Accountable PM team                                                                      | Governed org (procurement/compliance)                                                            |
-| **Monthly price**                                                 | $0                                                                                  | $20 (100 cr base) + credit dropdown                                  | $50 (100 cr base, pooled) + dropdown                                                     | Committed-credit contract (contact sales)                                                        |
-| **Annual**                                                        | —                                                                                   | ~17% off                                                             | ~17% off                                                                                 | Negotiated                                                                                       |
-| **Included credits**                                              | 50/mo (30-day decay)                                                                | 100–10,000 (dropdown)                                                | 100–10,000 pooled + per-user caps                                                        | Committed annual pool                                                                            |
-| **Credit model**                                                  | Closed-loop / outcome credits, model-abstracted, flex-buffered, stop-at-budget (§2) | same                                                                 | same, account-pooled                                                                     | same, committed pool                                                                             |
-| **Supported models**                                              | Platform-managed (cost-routed)                                                      | Platform-managed + optional Balanced/Deep/Fast menu                  | same                                                                                     | Platform-managed + **approved-model lists**                                                      |
-| **BYOK**                                                          | No                                                                                  | No (platform-managed is the point)                                   | **Optional (advanced)** — metered + governed + platform fee                              | **Yes** — own provider/private model, metered + governed + platform fee (§4–5)                   |
-| **Enterprise pricing model**                                      | —                                                                                   | —                                                                    | —                                                                                        | **Committed credits + UNLIMITED seats + custom contract** (revises canon §8's per-seat — see §8) |
-| **Memory / Critic / connectors / collab / governance / security** | per canon §3 (Critic teardown is IN Free; memory decays; manual connectors)         | per canon §3 (persistent memory, read connectors, Critic-everywhere) | per canon §3 (pooled memory, write-back connectors, RBAC, approval lanes, per-user caps) | per canon §3 (SSO/SCIM/DPA, org-wide memory, custom retention, compliance export, off-switch)    |
-| **Ambient / self-improvement**                                    | Scheduled (free, always on)                                                         | Scheduled free + Auto (spend dial, outcome-gated)                    | same + admin spend caps                                                                  | same + **compliance off-switch** (admin-only)                                                    |
-| **The three controls** (research §5)                              | free baseline on; spend dial present                                                | free baseline on; spend dial                                         | free baseline; spend dial + admin caps                                                   | free baseline; spend dial; **compliance off-switch**                                             |
+| Dimension | **Free** | **Pro** (Tier 1 paid) | **Business** (Tier 2) | **Enterprise** (Tier 3) |
+| --- | --- | --- | --- | --- |
+| **Target customer** | Solo PM trying the loop | Power individual PM | Accountable PM team | Governed org (procurement/compliance) |
+| **Monthly price** | $0 | $20 (100 cr base) + credit dropdown | $50 (100 cr base, pooled) + dropdown | Committed-credit contract (contact sales) |
+| **Annual** | — | ~17% off | ~17% off | Negotiated |
+| **Included credits** | 50/mo (30-day decay) | 100–10,000 (dropdown) | 100–10,000 pooled + per-user caps | Committed annual pool |
+| **Credit model** | Closed-loop / outcome credits, model-abstracted, flex-buffered, stop-at-budget (§2) | same | same, account-pooled | same, committed pool |
+| **Supported models** | Platform-managed (cost-routed) | Platform-managed + optional Balanced/Deep/Fast menu | same | Platform-managed + **approved-model lists** |
+| **BYOK** | No | No (platform-managed is the point) | **Optional (advanced)** — metered + governed + platform fee | **Yes** — own provider/private model, metered + governed + platform fee (§4–5) |
+| **Enterprise pricing model** | — | — | — | **Committed credits + UNLIMITED seats + custom contract** (revises canon §8's per-seat — see §8) |
+| **Memory / Critic / connectors / collab / governance / security** | per canon §3 (Critic teardown is IN Free; memory decays; manual connectors) | per canon §3 (persistent memory, read connectors, Critic-everywhere) | per canon §3 (pooled memory, write-back connectors, RBAC, approval lanes, per-user caps) | per canon §3 (SSO/SCIM/DPA, org-wide memory, custom retention, compliance export, off-switch) |
+| **Ambient / self-improvement** | Scheduled (free, always on) | Scheduled free + Auto (spend dial, outcome-gated) | same + admin spend caps | same + **compliance off-switch** (admin-only) |
+| **The three controls** (research §5) | free baseline on; spend dial present | free baseline on; spend dial | free baseline; spend dial + admin caps | free baseline; spend dial; **compliance off-switch** |
 
 > **Base prices ($20 Pro / $50 Business / $0 Free) are the canon's placeholders — the founder sets the final Stripe numbers.** The dropdown ladder (linear, no volume discount; annual ~17% off) is unchanged from canon §2.
 
@@ -239,14 +239,14 @@ The design is locked; the build spec is [`implementation-plan.md`](./implementat
 
 ### 11a. COGS per deliverable (from §9 anchors, cost-routed)
 
-| Deliverable              | Rough COGS (blended, cached) | Note                                                         |
-| ------------------------ | ---------------------------- | ------------------------------------------------------------ |
-| Chat turn / brief / view | ~$0.001–0.01                 | cheap flash; treated as free (Rule 2b)                       |
-| Critic teardown          | ~$0.05–0.10                  | one focused judge pass; free (it's the wedge, §4 research)   |
-| Discovery synthesis      | ~$0.03–0.10                  | a few flash calls                                            |
-| Decision record          | ~$0.02–0.08                  | one mid call                                                 |
-| **Spec→PR mission**      | **~$0.30–0.80**              | multi-step agent loop; ~1 hr Opus-equiv = $0.53 cached (§9b) |
-| **Build (code-gen)**     | **~$1–3+**                   | heaviest COGS                                                |
+| Deliverable | Rough COGS (blended, cached) | Note |
+| --- | --- | --- |
+| Chat turn / brief / view | ~$0.001–0.01 | cheap flash; treated as free (Rule 2b) |
+| Critic teardown | ~$0.05–0.10 | one focused judge pass; free (it's the wedge, §4 research) |
+| Discovery synthesis | ~$0.03–0.10 | a few flash calls |
+| Decision record | ~$0.02–0.08 | one mid call |
+| **Spec→PR mission** | **~$0.30–0.80** | multi-step agent loop; ~1 hr Opus-equiv = $0.53 cached (§9b) |
+| **Build (code-gen)** | **~$1–3+** | heaviest COGS |
 
 ### 11b. The credit calibration — and a canon inconsistency to fix
 

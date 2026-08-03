@@ -151,19 +151,19 @@ All facts below were web-verified against primary sources during the design sess
 
 ### 8.1 The engine landscape
 
-| Engine                                         | Type                   | Headless dispatch                                                              | Self-host / white-label                                        | Role for Supaprod                                                |
-| ---------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Native (Supaprod loop)**                      | Owned agent            | Yes                                                                            | Yes (ours)                                                     | Cheap default floor for small, safe changes                     |
-| **Claude Agent SDK**                           | Headless SDK           | Yes, natively (`query()`)                                                      | Yes; "{YourName} Powered by Claude" allowed, not "Claude Code" | **Owned premium default (the brain we brand)**                  |
-| **OpenHands** (ex-OpenDevin)                   | OSS autonomous agent   | Yes (CLI, Python SDK, Cloud REST v1, GitHub resolver)                          | **Yes, MIT core** (enterprise/ folder is PolyForm trial)       | **White-label / self-host / enterprise path (already stubbed)** |
-| **Devin** (Cognition)                          | Closed cloud agent     | Yes (REST `api.devin.ai/v3`)                                                   | No self-host, no white-label, no BYO LLM                       | Visible "Send to Devin" BYO relay                               |
-| **OpenAI Codex** (2025 agentic)                | Closed agent + OSS CLI | Partial (local CLI yes; cloud sandbox only via `@Codex` on GitHub)             | CLI is Apache 2.0; cloud no                                    | BYO relay or embed the CLI with user keys                       |
-| **GitHub Copilot coding agent**                | Closed agent           | Partial, fatal flaw: no server-to-server tokens (must proxy each user's OAuth) | No; GitHub-locked, GitHub-branded                              | "Relay to GitHub" only                                          |
-| **Google Jules**                               | Closed async agent     | Partial (alpha API, GitHub-only)                                               | No                                                             | Named relay only; immature, security caveat                     |
-| **Cursor** (Anysphere)                         | IDE + Cloud Agents     | Yes (Cloud Agents REST API v1 beta + CLI `-p --force`)                         | No white-label, no reseller (explicit)                         | BYO relay only; never the hidden backend                        |
-| **Windsurf** (Codeium)                         | IDE                    | Retired; became Devin Desktop (2026-06-02)                                     | n/a                                                            | Do not target; rebranded into a competitor                      |
-| **Factory.ai** ("Droids")                      | Agent platform         | Partial (`droid exec` CLI headless; no hosted API)                             | On-prem at Enterprise; no white-label                          | Demand-gated BYO via CLI                                        |
-| **OSS / CLI** (Aider, SWE-agent, Cline, Goose) | OSS agents             | Yes (CLI / SDK)                                                                | Yes (Apache/MIT)                                               | Optional self-host adapters; Aider and SWE-agent the cleanest   |
+| Engine | Type | Headless dispatch | Self-host / white-label | Role for Supaprod |
+| --- | --- | --- | --- | --- |
+| **Native (Supaprod loop)** | Owned agent | Yes | Yes (ours) | Cheap default floor for small, safe changes |
+| **Claude Agent SDK** | Headless SDK | Yes, natively (`query()`) | Yes; "{YourName} Powered by Claude" allowed, not "Claude Code" | **Owned premium default (the brain we brand)** |
+| **OpenHands** (ex-OpenDevin) | OSS autonomous agent | Yes (CLI, Python SDK, Cloud REST v1, GitHub resolver) | **Yes, MIT core** (enterprise/ folder is PolyForm trial) | **White-label / self-host / enterprise path (already stubbed)** |
+| **Devin** (Cognition) | Closed cloud agent | Yes (REST `api.devin.ai/v3`) | No self-host, no white-label, no BYO LLM | Visible "Send to Devin" BYO relay |
+| **OpenAI Codex** (2025 agentic) | Closed agent + OSS CLI | Partial (local CLI yes; cloud sandbox only via `@Codex` on GitHub) | CLI is Apache 2.0; cloud no | BYO relay or embed the CLI with user keys |
+| **GitHub Copilot coding agent** | Closed agent | Partial, fatal flaw: no server-to-server tokens (must proxy each user's OAuth) | No; GitHub-locked, GitHub-branded | "Relay to GitHub" only |
+| **Google Jules** | Closed async agent | Partial (alpha API, GitHub-only) | No | Named relay only; immature, security caveat |
+| **Cursor** (Anysphere) | IDE + Cloud Agents | Yes (Cloud Agents REST API v1 beta + CLI `-p --force`) | No white-label, no reseller (explicit) | BYO relay only; never the hidden backend |
+| **Windsurf** (Codeium) | IDE | Retired; became Devin Desktop (2026-06-02) | n/a | Do not target; rebranded into a competitor |
+| **Factory.ai** ("Droids") | Agent platform | Partial (`droid exec` CLI headless; no hosted API) | On-prem at Enterprise; no white-label | Demand-gated BYO via CLI |
+| **OSS / CLI** (Aider, SWE-agent, Cline, Goose) | OSS agents | Yes (CLI / SDK) | Yes (Apache/MIT) | Optional self-host adapters; Aider and SWE-agent the cleanest |
 
 Notable shifts the research caught, which overturned older assumptions: **Cursor now has headless dispatch** (Cloud Agents API + CLI), so it is no longer "human-in-editor only," but it remains non-white-labelable. **Windsurf no longer exists** as an independent product (Cognition retired the brand into Devin Desktop on 2026-06-02, after the 2025 saga: OpenAI's ~$3B deal collapsed 2025-07-11, Google paid ~$2.4B to hire its CEO and license the tech, and Cognition acquired the rest on 2025-07-14). **Continue.dev was acquired by Cursor and frozen.** **gpt-engineer was archived (2026-04-22); it is Lovable's own lineage (Anton Osika).**
 

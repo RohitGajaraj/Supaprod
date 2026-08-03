@@ -96,7 +96,7 @@ the six regions. **The founder wins. Both documents need reconciling against thi
 **Colour, ruled precisely**
 
 | Role | Ruling |
-|---|---|
+| --- | --- |
 | Ground | **Pure dark, shades of black.** Dark background wherever possible. |
 | The interface | **Monochrome: black, grey, white, slate, silver.** |
 | Ember (brand) | **Very limited, only where genuinely necessary.** *"Even for the approval button, all buttons, action items, tasks"* - so ember is NOT the default for primary actions. If it is not really required, do not use it. |

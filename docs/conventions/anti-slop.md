@@ -21,7 +21,7 @@ Slop is the absence of decisions. Every rule below exists to force one.
 Founder-supplied, 2026-07-29. **These are not advisory. A surface containing one is not done.**
 
 | # | Pattern | What it is |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Purple gradients everywhere** | The AI palette: purple-to-blue on buttons, text, backgrounds, orbs. The `#6366f1` / `#8b5cf6` / `#a855f7` family. The new "make it pop". |
 | 2 | **Lazy "cool"** | Glassmorphism, neon glows, blurred orbs, monospace everything. Reads as a hackathon project, not a product. |
 | 3 | **Lazy "impact"** | When in doubt, animate everything. Bouncing buttons, wiggling icons, gradient text, floating badges. Motion without meaning. |
@@ -63,7 +63,7 @@ So: apply the catalogue's craft, and override it where following it produces a w
 the override and the reason. Decisions already taken this way:
 
 | Advisory rule | Our call | Why |
-|---|---|---|
+| --- | --- | --- |
 | No decorative grid backgrounds | **Overridden at the auth door and the public landing.** | The founder wants the engineering field and starfield there, it is a deliberate texture rather than a default, and it is one surface, not a habit. |
 | Geist is an overused face | **Kept for Geist Pixel only**, at the auth door. | Scoped to a threshold identity, which is a decision rather than a reflex. Geist Sans and Geist Mono were still dropped. |
 | No section numbering | **Allowed where functional**, banned where editorial. | A number that anchors an annotation to a drawing does work. A number beside a heading for texture does not. |
@@ -86,7 +86,7 @@ bar is not "it would look nice", it is "the alternative communicates worse".
 Every override is written down here with what it bought. Taken so far:
 
 | Broken | Where | What it bought |
-|---|---|---|
+| --- | --- | --- |
 | No glowing accents on dark | the auth door, one warm radial behind the card | lifts the card off the field. One surface, one bloom, no second instance anywhere. |
 | No decorative grid | the auth door, the public landing | the drafting field is the brand's own texture, and it is two weights rather than a default overlay. |
 | No pulsing status dot | the running agent mark | the rule's own exception: it animates because the data genuinely is changing. A spinning arc plus a breath, and it stops the moment the run does. |

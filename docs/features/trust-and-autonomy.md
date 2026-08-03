@@ -14,13 +14,13 @@
 from the real history Supaprod already records. No cached column, can't go
 stale.
 
-|     Score | Qualitative label   | What it says                                                                                                    |
-| --------: | ------------------- | --------------------------------------------------------------------------------------------------------------- |
-|   0 to 34 | At-risk / Observing | Brand new or recently failed. Keep on Observing. Every tool call should queue for review.                       |
-|  35 to 54 | Observing           | Below neutral. Mistakes still likely; keep human eyes on every step.                                            |
-|  55 to 74 | Proving             | Earning trust. Right more often than not, but worth catching errors with a one-click confirm.                   |
-|  75 to 89 | Trusted             | Consistently succeeds, takes feedback well, evals look good. Day-to-day default; confirm-mode tools run inline. |
-| 90 to 100 | Ambient             | Exceptionally reliable. Runs inline except for hard-locked high-risk tools (e.g. `calendar.create`).            |
+| Score | Qualitative label | What it says |
+| --- | --- | --- |
+| 0 to 34 | At-risk / Observing | Brand new or recently failed. Keep on Observing. Every tool call should queue for review. |
+| 35 to 54 | Observing | Below neutral. Mistakes still likely; keep human eyes on every step. |
+| 55 to 74 | Proving | Earning trust. Right more often than not, but worth catching errors with a one-click confirm. |
+| 75 to 89 | Trusted | Consistently succeeds, takes feedback well, evals look good. Day-to-day default; confirm-mode tools run inline. |
+| 90 to 100 | Ambient | Exceptionally reliable. Runs inline except for hard-locked high-risk tools (e.g. `calendar.create`). |
 
 Agents with fewer than ~10 missions are pulled toward 50 (neutral) by a
 Bayesian shrinkage prior so a single lucky run can't show 95.
@@ -38,12 +38,12 @@ score = round( shrink(raw, samples) · 100 )
 shrink(r, n) = (r · n + 0.5 · 10) / (n + 10)
 ```
 
-| Weight | Signal                         | Source                                                                                                              | What it measures                                                                                                                                                                                                                                                                                                                     |
-| -----: | ------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-|    30% | Mission success rate           | `agent_runs.status` (`completed` vs total)                                                                          | End-to-end: did the mission finish without erroring or being rejected?                                                                                                                                                                                                                                                               |
-|    20% | Approval acceptance rate       | `agent_approvals.status` (`approved` vs total)                                                                      | When the human had to decide, did they say yes? Proxy for "the agent proposed the right thing."                                                                                                                                                                                                                                      |
-|    20% | Mean eval score                | `evals.score` joined via `ai_events.agent_id`                                                                       | Automated quality scores on outputs (plan quality, code correctness, spec completeness, etc.).                                                                                                                                                                                                                                       |
-|    30% | Validated-outcome rate (RF-06) | `public.learnings.verdict` (`validated` vs `missed`), attributed to the agent via `decisions.decided_by_agent_slug` | Once the real-world signal came in, did the recorded outcome actually turn out to be right? "Did not crash" and "the human said yes" are not the same as "was right" — this is the ingredient that catches that gap. `mixed` verdicts have no clean directional signal and are excluded from both the numerator and the denominator. |
+| Weight | Signal | Source | What it measures |
+| --- | --- | --- | --- |
+| 30% | Mission success rate | `agent_runs.status` (`completed` vs total) | End-to-end: did the mission finish without erroring or being rejected? |
+| 20% | Approval acceptance rate | `agent_approvals.status` (`approved` vs total) | When the human had to decide, did they say yes? Proxy for "the agent proposed the right thing." |
+| 20% | Mean eval score | `evals.score` joined via `ai_events.agent_id` | Automated quality scores on outputs (plan quality, code correctness, spec completeness, etc.). |
+| 30% | Validated-outcome rate (RF-06) | `public.learnings.verdict` (`validated` vs `missed`), attributed to the agent via `decisions.decided_by_agent_slug` | Once the real-world signal came in, did the recorded outcome actually turn out to be right? "Did not crash" and "the human said yes" are not the same as "was right" — this is the ingredient that catches that gap. `mixed` verdicts have no clean directional signal and are excluded from both the numerator and the denominator. |
 
 The total **samples** number (`missions + approvals + evals + outcomes`)
 drives the shrinkage. Until it crosses ~10, the score is conservative by design.
@@ -55,12 +55,12 @@ The dial lives in `agent_autonomy(user_id, agent_id, arc)`. The agent loop
 `agent_tools.mode` (`auto` / `confirm` / `review`) via
 `resolveApprovalMode(toolMode, arc)` in `src/lib/ai/trust.server.ts`.
 
-| Arc           | Effect on `auto` tools                        | Effect on `confirm` tools | Effect on `review` tools |
-| ------------- | --------------------------------------------- | ------------------------- | ------------------------ |
-| **Observing** | Forced to `review` (operator sees every step) | Forced to `review`        | `review` (unchanged)     |
-| **Proving**   | Promoted to `confirm` (one-click)             | `confirm` (unchanged)     | `review` (unchanged)     |
-| **Trusted**   | Run inline                                    | Run inline                | `review` (unchanged)     |
-| **Ambient**   | Run inline                                    | Run inline                | `review` (unchanged)     |
+| Arc | Effect on `auto` tools | Effect on `confirm` tools | Effect on `review` tools |
+| --- | --- | --- | --- |
+| **Observing** | Forced to `review` (operator sees every step) | Forced to `review` | `review` (unchanged) |
+| **Proving** | Promoted to `confirm` (one-click) | `confirm` (unchanged) | `review` (unchanged) |
+| **Trusted** | Run inline | Run inline | `review` (unchanged) |
+| **Ambient** | Run inline | Run inline | `review` (unchanged) |
 
 ### Safety floors (non-negotiable)
 

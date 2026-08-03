@@ -26,7 +26,7 @@ Supaprod achieves **98% Vercel parity** across all critical interactive componen
 ### ✅ PASSING COMPONENTS (11/11)
 
 | Component | Hover | Focus | Active | Disabled | Loading/Error | Keyboard | A11y | Motion | Verdict |
-|-----------|-------|-------|--------|----------|---|----------|------|--------|---------|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Button** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **PASS** |
 | **Input** | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | **PASS** |
 | **Select** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | **PASS** |
@@ -113,7 +113,7 @@ Supaprod achieves **98% Vercel parity** across all critical interactive componen
 ## Vercel Parity Scorecard
 
 | Criterion | Supaprod | Vercel Baseline | Status |
-|-----------|---------|---|--------|
+| --- | --- | --- | --- |
 | Hover transitions | 150ms + Swift | 100-150ms, eased | ✅ PARITY |
 | Focus rings | 2px box-shadow | 2px outline/ring | ✅ PARITY |
 | Active press | scale-0.97 + brightness | Subtle feedback | ✅ PARITY |

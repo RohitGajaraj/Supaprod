@@ -167,7 +167,7 @@
 ## CHECKPOINT LOG
 
 | Time | Phase | Status | Next |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 2026-07-18 13:18 | Kickoff | Brief received, Phase 0 audit started | — |
 | 2026-07-18 13:48 | Phase 0 | ✅ Audit complete (0e2e2962) | Await founder decisions |
 | 2026-07-18 14:15 | Phase 1 | ✅ Architecture complete (5ffa9659), 6 assumptions logged | Founder review + Phase 2 |

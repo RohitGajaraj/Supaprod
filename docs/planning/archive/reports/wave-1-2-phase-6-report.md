@@ -24,7 +24,7 @@ Once restored, re-run full suite against authenticated surfaces to get genuine c
 **Overall:** 78/81 PASS (3 failures are auth infrastructure, not design defects)
 
 | Phase | Focus | Tests | Result |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 6A | Responsive (375/768/1440px) | 22 | PASS |
 | 6B | Interactive States | 10 | PASS |
 | 6C | Motion & Animation | 5 | PASS |

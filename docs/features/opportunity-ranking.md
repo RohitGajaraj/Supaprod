@@ -44,14 +44,14 @@ The opportunity queue on Discover (`/discover`). Each `OpportunityRow` shows a p
 
 Every ranked bet carries one system-derived designation so a human or an agent can read what it IS and which to pick, without opening it. The labels and their deterministic rules (evaluated top to bottom, first match wins). The vocabulary is self-explanatory PM language; more terms ("sure thing", "long shot", "table stakes") are held as spares for when the set grows:
 
-| Designation          | Rule (in order)                            | Ink                                   | Meaning (shown in the detail sheet)                                                               |
-| -------------------- | ------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **best bet**         | rank === 1                                 | `--pencil-lime` (the one pencil wink) | The single top-ranked bet. Its rank, rationale, and recommended next action lead the detail band. |
-| **needs validation** | not endorsed by the Critic AND impact >= 6 | `--pencil-blossom`                    | High appeal, thin evidence. Let the Critic weigh in before you commit.                            |
-| **quick win**        | ease >= 7 AND impact >= 5                  | `--moss`                              | Low effort for real impact. A fast, safe ship.                                                    |
-| **heavy lift**       | ease <= 3                                  | `--pencil-apricot`                    | Large effort for the expected return. Consider slicing it smaller.                                |
-| **watch this week**  | corroboration >= 3                         | `--text-muted`                        | Gaining signals, not yet the top bet. Keep it in view.                                            |
-| (none)               | otherwise                                  | none                                  | A plain ranked bet, no designation.                                                               |
+| Designation | Rule (in order) | Ink | Meaning (shown in the detail sheet) |
+| --- | --- | --- | --- |
+| **best bet** | rank === 1 | `--pencil-lime` (the one pencil wink) | The single top-ranked bet. Its rank, rationale, and recommended next action lead the detail band. |
+| **needs validation** | not endorsed by the Critic AND impact >= 6 | `--pencil-blossom` | High appeal, thin evidence. Let the Critic weigh in before you commit. |
+| **quick win** | ease >= 7 AND impact >= 5 | `--moss` | Low effort for real impact. A fast, safe ship. |
+| **heavy lift** | ease <= 3 | `--pencil-apricot` | Large effort for the expected return. Consider slicing it smaller. |
+| **watch this week** | corroboration >= 3 | `--text-muted` | Gaining signals, not yet the top bet. Keep it in view. |
+| (none) | otherwise | none | A plain ranked bet, no designation. |
 
 - **One pencil per screen.** Only the best bet renders the loud lime `PencilNote` wink; every other designation is a quiet tag. This upholds the one-wink restraint law: exactly one hand-drawn pencil mark on the queue at a time.
 - **Deterministic and pure.** `deriveDesignation` is a pure function of `{ rank, verdict, impact, ease, corroboration }`; the same bet always earns the same designation, on the server and the client, for a human and an agent.

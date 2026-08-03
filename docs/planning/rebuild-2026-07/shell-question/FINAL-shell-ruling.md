@@ -78,7 +78,7 @@ cost.
 ### 1.1 Verified this session, in the live tree
 
 | Fact | Evidence |
-|---|---|
+| --- | --- |
 | `chat.ts` cannot carry a gate | `grep -c approval src/routes/api/chat.ts` returns **0** across 1186 lines |
 | A gated tool pauses the run | `loop.server.ts:67-75` `PAUSE_ON_APPROVAL_TOOLS`, status `waiting_approval` |
 | **Resume is amnesiac, and worse than shell-b said** | `loop.server.ts:835` is the only writer of `agent_run_checkpoints.state` and it writes `latestMessage`/`latestStep`. `loop.server.ts:1412` gates rehydration on `(cp.state).conv`, which **nothing has ever written**. So the else-branch always runs: `steps = []`, `conv = [system, goal]`, and `startStep = cp.step_index`. A run paused at step 4 of 6 resumes with no memory of steps 1 to 4 and two steps of budget left |
@@ -95,7 +95,7 @@ cost.
 ### 1.2 Corrections carried
 
 | # | Claim | Correction |
-|---|---|---|
+| --- | --- | --- |
 | C1 | The brief: "prototypes already render as live generated UI in a **same-origin** iframe" | **False.** No render site sets `allow-same-origin`. The frame runs at a null origin and the parent cannot script it. Direct manipulation needs `postMessage` validated on `event.source`, and `interaction/FINAL-interaction.md` already rules this |
 | C2 | shell-b defect 2: "Ask history never hydrates, the server fn throws on 42703" | **Repaired in the tree.** `conversations.functions.ts:39-58` now tries enriched columns and falls back to `id,role,content,model,created_at` on `42703`. The PC-36 hardening landed. Carry the fix, not the defect |
 | C3 | shell-b defect 3: "a new conversation row per send" | **Repaired.** `use-ask-stream.ts:195-219` adopts-and-validates the stored id before minting a new one |
@@ -149,7 +149,7 @@ it lives in.
 Five properties, each answering a failure that killed something here before:
 
 | Property | Consequence |
-|---|---|
+| --- | --- |
 | Its identity is a row, not the last message | You can ask ten questions and the pane does not move. The ChatGPT-with-a-side-panel failure is structurally impossible |
 | Its default is a server query, not client state | Resume is free, identical on a new device, in incognito, and for the colleague you paste the link to. This is the founder's actual requirement, satisfied by having nothing to remember |
 | It moves when the work moves, and only then | Which is the only time anyone wants the largest region on screen to change |
@@ -184,7 +184,7 @@ chat app's side panel has none of the three.
 See §5.3.
 
 | # | Form | Stage | Consequence rendered | Judge slot asks | Built? |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 1 | Signal | 01 | the evidence card: source, verbatim, who, when, link out | Is this real? Keep / Ignore | `EvidenceFace:238` |
 | 2 | Pattern | 01 | N signals stacked under the shared claim, each peelable | Does this add up? Promote / Split / Drop | `EvidenceFace` + `clusterTrigger` |
 | 3 | Bet | 02 | the case, the rank, the stated risk, Critic's counter beside it | Keep or drop? | `DecisionFace:481` |
@@ -221,7 +221,7 @@ structural list may never be summoned. Anything not on it may be.
 ### 3.1 Conversational: the composer does all of this, and never navigates
 
 | # | Act | Wired to |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Start** work at any of the seven stages | `chat.ts:377-395` classifier, `createMission:503`, `journeyForIntent` |
 | 2 | **Steer** work in flight | `studio.functions.ts:974` `steerStudioSession` |
 | 3 | **Ask** anything, answered in the thread with citations, **pane does not move** | `chat.ts` streaming path |
@@ -253,7 +253,7 @@ run" gets a visible pre-commit and a cheap reversal, never a confidence score.
 ### 3.2 Structural: the nine, permanently drawn
 
 | # | The question it answers without typing | Where it is drawn | Region |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Where is this product in its loop | the seven-segment Spine in the header, always product state | header |
 | 2 | What am I looking at and where is it in its own run | the compact stage strip in the pane header, always run state | pane |
 | 3 | What is being asked of me about this thing | the Judge slot, a permanent frame slot, empty not absent | pane |
@@ -277,7 +277,7 @@ killed the last rebuild.
 ## 4. THE SEVEN TESTS, RUN
 
 | # | Test | Verdict |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **Preview** | **Passes, with a stated limit.** One answer, the consequence of the work in hand, holds for all fourteen forms (§2.4). The limit is real: five of seven stages render documents, and the three-slot frame is what makes a document worth the pane rather than pretending it runs (§2.3) |
 | 2 | **Generic** | **Passes.** Grayscale, logo removed, count the nouns that could not appear in ChatGPT: a seven-segment loop drawing with one segment lit; a Judge slot reading `Approve the spec?` rather than `Continue`; thread rows that are receipts with agent names, durations and doors; thirteen crew marks with three lit; a live locus reading `Engineer, writing the change, autofill.tsx, 4m20s, 6 of up to 24`; five labelled rail rows with live counts; an intent stamp under the composer. **Seven.** The archived Home screen scored zero: a date, an input, three cards, one sentence |
 | 3 | **Empty** | **Passes, and this is where shell-a is overruled.** Depth is not summoned. Five rail rows are drawn in words with live counts, and at zero they carry a last-event age or a one-line invitation, never a silent glyph. shell-a's non-zero-only rule would have made the entire depth layer invisible to every new user on their only first day |
@@ -490,7 +490,7 @@ this document is a shell; this is the thing that actually forgets.
 Both prior failures share one root, and neither is about how much is on screen.
 
 | | Pole 1: the 10-rail | Pole 2: the Ink shell | This ruling |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Shape | ten destinations, everything visible | home plus palette, everything summoned | one room, nine things drawn, everything else summonable |
 | Verdict | "overwhelming, real learning curve, never states what the platform is for" | "felt generic, hid the features, depth behind the palette read as empty" | tested in §4 |
 | Mechanism of failure | **noise**: ten rows that never changed | **silence**: affordances with no count, no key, no URL | the nine are counted, keyed, addressable, labelled in words, and test-enforced |
@@ -528,7 +528,7 @@ for something real, but the something is the founder's own experience of his own
 broken and not connecting."* Every clause is a coherence complaint. Five verified causes:
 
 | # | Defect | The feeling it produces |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Two shells behind a hand-maintained pathname allowlist over 76 routes (`_authenticated.tsx:166-180`) | "It clicks me back to the shell again" |
 | 2 | `chat.ts` has zero occurrences of `approval`; the loop pauses and the gate appears on a different screen | "I asked for work and then it went quiet" |
 | 3 | `checkpoint()` writes `latestMessage`/`latestStep`; resume reads `cp.state.conv`, never written; every resumed run restarts with `steps = []` at a partly spent budget | "It forgot what it was doing" |
@@ -593,7 +593,7 @@ fourteen-renderer frame contract is not three days. Attempting it produces the f
 Slots into `ia/FINAL-ia.md` §8's ten phases. Only the changes are listed.
 
 | Phase | What changes here | Gate |
-|---|---|---|
+| --- | --- | --- |
 | **Now to Jul 31** | Demo lane only (§8). No region moves | the recording |
 | **P0** | Add `mounted.test.ts`, `composer-never-navigates.test.ts`, `no-typing-only.test.ts`, `artifact-frame.test.ts`, all in report-only mode. Extend `room-url.ts` for `/$ws` | the real orphan count is known at the start |
 | **P1** | **Close the two-shell trap first**, exactly as shell-b argues. Delete the allowlist; every authenticated route wears the room chrome. Merge the line and the Spine (D2). The Crew Bar becomes real per `agents/FINAL-agent-presence.md` P1 | all 76 routes render one chrome. Screenshot every one |
@@ -614,7 +614,7 @@ what the founder is reacting to is the seam between two of them and a conversati
 ## 10. RISKS
 
 | # | Risk | Mitigation |
-|---|---|---|
+| --- | --- | --- |
 | R1 | **The 168px rail is a bigger region than FINAL-ia's 48px, and someone will read five labelled rows as the ten-rail returning** | Right edge, not left. Five, not ten. Live counts, not static rows. If a cold user calls it navigation in testing, collapse to 56px with counts and move the labels into a one-tap sheet, but never to hover-only |
 | R2 | **The workspace zoom is a second address and second addresses breed** | One rule, tested: `/$ws` and `/$ws/$product` are the only two, and `destinations.test.ts` fails on a third. The zoom shares every region; it is a scope, not a screen |
 | R3 | **Two stage drawings could read as two Spines** | They never render at the same scale and never in the same region. The header one is 7 numbered segments with state labels; the pane one is a 120px unlabelled strip inside the artifact's own header. Test with someone who has two runs in flight |
@@ -656,7 +656,7 @@ to find.
 ## APPENDIX: evidence index
 
 | Claim | Where |
-|---|---|
+| --- | --- |
 | Chat cannot carry a gate | `grep -c approval src/routes/api/chat.ts` = 0 |
 | Resume amnesia | `src/lib/ai/loop.server.ts:827-866` (writer), `:1406-1483` (reader gating on `cp.state.conv`) |
 | Nonexistent tables in the justifying comment | `loop.server.ts:832`; one grep hit each for `agent_run_steps`, `agent_run_messages` |

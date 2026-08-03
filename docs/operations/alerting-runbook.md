@@ -6,12 +6,12 @@
 
 ## Sev tiers
 
-| Sev       | Definition                                                                                                                                     | Channels                                             | Ack target        | Who                              |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------- | -------------------------------- |
-| **Sev 1** | App down (Better Stack `/api/public/health` probe fails 2 consecutive checks) · DB unreachable · `go-live guard` tripped · spend over hard cap | Phone call (Better Stack) → SMS → Slack `#incidents` | 5 min             | Founder (on-call always)         |
-| **Sev 2** | Error rate >1% over 5 min · cron heartbeat missed >2× period · p95 latency >5s for 10 min · injection-block spike >10/min                      | SMS + Slack `#incidents`                             | 30 min            | Founder                          |
-| **Sev 3** | Error rate >0.1% over 1h · monthly budget burn >80% · agent hit-rate drop >20pt week-over-week · `job_runs.status='error'` rate >1/h           | Slack `#observability`                               | 4h                | Founder (next reasonable window) |
-| **Sev 4** | Single workspace anomaly · single feature-flag regression · slow-query warn · single failed cron tick                                          | In-app `IncidentsPanel` only                         | Next business day | Whoever opens the panel          |
+| Sev | Definition | Channels | Ack target | Who |
+| --- | --- | --- | --- | --- |
+| **Sev 1** | App down (Better Stack `/api/public/health` probe fails 2 consecutive checks) · DB unreachable · `go-live guard` tripped · spend over hard cap | Phone call (Better Stack) → SMS → Slack `#incidents` | 5 min | Founder (on-call always) |
+| **Sev 2** | Error rate >1% over 5 min · cron heartbeat missed >2× period · p95 latency >5s for 10 min · injection-block spike >10/min | SMS + Slack `#incidents` | 30 min | Founder |
+| **Sev 3** | Error rate >0.1% over 1h · monthly budget burn >80% · agent hit-rate drop >20pt week-over-week · `job_runs.status='error'` rate >1/h | Slack `#observability` | 4h | Founder (next reasonable window) |
+| **Sev 4** | Single workspace anomaly · single feature-flag regression · slow-query warn · single failed cron tick | In-app `IncidentsPanel` only | Next business day | Whoever opens the panel |
 
 ## Channels (post AFD-13)
 

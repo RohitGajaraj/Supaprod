@@ -6,12 +6,12 @@
 
 This connector registers ONE Google Cloud OAuth 2.0 client (Web application type) that backs four separate Supaprod connections, each with its own scopes and its own storage table:
 
-| Product          | What it does in Supaprod                                                    | Capabilities (registry.ts)                     | Storage table                                                    |
-| ---------------- | ----------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------- |
-| Google Docs      | Ingest source documents from Google Docs                                      | `inflow: true, outflow: false, sync: false`     | `connections` (single connection per user for this provider)      |
-| Google Calendar  | Two-way calendar sync: read events, create meetings from decisions            | `inflow: true, outflow: true, sync: true`       | `user_calendar_connections` (multi-account - see below)           |
-| Gmail            | Pull recent inbox messages as customer-voice and lead signals                 | `inflow: true, outflow: false, sync: false`     | `user_calendar_connections` (multi-account - see below)           |
-| Google Tasks     | Sync action items with Google Tasks                                           | `inflow: false, outflow: true, sync: false`     | `user_calendar_connections` (multi-account - see below)           |
+| Product | What it does in Supaprod | Capabilities (registry.ts) | Storage table |
+| --- | --- | --- | --- |
+| Google Docs | Ingest source documents from Google Docs | `inflow: true, outflow: false, sync: false` | `connections` (single connection per user for this provider) |
+| Google Calendar | Two-way calendar sync: read events, create meetings from decisions | `inflow: true, outflow: true, sync: true` | `user_calendar_connections` (multi-account - see below) |
+| Gmail | Pull recent inbox messages as customer-voice and lead signals | `inflow: true, outflow: false, sync: false` | `user_calendar_connections` (multi-account - see below) |
+| Google Tasks | Sync action items with Google Tasks | `inflow: false, outflow: true, sync: false` | `user_calendar_connections` (multi-account - see below) |
 
 Google Calendar, Gmail, and Google Tasks share the multi-account "suite" system (`user_calendar_connections`, keyed on `(user_id, provider, product, account_email)`) because a user can connect several Google accounts to those three products at once. Google Docs is a plain single-account connector (`connections`, one row per user for `provider = 'google_docs'`) - connecting a second Google Docs account replaces the first rather than adding a second row.
 

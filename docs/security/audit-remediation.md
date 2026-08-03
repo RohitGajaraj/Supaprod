@@ -47,7 +47,7 @@ $ bun run build  ✓ built in 2.59s
 
 **Vulnerability Breakdown:**
 | Category | Count | Status |
-|----------|-------|--------|
+| --- | --- | --- |
 | DOMPurify (monaco-editor) | 15 moderate | Dev-only, not in production |
 | brace-expansion (eslint) | 1 moderate | Transitive, structural constraint |
 | esbuild (vite/wrangler) | 1 low | Windows dev server only |
@@ -136,7 +136,7 @@ if (userInsErr) {
 The audit confirmed several security best practices already in place:
 
 | Pattern | Status | Evidence |
-|---------|--------|----------|
+| --- | --- | --- |
 | **No hardcoded secrets** | ✅ Pass | No API keys in git; `.env.example` only; proper `.gitignore` |
 | **Parameterized queries** | ✅ Pass | Consistent use of Supabase query builder; no string concatenation |
 | **Bearer-only auth** | ✅ Pass | `auth-middleware.ts` enforces `Bearer ` prefix; fails closed on missing tokens |
@@ -167,7 +167,7 @@ The audit confirmed several security best practices already in place:
 ## Risk Summary
 
 | Metric | Before | After | Trend |
-|--------|--------|-------|-------|
+| --- | --- | --- | --- |
 | **Risk Score** | 28/100 | 26/100 | ↓ Reduced |
 | **Critical Vulns** | 0 | 0 | — |
 | **High Vulns** | 0 | 0 | — |

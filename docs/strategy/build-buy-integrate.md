@@ -20,16 +20,16 @@ The answer is not "build everything" or "buy everything." It is a **split**: bui
 
 ## Per-layer decision (the memory / Decision-Brain stack)
 
-| Layer                                          | Verdict                        | Why                                                                                                                                                                                                     | What we do                                                                                                                                                                                                                                                                                                                                                                      |
-| ---------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Embeddings**                                 | **BUY**                        | Commodity racing to zero (~$0.02/M, fungible OpenAI-format calls). Sits under the moat, never in it.                                                                                                    | Route through `runtime.server.ts` via a new `embedding` CallSurface (never call the provider directly). Default **Cohere `embed-v4`** (1536 dims native, 128K token limit, OpenAI-compatible API); OSS fallback BGE-M3 / Qwen3-Embedding for the autonomy floor. Stamp model-id + dimension on every vector so re-embed is a background migration, not a rewrite.               |
-| **Rerank**                                     | **INTEGRATE**                  | A cheap precision booster on the semantic-match step, stateless (zero switching cost).                                                                                                                  | A `rerank` CallSurface, **Cohere Rerank 4** via API by default (best on business/finance docs; pairs with embed-v4, same billing). Self-host **Apache-2.0 `zerank-1-small`** for the autonomy floor. **CRITICAL: `zerank-2` is non-commercial licensed — do NOT use in production without commercial license from ZeroEntropy.** Gated to multi-hop / precedent retrieval only. |
-| **Vector store**                               | **BUILD / in-house**           | pgvector is free on every Supabase tier, RLS-native, provider-neutral, one tenancy + residency + backup boundary.                                                                                       | Stay on pgvector (+ pgvectorscale/DiskANN for headroom). Do NOT adopt Pinecone/Weaviate for v1-v4; a PM-decision corpus is thousands of rows per tenant, not billions.                                                                                                                                                                                                          |
-| **Graph storage**                              | **BUILD-in-Postgres**          | "Storage is not the moat" but it is residency-critical and autonomy-critical; an external graph DB fractures RLS, account-pooling, residency, export-anytime, and one backup boundary.                  | Typed bi-temporal node/edge tables + `valid_at`/`invalid_at` + recursive CTEs in Postgres. DBR-1 v1 read-surface already ships at `/knowledge?tab=graph`. Crossover (only if forced): Apache AGE / SQL-PGQ (graph IN Postgres) BEFORE any external Neo4j.                                                                                                                       |
-| **Memory-extraction / orchestration pipeline** | **INTEGRATE** (native default) | The generic substrate is borrowable, not buyable as the moat; every credible engine is OSS + BYOK + high-switching-cost, so it belongs behind a swappable seam with a native default, never a hard BUY. | BUILD the native extract -> embed -> reconcile in Postgres, borrowing the patterns the canon already names (Graphiti's per-edge invalidation prompt; Cognee's ontology-resolver + Temporal-Cognify; Mem0's auto-extraction). Mem0/Zep/Cognee = opt-in BYOK adapters, **deferred** until a workspace actually wants one.                                                         |
-| **Typed decision ontology**                    | **BUILD**                      | THE moat, Supaprod-specific. No provider supplies the PM decision schema (Signal -> Assumption -> Decision -> Outcome).                                                                                  | Own it end to end; never wrap a provider's generic entity layer.                                                                                                                                                                                                                                                                                                                |
-| **Outcome-labeled supersession**               | **BUILD**                      | The outcome LABEL (validated/missed, weeks after ship via the human-gated `recordOutcome` loop) is a judgment no provider can infer at ingest time.                                                     | Invalidate, never delete - preserve the superseded trail. Copy Graphiti's `valid_at`/`invalid_at` + invalidation-prompt design; the label stays human-gated and Supaprod-owned.                                                                                                                                                                                                  |
-| **The adversarial Critic**                     | **BUILD**                      | Walks outcome-labeled precedent to challenge a new decision; the felt product and pure moat, on our own agent loop.                                                                                     | Own it (`loop.server.ts` + `decision-precedent.server.ts`). Letta (an agent runtime) is redundant on what we have and absent on what we need - do not adopt.                                                                                                                                                                                                                    |
+| Layer | Verdict | Why | What we do |
+| --- | --- | --- | --- |
+| **Embeddings** | **BUY** | Commodity racing to zero (~$0.02/M, fungible OpenAI-format calls). Sits under the moat, never in it. | Route through `runtime.server.ts` via a new `embedding` CallSurface (never call the provider directly). Default **Cohere `embed-v4`** (1536 dims native, 128K token limit, OpenAI-compatible API); OSS fallback BGE-M3 / Qwen3-Embedding for the autonomy floor. Stamp model-id + dimension on every vector so re-embed is a background migration, not a rewrite. |
+| **Rerank** | **INTEGRATE** | A cheap precision booster on the semantic-match step, stateless (zero switching cost). | A `rerank` CallSurface, **Cohere Rerank 4** via API by default (best on business/finance docs; pairs with embed-v4, same billing). Self-host **Apache-2.0 `zerank-1-small`** for the autonomy floor. **CRITICAL: `zerank-2` is non-commercial licensed — do NOT use in production without commercial license from ZeroEntropy.** Gated to multi-hop / precedent retrieval only. |
+| **Vector store** | **BUILD / in-house** | pgvector is free on every Supabase tier, RLS-native, provider-neutral, one tenancy + residency + backup boundary. | Stay on pgvector (+ pgvectorscale/DiskANN for headroom). Do NOT adopt Pinecone/Weaviate for v1-v4; a PM-decision corpus is thousands of rows per tenant, not billions. |
+| **Graph storage** | **BUILD-in-Postgres** | "Storage is not the moat" but it is residency-critical and autonomy-critical; an external graph DB fractures RLS, account-pooling, residency, export-anytime, and one backup boundary. | Typed bi-temporal node/edge tables + `valid_at`/`invalid_at` + recursive CTEs in Postgres. DBR-1 v1 read-surface already ships at `/knowledge?tab=graph`. Crossover (only if forced): Apache AGE / SQL-PGQ (graph IN Postgres) BEFORE any external Neo4j. |
+| **Memory-extraction / orchestration pipeline** | **INTEGRATE** (native default) | The generic substrate is borrowable, not buyable as the moat; every credible engine is OSS + BYOK + high-switching-cost, so it belongs behind a swappable seam with a native default, never a hard BUY. | BUILD the native extract -> embed -> reconcile in Postgres, borrowing the patterns the canon already names (Graphiti's per-edge invalidation prompt; Cognee's ontology-resolver + Temporal-Cognify; Mem0's auto-extraction). Mem0/Zep/Cognee = opt-in BYOK adapters, **deferred** until a workspace actually wants one. |
+| **Typed decision ontology** | **BUILD** | THE moat, Supaprod-specific. No provider supplies the PM decision schema (Signal -> Assumption -> Decision -> Outcome). | Own it end to end; never wrap a provider's generic entity layer. |
+| **Outcome-labeled supersession** | **BUILD** | The outcome LABEL (validated/missed, weeks after ship via the human-gated `recordOutcome` loop) is a judgment no provider can infer at ingest time. | Invalidate, never delete - preserve the superseded trail. Copy Graphiti's `valid_at`/`invalid_at` + invalidation-prompt design; the label stays human-gated and Supaprod-owned. |
+| **The adversarial Critic** | **BUILD** | Walks outcome-labeled precedent to challenge a new decision; the felt product and pure moat, on our own agent loop. | Own it (`loop.server.ts` + `decision-precedent.server.ts`). Letta (an agent runtime) is redundant on what we have and absent on what we need - do not adopt. |
 
 ---
 
@@ -131,34 +131,34 @@ interface MemoryProvider {
 
 A full pass over the ~100-row master register (feature-dashboard + SSOT §3) under the strengthened doctrine. **Result: ~95 of ~100 rows are BUILD** - the moat, the decision layer, the foundation/governance spine, and all tenancy/credit/entitlement logic are unpurchasable and in-house. Only a handful of irreducible commodities UNDER the moat leave the building, each routed through the chokepoint with a native/OSS fallback.
 
-| Bucket                                                                                                                           | Verdict mix              | Note                                                                                                                                                                                         |
-| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Foundation (loop spine, chokepoint, auth/tenancy, A2A, fallback resolvers)                                                       | ~22 BUILD                | The whole autonomous-loop spine + the chokepoint are owned + moat-adjacent; the chokepoint can never be outsourced (everything routes through it). Only embeddings/rerank inside DBR leaves. |
-| Moat / Decision Layer (PRD/spec gen, Critic, decision cards, outcome roadmap, teardown wedge, scheduling)                        | ~13 BUILD                | Pure moat, no fast oracle; unbuyable by definition.                                                                                                                                          |
-| Governance (Trust Dial, injection defense, blast-radius, kill-switch/spend caps, eval/drift/incidents, prompt studio, sanitizer) | ~12 BUILD                | The governance/audit moat; outsourcing traces/evals fails residency + splits the RLS schema.                                                                                                 |
-| Sense (connectors, brain/research, discovery, knowledge graph, drift, audio)                                                     | ~12 BUILD + 2 INTEGRATE  | The connector engine + the signal->ontology mapping are the moat. Firecrawl web (already wired) + F-AUDIO-1 ASR are the INTEGRATEs, both with self-host floors.                              |
-| Build (Build station, multi-file, branches, gates, release/rollback, repo binding, sandbox)                                      | ~14 BUILD + ~5 INTEGRATE | The governed Build-to-Ship loop is owned; git hosting + runtime + sandbox are swappable substrate behind RepoProvider. SANDBOX = Cloudflare Sandbox SDK.                                     |
-| Interop (MCP, A2A, export, RBAC/invites, handoff)                                                                                | ~6 BUILD                 | Open protocols we implement, not products we buy.                                                                                                                                            |
-| Launch (cohort metrics, impact eval, product-memory, launch-kit, support triage)                                                 | ~7 BUILD                 | The post-release outcome loop is the moat; analytics = thin BYO connector ($0).                                                                                                              |
-| Cockpit / Ops (notifications, settings, cost roll-up, IA, health, flow mode)                                                     | ~18 BUILD                | Calm-front surfaces over our own data; nothing buyable.                                                                                                                                      |
-| Monetization + Credit (pricing, gates, credit unit/grant/debit/attribution, margin levers, PLG, billing)                         | ~24 BUILD + 2 INTEGRATE  | All credit/entitlement LOGIC is moat substrate; only the payment processor (Stripe) + top-up leave.                                                                                          |
-| Workspace-Tenancy + Knowledge + Data/Privacy (RLS, RBAC, invites, pooling, knowledge graph, retention, subprocessors)            | ~20 BUILD                | Residency-critical, in our Postgres; compliance artifacts are in-house registries. Only invite EMAIL (Resend) is a thin INTEGRATE.                                                           |
+| Bucket | Verdict mix | Note |
+| --- | --- | --- |
+| Foundation (loop spine, chokepoint, auth/tenancy, A2A, fallback resolvers) | ~22 BUILD | The whole autonomous-loop spine + the chokepoint are owned + moat-adjacent; the chokepoint can never be outsourced (everything routes through it). Only embeddings/rerank inside DBR leaves. |
+| Moat / Decision Layer (PRD/spec gen, Critic, decision cards, outcome roadmap, teardown wedge, scheduling) | ~13 BUILD | Pure moat, no fast oracle; unbuyable by definition. |
+| Governance (Trust Dial, injection defense, blast-radius, kill-switch/spend caps, eval/drift/incidents, prompt studio, sanitizer) | ~12 BUILD | The governance/audit moat; outsourcing traces/evals fails residency + splits the RLS schema. |
+| Sense (connectors, brain/research, discovery, knowledge graph, drift, audio) | ~12 BUILD + 2 INTEGRATE | The connector engine + the signal->ontology mapping are the moat. Firecrawl web (already wired) + F-AUDIO-1 ASR are the INTEGRATEs, both with self-host floors. |
+| Build (Build station, multi-file, branches, gates, release/rollback, repo binding, sandbox) | ~14 BUILD + ~5 INTEGRATE | The governed Build-to-Ship loop is owned; git hosting + runtime + sandbox are swappable substrate behind RepoProvider. SANDBOX = Cloudflare Sandbox SDK. |
+| Interop (MCP, A2A, export, RBAC/invites, handoff) | ~6 BUILD | Open protocols we implement, not products we buy. |
+| Launch (cohort metrics, impact eval, product-memory, launch-kit, support triage) | ~7 BUILD | The post-release outcome loop is the moat; analytics = thin BYO connector ($0). |
+| Cockpit / Ops (notifications, settings, cost roll-up, IA, health, flow mode) | ~18 BUILD | Calm-front surfaces over our own data; nothing buyable. |
+| Monetization + Credit (pricing, gates, credit unit/grant/debit/attribution, margin levers, PLG, billing) | ~24 BUILD + 2 INTEGRATE | All credit/entitlement LOGIC is moat substrate; only the payment processor (Stripe) + top-up leave. |
+| Workspace-Tenancy + Knowledge + Data/Privacy (RLS, RBAC, invites, pooling, knowledge graph, retention, subprocessors) | ~20 BUILD | Residency-critical, in our Postgres; compliance artifacts are in-house registries. Only invite EMAIL (Resend) is a thin INTEGRATE. |
 
 ## What leaves the building (the complete BUY/INTEGRATE shortlist)
 
 The ENTIRE external surface, with my recommended player + cost. **Total recurring external spend today: ~$16-83/mo (Firecrawl) + $0-20/mo (Resend; free tier covers MVP) + cents/month metered.** Every line is a meterable commodity with a self-host/BYOK floor; no fixed subscription floor beyond the web tier.
 
-| Capability                          | Verdict                                              | Recommended player                                                          | Cost                         | Self-host floor                                                                                 |
-| ----------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- |
-| Embeddings                          | BUY (via `embedding` CallSurface)                    | **Cohere embed-v4** (1536 dims native, 128K token limit, OpenAI-compatible) | **$0.12/1M tok**, metered    | BGE-M3 (MIT)                                                                                    |
-| Rerank (deferred)                   | INTEGRATE (via `rerank` CallSurface, multi-hop only) | **Cohere Rerank 4** (best on business/finance; ~$0.001-0.002/search)        | cents/mo at demo scale       | zerank-1-small (**Apache-2.0** floor only; zerank-2 is **non-commercial** — not for production) |
-| Web research (wired)                | INTEGRATE (KEEP)                                     | Firecrawl (search+scrape+crawl in one)                                      | $16-83/mo                    | SearXNG (BUILD now - see audit)                                                                 |
-| Transcription (F-AUDIO, greenfield) | INTEGRATE (via `transcription` CallSurface)          | Groq Whisper-Turbo (same model as floor)                                    | ~$0.04/hr audio              | whisper.cpp (same model, zero drift)                                                            |
-| Sandbox / preview                   | INTEGRATE (own seam)                                 | Cloudflare Sandbox SDK (no new vendor)                                      | $0.00002/vCPU-s              | edge-native                                                                                     |
-| Billing                             | INTEGRATE (dormant seam)                             | Stripe (cheapest non-MoR)                                                   | 2.9%+$0.30/txn, $0 fixed     | Paddle/LemonSqueezy (MoR) if tax forces                                                         |
-| Transactional email                 | INTEGRATE (`email.server.ts`)                        | Resend (best DX)                                                            | $0 free / $20 Pro past 3k/mo | Amazon SES                                                                                      |
-| Git hosting                         | INTEGRATE (RepoProvider)                             | GitHub (user's own org, BYO)                                                | $0                           | GitLab adapter next                                                                             |
-| Analytics ingest                    | BUILD-thin connector (NOT a buy)                     | BYO PostHog/Mixpanel export                                                 | $0                           | n/a                                                                                             |
+| Capability | Verdict | Recommended player | Cost | Self-host floor |
+| --- | --- | --- | --- | --- |
+| Embeddings | BUY (via `embedding` CallSurface) | **Cohere embed-v4** (1536 dims native, 128K token limit, OpenAI-compatible) | **$0.12/1M tok**, metered | BGE-M3 (MIT) |
+| Rerank (deferred) | INTEGRATE (via `rerank` CallSurface, multi-hop only) | **Cohere Rerank 4** (best on business/finance; ~$0.001-0.002/search) | cents/mo at demo scale | zerank-1-small (**Apache-2.0** floor only; zerank-2 is **non-commercial** — not for production) |
+| Web research (wired) | INTEGRATE (KEEP) | Firecrawl (search+scrape+crawl in one) | $16-83/mo | SearXNG (BUILD now - see audit) |
+| Transcription (F-AUDIO, greenfield) | INTEGRATE (via `transcription` CallSurface) | Groq Whisper-Turbo (same model as floor) | ~$0.04/hr audio | whisper.cpp (same model, zero drift) |
+| Sandbox / preview | INTEGRATE (own seam) | Cloudflare Sandbox SDK (no new vendor) | $0.00002/vCPU-s | edge-native |
+| Billing | INTEGRATE (dormant seam) | Stripe (cheapest non-MoR) | 2.9%+$0.30/txn, $0 fixed | Paddle/LemonSqueezy (MoR) if tax forces |
+| Transactional email | INTEGRATE (`email.server.ts`) | Resend (best DX) | $0 free / $20 Pro past 3k/mo | Amazon SES |
+| Git hosting | INTEGRATE (RepoProvider) | GitHub (user's own org, BYO) | $0 | GitLab adapter next |
+| Analytics ingest | BUILD-thin connector (NOT a buy) | BYO PostHog/Mixpanel export | $0 | n/a |
 
 ## Retroactive audit (what we have already built)
 
@@ -214,14 +214,14 @@ The current `vector(1536)` column definition was **not a principled decision**. 
 
 **Input token limits by provider (web-grounded, 2026):**
 
-| Model                                   | Token limit | Behaviour at limit                      |
-| --------------------------------------- | ----------- | --------------------------------------- |
-| Cohere embed-v4                         | 128,000     | Designed for full docs                  |
-| Voyage voyage-3                         | 32,000      | Designed for long-context RAG           |
-| OpenAI text-embedding-3-small (current) | 8,191       | Truncates long PRDs                     |
-| OpenAI text-embedding-3-large           | 8,191       | Same ceiling as small                   |
-| Nomic embed-text-v1.5                   | 8,192       | Same as OpenAI                          |
-| **Google gemini-embedding-001**         | **2,048**   | **Silent truncation — no error raised** |
+| Model | Token limit | Behaviour at limit |
+| --- | --- | --- |
+| Cohere embed-v4 | 128,000 | Designed for full docs |
+| Voyage voyage-3 | 32,000 | Designed for long-context RAG |
+| OpenAI text-embedding-3-small (current) | 8,191 | Truncates long PRDs |
+| OpenAI text-embedding-3-large | 8,191 | Same ceiling as small |
+| Nomic embed-text-v1.5 | 8,192 | Same as OpenAI |
+| **Google gemini-embedding-001** | **2,048** | **Silent truncation — no error raised** |
 
 **Critical implication:** A Supaprod PRD document at 4,000 words is approximately 5,300 tokens. At OpenAI's 8,191-token limit, most PRDs fit but large ones get cut. At Google Gemini's 2,048-token limit, virtually every full PRD gets silently truncated to roughly its introduction and first section. The MTEB score of 67.71 that made Gemini look attractive is measured on benchmark passages — not on full product documents. For Supaprod's actual workload, Gemini's token limit makes it a poor fit despite its headline retrieval score.
 
@@ -236,13 +236,13 @@ At production scale with millions of rows, the same migration requires careful o
 
 **Dimension options and their tradeoffs:**
 
-| Dims                | Provider                | Quality             | Token limit         | Cost/1M           | Migration from 1536                        |
-| ------------------- | ----------------------- | ------------------- | ------------------- | ----------------- | ------------------------------------------ |
-| 768                 | Nomic / Fireworks       | Same as current     | 8,192               | $0.008            | Required; no quality gain                  |
-| 1,024               | Voyage voyage-3         | Better than current | 32,000              | $0.06 (200M free) | Required; quality + context gain           |
-| 1,536               | Cohere embed-v4         | Better than current | 128,000             | $0.12             | No column migration needed                 |
-| 3,072               | OpenAI text-emb-3-large | Better than current | 8,191               | $0.13             | Required; no context gain                  |
-| 3,072 (set to 1536) | Google gemini-emb-001   | Highest MTEB        | **2,048 truncates** | $0.15             | No column migration; but bad for long docs |
+| Dims | Provider | Quality | Token limit | Cost/1M | Migration from 1536 |
+| --- | --- | --- | --- | --- | --- |
+| 768 | Nomic / Fireworks | Same as current | 8,192 | $0.008 | Required; no quality gain |
+| 1,024 | Voyage voyage-3 | Better than current | 32,000 | $0.06 (200M free) | Required; quality + context gain |
+| 1,536 | Cohere embed-v4 | Better than current | 128,000 | $0.12 | No column migration needed |
+| 3,072 | OpenAI text-emb-3-large | Better than current | 8,191 | $0.13 | Required; no context gain |
+| 3,072 (set to 1536) | Google gemini-emb-001 | Highest MTEB | **2,048 truncates** | $0.15 | No column migration; but bad for long docs |
 
 **The Matryoshka optimization available today:** OpenAI text-embedding-3-small supports Matryoshka truncation. Setting `dimensions=768` in API calls produces 97% quality at half the storage with no model change. This would require a column migration (vector(1536) → vector(768)) and re-embed of existing rows, but no provider or API key change. Free storage and query speed improvement. Not done yet.
 
@@ -268,14 +268,14 @@ This makes provider switching for embeddings a non-trivial migration, not a conf
 
 > **Correction from earlier analysis:** Google gemini-embedding-001 was previously recommended based on its MTEB score (67.71, highest of any API model). This was wrong for Supaprod's use case. Its input token limit is **2,048 tokens**, and it truncates silently. A full PRD or decision narrative at 4,000–10,000 words exceeds this limit and gets silently cut to its first ~1,500 words. The MTEB score is measured on short benchmark passages; it does not reflect long-document retrieval quality. Google Gemini is disqualified for this use case at this limit.
 
-| Provider              | Model              | Cost/1M               | MTEB retrieval    | Input token limit                  | Dims      | Fit for Supaprod                                                                                                                                                                    |
-| --------------------- | ------------------ | --------------------- | ----------------- | ---------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ~~**Voyage AI**~~     | ~~voyage-3~~       | ~~$0.06 (200M free)~~ | ~~Strong (~65+)~~ | ~~32,000~~                         | ~~1,024~~ | **DISQUALIFIED** — no 1536 dims support (fixed 1024 only); MongoDB acquisition = roadmap risk; US-only servers = GDPR risk; non-OpenAI-compatible SDK. See research trail section. |
-| **Cohere**            | embed-v4           | $0.12                 | 65.2 (MTEB)       | **128,000**                        | **1,536** | **RECOMMENDED** — 1536 dims native (zero migration!), 128K token limit, OpenAI-compatible API, EU servers, independent company                                                     |
-| **OpenAI** (current)  | text-emb-3-small   | $0.02                 | 62.26             | 8,191                              | 1,536     | Acceptable; current default; hits ceiling on long PRDs                                                                                                                             |
-| **Nomic / Fireworks** | nomic-embed-v1.5   | **$0.008**            | ~62.28            | 8,192                              | 768       | Cheapest, same quality as current, good for cost-priority deployments                                                                                                              |
-| **OpenAI**            | text-emb-3-large   | $0.13                 | Better than small | 8,191                              | 3,072     | Same token limit as small; costs 6.5x more; no context advantage                                                                                                                   |
-| ~~**Google**~~        | ~~gemini-emb-001~~ | ~~$0.15~~             | ~~67.71~~         | ~~**2,048 (silently truncates)**~~ | ~~3,072~~ | **Disqualified** — truncates all long PRDs without warning                                                                                                                         |
+| Provider | Model | Cost/1M | MTEB retrieval | Input token limit | Dims | Fit for Supaprod |
+| --- | --- | --- | --- | --- | --- | --- |
+| ~~**Voyage AI**~~ | ~~voyage-3~~ | ~~$0.06 (200M free)~~ | ~~Strong (~65+)~~ | ~~32,000~~ | ~~1,024~~ | **DISQUALIFIED** — no 1536 dims support (fixed 1024 only); MongoDB acquisition = roadmap risk; US-only servers = GDPR risk; non-OpenAI-compatible SDK. See research trail section. |
+| **Cohere** | embed-v4 | $0.12 | 65.2 (MTEB) | **128,000** | **1,536** | **RECOMMENDED** — 1536 dims native (zero migration!), 128K token limit, OpenAI-compatible API, EU servers, independent company |
+| **OpenAI** (current) | text-emb-3-small | $0.02 | 62.26 | 8,191 | 1,536 | Acceptable; current default; hits ceiling on long PRDs |
+| **Nomic / Fireworks** | nomic-embed-v1.5 | **$0.008** | ~62.28 | 8,192 | 768 | Cheapest, same quality as current, good for cost-priority deployments |
+| **OpenAI** | text-emb-3-large | $0.13 | Better than small | 8,191 | 3,072 | Same token limit as small; costs 6.5x more; no context advantage |
+| ~~**Google**~~ | ~~gemini-emb-001~~ | ~~$0.15~~ | ~~67.71~~ | ~~**2,048 (silently truncates)**~~ | ~~3,072~~ | **Disqualified** — truncates all long PRDs without warning |
 
 **Verdict on embeddings (FINAL — corrected twice, 2026-06-26):** Switch to **Cohere embed-v4** at 1,536 dims. Rationale:
 
@@ -298,27 +298,27 @@ This makes provider switching for embeddings a non-trivial migration, not a conf
 
 These are the models that power the agent loop, chat, Critic, and all text generation.
 
-| Provider                                 | Model                 | Input $/1M         | Output $/1M        | Quality tier  | Notes                                                                                                                                                                      |
-| ---------------------------------------- | --------------------- | ------------------ | ------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **OpenAI** (current via Lovable gateway) | GPT-4o                | ~$5.00             | ~$15.00            | Best-in-class | Current default via gateway; most expensive option                                                                                                                         |
-| **OpenAI**                               | GPT-4o-mini           | $0.15              | $0.60              | Good          | 94% cheaper than GPT-4o; same tier as Llama 4 Maverick                                                                                                                     |
-| **Fireworks AI**                         | Llama 4 Maverick      | **$0.15**          | **$0.60**          | Good          | Same quality tier as GPT-4o-mini; Apache 2.0 open model; best latency in class (sub-100ms TTFT); JSON structured output + streaming — exactly what the planning loop needs |
-| **Fireworks AI**                         | Llama 4 Scout         | $0.18              | $0.85              | Good          | Slightly pricier than Maverick; lighter than Maverick on reasoning                                                                                                         |
-| **Together AI**                          | Llama 4 Maverick      | $0.27              | $0.85              | Good          | Same open model as Fireworks; Fireworks wins on price and latency                                                                                                          |
-| **Groq**                                 | Llama 3.3 70B         | $0.59              | $0.79              | Good          | Ultra-fast LPU inference; lowest latency of any provider for streaming; no native embeddings                                                                               |
-| **Google**                               | Gemini 2.5 Flash-Lite | **$0.10**          | **$0.40**          | Good          | Cheapest credible model from a major provider; 1M context; part of a Google all-in-one play                                                                                |
-| **Anthropic**                            | Claude Sonnet 4.6     | $3.00              | $15.00             | Best-in-class | Best reasoning; use selectively for high-stakes Critic / decision steps; no native embeddings                                                                              |
-| **AWS Bedrock**                          | Any model             | ~2–3x direct price | ~2–3x direct price | —             | Bedrock prices every model higher than going direct; only viable with free credits                                                                                         |
-| **Azure OpenAI**                         | GPT-4o                | Same as OpenAI     | Same as OpenAI     | Best-in-class | No price saving; adds compliance / data residency layer for enterprise                                                                                                     |
+| Provider | Model | Input $/1M | Output $/1M | Quality tier | Notes |
+| --- | --- | --- | --- | --- | --- |
+| **OpenAI** (current via Lovable gateway) | GPT-4o | ~$5.00 | ~$15.00 | Best-in-class | Current default via gateway; most expensive option |
+| **OpenAI** | GPT-4o-mini | $0.15 | $0.60 | Good | 94% cheaper than GPT-4o; same tier as Llama 4 Maverick |
+| **Fireworks AI** | Llama 4 Maverick | **$0.15** | **$0.60** | Good | Same quality tier as GPT-4o-mini; Apache 2.0 open model; best latency in class (sub-100ms TTFT); JSON structured output + streaming — exactly what the planning loop needs |
+| **Fireworks AI** | Llama 4 Scout | $0.18 | $0.85 | Good | Slightly pricier than Maverick; lighter than Maverick on reasoning |
+| **Together AI** | Llama 4 Maverick | $0.27 | $0.85 | Good | Same open model as Fireworks; Fireworks wins on price and latency |
+| **Groq** | Llama 3.3 70B | $0.59 | $0.79 | Good | Ultra-fast LPU inference; lowest latency of any provider for streaming; no native embeddings |
+| **Google** | Gemini 2.5 Flash-Lite | **$0.10** | **$0.40** | Good | Cheapest credible model from a major provider; 1M context; part of a Google all-in-one play |
+| **Anthropic** | Claude Sonnet 4.6 | $3.00 | $15.00 | Best-in-class | Best reasoning; use selectively for high-stakes Critic / decision steps; no native embeddings |
+| **AWS Bedrock** | Any model | ~2–3x direct price | ~2–3x direct price | — | Bedrock prices every model higher than going direct; only viable with free credits |
+| **Azure OpenAI** | GPT-4o | Same as OpenAI | Same as OpenAI | Best-in-class | No price saving; adds compliance / data residency layer for enterprise |
 
 **The cost reality per full 6-step planning loop** (2,000 input + 600 output tokens × 6 steps):
 
-| Route                                | Cost per loop |
-| ------------------------------------ | ------------- |
-| GPT-4o via Lovable gateway (current) | ~$0.066       |
-| Fireworks Llama 4 Maverick           | ~$0.004       |
-| Google Gemini 2.5 Flash-Lite         | ~$0.003       |
-| GPT-4o-mini                          | ~$0.004       |
+| Route | Cost per loop |
+| --- | --- |
+| GPT-4o via Lovable gateway (current) | ~$0.066 |
+| Fireworks Llama 4 Maverick | ~$0.004 |
+| Google Gemini 2.5 Flash-Lite | ~$0.003 |
+| GPT-4o-mini | ~$0.004 |
 
 Fireworks or Gemini Flash saves ~94% per loop run. At 100 loop executions/day: current = ~$6.60/day vs Fireworks = ~$0.40/day.
 
@@ -326,13 +326,13 @@ Fireworks or Gemini Flash saves ~94% per loop run. At 100 loop executions/day: c
 
 ### All-in-one platforms (embeddings + completions under one billing account)
 
-| Platform              | Embed support?                           | Completion support? | Embed cost/1M | Completion cost/1M (in/out) | Notes                                                                                |
-| --------------------- | ---------------------------------------- | ------------------- | ------------- | --------------------------- | ------------------------------------------------------------------------------------ |
-| **Fireworks AI**      | Yes (768 dims — needs migration)         | Yes                 | $0.01         | $0.15 / $0.60               | Best speed-to-price; one API key; open models Apache 2.0; dimension migration needed |
-| **Together AI**       | Yes (768 dims — needs migration)         | Yes                 | $0.008        | $0.27 / $0.85               | Cheapest raw price; same quality as Fireworks; Fireworks edges it on latency         |
-| **Google Gemini API** | Yes (1536 dims via param — no migration) | Yes                 | $0.15         | $0.10 / $0.40               | One vendor, highest embed quality, cheapest completions; embed cost is 7.5x OpenAI   |
-| **Cohere**            | Yes (1536 dims native)                   | Yes                 | $0.12         | $2.50 / $10.00              | Built for RAG (embed + reranker + Command R+); expensive on completions              |
-| **Groq**              | No                                       | Yes                 | N/A           | $0.05–$0.79                 | Completions only; ultrafast LPU; pair with a separate embed provider                 |
+| Platform | Embed support? | Completion support? | Embed cost/1M | Completion cost/1M (in/out) | Notes |
+| --- | --- | --- | --- | --- | --- |
+| **Fireworks AI** | Yes (768 dims — needs migration) | Yes | $0.01 | $0.15 / $0.60 | Best speed-to-price; one API key; open models Apache 2.0; dimension migration needed |
+| **Together AI** | Yes (768 dims — needs migration) | Yes | $0.008 | $0.27 / $0.85 | Cheapest raw price; same quality as Fireworks; Fireworks edges it on latency |
+| **Google Gemini API** | Yes (1536 dims via param — no migration) | Yes | $0.15 | $0.10 / $0.40 | One vendor, highest embed quality, cheapest completions; embed cost is 7.5x OpenAI |
+| **Cohere** | Yes (1536 dims native) | Yes | $0.12 | $2.50 / $10.00 | Built for RAG (embed + reranker + Command R+); expensive on completions |
+| **Groq** | No | Yes | N/A | $0.05–$0.79 | Completions only; ultrafast LPU; pair with a separate embed provider |
 
 ---
 
@@ -353,12 +353,12 @@ AWS Activate for startups offers up to $5,000 in AWS credits (including Bedrock)
 
 ### Self-hosting open models: when yes, when no
 
-| Scenario                          | Verdict                                                                      |
-| --------------------------------- | ---------------------------------------------------------------------------- |
-| Demo / pre-revenue                | Never self-host. GPU costs + reliability > API costs at this scale.          |
-| First 1,000 users                 | Never self-host. API cost at <1M tokens/day is $5–20/day max with Fireworks. |
-| 100K+ users, >100M tokens/month   | Evaluate: open model on owned A100 GPU becomes cost-competitive.             |
-| Dedicated ML engineer on the team | Prerequisite before self-hosting is operationally viable.                    |
+| Scenario | Verdict |
+| --- | --- |
+| Demo / pre-revenue | Never self-host. GPU costs + reliability > API costs at this scale. |
+| First 1,000 users | Never self-host. API cost at <1M tokens/day is $5–20/day max with Fireworks. |
+| 100K+ users, >100M tokens/month | Evaluate: open model on owned A100 GPU becomes cost-competitive. |
+| Dedicated ML engineer on the team | Prerequisite before self-hosting is operationally viable. |
 
 **Best open models for when self-hosting is eventually viable:**
 
@@ -458,26 +458,26 @@ No provider is cleanly all-in-one for Supaprod's constraints:
 
 #### What data leaves Supaprod's servers on each inference call
 
-| Call type                           | Data sent to provider                                       | Privacy sensitivity                         |
-| ----------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
-| Embedding a PRD / signal / decision | Full document text, up to the token limit                   | High — contains customer's product strategy |
-| Embedding a memory / outcome        | Outcome narrative (e.g. "we shipped X, it missed ICE by Y") | High — strategic business context           |
-| Completion (agent loop / Critic)    | System prompt + user context + tool results                 | High — decision content + workspace history |
-| Rerank                              | Query text + candidate document excerpts                    | High — same as above                        |
+| Call type | Data sent to provider | Privacy sensitivity |
+| --- | --- | --- |
+| Embedding a PRD / signal / decision | Full document text, up to the token limit | High — contains customer's product strategy |
+| Embedding a memory / outcome | Outcome narrative (e.g. "we shipped X, it missed ICE by Y") | High — strategic business context |
+| Completion (agent loop / Critic) | System prompt + user context + tool results | High — decision content + workspace history |
+| Rerank | Query text + candidate document excerpts | High — same as above |
 
 This data classification means the provider's data residency, retention, and GDPR posture directly affect Supaprod's own privacy obligations to its customers.
 
 #### Per-provider compliance matrix
 
-| Provider                                 | Server locations                                       | GDPR EU option                                                                                                                                                           | SOC 2            | HIPAA       | Data training opt-out                                               | DPA available                                                                             | Self-host option                                                                              | Acquisition/continuity risk                                            |
-| ---------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ----------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **Cohere embed-v4** (recommended)        | `us-east-1`, **`eu-west-1`**, APAC                     | **Yes** — EU inference region routes data within EU                                                                                                                      | Type II          | Yes         | Standard API: yes (API inputs not used for training per DPA)        | Yes                                                                                       | "Cohere North" on-prem enterprise (requires enterprise contract); API-only for standard tiers | Low — independent company, enterprise-partnered (SAP, AWS, Azure)      |
-| **Cohere Rerank 4** (recommended)        | Same as embed-v4                                       | Same                                                                                                                                                                     | Same             | Same        | Same                                                                | Same                                                                                      | Same                                                                                          | Same                                                                   |
-| **Fireworks AI** (completions)           | US-based                                               | **Unknown** — not confirmed in research; no EU server documentation found                                                                                                | **Unknown**      | **Unknown** | **Unknown**                                                         | **Unknown**                                                                               | Llama 4 Maverick is Apache 2.0 — full self-host option                                        | Low — established company; open model means no provider lock-in        |
-| **OpenAI** (current default / fallback)  | US                                                     | Enterprise: EU Data Residency API available; Standard API: US processing                                                                                                 | Type II          | Yes         | Zero Data Retention (ZDR) available via API headers                 | Yes                                                                                       | Not available                                                                                 | Very low — industry standard                                           |
-| **Voyage AI** (disqualified)             | **US-only** (api.voyageai.com + ai.mongodb.com)        | **No native EU endpoint** — VPC deployment via AWS/Azure Marketplace is the only option (runs containerized model in your cloud account/region; not self-hosted weights) | Unknown          | Unknown     | Zero-day retention opt-out available (SCCs-based transfer for GDPR) | Unknown                                                                                   | voyage-4-nano only (HuggingFace); all other models API-only                                   | **High** — acquired by MongoDB Feb 2025 ($220M); roadmap now MongoDB's |
-| **ZeroEntropy zerank-2** (API)           | Unknown                                                | Unknown                                                                                                                                                                  | Unknown          | Unknown     | Unknown                                                             | **Non-commercial license on weights** — API commercial use may require separate agreement | Apache-2.0 `zerank-1-small` is safe; **zerank-2 weights are CC-BY-NC**                        | Unknown/startup                                                        |
-| **BGE-M3 / Qwen3-Embedding** (OSS floor) | **Self-hosted** (in your Cloudflare Worker or sidecar) | Full data control — data never leaves your infrastructure                                                                                                                | N/A — you own it | N/A         | N/A — no data sent to any provider                                  | N/A                                                                                       | MIT / Apache-2.0                                                                              | None — you own the weights                                             |
+| Provider | Server locations | GDPR EU option | SOC 2 | HIPAA | Data training opt-out | DPA available | Self-host option | Acquisition/continuity risk |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Cohere embed-v4** (recommended) | `us-east-1`, **`eu-west-1`**, APAC | **Yes** — EU inference region routes data within EU | Type II | Yes | Standard API: yes (API inputs not used for training per DPA) | Yes | "Cohere North" on-prem enterprise (requires enterprise contract); API-only for standard tiers | Low — independent company, enterprise-partnered (SAP, AWS, Azure) |
+| **Cohere Rerank 4** (recommended) | Same as embed-v4 | Same | Same | Same | Same | Same | Same | Same |
+| **Fireworks AI** (completions) | US-based | **Unknown** — not confirmed in research; no EU server documentation found | **Unknown** | **Unknown** | **Unknown** | **Unknown** | Llama 4 Maverick is Apache 2.0 — full self-host option | Low — established company; open model means no provider lock-in |
+| **OpenAI** (current default / fallback) | US | Enterprise: EU Data Residency API available; Standard API: US processing | Type II | Yes | Zero Data Retention (ZDR) available via API headers | Yes | Not available | Very low — industry standard |
+| **Voyage AI** (disqualified) | **US-only** (api.voyageai.com + ai.mongodb.com) | **No native EU endpoint** — VPC deployment via AWS/Azure Marketplace is the only option (runs containerized model in your cloud account/region; not self-hosted weights) | Unknown | Unknown | Zero-day retention opt-out available (SCCs-based transfer for GDPR) | Unknown | voyage-4-nano only (HuggingFace); all other models API-only | **High** — acquired by MongoDB Feb 2025 ($220M); roadmap now MongoDB's |
+| **ZeroEntropy zerank-2** (API) | Unknown | Unknown | Unknown | Unknown | Unknown | **Non-commercial license on weights** — API commercial use may require separate agreement | Apache-2.0 `zerank-1-small` is safe; **zerank-2 weights are CC-BY-NC** | Unknown/startup |
+| **BGE-M3 / Qwen3-Embedding** (OSS floor) | **Self-hosted** (in your Cloudflare Worker or sidecar) | Full data control — data never leaves your infrastructure | N/A — you own it | N/A | N/A — no data sent to any provider | N/A | MIT / Apache-2.0 | None — you own the weights |
 
 #### GDPR specifics for current + recommended providers
 
@@ -503,26 +503,26 @@ This data classification means the provider's data residency, retention, and GDP
 
 #### License risks (non-obvious)
 
-| Asset                        | License             | Commercial use?                                                       | Risk                                                         |
-| ---------------------------- | ------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
-| zerank-2 API usage           | CC-BY-NC on weights | **Unclear** — API use may differ from weight use; contact ZeroEntropy | Do not use in production without confirming commercial terms |
-| zerank-1-small (self-host)   | Apache-2.0          | Yes                                                                   | Safe for commercial use                                      |
-| zerank-2 weights (self-host) | CC-BY-NC            | **No** — non-commercial only                                          | Never self-host in production                                |
-| Llama 4 Maverick             | Apache-2.0          | Yes                                                                   | Safe for commercial use                                      |
-| BGE-M3                       | MIT                 | Yes                                                                   | Safe                                                         |
-| Qwen3-Embedding-8B           | Apache-2.0          | Yes                                                                   | Safe                                                         |
-| voyage-4-nano                | Apache-2.0          | Yes                                                                   | Only open-weight Voyage model                                |
-| All other Voyage models      | Proprietary         | API use only                                                          | No self-hosting possible                                     |
+| Asset | License | Commercial use? | Risk |
+| --- | --- | --- | --- |
+| zerank-2 API usage | CC-BY-NC on weights | **Unclear** — API use may differ from weight use; contact ZeroEntropy | Do not use in production without confirming commercial terms |
+| zerank-1-small (self-host) | Apache-2.0 | Yes | Safe for commercial use |
+| zerank-2 weights (self-host) | CC-BY-NC | **No** — non-commercial only | Never self-host in production |
+| Llama 4 Maverick | Apache-2.0 | Yes | Safe for commercial use |
+| BGE-M3 | MIT | Yes | Safe |
+| Qwen3-Embedding-8B | Apache-2.0 | Yes | Safe |
+| voyage-4-nano | Apache-2.0 | Yes | Only open-weight Voyage model |
+| All other Voyage models | Proprietary | API use only | No self-hosting possible |
 
 #### Acquisition and service-continuity risks
 
-| Provider                      | Risk                                                                                               | Mitigation                                                                  |
-| ----------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Voyage AI** (MongoDB-owned) | MongoDB controls the roadmap; could pivot away from standalone embedding API to favor Atlas Search | Already disqualified. Don't build dependency on it.                         |
-| **ZeroEntropy**               | Small company, unknown funding, compliance posture unverified                                      | Use Cohere Rerank 4 for production; zerank-1-small for self-host floor only |
-| **Cohere**                    | Independent, enterprise-contracted, not acquired as of 2026-06-26                                  | Low risk; monitor                                                           |
-| **Fireworks AI**              | Established, open models mean worst-case is just switching the API endpoint                        | Low risk; Apache 2.0 Llama 4 = no lock-in                                   |
-| **OpenAI**                    | Industry standard; any degradation is widely visible immediately                                   | Very low risk                                                               |
+| Provider | Risk | Mitigation |
+| --- | --- | --- |
+| **Voyage AI** (MongoDB-owned) | MongoDB controls the roadmap; could pivot away from standalone embedding API to favor Atlas Search | Already disqualified. Don't build dependency on it. |
+| **ZeroEntropy** | Small company, unknown funding, compliance posture unverified | Use Cohere Rerank 4 for production; zerank-1-small for self-host floor only |
+| **Cohere** | Independent, enterprise-contracted, not acquired as of 2026-06-26 | Low risk; monitor |
+| **Fireworks AI** | Established, open models mean worst-case is just switching the API endpoint | Low risk; Apache 2.0 Llama 4 = no lock-in |
+| **OpenAI** | Industry standard; any degradation is widely visible immediately | Very low risk |
 
 #### What Supaprod must do before launching to EU customers
 
@@ -534,13 +534,13 @@ This data classification means the provider's data residency, retention, and GDP
 
 #### Rate limits and operational resilience
 
-| Provider        | Rate limit (free/standard)                          | Upgrade path                      | Outage mitigation                                                      |
-| --------------- | --------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------- |
+| Provider | Rate limit (free/standard) | Upgrade path | Outage mitigation |
+| --- | --- | --- | --- |
 | Cohere embed-v4 | Trial: 40 calls/min; Pay-as-you-go: 1,000 calls/min | Contact support for higher limits | Fallback: OpenAI text-emb-3-small (already wired in resolveEmbedRoute) |
-| Cohere Rerank 4 | Pay-as-you-go: varies                               | Contact support                   | Fallback: native = skip reranking (graceful degradation)               |
-| Fireworks AI    | No published per-account limit at standard tier     | Enterprise SLA available          | Fallback: Lovable gateway (already wired)                              |
-| OpenAI          | Tier-based (starts at 500 RPM / 30K TPM)            | Credit spend increases tier       | Fallback: Fireworks or Lovable gateway                                 |
-| Voyage AI       | Tier 1: 2,000 RPM / 8M TPM                          | Tier 2 at $100 cumulative spend   | N/A — disqualified                                                     |
+| Cohere Rerank 4 | Pay-as-you-go: varies | Contact support | Fallback: native = skip reranking (graceful degradation) |
+| Fireworks AI | No published per-account limit at standard tier | Enterprise SLA available | Fallback: Lovable gateway (already wired) |
+| OpenAI | Tier-based (starts at 500 RPM / 30K TPM) | Credit spend increases tier | Fallback: Fireworks or Lovable gateway |
+| Voyage AI | Tier 1: 2,000 RPM / 8M TPM | Tier 2 at $100 cumulative spend | N/A — disqualified |
 
 ---
 
@@ -618,13 +618,13 @@ Combined verdict: Voyage is disqualified for Supaprod's use case. The 200M free 
 
 Ranked for Supaprod's specific constraints (long-document RAG, 1536 dims preferred, managed API):
 
-| Rank          | Provider          | Model            | Dims | Token limit | Why                                                                                  |
-| ------------- | ----------------- | ---------------- | ---- | ----------- | ------------------------------------------------------------------------------------ |
-| 1 (pick this) | **Cohere**        | embed-v4         | 1536 | 128K        | Zero migration, best long-doc fit, OpenAI-compatible, EU servers                     |
-| 2 (fallback)  | **OpenAI**        | text-emb-3-small | 1536 | 8,191       | Current provider; acceptable; hits ceiling on large PRDs                             |
-| 3 (cost tier) | **Fireworks**     | nomic-embed-v1.5 | 768  | 8,192       | Cheapest ($0.008/1M), same quality as current, but requires migration to vector(768) |
-| Disqualified  | **Voyage AI**     | voyage-3         | 1024 | 32K         | MongoDB-owned, US-only, no 1536 dims, non-OAI SDK                                    |
-| Disqualified  | **Google Gemini** | gemini-emb-001   | 3072 | **2,048**   | Silently truncates all full PRDs                                                     |
+| Rank | Provider | Model | Dims | Token limit | Why |
+| --- | --- | --- | --- | --- | --- |
+| 1 (pick this) | **Cohere** | embed-v4 | 1536 | 128K | Zero migration, best long-doc fit, OpenAI-compatible, EU servers |
+| 2 (fallback) | **OpenAI** | text-emb-3-small | 1536 | 8,191 | Current provider; acceptable; hits ceiling on large PRDs |
+| 3 (cost tier) | **Fireworks** | nomic-embed-v1.5 | 768 | 8,192 | Cheapest ($0.008/1M), same quality as current, but requires migration to vector(768) |
+| Disqualified | **Voyage AI** | voyage-3 | 1024 | 32K | MongoDB-owned, US-only, no 1536 dims, non-OAI SDK |
+| Disqualified | **Google Gemini** | gemini-emb-001 | 3072 | **2,048** | Silently truncates all full PRDs |
 
 ### Q: Is the embedding migration one-time or recurring?
 
@@ -658,17 +658,17 @@ Future migrations: only if you switch providers again. With Cohere as a stable, 
 
 Lovable is not just a code editor. For Supaprod, it currently manages:
 
-| What                            | What Lovable does                                                                            | Self-manage equivalent                                                                            |
-| ------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Application hosting**         | Deploys to Cloudflare Workers on every push to the connected branch                          | GitHub Actions + `wrangler deploy` (manual CI/CD)                                                 |
-| **SSL/TLS + CDN**               | Provided automatically through Cloudflare global network                                     | Cloudflare remains (Lovable uses Cloudflare Workers; moving off Lovable keeps Cloudflare Workers) |
-| **Custom domain**               | DNS routing through Lovable's subdomain or your own domain                                   | Point domain's DNS A/CNAME records to Cloudflare directly                                         |
-| **Supabase database**           | Lovable Cloud Supabase instance — **owned and managed by Lovable, not by you**               | Export schema + data → create new Supabase project under your own account                         |
-| **Authentication**              | Auth flows via `@lovable.dev/cloud-auth-js` bound to the Lovable Supabase instance           | Swap to native `@supabase/supabase-js` auth against your own Supabase project                     |
-| **OAuth provider registration** | OAuth clients (GitHub, Google, etc.) are registered against Lovable Supabase's redirect URIs | Re-register OAuth apps with new redirect URIs pointing at your Supabase                           |
-| **CI/CD pipeline**              | Auto-builds on GitHub push, runs checks, deploys                                             | GitHub Actions with Wrangler action (write once, maintain yourself)                               |
-| **Secrets management**          | Stores env vars / secrets in Lovable's vault                                                 | Wrangler secrets (`wrangler secret put KEY value`) + GitHub Actions secrets                       |
-| **Lovable AI editor**           | The AI agent that generates code changes                                                     | Claude Code (already in use), Lovable can still be used optionally post-migration                 |
+| What | What Lovable does | Self-manage equivalent |
+| --- | --- | --- |
+| **Application hosting** | Deploys to Cloudflare Workers on every push to the connected branch | GitHub Actions + `wrangler deploy` (manual CI/CD) |
+| **SSL/TLS + CDN** | Provided automatically through Cloudflare global network | Cloudflare remains (Lovable uses Cloudflare Workers; moving off Lovable keeps Cloudflare Workers) |
+| **Custom domain** | DNS routing through Lovable's subdomain or your own domain | Point domain's DNS A/CNAME records to Cloudflare directly |
+| **Supabase database** | Lovable Cloud Supabase instance — **owned and managed by Lovable, not by you** | Export schema + data → create new Supabase project under your own account |
+| **Authentication** | Auth flows via `@lovable.dev/cloud-auth-js` bound to the Lovable Supabase instance | Swap to native `@supabase/supabase-js` auth against your own Supabase project |
+| **OAuth provider registration** | OAuth clients (GitHub, Google, etc.) are registered against Lovable Supabase's redirect URIs | Re-register OAuth apps with new redirect URIs pointing at your Supabase |
+| **CI/CD pipeline** | Auto-builds on GitHub push, runs checks, deploys | GitHub Actions with Wrangler action (write once, maintain yourself) |
+| **Secrets management** | Stores env vars / secrets in Lovable's vault | Wrangler secrets (`wrangler secret put KEY value`) + GitHub Actions secrets |
+| **Lovable AI editor** | The AI agent that generates code changes | Claude Code (already in use), Lovable can still be used optionally post-migration |
 
 **Critical finding**: When using Lovable Cloud, the Supabase database is owned by Lovable — not visible in your personal Supabase dashboard. Lovable's own documentation confirms: "If your project is already connected to Lovable Cloud, there is currently no way to disconnect it and switch to an external Supabase project." There is no automated ejection tool.
 
@@ -676,52 +676,52 @@ Lovable is not just a code editor. For Supaprod, it currently manages:
 
 ### Tech stack portability assessment
 
-| Layer                                                         | Portable?                      | Notes                                                                                                                                      |
-| ------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Application code (TanStack Start + Vite + Cloudflare Workers) | **Yes, fully**                 | The entire codebase is in git under your control. GitHub sync means you already own it.                                                    |
-| `wrangler.toml` + Cloudflare Workers config                   | **Yes**                        | Already present and configured. `wrangler deploy` works from the repo today.                                                               |
-| Supabase schema (DDL)                                         | **Yes, extractable**           | Export via `mcp__supabase__execute_sql` or `pg_dump`. All migrations are in `supabase/migrations/`.                                        |
-| Supabase data                                                 | **Yes, but manual**            | Row-level CSV export or `COPY` commands. At demo scale (small data volume) this is straightforward.                                        |
-| RLS policies                                                  | **Yes, they're in migrations** | Already written in `supabase/migrations/`. Re-apply to new Supabase project.                                                               |
-| `@lovable.dev/cloud-auth-js`                                  | **No, needs swap**             | Must be replaced with `@supabase/supabase-js` native auth. This is the most code-invasive change.                                          |
-| OAuth app registrations                                       | **No, needs re-provisioning**  | New OAuth apps must be created (GitHub, Google) with new redirect URIs pointing at the new Supabase project's auth endpoint.               |
-| AI gateway proxy (Lovable gateway)                            | **Partially**                  | Already routed around for BYO keys. Adding Fireworks + Cohere direct routing removes the Lovable gateway dependency entirely for AI calls. |
-| Secrets / env vars                                            | **Yes, yours already**         | Local `.env` + wrangler secrets are already under your control per the env-var split.                                                      |
+| Layer | Portable? | Notes |
+| --- | --- | --- |
+| Application code (TanStack Start + Vite + Cloudflare Workers) | **Yes, fully** | The entire codebase is in git under your control. GitHub sync means you already own it. |
+| `wrangler.toml` + Cloudflare Workers config | **Yes** | Already present and configured. `wrangler deploy` works from the repo today. |
+| Supabase schema (DDL) | **Yes, extractable** | Export via `mcp__supabase__execute_sql` or `pg_dump`. All migrations are in `supabase/migrations/`. |
+| Supabase data | **Yes, but manual** | Row-level CSV export or `COPY` commands. At demo scale (small data volume) this is straightforward. |
+| RLS policies | **Yes, they're in migrations** | Already written in `supabase/migrations/`. Re-apply to new Supabase project. |
+| `@lovable.dev/cloud-auth-js` | **No, needs swap** | Must be replaced with `@supabase/supabase-js` native auth. This is the most code-invasive change. |
+| OAuth app registrations | **No, needs re-provisioning** | New OAuth apps must be created (GitHub, Google) with new redirect URIs pointing at the new Supabase project's auth endpoint. |
+| AI gateway proxy (Lovable gateway) | **Partially** | Already routed around for BYO keys. Adding Fireworks + Cohere direct routing removes the Lovable gateway dependency entirely for AI calls. |
+| Secrets / env vars | **Yes, yours already** | Local `.env` + wrangler secrets are already under your control per the env-var split. |
 
 ### Exit effort by component
 
-| Component                                                      | Effort       | Complexity  | Notes                                                                                                                                                                                         |
-| -------------------------------------------------------------- | ------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Create new Supabase project (self-managed)                     | 1–2 hours    | Low         | Click-to-create; copy over env vars                                                                                                                                                           |
-| Export schema SQL and re-apply                                 | 2–4 hours    | Medium      | `supabase db dump` or manual DDL assembly from migrations; apply to new project                                                                                                               |
-| Export data from Lovable Cloud Supabase                        | 2–6 hours    | Medium–High | No automated tool; CSV export or scripted `COPY TO`. Depends on data volume. auth.users table needs special handling.                                                                         |
-| Replace `@lovable.dev/cloud-auth-js` with Supabase native auth | **2–5 days** | **High**    | Must trace all usage of Lovable auth (session provider, token verification in server functions, auth guards). Each reference needs a native Supabase equivalent. This is the largest unknown. |
-| Re-provision OAuth apps (GitHub, Google)                       | 2–4 hours    | Low         | Create new OAuth apps in each provider's developer console; update redirect URIs; update env vars.                                                                                            |
-| GitHub Actions CI/CD + Wrangler deploy                         | 1–2 days     | Low–Medium  | Write the workflow once; add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub secrets; test preview + production deployments.                                                     |
-| DNS cutover (custom domain)                                    | 1–2 hours    | Low         | Update A/CNAME records; 5–15 min propagation.                                                                                                                                                 |
-| End-to-end testing after migration                             | 1–2 days     | Medium      | Full auth flows (login, OAuth, session persistence), all API routes, agent loop, RLS assertions.                                                                                              |
+| Component | Effort | Complexity | Notes |
+| --- | --- | --- | --- |
+| Create new Supabase project (self-managed) | 1–2 hours | Low | Click-to-create; copy over env vars |
+| Export schema SQL and re-apply | 2–4 hours | Medium | `supabase db dump` or manual DDL assembly from migrations; apply to new project |
+| Export data from Lovable Cloud Supabase | 2–6 hours | Medium–High | No automated tool; CSV export or scripted `COPY TO`. Depends on data volume. auth.users table needs special handling. |
+| Replace `@lovable.dev/cloud-auth-js` with Supabase native auth | **2–5 days** | **High** | Must trace all usage of Lovable auth (session provider, token verification in server functions, auth guards). Each reference needs a native Supabase equivalent. This is the largest unknown. |
+| Re-provision OAuth apps (GitHub, Google) | 2–4 hours | Low | Create new OAuth apps in each provider's developer console; update redirect URIs; update env vars. |
+| GitHub Actions CI/CD + Wrangler deploy | 1–2 days | Low–Medium | Write the workflow once; add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub secrets; test preview + production deployments. |
+| DNS cutover (custom domain) | 1–2 hours | Low | Update A/CNAME records; 5–15 min propagation. |
+| End-to-end testing after migration | 1–2 days | Medium | Full auth flows (login, OAuth, session persistence), all API routes, agent loop, RLS assertions. |
 
 **Total realistic estimate: 1.5 to 2.5 weeks of focused engineering** (assuming one experienced engineer). The range depends primarily on how deeply `@lovable.dev/cloud-auth-js` is embedded in server-side auth verification.
 
 ### What you gain from exiting Lovable
 
-| Benefit                      | Impact                                                                                        |
-| ---------------------------- | --------------------------------------------------------------------------------------------- |
-| Full database ownership      | See, backup, and query your own data directly. No Lovable intermediary for schema changes.    |
-| Direct Supabase access       | Studio UI, direct DB connection strings, pgbouncer, direct service role key usage.            |
-| CI/CD control                | Deploy on any push policy you want (branches, PR previews, staging envs).                     |
+| Benefit | Impact |
+| --- | --- |
+| Full database ownership | See, backup, and query your own data directly. No Lovable intermediary for schema changes. |
+| Direct Supabase access | Studio UI, direct DB connection strings, pgbouncer, direct service role key usage. |
+| CI/CD control | Deploy on any push policy you want (branches, PR previews, staging envs). |
 | No Lovable credit dependency | Build sessions on Lovable consume credits. Post-exit: unlimited code changes via Claude Code. |
-| Self-managed secrets         | Already mostly true (env-var split ensures this), but fully true post-exit.                   |
-| Freedom to change any layer  | New auth providers, different edge runtime, different CDN — no Lovable constraints.           |
+| Self-managed secrets | Already mostly true (env-var split ensures this), but fully true post-exit. |
+| Freedom to change any layer | New auth providers, different edge runtime, different CDN — no Lovable constraints. |
 
 ### What you lose
 
-| Cost                             | Impact                                                                                                   |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Lovable AI editor                | Must use Claude Code exclusively (already the primary tool).                                             |
-| Auto-deploy on push              | Must maintain GitHub Actions yourself (one-time setup, ~1 day).                                          |
-| Managed infrastructure           | Database backup, monitoring, scaling = your responsibility. Supabase's own tooling handles most of this. |
-| Lovable's project-level features | Knowledge base, project analytics, Lovable-specific connectors — unused by Supaprod, not a real loss.     |
+| Cost | Impact |
+| --- | --- |
+| Lovable AI editor | Must use Claude Code exclusively (already the primary tool). |
+| Auto-deploy on push | Must maintain GitHub Actions yourself (one-time setup, ~1 day). |
+| Managed infrastructure | Database backup, monitoring, scaling = your responsibility. Supabase's own tooling handles most of this. |
+| Lovable's project-level features | Knowledge base, project analytics, Lovable-specific connectors — unused by Supaprod, not a real loss. |
 
 ### The right timing: when to exit Lovable
 

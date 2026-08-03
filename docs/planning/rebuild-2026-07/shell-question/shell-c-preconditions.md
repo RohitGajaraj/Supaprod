@@ -39,7 +39,7 @@ code generator.
 **In this repo, this session:**
 
 | Fact | Where |
-|---|---|
+| --- | --- |
 | 726 server functions across 147 domain modules | `grep -rn createServerFn src/lib` = 726; `ls src/lib/*.functions.ts` = 147 |
 | Chat is 1186 lines with real SSE, intent classification, mission dispatch, `@slug` direct dispatch | `src/routes/api/chat.ts`, classifier at `:378`, direct dispatch at `:367` |
 | **Chat contains zero references to approvals** | `grep -n "approval\|agent_approvals\|waiting_approval" src/routes/api/chat.ts` → no matches |
@@ -80,7 +80,7 @@ correction is marked **[CORRECTED]**.
 ### 2.1 Lovable
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | One app per project. One. The project is durable; chats are its history. |
 | **One or many** | Many projects per workspace, many workspaces per account. **[CORRECTED]** Enterprise workspaces reach *thousands* of projects. |
 | **What the preview shows** | The running app, re-rendering as the agent works. Plus a code editor, a diff view, and a Details view stepping through the run. |
@@ -100,7 +100,7 @@ than a settings page.
 ### 2.2 v0 by Vercel
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | One app per **project**. Many chats contribute to one project; the project owns deployment, hosting, domains, env vars. Chats are cheap and disposable. |
 | **What the preview shows** | The running app, with a code/preview toggle and (since Feb 2026) a VS Code-style editor, Git integration, and a database panel. |
 | **State that is not the artifact** | Project settings, env vars, domains, Git branches/PRs, saved Instructions, the usage page. |
@@ -112,7 +112,7 @@ than a settings page.
 ### 2.3 Bolt (bolt.new / StackBlitz)
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | One WebContainer project. |
 | **What the preview shows** | **[CORRECTED]** Not chat+preview. **File tree, terminal, live preview and diff view all visible simultaneously.** Bolt is an IDE with a chat in it, not a chat with a preview. |
 | **State that is not the artifact** | Package installs, DB provisioning, deploy targets, tokens/billing. |
@@ -126,7 +126,7 @@ product in the set, and it chose to show *four* structures at once.
 ### 2.4 Replit
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | A Repl: a filesystem, a running app, and a shell. **Three durable things, not one.** |
 | **What the preview shows** | The running app. With App Testing on, the preview shows the **agent's own cursor** clicking through the app to verify it. |
 | **State that is not the artifact** | Secrets, Deployments, the database, package state, the Tools dock, billing/checkpoints. |
@@ -141,7 +141,7 @@ mechanism `FINAL-ia.md` §2.2 already specifies.
 ### 2.5 Cursor
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | Many files in one repo - and since Cursor 3, **multiple repos in one session** (multi-root workspaces, May 2026). |
 | **What the preview shows** | There is no preview. There is an **editor** and a **unified diff view**. The artifact is text you read, not a thing that runs. |
 | **State that is not the artifact** | Rules, models, project configuration, worktrees, plans. |
@@ -160,7 +160,7 @@ sidebar of running work.
 **Artifacts:**
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | One artifact per preview pane; many artifacts per account. |
 | **What the preview shows** | The rendered artifact (HTML/React/document). Live Artifacts refresh with current data on reopen; up to 20MB persistent storage per artifact. |
 | **State that is not the artifact** | Project instructions and knowledge, memory, published/share state, view counts. |
@@ -170,7 +170,7 @@ sidebar of running work.
 **Claude Code:**
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | The repo. Not previewed - edited. |
 | **What the preview shows** | Since the April 2026 desktop redesign: draggable panes for terminal, file editor, diff viewer, and an HTML/PDF/local-server preview. Again: *panes*, plural, arrangeable. |
 | **State that is not the artifact** | `CLAUDE.md` at three scopes, `settings.json`, `.claude/` (skills, agents, hooks, commands), MCP config, permissions. **Layered files on disk, never conversation.** |
@@ -185,7 +185,7 @@ side-chat mechanism so a lateral question does not pollute the main thread.
 ### 2.7 ChatGPT
 
 | Question | Answer |
-|---|---|
+| --- | --- |
 | **Persistent artifact** | **None.** This is the one product in the set with no durable artifact and no preview. Canvas is transient; the durable units are Projects and memory. |
 | **What the preview shows** | Nothing, by default. |
 | **State that is not the artifact** | Project instructions, uploaded files, Project Memory, account memory, the Plugins directory, connectors, workspace-agent definitions (tools, skills, memory, schedules, governance). |
@@ -202,7 +202,7 @@ artifact and no manager, the thread is the only structure, and it does not scale
 ## 3. THE 2026 CORRECTION, STATED PLAINLY
 
 | Product | The manager it added | When |
-|---|---|---|
+| --- | --- | --- |
 | Cursor 2.0 | Multi-agent sidebar, 8 parallel agents, git-worktree isolation | late 2025 → 2026 |
 | **Cursor 3** | **The Agents Window** - standalone agent-first interface, all agents across all repos in one sidebar, multi-workspace by default | **2026-04-02** |
 | **Claude Code desktop** | **Parallel sessions in one window**; sidebar grouped by project, filterable by status/environment; `Cmd+1-9`; auto-archive on PR merge; draggable code/terminal/preview/diff panes | **2026-04-14** |
@@ -297,7 +297,7 @@ flight. That label is structure the pure conversational shell does not have and 
 This is the precondition worth quantifying rather than asserting.
 
 | Stage | Runnable artifact? | Evidence |
-|---|---|---|
+| --- | --- | --- |
 | 04 Design | **Yes** | Generated mockup HTML is real, persisted, rendered in an iframe via `srcDoc` - `design-scaffold.functions.ts:245`/`:268`, `faces.tsx:1283`, `PreviewPanel.tsx:171`, `p.$slug.tsx:141` |
 | 05 Build | **Yes** | Staged changesets with hunk-level accept/reject and optimistic concurrency - `studio.functions.ts:1816`, `:1872`; mid-run steering `:974` |
 | 01 Discover | No | Signals, recordings, watch lanes - evidence lists |
@@ -450,7 +450,7 @@ exact grammar - `next? · tear down · PRD · build · land` (`FINAL-ia.md` §1.
 ### 5.1 Scorecard
 
 | # | Precondition | Verdict |
-|---|---|---|
+| --- | --- | --- |
 | P1 | One artifact per room | MAKEABLE (half-made: the CanvasFace contract + a focus label) |
 | P2 | Artifact runs, preview shows it | **PARTIAL - 2 of 7 stages** |
 | P3 | Cheap and reversible | PARTIAL (strong on build, absent elsewhere, wrong for decisions) |

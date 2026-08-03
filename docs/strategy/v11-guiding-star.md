@@ -23,20 +23,20 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 
 ### 0.3 The doc map (so any agent knows where everything lives, even if the founder does not open them)
 
-| Need                                               | Doc                                                                                                                     |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Direction, moat, defense, the reasoning (THIS)     | [v11-guiding-star.md](./v11-guiding-star.md)                                                                            |
-| What to build next, ranked, with a Why per row     | [feature-dashboard.md](../planning/feature-dashboard.md)                                                                |
-| The live cursor / front door                       | [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md)                                                                    |
-| Why a past decision was made (the log)             | [session-decisions.md](./session-decisions.md)                                                                          |
-| The moat stack + competition + YC Q&A (detail)     | [moat.md](./moat.md)                                                                                                    |
-| Build vs buy vs integrate (the gate)               | [build-buy-integrate.md](./build-buy-integrate.md) + [sourcing-map.md](./sourcing-map.md)                               |
-| Positioning argument + course-corrections (detail) | [v7](./archive/v7-agentic-product-os.md)                                                                                        |
-| IA / structure / Engine-Room doctrine              | [v8](./archive/v8-calm-front-deep-engine.md) + [../conventions/engine-room-doctrine.md](../conventions/engine-room-doctrine.md) |
-| The Critic-teardown wedge + competitor posture     | [v9](./archive/v9-decision-wedge-and-build-next.md)                                                                             |
-| The file-grounded blueprint (detail)               | [v10](./archive/v10-master-blueprint.md)                                                                                        |
-| The role map (arbiter of which doc to pick)        | [strategy/README.md](./README.md)                                                                                       |
-| Operating rules for all tools                      | [../../AGENTS.md](../../AGENTS.md)                                                                                      |
+| Need | Doc |
+| --- | --- |
+| Direction, moat, defense, the reasoning (THIS) | [v11-guiding-star.md](./v11-guiding-star.md) |
+| What to build next, ranked, with a Why per row | [feature-dashboard.md](../planning/feature-dashboard.md) |
+| The live cursor / front door | [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md) |
+| Why a past decision was made (the log) | [session-decisions.md](./session-decisions.md) |
+| The moat stack + competition + YC Q&A (detail) | [moat.md](./moat.md) |
+| Build vs buy vs integrate (the gate) | [build-buy-integrate.md](./build-buy-integrate.md) + [sourcing-map.md](./sourcing-map.md) |
+| Positioning argument + course-corrections (detail) | [v7](./archive/v7-agentic-product-os.md) |
+| IA / structure / Engine-Room doctrine | [v8](./archive/v8-calm-front-deep-engine.md) + [../conventions/engine-room-doctrine.md](../conventions/engine-room-doctrine.md) |
+| The Critic-teardown wedge + competitor posture | [v9](./archive/v9-decision-wedge-and-build-next.md) |
+| The file-grounded blueprint (detail) | [v10](./archive/v10-master-blueprint.md) |
+| The role map (arbiter of which doc to pick) | [strategy/README.md](./README.md) |
+| Operating rules for all tools | [../../AGENTS.md](../../AGENTS.md) |
 
 ### 0.4 Table of contents
 
@@ -392,18 +392,18 @@ The decision and outcome record is naturally consumed beyond the PM: sales/marke
 
 ## 19. Risk register
 
-| Risk                                       | Severity | Mitigation / build item                                                                               |
-| ------------------------------------------ | -------- | ----------------------------------------------------------------------------------------------------- |
-| No distribution                            | High     | The viral wedge (`WEDGE`, `TRUST-SHARE`); cross-tool neutrality; adopt beside incumbents              |
-| The moat is empty                          | High     | Close the loop + seed it (`LOOP-PROVE`, `TEST-SEED`, then the built `LRN-02`/`W1-AUTO`/`MOAT-METRIC`) |
-| Frontier-model encroachment                | High     | Own the vertical schema + cross-tool write-back; make the Trust Ledger the hero; stay model-agnostic  |
-| Build commoditized                         | Medium   | Orchestrate, do not compete (`ORCH-DELEGATE`, §13)                                                    |
-| Margin under agentic load                  | Medium   | Routing, caching, grant-sizing, capped top-ups, enterprise BYO-keys                                   |
-| Doc drift / narrative                      | Medium   | `POS-V11` reconciliation + the cascade                                                                |
-| Single-backend + embedder lock-in          | Medium   | Keep the `GraphStore` + embedder behind seams; Tier-3                                                 |
-| Trust / adoption friction                  | Medium   | Beside-not-instead adoption; the Trust Ledger as the PM's own defensibility artifact                  |
-| Consumer-grade not ready                   | Medium   | The IA + design + landing + connectors layer (§14)                                                    |
-| Hollow-autonomy death (market punishes it) | High     | Claim-never-outruns-wiring; fuel the moat before claiming it                                          |
+| Risk | Severity | Mitigation / build item |
+| --- | --- | --- |
+| No distribution | High | The viral wedge (`WEDGE`, `TRUST-SHARE`); cross-tool neutrality; adopt beside incumbents |
+| The moat is empty | High | Close the loop + seed it (`LOOP-PROVE`, `TEST-SEED`, then the built `LRN-02`/`W1-AUTO`/`MOAT-METRIC`) |
+| Frontier-model encroachment | High | Own the vertical schema + cross-tool write-back; make the Trust Ledger the hero; stay model-agnostic |
+| Build commoditized | Medium | Orchestrate, do not compete (`ORCH-DELEGATE`, §13) |
+| Margin under agentic load | Medium | Routing, caching, grant-sizing, capped top-ups, enterprise BYO-keys |
+| Doc drift / narrative | Medium | `POS-V11` reconciliation + the cascade |
+| Single-backend + embedder lock-in | Medium | Keep the `GraphStore` + embedder behind seams; Tier-3 |
+| Trust / adoption friction | Medium | Beside-not-instead adoption; the Trust Ledger as the PM's own defensibility artifact |
+| Consumer-grade not ready | Medium | The IA + design + landing + connectors layer (§14) |
+| Hollow-autonomy death (market punishes it) | High | Claim-never-outruns-wiring; fuel the moat before claiming it |
 
 ---
 
@@ -453,28 +453,28 @@ The founder-gated items (need an OAuth/secret/spend/taste call) are `SEN-01`/`F-
 
 This is the documentation the founder asked for: a record of every input given and every decision made this session, so both can re-reference what was discussed and why. Decisions are also logged in [session-decisions.md](./session-decisions.md).
 
-| #   | Founder input                                                                                            | Decision / output                                                                                                              |
-| --- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Do an honest outsider teardown (market + product); do not just agree; use the full toolset               | Ran 5 ground-truth probes + 2 deep dives + a villain/defense pass + 4 core-user/IA/orchestration researches; produced this doc |
-| 2   | The product feels fragmented, no end-to-end autonomy                                                     | Found the opposite at the engine level (it is wired); the real problem is the cold moat + empty demo + felt density (§2, §6)   |
-| 3   | Autonomy should not need a human to initiate; self-initiate at every phase                               | The corrected North Star (§3); `EVENT-REACTOR-LIVE`/`AMBIENT-SENSE`/`AMBIENT-TRIGGER`                                          |
-| 4   | Play villain, then defend strongly                                                                       | §9, and the defense gap becomes the build plan                                                                                 |
-| 5   | Should we embed the skills/agents into the product?                                                      | Yes as the Playbook Registry, not literal skill-text (§12)                                                                     |
-| 6   | The core user (daily PM) is the most important stakeholder                                               | §6 (felt experience + pains + future); `CORE-UX-*`, `PM-IMPACT-LEDGER`, `STAKEHOLDER-PACK`                                     |
-| 7   | No new implementation-plan doc; put build items in the dashboard with top priority                       | Deleted the separate plan; the v11 front is ranked #1-18 in the dashboard; this doc carries the why                            |
-| 8   | The agent ecosystem: where, how triggered, automatic? Plus inbound access (MCP)                          | §4 the agent operating model; `INTEROP-V11`                                                                                    |
-| 9   | Don't go by my words on IA; form your own opinion; the app is too complex; settings overloaded           | §14 (my recommended IA + settings); `IA-NAV-V11`, `SETTINGS-SEGREGATE`, `IA-DEPTH-V11`                                         |
-| 10  | How do we pass work to Cursor/equivalent; cost/license at B2B; credit consolidation; BBI beyond coding   | §13 (mechanics + economics + BBI); `ORCH-DELEGATE`                                                                             |
-| 11  | Scope-trim is reuse/reposition/club/flag, not blind deletion; honest opinion                             | §15                                                                                                                            |
-| 12  | The landing page is bad; think what a visiting PM wants to see, research others                          | §14.3 (the recommended content); `LANDING-PAGE-V11`, sequenced after the capabilities                                          |
-| 13  | Rich demo seeding is LAST, not first; minimal test seed as needed                                        | `DEMO-SEED-RICH` demoted to Tier 4; `TEST-SEED` added at #1 (§21)                                                              |
-| 14  | Add a one-line Why to dashboard rows                                                                     | Done for all v11 rows; standing convention for new rows                                                                        |
-| 15  | Logical sequencing: build the feature, then the surface that showcases it                                | §20.8; landing page + rich seed sequenced last                                                                                 |
-| 16  | Cascade the v11 positioning into README/AGENTS/moat                                                      | `POS-V11`; moat.md pointed; README + AGENTS §0 updated                                                                         |
-| 17  | The Brain: graphical, interconnections, derived decisions, "past 3 months", build vs integrate the layer | §7 (UX + open-horizon intelligence + drive-action + infra verdict); `BRAIN-UX-V11`                                             |
-| 18  | Connectors not fully there; day-one input; de-dup the repetitive presentation                            | §14.4; `CONNECTORS-V11`                                                                                                        |
-| 19  | The Brain's intelligence is open-ended (not 4 static lenses) and must DRIVE agent action                 | §7.1-7.2 (lenses = floor; discover -> derive -> act)                                                                           |
-| 20  | Document everything at depth so we both know what we discussed and why                                   | This section + the whole doc + the decisions log                                                                               |
+| # | Founder input | Decision / output |
+| --- | --- | --- |
+| 1 | Do an honest outsider teardown (market + product); do not just agree; use the full toolset | Ran 5 ground-truth probes + 2 deep dives + a villain/defense pass + 4 core-user/IA/orchestration researches; produced this doc |
+| 2 | The product feels fragmented, no end-to-end autonomy | Found the opposite at the engine level (it is wired); the real problem is the cold moat + empty demo + felt density (§2, §6) |
+| 3 | Autonomy should not need a human to initiate; self-initiate at every phase | The corrected North Star (§3); `EVENT-REACTOR-LIVE`/`AMBIENT-SENSE`/`AMBIENT-TRIGGER` |
+| 4 | Play villain, then defend strongly | §9, and the defense gap becomes the build plan |
+| 5 | Should we embed the skills/agents into the product? | Yes as the Playbook Registry, not literal skill-text (§12) |
+| 6 | The core user (daily PM) is the most important stakeholder | §6 (felt experience + pains + future); `CORE-UX-*`, `PM-IMPACT-LEDGER`, `STAKEHOLDER-PACK` |
+| 7 | No new implementation-plan doc; put build items in the dashboard with top priority | Deleted the separate plan; the v11 front is ranked #1-18 in the dashboard; this doc carries the why |
+| 8 | The agent ecosystem: where, how triggered, automatic? Plus inbound access (MCP) | §4 the agent operating model; `INTEROP-V11` |
+| 9 | Don't go by my words on IA; form your own opinion; the app is too complex; settings overloaded | §14 (my recommended IA + settings); `IA-NAV-V11`, `SETTINGS-SEGREGATE`, `IA-DEPTH-V11` |
+| 10 | How do we pass work to Cursor/equivalent; cost/license at B2B; credit consolidation; BBI beyond coding | §13 (mechanics + economics + BBI); `ORCH-DELEGATE` |
+| 11 | Scope-trim is reuse/reposition/club/flag, not blind deletion; honest opinion | §15 |
+| 12 | The landing page is bad; think what a visiting PM wants to see, research others | §14.3 (the recommended content); `LANDING-PAGE-V11`, sequenced after the capabilities |
+| 13 | Rich demo seeding is LAST, not first; minimal test seed as needed | `DEMO-SEED-RICH` demoted to Tier 4; `TEST-SEED` added at #1 (§21) |
+| 14 | Add a one-line Why to dashboard rows | Done for all v11 rows; standing convention for new rows |
+| 15 | Logical sequencing: build the feature, then the surface that showcases it | §20.8; landing page + rich seed sequenced last |
+| 16 | Cascade the v11 positioning into README/AGENTS/moat | `POS-V11`; moat.md pointed; README + AGENTS §0 updated |
+| 17 | The Brain: graphical, interconnections, derived decisions, "past 3 months", build vs integrate the layer | §7 (UX + open-horizon intelligence + drive-action + infra verdict); `BRAIN-UX-V11` |
+| 18 | Connectors not fully there; day-one input; de-dup the repetitive presentation | §14.4; `CONNECTORS-V11` |
+| 19 | The Brain's intelligence is open-ended (not 4 static lenses) and must DRIVE agent action | §7.1-7.2 (lenses = floor; discover -> derive -> act) |
+| 20 | Document everything at depth so we both know what we discussed and why | This section + the whole doc + the decisions log |
 
 ---
 

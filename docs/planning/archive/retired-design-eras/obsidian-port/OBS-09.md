@@ -6,18 +6,18 @@
 
 ## 1. Snapshot
 
-| Field         | Value                                                                                                                                                                                                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ID            | OBS-09                                                                                                                                                                                                                                                                                                        |
-| Rank          | #10                                                                                                                                                                                                                                                                                                           |
-| Tier          | 1                                                                                                                                                                                                                                                                                                             |
-| Status        | pending                                                                                                                                                                                                                                                                                                       |
-| Category      | Governance                                                                                                                                                                                                                                                                                                    |
-| Depends on    | OBS-03 (primitives), transitively OBS-01 (tokens/fonts) + OBS-02 (shell)                                                                                                                                                                                                                                      |
-| Blocks        | nothing downstream (OBS-10 folds the legacy governance routes into this surface; OBS-13 reuses the room pattern; OBS-15 draws the score-room charts)                                                                                                                                                          |
+| Field | Value |
+| --- | --- |
+| ID | OBS-09 |
+| Rank | #10 |
+| Tier | 1 |
+| Status | pending |
+| Category | Governance |
+| Depends on | OBS-03 (primitives), transitively OBS-01 (tokens/fonts) + OBS-02 (shell) |
+| Blocks | nothing downstream (OBS-10 folds the legacy governance routes into this surface; OBS-13 reuses the room pattern; OBS-15 draws the score-room charts) |
 | One-line what | The Engine Room: one door opens on a health glance (2x2 room cards, each with name · state chip · question · verdict line), plus the room-detail pattern (question header, verdict-first body, mono sub-tabs, four depth levels max) and the connection strip with a live pulse. Approvals NEVER render here. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-09                                                                                                                                                                                                                                    |
-| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md)                                                                                                                                                                                                                                                        |
+| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-09 |
+| Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
 
