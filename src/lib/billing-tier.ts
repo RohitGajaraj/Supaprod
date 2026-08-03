@@ -45,7 +45,8 @@ export function priceForCredits(
 ): number | null {
   // Max is a flat price with no band to multiply. Returning null here was why
   // the advertised number could not be reproduced anywhere in the product.
-  if (tier === "max") return interval === "yearly" ? Math.round(MAX_MONTHLY_USD * (10 / 12)) : MAX_MONTHLY_USD;
+  if (tier === "max")
+    return interval === "yearly" ? Math.round(MAX_MONTHLY_USD * (10 / 12)) : MAX_MONTHLY_USD;
   const base = TIER_BASE_MONTHLY_USD[tier as "pro" | "team"];
   if (!base) return null;
   // FLAT PER TIER since 2026-08-03 (founder ruling). `credits` is accepted for call-site

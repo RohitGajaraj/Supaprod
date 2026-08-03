@@ -127,7 +127,9 @@ export function redactSecrets(s: string, literals: string[] = []): string {
     }
   }
   for (const re of SECRET_PATTERNS) {
-    out = out.replace(re, (m) => (m.endsWith("@") ? `${m.split("//")[0]}//${REDACTED}@` : REDACTED));
+    out = out.replace(re, (m) =>
+      m.endsWith("@") ? `${m.split("//")[0]}//${REDACTED}@` : REDACTED,
+    );
   }
   return out;
 }
@@ -354,10 +356,7 @@ export async function runInE2B(
       }
     }
   } catch (e) {
-    infraError = redactSecrets(
-      e instanceof Error ? `${e.name}: ${e.message}` : String(e),
-      secrets,
-    );
+    infraError = redactSecrets(e instanceof Error ? `${e.name}: ${e.message}` : String(e), secrets);
   } finally {
     // Billing is per second of sandbox life, so this kill is the cost control. It is
     // best-effort by necessity: if it throws we still have the create-time timeoutMs

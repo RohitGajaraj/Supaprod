@@ -239,8 +239,8 @@ function CheckoutPage() {
             autoComplete="email"
           />
           <p style={{ fontSize: 11.5, color: "var(--ink-subtle, #6b6457)", marginTop: 6 }}>
-            This becomes the owner of the workspace. Your account is created after payment
-            succeeds, never before.
+            This becomes the owner of the workspace. Your account is created after payment succeeds,
+            never before.
           </p>
         </section>
 
@@ -350,8 +350,8 @@ function CheckoutPage() {
             }}
           >
             <strong style={{ color: "var(--ink, #1f1b16)" }}>Card payments open shortly.</strong>{" "}
-            Rather than show you a button that cannot take your money, here is what happens
-            when it does: you pay ${total} a month, your workspace is created with{" "}
+            Rather than show you a button that cannot take your money, here is what happens when it
+            does: you pay ${total} a month, your workspace is created with{" "}
             {includedCredits.toLocaleString()} credits
             {isBusiness ? ` and ${seats} seats` : ""}, and you sign in and invite your team.
             <div style={{ marginTop: 12 }}>

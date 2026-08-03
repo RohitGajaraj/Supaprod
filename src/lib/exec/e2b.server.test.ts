@@ -245,9 +245,9 @@ describe("setup and checks", () => {
   });
 
   it("clones the requested ref rather than whatever HEAD happens to be", () => {
-    expect(
-      defaultSetup("acme/app", "feat/a").find((c) => c.name === "clone")!.run,
-    ).toContain("--branch feat/a");
+    expect(defaultSetup("acme/app", "feat/a").find((c) => c.name === "clone")!.run).toContain(
+      "--branch feat/a",
+    );
   });
 
   it("runs typecheck, test and lint", () => {
