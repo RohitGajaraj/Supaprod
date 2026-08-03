@@ -164,6 +164,7 @@ export function readFidelity(html: string): DesignFidelity | null {
 export function buildSystemPrompt(
   hasDesignMemory: boolean,
   fidelity: DesignFidelity = "mockup",
+  productName?: string | null,
 ): string {
   const base = `You are a UI/UX designer who writes clean, professional HTML mockups.
 
@@ -179,7 +180,11 @@ Rules:
 - Show the MAIN screen for the spec — the primary user interaction surface.
 - Use placeholder text for variable content: [User Name], [Date], [Description], etc.
 - Mark interactive elements clearly (buttons, inputs, dropdowns) using the class names: btn btn-primary, btn btn-secondary, input, .card, .badge.
-- Include a slim <nav> with class="brand" span for the product name; use [Product Name] as a placeholder since the spec itself names the product.
+- Include a slim <nav> with class="brand" span for the product name; ${
+    productName
+      ? `the product is called "${productName}" - write that exact name, never a placeholder`
+      : "use [Product Name] as a placeholder since the spec itself names the product"
+  }.
 - Keep the page under 250 lines.
 - ${FIDELITY_RULES[fidelity]}`;
   if (!hasDesignMemory) return base;
@@ -257,6 +262,40 @@ async function buildDesignScaffoldHtml(
     groundedInMemoryIds = [];
   }
 
+  /**
+   * THE PRODUCT'S REAL NAME.
+   *
+   * The system prompt used to instruct the model to write the literal string
+   * "[Product Name]", and it obeyed: the live Design station rendered a mockup
+   * whose header read "[Product Name]" for a workspace whose product is called
+   * Relay. Six brand rules were "in force" at the time, so the surface asserted a
+   * brand it then failed to apply, on the one screen a founder would put in front
+   * of an investor.
+   *
+   * Fail-soft on purpose: an unresolved name falls back to the placeholder, which
+   * is honest, rather than guessing a name and printing it as fact.
+   */
+  let productName: string | null = null;
+  try {
+    const { data: prdRow } = await supabase
+      .from("prds")
+      .select("project_id")
+      .eq("id", data.prdId)
+      .maybeSingle();
+    const projectId = (prdRow as { project_id?: string | null } | null)?.project_id ?? null;
+    if (projectId) {
+      const { data: proj } = await supabase
+        .from("projects")
+        .select("name")
+        .eq("id", projectId)
+        .maybeSingle();
+      const raw = (proj as { name?: string | null } | null)?.name ?? null;
+      productName = raw && raw.trim() ? raw.trim() : null;
+    }
+  } catch {
+    productName = null;
+  }
+
   const userMsg = [`Product spec to mockup:\n\n${data.specBody.slice(0, 8000)}`, designMemoryBlock]
     .filter(Boolean)
     .join("\n\n");
@@ -267,7 +306,10 @@ async function buildDesignScaffoldHtml(
     model: "google/gemini-2.5-flash",
     fallbackModel: "google/gemini-2.5-flash",
     messages: [
-      { role: "system", content: buildSystemPrompt(Boolean(designMemoryBlock), fidelity) },
+      {
+        role: "system",
+        content: buildSystemPrompt(Boolean(designMemoryBlock), fidelity, productName),
+      },
       { role: "user", content: userMsg },
     ],
   });

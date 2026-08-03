@@ -350,14 +350,31 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
     [all, bySlug],
   );
   const present = all.map((e) => bySlug.get(e.slug)).filter((m): m is CrewRosterMember => !!m);
-  const alone = present.filter(
-    (m) => m.enabled && (m.arc === "trusted" || m.arc === "ambient"),
-  ).length;
+  /**
+   * AN AGENT WITH NO ROW IS NOT ABSENT, IT IS ON THE DEFAULT POLICY.
+   *
+   * Found by walking the live product 2026-08-03: this page reported "13 have not
+   * arrived yet" with Challenge, Research, Listen and Prioritize all marked "Not
+   * in this workspace yet", while all four were plainly working. Challenge had
+   * just produced a teardown at 76 percent confidence, Research and Listen appear
+   * fourteen times in one track's log, and Prioritize had raised three decisions
+   * in the Brain.
+   *
+   * The roster table is an OVERRIDES table, exactly like agent_tools. The registry
+   * is the list. trust.server.ts settles it: `autonomy.get(a.id) ?? "trusted"`,
+   * per the founder ruling that an agent is autonomous by default. So the agents
+   * this page called missing are in fact the MOST autonomous ones in the
+   * workspace, and counting them as absent inverted the one number the surface
+   * exists to report.
+   */
+  const onDefaults = all.length - present.length;
+  const alone =
+    present.filter((m) => m.enabled && (m.arc === "trusted" || m.arc === "ambient")).length +
+    onDefaults;
   const asks = present.filter(
     (m) => m.enabled && (m.arc === "proving" || m.arc === "observing"),
   ).length;
   const off = present.filter((m) => !m.enabled).length;
-  const absent = all.length - present.length;
 
   // Exactly one mark on a screen may blink, so the blink means "look here".
   const blinkSlug = asking[0]?.slug ?? null;
@@ -387,9 +404,10 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           , <Num>{off}</Num> are switched off
         </>
       ) : null}
-      {absent > 0 ? (
+      {onDefaults > 0 ? (
         <>
-          , and <Num>{absent}</Num> have not arrived yet
+          {" "}
+          (<Num>{onDefaults}</Num> of them on the default policy, never configured here)
         </>
       ) : null}
       .
@@ -513,7 +531,7 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
                             contradict the blurb: it is switched off, or this
                             account has no row for it at all. */}
                         {!m
-                          ? "Not in this workspace yet."
+                          ? `${agentBlurb(e.slug) ?? e.relayVerb} Runs on the default policy.`
                           : !m.enabled
                             ? "Switched off. It will not be dispatched."
                             : (agentBlurb(e.slug) ?? e.relayVerb)}
