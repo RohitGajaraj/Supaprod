@@ -16,7 +16,8 @@
  *
  * Credit and price NUMBERS here are deliberate placeholders, founder-tunable
  * (plan §7); the mechanism is final. The credit engine stays dormant behind
- * credits_enabled() until the founder flips it (WM-M10..WM-M16).
+ * credits_enabled(), which returns TRUE in production since 2026-08-03 (WM-M10..WM-M16).
+ * The gate remains so metering can be switched off; it is not a description of today.
  */
 
 export type PlanTier = "free" | "pro" | "max" | "team" | "enterprise";
@@ -149,7 +150,7 @@ export type Entitlements = {
   /** Full data export. On every tier on purpose (lock-in is gravity, not a wall). */
   dataExport: boolean;
 
-  // --- Credits (the meter; engine dormant behind credits_enabled()) ---
+  // --- Credits (the meter; LIVE, still gated by credits_enabled()) ---
   /** Monthly credit multiplier vs the free base; null = custom (enterprise). */
   creditMultiplier: number | null;
   /** Included monthly credit grant; null = pooled / custom. */

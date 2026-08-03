@@ -12,7 +12,7 @@ import { withJobRun } from "@/lib/observability";
  * Drives the credit cycle: grants un-granted accounts their tier's monthly INCLUDED
  * allowance, and re-grants (resets) accounts whose billing cycle has rolled over
  * (~30 days since cycle_anchor), preserving purchased top-ups. Strict no-op while
- * credits_enabled() is false (today's dormant state) and pre-migration tolerant
+ * credits_enabled() is false, which production is NOT since 2026-08-03, and pre-migration tolerant
  * (a missing account_credits table counts as zero). Idempotent; poke via pg_cron.
  */
 const CYCLE_MS = 30 * 24 * 60 * 60 * 1000;

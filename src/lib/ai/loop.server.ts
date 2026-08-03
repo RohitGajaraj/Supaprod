@@ -47,7 +47,7 @@ const MAX_RUNNING_PER_WORKSPACE = 5;
 // G-PRICE PR-A1: hand back a run's already-drawn credits when it ends ABANDONED
 // (governance-halted or provider-failed) rather than delivered. Best-effort, never
 // throws — a metering hiccup must never mask or delay the halt/fail handling it sits
-// beside. No-op while the credit engine is dormant (refundAbandonedRunCredits's own
+// beside. No-op where credits_enabled() is off, which production is not (refundAbandonedRunCredits's own
 // guard).
 async function refundIfAbandoned(
   supabase: SupabaseClient,

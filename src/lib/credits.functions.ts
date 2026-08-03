@@ -6,7 +6,8 @@
  * allowance (on signup / plan change); `resetCreditCycle` re-grants the included
  * balance each billing cycle while PRESERVING the purchased top-up balance. Both write
  * the service-role-only `credit_ledger` (reason 'grant' / 'reset') and are a strict
- * no-op while `credits_enabled()` is false (today's dormant state). The amounts come
+ * no-op while `credits_enabled()` is false, which it no longer is: the gate returns TRUE
+ * in production since 2026-08-03 and these paths are live. The amounts come
  * from `entitlements.creditMonthlyBase` (founder-tunable placeholders, plan §7).
  *
  * WM-M14 adds the attribution side: `rollupAttribution` (pure, groups ledger debits by
@@ -50,7 +51,8 @@ export function resetDelta(currentIncluded: number, monthlyGrant: number): numbe
 // "stop it early and it is free"). This sums that run's own debit rows (scoped by
 // ai_events.trace_id / agent_runs.id via the surface_ref-tagged ledger rows written
 // during the run) and hands the total back via refund_account_credits, in one
-// best-effort, never-throwing pass. A no-op while the credit engine is dormant.
+// best-effort, never-throwing pass. A no-op only where credits_enabled() is off, which
+// production is not.
 
 /** A single credit_ledger row shaped for run-level refund summation. */
 export type RunLedgerRow = { delta_credits: number; ai_event_id: string | null };
@@ -71,7 +73,7 @@ export function sumRunDebits(rows: RunLedgerRow[]): number {
 
 /**
  * Refund every credit a run's own AI calls debited, once, and mark the run so it is
- * never refunded twice. No-op while the credit engine is dormant, while the run has
+ * never refunded twice. No-op where credits_enabled() is off (not production), while the run has
  * already been refunded, or when there is nothing to refund. Never throws (a metering
  * failure must not fail the caller's abandon/halt handling).
  */
@@ -135,7 +137,7 @@ async function creditsEngineEnabled(): Promise<boolean> {
 /**
  * Grant a tier's monthly INCLUDED allowance to an account (signup / plan change). Sets
  * the included balance to the tier amount, records the cycle anchor, and writes a
- * 'grant' ledger row; the purchased top-up balance is untouched. No-op while dormant.
+ * 'grant' ledger row; the purchased top-up balance is untouched. No-op where the gate is off.
  */
 export async function grantMonthlyAllowance(accountId: string, tier: PlanTier): Promise<void> {
   if (!(await creditsEngineEnabled())) return;
@@ -172,7 +174,7 @@ export async function grantMonthlyAllowance(accountId: string, tier: PlanTier): 
 /**
  * Re-grant the account's INCLUDED allowance for a new billing cycle: reset the included
  * balance to its stored monthly grant, anchor the new cycle, and PRESERVE the purchased
- * top-up balance. Writes a 'reset' ledger row for the net movement. No-op while dormant.
+ * top-up balance. Writes a 'reset' ledger row for the net movement. No-op where the gate is off.
  * Never-granted accounts (monthly grant 0) are left for `grantMonthlyAllowance`.
  */
 export async function resetCreditCycle(accountId: string): Promise<void> {
