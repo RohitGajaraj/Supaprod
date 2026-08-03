@@ -234,9 +234,16 @@ function Learn() {
     const back =
       outcomes.total === 1 ? "One outcome came back" : `${outcomes.total} outcomes came back`;
     const decisive = outcomes.validated + outcomes.missed;
+    // SAY WHY THE TWO NUMBERS DIFFER. This read "8 outcomes came back. 4 of 7
+    // paid off", which is arithmetically right and looks like a typo: the eighth
+    // outcome is real but has not settled either way. An unexplained mismatch on
+    // the surface that reports whether the product works costs more than the word
+    // it takes to explain it.
     const verdict =
       decisive > 0
-        ? `${outcomes.validated} of ${decisive} paid off.`
+        ? decisive === outcomes.total
+          ? `${outcomes.validated} of ${decisive} paid off.`
+          : `${outcomes.validated} of the ${decisive} that settled paid off.`
         : "None of them decisive yet.";
     return `${back}. ${verdict}`;
   }, [ledgerQ.isLoading, pendingQ.isLoading, waiting, agentSettled, outcomes]);

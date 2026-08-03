@@ -70,6 +70,8 @@ export type RoadmapItem = {
   updated_at: string | null;
   /** PC-10: true when a prior placement was captured, so a one-key Rewind applies. */
   hasSnapshot: boolean;
+  /** Raw lifecycle state; not the lane. See the mapper. */
+  status: string | null;
 };
 
 export const getRoadmap = createServerFn({ method: "GET" })
@@ -97,6 +99,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
         roadmap_measure?: string | null;
         roadmap_snapshot_before?: unknown;
         updated_at?: string | null;
+        status?: string | null;
       };
       const bucket =
         r.roadmap_bucket === "now" || r.roadmap_bucket === "next" || r.roadmap_bucket === "later"
@@ -111,6 +114,22 @@ export const getRoadmap = createServerFn({ method: "GET" })
         measure: r.roadmap_measure ?? null,
         updated_at: r.updated_at ?? null,
         hasSnapshot: r.roadmap_snapshot_before != null,
+        /**
+         * The bet's LIFECYCLE state, which is not the same thing as its lane.
+         *
+         * Carried since 2026-08-03 because dropping it made two stations
+         * contradict each other in plain English: Decide showed two bets tagged
+         * "committed" (their status) while Plan's headline read "Nothing is
+         * committed yet" (no roadmap_bucket). Both were correct about their own
+         * column; the word meant two different things one click apart.
+         *
+         * Note also that the comment above documents this column as
+         * backlog|now|next|later|shipped|dropped, and the live data holds
+         * "committed", "discovery" and "killed" as well. Passing the raw value
+         * through rather than mapping it keeps this honest instead of silently
+         * bucketing a state the code has never heard of.
+         */
+        status: r.status ?? null,
       };
     });
     // H2-WRITES: surface how many commitments sit in a bucket without a declared

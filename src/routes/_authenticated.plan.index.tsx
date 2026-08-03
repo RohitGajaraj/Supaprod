@@ -305,7 +305,22 @@ function PlanPage() {
   // no number it does not have.
   const headline: React.ReactNode = React.useMemo(() => {
     if (roadmap.isLoading) return "Plan";
-    if (committed.length === 0) return "Nothing is committed yet.";
+    if (committed.length === 0) {
+      // "COMMITTED" MEANT TWO THINGS ONE CLICK APART. Decide tagged two bets
+      // "committed" from opportunities.status while this headline read "Nothing
+      // is committed yet" from roadmap_bucket, and both were right about their
+      // own column. Measured live: 2 bets with status 'committed', 0 with any
+      // lane at all. The interesting fact is not that the roadmap is empty, it is
+      // that somebody committed to work and never placed it, which is the exact
+      // thing this station exists to catch. Say that rather than "nothing".
+      const decided = items.filter((i) => i.status === "committed" || i.status === "now").length;
+      if (decided > 0) {
+        return decided === 1
+          ? "One bet is committed but sits in no lane."
+          : `${decided} bets are committed but sit in no lane.`;
+      }
+      return "Nothing is committed yet.";
+    }
     const behind = committed.length - nowCount;
     const lead =
       nowCount === 0 ? (

@@ -398,7 +398,23 @@ function recordHeadline(
   if (learnings) clauses.push(learnings === 1 ? "one learning" : `${learnings} learnings`);
   if (clauses.length === 0) return "Nothing is on the record yet.";
   const verb = clauses.length === 1 && clauses[0].startsWith("one ") ? "is" : "are";
-  const sentence = `${clauses.join(" and ")} ${verb} on the record, and nothing has come back yet.`;
+  /**
+   * "NOTHING HAS COME BACK" AND "NOTHING HAS RE-SCORED" ARE DIFFERENT FACTS.
+   *
+   * Found 2026-08-03: this page read "29 calls and 8 learnings are on the record,
+   * and nothing has come back yet" while Learn, one click away, read "8 outcomes
+   * came back. 4 of 7 paid off." Both were rendering truthfully from their own
+   * source and contradicting each other in plain English.
+   *
+   * The tail fires on rescoreCount, which counts outcomes that MOVED a bet's ICE,
+   * not outcomes that exist. With learnings on the record, "nothing has come back"
+   * is simply false, and it undersells the product's own claim: the outcomes are
+   * there, they have not yet changed a ranking. Say that instead.
+   */
+  const tail = learnings
+    ? "and none has re-scored a call yet."
+    : "and nothing has come back yet.";
+  const sentence = `${clauses.join(" and ")} ${verb} on the record, ${tail}`;
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
