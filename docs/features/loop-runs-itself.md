@@ -61,4 +61,4 @@ Phase 0 made the Chief of Staff real but left autonomy _claimed_ ahead of _wired
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4: 2026-06-14 build-log entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md): orchestration contract
 - [`../strategy/archive/v6-agentic-product-os.md`](../strategy/archive/v6-agentic-product-os.md) §9 (Phase 1) + Appendix B
-- Siblings: [`f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md) · [`f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md)
+- Siblings: [`orchestrator-and-missions.md`](./orchestrator-and-missions.md) · [`event-reactor-and-pipelines.md`](./event-reactor-and-pipelines.md)

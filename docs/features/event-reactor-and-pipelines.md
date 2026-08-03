@@ -80,4 +80,4 @@ F-AGENT-1 gave Supaprod a planner; F-AGENT-2 gave it memory. Without a reactor t
 
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-3 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md): orchestration contract (F-AGENT-3 bullet)
-- [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), [`./f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md), [`./f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md)
+- [`orchestrator-and-missions.md`](./orchestrator-and-missions.md), [`agent-memory-and-reflection.md`](./agent-memory-and-reflection.md), [`swarm-hud.md`](./swarm-hud.md)

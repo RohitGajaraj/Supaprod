@@ -91,7 +91,7 @@ Take on `compass@`, in this order:
 
 ## 9. Three videos — **YOU**, do last
 
-Scripts: [`RECORD-THESE.md`](./RECORD-THESE.md). Paste the three links here once uploaded.
+Scripts: [`record-these.md`](./record-these.md). Paste the three links here once uploaded.
 
 ```
 1. Founder background:
@@ -271,5 +271,5 @@ a name so we could do a reference check." Only name someone who would actually v
 2. Screenshots attached, taken on `compass@`.
 3. No square brackets anywhere in the form.
 4. Numbers current: **4,279 commits**, **410 migrations**, **401 specced / 362 shipped**. Re-pull with `git rev-list --count HEAD` if the day has turned.
-5. Record in [`../ANSWER-BANK.md`](../ANSWER-BANK.md) that `compass@` is now spent on Betaworks.
+5. Record in [`answer-bank.md`](../answer-bank.md) that `compass@` is now spent on Betaworks.
 6. Update Notion: **My status** to `Submitted`, fill **Date applied**.

@@ -61,4 +61,4 @@ The erase runs only when (1) the founder flips `right_to_erasure_enabled()` to `
 
 ## Related
 
-- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · siblings [`subprocessor-disclosure.md`](./subprocessor-disclosure.md), [`u6-data-export.md`](./u6-data-export.md) · migration `supabase/migrations/20260621012900_data_retention_b_right_to_erasure.sql`
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 · [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) Data/Privacy lens · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · siblings [`subprocessor-disclosure.md`](./subprocessor-disclosure.md), [`workspace-data-export.md`](./workspace-data-export.md) · migration `supabase/migrations/20260621012900_data_retention_b_right_to_erasure.sql`

@@ -95,5 +95,5 @@ Recommendation: option 1, with option 2 as the expansion path. Either way, "cros
 - [`pricing-architecture.md`](./pricing-architecture.md), the finalized end-to-end pricing system (credits, BYOK, model access, 4 tier packaging).
 - [`pricing-strategy.md`](./pricing-strategy.md), the per-tier value matrix and upgrade narrative this ladder must be reconciled into.
 - [`../../features/credits.md`](../../features/credits.md) and [`../../features/billing.md`](../../features/billing.md), the credit and billing rails.
-- [`../../features/f-agent-2-memory-reflection.md`](../../features/f-agent-2-memory-reflection.md), the operator-facing memory and reflection feature doc.
+- [`features/agent-memory-and-reflection.md`](../../features/agent-memory-and-reflection.md), the operator-facing memory and reflection feature doc.
 - [`../../decisions/lineage-relation-vocabulary.md`](../../decisions/lineage-relation-vocabulary.md), the ADR behind the relation-vocabulary fork resolved on 2026-08-02.

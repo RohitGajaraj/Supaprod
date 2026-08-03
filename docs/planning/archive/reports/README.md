@@ -44,7 +44,7 @@ Coverage numbers in these are long superseded. Current conventions live in [`../
 
 [`security-remediation-summary.md`](./security-remediation-summary.md) · [`code-audit-results.md`](./code-audit-results.md) · [`tier-3-audit-report.md`](./tier-3-audit-report.md)
 
-Live security material is in [`../../../security/`](../../../security/) and [`../../../operations/security-audit-findings.md`](../../../operations/security-audit-findings.md).
+Live security material is in [`../../../security/`](../../../security/) and [`security/audit-findings-july.md`](../../../security/audit-findings-july.md).
 
 ## The parallel-lane loop
 

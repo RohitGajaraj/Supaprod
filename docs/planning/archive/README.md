@@ -11,7 +11,7 @@ For anything current:
 | What is in flight and what is next | [`../SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) §0 |
 | Per-feature status | [`../feature-dashboard.md`](../feature-dashboard.md) |
 | Open bugs and blockers | [`../known-issues.md`](../known-issues.md) |
-| Cross-cutting gaps | [`../considerations.md`](../considerations.md) |
+| Cross-cutting gaps | [`cross-cutting-gaps.md`](../cross-cutting-gaps.md) |
 | The design contract | [`../../design/DESIGN-SYSTEM.md`](../../design/DESIGN-SYSTEM.md) |
 | The rules | [`../../../AGENTS.md`](../../../AGENTS.md) |
 

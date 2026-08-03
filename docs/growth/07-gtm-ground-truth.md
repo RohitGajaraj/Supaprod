@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-14 · Status: **VERIFIED SNAPSHOT** — a code-and-dashboard-audited reading of where the launch actually stands, against the 7-day sprint in [`00-launch-operating-manual.md`](./00-launch-operating-manual.md)._
 >
-> **Why this file exists:** the sprint calendar (Day 0 = Jul 12) says the public wave opens Jul 15. A four-agent audit on Jul 14 (dashboard rows + live codebase grep + checklist cross-reference + git history) found we are still functionally at Day 0. This file records that audit so no session re-derives it or, worse, trusts the calendar. When the landing page v2 plan ([`../planning/landing-page-v2-plan.md`](../planning/landing-page-v2-plan.md)) and this file disagree on what exists, re-verify in code.
+> **Why this file exists:** the sprint calendar (Day 0 = Jul 12) says the public wave opens Jul 15. A four-agent audit on Jul 14 (dashboard rows + live codebase grep + checklist cross-reference + git history) found we are still functionally at Day 0. This file records that audit so no session re-derives it or, worse, trusts the calendar. When the landing page v2 plan ([`planning/archive/landing-page-v2-plan.md`](../planning/archive/landing-page-v2-plan.md)) and this file disagree on what exists, re-verify in code.
 
 ---
 
@@ -43,7 +43,7 @@ Of 51 commits since Jul 12: zero touched a launch surface. Jul 12 evening went t
 ## 4. What fires next (the corrected order)
 
 1. **Clock-starters, today, zero dependencies (founder, ~30 min):** start email domain warm-up (30-day clock); submit Google OAuth verification (blocker already cleared).
-2. **Landing page v2** — the founder's directed focus as of 2026-07-14 (this session). The waitlist mechanic gets resolved INSIDE this rebuild, not as a separate fork: plan at [`../planning/landing-page-v2-plan.md`](../planning/landing-page-v2-plan.md).
+2. **Landing page v2** — the founder's directed focus as of 2026-07-14 (this session). The waitlist mechanic gets resolved INSIDE this rebuild, not as a separate fork: plan at [`planning/archive/landing-page-v2-plan.md`](../planning/archive/landing-page-v2-plan.md).
 3. **Then the wave** — the Day 3-7 content sequence fires only after the new surface + approved copy exist. The calendar dates in `00` shift right accordingly; the sequence and tiered targets stand unchanged.
 4. **In parallel, founder-only queue:** copy-pack approval pass (17 boxes), DP terms doc, the 25 PC-13 sends.
 

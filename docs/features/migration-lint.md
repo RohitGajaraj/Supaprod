@@ -63,4 +63,4 @@ Run manually: `bun scripts/lint-migrations.ts`.
 ## Related
 
 - [`../operations/hooks.md`](../operations/hooks.md) · `scripts/check-migrations.sh` (the applied-status check this complements).
-- [`../planning/considerations.md`](../planning/considerations.md) (Build/ship "Migration rollback strategy").
+- [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) (Build/ship "Migration rollback strategy").

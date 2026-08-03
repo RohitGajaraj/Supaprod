@@ -31,7 +31,7 @@ This repo already runs a closed documentation loop ([`AGENTS.md`](../../AGENTS.m
 | `DECISIONS.md` | [`session-decisions.md`](./session-decisions.md) + ADRs in [`docs/decisions/`](./docs/decisions/) |
 | `ROADMAP.md` | [`planning/archive/build-log.md`](../planning/archive/build-log.md) §3 (build order, milestones M1–M5) + v4 feature map §9 (proof bars) |
 | `BACKLOG.md` | [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) — stable F-IDs, Live status board, Build-order rollup (the canonical task queue) |
-| `KNOWN_ISSUES.md` | [`planning/known-issues.md`](../planning/known-issues.md) (live KI-ID tracker, created 2026-06-11) + [`planning/considerations.md`](../planning/considerations.md) (standing gap register) |
+| `KNOWN_ISSUES.md` | [`planning/known-issues.md`](../planning/known-issues.md) (live KI-ID tracker, created 2026-06-11) + [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) (standing gap register) |
 | `WORKFLOWS.md` | [`docs/operations/`](./docs/operations/) + [`docs/conventions/`](./docs/conventions/) + the protocols in [`AGENTS.md`](../../AGENTS.md) |
 | `SESSION.md` | [`planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 0 (the live cursor, which folded in active-task.md on 2026-06-19) + [`planning/archive/v4-rebuild-handoff.md`](../planning/archive/v4-rebuild-handoff.md) (session resume) + `.remember/` (machine memory) |
 | `TASKS.md` | [`planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md) Build-order rollup (the F-ID scope ledger) + [`planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (the live task queue) + [`planning/archive/strategic-tasks.md`](../planning/archive/strategic-tasks.md) (strategic P0-P3 view) |

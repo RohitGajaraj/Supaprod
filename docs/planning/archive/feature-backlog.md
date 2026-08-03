@@ -9,7 +9,7 @@
 
 > **What this is.** The exhaustive, sub-feature-level enumeration of _everything Supaprod is built to ship_ — the dev-ready expansion of [`build-log.md`](./build-log.md) §2 (granular catalog). Every feature has a **stable ID** (e.g. `F2.3`) so it can become an issue/PR/spec and be referenced by traces, decisions, and the build log without re-describing scope.
 >
-> **Relationship to other docs (no duplication of rules).** Product thesis + USP/MOAT: [`../README.md`](../README.md). Build _order_: [`build-log.md`](./build-log.md) §3. Cross-cutting non-functional rationale + P0/P1/P2 priorities: [`considerations.md`](../considerations.md). UI/IA/screen + AI-message contract: [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md). Architecture contracts: [`../architecture/`](../../architecture/). Operating rules: [`../AGENTS.md`](../../../AGENTS.md).
+> **Relationship to other docs (no duplication of rules).** Product thesis + USP/MOAT: [`../README.md`](../README.md). Build _order_: [`build-log.md`](./build-log.md) §3. Cross-cutting non-functional rationale + P0/P1/P2 priorities: [`cross-cutting-gaps.md`](../cross-cutting-gaps.md). UI/IA/screen + AI-message contract: [`design/archive/ember-editorial-landing.md`](../../design/archive/ember-editorial-landing.md). Architecture contracts: [`../architecture/`](../../architecture/). Operating rules: [`../AGENTS.md`](../../../AGENTS.md).
 >
 > **This file adds detail; it does not replace `docs/planning/archive/build-log.md`.** `docs/planning/archive/build-log.md` stays the narrative + build order; this is the flat, addressable scope list. Keep both true (closed doc loop, [`../AGENTS.md`](../../../AGENTS.md) §5).
 >

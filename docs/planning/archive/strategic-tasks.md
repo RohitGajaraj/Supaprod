@@ -41,7 +41,7 @@ Make one full vertical slice bulletproof before widening — proves the loop + g
 
 ## P3 — Cross-cutting hardening (from the considerations review)
 
-- [ ] Work through the gaps in [`considerations.md`](../considerations.md) — observability/SRE, privacy/compliance, billing/metering, abuse/safety, DR/backup, CI/CD, etc. Pull each into the build as it becomes relevant; don't let them surprise an enterprise sale.
+- [ ] Work through the gaps in [`cross-cutting-gaps.md`](../cross-cutting-gaps.md) — observability/SRE, privacy/compliance, billing/metering, abuse/safety, DR/backup, CI/CD, etc. Pull each into the build as it becomes relevant; don't let them surprise an enterprise sale.
 
 ## P3 — Design + skills
 

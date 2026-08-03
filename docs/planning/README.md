@@ -1,0 +1,49 @@
+# Planning
+
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
+**Twelve live documents. Three are the ones you read; nine are build bibles you open only when working on that initiative.**
+
+This folder held 51 loose files as recently as 2026-08-03. Most were session write-ups nobody linked to, and finished plans that still read as current. They are in [`archive/`](./archive/README.md) with a note on each saying why it went.
+
+---
+
+## The three you actually read
+
+| File | What it is |
+| --- | --- |
+| **[`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md)** | **§0 is the only live cursor in the repo.** What is in flight, what is next, what needs the founder. If a second file ever claims to hold status, that file is wrong. |
+| **[`feature-dashboard.md`](./feature-dashboard.md)** | Per-feature status, 467 rows, ranked. Flip a row's status when something ships; that is the one documentation trace required during BUILD-ONLY MODE. |
+| **[`known-issues.md`](./known-issues.md)** | Open bugs and blockers. |
+
+Plus [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) for non-functional gaps that belong to no single feature. It was called `considerations.md`, which told a reader nothing.
+
+## Build bibles, one per open initiative
+
+Open one only when you are building that thing. Each carries per-ID specs: context, files, migration, steps, acceptance, how to verify.
+
+| Initiative | Bible |
+| --- | --- |
+| Workspaces, accounts, tenancy, monetization | [`workspace-tenancy-and-monetization-plan.md`](./workspace-tenancy-and-monetization-plan.md) |
+| BYO repo and the all-in-one platform | [`byo-build-implementation-plan.md`](./byo-build-implementation-plan.md) |
+| The managed end-to-end runtime | [`byo-p5-managed-runtime-plan.md`](./byo-p5-managed-runtime-plan.md) (founder-gated) |
+| Analytics and failure detection | [`analytics-and-failure-detection-plan.md`](./analytics-and-failure-detection-plan.md) (founder-gated; read before adding any vendor SDK) |
+| Admin console v2 | [`admin-console-v2-plan.md`](./admin-console-v2-plan.md) |
+| Decision Brain, increment 1 | [`ambient-precedent-plan.md`](./ambient-precedent-plan.md) |
+| Decision Brain, the supersession engine | [`supersession-engine-plan.md`](./supersession-engine-plan.md) |
+| Builder reliability and the codegen direction | [`builder-reliability-and-codegen-direction.md`](./builder-reliability-and-codegen-direction.md) (a proposal; the founder owns the decision) |
+
+## The current rebuild
+
+[`rebuild-2026-07/`](./rebuild-2026-07/) is live, not archived. It holds the two documents that outrank most things written before them:
+
+- **[`GOVERNANCE-PRINCIPLE.md`](./rebuild-2026-07/GOVERNANCE-PRINCIPLE.md)** — policy is set in advance and does not block; permission is asked in the moment and does. Canonical.
+- **[`FOUNDER-VERDICT-2026-07-29.md`](./rebuild-2026-07/FOUNDER-VERDICT-2026-07-29.md)** — the rejection of all four design directions, with the reasoning that replaced them.
+
+---
+
+## The rule that keeps this folder small
+
+**A plan stops being a plan the moment its work is done.** When an initiative closes, or its campaign is archived, or its status line reads SHIPPED, the bible moves to [`archive/`](./archive/README.md) with a line saying which of those happened. It does not sit at the top level looking live.
+
+The failure this prevents: on 2026-08-03 this folder still offered a plan whose own header said `Status: SHIPPED 2026-07-15`, two spec sets for a campaign that had been archived, and lane briefs for git worktrees that no longer existed. An agent reading top-to-top could not tell those from the eight that are genuinely open.

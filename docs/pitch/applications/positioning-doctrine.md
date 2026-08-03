@@ -1,6 +1,6 @@
 # Positioning doctrine — how we get selected, not just how we apply
 
-> _Created 2026-07-31. Founder directive: "it's not just blindly we need to apply. What should be the positioning, how are we going to make a successful application so that we get selected." This file answers that once, generally. Each program folder then has its own `POSITIONING.md` that specialises it._
+> _Created 2026-07-31. Founder directive: "it's not just blindly we need to apply. What should be the positioning, how are we going to make a successful application so that we get selected." This file answers that once, generally. Each program folder then has its own `positioning.md` that specialises it._
 
 ---
 
@@ -175,7 +175,7 @@ Reviewers who click get convinced. Reviewers who cannot click stay unconvinced. 
 1. **Re-arm the approval queues.** They decay on their own: each seeded workspace ships five pending approvals with short expiries. Last re-armed 2026-07-28 with a 60-day runway, so it holds to late September. Re-run before any review window.
 2. **Test the exact login in incognito** on `https://supaprod.ai` before pasting it into any form.
 3. **Re-pull every number** the day of submission. Commits, migrations and the build duration all age.
-4. **Record which login went to which program** in the allocation table in `ANSWER-BANK.md`. A login appearing in the logs is an engagement signal and it is worthless if nobody knows whose it is.
+4. **Record which login went to which program** in the allocation table in `answer-bank.md`. A login appearing in the logs is an engagement signal and it is worthless if nobody knows whose it is.
 
 ### The video problem
 

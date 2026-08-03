@@ -311,7 +311,21 @@ Several agentic tools build this repo at once. The rule that makes that safe: **
 
 ---
 
-## 11. When to escalate
+## 11. If you are writing anything outward-facing
+
+An accelerator application, an investor answer, a demo script, launch copy, a reply to an objection. **Go to [`docs/pitch/`](./docs/pitch/README.md) first and follow its seven-step procedure.** Do not compose from memory.
+
+The three rules that matter most, because they are the ones that get broken:
+
+- **Pull, do not write.** `applications/answer-bank.md` holds every reusable answer at every length. Composing a fresh one is how two applications end up contradicting each other.
+- **Facts come from the canon.** Contact addresses, the September 2026 launch date, the employer wording, the market ladder, the role arc. All in the Pitch Room README's table. Getting the employer name wrong is a real failure mode here.
+- **Tag every claim** `PROVEN` / `WIRING` / `ROADMAP`, and **never say a WIRING claim publicly until it runs.**
+
+Route the result back into `docs/pitch/` in the same session, updating the existing file. Never fork a parallel copy. And **nothing outward sends without the founder's approval**: not a DM, not a post, not a submission.
+
+---
+
+## 12. When to escalate
 
 Stop and ask when the task is ambiguous in a way that changes the work; when a destructive operation is on the table; when the change touches shared infrastructure or secrets; when you find unexpected state; when a hook blocks you and you are not authorized to disable it; or when the work has outgrown the request.
 

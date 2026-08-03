@@ -47,5 +47,5 @@ The runbook is **live the moment AFD-13 ships** (Better Stack monitors + escalat
 - Plan: [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md)
 - Feature spec: [`../features/analytics-and-failure-detection.md`](../features/analytics-and-failure-detection.md)
 - Seed monitor: [`../features/app-health.md`](../features/app-health.md)
-- Existing incidents panel: `src/components/governance/IncidentsPanel.tsx` + [`../features/p7-incidents.md`](../features/p7-incidents.md)
+- Existing incidents panel: `src/components/governance/IncidentsPanel.tsx` + [`features/incidents-log.md`](../features/incidents-log.md)
 - Credit-engine runbook (pattern AFD's dormant gate mirrors): [`./credit-engine-go-live.md`](./credit-engine-go-live.md)

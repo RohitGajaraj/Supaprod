@@ -16,7 +16,7 @@ _Last updated 2026-07-14 · branch `main` · everything below is VERIFIED GREEN.
 - `bun test` → 4696 pass / 0 fail / 311 files
 - dev server boots clean (no CSS/runtime errors)
 - retired remnants app-wide = 0 (`grep -rl "var(--font-serif)" src` outside styles.css/PageHeader; 0 editorial 420/430 weights; 0 light-theme `bg-white`/`text-slate`/`bg-indigo` outside the off-limits landing)
-- The public marketing landing `src/routes/index.tsx` is NOT part of this app-UI pass — but it is no longer frozen: its rebuild is planned and founder-directed. Any landing work follows [`planning/landing-page-v2-plan.md`](../../planning/landing-page-v2-plan.md) (strategy + copy deck + phases; awaits the founder's §9 decisions).
+- The public marketing landing `src/routes/index.tsx` is NOT part of this app-UI pass — but it is no longer frozen: its rebuild is planned and founder-directed. Any landing work follows [`planning/archive/landing-page-v2-plan.md`](../../planning/archive/landing-page-v2-plan.md) (strategy + copy deck + phases; awaits the founder's §9 decisions).
 - Adding a route requires regenerating `src/routeTree.gen.ts` (start `bunx vite dev` ~30s then stop; it regenerates on boot).
 
 ## DONE (verified) — 66 files changed

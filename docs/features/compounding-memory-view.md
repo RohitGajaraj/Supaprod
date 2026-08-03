@@ -54,6 +54,6 @@ Sidebar nav, "Loop" section, the "Memory" row (route `/memory`). It is a separat
 ## Related
 
 - `docs/planning/archive/build-log.md` §4 (the build-log entry for this surface)
-- [`loop-runs-itself.md`](./loop-runs-itself.md) and [`f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md) - how memory is written and recalled
+- [`loop-runs-itself.md`](./loop-runs-itself.md) and [`agent-memory-and-reflection.md`](./agent-memory-and-reflection.md) - how memory is written and recalled
 - [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) - milestone M-B status
 - Knowledge > Memory (the `learnings` audit feed) - the complementary human-facing view

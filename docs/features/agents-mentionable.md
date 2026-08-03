@@ -49,7 +49,7 @@ So a mention does not bypass the lifecycle, it **pre-plans** it: it writes one `
 
 ## Related
 
-- [`f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), the orchestrated-mission path this reuses.
+- [`orchestrator-and-missions.md`](./orchestrator-and-missions.md), the orchestrated-mission path this reuses.
 - [`brain.md`](./brain.md), the Ask surface.
 - `src/lib/ai/mission-advance.server.ts` (`advanceMissionCore`, `maybeCompleteMission` in `handoff.server.ts`), the deterministic lifecycle.
 - [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §3, the strategic rank and build queue.

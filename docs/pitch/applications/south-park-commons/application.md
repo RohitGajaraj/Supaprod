@@ -236,5 +236,5 @@ I am building this either way. The Fellowship changes the speed and the people a
 6. Recount Q9 and Q10 against the 1,000-character limit after filling the brackets.
 7. Read every answer aloud once. Any sentence that sounds like a pitch deck gets rewritten as speech.
 8. Sweep for em dashes. There should be none.
-9. Record in `ANSWER-BANK.md` that `voyage@` is now allocated to SPC.
+9. Record in `answer-bank.md` that `voyage@` is now allocated to SPC.
 10. Submit before **2026-08-02, 11:59pm PT**. That is Sunday.

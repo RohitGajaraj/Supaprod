@@ -144,7 +144,7 @@ the URLs change) and OBS-14's demo-seed dependency.
   specimen route (`src/routes/_authenticated.obsidian-specimen.tsx`) shipped
   once OBS-02 released the `_authenticated.*.tsx` glob it had conflicted
   with; renders every primitive in every state (tsc 0, 1892 total tests).
-  Full detail: [`../features/obsidian-port.md`](../../../features/obsidian-port.md)
+  Full detail: [`features/archive/obsidian-v3-port.md`](../../../features/archive/obsidian-v3-port.md)
   OBS-02 + OBS-03 sections.
 - **Verify:** grayscale screenshot still reads; tsc + tests.
 

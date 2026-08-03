@@ -99,5 +99,5 @@ Gate: `tsc --noEmit` 0, `bun test` 2040 pass, lint clean, migration linter 0 app
 ## See also
 
 - The approved phased plan (with migrations + function signatures): the session plan file under `~/.claude/plans/` (Ultraplan refinement in flight).
-- [`ambient-precedent.md`](./ambient-precedent.md), [`brain.md`](./brain.md), [`decision-brain.md`](./decision-brain.md), [`f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md) — the downstream reactor + intelligence the fabric feeds.
+- [`ambient-precedent.md`](./ambient-precedent.md), [`brain.md`](./brain.md), [`decision-brain.md`](./decision-brain.md), [`event-reactor-and-pipelines.md`](./event-reactor-and-pipelines.md) — the downstream reactor + intelligence the fabric feeds.
 - [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md) — the moat framing (pillar 2: sense continuously).

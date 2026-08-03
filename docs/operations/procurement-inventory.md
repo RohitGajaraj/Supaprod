@@ -89,7 +89,7 @@ Supaprod is **model-agnostic with BYO-key**, hosted on **Lovable-managed Cloudfl
 
 ### 7. Transactional email — Resend · usage-gated
 
-- **What & why:** app notifications ([`../features/r3-notifications.md`](../features/r3-notifications.md)).
+- **What & why:** app notifications ([`features/notifications.md`](../features/notifications.md)).
 - **Cost:** **Free 3,000 emails/mo** — but a **100/day cap** is the real binding constraint (a single broadcast to a few hundred users blows it). Step up: **Pro $20/mo** (50k emails, no daily cap). **OSS/cheapest floor:** Amazon SES (~$0.10 / 1,000 emails) direct from the Worker. _Confidence: high._
 - _Source: resend.com/pricing._
 

@@ -49,7 +49,7 @@ Maintains the canonical list of the third parties that process customer data on 
 
 ## Related
 
-- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (cycle 49) · [`../planning/considerations.md`](../planning/considerations.md) Data/Privacy lens · siblings [`u6-data-export.md`](./u6-data-export.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · catalog [`../../src/lib/ai/models.ts`](../../src/lib/ai/models.ts)
+- [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 (cycle 49) · [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) Data/Privacy lens · siblings [`workspace-data-export.md`](./workspace-data-export.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (DATA-RETENTION) · catalog [`../../src/lib/ai/models.ts`](../../src/lib/ai/models.ts)
 
 ## Settings/connections audit note (2026-07-07)
 

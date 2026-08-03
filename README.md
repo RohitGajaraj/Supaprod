@@ -204,7 +204,7 @@ Database changes are timestamped, RLS-aware SQL in `supabase/migrations/`. Apply
 | **Per-feature status and claims** | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) |
 | **What the last session did and left open** | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
 | **Which strategy doc is current** | [`docs/strategy/README.md`](./docs/strategy/README.md), the arbiter. Direction: [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md). Moat: [`docs/strategy/moat.md`](./docs/strategy/moat.md). |
-| **Pitch, demo, applications, objections** | [`docs/pitch/`](./docs/pitch/README.md), the Pitch Room. Update in place, never parallel copies. |
+| **⭐ Writing an application, pitch, or demo** | [`docs/pitch/`](./docs/pitch/README.md), **the Pitch Room.** Its README carries the seven-step procedure for a new accelerator or investor application: which programs are worth applying to, the two blockers that kill most of them, where to pull answers rather than compose them, the facts that get fumbled, and the never-list. Start there, never from scratch. |
 | **Design: the live system** | [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md). The shipped `--sp-*` shell is the baseline; every earlier design contract is retired history. |
 | **How a feature works, end to end** | [`docs/features/`](./docs/features/README.md). The loop's proof file: [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). |
 | **Architecture contracts** | [`architecture/`](./architecture/): runtime · orchestration · security · data · frontend · integrations. |

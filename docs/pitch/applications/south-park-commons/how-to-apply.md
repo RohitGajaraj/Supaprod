@@ -59,7 +59,7 @@ Watch the two character limits. Q9 and Q10 are both capped at **1,000 characters
 
 ### Step 4, after submitting
 
-- Record in [`../ANSWER-BANK.md`](../ANSWER-BANK.md) that **`voyage@` is now allocated to South Park Commons**, with today's date. Never send that login to another program.
+- Record in [`answer-bank.md`](../answer-bank.md) that **`voyage@` is now allocated to South Park Commons**, with today's date. Never send that login to another program.
 - Expect to hear about interviews by **2026-08-30**.
 
 ## What happens next, and how to be ready

@@ -12,7 +12,7 @@ Every core entity the platform records now carries a **verifiable audit id** —
 - **Type an id in Ask** (`what happened with OPP·005C82?`) → Ask detects the id deterministically and opens its lineage instantly, before any model call.
 - **Missions go deeper:** a mission's lineage also renders its full **nine-link trust chain** (signal → … → outcome), reusing the Trust Ledger's chain engine, so the mission's real provenance is one click from anywhere its id appears.
 
-It is the connective tissue over provenance the product already records ([Trust Ledger](./trust-ledger.md), [O1 provenance](./o1-provenance.md), the [Knowledge-Graph Explorer](./knowledge-graph-explorer.md)): those surfaces prove specific things in specific places; the audit id makes **every id, on every surface, a door to that proof.**
+It is the connective tissue over provenance the product already records ([Trust Ledger](./trust-ledger.md), [O1 provenance](./roadmap-provenance.md), the [Knowledge-Graph Explorer](./knowledge-graph-explorer.md)): those surfaces prove specific things in specific places; the audit id makes **every id, on every surface, a door to that proof.**
 
 ## Why it exists
 
@@ -90,6 +90,6 @@ Anywhere an entity id shows (Discover / Decide / Plan / Build / Learn / Today / 
 ## Related
 
 - [Trust Ledger](./trust-ledger.md) — the receipts surface + the mission chain engine this reuses.
-- [O1 provenance](./o1-provenance.md) — the "why is this here" ancestor walk; the audit id is a universal entry point to the same provenance.
+- [O1 provenance](./roadmap-provenance.md) — the "why is this here" ancestor walk; the audit id is a universal entry point to the same provenance.
 - [Knowledge-Graph Explorer](./knowledge-graph-explorer.md) — the typed graph; graph node chips are now audit tags where a standalone entity exists.
 - Design-system pattern: [`design-reference/tempo-v5/patterns/audit-trace-tag.md`](../../design-reference/tempo-v5/patterns/audit-trace-tag.md).

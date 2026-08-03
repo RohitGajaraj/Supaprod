@@ -1,0 +1,31 @@
+# Decisions
+
+> _Created: 2026-08-04 · Last updated: 2026-08-04_
+
+**Why a technical call went the way it did.** Ten records. Read one when you are about to change something it decided, or when you are tempted to re-litigate a choice somebody already thought through.
+
+A decision record is not a plan. It captures the options that were on the table, what was chosen, and the cost accepted. If you disagree with one, the honest move is to add a new record superseding it, not to quietly build the other way.
+
+---
+
+| Decision | What it settles |
+| --- | --- |
+| [`tech-stack.md`](./tech-stack.md) | The stack: keep, change, and the open-source posture. Lean permissive; flag copyleft or source-available before it lands. |
+| [`tenancy-retrofit.md`](./tenancy-retrofit.md) | The three-key tenancy model: account, workspace, product. **Read before touching any RLS policy.** |
+| [`durable-runtime.md`](./durable-runtime.md) | Where long and parallel agent work runs. |
+| [`build-sandbox-vendor.md`](./build-sandbox-vendor.md) | Why E2B, why not Cloudflare, and what that costs. |
+| [`analytics-vendor-selection.md`](./analytics-vendor-selection.md) | PostHog EU, Sentry EU, Better Stack. The façade rule that keeps leaving Lovable a one-day redeploy. |
+| [`memory-on-delete.md`](./memory-on-delete.md) | What happens to memory when a run or session is deleted. A privacy-shaped decision, not a cleanup one. |
+| [`lineage-relation-vocabulary.md`](./lineage-relation-vocabulary.md) | **Open question**, not a settled record: whether to collapse the `artifact_lineage.relation` vocabulary. Related trap: two kind vocabularies exist and neither is authoritative, so validating kinds can silently drop a whole lineage chain. |
+| [`launch-gates-seat-limits-and-sandbox.md`](./launch-gates-seat-limits-and-sandbox.md) | The two launch gates, with the numbers behind them. |
+| [`parallel-development-model.md`](./parallel-development-model.md) | Document-driven parallel development. Historical: the lane worktrees it describes were deleted 2026-08-03. |
+| [`naming.md`](./naming.md) | The product-name status and candidate log. The decision itself, Cadence to Supaprod, is [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md), with the unmigrated-identifier ledger at [`../operations/rename-cadence-to-supaprod.md`](../operations/rename-cadence-to-supaprod.md). |
+
+---
+
+## Related, but not decision records
+
+- **Build, buy or integrate** any capability: [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md), the gate you run before building from core.
+- **Strategic** decisions, as opposed to technical ones: [`../strategy/session-decisions.md`](../strategy/session-decisions.md).
+- **Governance**, which is a founder ruling rather than an ADR: [`../planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](../planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md).
+- **Architecture contracts**, which state what is true rather than why: [`../../architecture/`](../../architecture/).

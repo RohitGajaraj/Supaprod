@@ -258,7 +258,7 @@ A checklist for any object card, row, node, or detail:
 - [`design/archive/loom-v4.md`](../design/archive/loom-v4.md), the design contract (§0.1 dimension 17 is the binding short form of this reference; dimensions 1 to 16 are the wider Consumer Production Doctrine)
 - [`design/archive/obsidian-v3.md`](../design/archive/obsidian-v3.md), the v3 base design system (tokens, role colors, restraint budget) that Loom is additive over
 - [`../features/opportunity-ranking.md`](../features/opportunity-ranking.md), the DEC-RANK feature doc (ranking + best bet + designations, the built exemplar)
-- [`../features/obsidian-port.md`](../features/obsidian-port.md), the surface-by-surface port to the v3/Loom system
+- [`features/archive/obsidian-v3-port.md`](../features/archive/obsidian-v3-port.md), the surface-by-surface port to the v3/Loom system
 - [`ui-voice.md`](./ui-voice.md), UI copy length budgets + the AI-tell denylist
 - [`humanized-output.md`](./humanized-output.md), the zero-AI-fingerprint rule
 - [`engine-room-doctrine.md`](./engine-room-doctrine.md), outcome-first naming (complexity lives in the engine, never the experience)

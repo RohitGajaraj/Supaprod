@@ -224,5 +224,5 @@ Written in the style of [`qa-bank.md`](./qa-bank.md): where the honest answer co
 - [`../strategy/pricing/memory-tier-ladder.md`](../strategy/pricing/memory-tier-ladder.md), the packaging spec: per-tier capability, enforcement status, and the open founder calls.
 - [`../strategy/pricing/pricing-architecture.md`](../strategy/pricing/pricing-architecture.md), the end-to-end pricing system this ladder plugs into.
 - [`../strategy/moat.md`](../strategy/moat.md), the moat canon that section 5 applies to the memory layer specifically.
-- [`../features/f-agent-2-memory-reflection.md`](../features/f-agent-2-memory-reflection.md), the operator-facing account of the memory and reflection feature.
+- [`features/agent-memory-and-reflection.md`](../features/agent-memory-and-reflection.md), the operator-facing account of the memory and reflection feature.
 - [`../decisions/lineage-relation-vocabulary.md`](../decisions/lineage-relation-vocabulary.md), the ADR behind the relation-vocabulary fork described in 4.4.

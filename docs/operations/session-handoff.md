@@ -649,7 +649,7 @@ before committing.
 
 ## WHAT THE FOUNDER RULED TODAY (all now in the doctrine)
 
-Everything below lives in `docs/pitch/applications/POSITIONING-DOCTRINE.md` and `ANSWER-BANK.md`. Read those before drafting anything.
+Everything below lives in `docs/pitch/applications/POSITIONING-DOCTRINE.md` and `answer-bank.md`. Read those before drafting anything.
 
 - **Rule 4, lead with the person not the market.** The company exists because people get blamed for decisions nobody can reconstruct. Dignity problem before efficiency problem.
 - **Rule 5, three layers in order, and the brain guides rather than stores.** Director (tells you what to build, the sharpest claim), operating system (runs the lifecycle), company brain (warns you before you repeat what did not work). "Memory is one layer of the moat, not the headline." Banned: "where the record lives", "the accountability layer" as the whole pitch.
@@ -685,8 +685,8 @@ Originals untouched in the parent folders. `ffmpeg` recipe used: `setpts=PTS/N` 
 | File | What it is |
 | --- | --- |
 | `README.md` | Master index: submitted, urgent queue, rolling, credits, closed, login ledger |
-| `POSITIONING-DOCTRINE.md` | **Read first.** How we get selected. Six rules, asset ledger, per-program axis, quality gate |
-| `ANSWER-BANK.md` | Reusable answers at every length, live numbers, login allocation |
+| `positioning-doctrine.md` | **Read first.** How we get selected. Six rules, asset ledger, per-program axis, quality gate |
+| `answer-bank.md` | Reusable answers at every length, live numbers, login allocation |
 | `TRACKER-notion.csv` / `TRACKER.csv` | 124 programs, typed columns |
 | `board.html` | Read-only dashboard, also published as an artifact |
 | `<program>/` | POSITIONING, application, HOW-TO-APPLY per program |

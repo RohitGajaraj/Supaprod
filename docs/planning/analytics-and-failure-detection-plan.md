@@ -352,9 +352,9 @@ The picker MUST NOT start AFD until:
 - Procurement: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md) — the shopping list (PostHog/Sentry/Better Stack rows live there).
 - Existing health endpoint: [`../features/app-health.md`](../features/app-health.md) — `GET /api/public/health`, the seed of Better Stack monitoring.
 - Existing incidents panel: `src/components/governance/IncidentsPanel.tsx` — AFD extends, does not replace.
-- Existing audit: [`../features/p7-incidents.md`](../features/p7-incidents.md) + F-ADMIN-AUDIT — the audit-log target for the admin kill-switch.
+- Existing audit: [`features/incidents-log.md`](../features/incidents-log.md) + F-ADMIN-AUDIT — the audit-log target for the admin kill-switch.
 - Existing chokepoint: `src/lib/ai/chokepoint.ts` — where `track('agent_run_finished')` and `agent_runs.failure_kind` get written.
-- Considerations: [`./considerations.md`](./considerations.md) — the SRE/Platform-lens gap this closes.
+- Considerations: [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) — the SRE/Platform-lens gap this closes.
 - Façade spec: [`../features/observability-facade.md`](../features/observability-facade.md).
 - Vendor selection decision record: [`../decisions/analytics-vendor-selection.md`](../decisions/analytics-vendor-selection.md).
 - Alerting runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md).

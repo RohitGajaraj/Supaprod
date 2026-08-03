@@ -61,4 +61,4 @@ Without memory, every run started from scratch and trust never moved. F-AGENT-2 
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, 2026-06-06 F-AGENT-2 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md), orchestration contract (F-AGENT-2 bullet)
 - [`./trust-and-autonomy.md`](./trust-and-autonomy.md), the trust arcs and how they gate approvals
-- [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), [`./f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md), [`./f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md)
+- [`orchestrator-and-missions.md`](./orchestrator-and-missions.md), [`event-reactor-and-pipelines.md`](./event-reactor-and-pipelines.md), [`swarm-hud.md`](./swarm-hud.md)

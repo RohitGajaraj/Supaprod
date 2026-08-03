@@ -10,7 +10,7 @@ Supaprod ships a two-layered observability stack. The **commodity layer** is bou
 
 ## Why it exists (one paragraph)
 
-[`../planning/considerations.md`](../planning/considerations.md) flags **"App-level monitoring + alerting (not just AI telemetry)"** as a P0 gap, and `IncidentsPanel` was built without external feeds to fill it. The founder has explicitly asked for "analytics + failure-log detection" as a single initiative. The split (buy commodity, build moat) is the standing doctrine [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md): rebuilding PostHog/Sentry would burn months for an inferior result, while rebuilding decision-velocity and agent-cost analytics is exactly the receipts moat we want on our side of the line.
+[`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) flags **"App-level monitoring + alerting (not just AI telemetry)"** as a P0 gap, and `IncidentsPanel` was built without external feeds to fill it. The founder has explicitly asked for "analytics + failure-log detection" as a single initiative. The split (buy commodity, build moat) is the standing doctrine [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md): rebuilding PostHog/Sentry would burn months for an inferior result, while rebuilding decision-velocity and agent-cost analytics is exactly the receipts moat we want on our side of the line.
 
 ## Where to find it (nav path, route, panels)
 

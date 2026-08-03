@@ -645,7 +645,7 @@ Flip switches (`memory_expiry_enabled`, `credits_enabled`, Stripe secrets) are l
 ## 8. Cross-links and cascade map
 
 - Status: [`feature-dashboard.md`](./feature-dashboard.md) (per-item board), [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (front door).
-- Execution context: [`archive/v10-implementation-plan.md`](./archive/v10-implementation-plan.md), [`considerations.md`](./considerations.md).
+- Execution context: [`archive/v10-implementation-plan.md`](./archive/v10-implementation-plan.md), [`cross-cutting-gaps.md`](./cross-cutting-gaps.md).
 - Strategy: [`../strategy/moat.md`](../strategy/moat.md) (the moat / competition / positioning canon, the source for §2.3), [`../strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md) (Section 5.5 monetization canon), [`../strategy/session-decisions.md`](../strategy/session-decisions.md), [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md), [`../strategy/README.md`](../strategy/README.md) (role map).
 - Architecture: [`../../architecture/data.md`](../../architecture/data.md), [`../../architecture/security.md`](../../architecture/security.md).
 - Feature specs: [`../features/workspaces.md`](../features/workspaces.md), [`../features/pricing.md`](../features/pricing.md).

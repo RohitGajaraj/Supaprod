@@ -4,7 +4,7 @@
 
 > **BLD-04 status (2026-06-29):** Supaprod code is complete and dormant. The seam, adapter, model-agnostic LLM resolver, poll/fold cycle, and `delegate_meta` persistence are all shipped and tested. This guide covers deploying a publicly accessible OpenHands instance and wiring 3 env vars in Lovable to activate delegation end-to-end.
 >
-> Cross-references: [`features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) | [`strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-06-29
+> Cross-references: [`features/delegate-out-to-external-agents.md`](../features/delegate-out-to-external-agents.md) | [`strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-06-29
 
 ---
 
@@ -12,7 +12,7 @@
 
 **All-Hands Cloud does not work for server-to-server calls.** All-Hands Cloud (app.all-hands.dev) is a web UI product that uses GitHub OAuth for auth. The `sk-oh-` keys visible in their settings panel are outbound webhook tokens — they authenticate payloads All-Hands sends TO you, not bearer tokens for you to call their REST API. There is no token-based server-to-server REST API.
 
-Supaprod runs as a Cloudflare Worker (cloud process, no browser). Self-hosted OpenHands on a public HTTPS URL is the correct path. Full diagnosis: [`docs/features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29`](../features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29).
+Supaprod runs as a Cloudflare Worker (cloud process, no browser). Self-hosted OpenHands on a public HTTPS URL is the correct path. Full diagnosis: [`docs/features/bld04-delegate-out.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29`](../features/delegate-out-to-external-agents.md#all-hands-cloud-integration-attempt-and-findings-2026-06-29).
 
 ---
 

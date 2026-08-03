@@ -4,7 +4,7 @@
 
 > **Status:** design (awaiting review) · **Date:** 2026-06-18 · **Lane:** G3 Build → QA → Ship · **Depends on:** F-STUDIO, I1b (revisions), J2 (CI gate) - all ✅
 >
-> The brainstorm artifact for feature **K2**. The canonical record once built lives in [`features/studio.md`](../../features/studio.md) (gains a "Rollback" section) + the dashboards; this file is the design rationale.
+> The brainstorm artifact for feature **K2**. The canonical record once built lives in [`features/build-engine.md`](../../features/build-engine.md) (gains a "Rollback" section) + the dashboards; this file is the design rationale.
 
 ---
 

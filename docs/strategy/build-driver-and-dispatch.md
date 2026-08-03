@@ -275,7 +275,7 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 
 ## The 2026-07-10 re-decision: the driver ladder, and the full reasoning why Supaprod never builds the code generator
 
-> _Appended 2026-07-10 (the v13 goal session's build-strategy question). This is the complete argument — for any agent touching the build layer, and for the founder facing "why aren't you building codegen?" from an investor. The one-breath version lives in [`../pitch/qa-bank.md`](../pitch/qa-bank.md); the launch execution lives in [`../planning/launch-sprint-specs.md`](../planning/launch-sprint-specs.md) §PC-35._
+> _Appended 2026-07-10 (the v13 goal session's build-strategy question). This is the complete argument — for any agent touching the build layer, and for the founder facing "why aren't you building codegen?" from an investor. The one-breath version lives in [`../pitch/qa-bank.md`](../pitch/qa-bank.md); the launch execution lives in [`planning/archive/launch-sprint-specs.md`](../planning/archive/launch-sprint-specs.md) §PC-35._
 
 ### The question
 

@@ -1,6 +1,6 @@
 # The Residency — how we win this one
 
-> _Form read live from the founder's screenshots, 2026-07-31. Answers in [`application.md`](./application.md). Steps in [`HOW-TO-APPLY.md`](./HOW-TO-APPLY.md)._
+> _Form read live from the founder's screenshots, 2026-07-31. Answers in [`application.md`](./application.md). Steps in [`how-to-apply.md`](./how-to-apply.md)._
 
 ## The facts
 

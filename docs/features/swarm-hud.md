@@ -81,6 +81,6 @@ F-AGENT-1 made Supaprod plan, F-AGENT-2 made it learn, F-AGENT-3 made it react. 
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4: 2026-06-06 F-AGENT-4 entry
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md): agent orchestration contract (Swarm HUD bullet)
 - [`../planning/archive/feature-backlog.md`](../planning/archive/feature-backlog.md): F-AGENT-4 ledger row
-- [`./f-agent-1-orchestrator.md`](./f-agent-1-orchestrator.md), [`./f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md), [`./f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md)
+- [`orchestrator-and-missions.md`](./orchestrator-and-missions.md), [`agent-memory-and-reflection.md`](./agent-memory-and-reflection.md), [`event-reactor-and-pipelines.md`](./event-reactor-and-pipelines.md)
 - [`./trust-and-autonomy.md`](./trust-and-autonomy.md): what the arc pills on the Agents grid mean
 - [`./a2a-handoff.md`](./a2a-handoff.md): the contract behind the Handoff feed

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-04 · Last updated: 2026-08-03_
 
-**Fifteen folders, each answering one question.** This file says which folder answers which, and it is the placement policy: before creating any file, find its bucket here and link it from that bucket's index in the same commit.
+**Fifteen folders, each answering one question.** Every one has an index. This file says which folder answers which, and it is the placement policy: before creating any file, find its bucket here and link it from that bucket's index in the same commit.
 
 Start at [`../README.md`](../README.md) if you want to know what the product is. Start at [`../AGENTS.md`](../AGENTS.md) if you are about to write code.
 
@@ -22,14 +22,14 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 
 | Folder | Question it answers |
 | --- | --- |
-| **[`planning/`](./planning/SOURCE-OF-TRUTH.md)** | Where we are, what is next, what needs the founder. **[`SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) §0 is the only live cursor.** Per-feature status is [`feature-dashboard.md`](./planning/feature-dashboard.md); open bugs are [`known-issues.md`](./planning/known-issues.md). |
-| **[`features/`](./features/README.md)** | How each shipped thing works, one page per feature. The loop's proof file is [`lifecycle-signal-to-learning.md`](./features/lifecycle-signal-to-learning.md). |
+| **[`planning/`](./planning/README.md)** | Where we are, what is next, what needs the founder. **[`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) §0 is the only live cursor.** Per-feature status is [`planning/feature-dashboard.md`](./planning/feature-dashboard.md); open bugs are [`planning/known-issues.md`](./planning/known-issues.md). |
+| **[`features/`](./features/README.md)** | How each shipped thing works, one page per feature. The loop's proof file is [`features/lifecycle-signal-to-learning.md`](./features/lifecycle-signal-to-learning.md). |
 
 ### How it should look, and how it is built
 
 | Folder | Question it answers |
 | --- | --- |
-| **[`design/`](./design/DESIGN-SYSTEM.md)** | The design contract. **[`DESIGN-SYSTEM.md`](./design/DESIGN-SYSTEM.md) is current**; the four earlier systems are in its [`archive/`](./design/archive/README.md). |
+| **[`design/`](./design/DESIGN-SYSTEM.md)** | The design contract. **[`design/DESIGN-SYSTEM.md`](./design/DESIGN-SYSTEM.md) is current**; the four earlier systems are in its [`archive/`](./design/archive/README.md). |
 | **[`conventions/`](./conventions/README.md)** | Durable cross-tool rules: voice, chrome, destructive actions, the Engine-Room doctrine, surface discipline, humanized output. |
 | **[`decisions/`](./decisions/)** | ADRs. Why a technical call went the way it did. |
 | **[`../architecture/`](../architecture/)** | The contracts: runtime, orchestration, security, data, frontend, integrations. Lives at repo root, not here. |
@@ -91,7 +91,7 @@ Two loose files are allowed at this level and no others: this index, and [`brand
 | `strategy/Prompts/`, a prompt filed as strategy canon | [`prompts/`](./prompts/README.md) |
 | A mission prompt loose at `docs/` top level with **no file extension** | [`prompts/production-readiness-audit.md`](./prompts/production-readiness-audit.md) |
 | `runbooks/`, a folder holding exactly one file | Folded into [`operations/`](./operations/README.md) |
-| `planning/`, 51 loose files | 18, with 30 orphaned reports in [`planning/archive/reports/`](./planning/archive/reports/README.md) |
+| `planning/`, 51 loose files | **12**, with 30 orphaned reports plus six finished plans in [`planning/archive/reports/`](./planning/archive/reports/README.md) |
 | `strategy/` declaring **seven** documents current at once | One per question, per the [arbiter](./strategy/README.md) |
 | `feature-dashboard.md`, 6.45 MB | 923 KB. 85% was table padding; removing it was verified lossless. |
 

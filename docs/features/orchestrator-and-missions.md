@@ -65,4 +65,4 @@ The substrate (chokepoint, agent runs, A2A handoffs, trust gates) had been in pl
 - [`../../architecture/orchestration.md`](../../architecture/orchestration.md), orchestration contract (F-AGENT-1 bullet)
 - [`./a2a-handoff.md`](./a2a-handoff.md), A2A handoff contract used by `mission.dispatch`
 - [`./trust-and-autonomy.md`](./trust-and-autonomy.md), arcs that gate the specialists
-- [`./f-agent-2-memory-reflection.md`](./f-agent-2-memory-reflection.md), [`./f-agent-3-event-reactor.md`](./f-agent-3-event-reactor.md), [`./f-agent-4-swarm-hud.md`](./f-agent-4-swarm-hud.md)
+- [`agent-memory-and-reflection.md`](./agent-memory-and-reflection.md), [`event-reactor-and-pipelines.md`](./event-reactor-and-pipelines.md), [`swarm-hud.md`](./swarm-hud.md)

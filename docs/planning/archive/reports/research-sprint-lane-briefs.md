@@ -1,6 +1,6 @@
 # The lane briefs — four parallel sessions (G17 sprint + G18 research merge)
 
-> _v2, 2026-07-10 late: unified four-lane protocol per the founder's directive (2 Fable + 2 Sonnet — the sprint's bottleneck is judgment, not typing). **Copy a fenced block below into a fresh Claude Code session verbatim.** Authority: the founder's full-tweak-authority grant — [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10._
+> _v2, 2026-07-10 late: unified four-lane protocol per the founder's directive (2 Fable + 2 Sonnet — the sprint's bottleneck is judgment, not typing). **Copy a fenced block below into a fresh Claude Code session verbatim.** Authority: the founder's full-tweak-authority grant — [`../strategy/session-decisions.md`](../../../strategy/session-decisions.md) 2026-07-10._
 
 **Shared protocol (all four lanes):** `git pull origin main` first · own worktree (`git worktree add ../cadence-lane-<X> -b parallel/lane-<X>` or reuse a cadence-lane-N checkout) · claim before building (flip the dashboard row to `🔨 In Dev (lane<X>)` + `bash scripts/lane.sh claim <ID> lane<X> "<globs>"`, globs disjoint) · AGENTS.md §3 gates (tsc/build/tests) · commit with a WHY · `git push origin parallel/lane-<X>:main` · flip the row ✅ + one-line note · next row. NEVER pick Gated/FOUNDER-CALL rows. The Love Gate governs everything user-facing: enterprise-credible AND consumer-grade, verified on a fresh production account.
 
@@ -51,7 +51,7 @@ CLAIM per the shared protocol. Worktree: ../cadence-lane-D -b parallel/lane-D. P
 
 ## The upstream/downstream extension (founder directive, 2026-07-10)
 
-Mid-merge, the founder widened the aperture beyond the PM middle: the OS spans **from market signal to shipped outcome to told story**. G18 carries this as four rows extending v12's journey-ends (JNY) findings rather than duplicating them: upstream **RPT-46** (competitive/trend intelligence brief live — JNY-01) and **RPT-47** (Strategic Brief formation flow — JNY-02); downstream **RPT-48** (launch/GTM kit from shipped outcomes — JNY-04) and **RPT-49** (outcome-story receipts in stakeholder digests — JNY-05). The matching support line was added to v13 §8. Provenance note: the directive as relayed attributed an upstream-merge quote to a Chesky episode in [`../references/podcast-corpus-lenny.md`](../references/podcast-corpus-lenny.md); **no Chesky content exists in that corpus** (verified by search this session), so the rows cite the directive itself plus the evidence that IS in the corpus (Mosseri's product-staff pods 2026-07-09, the §14 generalist-pod trend, v12 JNY gap analysis) — never a fabricated citation.
+Mid-merge, the founder widened the aperture beyond the PM middle: the OS spans **from market signal to shipped outcome to told story**. G18 carries this as four rows extending v12's journey-ends (JNY) findings rather than duplicating them: upstream **RPT-46** (competitive/trend intelligence brief live — JNY-01) and **RPT-47** (Strategic Brief formation flow — JNY-02); downstream **RPT-48** (launch/GTM kit from shipped outcomes — JNY-04) and **RPT-49** (outcome-story receipts in stakeholder digests — JNY-05). The matching support line was added to v13 §8. Provenance note: the directive as relayed attributed an upstream-merge quote to a Chesky episode in [`../references/podcast-corpus-lenny.md`](../../../references/podcast-corpus-lenny.md); **no Chesky content exists in that corpus** (verified by search this session), so the rows cite the directive itself plus the evidence that IS in the corpus (Mosseri's product-staff pods 2026-07-09, the §14 generalist-pod trend, v12 JNY gap analysis) — never a fabricated citation.
 
 ## Rejected directions (fit-test failures, kept so nobody re-litigates them)
 
@@ -111,16 +111,16 @@ NOTHING outward is ever sent, posted, or published without the founder's explici
 
 ## Related
 
-- [`feature-dashboard.md`](./feature-dashboard.md) — group G18 (rows RPT-01..49): the register these briefs pick from; the claim ledger is the collision law
-- [`archive/v13-proof-campaign-plan.md`](./archive/v13-proof-campaign-plan.md) §3 — the parent parallel-lane protocol (G17); G18 lanes follow the same mechanics and yield to G17 claims on shared surfaces
-- [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §16 + [`../references/investor-corpus-yc-vc.md`](../references/investor-corpus-yc-vc.md) §A + [`../references/podcast-corpus-aakash.md`](../references/podcast-corpus-aakash.md) + [`../references/podcast-corpus-lenny.md`](../references/podcast-corpus-lenny.md) + [`../references/podcast-corpus-frontier.md`](../references/podcast-corpus-frontier.md) + [`../references/new-age-product-development-research.md`](../references/new-age-product-development-research.md) — the evidence base
-- [`../strategy/session-decisions.md`](../strategy/session-decisions.md) 2026-07-10 — decisions 1–7 (the authority + boundaries for this merge)
+- [`feature-dashboard.md`](../../feature-dashboard.md) — group G18 (rows RPT-01..49): the register these briefs pick from; the claim ledger is the collision law
+- [`v13-proof-campaign-plan.md`](../v13-proof-campaign-plan.md) §3 — the parent parallel-lane protocol (G17); G18 lanes follow the same mechanics and yield to G17 claims on shared surfaces
+- [`../references/pm-voice-and-ai-tooling-research.md`](../../../references/pm-voice-and-ai-tooling-research.md) §16 + [`../references/investor-corpus-yc-vc.md`](../../../references/investor-corpus-yc-vc.md) §A + [`../references/podcast-corpus-aakash.md`](../../../references/podcast-corpus-aakash.md) + [`../references/podcast-corpus-lenny.md`](../../../references/podcast-corpus-lenny.md) + [`../references/podcast-corpus-frontier.md`](../../../references/podcast-corpus-frontier.md) + [`../references/new-age-product-development-research.md`](../../../references/new-age-product-development-research.md) — the evidence base
+- [`../strategy/session-decisions.md`](../../../strategy/session-decisions.md) 2026-07-10 — decisions 1–7 (the authority + boundaries for this merge)
 
 ---
 
 ## 2026-07-10 additions — PC-36 + PC-37 (founder directives, specced same day)
 
-Two new Tier-1 G17 rows are ready for pickup; specs are decision-complete in [`launch-sprint-specs.md`](./launch-sprint-specs.md):
+Two new Tier-1 G17 rows are ready for pickup; specs are decision-complete in [`launch-sprint-specs.md`](../launch-sprint-specs.md):
 
 - **PC-36 — Ask v2** (Build, Sonnet lane): workstream Z FIRST (founder-reported typing/streaming defects: per-keystroke refetch, full-thread re-render, non-duplex stream - the audit checklist is in the spec), then A→C→B→E→D plus G (conversation anatomy: user vs agent-signed blurbs, streaming feel, Loom bar) and voice phase 1; the block vocabulary and temporal recall are binding (founder extension in the spec). Exactly three named Fable forks (SSE block protocol, scope→retrieval params, approval-affordance UX) — everything else is decided in the spec, do not re-litigate.
 - **PC-37 — Density pass** (Design, Sonnet lane): token-led, shared-primitives-only; exact starting values in the spec; any token-value dispute is a Fable fork. **Love-Gate review by Fable BEFORE merge** (DESIGN-LOOM density addendum, 2026-07-10).

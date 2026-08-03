@@ -3,7 +3,7 @@
 > _Created: 2026-06-06 · Last updated: 2026-06-14_
 
 > [!IMPORTANT]
-> **SUPERSEDED by F-STUDIO (2026-06-12).** The Builder handoff UX described here is replaced by **Studio**, the in-platform development engine: multi-file changesets, isolated `studio/*` branches, in-platform merge, live human surface at `/studio`. Canonical doc: [`studio.md`](../studio.md). The Builder _agent_ internals referenced below (`agent_slug='builder'`, `builder_file_claims`, the single-file `github.pr.open`/`github.commit.append` tools) remain in the codebase as legacy equivalents: read `builder` ≡ `studio`. `/build` now redirects to `/studio`.
+> **SUPERSEDED by F-STUDIO (2026-06-12).** The Builder handoff UX described here is replaced by **Studio**, the in-platform development engine: multi-file changesets, isolated `studio/*` branches, in-platform merge, live human surface at `/studio`. Canonical doc: [`build-engine.md`](../build-engine.md). The Builder _agent_ internals referenced below (`agent_slug='builder'`, `builder_file_claims`, the single-file `github.pr.open`/`github.commit.append` tools) remain in the codebase as legacy equivalents: read `builder` ≡ `studio`. `/build` now redirects to `/studio`.
 
 > **Status:** ✅ Shipped (Slice 1 2026-06-04 · Slice 2 + 3 2026-06-06) · superseded 2026-06-12 · **Route:** ~~`/build`~~ → `/studio` · **Owner agent:** `builder` (display name **Studio**)
 
@@ -100,4 +100,4 @@ The same CI chip and PR chip render inline in `/missions/$id` for each step in t
 - GitHub approval flow: [`./github-issue-approval-flow.md`](../github-issue-approval-flow.md).
 - Foundation: [`../planning/archive/foundation-audit.md`](../../planning/archive/foundation-audit.md) row 0.9 (durable runtime), proven against this Bundle.
 - Backlog row: [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md) Bundle 9.
-- Sibling features: [`./f-agent-1-orchestrator.md`](../f-agent-1-orchestrator.md) (dispatches Builder), [`./f-agent-3-event-reactor.md`](../f-agent-3-event-reactor.md) (can trigger Builder on `prd.approved`).
+- Sibling features: [`orchestrator-and-missions.md`](../orchestrator-and-missions.md) (dispatches Builder), [`event-reactor-and-pipelines.md`](../event-reactor-and-pipelines.md) (can trigger Builder on `prd.approved`).

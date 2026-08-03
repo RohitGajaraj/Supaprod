@@ -94,7 +94,7 @@
 
 **Decisions (binding).** (1) Cadence owns the EXPERIENCE end to end (spec in → PR out → gate → receipts → outcome, never leaving the platform) and never the generator - BUILD-forever list unchanged (ontology/Critic/oracles/governance/receipts); the generator is INTEGRATE-behind-the-seam permanently. (2) The ladder: native spine = launch floor (proven; honestly scoped to bounded changes) → **PC-35 (NEW, Tier 1, beta wave): the Claude Agent SDK driver** - owned, headless, zero user infra, credits-metered with per-task budget holds, PR-only behind the untouched review-pinned merge gate, driver named on every receipt → **PC-21 RESCOPED to post-launch G-TEAM**: OpenHands productized ($0/self-host, an enterprise posture requiring per-customer infra - deliberately not the launch path) + BYO Devin/Codex/Cursor keys. (3) Driver selection automatic (native for small bounded diffs, SDK for the rest), always visible on the mission.
 
-**Why it matters.** Closes the last soft middle in the end-to-end story before beta users connect real repos (days 5-14); converts "the handoff isn't done" from a gap into a sequenced ladder with the launch-grade rung Sonnet-executable ([`../planning/launch-sprint-specs.md`](../planning/launch-sprint-specs.md) §PC-35).
+**Why it matters.** Closes the last soft middle in the end-to-end story before beta users connect real repos (days 5-14); converts "the handoff isn't done" from a gap into a sequenced ladder with the launch-grade rung Sonnet-executable ([`planning/archive/launch-sprint-specs.md`](../planning/archive/launch-sprint-specs.md) §PC-35).
 
 ---
 
@@ -275,7 +275,7 @@
 
 **Tradeoffs considered:** (a) All-Hands Cloud free plan — same auth limitation; plan tier is irrelevant to the auth model. (b) Local Docker + ngrok — valid for one-time tests but URL changes on every ngrok restart; not stable for Lovable env var. (c) Local Docker + Cloudflare Tunnel — stable but adds CF Tunnel setup complexity. (d) Railway.app — simple, stable, permanent URL, ~$5/month, auto-HTTPS; recommended. (e) Render.com — free tier available but cold starts; acceptable fallback.
 
-**Impact:** [`features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) §Immediate next step and §All-Hands Cloud findings updated. [`operations/openhands-activation.md`](../operations/openhands-activation.md) rewritten with Railway/Render/DO options, model-agnostic LLM table, and delegation trigger guide. BLD-04 status remains ◐ (blocked on founder Railway deployment).
+**Impact:** [`features/delegate-out-to-external-agents.md`](../features/delegate-out-to-external-agents.md) §Immediate next step and §All-Hands Cloud findings updated. [`operations/openhands-activation.md`](../operations/openhands-activation.md) rewritten with Railway/Render/DO options, model-agnostic LLM table, and delegation trigger guide. BLD-04 status remains ◐ (blocked on founder Railway deployment).
 
 ---
 
@@ -299,7 +299,7 @@
 
 **Tradeoffs considered:** (a) One model for all — forces enterprises to either self-host or share infrastructure; wrong for both. (b) BYO-only — eliminates the SMB segment that cannot afford Devin. (c) Hybrid (chosen) — serves all segments; the seam is already built for this; only the Cadence-managed hosting increment is deferred.
 
-**Impact:** [`features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) §Deployment model decision section (the two-segment / three-tier analysis). This informs the future BYO-P5 (managed runtime) sequencing — BYO-P5 becomes the hosting backbone for the "Cadence-managed OpenHands" tier.
+**Impact:** [`features/delegate-out-to-external-agents.md`](../features/delegate-out-to-external-agents.md) §Deployment model decision section (the two-segment / three-tier analysis). This informs the future BYO-P5 (managed runtime) sequencing — BYO-P5 becomes the hosting backbone for the "Cadence-managed OpenHands" tier.
 
 ---
 
@@ -786,7 +786,7 @@
 
 **Tradeoffs considered:** (1) Show product signals PLUS unassigned in every product feed (`project_id = X OR NULL`) so webhook signals appear everywhere, rejected: it muddies the per-product separation and makes the clustering count inconsistent with the feed. Cleaner: a product feed is exactly its signals; the all-products view is the catch-all. (2) Force the webhook ingest to assign a product, rejected: the webhook is workspace-level by design and has no product context; assigning at capture time (for manual/active-product captures) plus an all-products home is the honest model. (3) Block on a migration to add product scoping to opportunities/specs too, deferred: F3 is specifically the signals/themes feed; opportunity/spec scoping is separate future work.
 
-**Impact:** `src/lib/discovery.functions.ts` (+ `SignalsPanel.tsx`, `SignalDetail.tsx`, `OnboardingFlow.tsx`). No migration. F3 stays ◐ (remaining: the spend-gated auto-cluster cron). Detail: [`../features/f3-continuous-discovery.md`](../features/f3-continuous-discovery.md).
+**Impact:** `src/lib/discovery.functions.ts` (+ `SignalsPanel.tsx`, `SignalDetail.tsx`, `OnboardingFlow.tsx`). No migration. F3 stays ◐ (remaining: the spend-gated auto-cluster cron). Detail: [`features/continuous-discovery-feed.md`](../features/continuous-discovery-feed.md).
 
 ### 2026-06-18 · R3 global bell badges the whole Attention feed, not a subset, and keeps the existing Approvals badge
 
@@ -796,7 +796,7 @@
 
 **Tradeoffs considered:** (1) Badge only the non-approval alerts (budget + health) to avoid any overlap with the Approvals badge, rejected: a bell that ignores approvals under-signals (it could read "all clear" while approvals wait), which is worse than a benign agreement of two counts. (2) Merge the two into one indicator and delete the Approvals badge, rejected: an invasive refactor of working, tested chrome for no real gain, and it violates the surgical "every line traces to the task" rule.
 
-**Impact:** `src/components/cadence/AttentionBell.tsx` (new) + `src/components/cadence/TopBar.tsx`. R3 stays ◐ (remaining: email + digests + per-user prefs). Detail: [`../features/r3-notifications.md`](../features/r3-notifications.md).
+**Impact:** `src/components/cadence/AttentionBell.tsx` (new) + `src/components/cadence/TopBar.tsx`. R3 stays ◐ (remaining: email + digests + per-user prefs). Detail: [`features/notifications.md`](../features/notifications.md).
 
 ### 2026-06-18 · Split F3 by spend posture: ship the always-fresh feed, queue the auto-cluster cron for founder sign-off
 
@@ -1537,7 +1537,7 @@ The YC application becomes a by-product of shipping the proof platform, not its 
 
 ### 2026-06-12, F-STUDIO: the in-platform development engine, named **Studio**
 
-**Decision:** Build the in-platform agentic development engine now (full two-door v1), named **Studio** (founder pick over Fab/Foundry/Forge). It replaces the "Send to Builder" human seam: reads the bound GitHub repo, plans, stages **multi-file** changesets, commits to isolated `studio/*` branches, opens PRs, reads CI, self-corrects, and merges behind a `review` gate, model-agnostic via the chokepoint. Spec: [`features/studio.md`](../features/studio.md).
+**Decision:** Build the in-platform agentic development engine now (full two-door v1), named **Studio** (founder pick over Fab/Foundry/Forge). It replaces the "Send to Builder" human seam: reads the bound GitHub repo, plans, stages **multi-file** changesets, commits to isolated `studio/*` branches, opens PRs, reads CI, self-corrects, and merges behind a `review` gate, model-agnostic via the chokepoint. Spec: [`features/build-engine.md`](../features/build-engine.md).
 
 **Sub-decisions:**
 
@@ -1936,7 +1936,7 @@ _This log is maintained as part of the closed documentation loop. Every session 
 
 **Status:** BLD-04 code complete, pending live test with All-Hands Cloud. WM-M9 is the implementation of BYOK removal (chokepoint edit, attended with founder).
 
-**Cross-refs:** [`features/bld04-delegate-out.md`](../features/bld04-delegate-out.md) §LLM key decision. [`operations/openhands-activation.md`](../operations/openhands-activation.md) §Configuring the LLM inside OpenHands.
+**Cross-refs:** [`features/delegate-out-to-external-agents.md`](../features/delegate-out-to-external-agents.md) §LLM key decision. [`operations/openhands-activation.md`](../operations/openhands-activation.md) §Configuring the LLM inside OpenHands.
 
 ---
 

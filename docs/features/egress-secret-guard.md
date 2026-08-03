@@ -51,6 +51,6 @@ Every rule is a near-zero-false-positive credential shape, so a hard `block` is 
 
 ## Related
 
-- [`l2-announcements.md`](./l2-announcements.md) — the egress this guards.
+- [`customer-announcements.md`](./customer-announcements.md) — the egress this guards.
 - [`injection-defense.md`](./injection-defense.md) — the over-redaction discipline reused here.
-- [`../../architecture/security.md`](../../architecture/security.md) · [`../planning/considerations.md`](../planning/considerations.md) (Security/CISO "Secret scanning").
+- [`../../architecture/security.md`](../../architecture/security.md) · [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) (Security/CISO "Secret scanning").

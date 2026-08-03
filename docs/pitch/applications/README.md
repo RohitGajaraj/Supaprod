@@ -6,11 +6,12 @@
 
 | File | What it is |
 | --- | --- |
-| [`ANSWER-BANK.md`](./ANSWER-BANK.md) | Every reusable answer, at every length. Pull from here, never write from scratch. |
-| [`POSITIONING-DOCTRINE.md`](./POSITIONING-DOCTRINE.md) | How we get **selected**, not just how we apply. Asset ledger, the counters to every objection, the per-program positioning axis, and the quality gate. |
-| `<program>/POSITIONING.md` | What that specific program selects for and our angle into it. |
+| [`answer-bank.md`](./answer-bank.md) | Every reusable answer, at every length. Pull from here, never write from scratch. |
+| [`positioning-doctrine.md`](./positioning-doctrine.md) | How we get **selected**, not just how we apply. Asset ledger, the counters to every objection, the per-program positioning axis, and the quality gate. |
+| `<program>/positioning.md` | What that specific program selects for, and our angle into it. |
 | `<program>/application.md` | The drafted answers, ready to paste. |
-| `<program>/HOW-TO-APPLY.md` | Step by step submission. |
+| `<program>/how-to-apply.md` | Step by step submission. |
+| `<program>/paste-sheet.md` | The answers in the form's own field order, for a submission sitting. Currently only [Betaworks](./betaworks-ai-camp/paste-sheet.md), plus its [record-these](./betaworks-ai-camp/record-these.md) shot list. |
 
 **Standing rules.** The founder is US-primary but open anywhere. All terms acceptable, decided case by case. **No entity exists yet**, which blocks the India grant stack (and we deliberately do not incorporate in India, see the doctrine). **The YC application supersedes all other sources on facts and numbers.** Resumes are internal reference only and are never sent to any program.
 

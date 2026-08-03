@@ -252,7 +252,7 @@ The deepest dive of the session, resolving the kill agent's objections on primar
 
 Everything operational — the exact buy list with verified registrar prices (and why Cloudflare), the budget-mode parked-items register (including the deferred `superprod.ai`), the attorney handoff brief (classes, goods descriptions, the SUPERPROD question to resolve), the US/India/EU trademark roadmap, email architecture (Cloudflare routing → Google Workspace) and address scheme, the social-handle claim list, and the launch/YC checklist — lives in the companion playbook:
 
-**→ [`gtm/brand-supaprod.md`](../growth/brand-ops/brand-supaprod.md)**
+**→ [`growth/brand-ops/brand-supaprod.md`](../growth/brand-ops/brand-supaprod.md)**
 
 The rename **execution** (code, DB, env, Lovable project, brand assets, the CLAUDE.md name ruling) is DONE — it ran 2026-07-17.
 

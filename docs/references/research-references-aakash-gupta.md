@@ -1,3 +1,14 @@
+# PM research corpus, founder-gathered (Aakash Gupta sources)
+
+> **Raw research, not a distillation.** 139 KB of source material the founder gathered
+> and pasted in, kept in original form on purpose. The distilled conclusions live in
+> [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md) and
+> [`../strategy/moat.md`](../strategy/moat.md); this is what they were drawn from.
+>
+> Companion, different method and date: [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md),
+> which mines guest quotes from the same channel via transcript extraction. Neither
+> supersedes the other.
+
 > _Created: 2026-06-03 · Last updated: 2026-06-11_
 
 ## ## A very explicit and strict instruction: even before reading this, The below data inputs are the research that I have done through an agent. I know that it is not extensive or could be helpful, but I'm attaching all the dump of data that I've got through. I want you to take a look at it at a very high level. I don't want you to go through every hyperlink here. Do your own research and spend some time and tokens on that part. ## Strict Note to agents/ AI whoever is seeing it: This is just for references. Whatever is necessary, please decide on your hand and do it, but I don't want it to have a detailed planning stage and researching and spending time and sitting on this and burning our tokens here. I don't want to do that.

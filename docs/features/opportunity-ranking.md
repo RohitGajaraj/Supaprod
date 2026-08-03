@@ -84,5 +84,5 @@ Every ranked bet carries one system-derived designation so a human or an agent c
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, build log entry
 - `src/components/discover/ranking.ts` and `ranking.test.ts`, the implementation and its lock tests
 - [`critic-agent.md`](./critic-agent.md), the Critic verdict that feeds the second tie-break key
-- [`f3-continuous-discovery.md`](./f3-continuous-discovery.md), the signal themes whose frequency is the corroboration input
-- [`o1-provenance.md`](./o1-provenance.md), the lineage behind a ranked bet
+- [`continuous-discovery-feed.md`](./continuous-discovery-feed.md), the signal themes whose frequency is the corroboration input
+- [`roadmap-provenance.md`](./roadmap-provenance.md), the lineage behind a ranked bet

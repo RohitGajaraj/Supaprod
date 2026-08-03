@@ -438,7 +438,7 @@ Founder launch gate (locked 2026-06-14): at least 10 PMs paying around $150/mo, 
 - [`strategy/archive/v7-agentic-product-os.md`](../../strategy/archive/v7-agentic-product-os.md): the v7 positioning and build canon this PRD serves; milestones M-0 to M-D and founder rulings live there.
 - [`known-issues.md`](../known-issues.md): the live blocker register (KI-09 through KI-17) that the M-0 milestone clears.
 - [`feature-backlog.md`](./feature-backlog.md): the granular, build-ready scope and build-order rollup.
-- [`considerations.md`](../considerations.md): cross-cutting gaps (blast radius, inference economics, prompt injection) to fold in as they become relevant.
+- [`cross-cutting-gaps.md`](../cross-cutting-gaps.md): cross-cutting gaps (blast radius, inference economics, prompt injection) to fold in as they become relevant.
 - [`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md): the engine, six stations, agent-mesh, and HITL-gate reference.
 - [`../strategy/session-decisions.md`](../../strategy/session-decisions.md): the decisions log, including the 2026-06-14 slug-bug and observing-by-default entries.
 - [`../conventions/humanized-output.md`](../../conventions/humanized-output.md): the voice rule this document is written to.

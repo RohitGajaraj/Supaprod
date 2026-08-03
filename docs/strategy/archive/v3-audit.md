@@ -475,7 +475,7 @@ The single thing the team should internalize from this audit: **stop building fe
 - Build plan: [`planning/archive/build-log.md`](../../planning/archive/build-log.md)
 - Operating rules: [`../../AGENTS.md`](../../../AGENTS.md)
 - Architecture: [`../../architecture/`](../../architecture/) (runtime · orchestration · frontend · data · security · integrations)
-- Considerations (non-functional gaps): [`planning/considerations.md`](../../planning/considerations.md)
+- Considerations (non-functional gaps): [`planning/cross-cutting-gaps.md`](../../planning/cross-cutting-gaps.md)
 
 _Auditor: Lovable session, 2026-06-06. Method: full doc + code read, live preview walk against the seeded demo workspace, three parallel competitive-research subagents covering engineering-autonomy / product-OS / agent-OS+governance lanes. Posture: brutally honest per operator's standing instruction._
 
