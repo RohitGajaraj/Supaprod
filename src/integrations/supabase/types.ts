@@ -9609,6 +9609,61 @@ export type Database = {
               similarity: number
             }[]
           }
+      match_decisions: {
+        Args: {
+          embedding_model?: string
+          for_user?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          rationale: string
+          similarity: number
+          title: string
+        }[]
+      }
+      match_learnings: {
+        Args: {
+          embedding_model?: string
+          for_user?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          similarity: number
+          summary: string
+        }[]
+      }
+      match_opportunities: {
+        Args: {
+          embedding_model?: string
+          for_user?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          problem: string
+          similarity: number
+          title: string
+        }[]
+      }
+      match_prds: {
+        Args: {
+          embedding_model?: string
+          for_user?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          body_md: string
+          id: string
+          similarity: number
+          title: string
+        }[]
+      }
       match_rag_chunks: {
         Args: {
           for_product?: string
@@ -9629,34 +9684,64 @@ export type Database = {
           title: string
         }[]
       }
-      match_signals: {
-        Args: {
-          for_product?: string
-          for_user?: string
-          match_count?: number
-          query_embedding: string
-        }
-        Returns: {
-          content: string
-          id: string
-          similarity: number
-          title: string
-        }[]
-      }
-      match_themes: {
-        Args: {
-          exclude_id?: string
-          for_user: string
-          match_count?: number
-          query_embedding: string
-        }
-        Returns: {
-          id: string
-          similarity: number
-          summary: string
-          title: string
-        }[]
-      }
+      match_signals:
+        | {
+            Args: {
+              embedding_model?: string
+              for_user?: string
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              content: string
+              id: string
+              similarity: number
+              title: string
+            }[]
+          }
+        | {
+            Args: {
+              for_product?: string
+              for_user?: string
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              content: string
+              id: string
+              similarity: number
+              title: string
+            }[]
+          }
+      match_themes:
+        | {
+            Args: {
+              exclude_id?: string
+              for_user: string
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              id: string
+              similarity: number
+              summary: string
+              title: string
+            }[]
+          }
+        | {
+            Args: {
+              embedding_model?: string
+              for_user?: string
+              match_count?: number
+              query_embedding: string
+            }
+            Returns: {
+              id: string
+              similarity: number
+              summary: string
+              title: string
+            }[]
+          }
       memory_expiry_enabled: { Args: never; Returns: boolean }
       mission_cap_state: {
         Args: { _run_id: string }
