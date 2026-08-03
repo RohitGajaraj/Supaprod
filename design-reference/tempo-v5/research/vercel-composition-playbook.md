@@ -95,7 +95,7 @@ _This is the section the founder ordered: when the missing ingredient arrives, p
 ### 6.3 The tilted-artifact bento ("Recently shipped")
 
 - **Blocked by:** needs 2-3 REAL visual artifacts worth the drama (an artifact must be a genuine product output, not a mock).
-- **Unlocks when:** candidates exist. Nearest already-real candidates: a real decision-record card (from `/d/$slug`), a real mission trace excerpt (mono log with green checks, exactly Vercel's CLI card), the brand-kit ticket/social card (`docs/Growth Strategy/branding/generate.ts` output), a Critic teardown verdict card.
+- **Unlocks when:** candidates exist. Nearest already-real candidates: a real decision-record card (from `/d/$slug`), a real mission trace excerpt (mono log with green checks, exactly Vercel's CLI card), the brand-kit ticket/social card (`docs/growth/branding/generate.ts` output), a Critic teardown verdict card.
 - **Pickup instructions:** asymmetric 2-col (one tall + two stacked), card base `#0d0d0e`, artifact fills ~85% of the card set huge and quiet, tilt 2-4deg (`transform: rotate()`; static, no animation), title + two plain lines below-left. Candidate placement: an `/updates` teaser beat on the landing, or the `/updates` page header. The multilingual-type trick (PASSPORT in four scripts) maps to a decision card rendered in multiple "voices" (the call / the evidence / the outcome).
 
 ### 6.4 Scale metrics in captions

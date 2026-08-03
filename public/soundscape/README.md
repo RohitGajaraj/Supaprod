@@ -11,14 +11,14 @@ grates. This is an **experimental free-tier set** generated 2026-06-17.
 
 ## Current set (free tier, all Sound Effects, 5s, looped)
 
-| Preset    | File            | Vibe                                     | Prompt used                                                                                                                        |
-| --------- | --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Ocean     | `ocean.mp3`     | Calm beach waves                         | "Calm ocean waves washing gently onto a sandy beach, slow and rhythmic, soft and soothing, distant and continuous."                |
-| Monsoon   | `monsoon.mp3`   | Indian monsoon rain + faint temple bells | "Gentle Indian monsoon rain falling steadily, soft and even, faint distant temple bells now and then, peaceful, no thunder."       |
-| Bansuri   | `bansuri.mp3`   | Soft bamboo-flute texture                | "A soft slow Indian bamboo flute (bansuri) playing long gentle sustained breathy notes, warm and airy, meditative, no percussion." |
-| Forest    | `forest.mp3`    | Himalayan dawn forest                    | "Calm Himalayan forest at dawn, gentle birdsong, soft distant mountain stream, light wind in the trees, no sudden sounds."         |
-| Heartbeat | `heartbeat.mp3` | Bass-rich realistic heartbeat (~75 bpm)  | "Deep bass-rich realistic human heartbeat, strong clear lub-dub thump, about 75 beats per minute, close and warm, steady."         |
-| Fireplace | `fireplace.mp3` | Cozy crackling fire                      | "A gentle crackling fireplace, warm cozy soft pops and glowing embers, steady and continuous, soothing, no loud snaps."            |
+| Preset | File | Vibe | Prompt used |
+| --- | --- | --- | --- |
+| Ocean | `ocean.mp3` | Calm beach waves | "Calm ocean waves washing gently onto a sandy beach, slow and rhythmic, soft and soothing, distant and continuous." |
+| Monsoon | `monsoon.mp3` | Indian monsoon rain + faint temple bells | "Gentle Indian monsoon rain falling steadily, soft and even, faint distant temple bells now and then, peaceful, no thunder." |
+| Bansuri | `bansuri.mp3` | Soft bamboo-flute texture | "A soft slow Indian bamboo flute (bansuri) playing long gentle sustained breathy notes, warm and airy, meditative, no percussion." |
+| Forest | `forest.mp3` | Himalayan dawn forest | "Calm Himalayan forest at dawn, gentle birdsong, soft distant mountain stream, light wind in the trees, no sudden sounds." |
+| Heartbeat | `heartbeat.mp3` | Bass-rich realistic heartbeat (~75 bpm) | "Deep bass-rich realistic human heartbeat, strong clear lub-dub thump, about 75 beats per minute, close and warm, steady." |
+| Fireplace | `fireplace.mp3` | Cozy crackling fire | "A gentle crackling fireplace, warm cozy soft pops and glowing embers, steady and continuous, soothing, no loud snaps." |
 
 The player is generic: change the set by editing `SOUND_PRESETS` and
 `presetSrc()` in `src/lib/flow/session.ts`, the `PRESET_LABEL` and default in
@@ -67,11 +67,11 @@ attribution-required. These files are committed as an **experimental** set; do
 **not** treat them as cleared production assets until the commercial-use terms
 are confirmed (likely a paid tier). Record it here.
 
-| File          | Source         | License (confirm)   | Added | Date       |
-| ------------- | -------------- | ------------------- | ----- | ---------- |
-| ocean.mp3     | ElevenLabs SFX | free tier (confirm) |       | 2026-06-17 |
-| monsoon.mp3   | ElevenLabs SFX | free tier (confirm) |       | 2026-06-17 |
-| bansuri.mp3   | ElevenLabs SFX | free tier (confirm) |       | 2026-06-17 |
-| forest.mp3    | ElevenLabs SFX | free tier (confirm) |       | 2026-06-17 |
-| heartbeat.mp3 | ElevenLabs SFX | free tier (confirm) |       | 2026-06-17 |
-| fireplace.mp3 | ElevenLabs SFX | free tier (confirm) |       | 2026-06-17 |
+| File | Source | License (confirm) | Added | Date |
+| --- | --- | --- | --- | --- |
+| ocean.mp3 | ElevenLabs SFX | free tier (confirm) | | 2026-06-17 |
+| monsoon.mp3 | ElevenLabs SFX | free tier (confirm) | | 2026-06-17 |
+| bansuri.mp3 | ElevenLabs SFX | free tier (confirm) | | 2026-06-17 |
+| forest.mp3 | ElevenLabs SFX | free tier (confirm) | | 2026-06-17 |
+| heartbeat.mp3 | ElevenLabs SFX | free tier (confirm) | | 2026-06-17 |
+| fireplace.mp3 | ElevenLabs SFX | free tier (confirm) | | 2026-06-17 |

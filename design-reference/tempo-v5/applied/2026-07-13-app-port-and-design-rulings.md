@@ -309,7 +309,7 @@ d=3) revolving around a **glowing core**. The meaning is the product:
 
 ### 19. Brand kit (GTM)
 
-`docs/Growth Strategy/branding/` — the ready-to-upload base kit, generated from
+`docs/growth/branding/` — the ready-to-upload base kit, generated from
 the SAME mark curve (`generate.ts`) so it never drifts: SVGs (dark/light/gradient/
 mono/lockups/app-icons/favicon/animated), PNGs at 32-1024 + mono + lockups, app
 icons + apple-touch + android-chrome + `favicon.ico`, dark+light OG/social cards,

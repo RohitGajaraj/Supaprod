@@ -9,7 +9,7 @@
 ## Quick Links by Role
 
 ### Builder / Developer (starting implementation now)
-1. **Start:** [`docs/Growth Strategy/marketing-site-build-checklist.md`](../docs/Growth%20Strategy/marketing-site-build-checklist.md) (read top to bottom; commit-by-commit guide)
+1. **Start:** [`docs/growth/marketing-site-build-checklist.md`](../docs/growth/marketing-site-build-checklist.md) (read top to bottom; commit-by-commit guide)
 2. **Reference:** [`tempo-v5/applied/2026-07-18-pricing-redesign-spec.md`](./tempo-v5/applied/2026-07-18-pricing-redesign-spec.md) (keep open; prescriptive detail)
 3. **Template:** [`src/routes/product.tsx`](../../src/routes/product.tsx) (live example; adapt for /features and /use-cases)
 4. **Law:** [`docs/design/archive/tempo-v5.md`](../docs/design/archive/tempo-v5.md) (read first for 30 min; the base contract)
@@ -68,7 +68,7 @@
 
 | Document | Path | Audience | Read Time | Purpose |
 | --- | --- | --- | --- | --- |
-| **Builder Checklist** | `docs/Growth Strategy/marketing-site-build-checklist.md` | Builder | 30 min upfront, ongoing | Commit-by-commit guide: 12 commits, phase breakdown, verification checklist, escalation paths |
+| **Builder Checklist** | `docs/growth/marketing-site-build-checklist.md` | Builder | 30 min upfront, ongoing | Commit-by-commit guide: 12 commits, phase breakdown, verification checklist, escalation paths |
 
 ### Reference (Keep Handy)
 
