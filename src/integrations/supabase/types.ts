@@ -385,6 +385,7 @@ export type Database = {
           scope: string
           updated_at: string
           user_id: string
+          visibility: string
           workspace_id: string | null
         }
         Insert: {
@@ -402,6 +403,7 @@ export type Database = {
           scope?: string
           updated_at?: string
           user_id: string
+          visibility?: string
           workspace_id?: string | null
         }
         Update: {
@@ -419,6 +421,7 @@ export type Database = {
           scope?: string
           updated_at?: string
           user_id?: string
+          visibility?: string
           workspace_id?: string | null
         }
         Relationships: [
@@ -2650,6 +2653,7 @@ export type Database = {
           cited_by_count: number
           created_at: string
           decided_by_agent_slug: string | null
+          embedding: string | null
           id: string
           is_public: boolean
           meeting_id: string | null
@@ -2671,6 +2675,7 @@ export type Database = {
           cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
+          embedding?: string | null
           id?: string
           is_public?: boolean
           meeting_id?: string | null
@@ -2692,6 +2697,7 @@ export type Database = {
           cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
+          embedding?: string | null
           id?: string
           is_public?: boolean
           meeting_id?: string | null
@@ -4407,6 +4413,24 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_session_claims: {
+        Row: {
+          claimed_at: string
+          session_key: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          session_key: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          session_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       launch_plans: {
         Row: {
           check_by: string | null
@@ -4509,6 +4533,7 @@ export type Database = {
       learnings: {
         Row: {
           created_at: string
+          embedding: string | null
           id: string
           metric_label: string | null
           metric_value: string | null
@@ -4526,6 +4551,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          embedding?: string | null
           id?: string
           metric_label?: string | null
           metric_value?: string | null
@@ -4543,6 +4569,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          embedding?: string | null
           id?: string
           metric_label?: string | null
           metric_value?: string | null
@@ -5260,6 +5287,7 @@ export type Database = {
           created_at: string
           critic_review: Json | null
           ease: number
+          embedding: string | null
           goal_id: string | null
           hypothesis: string | null
           ice_score: number | null
@@ -5290,6 +5318,7 @@ export type Database = {
           created_at?: string
           critic_review?: Json | null
           ease?: number
+          embedding?: string | null
           goal_id?: string | null
           hypothesis?: string | null
           ice_score?: number | null
@@ -5320,6 +5349,7 @@ export type Database = {
           created_at?: string
           critic_review?: Json | null
           ease?: number
+          embedding?: string | null
           goal_id?: string | null
           hypothesis?: string | null
           ice_score?: number | null
@@ -5590,6 +5620,7 @@ export type Database = {
           design_decided_at: string | null
           design_decided_by: string | null
           design_gate_status: string
+          embedding: string | null
           github_issue_url: string | null
           id: string
           model: string | null
@@ -5616,6 +5647,7 @@ export type Database = {
           design_decided_at?: string | null
           design_decided_by?: string | null
           design_gate_status?: string
+          embedding?: string | null
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -5642,6 +5674,7 @@ export type Database = {
           design_decided_at?: string | null
           design_decided_by?: string | null
           design_gate_status?: string
+          embedding?: string | null
           github_issue_url?: string | null
           id?: string
           model?: string | null
@@ -7362,6 +7395,7 @@ export type Database = {
           base_sha: string | null
           branch: string | null
           branch_sync_attempts: number
+          code_review: Json | null
           created_at: string
           fix_attempts: number
           id: string
@@ -7384,6 +7418,7 @@ export type Database = {
           base_sha?: string | null
           branch?: string | null
           branch_sync_attempts?: number
+          code_review?: Json | null
           created_at?: string
           fix_attempts?: number
           id?: string
@@ -7406,6 +7441,7 @@ export type Database = {
           base_sha?: string | null
           branch?: string | null
           branch_sync_attempts?: number
+          code_review?: Json | null
           created_at?: string
           fix_attempts?: number
           id?: string
@@ -7835,7 +7871,9 @@ export type Database = {
         Row: {
           confidence: number
           created_at: string
+          dismissed_at_frequency: number | null
           embedding: string | null
+          escalated_at: string | null
           frequency: number
           id: string
           last_signal_at: string | null
@@ -7854,7 +7892,9 @@ export type Database = {
         Insert: {
           confidence?: number
           created_at?: string
+          dismissed_at_frequency?: number | null
           embedding?: string | null
+          escalated_at?: string | null
           frequency?: number
           id?: string
           last_signal_at?: string | null
@@ -7873,7 +7913,9 @@ export type Database = {
         Update: {
           confidence?: number
           created_at?: string
+          dismissed_at_frequency?: number | null
           embedding?: string | null
+          escalated_at?: string | null
           frequency?: number
           id?: string
           last_signal_at?: string | null
@@ -8613,12 +8655,18 @@ export type Database = {
           last_auto_sense_at: string | null
           last_auto_trigger_at: string | null
           name: string
+          never_settle_above_impact: number | null
           owner_id: string
           plan_tier: string
           plan_updated_at: string | null
           prediction_throttle_until: string | null
+          promotion_min_confidence: number | null
+          promotion_min_frequency: number | null
+          promotion_min_severity: number | null
           risk_throttle_until: string | null
           scout_daily_fetch_cap: number
+          settle_evidence_floor: number | null
+          settle_stakes_span: number | null
           slug: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -8644,12 +8692,18 @@ export type Database = {
           last_auto_sense_at?: string | null
           last_auto_trigger_at?: string | null
           name: string
+          never_settle_above_impact?: number | null
           owner_id: string
           plan_tier?: string
           plan_updated_at?: string | null
           prediction_throttle_until?: string | null
+          promotion_min_confidence?: number | null
+          promotion_min_frequency?: number | null
+          promotion_min_severity?: number | null
           risk_throttle_until?: string | null
           scout_daily_fetch_cap?: number
+          settle_evidence_floor?: number | null
+          settle_stakes_span?: number | null
           slug?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -8675,12 +8729,18 @@ export type Database = {
           last_auto_sense_at?: string | null
           last_auto_trigger_at?: string | null
           name?: string
+          never_settle_above_impact?: number | null
           owner_id?: string
           plan_tier?: string
           plan_updated_at?: string | null
           prediction_throttle_until?: string | null
+          promotion_min_confidence?: number | null
+          promotion_min_frequency?: number | null
+          promotion_min_severity?: number | null
           risk_throttle_until?: string | null
           scout_daily_fetch_cap?: number
+          settle_evidence_floor?: number | null
+          settle_stakes_span?: number | null
           slug?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -9276,6 +9336,18 @@ export type Database = {
         }
         Returns: string
       }
+      claim_workspace_into_account: {
+        Args: {
+          _actor_id: string
+          _claimant_id: string
+          _from_account_id: string
+          _grace_until: string
+          _inventory: Json
+          _to_account_id: string
+          _workspace_id: string
+        }
+        Returns: string
+      }
       clone_demo_workspace: {
         Args: { p_owner: string; p_prefix: string }
         Returns: {
@@ -9658,6 +9730,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      release_workspace_claim: {
+        Args: {
+          _actor_id: string
+          _actor_role: string
+          _from_account_id: string
+          _reason: string
+          _remove_member_id: string
+          _to_account_id: string
+          _workspace_id: string
+        }
+        Returns: undefined
+      }
       reset_subscription_cycle: { Args: { _account_id: string }; Returns: Json }
       revoke_mcp_token: { Args: { _token_id: string }; Returns: undefined }
       right_to_erasure_enabled: { Args: never; Returns: boolean }
@@ -9709,6 +9793,7 @@ export type Database = {
         Returns: undefined
       }
       unaccent_fallback: { Args: { p_text: string }; Returns: string }
+      user_in_workspace: { Args: { uid: string; ws: string }; Returns: boolean }
       workspace_members_with_identity: {
         Args: { _workspace_id: string }
         Returns: {
