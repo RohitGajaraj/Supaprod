@@ -52,3 +52,7 @@ graphify query "<question>" --budget 1500
 The graph is **not in git**. If this checkout has no `graphify-out/`, use the machine-wide copy: `--graph ~/.graphify/global-graph.json`, whose node ids are prefixed `supaprod::`. Refresh with `PYTHONHASHSEED=0 graphify update .`, and always pin that variable or clustering is nondeterministic and every community gets renamed. Never use `--backend claude-cli`; it returns a wrong-schema graph that is discarded as hollow. Do not reinstall the graphify git hook: it writes into the shared `.git/hooks` and once broke a rebase mid-flight.
 
 Two accuracy limits: every file is truncated at 20,000 characters before extraction, and 26 mostly-SVG files yield no nodes.
+
+## If the task is outward-facing
+
+An accelerator application, an investor answer, a demo script, launch copy: start at [`docs/pitch/`](./docs/pitch/README.md) and follow its seven-step procedure. For a live conversation, [`docs/pitch/founder-answer-playbook.md`](./docs/pitch/founder-answer-playbook.md). **Both are updated in the same session as the work**, and nothing outward sends without the founder's approval.

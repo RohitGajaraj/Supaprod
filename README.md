@@ -128,7 +128,7 @@ Canonical: [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](./docs/plan
   Journey kicker: `signal -> shipped -> remembered`.
 - **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (remembers, and it guides, green).
 - **The brain is never storage.** Banned framing: "where the record lives". It compounds; next time it tells you what is right, and warns before you repeat what was wrong.
-- **Public launch date on every external surface: September 2026.**
+- **Public launch date on every external surface: mid-September 2026.**
 - **Market sizing ladder:** TAM $300B+/yr (2.6M PMs x ~$115K loaded). SAM $2B to $12B/yr. SOM ~$47M ARR. Arithmetic in the deck appendix B.
 - **Never list, investor material:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only, no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM", education shows TUM only.
 - **Contact:** founder@supaprod.ai · investors@supaprod.ai · linkedin.com/in/rohit-gajaraj.
@@ -204,7 +204,7 @@ Database changes are timestamped, RLS-aware SQL in `supabase/migrations/`. Apply
 | **Per-feature status and claims** | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) |
 | **What the last session did and left open** | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
 | **Which strategy doc is current** | [`docs/strategy/README.md`](./docs/strategy/README.md), the arbiter. Direction: [`docs/strategy/v11-guiding-star.md`](./docs/strategy/v11-guiding-star.md). Moat: [`docs/strategy/moat.md`](./docs/strategy/moat.md). |
-| **⭐ Writing an application, pitch, or demo** | [`docs/pitch/`](./docs/pitch/README.md), **the Pitch Room.** Its README carries the seven-step procedure for a new accelerator or investor application: which programs are worth applying to, the two blockers that kill most of them, where to pull answers rather than compose them, the facts that get fumbled, and the never-list. Start there, never from scratch. |
+| **⭐ Writing an application, pitch, or demo** | [`docs/pitch/`](./docs/pitch/README.md), **the Pitch Room.** Its README carries the seven-step procedure for a new accelerator or investor application: which programs are worth applying to, the two blockers that kill most of them, where to pull answers rather than compose them, the facts that get fumbled, and the never-list. Start there, never from scratch. For a live investor or interview conversation, [`founder-answer-playbook.md`](./docs/pitch/founder-answer-playbook.md) is the trainer, and it is updated after every one. |
 | **Design: the live system** | [`docs/design/DESIGN-SYSTEM.md`](./docs/design/DESIGN-SYSTEM.md). The shipped `--sp-*` shell is the baseline; every earlier design contract is retired history. |
 | **How a feature works, end to end** | [`docs/features/`](./docs/features/README.md). The loop's proof file: [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). |
 | **Architecture contracts** | [`architecture/`](./architecture/): runtime · orchestration · security · data · frontend · integrations. |

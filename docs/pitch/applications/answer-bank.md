@@ -287,7 +287,7 @@ yet; I built the system before opening the doors, deliberately.
 ```
 No paying users and no revenue yet. The beta is live and anyone can sign up or
 walk the product on a demo login today. I built the engine before opening the
-doors, deliberately, and the public launch is September 2026.
+doors, deliberately, and the public launch is mid-September 2026.
 ```
 
 ### What is genuinely proven, and what is not (keep this straight in interviews)

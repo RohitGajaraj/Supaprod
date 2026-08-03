@@ -10,7 +10,7 @@
 
 **"Only 16% of 'agent' deployments are true agents. Why believe you?"** — Don't believe us; audit us. The engine is cron-advanced missions with A2A handoffs — 133 missions, 129 agent runs in the live DB — and our completeness register survived an independent outside code audit. The demo shows the loop closing live, including the failure path. [Menlo stat — research §17; the audit — v13 §1]
 
-**"Your traction is zero."** — Correct, by design: we built the OS before opening the doors, and the register proves the build (382 rows, 293 shipped, independently audited). The public launch is September 2026, with the beta cohort seeded from 224 named prospects who already hand-roll this product. Judge us on the week-over-week curve at application time. [research §12; the plan]
+**"Your traction is zero."** — Correct, by design: we built the OS before opening the doors, and the register proves the build (382 rows, 293 shipped, independently audited). The public launch is mid-September 2026, with the beta cohort seeded from 224 named prospects who already hand-roll this product. Judge us on the week-over-week curve at application time. [research §12; the plan]
 
 **"Solo founder?"** — Solo founder who ships like a fleet because the product runs the fleet — the repo's own history is the demo (parallel agent lanes, receipted). 11% of YC W26 were solo; the bar is higher and the evidence is the point. [research §17]
 

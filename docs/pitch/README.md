@@ -27,7 +27,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | --- | --- |
 | Contact | founder@supaprod.ai (founder surfaces) · investors@supaprod.ai (investor relations) |
 | LinkedIn | linkedin.com/in/rohit-gajaraj |
-| Public launch date | **September 2026**, on every external surface |
+| Public launch date | **mid-September 2026**, on every external surface |
 | Employer | "Intellect, a leading BFSI technology OEM". **Never** "Intellect Design Arena". |
 | Role arc | ISRO associate PM, then Infineon PM, then Intellect senior AI PM |
 | Education | TUM only |
@@ -70,7 +70,8 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | File | Open it when |
 | --- | --- |
 | [`one-pager.md`](./one-pager.md) | You need the whole story on one page: what it is, how it differs, what we can prove today. |
-| [`qa-bank.md`](./qa-bank.md) | Prepping for hostile questions, each with the honest answer and its evidence pointer. |
+| [**`founder-answer-playbook.md`**](./founder-answer-playbook.md) | ⭐ **Before any investor call, accelerator interview or partner conversation.** Venue-neutral. Teaches the three postures, answer length per room, confidence calibration, the numbers card, ~50 drilled answers, and where to be flatly honest versus where to play the longer game. **A live file: it is updated after every application and every interview.** |
+| [`qa-bank.md`](./qa-bank.md) | The short objection list by audience. The playbook above supersedes it for depth. |
 | [`demo-story.md`](./demo-story.md) | **Start here before any demo.** The narrative spine. The demo tells a story; it does not tour features (founder ruling 2026-07-25). |
 | [`demo-script.md`](./demo-script.md) | The concrete walkthrough: receipts on screen, the loop closing live, the failure path shown on purpose. |
 | [`compounding-memory-narrative.md`](./compounding-memory-narrative.md) | You need the commercial argument for the memory layer, including the limits that are still real. |
@@ -118,6 +119,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 ## Four standing rules
 
 1. **Update in place. Never fork a parallel copy.** Any session that produces outward-facing content routes the result into this folder in the same session. Git history is the version trail.
+2. **The answer playbook is updated after EVERY application and EVERY interview**, in the same session, while it is fresh. A question we could not answer well, a pushback, a rejection reason, a changed number: all of it lands in [`founder-answer-playbook.md`](./founder-answer-playbook.md). We are applying to many programmes over the coming weeks and that file is what compounds across them.
 2. **Every claim carries its wiring status.** `PROVEN` · `WIRING` · `ROADMAP`.
 3. **Cite artifacts and companies, never gurus.** The community's allergy to guru-citation is our tailwind.
 4. **Numbers trace to the live database or a dated source.** No run-rate theater; investors name it as a red flag themselves.

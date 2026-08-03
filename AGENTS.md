@@ -315,6 +315,10 @@ Several agentic tools build this repo at once. The rule that makes that safe: **
 
 An accelerator application, an investor answer, a demo script, launch copy, a reply to an objection. **Go to [`docs/pitch/`](./docs/pitch/README.md) first and follow its seven-step procedure.** Do not compose from memory.
 
+**If it is a live conversation** rather than a written submission, the file to open is [`docs/pitch/founder-answer-playbook.md`](./docs/pitch/founder-answer-playbook.md): the postures, the answer length per room, the numbers card, and the honest-versus-strategic map.
+
+**That playbook is updated after every application and every interview, in the same session.** A question we fumbled, a pushback, a rejection reason, a changed number. We are applying to many programmes over the coming weeks, and that file is the only thing that compounds across them. Treat failing to update it as leaving the work unfinished.
+
 The three rules that matter most, because they are the ones that get broken:
 
 - **Pull, do not write.** `applications/answer-bank.md` holds every reusable answer at every length. Composing a fresh one is how two applications end up contradicting each other.

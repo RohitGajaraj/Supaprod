@@ -146,6 +146,6 @@ the moment it's live. [Request access →]
 
 ## Acceptance tracking (PC-14)
 
-- [ ] Listed publicly by the **September 2026** launch date (this item previously carried the 2026-07-10 campaign's own deadline, which lapsed when that campaign was archived) — **blocked on PC-04 + beta stories, not on this kit**
+- [ ] Listed publicly by the **mid-September 2026** launch date (this item previously carried the 2026-07-10 campaign's own deadline, which lapsed when that campaign was archived) — **blocked on PC-04 + beta stories, not on this kit**
 - [ ] Day-1/week-1 funnel reviewed (depends on PC-06 instrumentation)
 - **This session's deliverable:** every asset in this file is draft-complete and gap-flagged. Nothing here has been sent, posted, or published. The row stays partial until the blocking dependencies (PC-04, beta stories) clear and the founder approves each send.
