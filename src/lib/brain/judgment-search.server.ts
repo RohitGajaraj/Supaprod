@@ -1,12 +1,12 @@
 /**
- * Semantic search over the WORKSPACE's judgment record — the decisions it made, the
+ * Semantic search over the WORKSPACE's judgment record: the decisions it made, the
  * bets it considered, the specs it wrote, and the outcomes those reached.
  *
  * WHY THIS EXISTS SEPARATELY FROM `decision-precedent.server.ts`. That module recalls
  * outcomes from `agent_memory`, which is scoped to the user who wrote the row. It is
  * the layer CLAUDE.md names as the known limit on the core claim: "the successor
  * inherits the record today, and not yet the compounded recall." This module reads the
- * source tables instead — `decisions` and `learnings` — whose RLS SELECT policy is
+ * source tables instead, `decisions` and `learnings`, whose RLS SELECT policy is
  * `is_workspace_member(workspace_id)`. So what it returns is the whole team's judgment,
  * not the caller's own copy of it, and a person who joined last week can recall what
  * the person who left last month decided and how it turned out.
@@ -17,12 +17,12 @@
  *
  * Fail-safe by contract: every entry point returns an empty result on any failure, so
  * an embeddings outage degrades the Critic's context and never breaks a review. That
- * is the same posture as `loadDecisionPrecedent` and it is deliberate — but note the
+ * is the same posture as `loadDecisionPrecedent` and it is deliberate, but note the
  * cost of it, learned the hard way on 2026-08-03: a recall path that silently returns
  * nothing is indistinguishable from a workspace with nothing to recall. Failures here
  * are counted, and the caller can surface the count.
  *
- * .server.ts — Worker-only; never bundled to the client.
+ * .server.ts: Worker-only; never bundled to the client.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { embedThroughChokepointWithModel } from "@/lib/rag/embed.server";
