@@ -41,6 +41,12 @@ Some tests in this repo exist to bind a convention rather than to check a featur
 
 If you add a convention that code can violate silently, add a test like these. A convention with no test is a suggestion.
 
+## A known open gap
+
+**Nothing tests `discover/ranking` and `discover/format` together.** `ranking.test.ts` has 71 cases and `format.test.ts` has 141, and none of the 212 exercises the pair. Ranking depends on format for verdict scoring, time humanisation and signal-preview extraction, so **a change to a format helper can reorder the Discover queue with both suites still green.**
+
+A draft integration test for exactly this exists at [`archive/discover-ranking-integration.test.ts.reference`](./archive/discover-ranking-integration.test.ts.reference). It was rescued from a lane worktree before that worktree was deleted, and it does not compile: it imports `@/lib/types` and `verdictToScore`, neither of which exists any more. The header explains how to revive it. The idea is sound; the code is stale.
+
 ## Archive
 
-[`archive/`](./archive/) holds dated coverage audits and completed consolidations: two late-July coverage audits, an early-July gap analysis, the duplicate-suite consolidation, and the DOM-based component-testing write-up. Read them for what was checked and when. Do not read their numbers as current.
+[`archive/`](./archive/) holds dated coverage audits and completed consolidations: two late-July coverage audits, an early-July gap analysis, the duplicate-suite consolidation, and the DOM-based component-testing write-up, plus the rescued reference test above. Read them for what was checked and when. Do not read their numbers as current.

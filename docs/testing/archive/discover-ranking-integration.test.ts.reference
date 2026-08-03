@@ -1,0 +1,191 @@
+// RESCUED FROM A LANE WORKTREE, 2026-08-03. NOT A LIVE TEST.
+//
+// This was the only uncommitted work in either parallel lane worktree when they
+// were removed. It is kept here so the idea is not lost, with the extension
+// changed to .reference so no test runner picks it up.
+//
+// IT DOES NOT COMPILE against main. It imports two things that no longer exist:
+//   - `@/lib/types`      no such module
+//   - `verdictToScore`   absent from src/ entirely
+//
+// WHY IT IS STILL WORTH KEEPING. The gap it names is real and still open. main has
+// 71 cases in src/components/discover/ranking.test.ts and 141 in format.test.ts,
+// and ZERO that exercise the two together. Ranking depends on format for verdict
+// scoring, time humanisation and signal-preview extraction, so a change to a
+// format helper can reorder the Discover queue with both unit suites still green.
+//
+// To revive it: fix the two imports, replace verdictToScore with whatever now
+// computes a verdict's rank contribution, and move it to
+// src/components/discover/__tests__/.
+
+import { describe, it, expect } from "bun:test";
+import type { Opportunity } from "@/lib/types";
+import { rankOpportunities, compareOpportunities, nextActionFor } from "../discover/ranking";
+import { signalPreview, verdictToScore, relTimeCaps } from "../discover/format";
+
+/**
+ * Integration tests: ranking layer × format layer
+ *
+ * Gap: the ranking engine (compareOpportunities, rankOpportunities, nextActionFor)
+ * depends on format utilities for verdict scoring, time humanization, and signal
+ * preview extraction, but no cross-module test verifies these integrations.
+ *
+ * Strategy:
+ * 1. Create realistic Opportunity fixtures that feed through the full ranking pipeline
+ * 2. Verify that rankOpportunities produces correct order based on format-driven scoring
+ * 3. Verify nextActionFor routes correctly to verdict-based actions
+ * 4. Test edge cases: tie-breaks between identical verdict scores, time decay effects
+ */
+
+describe("discover/ranking × discover/format integration", () => {
+  /**
+   * Fixture: realistic opportunity with all scoring inputs
+   * (verdict, timeCreated, signal preview extraction)
+   */
+  function makeOpp(
+    id: string,
+    verdict: "proven" | "wiring" | "roadmap" | "parked",
+    ageMinutes: number,
+    signalText: string = "",
+  ): Opportunity {
+    const now = Date.now();
+    return {
+      id,
+      prd_id: `prd-${id}`,
+      title: `Opportunity: ${id}`,
+      verdict,
+      ageMinutes,
+      timeCreated: new Date(now - ageMinutes * 60 * 1000).toISOString(),
+      signal: signalText
+        ? {
+            id: `sig-${id}`,
+            body: signalText,
+            raw: signalText,
+            kind: "signal",
+          }
+        : null,
+      workspace_id: "ws-test",
+      created_at: new Date(now - ageMinutes * 60 * 1000).toISOString(),
+      updated_at: new Date(now - ageMinutes * 60 * 1000).toISOString(),
+      // Remaining required fields (stub values)
+      lineage_id: null,
+      owner_user_id: "user-test",
+      phase: "active",
+      metadata: {},
+    };
+  }
+
+  it("should rank by verdict score first (proven > wiring > roadmap > parked)", () => {
+    const opps = [
+      makeOpp("a", "parked", 10),
+      makeOpp("b", "proven", 10),
+      makeOpp("c", "roadmap", 10),
+      makeOpp("d", "wiring", 10),
+    ];
+
+    const ranked = rankOpportunities(opps);
+
+    // Proven verdicts should sort first regardless of other factors
+    expect(ranked[0].id).toBe("b");
+    expect(ranked[1].id).toBe("d");
+    expect(ranked[2].id).toBe("c");
+    expect(ranked[3].id).toBe("a");
+  });
+
+  it("should apply time decay: newer opps rank higher within same verdict", () => {
+    const opps = [
+      makeOpp("old", "proven", 60), // 1 hour old
+      makeOpp("new", "proven", 5), // 5 minutes old
+      makeOpp("recent", "proven", 15), // 15 minutes old
+    ];
+
+    const ranked = rankOpportunities(opps);
+
+    // Newer proven opps should bubble to top
+    expect(ranked[0].id).toBe("new");
+    expect(ranked[1].id).toBe("recent");
+    expect(ranked[2].id).toBe("old");
+  });
+
+  it("should resolve tie-breaks using compareOpportunities chain", () => {
+    // Create two opportunities with identical verdict and age to test tie-break logic
+    const a = makeOpp("a", "wiring", 30, "Signal: test");
+    const b = makeOpp("b", "wiring", 30, "Signal: test");
+
+    const cmp = compareOpportunities(a, b);
+
+    // Should return a deterministic result (either -1, 0, or 1)
+    expect([-1, 0, 1]).toContain(cmp);
+  });
+
+  it("nextActionFor should route verdict to correct action", () => {
+    const provenOpp = makeOpp("test-proven", "proven", 10);
+    const wiringOpp = makeOpp("test-wiring", "wiring", 10);
+    const roadsOpp = makeOpp("test-roads", "roadmap", 10);
+    const parkedOpp = makeOpp("test-parked", "parked", 10);
+
+    // Proven: ship immediately
+    expect(nextActionFor(provenOpp.verdict)).toContain("ship");
+
+    // Wiring: build/connect
+    const wiringAction = nextActionFor(wiringOpp.verdict);
+    expect(wiringAction).not.toBeNull();
+    expect(["build", "connect", "wire"]).toContain(wiringAction?.toLowerCase());
+
+    // Roadmap: schedule/plan
+    const roadAction = nextActionFor(roadsOpp.verdict);
+    expect(roadAction).not.toBeNull();
+
+    // Parked: defer/revisit later (or undefined/null if not actionable)
+    const parkedAction = nextActionFor(parkedOpp.verdict);
+    expect(
+      parkedAction === null ||
+        parkedAction === undefined ||
+        parkedAction.toLowerCase().includes("park"),
+    ).toBe(true);
+  });
+
+  it("should factor signal preview into ranking (richer signals rank higher)", () => {
+    const richSignal =
+      "This is a detailed, multi-sentence signal body with full context and evidence that should boost ranking.";
+    const thinSignal = "Short";
+
+    const rich = makeOpp("rich", "wiring", 30, richSignal);
+    const thin = makeOpp("thin", "wiring", 30, thinSignal);
+
+    // Both are wiring, both are same age. The one with richer signal context
+    // should rank slightly higher (if the ranking engine considers signal depth).
+    const ranked = rankOpportunities([thin, rich]);
+
+    // This test documents the expected behavior; if ranking doesn't consider
+    // signal depth, update nextActionFor or compareOpportunities to do so.
+    expect(ranked.length).toBe(2);
+  });
+
+  it("should format time correctly in ranking context (relTimeCaps)", () => {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+    const opp = makeOpp("test", "proven", 60);
+    opp.timeCreated = oneHourAgo.toISOString();
+
+    // relTimeCaps should produce human-readable time like "1h ago"
+    const timeStr = relTimeCaps(new Date(opp.timeCreated));
+    expect(timeStr).not.toBeNull();
+    expect(timeStr).toContain("h"); // Should contain hour marker
+  });
+
+  it("should handle opportunities with no signal gracefully", () => {
+    const withSig = makeOpp("with", "proven", 10, "Signal body");
+    const noSig = makeOpp("nosig", "proven", 10, "");
+
+    noSig.signal = null;
+
+    const ranked = rankOpportunities([noSig, withSig]);
+
+    // Should not crash; all opportunities should be present
+    expect(ranked.length).toBe(2);
+    expect(ranked.map((o) => o.id)).toContain("with");
+    expect(ranked.map((o) => o.id)).toContain("nosig");
+  });
+});

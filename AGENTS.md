@@ -202,6 +202,15 @@ No em or en dashes, no invisible Unicode, no AI-cliché phrasing in:
 - **`.md` docs and `.sql` migrations**, at all.
 - **Tests.**
 
+**And the harder half: removing fingerprints is not the standard, it is the floor** (founder command, same day). Every string a user reads must feel written by a person who knew their situation. Four tests:
+
+1. **Contextual, not generic.** It names *this* situation with *this* data. If the sentence would fit on ten other screens, it is not finished. "No items to display" fails; "No signals since Tuesday, so Discover has nothing new to rank" passes.
+2. **Empathetic only where something broke**, and then it says what broke, what it cost, and what happens next. Never apologise decoratively. Warmth without information is worse than a blunt fact.
+3. **Enterprise-credible.** It could sit in Stripe's or Linear's product unnoticed. No exclamation marks, no cheerleading, no hedging on a confirm.
+4. **Written for one reader.** Second person, present tense, specific.
+
+"An error occurred. Please try again." passes every automated check and still fails all four. **The scan is automatable; this bar is not.** Apply it while writing. Worked examples: [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md).
+
 The founder's reason, stated as a standing instruction: cleaning fingerprints out of non-consumer-facing code is *"a waste of time for us and token and energy"*. An engineer's dash in an explanation of why a function exists is not an AI fingerprint. It never leaves the repo. Leave it.
 
 The hard gate is the runtime sanitizer at the AI chokepoint, which protects generated output automatically and needs no manual pass. The build-time checker (`scripts/check-humanized.sh`) is scoped to match this rule. Bodies: [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md), [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md).

@@ -14,6 +14,32 @@
 >
 > This is not a relaxation of the standard, it is a redirection of where the standard is paid for. The runtime sanitizer at the AI chokepoint still protects every generated output unconditionally, so nothing a user reads loses coverage. `scripts/check-humanized.sh` is scoped to match by an allowlist (`src/components/`, `src/routes/`, the prompt and humanizer modules), and an allowlist can only narrow by accident, never widen.
 
+> ## ⭐ THE POSITIVE BAR (founder command, 2026-08-03). Removing fingerprints is half the job.
+>
+> **Every message a user reads must feel written by a person who knew their situation.** Not merely free of AI tells: actually written. A heading, a dialog, an empty state, an error, a generated outcome, a prompt we display.
+>
+> His words: *"it needs to be absolutely customized and personalized like human... catering to the enterprise standards, what customers would love to see, and being empathetic as well, not just randomly showing. It needs to be contextual."*
+>
+> The four tests, all of which a string passes before it ships:
+>
+> 1. **Contextual, not generic.** It names *this* situation with *this* data. "Nothing here yet" is generic. "No signals since Tuesday, so Discover has nothing new to rank" is contextual. If the same sentence would fit on ten other screens, it is not finished.
+> 2. **Empathetic where something went wrong, and only there.** A failure names what broke, what it cost the person, and what happens next. It never apologises decoratively and never performs concern. Warmth without information is worse than a blunt fact.
+> 3. **Enterprise-credible.** It could appear in Stripe's or Linear's product without looking out of place. No exclamation marks, no cheerleading, no emoji in body copy, no hedging on a confirm.
+> 4. **Written for one reader.** Second person, present tense, specific. "We were unable to process your request" is nobody talking to nobody. "That deploy is still running, so Ship is holding the gate" is someone telling you something.
+>
+> **A worked pair, because the rule is easy to nod at and hard to apply:**
+>
+> | Passes a fingerprint scan, still fails | Ships |
+> | --- | --- |
+> | "No items to display." | "No signals since Tuesday. Discover has nothing new to rank." |
+> | "An error occurred. Please try again." | "The build stopped at the merge gate: 3 tests failed. Nothing was pushed." |
+> | "Successfully created 1 opportunity!" | "Filed as a bet. Decide will rank it against the other four." |
+> | "We understand this may be frustrating." | (delete it, and say what you are doing about it) |
+>
+> Both columns are free of em dashes and AI clichés. The left column is still machine output, which is why the checker cannot be the whole standard: **the fingerprint scan is automatable, this bar is not.** It is a judgment you apply while writing, and it is the difference between text that survives a scan and text a customer likes.
+>
+> Length budgets and the buzzword denylist are in [`ui-voice.md`](./ui-voice.md). This is the standard those budgets serve.
+
 > **What this is.** The master rule that no text a **user** reads carries a machine fingerprint. Two levels:
 >
 > 1. **What we author for a user to see.** UI copy, labels, error text, marketing copy, seed data that surfaces. Applies to every co-development tool equally (Claude Code, Lovable, Gemini, Antigravity, and any future one).
