@@ -76,6 +76,8 @@ const SPHERE_SEGMENTS = 18;
 const HALO_SCALE = 3.4;
 const RING_SCALE = 3.0;
 const NEUTRAL_THREAD = "#c6c0b8";
+/** Fallback ground for a dimmed thread when no token resolves: the dark canvas. */
+const NEUTRAL_GROUND = "#0b0b0c";
 
 /** Deterministic z seed so a rebuild reads as growth, not a relayout (no Math.random). */
 function seedZ(key: string): number {
@@ -201,6 +203,7 @@ export function GraphUniverseCanvas({
 
   const chromeRef = useRef({
     thread: toThreeColor(NEUTRAL_THREAD, NEUTRAL_THREAD),
+    ground: toThreeColor(NEUTRAL_GROUND, NEUTRAL_GROUND),
     madder: toThreeColor("#e06557", "#e06557"),
     marigold: toThreeColor("#e8b44c", "#e8b44c"),
     ember: toThreeColor("#FF6B2C", "#FF6B2C"),
@@ -280,6 +283,12 @@ export function GraphUniverseCanvas({
       styles.getPropertyValue(token).trim() || fallback;
     chromeRef.current = {
       thread: toThreeColor(read("--ash", NEUTRAL_THREAD), NEUTRAL_THREAD),
+      /**
+       * The colour a dimmed thread fades INTO, read off the panel the canvas sits
+       * in so it follows the theme instead of assuming one. `--sp-sink` is the
+       * surface this wrapper already paints itself with (see the style below).
+       */
+      ground: toThreeColor(read("--sp-sink", NEUTRAL_GROUND), NEUTRAL_GROUND),
       madder: toThreeColor(read("--madder", "#e06557"), "#e06557"),
       marigold: toThreeColor(read("--marigold", "#e8b44c"), "#e8b44c"),
       ember: toThreeColor(read("--ember", "#FF6B2C"), "#FF6B2C"),
@@ -359,10 +368,20 @@ export function GraphUniverseCanvas({
     const edgeGeom = new THREE.BufferGeometry();
     edgeGeom.setAttribute("position", new THREE.Float32BufferAttribute(new Float32Array(0), 3));
     edgeGeom.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(0), 3));
+    /**
+     * NORMAL blending, not additive.
+     *
+     * Additive blending only reads on a dark ground: on the light theme it pushes
+     * every thread toward white, so the graph lost its edges entirely the moment
+     * a user switched themes. Normal blending plus a colour that fades toward the
+     * BACKGROUND (see applyEmphasis) gives the same "quiet thread" reading in both
+     * themes, which is what a connected-graph view like Obsidian's relies on: the
+     * links have to be the thing you see first.
+     */
     const edgeMat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       depthWrite: false,
     });
     const lines = new THREE.LineSegments(edgeGeom, edgeMat);
@@ -498,7 +517,11 @@ export function GraphUniverseCanvas({
           base = chrome.thread;
           intensity = litEdge ? 0.62 : 0.12;
         }
-        tmpColor.copy(base).multiplyScalar(intensity);
+        // Fade toward the BACKGROUND, not toward black. multiplyScalar darkens,
+        // which reads as "dimmer" only when the ground is dark; on the light theme
+        // it made a dim thread DARKER and therefore louder than a lit one. Lerping
+        // to the ground colour is the same visual on dark and correct on light.
+        tmpColor.copy(base).lerp(chrome.ground, 1 - intensity);
         const o = i * 6;
         colorArr[o] = tmpColor.r;
         colorArr[o + 1] = tmpColor.g;
@@ -908,8 +931,33 @@ export function GraphUniverseCanvas({
     // Size the edge buffers for the new edge set.
     edgePosRef.current = new Float32Array(edges.length * 6);
     edgeColorRef.current = new Float32Array(edges.length * 6);
-    line.geometry.setAttribute("position", new THREE.Float32BufferAttribute(edgePosRef.current, 3));
-    line.geometry.setAttribute("color", new THREE.Float32BufferAttribute(edgeColorRef.current, 3));
+    /**
+     * BufferAttribute, NOT Float32BufferAttribute. This is why the 3D graph drew
+     * nodes and no edges (found 2026-08-03 on the live app).
+     *
+     * three/src/core/BufferAttribute.js:
+     *   class Float32BufferAttribute extends BufferAttribute {
+     *     constructor(array, itemSize, normalized) {
+     *       super(new Float32Array(array), itemSize, normalized);   // <- COPIES
+     *
+     * So `attr.array` was a different Float32Array from `edgePosRef.current`. The
+     * frame loop wrote every edge endpoint into the ref and then set needsUpdate
+     * on the attribute wrapping the COPY, which stayed all zeros. Every segment
+     * collapsed to a degenerate point at the origin, so nothing was visible even
+     * though the data was perfect: the hover card correctly read "3 links, from 3"
+     * on a node with no line attached to it, and the Flat canvas drew the same
+     * graph properly the whole time.
+     *
+     * BufferAttribute takes the array by reference, which is what a per-frame
+     * mutable buffer requires. `setUsage(DynamicDrawUsage)` tells the driver this
+     * is rewritten every frame rather than uploaded once.
+     */
+    const posAttr = new THREE.BufferAttribute(edgePosRef.current, 3);
+    posAttr.setUsage(THREE.DynamicDrawUsage);
+    const colAttr = new THREE.BufferAttribute(edgeColorRef.current, 3);
+    colAttr.setUsage(THREE.DynamicDrawUsage);
+    line.geometry.setAttribute("position", posAttr);
+    line.geometry.setAttribute("color", colAttr);
 
     const sim = forceSimulation<SimNode3D>(nodes, 3)
       .force(
