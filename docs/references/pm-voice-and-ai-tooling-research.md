@@ -385,6 +385,6 @@ One-batch dashboard registration at the corpus merge — never before. Anti-patt
 
 - [`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md) — single-creator PM content audit (sibling reference; §11 extends it with the wider circle; **§12.4's citation-integrity correction governs how it may be cited**)
 - [`competitive-landscape.md`](./competitive-landscape.md) — June-2026 market scan (AI-PM tools, suite agents, MCP/A2A)
-- [`2026-07-10-launch-research-briefs.md`](./2026-07-10-launch-research-briefs.md) — the parallel v13 session's 7-agent sweep (frontier-agent UX brief lives there; §15's frontier corpus extends it)
+- [`2026-07-10-launch-research-briefs.md`](./launch-research-briefs.md) — the parallel v13 session's 7-agent sweep (frontier-agent UX brief lives there; §15's frontier corpus extends it)
 - [`../strategy/moat.md`](../strategy/moat.md) — moat/competition canon this research corroborates
 - [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) — 2026-07-10 entries pointing back to this doc

@@ -61,6 +61,33 @@ TEXT_EXT_RE='\.(ts|tsx)$'
 # source file, not from us, and it reappears on every rebuild. Scanning them buried the real
 # violations under thousands of hits, which is how a warn-only check becomes one people ignore.
 GENERATED_RE='^graphify-out/'
+# NON-CONSUMER-FACING CODE, excluded by explicit founder command 2026-08-03:
+#   "only on the consumer exposed user facing screens and outcomes... it's okay to
+#    have it at the source code back end, which is not consumer facing, because
+#    earlier you were fixing even the back end source code. That's a waste of time
+#    for us and token and energy."
+#
+# What a user actually reads lives in src/components/** and src/routes/** (rendered
+# copy) and in the prompt and humanizer modules (text sent to or returned from a
+# model). Everything else under src/lib/** is server logic whose dashes never leave
+# the repo, and tests are read by nobody but us.
+#
+# The runtime sanitizer at the AI chokepoint still protects generated output
+# unconditionally, so narrowing this build-time checker loses no user-facing
+# coverage. It only stops us paying to tidy prose no user will ever see.
+#
+# Expressed as an ALLOWLIST, not a denylist. A denylist silently re-includes every
+# new server directory somebody adds, which is how this checker crept back over
+# backend code the first time. An allowlist can only ever get narrower by accident,
+# never wider, and a false negative here costs nothing while a false positive costs
+# exactly the tokens the founder asked us to stop spending.
+#
+#   src/components/  src/routes/   rendered copy: labels, empty states, errors
+#   src/lib/ai/prompts, humanize   text sent to a model, and the sanitizer itself
+#
+# Tests are excluded even inside those directories.
+CONSUMER_RE='^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize)'
+TEST_RE='(\.test\.(ts|tsx)$|^src/__tests__/)'
 
 # --- The perl scanner: reads "<lineno>\t<content>" lines, prints a hit line
 # "  <file>:<lineno>  <names>" for each offending added line, and exits with a
@@ -164,7 +191,13 @@ scan_file_args() {
 
 scan_staged_diff() {
   local files file tmp
-  files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$TEXT_EXT_RE" | grep -Ev "$GENERATED_RE" || true)"
+  # Consumer-facing paths only (explicit founder command 2026-08-03). An explicit
+  # path argument still bypasses this, which is the opt-in for a public page.
+  files="$(git diff --cached --name-only --diff-filter=ACMR \
+    | grep -E "$TEXT_EXT_RE" \
+    | grep -Ev "$GENERATED_RE" \
+    | grep -E "$CONSUMER_RE" \
+    | grep -Ev "$TEST_RE" || true)"
   [[ -z "$files" ]] && return 0
   tmp="$(mktemp)"
   while IFS= read -r file; do

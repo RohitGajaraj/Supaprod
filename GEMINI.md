@@ -4,6 +4,8 @@
 
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
+> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. It learns and guides; it never "remembers", "stores", or "logs". That distinction is the moat, so it binds UI copy, docs and commit messages alike.
+
 This file is deliberately short. Antigravity and the Gemini CLI load it with the highest precedence, so anything written here is paid for on every request. It holds only what is specific to those tools.
 
 ---

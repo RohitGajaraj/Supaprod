@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-10 · Method: WebSearch shortlist (2025 → Jul 2026) → YouTube transcript pulls via `youtube-transcript-api` (9 transcripts, ~90K words) → python keyword-context extraction → WebFetch of published transcripts and launch posts (dwarkesh.com, lexfridman.com, blog.samaltman.com, anthropic.com, claude.com). Every quote is dated and attributed to speaker + venue. Transcript-verified items are marked **[T]**; page-level items are marked [P]._
 >
-> **How to use this doc.** This is the frontier-lab / frontier-operator half of the launch evidence base: what agents can now do end-to-end, what the human's remaining job is, how agentic products are priced, and which layer above execution every one of these voices leaves unsolved. It extends [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) §14 (Amodei, Masad — already mined there, NOT repeated here) and §15's frontier-corpus queue, and extends Brief 2 of [`2026-07-10-launch-research-briefs.md`](./2026-07-10-launch-research-briefs.md) (frontier-agent UX patterns) with keynote-level verbatim quotes and feature-level launch facts. Meng To is fully covered in the sibling doc §13 and not repeated.
+> **How to use this doc.** This is the frontier-lab / frontier-operator half of the launch evidence base: what agents can now do end-to-end, what the human's remaining job is, how agentic products are priced, and which layer above execution every one of these voices leaves unsolved. It extends [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) §14 (Amodei, Masad — already mined there, NOT repeated here) and §15's frontier-corpus queue, and extends Brief 2 of [`2026-07-10-launch-research-briefs.md`](./launch-research-briefs.md) (frontier-agent UX patterns) with keynote-level verbatim quotes and feature-level launch facts. Meng To is fully covered in the sibling doc §13 and not repeated.
 >
 > **Citation-integrity rule (inherited from the sibling doc §12.4):** cite artifacts, launches, and named-company facts — never influencer authority. Everything below is a launch fact, a first-party blog sentence, or a transcript quote. ASR transcripts (YouTube auto-captions) are quoted with light cleanup of transcription garble only; bracketed fixes are marked.
 
@@ -265,6 +265,6 @@
 ## Related
 
 - [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) — §14 (Amodei, Masad — mined there, deliberately not repeated here), §15 (the queue this doc executes), §12.4 (the citation-integrity rule this doc follows)
-- [`2026-07-10-launch-research-briefs.md`](./2026-07-10-launch-research-briefs.md) — Brief 2 (frontier-agent UX patterns this doc deepens with quotes), Brief 1 (competitor grid), Brief 3 (pricing/market sizing the §15 item extends)
+- [`2026-07-10-launch-research-briefs.md`](./launch-research-briefs.md) — Brief 2 (frontier-agent UX patterns this doc deepens with quotes), Brief 1 (competitor grid), Brief 3 (pricing/market sizing the §15 item extends)
 - [`competitive-landscape.md`](./competitive-landscape.md) — June-2026 market scan
 - [`../strategy/moat.md`](../strategy/moat.md) · [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) · [`../strategy/v13-proof-campaign.md`](../strategy/v13-proof-campaign.md) — the canon the "Product moves" section proposes deltas against

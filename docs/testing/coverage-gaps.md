@@ -152,7 +152,7 @@ Once mock harness is wired:
 ### New Files
 - `src/lib/testing/tanstack-query-mocks.ts` — 180 lines, TanstackMockManager class
 - `src/components/governance/ApprovalsPanel.test.tsx` — 370 lines, comprehensive test suite
-- `docs/testing/test-coverage-gaps-2026-07-24.md` — this file
+- `docs/testing/coverage-gaps.md` — this file
 
 ### Test Files for Reference
 - `src/components/knowledge/DecisionsPanel.test.tsx` — established mock.module pattern (lines 182-215)

@@ -1,11 +1,25 @@
 # Convention: humanized output, zero AI fingerprints
 
-> _Created: 2026-06-14 · Last updated: 2026-06-22_
+> _Created: 2026-06-14 · Last updated: 2026-08-03_
 
-> **What this is.** The master rule that no text we ship carries a machine fingerprint. It governs two levels (see **Priority and scope** below for how strictly each is enforced, and apply it at authoring time):
+> ## ⛔ EXPLICIT FOUNDER COMMAND, 2026-08-03. Read this before cleaning a single dash.
 >
-> 1. **What we author.** Every string a human or tool writes into this repo: UI copy, code comments, docs, commit messages, error text, seed data, marketing copy. Applies to every co-development tool equally (Claude Code, Lovable, Gemini, Antigravity, and any future one).
-> 2. **What the platform generates.** Every output the product produces for a user through an AI feature: PRDs, drafts, chat replies, research summaries, decision rationales, anything a model writes. The end user's outcome must read as if a sharp human wrote it.
+> **Clean AI fingerprints only where a consumer can see them. Never in code a consumer cannot see.**
+>
+> **IN SCOPE, must be perfect:** consumer-facing screens (UI copy, labels, empty states, error messages, anything rendered) · outcomes the platform generates for a user (PRDs, drafts, chat, research, rationales) · public pages.
+>
+> **OUT OF SCOPE. Do not spend a token here:** backend and server source code · code comments, including comment tails on real code · `.md` docs · `.sql` migrations · tests.
+>
+> His words: *"only on the consumer exposed user facing screens and outcomes needs to be completely proof. But it's okay to have it at the source code back end, which is not consumer facing, because earlier you were fixing even the back end source code. That's a waste of time for us and token and energy."*
+>
+> This is not a relaxation of the standard, it is a redirection of where the standard is paid for. The runtime sanitizer at the AI chokepoint still protects every generated output unconditionally, so nothing a user reads loses coverage. `scripts/check-humanized.sh` is scoped to match by an allowlist (`src/components/`, `src/routes/`, the prompt and humanizer modules), and an allowlist can only narrow by accident, never widen.
+
+> **What this is.** The master rule that no text a **user** reads carries a machine fingerprint. Two levels:
+>
+> 1. **What we author for a user to see.** UI copy, labels, error text, marketing copy, seed data that surfaces. Applies to every co-development tool equally (Claude Code, Lovable, Gemini, Antigravity, and any future one).
+> 2. **What the platform generates.** Every output the product produces for a user through an AI feature: PRDs, drafts, chat replies, research summaries, decision rationales. The end user's outcome must read as if a sharp human wrote it.
+>
+> Code comments, docs and migrations were in an earlier version of this list. They are not any more; see the command above.
 >
 > [`ui-voice.md`](./ui-voice.md) is the UI-string application of this rule (length budgets + the buzzword denylist). This file is the umbrella and adds the parts that rule does not cover: it extends scope to all authored text and to runtime-generated output, bans invisible characters, and specifies the runtime enforcement.
 

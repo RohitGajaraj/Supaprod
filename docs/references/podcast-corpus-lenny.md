@@ -311,6 +311,6 @@
 ## Related
 
 - [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) — the sibling community-voice research; its §11/§12.4 citation-integrity rules bind this doc; its §14 holds the already-mined Masad/Amodei/Lenny-circle layer this corpus extends.
-- [`2026-07-10-launch-research-briefs.md`](./2026-07-10-launch-research-briefs.md) — the v13 evidence base (competitive grid, frontier-agent UX, market sizing) that the synthesis insights above feed.
+- [`2026-07-10-launch-research-briefs.md`](./launch-research-briefs.md) — the v13 evidence base (competitive grid, frontier-agent UX, market sizing) that the synthesis insights above feed.
 - [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md) · [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) — the canon the "Product moves" section proposes deltas against; adoption of any move is a founder call logged in [`../strategy/session-decisions.md`](../strategy/session-decisions.md).
 - [`../strategy/moat.md`](../strategy/moat.md) — the decision-layer moat argument the top-10 synthesis corroborates from operator evidence.

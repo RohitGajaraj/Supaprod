@@ -64,7 +64,14 @@ while IFS= read -r mdfile; do
     case "$link" in ""|http*|/*|mailto:*) continue ;; esac
     if [ ! -f "$d/$link" ]; then BROKEN_LIST="${BROKEN_LIST}  BROKEN ${mdfile} -> ${link}"$'\n'; fi
   done <<< "$links"
-done < <(find . \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv \) -prune -o -name '*.md' -print 2>/dev/null)
+  # Scope: docs WE own. Vendored tool libraries (.agents, .claude, .kiro, .gemini,
+  # .conductor) ship their own broken cross-references and we do not maintain them;
+  # including them buried our own findings under ~40 of theirs. Generated graphify
+  # output is excluded for the same reason: it is rewritten on every build.
+done < <(find . \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv \
+                   -o -path ./.agents -o -path ./.claude -o -path ./.kiro -o -path ./.gemini \
+                   -o -path ./.conductor -o -path ./graphify-out -o -path ./.remember \) -prune \
+                -o -name '*.md' -print 2>/dev/null)
 if [ -n "$BROKEN_LIST" ]; then
   LIVE="$(printf '%s' "$BROKEN_LIST" | grep -v '/archive/' || true)"
   ARCH="$(printf '%s' "$BROKEN_LIST" | grep -c '/archive/' || true)"
@@ -74,21 +81,57 @@ else
   echo "  none"
 fi
 
-echo "-- [6] dates in .md filenames (date belongs in the header, not the name; archive INCLUDED) --"
-DATED="$(find . \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv -o -path ./.remember \) -prune -o -name '*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*.md' -print 2>/dev/null)"
-if [ -n "$DATED" ]; then echo "$DATED" | sed 's/^/  FAIL dated filename: /'; echo "  (drop the date from the name; put Created/Last updated in the file header.)"; FAIL=1; else echo "  none"; fi
+# WHY THIS CHECK WAS NARROWED (2026-08-03). It used to fail on EVERY dated
+# filename anywhere, which meant 36 hits including generated graphify output and
+# .remember plugin state. It failed on every run, so it was read as noise and the
+# genuine offenders sat in it for weeks. A check that always fails enforces nothing.
+#
+# The rule's PURPOSE is that freshness is learned on open, from the header, so a
+# name can never imply a doc is current when it is not. That purpose is served by
+# banning dates on LIVING docs (plans, specs, indexes, conventions). It is not
+# served by banning them on a DATED RECORD of a specific event, where the date is
+# the file's identity and removing it causes collisions: a founder verdict given on
+# one day, an applied design record in a series, an archived session report.
+# So: generated output and plugin state are out of scope, dated records are allowed
+# by folder or by name, and everything else must carry its date in the header only.
+echo "-- [6] dates in the filenames of LIVING docs (the date belongs in the header) --"
+DATED="$(find . \
+  \( -path ./node_modules -o -path ./.git -o -path ./dist -o -path ./.venv \
+     -o -path ./.remember -o -path ./graphify-out -o -path ./.claude \
+     -o -path '*/archive/*' -o -path '*/applied/*' \) -prune \
+  -o -name '*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*.md' -print 2>/dev/null \
+  | grep -v -E 'FOUNDER-VERDICT-|/docs/pitch/repositioning-' || true)"
+if [ -n "$DATED" ]; then
+  echo "$DATED" | sed 's/^/  FAIL dated filename: /'
+  echo "  (drop the date from the name and put Created/Last updated in the file header."
+  echo "   If it is genuinely a dated RECORD of one event, put it under archive/ or applied/.)"
+  FAIL=1
+else echo "  none"; fi
 
 echo "-- [7] docs missing a Created / Last updated header --"
 MISS=0
 while IFS= read -r mdfile; do
   [ -z "$mdfile" ] && continue
   if ! head -12 "$mdfile" | grep -qiE 'Last updated|Created:'; then echo "  WARN no date header: $mdfile"; MISS=1; fi
-done < <( { find docs -name '*.md' 2>/dev/null; for r in AGENTS.md CLAUDE.md GEMINI.md README.md DESIGN.md DESIGN-OBSIDIAN.md DESIGN-LOOM.md ENTRY.md Ai_Cofounder.md plan.md; do [ -f "$r" ] && echo "$r"; done; } )
+done < <( { find docs -name '*.md' 2>/dev/null; for r in AGENTS.md CLAUDE.md GEMINI.md README.md; do [ -f "$r" ] && echo "$r"; done; } )
 if [ "$MISS" -ne 0 ]; then echo "  (add '> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_' under the H1)"; WARN=1; else echo "  ok"; fi
 
-echo "-- [8] design canon reference case (the file is DESIGN.md; links must match for case-sensitive systems) --"
-DCASE="$(grep -rIn -F -e '](design.md)' -e '](./design.md)' -e '](../design.md)' -e '](../../design.md)' -e '](../../../design.md)' -e '\`design.md\`' . --include='*.md' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=design-reference 2>/dev/null)"
-if [ -n "$DCASE" ]; then echo "$DCASE" | sed 's/^/  FAIL lowercase design.md ref (file is DESIGN.md; 404s on GitHub\/Linux): /'; FAIL=1; else echo "  ok"; fi
+# WHY THIS CHECK REPLACED THE OLD ONE. Until 2026-08-03 slot [8] checked the CASE
+# of links to a root DESIGN.md. That file no longer exists, so the check could
+# only ever pass, while the real hazard went unguarded: three of the four root
+# docs were pointing agents at Tempo v5, a design contract the founder rejected
+# on 2026-07-28. Following the docs actively undid the rebuild. A doc that sends
+# a reader at a retired contract is worse than a missing doc.
+echo "-- [8] a retired design contract cited as if it were current --"
+RETIRED="$(grep -rIn -E '\]\((\./)?(\.\./)*DESIGN(-TEMPO|-LOOM|-OBSIDIAN)?\.md\)|`DESIGN(-TEMPO|-LOOM|-OBSIDIAN)?\.md`' . \
+  --include='*.md' --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=graphify-out \
+  --exclude-dir=archive --exclude-dir=design-reference --exclude-dir=worktrees 2>/dev/null)"
+if [ -n "$RETIRED" ]; then
+  echo "$RETIRED" | sed 's/^/  FAIL retired design contract cited: /'
+  echo "  (DESIGN.md, DESIGN-TEMPO.md, DESIGN-LOOM.md and DESIGN-OBSIDIAN.md were all retired."
+  echo "   The live contract is docs/design/DESIGN-SYSTEM.md. History lives in docs/design/archive/.)"
+  FAIL=1
+else echo "  ok"; fi
 
 echo ""
 if [ "$FAIL" -ne 0 ]; then echo "docs-doctor: ISSUES FOUND (hard rot). Fix the FAIL items in the same commit."; exit 1; fi

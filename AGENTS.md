@@ -10,6 +10,22 @@ For what the product is and where every other document lives, read [`README.md`]
 
 ---
 
+## What you are building
+
+**Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.**
+
+**The last verb is the product.** It **learns and guides**; it does not "remember". Remembering is storage, and storage is not defensible: anyone can hold your decisions, and one frontier release can absorb search over them. Learning compounds, because it needs your outcomes, labelled, over time, which no model has.
+
+This is not only marketing language, it is a design constraint you apply while coding:
+
+- A feature that **records** something and stops has not finished. Ask what reads it, and when. If the answer is "a human, if they go looking", the loop is open.
+- **The Learn station is the moat.** A verdict is settled there, written back against the decision that caused it, and used to re-rank what Discover and Decide surface next. Work that breaks that write-back is a moat regression, however well it typechecks.
+- **Never write "where the record lives", "stores", or "searchable history"** in UI copy, a doc, or a commit message. Say it compounds, it guides the next call, and it warns before you repeat what was wrong.
+
+Full positioning and the vocabulary table: [`README.md`](./README.md).
+
+---
+
 ## Read this first
 
 Four things carry most of the value in this file. If you read nothing else:
@@ -169,7 +185,26 @@ The short version, because it is easy to get wrong:
 
 Mechanics are enforced by `src/__tests__/surface-discipline.test.ts`, which was proven to fail by planting the defect.
 
-**Humanized output** applies to source, UI copy and everything the platform generates for a user: no em or en dashes, no invisible Unicode, no AI-cliché phrasing. Markdown docs are exempt. [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md), [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md).
+### Humanized output: consumer-facing only (explicit founder command, 2026-08-03)
+
+> **Clean AI fingerprints only where a user can see them. Never in code that a user cannot see.**
+
+No em or en dashes, no invisible Unicode, no AI-cliché phrasing in:
+
+- **Consumer-facing screens.** UI copy, labels, empty states, error messages, anything rendered.
+- **Outcomes the platform generates.** PRDs, drafts, chat, research, rationales, emails, anything a user reads back.
+- **Public surfaces.** The landing page and every public page.
+
+**Explicitly out of scope. Do not spend a token here:**
+
+- **Backend and server source code.** Logic in `src/lib/**` that emits nothing a user reads.
+- **Code comments**, including comment tails on a line of real code.
+- **`.md` docs and `.sql` migrations**, at all.
+- **Tests.**
+
+The founder's reason, stated as a standing instruction: cleaning fingerprints out of non-consumer-facing code is *"a waste of time for us and token and energy"*. An engineer's dash in an explanation of why a function exists is not an AI fingerprint. It never leaves the repo. Leave it.
+
+The hard gate is the runtime sanitizer at the AI chokepoint, which protects generated output automatically and needs no manual pass. The build-time checker (`scripts/check-humanized.sh`) is scoped to match this rule. Bodies: [`docs/conventions/humanized-output.md`](./docs/conventions/humanized-output.md), [`docs/conventions/ui-voice.md`](./docs/conventions/ui-voice.md).
 
 **No native browser chrome.** No `alert`, `confirm`, `prompt` or native `<dialog>` in `src/**`. Use `useConfirm()`, `usePrompt()`, `sonner` and shadcn. ESLint-enforced.
 

@@ -2,9 +2,28 @@
 
 > _Created: 2026-06-03 · Last updated: 2026-08-03_
 
-**Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks the outcome, and remembers. Wired end to end, from signal to learning and back again.**
+**Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
 
 This file is the front door: what the product is, why it holds, and where every other document lives. It is the only navigation map in the repo. If you are here to **build**, read [`AGENTS.md`](./AGENTS.md) instead.
+
+---
+
+## The claim, and the word that carries it
+
+The last verb in that sentence is the whole product, so it is worth being exact about it.
+
+**It learns, and then it guides. It does not remember.** "Remembers" describes a filing cabinet, and a filing cabinet is not defensible: any vendor can store your decisions, and a frontier model release can absorb search over them next quarter. **Learning is the part that compounds**, because it needs something no model has: your outcomes, labelled, over time.
+
+So the language is load-bearing everywhere, in this repo and on every surface:
+
+| Never say | Say |
+| --- | --- |
+| "where the record lives" | "it compounds" |
+| "it remembers your decisions" | "next time it tells you what is right, and warns before you repeat what was wrong" |
+| "searchable history" | "it guides the next call" |
+| "storage", "archive", "log" (of the brain) | "the brain", which learns and guides |
+
+**The mechanism, plainly.** A shipped outcome is settled at Learn with a verdict, that verdict is written back against the decision that caused it, and it **re-ranks what Discover and Decide surface next**. The loop does not end in a report; it ends by changing what you are shown. That is why this is an operating system and not a dashboard.
 
 ---
 
@@ -12,9 +31,9 @@ This file is the front door: what the product is, why it holds, and where every 
 
 **One loop, not seven tools.** Discover, Decide, Plan, Design, Build, Ship and Learn run as one governed route that agents walk unattended, inside boundaries a human sets in advance. A recorded outcome re-ranks the next bet rather than ending in a report.
 
-**Product knowledge compounds, and the record is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped. When a product manager leaves, the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding.
+**Product judgment compounds, and it is portable across people.** Every decision, the alternatives weighed against it, and what actually happened stay in the workspace record, which is membership scoped. When a product manager leaves, the next person inherits it instead of starting cold. That is the enterprise reason to buy: continuity, audit, onboarding.
 
-> **Known limit, do not overstate it.** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the **user** who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Until that closes, say "the record travels", never "the memory travels".
+> **Known limit, do not overstate it.** `agent_memory`, the layer that pushes past outcomes into an agent's prompt and into the Critic's precedent, is still scoped to the **user** who wrote it, not the workspace. The successor inherits the record today, and not yet the compounded recall. Until that closes, say "the record travels", never "the memory travels". This is the one place where the honest claim is narrower than the ambition, and stating it narrowly is what makes the rest credible.
 
 **Proof, not assertion.** The station-by-station, code-verified account of the loop, carrying a `file:line` for every structural claim and naming the gaps it still has, is [`docs/features/lifecycle-signal-to-learning.md`](./docs/features/lifecycle-signal-to-learning.md). Cite that file. Never claim a step of the loop the repo cannot show in code.
 
@@ -50,7 +69,7 @@ A skipped station is **a decision on the record with a reason**, never a silent 
 | **04 Design** | Scaffolded surfaces checked against the live design system. |
 | **05 Build** | Our own engine writes code in the customer's repo, on frontier models via API. |
 | **06 Ship** | Release, gates, the deploy path, what customers see. |
-| **07 Learn** | Outcomes are settled and written back, which re-ranks Discover and Decide. |
+| **07 Learn** | The outcome is settled with a verdict, written back against the decision that caused it, and used to re-rank what Discover and Decide surface next. This station is the moat; it is why the loop closes instead of stopping. |
 
 ---
 

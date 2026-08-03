@@ -2,7 +2,7 @@
 
 > _Created: 2026-07-02 · Last updated: 2026-07-07_
 
-> Status · In progress (started 2026-07-02) · All authenticated app surfaces · Initiative bible: [`../planning/obsidian-port-plan.md`](../planning/obsidian-port-plan.md)
+> Status · In progress (started 2026-07-02) · All authenticated app surfaces · Initiative bible: [`../planning/obsidian-port-plan.md`](../planning/archive/retired-design-eras/obsidian-port-plan.md)
 
 ## What it does
 
