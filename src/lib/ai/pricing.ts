@@ -87,12 +87,19 @@ export const MODEL_PRICING: Record<string, Pricing> = {
   // context caching: agent prompts carry long stable prefixes at ~4,700 tokens a call,
   // so cache hits bill at a steep discount.
   //
-  // The LIST rate is kept anyway, for two reasons. The cache discount is not
-  // contractual and evaporates the moment prompt prefixes change, and under-charging is
-  // unrecoverable whereas over-charging is visible and refundable. But this must not be
-  // mistaken for precision: the credit ledger currently debits Qwen work about 1.8x its
-  // true cost. The real answer is to meter from provider-reported usage instead of
-  // estimating from a rate table at all, at which point this entry stops mattering.
+  // CLOSED 2026-08-03, and the two invoices above are what CONFIRM the fix. That note
+  // ended "the real answer is to meter from provider-reported usage instead of
+  // estimating from a rate table at all", and that is what now happens. The mechanism
+  // was indeed context caching: probing this endpoint directly returned
+  // prompt_tokens_details.cached_tokens 2432 of 2521 on a repeated prefix, and Alibaba
+  // bills a cache hit at 20% of input. Note how well that predicts the invoices: 96%
+  // of input at 0.2x lands the effective rate near 0.55 of list, which is exactly the
+  // ratio BOTH months independently measured. A hypothesis from billing data and a
+  // direct measurement of the API agreeing to two significant figures is about as
+  // strong as this kind of evidence gets.
+  //
+  // The LIST rate stays as the UNCACHED rate, which is what it always was. What changed
+  // is that cache-served tokens are now billed at cached_in_per_mtok instead of at it.
   // CACHED INPUT, and this is the entry that closes a real overcharge. Alibaba Model
   // Studio's implicit context cache bills a cache-hit input token at 20% of the input
   // rate (their context-cache billing page). Measured live on 2026-08-03 against this
@@ -147,9 +154,7 @@ export function estimateCostUsd(
   // No sourced cached rate means charge the full input rate (see Pricing.cached_in_per_mtok).
   const cachedRate = p.cached_in_per_mtok ?? p.in_per_mtok;
   const uncached = inTok - cached;
-  return (
-    (uncached * p.in_per_mtok + cached * cachedRate + outTok * p.out_per_mtok) / 1_000_000
-  );
+  return (uncached * p.in_per_mtok + cached * cachedRate + outTok * p.out_per_mtok) / 1_000_000;
 }
 
 // ---------------------------------------------------------------------------
