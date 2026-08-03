@@ -21,4 +21,4 @@ Antigravity, Gemini, and Lovable do not have a Skill runtime. See `AGENTS.md` §
 ## Format
 
 One folder per skill, each with a `SKILL.md` carrying YAML frontmatter (`name`,
-`description`). See `cadence-feature-pair/SKILL.md` for the template.
+`description`). See `supaprod-feature-pair/SKILL.md` for the template.

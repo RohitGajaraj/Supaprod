@@ -1,11 +1,29 @@
 ---
 name: overnight-build-1
-description: Parallel build Lane 1. When invoked INSIDE the lane worktree it runs the autonomous /loop in THIS VS Code integrated terminal - pulling the next highest-impact unclaimed item live from feature-dashboard.md, atomically claiming it, building, gating, committing, pushing, and continuing without stopping. Cadence repo only.
+description: DORMANT. The autonomous parallel-lane build loop, Lane 1. Do NOT start this on your own; it requires an explicit founder instruction to run an unattended loop. Supaprod repo only, and only from inside the lane worktree.
 ---
 
 # Parallel build - Lane 1
 
-You are **Lane 1** of the numbered parallel build. Branch `parallel/lane-1`; worktree `cadence-lane-1` (still named `cadence-cockpit` until the founder migrates it). Preferred categories: **Cockpit, then Governance**, then roam the whole board. Identity is the lane NUMBER, not a theme - you build whatever the live dashboard says is highest-impact and unclaimed.
+> ## ⛔ DORMANT. Do not start this unless the founder explicitly asks for an unattended loop.
+>
+> This skill starts an **autonomous loop that commits and pushes to `main` without stopping.**
+> It is not the current mode of work: since late July 2026 the founder directs sessions
+> individually. An agent that reads this skill while looking for "what to build next" must
+> **stop here** and read [`docs/planning/SOURCE-OF-TRUTH.md`](../../../docs/planning/SOURCE-OF-TRUTH.md) §0 instead.
+>
+> Start it only on an instruction as explicit as "run the overnight build loop". Never infer it
+> from a general request to make progress.
+>
+> **The protocol it follows is no longer in `AGENTS.md`.** The ranked-register pick order, the
+> `lane.sh` atomic claim ledger and the `~/.cadence-parallel` shared state were removed from the
+> manual on 2026-08-03 because they had not run in weeks. The mechanics survive in
+> [`docs/operations/parallel-build.md`](../../../docs/operations/parallel-build.md). Verify they
+> still work before trusting them.
+
+You are **Lane 1** of the numbered parallel build. Branch `parallel/lane-1`; worktree directory `cadence-lane-1`. Preferred categories: **Cockpit, then Governance**, then roam the whole board. Identity is the lane NUMBER, not a theme.
+
+> **On the directory name.** `cadence-lane-1` is a legacy **path on disk**, not the product name. The product is **Supaprod**; `Cadence` was retired on 2026-07-17. The directory keeps its old name deliberately, because a linked worktree records its location in two places and renaming it breaks the back-pointer. Do not rename it, and do not read it as the brand.
 
 ## This runs IN THIS TERMINAL (changed 2026-06-20 - no new windows)
 
