@@ -28,7 +28,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { getIncidents, type Incident } from "@/lib/incidents.functions";
 import { Block, Empty, Failed, Loading, Num, Row, Value } from "@/components/shell/primitives";
 import { CostIncidentBadge } from "./CostIncidentBadge";
-import { incidentTraceRef, incidentTone, INCIDENT_VALUE_TONE } from "./incident-format";
+import { incidentTraceRefs, incidentTone, INCIDENT_VALUE_TONE } from "./incident-format";
 
 const KIND_LABEL: Record<Incident["kind"], string> = {
   execution: "Execution",
@@ -53,7 +53,7 @@ function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
-function IncidentRow({ n }: { n: Incident }) {
+function IncidentRow({ n, traceRef }: { n: Incident; traceRef: string }) {
   const navigate = useNavigate();
   const tone = INCIDENT_VALUE_TONE[incidentTone(n.kind)];
   const hasTrace = Boolean(n.traceId);
@@ -81,7 +81,7 @@ function IncidentRow({ n }: { n: Incident }) {
         n.kind === "cost" ? (
           <CostIncidentBadge amountUsd={n.amountUsd} windowKind={n.windowKind} />
         ) : (
-          <Num>{incidentTraceRef(n.id)}</Num>
+          <Num>{traceRef}</Num>
         )
       }
     />
@@ -118,10 +118,15 @@ export function IncidentsPanel() {
     );
   }
 
+  // Refs are computed over the WHOLE list, not per row, because uniqueness is a
+  // property of the set: a six-hex short is only ambiguous relative to its
+  // neighbours. Every seeded incident shorted to the same INC.600000 before this.
+  const refs = incidentTraceRefs(items.map((n) => n.id));
+
   return (
     <>
       {items.map((n) => (
-        <IncidentRow key={n.id} n={n} />
+        <IncidentRow key={n.id} n={n} traceRef={refs.get(n.id) ?? ""} />
       ))}
     </>
   );

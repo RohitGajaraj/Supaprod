@@ -144,6 +144,14 @@ const BARE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 
 /** Exactly what `formatAuditId` prints: the first six hex of a uuid. */
 const SIX_HEX = /^[0-9a-f]{6}$/i;
+/**
+ * A short may now be LONGER than six, because the Incidents panel auto-extends a
+ * short until it is unique the way git abbreviates a SHA (see `disambiguate` in
+ * components/governance/incident-format.ts). Bounded at 32, the hex length of a
+ * uuid with its hyphens removed; a prefix cannot be longer than the thing it
+ * prefixes. Six remains the floor, so no existing tag changes meaning.
+ */
+const HEX_PREFIX = /^[0-9a-f]{6,32}$/i;
 
 /** How many colliding rows we carry back. The real total rides along in
  *  `candidateCount`, so a bigger collision is reported honestly, not truncated
@@ -167,10 +175,16 @@ export const CANDIDATE_CAP = 25;
  */
 export function shortToUuidRange(short: string): { lo: string; hi: string } | null {
   const s = short.trim().toLowerCase();
-  if (!SIX_HEX.test(s)) return null;
+  if (!HEX_PREFIX.test(s)) return null;
+  // A uuid is 32 hex in the fixed layout 8-4-4-4-12. Rebuild the bounds by
+  // padding the prefix out to 32 with the lowest and highest hex digit, then
+  // re-inserting the hyphens, so a prefix of ANY length from 6 to 32 yields
+  // exact bounds. The six-hex case produces byte-for-byte what it always did.
+  const lay = (hex: string) =>
+    `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
   return {
-    lo: `${s}00-0000-0000-0000-000000000000`,
-    hi: `${s}ff-ffff-ffff-ffff-ffffffffffff`,
+    lo: lay(s.padEnd(32, "0")),
+    hi: lay(s.padEnd(32, "f")),
   };
 }
 

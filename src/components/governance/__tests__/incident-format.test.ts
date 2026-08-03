@@ -4,6 +4,7 @@ import {
   INCIDENT_VALUE_TONE,
   incidentRealId,
   incidentTraceRef,
+  incidentTraceRefs,
   incidentTone,
   type IncidentTone,
 } from "../incident-format";
@@ -259,5 +260,46 @@ describe("incidentTraceRef", () => {
 
   test("handles an empty real id after the namespace", () => {
     expect(incidentTraceRef("exec:")).toBe("INC·");
+  });
+});
+
+/**
+ * Set-wide trace refs (2026-08-03).
+ *
+ * All seven incidents in the live Engine room rendered the identical tag
+ * `INC.600000`, because every seeded id begins `60000000-` and a short is the
+ * first six alphanumerics. A reference that cannot tell two records apart is an
+ * audit trail failing at its only job.
+ */
+describe("incidentTraceRefs", () => {
+  const seeded = (tail: string) => `guard:60000000-0005-4000-8000-${tail}`;
+
+  test("gives colliding incidents distinct refs", () => {
+    const ids = [seeded("000000000001"), seeded("000000000002"), seeded("000000000003")];
+    const refs = incidentTraceRefs(ids);
+    expect(new Set(refs.values()).size).toBe(3);
+  });
+
+  test("leaves a non-colliding incident on its existing six-char ref", () => {
+    // The tag people may already have written down must not move underneath them.
+    const ids = ["guard:a1b2c3d4-0000-0000-0000-000000000001", seeded("000000000009")];
+    expect(incidentTraceRefs(ids).get(ids[0])).toBe("INC·A1B2C3");
+  });
+
+  test("extends only as far as it must", () => {
+    // These differ at the SEVENTH hex character, so seven is enough and the
+    // extension must stop there rather than running to the full 32.
+    const ids = [
+      "guard:600000a0-0000-0000-0000-000000000001",
+      "guard:600000b0-0000-0000-0000-000000000002",
+    ];
+    for (const r of incidentTraceRefs(ids).values()) {
+      expect(r.split("·")[1]).toHaveLength(7);
+    }
+  });
+
+  test("returns a ref for every id it was given", () => {
+    const ids = [seeded("000000000001"), seeded("000000000002"), "guard:ffffffff-0000-0000-0000-000000000000"];
+    expect(incidentTraceRefs(ids).size).toBe(3);
   });
 });

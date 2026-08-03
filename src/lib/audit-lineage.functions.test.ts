@@ -151,8 +151,14 @@ describe("shortToUuidRange: the bounds", () => {
     expect(shortToUuidRange("7E7D59")).toEqual(shortToUuidRange("7e7d59"));
   });
 
-  test("anything that is not exactly six hex has no bounds", () => {
-    for (const bad of ["60000", "6000000", "zzzzzz", "60-000", "", "  ", "600 00"]) {
+  test("anything that cannot be a uuid prefix has no bounds", () => {
+    // WIDENED 2026-08-03, deliberately. This used to read "not exactly six hex",
+    // and "6000000" was listed as invalid. Seven hex is now VALID: the Incidents
+    // panel extends a colliding short one character at a time until it is unique
+    // (git's abbreviation rule), because all seven live incidents rendered the
+    // same INC.600000. Six remains the FLOOR, so no existing tag changed meaning;
+    // 32 is the ceiling, since a prefix cannot be longer than a uuid's hex.
+    for (const bad of ["60000", "zzzzzz", "60-000", "", "  ", "600 00", "6".repeat(33)]) {
       expect(shortToUuidRange(bad)).toBeNull();
     }
   });
@@ -242,9 +248,12 @@ describe("resolveEntityLineage: a tag finds its row by range, not by scan", () =
     expect(calls).toHaveLength(1);
   });
 
-  test("a short that is not six hex is rejected before it costs a query", async () => {
+  test("a short that cannot be a prefix is rejected before it costs a query", async () => {
     const { db, calls } = fakeDb({ opportunities: [...COLLIDING] });
-    for (const typed of ["OPP·60000", "OPP·6000000", "OPP·ZZZZZZ", "OPP·beta"]) {
+    // "OPP.6000000" (seven hex) was in this list and has MOVED OUT on purpose:
+    // an extended short is now a legitimate, more precise tag and must reach the
+    // database. Too short, non-hex and over-long still cost nothing.
+    for (const typed of ["OPP·60000", "OPP·ZZZZZZ", "OPP·beta"]) {
       const out = await resolveEntityLineage(db, typed);
       expect(out.found).toBe(false);
       expect(out.ambiguous).toBe(false);
@@ -291,5 +300,57 @@ describe("resolveEntityLineage: a uuid is exact, and stays exact", () => {
     const { db, calls } = fakeDb({ opportunities: [...COLLIDING] });
     expect((await resolveEntityLineage(db, "not an id")).found).toBe(false);
     expect(calls).toHaveLength(0);
+  });
+});
+
+/**
+ * Longer prefixes (2026-08-03).
+ *
+ * The Incidents panel now extends a colliding short until it is unique, the way
+ * git abbreviates a SHA, so this function has to turn a prefix of ANY length
+ * into bounds. It used to reject anything that was not exactly six hex, which
+ * would have made every extended tag unresolvable.
+ */
+describe("shortToUuidRange with prefixes longer than six", () => {
+  test("six hex still produces exactly the bounds it always did", () => {
+    // The regression that matters most: no existing tag may change meaning.
+    expect(shortToUuidRange("60a1b2")).toEqual({
+      lo: "60a1b200-0000-0000-0000-000000000000",
+      hi: "60a1b2ff-ffff-ffff-ffff-ffffffffffff",
+    });
+  });
+
+  test("an eight-hex prefix bounds the whole first group", () => {
+    expect(shortToUuidRange("60000000")).toEqual({
+      lo: "60000000-0000-0000-0000-000000000000",
+      hi: "60000000-ffff-ffff-ffff-ffffffffffff",
+    });
+  });
+
+  test("a prefix that crosses a hyphen still lays out correctly", () => {
+    // Nine hex spans the first group and one character of the second, which is
+    // where a naive string concat would have produced a malformed uuid.
+    expect(shortToUuidRange("600000000")).toEqual({
+      lo: "60000000-0000-0000-0000-000000000000",
+      hi: "60000000-0fff-ffff-ffff-ffffffffffff",
+    });
+  });
+
+  test("a full 32-hex id bounds exactly one uuid", () => {
+    const r = shortToUuidRange("6000000000054000800000000000000f");
+    expect(r?.lo).toBe(r?.hi);
+    expect(r?.lo).toBe("60000000-0005-4000-8000-00000000000f");
+  });
+
+  test("still refuses a short that cannot be a prefix", () => {
+    expect(shortToUuidRange("abc")).toBeNull();
+    expect(shortToUuidRange("zzzzzz")).toBeNull();
+    expect(shortToUuidRange("6000000000054000800000000000000ff")).toBeNull();
+  });
+
+  test("the bounds actually contain a real id with that prefix", () => {
+    const id = "60000000-0005-4000-8000-000000000002";
+    const r = shortToUuidRange("60000000000540008")!;
+    expect(id >= r.lo && id <= r.hi).toBe(true);
   });
 });
