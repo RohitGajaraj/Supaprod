@@ -25,6 +25,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvestorsRouteImport } from './routes/investors'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as ArdRouteImport } from './routes/ard'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -267,6 +268,11 @@ const DemoRoute = DemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BriefRoute = BriefRouteImport.update({
   id: '/brief',
   path: '/brief',
@@ -312,9 +318,9 @@ const DSlugRoute = DSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
-  id: '/checkout/return',
-  path: '/checkout/return',
-  getParentRoute: () => rootRouteImport,
+  id: '/return',
+  path: '/return',
+  getParentRoute: () => CheckoutRoute,
 } as any)
 const ApiMcpRoute = ApiMcpRouteImport.update({
   id: '/api/mcp',
@@ -1149,6 +1155,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ard': typeof ArdRoute
   '/brief': typeof BriefRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
@@ -1327,6 +1334,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ard': typeof ArdRoute
   '/brief': typeof BriefRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
@@ -1505,6 +1513,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/ard': typeof ArdRoute
   '/brief': typeof BriefRoute
+  '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
@@ -1685,6 +1694,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ard'
     | '/brief'
+    | '/checkout'
     | '/demo'
     | '/forgot-password'
     | '/investors'
@@ -1863,6 +1873,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ard'
     | '/brief'
+    | '/checkout'
     | '/demo'
     | '/forgot-password'
     | '/investors'
@@ -2040,6 +2051,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/ard'
     | '/brief'
+    | '/checkout'
     | '/demo'
     | '/forgot-password'
     | '/investors'
@@ -2220,6 +2232,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ArdRoute: typeof ArdRoute
   BriefRoute: typeof BriefRoute
+  CheckoutRoute: typeof CheckoutRouteWithChildren
   DemoRoute: typeof DemoRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InvestorsRoute: typeof InvestorsRoute
@@ -2240,7 +2253,6 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiMcpRoute: typeof ApiMcpRoute
-  CheckoutReturnRoute: typeof CheckoutReturnRoute
   DSlugRoute: typeof DSlugRoute
   JoinTokenRoute: typeof JoinTokenRoute
   PSlugRoute: typeof PSlugRoute
@@ -2430,6 +2442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/brief': {
       id: '/brief'
       path: '/brief'
@@ -2495,10 +2514,10 @@ declare module '@tanstack/react-router' {
     }
     '/checkout/return': {
       id: '/checkout/return'
-      path: '/checkout/return'
+      path: '/return'
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CheckoutRoute
     }
     '/api/mcp': {
       id: '/api/mcp'
@@ -3767,11 +3786,24 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface CheckoutRouteChildren {
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
+}
+
+const CheckoutRouteChildren: CheckoutRouteChildren = {
+  CheckoutReturnRoute: CheckoutReturnRoute,
+}
+
+const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
+  CheckoutRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ArdRoute: ArdRoute,
   BriefRoute: BriefRoute,
+  CheckoutRoute: CheckoutRouteWithChildren,
   DemoRoute: DemoRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InvestorsRoute: InvestorsRoute,
@@ -3793,7 +3825,6 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
   ApiMcpRoute: ApiMcpRoute,
-  CheckoutReturnRoute: CheckoutReturnRoute,
   DSlugRoute: DSlugRoute,
   JoinTokenRoute: JoinTokenRoute,
   PSlugRoute: PSlugRoute,
