@@ -64,6 +64,16 @@ const MAX_EMBED_CHARS = 8_000;
  *  the four tables) drains in about four ticks, one hour at the 15 minute cadence. */
 export const ENTITY_EMBED_BATCH = 64;
 
+/**
+ * The tag written when a vector was produced but the model that produced it is not
+ * known. Never write NULL in that case: the sweeper's select treats a null tag as work
+ * to do, so a null-tagged row would be re-selected and re-embedded on every tick with
+ * no way to ever drain. A named sentinel terminates, excludes the row from model-scoped
+ * recall (which is the correct outcome for a vector of unknown provenance), and can be
+ * counted, so a standing non-zero total is a visible defect rather than a silent one.
+ */
+export const UNKNOWN_EMBEDDING_MODEL = "unknown";
+
 /* -------------------------------------------------------------------------- */
 /* Text builders. Pure, exported, and pinned by tests.                        */
 /*                                                                            */
@@ -357,10 +367,24 @@ export async function backfillEntityEmbeddings(
   const embed = opts.embed ?? embedTexts;
   const report = opts.report ?? recordErrorEvent;
 
+  // A row needs work when it has NO VECTOR, or a vector with NO MODEL TAG.
+  //
+  // The second half is what makes this self-healing, and it was learned the hard way
+  // on 2026-08-03. `embedding IS NULL` alone means a row carrying a vector but no tag
+  // is invisible to every sweeper, permanently: it is not in the backlog and never
+  // enters it, so the only repair is a human noticing and running UPDATE by hand. That
+  // is the "someone has to remember" failure this file's own header argues against.
+  // Untagged rows are not hypothetical, they are produced whenever a vector is written
+  // by a build that predates model tagging.
+  //
+  // Re-embedding such a row rather than merely stamping a guessed tag is the point: it
+  // makes the vector and the tag agree by construction, instead of asserting a model
+  // for a vector we did not produce. At the measured rate (211,358 tokens for a full
+  // month of live traffic) the extra calls cost cents.
   const { data, error } = await db
     .from(spec.table)
     .select(["id", "user_id", ...spec.columns].join(", "))
-    .is("embedding", null)
+    .or("embedding.is.null,embedding_model.is.null")
     .order(spec.order.column, { ascending: spec.order.ascending })
     .limit(limit);
   if (error) {
@@ -436,14 +460,28 @@ export async function backfillEntityEmbeddings(
         if (firstWriteError === null) firstWriteError = "embedder returned no vector for a row";
         continue;
       }
-      // Tag the vector with the model that produced it. Existing test paths pass
-      // an empty model string (they don't have model tracking); production always
-      // has the namespaced model from the chokepoint (e.g. "cohere/embed-v4.0").
+      // Tag the vector with the model that produced it. Production always has the
+      // namespaced model from the chokepoint (e.g. "cohere/embed-v4.0"); the injected
+      // test path has no model tracking and yields an empty string.
+      //
+      // NEVER write NULL here while writing a vector. This used to be
+      // `result.model || null`, which is a live infinite-loop hazard now that the
+      // select above also picks up rows WHERE embedding_model IS NULL: a row written
+      // with a null tag would be re-selected on every tick, re-embedded, and written
+      // back with a null tag again, burning provider calls forever and never draining.
+      // A row must never be left in a state this sweeper is guaranteed to reselect.
+      //
+      // So an unknown model records itself as UNKNOWN_EMBEDDING_MODEL rather than as
+      // nothing. That is honest (we genuinely do not know the vector space), it
+      // terminates, and because a model-scoped query filters on a specific model these
+      // rows are correctly excluded from recall rather than silently compared against
+      // vectors from another model. It is also greppable, so a standing count of them
+      // is a visible defect instead of an invisible one.
       const { error: upErr } = await db
         .from(spec.table)
         .update({
           embedding: vec as unknown as string,
-          embedding_model: result.model || null,
+          embedding_model: result.model || UNKNOWN_EMBEDDING_MODEL,
         })
         .eq("id", group[i].id);
       if (upErr) {

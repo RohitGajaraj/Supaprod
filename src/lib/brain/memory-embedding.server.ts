@@ -70,7 +70,11 @@ export async function backfillMemoryEmbeddings(
   const { data, error } = await db
     .from("agent_memory")
     .select("id, content, user_id")
-    .is("embedding", null)
+    // No vector, OR a vector with no model tag. The second half matters: with
+    // `embedding IS NULL` alone, a vector written before model tagging existed is
+    // invisible to this sweeper forever and only a hand-written UPDATE repairs it.
+    // See the long note in brain/entity-embedding.server.ts.
+    .or("embedding.is.null,embedding_model.is.null")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(`backfillMemoryEmbeddings select failed: ${error.message}`);

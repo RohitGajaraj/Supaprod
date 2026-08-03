@@ -110,7 +110,9 @@ export async function backfillSignalEmbeddings(
   const { data, error } = await db
     .from("signals")
     .select("id, title, content, user_id")
-    .is("embedding", null)
+    // No vector, OR a vector with no model tag. See brain/entity-embedding.server.ts
+    // for why the tag half is what makes this self-healing.
+    .or("embedding.is.null,embedding_model.is.null")
     .order("created_at", { ascending: true })
     .limit(limit);
   if (error) throw new Error(`backfillSignalEmbeddings select failed: ${error.message}`);

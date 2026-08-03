@@ -20,6 +20,7 @@ import {
   PRD_EMBEDDING_SPEC,
   PRD_LEAD_CHARS,
   prdEmbeddingText,
+  UNKNOWN_EMBEDDING_MODEL,
   type EntityEmbeddingSpec,
   type EntityRow,
 } from "./entity-embedding.server";
@@ -251,8 +252,16 @@ describe("the specs", () => {
 /* The sweeper.                                                               */
 /* -------------------------------------------------------------------------- */
 
-type SelectCall = { table: string; columns: string; order: string; ascending: boolean };
-type UpdateCall = { table: string; id: string; embedding: unknown };
+type SelectCall = {
+  table: string;
+  columns: string;
+  order: string;
+  ascending: boolean;
+  /** The `.or(...)` predicate the sweeper filtered on, recorded so a test can assert it
+   *  still picks up untagged rows and not only unembedded ones. */
+  filter: string;
+};
+type UpdateCall = { table: string; id: string; embedding: unknown; embeddingModel?: unknown };
 
 /** Minimal stand-in for the two supabase chains the sweeper uses. */
 function fakeDb(rows: EntityRow[], opts: { selectError?: string; updateError?: string } = {}) {
@@ -262,9 +271,19 @@ function fakeDb(rows: EntityRow[], opts: { selectError?: string; updateError?: s
     from(table: string) {
       return {
         select(columns: string) {
-          const call: SelectCall = { table, columns, order: "", ascending: true };
+          const call: SelectCall = {
+            table,
+            columns,
+            order: "",
+            ascending: true,
+            filter: "",
+          };
           const chain = {
             is: () => chain,
+            or: (filter: string) => {
+              call.filter = filter;
+              return chain;
+            },
             order: (column: string, o: { ascending: boolean }) => {
               call.order = column;
               call.ascending = o.ascending;
@@ -281,10 +300,15 @@ function fakeDb(rows: EntityRow[], opts: { selectError?: string; updateError?: s
           };
           return chain;
         },
-        update(values: { embedding: unknown }) {
+        update(values: { embedding: unknown; embedding_model?: unknown }) {
           return {
             eq: (_col: string, id: string) => {
-              updates.push({ table, id, embedding: values.embedding });
+              updates.push({
+                table,
+                id,
+                embedding: values.embedding,
+                embeddingModel: values.embedding_model,
+              });
               return Promise.resolve({
                 error: opts.updateError ? { message: opts.updateError } : null,
               });
@@ -500,5 +524,35 @@ describe("backfillEntityEmbeddings", () => {
       expect(batches[0].texts[0].length).toBeGreaterThan(0);
       expect(updates[0].table).toBe(spec.table);
     }
+  });
+
+  it("selects rows that have a vector but no model tag, not only unembedded rows", async () => {
+    // Regression guard, 2026-08-03. The predicate used to be `embedding IS NULL` alone,
+    // which made a vector carrying no model tag invisible to every sweeper for good: it
+    // was not in the backlog and could never enter it, so the only repair was a human
+    // noticing and writing UPDATE by hand. Retrieval that filters by model silently
+    // excludes untagged rows, so "invisible to the sweeper" means "gone from recall".
+    const { db, selects } = fakeDb([{ id: "a", user_id: "u", title: "T", rationale: "R" }]);
+    const { embed } = fakeEmbed(() => "ok");
+    await backfillEntityEmbeddings(db, DECISION_EMBEDDING_SPEC, { embed });
+
+    expect(selects[0].filter).toContain("embedding.is.null");
+    expect(selects[0].filter).toContain("embedding_model.is.null");
+  });
+
+  it("never writes a null model tag alongside a vector, because that would loop forever", async () => {
+    // The sharp edge of the predicate above. A row written with a vector and a NULL tag
+    // matches `embedding_model.is.null`, so it would be re-selected, re-embedded and
+    // re-written with a null tag on every single tick: unbounded provider spend that
+    // never drains. The injected test embedder has no model tracking and so returns an
+    // empty model, which is exactly the path that used to write NULL.
+    const { db, updates } = fakeDb([{ id: "a", user_id: "u", title: "T", rationale: "R" }]);
+    const { embed } = fakeEmbed(() => "ok");
+    const r = await backfillEntityEmbeddings(db, DECISION_EMBEDDING_SPEC, { embed });
+
+    expect(r.embedded).toBe(1);
+    expect(updates).toHaveLength(1);
+    expect(updates[0].embeddingModel).toBe(UNKNOWN_EMBEDDING_MODEL);
+    expect(updates[0].embeddingModel).not.toBeNull();
   });
 });
