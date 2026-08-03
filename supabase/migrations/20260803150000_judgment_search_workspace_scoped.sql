@@ -71,6 +71,21 @@ DROP FUNCTION IF EXISTS public.match_opportunities(vector, integer, uuid, text);
 DROP FUNCTION IF EXISTS public.match_prds(vector, integer, uuid, text);
 DROP FUNCTION IF EXISTS public.match_learnings(vector, integer, uuid, text);
 
+-- ...and the NEW signatures too, so this file is safe to apply TWICE.
+--
+-- This is not hypothetical tidiness. This migration was applied by hand through the
+-- Lovable SQL path, which does NOT write a supabase_migrations.schema_migrations row,
+-- so a migration runner reading that ledger still sees this file as pending. Without
+-- these four lines the re-apply would reach a bare CREATE FUNCTION against a function
+-- that already exists and fail with 42723, and a failed migration mid-run is how a
+-- deploy ends up half-applied. Every other migration shipped today is already
+-- re-runnable (DROP IF EXISTS, CREATE OR REPLACE, cron.schedule upsert, a delta-guarded
+-- credit loop); this one was the single exception.
+DROP FUNCTION IF EXISTS public.match_decisions(vector, uuid, int, uuid, text);
+DROP FUNCTION IF EXISTS public.match_opportunities(vector, uuid, int, uuid, text);
+DROP FUNCTION IF EXISTS public.match_prds(vector, uuid, int, uuid, text);
+DROP FUNCTION IF EXISTS public.match_learnings(vector, uuid, int, uuid, text);
+
 -- ── 2. Recreate, workspace-scoped ──────────────────────────────────────────────
 --
 -- `for_model` is named for the parameter's job rather than after the column it
