@@ -23,13 +23,24 @@
 
 The end-to-end Stripe subscription + portal rail for Supaprod. Tiers are feature gates; the headline price is driven by a per-tier credit-bundle dropdown (Lovable-style). Top-ups live on a separate `/settings/credits` page (Anthropic-style isolation, not the Plan tab). Admin pricing is editable from `/admin/pricing` (inbuilt console; no separate portal).
 
-## Tier shape (placeholder prices, edit from the admin console)
+## Tier shape
 
-- **Individual:** Star (free, 100/mo) · Cluster / Pro (500 / 1k / 2k / 5k credits @ $15 / $25 / $45 / $99) · Constellation / Max (2k / 5k / 10k / 25k @ $45 / $99 / $179 / $399)
-- **Business:** Galaxy / Team (500 / 1k / 2.5k / 5k / 10k per seat @ $20 / $30 / $55 / $99 / $179)
-- **Enterprise:** Cosmos (contact sales)
-- **Annual** = monthly × 10 (≈17% off) per paid tier.
-- **Top-ups** (separate page): 250 / 1k / 2.5k credits at $5 / $18 / $40.
+> **Rewritten 2026-08-04.** This section described the retired Constellation naming (Star / Cluster / Constellation / Galaxy / Cosmos), a per-tier **credit-bundle dropdown**, and a **Max** tier. All three are gone. The band picker was retired by founder ruling 2026-08-03, the thematic names on 2026-07-13, and **Max is not offered** (founder ruling restated 2026-08-04).
+
+**Four tiers, and only four.** `PUBLIC_PLAN_TIERS` in `src/lib/entitlements.ts` is the authority: `["free", "pro", "team", "enterprise"]`.
+
+| | Free | Pro | Business (`team`) | Enterprise |
+| --- | --- | --- | --- | --- |
+| **Price** | $0 | **$20**/mo | **$50 per seat**/mo | committed contract |
+| **Credits / month** | **750** | **3,750** | **15,000 pooled** | committed pool |
+| **Seats** | 1 | 1 | **minimum 2** (`MIN_SEATS`) | unlimited |
+
+- **Price is flat per tier.** There is no band, no dropdown, and no linear credit multiplier. `priceForCredits` accepts a `credits` argument for call-site compatibility and **deliberately ignores it**.
+- **Annual** = monthly x 10/12, roughly 17% off.
+- **Top-ups** are how capacity is bought: add credits any time **up to 2x the monthly grant** (`topUpCycleCap = grant x 2`), with **no plan change**, so a Pro user reaches 3x their allowance without being pushed onto a team plan.
+- **A tier sells seats and capability; credits sell capacity.** Conflating those two axes is the mistake the band model was retired for; the reasoning is in `src/lib/billing-tier.ts`.
+
+**Two names still to reconcile in code:** the locked display names are Free / Pro / **Business** / Enterprise, while the slug is `team`, and a fifth `max` slug lingers in the internal `PLAN_TIERS` list without being offered. Tracked in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) open findings.
 
 ## Where to find it
 

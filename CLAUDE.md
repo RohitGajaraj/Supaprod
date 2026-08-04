@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-> _Created: 2026-06-03 · Last updated: 2026-08-03_
+> _Last updated: 2026-08-03_
 
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 

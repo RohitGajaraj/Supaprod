@@ -37,11 +37,13 @@
 >
 > **The shipped model, which is the authority:**
 >
-> | | Free | Pro | Max | Business (`team`) | Enterprise |
-> | --- | --- | --- | --- | --- | --- |
-> | Price | $0 | $20/mo | $99/mo | **$50 per seat**/mo | committed |
-> | Credits/mo | **750** | **3,750** | **15,000** | **15,000 pooled** | committed |
-> | Seats | 1 | 1 | 1 | **min 2** | unlimited |
+> | | Free | Pro | Business (`team`) | Enterprise |
+> | --- | --- | --- | --- | --- |
+> | Price | $0 | $20/mo | **$50 per seat**/mo | committed |
+> | Credits/mo | **750** | **3,750** | **15,000 pooled** | committed |
+> | Seats | 1 | 1 | **min 2** | unlimited |
+>
+> **FOUR TIERS ONLY** (founder ruling restated 2026-08-04). `PUBLIC_PLAN_TIERS` already agrees: `["free","pro","team","enterprise"]`. The `max` slug lingers internally and is **not offered**; it must not appear on any surface or in any document.
 >
 > Price is **flat per tier**. Capacity is sold by **top-ups, capped at 2x the monthly grant** (`topUpCycleCap = grant x 2`), so a Pro user reaches 3x their allowance with no plan change. Annual is monthly x 10/12.
 >

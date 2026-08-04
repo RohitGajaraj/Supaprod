@@ -1,6 +1,6 @@
 # AGENTS.md, the build manual
 
-> _Created: 2026-06-03 · Last updated: 2026-08-03_
+> _Last updated: 2026-08-03_
 
 **This file holds the rules for building Supaprod.** It is tool-agnostic and canonical: Claude Code, Antigravity, Gemini CLI, Codex, Cursor and Lovable all work from it. Per-tool notes live in [`CLAUDE.md`](./CLAUDE.md) and [`GEMINI.md`](./GEMINI.md), and those files only *point* here.
 

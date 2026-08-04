@@ -1,13 +1,9 @@
-<p align="left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/growth/branding/logo/supaprod-mark-dark.svg">
-    <img src="./docs/growth/branding/logo/supaprod-mark-light.svg" alt="Supaprod" width="88" height="88">
-  </picture>
-</p>
+<h1>
+  <img src="./docs/growth/branding/logo/supaprod-mark-animated.svg" alt="" width="38" height="38" valign="middle">
+  &nbsp;Supaprod
+</h1>
 
-# Supaprod
-
-> _Created: 2026-06-03 · Last updated: 2026-08-03_
+> _Last updated: 2026-08-03_
 
 **Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
 
@@ -175,13 +171,13 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 
 **A tier sells seats and capability. Credits sell capacity.** Keeping those two axes separate is the whole model, and conflating them is the mistake it was built out of (founder ruling 2026-08-03, and the reasoning is in `src/lib/billing-tier.ts` if you want the autopsy).
 
-| | Free | Pro | Max | Business | Enterprise |
-| --- | --- | --- | --- | --- | --- |
-| **Price** | $0 | **$20**/mo | **$99**/mo | **$50 per seat**/mo | committed contract |
-| **Credits / month** | **750** | **3,750** | **15,000** | **15,000 pooled** | committed pool |
-| **Seats** | 1 | 1 | 1 | **minimum 2** | **unlimited** |
-| **Memory** | decays | persistent | persistent | shared across the team | plus governance and audit |
-| Connectors | manual | read | read | write | approved lists |
+| | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| **Price** | $0 | **$20**/mo | **$50 per seat**/mo | committed contract |
+| **Credits / month** | **750** | **3,750** | **15,000 pooled** | committed pool |
+| **Seats** | 1 | 1 | **minimum 2** | **unlimited** |
+| **Memory** | decays | persistent | shared across the team | plus governance and audit |
+| Connectors | manual | read | write | approved lists |
 
 Annual billing is roughly **17% off** (monthly x 10/12). Numbers above are the shipped reference values; the founder sets the final Stripe catalog.
 
@@ -189,13 +185,13 @@ Annual billing is roughly **17% off** (monthly x 10/12). Numbers above are the s
 
 **Top-ups, because a credit model is only as good as its refill.** Add credits any time, **up to twice your monthly allowance**, with **no plan change** (`topUpCycleCap = grant x 2`). A Pro user can therefore reach **three times** their allowance without being pushed onto a team plan. Default is **stop-at-allowance**: you run out rather than get billed, with a quiet nudge near the limit.
 
-> **Why Business is per seat while Free, Pro and Max are not.** Free, Pro and Max are single-seat, and more power for one person is more credits rather than a different plan. Business starts at two seats because **two people is where a team starts**, and what the higher price buys is the collaboration and governance layer, not capacity. Pushing a solo user onto a team plan to get volume would charge them for collaboration they did not ask for.
+> **Why Business is per seat while Free and Pro are not.** Free and Pro are single-seat, and more power for one person is more credits rather than a different plan. Business starts at two seats because **two people is where a team starts**, and what the higher price buys is the collaboration and governance layer, not capacity. Pushing a solo user onto a team plan to get volume would charge them for collaboration they did not ask for.
 
 **What this replaced, and why it is worth knowing.** Until 2026-08-03 the price scaled linearly off a 100-to-10,000 credit band picker. That produced two defects visible on the live public page: **Pro's default was 100 credits for $20 against a Free tier granting 750**, so the entry paid plan was 7.5x worse than free and matching the free grant cost $160 a month; and the top band rendered **"$2000/mo"** for volume whose underlying cost is about $2. The band is retired, price is flat per tier, and capacity moved to top-ups where it belongs.
 
 Full model, unit economics, and the BYOK stance (an advanced option from Business up, metered and governed with a thin platform fee): [`docs/strategy/pricing/pricing-architecture.md`](./docs/strategy/pricing/pricing-architecture.md). The live page is `src/routes/pricing.tsx`, which is the authority when a document disagrees with it.
 
-> **Honest caveat on tier names.** The founder locked **Free / Pro / Business / Enterprise** on 2026-07-13, retiring the earlier thematic names. The code and database still ship five slugs (`free`, `pro`, `max`, `team`, `enterprise`), and `'business'` appears nowhere in the billing code, so **Business above is the `team` slug**. Reconciling names and slugs is open work, tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
+> **Four tiers, and only four** (founder ruling, restated 2026-08-04). The public grid already agrees: `PUBLIC_PLAN_TIERS` is `["free", "pro", "team", "enterprise"]`. A fifth slug, `max`, lingers in the internal `PLAN_TIERS` list and in one leftover icon mapping, but **it is not offered and must not appear on any surface or in any document.** Note also that **Business is the `team` slug** in code, because the locked display name landed before the rename. Reconciling the slugs is open work, tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
 
 **And your data is yours.** Full export in open formats, any time. A record that compounds is only a retention argument if leaving is genuinely possible; otherwise it is a trap, and buyers can tell the difference.
 

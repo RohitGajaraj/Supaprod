@@ -6,6 +6,22 @@
 > parametric mark the product renders (`src/components/supaprod/SupaprodMark.tsx`),
 > so the kit can never drift from the app._
 
+
+## The GitHub repo social preview
+
+**Asset:** [`social/github-social-preview.png`](./social/github-social-preview.png), 1280x640, plus the [`.svg`](./social/github-social-preview.svg) source.
+
+**It has to be uploaded by hand.** GitHub exposes no REST field for a repository's social preview image (verified against the repo API 2026-08-04), so this is the one brand asset an agent cannot apply:
+
+> **Repo → Settings → General → Social preview → Upload an image**
+
+**Why one image serves both light and dark.** GitHub renders the preview as a card and does not recolour it, so the asset carries **its own dark ground** rather than relying on transparency. A transparent mark would vanish on one theme or the other; a self-contained frame reads identically on both.
+
+**Regenerating it.** The mark is inlined from `logo/supaprod-mark-dark.svg`, so the PNG must be rebuilt if the mark changes. Two constraints worth knowing before you try:
+
+- **`sharp` cannot render the text.** Its bundled librsvg is built without pango, so SVG `<text>` produces nothing at all, silently. The first attempt looked like a blank card with a logo on it.
+- **`qlmanage` (WebKit) renders text correctly but squares its output** and scales to fit the longest side, which turned a 1280x640 source into a 2x-zoomed, clipped render. The working recipe is to author a **square** 1280x1280 canvas, render that, then crop the 640-tall band at y=320. That is deterministic; fitting a non-square source is not.
+
 ## The mark
 
 Supaprod's mark is a **seven-petal spiral** (an epitrochoid) revolving around a
