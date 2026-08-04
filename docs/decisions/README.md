@@ -19,6 +19,7 @@ A decision record is not a plan. It captures the options that were on the table,
 | [`lineage-relation-vocabulary.md`](./lineage-relation-vocabulary.md) | **Open question**, not a settled record: whether to collapse the `artifact_lineage.relation` vocabulary. Related trap: two kind vocabularies exist and neither is authoritative, so validating kinds can silently drop a whole lineage chain. |
 | [`launch-gates-seat-limits-and-sandbox.md`](./launch-gates-seat-limits-and-sandbox.md) | The two launch gates, with the numbers behind them. |
 | [`parallel-development-model.md`](./parallel-development-model.md) | Document-driven parallel development. Historical: the lane worktrees it describes were deleted 2026-08-03. |
+| [`free-tier-shape-and-trial.md`](./free-tier-shape-and-trial.md) | Whether Free should be a time-bound trial. **No, not as a replacement:** a 14-day window cannot demonstrate layer 03, because outcomes take weeks to land, so a trial showcases the two copyable layers and expires before the defensible one appears. Recommends a 14-day full-access trial that **degrades into** permanent Free. |
 | [`naming.md`](./naming.md) | The product-name status and candidate log. The decision itself, Cadence to Supaprod, is [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md), with the unmigrated-identifier ledger at [`../operations/rename-cadence-to-supaprod.md`](../operations/rename-cadence-to-supaprod.md). |
 
 ---

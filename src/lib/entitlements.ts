@@ -190,14 +190,8 @@ export type Entitlements = {
   /**
    * Which connector operations this plan permits.
    *
-   * PENDING CHANGE (founder ruling 2026-08-04, not yet implemented): Free moves from
-   * "none" to "read", capped at THREE connectors, because a prospect cannot judge the
-   * loop on somebody else's data. That cap needs a new `connectorLimit` field (3 on
-   * free, null above it) following the workspaceLimit / productLimit pattern; no
-   * connector count limit exists anywhere today. Pro keeps "read" with no cap.
-   * Tracked in docs/planning/SOURCE-OF-TRUTH.md open findings.
-   *
-   *   none       - Free: manual input only, no live connectors
+   *   none       - reserved; no tier uses it since 2026-08-04
+   *   read       - Free (max 3, see connectorLimit) and Pro (uncapped): pull signals in
    *   read       - Pro: pull signals in (GitHub issues, Linear cycles, Notion pages, etc.)
    *   read_write - Business: read + write-back (create issues, update tickets, write to Notion)
    *   custom     - Enterprise: read_write + custom connector development
@@ -205,6 +199,8 @@ export type Entitlements = {
    * Enforced via assertConnectorCapability() at every outflow call site.
    */
   connectorTier: "none" | "read" | "read_write" | "custom";
+  /** Max simultaneous connected sources. null = uncapped. 3 on Free. */
+  connectorLimit: number | null;
 
   // --- Legacy aliases (kept so existing consumers do not break) ---
   /** @deprecated Prefer crossWorkspaceMemory. Shared workspace memory across members. */
@@ -271,13 +267,20 @@ export function entitlementsFor(tier: PlanTier): Entitlements {
     priority: tier === "max" || collab,
 
     connectorTier:
-      tier === "free"
-        ? "none"
-        : tier === "pro" || tier === "max"
-          ? "read"
-          : enterprise
-            ? "custom"
-            : "read_write", // team = Business
+      // Free reads too, capped by connectorLimit below (founder ruling 2026-08-04).
+      // It used to be "none". A prospect who cannot connect their OWN data is
+      // evaluating a demo, and the one thing that makes this product obviously
+      // different is the loop closing on THEIR signals.
+      tier === "free" || tier === "pro" || tier === "max"
+        ? "read"
+        : enterprise
+          ? "custom"
+          : "read_write", // team = Business
+
+    // How MANY sources may be connected. null = uncapped. Three on Free is
+    // deliberate rather than round: a signal source, a tracker and a doc store is
+    // the minimum for the loop to visibly close.
+    connectorLimit: tier === "free" ? 3 : null,
 
     // Legacy aliases.
     sharedWorkspaceMemory: collab,
@@ -303,12 +306,30 @@ export function assertConnectorCapability(tier: PlanTier, capability: ConnectorC
   const e = entitlementsFor(tier);
   if (e.connectorTier === "none") {
     throw new Error(
-      "Live connectors require a Pro plan or higher. Upgrade to pull signals from GitHub, Linear, and more.",
+      "This plan does not permit live connectors.",
     );
   }
   if (capability === "outflow" && e.connectorTier === "read") {
     throw new Error(
       "Write-back connectors (creating issues, updating tickets, writing to Notion) require the Business plan. Upgrade to push Supaprod decisions back to where your team works.",
+    );
+  }
+}
+
+/**
+ * Throws if connecting one more source would exceed the plan's connector cap.
+ *
+ * Separate from assertConnectorCapability because they answer different questions:
+ * that one asks "may this plan read or write at all", this one asks "may it connect
+ * ANOTHER source". Free is read-capable but capped at 3; every paid tier is uncapped.
+ *
+ * Call at the point a NEW connection is created, not on every use.
+ */
+export function assertConnectorSlotAvailable(tier: PlanTier, currentCount: number): void {
+  const cap = entitlementsFor(tier).connectorLimit;
+  if (cap !== null && currentCount >= cap) {
+    throw new Error(
+      `The Free plan connects up to ${cap} sources. Disconnect one, or upgrade to Pro to connect as many as you like.`,
     );
   }
 }
@@ -364,7 +385,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           "Everything in Free, plus:",
           "Your decision record stops fading. It is kept for good.",
           "Every spec and bet gets torn apart by the Critic before you commit to it",
-          "Connect your tools once, and signals arrive on their own",
+          "Read connectors, unlimited sources. Connect your tools once and signals arrive on their own",
           "Memory recalls across all your workspaces",
           "Up to 3 products, pooled workspaces",
           "Up to 3 agents running in parallel",
@@ -484,6 +505,10 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // teardown IS the wedge and lives in Free, capped by the allowance.
           // Pro's line stays the depth claim (Critic on EVERY spec and bet).
           "Critic teardown of your bets, within your credits",
+          // Founder ruling 2026-08-04: Free connects. A prospect cannot judge the
+          // loop on data that is not theirs. Rendered as chips by the pricing page
+          // and the PlanPicker, both of which key off the "Read connectors" prefix.
+          "Read connectors, up to 3 sources",
           "Share any decision by link. The reader needs no account and no seat.",
           "Decision memory kept " + FREE_MEMORY_RETENTION_DAYS + " days, then it fades",
           // RPT-14: the fade above is the AI's own recall cache, never the

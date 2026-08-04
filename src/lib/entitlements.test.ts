@@ -8,6 +8,8 @@ import {
   FREE_MEMORY_RETENTION_DAYS,
   FREE_MONTHLY_CREDITS,
   PLAN_TIERS,
+  assertConnectorCapability,
+  assertConnectorSlotAvailable,
 } from "./entitlements";
 
 describe("PLAN_TIERS", () => {
@@ -205,5 +207,56 @@ describe("limitFor matches the SQL tier-limit functions (WM-M5 / M-C-BILLING-TES
       expect(limitFor(tier, "product")).toBe(expected[tier].product);
       expect(limitFor(tier, "workspace")).toBe(expected[tier].workspace);
     }
+  });
+});
+
+describe("connectors: Free reads, capped at 3 (founder ruling 2026-08-04)", () => {
+  // WHY THESE EXIST. Free was connectorTier "none" and the public pricing page said
+  // nothing about connectors at all, so the tier that has to demonstrate the loop could
+  // not point at the user's own data. The cap is the new part, and an advertised cap
+  // with no guard behind it is the "claim outruns wiring" defect this repo keeps hitting.
+
+  it("Free can read, which it could not before", () => {
+    expect(entitlementsFor("free").connectorTier).toBe("read");
+    expect(() => assertConnectorCapability("free", "inflow")).not.toThrow();
+  });
+
+  it("Free still cannot write back", () => {
+    // The paid boundary is DIRECTION, not count: in only, versus in and out.
+    expect(() => assertConnectorCapability("free", "outflow")).toThrow(/Business plan/);
+  });
+
+  it("Free is capped at 3 sources and the cap is enforced, not just advertised", () => {
+    expect(entitlementsFor("free").connectorLimit).toBe(3);
+    expect(() => assertConnectorSlotAvailable("free", 0)).not.toThrow();
+    expect(() => assertConnectorSlotAvailable("free", 2)).not.toThrow();
+    // The third is connected; a fourth is refused.
+    expect(() => assertConnectorSlotAvailable("free", 3)).toThrow(/up to 3 sources/);
+  });
+
+  it("every paid tier is uncapped", () => {
+    for (const tier of PLAN_TIERS.filter((t) => t !== "free")) {
+      expect(entitlementsFor(tier).connectorLimit).toBeNull();
+      expect(() => assertConnectorSlotAvailable(tier, 500)).not.toThrow();
+    }
+  });
+
+  it("Business writes back", () => {
+    expect(entitlementsFor("team").connectorTier).toBe("read_write");
+    expect(() => assertConnectorCapability("team", "outflow")).not.toThrow();
+  });
+
+  it("both plan surfaces can render the ladder, because both key off these strings", () => {
+    // The public /pricing page and the authenticated PlanPicker both detect a
+    // connector row by the "Read connectors" / "Write-back connectors" prefix. If a
+    // highlight is reworded without that prefix, the chips silently vanish.
+    expect(planPresentation("free").highlights.some((h) => h.startsWith("Read connectors"))).toBe(true);
+    expect(planPresentation("pro").highlights.some((h) => h.startsWith("Read connectors"))).toBe(true);
+    expect(planPresentation("team").highlights.some((h) => h.startsWith("Write-back connectors"))).toBe(true);
+  });
+
+  it("Free says 3 and Pro says unlimited, so the buyer can see what lifts", () => {
+    expect(planPresentation("free").highlights.join(" ")).toContain("up to 3 sources");
+    expect(planPresentation("pro").highlights.join(" ")).toContain("unlimited sources");
   });
 });
