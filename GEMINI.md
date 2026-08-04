@@ -6,6 +6,9 @@
 
 > Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. It learns and guides; it never "remembers", "stores", or "logs". That distinction is the moat, so it binds UI copy, docs and commit messages alike.
 
+> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (runs the lifecycle, seven stations) · 03 the company brain (**learns then guides**, never "stores"). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
+
+
 This file is deliberately short. Antigravity and the Gemini CLI load it with the highest precedence, so anything written here is paid for on every request. It holds only what is specific to those tools.
 
 ---

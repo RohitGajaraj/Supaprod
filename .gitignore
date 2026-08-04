@@ -186,3 +186,6 @@ design-reference/Latest Design System - v3 /
 
 # Temp screenshot dirs from verification sessions. One was committed by mistake.
 .tmp-*/
+
+# Local tool state (AgentDB, retired vector store). Loose at root until 2026-08-04.
+.local/

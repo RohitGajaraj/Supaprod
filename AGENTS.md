@@ -14,6 +14,16 @@ For what the product is and where every other document lives, read [`README.md`]
 
 **Supaprod is the agent-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked.**
 
+**The product is three layers, always told door then body then brain:**
+
+| | Layer | Does |
+| --- | --- | --- |
+| **01** | the director | tells you what to build |
+| **02** | the operating system | runs the whole lifecycle, seven stations |
+| **03** | the company brain | **learns, then guides.** Never "stores" or "remembers". |
+
+They are one product because each is the precondition for the next: you cannot be the brain without the loop that generates outcomes, and you cannot run the loop without being the OS. **Layer 03 is the only one defensible alone**, because it needs the customer's own outcomes labelled over time, which no model has. Ship any one alone and it is a feature.
+
 **The last verb is the product.** It **learns and guides**; it does not "remember". Remembering is storage, and storage is not defensible: anyone can hold your decisions, and one frontier release can absorb search over them. Learning compounds, because it needs your outcomes, labelled, over time, which no model has.
 
 This is not only marketing language, it is a design constraint you apply while coding:

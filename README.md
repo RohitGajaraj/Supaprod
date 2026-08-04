@@ -8,6 +8,24 @@ This file is the front door: what the product is, why it holds, and where every 
 
 ---
 
+## The three layers. This is the product.
+
+**Everything else in this file is detail under these three.** They are named and ordered, always told **door, then body, then brain**, one headline per surface, brain as the crescendo. Never all three at once.
+
+| | Layer | What it does | The word for it |
+| --- | --- | --- | --- |
+| **01** | **The director** | Tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next. | *marigold* `#e8b44c` |
+| **02** | **The operating system** | Runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance. | *blue* |
+| **03** | **The company brain** | Learns, and then guides. Not where the record lives: it compounds, tells you what is right next time, and warns before you repeat what was wrong. | *green* |
+
+**Why the order is not arbitrary.** The door is who it is for, so it earns attention. The body is what it does, so it earns belief. The brain is why it wins, so it earns the close. Leading with the brain sounds like a database; leading with the door and never reaching the brain sounds like a workflow tool.
+
+**Why all three have to be one product**, which is the earned insight and the answer to "isn't this three companies": *you cannot be the company brain without owning the loop that generates outcomes, and you cannot run the loop without being the operating system.* Each layer is the precondition for the next. Ship any one alone and it is a feature.
+
+This maps onto YC's own three Requests for Startups, which is confirmation rather than strategy: "Cursor for Product Managers" (the door), "The AI Operating System for Companies" (the body), "Company Brain" (the brain). **"Company brain" is YC's phrase, quoted and attributed, never our brand identity.** Our owned words are the outcome ledger, the decision brain, the receipts. Canonical memo: [`docs/pitch/repositioning-2026-07-22.md`](./docs/pitch/repositioning-2026-07-22.md).
+
+---
+
 ## The claim, and the word that carries it
 
 The last verb in that sentence is the whole product, so it is worth being exact about it.
@@ -97,13 +115,48 @@ Five tests, all of which a design passes before it is built:
 4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for the six-month job.
 5. **Delight is a requirement, not a finishing pass.**
 
-### The moat
+### Why now
 
-The moat is the **decision layer**: what to build, and whether the call was right. Vibe-coding tools own the build layer, which is racing to zero. We own the decision layer, which has no fast oracle, and we run the build ourselves on the same commodity models they race on.
+Three things had to be true at once, and they only became true recently.
 
-**Engine positioning, not a wrapper.** The models are interchangeable parts; the system is ours: the loop, the gates, the ledger. Our own build engine runs frontier models via API in the customer's repo. Never say we dispatch work to Cursor, Lovable, or Devin. They are the era's proof, not our subcontractors.
+1. **Agents got good enough to do the work, not just draft it.** Until roughly eighteen months ago the build half of the loop was not possible, so the loop could not close, so nobody could own it.
+2. **Code got a fast oracle and judgment did not.** Code compiles in seconds, so an agent can iterate against it, so building commoditizes. "What should we build, and was that right" gets feedback in weeks to quarters. **The expensive half of product work is the half nobody automated, and it is the half that does not commoditize.**
+3. **The pieces arrived in the wrong order for an incumbent to notice.** Issue trackers own tickets, doc tools own documents, code tools own repos. None had a reason to own the outcome.
 
-Full canon, competitor map, and the objection Q&A: [`docs/strategy/moat.md`](./docs/strategy/moat.md).
+**The window is one to two quarters, and it is closing.** Notion shipped "feedback to a merged PR" copy in July 2026. YC is actively funding this category by name. Whoever holds the outcome-verification loop first accumulates a record nobody can backfill.
+
+### The moat, and where it actually sits
+
+The moat is not one thing, it is **the third layer resting on the first two**. Each layer alone is copyable; the stack is not.
+
+| Layer | Is it defensible alone? | Why |
+| --- | --- | --- |
+| **01 The director** | No. | A frontier model plus a decent prompt gets close. Ranking is a capability, not an asset. |
+| **02 The operating system** | Partly, and slowly. | The loop, the gates and the ledger are real engineering, but a well-funded incumbent with distribution can build them. |
+| **03 The company brain** | **Yes.** | It needs your outcomes, labelled, over time. That is produced **by running the loop**, so it cannot be bought, backfilled, or shipped in a release. |
+
+**So the defence is the ordering, not any single layer.** A competitor must own the loop before they can accumulate the record, and by the time they own the loop the record already favours whoever ran it longer.
+
+**Who this is actually against, named honestly:**
+
+| They own | Examples | Why it is not this |
+| --- | --- | --- |
+| **How to build** | Cursor, Lovable, Devin, Claude Code | Racing to zero on a fast oracle. They are the era's proof, not our competitors, and **not our subcontractors either**: our build engine is our own, running frontier models by API in the customer's repo. |
+| **Drafting the artifact** | ChatPRD, Spark | Drafting is the cheap half. Nobody in that set checks whether the bet paid. |
+| **The workspace** | **Linear, Notion** | **The genuine threat, and the one to take seriously.** They have distribution we do not. What they do not have is outcome verification: dispatching work is not the same as checking whether it paid and letting that re-rank the next decision. |
+| **The model** | Anthropic, OpenAI, Google | They make our engine better for free. The model is an input we orchestrate, never the product. |
+
+**The frontier test, applied.** When a lab ships a better model, layers 01 and 02 improve and layer 03 is untouched, because no model has your outcomes. That is the honest version, and it is why the six-month-forward doctrine above exists as a gate rather than a slogan.
+
+Full canon, the integrate/absorb/race/ignore map, and the objection Q&A with answers: [`docs/strategy/moat.md`](./docs/strategy/moat.md).
+
+### How it makes money
+
+**Credits, priced against the decision work, pooled at the account.** Not per seat: the value compounds with usage, and per-seat pricing taxes exactly the behaviour that deepens the moat. Pricing gates the **decision layer**, meaning persistent memory, the Critic everywhere, and governance. **It never gates the build.**
+
+Self-serve is credits only; bring-your-own-key is enterprise-negotiated. Full system: [`docs/strategy/pricing/`](./docs/strategy/pricing/README.md).
+
+**And your data is yours.** Full export in open formats, any time. A record that compounds is a retention argument only if leaving is genuinely possible; otherwise it is a trap, and buyers can tell the difference.
 
 ### Governance: policy, not permission (founder ruling 2026-07-29)
 
@@ -137,32 +190,105 @@ Canonical: [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](./docs/plan
 
 ---
 
-## The system, at a glance
+## Where this actually is, stated plainly
+
+**Read this before believing anything else in the file.** The engine is deep; market contact is near zero. Both halves are true and the second one is a decision, not an accident.
+
+| | |
+| --- | --- |
+| **Users** | 8, all founder or internal. **Zero organic external users.** |
+| **Revenue** | None. Billing is built, tested, and deliberately switched off. |
+| **Public launch** | **mid-September 2026** |
+| **Built** | 1,440 source files · 79 authenticated routes · 151 server-function modules · 462 migrations · 402 test files, 7,159 passing |
+| **Open work** | 31 register rows. 371 shipped. |
+| **Engine warmth** | 133 missions · 72 decisions · 49 learnings, on founder data, with outcome-reinforced ranking live |
+| **Team** | Solo founder. No entity incorporated yet. US-primary. |
+
+**Why no users yet, said as the decision it was.** A half-built loop teaches you the wrong thing. The whole claim is that the loop *closes*, that a shipped outcome changes what you are shown next, and you cannot validate that with a partial loop; you get feedback on a demo instead of on the thesis. The loop closes now.
+
+**What is honestly not finished:**
+
+- `agent_memory` is scoped to the **user** who wrote it, not the workspace. The successor inherits the record but not the compounded recall. Say "the record travels", never "the memory travels".
+- Enterprise governance (SSO, full audit, roles) is architected, not built.
+- `fanout.server.ts` still passes an explicit `null` spend cap, which reads as a deliberate no-ceiling on that one path while every other writer resolves through `resolveMissionSpendCap`.
+- Nothing tests `discover/ranking` and `discover/format` together, so a format-helper change can reorder the Discover queue with all 212 unit cases green.
+
+**And the finding that shapes how we verify anything.** On 2026-08-02, nine separately shipped features were found doing nothing in production. All nine passed typecheck and the full suite; two had unit tests asserting the defect as the contract. **None was found by reading code.** They were found by querying the live database, and a detector now exists so the tenth is caught automatically. Treat a green test as evidence the code does what the test says, and nothing more.
+
+Live status: [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0.
+
+---
+
+## Architecture
+
+Two views, because "how is it built" and "how does a person move through it" are different questions and the second one is the product.
+
+### 1. What a user actually does
 
 ```
-1. CLIENT   calm front; the loop is the hero
-            TanStack Start (React 19 + Vite 7) · Tailwind v4 · shadcn/ui
-              |  server functions (typed RPC)     |  /api/public/hooks/*
-              v                                   v
-2. TENANCY  account / workspace / product
-            Supabase Auth -> RLS scoped by membership
-              |
-              v
-3. ORCHESTRATION  runs the seven-station route
-            agent loop · the Critic · governance gates · spend ceilings
-              |
-              v
-4. AI CHOKEPOINT  src/lib/ai/runtime.server.ts, EVERY model call
-            budget -> credits -> cache -> guardrails -> RAG -> provider -> guardrails
-              |
-              v
-5a. MODELS  model-agnostic, our keys, credits-metered (BYOK is enterprise-only)
-5b. DATA    Supabase Postgres: RLS · pgvector · pg_cron
+        ┌──────────────────────────── Ask (top right, any surface) ────────────────────────────┐
+        │            one composer, opens a pane, can start work at any station                 │
+        └──────────────────────────────────────────────────────────────────────────────────────┘
+
+  /today ──► the daily ritual: what changed, what needs you, what agents did overnight
+     │
+     ├──► 01 /discover   signals land from every source ──► cluster into themes ──► what deserves attention
+     │         │                                                    ▲
+     │         ▼                                                    │
+     ├──► 02 /decide     the ranked bet queue · the Critic red-teams it BEFORE you see it
+     │         │                                                    │
+     │         ▼                                                    │  the outcome
+     ├──► 03 /plan       the cited spec, scope, sequencing          │  re-ranks
+     │         ▼                                                    │  what appears
+     ├──► 04 /design      surfaces scaffolded against the live system   here
+     │         ▼                                                    │
+     ├──► 05 /build       our engine writes code in your repo · diffs · the merge gate
+     │         ▼                                                    │
+     ├──► 06 /ship        release, gates, what customers see        │
+     │         ▼                                                    │
+     └──► 07 /learn       the verdict is settled ────────────────────┘
+               │
+               ▼
+          /brain          the compounding record: decisions, evidence, outcomes, and what it now advises
+                          (/knowledge for the graph view)
+
+  /engine-room            one recessed door: traces, evals, prompts, budgets, guardrails, incidents
+                          the machinery is reachable on demand and never in the way
 ```
 
-Deployed to **Cloudflare Workers**; backend, auth, hosting and deploys are provisioned and managed by **Lovable**, which is the live system of record. Contracts live in [`architecture/`](./architecture/).
+**Three things this view is meant to make obvious.** Work **enters at any station**, so an existing product getting one feature starts at `/plan` and never sees discovery. The line back from Learn to Discover **is the product**; without it this is a workflow tool. And every piece of machinery lives behind **one door**, because the user should meet the output of the machine, never the machine.
 
-**Scale today:** 1,440 source files · 79 authenticated routes · 151 server-function modules · 462 migrations · 402 test files.
+### 2. How a request is served
+
+```
+  CLIENT            TanStack Start (React 19 + Vite 7) · Tailwind v4 · shadcn/ui
+                    deployed as a single Cloudflare Worker
+                      │ typed server functions              │ /api/public/hooks/*
+                      │ (one module per domain)             │ (cron, ingest, webhooks)
+                      ▼                                     ▼
+  TENANCY GATE      account ─► workspace ─► product
+                    Supabase Auth, then RLS keyed on MEMBERSHIP in the database
+                    ── not in application code, which is why autonomy is safe here
+                      │
+                      ▼
+  ORCHESTRATION     the seven-station route · the agent loop · the Critic
+                    policy resolution (trust arc, tool risk floors, spend ceilings)
+                    a skipped station is recorded WITH ITS REASON, never silently
+                      │
+                      ▼
+  AI CHOKEPOINT     src/lib/ai/runtime.server.ts ── EVERY model call, no second path
+                    budget ─► credits ─► cache ─► pre-guard ─► RAG ─► PROVIDER
+                                                    ─► post-guard ─► humanize ─► log
+                      │                                     │
+                      ▼                                     ▼
+  MODELS            model-agnostic, selected per job     DATA   Supabase Postgres
+                    our keys, credits-metered                    RLS · pgvector · pg_cron
+                    BYOK is enterprise-only                      embeddings via Cohere embed-v4
+```
+
+**The chokepoint is the design decision that matters most.** One function sees every model call, so budgets, guardrails, cost tracking, caching, provider routing and output sanitising are each implemented once and cannot be bypassed. A new AI surface needs a valid `CallSurface` literal, which means an unbudgeted or unguarded call is a type error rather than an incident.
+
+Hosting, the database, auth and deploys are provisioned and managed by **Lovable**, which is the live system of record. **Pushing does not deploy**; the founder clicks publish. Contracts per layer: [`architecture/`](./architecture/README.md).
 
 ---
 

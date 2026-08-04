@@ -26,10 +26,18 @@ DOCS_TOP_WHITELIST=" README.md "
 
 echo "== docs-doctor =="
 
-echo "-- [1] stray .md at repo root (only the system-read entry points belong here) --"
-for f in *.md; do
-  [ -e "$f" ] || continue
-  case "$ROOT_WHITELIST" in *" $f "*) ;; *) echo "  FAIL stray root doc: $f  (move into docs/<subfolder>/ and link it from that folder's index)"; FAIL=1;; esac
+# EVERY loose file at root, not just markdown. The founder's point 2026-08-04: a
+# checker scoped to one extension misses the thing that actually accumulates. Sixty
+# loose PNGs, two JPEGs and three stray database files sat at root while a
+# markdown-only check reported clean. Build config and lockfiles are legitimate and
+# whitelisted; anything else is either misplaced or belongs in a gitignored directory.
+echo "-- [1] stray files at repo root (docs, images, data, anything loose) --"
+ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc requirements.txt skills-lock.json "
+for f in *; do
+  [ -f "$f" ] || continue
+  case "$ROOT_ALLOWED" in *" $f "*) continue ;; esac
+  git check-ignore -q "$f" 2>/dev/null && { echo "  WARN loose gitignored file at root: $f  (move it into a gitignored DIRECTORY; screenshots go in docs/screenshots/)"; WARN=1; continue; }
+  echo "  FAIL stray root file: $f  (docs go in docs/<bucket>/ and get linked; images go in docs/screenshots/ or design-reference/)"; FAIL=1
 done
 
 # Checks EVERY loose file, not just *.md. A founder mission prompt sat at docs/
