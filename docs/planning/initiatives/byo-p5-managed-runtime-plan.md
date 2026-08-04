@@ -218,10 +218,10 @@ What this excludes, and is not yet priced: per-tenant custom domains (Cloudflare
 
 ## Related / cross-references
 
-- [`strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md)
+- [`strategy/byo-build-and-supaprod-cloud.md`](../../strategy/byo-build-and-supaprod-cloud.md)
 - [`byo-build-implementation-plan.md`](./byo-build-implementation-plan.md)
-- [`architecture/security.md`](../../architecture/security.md)
-- [`architecture/data.md`](../../architecture/data.md)
-- [`operations/procurement-inventory.md`](../operations/procurement-inventory.md)
-- [`strategy/moat.md`](../strategy/moat.md)
-- [`conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md)
+- [`architecture/security.md`](../../../architecture/security.md)
+- [`architecture/data.md`](../../../architecture/data.md)
+- [`operations/procurement-inventory.md`](../../operations/procurement-inventory.md)
+- [`strategy/moat.md`](../../strategy/moat.md)
+- [`conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md)

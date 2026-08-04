@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-25 · Last updated: 2026-06-25_
 
-> **Status:** DOCUMENTATION ONLY. Will be built by **AFD-02** (see [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md) §7).
+> **Status:** DOCUMENTATION ONLY. Will be built by **AFD-02** (see [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md) §7).
 >
 > Every vendor SDK import lives behind this façade. The rest of the codebase imports from `src/lib/observability` only.
 
@@ -54,6 +54,6 @@ So the "buy" is reversible. Swapping PostHog → Mixpanel is editing `analytics.
 
 ## Related
 
-- Plan: [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md)
+- Plan: [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md)
 - Vendor ADR: [`../decisions/analytics-vendor-selection.md`](../decisions/analytics-vendor-selection.md)
 - Feature spec: [`./analytics-and-failure-detection.md`](./analytics-and-failure-detection.md)

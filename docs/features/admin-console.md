@@ -13,7 +13,7 @@ The Admin Console is tracked in [`../planning/SOURCE-OF-TRUTH.md`](../planning/S
 - **Status glyph on `M-C-PRICE`** (`◐` partial / `✅` shipped / `⬜` not started) reflects the **whole** monetization + admin block, not the admin console alone. The admin console specifically is shipped pending publish; `M-C-PRICE` stays `◐` until the founder also provisions live Stripe secrets and flips the credits engine ON. The admin-console-specific glyphs live on `F-ADMIN-CONSOLE` and `ADM-DB`.
 - **Owner = `Lovable`** on `M-C-PRICE` means a Claude / Antigravity / Gemini lane must **not** pick it up. Any change to the admin console (new tab, new RPC, new schema) goes through a Lovable cycle and updates this page + the build bible + `docs/planning/archive/build-log.md` §4 in the same change. This rule is also enforced by the dashboard's "Lovable-owned + frozen" block.
 - **% completion** shown on `M-C-PRICE` is a blended figure for billing + credits + pricing + admin console. Do not read it as admin-console-only progress.
-- **Source of truth for admin console scope, acceptance, and behavior** is this feature page and the build bible [`../planning/admin-console-v2-plan.md`](../planning/admin-console-v2-plan.md); the dashboard rows (`F-ADMIN-CONSOLE`, `ADM-DB`, `M-C-PRICE`) carry only a one-line summary + pointer back here.
+- **Source of truth for admin console scope, acceptance, and behavior** is this feature page and the build bible [`../planning/initiatives/admin-console-v2-plan.md`](../planning/initiatives/admin-console-v2-plan.md); the dashboard rows (`F-ADMIN-CONSOLE`, `ADM-DB`, `M-C-PRICE`) carry only a one-line summary + pointer back here.
 - **Where to log a new admin-console change:** (a) update this page's status line + the relevant `vN` section, (b) append a one-liner to `docs/planning/archive/build-log.md` §4 with the WHY, (c) refresh the "Last updated" stamp on rows `F-ADMIN-CONSOLE` / `ADM-DB` / `M-C-PRICE` of the dashboard and adjust their one-line summary if scope shifted.
 
 ## v2 (shipped)
@@ -47,7 +47,7 @@ The Admin Console is tracked in [`../planning/SOURCE-OF-TRUTH.md`](../planning/S
   - **"Best value" marker** on top-up bundles per group (Starter / At scale).
 - **Access:** every admin RPC is `SECURITY DEFINER` and gates on `has_role(auth.uid(),'admin')`. First admin granted via `adminBootstrapSelfAsAdmin`.
 
-> **Build bible (now historical):** [`../planning/admin-console-v2-plan.md`](../planning/admin-console-v2-plan.md) — Steps 1-8 all shipped. Kept as the cold-buildable record of intent + acceptance.
+> **Build bible (now historical):** [`../planning/initiatives/admin-console-v2-plan.md`](../planning/initiatives/admin-console-v2-plan.md) — Steps 1-8 all shipped. Kept as the cold-buildable record of intent + acceptance.
 
 ## What it does
 

@@ -3,7 +3,7 @@
 > _Created: 2026-06-19 · Last updated: 2026-06-19_
 
 **Status:** ◐ shipped cycle 37
-**Spec:** `docs/planning/workspace-tenancy-and-monetization-plan.md` (WM-F3)
+**Spec:** `docs/planning/initiatives/workspace-tenancy-and-monetization-plan.md` (WM-F3)
 
 ## Overview
 
@@ -75,7 +75,7 @@ Note: live enforcement activates on the founder's next publish.
 
 ## Related
 
-- `docs/planning/workspace-tenancy-and-monetization-plan.md` (WM-F3 spec)
+- `docs/planning/initiatives/workspace-tenancy-and-monetization-plan.md` (WM-F3 spec)
 - `src/lib/roles.functions.ts` (TypeScript helpers)
 - `src/lib/roles.test.ts` (unit tests)
 - `supabase/migrations/20260619210000_wm_f3_rbac_enforcement.sql` (migration)

@@ -68,7 +68,7 @@ For each item:
 - [ ] **v10 master blueprint + v10 implementation plan:** status updated if the item maps to a tracked lane or milestone gate.
 - [ ] **The feature's own detail doc** under `docs/features/`.
 - [ ] **`docs/strategy/session-decisions.md`:** an entry if the cycle made a strategic decision or a real tradeoff.
-- [ ] **`docs/brand-feed.md`:** append ONLY if a genuinely postable build insight surfaced (high bar, high signal, would make a real social post, not a build log). Include the capture cue.
+- [ ] **`docs/growth/brand-feed.md`:** append ONLY if a genuinely postable build insight surfaced (high bar, high signal, would make a real social post, not a build log). Include the capture cue.
 - [ ] **The overnight report** (always, every cycle).
 
 ## 7. Context continuity and handoff

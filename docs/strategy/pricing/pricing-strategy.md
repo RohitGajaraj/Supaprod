@@ -3,7 +3,7 @@
 > _Created: 2026-06-26 (founder session — 4-tier model decision + credit-dropdown architecture)_
 > _Last updated: 2026-07-10 (research merge: Critic teardown moves INTO Free; the value-metric evolution note — credits price closed loops, never tokens or seats; the labor-budget anchor line. Executed under the founder's full-tweak-authority grant, [`session-decisions.md`](../session-decisions.md) 2026-07-10 decision 7; every change carries its evidence pointer inline.)_
 
-> **Status: CANONICAL.** This is the single source of truth for WHY Supaprod prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../../features/billing.md). This doc is the strategy layer those two reference.
+> **Status: CANONICAL.** This is the single source of truth for WHY Supaprod prices the way it does, WHAT each tier signals to the user, and HOW the credit model works. The IMPLEMENTATION spec (per-ID build tasks) lives in [`../planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../../planning/initiatives/workspace-tenancy-and-monetization-plan.md). The TECHNICAL billing rail lives in [`../features/billing.md`](../../features/billing.md). This doc is the strategy layer those two reference.
 
 > **Maintainer rule:** every pricing decision — tier change, feature gate move, credit model adjustment — must be recorded here AND in [`session-decisions.md`](../session-decisions.md) in the same session.
 
@@ -23,7 +23,7 @@ The founder reviewed six reference pricing pages (Lovable, Lovable with credit d
 4. **Enterprise = platform fee + per-seat + API usage rates.** Contact sales path. No public self-serve price.
 5. **Credits are account-level pooled**, not per-seat. Admins set per-user spend limits from the existing `credit_caps` engine (WM-M14). The pool is shared; control is per-user.
 
-These decisions supersede the 5-tier Anthropic-style packaging described in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (which is retained as the historical reasoning). For public pricing presentation and WM-M17/M19 implementation, **this doc governs**.
+These decisions supersede the 5-tier Anthropic-style packaging described in [`planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../../planning/initiatives/workspace-tenancy-and-monetization-plan.md) §2.4.1 (which is retained as the historical reasoning). For public pricing presentation and WM-M17/M19 implementation, **this doc governs**.
 
 ---
 
@@ -410,7 +410,7 @@ Enterprise (Cosmos slug) is not a self-serve tier. The contact-sales path is del
 > | Surface connector tiers in settings/billing                          | `src/components/billing/PlanPicker.tsx` | Update highlights                                                           |
 > | Update `planPresentation()` highlights                               | `src/lib/entitlements.ts`               | Pro highlights get "read connectors"; Business gets "write-back connectors" |
 
-This section maps the strategy to the build items. Full per-file specs live in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §4.2.2.
+This section maps the strategy to the build items. Full per-file specs live in [`planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../../planning/initiatives/workspace-tenancy-and-monetization-plan.md) §4.2.2.
 
 | What | File | Change |
 | --- | --- | --- |
@@ -429,7 +429,7 @@ This section maps the strategy to the build items. Full per-file specs live in [
 
 ## 10. What this document supersedes
 
-- The 5-tier Anthropic-style packaging in [`planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4.1 (the "Max 5x/20x + Team Standard/Premium seat variants" framing). That section is retained as historical reasoning. **This doc's 4-tier model governs.**
+- The 5-tier Anthropic-style packaging in [`planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../../planning/initiatives/workspace-tenancy-and-monetization-plan.md) §2.4.1 (the "Max 5x/20x + Team Standard/Premium seat variants" framing). That section is retained as historical reasoning. **This doc's 4-tier model governs.**
 - The `billing.md` tier shape section (which describes an old 5-tier individual/business split). `billing.md` documents the technical rail; this doc documents the strategy it executes.
 - Any prior reference to "Constellation/Galaxy/Cosmos" as the public tier names. Those names are now internal only (slug presentation aliases). The public names are Free / Pro / Business / Enterprise.
 
@@ -437,7 +437,7 @@ This section maps the strategy to the build items. Full per-file specs live in [
 
 ## 11. Cross-references
 
-- **Implementation specs (build tasks):** [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) — WM-M17 (credit dropdown), WM-M18 (plan-card states), WM-M19 (enterprise usage model)
+- **Implementation specs (build tasks):** [`../planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../../planning/initiatives/workspace-tenancy-and-monetization-plan.md) — WM-M17 (credit dropdown), WM-M18 (plan-card states), WM-M19 (enterprise usage model)
 - **Technical billing rail:** [`../features/billing.md`](../../features/billing.md) — how Stripe, checkout, webhooks, and the pricing catalog work
 - **Credit engine:** [`../features/credits.md`](../../features/credits.md) — the debit/grant/top-up engine
 - **Entitlements code:** `src/lib/entitlements.ts` — the 5-tier capability matrix (code-level source of truth)

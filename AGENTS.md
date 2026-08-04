@@ -258,7 +258,13 @@ When you do write docs, four rules keep this from rotting again:
 3. **Archive, do not orphan.** A superseded doc moves to the nearest `archive/` with a README saying why, and inbound links are retargeted in the same commit.
 4. **Every doc carries a date header** under its H1: `> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_`. No dates in filenames.
 
-**Root holds exactly four files:** `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`. Adding a fifth is how the last three cleanups started. Placement policy for everything else: [`docs/README.md`](./docs/README.md). Run `bun run docs:check` before committing doc changes.
+**Root holds exactly four files:** `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`. Adding a fifth is how the last three cleanups started.
+
+**Creating any file? [`docs/README.md`](./docs/README.md) has a routing table with a row for every case**: research, strategy, positioning, launch, architecture, decisions, conventions, features, plans, runbooks, tests, security, prompts, and non-documents including screenshots. Find your row before you create. If your case is genuinely absent, add a row rather than inventing a folder.
+
+**Screenshots go in `docs/screenshots/`, which is gitignored.** Never commit one, never leave one at repo root. Sixty were found loose at root on 2026-08-04, plus a 1.9 MB temp screenshot directory that had been committed.
+
+`docs-doctor` runs itself from the pre-commit hook when a commit touches markdown, so you do not need to run `bun run docs:check` by hand.
 
 ---
 

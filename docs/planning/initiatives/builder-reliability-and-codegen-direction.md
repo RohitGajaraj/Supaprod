@@ -55,11 +55,11 @@ The canon already says this is the answer; the live failure just makes it concre
 
 1. **Decide the posture** (founder): in-house Builder as floor + delegation as the real engine — yes/no. This proposal recommends yes.
 2. If a near-term in-house-Builder demo is needed: do **Layer 1** (attended chokepoint change, ~half a day).
-3. The real work: finish **`BLD-04`** (result-callback + job persistence) and wire **`ORCH-DELEGATE`** to a live external agent, governed end-to-end. Cost/vendor choices belong in [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
+3. The real work: finish **`BLD-04`** (result-callback + job persistence) and wire **`ORCH-DELEGATE`** to a live external agent, governed end-to-end. Cost/vendor choices belong in [`../operations/procurement-inventory.md`](../../operations/procurement-inventory.md).
 4. Keep the model-choice lever visible: for any in-house agentic step, default to a model strong enough to emit complete tool calls, or accept the Layer-1 self-correction tax.
 
 ## Cross-links
 
-- Direction canon: [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md), [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (BUILD/BUY/INTEGRATE), `ORCH-DELEGATE` + `BLD-04` rows in [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md).
-- The live diagnosis + the infra fixes from the same session: [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (2026-06-26 entries).
-- Spend/vendor implications of delegation: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
+- Direction canon: [`../strategy/v11-guiding-star.md`](../../strategy/v11-guiding-star.md), [`../strategy/build-buy-integrate.md`](../../strategy/build-buy-integrate.md) (BUILD/BUY/INTEGRATE), `ORCH-DELEGATE` + `BLD-04` rows in [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md).
+- The live diagnosis + the infra fixes from the same session: [`../strategy/session-decisions.md`](../../strategy/session-decisions.md) (2026-06-26 entries).
+- Spend/vendor implications of delegation: [`../operations/procurement-inventory.md`](../../operations/procurement-inventory.md).

@@ -207,9 +207,9 @@ Strict order. Each step is one commit. Per-step gates: tsc 0 + build green + tar
 
 ## 10. Related
 
-- [`../features/admin-console.md`](../features/admin-console.md) - feature page (v1 status + v2 pointer).
-- [`../features/billing.md`](../features/billing.md), [`../features/credits.md`](../features/credits.md), [`../features/pricing.md`](../features/pricing.md) - the surfaces this admin manages.
-- [`../../architecture/security.md`](../../architecture/security.md) - admin role pattern (`user_roles` + `has_role`).
-- [`../conventions/destructive-actions.md`](../conventions/destructive-actions.md), [`../conventions/ui-voice.md`](../conventions/ui-voice.md), [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md) - UI rules every panel obeys.
-- [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) - board row for this initiative.
-- [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) - live cursor.
+- [`../features/admin-console.md`](../../features/admin-console.md) - feature page (v1 status + v2 pointer).
+- [`../features/billing.md`](../../features/billing.md), [`../features/credits.md`](../../features/credits.md), [`../features/pricing.md`](../../features/pricing.md) - the surfaces this admin manages.
+- [`../../architecture/security.md`](../../../architecture/security.md) - admin role pattern (`user_roles` + `has_role`).
+- [`../conventions/destructive-actions.md`](../../conventions/destructive-actions.md), [`../conventions/ui-voice.md`](../../conventions/ui-voice.md), [`../conventions/engine-room-doctrine.md`](../../conventions/engine-room-doctrine.md) - UI rules every panel obeys.
+- [`./SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) - board row for this initiative.
+- [`./SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) - live cursor.

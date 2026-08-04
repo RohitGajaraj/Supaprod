@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-25 · Last updated: 2026-06-25_
 
-> **Status:** DOCUMENTATION ONLY (no build yet, founder-gated). Full doctrine + 14 task IDs in [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md).
+> **Status:** DOCUMENTATION ONLY (no build yet, founder-gated). Full doctrine + 14 task IDs in [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md).
 
 ## What it does (one paragraph)
 
@@ -47,7 +47,7 @@ Will be wired at build time (cold-buildable per the plan):
 
 ## Related
 
-- Plan + doctrine + 14 task IDs: [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md)
+- Plan + doctrine + 14 task IDs: [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md)
 - Façade contract: [`./observability-facade.md`](./observability-facade.md)
 - Vendor selection ADR: [`../decisions/analytics-vendor-selection.md`](../decisions/analytics-vendor-selection.md)
 - Alerting runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md)

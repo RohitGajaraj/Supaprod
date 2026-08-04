@@ -149,7 +149,7 @@ Layers: client (TanStack Start/React 19/Vite, Cloudflare Worker) → auth+tenanc
 
 ## 13. Pricing strategy (the build bible §2.4 governs the live model)
 
-The current model is the 5-tier **Constellation** ladder presented Anthropic-style as **two toggles** (Individual: Free / Pro / Max; Business: Team / Enterprise), with usage **variants inside Max and Team**. This table is a summary; the canonical matrix + the variant packaging live in [`../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) §2.4 + §2.4.1.
+The current model is the 5-tier **Constellation** ladder presented Anthropic-style as **two toggles** (Individual: Free / Pro / Max; Business: Team / Enterprise), with usage **variants inside Max and Team**. This table is a summary; the canonical matrix + the variant packaging live in [`../planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../../planning/initiatives/workspace-tenancy-and-monetization-plan.md) §2.4 + §2.4.1.
 
 | Tier (toggle) | Price (founder-gated) | Sold on | State |
 | --- | --- | --- | --- |

@@ -57,23 +57,63 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 | Per-folder `archive/` | Superseded material stays beside its bucket: [`design/archive/`](./design/archive/README.md), [`planning/archive/`](./planning/archive/README.md), `strategy/archive/`, `testing/archive/`, `features/archive/`. |
 | **`screenshots/`** | Local only, gitignored. Verification captures, never committed. |
 
-Two loose files are allowed at this level and no others: this index, and [`brand-feed.md`](./brand-feed.md), the one-way feed of postable build insights that the separate private build-in-public repo reads.
+**Only this index sits loose at `docs/` top level.** Nothing else, ever.
 
 ---
 
-## Placement policy
+## Where does a new file go? The routing table.
 
-**Before you create a file, find its bucket above.** Then:
+**Find your row before you create anything.** This table exists so nobody has to guess, and so we never do another cleanup. If your case is genuinely absent, add a row rather than inventing a folder.
+
+### Documents
+
+| What you have | Where it goes | Link it from |
+| --- | --- | --- |
+| **Research, analysis, a competitor sweep, market evidence, an interview corpus** | [`research/`](./research/README.md) | its README. **Read it first**: this corpus is large enough that the same sweep has been run twice. |
+| **A product or design pattern lifted from a proven product** | [`design/REFERENCE-PATTERNS.md`](./design/REFERENCE-PATTERNS.md), appended | already linked. Never a new file per pattern. |
+| **Strategy, direction, the moat, market positioning** | [`strategy/`](./strategy/README.md) | its README, the arbiter. **Update `v11-guiding-star.md` in place; do not open a v14.** |
+| **Product positioning as words a customer reads** | [`pitch/`](./pitch/README.md), in the existing file | its README. Update in place, never a parallel copy. |
+| **An accelerator, incubator or VC application** | `pitch/applications/<programme>/` | [`pitch/applications/README.md`](./pitch/applications/README.md). Answers go in `answer-bank.md`, not per programme. |
+| **A question you were asked in an interview, or a pushback** | [`pitch/founder-answer-playbook.md`](./pitch/founder-answer-playbook.md), same session | already linked. This file is updated after **every** application and interview. |
+| **Launch, marketing, a channel playbook, an experiment, brand ops** | [`growth/`](./growth/README.md) | its README. Numbered `00`..`07` for the launch sequence; brand ownership in `brand-ops/`. |
+| **Architecture: a contract about how the system is built** | [`../architecture/`](../architecture/README.md) | its README. Contracts state the invariant; they do not argue for it. |
+| **A technical decision, with options and the cost accepted** | [`decisions/`](./decisions/README.md) | its README. Disagree with one? Add a superseding record, do not quietly build the other way. |
+| **A durable cross-tool rule** (voice, chrome, destructive actions) | [`conventions/`](./conventions/README.md) | its README. **Add a test if code can violate it silently**, or it is a suggestion. |
+| **How a shipped feature works** | [`features/`](./features/README.md), one page per feature | its README. Name it for the feature, **never for its ticket ID**. |
+| **A plan for a multi-item initiative** | [`planning/initiatives/`](./planning/initiatives/) | [`planning/README.md`](./planning/README.md). Move it to `planning/archive/` the day its work closes. |
+| **Status: what is in flight, what is next** | [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) | nowhere else. **There is exactly one board.** |
+| **A bug with a reproduction** | [`planning/known-issues.md`](./planning/known-issues.md) | already linked |
+| **A non-functional gap belonging to no feature** | [`planning/cross-cutting-gaps.md`](./planning/cross-cutting-gaps.md) | already linked |
+| **A runbook, playbook, or ops procedure** | [`operations/`](./operations/README.md) | its README |
+| **Anything about testing** | [`operations/testing/`](./operations/testing/README.md) | its README |
+| **Anything about security or an audit** | [`operations/security/`](./operations/security/README.md) | its README |
+| **A founder mission brief, verbatim** | [`prompts/`](./prompts/README.md) | its README |
+| **What this session did and left open** | [`operations/session-handoff.md`](./operations/session-handoff.md) | already linked. Write it **before** you stop. |
+
+### Images and other non-documents
+
+| What you have | Where it goes |
+| --- | --- |
+| **A screenshot you took to verify a build, or during a walkthrough** | **`docs/screenshots/`**, which is **gitignored**. Never commit it, and never leave it at repo root. Sixty were found loose at root on 2026-08-04. |
+| **A screenshot from a specific session** | `docs/screenshots/session-captures/` |
+| **An image a build must match**, curated and worth committing | `design-reference/` |
+| **A brand asset for outward use** (logo, favicon, social) | `docs/growth/branding/` |
+| **A generated artifact** (graphify output, build output, test results) | its own gitignored directory. **Never hand-edit it**, and never commit one that is rewritten on every build. |
+| **A temp file or scratch script** | your scratchpad, outside the repo. `.tmp-*/` is gitignored; a 1.9 MB temp screenshot directory was found committed. |
+
+---
+
+## The seven rules
 
 1. **Extend before you create.** If a doc already serves the purpose, add to it. A new file is for a genuinely new purpose.
-2. **Link it from its bucket's index in the same commit.** A file nothing links to is a file nobody finds. Nine such orphans were found on 2026-08-03, all in the three folders that had no index at all.
-3. **Never at repo root, never at `docs/` top level.** Root holds exactly four files: `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`.
-4. **Status lives only in the SSOT.** Never copy a status board or a canon paragraph into a second file. Link instead.
-5. **Archive, do not orphan.** A superseded doc moves to the nearest `archive/` **with a line saying why it went**, and its inbound links are retargeted in the same commit.
+2. **Link it from its bucket's index in the same commit.** A file nothing links to is a file nobody finds. Nine orphans were found on 2026-08-03, all in the three folders that had no index.
+3. **Never at repo root, never at `docs/` top level.** Root holds exactly four files: `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`. This index is the only loose file in `docs/`.
+4. **One board.** Status lives only in [`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md). Never copy a status table or a canon paragraph into a second file; link instead. Two files answering "where are we" is what produced a 260 KB board whose own section 3 restated the other one.
+5. **Archive, do not orphan.** A superseded doc moves to the nearest `archive/` **with a line saying why it went**, and its inbound links are retargeted in the same commit. A plan whose work is done is not a plan.
 6. **A date header on every doc**, directly under the H1: `> _Created: YYYY-MM-DD · Last updated: YYYY-MM-DD_`. **No dates in filenames**, except a genuine dated record under `archive/` or `applied/`.
-7. **kebab-case, no spaces, no capitals** in folder names. Three folders broke this, and one of them, `Growth Strategy`, forced `%20` into every link that reached it.
+7. **kebab-case, no spaces, no capitals**, and **name a file for what it is, not for its ticket ID.** `h2-writes.md` told a reader nothing; `governed-roadmap-writes.md` tells them everything. A folder called `Growth Strategy` forced `%20` into every link that reached it.
 
-`scripts/docs-doctor.sh` enforces items 2, 3, 6 and 7, and it runs itself from the pre-commit hook whenever a commit touches markdown. You do not need to remember to run it.
+`scripts/docs-doctor.sh` enforces rules 2, 3, 6 and 7, plus a scan for retired wording, and **it runs itself from the pre-commit hook** whenever a commit touches markdown. You never need to remember to run it. It caught four broken links during this very cleanup.
 
 ---
 

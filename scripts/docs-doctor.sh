@@ -22,7 +22,7 @@ WARN=0
 # CLAUDE/GEMINI = per-tool specifics, thin because they auto-load every session.
 # Adding a fifth is how the last three cleanups started. Do not widen this list.
 ROOT_WHITELIST=" AGENTS.md CLAUDE.md GEMINI.md README.md "
-DOCS_TOP_WHITELIST=" README.md brand-feed.md "
+DOCS_TOP_WHITELIST=" README.md "
 
 echo "== docs-doctor =="
 

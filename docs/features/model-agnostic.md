@@ -76,6 +76,6 @@ Before this, the catalog was a closed 7-provider union and the chokepoint resolv
 ## Related
 
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4 build log · [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (MA-1 row)
-- [`../strategy/build-driver-and-dispatch.md`](../strategy/build-driver-and-dispatch.md) (the code-gen twin) · [`../planning/workspace-tenancy-and-monetization-plan.md`](../planning/workspace-tenancy-and-monetization-plan.md) (WM-M9)
+- [`../strategy/build-driver-and-dispatch.md`](../strategy/build-driver-and-dispatch.md) (the code-gen twin) · [`../planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../planning/initiatives/workspace-tenancy-and-monetization-plan.md) (WM-M9)
 - [`subprocessor-disclosure.md`](./subprocessor-disclosure.md) · [`pricing.md`](./pricing.md)
 - [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (2026-06-30 entry)

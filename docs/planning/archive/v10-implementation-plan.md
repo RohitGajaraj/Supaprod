@@ -22,7 +22,7 @@ Every item, P0 to P2, runs this exact loop. No exceptions, no batching at the en
 6. **Verify for real, two gates.** (a) `bunx tsc --noEmit` is the real type gate; `bun run build` strips types without checking, so a green build is not a green typecheck. (b) For UI, run `bun run dev` and verify visually; type-checking is not feature-checking.
 7. **Adversarial review.** Run a code-review pass (security + correctness + the humanization gate: zero AI fingerprints in authored code and in generated output). Fix findings.
 8. **Ship + close the loop.** Commit with a one-line WHY + the Co-Authored-By trailer; push. Flip the dashboard row to ✅, clear the Active-claims line, append a one-liner to `docs/planning/archive/build-log.md` section 4 and the linked feature doc, recompute the dashboard counts. Clear the SSOT section 0 (the live cursor) entry if the feature is complete. A change is not done until its docs are true.
-9. **Capture (if it qualifies).** If a genuinely postable build insight surfaced, append it to `docs/brand-feed.md` with a capture cue. Write the session handoff to `.remember/remember.md` before ending.
+9. **Capture (if it qualifies).** If a genuinely postable build insight surfaced, append it to `docs/growth/brand-feed.md` with a capture cue. Write the session handoff to `.remember/remember.md` before ending.
 
 **Definition of done (per item):** acceptance criteria met on _real data_ (no mocks); `tsc --noEmit` clean; tested; adversarially reviewed; shipped to main; dashboard + plan.md updated; UI-verified (or flagged backend-only + deploy state, since the live app can run code older than main).
 

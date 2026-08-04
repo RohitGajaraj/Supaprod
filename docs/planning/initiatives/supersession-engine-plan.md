@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-20 · Last updated: 2026-06-20_
 
-> **Status: PLAN (2026-06-20, cycle 58).** Cold-buildable, task-by-task build plan for the Decision Brain (H1) **supersession engine** — the moat's signature mechanic (outcome-labeled, invalidate-don't-delete). Produced by a 4-agent design workflow (3 parallel surveys + an opus synthesis) on 2026-06-20, grounded against the live code. Parent: [`../features/decision-brain.md`](../features/decision-brain.md); read surface it fits: [`../features/knowledge-graph-explorer.md`](../features/knowledge-graph-explorer.md); strategy: [`../strategy/horizon-bets.md`](../strategy/horizon-bets.md) (H1) + [`../strategy/moat.md`](../strategy/moat.md). Build queue: [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) §0/§3.
+> **Status: PLAN (2026-06-20, cycle 58).** Cold-buildable, task-by-task build plan for the Decision Brain (H1) **supersession engine** — the moat's signature mechanic (outcome-labeled, invalidate-don't-delete). Produced by a 4-agent design workflow (3 parallel surveys + an opus synthesis) on 2026-06-20, grounded against the live code. Parent: [`../features/decision-brain.md`](../../features/decision-brain.md); read surface it fits: [`../features/knowledge-graph-explorer.md`](../../features/knowledge-graph-explorer.md); strategy: [`../strategy/horizon-bets.md`](../../strategy/horizon-bets.md) (H1) + [`../strategy/moat.md`](../../strategy/moat.md). Build queue: [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) §0/§3.
 
 > **For agentic workers:** execute task-by-task (superpowers:subagent-driven-development or executing-plans). Steps use checkbox (`- [ ]`) syntax.
 

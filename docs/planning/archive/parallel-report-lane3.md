@@ -64,7 +64,7 @@ Marked `lane.sh done BYO-P5` (no autonomous slice remains for this lane right no
 
 ## 2026-07-02 18:35 — OBS-05: Build ported to Obsidian (mission rows + slide-over)
 
-Picked OBS-05 next in rank once OBS-02/OBS-03 both shipped and unblocked the whole OBS-04..09 tier. Full detail in `docs/planning/byo-p5-managed-runtime-plan.md`... wait, wrong doc — see `docs/planning/archive/build-log.md`'s 2026-07-02 OBS-05 entry and the dashboard row for the complete writeup.
+Picked OBS-05 next in rank once OBS-02/OBS-03 both shipped and unblocked the whole OBS-04..09 tier. Full detail in `docs/planning/initiatives/byo-p5-managed-runtime-plan.md`... wait, wrong doc — see `docs/planning/archive/build-log.md`'s 2026-07-02 OBS-05 entry and the dashboard row for the complete writeup.
 
 **Adversarial review (3 lenses) — 4 real findings, 1 critical, all fixed:**
 

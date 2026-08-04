@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-25 · Last updated: 2026-06-25_
 
-> **Status:** DOCUMENTATION ONLY until **AFD-13** ships. See [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md) for the full initiative.
+> **Status:** DOCUMENTATION ONLY until **AFD-13** ships. See [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md) for the full initiative.
 
 ## Sev tiers
 
@@ -44,7 +44,7 @@ The runbook is **live the moment AFD-13 ships** (Better Stack monitors + escalat
 
 ## Related
 
-- Plan: [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md)
+- Plan: [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md)
 - Feature spec: [`../features/analytics-and-failure-detection.md`](../features/analytics-and-failure-detection.md)
 - Seed monitor: [`../features/app-health.md`](../features/app-health.md)
 - Existing incidents panel: `src/components/governance/IncidentsPanel.tsx` + [`features/incidents-log.md`](../features/incidents-log.md)

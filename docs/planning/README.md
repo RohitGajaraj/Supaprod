@@ -24,14 +24,14 @@ Open one only when you are building that thing. Each carries per-ID specs: conte
 
 | Initiative | Bible |
 | --- | --- |
-| Workspaces, accounts, tenancy, monetization | [`workspace-tenancy-and-monetization-plan.md`](./workspace-tenancy-and-monetization-plan.md) |
-| BYO repo and the all-in-one platform | [`byo-build-implementation-plan.md`](./byo-build-implementation-plan.md) |
-| The managed end-to-end runtime | [`byo-p5-managed-runtime-plan.md`](./byo-p5-managed-runtime-plan.md) (founder-gated) |
-| Analytics and failure detection | [`analytics-and-failure-detection-plan.md`](./analytics-and-failure-detection-plan.md) (founder-gated; read before adding any vendor SDK) |
-| Admin console v2 | [`admin-console-v2-plan.md`](./admin-console-v2-plan.md) |
-| Decision Brain, increment 1 | [`ambient-precedent-plan.md`](./ambient-precedent-plan.md) |
-| Decision Brain, the supersession engine | [`supersession-engine-plan.md`](./supersession-engine-plan.md) |
-| Builder reliability and the codegen direction | [`builder-reliability-and-codegen-direction.md`](./builder-reliability-and-codegen-direction.md) (a proposal; the founder owns the decision) |
+| Workspaces, accounts, tenancy, monetization | [`workspace-tenancy-and-monetization-plan.md`](./initiatives/workspace-tenancy-and-monetization-plan.md) |
+| BYO repo and the all-in-one platform | [`byo-build-implementation-plan.md`](./initiatives/byo-build-implementation-plan.md) |
+| The managed end-to-end runtime | [`byo-p5-managed-runtime-plan.md`](./initiatives/byo-p5-managed-runtime-plan.md) (founder-gated) |
+| Analytics and failure detection | [`analytics-and-failure-detection-plan.md`](./initiatives/analytics-and-failure-detection-plan.md) (founder-gated; read before adding any vendor SDK) |
+| Admin console v2 | [`admin-console-v2-plan.md`](./initiatives/admin-console-v2-plan.md) |
+| Decision Brain, increment 1 | [`ambient-precedent-plan.md`](./initiatives/ambient-precedent-plan.md) |
+| Decision Brain, the supersession engine | [`supersession-engine-plan.md`](./initiatives/supersession-engine-plan.md) |
+| Builder reliability and the codegen direction | [`builder-reliability-and-codegen-direction.md`](./initiatives/builder-reliability-and-codegen-direction.md) (a proposal; the founder owns the decision) |
 
 ## The current rebuild
 

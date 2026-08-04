@@ -2,7 +2,7 @@
 
 > **Status:** **PHASE 1 SHIPPED 2026-06-25 (lovable autonomous build).** Code-side of the plan is live; vendor side stays founder-gated. See "Phase 1 ship log" immediately below.
 > **Initiative ID:** `AFD` · **Dashboard group:** `G12` · **Task IDs:** `AFD-01` … `AFD-14`.
-> **Created:** 2026-06-25 · **Owner:** any session that picks an `AFD-*` row from [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md).
+> **Created:** 2026-06-25 · **Owner:** any session that picks an `AFD-*` row from [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md).
 >
 > This is the **single front-door** for everything analytics + failure-detection in Supaprod. When the founder unblocks the build, the picker reads this file end-to-end, **does not re-derive the vendor choice**, and starts at `AFD-01`. Every other doc that touches observability points HERE (see §13 "Cross-doc map").
 
@@ -39,7 +39,7 @@
 - **Posture:** **Hybrid (V3, recommended).** **BUY/INTEGRATE** the commodity layer (PostHog EU for product usage, Sentry EU for errors, Better Stack for uptime + on-call + status page). **BUILD in-house** the moat-adjacent layer (Decision-velocity analytics, Agent-cost analytics, in-app Incidents panel) on existing Supabase tables so the "receipts" stay on our side of the line.
 - **Why this split:** PostHog/Sentry/Better Stack are mature, EU-resident, free at our scale, and have a one-line SDK; rebuilding them is months of work for a worse product. Decision/agent-cost analytics are the **moat** — they cross our private tables (`decisions`, `artifact_lineage`, `agent_runs`, `model_costs`) and are how PMs feel the value, so they stay BUILT and stay on Postgres.
 - **EU residency:** every paid dependency picked has an EU region — GDPR posture by default (Supaprod is a global consumer-facing PM tool; users will be from the EU).
-- **Cost at our scale:** **$0/mo** through demo + early users (all free tiers). First paid tier triggers at PostHog 1M events / Sentry 5k errors / Better Stack 10 monitors — see [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
+- **Cost at our scale:** **$0/mo** through demo + early users (all free tiers). First paid tier triggers at PostHog 1M events / Sentry 5k errors / Better Stack 10 monitors — see [`../operations/procurement-inventory.md`](../../operations/procurement-inventory.md).
 - **Activation posture:** **Dormant by design** (mirroring the credit-engine pattern). The façade ships keyless, no-ops when env vars are absent, and is admin-flipped on at go-live. No vendor traffic happens until the founder sets the keys.
 - **Exit posture:** All vendor calls go through `src/lib/observability/` façades (`track()`, `captureError()`, `setUser()`). Swapping PostHog → Mixpanel or Sentry → Honeybadger is a 1-file edit; **leaving Lovable** is exporting secrets + redeploying the same code to a new host. Moat data in Supabase is `pg_dump`-able. Founder holds the root credentials (vendor accounts are opened under a founder-owned inbox).
 
@@ -77,7 +77,7 @@
 
 ### 2.1 The doctrine in one line
 
-> **BUILD what is the moat. BUY what is a commodity. INTEGRATE at a façade so the buy is reversible.** (Standing rule: [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md).)
+> **BUILD what is the moat. BUY what is a commodity. INTEGRATE at a façade so the buy is reversible.** (Standing rule: [`../strategy/build-buy-integrate.md`](../../strategy/build-buy-integrate.md).)
 
 ### 2.2 What's the moat here
 
@@ -129,7 +129,7 @@ Every vendor call goes through **one** file per concern in `src/lib/observabilit
 - The façade is **dormant by design**: an admin RPC `admin_set_observability_enabled(true)` is the go-live switch, mirroring `admin_set_credits_enabled`.
 - Swapping vendors = editing one file. **Leaving Lovable** = exporting secrets + redeploying the same code to a new host. The moat data (decisions/outcomes/agent_runs) lives in Supabase and is `pg_dump`-able.
 
-Spec: [`../features/observability-facade.md`](../features/observability-facade.md).
+Spec: [`../features/observability-facade.md`](../../features/observability-facade.md).
 
 ---
 
@@ -217,7 +217,7 @@ src/lib/observability/
   index.ts           — re-exports
 ```
 
-Spec: [`../features/observability-facade.md`](../features/observability-facade.md).
+Spec: [`../features/observability-facade.md`](../../features/observability-facade.md).
 
 ### 3.3 Surfaces (what the user / admin sees)
 
@@ -237,7 +237,7 @@ Spec: [`../features/observability-facade.md`](../features/observability-facade.m
 | **Sev 3** | Error rate > 0.1% over 1h · budget burn > 80% of monthly cap · agent hit-rate drop > 20pt week-over-week | Slack `#observability` | 4h |
 | **Sev 4** | Single workspace anomaly · single feature-flag regression · slow-query warn | In-app Incidents panel only | next business day |
 
-Runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md).
+Runbook: [`../operations/alerting-runbook.md`](../../operations/alerting-runbook.md).
 
 ---
 
@@ -247,7 +247,7 @@ Runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md
 - **No PII to Sentry.** `beforeSend` hook strips request bodies + headers; only stack + URL + user UUID survives.
 - **EU residency.** PostHog EU, Sentry EU, Better Stack EU regions. No cross-Atlantic data flow.
 - **Right-to-erasure.** Supabase user delete cascades to in-house tables; a façade `forget(userId)` issues delete-by-distinct-id to PostHog + Sentry.
-- **Subprocessor disclosure.** PostHog + Sentry + Better Stack are added to [`../features/subprocessor-disclosure.md`](../features/subprocessor-disclosure.md) when AFD goes live.
+- **Subprocessor disclosure.** PostHog + Sentry + Better Stack are added to [`../features/subprocessor-disclosure.md`](../../features/subprocessor-disclosure.md) when AFD goes live.
 - **RLS.** All in-house views/tables are workspace-scoped; admin surfaces guard at the route level (`requireAdmin`).
 - **Audit.** The admin RPC `admin_set_observability_enabled` writes to `admin_audit_log` (F-ADMIN-AUDIT).
 
@@ -263,7 +263,7 @@ When the founder unblocks the build, the executing agent:
 
 1. **Asks the founder for a founder-owned inbox** (e.g. `ops@supaprod.app` or `<founder>@gmail.com`). The vendor account is opened under THAT inbox, not an agent address.
 2. Sets the founder as the **owner** on every vendor (PostHog org owner, Sentry org owner, Better Stack account owner). The agent's role, if any, is `admin` — revocable.
-3. Records each vendor's account email + dashboard URL in [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md) (the standing rule already exists).
+3. Records each vendor's account email + dashboard URL in [`../operations/procurement-inventory.md`](../../operations/procurement-inventory.md) (the standing rule already exists).
 4. Stores the API keys as Cloudflare Worker secrets (`POSTHOG_API_KEY`, `SENTRY_DSN`, `BETTER_STACK_HEARTBEAT_URL`). The founder can rotate any key from the Cloudflare dashboard.
 5. Enables 2FA on every vendor account, owned by the founder.
 
@@ -348,19 +348,19 @@ The picker MUST NOT start AFD until:
 
 ## 11. References
 
-- Doctrine: [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) — when to BUILD vs BUY vs INTEGRATE.
-- Procurement: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md) — the shopping list (PostHog/Sentry/Better Stack rows live there).
-- Existing health endpoint: [`../features/app-health.md`](../features/app-health.md) — `GET /api/public/health`, the seed of Better Stack monitoring.
+- Doctrine: [`../strategy/build-buy-integrate.md`](../../strategy/build-buy-integrate.md) — when to BUILD vs BUY vs INTEGRATE.
+- Procurement: [`../operations/procurement-inventory.md`](../../operations/procurement-inventory.md) — the shopping list (PostHog/Sentry/Better Stack rows live there).
+- Existing health endpoint: [`../features/app-health.md`](../../features/app-health.md) — `GET /api/public/health`, the seed of Better Stack monitoring.
 - Existing incidents panel: `src/components/governance/IncidentsPanel.tsx` — AFD extends, does not replace.
-- Existing audit: [`features/incidents-log.md`](../features/incidents-log.md) + F-ADMIN-AUDIT — the audit-log target for the admin kill-switch.
+- Existing audit: [`features/incidents-log.md`](../../features/incidents-log.md) + F-ADMIN-AUDIT — the audit-log target for the admin kill-switch.
 - Existing chokepoint: `src/lib/ai/chokepoint.ts` — where `track('agent_run_finished')` and `agent_runs.failure_kind` get written.
-- Considerations: [`cross-cutting-gaps.md`](./cross-cutting-gaps.md) — the SRE/Platform-lens gap this closes.
-- Façade spec: [`../features/observability-facade.md`](../features/observability-facade.md).
-- Vendor selection decision record: [`../decisions/analytics-vendor-selection.md`](../decisions/analytics-vendor-selection.md).
-- Alerting runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md).
-- Feature spec: [`../features/analytics-and-failure-detection.md`](../features/analytics-and-failure-detection.md).
-- Dashboard rows: [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) — search `AFD-` (group G12).
-- SSOT entry: [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) §3 (build queue) + §7 (doc map).
+- Considerations: [`cross-cutting-gaps.md`](../cross-cutting-gaps.md) — the SRE/Platform-lens gap this closes.
+- Façade spec: [`../features/observability-facade.md`](../../features/observability-facade.md).
+- Vendor selection decision record: [`../decisions/analytics-vendor-selection.md`](../../decisions/analytics-vendor-selection.md).
+- Alerting runbook: [`../operations/alerting-runbook.md`](../../operations/alerting-runbook.md).
+- Feature spec: [`../features/analytics-and-failure-detection.md`](../../features/analytics-and-failure-detection.md).
+- Dashboard rows: [`./SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) — search `AFD-` (group G12).
+- SSOT entry: [`./SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) §3 (build queue) + §7 (doc map).
 
 ---
 
@@ -417,7 +417,7 @@ The picker MUST NOT start AFD until:
 
 | Doc | What it carries about AFD |
 | --- | --- |
-| **This file** (`docs/planning/analytics-and-failure-detection-plan.md`) | The front door. Doctrine + task IDs + sequence + exit posture. |
+| **This file** (`docs/planning/initiatives/analytics-and-failure-detection-plan.md`) | The front door. Doctrine + task IDs + sequence + exit posture. |
 | `docs/features/analytics-and-failure-detection.md` | The feature-level spec (what it is, where to find it, how it works at runtime). |
 | `docs/features/observability-facade.md` | The façade contract (`track` / `captureError` / `heartbeat` / `forget`). |
 | `docs/decisions/analytics-vendor-selection.md` | The vendor selection ADR (PostHog vs Mixpanel vs Amplitude; Sentry vs Honeybadger; Better Stack vs PagerDuty). |

@@ -4,7 +4,7 @@
 
 **Date:** 2026-06-25
 **Status:** Accepted
-**Scope:** AFD initiative (group G12, task IDs `AFD-01`..`AFD-14`). See [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md).
+**Scope:** AFD initiative (group G12, task IDs `AFD-01`..`AFD-14`). See [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md).
 
 ## Context
 
@@ -75,7 +75,7 @@ Supaprod is a global consumer-facing PM tool; users will be from the EU. GDPR po
 
 ## Related
 
-- Plan: [`../planning/analytics-and-failure-detection-plan.md`](../planning/analytics-and-failure-detection-plan.md)
+- Plan: [`../planning/initiatives/analytics-and-failure-detection-plan.md`](../planning/initiatives/analytics-and-failure-detection-plan.md)
 - Feature spec: [`../features/analytics-and-failure-detection.md`](../features/analytics-and-failure-detection.md)
 - Façade contract: [`../features/observability-facade.md`](../features/observability-facade.md)
 - Procurement rows: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md)

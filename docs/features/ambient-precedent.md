@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-20 · Last updated: 2026-06-20_
 
-> **What this is.** The buildable design for the first increment of the Decision Brain (H1). Brainstormed and founder-approved 2026-06-20. Strategic home: [`../strategy/horizon-bets.md`](../strategy/horizon-bets.md) (H1) and [`decision-brain.md`](./decision-brain.md). The granular, task-by-task implementation plan is [`../planning/ambient-precedent-plan.md`](../planning/ambient-precedent-plan.md).
+> **What this is.** The buildable design for the first increment of the Decision Brain (H1). Brainstormed and founder-approved 2026-06-20. Strategic home: [`../strategy/horizon-bets.md`](../strategy/horizon-bets.md) (H1) and [`decision-brain.md`](./decision-brain.md). The granular, task-by-task implementation plan is [`../planning/initiatives/ambient-precedent-plan.md`](../planning/initiatives/ambient-precedent-plan.md).
 
 > **Status (as built, 2026-06-20 19:14 IST, overnight cycle 55): SHIPPED to `main` (◐), subagent-driven, all 6 tasks T1 to T6.** Built off `origin/main` in the overnight worktree, gate-verified, whole-branch-reviewed (opus: "ready to merge"), fast-forward pushed to `main` in two halves (P0 then P1, the P1 half rebased cleanly past a parallel O1/incidents push).
 >

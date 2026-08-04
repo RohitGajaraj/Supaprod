@@ -54,7 +54,7 @@ Two facts from the code frame everything.
 
 The step budget is not fixed: `adaptiveStepBudget()` (`src/lib/ai/budget.ts:54`) returns `roleBase(slug) + arcBonus(arc) + sizeBonus(...)`, capped at `STEP_CEILING = 40` (orchestrator base 14, builder base 24, specialists 6). This is a home-grown autonomous SWE agent, not a thin wrapper.
 
-The capability ceiling this hits in practice: on a cheap model (free Gemini Flash), the agent's `studio.stage` call can come through with a path and no file content, which fails on execution. That is a structural model-capability limit, not a bug, and it recurs on any weak model. It is the concrete trigger for not over-investing in our own generator. (Full diagnosis: [`../planning/builder-reliability-and-codegen-direction.md`](../planning/builder-reliability-and-codegen-direction.md).)
+The capability ceiling this hits in practice: on a cheap model (free Gemini Flash), the agent's `studio.stage` call can come through with a path and no file content, which fails on execution. That is a structural model-capability limit, not a bug, and it recurs on any weak model. It is the concrete trigger for not over-investing in our own generator. (Full diagnosis: [`../planning/initiatives/builder-reliability-and-codegen-direction.md`](../planning/initiatives/builder-reliability-and-codegen-direction.md).)
 
 **4.2 There is no seam to swap the generator, but the precursor exists.** `RepoProvider` (`src/lib/connectors/repo-provider.ts`) abstracts where code lives (`readTree`, `readFile`, `commitFiles`, `openChangeRequest`, `mergeChangeRequest`). Nothing abstracts who writes the code. The one exception is BLD-04: a dormant `DelegateProvider` seam (`src/lib/delegate/provider.ts`) plus a `delegate.openhands` tool (`registry.server.ts:2471`, gated `HIGH_RISK_FORCE_REVIEW` at `loop.server.ts:37`, dormant behind `DELEGATE_OUTBOUND_ENABLED`). That seam already names the right shape:
 
@@ -248,7 +248,7 @@ Sequencing for whoever picks this up. The code is founder-gated; the founder has
 - **BD-5. Per-driver metering + budget routing** in the pricing layer (native cheapest; route by task size; `BuildSpec.budget` enforced). Builds on BYO-P4.
 - **BD-6. The driver-choice surface** (the one calm front: name the outcome, pick or auto-select the engine, see the governed PR). Honors the Engine-Room doctrine.
 
-Layer-1 tactical hardening of the native loop (make `content` required-for-create at the schema layer so a weak model self-corrects in-loop) is an optional, separate, attended half-day change, only if a near-term native-Builder demo is needed before the adapters land. Detail: [`../planning/builder-reliability-and-codegen-direction.md`](../planning/builder-reliability-and-codegen-direction.md).
+Layer-1 tactical hardening of the native loop (make `content` required-for-create at the schema layer so a weak model self-corrects in-loop) is an optional, separate, attended half-day change, only if a near-term native-Builder demo is needed before the adapters land. Detail: [`../planning/initiatives/builder-reliability-and-codegen-direction.md`](../planning/initiatives/builder-reliability-and-codegen-direction.md).
 
 ---
 
@@ -263,9 +263,9 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 ## 16. Cross-link map
 
 - Implements: [`moat.md`](./moat.md) §6 ("we dispatch the builders") and §8 ("own engine or dispatched, not the differentiator"); [`v11-guiding-star.md`](./v11-guiding-star.md) (decision-and-outcome layer as the moat).
-- Extends: [`byo-build-and-supaprod-cloud.md`](./byo-build-and-supaprod-cloud.md) (which specced `RepoProvider`, the git side); this doc is the code-gen-side twin. Sequencing of that initiative: [`../planning/byo-build-implementation-plan.md`](../planning/byo-build-implementation-plan.md).
+- Extends: [`byo-build-and-supaprod-cloud.md`](./byo-build-and-supaprod-cloud.md) (which specced `RepoProvider`, the git side); this doc is the code-gen-side twin. Sequencing of that initiative: [`../planning/initiatives/byo-build-implementation-plan.md`](../planning/initiatives/byo-build-implementation-plan.md).
 - Build/buy/integrate posture: [`build-buy-integrate.md`](./build-buy-integrate.md), [`sourcing-map.md`](./sourcing-map.md) (codegen = INTEGRATE, not BUILD).
-- Live diagnosis + the reliability tactical layer: [`../planning/builder-reliability-and-codegen-direction.md`](../planning/builder-reliability-and-codegen-direction.md).
+- Live diagnosis + the reliability tactical layer: [`../planning/initiatives/builder-reliability-and-codegen-direction.md`](../planning/initiatives/builder-reliability-and-codegen-direction.md).
 - Existing code seam: `src/lib/delegate/provider.ts`, `src/lib/delegate/poll.server.ts`, `delegate.openhands` in `src/lib/ai/tools/registry.server.ts`; the git twin `src/lib/connectors/repo-provider.ts`.
 - Feature rows: group G13 (BD-1..BD-6) in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md); founder pickup in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 4.
 - Spend implications: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
