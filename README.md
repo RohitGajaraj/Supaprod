@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/growth/branding/logo/supaprod-mark-dark.svg">
+    <img src="./docs/growth/branding/logo/supaprod-mark-light.svg" alt="Supaprod" width="88" height="88">
+  </picture>
+</p>
+
 # Supaprod
 
 > _Created: 2026-06-03 · Last updated: 2026-08-03_
@@ -166,50 +173,31 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 
 ### How it makes money
 
-**Outcome Credits, and no seats.** A credit prices a **finished deliverable**, never a token and never a person. Two mechanisms, and they deliberately do different jobs across the three layers.
+**A tier sells seats and capability. Credits sell capacity.** Keeping those two axes separate is the whole model, and conflating them is the mistake it was built out of (founder ruling 2026-08-03, and the reasoning is in `src/lib/billing-tier.ts` if you want the autopsy).
 
-**Mechanism one: credits meter delivery, on every layer that has marginal cost.**
+| | Free | Pro | Max | Business | Enterprise |
+| --- | --- | --- | --- | --- | --- |
+| **Price** | $0 | **$20**/mo | **$99**/mo | **$50 per seat**/mo | committed contract |
+| **Credits / month** | **750** | **3,750** | **15,000** | **15,000 pooled** | committed pool |
+| **Seats** | 1 | 1 | 1 | **minimum 2** | **unlimited** |
+| **Memory** | decays | persistent | persistent | shared across the team | plus governance and audit |
+| Connectors | manual | read | read | write | approved lists |
 
-| Layer | What draws a credit | What is free, on purpose |
-| --- | --- | --- |
-| **01 The director** | A ranked bet with the Critic's full teardown. A research brief you keep. | Browsing signals, clustering, the ranked queue itself, foresight. The high-frequency work feels unlimited. |
-| **02 The operating system** | A spec, a design, a build run, a shipped change. The substantial deliverables. | **A run you stop early costs nothing.** Viewing, editing, retrying a failure. |
-| **03 The company brain** | **Nothing.** Recall is never metered per query. | Every read of the record, always. |
+Annual billing is roughly **17% off** (monthly x 10/12). Numbers above are the shipped reference values; the founder sets the final Stripe catalog.
 
-Four rules make it feel unlike a meter: a credit is drawn **only on delivery** of something you can point at; **the trust layer is free**, so traces, evals and verification never cost you; the user is **never shown a dollar figure per action** or asked to approve a cost mid-flow; and the default is **stop-at-allowance**, so there is no surprise bill.
+**Every action spends credits.** Not only deliverables, not only "decision work": running an agent, generating a spec, a build run, a research brief. That is the honest description, and it is why the allowance per tier is generous rather than tight. What stays free is the **trust layer**, so traces, evals and verification never cost you, and a run you **stop early** does not complete a charge.
 
-**Mechanism two: tiers gate the layer that compounds.** Layer 03 has near-zero marginal cost and unbounded value, so metering it would be both wrong and hostile. It is the reason to move up instead.
+**Top-ups, because a credit model is only as good as its refill.** Add credits any time, **up to twice your monthly allowance**, with **no plan change** (`topUpCycleCap = grant x 2`). A Pro user can therefore reach **three times** their allowance without being pushed onto a team plan. Default is **stop-at-allowance**: you run out rather than get billed, with a quiet nudge near the limit.
 
-| | Free | Pro | Business | Enterprise |
-| --- | --- | --- | --- | --- |
-| Price | $0 | $20/mo | $50/mo | committed contract |
-| Base credits | 50, 30-day decay | 100 | 100, pooled | committed annual pool |
-| **Top-up** | upgrade | **credit dropdown, 100 to 10,000** | same, pooled + per-user caps | committed pool, negotiated |
-| **Memory** | **decays** | **persistent** | shared across the team | plus governance and audit |
-| Connectors | manual | read | write | approved lists |
-| Seats | — | 1 | — | **unlimited** |
+> **Why Business is per seat while Free, Pro and Max are not.** Free, Pro and Max are single-seat, and more power for one person is more credits rather than a different plan. Business starts at two seats because **two people is where a team starts**, and what the higher price buys is the collaboration and governance layer, not capacity. Pushing a solo user onto a team plan to get volume would charge them for collaboration they did not ask for.
 
-**How a top-up works, since a credit model is only as good as its refill.** You size the allowance from a **dropdown on the subscription**, from 100 up to 10,000 credits, on a **linear ladder with no volume discount** so the arithmetic stays honest and nobody negotiates against themselves. It is not a surprise overage charge and not a per-action purchase: **the default is stop-at-allowance**, so you run out rather than get billed. Near the limit there is a quiet nudge, and a flex buffer absorbs a single run that would otherwise clip the ceiling mid-flight. Base prices are placeholders until the founder sets the final Stripe numbers.
+**What this replaced, and why it is worth knowing.** Until 2026-08-03 the price scaled linearly off a 100-to-10,000 credit band picker. That produced two defects visible on the live public page: **Pro's default was 100 credits for $20 against a Free tier granting 750**, so the entry paid plan was 7.5x worse than free and matching the free grant cost $160 a month; and the top band rendered **"$2000/mo"** for volume whose underlying cost is about $2. The band is retired, price is flat per tier, and capacity moved to top-ups where it belongs.
 
-> **Honest caveat on the tier names.** Free / Pro / Business / Enterprise is the founder's locked decision (2026-07-13), which also retired the earlier thematic names. **The code and database still ship five tiers on the old slugs** (`free`, `pro`, `max`, `team`, `enterprise`), and `business` appears nowhere in the billing code. So the table above is the decision, not yet the implementation. Tracked as an open finding in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
+Full model, unit economics, and the BYOK stance (an advanced option from Business up, metered and governed with a thin platform fee): [`docs/strategy/pricing/pricing-architecture.md`](./docs/strategy/pricing/pricing-architecture.md). The live page is `src/routes/pricing.tsx`, which is the authority when a document disagrees with it.
 
-**Why this shape, in one line each.** Charging for deliverables rather than tokens means the customer compares us to the work replaced, not to an API bill. Not charging for recall means the brain gets used, which is the only way it compounds. **Unlimited seats at Enterprise** means we never tax a company for putting more people on the shared record, which is the exact behaviour our moat depends on. And per-seat pricing anywhere would tax usage, which is the behaviour that deepens the moat.
-
-Full model, unit economics, and the BYOK stance (an advanced option from Business up, metered and governed with a thin platform fee): [`docs/strategy/pricing/pricing-architecture.md`](./docs/strategy/pricing/pricing-architecture.md).
+> **Honest caveat on tier names.** The founder locked **Free / Pro / Business / Enterprise** on 2026-07-13, retiring the earlier thematic names. The code and database still ship five slugs (`free`, `pro`, `max`, `team`, `enterprise`), and `'business'` appears nowhere in the billing code, so **Business above is the `team` slug**. Reconciling names and slugs is open work, tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
 
 **And your data is yours.** Full export in open formats, any time. A record that compounds is only a retention argument if leaving is genuinely possible; otherwise it is a trap, and buyers can tell the difference.
-
-### Governance: policy, not permission (founder ruling 2026-07-29)
-
-> Policy is set in advance and does not block. Permission is asked in the moment and does. **Supaprod is built on policy.**
-
-The test every product decision passes: *"Even human in the loop, every approval, if it passes to a human, then what is the purpose of agents?"*
-
-**The human's job is not to approve work. It is to set the boundaries, and to judge the small number of things that genuinely cross them.** The gate is the exception, not the loop. A long approvals queue is a policy failure to surface, not a workload to render.
-
-This does not weaken the moat, it is why the moat matters: **autonomy is paid for with evidence.** Fewer interrupts is only safe because every action is recorded against a tamper-evident record. Four floors no boundary may lower: anything irreversible from inside the product, genuine judgment with no oracle, defaults the user never set, and hard risk floors above any earned autonomy.
-
-Canonical: [`docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md`](./docs/planning/rebuild-2026-07/GOVERNANCE-PRINCIPLE.md).
 
 ---
 

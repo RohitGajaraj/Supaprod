@@ -26,6 +26,27 @@
 
 ---
 
+> ## ⛔ THE BAND PICKER IS RETIRED. Founder ruling 2026-08-03, verified in code 2026-08-04.
+>
+> **This document's credit model is superseded on its central mechanism.** It specifies a 100-to-10,000 credit **dropdown** whose selection scales the price linearly. That shipped, and then it was removed, because it produced two defects visible on the live public page:
+>
+> - **Pro's default was 100 credits for $20, against a Free tier granting 750.** The entry paid plan was 7.5x worse than free, and matching the free grant cost $160 a month.
+> - **The top band rendered "$2000/mo"** for volume whose underlying cost is about $2.
+>
+> **The deeper error was conflating two axes.** A tier sells **seats and capability**; credits sell **capacity**. Making a solo user climb to a team plan to get volume charges them for collaboration they never asked for, which the pricing copy itself contradicts.
+>
+> **The shipped model, which is the authority:**
+>
+> | | Free | Pro | Max | Business (`team`) | Enterprise |
+> | --- | --- | --- | --- | --- | --- |
+> | Price | $0 | $20/mo | $99/mo | **$50 per seat**/mo | committed |
+> | Credits/mo | **750** | **3,750** | **15,000** | **15,000 pooled** | committed |
+> | Seats | 1 | 1 | 1 | **min 2** | unlimited |
+>
+> Price is **flat per tier**. Capacity is sold by **top-ups, capped at 2x the monthly grant** (`topUpCycleCap = grant x 2`), so a Pro user reaches 3x their allowance with no plan change. Annual is monthly x 10/12.
+>
+> **When this document and `src/routes/pricing.tsx` disagree, the code wins.** Everything here about outcome credits pricing a finished result, the free trust layer, stop-at-allowance, and never showing a dollar per action still stands.
+
 ## 2. The credit model — "Outcome Credits" (CONFIRM + sharpen the canon)
 
 The canon already made the right core call: **a credit prices a finished result / closed loop, never a token or a seat**, shown as per-artifact ranges against the work it replaces ("a spec→PR mission ≈ 150–400 credits — an afternoon of coordination"). This research **confirms** it (Replit's effort-checkpoints, Devin's ACUs, Intercom Fin's per-resolution, Sierra's "tokens aren't correlated with value" — all converge). We keep it, and sharpen it into a named, coherent model with four rules:
