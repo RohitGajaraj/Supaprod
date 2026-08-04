@@ -63,7 +63,7 @@ Integration/protocol change → update this file + [`docs/planning/archive/build
 
 ## Outbound observability (AFD, planned · founder-gated)
 
-Three outbound integrations land with the [AFD initiative](../docs/planning/analytics-and-failure-detection-plan.md), all behind the `src/lib/observability/` façade:
+Three outbound integrations land with the [AFD initiative](../docs/planning/initiatives/analytics-and-failure-detection-plan.md), all behind the `src/lib/observability/` façade:
 
 - **PostHog EU** — `track`/`identify`/`pageView` (product usage + replay + flags). AFD-04.
 - **Sentry EU** — `captureError`/`captureMessage`/`setUser`/`setTag` + Worker performance (errors + perf). AFD-05.

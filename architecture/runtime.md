@@ -60,7 +60,7 @@ Change anything here and update this file + [`docs/planning/archive/build-log.md
 
 ## Observability hooks (AFD, planned · founder-gated)
 
-When the [AFD initiative](../docs/planning/analytics-and-failure-detection-plan.md) ships, the chokepoint gains two side-effects per call (both behind the `src/lib/observability/` façade, both no-op without env / when `observabilityEnabled()=false`):
+When the [AFD initiative](../docs/planning/initiatives/analytics-and-failure-detection-plan.md) ships, the chokepoint gains two side-effects per call (both behind the `src/lib/observability/` façade, both no-op without env / when `observabilityEnabled()=false`):
 
 - `track('agent_run_finished', { surface, model, latency_ms, cost_usd, status })` → PostHog (AFD-04).
 - `agent_runs.failure_kind` is written from a typed taxonomy on every error path (AFD-06).

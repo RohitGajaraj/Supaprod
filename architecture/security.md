@@ -13,7 +13,7 @@
 - **Sessions** — bearer token carried automatically on every server-fn RPC via the global `attachSupabaseAuth` middleware. SSE streams resume with `Last-Event-ID`.
 - **Realtime broadcasts** — user data tables are not published unless channel access is scoped to workspace membership. `messages` stays out of the realtime publication; chat history is read through authenticated queries / streams instead of raw row-change broadcasts.
 - **Logout** — sign-out everywhere; token revocation.
-- **Future:** SSO/SAML + SCIM for enterprise; roles/teams membership. Designed for now (the tenancy keys exist) so it is an addition, not a rewrite. **The account layer, RBAC (owner/admin/member/viewer) enforcement, invites, ownership transfer, and workspace-scoped/account-pooled memory are specced in the WM initiative ([`../docs/planning/workspace-tenancy-and-monetization-plan.md`](../docs/planning/workspace-tenancy-and-monetization-plan.md), §3 + WM-F1/F3/F4/F5).**
+- **Future:** SSO/SAML + SCIM for enterprise; roles/teams membership. Designed for now (the tenancy keys exist) so it is an addition, not a rewrite. **The account layer, RBAC (owner/admin/member/viewer) enforcement, invites, ownership transfer, and workspace-scoped/account-pooled memory are specced in the WM initiative ([`../docs/planning/initiatives/workspace-tenancy-and-monetization-plan.md`](../docs/planning/initiatives/workspace-tenancy-and-monetization-plan.md), §3 + WM-F1/F3/F4/F5).**
 
 ## Tenancy (the isolation spine)
 

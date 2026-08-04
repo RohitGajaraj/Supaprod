@@ -27,7 +27,7 @@ These live at repo root rather than under `docs/` because they are read alongsid
 | [`api.md`](./api.md) | The API and interface reference: server functions, the public hook endpoints, the A2A card. |
 | [`integrations.md`](./integrations.md) | The connector platform: the typed provider registry, adapters, and the `resolveProviderAuth` credential chain (workspace binding, then user connection, then env fallback). BYO keys are enterprise-only, encrypted AES-256-GCM in a service-role-only vault. |
 | [`deployment.md`](./deployment.md) | Vite to a Cloudflare Worker, and how a deploy actually reaches production. **Note the operational fact that catches people: pushing does not deploy.** The founder clicks publish in Lovable. |
-| [`observability.md`](./observability.md) | What we can see and what we cannot. Read with [`../docs/planning/analytics-and-failure-detection-plan.md`](../docs/planning/analytics-and-failure-detection-plan.md) before adding any vendor SDK; the façade rule keeps leaving Lovable a one-day redeploy. |
+| [`observability.md`](./observability.md) | What we can see and what we cannot. Read with [`../docs/planning/initiatives/analytics-and-failure-detection-plan.md`](../docs/planning/initiatives/analytics-and-failure-detection-plan.md) before adding any vendor SDK; the façade rule keeps leaving Lovable a one-day redeploy. |
 | [`threat-model.md`](./threat-model.md) | The STRIDE threat model. Live findings and remediation state are in [`../docs/operations/security/`](../docs/operations/security/README.md). |
 | [`diagrams.md`](./diagrams.md) | The visual companion to the contracts above. |
 

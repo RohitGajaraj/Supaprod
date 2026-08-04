@@ -6,7 +6,7 @@ Approved direction noted: **commit V3 (the comprehensive doc-only plan) with V1'
 
 ## Files I will create (5)
 
-1. **`docs/planning/analytics-and-failure-detection-plan.md`** — the build bible (the V3 + V1-§12 doc itself). Header date · `BBI:` stamp · initiative ID **AFD** · board group **G12**.
+1. **`docs/planning/initiatives/analytics-and-failure-detection-plan.md`** — the build bible (the V3 + V1-§12 doc itself). Header date · `BBI:` stamp · initiative ID **AFD** · board group **G12**.
    Sections: 0 Why · 1 Scope · 2 Non-goals · 3 BBI table · 4 Vendor analysis (PostHog vs Mixpanel vs Amplitude; Sentry vs alternatives; Better Stack vs PagerDuty+StatusPage+Logtail; EU rationale) · 5 Architecture (ASCII + `src/lib/observability/` façade rule) · 6 Per-ID specs **AFD-01..AFD-14** (context · files · migration · steps · acceptance · verify) · 7 Cost & procurement · 8 Risks & founder gates · 9 Acceptance · 10 Out of scope · 11 Links · **§12 Build sequence when picked up (V1's 4 phases verbatim: Phase 1 failure detection → Phase 2 product analytics → Phase 3 in-house insights → Phase 4 DB failure surfacing)**.
 
 2. **`docs/features/analytics-and-failure-detection.md`** — the feature doc (mandatory per AGENTS.md §5). One-line what-it-is · category/owner · use cases · how-to-run/verify checklist · cross-links to the bible.
