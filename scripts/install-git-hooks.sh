@@ -53,6 +53,11 @@ fi
 #
 # It prints and never blocks. Structural rot here is cheap to fix later and
 # expensive to be blocked by mid-commit, and a hook that blocks gets disabled.
+#
+# Takes about 20 seconds, and only on a commit that touches markdown; a code-only
+# commit pays nothing. Stated here so nobody removes it later wondering why a doc
+# commit pauses. Most of that is the orphan check, which is one grep over the whole
+# doc tree; the earlier per-file version took minutes and would have been deleted.
 if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.md$'; then
   if [ -f scripts/docs-doctor.sh ]; then
     bash scripts/docs-doctor.sh 2>/dev/null | grep -E '^  FAIL|broken link\(s\) in LIVE' || true

@@ -50,6 +50,19 @@ bun run docs:check     # doc anti-rot check, before committing doc changes
 - **Database access is through the Lovable MCP.** Lovable is the live system of record for schema, data, logs and deploys. Do not guess, and do not ask the founder to authorize Supabase directly; he does not hold that credential.
 - **Pushing does not deploy.** The founder must click publish in Lovable for app code to go live.
 
+## Creating a file? Do not guess.
+
+**[`docs/README.md`](./docs/README.md) has a routing table with a row for every case** and names the index to link it from. Find your row first. Adding a row beats inventing a folder.
+
+The four that get broken most:
+
+- **Screenshots go in `docs/screenshots/`, which is gitignored.** Never commit one; never leave one at repo root.
+- **Root holds four files only:** `README.md`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`. `docs/` top level holds its index only.
+- **One board.** Status lives in `docs/planning/SOURCE-OF-TRUTH.md` and nowhere else.
+- **Link a new doc from its folder index in the same commit**, or nobody finds it.
+
+`docs-doctor` runs from the pre-commit hook and fails on a misplaced or unlinked file, so a mistake here is caught rather than shipped.
+
 ## If the task is outward-facing
 
 An accelerator application, an investor answer, a demo script, launch copy: start at [`docs/pitch/`](./docs/pitch/README.md) and follow its seven-step procedure. For a live conversation, [`docs/pitch/founder-answer-playbook.md`](./docs/pitch/founder-answer-playbook.md). **Both are updated in the same session as the work**, and nothing outward sends without the founder's approval.

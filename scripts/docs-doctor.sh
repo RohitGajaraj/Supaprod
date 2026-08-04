@@ -192,6 +192,48 @@ if [ -n "$STALE" ]; then
   FAIL=1
 else echo "  ok"; fi
 
+# WHY THIS CHECK EXISTS (added 2026-08-04). The founder asked the right question:
+# whether the placement rules would actually be followed, or just dumped somewhere an
+# agent never reads. Documentation is the weak layer. A rule in a doc is followed only
+# if somebody opens the doc; a rule in this script is followed always.
+#
+# This is the enforcement half of the routing table in docs/README.md, and it catches
+# the case that table cannot: a file put in the RIGHT folder and then linked from
+# nowhere, which every other check here is blind to. Nine such orphans were found by
+# hand on 2026-08-03 and thirteen more on 2026-08-04.
+#
+# IMPLEMENTED AS ONE PASS, deliberately. The first version grepped the whole tree once
+# per file, which is O(n-squared) over ~250 docs and did not finish inside two minutes.
+# A check that slow gets removed from the hook, which would defeat the point. This
+# extracts every referenced basename in a single grep, then tests membership.
+#
+# Scope: live docs we own. archive/ is exempt, since history is reached through its
+# archive README rather than per file, and a README is never counted as an orphan.
+echo "-- [10] live docs reachable from nowhere (orphans) --"
+# ONE grep over the tree emitting "path:referenced.md", then awk decides. A file is
+# reachable when some OTHER file names it. Self-references do not count, which is the
+# subtle part: a doc that only mentions its own filename is still an orphan.
+ORPH="$(grep -roE '[A-Za-z0-9._-]+\.md' docs architecture ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md --include='*.md' 2>/dev/null \
+  | awk -F: '
+      { path = $1; ref = $2
+        n = split(path, parts, "/"); self = parts[n]
+        if (ref != self) seen[ref] = 1
+      }
+      END { for (r in seen) print r }' \
+  | sort -u > /tmp/dd_referenced.txt; \
+  find docs architecture -name "*.md" -not -path "*/archive/*" 2>/dev/null \
+  | while IFS= read -r f; do
+      b="$(basename "$f")"
+      [ "$b" = "README.md" ] && continue
+      grep -qxF "$b" /tmp/dd_referenced.txt || echo "  FAIL orphan (linked from nowhere): $f"
+    done)"
+rm -f /tmp/dd_referenced.txt
+if [ -n "$ORPH" ]; then
+  printf '%s\n' "$ORPH"
+  echo "  (link it from its folder's README in the same commit, or move it to an archive/)"
+  FAIL=1
+else echo "  ok"; fi
+
 echo ""
 if [ "$FAIL" -ne 0 ]; then echo "docs-doctor: ISSUES FOUND (hard rot). Fix the FAIL items in the same commit."; exit 1; fi
 [ "$WARN" -ne 0 ] && echo "docs-doctor: clean of hard rot; review the WARN items above." || echo "docs-doctor: clean."
