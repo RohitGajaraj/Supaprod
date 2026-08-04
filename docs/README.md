@@ -39,8 +39,8 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 | Folder | Question it answers |
 | --- | --- |
 | **[`operations/`](./operations/README.md)** | Commits, hooks, skills, memory, demo logins, connectors, runbooks, go-live, procurement. |
-| **[`testing/`](./testing/README.md)** | How tests are written here. One live document; coverage snapshots are archived. |
-| **[`security/`](./security/README.md)** | Audit findings and remediation state. |
+| **[`testing/`](./operations/testing/README.md)** | How tests are written here. One live document; coverage snapshots are archived. |
+| **[`security/`](./operations/security/README.md)** | Audit findings and remediation state. |
 
 ### What we say outward
 

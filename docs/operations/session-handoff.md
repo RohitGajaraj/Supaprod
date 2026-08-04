@@ -64,7 +64,7 @@ Each root file now answers exactly one question and says so in its first line: `
 
 - The `rm -rf` above.
 - `docs/planning/SOURCE-OF-TRUTH.md` is still 923 KB and 467 rows. That is now real content, not padding, but it is a candidate for splitting live rows from done rows if it keeps growing.
-- Known coverage gap recorded in [`../testing/README.md`](../testing/README.md): nothing tests `discover/ranking` and `discover/format` together, so a format-helper change can reorder the Discover queue with all 212 unit cases green. A stale draft test for exactly this is preserved in `../testing/archive/`.
+- Known coverage gap recorded in [`./testing/README.md`](./testing/README.md): nothing tests `discover/ranking` and `discover/format` together, so a format-helper change can reorder the Discover queue with all 212 unit cases green. A stale draft test for exactly this is preserved in `../testing/archive/`.
 
 ---
 
