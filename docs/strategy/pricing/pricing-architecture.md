@@ -43,6 +43,8 @@
 > | Credits/mo | **750** | **3,750** | **15,000 pooled** | committed |
 > | Seats | 1 | 1 | **min 2** | unlimited |
 >
+> **CONNECTORS, decided 2026-08-04 and not yet in code.** Free offers **up to 3 connectors, read-only**; Pro **unlimited, read-only**; Business **unlimited plus write-back**, so data flows both ways; Enterprise adds custom connector development. The axis is DIRECTION first (in only, versus in and out), then breadth. Free is deliberately connected rather than manual-only, because a prospect cannot judge the loop on data that is not theirs. Code today has `connectorTier: "none"` for free and no count limit at all.
+>
 > **FOUR TIERS ONLY** (founder ruling restated 2026-08-04). `PUBLIC_PLAN_TIERS` already agrees: `["free","pro","team","enterprise"]`. The `max` slug lingers internally and is **not offered**; it must not appear on any surface or in any document.
 >
 > Price is **flat per tier**. Capacity is sold by **top-ups, capped at 2x the monthly grant** (`topUpCycleCap = grant x 2`), so a Pro user reaches 3x their allowance with no plan change. Annual is monthly x 10/12.

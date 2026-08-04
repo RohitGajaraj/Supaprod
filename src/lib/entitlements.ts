@@ -189,6 +189,14 @@ export type Entitlements = {
   // --- Connector access (the integration tier — pricing-strategy.md §3.3, 2026-06-27) ---
   /**
    * Which connector operations this plan permits.
+   *
+   * PENDING CHANGE (founder ruling 2026-08-04, not yet implemented): Free moves from
+   * "none" to "read", capped at THREE connectors, because a prospect cannot judge the
+   * loop on somebody else's data. That cap needs a new `connectorLimit` field (3 on
+   * free, null above it) following the workspaceLimit / productLimit pattern; no
+   * connector count limit exists anywhere today. Pro keeps "read" with no cap.
+   * Tracked in docs/planning/SOURCE-OF-TRUTH.md open findings.
+   *
    *   none       - Free: manual input only, no live connectors
    *   read       - Pro: pull signals in (GitHub issues, Linear cycles, Notion pages, etc.)
    *   read_write - Business: read + write-back (create issues, update tickets, write to Notion)

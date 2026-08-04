@@ -177,7 +177,7 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 | **Credits / month** | **750** | **3,750** | **15,000 pooled** | committed pool |
 | **Seats** | 1 | 1 | **minimum 2** | **unlimited** |
 | **Memory** | decays | persistent | shared across the team | plus governance and audit |
-| **Your tools** | no live connectors | **connect anything, read-only** | **connect anything, and write back** | that, plus **custom connectors built for you** |
+| **Your tools** | **up to 3 connectors, read-only** | **unlimited connectors, read-only** | **unlimited, and writes back** | that, plus **custom connectors built for you** |
 
 **What "your tools" means, concretely.** Supaprod is only useful if it reads what you already have, so connecting a source is one OAuth click and never a key you paste into a config file. Nineteen providers ship today across the four things layer 01 needs:
 
@@ -191,13 +191,16 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 
 **Read-only versus write-back is a permission boundary, not a paywall trick.** Every paid tier can connect **every** connector. What changes is what Supaprod is allowed to *do* there:
 
-- **Read-only (Pro).** It ingests and reasons. It never posts, never comments, never moves a ticket. Everything it produces stays inside Supaprod for you to act on.
-- **Write-back (Business).** An agent may act in the tool: open the Linear issue, push the branch, reply on the Intercom thread. That is a genuinely different risk posture, which is why it sits with the tier that also has RBAC, approval lanes and an audit trail.
+- **Free: three connectors, read-only.** Enough to point Supaprod at your own data on day one, because the loop cannot be judged on somebody else's. Three is a deliberate number: it covers a signal source, a tracker and a doc store, which is the minimum for the loop to visibly close.
+- **Pro: unlimited connectors, still read-only.** Connect everything you have. It ingests and reasons across all of it, and it never posts, never comments, never moves a ticket. Everything it produces stays inside Supaprod for you to act on.
+- **Business: data flows both ways.** An agent may act in the tool: open the Linear issue, push the branch, reply on the Intercom thread, write the Notion page. That is a genuinely different risk posture from reading, which is why it sits with the tier that also has RBAC, approval lanes and an audit trail.
 - **Enterprise.** Everything Business has, plus **connectors built for the systems you run that nobody publishes an API story for**, and admin control over which are permitted at all.
 
-**Free is deliberately not connected.** You paste or upload instead, so the loop is provable in ten minutes without an OAuth conversation with someone's IT team.
+**So the axis is direction, then breadth.** Free and Pro are **in only**; Business is **in and out**. Free caps how many sources, Pro removes the cap, Business changes what Supaprod is permitted to do with them.
 
 **This is enforced in code, not just priced.** `connectorTier` is a real entitlement (`"none" | "read" | "read_write" | "custom"` in `src/lib/entitlements.ts`) and the guard **throws** when a plan attempts an operation it does not permit. An agent on a read-only plan cannot write to your Linear board even if something asks it to.
+
+> **Two deltas between this table and the code** (founder ruling 2026-08-04, not yet implemented). Free is currently `connectorTier: "none"`, so it connects nothing; it needs to become `"read"`. And **no connector count limit exists at all**, so the three-connector cap on Free has nothing to enforce it; it needs a `connectorLimit` field following the existing `workspaceLimit` and `productLimit` pattern, set to 3 on Free and null elsewhere. Tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
 
 Live status per provider, including the two registered but not yet confirmed against real data, is [`docs/operations/connectors/README.md`](./docs/operations/connectors/README.md).
 
