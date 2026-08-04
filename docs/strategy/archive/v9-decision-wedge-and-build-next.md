@@ -15,7 +15,7 @@
 | Positioning, market, pricing, GTM, investor narrative | [`v7`](./v7-agentic-product-os.md) | v9 strengthens v7's "memory is the moat" from first principles; does not alter the position. |
 | Surface map, the Engine Room door, the hybrid Build spine, 4-phase sequencing | [`v8`](./v8-calm-front-deep-engine.md) | v9 confirms v8 Fork 1 (hybrid Build) and explains the end-to-end workflow it implies; does not re-map surfaces. |
 | Engine / 19-agent mesh / handoff contract / HITL gates | [`v4`](./v4-feature-map.md) | unchanged. |
-| Live build status (the audit baseline) | [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) | v9's audit reads from it (reconciled with file evidence 2026-06-16); v9 adds the strategic read, not new status. |
+| Live build status (the audit baseline) | [`../planning/SOURCE-OF-TRUTH.md`](../../planning/SOURCE-OF-TRUTH.md) | v9's audit reads from it (reconciled with file evidence 2026-06-16); v9 adds the strategic read, not new status. |
 
 **v9 is additive. It is the conceptual foundation + the launch wedge + the competitor posture + the build-next call.** Nothing here contradicts v7 or v8; where it sharpens them, it says so.
 
@@ -133,7 +133,7 @@ So: zero-friction at the seams that exist; the work left is adding the two capab
 
 ## 5. The honest audit: what is good, what is not
 
-Build-state sourced from the reconciled [feature dashboard](../../planning/feature-dashboard.md) (file-evidence reconciled 2026-06-16). The strategic read is v9's.
+Build-state sourced from the reconciled [feature dashboard](../../planning/SOURCE-OF-TRUTH.md) (file-evidence reconciled 2026-06-16). The strategic read is v9's.
 
 **What is genuinely good (protect and lean on these):**
 
@@ -196,6 +196,6 @@ Sequenced by leverage, mapped to existing dashboard IDs and v8 phases. This is a
 - **Structure + surfaces + build-order:** [`v8`](./v8-calm-front-deep-engine.md) wins.
 - **Launch wedge + competitor posture + build-next priority:** v9 (this doc).
 - **Engine / mesh / contract:** [`v4`](./v4-feature-map.md).
-- **Live status (audit baseline):** [`../planning/feature-dashboard.md`](../../planning/feature-dashboard.md).
+- **Live status (audit baseline):** [`../planning/SOURCE-OF-TRUTH.md`](../../planning/SOURCE-OF-TRUTH.md).
 
 Cascade applied this session: strategy [`README.md`](../../../README.md) index, the session-decisions log, and the [`CLAUDE.md`](../../../CLAUDE.md) read-order pointer. The README/v7 naming pass and any backlog re-priority from §6 are noted as follow-ups, not silently applied.

@@ -18,6 +18,6 @@
 
 ## Close-out (BUILD-ONLY MODE)
 
-- Flip the feature-dashboard row(s) for the landed lanes + one-line note each (`docs/planning/feature-dashboard.md`).
+- Flip the feature-dashboard row(s) for the landed lanes + one-line note each (`docs/planning/SOURCE-OF-TRUTH.md`).
 - Update `work-orders/README.md` packet-index statuses.
 - Report: merged lanes, gate results, anything deferred with its reason.

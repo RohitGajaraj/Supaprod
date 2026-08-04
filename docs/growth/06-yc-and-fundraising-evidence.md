@@ -32,7 +32,7 @@ Pre-seed, AI B2B, solo founder, 2026 market. Ranked by how much each moves a par
 | 3 | **Founder velocity + learning rate** — shipped-per-week and decisions-changed-by-evidence | The public commit history (hundreds of receipted ships), the register + independent code audit, and after launch: "we learned X in week 1 and changed Y" | PROVEN (velocity) / ROADMAP (learning-from-users) |
 | 4 | **The un-backfillable data story** — an asset that compounds and can't be replicated by a model release | The outcome ledger: 72 decisions with outcome records re-ranking live bets (founder data today, customer data after launch) | PROVEN on founder data; the customer version is the fundraise story |
 | 5 | **Named pull quotes** — real people, real companies, permissioned | The quote vault (§2) | ROADMAP — empty today, by design of honesty |
-| 6 | **Market timing evidence** — cited, dated, not vibes | Already banked: YC's own RFS language, the 2026 competitive sweep's empty cell, the absorb pattern (Cycle→Atlassian, Kraftful→Amplitude) | PROVEN (documented in `docs/references/`) |
+| 6 | **Market timing evidence** — cited, dated, not vibes | Already banked: YC's own RFS language, the 2026 competitive sweep's empty cell, the absorb pattern (Cycle→Atlassian, Kraftful→Amplitude) | PROVEN (documented in `docs/research/`) |
 
 The order matters: a partner discounts 3–6 without 1–2. Everything below in this file exists to generate ranks 1, 2, and 5 during the launch — the only three that cannot be manufactured in a doc.
 

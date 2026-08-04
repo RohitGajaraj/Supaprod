@@ -10,7 +10,7 @@ A single calm card at the top of Settings > Data that answers the data-custody q
 
 ## Why it exists
 
-Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §5.1 (the founder's storage question): the answer to "where does my data live and who owns it" already existed in the codebase (a real Postgres substrate, the memory-on-delete model, the TRUST-VERIFY seal) but was not legible anywhere in-product. This disarms the data-custody question in a sales or procurement conversation instead of leaving it to a support ticket. Board entry: `docs/planning/feature-dashboard.md` row `BRN-02`.
+Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §5.1 (the founder's storage question): the answer to "where does my data live and who owns it" already existed in the codebase (a real Postgres substrate, the memory-on-delete model, the TRUST-VERIFY seal) but was not legible anywhere in-product. This disarms the data-custody question in a sales or procurement conversation instead of leaving it to a support ticket. Board entry: `docs/planning/SOURCE-OF-TRUTH.md` row `BRN-02`.
 
 ## Where to find it
 
@@ -48,7 +48,7 @@ Settings > Data pane (`/settings?section=data`), the first card above "Export yo
 
 ## Related
 
-- `docs/planning/feature-dashboard.md` row `BRN-02`.
+- `docs/planning/SOURCE-OF-TRUTH.md` row `BRN-02`.
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §5.1.
 - [`../decisions/memory-on-delete.md`](../decisions/memory-on-delete.md) (the archive/delete/forget model this card explains).
 - `docs/features/README.md` index (`U6` / `SUBPROC-DISCLOSURE` siblings on the same Settings > Data pane; `src/lib/trust-verify.ts` and `/trust-ledger` are the TRUST-VERIFY seal this card summarizes, which has no feature-doc entry of its own yet).

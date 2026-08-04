@@ -14,7 +14,7 @@
 | Depends on | OBS-03 (Obsidian primitives) · assumes OBS-01 (tokens/fonts) + OBS-02 (shell) landed |
 | Blocks | nothing downstream (OBS-10 folds routes into this destination) |
 | One-line what | Plan as the definition desk: a 1160px surface with an outcome-declared roadmap (Now / Next / Later, each bet carrying its mono measure line, Now ember-tinted, Later deep and dimmed) plus a cited spec list (state chips, blossom cites count, serif body in a read slide-over), and a commit-to-Now ceremony that states the promise + measure before a bet lands. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) line 238 (group G14) |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) line 238 (group G14) |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-07 entry) |
 | Hub | [`./README.md`](./README.md) |
 

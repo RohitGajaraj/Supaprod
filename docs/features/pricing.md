@@ -102,5 +102,5 @@ Point the Stripe webhook at `https://<app>/api/public/payments/webhook` for the 
 
 - [`./billing.md`](./billing.md) and [`./credits.md`](./credits.md): the live Stripe rail (`payments.functions.ts` + `api/public/payments/webhook.ts`) and the credit ledger.
 - [`strategy/archive/v7-agentic-product-os.md`](../strategy/archive/v7-agentic-product-os.md) section 9 (pricing) + section 8 (the gauntlet).
-- **Master register:** [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md), row `M-C-PRICE` plus the `M-C-*` / `ADM-*` rows (`F-ADMIN-CONSOLE`, `ADM-DB`, `M-C-TOPUP-BUG`, `M-C-DEDUPE-WEBHOOK`, `M-C-PRICE-SYNC`, `M-C-BILLING-TESTS`, `M-C-DB-HYGIENE`).
+- **Master register:** [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md), row `M-C-PRICE` plus the `M-C-*` / `ADM-*` rows (`F-ADMIN-CONSOLE`, `ADM-DB`, `M-C-TOPUP-BUG`, `M-C-DEDUPE-WEBHOOK`, `M-C-PRICE-SYNC`, `M-C-BILLING-TESTS`, `M-C-DB-HYGIENE`).
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) section 4 build log.

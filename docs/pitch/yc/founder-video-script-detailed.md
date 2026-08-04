@@ -349,4 +349,4 @@ criterion; _"Founders that recite memorized speeches... oh man do we not like th
 Corpus: `youtube.com/playlist?list=PLK7HoSSSROuL9e1bdG_oGEo-jSPuOjw6X`, 22 videos read as transcripts,
 19 confirmed accepted or YC-endorsed, durations measured with `yt-dlp`.
 Repo: `fall-2026-application.md` §3b/§3c/§9a/§8b · `one-pager.md`:36 · `repositioning-2026-07-22.md`:15 ·
-`CLAUDE.md` investor canon · `feature-dashboard.md`:317 (RPT-50).
+`CLAUDE.md` investor canon · `SOURCE-OF-TRUTH.md`:317 (RPT-50).

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-23 · Status: **CURRENT standing canon (the guiding star).** This is the single document to read first for direction. It consolidates the whole strategy stack (v7 positioning, v8 structure, v9 wedge, v10 blueprint, moat.md) with a fresh, code-and-live-database-verified ground-truth audit, an outsider pressure-test, the core-user lens, the agent operating model, the consumer-grade design layer, the orchestration economics, and the full reasoning behind every decision in the 2026-06-23 strategy session. **When this doc and an older strategy doc disagree on direction, v11 wins.** The older docs remain valid for their detailed reference role._
 
-> **For agents and future sessions:** the build items live in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) (the ranked register; the v11 front is #1-18). The front-door cursor is [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This doc carries the _why_; the dashboard carries the _what/when_. The doc map is §0.3.
+> **For agents and future sessions:** the build items live in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (the ranked register; the v11 front is #1-18). The front-door cursor is [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This doc carries the _why_; the dashboard carries the _what/when_. The doc map is §0.3.
 >
 > **2026-07-02 forward pointer:** the v11 front is COMPLETE (all 21 shipped 2026-06-25). The next depth layer under this star is **[v12: The Self-Improving OS](./v12-self-improving-os.md)** (the learning loop, foresight, the memory OS, the design leg, the Outcome Contract / ARD conventions, the journey's two ends; dashboard group G15). v12 wins on those build plans; this doc still wins direction.
 
@@ -19,14 +19,14 @@ On 2026-06-23 the founder asked for a brutally honest, outsider strategic teardo
 1. The executive summary (§1) for the thesis in one page.
 2. The ground truth (§2) for what is actually built.
 3. Then any section you need; the table of contents is below.
-4. For _what to build next_, read the [feature dashboard](../planning/feature-dashboard.md) (v11 front is #1-18). For _why each item_, the dashboard now carries a one-line **Why** per row plus a link back here.
+4. For _what to build next_, read the [feature dashboard](../planning/SOURCE-OF-TRUTH.md) (v11 front is #1-18). For _why each item_, the dashboard now carries a one-line **Why** per row plus a link back here.
 
 ### 0.3 The doc map (so any agent knows where everything lives, even if the founder does not open them)
 
 | Need | Doc |
 | --- | --- |
 | Direction, moat, defense, the reasoning (THIS) | [v11-guiding-star.md](./v11-guiding-star.md) |
-| What to build next, ranked, with a Why per row | [feature-dashboard.md](../planning/feature-dashboard.md) |
+| What to build next, ranked, with a Why per row | [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md) |
 | The live cursor / front door | [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md) |
 | Why a past decision was made (the log) | [session-decisions.md](./session-decisions.md) |
 | The moat stack + competition + YC Q&A (detail) | [moat.md](./moat.md) |
@@ -422,7 +422,7 @@ The decision and outcome record is naturally consumed beyond the PM: sales/marke
 
 ## 21. The build plan (the journey to consumer-ready)
 
-The plan is not "ship features"; it is **build the capability -> stitch and wire it into one loop -> design it to consumer-grade -> ship it user-ready -> showcase it last.** The ranked items live in the [feature dashboard](../planning/feature-dashboard.md) (each with a Why). The phases:
+The plan is not "ship features"; it is **build the capability -> stitch and wire it into one loop -> design it to consumer-grade -> ship it user-ready -> showcase it last.** The ranked items live in the [feature dashboard](../planning/SOURCE-OF-TRUTH.md) (each with a Why). The phases:
 
 - **Phase 0, the pitch sprint (Tier 1, #1-18), capabilities-first:** `TEST-SEED` (minimal dev data) -> `EVENT-REACTOR-LIVE` -> `AMBIENT-SENSE` -> `AMBIENT-TRIGGER` (the self-initiating loop) -> `LOOP-PROVE` (the moat fills on real data) -> `TRUST-LEDGER` -> `TRUST-SHARE` -> `BRAIN-UX-V11` (the analyst) -> `STITCH-LOOP` (one continuous loop) -> `CORE-UX-TRUST` -> `CORE-UX-FELT` -> `IA-NAV-V11` -> `SETTINGS-SEGREGATE` -> `CONNECTORS-V11` -> `ORCH-DELEGATE` -> `INTEROP-V11` -> `PLAYBOOK-REGISTRY` -> `PM-IMPACT-LEDGER` -> `STAKEHOLDER-PACK` -> `POS-V11`, then `LANDING-PAGE-V11` (after the capabilities it showcases).
 - **Phase 1, design + depth (Tier 2):** `DESIGN-V11` (consumer-grade design relook), `IA-DEPTH-V11` (the deeper IA refinements).
@@ -484,7 +484,7 @@ Produced 2026-06-23 from: 5 ground-truth probes (strategy-doc audit, build-state
 
 Market/pricing sources (flagged [V]/[E]/[A] in §10-11): PM population (llcbuddy, Retail Logistics); market size (datainsightsmarket $8.4B 2025, growthmarketreports, Fortune Business Insights PLM); pricing (Productboard, Atlassian Rovo, Asana, ClickUp, Notion); margin/NRR (saasmag, TechTimes, ICONIQ State of AI 2026, digitalapplied); comparables (Miro/Reforge, Tracxn $81M, TechCrunch Maze $60M, Sacra Linear $1.25B, getlatka Notion, Lovable $6.6B, Cursor $29.3B, Replit $3B). PM-future sources: 2025 State of B2B PM survey, Productboard AI report, Reforge, Lenny's analysis, The Last Product Manager, Marty Cagan/SVPG, Teresa Torres. Orchestration sources: OpenAI Codex SDK, Devin v3 API, Cursor Cloud Agents API, Claude Agent SDK, v0 Platform API, OpenHands. Full URLs are preserved in the 2026-06-23 research threads and should be reproduced in the deck's appendix.
 
-**Related canon:** [v7](./archive/v7-agentic-product-os.md) · [v8](./archive/v8-calm-front-deep-engine.md) · [v9](./archive/v9-decision-wedge-and-build-next.md) · [v10](./archive/v10-master-blueprint.md) · [moat.md](./moat.md) · [build-buy-integrate.md](./build-buy-integrate.md) · [sourcing-map.md](./sourcing-map.md) · [horizon-bets.md](./horizon-bets.md) · [the role map](./README.md) · [feature-dashboard.md](../planning/feature-dashboard.md) · [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md).
+**Related canon:** [v7](./archive/v7-agentic-product-os.md) · [v8](./archive/v8-calm-front-deep-engine.md) · [v9](./archive/v9-decision-wedge-and-build-next.md) · [v10](./archive/v10-master-blueprint.md) · [moat.md](./moat.md) · [build-buy-integrate.md](./build-buy-integrate.md) · [sourcing-map.md](./sourcing-map.md) · [horizon-bets.md](./horizon-bets.md) · [the role map](./README.md) · [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md) · [SOURCE-OF-TRUTH.md](../planning/SOURCE-OF-TRUTH.md).
 
 ---
 

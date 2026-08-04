@@ -51,7 +51,7 @@ CLAIM per the shared protocol. Worktree: ../cadence-lane-D -b parallel/lane-D. P
 
 ## The upstream/downstream extension (founder directive, 2026-07-10)
 
-Mid-merge, the founder widened the aperture beyond the PM middle: the OS spans **from market signal to shipped outcome to told story**. G18 carries this as four rows extending v12's journey-ends (JNY) findings rather than duplicating them: upstream **RPT-46** (competitive/trend intelligence brief live — JNY-01) and **RPT-47** (Strategic Brief formation flow — JNY-02); downstream **RPT-48** (launch/GTM kit from shipped outcomes — JNY-04) and **RPT-49** (outcome-story receipts in stakeholder digests — JNY-05). The matching support line was added to v13 §8. Provenance note: the directive as relayed attributed an upstream-merge quote to a Chesky episode in [`../references/podcast-corpus-lenny.md`](../../../references/podcast-corpus-lenny.md); **no Chesky content exists in that corpus** (verified by search this session), so the rows cite the directive itself plus the evidence that IS in the corpus (Mosseri's product-staff pods 2026-07-09, the §14 generalist-pod trend, v12 JNY gap analysis) — never a fabricated citation.
+Mid-merge, the founder widened the aperture beyond the PM middle: the OS spans **from market signal to shipped outcome to told story**. G18 carries this as four rows extending v12's journey-ends (JNY) findings rather than duplicating them: upstream **RPT-46** (competitive/trend intelligence brief live — JNY-01) and **RPT-47** (Strategic Brief formation flow — JNY-02); downstream **RPT-48** (launch/GTM kit from shipped outcomes — JNY-04) and **RPT-49** (outcome-story receipts in stakeholder digests — JNY-05). The matching support line was added to v13 §8. Provenance note: the directive as relayed attributed an upstream-merge quote to a Chesky episode in [`../research/podcast-corpus-lenny.md`](../../../research/podcast-corpus-lenny.md); **no Chesky content exists in that corpus** (verified by search this session), so the rows cite the directive itself plus the evidence that IS in the corpus (Mosseri's product-staff pods 2026-07-09, the §14 generalist-pod trend, v12 JNY gap analysis) — never a fabricated citation.
 
 ## Rejected directions (fit-test failures, kept so nobody re-litigates them)
 
@@ -71,7 +71,7 @@ Mid-merge, the founder widened the aperture beyond the PM middle: the OS spans *
 ## Brief A — judgment lane (paste into a FABLE session)
 
 ```
-Read docs/planning/research-sprint-lane-briefs.md, then docs/planning/feature-dashboard.md group G18 (rows RPT-01..50, ranks #328-#377). git pull origin main first.
+Read docs/planning/research-sprint-lane-briefs.md, then docs/planning/SOURCE-OF-TRUTH.md group G18 (rows RPT-01..50, ranks #328-#377). git pull origin main first.
 You are LANE A (judgment, Fable): positioning / pricing / trust / YC-material rows ONLY.
 PICKUP FILTER: only G18 rows tagged "lane A" in Comments, class DECISIVE, status ⬜, unclaimed — that set is RPT-13, RPT-09, RPT-11, RPT-35, RPT-42, RPT-21, RPT-19 (work in that order: Tier 1, wedge first). NEVER pick FOUNDER-CALL/Gated rows (RPT-20, RPT-22) — they wait for the founder.
 WORKTREE: work in your own git worktree only — `git worktree add ../cadence-lane-A -b parallel/lane-A` (or reuse an existing cadence-lane-N repointed at v5). Never touch another lane's files. Chokepoints (src/lib/ai/loop.server.ts, src/lib/ai/runtime.server.ts) are yours alone among the lanes.
@@ -84,7 +84,7 @@ Nothing outward-facing (landing copy going live, YC text submission) ships witho
 ## Brief B — build lane (paste into a SONNET session)
 
 ```
-Read docs/planning/research-sprint-lane-briefs.md, then docs/planning/feature-dashboard.md group G18 (rows RPT-01..50, ranks #328-#377). git pull origin main first.
+Read docs/planning/research-sprint-lane-briefs.md, then docs/planning/SOURCE-OF-TRUTH.md group G18 (rows RPT-01..50, ranks #328-#377). git pull origin main first.
 You are LANE B (build, Sonnet): feature rows ONLY.
 PICKUP FILTER: only G18 rows tagged "lane B" in Comments, class DECISIVE, status ⬜, unclaimed. Work Tier 1 before Tier 2; within a tier take the lowest rank unclaimed. (Tier 1: RPT-01, 02, 03, 04, 08, 12, 14, 15, 16, 17, 18, 23, 24, 25, 26, 27, 28, 31, 32, 33, 36, 38, 41, 43, 44, 45, 46, 49, 50 · Tier 2: RPT-05, 06, 29, 37, 39, 40, 47, 48.) NEVER pick FOUNDER-CALL/Gated rows. RPT-50 (the Supaprod-on-Supaprod self-improvement loop) is positioning-gating: v13 §8's fifth support line stays out of public materials until it demonstrably runs.
 WORKTREE: your own git worktree only — `git worktree add ../cadence-lane-B -b parallel/lane-B` (or reuse an existing cadence-lane-N). Never touch another lane's files. NEVER edit src/lib/ai/loop.server.ts or src/lib/ai/runtime.server.ts — if a row unexpectedly needs a chokepoint edit: stop, append `[needs lane A]` to the row, continue with the next row.
@@ -97,7 +97,7 @@ RPT-03 overlaps PC-02's onboarding scope and RPT-40 live-verifies only behind th
 ## Brief C — GTM lane (paste into a SONNET session)
 
 ```
-Read docs/planning/research-sprint-lane-briefs.md, then docs/planning/feature-dashboard.md group G18 (rows RPT-01..50, ranks #328-#377). git pull origin main first.
+Read docs/planning/research-sprint-lane-briefs.md, then docs/planning/SOURCE-OF-TRUTH.md group G18 (rows RPT-01..50, ranks #328-#377). git pull origin main first.
 You are LANE C (GTM, Sonnet): demo / listing / distribution rows ONLY — assets, kits, rigs, docs/ + brand-repo handoffs; you never edit product source.
 PICKUP FILTER: only G18 rows tagged "lane C" in Comments, class DECISIVE, status ⬜, unclaimed — that set is RPT-07, RPT-30, RPT-10 (work in that order: the Show HN centerpiece first). NEVER pick FOUNDER-CALL/Gated rows (RPT-34 waits for the founder's beta-frame call).
 WORKTREE: your own git worktree only — `git worktree add ../cadence-lane-C -b parallel/lane-C` (or reuse an existing cadence-lane-N). Never touch another lane's files.
@@ -111,9 +111,9 @@ NOTHING outward is ever sent, posted, or published without the founder's explici
 
 ## Related
 
-- [`feature-dashboard.md`](../../feature-dashboard.md) — group G18 (rows RPT-01..49): the register these briefs pick from; the claim ledger is the collision law
+- [`SOURCE-OF-TRUTH.md`](../../SOURCE-OF-TRUTH.md) — group G18 (rows RPT-01..49): the register these briefs pick from; the claim ledger is the collision law
 - [`v13-proof-campaign-plan.md`](../v13-proof-campaign-plan.md) §3 — the parent parallel-lane protocol (G17); G18 lanes follow the same mechanics and yield to G17 claims on shared surfaces
-- [`../references/pm-voice-and-ai-tooling-research.md`](../../../references/pm-voice-and-ai-tooling-research.md) §16 + [`../references/investor-corpus-yc-vc.md`](../../../references/investor-corpus-yc-vc.md) §A + [`../references/podcast-corpus-aakash.md`](../../../references/podcast-corpus-aakash.md) + [`../references/podcast-corpus-lenny.md`](../../../references/podcast-corpus-lenny.md) + [`../references/podcast-corpus-frontier.md`](../../../references/podcast-corpus-frontier.md) + [`../references/new-age-product-development-research.md`](../../../references/new-age-product-development-research.md) — the evidence base
+- [`../research/pm-voice-and-ai-tooling-research.md`](../../../research/pm-voice-and-ai-tooling-research.md) §16 + [`../research/investor-corpus-yc-vc.md`](../../../research/investor-corpus-yc-vc.md) §A + [`../research/podcast-corpus-aakash.md`](../../../research/podcast-corpus-aakash.md) + [`../research/podcast-corpus-lenny.md`](../../../research/podcast-corpus-lenny.md) + [`../research/podcast-corpus-frontier.md`](../../../research/podcast-corpus-frontier.md) + [`../research/new-age-product-development-research.md`](../../../research/new-age-product-development-research.md) — the evidence base
 - [`../strategy/session-decisions.md`](../../../strategy/session-decisions.md) 2026-07-10 — decisions 1–7 (the authority + boundaries for this merge)
 
 ---

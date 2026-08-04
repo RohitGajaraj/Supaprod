@@ -18,7 +18,7 @@ This is the complete build package for OBS-13. It ports the Settings surface to 
 | Depends on | OBS-10 (IA/route fold must land first so `/settings`, `/admin`, `/sync`, `/integrations` destinations are settled) · OBS-03 (primitives) · OBS-02 (shell) · OBS-01 (tokens + density attr) |
 | Blocks | nothing downstream |
 | One-line what | Settings as four panes (You · Workspace · Connections · Plan); Connections is the only integrations home with two shelves (Yours · This workspace's) rendering the §8 connection card verbatim; Admin becomes a role-gated door on Workspace using the Engine Room room pattern, never a nav item. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-13 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-13 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ---

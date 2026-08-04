@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-22 · Last updated: 2026-07-02_
 
-> Lane 2 of the numbered parallel build (`parallel/lane-2`, worktree `cadence-lane-2`). Identity is the lane NUMBER, not a theme; picks the highest-RANKED free item via `bash scripts/lane.sh next`. Per-cycle loop + rules: [`../../operations/autonomous-build-loop.md`](../../operations/autonomous-build-loop.md) §15-16; lane-local config: `.remember/LANE.md` (git-ignored). This file is the run log; the master status board is [`../feature-dashboard.md`](../feature-dashboard.md).
+> Lane 2 of the numbered parallel build (`parallel/lane-2`, worktree `cadence-lane-2`). Identity is the lane NUMBER, not a theme; picks the highest-RANKED free item via `bash scripts/lane.sh next`. Per-cycle loop + rules: [`../../operations/autonomous-build-loop.md`](../../operations/autonomous-build-loop.md) §15-16; lane-local config: `.remember/LANE.md` (git-ignored). This file is the run log; the master status board is [`../SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md).
 
 ---
 

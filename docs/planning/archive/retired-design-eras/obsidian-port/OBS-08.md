@@ -14,7 +14,7 @@
 | Depends on | OBS-03 (Obsidian primitives) · transitively OBS-01, OBS-02 |
 | Blocks | nothing downstream (OBS-10 folds routes after all five surfaces exist, but does not block on this presentation port) |
 | One-line what | Brain ported: a stat trio (Newsreader numerals + mono micro-labels) with "Export my record", decision rows with outcome verdict chips, learning rows with what-they-moved lines in glacier mono, and the belief graph surface reusing the existing F-IA-BRAIN-GRAPH data flow (presentation ported, data untouched). |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-08 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-08 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it
@@ -249,5 +249,5 @@ Open `design-reference/obsidian-v3/design-reference/cadence-app.html` (Brain vie
 - **Hub / foundation:** [`README.md`](./README.md) (§4 restraint budget, §5 tokens/type/motion, §5.9 parity checklist, §6 IA target - Brain is destination 05, §7 codebase map).
 - **Sibling OBS items:** [`OBS-03.md`](./OBS-03.md) (the primitives this surface consumes - `VerdictChip`, `MonoLabel`, `Button`, `StatusDot`), [`OBS-02.md`](./OBS-02.md) (shell + rail), [`OBS-10.md`](./OBS-10.md) (IA consolidation, the `/knowledge`+`/memory`+`/impact` -> Brain fold and route rename), [`OBS-15.md`](./OBS-15.md) (chart grammar for the belief graph + stat-trio sparklines).
 - **Canon anchors:** design law [`design/archive/obsidian-v3.md`](../../../../design/archive/obsidian-v3.md) §8 (IA, Brain) + §9 (Verdict chips) + §10 (voice); component anatomies [`/design-reference/obsidian-v3/components.md`](../../../design-reference/obsidian-v3/components.md) "Stats + record (Brain)" · "Verdict chips" · "Status dots"; stub-surface specs [`/design-reference/obsidian-extensions.md`](../../../../../design-reference/obsidian-extensions.md) §6 (chart grammar / sparklines in stat trios) + §9 (empty-record state).
-- **Board:** [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-08 · **summary bible:** [`../obsidian-port-plan.md`](../obsidian-port-plan.md).
+- **Board:** [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-08 · **summary bible:** [`../obsidian-port-plan.md`](../obsidian-port-plan.md).
 - **Strategy / doctrine:** [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md) (decision-and-outcome layer) · [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md) · [`../../conventions/humanized-output.md`](../../../../conventions/humanized-output.md).

@@ -4,7 +4,7 @@
 
 > **What this is.** The commissioned adversarial review of Supaprod as it stands (post v3, post F-COCKPIT-MERGE). Written from the seats of a founder, a senior PM end-user, an investor, and a frontier-lab strategist. Every verdict here feeds the v4 feature map ([`v4-feature-map.md`](./v4-feature-map.md)).
 >
-> **Method.** Full doc read + src inventory (34 routes, 40 server-fn domains, agent runtime), market research ([`../references/competitive-landscape.md`](../../references/competitive-landscape.md)), and the founder's own complaint: "overwhelming, not demo-ready, no storyline, I don't know where I'd start."
+> **Method.** Full doc read + src inventory (34 routes, 40 server-fn domains, agent runtime), market research ([`../research/competitive-landscape.md`](../../research/competitive-landscape.md)), and the founder's own complaint: "overwhelming, not demo-ready, no storyline, I don't know where I'd start."
 
 ---
 

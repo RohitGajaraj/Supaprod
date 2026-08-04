@@ -48,7 +48,7 @@ Each root file now answers exactly one question and says so in its first line: `
 
 **The drift that was actively harmful:** three of the four root docs pointed agents at Tempo v5, and **Lovable's project Knowledge field still said the product was named Cadence** with Loom v4 as the design system. Lovable writes code into this repo, so it had been building from a six-week-stale brief. Replaced, and mirrored to [`lovable-knowledge.md`](./lovable-knowledge.md) so the next drift is a diff instead of a discovery.
 
-**6.4 MB of the corpus was whitespace.** `feature-dashboard.md` was 6.45 MB, of which 5.5 MB was prettier's table-cell padding. Collapsed, verified lossless (467 rows to 467, identical pipes per row, zero content changes), and `docs/**/*.md` added to `.prettierignore` so `bun run format` cannot re-inflate it.
+**6.4 MB of the corpus was whitespace.** `SOURCE-OF-TRUTH.md` was 6.45 MB, of which 5.5 MB was prettier's table-cell padding. Collapsed, verified lossless (467 rows to 467, identical pipes per row, zero content changes), and `docs/**/*.md` added to `.prettierignore` so `bun run format` cannot re-inflate it.
 
 **`docs/strategy` declared seven documents simultaneously current.** Archived v7 to v10 and v13 with a reason next to each. New rule in its README: a version number is not a decision, do not open a v14.
 
@@ -63,7 +63,7 @@ Each root file now answers exactly one question and says so in its first line: `
 ## OPEN, NOT BLOCKED
 
 - The `rm -rf` above.
-- `docs/planning/feature-dashboard.md` is still 923 KB and 467 rows. That is now real content, not padding, but it is a candidate for splitting live rows from done rows if it keeps growing.
+- `docs/planning/SOURCE-OF-TRUTH.md` is still 923 KB and 467 rows. That is now real content, not padding, but it is a candidate for splitting live rows from done rows if it keeps growing.
 - Known coverage gap recorded in [`../testing/README.md`](../testing/README.md): nothing tests `discover/ranking` and `discover/format` together, so a format-helper change can reorder the Discover queue with all 212 unit cases green. A stale draft test for exactly this is preserved in `../testing/archive/`.
 
 ---

@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-20 · Last updated: 2026-06-20_
 
-> **What this is.** A living, append-forward register of **forward product bets** that are bigger than a backlog item and not yet specced into the build queue, captured comprehensively (thesis, evidence, wiring, open questions) so each can be enriched and then promoted into the queue with full context. This sits between the raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) and the specced work in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md): a bet lives here while we are still deciding _what_ and _how_ to build, then graduates to dashboard IDs and a feature spec once enriched.
+> **What this is.** A living, append-forward register of **forward product bets** that are bigger than a backlog item and not yet specced into the build queue, captured comprehensively (thesis, evidence, wiring, open questions) so each can be enriched and then promoted into the queue with full context. This sits between the raw reasoning in [`strategic-inputs-log.md`](./strategic-inputs-log.md) and the specced work in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md): a bet lives here while we are still deciding _what_ and _how_ to build, then graduates to dashboard IDs and a feature spec once enriched.
 >
 > **Standing rule (no orphans).** Every bet here is cross-linked to the canon it touches and back again. A bet is captured here in the same session the cue surfaces; the raw input goes to [`strategic-inputs-log.md`](./strategic-inputs-log.md); the decision to pursue (and any repositioning it causes) goes to [`session-decisions.md`](./session-decisions.md). This file is linked from the strategy [`README.md`](./README.md) role map.
 
@@ -215,5 +215,5 @@ These gaps _are_ the two bets. Wiring map:
 - Decision log: [`session-decisions.md`](./session-decisions.md) (the 2026-06-20 entry).
 - Interface law: [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md); structure: [`archive/v8-calm-front-deep-engine.md`](./archive/v8-calm-front-deep-engine.md); design: [`../conventions/design-context.md`](../conventions/design-context.md).
 - Current Brain surface: [`../features/brain.md`](../features/brain.md).
-- Live tracker: [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md).
+- Live tracker: [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md), [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md).
 - Role map (which strategy doc to pick): [`README.md`](./README.md).

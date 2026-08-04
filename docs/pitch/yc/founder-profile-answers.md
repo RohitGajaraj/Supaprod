@@ -179,7 +179,7 @@ original. The four Cadence repos each carry a 20 to 28 KB README, and those READ
 | --- | --- |
 | The **full moat thesis**, verbatim, including the fast-oracle argument and the three pillars | v4 README |
 | **Named competitive positioning** against factory.ai, Devin, Replit, Linear, Cursor, Lovable | v1 and v4 READMEs |
-| A **map of the internal strategy docs** (`v11-guiding-star.md`, `moat.md`, `competitive-landscape.md`, the feature dashboard) | v4 README |
+| A **map of the internal strategy docs** (`v11-guiding-star.md`, `moat.md`, `competitive-landscape.md`, the register in SOURCE-OF-TRUTH.md) | v4 README |
 | **Live demo credentials in plain text** (`demo@redcadence.app` / `Cadence!Demo2026`) | v4 README |
 
 The credentials are already neutralised (both accounts were rotated and suspended on 2026-07-25), so that one

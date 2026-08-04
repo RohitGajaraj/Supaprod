@@ -45,7 +45,7 @@ Pushes, pulls, and merges are easy to fire off bare. Each still needs the one-li
 
 ## Timestamp discipline (date + time, for an audit trail)
 
-**Every NEW dated entry across the project carries both the date AND the time, in `YYYY-MM-DD HH:MM` form** (not just the overnight build report). This covers the live build log in [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, the feature dashboard's Recent log, the strategy [`strategy/session-decisions.md`](../strategy/session-decisions.md), and any status or handoff doc. A bare date loses the ordering of work within a day; the time restores it, so a future reader or tool can reconstruct exactly when each change landed.
+**Every NEW dated entry across the project carries both the date AND the time, in `YYYY-MM-DD HH:MM` form** (not just the overnight build report). This covers the live build log in [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, the register in SOURCE-OF-TRUTH.md's Recent log, the strategy [`strategy/session-decisions.md`](../strategy/session-decisions.md), and any status or handoff doc. A bare date loses the ordering of work within a day; the time restores it, so a future reader or tool can reconstruct exactly when each change landed.
 
 - **Forward-only, no historical backfill.** This rule applies to entries written from 2026-06-18 onward. Do NOT spend time or tokens retro-stamping old entries; a date-only history is fine. Recent entries (today/yesterday) may get a time if the data point is already on hand, but never backfill day-one history.
 - **Source the timestamp from the clock, never guess it:** `date "+%Y-%m-%d %H:%M"`.

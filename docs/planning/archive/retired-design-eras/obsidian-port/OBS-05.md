@@ -18,7 +18,7 @@
 | Depends on | OBS-03 (core primitives: `MissionRow`, `SlideOver`, `CallCard`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast`, `Button`) |
 | Blocks | nothing downstream |
 | One-line what | Port the Build surface to Obsidian: mission rows (status dot · title · verdict chip when done · step label · cost) plus the mission slide-over (numbered steps, live pulses, inline gate as a compressed CallCard, raw-trace toggle with per-hop cost, `?mission=` deep link). The slide-over is the app's one overlay depth. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14 · row OBS-05 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14 · row OBS-05 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ---
@@ -248,4 +248,4 @@ Put both side-by-side screenshots (list + slide-over open with a gate) in the sh
 - **Depends on**: [`OBS-03.md`](./OBS-03.md) (primitives: `MissionRow`, `SlideOver`, `CallCard`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast`, `Button`) · shell [`OBS-02.md`](./OBS-02.md).
 - **Siblings (build-order neighbors)**: [`OBS-04.md`](./OBS-04.md) · the gate answered here must sync Today's Call queue (`["needs-you"]`); [`OBS-06.md`](./OBS-06.md) / [`OBS-07.md`](./OBS-07.md) parallel surfaces; [`OBS-09.md`](./OBS-09.md) Engine Room; [`OBS-15.md`](./OBS-15.md) chart grammar (rides Build/Brain/Engine Room).
 - **Canon anchors**: `components.md` · "Mission row (Build)", "Mission slide-over", "CallCard (the atomic unit)" (compressed gate variant), "Toast", "Status dots", "Verdict chips" (`/design-reference/obsidian-v3/components.md`). `implementation-notes.md` · "Core behaviors" (answering a call, mission slide-over, cross-object sync), "Routing" (`?mission=` search param). `docs/design/archive/obsidian-v3.md` §8 "Information architecture" (Build: ONE cockpit) + §9 "Components" (Mission row / Status dots / Verdict chips).
-- **Board**: [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14 · **bible**: [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · **strategy**: [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md) · **doctrine**: [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md).
+- **Board**: [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14 · **bible**: [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · **strategy**: [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md) · **doctrine**: [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md).

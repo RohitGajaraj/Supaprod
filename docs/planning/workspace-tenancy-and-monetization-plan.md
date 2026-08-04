@@ -5,18 +5,18 @@
 > **What this is.** The single, self-contained source of truth for the account / workspace / product tenancy redesign, the monetization model it carries, AND the credit engine that powers it. It holds the strategy, the justifications, the quantified model, and a build spec for every work item, written so **any tool (Claude Code, Antigravity, Gemini, Lovable, a fresh session) can pick up a single `WM-*` ID and build it from this doc alone**, with no dependence on the conversation that produced it. As of 2026-06-19 it also carries the **credit engine** (the cost-to-credit conversion math, per-tier amounts, grant/reset, top-ups, the debit logic, per-product attribution, and the margin levers), merged in from the parallel credits thread and segregated under §4.2.1 (`WM-M10` to `WM-M16`); see §2.7 for the merge.
 >
 > **Status:** PLAN (2026-06-19). Foundation lane is buildable now; Showcase lane is deferred. No feature code written yet; this doc + its registration are step one. **Credit engine (`WM-M10` to `WM-M16`) added 2026-06-19** (the two parallel threads, tenancy and credits, merged into this one source of truth per founder ruling; §4.2.1).
-> **Maintainer rule:** update the item's status here, in `feature-dashboard.md`, and in `SOURCE-OF-TRUTH.md` in the same unit of work as any change (the closed-doc loop).
+> **Maintainer rule:** update the item's status here, in `SOURCE-OF-TRUTH.md`, and in `SOURCE-OF-TRUTH.md` in the same unit of work as any change (the closed-doc loop).
 > **Owns the decision record with:** [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (the decision) + [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) (the reasoning) + [`../strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md) Section 5.5 (the monetization canon this aligns to).
 
 > [!IMPORTANT]
-> **SUPERSESSION (2026-06-21): the Stripe rail described below for `WM-M3` / `WM-M13` was implemented differently by the Lovable 2026-06-20 cycle.** The LIVE rail is `src/lib/payments.functions.ts` (`createCheckoutSession`, `createPortalSession`, `getMySubscription`, `cancel/resumeMySubscription`, `createTopUpCheckout`) + the webhook `src/routes/api/public/payments/webhook.ts`, routed through the Lovable connector gateway (`connector-gateway.lovable.dev/stripe`). Env: `STRIPE_SANDBOX_API_KEY` / `STRIPE_LIVE_API_KEY` (server) + `PAYMENTS_SANDBOX_WEBHOOK_SECRET` / `PAYMENTS_LIVE_WEBHOOK_SECRET` + `VITE_PAYMENTS_CLIENT_TOKEN` (client `pk_test_` / `pk_live_`) + `LOVABLE_API_KEY`. Tiers resolve via `lookup_keys` in `src/lib/billing-tier.ts`. The `src/routes/api/stripe/webhook.ts` + `STRIPE_SECRET_KEY` / `STRIPE_PRICE_*` references throughout this plan are historical / superseded (that webhook is dead/legacy: it hardcodes tier `'pro'` and writes only the now-RLS-revoked `workspaces.stripe_*` shim columns). The live rail is live-capable but currently sandbox/test-mode and dormant pending founder secrets (`PaymentTestModeBanner` shows the state). Canonical live docs: [`../features/billing.md`](../features/billing.md) + [`../features/credits.md`](../features/credits.md), and the master register [`feature-dashboard.md`](./feature-dashboard.md) (row `M-C-PRICE` + the `M-C-*` / `ADM-*` rows).
+> **SUPERSESSION (2026-06-21): the Stripe rail described below for `WM-M3` / `WM-M13` was implemented differently by the Lovable 2026-06-20 cycle.** The LIVE rail is `src/lib/payments.functions.ts` (`createCheckoutSession`, `createPortalSession`, `getMySubscription`, `cancel/resumeMySubscription`, `createTopUpCheckout`) + the webhook `src/routes/api/public/payments/webhook.ts`, routed through the Lovable connector gateway (`connector-gateway.lovable.dev/stripe`). Env: `STRIPE_SANDBOX_API_KEY` / `STRIPE_LIVE_API_KEY` (server) + `PAYMENTS_SANDBOX_WEBHOOK_SECRET` / `PAYMENTS_LIVE_WEBHOOK_SECRET` + `VITE_PAYMENTS_CLIENT_TOKEN` (client `pk_test_` / `pk_live_`) + `LOVABLE_API_KEY`. Tiers resolve via `lookup_keys` in `src/lib/billing-tier.ts`. The `src/routes/api/stripe/webhook.ts` + `STRIPE_SECRET_KEY` / `STRIPE_PRICE_*` references throughout this plan are historical / superseded (that webhook is dead/legacy: it hardcodes tier `'pro'` and writes only the now-RLS-revoked `workspaces.stripe_*` shim columns). The live rail is live-capable but currently sandbox/test-mode and dormant pending founder secrets (`PaymentTestModeBanner` shows the state). Canonical live docs: [`../features/billing.md`](../features/billing.md) + [`../features/credits.md`](../features/credits.md), and the master register [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (row `M-C-PRICE` + the `M-C-*` / `ADM-*` rows).
 
 ---
 
 ## 0. How to use this document (any tool, any session)
 
 1. **To build something:** find its `WM-*` ID in the index (Section 4.0), jump to its spec. Each spec has: why, current state with file paths, what to build, files to touch, the migration, gotchas, acceptance criteria, verification, and dependencies. That is everything needed to build it cold.
-2. **Pick order:** follow Section 5 (build order + dependencies). Respect `Depends on`. Claim the row in `feature-dashboard.md` before you start (flip to In Dev, add an Active-claims line) so parallel tools do not collide.
+2. **Pick order:** follow Section 5 (build order + dependencies). Respect `Depends on`. Claim the row in `SOURCE-OF-TRUTH.md` before you start (flip to In Dev, add an Active-claims line) so parallel tools do not collide.
 3. **Hard gates every tool MUST honor** (non-negotiable, from [`../../AGENTS.md`](../../AGENTS.md) and the SSOT standing rules):
    - **Build gate:** `bun run lint` + `tsc --noEmit` + `bun run build` all green before any commit. Never commit red.
    - **Humanized output:** zero em/en dashes and zero AI-cliche phrasing in anything authored or generated (the runtime sanitizer is the hard gate; authored docs follow it too). See [`../conventions/humanized-output.md`](../conventions/humanized-output.md).
@@ -25,7 +25,7 @@
    - **Commits:** explicit paths, a one-line WHY; branch off `main` (do not commit straight to the default branch); use a worktree for parallel work.
    - **Package manager is bun** (`bun install`, `bun run ...`). Not npm.
 4. **Naming is presentation-only.** The database, Stripe, and RLS key on the **slugs** `free | pro | max | team | enterprise`. The **display names** (Constellation: Star / Cluster / Constellation / Galaxy / Cosmos) and the motif live only in `planPresentation()` + UI, so any tier can be renamed or re-themed later with a one-file edit, no migration. Build against slugs.
-5. **Status truth** lives in [`feature-dashboard.md`](./feature-dashboard.md) (per-item board) and [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (front-door queue). This doc is the _how_; those are the _where it stands_.
+5. **Status truth** lives in [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (per-item board) and [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (front-door queue). This doc is the _how_; those are the _where it stands_.
 
 ---
 
@@ -193,7 +193,7 @@ The thought process: name tiers after **what the product does to your knowledge*
 | WM-M10 | Credit unit + cost-to-credit conversion + legibility layer | Monetize (Credit engine) | ✅ Done 2026-06-19 | WM-M1 |
 | WM-M11 | Per-tier credit amounts + monthly grant + cycle reset | Monetize (Credit engine) | ◐ Core done 2026-06-19 | WM-M2, WM-M10 |
 | WM-M12 | Credit debit engine (fills the WM-M4 seam; draw-down + halt) | Monetize (Credit engine) | ◐ Core done 2026-06-19 | WM-M4, WM-M10, WM-M11 |
-| WM-M13 | Capped top-up purchase (Stripe credit packs) | Monetize (Credit engine) | ◐ Core shipped 2026-06-20 (Lovable; `createTopUpCheckout` in `src/lib/payments.functions.ts` + `handleCheckoutCompleted` in `src/routes/api/public/payments/webhook.ts`; KNOWN BUG - top-up webhook never increments the spendable balance, see `feature-dashboard.md` row M-C-TOPUP-BUG) | WM-M3, WM-M12 |
+| WM-M13 | Capped top-up purchase (Stripe credit packs) | Monetize (Credit engine) | ◐ Core shipped 2026-06-20 (Lovable; `createTopUpCheckout` in `src/lib/payments.functions.ts` + `handleCheckoutCompleted` in `src/routes/api/public/payments/webhook.ts`; KNOWN BUG - top-up webhook never increments the spendable balance, see `SOURCE-OF-TRUTH.md` row M-C-TOPUP-BUG) | WM-M3, WM-M12 |
 | WM-M14 | Per-product / per-member attribution + caps | Monetize (Credit engine) | ◐ Core done 2026-06-19 | WM-M12 |
 | WM-M15 | Margin levers (cost-aware routing + cache) | Monetize (Credit engine) | Pending | WM-M10 |
 | WM-M16 | Credit / usage UI (balance, legibility, attribution) | Monetize (Credit engine) | Pending | WM-M6, WM-M12, WM-M14 |
@@ -458,7 +458,7 @@ The credit **engine**, what one credit is, the cost-to-credit conversion, per-ti
 
 #### WM-M13 · Capped top-up purchase (Stripe credit packs)
 
-> _Reconciled 2026-06-21 against shipped code: top-ups shipped in the Lovable 2026-06-20 cycle as `createTopUpCheckout` (`src/lib/payments.functions.ts`) + `handleCheckoutCompleted` (`src/routes/api/public/payments/webhook.ts`), NOT on `billing.functions.ts` + `api/stripe/webhook.ts`. KNOWN BUG (`feature-dashboard.md` row M-C-TOPUP-BUG): the webhook writes the `credit_topups` row but never increments `account_credits.topup_credits` or inserts a `credit_ledger` row, so purchased top-ups do not reach the spendable balance even once `credits_enabled()` flips on; the static `TOPUP_CREDITS` map only knows `topup_250` / `topup_1k` / `topup_2_5k`. Live docs: [`../features/credits.md`](../features/credits.md)._
+> _Reconciled 2026-06-21 against shipped code: top-ups shipped in the Lovable 2026-06-20 cycle as `createTopUpCheckout` (`src/lib/payments.functions.ts`) + `handleCheckoutCompleted` (`src/routes/api/public/payments/webhook.ts`), NOT on `billing.functions.ts` + `api/stripe/webhook.ts`. KNOWN BUG (`SOURCE-OF-TRUTH.md` row M-C-TOPUP-BUG): the webhook writes the `credit_topups` row but never increments `account_credits.topup_credits` or inserts a `credit_ledger` row, so purchased top-ups do not reach the spendable balance even once `credits_enabled()` flips on; the static `TOPUP_CREDITS` map only knows `topup_250` / `topup_1k` / `topup_2_5k`. Live docs: [`../features/credits.md`](../features/credits.md)._
 
 - **Why:** paid tiers can buy capped fair-use top-ups (Anthropic-style: a separate purchased balance, a per-cycle ceiling, off by default), which protects the one-subscription promise and margin (§2.6).
 - **Current state:** `WM-M3` puts Stripe checkout/webhook on the account; `src/lib/billing.functions.ts` + `src/routes/api/stripe/webhook.ts` exist (dormant until secrets).
@@ -592,7 +592,7 @@ These are specified now and **resurfaced at every milestone gate**; do not build
 
 #### WM-D · Documentation, registration, cross-link, cascade (this deliverable)
 
-- Register all `WM-*` in `feature-dashboard.md` (new group, Foundation active/Next, Showcase Deferred) + a build-queue section in `SOURCE-OF-TRUTH.md`, both pointing here.
+- Register all `WM-*` in `SOURCE-OF-TRUTH.md` (new group, Foundation active/Next, Showcase Deferred) + a build-queue section in `SOURCE-OF-TRUTH.md`, both pointing here.
 - Cascade: a `session-decisions.md` entry + a `strategic-inputs-log.md` entry; a `strategy/README.md` role-map row; cross-link `byo-build-and-supaprod-cloud.md` both ways.
 - Create `docs/features/workspaces.md`; update `docs/features/pricing.md`.
 - Update `architecture/data.md` + `architecture/security.md`.
@@ -644,7 +644,7 @@ Flip switches (`memory_expiry_enabled`, `credits_enabled`, Stripe secrets) are l
 
 ## 8. Cross-links and cascade map
 
-- Status: [`feature-dashboard.md`](./feature-dashboard.md) (per-item board), [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (front door).
+- Status: [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (per-item board), [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) (front door).
 - Execution context: [`archive/v10-implementation-plan.md`](./archive/v10-implementation-plan.md), [`cross-cutting-gaps.md`](./cross-cutting-gaps.md).
 - Strategy: [`../strategy/moat.md`](../strategy/moat.md) (the moat / competition / positioning canon, the source for §2.3), [`../strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md) (Section 5.5 monetization canon), [`../strategy/session-decisions.md`](../strategy/session-decisions.md), [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md), [`../strategy/README.md`](../strategy/README.md) (role map).
 - Architecture: [`../../architecture/data.md`](../../architecture/data.md), [`../../architecture/security.md`](../../architecture/security.md).

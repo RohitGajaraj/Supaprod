@@ -2,11 +2,11 @@
 
 > _Created: 2026-08-03 · Last updated: 2026-08-03_
 
-**Historical record. None of this is a plan, a status, or a rule.** These 30 documents sat loose at the top of `docs/planning/` until 2026-08-03. Every one of them was an **orphan**: nothing in the repo linked to any of them, including the SSOT, the feature dashboard, `docs/README.md` and `AGENTS.md`.
+**Historical record. None of this is a plan, a status, or a rule.** These 30 documents sat loose at the top of `docs/planning/` until 2026-08-03. Every one of them was an **orphan**: nothing in the repo linked to any of them, including the SSOT, the register in SOURCE-OF-TRUTH.md, `docs/README.md` and `AGENTS.md`.
 
 That is what makes them safe to move and worth keeping. They are the write-ups sessions produced as they finished a piece of work, useful as evidence of what was checked and when, and misleading if read as current.
 
-**For anything current:** [`../../SOURCE-OF-TRUTH.md`](../../SOURCE-OF-TRUTH.md) §0 for the live cursor, [`../../feature-dashboard.md`](../../feature-dashboard.md) for per-feature status, [`../../known-issues.md`](../../known-issues.md) for open bugs.
+**For anything current:** [`../../SOURCE-OF-TRUTH.md`](../../SOURCE-OF-TRUTH.md) §0 for the live cursor, [`../../SOURCE-OF-TRUTH.md`](../../SOURCE-OF-TRUTH.md) for per-feature status, [`../../known-issues.md`](../../known-issues.md) for open bugs.
 
 Dates were stripped from the filenames on archiving, per the repo's naming rule: the date belongs in the file header, so it is learned on open rather than guessed from a name.
 
@@ -44,7 +44,7 @@ Coverage numbers in these are long superseded. Current conventions live in [`../
 
 [`security-remediation-summary.md`](./security-remediation-summary.md) · [`code-audit-results.md`](./code-audit-results.md) · [`tier-3-audit-report.md`](./tier-3-audit-report.md)
 
-Live security material is in [`../../../security/`](../../../security/) and [`security/audit-findings-july.md`](../../../security/audit-findings-july.md).
+Live security material is in [`../../../security/`](../../../security/) and [`operations/security/audit-findings-july.md`](../../../operations/security/audit-findings-july.md).
 
 ## The parallel-lane loop
 

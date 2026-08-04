@@ -172,7 +172,7 @@ echo "-- [9] retired wording still present in LIVE docs --"
 STALE_SCOPE="--include=*.md docs architecture"
 stale_hits() {
   grep -rInE "$1" $STALE_SCOPE ./AGENTS.md ./README.md ./CLAUDE.md ./GEMINI.md 2>/dev/null \
-    | grep -v '/archive/' | grep -v 'docs/references/' | grep -v 'docs/prompts/' \
+    | grep -v '/archive/' | grep -v 'docs/research/' | grep -v 'docs/prompts/' \
     | grep -v 'session-decisions\|strategic-inputs-log\|session-handoff\|build-log' \
     | grep -viE 'never (say|close|call|write)|bans?\b|ban on|banned|do not (say|use)|retired|instead of|rather than|superseded|no longer|insists|forbidden|stale as of|\| \*\*"|^[^:]*:[0-9]+:\s*\||^[^:]*:[0-9]+:\s*-\s*"' || true
 }

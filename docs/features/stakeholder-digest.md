@@ -12,7 +12,7 @@ A workspace admin can additionally bind a Slack channel (`/sync` → Workspace b
 
 ## Why it exists
 
-Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8 (the founder's "keeping everyone in the loop" ask, the pain survey's number one PM time-sink): the one-keystroke status update (`ShareStatusButton`) already existed, and FS-03's scheduled digest already existed, and the exec/eng/board pack composer (STAKEHOLDER-PACK, v11 #19) already existed. Nobody had connected them into a recurring, audience-tuned send. Board entry: `docs/planning/feature-dashboard.md` row `JNY-05`.
+Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8 (the founder's "keeping everyone in the loop" ask, the pain survey's number one PM time-sink): the one-keystroke status update (`ShareStatusButton`) already existed, and FS-03's scheduled digest already existed, and the exec/eng/board pack composer (STAKEHOLDER-PACK, v11 #19) already existed. Nobody had connected them into a recurring, audience-tuned send. Board entry: `docs/planning/SOURCE-OF-TRUTH.md` row `JNY-05`.
 
 ## Where to find it
 
@@ -69,7 +69,7 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 
 ## Related
 
-- `docs/planning/feature-dashboard.md` row `JNY-05`.
+- `docs/planning/SOURCE-OF-TRUTH.md` row `JNY-05`.
 - [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.md) §8.
 - [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (2026-06-27 integration tiering, the Slack write-back gate).
 - `docs/features/README.md` index.

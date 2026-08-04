@@ -267,7 +267,7 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 - Build/buy/integrate posture: [`build-buy-integrate.md`](./build-buy-integrate.md), [`sourcing-map.md`](./sourcing-map.md) (codegen = INTEGRATE, not BUILD).
 - Live diagnosis + the reliability tactical layer: [`../planning/builder-reliability-and-codegen-direction.md`](../planning/builder-reliability-and-codegen-direction.md).
 - Existing code seam: `src/lib/delegate/provider.ts`, `src/lib/delegate/poll.server.ts`, `delegate.openhands` in `src/lib/ai/tools/registry.server.ts`; the git twin `src/lib/connectors/repo-provider.ts`.
-- Feature rows: group G13 (BD-1..BD-6) in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md); founder pickup in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 4.
+- Feature rows: group G13 (BD-1..BD-6) in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md); founder pickup in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 4.
 - Spend implications: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).
 - Strategy folder role map (which doc to pick for what): [`README.md`](./README.md).
 
@@ -283,7 +283,7 @@ Layer-1 tactical hardening of the native loop (make `content` required-for-creat
 
 ### The answer: we own the EXPERIENCE end to end; we never own the generator. Five arguments, each sufficient alone.
 
-**1. The capital asymmetry (the bonfire).** The build layer is the single most capital-flooded race in software, sourced 2026-07-10: **Devin/Cognition $37M → $492M ARR in twelve months at a $26B valuation; Cursor $2B ARR with 1M+ paying users; GitHub Copilot's coding agent GA on the world's largest developer distribution; Lovable $400M+ ARR, Replit $525M, Factory $1.5B valuation** (citations: [`references/launch-research-briefs.md`](../references/launch-research-briefs.md) Brief 1). Entering that race means out-executing the best-funded teams on earth at their core competency, from zero, with one founder. Every dollar spent there is a dollar not spent on the layer nobody owns.
+**1. The capital asymmetry (the bonfire).** The build layer is the single most capital-flooded race in software, sourced 2026-07-10: **Devin/Cognition $37M → $492M ARR in twelve months at a $26B valuation; Cursor $2B ARR with 1M+ paying users; GitHub Copilot's coding agent GA on the world's largest developer distribution; Lovable $400M+ ARR, Replit $525M, Factory $1.5B valuation** (citations: [`research/launch-research-briefs.md`](../research/launch-research-briefs.md) Brief 1). Entering that race means out-executing the best-funded teams on earth at their core competency, from zero, with one founder. Every dollar spent there is a dollar not spent on the layer nobody owns.
 
 **2. The commoditization clock (the precondition, from the source).** Dario Amodei, 2026-02: models "may get to the point in a year or two where they can just do **SWE end-to-end**… we have engineers at Anthropic who don't write any code." The strongest possible authority is telling the market the generator becomes model capability. You do not build a business on a layer the frontier labs are absorbing into the model itself — **you build the layer that becomes MORE valuable as they do**: as execution goes to zero, the volume of decisions a human must answer for explodes, and the PM:eng ratio is already inverting toward ~1:20 (research §14/§17). Build commoditizing is not our threat; it is our precondition.
 

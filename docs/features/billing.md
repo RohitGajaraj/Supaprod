@@ -57,5 +57,5 @@ The end-to-end Stripe subscription + portal rail for Supaprod. Tiers are feature
 - [`./credits.md`](./credits.md) — separate top-up page + credit engine surfaces
 - [`./admin-console.md`](./admin-console.md) — `/admin/*` hub + pricing console
 - [`./pricing.md`](./pricing.md) — legacy entitlements doc (3-tier shape, superseded by this rail)
-- [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) — row M-C-PRICE (plus the M-C-_ / ADM-_ rows) for this rail
+- [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) — row M-C-PRICE (plus the M-C-_ / ADM-_ rows) for this rail
 - [`../../supabase/migrations/`](../../supabase/migrations/) — `stripe_rail_pricing_catalog_and_admin_role`

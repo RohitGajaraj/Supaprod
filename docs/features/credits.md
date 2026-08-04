@@ -59,4 +59,4 @@ The user-facing surface for AI credits, isolated from the main billing page (Ant
 ## Related
 
 - [`./billing.md`](./billing.md) — the subscription rail (top-ups live next door, deliberately not in it)
-- [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) - row M-C-PRICE / WM-M16 (pricing, entitlements, top-ups), plus M-C-TOPUP-BUG and M-C-BILLING-TESTS
+- [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) - row M-C-PRICE / WM-M16 (pricing, entitlements, top-ups), plus M-C-TOPUP-BUG and M-C-BILLING-TESTS

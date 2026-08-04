@@ -3,7 +3,7 @@
 > _Created: 2026-06-03 · Last updated: 2026-06-19_
 
 > [!WARNING]
-> **⚠ SUPERSEDED (2026-06-23). Do NOT add new items here; do NOT treat its ☐ markers as live status.** The single build register is now [`feature-dashboard.md`](../feature-dashboard.md) (the ranked rows + the v11 build front #1-21, each with a Why). Its ☐ markers below are STALE: most are already-shipped work the dashboard tracks correctly (the agent roster, A2A handoff, product memory, ship bundle, etc.). Per-feature acceptance detail now lives in the relevant [`../features/`](../features/) docs. The one genuinely-pending item not previously on the board, **DEF-04 (designer scaffolds)**, was salvaged into the dashboard on 2026-06-23. This file is retained only for historical F-ID references; its physical archive + a broader repo-structure declutter (it has ~25 live inbound links, so the move needs a same-commit link-update pass) is tracked as **`REPO-DECLUTTER-V11`** in the dashboard.
+> **⚠ SUPERSEDED (2026-06-23). Do NOT add new items here; do NOT treat its ☐ markers as live status.** The single build register is now [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) (the ranked rows + the v11 build front #1-21, each with a Why). Its ☐ markers below are STALE: most are already-shipped work the dashboard tracks correctly (the agent roster, A2A handoff, product memory, ship bundle, etc.). Per-feature acceptance detail now lives in the relevant [`../features/`](../features/) docs. The one genuinely-pending item not previously on the board, **DEF-04 (designer scaffolds)**, was salvaged into the dashboard on 2026-06-23. This file is retained only for historical F-ID references; its physical archive + a broader repo-structure declutter (it has ~25 live inbound links, so the move needs a same-commit link-update pass) is tracked as **`REPO-DECLUTTER-V11`** in the dashboard.
 
 > **SSOT first.** The single front-door tracker is [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) (status, build queue, founder rulings, findings, progress). This file is the granular acceptance-criteria and scope ledger (the F-ID detail) it points to, not the tracker to follow day-to-day.
 
@@ -19,7 +19,7 @@
 
 ## ▶ Live status (moved) - this file is the F-ID scope ledger
 
-> **The live status board moved.** Where-are-we-now (now building / next up / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) - section 0 (the live cursor) + section 3. The per-station status matrix lives in [`feature-dashboard.md`](../feature-dashboard.md). The full append-only build history is [`build-log.md`](./build-log.md) section 4.
+> **The live status board moved.** Where-are-we-now (now building / next up / blocked) and the day-to-day build queue live in the SSOT, [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md) - section 0 (the live cursor) + section 3. The per-station status matrix lives in [`SOURCE-OF-TRUTH.md`](../SOURCE-OF-TRUTH.md). The full append-only build history is [`build-log.md`](./build-log.md) section 4.
 >
 > **This file** holds only the granular, per-F-ID scope + acceptance criteria (the pillar catalog and the [Build-order rollup](#build-order-rollup-status--build-sequence) below). Read the SSOT first for what to pick up; come here for the detail behind a given F-ID.
 

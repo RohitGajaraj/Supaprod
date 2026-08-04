@@ -71,7 +71,7 @@ The connected path is the point: reads what you know → tells you what to build
 
 ## 4. Corrected RFS verbatims — use ONLY these
 
-The repo corpus (`docs/references/investor-corpus-yc-vc.md` §1) contains real misquotes vs the live page (e.g. "transforms" for **"turns"**; "Every company in the world will need one" for **"I think every company in the world is going to need one"**). Quote from the live-fetched text (2026-07-22). New finds the corpus missed, all application-grade:
+The repo corpus (`docs/research/investor-corpus-yc-vc.md` §1) contains real misquotes vs the live page (e.g. "transforms" for **"turns"**; "Every company in the world will need one" for **"I think every company in the world is going to need one"**). Quote from the live-fetched text (2026-07-22). New finds the corpus missed, all application-grade:
 
 - Hu: _"I've seen teams that do this cut sprint time in half and ship twice as much."_
 - Hu (the pain, with named tools): _"building this today requires brutal integration work, stitching together Slack, Linear, GitHub, Notion, call recordings, and a dozen other tools with custom glue code."_

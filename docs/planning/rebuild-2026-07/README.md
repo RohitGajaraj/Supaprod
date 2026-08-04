@@ -36,7 +36,7 @@ Also here: [`SURFACE-JUSTIFICATION.md`](./SURFACE-JUSTIFICATION.md), which asks 
 
 ## The final sweep
 
-[`final-sweep/`](./final-sweep/) carries [`agent-roster.md`](./final-sweep/agent-roster.md), the registry of the agent cast, and [`front-end-rebuild.md`](./final-sweep/front-end-rebuild.md), with an audit of the roster beneath it. The mission prompt that opened this work is [`../../prompts/supaprod-rebuild.md`](../../prompts/supaprod-rebuild.md).
+[`final-sweep/`](./final-sweep/) carries [`final-sweep/agent-roster.md`](./final-sweep/agent-roster.md), the registry of the agent cast, and [`final-sweep/front-end-rebuild.md`](./final-sweep/front-end-rebuild.md), with an audit of the roster beneath it. The mission prompt that opened this work is [`../../prompts/supaprod-rebuild.md`](../../prompts/supaprod-rebuild.md).
 
 ---
 

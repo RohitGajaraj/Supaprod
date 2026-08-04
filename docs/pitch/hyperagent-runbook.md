@@ -32,7 +32,7 @@
 
 ### 2. Research rig (feeds positioning + YC evidence)
 
-**What it does:** review-mining at scale (refreshing the G2/Reddit/HN corpus behind [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) as new threads surface post-launch); interview synthesis once design-partner conversations start generating raw notes (turning PC-13's weekly-ritual quotes into structured findings faster than manual read-through).
+**What it does:** review-mining at scale (refreshing the G2/Reddit/HN corpus behind [`../research/pm-voice-and-ai-tooling-research.md`](../research/pm-voice-and-ai-tooling-research.md) as new threads surface post-launch); interview synthesis once design-partner conversations start generating raw notes (turning PC-13's weekly-ritual quotes into structured findings faster than manual read-through).
 
 **Budget:** $10-25/run, as needed (not standing spend like the GTM engine).
 

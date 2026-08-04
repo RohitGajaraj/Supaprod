@@ -67,5 +67,5 @@ The cold-start problem: a brand-new workspace has nothing to prioritize, so the 
 
 - [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4, build-log entry (2026-06-17, W6)
 - [`wedge.md`](./wedge.md), the Critic-teardown first-run W6 feeds
-- [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md), G5 row + P0 pick-list
+- [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md), G5 row + P0 pick-list
 - [`auth-flows.md`](./auth-flows.md), the auth + first-run gate that routes to `/onboarding`

@@ -4,7 +4,7 @@
 
 > **Read first:** [`pricing-architecture.md`](./pricing-architecture.md) (the finalized design + the reasoning) and [`pricing-strategy.md`](./pricing-strategy.md) §3 (the per-tier value matrix, unchanged). Existing implementation context: [`../../features/billing.md`](../../features/billing.md) (Stripe rail), [`../../features/credits.md`](../../features/credits.md) (debit/grant engine), [`../../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) (WM-M17/M18/M19 — the existing monetization build). Much of the tier/credit scaffolding already exists (entitlements, credit dropdown, Stripe catalog, credit_caps); these tasks are the **deltas** to reach the finalized model.
 
-> **Status: build-ready spec. NOT YET on the feature dashboard as claimed rows** — add a group (suggested `G-PRICE`) when the founder greenlights the build. The exact numbers (prices, allowances, the BYOK %) are founder-config, set in Stripe/admin; they do not block any task below.
+> **Status: build-ready spec. NOT YET on the register in SOURCE-OF-TRUTH.md as claimed rows** — add a group (suggested `G-PRICE`) when the founder greenlights the build. The exact numbers (prices, allowances, the BYOK %) are founder-config, set in Stripe/admin; they do not block any task below.
 
 ---
 
@@ -12,9 +12,9 @@
 
 To have another agent build this without you re-explaining anything, give it a prompt like:
 
-> _"Build the Supaprod pricing architecture. The finalized design is `docs/strategy/pricing/pricing-architecture.md` (read it + `credit-model-and-byok-research.md` for the WHY — do NOT change the design, it's finalized). The per-task build plan is `docs/strategy/pricing/implementation-plan.md` — work the tasks in the build order (PR-A1 first). For each task: implement it, gate it (tsc + build + tests), commit with a WHY, and push. The exact numbers (prices, allowances, the BYOK %) are config I set in Stripe/admin — leave TODOs, don't block on them. Claim each task on the feature dashboard (group G-PRICE) before starting so parallel lanes don't collide."_
+> _"Build the Supaprod pricing architecture. The finalized design is `docs/strategy/pricing/pricing-architecture.md` (read it + `credit-model-and-byok-research.md` for the WHY — do NOT change the design, it's finalized). The per-task build plan is `docs/strategy/pricing/implementation-plan.md` — work the tasks in the build order (PR-A1 first). For each task: implement it, gate it (tsc + build + tests), commit with a WHY, and push. The exact numbers (prices, allowances, the BYOK %) are config I set in Stripe/admin — leave TODOs, don't block on them. Claim each task on the register in SOURCE-OF-TRUTH.md (group G-PRICE) before starting so parallel lanes don't collide."_
 
-The agent has everything it needs from those two files: **what** to build (the task cards), **why** (the reasoning chain in the architecture doc), and the **order**. The tasks are self-contained (each lists its `touches`/`depends`), so an agent can pick up any unblocked task cold. See the `G-PRICE` rows in [`../../planning/feature-dashboard.md`](../../planning/feature-dashboard.md) once greenlit — those are the claimable units.
+The agent has everything it needs from those two files: **what** to build (the task cards), **why** (the reasoning chain in the architecture doc), and the **order**. The tasks are self-contained (each lists its `touches`/`depends`), so an agent can pick up any unblocked task cold. See the `G-PRICE` rows in [`../../planning/SOURCE-OF-TRUTH.md`](../../planning/SOURCE-OF-TRUTH.md) once greenlit — those are the claimable units.
 
 ## The build, in one line
 
@@ -152,4 +152,4 @@ PR-A1 → PR-A2 → PR-A3 → PR-A4 (the metering core) → PR-D1 → PR-D2 → 
 
 ## Cross-links
 
-- Design + reasoning: [`pricing-architecture.md`](./pricing-architecture.md) · evidence: [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) · tier value matrix: [`pricing-strategy.md`](./pricing-strategy.md) · Stripe rail: [`../../features/billing.md`](../../features/billing.md) · credit engine: [`../../features/credits.md`](../../features/credits.md) · existing monetization build: [`../../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) · live status board (add `G-PRICE` group on greenlight): [`../../planning/feature-dashboard.md`](../../planning/feature-dashboard.md).
+- Design + reasoning: [`pricing-architecture.md`](./pricing-architecture.md) · evidence: [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) · tier value matrix: [`pricing-strategy.md`](./pricing-strategy.md) · Stripe rail: [`../../features/billing.md`](../../features/billing.md) · credit engine: [`../../features/credits.md`](../../features/credits.md) · existing monetization build: [`../../planning/workspace-tenancy-and-monetization-plan.md`](../../planning/workspace-tenancy-and-monetization-plan.md) · live status board (add `G-PRICE` group on greenlight): [`../../planning/SOURCE-OF-TRUTH.md`](../../planning/SOURCE-OF-TRUTH.md).

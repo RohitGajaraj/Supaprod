@@ -55,5 +55,5 @@ A spinning mission now also lands in the operator's persistent "what went wrong"
 
 - Gap source: [`planning/cross-cutting-gaps.md`](../planning/cross-cutting-gaps.md) (AI / autonomous-agent safety lens, P1; also Loop/runaway under SRE).
 - Siblings: [`reliability-slo.md`](./reliability-slo.md) (SLO/error budget) · `loop-health.functions.ts` (stall, the inverse) · [`incidents-log.md`](./incidents-log.md) + [`notifications.md`](./notifications.md) (where alerting would surface) · [`mission-cancellation.md`](./mission-cancellation.md) (the brake).
-- Board: `RUNAWAY-DETECT` (row 153) in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md).
+- Board: `RUNAWAY-DETECT` (row 153) in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md).
 - Build log: [`planning/archive/build-log.md`](../planning/archive/build-log.md) §4.

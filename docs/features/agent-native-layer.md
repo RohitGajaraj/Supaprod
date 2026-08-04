@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-27 · Status: **L1/L2/L3 all shipped 2026-06-27** (this doc's Build Plan section below retains the original design draft; the as-shipped MCP tool catalog is the one in `public/llms.txt` / `public/agents.txt` / `src/lib/mcp-protocol.ts`, which evolved from the draft list below — treat the live files as authoritative over this doc's tool tables). Discovery-hardening addendum 2026-07-04, see below._
 > _Decision log: [`../strategy/session-decisions.md`](../strategy/session-decisions.md) — 2026-06-27 entry_
-> _Dashboard: [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) rows AGENT-NATIVE-L1 / L2 / L3_
+> _Dashboard: [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) rows AGENT-NATIVE-L1 / L2 / L3_
 > _Strategy: [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md) §20 (agentic doctrine)_
 > _Moat context: [`../strategy/moat.md`](../strategy/moat.md)_
 
@@ -248,7 +248,7 @@ Today, `POST /api/mcp` exposes exactly **10 read tools** (`search_signals`, `sea
 - **Against / risk:** every additional write tool is a new cross-tenant-leak and prompt-injection surface (the Asana MCP incident, cited above, is exactly this failure mode) and a new "agent takes an action a human didn't approve" trust question — which is the same class of concern the Engine-Room Doctrine and the existing approval-gate model (`src/lib/ai/loop.server.ts`'s `auto`/`confirm`/`review` modes) already govern for Supaprod's _own_ agents. Extending that trust model to _external_ agents calling in over MCP is a bigger decision than adding a tool.
 - **Candidate scope, if greenlit later:** tools like `trigger_mission`, `approve_decision`, or `record_outcome` (all present in this doc's original Layer 2 draft table above but never built) would need the same trust-arc gating Supaprod already applies internally, not a flat on/off.
 
-**Where this is tracked:** [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §4 (founder pickup list) and the [`AGENT-NATIVE-L2`](../planning/feature-dashboard.md) dashboard row.
+**Where this is tracked:** [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §4 (founder pickup list) and the [`AGENT-NATIVE-L2`](../planning/SOURCE-OF-TRUTH.md) dashboard row.
 
 ---
 

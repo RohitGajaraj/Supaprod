@@ -76,7 +76,7 @@ The product is **Supaprod**. Lowercase `supaprod` for domains, handles and slugs
 - **A feature is two files in lockstep:** server logic in `src/lib/<domain>.functions.ts`, consumed in `src/routes/_authenticated.<domain>.tsx` via TanStack Query. Follow an existing pair rather than inventing a data-flow shape.
 - **RLS on every user table, scoped by membership. Every write stamps `workspace_id`.** A missing `workspace_id` typechecks clean and fails at runtime; it has caused live outages here.
 - Database changes are timestamped, RLS-aware SQL under `supabase/migrations/`. Never edit an applied migration in place.
-- **BUILD-ONLY MODE is ACTIVE** (founder ruling 2026-07-04). Skip the documentation ceremony. The one trace required when something ships: flip its row in `docs/planning/feature-dashboard.md` with a one-line note.
+- **BUILD-ONLY MODE is ACTIVE** (founder ruling 2026-07-04). Skip the documentation ceremony. The one trace required when something ships: flip its row in `docs/planning/SOURCE-OF-TRUTH.md` with a one-line note.
 
 ### Root documentation, as of 2026-08-03
 

@@ -8,7 +8,7 @@
 
 ## The one rule
 
-**One lane = one terminal = one worktree = one autonomous `/loop`.** Each lane is a numbered worker (Lane 0..1). It pulls the **lowest-numbered unclaimed, un-gated item from THE BUILD SEQUENCE** at the top of `docs/planning/feature-dashboard.md` (pick by number, do not deliberate; founder ruling 2026-06-21), **claims it atomically** so no other lane can take it, builds it, marks it done on the board in the same commit, and immediately moves to the next number - never stopping until you stop it. (Monetization / credit / pricing rows are **Lovable-owned** and are NOT in the sequence; never pick them.)
+**One lane = one terminal = one worktree = one autonomous `/loop`.** Each lane is a numbered worker (Lane 0..1). It pulls the **lowest-numbered unclaimed, un-gated item from THE BUILD SEQUENCE** at the top of `docs/planning/SOURCE-OF-TRUTH.md` (pick by number, do not deliberate; founder ruling 2026-06-21), **claims it atomically** so no other lane can take it, builds it, marks it done on the board in the same commit, and immediately moves to the next number - never stopping until you stop it. (Monetization / credit / pricing rows are **Lovable-owned** and are NOT in the sequence; never pick them.)
 
 ## The lane map (the legend)
 
@@ -122,7 +122,7 @@ So every lane now freely picks the single highest-priority item anywhere on the 
 
 ## "Own memory" - what each lane knows
 
-Each lane reads, every cycle: its `.remember/LANE.md` (lane number, branch, report file, preferred categories, claim-glob conventions, OWNED/FORBIDDEN backstop), `docs/planning/SOURCE-OF-TRUTH.md` (the front-door tracker), `docs/planning/feature-dashboard.md` (the live prioritized register = what to build next), `docs/planning/considerations.md` (cross-cutting gaps), and `scripts/lane.sh list` (what every lane is on). That is its working memory of the parent project: priority, what is in flight, what is pending, and what is not yet verified.
+Each lane reads, every cycle: its `.remember/LANE.md` (lane number, branch, report file, preferred categories, claim-glob conventions, OWNED/FORBIDDEN backstop), `docs/planning/SOURCE-OF-TRUTH.md` (the front-door tracker), `docs/planning/SOURCE-OF-TRUTH.md` (the live prioritized register = what to build next), `docs/planning/considerations.md` (cross-cutting gaps), and `scripts/lane.sh list` (what every lane is on). That is its working memory of the parent project: priority, what is in flight, what is pending, and what is not yet verified.
 
 ## It never stops on its own
 
@@ -137,7 +137,7 @@ bash scripts/lane.sh board   # per-lane summary: Lane 0..1 -> current item (or i
 bash scripts/lane.sh list    # every active claim with its file-globs and age
 ```
 
-**Real-time status (one file + the ledger, no separate doc):** who is on what RIGHT NOW = `bash scripts/lane.sh board` / `list` (the instant ledger view) and the `🔨 In Dev` rows in `docs/planning/feature-dashboard.md`. The register IS the status board: a lane flips its row to `🔨` on claim and to `✅`/`◐` on finish, **and commits + pushes immediately on each** (so every other session sees it in git at its next pull). A background agent (`scripts/active-claims-watch.sh`, the `com.cadence.active-claims-sync` launchd agent, `RunAtLoad` + `KeepAlive`) keeps this worktree fast-forwarded so the founder's view stays current without a manual pull; `bash scripts/ensure-watcher.sh` brings it up idempotently. **Collisions are mechanically impossible:** `lane.sh claim` refuses `HELD` (claimed), `CONFLICT` (overlapping files), and `DONE` (already completed - the ledger remembers completions via `lane.sh done`, so a finished item is never re-picked). A dead-session claim clears with `bash scripts/lane.sh reap` (> 6h), which also prunes old completion markers.
+**Real-time status (one file + the ledger, no separate doc):** who is on what RIGHT NOW = `bash scripts/lane.sh board` / `list` (the instant ledger view) and the `🔨 In Dev` rows in `docs/planning/SOURCE-OF-TRUTH.md`. The register IS the status board: a lane flips its row to `🔨` on claim and to `✅`/`◐` on finish, **and commits + pushes immediately on each** (so every other session sees it in git at its next pull). A background agent (`scripts/active-claims-watch.sh`, the `com.cadence.active-claims-sync` launchd agent, `RunAtLoad` + `KeepAlive`) keeps this worktree fast-forwarded so the founder's view stays current without a manual pull; `bash scripts/ensure-watcher.sh` brings it up idempotently. **Collisions are mechanically impossible:** `lane.sh claim` refuses `HELD` (claimed), `CONFLICT` (overlapping files), and `DONE` (already completed - the ledger remembers completions via `lane.sh done`, so a finished item is never re-picked). A dead-session claim clears with `bash scripts/lane.sh reap` (> 6h), which also prunes old completion markers.
 
 ## Migrating the folder names (DONE 2026-06-21)
 

@@ -108,7 +108,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | --- | --- |
 | Direction and the moat argument | [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md) · [`../strategy/moat.md`](../strategy/moat.md) |
 | Which strategy doc is current | [`../strategy/README.md`](../strategy/README.md), the arbiter |
-| Primary-source evidence | [`../references/`](../references/) · especially [`references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) and [`references/launch-research-briefs.md`](../references/launch-research-briefs.md) |
+| Primary-source evidence | [`../research/`](../research/) · especially [`research/pm-voice-and-ai-tooling-research.md`](../research/pm-voice-and-ai-tooling-research.md) and [`research/launch-research-briefs.md`](../research/launch-research-briefs.md) |
 | Why a decision was made | [`../strategy/session-decisions.md`](../strategy/session-decisions.md) · [`../strategy/strategic-inputs-log.md`](../strategy/strategic-inputs-log.md) |
 | What the product can actually do, in code | [`../features/lifecycle-signal-to-learning.md`](../features/lifecycle-signal-to-learning.md), which carries a `file:line` for every structural claim |
 | Pricing and tiers | [`../strategy/pricing/`](../strategy/pricing/README.md) |

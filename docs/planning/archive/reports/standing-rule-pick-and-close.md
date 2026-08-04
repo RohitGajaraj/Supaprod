@@ -9,7 +9,7 @@
 
 ## Rule 1 — NEVER re-pick a ✅ item
 
-The register in `docs/planning/feature-dashboard.md` is the truth. If a row shows `✅`, that item is **closed**. Do NOT:
+The register in `docs/planning/SOURCE-OF-TRUTH.md` is the truth. If a row shows `✅`, that item is **closed**. Do NOT:
 
 - Pick it "to verify"
 - Pick a sub-increment of it as a new claim

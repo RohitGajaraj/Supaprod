@@ -22,7 +22,7 @@ There are no "Claude Code files" or "Lovable files." Every tool can touch every 
 Temporary ownership. When you start working on a task, you own it until you hand it off via the SSOT section 0 (the live cursor) and the Live status board. The next tool picks it up from there.
 
 **Rule 2: Always check before you start.**
-Before touching any file, check the Live status board (`docs/planning/feature-dashboard.md` top section). If another tool is already working on that task: stop, pick a different task. If no tool is working on it: claim it by setting "Now building" in the status board.
+Before touching any file, check the Live status board (`docs/planning/SOURCE-OF-TRUTH.md` top section). If another tool is already working on that task: stop, pick a different task. If no tool is working on it: claim it by setting "Now building" in the status board.
 
 **Rule 3: Leave the codebase in a known state.**
 When you end a session, the next tool must be able to continue without asking you questions. That means:
@@ -38,10 +38,10 @@ When you end a session, the next tool must be able to continue without asking yo
 | Artifact | Purpose | Updated when |
 | --- | --- | --- |
 | SSOT section 0 (the live cursor, `docs/planning/SOURCE-OF-TRUTH.md`) | Exact checklist of in-flight sub-steps | Start of task, each sub-step, end of session |
-| Live status board (`docs/planning/feature-dashboard.md` top) | "Now building," "Next up," "Blocked," recent log | Start and end of every session |
+| Live status board (`docs/planning/SOURCE-OF-TRUTH.md` top) | "Now building," "Next up," "Blocked," recent log | Start and end of every session |
 | Git commits | What changed, why it changed (one-line WHY) | Every logical chunk of work |
 | `docs/strategy/session-decisions.md` | Major strategic decisions from sessions | When a strategic decision is made |
-| `docs/planning/feature-dashboard.md` | Feature state (✅/◐/⬜) | When feature is started or completed |
+| `docs/planning/SOURCE-OF-TRUTH.md` | Feature state (✅/◐/⬜) | When feature is started or completed |
 | Architecture docs (`architecture/`) | How the system works | When architecture changes |
 | `docs/design/archive/ember-editorial-landing.md` | Design tokens, component contracts | When UI patterns change |
 
@@ -53,7 +53,7 @@ When you end a session, the next tool must be able to continue without asking yo
 
 1. `git pull origin main` — get latest from all other tools
 2. Read the SSOT section 0 (the live cursor) in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) — this is your exact handoff
-3. Read Live status board (`docs/planning/feature-dashboard.md` top) — check "Now building"
+3. Read Live status board (`docs/planning/SOURCE-OF-TRUTH.md` top) — check "Now building"
 4. Read latest positioning in `docs/strategy/` — know what you're building and why
 5. Set "Now building" in status board with your task ID
 
@@ -122,4 +122,4 @@ This model is summarized in:
 - [`../../GEMINI.md`](../../GEMINI.md) (Antigravity/Gemini guidelines)
 - [`../../.lovable-config.txt`](../../.lovable-config.txt) Section 5 (Lovable Knowledge)
 
-The Live status board lives in: [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md)
+The Live status board lives in: [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md)

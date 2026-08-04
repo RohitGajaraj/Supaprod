@@ -63,6 +63,15 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). 
 | [`domain-and-email-setup.md`](./domain-and-email-setup.md) | Domains and email infrastructure. |
 | [`openhands-activation.md`](./openhands-activation.md) | The OpenHands build driver. |
 
+## Testing and security
+
+Both were separate top-level folders until 2026-08-04. They are operational concerns, so they live here now and this folder answers the whole "how do we run it well" question in one place.
+
+| Folder | What it holds |
+| --- | --- |
+| [`testing/`](./testing/README.md) | How tests are written here, the gates, the enforcement tests that bind a convention, and the one known coverage gap. |
+| [`security/`](./security/README.md) | Audit findings, remediation state, and the XSS implementation guide. |
+
 ## Historical, kept for the record
 
 | File | Status |
@@ -70,4 +79,4 @@ For the rules a change must satisfy, read [`../../AGENTS.md`](../../AGENTS.md). 
 | [`rename-cadence-to-supaprod.md`](./rename-cadence-to-supaprod.md) | **Still useful.** The ledger of internal identifiers deliberately left unmigrated, so `agent_slug='builder'` and the `cadence` DB column read correctly rather than as brand leakage. |
 | [`autonomous-build-loop.md`](./autonomous-build-loop.md) | **Retired 2026-08-03, description only.** The unattended overnight loop. Its skills (`overnight-build-0`, `overnight-build-1`), its `/overnight-build` command and its two lane worktrees were **deleted** on founder instruction: *"we do not need overnight build skill at all now."* Nothing can start it. Kept because the loop's discipline (never commit a red tree, never commit on main, skip-and-queue a blocked item) is worth reading. |
 | [`parallel-build.md`](./parallel-build.md) | **Retired 2026-08-03, description only.** The lane mechanics and the atomic claim ledger at `~/.cadence-parallel`. Reviving this means rebuilding the worktrees; do not assume the commands still work. |
-| [`security/audit-findings-july.md`](../security/audit-findings-july.md) | Superseded by [`../security/`](../security/README.md), which owns audit state now. |
+| [`security/audit-findings-july.md`](./security/audit-findings-july.md) | Superseded by [`../security/`](../security/README.md), which owns audit state now. |

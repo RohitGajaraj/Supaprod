@@ -206,7 +206,7 @@ the URLs change) and OBS-14's demo-seed dependency.
 - **Acceptance:** every room card opens; nothing dead-ends; Engine-Room Test
   passes on every label.
 
-### OBS-10 · IA consolidation (routes into five destinations) - ◐ shipped-partial 2026-07-02 (lane1, [~75%] - see feature-dashboard.md row + docs/features/obsidian-port.md for the full account of what folded and what was deliberately left live)
+### OBS-10 · IA consolidation (routes into five destinations) - ◐ shipped-partial 2026-07-02 (lane1, [~75%] - see SOURCE-OF-TRUTH.md row + docs/features/obsidian-port.md for the full account of what folded and what was deliberately left live)
 
 - **Context:** current routes (`/prds`, `/roadmap`, `/discovery`, `/agents`,
   `/traces`, `/evals`, `/guardrails`, `/drift`, …) must fold into Today /
@@ -224,11 +224,11 @@ the URLs change) and OBS-14's demo-seed dependency.
 
 ### OBS-12 · Ask (⌘J) panel (extensions §2) - ✅ shipped 2026-07-02 (lane1)
 
-### OBS-13 · Settings four panes + Admin door (extensions §3) - ◐ shipped-partial 2026-07-02 (lane1, [~70%] - see feature-dashboard.md row + docs/features/obsidian-port.md for what remains)
+### OBS-13 · Settings four panes + Admin door (extensions §3) - ◐ shipped-partial 2026-07-02 (lane1, [~70%] - see SOURCE-OF-TRUTH.md row + docs/features/obsidian-port.md for what remains)
 
-### OBS-14 · Onboarding golden path (extensions §4; needs the demo seed live) - ✅ shipped 2026-07-03 (lane1 - see feature-dashboard.md row + docs/features/obsidian-port.md)
+### OBS-14 · Onboarding golden path (extensions §4; needs the demo seed live) - ✅ shipped 2026-07-03 (lane1 - see SOURCE-OF-TRUTH.md row + docs/features/obsidian-port.md)
 
-### OBS-15 · Chart grammar adoption (extensions §6; rides with 05/08/09) - ✅ closed 2026-07-03 (lane1 grammar module + lane3 closing pass - see feature-dashboard.md row + docs/features/obsidian-port.md)
+### OBS-15 · Chart grammar adoption (extensions §6; rides with 05/08/09) - ✅ closed 2026-07-03 (lane1 grammar module + lane3 closing pass - see SOURCE-OF-TRUTH.md row + docs/features/obsidian-port.md)
 
 For 11-15 the spec IS the extensions file section; each becomes a normal
 feature-pair build (server fn reuse only; presentation new) with the same

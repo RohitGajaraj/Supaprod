@@ -14,7 +14,7 @@
 | Depends on | OBS-04 · OBS-05 · OBS-06 · OBS-07 · OBS-08 · OBS-09 (the five destinations + the door must render Obsidian first) |
 | Blocks | OBS-11 · OBS-12 · OBS-13 · OBS-14 (the palette, Ask, Settings, and onboarding all assume the five-destination IA is final) |
 | One-line what | Map every legacy `_authenticated.*` route into Today / Discover / Plan / Build / Brain / Engine Room, redirect every legacy path (no 404s), reshape `nav-model.ts` so the rail renders only the five + one door, and rule on every orphaned surface with the placement algorithm (Call · ⌘K · a room) instead of a new nav item. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-10 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-10 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · section "OBS-10 · IA consolidation" |
 | Hub | [`./README.md`](./README.md) §6 (IA target) · §7 (route inventory) |
 
@@ -234,7 +234,7 @@ Open `design-reference/obsidian-v3/design-reference/cadence-app.html` beside the
 
 - **Hub / foundation:** [`./README.md`](./README.md) - §2 constraints, §6 the IA target table, §7 the route inventory, §5.9 the parity checklist, §10 shared gates, §11 the build-gate caveat.
 - **Summary bible:** [`../obsidian-port-plan.md`](../obsidian-port-plan.md) - "OBS-10 · IA consolidation."
-- **Board:** [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-10.
+- **Board:** [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-10.
 - **Canon:** [`design/archive/obsidian-v3.md`](../../../../design/archive/obsidian-v3.md) §8 (information architecture - five destinations + door) and §12.1 (the placement algorithm: which object · which intent · which layer · needs attention → Call · rare → ⌘K; new features never get nav items). Doctrine: [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md) (calm front, one door). Strategy tie: [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md).
 - **Sibling OBS items (build-order neighbors):**
   - [`./OBS-02.md`](./OBS-02.md) - the shell renders the rail; OBS-10 feeds it the reshaped `nav-model.ts`. Coordinate the icon-removal / label ownership.

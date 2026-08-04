@@ -47,4 +47,4 @@ Local dev has no AI key, so the full cited verdict only renders on the deployed 
 
 - [`critic-agent.md`](./critic-agent.md) — the Critic engine the wedge wires (DEC-02 / DEF-03).
 - [`shareable-links.md`](./shareable-links.md) — the share rails `F-SHARE-TEARDOWN` will reuse.
-- [Feature dashboard](../planning/feature-dashboard.md) · [v10 implementation plan](../planning/archive/v10-implementation-plan.md).
+- [Feature dashboard](../planning/SOURCE-OF-TRUTH.md) · [v10 implementation plan](../planning/archive/v10-implementation-plan.md).

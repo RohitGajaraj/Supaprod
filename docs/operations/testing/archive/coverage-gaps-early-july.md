@@ -98,7 +98,7 @@ function nextActionFor(opp: RankableOpportunity): string {
 - Over time, suites may diverge
 - Wastes CI/local test cycles
 
-**Consolidation Guide**: Created in `docs/testing/duplicate-test-consolidation.md`
+**Consolidation Guide**: Created in `docs/operations/testing/duplicate-test-consolidation.md`
 
 **Runbook**:
 

@@ -21,7 +21,7 @@
 
 - [x] **Step 1 — Read all project docs.** Core docs read (README, plan.md §1–4, v3 positioning, backlog structure, AGENTS.md structure, naming.md, active-task.md); full doc + src sweep done via subagent. Key facts: 34 authenticated routes, 40 server-fn domains, orchestrator + mission_steps DAG + event reactor + swarm HUD + builder CI loop + full trust stack already exist; substrate ~solid, UX/story is the bottleneck.
 - [x] **Step 2 — Doc/source sweep.** Done (subagent). Notable: duplication is intentional pointer files; gaps flagged: 18 agents vs 4-persona roster mismatch, fragmented observability surfaces, undefined Human/Machine mode, naming drift (Mission/Run/Trajectory).
-- [x] **Step 3 — Market + competitor research.** Output: [`../references/competitive-landscape.md`](../../references/competitive-landscape.md). Headline: end-to-end agent-run PM lifecycle is whitespace; feedback layer commoditizing; build layer solved ($48B vibe-coding); MCP table stakes; governance is the differentiator; bottleneck moved from engineering to product alignment.
+- [x] **Step 3 — Market + competitor research.** Output: [`../research/competitive-landscape.md`](../../research/competitive-landscape.md). Headline: end-to-end agent-run PM lifecycle is whitespace; feedback layer commoditizing; build layer solved ($48B vibe-coding); MCP table stakes; governance is the differentiator; bottleneck moved from engineering to product alignment.
 - [x] **Step 4 — Stress-test verdict.** Output: [`../strategy/archive/v4-stress-test.md`](../../strategy/archive/v4-stress-test.md).
 - [x] **Step 5 — End-to-end agentic feature map (L0→L5).** Output: [`../strategy/archive/v4-feature-map.md`](../../strategy/archive/v4-feature-map.md). **This is now the strategic source of truth** (supersedes v3 positioning for feature scope).
 - [x] **Step 6 — Naming.** Deferred by founder decision; fresh candidate directions + criteria logged in [`../decisions/naming.md`](../../decisions/naming.md). Final pick = last activity before launch.
@@ -41,7 +41,7 @@
 | --- | --- |
 | `docs/strategy/archive/v4-feature-map.md` | **Canonical feature scope + agent mesh + IA + milestones (read before any feature work)** |
 | `docs/strategy/archive/v4-stress-test.md` | Why v3 wasn't enough — the argued verdict |
-| `docs/references/competitive-landscape.md` | Market research with links (don't re-research) |
+| `docs/research/competitive-landscape.md` | Market research with links (don't re-research) |
 | `docs/planning/archive/build-log.md` | Thin pointer to the v4 map for scope; build order; ACTIVE BUILD LOG stays here |
 | `docs/planning/feature-backlog.md` | Ticket-level F-IDs; v4 overlay section maps backlog → stations |
 | `README.md` | Product thesis, updated to v4 framing |

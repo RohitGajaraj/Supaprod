@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-04 · Last updated: 2026-08-03_
 
-**Fifteen folders, each answering one question.** Every one has an index. This file says which folder answers which, and it is the placement policy: before creating any file, find its bucket here and link it from that bucket's index in the same commit.
+**Thirteen folders, each answering one question.** Every one has an index. The test is that clicking one folder tells you everything about that topic. This file says which folder answers which, and it is the placement policy: before creating any file, find its bucket here and link it from that bucket's index in the same commit.
 
 Start at [`../README.md`](../README.md) if you want to know what the product is. Start at [`../AGENTS.md`](../AGENTS.md) if you are about to write code.
 
@@ -15,14 +15,14 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 | Folder | Question it answers |
 | --- | --- |
 | **[`strategy/`](./strategy/README.md)** | Direction, the moat, positioning, pricing. Which doc is current is decided by its README, the arbiter. |
-| **[`references/`](./references/)** | What the market and competitors actually do. Dated primary sources. Cite artifacts and companies, never gurus. |
+| **[`references/`](./research/)** | What the market and competitors actually do. Dated primary sources. Cite artifacts and companies, never gurus. |
 | **[`prompts/`](./prompts/README.md)** | The founder's mission briefs, verbatim. Not rules, not plans; the original ask. |
 
 ### What we are building
 
 | Folder | Question it answers |
 | --- | --- |
-| **[`planning/`](./planning/README.md)** | Where we are, what is next, what needs the founder. **[`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) §0 is the only live cursor.** Per-feature status is [`planning/feature-dashboard.md`](./planning/feature-dashboard.md); open bugs are [`planning/known-issues.md`](./planning/known-issues.md). |
+| **[`planning/`](./planning/README.md)** | Where we are, what is next, what needs the founder. **[`planning/SOURCE-OF-TRUTH.md`](./planning/SOURCE-OF-TRUTH.md) §0 is the only live cursor.** The register of open work is in that same file; open bugs are [`planning/known-issues.md`](./planning/known-issues.md). |
 | **[`features/`](./features/README.md)** | How each shipped thing works, one page per feature. The loop's proof file is [`features/lifecycle-signal-to-learning.md`](./features/lifecycle-signal-to-learning.md). |
 
 ### How it should look, and how it is built
@@ -93,6 +93,6 @@ Two loose files are allowed at this level and no others: this index, and [`brand
 | `runbooks/`, a folder holding exactly one file | Folded into [`operations/`](./operations/README.md) |
 | `planning/`, 51 loose files | **12**, with 30 orphaned reports plus six finished plans in [`planning/archive/reports/`](./planning/archive/reports/README.md) |
 | `strategy/` declaring **seven** documents current at once | One per question, per the [arbiter](./strategy/README.md) |
-| `feature-dashboard.md`, 6.45 MB | 923 KB. 85% was table padding; removing it was verified lossless. |
+| `SOURCE-OF-TRUTH.md`, 6.45 MB | 923 KB. 85% was table padding; removing it was verified lossless. |
 
 **Nothing was deleted except `ENTRY.md`.** Everything else moved, with a README at each destination recording what it was and why it stopped being current.

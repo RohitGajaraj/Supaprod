@@ -93,7 +93,7 @@ console.log(Array.from(arr, b => b.toString(16).padStart(2, '0')).join(''));
 - **After:** Input sanitized before storage; whitelist-based tag filtering
 - **Attack Prevented:** Stored XSS via announcements/briefs/transcripts
 
-**Implementation Guide:** See `docs/security/xss-prevention-guide.md`
+**Implementation Guide:** See `docs/operations/security/xss-prevention-guide.md`
 
 **Estimated Effort:** 4-6 hours
 

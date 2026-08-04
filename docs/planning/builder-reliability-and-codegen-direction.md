@@ -60,6 +60,6 @@ The canon already says this is the answer; the live failure just makes it concre
 
 ## Cross-links
 
-- Direction canon: [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md), [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (BUILD/BUY/INTEGRATE), `ORCH-DELEGATE` + `BLD-04` rows in [`feature-dashboard.md`](./feature-dashboard.md).
+- Direction canon: [`../strategy/v11-guiding-star.md`](../strategy/v11-guiding-star.md), [`../strategy/build-buy-integrate.md`](../strategy/build-buy-integrate.md) (BUILD/BUY/INTEGRATE), `ORCH-DELEGATE` + `BLD-04` rows in [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md).
 - The live diagnosis + the infra fixes from the same session: [`../strategy/session-decisions.md`](../strategy/session-decisions.md) (2026-06-26 entries).
 - Spend/vendor implications of delegation: [`../operations/procurement-inventory.md`](../operations/procurement-inventory.md).

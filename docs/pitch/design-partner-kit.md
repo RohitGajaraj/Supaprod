@@ -4,7 +4,7 @@
 
 ## Where this cohort comes from (the receipt)
 
-Thread: **"How I use Claude Code as a Product Manager"** — r/ProductManagement, posted by **u/akashkrr** (Sr. Product Manager), 838 points, 223 comments, 2026-04-19 (referenced in [`../references/pm-voice-and-ai-tooling-research.md`](../references/pm-voice-and-ai-tooling-research.md) §12.2). Permalink: `old.reddit.com/r/ProductManagement/comments/1sppgwd/how_i_use_claude_code_as_a_product_manager/`
+Thread: **"How I use Claude Code as a Product Manager"** — r/ProductManagement, posted by **u/akashkrr** (Sr. Product Manager), 838 points, 223 comments, 2026-04-19 (referenced in [`../research/pm-voice-and-ai-tooling-research.md`](../research/pm-voice-and-ai-tooling-research.md) §12.2). Permalink: `old.reddit.com/r/ProductManagement/comments/1sppgwd/how_i_use_claude_code_as_a_product_manager/`
 
 The author describes hand-building exactly Supaprod's shape: MCP connectors into Slack/Notion/Gmail/databases, a custom memory system that persists decisions across sessions, a personal skill library, parallel agents, and a taste-trained "second opinion" skill — built because ChatGPT "couldn't connect to anything real, didn't know my context, and every conversation started fresh." This is the single strongest organic persona-proof in the research corpus: the year's most-upvoted PM/AI post is a build-log of the product we're launching. **He and his commenters are the launch cohort** — proven demand, zero influencer smell (§12.4: this community actively distrusts PM-influencer authority; these are practitioners, not personalities).
 

@@ -129,4 +129,4 @@ No product code until the founder greenlights a phase. On greenlight: the phase'
 
 ---
 
-**Related:** [`../strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md) (spec) · [`archive/reports/lifecycle-gap-map.md`](./archive/reports/lifecycle-gap-map.md) (the deploy/review/ship capture P3 closes) · SSOT group G11 / BYO-\* in [`feature-dashboard.md`](./feature-dashboard.md) + [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md).
+**Related:** [`../strategy/byo-build-and-supaprod-cloud.md`](../strategy/byo-build-and-supaprod-cloud.md) (spec) · [`archive/reports/lifecycle-gap-map.md`](./archive/reports/lifecycle-gap-map.md) (the deploy/review/ship capture P3 closes) · SSOT group G11 / BYO-\* in [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) + [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md).

@@ -16,7 +16,7 @@
 | Depends on | OBS-10 (route consolidation → the five canonical destinations must be real) · OBS-01/02/03 (tokens, shell, primitives) |
 | Blocks | nothing downstream |
 | One-line what | Supersede the parchment cmdk palette with the glass ⌘K palette (560px, sections JUMP · ACT · ASK · CATALOG, mono index rows) plus the "What can it do?" capability catalog: every capability as a plain-words pitch with a "Try it on real data" action. The answer to 250+ features without growing the nav. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-11 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-11 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) (OBS-11 one-paragraph index) |
 
 ## 2. Why we are doing it
@@ -241,4 +241,4 @@ The palette is a stub-surface (not in the runnable HTML), so parity is against e
   - [`../../../design-reference/obsidian-extensions.md`](../../../../../design-reference/obsidian-extensions.md) **§1** (Command palette + capability catalog · the exact panel/input/rows/catalog/voice spec).
   - [`design/archive/obsidian-v3.md`](../../../../design/archive/obsidian-v3.md) **§11** (the catalog + journey/discovery) and **§12.1** (rare = Cmd+K; features never get nav items).
   - [`../../../design-reference/obsidian-v3/components.md`](../../../design-reference/obsidian-v3/components.md) · "Mission slide-over" (the glass/scrim/`cadSlideIn` idiom the palette mirrors) and the mono-label/StatusDot anatomies.
-- **Board + strategy:** [`../feature-dashboard.md`](../../../feature-dashboard.md) (G14, OBS-11) · [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md) · [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md) · [`../../conventions/humanized-output.md`](../../../../conventions/humanized-output.md).
+- **Board + strategy:** [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) (G14, OBS-11) · [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md) · [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md) · [`../../conventions/humanized-output.md`](../../../../conventions/humanized-output.md).

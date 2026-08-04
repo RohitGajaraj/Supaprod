@@ -16,7 +16,7 @@ The live cursors, logs, and trackers. Update these in the SAME commit as the cha
 
 - `docs/planning/archive/build-log.md` section 4 (the build log): one line per shipped change.
 - `docs/planning/SOURCE-OF-TRUTH.md` section 0 (the live cursor): the current Now-building and Next-up, at the start and end of every session.
-- `docs/planning/feature-dashboard.md`: the live status board. (`docs/planning/feature-backlog.md` is archived at `docs/planning/archive/feature-backlog.md` as of 2026-06-24; do not update the archive.)
+- `docs/planning/SOURCE-OF-TRUTH.md`: the live status board. (`docs/planning/feature-backlog.md` is archived at `docs/planning/archive/feature-backlog.md` as of 2026-06-24; do not update the archive.)
 - `docs/planning/known-issues.md`: bugs and blockers as they open and close.
 - `docs/strategy/session-decisions.md`: every major decision or tradeoff.
 - `.remember/`: session memory.
@@ -27,7 +27,7 @@ The product-facing maps and specs. Refresh these when a feature set lands or a f
 
 - `docs/strategy/archive/v10-master-blueprint.md`: the current master blueprint (what we build, how it should look and behave, priority). See `docs/strategy/README.md` (the arbiter) for which strategy doc governs what.
 - `docs/planning/archive/v10-implementation-plan.md`: the execution order (build loop, sprints, milestone gates).
-- `docs/planning/feature-dashboard.md`: the live board (status, board groups).
+- `docs/planning/SOURCE-OF-TRUTH.md`: the live board (status, board groups).
 - `docs/features/*`: per-feature operator specs.
 
 The refresh pass at each feature-milestone: update each feature's status on the board, refresh the blueprint and implementation plan if scope or priority moved, and re-check the execution order against the milestone gates. Add a one-line note to `docs/planning/archive/build-log.md` section 4 that the refresh happened.
@@ -48,9 +48,9 @@ Any "what are we building next?" question is answered by reading one chain, in o
 
 1. `docs/planning/SOURCE-OF-TRUTH.md` section 0 (the live cursor): the current Now-building and Next-up. Read this first, every session.
 2. `docs/planning/SOURCE-OF-TRUTH.md` section 3 (the build queue): the explicit build queue (top pick first), plus the founder pickup list, open findings, and the milestone framing folded in.
-3. `docs/planning/feature-dashboard.md`: the per-feature register with status, board groups, and per-row notes. (The old `feature-backlog.md` is archived; per-feature how-to-verify details now live in the relevant `docs/features/*.md` file.)
+3. `docs/planning/SOURCE-OF-TRUTH.md`: the per-feature register with status, board groups, and per-row notes. (The old `feature-backlog.md` is archived; per-feature how-to-verify details now live in the relevant `docs/features/*.md` file.)
 
-The milestone gates and execution order are defined in `docs/planning/archive/v10-implementation-plan.md`; the build/structure canon is `docs/strategy/archive/v10-master-blueprint.md` (with `docs/strategy/README.md` as the arbiter of which strategy doc governs what). The feature statuses come from `docs/planning/feature-dashboard.md`. The tracker (the SSOT) is the synthesis layer that joins them.
+The milestone gates and execution order are defined in `docs/planning/archive/v10-implementation-plan.md`; the build/structure canon is `docs/strategy/archive/v10-master-blueprint.md` (with `docs/strategy/README.md` as the arbiter of which strategy doc governs what). The feature statuses come from `docs/planning/SOURCE-OF-TRUTH.md`. The tracker (the SSOT) is the synthesis layer that joins them.
 
 Rules:
 
@@ -66,7 +66,7 @@ Rules:
 1. **Audit / feature doc** - add a "How to use / verify" block: route + nav path, what each control does, server enforcement points, verification checklist.
 2. **`architecture/*.md`** - add or update the relevant contract (frontend pattern, security invariant, data shape, runtime hook).
 3. **`docs/design/archive/ember-editorial-landing.md`** - add or update the token / voice / UI-contract entry if the feature touches visual or copy rules.
-4. **Trackers** - update `docs/planning/SOURCE-OF-TRUTH.md` (section 0 the live cursor + section 6 progress) and the relevant board `docs/planning/feature-dashboard.md` (flip the status mark, append a shipping note to the row). Do NOT update `docs/planning/archive/feature-backlog.md` — it is archived and frozen.
+4. **Trackers** - update `docs/planning/SOURCE-OF-TRUTH.md` (section 0 the live cursor + section 6 progress) and the relevant board `docs/planning/SOURCE-OF-TRUTH.md` (flip the status mark, append a shipping note to the row). Do NOT update `docs/planning/archive/feature-backlog.md` — it is archived and frozen.
 5. **`docs/planning/archive/build-log.md` §4** - append a dated one-liner with a clear WHY (not just WHAT).
 6. **`docs/strategy/session-decisions.md`** - add an entry if a strategic decision or tradeoff was resolved.
 7. **`docs/conventions/`** - write a new convention file if the learning is a durable rule. Reference it from [`../../AGENTS.md`](../../AGENTS.md) §3 if it is a hard engineering rule.

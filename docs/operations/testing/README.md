@@ -18,7 +18,7 @@ bun test              # 0 failures
 bun run build         # succeeds
 ```
 
-Current scale: **402 test files**, and the suite runs clean. Canonical rule: [`../../AGENTS.md`](../../AGENTS.md) §4.
+Current scale: **402 test files**, and the suite runs clean. Canonical rule: [`../../AGENTS.md`](../../../AGENTS.md) §4.
 
 ## Two things this repo learned the hard way
 
@@ -34,7 +34,7 @@ Some tests in this repo exist to bind a convention rather than to check a featur
 
 | Test | Binds |
 | --- | --- |
-| `src/__tests__/surface-discipline.test.ts` | The layout and scroll mechanics in [`../conventions/surface-discipline.md`](../conventions/surface-discipline.md) |
+| `src/__tests__/surface-discipline.test.ts` | The layout and scroll mechanics in [`../conventions/surface-discipline.md`](../../conventions/surface-discipline.md) |
 | `src/components/knowledge/graph-universe-buffers.test.ts` | That the 3D graph binds its per-frame buffers by reference, after a one-word constructor difference made every edge invisible |
 | `src/lib/query-keys.test.ts` | That one read has one cache key, after three key families caused the same query to be fetched three times per page load |
 | `src/lib/ai/tools/tenancy-stamp.test.ts` | That every write to a workspace-scoped table stamps `workspace_id` |

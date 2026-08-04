@@ -403,7 +403,7 @@ Before closing the redesign project, verify:
 **ACTIVE (founder ruling 2026-07-04):** No documentation overhead during this phase.
 
 - [ ] Do NOT update `docs/planning/archive/build-log.md` with progress
-- [ ] Do NOT update `docs/planning/feature-dashboard.md`
+- [ ] Do NOT update `docs/planning/SOURCE-OF-TRUTH.md`
 - [ ] Do NOT update `docs/planning/SOURCE-OF-TRUTH.md`
 - [ ] Do NOT write feature docs or design docs (except design-reference applied records, which are already done)
 - [ ] Do NOT update brand-feed.md for social content

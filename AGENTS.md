@@ -46,7 +46,7 @@ Four things carry most of the value in this file. If you read nothing else:
 | Question | File |
 | --- | --- |
 | What is in flight, what is next, what needs the founder | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) §0 |
-| Per-feature status and who is on what | [`docs/planning/feature-dashboard.md`](./docs/planning/feature-dashboard.md) |
+| Per-feature status and who is on what | [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md) |
 | What the last session did and left open | [`docs/operations/session-handoff.md`](./docs/operations/session-handoff.md) |
 | What is actually true in production | **The live database.** Not a doc. |
 

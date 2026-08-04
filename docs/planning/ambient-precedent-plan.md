@@ -2,7 +2,7 @@
 
 > _Created: 2026-06-20 · Last updated: 2026-06-20_
 
-> **Status: PLAN (2026-06-20).** Granular, cold-buildable task-by-task build plan for the Decision Brain (H1) increment 1, Ambient Precedent. Spec: [`../features/ambient-precedent.md`](../features/ambient-precedent.md); feature parent: [`../features/decision-brain.md`](../features/decision-brain.md); strategy: [`../strategy/horizon-bets.md`](../strategy/horizon-bets.md) (H1). Status board: [`feature-dashboard.md`](./feature-dashboard.md) row 148 (DBR); build queue: [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) §3.
+> **Status: PLAN (2026-06-20).** Granular, cold-buildable task-by-task build plan for the Decision Brain (H1) increment 1, Ambient Precedent. Spec: [`../features/ambient-precedent.md`](../features/ambient-precedent.md); feature parent: [`../features/decision-brain.md`](../features/decision-brain.md); strategy: [`../strategy/horizon-bets.md`](../strategy/horizon-bets.md) (H1). Status board: [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) row 148 (DBR); build queue: [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) §3.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

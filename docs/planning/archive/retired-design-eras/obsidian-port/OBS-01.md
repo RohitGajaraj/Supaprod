@@ -20,7 +20,7 @@ This is the complete, self-contained build package for OBS-01. It embeds every t
 | Depends on | none (this is the root of the graph) |
 | Blocks | OBS-02 (shell consumes the tokens/fonts), and transitively every OBS-03..15 |
 | One-line what | Port the 5 obsidian-v3 token files verbatim as app-scoped `[data-obsidian]` CSS custom properties, load the 2 new fonts, port the 8 `cad*` keyframes + the reduced-motion gate + the `data-density` attribute; the landing page stays byte-untouched. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-01 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-01 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 | Hub | [`./README.md`](./README.md) |
 
@@ -295,5 +295,5 @@ OBS-01 renders no surface, so the eight-point visual parity walk against `design
 - **Token source of truth (port verbatim):** [`../../../design-reference/obsidian-v3/tokens/`](../../../design-reference/obsidian-v3/tokens/) · `colors.css`, `typography.css`, `geometry.css`, `motion.css`, `fonts.css`.
 - **Implementation notes:** [`../../../design-reference/obsidian-v3/implementation-notes.md`](../../../design-reference/obsidian-v3/implementation-notes.md) · Styling approach, Motion, Accessibility.
 - **Density + empty-state law:** [`../../../design-reference/obsidian-extensions.md`](../../../../../design-reference/obsidian-extensions.md) · §8 density modes, §9 empty-state catalog.
-- **Board + bible:** [`../feature-dashboard.md`](../../../feature-dashboard.md) (group G14) · [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md).
+- **Board + bible:** [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) (group G14) · [`../obsidian-port-plan.md`](../obsidian-port-plan.md) · [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md).
 - **Strategy + doctrine:** [`../../strategy/v11-guiding-star.md`](../../../../strategy/v11-guiding-star.md) · [`../../conventions/engine-room-doctrine.md`](../../../../conventions/engine-room-doctrine.md) · [`../../conventions/humanized-output.md`](../../../../conventions/humanized-output.md).

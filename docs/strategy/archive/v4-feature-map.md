@@ -4,7 +4,7 @@
 
 > **What this is.** The canonical, stress-tested feature scope for Supaprod (interim name, see [`../decisions/naming.md`](../../decisions/naming.md)): every lifecycle station, every agent, every handoff, every human gate, decomposed L0→L5 and sequenced into milestones. **This supersedes [`v3-positioning-cadence.md`](./v3-positioning-cadence.md) for feature scope and IA.** Personas and the closed-loop metaphor from v3 remain valid.
 >
-> **Who reads this.** Any human or AI session (Claude Code / Lovable / Antigravity) before building any feature. Build order lives in [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §3; ticket-level F-IDs in [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md); why this map exists in [`v4-stress-test.md`](./v4-stress-test.md); market evidence in [`../references/competitive-landscape.md`](../../references/competitive-landscape.md).
+> **Who reads this.** Any human or AI session (Claude Code / Lovable / Antigravity) before building any feature. Build order lives in [`planning/archive/build-log.md`](../../planning/archive/build-log.md) §3; ticket-level F-IDs in [`planning/archive/feature-backlog.md`](../../planning/archive/feature-backlog.md); why this map exists in [`v4-stress-test.md`](./v4-stress-test.md); market evidence in [`../research/competitive-landscape.md`](../../research/competitive-landscape.md).
 >
 > **Decisions baked in (founder-confirmed 2026-06-11):** PLG wedge → enterprise; pain-point-first; naming deferred; no V1/V2 gating, full scope, milestone-sequenced; frontier-absorption designed in at every node.
 

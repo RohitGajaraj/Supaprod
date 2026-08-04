@@ -276,6 +276,6 @@ Asking nothing signals you are being evaluated rather than choosing. Pick two or
 | The YC-specific drill sheet and 90-second screen-share | [`yc/interview-prep.md`](./yc/interview-prep.md) |
 | The short objection list by audience | [`qa-bank.md`](./qa-bank.md) |
 | The full story on one page | [`one-pager.md`](./one-pager.md) |
-| Evidence behind any claim here | [`../references/`](../references/README.md) |
+| Evidence behind any claim here | [`../research/`](../research/README.md) |
 | The moat argument in depth | [`../strategy/moat.md`](../strategy/moat.md) |
 | What the code can actually prove | [`../features/lifecycle-signal-to-learning.md`](../features/lifecycle-signal-to-learning.md) |

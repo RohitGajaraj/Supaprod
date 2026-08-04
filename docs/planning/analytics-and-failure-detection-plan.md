@@ -2,7 +2,7 @@
 
 > **Status:** **PHASE 1 SHIPPED 2026-06-25 (lovable autonomous build).** Code-side of the plan is live; vendor side stays founder-gated. See "Phase 1 ship log" immediately below.
 > **Initiative ID:** `AFD` · **Dashboard group:** `G12` · **Task IDs:** `AFD-01` … `AFD-14`.
-> **Created:** 2026-06-25 · **Owner:** any session that picks an `AFD-*` row from [`feature-dashboard.md`](./feature-dashboard.md).
+> **Created:** 2026-06-25 · **Owner:** any session that picks an `AFD-*` row from [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md).
 >
 > This is the **single front-door** for everything analytics + failure-detection in Supaprod. When the founder unblocks the build, the picker reads this file end-to-end, **does not re-derive the vendor choice**, and starts at `AFD-01`. Every other doc that touches observability points HERE (see §13 "Cross-doc map").
 
@@ -283,7 +283,7 @@ Lovable hosts the CF Worker + Supabase project. Leaving means redeploying the sa
 
 ## 7. The 14 task IDs (the cold-buildable plan)
 
-> Each task is a single PR-sized unit of work, dependency-ordered. Status starts at ⬜ across the board. Picked from `feature-dashboard.md` (group G12) via `bash scripts/lane.sh next` after the founder unblocks.
+> Each task is a single PR-sized unit of work, dependency-ordered. Status starts at ⬜ across the board. Picked from `SOURCE-OF-TRUTH.md` (group G12) via `bash scripts/lane.sh next` after the founder unblocks.
 
 | ID | What it does | Depends on | Surface / file | Size |
 | --- | --- | --- | --- | --- |
@@ -359,7 +359,7 @@ The picker MUST NOT start AFD until:
 - Vendor selection decision record: [`../decisions/analytics-vendor-selection.md`](../decisions/analytics-vendor-selection.md).
 - Alerting runbook: [`../operations/alerting-runbook.md`](../operations/alerting-runbook.md).
 - Feature spec: [`../features/analytics-and-failure-detection.md`](../features/analytics-and-failure-detection.md).
-- Dashboard rows: [`./feature-dashboard.md`](./feature-dashboard.md) — search `AFD-` (group G12).
+- Dashboard rows: [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) — search `AFD-` (group G12).
 - SSOT entry: [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) §3 (build queue) + §7 (doc map).
 
 ---
@@ -408,7 +408,7 @@ The picker MUST NOT start AFD until:
 ### Phase 5 — Verification (Day 5, no PR)
 
 - Run the acceptance criteria in §8 end-to-end against the live app.
-- Mark all 14 AFD-\* rows ✅ in `feature-dashboard.md`.
+- Mark all 14 AFD-\* rows ✅ in `SOURCE-OF-TRUTH.md`.
 - Move §3 SSOT cursor to "AFD complete, observability live, dormant kill-switch ready."
 
 ---
@@ -424,7 +424,7 @@ The picker MUST NOT start AFD until:
 | `docs/operations/alerting-runbook.md` | Sev 1/2/3/4 channels + ack times + on-call rotation. |
 | `docs/operations/procurement-inventory.md` | PostHog + Sentry + Better Stack rows (cost, vendor option, recommendation, when to buy). |
 | `docs/planning/SOURCE-OF-TRUTH.md` §3 + §7 | The build queue entry (deferred until founder unblocks) + doc-map row. |
-| `docs/planning/feature-dashboard.md` G12 (AFD-01..14) | The 14 rows (status, picker target). |
+| `docs/planning/SOURCE-OF-TRUTH.md` G12 (AFD-01..14) | The 14 rows (status, picker target). |
 | `docs/planning/considerations.md` | The SRE/Platform-lens "App-level monitoring + alerting" gap now points HERE for the full spec. |
 | `docs/strategy/strategic-inputs-log.md` | The 2026-06-25 vendor-comparison thought-process is archived here. |
 | `docs/strategy/session-decisions.md` | The 2026-06-25 founder ruling "V3 + V1" is logged here. |

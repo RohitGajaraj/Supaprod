@@ -5,7 +5,7 @@
 Closes the post-launch learning loop: inbound support tickets are clustered into
 recurring themes, each recurring theme is fed back into **Discover** as a first-class
 `signals` row, and every clustered ticket gets a drafted acknowledgement reply. This
-is the M1/LRN-01 row on the feature dashboard ("Tickets to drafted replies to bug
+is the M1/LRN-01 row on the register in SOURCE-OF-TRUTH.md ("Tickets to drafted replies to bug
 clusters to signals; support feeds back into Discover").
 
 ## Why it matters

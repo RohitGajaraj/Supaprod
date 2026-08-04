@@ -8,7 +8,7 @@
 
 > _Reconciled 2026-06-21 against shipped code: the dashboard now carries dedicated rows for this surface (`F-ADMIN-CONSOLE` + `ADM-DB`) in addition to the monetization parent row `M-C-PRICE`. References below point to rows by id, not by line number._
 
-The Admin Console is tracked in [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) by **row `F-ADMIN-CONSOLE`** (the surface + its tabs/RPCs) and **row `ADM-DB`** (the admin schema + migrations), with the monetization parent **row `M-C-PRICE` · Pricing + entitlements (incl. Admin Console v1 + v2)** carrying the blended billing/credits/pricing/admin status inside the Lovable-owned monetization block. Interpret these rows as follows:
+The Admin Console is tracked in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) by **row `F-ADMIN-CONSOLE`** (the surface + its tabs/RPCs) and **row `ADM-DB`** (the admin schema + migrations), with the monetization parent **row `M-C-PRICE` · Pricing + entitlements (incl. Admin Console v1 + v2)** carrying the blended billing/credits/pricing/admin status inside the Lovable-owned monetization block. Interpret these rows as follows:
 
 - **Status glyph on `M-C-PRICE`** (`◐` partial / `✅` shipped / `⬜` not started) reflects the **whole** monetization + admin block, not the admin console alone. The admin console specifically is shipped pending publish; `M-C-PRICE` stays `◐` until the founder also provisions live Stripe secrets and flips the credits engine ON. The admin-console-specific glyphs live on `F-ADMIN-CONSOLE` and `ADM-DB`.
 - **Owner = `Lovable`** on `M-C-PRICE` means a Claude / Antigravity / Gemini lane must **not** pick it up. Any change to the admin console (new tab, new RPC, new schema) goes through a Lovable cycle and updates this page + the build bible + `docs/planning/archive/build-log.md` §4 in the same change. This rule is also enforced by the dashboard's "Lovable-owned + frozen" block.
@@ -82,5 +82,5 @@ The single inbuilt admin hub. Sits inside the app, same auth, same theme. No sep
 ## Related
 
 - [`./billing.md`](./billing.md)
-- [`../planning/feature-dashboard.md`](../planning/feature-dashboard.md) — rows `F-ADMIN-CONSOLE` + `ADM-DB` (surface + schema) and `M-C-PRICE` (monetization parent); the `M-C-*` rows track billing
+- [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) — rows `F-ADMIN-CONSOLE` + `ADM-DB` (surface + schema) and `M-C-PRICE` (monetization parent); the `M-C-*` rows track billing
 - [`../../architecture/security.md`](../../architecture/security.md) — admin role

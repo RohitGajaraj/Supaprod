@@ -14,7 +14,7 @@
 | Depends on | OBS-02 (shell) · transitively OBS-01 (tokens + fonts) |
 | Blocks | OBS-04, OBS-05, OBS-06, OBS-07, OBS-08, OBS-09 (every surface consumes these primitives) |
 | One-line what | The Obsidian primitive set every surface reuses: `Button`, `StatusDot`, `VerdictChip`, `MonoLabel`, `Toast` (singleton), `SlideOver` chassis (dialog + focus trap + restore), `CallCard`, `MissionRow`, `AuroraCard`, `Citation` chip, `PencilNote`, each to the exact `components.md` anatomy with every state designed. |
-| Dashboard row | [`../feature-dashboard.md`](../../../feature-dashboard.md) group G14, row OBS-03 |
+| Dashboard row | [`../SOURCE-OF-TRUTH.md`](../../../SOURCE-OF-TRUTH.md) group G14, row OBS-03 |
 | Summary bible | [`../obsidian-port-plan.md`](../obsidian-port-plan.md) |
 
 ## 2. Why we are doing it

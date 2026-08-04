@@ -6,7 +6,7 @@
 >
 > This is the cold-buildable spec. Any agent (Lovable Cloud / Claude Code / Antigravity) should be able to pick this up, run the migration, ship the server fns, and wire the UI without re-deriving intent.
 
-> _Reconciled 2026-06-21 against shipped code: (1) section 6 specified two cron hooks but the shipped reality is a single hook `admin-expiry-tick.ts` -> `cron_tick_admin_expiries()` that clears expired plan overrides AND invitations atomically; (2) `adminRevokeSessions` (section 3) and `adminSystemHealth()` (section 3) were specced but did NOT ship - both deferred; (3) the admin plan override is stored as `subscriptions.plan_override_tier` (text slug), not the specced `plan_override_id` (uuid fk). The pricing/entitlements/admin block now lives on `feature-dashboard.md` (row M-C-PRICE + the M-C-\* / ADM-\* rows)._
+> _Reconciled 2026-06-21 against shipped code: (1) section 6 specified two cron hooks but the shipped reality is a single hook `admin-expiry-tick.ts` -> `cron_tick_admin_expiries()` that clears expired plan overrides AND invitations atomically; (2) `adminRevokeSessions` (section 3) and `adminSystemHealth()` (section 3) were specced but did NOT ship - both deferred; (3) the admin plan override is stored as `subscriptions.plan_override_tier` (text slug), not the specced `plan_override_id` (uuid fk). The pricing/entitlements/admin block now lives on `SOURCE-OF-TRUTH.md` (row M-C-PRICE + the M-C-\* / ADM-\* rows)._
 
 ---
 
@@ -181,7 +181,7 @@ Strict order. Each step is one commit. Per-step gates: tsc 0 + build green + tar
 5. **`admin-workspaces.functions.ts`** + Workspaces tab.
 6. **`admin-platform.functions.ts`** + Platform tab + `useFlag` hook + banner renderer in app shell.
 7. **Cron hook** for plan-override + invitation expiry. _(Shipped as a single hook `admin-expiry-tick.ts` -> `cron_tick_admin_expiries()`, not two; see section 6.)_
-8. **Doc-loop close:** flip `feature-dashboard.md` row, append `docs/planning/archive/build-log.md` §4 line, update `docs/features/admin-console.md` Status from "v2 planned" to "v2 shipped".
+8. **Doc-loop close:** flip `SOURCE-OF-TRUTH.md` row, append `docs/planning/archive/build-log.md` §4 line, update `docs/features/admin-console.md` Status from "v2 planned" to "v2 shipped".
 
 ---
 
@@ -211,5 +211,5 @@ Strict order. Each step is one commit. Per-step gates: tsc 0 + build green + tar
 - [`../features/billing.md`](../features/billing.md), [`../features/credits.md`](../features/credits.md), [`../features/pricing.md`](../features/pricing.md) - the surfaces this admin manages.
 - [`../../architecture/security.md`](../../architecture/security.md) - admin role pattern (`user_roles` + `has_role`).
 - [`../conventions/destructive-actions.md`](../conventions/destructive-actions.md), [`../conventions/ui-voice.md`](../conventions/ui-voice.md), [`../conventions/engine-room-doctrine.md`](../conventions/engine-room-doctrine.md) - UI rules every panel obeys.
-- [`./feature-dashboard.md`](./feature-dashboard.md) - board row for this initiative.
+- [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) - board row for this initiative.
 - [`./SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) - live cursor.
