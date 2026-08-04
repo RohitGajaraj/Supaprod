@@ -177,7 +177,29 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 | **Credits / month** | **750** | **3,750** | **15,000 pooled** | committed pool |
 | **Seats** | 1 | 1 | **minimum 2** | **unlimited** |
 | **Memory** | decays | persistent | shared across the team | plus governance and audit |
-| Connectors | manual | read | write | approved lists |
+| **Your tools** | no live connectors | **connect anything, read-only** | **connect anything, and write back** | that, plus **custom connectors built for you** |
+
+**What "your tools" means, concretely.** Supaprod is only useful if it reads what you already have, so connecting a source is one OAuth click and never a key you paste into a config file. Nineteen providers ship today across the four things layer 01 needs:
+
+| What it needs | Connects to |
+| --- | --- |
+| **What customers say** | Intercom, Zendesk, Slack |
+| **What the team is doing** | Linear, Jira, GitHub, Notion |
+| **What the product data says** | PostHog, and the analytics surface where an outcome actually lands |
+| **Who the customer is** | Salesforce, HubSpot |
+| **The daily substrate** | Google Suite (Docs, Calendar, Gmail, Tasks), Microsoft Outlook and Mail, Figma |
+
+**Read-only versus write-back is a permission boundary, not a paywall trick.** Every paid tier can connect **every** connector. What changes is what Supaprod is allowed to *do* there:
+
+- **Read-only (Pro).** It ingests and reasons. It never posts, never comments, never moves a ticket. Everything it produces stays inside Supaprod for you to act on.
+- **Write-back (Business).** An agent may act in the tool: open the Linear issue, push the branch, reply on the Intercom thread. That is a genuinely different risk posture, which is why it sits with the tier that also has RBAC, approval lanes and an audit trail.
+- **Enterprise.** Everything Business has, plus **connectors built for the systems you run that nobody publishes an API story for**, and admin control over which are permitted at all.
+
+**Free is deliberately not connected.** You paste or upload instead, so the loop is provable in ten minutes without an OAuth conversation with someone's IT team.
+
+**This is enforced in code, not just priced.** `connectorTier` is a real entitlement (`"none" | "read" | "read_write" | "custom"` in `src/lib/entitlements.ts`) and the guard **throws** when a plan attempts an operation it does not permit. An agent on a read-only plan cannot write to your Linear board even if something asks it to.
+
+Live status per provider, including the two registered but not yet confirmed against real data, is [`docs/operations/connectors/README.md`](./docs/operations/connectors/README.md).
 
 Annual billing is roughly **17% off** (monthly x 10/12). Numbers above are the shipped reference values; the founder sets the final Stripe catalog.
 
