@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./docs/growth/branding/logo/supaprod-mark-dark.svg">
     <img src="./docs/growth/branding/logo/supaprod-mark-light.svg" alt="Supaprod" width="88" height="88">
