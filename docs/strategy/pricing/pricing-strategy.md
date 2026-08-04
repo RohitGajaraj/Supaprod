@@ -7,6 +7,17 @@
 
 > **Maintainer rule:** every pricing decision — tier change, feature gate move, credit model adjustment — must be recorded here AND in [`session-decisions.md`](../session-decisions.md) in the same session.
 
+> ## ⛔ SUPERSEDED ON TWO POINTS, corrected 2026-08-04. Read before the body.
+>
+> [`pricing-architecture.md`](./pricing-architecture.md) is the canonical model and it **locked two decisions that reverse this document**:
+>
+> | This doc says | The locked decision |
+> | --- | --- |
+> | "Enterprise = platform fee + **per-seat** + API usage rates" (§4) | **Committed credits + UNLIMITED seats.** No default per-seat; a seat floor only as a procurement fallback. Seats-free is the resolution because COGS lives entirely in consumption: a mission costs real money, a person in the workspace costs nothing. |
+> | per-seat framing throughout | **Seats-free everywhere.** Per-seat pricing would tax the exact behaviour the moat depends on, which is more people using the shared record. |
+>
+> Everything else here stands: the value matrix, the tier dimensions, and the reasoning that a credit prices a finished result rather than a token. **Where this doc and the architecture disagree, the architecture wins.**
+
 > **Related research (2026-07-12):** [`credit-model-and-byok-research.md`](./credit-model-and-byok-research.md) — an 8-platform competitor teardown + a per-surface free-vs-charged map for Supaprod, with a recommended credit model (unified credits, BYOK-as-model-choice-only, the three-control governance model, outcome-gated ambient-spend billing). It **confirms** this doc's "credits price closed loops, not seats" and platform-cost-absorption stance, and **proposes one revision** — moving enterprise off per-seat to committed-credit + unlimited seats (this doc §0 decision 4). That revision is a pending founder call (research §9); do not treat it as ratified here until recorded.
 
 > **⭐ FINALIZED architecture (2026-07-12, PROPOSED — pending founder approval):** [`pricing-architecture.md`](./pricing-architecture.md) is the single end-to-end system that closes the credit model + BYOK + model access + metering + the 4-tier packaging together, grounded in 2026 inference costs. When approved, it supersedes several calls in THIS doc: enterprise per-seat → committed credits + unlimited seats (§8.1 there); adds the platform-managed-default + enterprise-only-BYOK model-access strategy; replaces the flat $0.25/1M BYOK fee with a margin-slice %; adds the per-surface free-vs-charged map + credit unit peg (1 credit = $0.01 rated spend). Until the founder ratifies pricing-architecture.md §10, THIS doc's 2026-06-26 decisions still govern; after ratification, its tweaks fold in here.

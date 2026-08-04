@@ -84,6 +84,7 @@ Nothing below can be done autonomously. Each needs a decision, a secret, an acco
 
 ## Open findings
 
+- **A locked pricing ruling was never implemented.** On 2026-07-13 the founder locked four tiers, Free / Pro / Business / Enterprise, and explicitly retired the earlier thematic names. The code and database still ship **five** tiers on the old slugs (`free`, `pro`, `max`, `team`, `enterprise`); `'business'` appears **zero times** in the billing code. Neither document flagged this: [`initiatives/../../strategy/pricing/pricing-architecture.md`](../strategy/pricing/pricing-architecture.md) describes the decision as locked, [`../features/workspaces.md`](../features/workspaces.md) describes the shipped five, and an agent reading either alone gets a wrong picture. Found 2026-08-04 while reconciling the README.
 - **The demo seed writes no `artifact_lineage` edges**, so the Lineage drawer and provenance show empty states in a demo. The features are wired and degrade gracefully; the demo just cannot tell the memory story. Fix is a seed migration plus a re-seed.
 - **`agent_memory` is scoped to the user who wrote it, not the workspace.** A successor inherits the record but not the compounded recall. This is the one place the honest claim is narrower than the ambition; say "the record travels", never "the memory travels".
 - **`fanout.server.ts:66` still passes an explicit `null` spend cap**, which reads as a deliberate no-ceiling on the fanout path while every other writer resolves through `resolveMissionSpendCap`.

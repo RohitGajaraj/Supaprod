@@ -2,6 +2,14 @@
 
 > _Created: 2026-06-23 · Status: **CURRENT standing canon (the guiding star).** This is the single document to read first for direction. It consolidates the whole strategy stack (v7 positioning, v8 structure, v9 wedge, v10 blueprint, moat.md) with a fresh, code-and-live-database-verified ground-truth audit, an outsider pressure-test, the core-user lens, the agent operating model, the consumer-grade design layer, the orchestration economics, and the full reasoning behind every decision in the 2026-06-23 strategy session. **When this doc and an older strategy doc disagree on direction, v11 wins.** The older docs remain valid for their detailed reference role._
 
+> ## ⭐ RECONCILED 2026-08-04 with the three-layer structure
+>
+> This document's thesis, that the moat is the **decision-and-outcome layer**, is intact. What it predates is where that layer sits in the product. Every outward surface now leads with three named layers: **01 the director** (tells you what to build), **02 the operating system** (runs the seven-station lifecycle), **03 the company brain** (**learns, then guides**).
+>
+> **The decision-and-outcome layer IS layer 03**, and only 03 is defensible alone: 01 is a capability a frontier model narrows every release, and 02 buys quarters rather than a position. The defence is the ordering, because a competitor must own the loop before they can accumulate the record. Everything below about the no-fast-oracle asymmetry and outcome-labelled judgment is the argument for 03; read it that way.
+>
+> Also note: the loop is **seven** stations and a **route, not a conveyor** (2026-08-01), so any five-destination IA in this document is a dated call. Full current positioning: [`../../README.md`](../../README.md).
+>
 > **For agents and future sessions:** the build items live in [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (the ranked register; the v11 front is #1-18). The front-door cursor is [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This doc carries the _why_; the dashboard carries the _what/when_. The doc map is §0.3.
 >
 > **2026-07-02 forward pointer:** the v11 front is COMPLETE (all 21 shipped 2026-06-25). The next depth layer under this star is **[v12: The Self-Improving OS](./v12-self-improving-os.md)** (the learning loop, foresight, the memory OS, the design leg, the Outcome Contract / ARD conventions, the journey's two ends; dashboard group G15). v12 wins on those build plans; this doc still wins direction.

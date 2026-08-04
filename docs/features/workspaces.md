@@ -29,7 +29,7 @@ AI usage is metered as **account-level credits** by the credit engine (build SoT
 
 ## Tiers (presentation; offerings in the plan)
 
-Five tiers over stable slugs (`free|pro|max|team|enterprise`) with the **Constellation** display theme (Star / Cluster / Constellation / Galaxy / Cosmos), rename-able anytime. Managed AI credits are the only self-serve path; BYOK is removed from self-serve (enterprise-only); model-agnostic routing via our keys is preserved. Full matrix + pricing: [`pricing.md`](./pricing.md) and the build bible. The moat (the decision layer, of which memory is one part): [`../strategy/moat.md`](../strategy/moat.md).
+Five tiers over stable slugs (`free|pro|max|team|enterprise`) with the **Constellation** display theme _(**this is what SHIPS, and it is superseded as a decision.** The founder locked four tiers, Free / Pro / Business / Enterprise, on 2026-07-13 and retired the thematic names. Migrating the slugs is open work; see [`../strategy/pricing/pricing-architecture.md`](../strategy/pricing/pricing-architecture.md) §6a.)_ (Star / Cluster / Constellation / Galaxy / Cosmos), rename-able anytime. Managed AI credits are the only self-serve path; BYOK is removed from self-serve (enterprise-only); model-agnostic routing via our keys is preserved. Full matrix + pricing: [`pricing.md`](./pricing.md) and the build bible. The moat (the decision layer, of which memory is one part): [`../strategy/moat.md`](../strategy/moat.md).
 
 ## Showcase (deferred)
 

@@ -183,10 +183,15 @@ Four rules make it feel unlike a meter: a credit is drawn **only on delivery** o
 | | Free | Pro | Business | Enterprise |
 | --- | --- | --- | --- | --- |
 | Price | $0 | $20/mo | $50/mo | committed contract |
-| Credits | 50, 30-day decay | 100 to 10,000 | pooled across the account | committed pool |
+| Base credits | 50, 30-day decay | 100 | 100, pooled | committed annual pool |
+| **Top-up** | upgrade | **credit dropdown, 100 to 10,000** | same, pooled + per-user caps | committed pool, negotiated |
 | **Memory** | **decays** | **persistent** | shared across the team | plus governance and audit |
 | Connectors | manual | read | write | approved lists |
-| Seats | — | — | — | **unlimited** |
+| Seats | — | 1 | — | **unlimited** |
+
+**How a top-up works, since a credit model is only as good as its refill.** You size the allowance from a **dropdown on the subscription**, from 100 up to 10,000 credits, on a **linear ladder with no volume discount** so the arithmetic stays honest and nobody negotiates against themselves. It is not a surprise overage charge and not a per-action purchase: **the default is stop-at-allowance**, so you run out rather than get billed. Near the limit there is a quiet nudge, and a flex buffer absorbs a single run that would otherwise clip the ceiling mid-flight. Base prices are placeholders until the founder sets the final Stripe numbers.
+
+> **Honest caveat on the tier names.** Free / Pro / Business / Enterprise is the founder's locked decision (2026-07-13), which also retired the earlier thematic names. **The code and database still ship five tiers on the old slugs** (`free`, `pro`, `max`, `team`, `enterprise`), and `business` appears nowhere in the billing code. So the table above is the decision, not yet the implementation. Tracked as an open finding in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
 
 **Why this shape, in one line each.** Charging for deliverables rather than tokens means the customer compares us to the work replaced, not to an API bill. Not charging for recall means the brain gets used, which is the only way it compounds. **Unlimited seats at Enterprise** means we never tax a company for putting more people on the shared record, which is the exact behaviour our moat depends on. And per-seat pricing anywhere would tax usage, which is the behaviour that deepens the moat.
 

@@ -127,6 +127,8 @@ The canon's value matrix ([`pricing-strategy.md`](./pricing-strategy.md) §3) st
 
 ### 6a. Tier naming — DECIDED: Free / Pro / Business / Enterprise (founder, 2026-07-12; corrected 2026-07-13)
 
+> **⚠️ NOT YET IMPLEMENTED (verified in code 2026-08-04).** This naming is locked as a decision and absent from the build. `src/lib/entitlements.ts` ships `PLAN_TIERS = ["free", "pro", "max", "team", "enterprise"]`, five tiers on the old slugs, and `'business'` appears **zero times** in the billing code. The database catalog matches the code, not this section. **So this is the target state, not the current one**, and anyone quoting tiers outward should say four while knowing the app says five. Tracked in [`../../planning/SOURCE-OF-TRUTH.md`](../../planning/SOURCE-OF-TRUTH.md) open findings.
+
 Keep the clear, self-explaining names, **as originally named: Free / Pro / Business / Enterprise.** A same-day 2026-07-12 proposal to rename the middle tier to "Team" was reverted by founder correction on 2026-07-13 — the DB slug stays `team` either way (zero-migration display name), but the customer-facing name is **Business**, not Team.
 
 Reasoning (why clear names, not a clever theme):
