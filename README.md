@@ -129,34 +129,70 @@ Three things had to be true at once, and they only became true recently.
 
 The moat is not one thing, it is **the third layer resting on the first two**. Each layer alone is copyable; the stack is not.
 
-| Layer | Is it defensible alone? | Why |
+| Layer | Defensible alone? | Why, in detail |
 | --- | --- | --- |
-| **01 The director** | No. | A frontier model plus a decent prompt gets close. Ranking is a capability, not an asset. |
-| **02 The operating system** | Partly, and slowly. | The loop, the gates and the ledger are real engineering, but a well-funded incumbent with distribution can build them. |
-| **03 The company brain** | **Yes.** | It needs your outcomes, labelled, over time. That is produced **by running the loop**, so it cannot be bought, backfilled, or shipped in a release. |
+| **01 The director** | **No, and we should say so.** | Ranking what to build is a *capability*, not an asset. A frontier model plus a well-written prompt plus access to the same signals gets most of the way there, and gets closer with every model release. **Anyone can rank; the question is whether the ranking is any good, and that is answered by outcomes rather than by the ranker.** Which is why 01 is a door, not a moat: it is what earns the first ten minutes, and it is the layer we would lose first if we tried to defend it. |
+| **02 The operating system** | **Partly, and only for a while.** | The loop, the gates, the tenancy model and the tamper-evident ledger are genuine engineering: months of it, and the reason autonomy is safe enough to sell. But it is *buildable*. A well-funded incumbent with distribution can construct the same route, and Notion has already shipped copy describing part of it. So the honest read is that 02 buys a lead measured in quarters, not a permanent position. **Its real job is to be the precondition for 03.** |
+| **03 The company brain** | **Yes, and it is the only one.** | It requires **your** decisions, joined to **your** outcomes, labelled over time. That data does not exist anywhere to be bought, cannot be scraped, and cannot be synthesised, because it is *produced as a byproduct of running the loop*. A competitor cannot acquire it, a model release cannot absorb it, and a customer who has run six months of decisions through it holds something their competitor does not. It also gets **more** valuable as the model layer commoditizes, because when everyone has the same reasoning, the differentiator is whose context is better. |
+
+**Read the table as one sentence:** we are honest that two of our three layers are copyable, because that is what makes the claim about the third one credible.
 
 **So the defence is the ordering, not any single layer.** A competitor must own the loop before they can accumulate the record, and by the time they own the loop the record already favours whoever ran it longer.
 
-**Who this is actually against, named honestly:**
+### The landscape, and the one thing we compete on
 
-| They own | Examples | Why it is not this |
-| --- | --- | --- |
-| **How to build** | Cursor, Lovable, Devin, Claude Code | Racing to zero on a fast oracle. They are the era's proof, not our competitors, and **not our subcontractors either**: our build engine is our own, running frontier models by API in the customer's repo. |
-| **Drafting the artifact** | ChatPRD, Spark | Drafting is the cheap half. Nobody in that set checks whether the bet paid. |
-| **The workspace** | **Linear, Notion** | **The genuine threat, and the one to take seriously.** They have distribution we do not. What they do not have is outcome verification: dispatching work is not the same as checking whether it paid and letting that re-rank the next decision. |
-| **The model** | Anthropic, OpenAI, Google | They make our engine better for free. The model is an input we orchestrate, never the product. |
+**Read the framing before the table, because the framing is the strategy.**
 
-**The frontier test, applied.** When a lab ships a better model, layers 01 and 02 improve and layer 03 is untouched, because no model has your outcomes. That is the honest version, and it is why the six-month-forward doctrine above exists as a gate rather than a slogan.
+Supaprod *touches* eight surfaces, because a closed loop necessarily passes through all of them. **We compete on exactly one:** whether the outcome of a shipped bet is verified and fed back into the next decision. Everywhere else we integrate, absorb, or deliberately ignore.
 
-Full canon, the integrate/absorb/race/ignore map, and the objection Q&A with answers: [`docs/strategy/moat.md`](./docs/strategy/moat.md).
+That distinction matters commercially and it matters in a pitch. **A company claiming to beat eight categories at once is not focused, it is unfocused with a long list**, and an investor reads it that way. So the table below exists to prove we know the terrain, not to declare eight wars.
+
+| # | Surface we touch | Who owns it today | Our posture | Why |
+| --- | --- | --- | --- | --- |
+| 1 | **Outcome verification and decision memory** | **Nobody, and this is the whole company** | **COMPETE** | The bet is recorded, the result is settled against it, and that re-ranks what comes next. Measured empty in a fresh sweep: the drafting tools do not check, the workspaces do not close, the labs have no customer outcomes. **This is the only row where we intend to win.** |
+| 2 | Issue tracking and the workspace | **Linear, Notion**, Jira, Monday, Asana, Height, Shortcut | **RACE, carefully** | **The genuine threat.** They have distribution we do not, and Notion shipped feedback-to-merged-PR copy in July 2026. They dispatch work; they do not verify outcomes. We do not try to be a better tracker. |
+| 3 | Product management suites | Productboard, Aha!, Airtable, Coda, Fibery | ABSORB | Roadmap and prioritisation surfaces built for a human to fill in. Their information model assumes a person does the judgment. Ours assumes an agent does the work under policy. |
+| 4 | Code generation | Cursor, Claude Code, Lovable, Devin, Replit, Bolt, v0, Factory, Cognition | **IGNORE as competitors** | Racing to zero on a fast oracle. They are this era's proof that agents can do real work. **Not our subcontractors either:** our build engine is our own, running frontier models by API in the customer's repo. |
+| 5 | PRD and spec drafting | ChatPRD, Spark, plus every chat tab | ABSORB | Drafting is the cheap half and it commoditized first. One station of ours. |
+| 6 | Customer feedback and signal | Dovetail, Enterpret, Cycle, Kraftful, Viable, Unwrap, Gong, Intercom | **INTEGRATE** | They are inputs, not rivals. Layer 01 reads them through one Connect button. Competing here would be replacing a source we want to consume. |
+| 7 | Experimentation and analytics | Amplitude, Mixpanel, PostHog, Statsig, LaunchDarkly, Pendo | **INTEGRATE** | This is where the *outcome* actually lands. We read the result rather than own the measurement, and reading it is precisely what makes row 1 possible. |
+| 8 | The model layer | Anthropic, OpenAI, Google | INTEGRATE | An input we orchestrate. A better model makes layers 01 and 02 better for free. |
+
+**Say it in one line when asked "who are your competitors":** *"On the loop closing, nobody, and that is the bet. On the workspace, Linear and Notion, who have distribution we do not and no outcome verification. Everyone else in this space is either an input we read or a category we absorb."*
+
+**The frontier test, applied.** When a lab ships a better model, layers 01 and 02 improve and layer 03 is untouched, because no model has your outcomes. That is why the six-month-forward doctrine above is a gate and not a slogan.
+
+Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the objection Q&A with answers: [`docs/strategy/moat.md`](./docs/strategy/moat.md). For a live conversation: [`docs/pitch/founder-answer-playbook.md`](./docs/pitch/founder-answer-playbook.md).
 
 ### How it makes money
 
-**Credits, priced against the decision work, pooled at the account.** Not per seat: the value compounds with usage, and per-seat pricing taxes exactly the behaviour that deepens the moat. Pricing gates the **decision layer**, meaning persistent memory, the Critic everywhere, and governance. **It never gates the build.**
+**Outcome Credits, and no seats.** A credit prices a **finished deliverable**, never a token and never a person. Two mechanisms, and they deliberately do different jobs across the three layers.
 
-Self-serve is credits only; bring-your-own-key is enterprise-negotiated. Full system: [`docs/strategy/pricing/`](./docs/strategy/pricing/README.md).
+**Mechanism one: credits meter delivery, on every layer that has marginal cost.**
 
-**And your data is yours.** Full export in open formats, any time. A record that compounds is a retention argument only if leaving is genuinely possible; otherwise it is a trap, and buyers can tell the difference.
+| Layer | What draws a credit | What is free, on purpose |
+| --- | --- | --- |
+| **01 The director** | A ranked bet with the Critic's full teardown. A research brief you keep. | Browsing signals, clustering, the ranked queue itself, foresight. The high-frequency work feels unlimited. |
+| **02 The operating system** | A spec, a design, a build run, a shipped change. The substantial deliverables. | **A run you stop early costs nothing.** Viewing, editing, retrying a failure. |
+| **03 The company brain** | **Nothing.** Recall is never metered per query. | Every read of the record, always. |
+
+Four rules make it feel unlike a meter: a credit is drawn **only on delivery** of something you can point at; **the trust layer is free**, so traces, evals and verification never cost you; the user is **never shown a dollar figure per action** or asked to approve a cost mid-flow; and the default is **stop-at-allowance**, so there is no surprise bill.
+
+**Mechanism two: tiers gate the layer that compounds.** Layer 03 has near-zero marginal cost and unbounded value, so metering it would be both wrong and hostile. It is the reason to move up instead.
+
+| | Free | Pro | Business | Enterprise |
+| --- | --- | --- | --- | --- |
+| Price | $0 | $20/mo | $50/mo | committed contract |
+| Credits | 50, 30-day decay | 100 to 10,000 | pooled across the account | committed pool |
+| **Memory** | **decays** | **persistent** | shared across the team | plus governance and audit |
+| Connectors | manual | read | write | approved lists |
+| Seats | — | — | — | **unlimited** |
+
+**Why this shape, in one line each.** Charging for deliverables rather than tokens means the customer compares us to the work replaced, not to an API bill. Not charging for recall means the brain gets used, which is the only way it compounds. **Unlimited seats at Enterprise** means we never tax a company for putting more people on the shared record, which is the exact behaviour our moat depends on. And per-seat pricing anywhere would tax usage, which is the behaviour that deepens the moat.
+
+Full model, unit economics, and the BYOK stance (an advanced option from Business up, metered and governed with a thin platform fee): [`docs/strategy/pricing/pricing-architecture.md`](./docs/strategy/pricing/pricing-architecture.md).
+
+**And your data is yours.** Full export in open formats, any time. A record that compounds is only a retention argument if leaving is genuinely possible; otherwise it is a trap, and buyers can tell the difference.
 
 ### Governance: policy, not permission (founder ruling 2026-07-29)
 
@@ -283,7 +319,7 @@ Two views, because "how is it built" and "how does a person move through it" are
                       ▼                                     ▼
   MODELS            model-agnostic, selected per job     DATA   Supabase Postgres
                     our keys, credits-metered                    RLS · pgvector · pg_cron
-                    BYOK is enterprise-only                      embeddings via Cohere embed-v4
+                    BYOK from Business up, thin platform fee   embeddings via Cohere embed-v4
 ```
 
 **The chokepoint is the design decision that matters most.** One function sees every model call, so budgets, guardrails, cost tracking, caching, provider routing and output sanitising are each implemented once and cannot be bypassed. A new AI surface needs a valid `CallSurface` literal, which means an unbudgeted or unguarded call is a type error rather than an incident.

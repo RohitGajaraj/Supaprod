@@ -6,6 +6,22 @@
 >
 > **⭐ Superseded for direction by [v11: The Guiding Star](./v11-guiding-star.md) (2026-06-23).** v11 reconciles the headline thesis (the moat is the **decision-and-outcome layer**: own the loop, sense continuously, keep the receipts; memory is one component, not the headline), and carries the current villain/defense pressure-test, the market/pricing section, and the agentic build plan (now in the [feature dashboard](../planning/SOURCE-OF-TRUTH.md) as the ranked v11 build front). This doc remains the detailed moat-stack + competition map + YC objection-Q&A reference.
 >
+> ## ⭐ RECONCILED 2026-08-04 with the three-layer structure. Read this before the body.
+>
+> **The thesis below is intact; its shape is now stated more precisely.** This doc says "the moat is the decision-and-outcome layer", which was the 2026-06-23 framing and is still true. What it does not say, and what every outward surface now leads with, is **where in the product that layer sits.**
+>
+> | Layer | Defensible alone? | Why |
+> | --- | --- | --- |
+> | **01 the director** (tells you what to build) | **No.** | Ranking is a capability, not an asset. A frontier model plus the same signals gets close, and closer each release. It is the door: it earns the first ten minutes. |
+> | **02 the operating system** (runs the lifecycle) | **Partly, for quarters.** | The loop, gates, tenancy and ledger are real engineering and genuinely hard, but buildable by a funded incumbent with distribution. Its job is to be the precondition for 03. |
+> | **03 the company brain** (learns, then guides) | **Yes, and only this one.** | It needs the customer's decisions joined to their outcomes, labelled over time, produced **by running the loop**. Unbuyable, unscrapable, unsynthesisable. It gets MORE valuable as models commoditize, because when reasoning is equal the differentiator is whose context is better. |
+>
+> **So "the decision-and-outcome layer" IS layer 03, and the reason it holds is the ordering.** A competitor must own the loop before they can accumulate the record, and by then the record favours whoever ran it longer. Everything in the body about the no-fast-oracle asymmetry, outcome-labelled judgment, and system-of-record is the argument for 03; read it that way.
+>
+> **Two corrections the body predates.** The claim is that the brain **learns and guides**, never the storage framings that were banned on 2026-08-02 (see the vocabulary table in the root README). And we compete on **exactly one** surface, outcome verification and decision memory; on the workspace we race Linear and Notion carefully, and everywhere else we integrate or absorb. The eight-surface posture map is in [`../../README.md`](../../README.md).
+>
+> Everything below stands. This block exists because this doc's own standing rule is that it updates on every reposition, and three repositions had landed without it.
+
 > **What this is.** The standing reference on what our moat is, who our competition is, why we win, and how the moat ripples into pricing, features, and the platform. Written for three uses: (1) the founder's Y Combinator application + interview prep, (2) the founder's day-to-day "what is our moat / who do we compete with" reference, (3) the canon every tool reads before any positioning, pricing, or feature-priority call.
 >
 > **Status:** LIVING canon. Current positioning (v11, 2026-06-23): **the moat is the decision-and-outcome layer** (own the loop, sense continuously, keep the receipts); **memory is one component**, not the headline. Three pillars verified real in code + live DB.
