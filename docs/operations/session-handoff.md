@@ -12,17 +12,28 @@
 
 `main` = `8c6dd832`, pushed, working tree clean. **22 commits.** tsc 0 errors, `bun test` 7,159 pass / 0 fail across 402 files. No source behaviour changed; this was a documentation and repo session.
 
-## FIRST THING NEXT SESSION
+## DISK CLEANUP: DONE
 
-**One command needs you, because `rm -rf` is blocked for agents here:**
+The founder ran the `rm -rf` on `.claude/worktrees` on 2026-08-04. **`.claude/` went from 84 MB to 272 KB**, and everything functional survived: `agents`, `hooks`, `skills`, both settings files, and all four git hooks. Verified after: tsc 0, 7,159 tests pass, build succeeds, docs-doctor clean, tree clean and in sync with origin.
+
+Total freed across the session: **~254 MB** (170 MB of lane worktrees, 84 MB of orphaned Workflow snapshots).
+
+### Four branch refs are safely deletable, if you want them gone
+
+Branch deletion is blocked for agents by policy, so these are yours. All verified merged or superseded:
 
 ```bash
-rm -rf "/Users/rohitgajaraj/Projects/My Projects/My Builds/Superprod/.claude/worktrees"
+git branch -D backup/graph-discovery backup/hook-removal \
+              parallel/lane-0-fresh parallel/lane-1-fresh backup/graphify-work
 ```
 
-That is **84 MB** in two orphaned Workflow worktrees (`wf_3dd0ade5-50c-1`, `-2`). Verified disposable: unregistered in `git worktree list`, gitignored, broken with `fatal: not a git repository: (null)`, zero files newer than the 2026-07-17 rename, and every apparently-unique file is a pre-rename path in git history at `c5d479fd`.
+- `backup/graph-discovery`, `backup/hook-removal`, `parallel/lane-0-fresh`, `parallel/lane-1-fresh` are all **ancestors of main**, so fully merged.
+- `backup/graphify-work` shows 2 unmerged commits, but its content is already on main by another path: `.graphifyignore` exists (36 lines), and `CLAUDE.md` and `.gitignore` both carry the graphify entries. It is a stale backup.
 
-Also still present, harmless: the merged branch refs `parallel/lane-0-fresh` and `parallel/lane-1-fresh`. Deleting a branch was blocked by policy. `git branch -D parallel/lane-0-fresh parallel/lane-1-fresh` if you want them gone.
+**Keep these two:**
+
+- `archive/final-sweep-2026-07-18`, 25 unmerged commits, is **deliberately** never merged and there is a `pre-merge-commit` hook enforcing that. Do not delete or merge it.
+- `lovable-mcp-supabase-access` backs the Conductor worktree at `~/conductor/workspaces/Superprod/bordeaux`. Merged, but deleting it while that worktree exists would break it.
 
 ## WHAT CHANGED, AND WHY IT MATTERED
 
