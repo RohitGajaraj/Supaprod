@@ -31,10 +31,7 @@ import { parseSseLine } from "@/lib/ask-sse";
  * away from both, which is the exact failure it exists to prevent.
  */
 
-const CHAT = readFileSync(
-  join(import.meta.dir, "..", "..", "routes", "api", "chat.ts"),
-  "utf8",
-);
+const CHAT = readFileSync(join(import.meta.dir, "..", "..", "routes", "api", "chat.ts"), "utf8");
 
 describe("the server emits a landing frame the client can read", () => {
   it("emits one at all, on the branch that creates a mission", () => {
@@ -51,7 +48,9 @@ describe("the server emits a landing frame the client can read", () => {
   });
 
   it("carries the station, so the pane can hand back rather than dead-end", () => {
-    expect(CHAT).toMatch(/landing:\s*\{\s*kind:\s*"mission",\s*id:\s*mission\.id,\s*station:\s*"build"/);
+    expect(CHAT).toMatch(
+      /landing:\s*\{\s*kind:\s*"mission",\s*id:\s*mission\.id,\s*station:\s*"build"/,
+    );
   });
 
   it("a real emitted line survives the real parser", () => {
@@ -95,6 +94,8 @@ describe("the pane actually passes them to the turn that earned them", () => {
     // `stream.work` describes the run in flight. Handing it to all turns would
     // re-label every earlier answer with a new run's result each time one
     // arrived, which is the shape of lie this register exists to prevent.
-    expect(PANE).toMatch(/landings=\{t\.answer\?\.id === lastId \? stream\.work\.landings : undefined\}/);
+    expect(PANE).toMatch(
+      /landings=\{t\.answer\?\.id === lastId \? stream\.work\.landings : undefined\}/,
+    );
   });
 });

@@ -1054,9 +1054,159 @@ export const updateOpportunity = createServerFn({ method: "POST" })
         workspaceId: prior?.workspace_id ?? null,
         userId: prior?.user_id ?? context.userId,
       });
+      await recordJudgment(context.supabase, context.userId, {
+        id,
+        row: row as Record<string, unknown> | null,
+        from: prior?.status ?? null,
+        to: rest.status,
+        workspaceId: prior?.workspace_id ?? null,
+      });
     }
     return { opportunity: row };
   });
+
+/**
+ * THE JUDGMENT GATE RECORDED ONLY THAT A CALL HAPPENED, NEVER WHY.
+ *
+ * WHAT WAS MISSING. Decide is the highest-stakes human act in the product: keep
+ * this bet or kill it. Settling one wrote a status enum on `opportunities` and a
+ * `stage_events` row, and nothing else. Measured on the live database: 267
+ * `decisions` rows exist and every one of them carries a rationale -- from
+ * missions, specs, the roadmap, the Critic, retrospectives, meetings -- and NOT
+ * ONE comes from the gate. `createDecision` has call sites; /decide is not one.
+ *
+ * WHY THAT BREAKS THE MOAT RATHER THAN A REPORT. Layer 03 is the only layer
+ * defensible alone: a settled outcome re-ranks the next call. Learn grades a
+ * decision against what happened, and it cannot grade a judgment that left no
+ * reasoning behind. So the single richest signal the product generates -- a
+ * human weighing evidence and choosing -- was being thrown away at the moment
+ * it was made, and every future recommendation was poorer for it.
+ *
+ * NOBODY IS ASKED TO TYPE ANYTHING, which is the whole point of an agentic
+ * product. The rationale is ASSEMBLED from what the gate itself had on screen
+ * when the person pressed the key: the bet's own impact, confidence and ease,
+ * and the lane it moved between. Every clause traces to a column on the row
+ * that was just written. Asking for a sentence would add friction to the one
+ * interaction that must stay a single keystroke, and would collect prose that
+ * is worse evidence than the numbers already are.
+ *
+ * IT NEVER BLOCKS THE CALL. A decision that cannot be recorded must not stop a
+ * bet being settled: the person's judgment is the fact, and the record of it is
+ * a consequence. Failures report themselves through `recordLineageSafe`'s own
+ * channel rather than surfacing as a failed settle.
+ */
+/**
+ * PURE. The verdict a lane change amounts to, and the sentence that records it.
+ *
+ * Separated from the write so it can be read and tested without a database, and
+ * so the one part with judgement in it -- which moves count as a call, and what
+ * the record says -- is inspectable on its own. `null` means this was not a
+ * judgment and nothing should be written.
+ */
+export function judgmentFor(input: {
+  row: Record<string, unknown> | null;
+  from: string | null;
+  to: string;
+}): { verdict: "approved" | "rejected"; title: string; rationale: string } | null {
+  /**
+   * ONLY THE MOVES THAT ARE A JUDGMENT. Dropping is a rejection and promoting
+   * into an active lane is an approval. Everything else -- parking in Later,
+   * returning to Backlog -- is SCHEDULING, and filing every drag as a decision
+   * would bury the real ones. A decision log that records everything records
+   * nothing, which is the failure mode that makes most of them useless.
+   */
+  const verdict =
+    input.to === "dropped"
+      ? ("rejected" as const)
+      : input.to === "now" || input.to === "next"
+        ? ("approved" as const)
+        : null;
+  if (!verdict) return null;
+
+  const r = input.row ?? {};
+  const title = typeof r.title === "string" && r.title ? r.title : "This bet";
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+  /**
+   * ASSEMBLED, NOT WRITTEN, AND NOBODY IS ASKED TO TYPE IT. Each clause names a
+   * column, so the sentence can be CHECKED against the row rather than
+   * believed. Asking for a sentence would put friction on the one interaction
+   * that has to stay a single keystroke, and would collect prose that is worse
+   * evidence than the numbers already are.
+   *
+   * A missing number is DROPPED rather than defaulted. A fabricated "5 out of
+   * 10" would be indistinguishable from a real one, and `ease` genuinely
+   * carries a placeholder on every promoted bet today.
+   */
+  const scored = [
+    num(r.impact) !== null ? `impact ${num(r.impact)}/10` : null,
+    num(r.confidence) !== null ? `confidence ${num(r.confidence)}/10` : null,
+    num(r.ease) !== null ? `ease ${num(r.ease)}/10` : null,
+  ].filter(Boolean);
+  const lane = input.from ? `from ${input.from} to ${input.to}` : `set to ${input.to}`;
+  const tail = scored.length ? `, scored ${scored.join(", ")}` : "";
+  const rationale =
+    verdict === "rejected"
+      ? `Dropped at the gate, ${lane}. The evidence stays on the record${tail}.`
+      : `Kept at the gate, ${lane}${tail}.`;
+
+  return { verdict, title, rationale };
+}
+
+async function recordJudgment(
+  supabase: SupabaseClient,
+  userId: string,
+  input: {
+    id: string;
+    row: Record<string, unknown> | null;
+    from: string | null;
+    to: string;
+    workspaceId: string | null;
+  },
+): Promise<void> {
+  const judged = judgmentFor({ row: input.row, from: input.from, to: input.to });
+  if (!judged) return;
+  const { verdict, title, rationale } = judged;
+  const r = input.row ?? {};
+
+  try {
+    const { data: decision, error } = await supabase
+      .from("decisions")
+      .insert({
+        user_id: userId,
+        title,
+        rationale,
+        status: verdict,
+        source_kind: "opportunity",
+        // EXPLICIT, because `decisions.workspace_id` is NOT NULL with a default
+        // of `current_user_default_workspace()` -- the same trap that put two
+        // bets in a workspace that never saw their evidence. A column default
+        // is a guess about the WRITER, never about the row.
+        ...(input.workspaceId ? { workspace_id: input.workspaceId } : {}),
+        ...(typeof r.project_id === "string" ? { project_id: r.project_id } : {}),
+        ...(typeof r.product_id === "string" ? { product_id: r.product_id } : {}),
+      } as never)
+      .select("id")
+      .single();
+    // supabase-js RESOLVES a refused write rather than throwing, so an
+    // unchecked insert reports success having changed nothing. The house rule.
+    if (error || !decision) return;
+
+    // The edge is what lets Learn walk back from a graded outcome to the call
+    // that caused it. Without it the decision row exists and is an orphan.
+    await recordLineageSafe(supabase, userId, {
+      parent_kind: "opportunity",
+      parent_id: input.id,
+      child_kind: "decision",
+      child_id: (decision as { id: string }).id,
+      relation: "decided",
+      rationale: "Settled at the judgment gate",
+      created_by_agent: null,
+    });
+  } catch {
+    // Never block the settle. See the header.
+  }
+}
 
 export const deleteOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
