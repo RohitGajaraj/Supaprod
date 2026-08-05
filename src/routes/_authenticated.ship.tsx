@@ -109,6 +109,7 @@ import {
   Textarea,
 } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
+import { CrewWorking } from "@/components/shell/CrewWorking";
 
 /** Anti-scroll: each list opens short and expands on demand. */
 const VISIBLE = 6;
@@ -464,6 +465,12 @@ function Ship() {
         ) : null
       }
     >
+      {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
+          genuinely mid-run, so it costs no space when the crew is idle and
+          cannot show a step that did not happen. Every other pulse on this
+          station is gated on a mutation the reader's own click started;
+          this one is bound to the run. See use-live-agents.ts. */}
+      <CrewWorking />
       <PageHead title={headline} sub={gapLine()} />
 
       {composing ? (

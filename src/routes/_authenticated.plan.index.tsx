@@ -112,6 +112,7 @@ import {
   type MarkState,
 } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
+import { CrewWorking } from "@/components/shell/CrewWorking";
 
 /** The deep-linkable values. The union is a contract with the legacy redirects
  *  (/prds, /roadmap, /stakeholder), so it never shrinks even when a section
@@ -172,6 +173,12 @@ export const Route = createFileRoute("/_authenticated/plan/")({
     console.error("[Plan] route crashed:", error);
     return (
       <Surface>
+        {/* THE AUTONOMOUS PATH, VISIBLE. Renders nothing unless an agent is
+            genuinely mid-run, so it costs no space when the crew is idle and
+            cannot show a step that did not happen. Every other pulse on this
+            station is gated on a mutation the reader's own click started;
+            this one is bound to the run. See use-live-agents.ts. */}
+        <CrewWorking />
         <PageHead
           title="The plan did not load."
           sub={(error as Error)?.message ?? "No reason was reported."}
