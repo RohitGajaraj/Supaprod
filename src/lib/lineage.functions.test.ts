@@ -75,6 +75,64 @@ describe("recordLineage insert shape", () => {
   });
 });
 
+/**
+ * A REFUSED EDGE MUST LEAVE A TRACE.
+ *
+ * supabase-js RESOLVES a refused write with `{ error }` rather than rejecting.
+ * recordLineage used to `await` the upsert and never look at `error`, so a
+ * rejected edge returned normally and recordLineageSafe's try/catch was guarding
+ * a throw that essentially never came. Both layers reported success for a write
+ * that did not happen — which is how a missing `prd -> mission` edge held the
+ * outcome-memory pool at zero without a single visible symptom.
+ *
+ * Fail-soft is still the contract: the promotion already succeeded, so a failed
+ * provenance stamp must never throw back into it. What changed is that the
+ * failure now reaches error_events, per the house rule that console.error is not
+ * observability.
+ */
+describe("recordLineage does not swallow a refused write", () => {
+  function mockRefusing(message: string) {
+    return {
+      from: () => ({
+        upsert: () => Promise.resolve({ error: { message } }),
+      }),
+    } as unknown as SupabaseClient;
+  }
+
+  test("still resolves, because provenance must never fail the promotion", async () => {
+    await expect(
+      recordLineage(mockRefusing("new row violates row-level security policy"), "user-1", {
+        ...edge,
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  test("reports the refusal to error_events, naming which edge went missing", async () => {
+    const seen: { message: string; ctx: Record<string, unknown> }[] = [];
+
+    await recordLineage(
+      mockRefusing("permission denied"),
+      "user-9",
+      { ...edge, parent_kind: "prd", child_kind: "mission", relation: "dispatched" },
+      {
+        report: async (err, ctx) => {
+          seen.push({
+            message: err instanceof Error ? err.message : String(err),
+            ctx: ctx as unknown as Record<string, unknown>,
+          });
+        },
+      },
+    );
+
+    expect(seen.length).toBe(1);
+    expect(seen[0].message).toContain("permission denied");
+    expect(seen[0].ctx.surface).toBe("lineage.recordLineage");
+    expect(seen[0].ctx.user_id).toBe("user-9");
+    // The record says WHICH link is missing, not that something somewhere failed.
+    expect(seen[0].ctx.failure_kind).toBe("prd->mission:dispatched");
+  });
+});
+
 describe("recordLineageSafe fail-soft contract", () => {
   test("absorbs a thrown transport error instead of failing the promotion", async () => {
     const captured: CapturedUpsert[] = [];

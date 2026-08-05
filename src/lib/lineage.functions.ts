@@ -34,7 +34,34 @@ export type ArtifactKind = (typeof ARTIFACT_KINDS)[number];
 
 const KindSchema = z.enum(ARTIFACT_KINDS);
 
-/** Insert a lineage edge. Idempotent via the unique index. */
+/** What a refused edge reports: enough to name which link went missing. */
+type LineageFailureContext = {
+  surface: string;
+  user_id: string;
+  failure_kind: string;
+};
+
+/**
+ * Insert a lineage edge. Idempotent via the unique index.
+ *
+ * FAIL-SOFT, BUT NO LONGER SILENT. A provenance stamp always runs after the
+ * main write has already succeeded, so a failed edge must never fail the
+ * promotion or abort a clustering pass. That part is deliberate and unchanged.
+ *
+ * What WAS wrong, found 2026-08-05: this awaited the upsert and never
+ * destructured `error`. supabase-js RESOLVES a refused write rather than
+ * rejecting it, so a rejected edge returned normally, and the `try/catch` in
+ * recordLineageSafe below was guarding a throw that essentially never came.
+ * Both layers reported success for a write that did not happen.
+ *
+ * That is not a theoretical gap. The prd -> mission edge is the ONLY link
+ * between a spec and the mission built from it (missions carry no prd column),
+ * every changeset resolves its spec through it, and a missing edge ends with
+ * the outcome-memory pool empty. A break worth four hops of damage was
+ * invisible at the seam that caused it. Per the repo's own rule — console.error
+ * is not observability, error_events is — the failure is now recorded there,
+ * and the function still resolves normally either way.
+ */
 export async function recordLineage(
   supabase: SupabaseClient,
   userId: string,
@@ -48,21 +75,49 @@ export async function recordLineage(
     created_by_agent?: string | null;
     ai_event_id?: string | null;
   },
+  // Injected reporter, same idiom recordErrorEvent already uses for its own
+  // client. A test supplies a spy instead of mock.module()-ing the
+  // observability module, which in Bun is a GLOBAL registry swap that leaks
+  // into every later test file — it broke the recordErrorEvent suite when
+  // written that way.
+  opts: { report?: (err: unknown, ctx: LineageFailureContext) => Promise<unknown> } = {},
 ): Promise<void> {
-  await supabase.from("artifact_lineage").upsert(
+  const relation = edge.relation ?? "promoted";
+  const { error } = await supabase.from("artifact_lineage").upsert(
     {
       user_id: userId,
       parent_kind: edge.parent_kind,
       parent_id: edge.parent_id,
       child_kind: edge.child_kind,
       child_id: edge.child_id,
-      relation: edge.relation ?? "promoted",
+      relation,
       rationale: edge.rationale ?? null,
       created_by_agent: edge.created_by_agent ?? null,
       ai_event_id: edge.ai_event_id ?? null,
     },
     { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
   );
+  if (!error) return;
+
+  try {
+    // Dynamic import by default so the happy path costs nothing and the
+    // observability module never enters this file's import-time graph.
+    const report =
+      opts.report ??
+      (async (err: unknown, ctx: LineageFailureContext) => {
+        const { recordErrorEvent } = await import("@/lib/observability/errors");
+        return recordErrorEvent(err, ctx);
+      });
+    await report(new Error(`lineage edge refused: ${error.message}`), {
+      surface: "lineage.recordLineage",
+      user_id: userId,
+      // The edge itself, so the record says WHICH link is missing rather than
+      // that some link somewhere failed.
+      failure_kind: `${edge.parent_kind}->${edge.child_kind}:${relation}`,
+    });
+  } catch {
+    // Recording the failure must not become a second failure.
+  }
 }
 
 /**

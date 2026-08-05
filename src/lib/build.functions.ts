@@ -18,6 +18,7 @@ import {
   DESIGN_GATE_BLOCK_MESSAGE,
 } from "@/lib/build/design-gate";
 import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
+import { recordLineage } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
 import { nativeBuildDriver } from "@/lib/build/native.server";
@@ -515,6 +516,36 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       // Mission 3.4: the spec's dispatch is a stage transition like any
       // other; the ledger chain walks design -> build on real rows.
       if (prd) {
+        /**
+         * THE EDGE THAT CARRIES THE SPEC INTO THE RECORD.
+         *
+         * Found 2026-08-05: this is the SECOND path that dispatches a Build
+         * mission from a spec, and it was the only one not writing this edge.
+         * dispatchStudioSession (studio.functions.ts) writes it; this one wrote
+         * the stage event and stopped. Nothing downstream could tell the two
+         * dispatches apart, because a mission carries no prd column — the edge
+         * IS the link.
+         *
+         * What that cost, four hops down: the changeset an agent opens resolves
+         * its spec through this edge, so a mission dispatched here produced a
+         * changeset with a null prd_id; decideStudioMergeShipStamp then refused
+         * every such merge with "this change has no spec behind it"; no spec was
+         * stamped shipped; the settle sweep had nothing to grade; and the
+         * outcome memory pool — the moat — stayed empty. 21 of 23 live
+         * changesets came through here, which is the whole gap.
+         *
+         * Same shape and relation as the Studio dispatch deliberately, so the
+         * two paths write ONE kind of edge and every reader stays single-path.
+         */
+        await recordLineage(supabase, userId, {
+          parent_kind: "prd",
+          parent_id: prd.id,
+          child_kind: "mission",
+          child_id: m.id,
+          relation: "dispatched",
+          rationale: "Sent to Build",
+          created_by_agent: "builder",
+        });
         await recordStageEvent(supabase, {
           entityType: "spec",
           entityId: prd.id,

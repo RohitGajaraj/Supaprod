@@ -1406,6 +1406,45 @@ async function getActiveChangeset(
   return (data as ChangesetRow | null) ?? null;
 }
 
+/**
+ * The spec a mission was dispatched from, or null when it came from a bare
+ * prompt or an opportunity.
+ *
+ * WHY THIS IS APPLICATION CODE AND NOT A TRIGGER. studio_changesets.prd_id has
+ * a doc comment on decideStudioMergeShipStamp saying the value is "stamped at
+ * creation by the studio_changeset_link_prd trigger". Checked live on
+ * 2026-08-05: that trigger and its function do not exist in the database.
+ * Migration 20260629120100 added the COLUMN and never the trigger, so the
+ * column has been null on every real changeset since it was created, and the
+ * whole spec -> merge -> ship -> learn chain has been severed at this seam the
+ * entire time. Resolving it here needs no DDL, which also means it cannot fall
+ * out of sync with a migration that was committed but never applied — the
+ * failure mode that produced this bug in the first place.
+ *
+ * Fails SOFT and returns null. A changeset must still be creatable when the
+ * lineage read fails; a null prd_id is exactly the state we are already in, so
+ * the worst case is no worse than today, while the good case closes the loop.
+ */
+async function resolvePrdForMission(
+  supabase: SupabaseClient,
+  missionId: string,
+): Promise<string | null> {
+  try {
+    const { data } = await supabase
+      .from("artifact_lineage")
+      .select("parent_id")
+      .eq("parent_kind", "prd")
+      .eq("child_kind", "mission")
+      .eq("child_id", missionId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    return ((data as { parent_id?: string } | null)?.parent_id ?? null) || null;
+  } catch {
+    return null;
+  }
+}
+
 const repoTree = def({
   name: "repo.tree",
   description:
@@ -1652,6 +1691,10 @@ const studioStage = def({
           repo,
           title: a.title ?? "",
           summary: a.summary ?? null,
+          // The link that lets a merge stamp its spec shipped. See
+          // resolvePrdForMission: null here is the pre-2026-08-05 behaviour and
+          // is still correct for a prompt-only session with no spec behind it.
+          prd_id: await resolvePrdForMission(supabase, missionId),
         })
         .select("id,mission_id,repo,branch,base_sha,status,title,pr_url,pr_number")
         .single();
