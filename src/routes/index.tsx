@@ -57,7 +57,12 @@ const ORG_LD = {
   // that was shipping nonsense as structured data (landing audit 2026-07-25).
   disambiguatingDescription:
     "Supaprod is an AI product team for product managers: agents that discover, decide, build, and ship, governed by one human who gets the receipts.",
-  sameAs: ["https://github.com/RohitGajaraj", "https://x.com/RohitGajaraj"],
+  // These pointed at the FOUNDER'S PERSONAL accounts, which is what a solo repo
+  // starts with and nobody revisits. Organisation schema `sameAs` is how a
+  // search engine ties the brand to its official profiles, so naming a personal
+  // handle here tells Google the company is a person. Both brand accounts exist
+  // as of 2026-08-05: the org and the @supaprodhq handle.
+  sameAs: ["https://github.com/Supaprod", "https://x.com/supaprodhq"],
 };
 
 const APP_LD = {

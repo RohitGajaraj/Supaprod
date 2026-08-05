@@ -245,7 +245,7 @@ export function Hero() {
                * sentence can only get slacker, never tighter. The four-beat
                * rhythm is kept: know, ship, learn, guide.
                */}
-              Agents that know what to build, ship it, learn, and guide.
+              Agents that own outcomes. Not just output.
             </p>
 
             <div

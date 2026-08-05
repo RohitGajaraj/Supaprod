@@ -88,22 +88,46 @@ function lockup(markPx: number, textPx: number, id: string) {
 function categoryLine(size: number, gap: number, center = false) {
   return `<div style="display:flex;align-items:center;gap:${gap}px;
       ${center ? "justify-content:center;" : ""}">
-    <span style="width:${(size * 1.5).toFixed(0)}px;height:1px;background:${P.ember};opacity:.9"></span>
-    <span style="font-size:${size}px;color:${P.slate};letter-spacing:-.006em">${CATEGORY}</span>
+    <span style="width:${(size * 1.5).toFixed(0)}px;height:1.5px;background:${P.ember};opacity:1"></span>
+    <span style="font-size:${size}px;color:${P.bone};opacity:.82;letter-spacing:-.006em">${CATEGORY}</span>
   </div>`;
 }
 
 // =============================================================================
 // WIDE BANNER — X, Mastodon, Bluesky.
 //
-// ZONES, measured on a 1500x500 master:
-//   AVATAR    a 334px circle centred near x=207 on the bottom edge, covering
-//             x 40..374, y 333..500. The text block therefore centres on
-//             0.35 x height, not 0.5, and the bottom-left quadrant stays empty.
-//   INSTRUMENT centre pulled to w-340 so the leftmost station label (06 SHIP,
-//             at cx - labelR) lands clear of where the headline ends. Text and
-//             diagram must never share a column.
+// THE MOBILE CROP, measured from a real device 2026-08-06. This is the fault
+// that shipped: the layout was designed to the FILE's edges instead of to the
+// RENDERED safe area, and X's mobile app does not show the whole file.
+//
+//   X mobile crops roughly 13% off EACH SIDE and zooms the remainder. With a
+//   96px left margin on a 1500px canvas (6.4%), the crop ate the margin and then
+//   the type: "Agents" rendered as "gents", "Not just" rendered as "lot", and
+//   the wordmark was clipped at the corner. Desktop was fine throughout, which
+//   is exactly why this is easy to miss.
+//
+//   X mobile also overlays NAV BUTTONS on the banner: a back arrow at the left
+//   and search / overflow at the right, sitting at roughly 41% of banner height.
+//
+// SAFE AREA, therefore: design inside the centre ~74% of width, and keep the
+// headline above the button band.
+//
+//   SAFE_L      0.155  left margin as a fraction of width, clears the crop
+//               with margin to spare rather than exactly
+//   AVATAR      a 334px circle at x 40..374, y 333..500 on the master. The text
+//               block centres on 0.33 x height so it clears both the circle
+//               below and the nav buttons at 41%.
+//   INSTRUMENT  pulled in so its leftmost station label clears the headline AND
+//               its rightmost label survives the right-hand crop at x=1305.
 // =============================================================================
+const SAFE_L = 0.17;
+
+/**
+ * WIDE, the original composition. Optimised for the DESKTOP render, where the
+ * whole file is shown. Kept unchanged and still shipped, per founder ruling
+ * 2026-08-06: "create a new version for mobile separately, don't replace the
+ * existing ones." Both variants ship; the uploader picks.
+ */
 function banner(w: number, h: number, id: string) {
   const s = h / 500;
   const o: Orr = {
@@ -123,18 +147,67 @@ function banner(w: number, h: number, id: string) {
       radial-gradient(85% 130% at 14% 2%, ${P.lift} 0%, transparent 56%)"></div>
     ${machine(w, h, o, 100 * s, 18 * s, { r: 258 * s, size: 10 * s })}
     ${GRAIN(P.grain)}
-    <!-- WIDTH IS LOAD-BEARING. "Agents that own outcomes." is 25 characters; at
-         56px with -0.042em tracking Geist runs ~0.47em/char, so the line needs
-         ~658px. A 660px box left 2px of slack and the line wrapped, turning a
-         two-beat headline into three ragged lines. 704px at 54px carries it with
-         real margin, and still stops well clear of the instrument: text ends at
-         x=800, the leftmost station label sits at x=906. -->
     <div style="position:absolute;left:${96 * s}px;top:${(h * 0.35).toFixed(0)}px;
         transform:translateY(-50%);width:${704 * s}px">
       ${lockup(30 * s, 22 * s, id + "lk")}
       <div style="margin-top:${30 * s}px;font-size:${54 * s}px;line-height:${LEAD};
           font-weight:500;letter-spacing:-.042em;color:${P.bone};white-space:nowrap">${HOOK}</div>
       <div style="margin-top:${26 * s}px">${categoryLine(17 * s, 13 * s)}</div>
+    </div>
+  `,
+  );
+}
+
+/**
+ * SAFE, the mobile-first composition. A separate file, not a replacement.
+ *
+ * THE FAULT IT FIXES, measured on a real device 2026-08-06: X's mobile app crops
+ * roughly 13% off EACH SIDE and zooms the remainder. The wide variant's left
+ * margin is 96px on a 1500px canvas, which is 6.4% — so the crop ate the margin
+ * and then the type. "Agents" rendered as "gents", "Not just" as "lot", and the
+ * wordmark was clipped at the corner. Desktop was correct throughout, which is
+ * exactly why it survived review.
+ *
+ * X mobile also overlays NAV BUTTONS on the banner: a back arrow at the left,
+ * search and overflow at the right, at roughly 41% of banner height.
+ *
+ * So this variant designs inside the centre ~74% of width and lifts the block to
+ * 33% height, clearing both the nav band below it and the avatar circle beneath
+ * that. The instrument shrinks and moves in so its rightmost station label also
+ * survives the right-hand crop.
+ */
+function bannerSafe(w: number, h: number, id: string) {
+  const s = h / 500;
+  const o: Orr = {
+    cx: w - 430 * s,
+    cy: h * 0.5,
+    k: 0.38,
+    shells: [112 * s, 196 * s, 300 * s, 408 * s, 528 * s],
+    stationR: 196 * s,
+    nodeR: 4.5 * s,
+    id,
+  };
+  return page(
+    w,
+    h,
+    `
+    <div style="position:absolute;inset:0;background:
+      radial-gradient(85% 130% at 20% 2%, ${P.lift} 0%, transparent 56%)"></div>
+    ${machine(w, h, o, 92 * s, 17 * s, { r: 232 * s, size: 9.5 * s })}
+    ${GRAIN(P.grain)}
+    <!-- Headline at 46px keeps "Agents that own outcomes." (25 chars at roughly
+         0.47em/char) to ~540px, so the block runs x 232..772 on the master and
+         still clears the instrument's leftmost label. -->
+    <!-- 0.28 not 0.33: X mobile's nav buttons sit at ~41% of banner height, and
+         a block centred at 33% put the second headline line right under the back
+         arrow. Centring at 28% lifts the whole block above the button band while
+         still clearing the avatar circle, whose top edge is at 66%. -->
+    <div style="position:absolute;left:${(w * SAFE_L).toFixed(0)}px;top:${(h * 0.28).toFixed(0)}px;
+        transform:translateY(-50%);width:${620 * s}px">
+      ${lockup(28 * s, 20 * s, id + "lk")}
+      <div style="margin-top:${26 * s}px;font-size:${46 * s}px;line-height:${LEAD};
+          font-weight:500;letter-spacing:-.042em;color:${P.bone};white-space:nowrap">${HOOK}</div>
+      <div style="margin-top:${22 * s}px">${categoryLine(19 * s, 13 * s)}</div>
     </div>
   `,
   );
@@ -283,9 +356,15 @@ function strip(w: number, h: number, id: string) {
 // name. That invariant exists because this kit once shipped a file called
 // og-dark-1200x630.png that was actually 600x315.
 const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[] = [
+  // Both variants ship for every avatar-overlay platform. `-safe` survives the
+  // ~13% mobile side-crop and the nav-button band; the plain one is the wider
+  // desktop composition. Neither replaces the other.
   { base: "x-header", w: 1500, h: 500, fn: (i) => banner(1500, 500, i) },
+  { base: "x-header-safe", w: 1500, h: 500, fn: (i) => bannerSafe(1500, 500, i) },
   { base: "mastodon-header", w: 1500, h: 500, fn: (i) => banner(1500, 500, i) },
+  { base: "mastodon-header-safe", w: 1500, h: 500, fn: (i) => bannerSafe(1500, 500, i) },
   { base: "bluesky-banner", w: 3000, h: 1000, fn: (i) => banner(3000, 1000, i) },
+  { base: "bluesky-banner-safe", w: 3000, h: 1000, fn: (i) => bannerSafe(3000, 1000, i) },
   { base: "linkedin-cover", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
   { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
   { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i) },
