@@ -117,14 +117,14 @@ function FirstRunBridge() {
   return (
     <Surface>
       <Block
-        title="Your first bet is ready for review"
+        title="Your idea got an AI review"
         sub={
           <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-            The Critic reviewed your idea from setup. See the verdict and approve next steps.
+            See what the AI analyst found. You make the final call on whether to move forward.
           </div>
         }
       >
-        <Door onClick={() => navigate({ to: "/decide" })}>Go to Decide →</Door>
+        <Door onClick={() => navigate({ to: "/decide" })}>See the analysis →</Door>
       </Block>
     </Surface>
   );
@@ -629,14 +629,13 @@ function Today() {
             >
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div>
-                  Nothing finished in the last day yet. The crew is ready — tell Supaprod what you
+                  Nothing finished in the last day yet. The crew is ready. Tell Supaprod what you
                   want to build, or connect data sources so they discover work.
                 </div>
                 <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                  <strong>Here's how it works:</strong> Agents discover opportunities (Discover),
-                  decide which to pursue (Decide), plan the scope (Plan), and then build, ship, and
-                  learn from outcomes. You approve each decision; they do the work. New requests
-                  usually finish overnight.
+                  <strong>Here's how it works:</strong> You submit an idea. AI agents analyze it,
+                  suggest next steps, and build what you approve. They handle planning, design,
+                  building, and shipping. You make all the calls. Most work finishes overnight.
                 </div>
               </div>
             </Empty>
@@ -659,14 +658,14 @@ function Today() {
                         color: "var(--sp-ink)",
                       }}
                     >
-                      1. Make a bet in Decide
+                      1. Submit an idea for analysis
                     </div>
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      The Critic red-teams your idea and gives a verdict: Ship, Revise, or Kill.
-                      You're in control—approve the verdicts, and agents handle the work.
+                      The AI analyst challenges your thinking and suggests next steps. You decide
+                      whether to proceed, refine, or pass.
                     </div>
                     <div style={{ marginTop: "8px" }}>
-                      <Door onClick={() => navigate({ to: "/decide" })}>Go to Decide</Door>
+                      <Door onClick={() => navigate({ to: "/decide" })}>See analysis →</Door>
                     </div>
                   </div>
 
@@ -678,11 +677,11 @@ function Today() {
                         color: "var(--sp-ink)",
                       }}
                     >
-                      2. Connect your sources (optional)
+                      2. Connect your data (optional)
                     </div>
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      Link Slack channels, support tickets, user interviews, or paste feedback.
-                      Agents will continuously scan for opportunities and bring them to Decide.
+                      Link Slack channels, support tickets, or feedback sources. The AI will scan for
+                      new opportunities and bring them to your attention automatically.
                     </div>
                   </div>
 
@@ -694,11 +693,11 @@ function Today() {
                         color: "var(--sp-ink)",
                       }}
                     >
-                      3. Watch them build and ship
+                      3. Watch AI agents execute and learn
                     </div>
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      Once approved, agents plan, design, build, and ship. You stay in control
-                      every step. Outcomes close the loop and teach the system.
+                      Once you approve, AI agents plan the work, design it, build it, and ship it.
+                      You see every step. Results teach the system for next time.
                     </div>
                   </div>
                 </div>

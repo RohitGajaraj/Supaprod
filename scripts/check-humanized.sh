@@ -87,7 +87,14 @@ GENERATED_RE='^graphify-out/'
 #
 # Tests are excluded even inside those directories.
 CONSUMER_RE='^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize)'
-TEST_RE='(\.test\.(ts|tsx)$|^src/__tests__/)'
+# WIDENED 2026-08-05. This matched only a __tests__ directory at the ROOT of src,
+# so the colocated ones (src/components/discover/__tests__, and eight more) were
+# never excluded. It did not show while template literals were invisible; the
+# moment they became visible the scanner reported 28 hits on the consumer
+# surface and 26 were test fixtures, several of them guards asserting THAT THE
+# DASH IS BANNED and therefore obliged to contain one. Burying two real
+# violations under 26 fixtures is how a warn-only check becomes one people skim.
+TEST_RE='(\.test\.(ts|tsx)$|(^|/)__tests__/)'
 
 # --- The perl scanner: reads "<lineno>\t<content>" lines, prints a hit line
 # "  <file>:<lineno>  <names>" for each offending added line, and exits with a
@@ -129,8 +136,32 @@ run_scanner() {
       $content =~ s{//.*$}{};                      # trailing // tail
       next if $content =~ /^\s*$/;
 
-      # Best-effort: drop inline `code` spans before checking.
-      (my $stripped = $content) =~ s/`[^`]*`//g;
+      # DROP INLINE CODE SPANS IN MARKDOWN ONLY. NEVER IN TS/TSX.
+      #
+      # THE BLIND SPOT THIS CLOSES, found 2026-08-05 by a reviewing subagent.
+      # This stripped backtick-delimited spans from EVERY file, in order to skip
+      # markdown inline code. But the default scan set is ts and tsx (see
+      # TEXT_EXT_RE) and markdown is deliberately not scanned at all. In
+      # TypeScript a backtick does not open a code span. It opens a TEMPLATE
+      # LITERAL, which is how most user-facing copy in this codebase is written.
+      #
+      # So every banned character inside a template literal was deleted before
+      # the check ran, and the scanner printed "clean". Proven with a probe: a
+      # component rendering a template literal containing an em dash was
+      # reported clean by this script. That is the Tier 1 gate the humanization
+      # ruling depends on, passing a violation, in the one file type it is
+      # actually pointed at.
+      #
+      # A false negative on a hard gate is worse than no gate, because a green
+      # result gets read as evidence. Markdown keeps the old behaviour, because
+      # a --flag quoted in prose there is genuinely code rather than copy.
+      #
+      # NOTE FOR ANYONE EDITING THE COMMENTS IN THIS BLOCK: this is perl inside
+      # a single-quoted shell string (perl -CSD -e above), so an APOSTROPHE
+      # closes that string and breaks the whole file. No contractions, no
+      # possessives. This exact mistake cost two runs while writing it.
+      my $stripped = $content;
+      $stripped =~ s/`[^`]*`//g if $file =~ /\.(md|markdown)$/i;
 
       next unless $stripped =~ $banned;
 
@@ -177,6 +208,7 @@ scan_file_args() {
     fi
     [[ "$f" =~ $TEXT_EXT_RE ]] || continue
     [[ "$f" =~ $GENERATED_RE ]] && continue
+    [[ "$f" =~ $TEST_RE ]] && continue
     # Emit "<lineno>\t<line>" for every line, scan, capture, then consume in the
     # current shell so the hit count is not lost to a pipeline subshell.
     n=0
@@ -196,6 +228,7 @@ scan_staged_diff() {
   files="$(git diff --cached --name-only --diff-filter=ACMR \
     | grep -E "$TEXT_EXT_RE" \
     | grep -Ev "$GENERATED_RE" \
+    | grep -Ev "$TEST_RE" \
     | grep -E "$CONSUMER_RE" \
     | grep -Ev "$TEST_RE" || true)"
   [[ -z "$files" ]] && return 0

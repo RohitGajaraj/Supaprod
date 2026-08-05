@@ -99,13 +99,13 @@ export type BeliefSource =
 export function beliefGuidance(source: BeliefSource): string {
   switch (source) {
     case "opportunity":
-      return "This is a bet Supaprod found in your workspace. Edit it, or write your own.";
+      return "Supaprod spotted this opportunity in your workspace. Edit it, or try your own.";
     case "product-name":
-      return "This is the product name you gave, not something Supaprod read. Edit it into the bet you want challenged.";
+      return "This is the product name you gave. Edit it into the idea you want analyzed.";
     case "pasted":
-      return "This is the first line of what you pasted. Edit it, or write your own bet.";
+      return "This is the first line of what you pasted. Edit it, or write your own idea.";
     case "none":
-      return "Write the bet you want challenged, in your own words. The Critic reads only what is in this box.";
+      return "Write the idea you want analyzed, in your own words. The AI analyst reads only what is in this box.";
   }
 }
 
@@ -358,31 +358,31 @@ function ChoiceCard({
         `}
       </style>
       <button
-      type="button"
-      disabled={disabled}
-      aria-busy={busy || undefined}
-      aria-label={ariaLabel}
-      title={title}
-      onClick={onClick}
-      className={interactive ? "choice-card-interactive" : ""}
-      style={{
-        textAlign: "left",
-        width: "100%",
-        padding: "13px 14px",
-        borderRadius: "var(--ds-radius-small)",
-        background: "var(--ds-gray-100)",
-        border: "1px solid var(--ds-gray-alpha-400)",
-        opacity: dimmed ? 0.45 : 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "var(--geist-space-3x)",
-        cursor: interactive ? "pointer" : "default",
-        transition:
-          "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
-      }}
-    >
-      {children}
+        type="button"
+        disabled={disabled}
+        aria-busy={busy || undefined}
+        aria-label={ariaLabel}
+        title={title}
+        onClick={onClick}
+        className={interactive ? "choice-card-interactive" : ""}
+        style={{
+          textAlign: "left",
+          width: "100%",
+          padding: "13px 14px",
+          borderRadius: "var(--ds-radius-small)",
+          background: "var(--ds-gray-100)",
+          border: "1px solid var(--ds-gray-alpha-400)",
+          opacity: dimmed ? 0.45 : 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "var(--geist-space-3x)",
+          cursor: interactive ? "pointer" : "default",
+          transition:
+            "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
+        }}
+      >
+        {children}
       </button>
     </>
   );
@@ -1496,8 +1496,8 @@ export function ObsidianOnboarding() {
           ) : null}
           <input
             autoFocus
-            aria-label="The belief the Critic will challenge"
-            placeholder="The one thing you believe that could be wrong"
+            aria-label="Your key assumption the AI analyst will challenge"
+            placeholder="Your key assumption that could be wrong"
             value={belief}
             disabled={running}
             onChange={(e) => setBelief(e.target.value)}

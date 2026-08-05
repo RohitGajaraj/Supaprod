@@ -23,12 +23,45 @@ function createMockSupabase(config: {
 }): SupabaseClient {
   const err = config.error ?? null;
 
-  /** A chainable + directly-awaitable `.eq().eq()...` tail for update()/delete() calls,
-   * matching how real supabase-js PostgrestFilterBuilder is thenable at every step. */
+  /**
+   * The rows a governed write reports back through `.select("id")`.
+   *
+   * WHY THIS EXISTS NOW. The write functions used to end at `.eq(...)` and
+   * ignore what came back. A write refused by RLS RESOLVES in supabase-js
+   * rather than throwing, so they returned ok having changed nothing, and a
+   * viewer's Save reported success. They now end in `.select("id")` and refuse
+   * an empty result, which means the MOCK has to model the rows too: a chain
+   * that returns `data: null` on the happy path would make every write look
+   * refused and fail the test for the opposite of the real reason.
+   *
+   * One row on success, nothing on error, which is exactly what Postgrest
+   * returns for a single-row update that matched or did not.
+   */
+  const writtenRows = () => (err ? null : [{ id: "row-1" }]);
+
+  /** A chainable + directly-awaitable `.eq().eq()...` tail for update()/delete()
+   * calls, matching how a real supabase-js PostgrestFilterBuilder is thenable at
+   * every step AND can be terminated by `.select()`. */
   function eqChain(result: { data: any; error: any }): any {
     return {
       eq: (_col: string, _val: any) => eqChain(result),
+      select: (..._args: string[]) => ({
+        then: (resolve: any, reject?: any) =>
+          Promise.resolve({ data: writtenRows(), error: err }).then(resolve, reject),
+      }),
       then: (resolve: any, reject?: any) => Promise.resolve(result).then(resolve, reject),
+    };
+  }
+
+  /** insert()/upsert() are thenable on their own AND terminable by `.select()`. */
+  function writeChain(): any {
+    const settled = { data: writtenRows(), error: err };
+    return {
+      select: (..._args: string[]) => ({
+        then: (resolve: any, reject?: any) => Promise.resolve(settled).then(resolve, reject),
+      }),
+      then: (resolve: any, reject?: any) =>
+        Promise.resolve({ data: null, error: err }).then(resolve, reject),
     };
   }
 
