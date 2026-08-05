@@ -23,10 +23,7 @@ import { SETTINGS_GROUPS, ALL_SECTION_IDS } from "@/lib/settings-sections";
  * list was a convention, and a convention is a rule nobody checks.
  */
 
-const ROUTE = readFileSync(
-  join(import.meta.dir, "..", "_authenticated.settings.tsx"),
-  "utf8",
-);
+const ROUTE = readFileSync(join(import.meta.dir, "..", "_authenticated.settings.tsx"), "utf8");
 const stripComments = (s: string) =>
   s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 const CODE = stripComments(ROUTE);

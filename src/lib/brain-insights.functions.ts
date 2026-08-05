@@ -566,9 +566,11 @@ export const getForecastCalibration = createServerFn({ method: "GET" })
 // SEAM-3 (mission 3.9): the push channel read side. The detection pass
 // (src/lib/brain/push-insights.server.ts, riding the derive-tick supaprod)
 // writes push rows into `insights` with pushed_at set and digest=false, capped
-// at DAILY_PUSH_CAP per workspace per day. This returns today's undigested,
-// still-open pushes in the exact shape Today's SW-5 lane consumes. Keep the
-// shape stable: {insights: [{id, kind, title, body, action, created_at}]}.
+// at DAILY_PUSH_CAP per workspace per day. This returns the NEWEST undigested,
+// still-open pushes -- not strictly today's; see the read below for why a day
+// filter emptied the lane whenever a tick was quiet -- in the exact shape
+// Today's lane consumes. Keep the shape stable:
+// {insights: [{id, kind, title, body, action, created_at}]}.
 
 export type PushedInsightAction = { label: string; kind: string; targetId: string };
 
@@ -589,14 +591,35 @@ export const getPushedInsights = createServerFn({ method: "GET" })
     const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return { insights: [] };
 
-    const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`;
+    /**
+     * THE NEWEST OPEN PUSHES, NOT "TODAY'S", and the difference is the lane
+     * going blank versus the lane being right.
+     *
+     * This filtered `pushed_at >= today 00:00 UTC`, which reads as freshness and
+     * behaves as fragility: the push rides the two-hourly derive tick, so a
+     * night where it finds nothing to push -- or errors, or is rate-limited --
+     * empties the lane completely, while genuinely open insights sit unread.
+     * Measured on the live database when this was wired up: 51 open, undigested
+     * push cards WITH actions, and the most recent push four days old. The
+     * surface would have rendered nothing at all and looked finished doing it.
+     *
+     * `status = "open"` is already the freshness rule that matters. An insight
+     * is open until a person acts on it or waves it off, and
+     * `markInsightActioned` is what closes it. Ordering by `pushed_at` newest
+     * first and keeping the same cap preserves the whole intent of a small,
+     * current lane; it just stops the lane depending on a cron having run in
+     * the last few hours.
+     *
+     * The cap stays DAILY_PUSH_CAP so the write side and the read side keep one
+     * number between them.
+     */
     const { data, error } = await supabase
       .from("insights")
       .select("id,kind,headline,detail,push_action,created_at")
       .eq("workspace_id", workspaceId)
       .eq("status", "open")
       .eq("digest", false)
-      .gte("pushed_at", dayStart)
+      .not("pushed_at", "is", null)
       .order("pushed_at", { ascending: false })
       .limit(DAILY_PUSH_CAP);
     // Pre-migration tolerant: no push fields yet means nothing has been pushed.

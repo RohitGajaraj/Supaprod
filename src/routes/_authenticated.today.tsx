@@ -35,6 +35,7 @@ import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { openAsk } from "@/lib/ask-open";
 import { FocusNext } from "@/components/today/FocusNext";
+import { PushedInsights } from "@/components/today/PushedInsights";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import {
   AgentMark,
@@ -662,6 +663,14 @@ function Today() {
           answer, so a quiet workspace is quiet. See FocusNext.tsx for why this
           had no door until now. */}
       <FocusNext />
+
+      {/* WHAT NOBODY ASKED ABOUT, under what the brain would work on next and
+          above the gate. FocusNext answers a question; these are the things the
+          product volunteered while you were elsewhere -- a bet contradicted by
+          new evidence, a calibration miss. Both are layer 01, and the
+          unprompted half is the one that makes it a director rather than a
+          search box. Renders nothing when there is nothing. */}
+      <PushedInsights />
 
       {call ? (
         <Gate
