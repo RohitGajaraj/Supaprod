@@ -76,19 +76,21 @@ describe("Ask's visible fork travels to the server", () => {
 });
 
 /**
- * THE VOCABULARY IS THE MOAT, SO IT BINDS THE COPY.
+ * THE CLAIM IS THE MOAT, SO IT BINDS THE COPY.
  *
- * CLAUDE.md:7 and README.md:45: "It learns and guides; it never 'remembers',
- * 'stores', or 'logs'." A filing cabinet remembers, and storage is not
- * defensible; what is being sold is that the last outcome changes the next
- * call. The rule exists because the claim is the company's, not because the
- * word is ugly.
+ * CLAUDE.md:7 and README.md, "The claim, and why it compounds": the product
+ * learns and then guides, the last outcome changes the next call, and that
+ * compounding is what no vendor can copy. Storage is the thing it is NOT:
+ * anyone can store your decisions, and a frontier release can absorb search
+ * over them next quarter. So a public surface that says the brain remembers,
+ * stores or logs your work has not broken a style rule -- it has swapped the
+ * defensible claim for the undefendable one, and claimed less than the product
+ * actually delivers.
  *
  * It had drifted where it mattered most. The landing hero -- the single
  * most-read sentence the product owns -- read "Agents that know what to build,
  * ship it, remember, and guide", while ThreeLayers.tsx one screen below printed
- * "It learns, and it guides." and carried a comment saying the product "never
- * remembers, stores or logs". A visitor scrolling from the hero to the
+ * "It learns, and it guides." A visitor scrolling from the hero to the
  * mechanism met two different claims about the same layer.
  *
  * Scoped to PUBLIC marketing surfaces and to rendered copy only. Comments and
@@ -96,7 +98,7 @@ describe("Ask's visible fork travels to the server", () => {
  * that this cleanup is consumer-facing, never backend source, comments, .md or
  * .sql -- and the comments explaining this rule necessarily quote the word.
  */
-describe("public copy keeps the vocabulary the moat is built on", () => {
+describe("public copy keeps the claim the moat is built on", () => {
   const PUBLIC_SURFACES = [
     join("components", "landing", "Hero.tsx"),
     join("components", "landing", "ThreeLayers.tsx"),
@@ -105,40 +107,62 @@ describe("public copy keeps the vocabulary the moat is built on", () => {
     join("components", "landing", "LandingNav.tsx"),
   ];
 
-  /** Rendered text only: JSX text nodes and quoted copy, never identifiers. */
-  const BANNED = /\b(remembers?|remembering)\b/i;
+  /**
+   * WHAT IS BANNED IS THE CLAIM, NOT THE LETTERS, and the difference decides
+   * whether this guard survives contact with real copy.
+   *
+   * "Remembers" is always the claim in rendered text, so it stands alone.
+   * "Store" and "log" are ordinary English -- Receipts.tsx ships "dated
+   * shipping log", an app-store link is legitimate, a variable named `store`
+   * breaks nothing -- so they are caught only in the shape that makes the
+   * claim: storing or logging YOUR (or every / each / all) work. Plus the one
+   * framing README bans by name, "where the record lives".
+   *
+   * A wider pattern would fail on correct copy, and a guard that fails on
+   * correct copy gets deleted by the next person in a hurry, taking the real
+   * rule with it.
+   */
+  const CLAIMS_STORAGE: Array<[RegExp, string]> = [
+    [/\b(remembers?|remembering)\b/i, "claims the product remembers"],
+    [
+      /\b(stores?|stored|storing|logs|logged|logging)\s+(your|their|every|each|all)\b/i,
+      "frames the brain as storage of your work",
+    ],
+    [/where the record lives/i, "the framing README bans by name"],
+  ];
 
   for (const rel of PUBLIC_SURFACES) {
-    it(`${rel} never claims the product remembers`, () => {
+    it(`${rel} never trades the claim for storage`, () => {
       const code = stripComments(read(rel));
       const offenders = code
         .split("\n")
-        .map((line, i) => ({ n: i + 1, line: line.trim() }))
-        .filter(({ line }) => BANNED.test(line));
-      expect(offenders.map((o) => `${o.n}: ${o.line}`)).toEqual([]);
+        .flatMap((line, i) =>
+          CLAIMS_STORAGE.filter(([re]) => re.test(line)).map(
+            ([, why]) => `${i + 1}: ${why} -- ${line.trim()}`,
+          ),
+        );
+      expect(offenders).toEqual([]);
     });
   }
 
   /**
-   * THE DOCTRINE IS A BAN, NOT A SCRIPT, and the first version of this test
-   * confused the two.
+   * THE DOCTRINE LEADS WITH A CLAIM, NOT A SCRIPT, and the first version of
+   * this test confused the two.
    *
    * It required the hero to CONTAIN "learn" and "guide". That is stronger than
-   * the rule, which says only that the product never claims to remember, store
-   * or log. The hero was later rewritten to "Agents that own outcomes. Not just
-   * output." -- which breaks no rule, says the same thing harder, and failed
-   * this test anyway.
+   * the rule, which asks only that no surface swap the claim for storage. The
+   * hero was later rewritten to "Agents that own outcomes. Not just output."
+   * -- which breaks no rule, says the same thing harder, and failed this test
+   * anyway. README now names that hero as compliant, in writing.
    *
-   * A guard that fails on compliant copy is a guard that gets deleted the next
-   * time somebody improves a sentence, taking the real ban with it. So this now
-   * holds the ban on the hero, and holds the MECHANISM to the doctrine's own
-   * words, because that is the surface whose whole job is explaining layer 03.
-   * Rewording the hero stays free; claiming storage does not.
+   * So rewording any surface is free. The one exception is ThreeLayers.tsx,
+   * whose entire job on the page is explaining layer 03: it has to say the
+   * mechanism in the doctrine's own two verbs, or the page explains the moat
+   * without ever stating it. Punctuation and connectives are left free there
+   * too, so "It learns, then it guides." would pass.
    */
-  it("the hero breaks no rule, and the mechanism still speaks the doctrine", () => {
-    const hero = stripComments(read(join("components", "landing", "Hero.tsx")));
+  it("the surface that explains layer 03 still says learns, then guides", () => {
     const three = stripComments(read(join("components", "landing", "ThreeLayers.tsx")));
-    expect(hero).not.toMatch(/\b(remembers?|stores?|logs)\b/i);
-    expect(three).toMatch(/It learns, and it guides\./);
+    expect(three).toMatch(/\blearns\b[^\n]{0,40}\bguides\b/i);
   });
 });

@@ -22,6 +22,19 @@
  * A register is a LABEL AND A BLOCK OF TEXT, not a bubble. Two nested tinted
  * containers per message, thirty times over, is the wallpaper the rebuild is
  * removing; attribution is the word above the line.
+ *
+ * THE FIFTH: WHERE IT LANDED. A turn that produced something says where that
+ * something now lives, on the station that owns it:
+ *
+ *   Where it landed  the result, and the way to go and see it
+ *
+ * It exists because a run that ends in a chat log has not handed back. Ask is
+ * additive to the seven stations only while a spec it drafts is findable on
+ * Plan afterwards; the moment results only exist inside the transcript, the
+ * pane has quietly replaced the stations instead of opening onto them. The
+ * `landing` frame (`ask-sse.ts`) is the fact, `AskLanding` is the row, and it
+ * is INERT until something passes one - nothing emits that frame yet, so the
+ * register is absent on every turn today rather than showing a placeholder.
  */
 
 import * as React from "react";
@@ -34,6 +47,7 @@ import { modelLabel, spendLabel } from "@/lib/model-label";
 import { Failed, MoreItem, MoreMenu, Num, Record } from "@/components/shell/primitives";
 import { Answer } from "./Answer";
 import { AskGateCard } from "./AskGateCard";
+import { AskLanding, type LandedArtifact } from "./AskLanding";
 import { AskRunCard } from "./AskRunCard";
 import { Working } from "./Working";
 
@@ -172,6 +186,7 @@ export function AskTurn({
   queue,
   initials,
   onRetry,
+  landings,
 }: {
   turn: Turn;
   /** True only for the message genuinely in flight. */
@@ -183,6 +198,20 @@ export function AskTurn({
   queue: ApprovalQueueItem[];
   initials: string;
   onRetry: (msgId: string, content: string) => void;
+  /**
+   * What this turn PUT SOMEWHERE, one entry per `landing` frame.
+   *
+   * A prop rather than a field on the message, because `AskStreamMsg` does not
+   * carry landings yet and inventing the field here would fork the thread type.
+   * An array rather than one, because a single run can hand back more than one
+   * thing (a decision and the spec that followed it), and dropping the second
+   * would lose exactly the artifact whose home is least obvious.
+   *
+   * Undefined or empty renders NOTHING. That is what keeps this inert while no
+   * server emits the frame: the register does not appear, so no turn today
+   * gains an empty heading promising a result that never arrives.
+   */
+  landings?: LandedArtifact[];
 }) {
   const question = turn.question?.content ?? "";
   const answer = turn.answer;
@@ -262,6 +291,20 @@ export function AskTurn({
         >
           The record has nothing on this yet. That answer stands on the model alone.
         </div>
+      ) : null}
+
+      {/* WHERE IT WENT, above the live run and below the words that produced
+          it. A landing is a SETTLED fact - the thing is already on that station
+          when the frame arrives - so it reads with the answer rather than with
+          the work still moving underneath it. Rendered even mid-stream: a
+          result that has landed has landed, and holding the news until the
+          stream closes would be withholding something already true. */}
+      {landings && landings.length > 0 ? (
+        <Register name={landings.length === 1 ? "Where it landed" : "Where these landed"}>
+          {landings.map((l) => (
+            <AskLanding key={`${l.kind}:${l.id}`} kind={l.kind} id={l.id} station={l.station} />
+          ))}
+        </Register>
       ) : null}
 
       {/* Ask started a run, or the answer is about one. Either way the run is

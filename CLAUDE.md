@@ -4,9 +4,9 @@
 
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
-> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. It learns and guides; it never "remembers", "stores", or "logs". That distinction is the moat, so it binds UI copy, docs and commit messages alike.
+> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. **That compounding is the moat**; storage is not, because any vendor can store your decisions. Lead with the claim in UI copy, docs and commits. Phrasing only: never say "remembers", "stores" or "logs" of the brain, each of which claims less than the product delivers.
 
-> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (runs the lifecycle, seven stations) · 03 the company brain (**learns then guides**, never "stores"). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
+> **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (runs the lifecycle, seven stations) · 03 the company brain (**learns, then guides** the next call). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
 
 
 This file is deliberately short. Claude Code loads it into **every** session, so anything written here is paid for on every request. It holds only what is specific to Claude Code and true nowhere else.

@@ -38,20 +38,24 @@ This maps onto YC's own three Requests for Startups, which is confirmation rathe
 
 ---
 
-## The claim, and the word that carries it
+## The claim, and why it compounds
 
 The last verb in that sentence is the whole product, so it is worth being exact about it.
 
-**It learns, and then it guides. It does not remember.** "Remembers" describes a filing cabinet, and a filing cabinet is not defensible: any vendor can store your decisions, and a frontier model release can absorb search over them next quarter. **Learning is the part that compounds**, because it needs something no model has: your outcomes, labelled, over time.
+**It learns, and then it guides.** A settled outcome changes what you are shown next: that is the claim, and it is the only part of this that compounds, because it needs something no model has — your outcomes, labelled, over time. **That compounding is the moat.**
 
-So the language is load-bearing everywhere, in this repo and on every surface:
+**Why storage is not the claim.** Any vendor can store your decisions, and a frontier model release can absorb search over them next quarter. A filing cabinet is not defensible, so describing the brain as one gives away the argument and claims less than the product already delivers.
 
-| Never say | Say |
+So lead with the claim everywhere, in this repo and on every surface:
+
+| Say | Rather than |
 | --- | --- |
-| "where the record lives" | "it compounds" |
-| "it remembers your decisions" | "next time it tells you what is right, and warns before you repeat what was wrong" |
-| "searchable history" | "it guides the next call" |
-| "storage", "archive", "log" (of the brain) | "the brain", which learns and guides |
+| "it compounds" | "where the record lives" |
+| "next time it tells you what is right, and warns before you repeat what was wrong" | "it remembers your decisions" |
+| "it guides the next call" | "searchable history" |
+| "the brain", which learns and guides | "storage", "archive", "log" (of the brain) |
+
+**That table is phrasing, not a script.** "Remembers", "stores" and "logs" stay banned of the brain on public surfaces, for the reason above and no other — the claim is the company's, not the words. They remain ordinary words elsewhere: a dated shipping log, an app store, a variable named `store`. And no particular sentence is mandated: a hero that says the claim harder in different words ("Agents that own outcomes. Not just output.") is compliant, and rewording one is always free.
 
 **The mechanism, plainly.** A shipped outcome is settled at Learn with a verdict, that verdict is written back against the decision that caused it, and it **re-ranks what Discover and Decide surface next**. The loop does not end in a report; it ends by changing what you are shown. That is why this is an operating system and not a dashboard.
 
@@ -237,11 +241,12 @@ Full model, unit economics, and the BYOK stance (an advanced option from Busines
 
 **These are founder-ratified and supersede conflicting copy anywhere in this repo.** Outward-facing work starts here, then goes to [`docs/pitch/`](./docs/pitch/README.md).
 
-- **Tagline, all surfaces:** "Agents that know what to build, ship it, and remember."
+- **Tagline, ratified 2026-07-22:** "Agents that know what to build, ship it, and remember."
   Support line: "One agentic operating system, every call on the record."
   Journey kicker: `signal -> shipped -> remembered`.
-- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (remembers, and it guides, green).
-- **The brain is never storage.** Banned framing: "where the record lives". It compounds; next time it tells you what is right, and warns before you repeat what was wrong.
+  > **This string predates the learns-and-guides ruling above and loses to it on any public surface.** The live product already moved: the landing hero reads "Agents that own outcomes. Not just output." and `src/routes/index.tsx` carries "…ship it, and guide the next call." Restating the ratified wording across [`docs/pitch/`](./docs/pitch/README.md) is open work and needs the founder, so it is flagged here rather than silently rewritten. Until it lands, ship the guiding form.
+- **The three layers, always named and colored:** 01 the director (tells you what to build, marigold `#e8b44c`) · 02 the operating system (runs the whole lifecycle, blue) · 03 the company brain (learns, then guides, green).
+- **The brain compounds.** Next time it tells you what is right, and warns before you repeat what was wrong. Never say "where the record lives": that framing hands away the one part of this that is defensible.
 - **Public launch date on every external surface: mid-September 2026.**
 - **Market sizing ladder:** TAM $300B+/yr (2.6M PMs x ~$115K loaded). SAM $2B to $12B/yr. SOM ~$47M ARR. Arithmetic in the deck appendix B.
 - **Never list, investor material:** no commit counts or feature-register numbers, no YC mentions in generic materials, self-build story implicit only, no "Cursor for PMs" phrasing on surfaces, employer is "Intellect, a leading BFSI technology OEM", education shows TUM only.

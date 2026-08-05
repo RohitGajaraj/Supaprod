@@ -72,7 +72,11 @@ describe("a named station outranks the shape's default", () => {
     // "design the checkout" tells us where to start more directly than any
     // inference from shape does.
     const guessed = routeIntent({ shape: "new-capability", origin: "asked in Ask" });
-    const named = routeIntent({ shape: "new-capability", origin: "asked in Ask", station: "design" });
+    const named = routeIntent({
+      shape: "new-capability",
+      origin: "asked in Ask",
+      station: "design",
+    });
     expect(named.station).toBe("design");
     if (guessed.station !== "design") expect(named.station).not.toBe(guessed.station);
   });

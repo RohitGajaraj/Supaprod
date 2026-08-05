@@ -19,6 +19,7 @@ import {
 import { useWorkspace } from "@/hooks/use-workspace";
 import { answerTitle, hydrateMessages, type StoredMessageRow } from "@/lib/ask-thread";
 import { parseSseLine } from "@/lib/ask-sse";
+import type { AgentStation } from "@/lib/agent-vocabulary";
 import type { ResearchStatus } from "@/components/chat/ResearchActivity";
 import type { AskScope } from "@/lib/ask-context";
 import {
@@ -55,6 +56,60 @@ import {
 // conversations.functions.ts exactly as before).
 
 class AskUiError extends Error {}
+
+/* ------------------------- the work this turn ---------------------- */
+
+/**
+ * WHAT THE CREW IS DOING, as distinct from what the answer says.
+ *
+ * The five original SSE frames all describe an ANSWER. When a message
+ * DISPATCHES work instead, `/api/chat` emits one delta carrying a mission id
+ * and then `[DONE]`, so from that moment the pane knows a mission exists and
+ * nothing else about it: the person is told work opened and then shown nothing.
+ * `src/lib/ask-sse.ts` now parses three frames that fix that at the protocol
+ * level (`station`, `tool`, `landing`); this is the state they land in.
+ *
+ * Each field holds the SMALLEST honest fact the frame carried, never a rendered
+ * sentence. `station` is one of the seven, so a surface can light the spine.
+ * `tools` is the registry names seen this turn IN ORDER, which a surface turns
+ * into "drafting a spec" through `toolActionLabel` and must never print raw.
+ * `landing` is where a result came to rest, so a run can hand back to the
+ * station that owns it instead of ending in a chat log.
+ *
+ * NOTHING EMITS THESE YET. That is why `NO_WORK` below is a single frozen
+ * value rather than a fresh object per render: with no frame on the wire the
+ * hook returns the IDENTICAL reference on every render, so a memoized consumer
+ * sees no change and today's behaviour is byte-identical rather than merely
+ * equivalent.
+ */
+export type AskWork = {
+  /** The station the work moved to, or null when no frame has said. */
+  station: AgentStation | null;
+  /** Registry tool names seen this turn, oldest first. Never shown raw. */
+  tools: string[];
+  /**
+   * Everywhere a result came to rest this turn, oldest first.
+   *
+   * PLURAL, AND IT WAS SINGULAR FOR AN HOUR. Built as one nullable landing
+   * overwritten by each frame, which silently kept only the LAST one. A single
+   * run routinely hands back more than one thing -- a decision, and then the
+   * spec that followed from it -- and the one that got dropped was the second,
+   * whose home is the harder of the two to guess. `AskTurn` was written the
+   * same day against `landings: LandedArtifact[]` for exactly that reason, so
+   * the two halves of one feature disagreed about the shape while nothing was
+   * yet emitting frames to make the disagreement visible.
+   */
+  landings: Array<{ kind: string; id: string; station?: AgentStation }>;
+};
+
+/** The inert value. Frozen so a consumer cannot mutate the shared empty. The
+ *  array is frozen too: an unfrozen one would let a consumer push into the
+ *  shared empty and give every other turn a landing it never had. */
+const NO_WORK: AskWork = Object.freeze({
+  station: null,
+  tools: [],
+  landings: Object.freeze([]) as unknown as AskWork["landings"],
+});
 
 /* -------------------- localStorage (SSR-safe) --------------------- */
 
@@ -137,6 +192,13 @@ export type AskStreamState = {
   messages: AskStreamMsg[];
   streaming: boolean;
   liveStatus: ResearchStatus | null;
+  /**
+   * The work frames for the CURRENT turn. Reset when a new turn starts, and
+   * deliberately NOT cleared when the stream ends: the whole defect is that the
+   * pane goes blind at `[DONE]` on a message that dispatched work, so the last
+   * station and the landing have to survive past it for the reader to act on.
+   */
+  work: AskWork;
   /** Send one user intent into the thread (no-op while a stream is in flight). */
   sendIntent: (content: string, intent?: "ask" | "do") => void;
   /** Remove an error exchange and resend its content. */
@@ -169,6 +231,7 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
   const [messages, setMessages] = React.useState<AskStreamMsg[]>([]);
   const [streaming, setStreaming] = React.useState(false);
   const [liveStatus, setLiveStatus] = React.useState<ResearchStatus | null>(null);
+  const [work, setWork] = React.useState<AskWork>(NO_WORK);
   const [promotedByMsg, setPromotedByMsg] = React.useState<Record<string, PromotedRecords>>({});
   const conversationIdRef = React.useRef<string | null>(null);
   const abortControllerRef = React.useRef<AbortController | null>(null);
@@ -215,6 +278,7 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     }
     setStreaming(false);
     setLiveStatus(null);
+    setWork(NO_WORK);
     conversationIdRef.current = null;
     hydratedRef.current = null;
     setMessages([]);
@@ -279,6 +343,7 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     rememberConversationId(null);
     setMessages([]);
     setPromotedByMsg({});
+    setWork(NO_WORK);
   }, [streaming, rememberConversationId]);
 
   const send = React.useCallback(
@@ -292,6 +357,11 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
       if (streaming) return;
       setStreaming(true);
       setLiveStatus(null);
+      // A new turn starts with no work behind it. With no server emitting the
+      // work frames this sets the state to the SAME reference it already holds,
+      // which React bails out of, so nothing re-renders and the existing path
+      // is untouched.
+      setWork(NO_WORK);
       const now = Date.now();
       const userMsg: AskStreamMsg = { id: `u-${now}`, role: "user", content, at: now };
       const assistantMsg: AskStreamMsg = {
@@ -388,6 +458,42 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
             }
             if (event.kind === "persisted") {
               patchStreaming(() => ({ dbId: event.messageId }));
+              continue;
+            }
+            /**
+             * THE THREE WORK FRAMES. They sit here, above the `delta` guard
+             * that used to swallow everything it did not recognise, and each
+             * one only ever ADDS a fact: nothing below is reordered and no
+             * existing branch changed, so a server that emits none of them
+             * leaves this loop behaving exactly as it did.
+             */
+            if (event.kind === "station") {
+              // Same station twice is the same fact. Returning the previous
+              // object rather than a fresh one keeps a re-render off the
+              // surface for a frame that said nothing new.
+              setWork((w) => (w.station === event.station ? w : { ...w, station: event.station }));
+              continue;
+            }
+            if (event.kind === "tool") {
+              // Appended, never deduplicated: an agent that ran the same tool
+              // twice DID run it twice, and collapsing that would quietly
+              // rewrite the trail. The array is per-turn and reset on the next
+              // send, so it cannot accumulate across a conversation.
+              setWork((w) => ({ ...w, tools: [...w.tools, event.tool] }));
+              continue;
+            }
+            if (event.kind === "landing") {
+              // A landing carries the station that OWNS the result, so when it
+              // names one the spine follows it there. That is the frame's whole
+              // purpose: a run hands back to a station rather than ending in a
+              // chat log. When it names none, the station already lit stands.
+              setWork((w) => ({
+                ...w,
+                // Append, never replace. See the field's own comment: a run
+                // that hands back two artifacts must not report one.
+                landings: [...w.landings, event.artifact],
+                station: event.artifact.station ?? w.station,
+              }));
               continue;
             }
             if (event.kind !== "delta") continue;
@@ -593,6 +699,7 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     messages,
     streaming,
     liveStatus,
+    work,
     sendIntent,
     retry,
     startNewConversation,

@@ -19,6 +19,11 @@ import { estimateCostUsd } from "@/lib/ai/pricing";
 import { runResearch, type ResearchMode, type ResearchSource } from "@/lib/ai/research.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { checkUserAiRateLimit } from "@/lib/ai-ratelimit.server";
+// `describeRoutedIntent` is deliberately NOT imported: see the routing comment
+// at the dispatch reply for why its sentence was built and then withdrawn.
+import { routeIntent, asStation } from "@/lib/ask/route-intent";
+import { WORK_SHAPE_LABEL, type WorkShape } from "@/lib/spine/route";
+import { AGENT_STATIONS, AGENT_STATION_ORDER } from "@/lib/agent-vocabulary";
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
@@ -160,6 +165,57 @@ function byoKeyMissingMessage(providerLabel: string): string {
 
 function xmlEscape(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * THE TWO MENUS THE CLASSIFIER CHOOSES FROM, rendered from the canon rather
+ * than retyped into the prompt.
+ *
+ * Both are built at module scope, so they cost one pass per isolate instead of
+ * one per request, and both read their words out of the maps that already own
+ * them: `AGENT_STATIONS` for the seven stations and `WORK_SHAPE_LABEL` for the
+ * five shapes. That is the point of doing it this way. A prompt with the
+ * station names retyped into it is a second source of truth that nobody
+ * remembers to update, and this product has already paid for that once: the
+ * first station was renamed Discover on every surface while one map still said
+ * Sense, and everything rendering from that map leaked a word the customer had
+ * never seen. A prompt is a surface too.
+ *
+ * The model READS the display names, because those are the words the product
+ * uses everywhere else and the ones the user's own request is phrased against,
+ * and it RETURNS the id, because ids are what `AGENT_STATION_ORDER` and
+ * `suggestRoute` are keyed on and they never get renamed.
+ */
+const STATION_MENU = AGENT_STATION_ORDER.map(
+  (id) => `- "${id}" (${AGENT_STATIONS[id].name}): ${AGENT_STATIONS[id].blurb}`,
+).join("\n");
+
+const WORK_SHAPE_MENU = (Object.keys(WORK_SHAPE_LABEL) as WorkShape[])
+  .map((shape) => `- "${shape}": ${WORK_SHAPE_LABEL[shape]}`)
+  .join("\n");
+
+/**
+ * A work shape the closed union actually contains, or null. Never throws.
+ *
+ * The mirror of `asStation`, and defensive for the same reason: this reads a
+ * value a language model wrote, so "feature" or "bugfix" or a whole sentence
+ * are all live possibilities. An unrecognised value has to land on null and
+ * behave exactly as the day before this field existed, because the only thing
+ * downstream of it is one extra sentence in a reply and no sentence at all is a
+ * fine outcome. A parse that threw here would turn a cosmetic miss into a
+ * failed dispatch.
+ */
+const WORK_SHAPES = new Set<string>(Object.keys(WORK_SHAPE_LABEL));
+
+function asWorkShape(value: unknown): WorkShape | null {
+  if (typeof value !== "string") return null;
+  // A Set of the five, and NOT `value in WORK_SHAPE_LABEL`. `in` walks the
+  // prototype chain, so the first draft of this accepted "constructor" and
+  // "toString" as work shapes — and every one of them then reached
+  // `SHAPES[shape]` in suggestRoute, which has no such key, and threw on
+  // `spec.waive` inside the dispatch try. A defensive reader that turns a
+  // strange model output into a 500 is worse than no reader at all.
+  return WORK_SHAPES.has(value) ? (value as WorkShape) : null;
 }
 
 /**
@@ -427,6 +483,17 @@ export const Route = createFileRoute("/api/chat")({
         let missionGoal = "";
         let researchMode: ResearchMode = "chat";
         let subQueries: string[] = [];
+        /**
+         * WHERE THE WORK GOES, when the classifier could tell.
+         *
+         * Both start null and both are allowed to stay null forever. They feed
+         * exactly one thing — the sentence that tells the person which station
+         * picked their words up — so a miss costs a sentence, not a dispatch.
+         * Nothing above or below them reads these: the mission row, the goal,
+         * the research mode and the SSE frames are all untouched by them.
+         */
+        let classifiedStation: string | null = null;
+        let classifiedShape: WorkShape | null = null;
 
         if (mentionedAgent) {
           const stripped = stripMention(body.content, mentionToken);
@@ -461,13 +528,25 @@ Separately, classify how to research the answer with "mode":
 
 When mode is "web" or "both", write "sub_queries": 1-3 focused, clean search-engine queries that together cover the question. Otherwise use [].
 
+When the input IS a mission, also say where the work belongs.
+
+"station" is the stage the work should ENTER at. Supaprod runs every piece of work through the same seven stages, in this order:
+${STATION_MENU}
+Pick the stage the request itself starts from, not the one it ends at: "design the checkout" enters at "design" even though it will be built and shipped afterwards. Use null when the input names no stage and you would be guessing.
+
+"shape" is what kind of work it is:
+${WORK_SHAPE_MENU}
+Use null when you cannot tell.
+
 You must output a JSON object EXACTLY in this format:
 {
   "is_mission": true | false,
   "suggested_title": "A short, 3-6 word title for the mission (null if not a mission)",
   "goal": "The clear goal statement for the orchestrator (null if not a mission)",
   "mode": "chat" | "web" | "internal" | "both",
-  "sub_queries": ["search query", ...]
+  "sub_queries": ["search query", ...],
+  "station": "sense" | "decide" | "define" | "design" | "build" | "ship" | "learn" | null,
+  "shape": "new-capability" | "existing-feature" | "interface-change" | "under-the-hood" | "incident-fix" | null
 }`;
 
         if (!mentionedAgent && !forcedAsk) {
@@ -498,6 +577,14 @@ You must output a JSON object EXACTLY in this format:
                       (q: unknown): q is string => typeof q === "string" && q.trim().length > 0,
                     )
                     .slice(0, 3);
+                // Both readers return null on anything they do not recognise —
+                // a missing key, a null, a station this product does not have —
+                // so a model that ignores the two new fields, or invents a
+                // value for them, produces the same reply as before they
+                // existed. Kept beside the other reads rather than in a second
+                // parse block: one JSON object, one place it is unpacked.
+                classifiedStation = asStation(parsed.station);
+                classifiedShape = asWorkShape(parsed.shape);
               }
             }
           } catch (e) {
@@ -690,6 +777,57 @@ You must output a JSON object EXACTLY in this format:
              * open and starting, and the next line invites you to watch it,
              * which is where the truth actually becomes visible.
              */
+            /**
+             * THE ROUTE IS COMPUTED AND DELIBERATELY NOT SAID. Read the comment
+             * directly above before changing this; it is the same rule, caught
+             * a second time in the same file on the same day.
+             *
+             * WHAT WAS BUILT AND THEN TAKEN BACK OUT. The classifier now emits
+             * a station and a shape, `routeIntent` turns those into an entry
+             * station and its seats, and a first version appended
+             * `describeRoutedIntent(routed)` to the reply so it read: "**Title**
+             * is open and the crew is starting on it now. Plan picks this up,
+             * with Draft on it."
+             *
+             * WHY THAT SENTENCE COULD NOT SHIP. Nothing routes. The only
+             * dispatch on this branch is `runAgentLoop(..., { agentSlug:
+             * "orchestrator" })` above, which never sees the shape, the station
+             * or the crew — the orchestrator plans its own DAG and picks its own
+             * agents. So the sentence was a CLASSIFIER'S GUESS printed as a
+             * report, sitting one clause after "the crew is starting on it now",
+             * where a reader can only take it as a statement about the dispatch
+             * that just happened. `route-intent.ts` scopes that helper in
+             * writing to "the one sentence the pane can show BEFORE anything is
+             * dispatched" — a preview, used here as a receipt. And the text is
+             * persisted to the message row below, so the unbacked claim would
+             * outlive the request in the transcript.
+             *
+             * WHAT WOULD MAKE IT TRUE, and it is a small change with a product
+             * decision inside it: `startTrackCore` has two production callers
+             * and this file is not one of them. Once a chat dispatch actually
+             * starts a track carrying this `SpineRoute`, the station stops being
+             * a guess and the sentence becomes a receipt. That call needs
+             * someone to settle whether a chat dispatch creates a mission, a
+             * track, or both, and which id the SSE `mission_id` frame returns —
+             * which is why the lane that built this was told not to make it.
+             *
+             * `routed` is kept, not deleted. It is the value that call will
+             * need, it is what a `station` SSE frame would carry, and computing
+             * it costs one pure function with no network and no clock.
+             */
+            const routed = classifiedShape
+              ? routeIntent({
+                  shape: classifiedShape,
+                  // The person's own words are where this work came from, which
+                  // is what the ORIGIN RULE asks for: a route entering below
+                  // Discover has no evidence behind it, so `validateRoute`
+                  // refuses one that cannot say where it came from.
+                  origin: body.content.slice(0, 200),
+                  station: classifiedStation,
+                })
+              : null;
+            void routed;
+
             const text = mentionedAgent
               ? `On it. I've dispatched **${mission.title}** to ${mentionedAgent.name}.\n\nYou can track its progress and approve decisions inline below.`
               : `On it. **${mission.title}** is open and the crew is starting on it now.\n\nYou can watch the specialist agents work and approve their decisions inline below.`;

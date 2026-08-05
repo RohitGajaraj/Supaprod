@@ -1,0 +1,232 @@
+/**
+ * WHERE THE WORK CAME TO REST, said in the thread that started it.
+ *
+ * A run that finishes in a chat log has not handed back. The conversational
+ * front door is only additive to the seven stations if a result LANDS on the
+ * station that owns it - a drafted spec on Plan, a recorded decision on Decide -
+ * and the person who asked for it is told so where they are standing. Without
+ * this row the pane becomes the place work goes to disappear, and a pane that
+ * swallows results is not a door onto the stations, it is a replacement for
+ * them.
+ *
+ * ONE ROW, THREE FACTS, and nothing else: what was made, where it is now, and
+ * the way to go and see it. It is not a summary of the artifact and it is
+ * deliberately not a preview: the station already renders the thing properly,
+ * and a second half-rendering of a spec inside a 392px pane would be both worse
+ * and a second place to keep correct.
+ *
+ * THE COPY IS PAST TENSE, ALWAYS. "The spec is on Plan" is a claim the reader
+ * can check by pressing the link next to it. "Your spec is being built" is a
+ * promise this component has no way to keep, and one broken promise here costs
+ * more than the row is worth. So every sentence below states a fact about now.
+ *
+ * THE SENTENCE AND THE LINK CANNOT DISAGREE. Both are derived from ONE resolved
+ * station rather than from two parallel tables, so there is no arrangement of
+ * inputs that says "on Plan" over a link to Build. That is why the kind map
+ * below resolves to a station and the route is looked up from the station,
+ * rather than each kind carrying its own path.
+ *
+ * INERT UNTIL A SERVER SPEAKS. The `landing` frame is parsed by `ask-sse.ts` and
+ * nothing emits it yet. This renders only when something hands it a real kind
+ * and a real id.
+ */
+
+import { Link } from "@tanstack/react-router";
+import { AGENT_STATIONS, type AgentStation } from "@/lib/agent-vocabulary";
+import { stageHueForStation } from "@/components/shell/agent-glyphs";
+
+/** What a `landing` frame carries: the smallest honest fact about a result. */
+export type LandedArtifact = {
+  /** The artifact kind, as the server names it ("prd", "decision", …). */
+  kind: string;
+  /** The row id. Shown verbatim: it is the handle a person can quote back. */
+  id: string;
+  /** The station the server said it landed on, when it said one. */
+  station?: AgentStation;
+};
+
+/**
+ * The seven stations to the seven surfaces that hold them. Verified against
+ * `src/routes/`: every one of these files exists, so no entry here is a guess.
+ * `sense` and `define` keep their internal ids and land on the paths a person
+ * knows them by, which is the same split `AGENT_STATIONS` already draws between
+ * id and display name.
+ */
+const STATION_ROUTE = {
+  sense: "/discover",
+  decide: "/decide",
+  define: "/plan",
+  design: "/design",
+  build: "/build",
+  ship: "/ship",
+  learn: "/learn",
+} as const satisfies Record<AgentStation, string>;
+
+/**
+ * The artifact kinds this pane can place, and the noun a person calls each one.
+ *
+ * A kind that is NOT in here renders a row with no link. That is the whole point
+ * of the table being a closed list: guessing that an unrecognised `kind` belongs
+ * on Build would send somebody to a surface that does not hold their work, and
+ * a wrong destination is worse than an absent one - it costs a navigation, a
+ * search, and the reader's belief in every other row like it.
+ *
+ * The noun is what the row says out loud, so it is the customer's word rather
+ * than the server's: a `prd` is a spec, because "spec" is what the product calls
+ * it everywhere else.
+ */
+const KIND_LANDING: Record<string, { station: AgentStation; noun: string }> = {
+  prd: { station: "define", noun: "spec" },
+  spec: { station: "define", noun: "spec" },
+  decision: { station: "decide", noun: "decision" },
+  opportunity: { station: "sense", noun: "opportunity" },
+  design: { station: "design", noun: "design" },
+  mission: { station: "build", noun: "mission" },
+  changeset: { station: "build", noun: "changeset" },
+  release: { station: "ship", noun: "release" },
+  announcement: { station: "ship", noun: "announcement" },
+  learning: { station: "learn", noun: "learning" },
+  outcome: { station: "learn", noun: "outcome" },
+};
+
+/**
+ * PURE. What a kind is called and where it lives, or null when this pane has
+ * never heard of it. Exported because it is the rule the row is built on, and a
+ * rule worth testing should not be locked inside a component.
+ */
+export function landingForKind(kind: string): { station: AgentStation; noun: string } | null {
+  /**
+   * `Object.hasOwn`, NOT a bare index, and the difference is a live defect.
+   *
+   * `KIND_LANDING` is a plain object literal, so it inherits from
+   * `Object.prototype`. `KIND_LANDING["constructor"]` is therefore a FUNCTION,
+   * not undefined, and `?? null` never fires -- the same for `toString`,
+   * `valueOf` and `hasOwnProperty`. `kind` arrives on a server frame, so a
+   * value like that is reachable input rather than a thought experiment.
+   *
+   * The failure was worse than a wrong noun. The row treats a truthy lookup as
+   * KNOWN, which suppresses the "This pane has no place to open a X yet."
+   * sentence, while `STATION_ROUTE[undefined]` leaves the href undefined so no
+   * link renders either -- a row with neither a way in nor the sentence saying
+   * why. The unknown-kind path exists precisely to stop that, and this is how
+   * it was being walked past.
+   */
+  const k = kind.trim().toLowerCase();
+  return Object.hasOwn(KIND_LANDING, k) ? KIND_LANDING[k] : null;
+}
+
+/** An unknown kind still gets named rather than hidden: "prd_scaffold" reads as
+ *  "prd scaffold". Reformatting is safe here; inventing a word would not be. */
+function readableKind(kind: string): string {
+  const said = kind.trim().replace(/[_-]+/g, " ");
+  return said || "result";
+}
+
+export function AskLanding({ kind, id, station }: LandedArtifact) {
+  const known = landingForKind(kind);
+
+  // The station the server named WINS over the one the kind implies. A server
+  // that says where it put something knows better than a lookup table, and the
+  // route is read off this same resolved value below, so the sentence and the
+  // link move together or not at all.
+  const at = station ?? known?.station ?? null;
+  const stationName = at ? AGENT_STATIONS[at].name : null;
+
+  // A destination only for a kind this pane actually knows. A named station
+  // with an unrecognised kind still says WHERE it is - that fact came off the
+  // wire and is true - but offers no way in, because we do not know what a
+  // "prd_scaffold" looks like on that surface or whether it is reachable there.
+  const to = known ? STATION_ROUTE[at ?? known.station] : null;
+
+  const noun = known?.noun ?? readableKind(kind);
+  const lead = stationName ? `The ${noun} is on ${stationName}.` : `The ${noun} was made.`;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "flex-start",
+        gap: "var(--sp-space-3)",
+        background: "var(--sp-sink)",
+        border: "1px solid var(--sp-line-soft)",
+        borderRadius: "var(--sp-radius-panel)",
+        padding: "14px 16px",
+        marginTop: "4px",
+      }}
+    >
+      {/* The station's own hue, taken from the lifecycle tokens rather than a
+          new colour, so this row reads as belonging to the same station the
+          rail and the spine draw. Muted when nothing named a station: an
+          unplaced result must not borrow a station's colour. */}
+      <span
+        aria-hidden="true"
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          flex: "none",
+          marginTop: "6px",
+          background: at ? stageHueForStation(at) : "var(--sp-mute)",
+        }}
+      />
+
+      <div
+        style={{
+          // Wraps the action underneath itself in a narrow pane instead of
+          // squeezing the sentence into a column two words wide.
+          flex: "1 1 180px",
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--sp-space-1)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "var(--sp-text-prose)",
+            lineHeight: "var(--sp-leading-tight)",
+            color: "var(--sp-ink)",
+          }}
+        >
+          {lead}
+        </div>
+        {/* The id, verbatim and in mono. It is the handle: the thing a person
+            pastes into a search or quotes to somebody else, so it is never
+            shortened into something that cannot be used. */}
+        <div
+          style={{
+            fontFamily: "var(--sp-font-mono)",
+            fontSize: "var(--sp-text-data-sm)",
+            color: "var(--sp-mute)",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {id}
+        </div>
+        {!known ? (
+          <div
+            style={{
+              fontSize: "var(--sp-text-meta)",
+              lineHeight: "var(--sp-leading-tight)",
+              color: "var(--sp-mute)",
+            }}
+          >
+            {`This pane has no place to open a ${noun} yet.`}
+          </div>
+        ) : null}
+      </div>
+
+      {to && stationName ? (
+        <Link
+          to={to}
+          className="sp-btn"
+          data-variant="ghost"
+          style={{ textDecoration: "none", marginLeft: "auto", flex: "none" }}
+        >
+          {`Open ${stationName}`}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
