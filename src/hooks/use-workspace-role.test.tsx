@@ -15,7 +15,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useGovernedWrite, useWorkspaceRole, workspaceRoleQueryKey } from "./use-workspace-role";
-import { humanWriteError, type GovernedSurface, type Role } from "./roles.functions";
+import { humanWriteError, type GovernedSurface, type Role } from "@/lib/roles.functions";
 
 let qc: QueryClient;
 

@@ -1,0 +1,80 @@
+{
+  "//": "Multi-root window for parallel work: the main repo plus both lane worktrees, side by side in one VS Code window. Open with: File > Open Workspace from File > this file. Rebuilt 2026-08-05 - the previous one was lost, which is why 'Tasks: Run Task' showed nothing: VS Code only offers tasks from the folder or workspace that is actually open, and .vscode/tasks.json lives inside Supaprod alone. Lane folders are real git worktrees sharing Supaprod/.git, so each costs only its working tree, not another copy of the history.",
+  "folders": [
+    { "name": "Supaprod (main)", "path": "." },
+    { "name": "Lane 0", "path": "../cadence-lane-0" },
+    { "name": "Lane 1", "path": "../cadence-lane-1" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.output": true,
+      "**/node_modules": true
+    }
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Lane 0",
+        "type": "shell",
+        "command": "claude",
+        "options": { "cwd": "${workspaceFolder:Lane 0}" },
+        "presentation": {
+          "panel": "dedicated",
+          "group": "lanes",
+          "reveal": "always",
+          "focus": true,
+          "echo": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Lane 1",
+        "type": "shell",
+        "command": "claude",
+        "options": { "cwd": "${workspaceFolder:Lane 1}" },
+        "presentation": {
+          "panel": "dedicated",
+          "group": "lanes",
+          "reveal": "always",
+          "focus": true,
+          "echo": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Lane 0: shell only",
+        "type": "shell",
+        "command": "exec zsh -l",
+        "options": { "cwd": "${workspaceFolder:Lane 0}" },
+        "presentation": {
+          "panel": "dedicated",
+          "group": "lanes",
+          "reveal": "always",
+          "focus": true,
+          "echo": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Lane 1: shell only",
+        "type": "shell",
+        "command": "exec zsh -l",
+        "options": { "cwd": "${workspaceFolder:Lane 1}" },
+        "presentation": {
+          "panel": "dedicated",
+          "group": "lanes",
+          "reveal": "always",
+          "focus": true,
+          "echo": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Lanes 0-1: open all",
+        "dependsOn": ["Lane 0", "Lane 1"],
+        "problemMatcher": []
+      }
+    ]
+  }
+}
