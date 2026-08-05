@@ -38,10 +38,35 @@ export interface TrackSeed {
  * Pain: Staying organized, prioritizing across signals, making decisions alone.
  * First-win: Running a teardown on a feature idea to validate direction.
  */
+/* WHY EVERY SEEDED PROJECT SAYS "EXAMPLE" IN ITS NAME.
+ *
+ * These fixtures are written into the user's OWN workspace by
+ * `seedWorkspaceForTrack`, fired unconditionally when they submit step 1 of
+ * onboarding. Nothing marked them: a brand-new account arrived holding four
+ * signals and four opportunities it never wrote, indistinguishable from its own
+ * data. "90% of sign-ups drop after day 1" is a specific, alarming, and
+ * completely invented number about somebody's real product.
+ *
+ * The repo's own rule (docs/features/production-ship-readiness.md) is "real
+ * data, or clearly-labelled sample data by explicit choice, never fabricated
+ * data presented as real", and this failed it on both counts.
+ *
+ * The sibling seeding path already does this properly: seed-workspace.server.ts
+ * creates a SEPARATE workspace and stamps `workspaces.is_sample = true`. This
+ * path writes into the real one, and signals, opportunities and projects carry
+ * no sample column to stamp. So the label goes where it is guaranteed to be
+ * seen and cannot be missed: the name of the project every seeded record hangs
+ * off, and the description under it.
+ *
+ * The seed is KEPT rather than deleted. A workspace with something in it is a
+ * far better first run than an empty one, and the empty states are only good
+ * because they are honest. This makes the full one honest too.
+ */
 export const soloTrack: TrackSeed = {
   track: "solo",
-  projectName: "Mobile App Roadmap",
-  projectDescription: "A consumer app with a growing user base, needing strategic prioritization",
+  projectName: "Example: Mobile App Roadmap",
+  projectDescription:
+    "Sample data, so you can see the loop run before connecting anything of your own. Delete it whenever you like.",
   signals: [
     {
       title: "Users asking for offline mode",
@@ -117,9 +142,11 @@ export const soloTrack: TrackSeed = {
  */
 export const foundingTrack: TrackSeed = {
   track: "founding",
-  projectName: "Startup MVP",
+  // Labelled for the same reason as soloTrack above: this is written into the
+  // user's own workspace and must never read as their own data.
+  projectName: "Example: Startup MVP",
   projectDescription:
-    "Your co-founder's startup idea. Pre-launch, raising seed round. Need to nail the core product and story.",
+    "Sample data, so you can see the loop run before connecting anything of your own. Delete it whenever you like.",
   signals: [
     {
       title: "Investor feedback: 'nice to have, not need to have'",
@@ -195,9 +222,10 @@ export const foundingTrack: TrackSeed = {
  */
 export const techTrack: TrackSeed = {
   track: "tech",
-  projectName: "Developer Platform",
+  // Labelled for the same reason as soloTrack above.
+  projectName: "Example: Developer Platform",
   projectDescription:
-    "A developer-facing product or tool. Technical decisions matter as much as product decisions.",
+    "Sample data, so you can see the loop run before connecting anything of your own. Delete it whenever you like.",
   signals: [
     {
       title: "API latency hitting 500ms under load",

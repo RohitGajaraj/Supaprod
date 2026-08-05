@@ -381,9 +381,20 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
 
   function stateFor(slug: string): MarkState {
     const m = bySlug.get(slug);
-    // No row means nothing to run and nothing to govern, which reads the same
-    // way as switched off: present in the crew, absent from the work.
-    if (!m) return "quiet";
+    /* NO ROW IS NOT SWITCHED OFF, IT IS THE DEFAULT POLICY.
+     *
+     * This returned "quiet", which is the switched-off state, so on a brand-new
+     * account EVERY card on this page rendered as off. That inverted the one
+     * number the surface exists to report: `agent_tools` is an OVERRIDES table,
+     * an agent with no row is on the default policy, and the default is
+     * autonomous. The agents this page was drawing as disabled were in fact the
+     * most autonomous ones in the workspace.
+     *
+     * The page's own copy twenty lines down already says this ("on the default
+     * policy, never configured here"), so the two halves of this surface
+     * disagreed with each other. "idle" is the honest state: present, on, with
+     * nothing currently in flight. */
+    if (!m) return "idle";
     if (m.asking.length > 0) return slug === blinkSlug ? "gate" : "waiting";
     if (m.runs.running > 0) return "running";
     if (!m.enabled) return "quiet";
@@ -395,7 +406,20 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
   ) : crew.isError ? (
     "The boundary did not load."
   ) : crew.data?.empty ? (
-    "This account has no agent rows yet, so nothing here can be set."
+    /* THIS SENTENCE CONTRADICTED THE HEADLINE ABOVE IT.
+     *
+     * The title counts the static roster ("13 work here") while this said the
+     * account has no agents, on the same header, on day one. Both were drawn
+     * from the same load and disagreed.
+     *
+     * The truth is the more flattering one and it is the product's whole
+     * argument: no row means no OVERRIDE, and the default policy is autonomous.
+     * A new account's crew is not absent, it is already working without being
+     * asked. Said that way, the emptiest state in the product becomes the
+     * clearest statement of what the product does. */
+    <>
+      All <Num>{all.length}</Num> run without asking you. Nothing has been narrowed here yet.
+    </>
   ) : (
     <>
       <Num>{alone}</Num> run without asking you, <Num>{asks}</Num> ask first
