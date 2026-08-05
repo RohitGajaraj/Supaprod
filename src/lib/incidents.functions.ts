@@ -75,10 +75,23 @@ export async function logCostIncidentInternal(
   return { success: true, id: inserted?.id };
 }
 
+/**
+ * The ceiling on the merged incident read. Named rather than inline so the
+ * slice and the "was it capped" test cannot drift to two different numbers: a
+ * cap compared against a different literal is a cap that stops reporting itself.
+ */
+const INCIDENT_READ_LIMIT = 40;
+
 export async function getIncidentsInternal(
   supabase: SupabaseClient,
   userId: string,
-): Promise<{ incidents: Incident[]; count: number }> {
+): Promise<{
+  incidents: Incident[];
+  count: number;
+  /** True when the merged read hit its ceiling, so `count` is a FLOOR rather
+   *  than a total and a surface must render it with a "+". */
+  capped: boolean;
+}> {
   const out: Incident[] = [];
 
   // Failed tool executions: a human-or-auto approval whose call errored out.
@@ -296,8 +309,23 @@ export async function getIncidentsInternal(
   }
 
   out.sort((x, y) => (y.at ?? "").localeCompare(x.at ?? ""));
-  const incidents = out.slice(0, 40);
-  return { incidents, count: incidents.length };
+  const incidents = out.slice(0, INCIDENT_READ_LIMIT);
+  /**
+   * THE COUNT SAYS WHETHER IT IS A TOTAL OR A FLOOR.
+   *
+   * THE DEFECT. This returned `count: incidents.length` and the Safety room
+   * printed it bare on its VERDICT line -- "7 incidents" -- as though it were
+   * the number of incidents. It is the number this read RETURNED, and the read
+   * is capped twice over: forty here, and each of the five sources it merges is
+   * itself limited to twenty. A workspace with a hundred cost incidents reports
+   * forty, on the line a person uses to decide whether anything is wrong.
+   *
+   * A ceiling wearing a total's clothes is the same defect as the trace count
+   * that printed "200 runs this week" when 200 was the limit, and it takes the
+   * same fix: say `capped`, and let the surface render the floor with a "+".
+   * The room is free to ignore it; it is not free to be unable to ask.
+   */
+  return { incidents, count: incidents.length, capped: out.length > INCIDENT_READ_LIMIT };
 }
 
 export const logCostIncident = createServerFn({ method: "POST" })
@@ -309,6 +337,12 @@ export const logCostIncident = createServerFn({ method: "POST" })
 
 export const getIncidents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ incidents: Incident[]; count: number }> => {
-    return getIncidentsInternal(context.supabase, context.userId);
-  });
+  .handler(
+    async ({
+      context,
+      // `capped` travels, or the surface cannot tell a total from a floor and
+      // the Safety verdict goes back to printing a ceiling as a fact.
+    }): Promise<{ incidents: Incident[]; count: number; capped: boolean }> => {
+      return getIncidentsInternal(context.supabase, context.userId);
+    },
+  );

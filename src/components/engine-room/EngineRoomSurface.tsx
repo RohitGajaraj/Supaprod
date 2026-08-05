@@ -184,6 +184,10 @@ export function useEngineRoomGlance(): {
       buildSafetyGlance({
         rules: guardrailsQ.data?.rules ?? [],
         incidentCount: incidentsQ.data?.count ?? 0,
+        // Without this the verdict prints a ceiling as a total. See
+        // buildSafetyGlance: the read is capped at forty after merging five
+        // sources that are each capped at twenty.
+        incidentsCapped: incidentsQ.data?.capped,
         floorCount: guardrailsQ.data?.floor.length,
         hits: guardrailsQ.data?.hits,
         hitLimit: GUARDRAIL_HIT_READ_LIMIT,
@@ -200,6 +204,9 @@ export function useEngineRoomGlance(): {
         // listTraces sorts by last_at descending, so index 0 is the newest run.
         traces: tracesQ.data?.traces,
         sealCount: sealQ.data?.count,
+        // Without this the card claims the fingerprint covers the whole ledger
+        // when it covers the newest SEAL_LIMIT receipts. See buildRecordGlance.
+        sealCapped: (sealQ.data as { capped?: boolean } | undefined)?.capped,
       }),
     ),
   ];

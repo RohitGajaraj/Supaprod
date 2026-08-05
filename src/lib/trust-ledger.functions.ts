@@ -826,6 +826,17 @@ export type LedgerSeal = {
   algo: string;
   head: string;
   count: number;
+  /**
+   * True when the read hit SEAL_LIMIT, so `count` is a FLOOR and the
+   * fingerprint covers the newest slice rather than the whole ledger.
+   *
+   * It is on the type rather than left implicit because the surface was
+   * asserting coverage it could not know: the Record card printed "N receipts
+   * sealed - covered by the fingerprint", which understates the number and
+   * gets the GUARANTEE wrong, and the guarantee is the half a person would
+   * quote in an audit.
+   */
+  capped?: boolean;
   /** ISO time the seal was computed (the anchor moment to record). */
   sealedAt: string;
   workspace_id: string | null;
@@ -903,6 +914,18 @@ export const getLedgerSeal = createServerFn({ method: "GET" })
       algo: seal.algo,
       head: seal.head,
       count: seal.count,
+      /**
+       * WHETHER THE FINGERPRINT COVERS THE WHOLE LEDGER, which the surface was
+       * asserting without being able to know.
+       *
+       * `loadReceipts` is called with `limit: SEAL_LIMIT`, so on a longer
+       * ledger the seal covers the newest slice and `count` is a floor. The
+       * Record card printed "N receipts sealed - covered by the fingerprint",
+       * which is a number that understates and a GUARANTEE that is wrong, and
+       * the guarantee is the expensive half: it is the sentence a person would
+       * quote in an audit.
+       */
+      capped: seal.count >= SEAL_LIMIT,
       sealedAt,
       workspace_id: workspaceId,
     };

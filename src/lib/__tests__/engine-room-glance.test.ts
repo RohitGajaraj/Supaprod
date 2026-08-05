@@ -568,3 +568,69 @@ describe("The volumes on the door (facts the reads already returned)", () => {
     expect(buildRecordGlance({ traceCount: 2, ledgerVerifies: true }).latest).toBeUndefined();
   });
 });
+
+/**
+ * A CEILING WEARING A TOTAL'S CLOTHES.
+ *
+ * Three reads on this surface return what they FOUND, not what EXISTS, and two
+ * of them printed the number as a fact. `getIncidents` merges five sources each
+ * capped at twenty and slices the result at forty, and the Safety VERDICT --
+ * the line a person reads to decide whether anything is wrong -- printed it
+ * bare. `getLedgerSeal` reads at most SEAL_LIMIT receipts, and the Record card
+ * said "N receipts sealed, covered by the fingerprint": a number that
+ * understates AND a guarantee that is wrong, which is the expensive half,
+ * because it is the sentence someone would quote in an audit.
+ *
+ * The trace count on this same card already did this correctly ("200+"), so
+ * both are now the same shape rather than three reads with three manners.
+ */
+describe("a capped read says it is a floor", () => {
+  it("the Safety verdict marks a capped incident count", () => {
+    const capped = buildSafetyGlance({
+      rules: [{ enabled: true }],
+      incidentCount: 40,
+      incidentsCapped: true,
+    } as never);
+    expect(capped.verdict).toContain("40+ incidents");
+  });
+
+  it("and says nothing extra when the read was whole", () => {
+    const whole = buildSafetyGlance({
+      rules: [{ enabled: true }],
+      incidentCount: 7,
+      incidentsCapped: false,
+    } as never);
+    expect(whole.verdict).toContain("7 incidents");
+    expect(whole.verdict).not.toContain("+");
+  });
+
+  it("defaults to NOT claiming a cap it has not checked", () => {
+    // A caller not yet taught to pass the flag must report plainly rather than
+    // marking every count as a floor.
+    const unaware = buildSafetyGlance({ rules: [{ enabled: true }], incidentCount: 7 } as never);
+    expect(unaware.verdict).not.toContain("+");
+  });
+
+  it("the fingerprint claims only what it covers", () => {
+    const capped = buildRecordGlance({ traceCount: 0, sealCount: 1000, ledgerVerifies: true, sealCapped: true } as never);
+    const seal = capped.figures.find((f) => f.label === "receipts sealed");
+    expect(seal?.value).toContain("+");
+    expect(seal?.note).toBe("the newest are covered by the fingerprint");
+  });
+
+  it("and claims the whole ledger when it really read the whole ledger", () => {
+    const whole = buildRecordGlance({ traceCount: 0, sealCount: 92, ledgerVerifies: true } as never);
+    const seal = whole.figures.find((f) => f.label === "receipts sealed");
+    expect(seal?.value).not.toContain("+");
+    expect(seal?.note).toBe("covered by the fingerprint");
+  });
+
+  it("a fingerprint that did not compute says that first, capped or not", () => {
+    // The failure outranks the coverage caveat: "did not compute" is the fact
+    // that matters, and adding a coverage note to it would bury it.
+    const broken = buildRecordGlance({ traceCount: 0, sealCount: 1000, ledgerVerifies: false, sealCapped: true } as never);
+    expect(broken.figures.find((f) => f.label === "receipts sealed")?.note).toBe(
+      "fingerprint did not compute",
+    );
+  });
+});

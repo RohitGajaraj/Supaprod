@@ -728,6 +728,11 @@ export interface SafetyGlanceInput {
   rules: Array<{ enabled: boolean }>;
   /** `getIncidents().count` */
   incidentCount: number;
+  /** `getIncidents().capped`: true when the merged read hit its ceiling, so
+   *  `incidentCount` is a floor. DEFAULTS TO UNDEFINED (falsy), so a caller not
+   *  yet taught to pass it reports the number plainly rather than claiming a
+   *  cap it has not checked. */
+  incidentsCapped?: boolean;
 
   /* ---- the volumes, all of them already in the two reads above ---- */
 
@@ -776,7 +781,19 @@ export function buildSafetyGlance(input: SafetyGlanceInput): RoomGlance {
   const unset = onCount === 0;
   const state: RoomState = input.incidentCount > 0 ? "watch" : unset ? "unconfigured" : "healthy";
 
-  const incidentClause = `${input.incidentCount} incident${input.incidentCount === 1 ? "" : "s"}`;
+  /**
+   * THE FLOOR SAYS SO, on the line a person reads to decide if anything is
+   * wrong.
+   *
+   * `incidentCount` is what the read RETURNED, and that read is capped twice
+   * over: forty after the merge, and each of its five sources limited to twenty
+   * before it. A workspace with a hundred cost incidents said "40 incidents"
+   * here, in the verdict, as though that were the number. Same defect as the
+   * trace count that printed "200 runs this week" when 200 was the limit, and
+   * the same fix, so the two read alike.
+   */
+  const incidentFigure = `${input.incidentCount}${input.incidentsCapped ? "+" : ""}`;
+  const incidentClause = `${incidentFigure} incident${input.incidentCount === 1 ? "" : "s"}`;
   const verdict = !unset
     ? `${onCount} guardrail${onCount === 1 ? "" : "s"} on · ${incidentClause}`
     : configured === 0
@@ -880,6 +897,11 @@ export interface RecordGlanceInput {
   }[];
   /** `getLedgerSeal().count`: how many receipts the fingerprint covers. */
   sealCount?: number;
+  /** `getLedgerSeal()` reads at most SEAL_LIMIT receipts. True when it hit
+   *  that ceiling, so `sealCount` is a floor and the fingerprint covers the
+   *  newest slice rather than the whole ledger. Falsy by default, so a caller
+   *  not yet taught to pass it never claims a cap it has not checked. */
+  sealCapped?: boolean;
 }
 
 export function buildRecordGlance(input: RecordGlanceInput): RoomGlance {
@@ -915,10 +937,28 @@ export function buildRecordGlance(input: RecordGlanceInput): RoomGlance {
     }
   }
   if (input.sealCount !== undefined && input.sealCount > 0) {
+    /**
+     * "COVERED BY THE FINGERPRINT" IS A CLAIM ABOUT COVERAGE, and the read
+     * behind it is capped at SEAL_LIMIT receipts.
+     *
+     * So on a ledger longer than the cap the figure was a ceiling AND the note
+     * asserted the fingerprint covered the whole thing, when it covered the
+     * most recent slice. That is the more expensive half: a number being a
+     * floor is a smaller lie than a guarantee being wrong, and this note is the
+     * one a person would quote in an audit.
+     *
+     * Capped, the figure carries its "+" and the note says what the fingerprint
+     * really covers. Uncapped, both read exactly as before.
+     */
+    const sealCapped = input.sealCapped === true;
     figures.push({
       label: "receipts sealed",
-      value: fmtCount(input.sealCount),
-      note: input.ledgerVerifies ? "covered by the fingerprint" : "fingerprint did not compute",
+      value: `${fmtCount(input.sealCount)}${sealCapped ? "+" : ""}`,
+      note: !input.ledgerVerifies
+        ? "fingerprint did not compute"
+        : sealCapped
+          ? "the newest are covered by the fingerprint"
+          : "covered by the fingerprint",
     });
   }
 

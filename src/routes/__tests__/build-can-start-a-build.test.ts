@@ -24,10 +24,7 @@ import { join } from "node:path";
 
 const HERE = join(import.meta.dir, "..");
 const ROUTE = readFileSync(join(HERE, "_authenticated.build.index.tsx"), "utf8");
-const LANE = readFileSync(
-  join(HERE, "..", "components", "build", "ReadyToBuild.tsx"),
-  "utf8",
-);
+const LANE = readFileSync(join(HERE, "..", "components", "build", "ReadyToBuild.tsx"), "utf8");
 const BUILD_FNS = readFileSync(join(HERE, "..", "lib", "build.functions.ts"), "utf8");
 
 describe("Build can start the work it exists to do", () => {
