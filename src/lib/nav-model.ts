@@ -215,62 +215,111 @@ export const INTELLIGENCE_NAV: readonly NavItemDef[] = PRIMARY_NAV.filter(
   (n) => n.zone === "intelligence",
 );
 
-/** Derived: the displayed key hint AND the GotoShortcuts binding, both from
- *  this one function (never hand-copied). The shortcut EQUALS the visible
- *  lifecycle number so pressing what you see does what you expect:
- *    Today = 0 (home)  ·  the 7 loop stages = 1..7 (their 01..07 markers)
- *    Brain = 8  ·  Engine Room = 9
- *    Runs = u  ·  Crew = e  ·  Settings = s  ·  Admin console = none
- *  Digits carry the lifecycle spine; letters pick up once the digits are
- *  spent (the founder's "numeric first, then keyboard" rule). Engine Room
- *  also keeps its standing `g` alias (bound in GotoShortcuts).
+/**
+ * GO, THEN THE LETTER. The prefix every navigation shortcut begins with.
  *
- *  THE LETTER RULE, and why it is not the obvious letter. A shortcut here is
- *  a WINDOW listener, so it fires on every surface at once. When it lands on
- *  a letter a surface already uses for an in-page action, BOTH fire: that is
- *  exactly how `a` was lost for /admin (verified live 2026-07-29 - pressing
- *  `a` on a gate approved the call AND threw you to the admin console). So a
- *  door takes the first letter of its own visible label that no in-page
- *  action has already claimed, read left to right:
- *    Runs -> `r` is Reject on the approvals queue, a decided contract in
- *            routes/_authenticated.approvals.tsx (the j/k/a/r keys, kept by
- *            name in that file's own header). Next letter: `u`.
- *    Crew -> `c` is Challenge on the decide gate
- *            (routes/_authenticated.decide.tsx), `r` is spoken for above.
- *            Next letter: `e`.
- *  Also claimed elsewhere and therefore off limits: a/d/z (the Today gate),
- *  k/x (the decide gate), j/k (every list that walks with j/k), h (snooze in
- *  the approvals tray), s and g (already bound here). Nothing binds `u` or
- *  `e` on any surface, which is what makes them free rather than merely
- *  unused. Navigation never outranks the decision the product exists to
- *  collect; when the two want the same key, navigation moves. */
+ * FOUNDER RULING 2026-08-05, and the reasoning is worth keeping because it
+ * overturns a rule this file argued for at length.
+ *
+ * The old scheme mixed the two alphabets: Today `0`, the loop `1`-`7`, Brain
+ * `8`, Engine `9`, then letters once the digits ran out. His objection, in his
+ * words: *"if you are using alphanumeric in between, it really confuses the
+ * user... Either you need to go with numbers or you need to go with
+ * alphabets."* Two things were wrong with it and both are now fixed:
+ *
+ *   1. A NUMBER ON A ROW WAS AMBIGUOUS. The loop stations already render a
+ *      two-digit lifecycle marker, 01 to 07. Drawing the shortcut as the same
+ *      digit meant a number beside a row could be its identity, its shortcut,
+ *      or a count, and the reader had to work out which. Now the marker is the
+ *      only number on the row and it can only mean identity.
+ *
+ *   2. BARE KEYS SHARED A NAMESPACE WITH PAGE ACTIONS, so navigation kept
+ *      losing. `a` was surrendered entirely because it is Approve on every
+ *      gate; `r` went to Reject so Runs became `u`; `c` went to Challenge so
+ *      Crew became `e`. Nobody can derive `u` for Runs or `e` for Crew, and
+ *      the previous version of this comment needed eighteen lines to justify
+ *      them. A prefix removes the contest instead of adjudicating it: `r`
+ *      alone is still Reject, and `g` then `r` is Runs. Different keystrokes,
+ *      so neither has to yield. Admin gets a key back for the first time.
+ *
+ * This is the pattern Gmail, Linear, GitHub, Jira, Superhuman and Height all
+ * use, so for most people it is already learned. It is also re-derivable,
+ * which the old scheme was not: `g` for go, then a letter you can see in the
+ * word itself.
+ */
+export const NAV_CHORD_PREFIX = "g";
+
+/** Derived: the displayed key hint AND the GotoShortcuts binding, both from
+ *  this one function (never hand-copied). Returns the SECOND key of the chord;
+ *  the prefix above is always the first, so the rail draws "g d" for Discover.
+ *
+ *  THE LETTER RULE. Each door takes a letter that appears in its own visible
+ *  label, so it can be re-derived rather than memorised. Discover, Decide and
+ *  Design all begin with D and only one can have it, so the two others take
+ *  their first distinctive letter instead: deCide is not free (`c` is Crew's
+ *  natural first letter and Crew has no alternative), so Decide takes the `e`
+ *  of dEcide, and Design takes the `n` of desigN.
+ *
+ *  Brain is the one door whose letter is not in its label: `k`, for what the
+ *  product KNOWS. That is this file's own definition of it (see the header:
+ *  "the Brain is what the product KNOWS"), and `b` belongs to Build.
+ *
+ *  Nothing here returns a digit. If a future door needs a key and every useful
+ *  letter is taken, add a second chord (`g` then two letters) rather than
+ *  reaching for a number: reintroducing digits reopens the ambiguity above. */
 export function navKeyHint(item: NavItemDef): string {
   switch (item.to) {
     case "/today":
-      return "0";
+      return "t";
+    case "/discover":
+      return "d";
+    case "/decide":
+      return "e"; // dEcide; `d` is Discover
+    case "/plan":
+      return "p";
+    case "/design":
+      return "n"; // desigN; `d` is Discover, `e` is Decide
+    case "/build":
+      return "b";
+    case "/ship":
+      return "h"; // sHip; `s` is Settings
+    case "/learn":
+      return "l";
     case "/runs":
-      return "u";
+      return "r"; // its own first letter, freed by the prefix
     case "/crew":
-      return "e";
+      return "c"; // its own first letter, freed by the prefix
     case "/brain":
-      return "8";
+      return "k"; // what the product Knows; `b` is Build
     case "/engine-room":
-      return "9";
+      return "u"; // pUlse; `p` is Plan
     case "/settings":
       return "s";
     case "/admin":
-      // NO BARE KEY. `a` is Approve on every gate (Today, Approvals), which is
-      // the highest-frequency action in the product and the one the prototype
-      // draws a keycap for. Both bindings are window listeners, so both fired:
-      // verified live on 2026-07-29, pressing `a` on a gate approved the call
-      // AND threw you to the admin console, where you could not see what you
-      // had just done. A rare admin door does not outrank the decision the
-      // whole product exists to collect. Admin stays reachable from Settings.
+      /**
+       * STILL NO KEY, but for a different reason than before.
+       *
+       * The original reason is gone: bare `a` is Approve on every gate, both
+       * window listeners fired, and pressing `a` on a gate approved the call
+       * AND threw you to the admin console (verified live 2026-07-29). The
+       * chord ends that contest, so `g` then `a` would now be free.
+       *
+       * A SECOND REASON SURVIVES IT, and it is the one that binds. AppFrame
+       * renders no `/admin` control anywhere: there is no `amIAdmin` query and
+       * no link in the rail or its foot. A key here would be a key that goes
+       * somewhere the rail cannot follow, which is precisely the defect
+       * AppFrame.rail-covers-keys.test.ts exists to catch, and it caught this.
+       *
+       * Worth noting for whoever picks this up: FOOTER_NAV's own comment claims
+       * "Admin renders ONLY for actual admins (the shell gates it with its
+       * existing amIAdmin query)". That query does not exist in AppFrame. The
+       * footer row is currently unreachable except by typing the URL. Give the
+       * shell a lit admin control and this may return `a`.
+       */
       return "";
     default:
-      // Loop stages carry a two-digit lifecycle marker ("01".."07"); the
-      // shortcut is that number (1..7), so the shown index IS the key.
-      return item.index ? String(parseInt(item.index, 10)) : "";
+      // A door with no letter draws no keycap. Never a digit: see above.
+      return "";
   }
 }
 

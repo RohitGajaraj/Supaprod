@@ -12,6 +12,7 @@ import {
   ENGINE_ROOM_PATHS,
   navItemActive,
   navKeyHint,
+  NAV_CHORD_PREFIX,
   engineRoomActive,
 } from "./nav-model";
 import { CANONICAL_PATHS } from "./legacy-redirects";
@@ -159,30 +160,47 @@ describe("nav-model - the twelve primary destinations (the Loop)", () => {
     }
   });
 
-  it("navKeyHint = the visible number, then a letter of the label: 0, 1-7, u, e, 8, 9", () => {
+  it("navKeyHint is the second key of the chord, one letter per destination", () => {
     expect(PRIMARY_NAV.map((n) => navKeyHint(n))).toEqual([
-      "0",
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "u",
-      "e",
-      "8",
-      "9",
+      "t", // Today
+      "d", // Discover
+      "e", // dEcide
+      "p", // Plan
+      "n", // desigN
+      "b", // Build
+      "h", // sHip
+      "l", // Learn
+      "r", // Runs
+      "c", // Crew
+      "k", // Brain, what the product Knows
+      "u", // pUlse
     ]);
   });
 
-  it("every letter key is a letter of the label it is drawn next to", () => {
-    // The rule that picks the letter (see navKeyHint): the first letter of the
-    // visible word no in-page action has claimed. A key from outside the word
-    // is unguessable, so it fails here.
+  /**
+   * FOUNDER RULING 2026-08-05: numbers and letters must not be mixed.
+   *
+   * The old scheme was Today `0`, the loop `1`-`7`, Brain `8`, Engine `9`, then
+   * letters. His objection: a number beside a rail row could be the station's
+   * 01-07 identity, its shortcut, or a count, and the reader had to work out
+   * which. Now the marker is the only number on a row.
+   */
+  it("binds no digit anywhere, so a number on a row can only mean identity", () => {
+    for (const n of [...PRIMARY_NAV, ...FOOTER_NAV]) {
+      expect(navKeyHint(n)).not.toMatch(/[0-9]/);
+    }
+  });
+
+  it("every key is a letter of the label it is drawn next to, so it is derivable", () => {
     for (const n of [...PRIMARY_NAV, ...FOOTER_NAV]) {
       const hint = navKeyHint(n);
-      if (hint === "" || /^[0-9]$/.test(hint)) continue;
+      if (hint === "") continue;
+      // Brain is the one deliberate exception: `k` for what the product KNOWS,
+      // which is this model's own definition of it, because `b` is Build.
+      if (n.to === "/brain") {
+        expect(hint).toBe("k");
+        continue;
+      }
       expect(n.label.toLowerCase()).toContain(hint);
     }
   });
@@ -216,31 +234,45 @@ describe("nav-model - one key, one door, across the WHOLE nav model", () => {
     expect(new Set(bound).size).toBe(bound.length);
     // And the count is the thing the rail promises: every non-empty hint is a
     // keycap somewhere, so a shrinking set is a lost shortcut, not a tidy-up.
-    // 12 primary destinations + Settings; Admin console is the one deliberate
-    // blank (it gave `a` back to Approve).
+    // 13: 12 primary destinations + Settings. Admin console is still the one
+    // deliberate blank, though no longer because of the Approve collision --
+    // the chord ends that. It is blank because AppFrame renders no admin
+    // control at all, so a key there would go where the rail cannot follow.
     expect(bound.length).toBe(13);
   });
 
-  it("leaves the standing `g` alias unshadowed", () => {
-    // GotoShortcuts falls back to `g` -> Engine Room only when no door claims
-    // `g` first. A door that took it would silently eat the alias.
-    expect(DOORS.map((d) => navKeyHint(d))).not.toContain("g");
+  it("never binds the prefix itself, which would eat every chord", () => {
+    // `g` arms the chord. A door that also answered to `g` would be reachable
+    // only by pressing it twice, and would shadow the arming press.
+    expect(DOORS.map((d) => navKeyHint(d))).not.toContain(NAV_CHORD_PREFIX);
   });
 
-  it("never takes a letter a surface already spends on an in-page action", () => {
+  /**
+   * THE CONTEST IS OVER, so this test inverts.
+   *
+   * It used to assert that navigation never took a letter an in-page action had
+   * claimed, which is why Runs was `u` and Crew was `e` and Admin had nothing.
+   * Under the chord the two live in different namespaces: `r` alone is Reject
+   * and `g` then `r` is Runs, so overlap is not merely tolerated, it is the
+   * point. What must still hold is that the PREFIX does not collide, since `g`
+   * is the one key that is still pressed bare.
+   */
+  it("lets a door share a letter with an in-page action, because the prefix separates them", () => {
+    const byPath = new Map(DOORS.map((d) => [d.to, navKeyHint(d)]));
+    // Each of these was previously impossible and is now the natural key.
+    expect(byPath.get("/runs")).toBe("r"); // `r` is also Reject
+    expect(byPath.get("/crew")).toBe("c"); // `c` is also Challenge
+  });
+
+  it("keeps the prefix off every surface's in-page action set", () => {
+    // `g` is pressed bare to arm, so it is the ONE letter that must stay free.
     // Claimed elsewhere, each a decided contract on its own surface:
     //   a, d, z  the Today gate        (routes/_authenticated.today.tsx)
     //   c, k, x  the decide gate       (routes/_authenticated.decide.tsx)
     //   j, k, a, r  the approvals queue (routes/_authenticated.approvals.tsx)
     //   h        snooze                (components/mission/ApprovalsTray.tsx)
-    // Digits are deliberately not checked here: /discover binds 1/2/3 for its
-    // own lens switch, which predates this model and is that surface's to fix.
     const CLAIMED = new Set(["a", "c", "d", "h", "j", "k", "r", "x", "z"]);
-    for (const d of DOORS) {
-      const hint = navKeyHint(d);
-      if (hint === "" || /^[0-9]$/.test(hint)) continue;
-      expect(CLAIMED.has(hint)).toBe(false);
-    }
+    expect(CLAIMED.has(NAV_CHORD_PREFIX)).toBe(false);
   });
 
   it("gives every rail row in AppFrame a key, so no row draws a blank", () => {

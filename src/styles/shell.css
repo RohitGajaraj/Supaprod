@@ -413,6 +413,14 @@
  * mounted surface (did a run publish a strip?) and not a fact about a class.
  * CSS that hid the region unconditionally was half of why the strip was
  * invisible on the surface that most needed it. See run-strip.tsx. */
+/* NO HORIZONTAL SCROLLBAR. This was `overflow-x: auto` against a 128px
+ * min-width per stage, so anything under about 930px of strip put the seven
+ * stations behind a scrollbar. Scrolling is the wrong answer here twice over:
+ * the strip IS the product's mental model, so hiding half of it hides the
+ * thing a new person most needs to see, and the ratchet forbids answering a
+ * space problem by making a surface worse. The stages shrink instead, and the
+ * per-stage note drops before the name does (see .sp-stage below), so what
+ * survives at the narrowest width is all seven numbers and all seven names. */
 .sp-strip {
   display: flex;
   gap: 0;
@@ -420,13 +428,33 @@
   border-bottom: 1px solid var(--sp-line);
   padding: 12px 18px;
   flex: none;
-  overflow-x: auto;
+  overflow-x: clip;
+  /* A CONTAINER query, not a viewport one. The strip's width is the work area
+   * minus the rail, and the rail collapses independently, so a viewport
+   * breakpoint would fire at the wrong moment in half the states this shell
+   * has. This is the same trap recorded in the Build terminal work: a
+   * `max-width` viewport query never fires while the pane itself is narrow. */
+  container-type: inline-size;
+  container-name: spinestrip;
+}
+/* What gives way first, and it is never the name. The state line is already
+ * allowed to be empty (founder ruling 2026-07-30, "cant it be empty?"), so it
+ * is the one part of a stage that says nothing on a quiet strip anyway. The
+ * number and the name always survive, because those two ARE the spine. */
+@container spinestrip (max-width: 880px) {
+  .sp-stage-state {
+    display: none;
+  }
 }
 /* A stage is a tab: the whole cell is the target, so the number, the name and
  * the note all mean "go here" rather than the name alone being live. */
 .sp-stage {
   flex: 1;
-  min-width: 128px;
+  /* Was 128px, which is what forced the scrollbar: seven of them plus padding
+   * could not fit under ~930px. 0 lets the track shrink; the floor that
+   * actually matters is the name staying readable, which the note-dropping
+   * rule below protects. */
+  min-width: 0;
   padding: 4px 14px 4px 0;
   text-align: left;
   background: none;
@@ -492,6 +520,13 @@
   color: var(--sp-body);
   margin: 3px 0;
   font-weight: var(--sp-weight-medium);
+  /* Truncate rather than wrap. A wrapped name would change the strip's height
+   * as stages come and go, which is the same nudge-under-the-reader the state
+   * line's min-height exists to prevent. The size is NOT reduced: the ratchet
+   * forbids answering a space problem with smaller type. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sp-stage-state {
   font-size: var(--sp-text-label);

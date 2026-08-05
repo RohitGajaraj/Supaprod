@@ -9,7 +9,7 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
-import { PRIMARY_NAV, FOOTER_NAV, navKeyHint } from "@/lib/nav-model";
+import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { EmptyState } from "@/components/supaprod/EmptyState";
 
@@ -303,7 +303,12 @@ export function CommandPalette() {
                     const isCatalog = row.section === "CATALOG";
                     const rightHint =
                       row.section === "JUMP" || row.section === "SETTINGS"
-                        ? row.hint
+                        ? // The prefix is part of the shortcut, so the palette
+                          // shows it too. A bare "d" here would teach a key
+                          // that does nothing on its own.
+                          row.hint
+                          ? `${NAV_CHORD_PREFIX} ${row.hint}`
+                          : ""
                         : row.section === "ASK" ||
                             (row.section === "ACT" && row.event === "supaprod:open-ask")
                           ? "⌘J"
@@ -412,43 +417,86 @@ export function CommandPalette() {
   );
 }
 
-// OBS-02 → IA SPINE (2026-07-11) - the keyboard map, DERIVED from
-// PRIMARY_NAV: keys `1`-`7` (one per rail destination, single press, no
-// chord — the range is the nav length, never hand-copied), plus the standing
-// `g` alias for the Engine Room. Mount once at app root.
+/**
+ * GO, THEN THE LETTER. The one way a key reaches a destination.
+ *
+ * DERIVED from PRIMARY_NAV + FOOTER_NAV via `navKeyHint`, never hand-copied,
+ * so the keycap the rail draws and the key this binds cannot drift.
+ *
+ * WHY A CHORD AND NOT A BARE KEY (founder ruling 2026-08-05, full reasoning on
+ * NAV_CHORD_PREFIX in nav-model.ts). A bare navigation key is a WINDOW
+ * listener, so it fires on every surface at once and competes with whatever
+ * that surface bound. Navigation kept losing that contest: `a` was surrendered
+ * to Approve, `r` to Reject, `c` to Challenge, leaving Runs on `u` and Crew on
+ * `e`, which nobody can guess. Requiring `g` first puts navigation in its own
+ * namespace, so `r` alone still rejects and `g` then `r` goes to Runs.
+ *
+ * THE WINDOW IS DELIBERATE. `g` arms the chord for two seconds and then
+ * disarms. Without a timeout a stray `g` would silently swallow the next
+ * keystroke minutes later, turning an Approve into a navigation. Any key that
+ * is not a bound letter also disarms immediately, so a mistyped chord costs
+ * nothing and never leaves the keyboard in a state the person cannot see.
+ *
+ * Mount once at app root.
+ */
+const CHORD_WINDOW_MS = 2000;
+
 export function GotoShortcuts() {
   const navigate = useNavigate();
   useEffect(() => {
+    let armedAt = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const disarm = () => {
+      armedAt = 0;
+      if (timer) clearTimeout(timer);
+      timer = undefined;
+    };
+
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable)
         return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      // LOOM W4: never fire surface switches under an open dialog/overlay -
-      // typing "3" into a focused-but-non-input dialog must not yank the
-      // user to Plan and drop their in-flight decision.
+      // LOOM W4: never fire surface switches under an open dialog/overlay - a
+      // keystroke into a focused-but-non-input dialog must not yank the user
+      // to another station and drop their in-flight decision.
       if (
         document.querySelector(
           '[role="dialog"][data-state="open"], [role="dialog"][aria-modal="true"]',
         )
       )
         return;
-      // The bound key EQUALS the visible hint (navKeyHint): 0 Today, 1-7 the
-      // loop, 8 Brain, 9 Engine, s Settings, a Admin — so pressing what you
-      // see does what you expect. `g` stays a standing Engine alias.
+
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      const target =
-        [...PRIMARY_NAV, ...FOOTER_NAV].find((item) => {
-          const hint = navKeyHint(item);
-          return hint !== "" && hint === key;
-        }) ?? (key === "g" ? PRIMARY_NAV.find((item) => item.to === "/engine-room") : undefined);
+      const armed = armedAt !== 0 && Date.now() - armedAt < CHORD_WINDOW_MS;
+
+      if (!armed) {
+        if (key === NAV_CHORD_PREFIX) {
+          // Arm, and do NOT preventDefault: `g` on its own belongs to whatever
+          // surface is open until the second key proves this was navigation.
+          armedAt = Date.now();
+          timer = setTimeout(disarm, CHORD_WINDOW_MS);
+        }
+        return;
+      }
+
+      disarm();
+      const target = [...PRIMARY_NAV, ...FOOTER_NAV].find((item) => {
+        const hint = navKeyHint(item);
+        return hint !== "" && hint === key;
+      });
       if (target) {
         e.preventDefault();
         navigate({ to: target.to, search: target.search as never });
       }
     };
+
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      disarm();
+    };
   }, [navigate]);
   return null;
 }

@@ -140,7 +140,13 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { useTheme } from "@/hooks/use-theme";
-import { ENGINE_ROOM_PATHS, FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
+import {
+  ENGINE_ROOM_PATHS,
+  FOOTER_NAV,
+  PRIMARY_NAV,
+  navKeyHint,
+  NAV_CHORD_PREFIX,
+} from "@/lib/nav-model";
 import { BoardPanel } from "./BoardPanel";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
@@ -1154,13 +1160,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                         responsive rule. aria-hidden because the accessible
                         name above already says it, in better words. */}
                     {shortcut ? (
+                      /* THE PREFIX IS DRAWN, not assumed. A keycap reading a
+                       * bare "d" would be a promise the keyboard does not
+                       * keep: `d` alone does nothing, `g` then `d` opens
+                       * Discover. Showing both is also what teaches the chord
+                       * without a tour, the way Gmail's "g i" does. */
                       <kbd
                         className="sp-navcount sp-navkey"
-                        data-shortcut={shortcut}
+                        data-shortcut={`${NAV_CHORD_PREFIX} ${shortcut}`}
                         aria-hidden="true"
                         style={KEYCAP}
                       >
-                        {shortcut}
+                        {NAV_CHORD_PREFIX} {shortcut}
                       </kbd>
                     ) : null}
                   </Link>
