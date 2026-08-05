@@ -478,6 +478,37 @@
   margin-top: 34px;
   padding-top: 26px;
   border-top: 1px solid var(--sp-line-soft);
+  /* AN ENTRANCE, BECAUSE THE SUBJECT CHANGES UNDER THE READER.
+   *
+   * The Gate is the biggest element on a station and the only one that asks a
+   * question. On Decide, clicking a row in the ranking replaces the question,
+   * the evidence and the whole button row with ZERO motion: the founder
+   * reported it, and the fix applied at the time marked the SOURCE row as
+   * focused and left the DESTINATION popping. Marking where you clicked does
+   * not tell you that the thing you were reading has been swapped.
+   *
+   * Deliberately the SAME keyframes, duration and easing as .sp-receipt, and
+   * not a new gesture. Those are the two most important moments on a station,
+   * the question arriving and the judgment landing, and they should move alike
+   * so a person learns one shape rather than two. Requires the Gate to be keyed
+   * on its subject at each call site, or React updates it in place and no
+   * entrance runs. */
+  animation: sp-gate-in var(--sp-dur-slow) var(--sp-ease);
+}
+@keyframes sp-gate-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-gate {
+    animation: none;
+  }
 }
 .sp-gate-q {
   font-size: var(--sp-text-gate);

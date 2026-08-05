@@ -995,10 +995,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               is already on screen and permanent, so this is a status line and
               renders as a div; everywhere else it takes you to the work. A
               control that reports a fact and then does nothing when you press
-              it is worse than a label. */}
+              it is worse than a label.
+
+              THE TEST IS THE MODE, NOT THE PRESENCE, and that is a repair. This
+              read `strip ? "div" : "button"`, which was correct when a strip
+              existed only on a run. It stopped being correct the day
+              `WorkspaceSpine` began publishing one on EVERY authenticated
+              surface (use-spine-strip.ts: it is always mounted and calls
+              `useSpineStrip(null)`, which publishes `mode: "nav"`). From then on
+              `strip` was never null, the button branch was unreachable, and the
+              live line became exactly the thing the paragraph above forbids: it
+              reported that an agent was working and did nothing when pressed, on
+              essentially every screen in the product.
+
+              `mode: "tab"` is a run's own seven stages, already on screen and
+              permanent, which is the case the div was written for. `mode: "nav"`
+              is the workspace strip, which is not the same thing as being on the
+              work, so the line stays a door. */}
           {React.createElement(
-            strip ? "div" : "button",
-            strip
+            strip?.mode === "tab" ? "div" : "button",
+            strip?.mode === "tab"
               ? { className: "sp-live", "data-static": "true" }
               : {
                   className: "sp-live",

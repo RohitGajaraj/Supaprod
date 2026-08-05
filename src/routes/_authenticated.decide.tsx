@@ -674,6 +674,11 @@ function DecideSurface() {
         <Loading>Reading the bets on the table.</Loading>
       ) : activeOpp ? (
         <Gate
+          /* Keyed on the bet, so picking another row in the ranking REMOUNTS the
+             Gate and it plays its entrance. Without a key React updates this in
+             place and the question, the evidence and the buttons all change with
+             no motion at all. */
+          key={activeOpp.id}
           question={activeOpp.title}
           lines={[
             /**

@@ -734,6 +734,10 @@ function Design() {
         </Gate>
       ) : call ? (
         <Gate
+          /* Keyed on its subject so a change of subject REMOUNTS the Gate and it
+             plays its entrance. Updated in place, the biggest element on the
+             station swaps its question and its buttons with no motion. */
+          key={call.id}
           question={call.title}
           lines={[
             <span key="what">{call.content}</span>,

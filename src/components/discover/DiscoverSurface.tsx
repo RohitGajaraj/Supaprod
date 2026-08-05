@@ -1236,6 +1236,12 @@ export function DiscoverSurface({
         </Gate>
       ) : focused ? (
         <Gate
+          /* Keyed on the theme, so moving the focus down the ranking REMOUNTS the
+             Gate and it plays its entrance. Updated in place, the biggest element
+             on the station swaps its question and its evidence with no motion.
+             The two Gates below carry no subject of their own, so neither needs a
+             key: nothing about them changes while they are on screen. */
+          key={focused.theme.id}
           question={focused.theme.title}
           lines={
             [
