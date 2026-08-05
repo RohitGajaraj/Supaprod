@@ -1,15 +1,17 @@
 # Supaprod Brand Kit
 
-> _Created 2026-07-14. The base brand kit for Supaprod: the mark, its variations,
+> _Created: 2026-07-14 · Last updated: 2026-08-05_
+
+> The base brand kit for Supaprod: the mark, its variations,
 > the palette, type, and ready-to-upload assets (SVG + PNG + favicon + social).
 > Ship-ready; enhance over time. Every asset is generated from the SAME
 > parametric mark the product renders (`src/components/supaprod/SupaprodMark.tsx`),
-> so the kit can never drift from the app._
+> so the kit can never drift from the app.
 
 
 ## The GitHub repo social preview
 
-**Asset:** [`social/github-social-preview.png`](./social/github-social-preview.png), 1280x640, plus the [`.svg`](./social/github-social-preview.svg) source.
+**Asset:** [`social/github-social-preview-1280x640.png`](./social/github-social-preview-1280x640.png), plus the [`.svg`](./social/github-social-preview.svg) source. It is emitted by `generate-social.ts` like everything else; the hand-cropping recipe below is kept only as a record of why the obvious tools were rejected.
 
 **It has to be uploaded by hand.** GitHub exposes no REST field for a repository's social preview image (verified against the repo API 2026-08-04), so this is the one brand asset an agent cannot apply:
 
@@ -45,11 +47,11 @@ with **R = 7, r = 1, d = 3** (K = 6 → seven petals).
 
 | Variation | File(s) | Use it for |
 | --- | --- | --- |
-| **On dark** (silver/white spiral + ember/gold core, soft glow) | `logo/supaprod-mark-dark.svg`, `png/cadence-mark-dark-*.png` (png exports pending re-rasterization) | The default mark on dark surfaces (the app is dark-first). |
-| **On light** (graphite/black spiral + ember/gold core) | `logo/supaprod-mark-light.svg`, `png/cadence-mark-light-*.png` (png exports pending re-rasterization) | The mark on white/light surfaces. |
-| **Gradient / hero** (ember→blue spiral + ember/gold core) | `logo/supaprod-mark-gradient.svg`, `png/cadence-mark-gradient-*.png` (png exports pending re-rasterization) | Marketing, hero moments, the app icon, favicon — the full-color expression. |
-| **Mono white / black** (single color) | `logo/supaprod-mark-mono-*.svg`, `png/cadence-mark-mono-*-*.png` (png exports pending re-rasterization) | Photographic backgrounds, print, one-color contexts, embossing. |
-| **Lockup** (mark + "Supaprod" wordmark) | `logo/supaprod-lockup-{dark,light}.svg`, `png/cadence-lockup-*-*.png` (png exports pending re-rasterization) | Headers, docs, decks, email signatures. |
+| **On dark** (silver/white spiral + ember/gold core, soft glow) | `logo/supaprod-mark-dark.svg`, `png/supaprod-mark-dark-{32,64,128,256,512,1024}.png` | The default mark on dark surfaces (the app is dark-first). |
+| **On light** (graphite/black spiral + ember/gold core) | `logo/supaprod-mark-light.svg`, `png/supaprod-mark-light-{32,64,128,256,512,1024}.png` | The mark on white/light surfaces. |
+| **Avatar / app icon** (the mark on its own rounded ground) | `logo/supaprod-appicon-{dark,light}.svg`, `avatars/avatar-{dark,light}-*.png` | Every social profile picture, app stores, PWA. Self-contained, so it reads the same on a light platform UI and a dark one. |
+| **Mono white / black** (single color) | `logo/supaprod-mark-mono-*.svg` (vector only; raster on request) | Photographic backgrounds, print, one-color contexts, embossing. |
+| **Lockup** (mark + "Supaprod" wordmark) | `logo/supaprod-lockup-{dark,light}.svg`, `png/supaprod-lockup-{dark,light}-{720x216,1440x432}.png` | Headers, docs, decks, email signatures. |
 | **App icon** (mark on a rounded square) | `logo/supaprod-appicon-{dark,light}.svg`, `icons/appicon-*-*.png` | App stores, PWA, desktop/dock icons. |
 | **Favicon** | `logo/supaprod-favicon.svg`, `icons/favicon.ico`, `icons/favicon-{16,32,48}.png` | Browser tab / bookmarks. |
 | **Animated** (loader) | `logo/supaprod-mark-animated.svg` (SMIL), `logo/supaprod-mark-animated.html` (tweakable, particle flow) | Loading / "AI is working" states; the HTML is the reference "gif" you can open, tweak, or record. |
@@ -61,37 +63,83 @@ branding/
 ├─ README.md                    ← this file (the brand guidelines)
 ├─ generate.ts                  ← regenerates every SVG from the mark curve (bun)
 ├─ logo/                        ← source vectors (scalable, upload-ready)
-│  ├─ supaprod-mark-dark.svg / -light.svg / -gradient.svg
+│  ├─ supaprod-mark-dark.svg / -light.svg
 │  ├─ supaprod-mark-mono-white.svg / -mono-black.svg
 │  ├─ supaprod-mark-animated.svg      (SMIL, self-animating)
 │  ├─ supaprod-mark-animated.html     (standalone tweakable reference)
 │  ├─ supaprod-lockup-dark.svg / -light.svg
 │  ├─ supaprod-appicon-dark.svg / -light.svg
 │  └─ supaprod-favicon.svg
-├─ png/                         ← raster marks + lockups (transparent); still under the
-│  │                              cadence- filename prefix, pending re-rasterization from
-│  │                              the renamed SVGs above (the lockup PNGs also still show
-│  │                              the old wordmark in their pixels until re-rendered)
-│  ├─ cadence-mark-gradient-{32,64,128,256,512,1024}.png
-│  ├─ cadence-mark-dark-{...}.png / -light-{...}.png
-│  ├─ cadence-mark-mono-{white,black}-{256,512}.png
-│  └─ cadence-lockup-{dark,light}-{720,1440}.png
+├─ generate-social.ts           ← regenerates every PNG below from one spec table (bun)
+├─ mark.ts                      ← the shared geometry both generators import
+├─ png/                         ← raster marks + lockups, transparent ground
+│  ├─ supaprod-mark-{dark,light}-{32,64,128,256,512,1024}.png
+│  └─ supaprod-lockup-{dark,light}-{720x216,1440x432}.png
 ├─ icons/                       ← app / favicon / PWA
 │  ├─ favicon.ico  favicon-{16,32,48}.png
 │  ├─ apple-touch-icon.png (180)
 │  ├─ android-chrome-{192,512}.png
 │  └─ appicon-{dark,light}-{512,1024}.png
-└─ social/                      ← Open Graph / share cards (dark + light)
-   ├─ og-dark-1200x630.png  og-light-1200x630.png
-   └─ square-dark-1200x1200.png
+├─ avatars/                     ← profile pictures, the app icon on its own ground
+│  ├─ avatar-dark-{16,32,64,128,200,240,320,400,500,512,800,1024}.png
+│  └─ avatar-light-{400,512,1024}.png
+├─ video/                       ← trailer and product-demo frames
+│  ├─ title-{16x9-3840x2160,9x16-2160x3840}.png
+│  └─ endcard-16x9-3840x2160.png  lowerthird-1920x320.png
+└─ social/                      ← platform banners and share cards
+   ├─ x-header-1500x500.png  x-header-light-1500x500.png
+   ├─ mastodon-header-1500x500.png  linkedin-cover-1128x191.png
+   ├─ youtube-banner-2560x1440.png  bluesky-banner-3000x1000.png
+   ├─ discord-banner-960x540.png  producthunt-gallery-1270x760.png
+   ├─ github-social-preview-1280x640.png (+ .svg source)
+   ├─ og-{dark,light}-1200x630.png
+   └─ square-{dark,light}-1200x1200.png
 ```
+
+## Regenerating the kit
+
+Two stages, both deterministic, both reading the same geometry from `mark.ts`:
+
+```bash
+bun "docs/growth/branding/generate.ts"          # the SVG masters in logo/
+bun "docs/growth/branding/generate-social.ts"   # every PNG, from one spec table
+bun "docs/growth/branding/generate-social.ts" --only=x-header   # or just one
+```
+
+**Adding a platform is a row in the `SPECS` table**, not a design session. Name, width, height, layout, ground, and optionally a safe area. The filename carries the dimensions and the generator enforces that they are true.
+
+### Four rules the kit learned the hard way
+
+**1. Every output is measured against its own filename.** This kit previously shipped `og-dark-1200x630.png` at 600x315 pixels, and `square-dark-1200x1200.png` at 600x600. Nothing caught it because nothing checked. `generate-social.ts` now parses each rendered PNG's header and refuses to write a file whose pixels disagree with its name.
+
+**2. The raster stage must derive from the vector stage.** The PNG set was originally a one-time manual export, so when the product was renamed the SVGs updated and the PNGs froze, leaving the old wordmark rendered into four lockups and three share cards for three weeks. Both generators now import `mark.ts`, so that drift is structurally impossible.
+
+**3. Small marks need contrast, not weight.** A seven-petal spiral loses its petal gaps as it shrinks. The instinct is a heavier stroke, and past a point that makes it worse by closing the gaps entirely. What actually rescues it is contrast. This was first found at 32px, where a gradient stroke that dipped to silver-lo read as a smudge on black; the same finding later applied at every size and the gradient was retired outright (see below). Below 64px the mark also drops the glow. Verified by rendering the ladder beside the shipped favicons, magnified, and looking at both.
+
+**Colour, restated after the 2026-08-05 correction.** The mark is a **solid** near-white `#f2f0ed` spiral, an ember core, a gold bead. Those are the product's own values, lifted from `--text-primary` and `--text-subtle` rather than picked for the kit, and the glow sits at 0.24 opacity to match the product's own `drop-shadow(0 0 3.5px ... #fff 24%)`. The kit previously ran a cooler grey, a gradient that dipped to dull grey at its midpoint, and a glow at more than twice the strength, which is why a kit asset beside the landing page looked like a different mark.
+
+**4. Sixteen pixels is a geometry problem, not a tuning problem.** Seven petals plus seven gaps plus a core do not fit. That size is owned by `icons/favicon-16.png` and `favicon.ico`; the raster ladder stops at 32 rather than ship a second, no better file. The smallest avatar any platform asks for is 200px.
+
+### Colour on marketing surfaces
+
+Banners and share cards are **monochrome with one point of colour: the ember core.** This follows the founder's standing colour ruling in [`../../design/DESIGN-SYSTEM.md`](../../design/DESIGN-SYSTEM.md) that the surface is monochrome by default and ember is rare, because colour must carry status rather than decorate. The full ember-to-blue expression is reserved for the app icon and the avatars derived from it, which already shipped that way.
+
+**The Pixel wordmark is WHITE.** An earlier version of this kit set it in gold `#E8B44C` and the founder rejected it on sight. He was right, though not quite for the reason he gave: gold *is* a brand token (`--marigold`), but it is the mark's core bead and a caution accent, and **no live surface sets type in it**. The `/brief` and `/investors` heroes set "Supaprod" in Geist Pixel Square in `--text-primary`, and the homepage headline does the same. On a light ground the wordmark goes near-black for the same reason: match the product, not the palette table.
+
+### The hero composition
+
+Banners and cards are built from the live `/brief` hero, not composed independently. In order: the mark, a mono caps kicker, the wordmark at display size, then the subhead. Behind it, three layers that a flat grid does not give you:
+
+1. **A warm ember bloom** centred behind the wordmark. This is what makes the frame read as lit from within rather than printed, and it is the single biggest difference between the first version of these banners and this one.
+2. **A grid on a large cell** at roughly 0.02 alpha. The first attempt used a small cell at higher alpha and read mechanical.
+3. **A deterministic star scatter**, seeded from the asset name so re-running the generator does not reshuffle them into a spurious diff.
 
 ## Color palette
 
 | Token | Hex | Role |
 | --- | --- | --- |
 | **Ember** (brand) | `#FF6B2C` | Primary CTA, "needs-human", the one brand accent. Ember-hi `#FFD9C2`, ember-lo `#C24E1E`. |
-| **Blue** (machine) | `#3E63DD` | Links, metric numerals (data), the machine's voice. |
+| **Blue** (machine) | `#3E63DD` | Links, metric numerals (data), the machine's voice **inside the product UI**. ⚠️ Never in the mark or in any brand asset. It used to appear in a kit-only ember-to-blue gradient that blended through violet and matched nothing the product renders; retired 2026-08-05. |
 | **Gold** (core bead) | `#E8B44C` | The mark's living centre; also the "warning/caution" accent. |
 | **Moss** (success) | `#7FBF8E` | Success / present / "still stands". |
 | **Madder** (risk) | `#E06557` | Errors, gaps, rejected. |
@@ -109,8 +157,13 @@ meaning. Ember = the brand / needs-human; blue = data / machine.
   600, tight tracking. (For final production lockups, outline the wordmark to a
   path so it renders without the font installed.)
 - **Geist Mono** — data, code, trace ids, metadata.
-- **Geist Pixel** — the brand display face: hero metrics, stage titles, the
-  agent/person name moments. Use sparingly (a moment, not body text).
+- **Geist Pixel Square** — the brand display face, and specifically the Square
+  cut: `--font-pixel` is bound to it in both `src/styles.css` and
+  `src/styles/ink.css`, so Square is what ships and Circle, Grid, Line and
+  Triangle are not alternatives to reach for. Founder ruling 2026-08-05: Pixel is
+  **retired from the app and kept for marketing**, allowed on hero moments on the
+  public surfaces. One Pixel word per asset. Pixel everywhere stops being a
+  signal and becomes a texture.
 
 Fonts are SIL OFL 1.1 (self-hosted in `public/fonts/geist/`).
 
@@ -123,8 +176,9 @@ Fonts are SIL OFL 1.1 (self-hosted in `public/fonts/geist/`).
 
 ## Do / Don't
 
-- **Do** use the on-dark mark on dark and the on-light mark on light; use the
-  gradient for hero/marketing and the icon.
+- **Do** use the on-dark mark on dark and the on-light mark on light. There is
+  no third "hero" expression to reach for: the mark is white lines and an ember
+  core, everywhere, and the app icon is that same mark on its own ground.
 - **Do** keep the core ember + gold (the one warm accent) even on mono spirals
   where color is allowed.
 - **Don't** recolor the spiral into arbitrary hues, rotate the static logo,

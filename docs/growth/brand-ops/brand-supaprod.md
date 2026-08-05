@@ -1,6 +1,12 @@
 # Supaprod — Brand, Domain, Email & Trademark Playbook
 
-> _Created: 2026-07-16 · Status: ACTIVE — brand decided, registration pending, in-product rename EXECUTED 2026-07-17_
+> _Created: 2026-07-16 · Last updated: 2026-08-05 · Status: ACTIVE — brand decided, `.com` and `.ai` REGISTERED 2026-07-16, in-product rename EXECUTED 2026-07-17, social handles STILL UNCLAIMED_
+>
+> ⚠️ **Two things in this document were overtaken by later rulings. Read these first.**
+>
+> **1. `.ai` is canonical, not `.com`.** §3 and the whole of §7 build the email scheme on `@supaprod.com`. The founder ruled the opposite on **2026-07-17**, one day after this was written: `supaprod.ai` is the canonical domain and `.com` exists only to 301 to it. Live email runs on **`@supaprod.ai`** with seven role addresses; `supaprod.com` has no MX record at all. See [`../../operations/domain-and-email-setup.md`](../../operations/domain-and-email-setup.md), which is the live state. §7's address scheme below is stale and kept only for its reasoning.
+>
+> **2. Claiming the handles is now an executable runbook.** §6 decided the convention; [`social-accounts.md`](./social-accounts.md) is what you actually work from, with availability re-verified 2026-08-05, the copy pack, the asset map and the ledger.
 >
 > **The in-product rename executed 2026-07-17** — code, DB, envs, and UI now operate as "Supaprod." This document governs the outward brand (domains, handles, email, trademark, launch identity) for the name **Supaprod**, founder-locked 2026-07-16 after a five-round, ~30-agent, ~680-live-check naming study. The full evidence chain for all evaluated names lives in [`pitch/naming-decision-supaprod.md`](../../pitch/naming-decision-supaprod.md).
 >
@@ -206,19 +212,16 @@ Reasoning, including alternatives considered:
 
 **The rule that matters more than the suffix: the same variant everywhere.** A user who finds `@supaprodhq` on X must find `@supaprodhq` on Instagram and YouTube without thinking.
 
-### Claim list — same hour as the domain purchase, before any public mention
+### Claim list — the runbook now lives in its own file
 
-| Platform | Handle to claim | Status 2026-07-16 |
-| --- | --- | --- |
-| GitHub **org** | `supaprod` (exact!) | ✅ Verified available — claim first, most reliable signal |
-| LinkedIn company page | `company/supaprod` (exact) | ⚠️ Leans available — verify at creation |
-| X | `@supaprodhq` | Unverified (bot-walled) — verify at signup |
-| Instagram | `@supaprodhq` | Unverified — verify at signup |
-| YouTube | `@supaprodhq` | Unverified — verify at signup |
-| TikTok | `@supaprodhq` | Unverified — verify at signup |
-| Product Hunt | maker/product name "Supaprod" | Claim the product name early (pre-launch page can stay unlisted) |
+**Execute from [`social-accounts.md`](./social-accounts.md), not from here.** It carries availability re-verified live on 2026-08-05, the claim order and its one hard dependency (Instagram before Threads), the per-platform copy pack inside each real character limit, which generated asset goes where, and the ledger of what actually exists. Re-check with `bash scripts/check-handles.sh` before claiming.
 
-Tip: create each account with a `supaprod.com` role address (§7), not a personal Gmail, so account ownership is transferable and recoverable.
+Two corrections to what this section used to say:
+
+- **The role address is on `.ai`, not `.com`.** Create every account with **`social@supaprod.ai`** so ownership is transferable and recoverable. `supaprod.com` has no mailbox.
+- **Scope widened on 2026-08-05.** The founder added Bluesky (where the *exact* `supaprod` is free), Threads, Mastodon, Discord, Reddit, npm, PyPI and Crunchbase to the original seven.
+
+**Founder ruling, 2026-08-05:** claim every handle now **and fill in bios and logos**, accepting the trademark exposure that §9's "no public use before the US ITU filing" gate was written to avoid. Recorded as a decision made with eyes open. The mitigation is not to delay: it is to run register item #7 (the attorney knockout) in parallel, which is three weeks past its own trigger.
 
 ### Handle recovery, later (post-trademark)
 
@@ -364,13 +367,13 @@ The single do-not-forget table. Everything parked anywhere in this document appe
 
 | # | Action | Cost | Trigger | Risk if forgotten |
 | --- | --- | --- | --- | --- |
-| 1 | Buy `superprod.ai` (defensive, spoken-leak closer) | $160/2-yr | First funding **or** launch — whichever first | A stranger owns our #1 misspelling on our own TLD; risk consciously accepted 2026-07-16 |
-| 2 | Buy `supaprod.io` | $50/yr | Launch | Post-launch squat/ransom pricing |
+| 1 | Buy `superprod.ai` (defensive, spoken-leak closer) | $160/2-yr | First funding **or** launch — whichever first | A stranger owns our #1 misspelling on our own TLD; risk consciously accepted 2026-07-16. **Trigger firing: launch is mid-September 2026.** Re-verified available 2026-08-05 |
+| 2 | Buy `supaprod.io` | $50/yr | Launch | Post-launch squat/ransom pricing. **Trigger firing: launch is mid-September 2026.** Re-verified available 2026-08-05 |
 | 3 | Buy `supaprod.dev` | ~$12/yr | Public dev docs / MCP endpoint | Low; loses the natural docs home |
 | 4 | Buy `getsupaprod.com`, `superprod.io` (optional batch) | ~$60/yr | Funding batch | Low |
 | 5 | `superprod.com` watchlist — quiet broker inquiry; calendar its **2027-08-14** expiry | inquiry-dependent | Post-funding; never pre-announcement | Price multiplies if approached after the rebrand is public |
 | 6 | **US ITU filing, classes 9+42** (gate for ANY public use of the name) | ~$700 gov + attorney | Attorney knockout clears — target: before launch | Public use before filing surrenders priority and invites squatter filings |
-| 7 | Attorney knockout: confirm SUPERPROD absent from TESS; enumerate Superprod's INPI/EUIPO classes | ~$300–600 (or bundled with filing) | This or next week | The one unverified fact decides the whole strategy |
+| 7 | Attorney knockout: confirm SUPERPROD absent from TESS; enumerate Superprod's INPI/EUIPO classes | ~$300–600 (or bundled with filing) | This or next week | **THREE WEEKS OVERDUE** (trigger dated 2026-07-16). Now the highest-priority item on this table: the 2026-08-05 ruling puts the name on public bios, which is what makes the filing urgent rather than merely planned |
 | 8 | India TM-A filing, classes 9+42 (₹4,500/class with Startup India/MSME recognition — obtain recognition first if not held) | ~₹9,000 | Around launch | Cheap home-jurisdiction protection missed |
 | 9 | EU EUTM filing, **class 42 only** | €850 | First EU customers | Superprod's home turf; 42-only strategy documented in §8 |
 | 10 | Madrid Protocol extensions from US/India base | varies | International GTM | — |
@@ -382,6 +385,8 @@ The single do-not-forget table. Everything parked anywhere in this document appe
 | 16 | Friendly pre-launch heads-up note to Supabase team re: supa- naming | $0 | Week before launch | Adjacency discovered on launch day instead of converted to goodwill |
 | 17 | ~~**Rename-execution project** (code, DB, envs, Lovable, `CLAUDE.md` ruling, brand assets)~~ | time | **DONE 2026-07-17** | — |
 | 18 | Security.txt + `security@` disclosure page | $0 | With launch site | — |
+| 19 | **Buy `supaprodhq.com`** | $10.46/yr | **NOW** | It was on the §3 BUY TODAY list, was never purchased, and is the domain matching the `@supaprodhq` handle convention. Re-verified available 2026-08-05 |
+| 20 | Claim the social handles per [`social-accounts.md`](./social-accounts.md) | $0 | **NOW** (founder ruling 2026-08-05) | Every handle still unclaimed 20 days after the domains landed |
 
 ---
 

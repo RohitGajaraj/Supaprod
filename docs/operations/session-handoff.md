@@ -1,8 +1,81 @@
 # Session handoff (durable)
 
-> _Last updated: 2026-08-03 23:15 IST. `main` clean, pushed through `8c6dd832`. **The documentation was cleaned end to end: root went from 22 markdown files to 4, and 1.87 MB to 50 KB.** Read the section immediately below; it is the live one._
+> _Last updated: 2026-08-05 16:00 IST. **An open work order is carried in the top section: the Notion push in `growth/brand-ops/notion-push.md` has not run and should be executed by any session that can reach Notion.** Previous entry: 2026-08-03 23:15 IST. `main` clean, pushed through `8c6dd832`. **The documentation was cleaned end to end: root went from 22 markdown files to 4, and 1.87 MB to 50 KB.** Read the section immediately below; it is the live one._
 
 **This file is the durable, git-tracked session handoff.** It replaces `.remember/remember.md` as the committed record, because that file empties itself on read.
+
+---
+
+# 2026-08-05: the launch brand lane (branch `social-handles-launch-checklist`)
+
+## STATE: DOCS AND TOOLING LAND. THE BANNERS DO NOT.
+
+⚠️ **The founder reviewed the generated banners and was not happy with the outcome.** They are merged as working drafts so the pipeline and the runbook are not held hostage to them, but **no banner is signed off and none should be uploaded to a public profile.** Picking the visual direction back up is open work.
+
+Three rounds of correction landed before that verdict and each fixed something real: an ember-to-blue gradient that blended through violet, a gold wordmark on surfaces where the product sets white, and a flat hairline grid where the live `/brief` hero has a warm bloom, a large-cell grid and a star scatter. The verdict after all three was still not good enough, which suggests the gap is **composition and craft**, not another round of matching tokens against the product. Left open rather than guessed at a fourth time.
+
+What did land and is worth keeping: the two-stage generator, the filename-versus-pixels invariant, the mark finally matching what the product renders, the copy pack, the runbook, and the Notion work order.
+
+## ONE THING IS OWED TO NOTION
+
+Ran in the Conductor worktree `dalat`, entirely inside `docs/growth/**` plus `scripts/check-handles.sh`. No `src/` file was touched, so there is no overlap with the audio and bug-fix lane that ran on `main` the same day. `SOURCE-OF-TRUTH.md` row 24 gained one line, appended.
+
+## ⚠️ CARRY THIS FORWARD ON MERGE: the Notion push is owed
+
+**[`docs/growth/brand-ops/notion-push.md`](../growth/brand-ops/notion-push.md) is an open work order, not a record.**
+
+This session could not call the Notion tools. `claude mcp list` reported the server **Connected**, and ToolSearch still surfaced nothing, which is exactly the trap `CLAUDE.md` documents ("Connected is not evidence *this* session can call it"). Rather than debug it, the entire payload was written out: database schema, page structure, section-by-section content, and the seed rows.
+
+**Any session on `main` that can reach Notion should execute that file top to bottom.** It needs no context from here. Two things it must not skip: ask the founder which parent page to use before creating anything, and honour §4, **no secret ever goes into Notion**.
+
+## What shipped
+
+**A two-stage brand pipeline.** `docs/growth/branding/mark.ts` now holds the geometry, palette and builders; `generate.ts` (vectors) and the new `generate-social.ts` (rasters) both import it. That is the structural fix for how the kit went stale: the vector stage was regenerated on rename and the raster stage was a one-time manual export, so four lockups and three share cards carried the old wordmark in their pixels for three weeks.
+
+**48 assets** from one spec table, covering fifteen platforms plus a video kit for the trailer. **Every output is measured against its own filename before it is written.** The kit had been shipping `og-dark-1200x630.png` at 600x315 pixels and `square-dark-1200x1200.png` at 600x600.
+
+**Three latent bugs found and fixed:**
+
+1. `generate.ts` was **destroying** the hand-tuned `supaprod-favicon.svg` on every run, overwriting an adaptive `prefers-color-scheme` treatment with a thinner, worse one. The generator now owns all three favicons and reproduces them exactly. All 13 SVG masters verified byte-identical after the refactor.
+2. `scripts/check-handles.sh` misread empty RDAP bodies as registered, reporting two genuinely free domains as taken. It now tests for the positive.
+3. The copy auditor matched correct `Supaprod` against forbidden `SupaProd` case-insensitively.
+
+**A real walkthrough.** [`docs/growth/brand-ops/social-accounts.md`](../growth/brand-ops/social-accounts.md) §6 is click-by-click for all fifteen platforms, with the irreversible steps marked.
+
+## Founder rulings, 2026-08-05
+
+1. **Claim every handle now, with bios and logos**, accepting the trademark exposure that `brand-supaprod.md` §9's "no public use before the US ITU filing" gate was written to avoid. Made with eyes open, after the concern was raised.
+2. **Passwords never go in Notion.** Proton Pass Free, vault under `founder@supaprod.ai`, not a personal Apple ID.
+3. Scope widened past the original seven platforms to fifteen.
+4. Assets fixed comprehensively rather than minimally.
+
+## Decisions made on the founder's instruction to decide
+
+- **Mark kept and refined, not replaced.** His own ratchet law settles it: reaching for a new visual language on a surface that already has one is itself a regression.
+- **Geist Pixel Square**, hero word only. Already bound as `--font-pixel` in `styles.css` and `ink.css`, and the 2026-08-05 `DESIGN-SYSTEM.md` ruling keeps Pixel for marketing heroes.
+- **Monochrome ground, one ember core.** Verified against the founder's own greyscale test.
+- **Email sends from `@supaprod.ai`.** It is live and hardened; `supaprod.com` has no MX record. `.com` receives only.
+
+## Verification actually run
+
+docs-doctor clean of hard rot, no orphans · `tsc` clean for every file written (the one repo-wide error is a pre-existing `vite/client` types issue) · 48/48 assets measured against their filenames, 59 PNGs audited with **0 lying filenames** · copy pack **12 platforms, 0 problems** against character limits and banned vocabulary · greyscale test passed on the X header · optical ladder compared magnified against the shipped favicons.
+
+## What is still open
+
+| Item | Detail |
+| --- | --- |
+| **Nothing is committed** | 26 `cadence-*` files deleted, 48 generated, 8 docs changed |
+| **Two handles claimed, thirteen to go** | ✅ `github.com/supaprod` (org, profile complete) and ✅ `x.com/supaprodhq` (claimed 2026-08-05). Still verified free: LinkedIn `company/supaprod`, **Bluesky `supaprod`** (the exact name), YouTube `@supaprodhq`, npm, PyPI |
+| ⚠️ **No password vault exists yet** | Both accounts were claimed before one was set up, so their credentials sit outside any company-reachable store. The GitHub org in particular is controlled entirely by the founder's personal account. Minimum fix, whatever tool wins: generate and store the recovery codes for both. Detail in `social-accounts.md` §0.2 |
+| **The banners are rejected** | See the state note at the top of this section. Runbook §5 carries the same warning so nobody uploads one by accident |
+| `supaprodhq.com` unbought | $10.46, was on the BUY TODAY list, never purchased |
+| Register items #1 and #2 firing | `superprod.ai` and `supaprod.io` both trigger on "launch", which is mid-September |
+| **Register item #7 is three weeks overdue** | The attorney knockout, trigger dated 2026-07-16. Public bios are what make it urgent |
+| The tagline conflict | The ratified tagline ends "and remember", the word the 2026-08-02 ruling bans. **No bio uses it**, so nothing is blocked, but the site still does |
+| Found, not fixed, belongs to `src/` | `src/styles.css` `.ai-pulse-mark` still renders a Pixel **"C"**, a Cadence leftover live in the app |
+| ⚠️ **The live site contradicts the 2026-08-02 ruling** | `/brief` and `/investors` both render *"agents that know what to build, ship it, and **remember**."* as the hero subhead (`src/routes/brief.tsx:29`, `investors.tsx:32`). "Remember" is the exact word that ruling bans. The social bios deliberately do **not** copy it; they say "learn what worked". The two outward pages still need the fix, and they are the ones investors are being sent to |
+| `README.md` line 8 is the last "agent-first" | The live heroes and eight places in `src/` say **agentic-first**. README line 8 is now the only holdout, and the founder flagged the phrasing independently. One word, but it is positioning canon so it was left for his call rather than edited |
+| Found, not fixed, belongs to `src/` | `src/components/supaprod/SupaprodMark.tsx` header comment still describes "a clean, confident ember→blue stroke". The component has not drawn blue in a long time; it strokes a flat `var(--text-primary)`. That stale sentence is most likely how the ember-to-blue gradient got into the brand kit in the first place |
 
 ---
 

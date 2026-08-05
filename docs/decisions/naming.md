@@ -1,8 +1,16 @@
 # Decision: Product name — status & candidate log
 
-> _Created: 2026-06-03 · Last updated: 2026-06-17_
+> _Created: 2026-06-03 · Last updated: 2026-08-05_
 
-> Status: **PAUSED — working name is Cadence.** Updated: 2026-06-16.
+> Status: **DECIDED and EXECUTED. The product is Supaprod.** Updated: 2026-08-05.
+>
+> The founder locked **Supaprod** on 2026-07-16 after a five-round naming study, and the in-product rename executed on 2026-07-17. Everything below this line is the **historical record of how the decision was reached** and is kept for that reason only. It is not current status, and "Cadence" is not the working name.
+>
+> - The decision and its full evidence chain: [`../pitch/naming-decision-supaprod.md`](../pitch/naming-decision-supaprod.md)
+> - What the brand now owns and still owes: [`../growth/brand-ops/brand-supaprod.md`](../growth/brand-ops/brand-supaprod.md)
+> - Claiming the handles: [`../growth/brand-ops/social-accounts.md`](../growth/brand-ops/social-accounts.md)
+>
+> _Superseded status, 2026-06-16:_ PAUSED, working name Cadence.
 > Founder decision (2026-06-16): the 2026-06-10 rename experiment was **reverted**; the retired name is removed everywhere and must not be reintroduced (full reasoning in the reversal entry of [`../strategy/session-decisions.md`](../strategy/session-decisions.md)). **The working name is "Cadence"** for now, accepted with eyes open on the trademark note below. A fresh, distinctive brand is still wanted but is explicitly the **last activity before launch**, not a mid-build distraction. Do not block or rename anything until this file's status reads DECIDED.
 > Founder decision (2026-06-11, retained): none of the shortlisted names felt right; renaming is the **last activity** of the pre-launch sequence.
 
