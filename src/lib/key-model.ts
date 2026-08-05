@@ -97,7 +97,7 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
       { key: "j", does: "Moves to the next call in the queue." },
       { key: "k", does: "Moves back to the previous one." },
       { key: "a", does: "Approves the focused call.", destructive: true },
-      { key: "r", does: "Declines it.", destructive: true },
+      { key: "d", does: "Declines it.", destructive: true },
     ],
   },
   {
@@ -117,13 +117,13 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     label: "Decide",
     source: "src/routes/_authenticated.decide.tsx",
     keys: [
-      { key: "k", does: "Keeps the bet, and drafts its spec.", destructive: true },
+      { key: "a", does: "Keeps the bet, and drafts its spec.", destructive: true },
       {
         key: "c",
         does: "Sends the Critic to challenge it. This spends credits.",
         destructive: true,
       },
-      { key: "x", does: "Drops it.", destructive: true },
+      { key: "d", does: "Drops it.", destructive: true },
     ],
   },
   {

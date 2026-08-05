@@ -325,7 +325,15 @@ function ApprovalsSurface() {
         e.preventDefault();
         const prev = visibleItems[Math.max(0, idx - 1)];
         if (prev) setFocusedId(prev.id);
-      } else if (e.key === "a" || e.key === "r") {
+      } else if (e.key === "a" || e.key === "d") {
+        /**
+         * `d` DECLINES, NOT `r`. One alphabet across every gate: `a` accepts
+         * and `d` declines on Today, Decide, Design, Crew and Discover, and
+         * this surface was reading `r` for the same act. Today's own copy
+         * sends a person straight here ("the rest is in Approvals"), so the
+         * letter changed under them mid-task, and `d` was dead here while `r`
+         * was dead there.
+         */
         const current = visibleItems[idx];
         if (current && !decide.isPending) {
           e.preventDefault();
@@ -434,7 +442,7 @@ function ApprovalsSurface() {
             Approve
           </Button>
           <Button
-            shortcut="r"
+            shortcut="d"
             disabled={decide.isPending}
             onClick={() => decide.mutate({ item: focused, verdict: "reject" })}
           >

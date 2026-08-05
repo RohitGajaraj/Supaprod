@@ -138,7 +138,7 @@ describe("the surface lookup answers with the right one", () => {
    * converted so far to that pair, and it is the list that grows as the rest
    * are converted rather than a rule asserted over surfaces that have not been.
    */
-  const CONVERTED = ["/today", "/design", "/crew", "/discover"];
+  const CONVERTED = ["/today", "/design", "/crew", "/discover", "/decide", "/approvals"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];
@@ -146,6 +146,31 @@ describe("the surface lookup answers with the right one", () => {
       expect(keys).toContain("d");
     });
   }
+
+  it("no letter means one thing on one gate and another on the next", () => {
+    /**
+     * THE COLLISION THIS ENDS, and it was the worst one in the product: `k`
+     * MOVED THE CURSOR on /approvals and COMMITTED on /decide -- the same key,
+     * one surface apart, one harmless and the other spending money to draft a
+     * spec. Muscle memory built on either surface was dangerous on the other.
+     *
+     * The rule is not "every gate binds the same keys": Discover has a merge
+     * and Decide has a challenge, and those are real differences. The rule is
+     * that a letter cannot mean two different KINDS of thing. So a key that
+     * commits anywhere must never merely move somewhere else.
+     */
+    const commits = new Map<string, string>();
+    const moves = new Map<string, string>();
+    for (const path of CONVERTED) {
+      for (const k of surfaceKeysFor(path)?.keys ?? []) {
+        (k.destructive ? commits : moves).set(k.key, path);
+      }
+    }
+    const both = [...commits.keys()]
+      .filter((k) => moves.has(k))
+      .map((k) => `"${k}" commits on ${commits.get(k)} and only moves on ${moves.get(k)}`);
+    expect(both).toEqual([]);
+  });
 
   it("a gate that draws a keycap has bound it, on every converted surface", () => {
     // `shortcut` on a Button renders a <kbd> and binds NOTHING. That is how

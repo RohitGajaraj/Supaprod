@@ -502,9 +502,24 @@ function DecideSurface() {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-      if (e.key === "k") draftSpec.mutate(id);
+      /**
+       * ONE ALPHABET ACROSS EVERY GATE (founder ruling). `a` accepts and `d`
+       * declines on Today, Design, Crew and Discover; this station was the last
+       * one speaking its own language: `k` to keep, `x` to drop.
+       *
+       * THE COLLISION THIS ENDS, and it was the worst one in the product. `k`
+       * MOVED THE CURSOR on /approvals and COMMITTED here -- the same key,
+       * one surface apart, one of them harmless and the other spending money
+       * to draft a spec. Muscle memory built on either surface was actively
+       * dangerous on the other.
+       *
+       * `c` for Challenge stays. It is the only verb of the three that is not
+       * an accept or a decline, its letter is the first letter of the word, and
+       * it collides with nothing now the chord owns navigation.
+       */
+      if (e.key === "a") draftSpec.mutate(id);
       else if (e.key === "c") challenge.mutate(id);
-      else if (e.key === "x") setStatus.mutate({ id, status: "dropped" });
+      else if (e.key === "d") setStatus.mutate({ id, status: "dropped" });
       else return;
       e.preventDefault();
     };
@@ -765,7 +780,7 @@ function DecideSurface() {
         >
           <Button
             variant="primary"
-            shortcut="k"
+            shortcut="a"
             disabled={busy}
             onClick={() => draftSpec.mutate(activeOpp.id)}
           >
@@ -775,7 +790,7 @@ function DecideSurface() {
             Challenge it
           </Button>
           <Button
-            shortcut="x"
+            shortcut="d"
             disabled={busy}
             onClick={() => setStatus.mutate({ id: activeOpp.id, status: "dropped" })}
           >

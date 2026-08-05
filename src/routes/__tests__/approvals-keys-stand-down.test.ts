@@ -102,8 +102,11 @@ describe("/approvals stands its bare keys down under a modifier", () => {
     expect(BODY.indexOf(TYPING_GUARD)).toBeLessThan(BODY.indexOf("e.key"));
   });
 
-  it("keeps every key it draws bound: j, k, a and r", () => {
-    for (const key of ["j", "k", "a", "r"]) {
+  it("keeps every key it draws bound: j, k, a and d", () => {
+    // `r` became `d`: one alphabet across every gate, so decline is the same
+    // letter here as on Today, where this surface's own copy sends people from.
+    // `j`/`k` still MOVE, and no key that moves anywhere commits anywhere else.
+    for (const key of ["j", "k", "a", "d"]) {
       expect(BODY).toContain(`e.key === "${key}"`);
     }
   });

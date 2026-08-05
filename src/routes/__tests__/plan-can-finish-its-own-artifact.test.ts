@@ -30,12 +30,15 @@ import { join } from "node:path";
  * an absent control leaves no trace anywhere except in what never happens.
  */
 
-const SPEC = readFileSync(
-  join(import.meta.dir, "..", "_authenticated.plan.spec.$id.tsx"),
+const SPEC = readFileSync(join(import.meta.dir, "..", "_authenticated.plan.spec.$id.tsx"), "utf8");
+const DISCOVERY = readFileSync(
+  join(import.meta.dir, "..", "..", "lib", "discovery.functions.ts"),
   "utf8",
 );
-const DISCOVERY = readFileSync(join(import.meta.dir, "..", "..", "lib", "discovery.functions.ts"), "utf8");
-const REACTOR = readFileSync(join(import.meta.dir, "..", "..", "lib", "reactor.functions.ts"), "utf8");
+const REACTOR = readFileSync(
+  join(import.meta.dir, "..", "..", "lib", "reactor.functions.ts"),
+  "utf8",
+);
 
 describe("Plan can approve the artifact it exists to produce", () => {
   it("has a control that sets the status, not merely a save", () => {
@@ -46,9 +49,7 @@ describe("Plan can approve the artifact it exists to produce", () => {
   it("saves the edits in the SAME write as the approval", () => {
     // Approving while the body on screen differs from the body on the record
     // would approve a version nobody read. One call, one row, one transition.
-    expect(SPEC).toMatch(
-      /mSave\(\{ data: \{ id, title, body_md: body, status: "approved" \} \}\)/,
-    );
+    expect(SPEC).toMatch(/mSave\(\{ data: \{ id, title, body_md: body, status: "approved" \} \}\)/);
   });
 
   it("is not offered on a spec that is already approved", () => {

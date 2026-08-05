@@ -41,9 +41,10 @@ import { join } from "node:path";
  *      are the same two lines that run on /today and /approvals, and both sit
  *      ahead of the first `e.key` read. A guard that runs after the dispatch
  *      guards nothing.
- *   4. THE RATCHET (docs/conventions/surface-discipline.md): k, c and x are all
- *      still bound. The answer to a key firing at the wrong moment is never to
- *      stop binding the key.
+ *   4. THE RATCHET (docs/conventions/surface-discipline.md): all three verbs
+ *      are still bound. The answer to a key firing at the wrong moment is never
+ *      to stop binding the key. (The letters are now a, c and d, converted to
+ *      the one alphabet every other gate uses; the count did not shrink.)
  *
  * Scoped to this one route on purpose, in the style of
  * approvals-keys-stand-down.test.ts: other lanes are editing sibling surfaces
@@ -113,9 +114,20 @@ const TYPING_GUARD =
   "if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;";
 
 describe("/decide holds its gate-key guard across the delete confirm", () => {
-  it("still binds every key it draws: k, c and x", () => {
+  it("still binds every key it draws: a, c and d", () => {
+    /**
+     * THE LETTERS CHANGED, THE RULE DID NOT. This station was the last one
+     * speaking its own language -- `k` to keep, `x` to drop -- while `a`
+     * accepts and `d` declines on Today, Design, Crew, Discover and Approvals.
+     *
+     * The old `k` was the worst collision in the product: it MOVED THE CURSOR
+     * on /approvals and COMMITTED here, one surface apart, one harmless and the
+     * other spending money to draft a spec. Muscle memory built on either was
+     * dangerous on the other. `c` for Challenge stays: it is neither an accept
+     * nor a decline, and it is the first letter of the word.
+     */
     expect(SOURCE).toContain('window.addEventListener("keydown", onKey)');
-    for (const key of ["k", "c", "x"]) {
+    for (const key of ["a", "c", "d"]) {
       expect(HANDLER).toContain(`e.key === "${key}"`);
     }
   });
