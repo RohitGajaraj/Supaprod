@@ -1,3 +1,5 @@
+import { TOOL_DEFAULTS } from "@/lib/ai/tools/defaults";
+
 // The user-facing agent vocabulary (AGENT-EXP, 2026-06-18).
 //
 // Three tiers the product is built around:
@@ -842,10 +844,100 @@ export const ACTION_LABEL: Record<string, string> = {
   "github.commit.append": "fixing the failing check",
 };
 
+/**
+ * SIX OF THE SEVEN STATIONS SAID "WORKING".
+ *
+ * `ACTION_LABEL` above has ten entries and every one is repo, studio or CI. The
+ * registry has 59 tools. So `stepLabel` fell through to the literal word
+ * "working" for the other 49, which is EVERY Discover, Decide, Plan, Design,
+ * Ship and Learn tool. In the Build cockpit a person could read "opening a pull
+ * request"; on the other six stations the same surfaces said "working" while an
+ * agent drafted their spec, recorded their decision or graded their outcome.
+ *
+ * That is the founder's question answered badly by our own vocabulary: the
+ * automation was running and the surface could not name it.
+ *
+ * The names already existed. `TOOL_DEFAULTS` carries a written `label` for all
+ * 59 ("Draft a spec", "Record a decision", "Log a signal"), because the
+ * boundary screen has to name every tool a person can govern. They are
+ * imperatives, and a live caption wants a gerund, so this turns "Draft a spec"
+ * into "drafting a spec" and leaves the ten hand-written strings above winning
+ * wherever they read better ("reading the repo" beats "reading repo tree").
+ *
+ * A tool that is in neither still returns "working", so a tool shipped without
+ * a label degrades to today's behaviour rather than leaking its internal id.
+ * `defaults.test.ts` already fails the build when a registered tool is missing
+ * from TOOL_DEFAULTS, so that path should stay empty.
+ */
+/**
+ * Consonant-doubling verbs, which no simple rule gets right without stress
+ * information English spelling does not carry. Listed rather than guessed.
+ *
+ * Every one of these is reachable from a tool label today or is a plain
+ * candidate for the next one. `scan` earned its place the hard way: the first
+ * run of this produced "scaning for credentials" on `studio.secrets.scan`,
+ * which is the kind of small wrongness that makes a product feel unfinished. A
+ * verb missing from here degrades to a misspelt gerund rather than to a crash,
+ * so print the whole table when adding tools rather than trusting the rule.
+ */
+const GERUND_EXCEPTIONS: Record<string, string> = {
+  log: "logging",
+  map: "mapping",
+  run: "running",
+  plan: "planning",
+  scan: "scanning",
+  ship: "shipping",
+  set: "setting",
+  get: "getting",
+  put: "putting",
+  cut: "cutting",
+  stop: "stopping",
+  drop: "dropping",
+  trim: "trimming",
+  tag: "tagging",
+  pin: "pinning",
+  split: "splitting",
+  fit: "fitting",
+  quit: "quitting",
+  submit: "submitting",
+  commit: "committing",
+  permit: "permitting",
+  admit: "admitting",
+  omit: "omitting",
+  emit: "emitting",
+  refer: "referring",
+  transfer: "transferring",
+  control: "controlling",
+};
+
+/** "Draft" -> "drafting". Handles the silent -e and the doubling cases. */
+function gerund(verb: string): string {
+  const w = verb.toLowerCase();
+  if (GERUND_EXCEPTIONS[w]) return GERUND_EXCEPTIONS[w];
+  // "merge" -> "merging", but never "see" -> "sing" or "dye" -> "dying".
+  if (w.length > 2 && w.endsWith("e") && !/(ee|ye|oe)$/.test(w)) return `${w.slice(0, -1)}ing`;
+  return `${w}ing`;
+}
+
+/**
+ * The outcome-named caption for one tool, derived rather than hand-listed.
+ * Exported so a surface can label a tool it names directly, not only a step.
+ */
+export function toolActionLabel(toolName: string | null | undefined): string | null {
+  if (!toolName) return null;
+  const written = ACTION_LABEL[toolName];
+  if (written) return written;
+  const label = TOOL_DEFAULTS[toolName]?.label;
+  if (!label) return null;
+  const [head, ...rest] = label.trim().split(/\s+/);
+  if (!head) return null;
+  return [gerund(head), ...rest].join(" ");
+}
+
 /** The one-liner for a run's latest step; calm fallbacks, never internals. */
 export function stepLabel(step: { kind: string; name?: string } | undefined | null): string {
   if (!step) return "starting up";
-  if (step.kind === "tool_call") return ACTION_LABEL[step.name ?? ""] ?? "working";
+  if (step.kind === "tool_call") return toolActionLabel(step.name) ?? "working";
   if (step.kind === "thought") return "thinking";
   return "working";
 }
