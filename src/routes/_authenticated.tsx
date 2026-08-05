@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/rea
 import { useEffect, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GotoShortcuts } from "@/components/supaprod/CommandPalette";
+import { BrandWait } from "@/components/supaprod/BrandWait";
 import { AppFrame } from "@/components/shell/AppFrame";
 import { WorkspaceProvider } from "@/hooks/use-workspace";
 import { FlowModeProvider } from "@/hooks/use-flow-mode";
@@ -20,6 +21,32 @@ export const Route = createFileRoute("/_authenticated")({
   // protected server fns and produce noisy 401s. The client-side
   // beforeLoad below handles the real auth gate.
   ssr: false,
+
+  /**
+   * THE WAIT STOPS TEARING THE PRODUCT DOWN TO NAVIGATE INSIDE IT.
+   *
+   * `router.tsx` sets `defaultPendingComponent` to `<BrandWait />`, whose
+   * `overlay` defaults to TRUE: `position: fixed; inset: 0`, an OPAQUE
+   * `var(--sp-bg)` ground, `zIndex: 40`. With `defaultPendingMs: 150` and
+   * `defaultPendingMinMs: 300`, and no route overriding it anywhere, EVERY
+   * navigation slower than 150ms covered the rail, the header, the spine strip
+   * and the work region with a full-screen field for at least 300ms, then put
+   * them all back.
+   *
+   * The overlay is not wrong; it is wrong HERE. Its own comment says it "reads
+   * as the product composing itself", and on a cold boot that is exactly true,
+   * which is why the root and the public tree keep it. But moving from Decide
+   * to Plan is not the product composing itself. Tearing down persistent chrome
+   * is the single thing that makes an SPA feel like a page load, and doing it on
+   * every slow-ish navigation costs more perceived speed than the latency it is
+   * covering for.
+   *
+   * The authenticated tree keeps its shell and waits inside the work region.
+   * `overlay={false}` is a branch BrandWait already has; nothing new is drawn,
+   * and the mark drops to 44 because it is no longer sitting in a large dark
+   * field (the 76 above exists for exactly that case).
+   */
+  pendingComponent: () => <BrandWait overlay={false} size={44} label="Opening" />,
   beforeLoad: async ({ location }) => {
     // Use getSession() — reads from localStorage (instant, no network roundtrip).
     // getUser() hits /auth/v1/user on every navigation and, combined with
