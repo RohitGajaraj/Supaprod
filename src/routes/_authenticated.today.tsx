@@ -489,29 +489,29 @@ function Today() {
             <span key="consequence">{call.approveConsequence}</span>,
           ]}
         >
+          <Button
+            variant="primary"
+            shortcut="a"
+            disabled={busy}
+            onClick={() => settle.mutate("approve")}
+          >
+            Approve
+          </Button>
+          {revisable ? (
             <Button
-              variant="primary"
-              shortcut="a"
               disabled={busy}
-              onClick={() => settle.mutate("approve")}
+              onClick={() => navigate({ to: "/approvals" })}
+              title="Send it back with a note"
             >
-              Approve
+              Send back
             </Button>
-            {revisable ? (
-              <Button
-                disabled={busy}
-                onClick={() => navigate({ to: "/approvals" })}
-                title="Send it back with a note"
-              >
-                Send back
-              </Button>
-            ) : null}
-            <Button shortcut="d" disabled={busy} onClick={() => settle.mutate("reject")}>
-              Decline
-            </Button>
-            <Button variant="ghost" shortcut="z" disabled={busy} onClick={() => defer.mutate()}>
-              Snooze
-            </Button>
+          ) : null}
+          <Button shortcut="d" disabled={busy} onClick={() => settle.mutate("reject")}>
+            Decline
+          </Button>
+          <Button variant="ghost" shortcut="z" disabled={busy} onClick={() => defer.mutate()}>
+            Snooze
+          </Button>
         </Gate>
       ) : queue.isLoading ? (
         /* THE THIRD FACT, and the front door was the one surface missing it.
@@ -639,8 +639,8 @@ function Today() {
                       1. Connect your sources
                     </div>
                     <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
-                      Link Slack channels, support tickets, user interviews, or paste feedback directly.
-                      Agents will continuously scan for opportunities.
+                      Link Slack channels, support tickets, user interviews, or paste feedback
+                      directly. Agents will continuously scan for opportunities.
                     </div>
                   </div>
 
@@ -655,8 +655,8 @@ function Today() {
                       2. Review discoveries
                     </div>
                     <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
-                      Visit Discover to see opportunities agents have surfaced. Approve the best ones
-                      to move them into your roadmap.
+                      Visit Discover to see opportunities agents have surfaced. Approve the best
+                      ones to move them into your roadmap.
                     </div>
                     <div style={{ marginTop: "8px" }}>
                       <Door onClick={() => navigate({ to: "/discover" })}>Go to Discover</Door>
@@ -674,15 +674,14 @@ function Today() {
                       3. Approve and watch them build
                     </div>
                     <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
-                      When opportunities move to Decide, you'll approve each step. Agents then handle
-                      planning, design, build, and deployment. You stay in control.
+                      When opportunities move to Decide, you'll approve each step. Agents then
+                      handle planning, design, build, and deployment. You stay in control.
                     </div>
                   </div>
                 </div>
               </Block>
             ) : null}
           </>
-
         ) : (
           done.slice(0, 6).map((m) => (
             <Row

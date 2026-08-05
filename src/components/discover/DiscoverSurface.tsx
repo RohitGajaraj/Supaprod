@@ -1392,18 +1392,58 @@ export function DiscoverSurface({
           }
           onMore={() => setShowAllClusters((v) => !v)}
         >
-          {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => (
-            <Row
-              key={entry.theme.id}
-              tight
-              focused={entry.theme.id === focusedId}
-              marks={<Num>{i + 1}</Num>}
-              lead={entry.theme.title}
-              sub={`${entry.theme.frequency} signal${plural(entry.theme.frequency)} · ${entry.sources} source${plural(entry.sources)}`}
-              time={since(entry.lastAt)}
-              onClick={() => setFocusedId(entry.theme.id)}
-            />
-          ))}
+          {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
+            // Build evidence summary: break down signals by source
+            const sourceBreakdown = new Map<string, number>();
+            entry.members.forEach((m) => {
+              const s = m.source ?? "manual";
+              sourceBreakdown.set(s, (sourceBreakdown.get(s) ?? 0) + 1);
+            });
+            const sourceList = Array.from(sourceBreakdown.entries())
+              .map(([source, count]) => `${count} from ${source}`)
+              .join(", ");
+
+            // Determine confidence level based on score, severity, novelty, frequency
+            const confidence = entry.theme.confidence ?? 0.5;
+            const confidenceLevel =
+              confidence >= 0.7 ? "high" : confidence >= 0.4 ? "medium" : "low";
+            const confidenceColor =
+              confidenceLevel === "high"
+                ? "var(--sp-pass)"
+                : confidenceLevel === "medium"
+                  ? "var(--sp-warn)"
+                  : "var(--sp-fail)";
+
+            return (
+              <Row
+                key={entry.theme.id}
+                tight
+                focused={entry.theme.id === focusedId}
+                marks={<Num>{i + 1}</Num>}
+                lead={entry.theme.title}
+                sub={
+                  <>
+                    {entry.theme.frequency} signal{plural(entry.theme.frequency)} ·{" "}
+                    <span style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                      {sourceList}
+                    </span>
+                    {" · "}
+                    <span
+                      style={{
+                        fontSize: "var(--sp-text-small)",
+                        color: confidenceColor,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {confidenceLevel} confidence
+                    </span>
+                  </>
+                }
+                time={since(entry.lastAt)}
+                onClick={() => setFocusedId(entry.theme.id)}
+              />
+            );
+          })}
           {!showAllClusters && ranked.length > VISIBLE_CLUSTERS ? (
             <CtxBody>
               <Num>{ranked.length - VISIBLE_CLUSTERS}</Num> more below the fold.

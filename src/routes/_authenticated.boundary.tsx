@@ -78,6 +78,7 @@ import {
 import type { BoundaryEvent } from "@/lib/boundary-ledger";
 import { relativeTime } from "@/lib/memory-view";
 import { updateToolMode } from "@/lib/agent_loop.functions";
+import { humanWriteError } from "@/lib/roles.functions";
 import { TrustGraduationsBlock } from "@/components/governance/TrustGraduations";
 import {
   Block,
@@ -398,7 +399,17 @@ function BoundarySurface() {
 
   const move = useMutation({
     mutationFn: (v: { tool: BoundaryTool; mode: "auto" | "confirm" | "off" }) =>
-      fSetMode({ data: { toolName: v.tool.name, mode: v.mode, enabled: v.mode !== "off" } }),
+      fSetMode({
+        data: {
+          toolName: v.tool.name,
+          mode: v.mode,
+          enabled: v.mode !== "off",
+          // The workspace whose boundary is on screen. Without it the server
+          // falls back to this user's DEFAULT workspace, so the boundary you
+          // moved would not be the boundary that binds the run you are watching.
+          workspaceId: activeWorkspaceId ?? undefined,
+        },
+      }),
     onSuccess: (_r, v) => {
       // The consequence is what the boundary now LETS THROUGH, in the same
       // words the blocks use, never "Saved."
@@ -414,7 +425,16 @@ function BoundarySurface() {
       void qc.invalidateQueries({ queryKey: ["boundary"] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "The boundary did not move", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "The boundary did not move",
+        // Never the raw error. humanWriteError turns an RLS refusal or a
+        // constraint violation into a sentence; without it this surface printed
+        // `new row violates row-level security policy for table "agent_tools"`
+        // into a receipt, handing a person the mechanism and an internal table
+        // name instead of the outcome.
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
   });
 
   const setTrackCap = useMutation({
@@ -429,6 +449,17 @@ function BoundarySurface() {
       });
       void qc.invalidateQueries({ queryKey: ["boundary"] });
     },
+    // THIS HANDLER WAS MISSING ENTIRELY. A refused or failed track-ceiling write
+    // produced no receipt, no toast and no change: the control silently did
+    // nothing while the previous receipt stayed on screen saying it had worked.
+    // A spend ceiling that appears to accept a value and did not is worse than
+    // no ceiling, because it is believed.
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The ceiling on a piece of work did not move",
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
   });
 
   const setCap = useMutation({
@@ -448,7 +479,11 @@ function BoundarySurface() {
       void qc.invalidateQueries({ queryKey: ["boundary"] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "The ceiling did not move", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "The ceiling did not move",
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
   });
 
   const data = b.data;
@@ -472,7 +507,16 @@ function BoundarySurface() {
       void qc.invalidateQueries({ queryKey: ["boundary"] });
     },
     onError: (e: Error) =>
-      setReceipt({ verb: "The boundary did not move", consequence: e.message, failed: true }),
+      setReceipt({
+        verb: "The boundary did not move",
+        // Never the raw error. humanWriteError turns an RLS refusal or a
+        // constraint violation into a sentence; without it this surface printed
+        // `new row violates row-level security policy for table "agent_tools"`
+        // into a receipt, handing a person the mechanism and an internal table
+        // name instead of the outcome.
+        consequence: humanWriteError(e, "It is still where it was."),
+        failed: true,
+      }),
   });
 
   /** One block of the boundary. The menu offers only the moves a floor allows,

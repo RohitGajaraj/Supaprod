@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runAgentLoop, executeApproval, type Json } from "@/lib/ai/loop.server";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
+import { assertWorkspaceRole, GOVERNED_WRITES } from "@/lib/roles.functions";
 
 const RunSchema = z.object({
   agentSlug: z.string().min(1).max(60),
@@ -184,6 +185,14 @@ const ToolModeSchema = z.object({
   toolName: z.string().min(1).max(100),
   mode: z.enum(["auto", "confirm", "review", "off"]).optional(),
   enabled: z.boolean().optional(),
+  /**
+   * The workspace this override belongs to. Optional for compatibility, but a
+   * caller that knows the active workspace must pass it: resolving a default
+   * server-side files the override under whichever workspace happens to be
+   * first, which is the same defect the spend policy has, and it would mean the
+   * boundary you moved is not the boundary that binds the run.
+   */
+  workspaceId: z.string().uuid().optional(),
 });
 export const updateToolMode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -194,26 +203,84 @@ export const updateToolMode = createServerFn({ method: "POST" })
     // Only a real tool may get a row. Without this a typo would write an
     // override for a tool that does not exist, which the runtime ignores and the
     // settings screen would then never show, leaving an invisible orphan.
-    if (!TOOL_REGISTRY[data.toolName]) throw new Error(`Unknown tool: ${data.toolName}`);
+    const tool = TOOL_REGISTRY[data.toolName];
+    if (!tool) throw new Error(`Unknown tool: ${data.toolName}`);
 
     const patch: { mode?: string; enabled?: boolean } = {};
     if (data.mode) patch.mode = data.mode;
     if (typeof data.enabled === "boolean") patch.enabled = data.enabled;
     if (!Object.keys(patch).length) return { ok: true };
 
+    /**
+     * THE BOUNDARY COULD NOT MOVE AT ALL, and said so in Postgres.
+     *
+     * This upsert wrote five columns. `agent_tools.display_name` and
+     * `.description` are both NOT NULL with NO DEFAULT (verified live
+     * 2026-08-05), and neither was supplied. That did not matter while every
+     * account carried a seeded row for every tool, because the upsert always
+     * took the UPDATE branch. Migration 20260801234500 deleted all 864 seeded
+     * rows and moved to a pure override model, where a row exists ONLY as a
+     * deviation. Live count afterwards: 7 rows across 2 users, against ~55
+     * tools. So since that migration the first move of any tool's boundary
+     * takes the INSERT branch and dies on a not-null violation.
+     *
+     * `workspace_id` is the third missing column and the one that would have
+     * broken it again a day later. The role-aware write policies applied
+     * 2026-08-05 gate this table on `can_manage_workspace(workspace_id)`, which
+     * is `has_workspace_role(ws, [owner, admin])`, and that returns FALSE for a
+     * null workspace (checked against the live function). An insert without it
+     * would satisfy the not-null constraint and then be refused by RLS instead.
+     *
+     * All three are denormalized copies of registry metadata: the runtime reads
+     * only tool_name, mode and enabled (ai/tools/access.server.ts). They are
+     * filled from TOOL_REGISTRY rather than from the caller so the row can never
+     * disagree with the tool it describes.
+     */
+    let workspaceId = data.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await supabase.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    }
+    if (!workspaceId) throw new Error("No workspace. Create or join one first.");
+
+    // The same role the RLS policy enforces, asserted here so a refusal is a
+    // sentence a person can act on rather than a policy violation they cannot
+    // read. Defence in depth: the policy remains the thing that binds.
+    await assertWorkspaceRole(
+      supabase,
+      workspaceId,
+      userId,
+      [...GOVERNED_WRITES.agent_tools],
+      "move a tool boundary",
+    );
+
     // UPSERT, because the row is created the moment this account first deviates
     // from the platform default and not before. `agent_tools_user_id_tool_name_key`
     // is the conflict target.
-    const { error } = await supabase.from("agent_tools").upsert(
-      {
-        user_id: userId,
-        tool_name: data.toolName,
-        built_in: true,
-        enabled: true,
-        ...patch,
-      },
-      { onConflict: "user_id,tool_name" },
-    );
+    //
+    // `.select("id")` is not decoration. A write refused by RLS RESOLVES rather
+    // than throwing, so without it a viewer's move returned ok:true having
+    // changed nothing, and the screen reported a boundary that had not moved.
+    const { data: written, error } = await supabase
+      .from("agent_tools")
+      .upsert(
+        {
+          user_id: userId,
+          workspace_id: workspaceId,
+          tool_name: data.toolName,
+          display_name: data.toolName,
+          description: tool.description,
+          category: tool.category,
+          built_in: true,
+          enabled: true,
+          ...patch,
+        },
+        { onConflict: "user_id,tool_name" },
+      )
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!written || written.length === 0) {
+      throw new Error("That boundary is still where it was: this workspace did not accept the change.");
+    }
     return { ok: true };
   });

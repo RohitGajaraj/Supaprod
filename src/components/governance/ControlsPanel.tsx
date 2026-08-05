@@ -243,7 +243,15 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     // this account has never changed has no row at all, so there is no id to
     // send; the server upserts one the moment a person first deviates.
     mutationFn: (v: { toolName: string; mode: OversightMode; name: string }) =>
-      updateToolModeFn({ data: { toolName: v.toolName, mode: v.mode } }),
+      updateToolModeFn({
+        data: {
+          toolName: v.toolName,
+          mode: v.mode,
+          // See the boundary route: without the active workspace the override
+          // is filed under whichever workspace happens to be the default.
+          workspaceId: activeWorkspaceId ?? undefined,
+        },
+      }),
     onSuccess: (_d, v) => {
       commit(
         v.mode === "auto" ? "You handed it back" : "You tightened it",
