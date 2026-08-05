@@ -28,13 +28,34 @@ describe("derivation law - palette JUMP mirrors PRIMARY_NAV exactly", () => {
 });
 
 describe("derivation law - the shortcut range", () => {
-  it("has ten destinations; digit keys 1-9 map 1:1, the 10th uses g", () => {
+  it("has twelve destinations; the ten digits are spent, then letters take over", () => {
+    // Was ten. Runs and Crew joined on 2026-08-05: both were already rail rows
+    // in AppFrame and in no nav list, so no key reached them and their rows
+    // drew no keycap. They are keyed u and e (a letter of their own label -
+    // `r` is Reject on the approvals queue and `c` is Challenge on the decide
+    // gate, so neither door could take the obvious one).
     const n = PRIMARY_NAV.length;
-    expect(n).toBe(10);
+    expect(n).toBe(12);
     for (let key = 1; key <= 9; key++) {
       expect(PRIMARY_NAV[key - 1]).toBeDefined();
     }
     expect(PRIMARY_NAV[n]).toBeUndefined();
+    // Every digit 0-9 is still claimed exactly once, and nothing is left over
+    // without a key: twelve destinations, twelve bindings.
+    const hints = PRIMARY_NAV.map((d) => navKeyHint(d));
+    expect(hints.filter((h) => /^[0-9]$/.test(h)).sort()).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+    ]);
+    expect(hints.filter((h) => h === "")).toEqual([]);
   });
 
   it("the last destination is Pulse (the /engine-room route), keyed 9 (with a standing g alias)", () => {

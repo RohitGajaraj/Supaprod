@@ -3,7 +3,7 @@
  * for the app shell.
  *
  * The rail is no longer a cold flat "WORKFLOW" list; it tells the product's
- * story in three narrative zones, top to bottom, so a first-time user can see
+ * story in four narrative zones, top to bottom, so a first-time user can see
  * what Supaprod does, where to start, and how to move through it — with zero
  * training:
  *
@@ -18,11 +18,18 @@
  *     05 Build         agents build, test, and open the PR               [5]
  *     06 Ship          preview to production, with receipts              [6]
  *     07 Learn         outcomes close the loop and teach the system      [7]
+ *   OPERATIONS  (the work, and who does it) — the two standing doors that are
+ *                                     not lifecycle stations. Both are rail
+ *                                     rows in AppFrame and were, until now, in
+ *                                     no nav list at all, so no key reached
+ *                                     them and their rows drew no keycap:
+ *     Runs             work you handed over, and how far it got          [u]
+ *     Crew             how much rope each agent gets                     [e]
  *   INTELLIGENCE  (always on)      — the compounding layers that make Supaprod
  *                                     more than a tracker:
  *     Brain            everything the product knows, one substrate       [8]
  *     Pulse            the machine's vital signs: spend/quality/safety    [9] (also `g`)
- *   (footer)  Settings [s] · Admin console [a] (actual admins only) · account chip
+ *   (footer)  Settings [s] · Admin console (no bare key, see navKeyHint) · account chip
  *
  * (Brain + Pulse are one living system: the Brain is what the product KNOWS;
  * the Pulse is how it LIVES and runs — both always on. "Pulse" keeps the
@@ -30,7 +37,13 @@
  *
  * SHORTCUT LAW: the key EQUALS the visible number, so pressing what you see
  * does what you expect — Today 0, the loop 1-7 (matching its 01-07 markers),
- * Brain 8, Engine 9; Settings/Admin pick up letters once the digits are spent.
+ * Brain 8, Engine 9. The digits are spent there, so every remaining door takes
+ * a LETTER FROM ITS OWN LABEL: the first letter of the visible word that no
+ * in-page action has already claimed, read left to right. Runs -> `r` is taken
+ * (Reject, on the approvals queue) so Runs is `u`; Crew -> `c` is taken
+ * (Challenge, on the decide gate) and `r` is taken, so Crew is `e`; Settings is
+ * `s`. The rule is stateable, so the next door does not need a committee, and
+ * the key it lands on is one a person can re-derive.
  *
  * DERIVATION LAW: the palette JUMP section, the displayed key hints, and the
  * GotoShortcuts bindings are ALL DERIVED from `navKeyHint` over PRIMARY_NAV +
@@ -44,11 +57,22 @@
  * fixed spine of the product; everything else is a door reached from inside a
  * destination, the command palette, or Settings.
  *
+ * WHY /runs AND /crew JOINED THE LIST (2026-08-05). That contract law is about
+ * FEATURES inventing rows. These two are not new rows: they have been rail
+ * rows in AppFrame all along, and their absence here was the bug. An audit
+ * measured it - the rail offers 5 doors, the keyboard 12, the stage strip 7,
+ * and only THREE destinations appeared in all three lists. Two of the five
+ * rail rows carried no shortcut at all because neither path was in PRIMARY_NAV
+ * or FOOTER_NAV, the only two lists GotoShortcuts reads. Listing them here is
+ * what the DERIVATION LAW demands: one list of doors, one function that keys
+ * them. The rail keycaps and the palette JUMP rows follow with no other edit,
+ * and the three-list overlap goes from three destinations to five.
+ *
  * PURE: data + active-state math only, no JSX. The shell renders these; the
  * invariants are unit-verified in nav-model.test.ts + __tests__/nav-model.test.ts.
  */
 
-export type NavZone = "home" | "loop" | "intelligence";
+export type NavZone = "home" | "loop" | "operations" | "intelligence";
 
 export type NavItemDef = {
   to: string;
@@ -65,9 +89,14 @@ export type NavItemDef = {
 };
 
 /**
- * The nine primary destinations, in rail order. Position is meaning: the
- * 1-based position IS the keyboard shortcut (keys 1-9), so the palette JUMP
- * rows and GotoShortcuts derive from this list and can never drift from it.
+ * The twelve primary destinations, in narrative order: HOME, then THE LOOP,
+ * then OPERATIONS, then INTELLIGENCE. The palette JUMP rows, the rail keycaps
+ * and the GotoShortcuts bindings all derive from this list, so it cannot drift
+ * from what the keyboard actually does.
+ *
+ * Position is NOT the key any more (it stopped being it when Today took 0 and
+ * the loop took its own 01-07 markers). `navKeyHint` is the single source of
+ * the binding; read it, never count rows.
  */
 export const PRIMARY_NAV: readonly NavItemDef[] = [
   {
@@ -133,6 +162,24 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     group: "workflow",
     tagline: "Outcomes close the loop.",
   },
+  // OPERATIONS. Two doors the shell has always drawn and the keyboard could
+  // never reach. Their labels here are the labels AppFrame's rail draws, on
+  // purpose: the keycap is a letter of the word next to it, so the row teaches
+  // its own shortcut.
+  {
+    to: "/runs",
+    label: "Runs",
+    index: "",
+    zone: "operations",
+    tagline: "Work you handed over, and how far it got.",
+  },
+  {
+    to: "/crew",
+    label: "Crew",
+    index: "",
+    zone: "operations",
+    tagline: "How much rope each agent gets.",
+  },
   {
     to: "/brain",
     label: "Brain",
@@ -158,6 +205,11 @@ export const LOOP_NAV = WORKFLOW_NAV;
 /** Derived: the home row(s). */
 export const HOME_NAV: readonly NavItemDef[] = PRIMARY_NAV.filter((n) => n.zone === "home");
 
+/** Derived: the two operations doors (the work in flight, and who does it). */
+export const OPERATIONS_NAV: readonly NavItemDef[] = PRIMARY_NAV.filter(
+  (n) => n.zone === "operations",
+);
+
 /** Derived: the always-on intelligence layers. */
 export const INTELLIGENCE_NAV: readonly NavItemDef[] = PRIMARY_NAV.filter(
   (n) => n.zone === "intelligence",
@@ -167,14 +219,39 @@ export const INTELLIGENCE_NAV: readonly NavItemDef[] = PRIMARY_NAV.filter(
  *  this one function (never hand-copied). The shortcut EQUALS the visible
  *  lifecycle number so pressing what you see does what you expect:
  *    Today = 0 (home)  ·  the 7 loop stages = 1..7 (their 01..07 markers)
- *    Brain = 8  ·  Engine Room = 9  ·  Settings = s  ·  Admin console = a
+ *    Brain = 8  ·  Engine Room = 9
+ *    Runs = u  ·  Crew = e  ·  Settings = s  ·  Admin console = none
  *  Digits carry the lifecycle spine; letters pick up once the digits are
  *  spent (the founder's "numeric first, then keyboard" rule). Engine Room
- *  also keeps its standing `g` alias (bound in GotoShortcuts). */
+ *  also keeps its standing `g` alias (bound in GotoShortcuts).
+ *
+ *  THE LETTER RULE, and why it is not the obvious letter. A shortcut here is
+ *  a WINDOW listener, so it fires on every surface at once. When it lands on
+ *  a letter a surface already uses for an in-page action, BOTH fire: that is
+ *  exactly how `a` was lost for /admin (verified live 2026-07-29 - pressing
+ *  `a` on a gate approved the call AND threw you to the admin console). So a
+ *  door takes the first letter of its own visible label that no in-page
+ *  action has already claimed, read left to right:
+ *    Runs -> `r` is Reject on the approvals queue, a decided contract in
+ *            routes/_authenticated.approvals.tsx (the j/k/a/r keys, kept by
+ *            name in that file's own header). Next letter: `u`.
+ *    Crew -> `c` is Challenge on the decide gate
+ *            (routes/_authenticated.decide.tsx), `r` is spoken for above.
+ *            Next letter: `e`.
+ *  Also claimed elsewhere and therefore off limits: a/d/z (the Today gate),
+ *  k/x (the decide gate), j/k (every list that walks with j/k), h (snooze in
+ *  the approvals tray), s and g (already bound here). Nothing binds `u` or
+ *  `e` on any surface, which is what makes them free rather than merely
+ *  unused. Navigation never outranks the decision the product exists to
+ *  collect; when the two want the same key, navigation moves. */
 export function navKeyHint(item: NavItemDef): string {
   switch (item.to) {
     case "/today":
       return "0";
+    case "/runs":
+      return "u";
+    case "/crew":
+      return "e";
     case "/brain":
       return "8";
     case "/engine-room":
