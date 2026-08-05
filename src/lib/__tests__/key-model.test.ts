@@ -115,10 +115,53 @@ describe("the surface lookup answers with the right one", () => {
   });
 
   it("says nothing rather than guessing on a surface with no keyboard", () => {
-    // /design and /crew both run gate queues with no keys bound. The honest
-    // answer is that they have none, not the nearest surface's keys.
-    for (const path of ["/design", "/crew", "/brain", "/settings", "/learn"]) {
+    // /design and /crew were here when this test was written, because both ran
+    // gate queues with nothing bound. They have keys now. These four still do
+    // not, and the honest answer for them is none rather than the nearest
+    // surface's keys.
+    for (const path of ["/brain", "/settings", "/learn", "/ship"]) {
       expect(surfaceKeysFor(path)).toBeNull();
+    }
+  });
+
+  /**
+   * ONE ALPHABET ACROSS THE GATES, checked rather than hoped for.
+   *
+   * The audit's finding: decline changes letter on every station -- `d` on
+   * Today, `r` on Approvals, `x` on Decide, `3` on Discover -- each internally
+   * consistent, each drawn, and `d` dead on Approvals while `r` is dead on
+   * Today. Today's own copy sends you across that boundary. Worse, `k` MOVES
+   * THE CURSOR on Approvals and COMMITS on Decide.
+   *
+   * /design and /crew were bound to `a` and `d` because those are what the
+   * front door already teaches. This test holds every gate that has been
+   * converted so far to that pair, and it is the list that grows as the rest
+   * are converted rather than a rule asserted over surfaces that have not been.
+   */
+  const CONVERTED = ["/today", "/design", "/crew"];
+  for (const path of CONVERTED) {
+    it(`${path} accepts with a and declines with d`, () => {
+      const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];
+      expect(keys).toContain("a");
+      expect(keys).toContain("d");
+    });
+  }
+
+  it("a gate that draws a keycap has bound it, on every converted surface", () => {
+    // `shortcut` on a Button renders a <kbd> and binds NOTHING. That is how
+    // this product shipped a Settings gear promising a key that fires nothing
+    // and a /runs keycap the key could not reach. So on any surface that draws
+    // one, the same file must also register a listener for it.
+    for (const path of CONVERTED) {
+      const surface = surfaceKeysFor(path)!;
+      const src = read(surface.source);
+      for (const k of surface.keys.filter((x) => x.key.length === 1)) {
+        expect({ path, key: k.key, drawn: src.includes(`shortcut="${k.key}"`) }).toEqual({
+          path,
+          key: k.key,
+          drawn: true,
+        });
+      }
     }
   });
 });

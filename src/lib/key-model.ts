@@ -127,6 +127,24 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     ],
   },
   {
+    path: "/design",
+    label: "Design",
+    source: "src/routes/_authenticated.design.tsx",
+    keys: [
+      { key: "a", does: "Approves the brand rule the crew is asking about.", destructive: true },
+      { key: "d", does: "Declines it, so it binds nothing.", destructive: true },
+    ],
+  },
+  {
+    path: "/crew",
+    label: "Crew",
+    source: "src/routes/_authenticated.crew.tsx",
+    keys: [
+      { key: "a", does: "Gives the agent the room it asked for.", destructive: true },
+      { key: "d", does: "Says not yet, and it keeps today's limits.", destructive: true },
+    ],
+  },
+  {
     path: "/plan/spec/$id",
     label: "A spec",
     source: "src/routes/_authenticated.plan.spec.$id.tsx",

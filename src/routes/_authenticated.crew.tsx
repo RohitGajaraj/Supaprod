@@ -724,11 +724,16 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
     mutationFn: (v: { proposalId: string; accept: boolean }) => fDecide({ data: v }),
   });
 
-  if (member.proposals.length === 0 && decided.length === 0) return null;
-
   // Exactly one thing asks at a time, so there is one primary action on the
   // screen and the end of the queue is visible from the start. The rest are
   // one-line rows that take the Gate's place as it is settled.
+  //
+  // THIS RUNS BEFORE THE EARLY RETURN BELOW, and that ordering is load-bearing
+  // rather than stylistic. The keyboard effect underneath is a hook, and a hook
+  // that sits after a conditional `return null` is skipped on the renders that
+  // take the return -- which is the hooks-order violation React refuses at
+  // runtime. `live` is simply undefined on an empty queue, which both the
+  // settle function and the effect already guard for.
   const [live, ...behind] = member.proposals;
 
   function settle(accept: boolean) {
@@ -752,6 +757,51 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
     );
   }
 
+  /**
+   * THE SAME TWO KEYS THE OTHER GATES USE, and this station had neither.
+   *
+   * A keyboard audit of every binding in the product found /crew and /design
+   * running gate QUEUES with no keys bound and none drawn. This surface says
+   * "Settle the one above and the next takes its place" over an accept/decline
+   * pair, which is the exact shape Today binds `a` and `d` for, on the same
+   * `Gate` primitive. So a person who learned the keyboard on the front door
+   * arrived here and it silently stopped working. An inconsistent keyboard
+   * teaches people not to trust the keyboard at all, which costs more than
+   * never having had one.
+   *
+   * `a` and `d`, deliberately not letters invented for this file. The audit's
+   * companion finding is that decline changes letter on every station -- `d` on
+   * Today, `r` on Approvals, `x` on Decide -- so a third choice here would add
+   * to that problem while looking like a fix.
+   *
+   * THE WORDS ON THE BUTTONS ARE THIS SURFACE'S OWN and are not changed. "Give
+   * it the room" and "Not yet" say what granting autonomy means far better than
+   * Approve and Decline would, and the keys are about the ACT rather than the
+   * label: `a` accepts what is being asked, here as everywhere.
+   *
+   * The guard is copied verbatim from today.tsx, SELECT included. The one
+   * surface that wrote its own variant is the one where Cmd+R declined a call.
+   */
+  React.useEffect(() => {
+    if (!live || decide.isPending) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (e.key === "a") settle(true);
+      else if (e.key === "d") settle(false);
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // `settle` is redeclared every render and is not a dependency worth
+    // chasing: it closes over `live` and `decide`, both of which are.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, decide.isPending]);
+
+  if (member.proposals.length === 0 && decided.length === 0) return null;
+
   return (
     <>
       {live ? (
@@ -768,10 +818,18 @@ function Proposals({ member, onDecided }: { member: CrewMember; onDecided: () =>
             ...(live.rationale ? [<>{live.rationale}</>] : []),
           ]}
         >
-          <Button variant="primary" disabled={decide.isPending} onClick={() => settle(true)}>
+          {/* The keycaps are drawn because the keys are bound above. `shortcut`
+              renders a <kbd> and binds nothing by itself, so it is never passed
+              without the effect that makes it true. */}
+          <Button
+            variant="primary"
+            shortcut="a"
+            disabled={decide.isPending}
+            onClick={() => settle(true)}
+          >
             Give it the room
           </Button>
-          <Button disabled={decide.isPending} onClick={() => settle(false)}>
+          <Button shortcut="d" disabled={decide.isPending} onClick={() => settle(false)}>
             Not yet
           </Button>
         </Gate>

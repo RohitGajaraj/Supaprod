@@ -418,6 +418,42 @@ function Design() {
     onError: (e: Error) => note("page", "Your call did not save", e.message, true),
   });
 
+  /**
+   * THE SAME TWO KEYS THE OTHER GATES USE, and this station had neither.
+   *
+   * A keyboard audit of every binding in the product found /design and /crew
+   * running gate QUEUES with no keys bound and none drawn. Both say the next
+   * one takes this one's place, both are built on the same `Gate` primitive as
+   * Today, and Today has had `a` and `d` since it shipped. So a person who
+   * learned the keyboard on the front door arrived here and it stopped working,
+   * with nothing on screen to say why. That is worse than never having had it:
+   * an inconsistent keyboard teaches people not to trust the keyboard.
+   *
+   * `a` and `d`, not letters chosen for this file. The audit's other finding was
+   * that decline changes letter on every station -- `d` on Today, `r` on
+   * Approvals, `x` on Decide -- so a new binding that invented a third letter
+   * would be adding to the problem while appearing to fix one. These two are the
+   * pair the front door already teaches.
+   *
+   * The guard is copied verbatim from today.tsx rather than rewritten, down to
+   * the SELECT in the tag test: the one surface that wrote its own variant
+   * (/approvals) is the one where Cmd+R declined an approval.
+   */
+  React.useEffect(() => {
+    if (!call || settle.isPending) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (e.key === "a") settle.mutate("approve");
+      else if (e.key === "d") settle.mutate("reject");
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [call, settle]);
+
   const drawAt = useMutation({
     mutationFn: (fidelity: DesignFidelity) => {
       if (!focus) throw new Error("Nothing is in focus.");
@@ -744,14 +780,19 @@ function Design() {
             ...(call.rationale ? [<span key="why">{call.rationale}</span>] : []),
           ]}
         >
+          {/* The keycaps are drawn because the keys are bound above. `shortcut`
+              renders a <kbd> and binds nothing on its own, which is how this
+              product ended up with a Settings gear promising a key that fires
+              nothing -- so the prop is never passed without the effect. */}
           <Button
             variant="primary"
+            shortcut="a"
             disabled={settle.isPending}
             onClick={() => settle.mutate("approve")}
           >
             Approve
           </Button>
-          <Button disabled={settle.isPending} onClick={() => settle.mutate("reject")}>
+          <Button shortcut="d" disabled={settle.isPending} onClick={() => settle.mutate("reject")}>
             Decline
           </Button>
         </Gate>
