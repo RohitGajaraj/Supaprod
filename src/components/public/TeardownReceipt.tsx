@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import {
   CheckCircle2,
   PencilRuler,
@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   HelpCircle,
   ArrowRight,
+  Copy,
 } from "lucide-react";
 import type { Teardown, TeardownVerdict } from "@/lib/ai/public-teardown.server";
 
@@ -199,6 +200,22 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
         </div>
       </div>
 
+      {/* THE MOST SHAREABLE THING WE MAKE, AND IT HAD NO WAY OUT.
+        *
+        * A decision gets a public /d/<slug>, a teardown got nothing, so the one
+        * artifact a visitor actually wants to paste into a team channel died on
+        * their screen. That is the growth loop, missing.
+        *
+        * It copies rather than minting a link ON PURPOSE. This page's promise is
+        * "Your text is sent once to Supaprod's Critic to write this receipt.
+        * Nothing is stored to an account until you make one", and the API keeps
+        * that promise by persisting nothing at all. A share URL would require
+        * storing the teardown, which is a real change to that promise and the
+        * founder's call to make, not a side effect of a share button. Copying
+        * hands the reader the whole receipt, costs no schema, and leaves the
+        * privacy line true exactly as written. */}
+      <CopyReceipt teardown={teardown} />
+
       {/* Honest caption: what this receipt is, and what it is not. */}
       <p
         style={{
@@ -211,5 +228,68 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
         a workspace. It judges what your words support, nothing more.
       </p>
     </div>
+  );
+}
+
+/** The receipt as plain text, in the order a reader scans it on screen.
+ *  Exported for the test that pins the shared format. */
+export function asPlainText(t: Teardown): string {
+  const block = (label: string, items: string[]) =>
+    items.length ? `\n${label}\n${items.map((i) => `- ${i}`).join("\n")}` : "";
+  return [
+    `SUPAPROD CRITIC / ${t.verdict.toUpperCase()}`,
+    "",
+    t.headline,
+    block("RISKS", t.risks ?? []),
+    block("WHAT YOU CANNOT PROVE YET", t.gaps ?? []),
+    t.recommendation ? `\nRECOMMENDATION\n${t.recommendation}` : "",
+    "",
+    "Torn down by Supaprod's Critic. Try your own: https://supaprod.ai/p/teardown",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function CopyReceipt({ teardown }: { teardown: Teardown }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard.writeText(asPlainText(teardown)).then(
+          () => {
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2400);
+          },
+          // A denied clipboard permission must not look like a broken button.
+          () => setCopied(false),
+        );
+      }}
+      className="mono-label"
+      style={{
+        marginTop: 18,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        background: "none",
+        border: "1px solid var(--hairline)",
+        borderRadius: 999,
+        padding: "5px 12px",
+        color: copied ? "var(--moss)" : "var(--text-muted)",
+        cursor: "pointer",
+      }}
+      // The label reports what the press DID, not what the button is.
+      aria-live="polite"
+    >
+      {copied ? (
+        <>
+          <CheckCircle2 size={13} strokeWidth={1.75} /> Copied, paste it anywhere
+        </>
+      ) : (
+        <>
+          <Copy size={13} strokeWidth={1.75} /> Copy this teardown
+        </>
+      )}
+    </button>
   );
 }

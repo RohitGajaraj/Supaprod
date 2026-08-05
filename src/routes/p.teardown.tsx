@@ -15,6 +15,18 @@ import type { Teardown } from "@/lib/ai/public-teardown.server";
 
 const MAX = 8000;
 
+/**
+ * The specimen the "Try it on an example" control loads.
+ *
+ * Deliberately the SAME bet the placeholder has always shown, so the page makes
+ * no new claim and the Critic is judged on a case a reader can see is ordinary.
+ * It is also a genuinely weak bet (a solution with no evidence of the problem
+ * and a vanity success metric), which is what makes the receipt worth reading:
+ * a specimen the Critic waves through would prove nothing.
+ */
+const EXAMPLE_BET =
+  "We should ship a weekly AI digest so PMs stop missing customer signals. Success = 40% of teams open it twice a week.";
+
 export const Route = createFileRoute("/p/teardown")({
   ssr: false,
   component: TeardownPage,
@@ -208,12 +220,44 @@ function TeardownPage() {
               marginTop: 10,
             }}
           >
-            <span
-              className="mono-label"
-              style={{ fontSize: 9, color: nearLimit ? "var(--madder)" : "var(--text-subtle)" }}
-            >
-              {text.length} / {MAX}
-            </span>
+            {/* THE BLANK BOX WAS THE CONVERSION KILLER.
+              *
+              * This page asks a stranger to produce a PRD before it will show
+              * them anything. The example lived in the placeholder, where it
+              * cannot be used: you have to retype it. Every grader tool that
+              * works (Lighthouse, Website Grader) hands you a specimen to run,
+              * because the point of the first run is to show what the output
+              * looks like, not to grade the visitor's writing.
+              *
+              * One press fills the box with the same bet the placeholder was
+              * already showing, so nothing new is claimed and the visitor is
+              * one further press from a real receipt. It hides itself once
+              * there is text, so it never competes with their own input. */}
+            {trimmed ? (
+              <span
+                className="mono-label"
+                style={{ fontSize: 9, color: nearLimit ? "var(--madder)" : "var(--text-subtle)" }}
+              >
+                {text.length} / {MAX}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setText(EXAMPLE_BET)}
+                className="mono-label"
+                style={{
+                  fontSize: 9,
+                  color: "var(--text-muted)",
+                  background: "none",
+                  border: "none",
+                  borderBottom: "1px solid color-mix(in srgb, var(--text-muted) 40%, transparent)",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
+              >
+                Try it on an example
+              </button>
+            )}
             <button
               type="submit"
               className="btn btn-primary"

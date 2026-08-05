@@ -55,7 +55,16 @@ These outrank anything written earlier.
 
 Colour must **carry status, never decorate**, and never add cognitive load. It must survive a greyscale test: if the screen stops making sense in greyscale, the colour was doing work that structure should have done.
 
-**Type.** **Geist Pixel is retired**, including from hero moments. Geist Sans for UI, Geist Mono for technical content. The bar for a typeface is whether it reads as an enterprise instrument. (The Pixel `.woff2` files remain in `public/fonts/geist/` and are unused; leave them, they are cheap and the licence is bundled.)
+**Type.** Geist Sans for UI, Geist Mono for technical content. The bar for a typeface inside the product is whether it reads as an enterprise instrument.
+
+**Geist Pixel is retired from the APP and kept for MARKETING** (founder ruling, 2026-08-05). The split is by audience, not by taste:
+
+| Surface | Face | Why |
+| --- | --- | --- |
+| Authenticated app, every station | Geist Sans / Geist Mono | It is an instrument someone works in all day. Pixel is costume there. |
+| Public marketing: `/`, `/demo`, `/p/teardown`, `/brief`, `/investors` | **Geist Pixel allowed on hero moments** | These are a brand first impression, not a workspace. Pixel is the yellow hero face and it is doing its job. |
+
+> **This paragraph used to say Pixel was retired "including from hero moments" and that the `.woff2` files "are unused". Both were false.** The files are used in roughly thirty places and Pixel renders on all three public heroes in production. The doc was audited against the running site on 2026-08-05 and corrected rather than the code being changed to match a stale sentence. If you are about to "fix" a Pixel hero on a marketing page, do not: that is the ruling, not a defect.
 
 **Layout.** Ask lives **top right** and opens a pane; the bottom composer strip is rejected. Cards on a landing surface are **one or two lines**, with depth a click away. Compact with breathing space, never cramped. The rail collapses to icons, expanding to one line of label.
 
