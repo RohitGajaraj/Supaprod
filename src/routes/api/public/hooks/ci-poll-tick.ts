@@ -6,6 +6,7 @@ import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { overallFromChecks, type CiCheckLite } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { generateReleaseNotesCore } from "@/lib/studio.functions";
 import {
   collectRepoFiles,
   denoDeployConfigured,
@@ -184,8 +185,21 @@ export async function runCiPollTick() {
             },
             { onConflict: "changeset_id,environment,commit_sha" },
           );
-          if (result.ok) previewsDeployed++;
-          else failures.push(`${cs.id.slice(0, 8)}: preview ${result.reason ?? "failed"}`);
+          if (result.ok) {
+            previewsDeployed++;
+            // Auto-generate release notes on first merge so the changeset appears
+            // in the Ship queue's changelog. Best-effort: if generation fails, the
+            // preview deploy (the primary success) already happened, and release
+            // notes can be written manually. Mirrors promoteToProduction's own
+            // best-effort release-notes-on-ship logic.
+            try {
+              await generateReleaseNotesCore(supabaseAdmin, cs.user_id, cs.id);
+            } catch (e) {
+              console.error(`auto release-notes on merge failed (non-fatal) for ${cs.id}:`, e);
+            }
+          } else {
+            failures.push(`${cs.id.slice(0, 8)}: preview ${result.reason ?? "failed"}`);
+          }
           continue;
         }
         if (!cs.repo || !cs.pr_number || !cs.mission_id) continue;
