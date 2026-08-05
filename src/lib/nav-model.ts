@@ -8,48 +8,58 @@
  * training:
  *
  *   HOME
- *     Today            the daily landing; owns the ONE attention badge   [0]
+ *     Today            the daily landing; owns the ONE attention badge  [g t]
  *   THE LOOP  (signal → shipped)   — the product management lifecycle as it
  *                                     lives in the app, one connected journey:
- *     01 Discover      signals become ranked bets                        [1]
- *     02 Decide        keep or kill each bet (the judgment gate)         [2]
- *     03 Plan          decisions become cited specs and a roadmap        [3]
- *     04 Design        specs get your brand and a design gate            [4]
- *     05 Build         agents build, test, and open the PR               [5]
- *     06 Ship          preview to production, with receipts              [6]
- *     07 Learn         outcomes close the loop and teach the system      [7]
+ *     01 Discover      signals become ranked bets                      [g d]
+ *     02 Decide        keep or kill each bet (the judgment gate)       [g e]
+ *     03 Plan          decisions become cited specs and a roadmap      [g p]
+ *     04 Design        specs get your brand and a design gate          [g n]
+ *     05 Build         agents build, test, and open the PR             [g b]
+ *     06 Ship          preview to production, with receipts            [g h]
+ *     07 Learn         outcomes close the loop and teach the system    [g l]
  *   OPERATIONS  (the work, and who does it) — the two standing doors that are
  *                                     not lifecycle stations. Both are rail
  *                                     rows in AppFrame and were, until now, in
  *                                     no nav list at all, so no key reached
  *                                     them and their rows drew no keycap:
- *     Runs             work you handed over, and how far it got          [u]
- *     Crew             how much rope each agent gets                     [e]
+ *     Runs             work you handed over, and how far it got        [g r]
+ *     Crew             how much rope each agent gets                   [g c]
  *   INTELLIGENCE  (always on)      — the compounding layers that make Supaprod
  *                                     more than a tracker:
- *     Brain            everything the product knows, one substrate       [8]
- *     Pulse            the machine's vital signs: spend/quality/safety    [9] (also `g`)
- *   (footer)  Settings [s] · Admin console (no bare key, see navKeyHint) · account chip
+ *     Brain            everything the product knows, one substrate     [g k]
+ *     Pulse            the machine's vital signs: spend/quality/safety [g u]
+ *   (footer)  Settings [g s] · Admin console (no key, see navKeyHint) · account chip
  *
  * (Brain + Pulse are one living system: the Brain is what the product KNOWS;
  * the Pulse is how it LIVES and runs — both always on. "Pulse" keeps the
  * `/engine-room` route + the calm-front/deep-engine doctrine underneath it.)
  *
- * SHORTCUT LAW: the key EQUALS the visible number, so pressing what you see
- * does what you expect — Today 0, the loop 1-7 (matching its 01-07 markers),
- * Brain 8, Engine 9. The digits are spent there, so every remaining door takes
- * a LETTER FROM ITS OWN LABEL: the first letter of the visible word that no
- * in-page action has already claimed, read left to right. Runs -> `r` is taken
- * (Reject, on the approvals queue) so Runs is `u`; Crew -> `c` is taken
- * (Challenge, on the decide gate) and `r` is taken, so Crew is `e`; Settings is
- * `s`. The rule is stateable, so the next door does not need a committee, and
- * the key it lands on is one a person can re-derive.
+ * SHORTCUT LAW (rewritten 2026-08-05 on the founder's ruling): GO, THEN THE
+ * LETTER. Press `g`, release, then a letter that appears in the door's own
+ * label. No digit is bound anywhere.
+ *
+ * The previous law was "the key EQUALS the visible number": Today 0, the loop
+ * 1-7, Brain 8, Engine 9, then letters once the digits ran out. It failed twice
+ * over. A number beside a rail row could be the station's 01-07 IDENTITY, its
+ * shortcut, or a count, and the reader had to work out which. And bare keys
+ * shared a namespace with in-page actions, so navigation kept losing: `a` was
+ * surrendered to Approve outright, `r` went to Reject so Runs became `u`, `c`
+ * went to Challenge so Crew became `e`. Nobody can re-derive `u` for Runs.
+ *
+ * A prefix removes the contest instead of adjudicating it. `r` alone still
+ * rejects; `g` then `r` goes to Runs. Runs and Crew get their natural first
+ * letters back, the 01-07 markers can only mean identity, and the pattern is
+ * the one Gmail, Linear, GitHub, Jira and Superhuman already use. See
+ * NAV_CHORD_PREFIX and navKeyHint below for the per-door letters and for why
+ * Admin still has none.
  *
  * DERIVATION LAW: the palette JUMP section, the displayed key hints, and the
  * GotoShortcuts bindings are ALL DERIVED from `navKeyHint` over PRIMARY_NAV +
  * FOOTER_NAV — never hand-copied, so the shown key and the bound key can never
- * drift. `navKeyHint` maps the visible number to the key (see SHORTCUT LAW
- * above); Engine also keeps its standing `g` alias in GotoShortcuts.
+ * drift. `navKeyHint` returns the SECOND key of the chord; the prefix is always
+ * the first, and the rail draws both. Engine's old standing bare-`g` alias is
+ * gone, because `g` now arms every chord.
  *
  * Each destination now also carries a `zone` and a `tagline` (the one-line
  * "what happens here / why", surfaced in the rail and reusable as the stage

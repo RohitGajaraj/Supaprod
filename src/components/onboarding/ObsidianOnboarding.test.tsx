@@ -63,10 +63,24 @@ describe("ObsidianOnboarding - the Critic judges only what the user wrote", () =
     }
   });
 
-  it("names the product name as the product name, not as something it read", () => {
+  /* ASSERTS THE GUARANTEE, NOT ONE PHRASING.
+   *
+   * This pinned the exact string "not something Supaprod read". The copy was
+   * later tightened to "This is the product name you gave. Edit it into the
+   * idea you want analyzed.", which carries the same guarantee more briefly and
+   * more actionably, and the test failed on the improvement rather than on a
+   * regression.
+   *
+   * The guarantee that actually matters is ATTRIBUTION: the line must say the
+   * text came from the user, and must never imply Supaprod sourced it. That is
+   * checked both ways now, positively and negatively, which is strictly
+   * stronger than the single substring it replaces. Rewording stays free;
+   * claiming Supaprod read something does not. */
+  it("names the product name as the product name, and attributes it to the user", () => {
     const line = beliefGuidance("product-name");
     expect(line).toContain("product name");
-    expect(line).toContain("not something Supaprod read");
+    expect(line).toMatch(/you gave|you typed|you wrote|not something Supaprod read/i);
+    expect(line).not.toMatch(/Supaprod (read|found|spotted|pulled)/i);
   });
 
   it("gives every source its own line", () => {
