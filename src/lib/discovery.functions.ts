@@ -907,6 +907,43 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
         // own scope is the only reading that keeps the two lists agreeing.
         project_id: theme.project_id,
         product_id: theme.product_id,
+        /**
+         * AND SO DOES THE WORKSPACE, WHICH IT DID NOT, and that one moved rows
+         * between tenants rather than between lists.
+         *
+         * `opportunities.workspace_id` is NOT NULL with a column default of
+         * `current_user_default_workspace()`. Omitting it here did not leave it
+         * blank: it silently filled with the PROMOTER'S DEFAULT workspace. So a
+         * person who belongs to more than one, standing in workspace B and
+         * promoting one of B's themes, created the bet in workspace A -- their
+         * oldest membership -- where the theme it was made of does not exist.
+         *
+         * Not hypothetical. Measured on the live database while fixing this:
+         * 2 of 86 promoted opportunities sit in a workspace other than their
+         * own theme's.
+         *
+         * THOSE TWO ROWS ARE DELIBERATELY NOT MOVED, and the reason is worth
+         * recording because moving them was tried and reverted. A bet does not
+         * travel alone: its spec, and whatever hangs off that spec, were all
+         * written into the SAME workspace the bet landed in, consistently. So
+         * the historical rows are internally consistent and disagree only with
+         * the theme. Re-homing the opportunity by itself replaced one
+         * disagreement with another -- it separated a bet from its own spec,
+         * which is worse, because that is the link a person actually follows.
+         * A correct backfill has to walk the whole lineage, and `missions` has
+         * no prd column so that walk is over edges rather than columns. That is
+         * a considered migration, not something to do mid-investigation while
+         * nobody is awake to look at it.
+         *
+         * The code fix is what matters: it stops the next one. Two rows are
+         * recorded here so the eventual backfill knows what it is looking for.
+         *
+         * The comment directly above is the same lesson learned once already
+         * for `project_id`. A column default is not a fallback, it is a guess
+         * the database makes when the writer declines to say -- and the guess
+         * is about the WRITER, never about the row.
+         */
+        workspace_id: theme.workspace_id,
       })
       .select()
       .single();
