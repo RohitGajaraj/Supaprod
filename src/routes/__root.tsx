@@ -164,19 +164,47 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // without needing to guess well-known paths. See docs/features/agent-native-layer.md.
       { rel: "llms.txt", href: "/llms.txt" },
       { rel: "agents.txt", href: "/agents.txt" },
-      // Tempo v5 type stack (DESIGN-TEMPO.md §3): Geist Sans/Mono variable +
-      // Geist Pixel, self-hosted from /public/fonts/geist (SIL OFL 1.1).
-      // @font-face lives in src/styles.css; no external font hosts.
+      /**
+       * PRELOAD WHAT THE PRODUCT ACTUALLY RENDERS IN.
+       *
+       * These two entries preloaded Geist Sans and Geist Mono, citing the Tempo
+       * v5 type stack. Tempo v5 is the RETIRED design system; the built one is
+       * src/styles/ink.css, whose `--sp-font-sans` is Mona Sans and whose
+       * `--sp-font-mono` is IBM Plex Mono. So every page load spent two
+       * critical-path fetches on files the app shell does not render in.
+       *
+       * MEASURED IN A BROWSER ON /decide, not inferred: `document.fonts`
+       * reported `Geist Mono: unloaded` after the app had finished painting,
+       * while it was being preloaded on every navigation. A preloaded font that
+       * never loads is a fetch bought and thrown away.
+       *
+       * WHAT THIS DOES NOT FIX, recorded so nobody chases it twice. Chrome also
+       * logs "preloaded using link preload but not used within a few seconds"
+       * for these fonts, and that warning is NOT evidence of waste here:
+       * `performance.getEntriesByType("resource")` shows exactly ONE request per
+       * font, initiated by the link. The warning is a load-event heuristic that
+       * a client-rendered SPA with `font-display: swap` trips routinely, because
+       * the face is applied after the window it watches. It survives this change
+       * and is expected to.
+       *
+       * Mona Sans 400 and IBM Plex Mono Regular are the two faces the shell
+       * paints first: body text and the machine voice. The other weights are
+       * left to load normally, because preloading a whole family is how a
+       * preload budget stops meaning anything. Geist is NOT dropped from the
+       * sheet: it is still declared in styles.css and used by public surfaces,
+       * and Geist Pixel remains the brand face. It simply is not what the
+       * authenticated product renders in, so it is not what gets preloaded.
+       */
       {
         rel: "preload",
-        href: "/fonts/geist/Geist-Variable.woff2",
+        href: "/fonts/mona/MonaSans-400.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
       },
       {
         rel: "preload",
-        href: "/fonts/geist/GeistMono-Variable.woff2",
+        href: "/fonts/plex/IBMPlexMono-Regular.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
