@@ -125,7 +125,7 @@
 import * as React from "react";
 import { approvalsQueueKey, missionsKey } from "@/lib/query-keys";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
@@ -272,6 +272,23 @@ function TitleFact({ title }: { title: string }) {
 
 const WORKING = new Set(["running", "in_progress"]);
 
+/** Fast enough to look alive while work moves, cheap enough to leave running. */
+const LIVE_POLL_WORKING_MS = 4_000;
+const LIVE_POLL_IDLE_MS = 20_000;
+
+/**
+ * How often the live line re-reads, given whether anything is actually moving.
+ *
+ * Returns false while the tab is hidden, so a backgrounded tab costs nothing.
+ * The cadence follows the strength of the claim being made: while a run is
+ * working the header asserts something second by second and has to keep up;
+ * idle, it is only waiting for work to appear.
+ */
+function livePoll(anyWorking: boolean): number | false {
+  if (typeof document !== "undefined" && document.visibilityState === "hidden") return false;
+  return anyWorking ? LIVE_POLL_WORKING_MS : LIVE_POLL_IDLE_MS;
+}
+
 /**
  * What the NEXT press does, not what the current state is.
  *
@@ -371,15 +388,48 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const fetchQueue = useServerFn(getApprovalsQueue);
   const workspaceId = activeWorkspace?.id ?? null;
 
+  /* THE LIVE LINE WAS NOT LIVE, and it is the product's only always-on proof of
+   * the one thing it claims.
+   *
+   * Both reads sat on `staleTime: 30_000` with NO `refetchInterval`.
+   * `refetchOnWindowFocus` is false globally (router.tsx:98) and
+   * `_authenticated.tsx` keeps this shell mounted across every route change, so
+   * it never remounted either. The result: whatever the workspace looked like
+   * when the shell mounted is what the header kept saying, on 100% of
+   * authenticated screens, for the rest of the session.
+   *
+   * It was wrong in BOTH directions, which is the part that matters. It went on
+   * asserting "Engineer is working" long after the run finished, and it said
+   * "Nothing running" for the whole duration of a run dispatched from anywhere
+   * that is not Today or Ask (the only two other consumers of these keys). A
+   * live indicator that lies is worse than no indicator, because the founder's
+   * own bar is that a mark for work nobody is doing is a lie.
+   *
+   * `pollWhenVisible` is not new: LivePulse.tsx has shipped it since the
+   * 2026-07-08 ruling and the rebuild simply did not carry it across. Polls
+   * stop while the tab is hidden, so an idle background tab costs nothing.
+   *
+   * The cadence follows the claim. While something is running the line is
+   * making a second-by-second assertion, so it earns 4s. Idle, it is only
+   * watching for work to appear, so 20s is enough and cheaper. */
   const missions = useQuery({
     queryKey: missionsKey(workspaceId),
     queryFn: () => fetchMissions({ data: {} }),
     staleTime: 30_000,
+    refetchInterval: (query) => {
+      const rows = query.state.data?.missions ?? [];
+      return livePoll(rows.some((m) => WORKING.has(m.status)));
+    },
+    placeholderData: keepPreviousData,
   });
   const queue = useQuery({
     queryKey: approvalsQueueKey(workspaceId),
     queryFn: () => fetchQueue({ data: { workspaceId: workspaceId ?? undefined } }),
     staleTime: 30_000,
+    // A waiting call is not moving, so the queue never needs the fast cadence;
+    // it only has to notice a NEW one arriving.
+    refetchInterval: () => livePoll(false),
+    placeholderData: keepPreviousData,
   });
 
   const rows = React.useMemo(() => missions.data?.missions ?? [], [missions.data]);
@@ -569,6 +619,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // The two trailing facts, in importance order: the first survives to 860px,
   // the second goes at 1100px. Positional, so a state that has only one fact
   // still gives it the slot that lasts longest.
+  /* ELAPSED TIME WAS FROZEN, which made a polling fix only half a fix.
+   *
+   * `since()` computes against Date.now() at RENDER, and nothing re-rendered
+   * this component on a clock. So even once the reads poll, a run that reported
+   * "started 4m ago" kept saying 4m until some unrelated state changed. The
+   * header's whole job is to be true at a glance, and a stopped clock beside a
+   * live dot is the same class of lie as a mark for work nobody is doing.
+   *
+   * One tick a minute is all the resolution `since()` has (it renders whole
+   * minutes, then hours, then days), so anything faster would re-render for no
+   * visible change. It stops while the tab is hidden for the same reason the
+   * polls do. */
+  const [, forceClock] = React.useReducer((n: number) => n + 1, 0);
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") forceClock();
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const liveFacts = React.useMemo(() => {
     const out: React.ReactNode[] = [];
     if (missions.isError || missions.isLoading) return out;
