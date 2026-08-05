@@ -140,6 +140,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { useTheme } from "@/hooks/use-theme";
+import { FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 import { BoardPanel } from "./BoardPanel";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
@@ -174,6 +175,98 @@ const RAIL = [
   { to: "/crew", label: "Crew", Icon: IconCrew, count: null },
   { to: "/engine-room", label: "Engine room", Icon: IconEngine, count: null },
 ] as const;
+
+/* ==================================================================
+ * THE TWELVE KEYS THAT FIRED AND WERE DRAWN NOWHERE.
+ *
+ * GotoShortcuts (CommandPalette.tsx:419) is mounted on every
+ * authenticated surface except onboarding and Mission Control
+ * (_authenticated.tsx:190), and it binds a bare key per destination
+ * derived from `navKeyHint`. So today, on this shell, pressing 3
+ * navigates to /plan. Nothing on screen has ever said so.
+ *
+ * The DERIVATION LAW in nav-model.ts says the palette JUMP rows, the
+ * displayed hints and the bindings are all derived from one function
+ * so the shown key and the bound key can never drift. The law was
+ * intact and the only surviving consumer was the command palette,
+ * which _authenticated.tsx documents as unmounted. A navigation layer
+ * whose whole affordance lives inside an overlay nobody opens is a
+ * capability with no door, which is this repo's signature defect.
+ *
+ * So the hint moves to where the door already is: the rail row. It is
+ * DERIVED here too, by looking the row's own `to` up in the same
+ * PRIMARY_NAV + FOOTER_NAV list `navKeyHint` governs, so a rebinding
+ * changes the drawn keycap in the same edit. Nothing is hand-copied
+ * and there is no second list.
+ *
+ * WHAT THIS DELIBERATELY DOES NOT DO. Three of the five rail rows
+ * resolve to a key (/today, /brain, /engine-room). /runs and /crew
+ * carry no binding at all, and they get no keycap rather than an
+ * invented one. Seven more keys (1..7) fire at the loop stations,
+ * which have no rail row; inventing rows for them is a nav change and
+ * the five rows are decided. That gap is reported, not papered over.
+ * ================================================================== */
+
+/** Every door the keyboard can reach, in one list, so the lookup below
+ *  cannot silently miss the footer ones (Settings holds `s`). */
+const KEYED_DOORS = [...PRIMARY_NAV, ...FOOTER_NAV];
+
+/**
+ * The key that is BOUND to this path today, or "" when nothing is.
+ *
+ * Derived, never typed: it reads the same `navKeyHint` GotoShortcuts reads,
+ * off the same list, so the drawn keycap and the live binding are the same
+ * fact read twice. A path the keyboard does not reach returns "" and draws
+ * nothing, because a keycap that does nothing is a lie.
+ */
+function doorKey(to: string): string {
+  const door = KEYED_DOORS.find((d) => d.to === to);
+  return door ? navKeyHint(door) : "";
+}
+
+/** The rail, with each row's bound key resolved. Exported for the colocated
+ *  test, which is what holds the derivation law on this surface. */
+export const RAIL_DOORS: ReadonlyArray<{ to: string; label: string; key: string }> = RAIL.map(
+  ({ to, label }) => ({ to, label, key: doorKey(to) }),
+);
+
+/** The footer door's key, derived the same way. Exported for the same test. */
+export const SETTINGS_KEY = doorKey("/settings");
+
+/**
+ * The keycap, quiet.
+ *
+ * It is the shape primitives.css already draws for `.sp-btn kbd`, restated
+ * here because this file owns the rail and a rail row is not a button: mono
+ * at the keycap size, in a tint mixed out of the row's OWN colour.
+ *
+ * Taking the tint from `currentColor` is what makes it track the row for
+ * free, with no state of its own to keep in sync: quiet on a resting row,
+ * present on the one you are standing on. The tint is also what stops the key
+ * being mistaken for a count, which matters on Today, the one rail row that
+ * carries both. A bare "0" beside a bare "3" is a riddle; a "0" in a keycap
+ * is a key.
+ *
+ * The text colour is left to `.sp-navcount`, deliberately. That is the
+ * product's existing "quiet trailing text on a rail row" colour, and reusing
+ * it means the hint sits at the same volume as the count rather than at a
+ * volume invented here.
+ *
+ * Tokens only, no literal colour, per this file's standing rule. The two bare
+ * numbers are the keycap's existing geometry in primitives.css, carried with
+ * it so the two keycaps in the product stay the same object.
+ */
+const KEYCAP = {
+  fontFamily: "var(--sp-font-mono)",
+  fontSize: "var(--sp-text-kbd)",
+  // A kbd inherits weight, so the active row would otherwise render its
+  // keycap at 600 and turn a hint into a heading.
+  fontWeight: "var(--sp-weight-regular)",
+  padding: "1px 4px",
+  borderRadius: "var(--sp-radius-xs)",
+  background: "color-mix(in oklab, currentColor 13%, transparent)",
+  flex: "none",
+} as React.CSSProperties;
 
 const RAIL_KEY = "supaprod:rail-narrow";
 /** Familiarity signal for auto-collapse. Once the user has visited enough
@@ -932,13 +1025,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <nav className="sp-nav" aria-label="Main">
               {RAIL.map(({ to, label, Icon, count }) => {
                 const n = count ? counts[count] : 0;
+                // The key this row is actually bound to, read off the binding
+                // itself. "" for a row the keyboard does not reach.
+                const shortcut = doorKey(to);
                 return (
                   <Link
                     key={to}
                     to={to}
                     className="sp-navrow"
                     activeProps={{ "aria-current": "page" }}
-                    aria-label={label}
+                    /* The name carries the key, and that is not decoration. In
+                       the narrow rail this string IS the tooltip (shell.css
+                       draws it from attr(aria-label)), so collapsing the rail
+                       stops costing you the hint instead of hiding it, and a
+                       screen reader is told the shortcut it could never have
+                       seen drawn. Said in words rather than punctuation,
+                       because "Today, 0" is a riddle when it is spoken. */
+                    aria-label={shortcut ? `${label}, shortcut ${shortcut}` : label}
                   >
                     <Icon />
                     <span className="sp-navlabel">{label}</span>
@@ -946,6 +1049,25 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                       <span className="sp-navcount" data-hot={count === "gates" ? "true" : "false"}>
                         {n}
                       </span>
+                    ) : null}
+                    {/* THE HINT, on the door it opens.
+                        `sp-navcount` is worn for ONE property and it is not
+                        colour: it is the only selector in shell.css that drops
+                        a rail row's trailing text at 64px and under 900px, and
+                        the keycap has to disappear with the label it annotates
+                        or it collides with the icon in a 64px rail. The
+                        keycap's own look is the inline style; the class is the
+                        responsive rule. aria-hidden because the accessible
+                        name above already says it, in better words. */}
+                    {shortcut ? (
+                      <kbd
+                        className="sp-navcount sp-navkey"
+                        data-shortcut={shortcut}
+                        aria-hidden="true"
+                        style={KEYCAP}
+                      >
+                        {shortcut}
+                      </kbd>
                     ) : null}
                   </Link>
                 );
@@ -984,11 +1106,18 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               >
                 {theme === "light" ? <IconSun /> : theme === "dark" ? <IconMoon /> : <IconSystem />}
               </button>
+              {/* Settings holds a key too (`s`), and it is a door in the foot
+                rather than a row, so the hint rides its name instead of a
+                keycap: three 34px icon buttons in a 236px foot have no room
+                for an annotation, and a keycap crammed under a gear would be
+                the noise the founder is already complaining about. Derived
+                from the same lookup as the rows above, so it cannot drift
+                either. */}
               <Link
                 to="/settings"
                 className="sp-setbtn"
-                title="Settings"
-                aria-label="Settings"
+                title={SETTINGS_KEY ? `Settings, shortcut ${SETTINGS_KEY}` : "Settings"}
+                aria-label={SETTINGS_KEY ? `Settings, shortcut ${SETTINGS_KEY}` : "Settings"}
                 activeProps={{ "aria-current": "page" }}
               >
                 <IconGear />

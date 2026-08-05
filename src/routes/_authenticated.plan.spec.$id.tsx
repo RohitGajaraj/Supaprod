@@ -119,6 +119,68 @@
  * Internal identifiers (prd_id, getPrd, ["prd", id]) intentionally stay: the
  * user-facing word is "spec", the schema word stays prd (CLAUDE.md
  * rename-disclaimer pattern).
+ *
+ * ----------------------------------------------------------------------------
+ * PASS THREE, 2026-08-05: THE SURFACE GETS A PRIMARY OBJECT.
+ *
+ * WHAT WAS MEASURED. Pass two moved the right things into the right views and
+ * then left the views themselves co-equal: six of them, in one flat `.sp-tabs`
+ * row, sitting directly under the shell's seven-chip station strip. Two
+ * undifferentiated horizontal rows of targets, one on top of the other, and
+ * beneath them fourteen Blocks in a single scroll. The diagnosis was structural
+ * rather than cosmetic: A SPEC IS A DOCUMENT, AND A DOCUMENT SURFACE HAS A BODY
+ * AND A MARGIN. This one had six co-equal modes, so nothing was the body, and
+ * every block was competing with thirteen peers for rank.
+ *
+ * THE ONE MOVE. Two of the six "modes" were never modes at all: `edit` and
+ * `preview` are THE SAME OBJECT rendered two ways. The other four are readings
+ * taken FROM that object. So:
+ *
+ *   THE BODY   The spec itself, always on screen, in one region titled "The
+ *              spec". Write and Read are a state OF the document, picked with
+ *              a `Choices` radio group inside that region, not two of six page
+ *              tabs. The words you came here for are no longer behind a click.
+ *   THE MARGIN Everything else, ranked and named, below the body: what this
+ *              spec becomes (the four readings), where it goes next, the work
+ *              it implies, why it exists. Each region says what it is for on
+ *              its own heading, so nothing has to be inferred from position.
+ *
+ * WHY THE FOUR READINGS ARE `Choices` AND NOT A SECOND TAB ROW. This is the
+ * ruling already made on Brain's Artifacts view and it applies unchanged: "Two
+ * identical tab rows stacked ... is two things competing to be the navigation
+ * and neither winning. A radio group reads as a control, which is what it is."
+ * The seven-chip strip is the navigation on this page. The readings are a
+ * control on one document, so they wear a control's clothes and live inside the
+ * region they govern.
+ *
+ * NOTHING WAS REMOVED, AND THIS IS THE HARD PART. Every one of the six values
+ * `?tab=` accepts still lands: `edit` and `preview` set the body's state,
+ * `contract` / `projections` / `flow` / `launch` set the reading. Every panel
+ * that rendered before renders now. What changed is RANK and GROUPING, and the
+ * page shows strictly more at rest than it did: the document is on screen
+ * beside whichever reading you opened, where before choosing Contract meant
+ * losing sight of the spec the contract is about.
+ *
+ * WHAT ALSO MOVED, and why:
+ *   · The record recess rose to sit under the title, ABOVE the actions. It
+ *     exists to say the ground under this spec has moved, and it was rendering
+ *     BELOW the handoff, which is after the point where you commit. A warning
+ *     that arrives after the decision is not a warning.
+ *   · The receipts follow the action row that writes most of them, unchanged
+ *     in behaviour, so what you did stays next to where you did it.
+ *   · "Where this spec goes next" now sits directly under the body rather than
+ *     above a tab strip. It stays HIGH on purpose: it is the exit, and burying
+ *     the one control that hands the work off underneath four readings would
+ *     have traded one defect for another. The dispatch, the repo gate, the
+ *     design gate and the route record are byte-for-byte what they were.
+ *
+ * THE ORDER, AND IT READS AS A SENTENCE. Here is the document. Here is where
+ * it goes next. Here is what it becomes. Here is the work it implies. Here is
+ * why it exists at all. Nothing has to be inferred from position, because
+ * every region says on its own heading what it is for.
+ *
+ * Every server call, mutation, query key, route param and search param is
+ * untouched by this pass. It is a layout and a ranking, and nothing else.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -181,31 +243,76 @@ import {
 } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 
+/**
+ * THE LINK VOCABULARY, unchanged. Six values, because six is what every
+ * existing link, redirect and navigate in the product may carry, and a search
+ * param that silently stops resolving is a broken link nobody reports. What
+ * changed is where each one lands: two of them are the document's own state and
+ * four of them are a reading taken from it. See `paneFor` / `lensFor` below.
+ */
 const MODE_TABS = ["contract", "projections", "edit", "preview", "flow", "launch"] as const;
 type ModeTab = (typeof MODE_TABS)[number];
 
+/**
+ * THE BODY'S TWO STATES. `edit` and `preview` were never two of six modes: they
+ * are one document rendered twice, and treating them as peers of Contract and
+ * Launch is exactly what left this surface with no subject. They are a property
+ * OF the body now, picked inside the body's own region.
+ */
+type Pane = "write" | "read";
+
+/**
+ * THE FOUR READINGS. Each one is something this spec BECOMES: what it promises
+ * and how that landed, the documents written out of it, the flow it implies,
+ * the launch it earns. None of them is the spec, which is why none of them is
+ * the body and all four share one control.
+ */
+const LENS_TABS = ["contract", "projections", "flow", "launch"] as const;
+type Lens = (typeof LENS_TABS)[number];
+
 /** Sentence case, plain words. The all-caps labels were shouting, and
- *  "PROJECTIONS" named a mechanism rather than the thing you get. */
-const MODE_DISPLAY: { id: ModeTab; label: string; hint?: string }[] = [
+ *  "PROJECTIONS" named a mechanism rather than the thing you get.
+ *
+ *  `sub` is the region's own sentence while that reading is open, so the block
+ *  says what you are looking at rather than making the label carry it alone.
+ *  `title` stays the hover hint the tab row used to carry, unchanged in words. */
+const LENS_DISPLAY: { id: Lens; label: string; title: string; sub: string }[] = [
   {
     id: "contract",
     label: "Contract",
-    hint: "What this spec promises, what got built against it, and how it landed",
+    title: "What this spec promises, what got built against it, and how it landed",
+    sub: "What it promised, what got built against it, and how it landed.",
   },
   {
     id: "projections",
     label: "Documents",
-    hint: "The PRD, the FRD, the status note and the one-pager, written fresh from the contract",
+    title: "The PRD, the FRD, the status note and the one-pager, written fresh from the contract",
+    sub: "The PRD, the FRD, the status note and the one-pager, written fresh from the contract.",
   },
-  { id: "edit", label: "Edit", hint: "The words, and what they still have to say before design" },
-  { id: "preview", label: "Preview", hint: "The spec as it reads, with what it cites" },
-  { id: "flow", label: "Flow", hint: "The steps this spec implies, and the screen drawn from it" },
+  {
+    id: "flow",
+    label: "Flow",
+    title: "The steps this spec implies, and the screen drawn from it",
+    sub: "The steps this spec implies, and the screen the crew drew from it.",
+  },
   {
     id: "launch",
     label: "Launch",
-    hint: "Positioning, the checklist, and the window the outcome gets checked in",
+    title: "Positioning, the checklist, and the window the outcome gets checked in",
+    sub: "Positioning, the checklist, and the window the outcome gets checked in.",
   },
 ];
+
+/** A link's `?tab=` resolved onto the two things it can now mean. Only
+ *  `preview` opens the document in its read state; every other value leaves the
+ *  body where a person who came to write would want it, which is writable. */
+const paneFor = (tab: ModeTab | undefined): Pane => (tab === "preview" ? "read" : "write");
+
+/** Four of the six values name a reading. The other two say nothing about which
+ *  reading to open, so the default one opens, exactly as it did when `contract`
+ *  was the default tab. */
+const lensFor = (tab: ModeTab | undefined): Lens =>
+  tab && (LENS_TABS as readonly string[]).includes(tab) ? (tab as Lens) : "contract";
 
 const ASSIST_ACTIONS = ["rewrite", "expand", "shorten", "critique"] as const;
 const ASSIST_LABEL: Record<(typeof ASSIST_ACTIONS)[number], string> = {
@@ -547,7 +654,11 @@ function SpecEditorPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [mode, setMode] = useState<ModeTab>(initialTab ?? "contract");
+  // Two independent pieces of state where there was one, and that is the whole
+  // restructure in two lines: the document has a state, and the readings taken
+  // from it have a selection, and neither is a mode of the other.
+  const [pane, setPane] = useState<Pane>(paneFor(initialTab));
+  const [lens, setLens] = useState<Lens>(lensFor(initialTab));
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -721,6 +832,11 @@ function SpecEditorPage() {
     mixed: "mixed result",
   };
 
+  // The open reading, resolved once. `lens` is typed to the four ids the list
+  // is built from, so the fallback is unreachable and exists only so this line
+  // needs no non-null assertion to typecheck.
+  const lensInfo = LENS_DISPLAY.find((l) => l.id === lens) ?? LENS_DISPLAY[0];
+
   return (
     <>
       <Surface
@@ -807,6 +923,36 @@ function SpecEditorPage() {
           {prd.status} · saved <Num>{savedAt ?? new Date(prd.updated_at).toLocaleDateString()}</Num>
         </div>
 
+        {/* The record, in one region, and now ABOVE the actions rather than
+            below the handoff. It exists to say the ground under this document
+            has moved, and it was rendering after the point where you commit. A
+            warning that arrives after the decision is not a warning. It speaks
+            or it stays silent; it never introduces itself. */}
+        {recordSays ? (
+          <Block>
+            <RecordRecess
+              evidence={
+                precedent.length > 0 ? (
+                  <>
+                    <Num>{precedent.length}</Num> past{" "}
+                    {precedent.length === 1 ? "decision" : "decisions"} on this ground
+                  </>
+                ) : undefined
+              }
+            >
+              {recordSays}
+            </RecordRecess>
+            {precedent.slice(0, 3).map((p) => (
+              <Row
+                key={p.id}
+                tight
+                lead={p.title?.trim() || p.summary}
+                sub={`${LANDED[p.verdict] ?? p.verdict}${p.governing ? " · and it has since been overtaken" : ""}`}
+              />
+            ))}
+          </Block>
+        ) : null}
+
         <Actions>
           <Button
             variant="primary"
@@ -835,11 +981,149 @@ function SpecEditorPage() {
           </Button>
         </Actions>
 
+        {/* THE COMMIT (R10). What you did here, and what it caused. It follows
+            the action row that writes most of these, so the consequence lands
+            where the click did. It appears only once you have acted, and a
+            failed write lands in the same place wearing its failure rather than
+            a success shape. */}
+        {receipts.length > 0 ? (
+          <Block title="What you did here">
+            {receipts.map((r) => (
+              <Receipt
+                key={r.key}
+                verb={r.verb}
+                consequence={r.consequence}
+                time={r.at}
+                failed={r.failed}
+              />
+            ))}
+          </Block>
+        ) : null}
+
+        {/* ================================================================
+            THE BODY. The one thing on this page that is the subject rather
+            than a reading of it, and it is on screen whatever else you have
+            open. Writing and reading are a STATE of this document, picked
+            here with a radio group, not two of six page-level tabs: a tab
+            strip says "these are different places", and these are one place
+            in two lights.
+            ================================================================ */}
+        <Block
+          title="The spec"
+          sub={
+            assist.isPending ? (
+              // `prdAssist` is a chokepoint call, so the indicator is honest.
+              // The detail is the ACTION the person chose plus how much text is
+              // under it, which is the pair that answers "is it working on the
+              // paragraph I meant, or the whole document" - the one real
+              // ambiguity in this control, since selecting nothing silently
+              // means the whole spec.
+              // No mark, because the four assist actions are one model call and
+              // not a named agent, and a mark here would claim a worker that is
+              // not there.
+              <AgentPulse
+                label="The crew is rewriting your selection"
+                seed={`assist-${assist.variables ?? ""}`}
+                compact
+                detail={
+                  <>
+                    {assist.variables ? ASSIST_LABEL[assist.variables].toLowerCase() : "editing"}
+                    {" · "}
+                    {assistScope}
+                  </>
+                }
+              />
+            ) : pane === "write" ? (
+              "The crew rewrites what you select. Select nothing and it works on the whole spec."
+            ) : (
+              "The spec as it reads, with what it cites."
+            )
+          }
+        >
+          <Actions>
+            <Choices<Pane>
+              label="How to work on the spec"
+              value={pane}
+              options={[
+                {
+                  id: "write",
+                  label: "Write",
+                  title: "The words, and what they still have to say before design",
+                },
+                {
+                  id: "read",
+                  label: "Read",
+                  title: "The spec as it reads, with what it cites",
+                },
+              ]}
+              onPick={setPane}
+            />
+          </Actions>
+
+          {pane === "write" ? (
+            <>
+              {/* The Textarea primitive does not forward a ref and the assist
+                  mutation needs the selection, so this is the primitive's class
+                  on a raw control rather than a second control. */}
+              <textarea
+                ref={taRef}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                aria-label="Spec body, markdown"
+                spellCheck={false}
+                rows={26}
+                className="sp-textarea"
+                style={{ fontFamily: "var(--sp-font-mono)" }}
+              />
+              <Actions>
+                {ASSIST_ACTIONS.map((a) => (
+                  <Button
+                    key={a}
+                    variant="ghost"
+                    disabled={assist.isPending}
+                    onClick={() => assist.mutate(a)}
+                  >
+                    {ASSIST_LABEL[a]}
+                  </Button>
+                ))}
+              </Actions>
+              {/* Advice about the words while you are writing them, so it stays
+                  with the state that can act on it. It goes quiet on a blank
+                  spec, so it draws nothing of its own. */}
+              <DesignReadinessPanel body={body} />
+            </>
+          ) : (
+            <>
+              {body.trim() ? (
+                <article
+                  style={{
+                    maxWidth: "72ch",
+                    fontSize: "var(--sp-text-body)",
+                    lineHeight: "var(--sp-leading-body)",
+                    color: "var(--sp-body)",
+                  }}
+                >
+                  <ReactMarkdown components={PREVIEW_COMPONENTS}>{body}</ReactMarkdown>
+                </article>
+              ) : (
+                <Empty>Nothing is written yet. Switch to Write and start it.</Empty>
+              )}
+              {/* A document carries its own references, so they read with it. */}
+              {citations && citations.length > 0 ? (
+                <div style={{ marginTop: "var(--sp-space-5)" }}>
+                  <CitationsCard citations={citations} />
+                </div>
+              ) : null}
+            </>
+          )}
+        </Block>
+
         {/* WHERE THIS SPEC GOES NEXT. The one region on the page that hands the
             work off, and it asks the question rather than answering it with
-            whichever button happened to be here. Above the tab body on purpose:
-            the two always-on blocks below it are the only two the surface
-            allows, and this is the handoff, not a view of the document. */}
+            whichever button happened to be here. Directly under the body on
+            purpose: you settle the document, then you say where it goes, and
+            everything below this is either a reading of the spec or a record
+            about it rather than an exit from it. */}
         <Block
           title="Where this spec goes next"
           sub={
@@ -963,225 +1247,78 @@ function SpecEditorPage() {
           )}
         </Block>
 
-        {/* THE COMMIT (R10). What you did here, and what it caused. It appears
-            only once you have acted, and a failed write lands in the same
-            place wearing its failure rather than a success shape. */}
-        {receipts.length > 0 ? (
-          <Block title="What you did here">
-            {receipts.map((r) => (
-              <Receipt
-                key={r.key}
-                verb={r.verb}
-                consequence={r.consequence}
-                time={r.at}
-                failed={r.failed}
-              />
-            ))}
-          </Block>
-        ) : null}
+        {/* ================================================================
+            WHAT THIS SPEC BECOMES. Four readings taken FROM the document
+            above: what it promised and how that landed, the documents written
+            out of it, the flow it implies, the launch it earns. None of them
+            is the spec, so none of them competes with it for rank, and all
+            four share one control inside the region they govern.
 
-        {/* The record, in one region. It speaks before you commit or it stays
-            silent; it never introduces itself. */}
-        {recordSays ? (
-          <Block>
-            <RecordRecess
-              evidence={
-                precedent.length > 0 ? (
-                  <>
-                    <Num>{precedent.length}</Num> past{" "}
-                    {precedent.length === 1 ? "decision" : "decisions"} on this ground
-                  </>
-                ) : undefined
-              }
-            >
-              {recordSays}
-            </RecordRecess>
-            {precedent.slice(0, 3).map((p) => (
-              <Row
-                key={p.id}
-                tight
-                lead={p.title?.trim() || p.summary}
-                sub={`${LANDED[p.verdict] ?? p.verdict}${p.governing ? " · and it has since been overtaken" : ""}`}
-              />
-            ))}
-          </Block>
-        ) : null}
+            A RADIO GROUP, NOT A SECOND TAB STRIP. The ruling is Brain's, and
+            it holds here unchanged: two identical tab rows stacked is two
+            things competing to be the navigation and neither winning. The
+            seven-chip station strip is the navigation on this page. These are
+            a control on one document, so they wear a control's clothes.
 
-        <div
-          className="sp-tabs"
-          role="tablist"
-          aria-label="Spec views"
-          // Left/Right move between tabs (roving focus), unchanged.
-          onKeyDown={(e) => {
-            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-            e.preventDefault();
-            const idx = MODE_DISPLAY.findIndex((t) => t.id === mode);
-            const delta = e.key === "ArrowRight" ? 1 : -1;
-            const next = MODE_DISPLAY[(idx + delta + MODE_DISPLAY.length) % MODE_DISPLAY.length];
-            setMode(next.id);
-            e.currentTarget.querySelector<HTMLButtonElement>(`[data-tab-id="${next.id}"]`)?.focus();
-          }}
-        >
-          {MODE_DISPLAY.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              role="tab"
-              className="sp-tab"
-              aria-selected={mode === m.id}
-              tabIndex={mode === m.id ? 0 : -1}
-              data-tab-id={m.id}
-              title={m.hint}
-              onClick={() => setMode(m.id)}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-
-        {mode === "edit" ? (
-          <>
-            <Block
-              // Work in motion, while it happens rather than after: the sub
-              // says what is running the moment it starts. No mark, because
-              // the four assist actions are one model call and not a named
-              // agent, and a mark here would claim a worker that is not there.
-              sub={
-                assist.isPending ? (
-                  // `prdAssist` is a chokepoint call, so the indicator is
-                  // honest. The detail is the ACTION the person chose plus how
-                  // much text is under it, which is the pair that answers "is it
-                  // working on the paragraph I meant, or the whole document" -
-                  // the one real ambiguity in this control, since selecting
-                  // nothing silently means the whole spec.
-                  <AgentPulse
-                    label="The crew is rewriting your selection"
-                    seed={`assist-${assist.variables ?? ""}`}
-                    compact
-                    detail={
-                      <>
-                        {assist.variables
-                          ? ASSIST_LABEL[assist.variables].toLowerCase()
-                          : "editing"}
-                        {" · "}
-                        {assistScope}
-                      </>
-                    }
-                  />
-                ) : (
-                  "The crew rewrites what you select. Select nothing and it works on the whole spec."
-                )
-              }
-            >
-              {/* The Textarea primitive does not forward a ref and the assist
-                  mutation needs the selection, so this is the primitive's class
-                  on a raw control rather than a second control. */}
-              <textarea
-                ref={taRef}
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                aria-label="Spec body, markdown"
-                spellCheck={false}
-                rows={26}
-                className="sp-textarea"
-                style={{ fontFamily: "var(--sp-font-mono)" }}
-              />
-              <Actions>
-                {ASSIST_ACTIONS.map((a) => (
-                  <Button
-                    key={a}
-                    variant="ghost"
-                    disabled={assist.isPending}
-                    onClick={() => assist.mutate(a)}
-                  >
-                    {ASSIST_LABEL[a]}
-                  </Button>
-                ))}
-              </Actions>
-            </Block>
-            {/* MOVED here from the always-on stack. It names what this spec
-                still has to say before design can start, which is advice about
-                the words you are typing and belongs beside them. It goes quiet
-                on a blank spec, so it draws no Block of its own. */}
-            <DesignReadinessPanel body={body} />
-          </>
-        ) : mode === "preview" ? (
-          <>
-            <Block>
-              {body.trim() ? (
-                <article
-                  style={{
-                    maxWidth: "72ch",
-                    fontSize: "var(--sp-text-body)",
-                    lineHeight: "var(--sp-leading-body)",
-                    color: "var(--sp-body)",
-                  }}
-                >
-                  <ReactMarkdown components={PREVIEW_COMPONENTS}>{body}</ReactMarkdown>
-                </article>
-              ) : (
-                <Empty>Nothing is written yet. Switch to Edit and start it.</Empty>
-              )}
-            </Block>
-            {/* MOVED here from the always-on stack. A document carries its own
-                references; they were floating three blocks below it. */}
-            {citations && citations.length > 0 ? (
-              <Block>
-                <CitationsCard citations={citations} />
-              </Block>
-            ) : null}
-          </>
-        ) : mode === "contract" ? (
-          <>
-            <Block>
-              <OutcomeContractPanel
-                prdId={id}
-                specTitle={prd.title}
-                bodyMd={body}
-                contract={(prd as { contract?: OutcomeContract | null }).contract}
-                invalidateKey={["prd", id]}
-              />
-            </Block>
-            {/* RPT-44: the honest intent-vs-built receipt lives beside the contract. */}
-            <Block>
-              <IntentVsBuiltReceipt prdId={id} />
-            </Block>
-            {/* MOVED here from the bottom of the page. What it promised, what
-                got built, and how it landed are one subject, and they were
-                three screens apart with an editor between them. */}
-            <Block>
-              <OutcomeCard prd={prd as unknown as OutcomePrd} invalidateKey={["prd", id]} />
-            </Block>
-          </>
-        ) : mode === "projections" ? (
-          <Block>
-            <SpecProjectionsPanel
-              title={prd.title}
-              status={prd.status}
-              updatedAt={prd.updated_at}
-              contract={(prd as { contract?: OutcomeContract | null }).contract}
-              bodyMd={body}
-              citations={(citations ?? []).map((c) => ({
-                label: c.title?.trim() || c.source_kind,
-              }))}
+            Every panel below renders exactly what it rendered before, with the
+            same props and the same query keys. What changed is that the spec
+            these are readings OF is still on screen while you read them.
+            ================================================================ */}
+        <Block title="What this spec becomes" sub={lensInfo.sub}>
+          <Actions>
+            <Choices<Lens>
+              label="Which reading of this spec"
+              value={lens}
+              options={LENS_DISPLAY.map((l) => ({ id: l.id, label: l.label, title: l.title }))}
+              onPick={setLens}
             />
-          </Block>
-        ) : mode === "flow" ? (
-          <>
-            <Block>
-              <FlowDiagram prdId={id} />
-            </Block>
-            {/* MOVED here from the always-on stack. The steps this spec implies
-                and the screen the crew drew from it answer the same question,
-                which is what this spec looks like when it exists. It goes
-                silent on its own, so it draws no Block. */}
-            <DesignScaffoldPanel prdId={id} specBody={body} />
-          </>
-        ) : (
-          <Block>
-            <LaunchPlanPanel prdId={id} />
-          </Block>
-        )}
+          </Actions>
+
+          {/* ONE GROUP, so the panels sit at component distance from one
+              another instead of each drawing its own section rule and reading
+              as an unrelated region. Every panel here already carries its own
+              container, so the gap is all the separation they need. */}
+          <div style={{ display: "grid", gap: "var(--sp-space-5)" }}>
+            {lens === "contract" ? (
+              <>
+                <OutcomeContractPanel
+                  prdId={id}
+                  specTitle={prd.title}
+                  bodyMd={body}
+                  contract={(prd as { contract?: OutcomeContract | null }).contract}
+                  invalidateKey={["prd", id]}
+                />
+                {/* RPT-44: the honest intent-vs-built receipt lives beside the contract. */}
+                <IntentVsBuiltReceipt prdId={id} />
+                {/* What it promised, what got built, and how it landed are one
+                    subject, and they were once three screens apart with an
+                    editor between them. */}
+                <OutcomeCard prd={prd as unknown as OutcomePrd} invalidateKey={["prd", id]} />
+              </>
+            ) : lens === "projections" ? (
+              <SpecProjectionsPanel
+                title={prd.title}
+                status={prd.status}
+                updatedAt={prd.updated_at}
+                contract={(prd as { contract?: OutcomeContract | null }).contract}
+                bodyMd={body}
+                citations={(citations ?? []).map((c) => ({
+                  label: c.title?.trim() || c.source_kind,
+                }))}
+              />
+            ) : lens === "flow" ? (
+              <>
+                <FlowDiagram prdId={id} />
+                {/* The steps this spec implies and the screen the crew drew
+                    from it answer the same question, which is what this spec
+                    looks like once it exists. It goes silent on its own. */}
+                <DesignScaffoldPanel prdId={id} specBody={body} />
+              </>
+            ) : (
+              <LaunchPlanPanel prdId={id} />
+            )}
+          </div>
+        </Block>
 
         {/* WHERE THE CREW IS. generateTaskGraph is the Planner by its own
             system prompt, so the mark is attribution, and it RUNS while the
