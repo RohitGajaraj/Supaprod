@@ -94,7 +94,14 @@ function ActivePulse({ label }: { label: string }) {
     return () => clearInterval(t);
   }, []);
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 12 }}>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "var(--geist-space-2x)",
+        marginTop: 12,
+      }}
+    >
       <StepDot status="running" />
       <span
         style={{
@@ -181,9 +188,7 @@ function ProposalEnricher({
       }}
     >
       <MonoLabel style={{ display: "block", marginBottom: 5 }}>Why this is happening</MonoLabel>
-      <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>
-        {data.explanation}
-      </p>
+      <p style={{ color: "var(--text-body)", margin: 0, lineHeight: 1.55 }}>{data.explanation}</p>
       {data.suggested_fix ? (
         <>
           <MonoLabel style={{ display: "block", margin: "10px 0 5px" }}>Suggested fix</MonoLabel>
@@ -376,9 +381,7 @@ function SelfImproveModeControl({ workspaceId }: { workspaceId: string }) {
         })}
       </div>
 
-      <p
-        style={{ color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}
-      >
+      <p style={{ color: "var(--text-body)", margin: "12px 0 0", lineHeight: 1.55 }}>
         {copy.outcome}
       </p>
       <p style={{ color: "var(--text-subtle)", margin: "5px 0 0", lineHeight: 1.5 }}>

@@ -147,6 +147,83 @@
  * LEGACY_TABS, the ?decision= / ?learning= / ?focusKind= / ?focusId= drills
  * still work, and every query key is untouched, which matters because they are
  * shared caches with Today, Learn and the panels themselves.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE GUIDANCE PASS, 2026-08-05. THE SURFACE WAS PROVING STORAGE.
+ *
+ * The founder read the live demo workspace's own headline back to the page:
+ * "49 calls and 8 learnings are on the record, and none has re-scored a call
+ * yet." Every word of that is true and it is still the wrong sentence, because
+ * BOTH of its clauses are about the size of a pile. The product's claim is that
+ * the record learns and GUIDES. That headline concedes the opposite.
+ *
+ * WHAT IS ACTUALLY FIRING, AND WAS SHOWN NOWHERE. This page already pays for
+ * the answer. getStandingRecord returns two halves; StandingRules reads the
+ * rules half and CrewCarries reads the recall half, and CrewCarries lives on
+ * the Outcomes tab, which is not the tab anybody lands on. So the surface
+ * fetched the proof and then rendered it behind a door. On the demo workspace
+ * the recall half reads: 694 of 846 things the record has learned have been
+ * read back by a run, across 3115 recalls. That is not storage. A memory is
+ * pulled at recall time, written into the system prompt, and the model acts
+ * with it in front of it (recallMemoryRefs -> lines -> the prompt; touchMemory
+ * stamps last_used_at; logMemoryRecall writes the row). It is the single most
+ * load-bearing true sentence available to this page and it was not on it.
+ *
+ * SO: THE HEADLINE LADDER GAINS A RUNG. A re-scored call still wins, because an
+ * outcome that moved a ranking is the strongest claim in the product. Under it
+ * now sits the recall claim, and only under THAT does the page fall back to the
+ * manifest. A workspace with nothing yet still gets the manifest, unchanged.
+ *
+ * NOTHING IS LOST TO THE MOVE, which is the ratchet. The call, learning and doc
+ * counts were already the second line, as Doors. The one clause that leaves the
+ * head is "and none has re-scored a call yet", and it does not evaporate: it
+ * becomes a line of its own in the new region, next to the mechanism it is
+ * about and next to what makes it move, which is where an admission belongs.
+ *
+ * ADDED: THE GUIDANCE REGION, above the tabs because it is true whichever door
+ * you are behind (the same argument StandingRules already stands on). Three
+ * mechanisms, each rendered in the state it is actually in, and the empty and
+ * thin states ARE the design here because they are what every new workspace
+ * sees:
+ *
+ *   READ BACK      firing. What the record learned goes into a later run's
+ *                  prompt. Real counts, or, when nothing has been reached for
+ *                  yet, what makes the first one happen. Never a zero.
+ *   RATED          wired, thin. A rating on a run calls bump_memory_importance
+ *                  on every memory that run recalled (feedback.functions.ts:39-54)
+ *                  and importance is in the recall RPC's own ORDER BY
+ *                  (20260802190000_agent_memory_workspace_visibility.sql:143-146,
+ *                  and reflections order by importance desc). So "rating moves
+ *                  what the crew reads first" is a wired claim, not a promise.
+ *                  Today every row is still 'ignored', and the line says that.
+ *   RE-SCORED      wired, empty. agent_memory holds no outcome rows yet, so no
+ *                  outcome has moved an ICE. Stated plainly, with the act that
+ *                  moves one, and a door to the outcomes.
+ *
+ * WHAT THIS REGION IS NOT. It is not a stat strip. The substrate disclosure at
+ * the foot of this page is the inventory shape and it stays the inventory
+ * shape; these are Rows, the system's grammar for who did what, because every
+ * line here is an EVENT or the absence of one. And there is no "teams like
+ * yours" number anywhere, invented or averaged. There is no such data and a
+ * fabricated benchmark would be the exact thing this file's own test asks of
+ * every panel.
+ *
+ * NOTHING IS SAID TWICE. The recall lines are suppressed on the Outcomes tab,
+ * where CrewCarries says the same fact better because the list it describes is
+ * directly underneath it. That is the identical rule the record recess above
+ * already follows. The re-score line survives on every tab, because nothing
+ * else on any of them states it.
+ *
+ * ONE READ, THREE CONSUMERS. The region uses the ["brain-standing", workspace]
+ * key that StandingRules and CrewCarries already share, so surfacing this costs
+ * zero additional requests.
+ *
+ * WHY recordHeadline AND guidanceLines ARE EXPORTED. Both decide what this page
+ * is allowed to CLAIM, and every rule they hold is one a future edit can break
+ * while typechecking clean and looking fine in a diff, so they are pure and
+ * guarded by src/routes/__tests__/brain-guidance.test.tsx. That costs two
+ * react-refresh warnings on this file, which is the same trade CompoundingPanel
+ * beside it already makes for whenOf and deltaOf, and for the same reason.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -157,9 +234,11 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getCompounding } from "@/lib/today.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
+import { getStandingRecord, type RecallRecord } from "@/lib/brain-standing.functions";
 import { RetentionLine } from "@/components/brain/RetentionLine";
 import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
+  AgentMark,
   Block,
   Button,
   Cell,
@@ -171,6 +250,7 @@ import {
   Num,
   PageHead,
   Record as RecordRecess,
+  Row,
   Surface,
 } from "@/components/shell/primitives";
 
@@ -374,12 +454,27 @@ export const Route = createFileRoute("/_authenticated/brain")({
  * the record is real and useful, so it moves to the second line, where a size
  * belongs.
  *
- * Priority is by strength of claim: an outcome that moved a ranking beats a
- * count of anything. A young workspace that has not compounded yet falls back
- * to the honest manifest rather than to a claim it has not earned.
+ * Priority is by strength of claim: an outcome that moved a ranking beats the
+ * record being read back, and being read back beats a count of anything. A
+ * young workspace that has not compounded yet falls back to the honest manifest
+ * rather than to a claim it has not earned.
+ *
+ * THE MIDDLE RUNG, ADDED 2026-08-05, AND WHY IT IS NOT A SECOND MANIFEST. It
+ * counts recall EVENTS, not rows: memory_recall_log gets a row when a memory is
+ * pulled into a run's system prompt, so every one of them is a moment the crew
+ * read the record before it acted. That is the product's claim, stated in the
+ * one place a person always reads, and until this rung existed every workspace
+ * that had not yet re-scored a call landed on the manifest no matter how hard
+ * its record was working.
+ *
+ * SCOPES ARE NEVER MIXED IN ONE SENTENCE. The recall counts are owner-scoped
+ * (agent_memory RLS is auth.uid() = user_id) and the calls and learnings below
+ * are workspace-scoped, which is why they live in different sentences and never
+ * in one clause. brain-standing.functions.ts states the same rule at the read.
  */
-function recordHeadline(
+export function recordHeadline(
   summary: CompoundingSummary | null,
+  recall: RecallRecord | null,
   calls: number | null,
   learnings: number | null,
   loading: boolean,
@@ -389,6 +484,17 @@ function recordHeadline(
     return rescored === 1
       ? "A real outcome has re-scored one call."
       : `Real outcomes have re-scored ${rescored} calls.`;
+  }
+  // `memoriesReached` comes from last_used_at and is true whether or not the
+  // recall log can be read, so it is what qualifies the rung; `events` only
+  // supplies the number. A log we could not read contributes no number rather
+  // than a zero, and the claim still stands without one.
+  if (recall && recall.memoriesReached > 0) {
+    if (recall.events === 1) return "The crew has read this record before acting once.";
+    if (recall.events > 1) {
+      return `The crew has read this record before acting ${recall.events} times.`;
+    }
+    return "The crew has read this record before acting.";
   }
   if (calls === null && learnings === null) {
     return loading ? "Brain" : "The record did not load.";
@@ -411,9 +517,7 @@ function recordHeadline(
    * is simply false, and it undersells the product's own claim: the outcomes are
    * there, they have not yet changed a ranking. Say that instead.
    */
-  const tail = learnings
-    ? "and none has re-scored a call yet."
-    : "and nothing has come back yet.";
+  const tail = learnings ? "and none has re-scored a call yet." : "and nothing has come back yet.";
   const sentence = `${clauses.join(" and ")} ${verb} on the record, ${tail}`;
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
@@ -432,6 +536,136 @@ function verdictLine(verdict: "validated" | "missed" | "mixed", subject: string)
   if (verdict === "validated") return `${subject} paid off.`;
   if (verdict === "missed") return `${subject} did not pay off.`;
   return `${subject} came back mixed.`;
+}
+
+/**
+ * One guidance mechanism, in the state it is actually in.
+ *
+ * `door` names a destination this page can honestly reach. It is absent, never
+ * pointed at something adjacent, wherever there is nowhere to send anybody:
+ * the same rule the substrate counts below already follow, and the same one
+ * that keeps `meetings` unlinked down there.
+ */
+export type GuidanceLine = {
+  key: string;
+  lead: ReactNode;
+  sub: ReactNode;
+  door?: "outcomes";
+};
+
+/**
+ * WHAT THE RECORD IS DOING TO THE WORK, and where it is not doing it yet.
+ *
+ * PURE, so the honesty is testable without a browser. Every branch here is a
+ * different FACT, and the distinction that matters most is between "this has
+ * not happened" and "we could not find out", because a zero standing in for the
+ * second is the lie this whole surface exists not to tell.
+ *
+ * THE RULES THIS FUNCTION IS BOUND BY:
+ *
+ *   A number is drawn only when it was read. `logReady` false means
+ *   memory_recall_log could not be read at all, in which case its counts are
+ *   all 0 and none of them may be shown; the read-back line survives anyway,
+ *   because last_used_at is a different column on a different table and it is
+ *   still true.
+ *
+ *   A "not yet" line is drawn only once the thing it denies is KNOWN to be
+ *   absent. `rescoreCount: null` means the compounding read is in flight or
+ *   failed, and "no outcome has moved a priority" would then be a claim rather
+ *   than an admission, so nothing is drawn.
+ *
+ *   A "not yet" line always names the act that ends it. That is the difference
+ *   between a surface that reads as broken and one that reads as sharpening,
+ *   and the act named is always one the product genuinely performs.
+ *
+ *   No line compares this workspace to anybody else's. There is no such data,
+ *   and inventing an average would be the fabrication this repo fails builds
+ *   over.
+ */
+export function guidanceLines(args: {
+  recall: RecallRecord | null;
+  /** null while the compounding read is unresolved. See the rules above. */
+  rescoreCount: number | null;
+  /** True on the Outcomes tab, where CrewCarries states the recall fact
+   *  directly above the list it is about, which is the better place for it. */
+  recallSaidBelow: boolean;
+}): GuidanceLine[] {
+  const { recall, rescoreCount, recallSaidBelow } = args;
+  const out: GuidanceLine[] = [];
+  const showRecall = recall !== null && !recallSaidBelow;
+
+  // 1. READ BACK. The mechanism that is firing today. A memory is pulled at
+  //    recall time and written into the system prompt, so this counts moments
+  //    the crew read the record BEFORE it acted, not rows it kept.
+  if (showRecall && recall.memoriesTotal > 0) {
+    out.push(
+      recall.memoriesReached > 0
+        ? {
+            key: "read-back",
+            lead: (
+              <>
+                <Num>{recall.memoriesReached}</Num> of <Num>{recall.memoriesTotal}</Num> things the
+                record has learned have gone back into a later run.
+              </>
+            ),
+            sub: "Each one is written into the agent's prompt before it acts, not looked up afterwards.",
+          }
+        : {
+            key: "read-back",
+            lead: "Nothing the record has learned has gone into a run yet.",
+            sub: "The next run over the same ground reads it first. That is the whole mechanism, and it needs one more run.",
+          },
+    );
+  }
+
+  // 2. RATED. Wired end to end and thin on data: a rating calls
+  //    bump_memory_importance on every memory that run recalled, and importance
+  //    sits in the recall RPC's ORDER BY. So the sentence below describes a
+  //    real consequence, not an intention.
+  if (showRecall && recall.logReady && recall.events > 0) {
+    const rated = recall.helped > 0 || recall.contradicted > 0;
+    out.push(
+      rated
+        ? {
+            key: "rated",
+            lead: "Your ratings have moved what the crew reaches for first.",
+            sub: (
+              <>
+                {recall.helped > 0 ? (
+                  <span className="sp-pass">
+                    <Num>{recall.helped}</Num> helped
+                  </span>
+                ) : null}
+                {recall.helped > 0 && recall.contradicted > 0 ? " · " : null}
+                {recall.contradicted > 0 ? (
+                  <span className="sp-fail">
+                    <Num>{recall.contradicted}</Num> contradicted by what happened
+                  </span>
+                ) : null}
+              </>
+            ),
+          }
+        : {
+            key: "rated",
+            lead: "None of that has been rated yet.",
+            sub: "Rate one run and every lesson it leaned on moves up or down in what the crew reads next.",
+          },
+    );
+  }
+
+  // 3. RE-SCORED. Wired, and empty on every workspace today. This is the clause
+  //    the headline used to carry, and it is better here: an admission belongs
+  //    beside the mechanism it is about and beside the act that ends it.
+  if (rescoreCount === 0) {
+    out.push({
+      key: "rescored",
+      lead: "No outcome has moved a call's priority yet.",
+      sub: "Record what a shipped bet actually did, and the ranking it came from moves with it.",
+      door: "outcomes",
+    });
+  }
+
+  return out;
 }
 
 function MemoryPage() {
@@ -462,6 +696,16 @@ function MemoryPage() {
     queryKey: ["compounding"],
     queryFn: () => fCompounding(),
   });
+  // Whether the crew reaches for what the record learned. THE KEY IS THE ONE
+  // StandingRules AND CrewCarries ALREADY USE, so this is a third reader of one
+  // request rather than a third request. It has to stay character-identical to
+  // the key in StandingRecord.tsx: a drifted key would silently double the read
+  // and could show two different numbers on one screen.
+  const fStanding = useServerFn(getStandingRecord);
+  const standing = useQuery({
+    queryKey: ["brain-standing", activeWorkspaceId],
+    queryFn: () => fStanding({ data: { workspaceId: activeWorkspaceId } }),
+  });
 
   // Fresh search object: every drill param clears on a tab switch.
   const setTab = (next: Tab) => navigate({ search: { tab: next } });
@@ -469,13 +713,19 @@ function MemoryPage() {
   const counts = brain.data?.counts ?? null;
   const learningCount = stats.data?.learnings ?? null;
   const summary = compounding.data?.summary ?? null;
+  const recall = standing.data?.recall ?? null;
   const countsLoading = brain.isLoading || stats.isLoading;
   const countsFailed = (brain.isError || stats.isError) && !counts && learningCount === null;
+  // `standing.isLoading` joins the loading flag so the head holds on "Brain"
+  // until the recall rung is decidable. Without it the title would settle on
+  // the manifest and then jump to the recall claim a moment later, which reads
+  // as the page correcting itself.
   const headline = recordHeadline(
     summary,
+    recall,
     counts?.decisions ?? null,
     learningCount,
-    countsLoading || compounding.isLoading,
+    countsLoading || compounding.isLoading || standing.isLoading,
   );
   const lastAdded = day(brain.data?.latest);
   const emptyRecord =
@@ -531,6 +781,15 @@ function MemoryPage() {
   // on the Outcomes tab, where the feed below already leads with it.
   const latest = summary?.latest ?? null;
   const showRecord = !decision && !learning && tab !== "learnings" && latest !== null;
+
+  // What the record is DOING, and where it is not doing it yet. The recall half
+  // stands down on the Outcomes tab for the identical reason the recess above
+  // does: CrewCarries says it there, one line above the list it is about.
+  const guidance = guidanceLines({
+    recall,
+    rescoreCount: summary ? summary.rescoreCount : null,
+    recallSaidBelow: tab === "learnings" && !learning,
+  });
 
   // The second line is the SIZE of the record: what the headline no longer
   // says, because a manifest is not a claim. Every clause is a count that
@@ -653,6 +912,40 @@ function MemoryPage() {
             {verdictLine(latest.verdict, latest.opportunity_title ?? "A call you shipped")}{" "}
             {latest.summary}
           </RecordRecess>
+        </Block>
+      ) : null}
+
+      {/* WHERE THE RECORD IS REACHING THE WORK. Above the tabs, because it is
+          true whichever door you are behind, and above StandingRules because
+          this is the mechanism that has data on every workspace today while a
+          standing rule is the distilled thing that comes later: the crew reads
+          the record back, and THEN the steward turns the pattern into a rule
+          every agent carries. Cause, then consequence, in that order.
+
+          NOTHING HERE IS A STAT STRIP. The substrate disclosure at the foot of
+          this page is the Grid-of-Cells inventory shape and keeps it; these are
+          Rows, which is this system's grammar for who did what, because every
+          line is an event or the honest absence of one. The mark is the crew in
+          its `quiet` state on every row including the "not yet" ones: it names
+          whose behaviour the line is about, and quiet is precisely the state
+          that claims nothing is happening right now.
+
+          A row is clickable only when it has somewhere real to go, and the one
+          door here is already-open on the Outcomes tab, so it stops being an
+          affordance there rather than becoming one that does nothing. */}
+      {guidance.length > 0 ? (
+        <Block title="What the record has changed so far">
+          {guidance.map((g) => (
+            <Row
+              key={g.key}
+              marks={<AgentMark slug={null} name="the crew" state="quiet" />}
+              lead={g.lead}
+              sub={g.sub}
+              onClick={
+                g.door === "outcomes" && tab !== "learnings" ? () => setTab("learnings") : undefined
+              }
+            />
+          ))}
         </Block>
       ) : null}
 

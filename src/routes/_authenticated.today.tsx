@@ -45,6 +45,7 @@ import {
   Empty,
   Failed,
   Gate,
+  Loading,
   Num,
   PageHead,
   Receipt,
@@ -305,6 +306,20 @@ function Today() {
     return () => window.removeEventListener("keydown", onKey);
   }, [call, busy, settle, defer]);
 
+  /**
+   * THE UNION IS THE HEADLINE'S BUSINESS AND NOBODY ELSE'S.
+   *
+   * One sentence assembled from two counts genuinely needs both reads, so it
+   * waits for both. Every REGION below now waits on its OWN read instead: the
+   * gate on the queue, the finished block on the missions list, the learning on
+   * the learnings list.
+   *
+   * All three used to key off this union, and that is a latency bug rather than
+   * a spinner bug: the queue landing first bought the user nothing, because the
+   * gate stayed hidden until the SLOWER of the two returned. The thing a person
+   * opens Today for is the call that needs them, and it was being held back by
+   * a list of finished runs it does not depend on.
+   */
   const loading = queue.isLoading || missions.isLoading;
 
   // The headline is a fact assembled from real counts. While loading, show
@@ -451,7 +466,23 @@ function Today() {
             Snooze
           </Button>
         </Gate>
-      ) : loading ? null : queue.isError ? (
+      ) : queue.isLoading ? (
+        /* THE THIRD FACT, and the front door was the one surface missing it.
+         *
+         * `loading ? null` drew nothing where the biggest element on the screen
+         * goes, so for the whole of a cold read Today was a headline over a
+         * rule, and a screen reader was handed silence. Neither of the two
+         * branches below is usable here: "Nothing is waiting on you" and
+         * "Cannot reach the queue" are both claims, and at this moment neither
+         * is known. Loading is the primitive for precisely that gap, it carries
+         * the live region, and it reserves its own height so the gate arriving
+         * pushes nothing around.
+         *
+         * It states what it is READING, in this surface's own words (the header
+         * says "N calls need you"), and it says nothing about how long that
+         * takes. Advertising latency is what surface-discipline bans outright. */
+        <Loading>Reading what needs you.</Loading>
+      ) : queue.isError ? (
         // A failed read is not an empty queue. `items` falls back to [] on error,
         // so without this branch the front door told a user "Nothing is waiting on
         // you" at the exact moment it had no idea what was waiting. That is the
@@ -503,7 +534,14 @@ function Today() {
         more={rows.length ? `All ${rows.length} runs` : undefined}
         onMore={() => navigate({ to: "/runs" })}
       >
-        {loading ? null : missions.isError ? (
+        {missions.isLoading ? (
+          // The block head already renders its title, so this fills the body
+          // rather than leaving a heading standing over a void. It is deliberately
+          // the same subject as the Failed line just below: "Reading what the crew
+          // finished" then "Could not load what the crew finished" is one topic
+          // told twice, honestly, and the reader never has to reconcile them.
+          <Loading>Reading what the crew finished.</Loading>
+        ) : missions.isError ? (
           // Same rule as the Gate above: a read that failed must not be reported
           // as a day where nothing happened.
           <Failed onRetry={() => missions.refetch()}>Could not load what the crew finished.</Failed>
@@ -583,7 +621,20 @@ function Today() {
         )}
       </Block>
 
-      {learning?.summary ? (
+      {learnings.isLoading ? (
+        /* NO BLOCK AROUND THIS ONE, and that is the whole point of writing it
+         * out. The block's title is "It learned one thing", which is a CLAIM:
+         * printing it before the read lands asserts a learning exists when
+         * nobody yet knows whether one does. So the wait is the bare fact, and
+         * the title arrives with the thing it describes. */
+        <Loading>Reading what it learned.</Loading>
+      ) : learnings.isError ? (
+        // Same rule the Gate and the block above already obey: a read that
+        // failed is not a record that learned nothing. This branch rendered
+        // nothing at all, so an unreachable brain and a quiet one looked
+        // identical on the one surface that is supposed to tell them apart.
+        <Failed onRetry={() => learnings.refetch()}>Could not load what it learned.</Failed>
+      ) : learning?.summary ? (
         <Block title="It learned one thing">
           <RecordRecess
             // THE RECESS OPENS THE OUTCOME. This is the one lit surface in the

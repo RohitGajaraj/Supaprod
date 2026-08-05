@@ -727,8 +727,13 @@ describe("AskPane: the suggestion marquee", () => {
     // point of this assertion: it walks the accessibility tree and so honours
     // the aria-hidden that a plain text query would sail straight past, which
     // is exactly the difference a screen reader experiences.
+    //
+    // A CHIP THAT IS STILL IN THE STRIP. The head of the list is lifted out of
+    // the marquee and stands still above it (see "the first move" below), so
+    // asserting the loop's own duplication has to name something the loop is
+    // actually carrying, or it would be asserting the promotion instead.
     const chips = screen.getAllByRole("button", {
-      name: /What is the crew doing on Ship SSO login for Beacon/,
+      name: "What is the crew working on right now?",
     });
     expect(chips.length).toBe(1);
     r.unmount();
@@ -739,12 +744,10 @@ describe("AskPane: the suggestion marquee", () => {
   test("a press lands the whole sentence in the composer, and does not send it", async () => {
     const r = await openWithRuns();
     await act(async () => {
-      screen
-        .getAllByRole("button", { name: /What is the crew doing on Ship SSO login for Beacon/ })[0]
-        .click();
+      screen.getByRole("button", { name: "What is the crew working on right now?" }).click();
     });
     const box = screen.getByLabelText("Ask about Helio Labs") as HTMLTextAreaElement;
-    expect(box.value).toBe("What is the crew doing on Ship SSO login for Beacon?");
+    expect(box.value).toBe("What is the crew working on right now?");
     expect(sendIntent).not.toHaveBeenCalled();
     r.unmount();
   });
@@ -763,6 +766,91 @@ describe("AskPane: the suggestion marquee", () => {
     expect(
       screen.getAllByRole("button", { name: "What needs my call before it can move?" }).length,
     ).toBe(1);
+    r.unmount();
+  });
+});
+
+/**
+ * THE FIRST MOVE. Every way into a conversation used to be a chip in a strip
+ * that travels, which leaves a person on day one looking at a blank composer
+ * while the alternatives slide past it. The head of the list is lifted out and
+ * stands still. These assert the three properties that make that worth doing:
+ * it does not move, it is the same object rather than a copy of one, and a
+ * press behaves exactly as a chip does.
+ */
+describe("AskPane: the first move stands still", () => {
+  async function openWith(rows: typeof missionRows) {
+    missionRows = rows;
+    const r = mount();
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+      await new Promise((res) => setTimeout(res, 10));
+    });
+    return r;
+  }
+
+  // Grounded prompts come first, so where a run is genuinely in motion the
+  // stationary offer is the one that names it. Nothing here is invented: the
+  // title is the row `listMissions` returned.
+  test("it names the run that is genuinely in motion, and it is not in the strip", async () => {
+    const r = await openWith([
+      { title: "Ship SSO login for Beacon", status: "running", completed_at: null },
+    ]);
+    const move = screen.getByRole("button", { name: /Ship SSO login for Beacon/ });
+    expect(move.closest(".sp-marquee")).toBe(null);
+    r.unmount();
+  });
+
+  // LIFTED, NOT COPIED. An offer standing still AND riding the strip would be
+  // read twice by a screen reader and pressed twice by nobody.
+  test("the promoted offer is not also left in the strip", async () => {
+    const r = await openWith([
+      { title: "Ship SSO login for Beacon", status: "running", completed_at: null },
+    ]);
+    const pane = screen.getByTestId("ask-pane");
+    const named = [...pane.querySelectorAll("button")].filter((b) =>
+      (b.textContent ?? "").includes("Ship SSO login for Beacon"),
+    );
+    expect(named.length).toBe(1);
+    r.unmount();
+  });
+
+  // The same contract a chip has: it goes nowhere, it sends nothing, it puts
+  // the whole sentence in the box and lets the person continue from there.
+  test("a press lands the whole sentence in the composer, and does not send it", async () => {
+    const r = await openWith([
+      { title: "Ship SSO login for Beacon", status: "running", completed_at: null },
+    ]);
+    await act(async () => {
+      screen.getByRole("button", { name: /Ship SSO login for Beacon/ }).click();
+    });
+    const box = screen.getByLabelText("Ask about Helio Labs") as HTMLTextAreaElement;
+    expect(box.value).toBe("What is the crew doing on Ship SSO login for Beacon?");
+    expect(sendIntent).not.toHaveBeenCalled();
+    r.unmount();
+  });
+
+  // With nothing running there is still a first move, and it is the surface's
+  // own question rather than a constant. Standing on a run, it asks about the
+  // run. This is the day-one case, and the whole point of the change.
+  test("with nothing running it is still the question for the surface you are on", async () => {
+    pathname = "/runs/11111111-2222-3333-4444-555555555555";
+    const r = await openWith([]);
+    const move = screen.getByRole("button", { name: "Where is this, and what is left?" });
+    expect(move.closest(".sp-marquee")).toBe(null);
+    r.unmount();
+  });
+
+  /**
+   * BOTH HALVES OF THE BOX, SAID BEFORE ANYTHING IS TYPED. The fork between
+   * asking and handing over is what makes this not a chat window, and it used
+   * to be invisible until you had typed a line into the composer.
+   */
+  test("the opening says the same box also hands work over", async () => {
+    const r = await openWith([]);
+    const text = screen.getByTestId("ask-pane").textContent ?? "";
+    expect(text).toContain("hand the work over");
+    expect(text).toContain("becomes a run");
     r.unmount();
   });
 });
