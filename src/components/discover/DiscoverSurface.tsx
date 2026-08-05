@@ -957,16 +957,16 @@ export function DiscoverSurface({
   ) : loadError ? (
     "The record could not be read."
   ) : rows.length === 0 ? (
-    "Nothing has been sensed yet."
+    "No opportunities found yet."
   ) : ranked.length === 0 ? (
     <>
-      <Num>{rows.length}</Num> signals in, nothing waiting on a call.
+      <Num>{rows.length}</Num> opportunities imported. Connect a source to get started.
     </>
   ) : ranked.length === 1 ? (
-    "One cluster is waiting on a call."
+    "One opportunity needs your decision."
   ) : (
     <>
-      <Num>{ranked.length}</Num> clusters are waiting on a call.
+      <Num>{ranked.length}</Num> opportunities need your decisions.
     </>
   );
 
