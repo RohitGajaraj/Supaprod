@@ -194,6 +194,54 @@ function stripMention(text: string, slug: string): string {
     .trim();
 }
 
+/**
+ * Keep a dispatch alive after the response has already been returned.
+ *
+ * THE DEFECT THIS PREVENTS. Both dispatch branches below fire their work
+ * unawaited with only a `.catch`, so the reply can stream instantly. That is the
+ * right shape and it is unsafe as written on Cloudflare: a promise still pending
+ * when the response returns CAN BE CANCELLED, and the run then exists as a row
+ * with nothing driving it. Recovery is the resume-runs sweeper, floored at two
+ * minutes, during which the run card truthfully reports that the run has not
+ * reported a step yet. A person watched a mission they were told was dispatched
+ * do nothing for two minutes.
+ *
+ * This repo already knows the hazard and already solves it: `persistServerError`
+ * in src/server.ts hands its write to `ctx.waitUntil` where one exists and falls
+ * back to fire-and-forget elsewhere. The same shape is used here.
+ *
+ * WHERE THE HANDLE COMES FROM, because a TanStack server route never receives a
+ * `ctx` parameter. `src/server.ts` forwards (request, env, ctx) into the nitro
+ * Cloudflare module handler, which calls `augmentReq(request, { env, context })`
+ * and binds `req.waitUntil = ctx.context?.waitUntil`. The same `request` object
+ * reaches this handler unreconstructed, so `request.waitUntil` IS the Workers
+ * `ctx.waitUntil`, already bound. Probed rather than assumed, so the dev server,
+ * node and `bun test` all take the fallback path unchanged.
+ *
+ * The `.catch` is attached BEFORE the promise is handed over, so a rejection can
+ * never surface as an unhandled rejection inside waitUntil and take the isolate
+ * down with it.
+ */
+type MaybeWaitUntil = { waitUntil?: (promise: Promise<unknown>) => void };
+
+function keepAliveAfterResponse(request: Request, work: Promise<unknown>, label: string): void {
+  const guarded = work.catch((err) => {
+    console.error(`[chat] ${label} async dispatch failed:`, err);
+  });
+  const waitUntil = (request as unknown as MaybeWaitUntil).waitUntil;
+  if (typeof waitUntil === "function") {
+    try {
+      waitUntil.call(request, guarded);
+      return;
+    } catch {
+      // Fall through: a runtime that exposes the name but refuses the call must
+      // not lose the dispatch entirely.
+    }
+  }
+  // Non-Workers runtime. Exactly the previous behaviour.
+  void guarded;
+}
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
@@ -598,32 +646,53 @@ You must output a JSON object EXACTLY in this format:
               }
               // Dispatch the ready step now (idempotent; the resume-runs cron also
               // advances it). Fire-and-forget, so it never blocks the reply.
-              advanceMissionCore(supabase, {
-                id: mission.id,
-                user_id: userId,
-                workspace_id: workspaceId,
-                goal: missionGoal || body.content,
-                status: "running",
-              }).catch((err) => {
-                console.error("[chat] advanceMissionCore async dispatch failed:", err);
-              });
+              keepAliveAfterResponse(
+                request,
+                advanceMissionCore(supabase, {
+                  id: mission.id,
+                  user_id: userId,
+                  workspace_id: workspaceId,
+                  goal: missionGoal || body.content,
+                  status: "running",
+                }),
+                "advanceMissionCore",
+              );
             } else {
-              // Fire-and-forget the orchestrator loop asynchronously
-              runAgentLoop(supabase, userId, {
-                agentSlug: "orchestrator",
-                goal: missionGoal || body.content,
-                model: model,
-                missionId: mission.id,
-                workspaceId,
-              }).catch((err) => {
-                console.error("[chat] runAgentLoop async dispatch failed:", err);
-              });
+              // Dispatched after the reply streams, and kept alive across it.
+              keepAliveAfterResponse(
+                request,
+                runAgentLoop(supabase, userId, {
+                  agentSlug: "orchestrator",
+                  goal: missionGoal || body.content,
+                  model: model,
+                  missionId: mission.id,
+                  workspaceId,
+                }),
+                "runAgentLoop",
+              );
             }
 
             // Return custom SSE stream yielding content + mission_id instantly
+            /**
+             * SAY WHAT HAS HAPPENED, NOT WHAT IS ABOUT TO.
+             *
+             * This read "I've planned and dispatched a new orchestrated
+             * mission". At the moment it is written, `createMission` has done
+             * exactly one thing: inserted a row. Nothing has been planned, no
+             * agent has run, and no step exists. The sentence was a claim about
+             * a future the isolate had not reached yet, and when the dispatch
+             * was cancelled (see keepAliveAfterResponse) it was simply false for
+             * the two minutes until the sweeper picked the run up.
+             *
+             * The mention branch was already honest, because "dispatched to
+             * <agent>" is true the instant the mission row exists. The
+             * orchestrator branch now makes the same shape of claim: the work is
+             * open and starting, and the next line invites you to watch it,
+             * which is where the truth actually becomes visible.
+             */
             const text = mentionedAgent
               ? `On it. I've dispatched **${mission.title}** to ${mentionedAgent.name}.\n\nYou can track its progress and approve decisions inline below.`
-              : `I've planned and dispatched a new orchestrated mission: **${mission.title}**.\n\nYou can track the progress of the specialist agents and approve their decisions inline below.`;
+              : `On it. **${mission.title}** is open and the crew is starting on it now.\n\nYou can watch the specialist agents work and approve their decisions inline below.`;
             const encoder = new TextEncoder();
             const missionStreamAbort = new AbortController();
             const stream = new ReadableStream({
