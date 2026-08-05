@@ -1,6 +1,7 @@
 import { parseChatMeta, type ChatMeta } from "@/components/chat/MessageMeta";
 import { parseResearchStatus, type ResearchStatus } from "@/components/chat/ResearchActivity";
 import { isAnswerBlock, type AnswerBlock } from "@/lib/ask-blocks";
+import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 
 // OBS-12 - the pure half of the Ask panel's SSE line parser, split out of
 // `AskPanel.tsx` so the /api/chat protocol handling (status/meta/delta
@@ -15,6 +16,36 @@ export type SseEvent =
   /** The answer's persisted row id, so promote actions can record themselves. */
   | { kind: "persisted"; messageId: string }
   | { kind: "delta"; piece?: string; missionId?: string }
+  /**
+   * THE THREE FRAMES THAT GIVE THIS PROTOCOL A WORD FOR WORK.
+   *
+   * The five above describe an ANSWER: its status, its metadata, its blocks,
+   * its persisted id, its text. That is the whole vocabulary, and it is why a
+   * conversational front door cannot yet show what the crew is doing: when a
+   * message dispatches work rather than answering, the server emits one delta
+   * carrying a mission id and then `[DONE]`, and the pane goes blind and falls
+   * back to a four-second poll. A surface whose promise is showing the work
+   * cannot be built on a protocol with no word for it.
+   *
+   * NOTHING EMITS THESE YET, and that is deliberate. They are additive and the
+   * consumer already tolerates unknown kinds (its branch chain ends in
+   * `if (event.kind !== "delta") continue`), so shipping the vocabulary ahead
+   * of the emitters changes no behaviour at all. It is done first because
+   * everything else in the conversational workspace is blocked on it and
+   * nothing before it is.
+   *
+   * Each carries the SMALLEST honest fact, never a rendered sentence: an id the
+   * client already knows how to name. `station` is one of the seven; `tool` is
+   * a registry name, which `toolActionLabel` turns into "drafting a spec";
+   * `landing` is where a result came to rest, so a run can hand back to the
+   * station that owns it instead of ending in a chat log.
+   */
+  /** The work moved to this station. One of AGENT_STATION_ORDER. */
+  | { kind: "station"; station: AgentStation }
+  /** An agent started this tool. A registry name, never a sentence. */
+  | { kind: "tool"; tool: string }
+  /** The result came to rest here, so the reader can go and see it. */
+  | { kind: "landing"; artifact: { kind: string; id: string; station?: AgentStation } }
   | { kind: "done" }
   | { kind: "ignored" }
   /** JSON.parse failed - the line may be a chunk-boundary split; the caller
@@ -22,6 +53,17 @@ export type SseEvent =
    * exactly like the retired chat.tsx reader did. Distinct from `null`
    * (not a `data: ` line at all), which the caller can just skip. */
   | { kind: "parse-error" };
+
+/**
+ * A station id, or null. Strict on purpose: the seven are a closed set, and a
+ * frame naming an eighth is a server this client does not understand yet.
+ */
+function parseStation(value: unknown): AgentStation | null {
+  if (typeof value !== "string") return null;
+  return (AGENT_STATION_ORDER as readonly string[]).includes(value)
+    ? (value as AgentStation)
+    : null;
+}
 
 /** PURE - parses one `data: ` SSE line (payload already stripped of the prefix is NOT required; pass the raw line). */
 export function parseSseLine(line: string): SseEvent | null {
@@ -43,6 +85,31 @@ export function parseSseLine(line: string): SseEvent | null {
   const persistedId = (parsed as { persisted?: { message_id?: unknown } }).persisted?.message_id;
   if (typeof persistedId === "string" && persistedId)
     return { kind: "persisted", messageId: persistedId };
+  /**
+   * The work frames, checked BEFORE `delta` and after the answer frames, so a
+   * payload can never be read as two things. Each validates rather than trusts:
+   * an unknown station id parses as `ignored`, exactly as an unknown frame
+   * always has, so a server that emits something this client does not
+   * understand degrades to silence instead of rendering a guess.
+   */
+  const station = parseStation((parsed as { station?: unknown }).station);
+  if (station) return { kind: "station", station };
+
+  const tool = (parsed as { tool?: unknown }).tool;
+  if (typeof tool === "string" && tool.trim()) return { kind: "tool", tool: tool.trim() };
+
+  const landing = (parsed as { landing?: unknown }).landing;
+  if (landing && typeof landing === "object") {
+    const l = landing as { kind?: unknown; id?: unknown; station?: unknown };
+    if (typeof l.kind === "string" && l.kind && typeof l.id === "string" && l.id) {
+      const at = parseStation(l.station);
+      return {
+        kind: "landing",
+        artifact: { kind: l.kind, id: l.id, ...(at ? { station: at } : {}) },
+      };
+    }
+  }
+
   const choices = (parsed as { choices?: { delta?: { content?: string; mission_id?: string } }[] })
     .choices;
   const piece = choices?.[0]?.delta?.content;
