@@ -497,6 +497,19 @@ function PlanPage() {
               shownSpecs.map((spec) => {
                 const bet = spec.opportunity_id ? betTitleById.get(spec.opportunity_id) : null;
                 const settled = spec.status === "approved" || spec.status === "shipped";
+                // Show design gate status if the spec is being designed (not yet approved).
+                // Format: "Drafting · design pending" or "In review · design approved".
+                const designGateStatus = (spec as { design_gate_status?: string | null }).design_gate_status;
+                const designWord =
+                  designGateStatus === "approved"
+                    ? "approved"
+                    : designGateStatus === "rejected"
+                      ? "rejected"
+                      : "pending";
+                const withDesignStatus =
+                  spec.status !== "approved" && spec.status !== "shipped" && designGateStatus
+                    ? ` · design ${designWord}`
+                    : "";
                 return (
                   <Row
                     key={spec.id}
@@ -506,8 +519,12 @@ function PlanPage() {
                     marks={<AgentMark slug="prd-writer" state={settled ? "quiet" : "idle"} />}
                     lead={stripAutoPrefix(spec.title)}
                     // One line, one different fact: where the spec has got to,
-                    // and which bet it is the written form of.
-                    sub={bet ? `${specState(spec.status)} · serves ${bet}` : specState(spec.status)}
+                    // which bet it is, and (if drafting) design gate status.
+                    sub={
+                      bet
+                        ? `${specState(spec.status)} · serves ${bet}${withDesignStatus}`
+                        : `${specState(spec.status)}${withDesignStatus}`
+                    }
                     time={ago(spec.updated_at)}
                     onClick={() =>
                       void navigate({

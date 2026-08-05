@@ -1055,7 +1055,7 @@ export const listSpecs = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("prds")
       .select(
-        "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id",
+        "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id,design_gate_status",
       )
       .order("updated_at", { ascending: false })
       .limit(300);
