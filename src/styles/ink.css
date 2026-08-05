@@ -251,6 +251,28 @@
 
   /* ---- Structure ---- prototype: --line --line2 --hover */
   --sp-line: rgba(255, 255, 255, 0.1); /* a real edge */
+  /* A FIELD EDGE THAT CAN BE SEEN, which --sp-line cannot be.
+   *
+   * WCAG 1.4.11 asks 3:1 for the boundary of a control when the boundary is the
+   * only thing that makes the control perceivable. On an input it is: the fill
+   * (--sp-sink, #0d0d10) and the page (--sp-bg, #0b0b0d) are two shades of the
+   * same near-black, so the border is doing all the work -- and at 10% white it
+   * measured about 1.2:1. A low-vision person scanning an unfocused form could
+   * not see where the fields were. Every Input, Select and Textarea in the
+   * product, in both themes.
+   *
+   * NOT --sp-mute, which the audit suggested and which measures near 6:1: that
+   * is the colour of LABELS, and putting label weight on the edge of every
+   * field turns a calm form into a grid. This clears the bar with headroom and
+   * stays quieter than the text it surrounds. Measured in a browser, not
+   * computed here: see the commit. */
+  --sp-field-edge: #6b6b75;
+  /* Focus must be a step UP from rest, and raising the resting edge broke that
+   * on paper: focus used --sp-mute, which is LIGHTER than the new rest, so a
+   * focused field in the light theme read as weaker than an idle one. A focus
+   * ring that recedes is worse than no change at all. This is stronger than
+   * rest in both themes, in each theme's own direction. */
+  --sp-field-edge-focus: #a8a8b2;
   --sp-line-soft: rgba(255, 255, 255, 0.055); /* a rule between sections */
   --sp-hover: rgba(255, 255, 255, 0.045);
   --sp-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.7), 0 4px 10px -3px rgba(0, 0, 0, 0.5);
@@ -284,6 +306,10 @@
   --sp-mute: #8a8071;
 
   --sp-line: rgba(70, 55, 30, 0.13);
+  /* The same rule on paper: warm, so it belongs to this theme's family rather
+   * than reading as a grey imported from the dark one. */
+  --sp-field-edge: #7a6f5d;
+  --sp-field-edge-focus: #554c3c;
   --sp-line-soft: rgba(70, 55, 30, 0.065);
   --sp-hover: rgba(70, 55, 30, 0.04);
   --sp-shadow: 0 10px 26px -10px rgba(80, 60, 25, 0.16), 0 2px 5px -2px rgba(80, 60, 25, 0.09);

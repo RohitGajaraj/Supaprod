@@ -937,7 +937,11 @@ button.sp-ctx-row:focus-visible {
   font-size: var(--sp-text-prose);
   color: var(--sp-ink);
   background: var(--sp-sink);
-  border: 1px solid var(--sp-line);
+  /* --sp-field-edge, not --sp-line. The fill and the page are two shades of the
+   * same near-black, so this border is the ONLY thing that says a control is
+   * here, and at --sp-line it measured about 1.2:1 against 3:1 required. See
+   * the token's own note in ink.css. */
+  border: 1px solid var(--sp-field-edge);
   border-radius: var(--sp-radius-ctl);
   padding: 0 12px;
   height: var(--sp-ctl-lg);
@@ -956,7 +960,11 @@ button.sp-ctx-row:focus-visible {
 .sp-input:focus,
 .sp-select:focus,
 .sp-textarea:focus {
-  border-color: var(--sp-mute);
+  /* --sp-field-edge-focus, not --sp-mute. Once the resting edge was raised to
+     clear 3:1, --sp-mute was LIGHTER than rest in the light theme, so focusing
+     a field made its border recede. A focus indicator that gets quieter on
+     focus is worse than one that never changed. */
+  border-color: var(--sp-field-edge-focus);
   background: var(--sp-sheet);
 }
 /* ONE LINE ON FOCUS, NOT TWO.

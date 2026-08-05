@@ -553,7 +553,35 @@ export function Receipt({
   initials?: string;
 }) {
   return (
-    <div className="sp-receipt" data-failed={failed}>
+    /**
+     * SPOKEN, NOT ONLY DRAWN.
+     *
+     * THE DEFECT, found by an accessibility audit on 2026-08-06 and true on
+     * every gate in the product: a person using a screen reader pressed `a` on
+     * Today, the call was approved, the queue dropped it, the Gate's question
+     * silently became the next call, and a receipt appeared here saying what
+     * happened. NONE of it was announced. They got total silence after
+     * committing an irreversible decision, and the only way to learn the result
+     * was to re-explore the page.
+     *
+     * Six surfaces had it -- Today, Approvals, Decide, Design, Crew, Discover --
+     * and not one of them carried a live region. The codebase plainly knew the
+     * pattern: `Loading` uses `aria-live="polite"` and `AgentPulse` wraps its
+     * label in one. It had been applied to "an agent is working" and never to
+     * "your decision was recorded", which is the louder of the two.
+     *
+     * FIXED HERE RATHER THAN SIX TIMES. Every one of those mutations ends in a
+     * Receipt, so the primitive is the one place that covers all of them and
+     * every gate built after tonight. `role="status"` is the polite register:
+     * it waits for a pause rather than interrupting, which is right for a
+     * confirmation of something the person just did deliberately.
+     *
+     * NOT `role="alert"`, which interrupts immediately and is for trouble the
+     * person did not cause. A failed receipt still uses status: the failure is
+     * the answer to their own keypress, and it is on screen where they are
+     * already looking.
+     */
+    <div className="sp-receipt" data-failed={failed} role="status" aria-live="polite">
       {initials ? <YouMark initials={initials} mine /> : null}
       <span className="sp-receipt-what">
         <span className="sp-receipt-verb">{verb}</span>

@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import { useFocusTrap } from "@/hooks/use-focus-trap";
+
 import {
   GLOBAL_KEYS,
   KEYBOARD_RULES,
@@ -57,6 +59,18 @@ export function ShortcutSheet({
   onClose: () => void;
   pathname: string;
 }) {
+  /**
+   * FOCUS, WHICH THIS SHIPPED WITHOUT AND SHOULD NOT HAVE.
+   *
+   * It declared `role="dialog" aria-modal="true"` and did none of what those
+   * two attributes promise: focus never entered, Tab walked straight past the
+   * scrim into the page underneath, and closing left focus wherever it happened
+   * to be. `aria-modal` had meanwhile told a screen reader that the page behind
+   * was inert, so the two halves of the same overlay disagreed about what
+   * existed. Found by an accessibility audit the same night this was written.
+   */
+  const trap = useFocusTrap(open);
+
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -79,13 +93,20 @@ export function ShortcutSheet({
   const chords = navChords();
 
   return (
-    <div className="sp-keys" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <div
+      className="sp-keys"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Keyboard shortcuts"
+      ref={trap}
+    >
       {/* The scrim closes, the same as the board's. Someone who opened this to
         check one key should not have to hunt for the way out of it. */}
       <button
         type="button"
         className="sp-keys-scrim"
         aria-label="Close the shortcuts"
+        data-autofocus
         onClick={onClose}
       />
       <div className="sp-keys-sheet">

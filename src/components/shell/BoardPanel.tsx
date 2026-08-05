@@ -41,6 +41,7 @@ import { missionProgress } from "@/lib/delegate-desk";
 import { RunBoard } from "@/components/runs/RunBoard";
 import { runState } from "@/components/runs/run-state";
 import { Failed, Loading } from "@/components/shell/primitives";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
@@ -75,6 +76,15 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
     return map;
   }, [plan.data]);
 
+  /**
+   * FOCUS, which this declared and never delivered. Same defect as the shortcut
+   * sheet and found in the same audit: `aria-modal="true"` on an overlay that
+   * let Tab walk into the page behind it. This panel renders as the LAST child
+   * of `.sp-app`, after the rail and the entire work region, so tabbing forward
+   * from the button that opened it crossed the whole page before arriving.
+   */
+  const trap = useFocusTrap(open);
+
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -95,13 +105,20 @@ export function BoardPanel({ open, onClose }: { open: boolean; onClose: () => vo
   if (!open) return null;
 
   return (
-    <div className="sp-boardpanel" role="dialog" aria-modal="true" aria-label="Every run">
+    <div
+      className="sp-boardpanel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Every run"
+      ref={trap}
+    >
       {/* The scrim closes. A person who opened this to glance should be able to
         dismiss it without hunting for the control that did it. */}
       <button
         type="button"
         className="sp-boardpanel-scrim"
         aria-label="Close the board"
+        data-autofocus
         onClick={onClose}
       />
       <div className="sp-boardpanel-sheet">
