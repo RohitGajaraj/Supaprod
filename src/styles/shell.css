@@ -1402,7 +1402,23 @@ button.sp-me {
  * work and cannot be dismissed is a worse fault than the one this fixes. */
 .sp-dock {
   position: fixed;
-  left: var(--sp-rail-w, 236px);
+  /* THE RAIL'S ACTUAL WIDTH, NOT A GUESS AT IT.
+   *
+   * This read `var(--sp-rail-w, 236px)`, which is the EXPANDED width and never
+   * changed. Measured in a browser at 1280px: the rail had already collapsed to
+   * 64px, content started at x=104, and the dock still sat at x=276. A front
+   * door 172px adrift of the work it belongs to.
+   *
+   * The rail narrows two ways and this has to answer both. `data-rail="narrow"`
+   * is the shell's own auto-collapse once the spine is familiar, and the 900px
+   * media query is the small-screen rule. Below 640px the rail is gone entirely
+   * and the dock takes the full width.
+   *
+   * `:has()` rather than a descendant selector, because the dock is rendered by
+   * GlobalComposer OUTSIDE `.sp-app`, so `.sp-app[data-rail] .sp-dock` matches
+   * nothing. Reading the state off an ancestor is what keeps ONE source of
+   * truth for that width instead of a second number that drifts. */
+  left: var(--sp-rail-w);
   right: 0;
   bottom: 0;
   z-index: 30;
@@ -1480,11 +1496,21 @@ button.sp-me {
 .sp-work {
   padding-bottom: 68px;
 }
+/* The shell's own auto-collapse, once the 01-07 spine is familiar. */
+body:has(.sp-app[data-rail="narrow"]) .sp-dock {
+  left: var(--sp-rail-w-narrow);
+}
 @media (max-width: 900px) {
   .sp-dock {
-    left: 0;
+    left: var(--sp-rail-w-narrow);
   }
   .sp-dock-live {
     display: none;
+  }
+}
+/* Below this the rail is not there at all, so neither is the offset. */
+@media (max-width: 640px) {
+  .sp-dock {
+    left: 0;
   }
 }
