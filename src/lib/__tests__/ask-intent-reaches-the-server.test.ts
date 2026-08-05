@@ -67,7 +67,11 @@ describe("Ask's visible fork travels to the server", () => {
     const flat = pane.replace(/\s+/g, " ");
     // The pane thinks in question/instruction (what the control says); the API
     // speaks ask/do. The mapping must be present, not just the call.
-    expect(flat).toMatch(/stream\.sendIntent\([^)]*intent === "question" \? "ask" : "do"/);
+    // `[^)]*` will not do here: the first argument is itself a call, so the
+    // pattern has to be allowed to cross its closing paren.
+    expect(flat).toMatch(
+      /stream\.sendIntent\(\s*contentForIntent\(text, intent\),\s*intent === "question" \? "ask" : "do"/,
+    );
   });
 });
 

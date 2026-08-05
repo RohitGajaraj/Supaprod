@@ -336,10 +336,7 @@ function AskPaneOpen() {
      * pane thinks in "question / instruction", which is what the control says,
      * and the API speaks "ask / do".
      */
-    stream.sendIntent(
-      contentForIntent(text, intent),
-      intent === "question" ? "ask" : "do",
-    );
+    stream.sendIntent(contentForIntent(text, intent), intent === "question" ? "ask" : "do");
     setDraft("");
     setIntentOverride(null);
     // The answer is the thing to look at now, not the list you came from.
