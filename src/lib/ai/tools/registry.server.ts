@@ -24,6 +24,10 @@ import { FANOUT_MAX_CHILDREN, fanoutDepthOf, canSpawnAtDepth } from "@/lib/ai/fa
 import { submitDelegation } from "@/lib/delegate/openhands.server";
 import { DELEGATE_TASK_MAX_CHARS } from "@/lib/delegate/provider";
 import { rememberOutcome } from "@/lib/ai/memory.server";
+// The in-house error floor, so a memory write that silently produced nothing is a
+// row someone can query rather than a console line in a Worker. Server-only file,
+// so the admin client this lazy-loads is available. See learning.record.
+import { recordErrorEvent } from "@/lib/observability/errors";
 // The verdict rules, read from the one place that owns them, so the agent path
 // and the human recordOutcome path can never disagree about what a verdict does
 // to a bet's confidence. See the comment on the exports in outcome.functions.ts.
@@ -62,6 +66,13 @@ import { runChangesetReview, loadStagedContent } from "@/lib/build/code-review.s
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import type { ProviderAuthCache } from "@/lib/connectors/resolve.server";
 import { runRollbackRelease } from "@/lib/studio-rollbacks";
+/* Back-import into studio.functions.ts, which itself imports TOOL_REGISTRY from
+ * this file. The cycle is real and it is safe here for one specific reason:
+ * stampSpecShippedOnStudioMerge is a HOISTED async function declaration, and it
+ * is only dereferenced inside the tool's run() closure, long after both modules
+ * have finished evaluating. A const arrow export would TDZ. Verified with a full
+ * `bun run build`, not just tsc, because only the Worker bundle proves it. */
+import { stampSpecShippedOnStudioMerge } from "@/lib/studio.functions";
 import { clusterSignalsCore } from "@/lib/ai/cluster.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { recordLineageSafe } from "@/lib/lineage.functions";
@@ -2519,6 +2530,14 @@ const studioPrMerge = def({
     // GitHub required checks). Read fresh so we never merge on a stale green;
     // kept outside withIdempotency so a blocked attempt re-checks each time and
     // only a green merge is cached. Verdict logic shared with github.ci.read.
+    /* The PR's BASE branch, carried out of the CI-gate block below.
+     *
+     * The merge is the moment a spec can honestly be called shipped, and
+     * stampSpecShippedOnStudioMerge refuses to stamp unless the merge landed on
+     * the repo's DEFAULT branch. That check needs the base ref, which is only
+     * read inside the gate's own scope, so it is captured here rather than
+     * paying for a second GitHub round trip in the merge body. */
+    let prBaseRef: string | null = null;
     {
       const prRes = await fetch(
         `https://api.github.com/repos/${repo}/pulls/${changeset.pr_number}`,
@@ -2528,9 +2547,11 @@ const studioPrMerge = def({
         throw new Error(`GitHub get-pr ${prRes.status}: ${(await prRes.text()).slice(0, 200)}`);
       const prJson = (await prRes.json()) as {
         head: { sha: string };
+        base: { ref: string };
         merged: boolean;
         state: string;
       };
+      prBaseRef = prJson.base?.ref ?? null;
       // A closed-but-unmerged PR can't be merged; fail clearly instead of
       // falling through to a misleading "conflicts or pending checks" 405.
       if (prJson.state !== "open" && !prJson.merged)
@@ -2653,6 +2674,50 @@ const studioPrMerge = def({
           .from("studio_changesets")
           .update({ status: "merged", updated_at: new Date().toISOString() })
           .eq("id", changeset.id);
+
+        /* THE LOOP USED TO END HERE, and that is why the moat never filled.
+         *
+         * The chain is spec, build, merge, and then nothing: no writer ever
+         * stamped prds.shipped_at in practice, so no outcome ever entered the
+         * settle queue, so rememberOutcome was never called, so agent_memory
+         * holds ZERO rows of kind "outcome" and every precedent lookup returns
+         * empty. loadDecisionPrecedent has fired 71 times and found nothing all
+         * 71. The landing page's "past calls surface before this one is made"
+         * was false for exactly this reason.
+         *
+         * The other two writers cannot cover a real customer. checkPrdShipped
+         * needs a linked GitHub issue to close, and the promote path refuses
+         * without a preview deployment row that ci-poll-tick only creates for
+         * Supaprod-managed repos. On a customer's own repo there was NO
+         * reachable writer at all: 16 merged changesets, 0 shipped specs.
+         *
+         * Merge is the honest trigger, and it is strictly STRONGER than the
+         * writer this product already trusts: checkPrdShipped stamps when an
+         * issue closes, which also happens for wontfix and duplicate. Here
+         * GitHub has confirmed merged:true with a SHA onto the default branch,
+         * past the CI-green gate. The stamper refuses everything short of that
+         * and never overwrites an existing shipped_at, so a deploy that already
+         * recorded a truer moment keeps it.
+         *
+         * Best effort by design: the merge has happened and must stand even if
+         * this bookkeeping write fails. It is awaited so a failure is observable
+         * rather than a floating promise. */
+        try {
+          await stampSpecShippedOnStudioMerge(supabase, {
+            changesetId: changeset.id,
+            userId,
+            mergeConfirmed: j.merged,
+            mergeSha: j.sha,
+            baseBranch: prBaseRef,
+            defaultBranch: await getDefaultBranch(repo, headers),
+          });
+        } catch (e) {
+          void recordErrorEvent(e, {
+            surface: "studio.pr.merge.ship-stamp",
+            failure_kind: "ship_stamp_failed",
+            user_id: userId,
+          });
+        }
         await supabase
           .from("builder_file_claims")
           .update({
@@ -3577,9 +3642,25 @@ const learningRecord = def({
      * makes it a moat.
      *
      * Using the resolved id is what lets the pool start filling. */
+    /* AND THE FAILURE HAS TO BE VISIBLE, NOT JUST THE SUCCESS.
+     *
+     * `rememberOutcome` returns `{ id, supersedes, error }` precisely so a write
+     * that produced no memory says why. This call used to discard the whole
+     * result and catch only a throw, which `rememberOutcome` never does: it
+     * returns its refusals (unembeddable content, a rejected insert) instead. So
+     * the agent path could report a recorded learning while the outcome memory,
+     * the only thing that fills the precedent pool, was silently never written,
+     * and the sole trace was a console line in a Worker nobody reads. The human
+     * path already stamps this into `prds.outcome.settled_memory_error`; this is
+     * the same fact for the agent path, on the record instead of on stdout.
+     *
+     * Still best effort by design: the learnings row above is already committed
+     * and must stay committed, so a memory miss reports and never throws. */
+    let outcomeMemoryId: string | null = null;
+    let outcomeMemoryError: string | null = null;
     if (resolvedPrdId) {
       try {
-        await rememberOutcome(supabase, {
+        const memory = await rememberOutcome(supabase, {
           userId,
           workspaceId: resolvedWorkspace,
           prdId: resolvedPrdId,
@@ -3593,8 +3674,30 @@ const learningRecord = def({
           prdTitle,
           oppTitle,
         });
+        outcomeMemoryId = memory.id;
+        outcomeMemoryError = memory.error;
       } catch (e) {
-        console.error("learning.record rememberOutcome failed", e);
+        outcomeMemoryError = e instanceof Error ? e.message : String(e);
+      }
+      if (outcomeMemoryError) {
+        // Awaited, not fired and forgotten: an unawaited promise in a Cloudflare
+        // Worker can be dropped when the request settles, which would put this
+        // report back in the same nowhere the console line was in.
+        // recordErrorEvent never throws and swallows its own failures.
+        await recordErrorEvent(new Error(outcomeMemoryError), {
+          surface: "learning.record",
+          failure_kind: "outcome_memory_not_written",
+          user_id: userId,
+          workspace_id: resolvedWorkspace ?? undefined,
+          extras: {
+            prd_id: resolvedPrdId,
+            learning_id: learningId,
+            opportunity_id: opportunityId,
+            verdict: a.verdict,
+            agent_slug: agentSlug ?? null,
+            mission_id: missionId ?? null,
+          },
+        });
       }
     }
 
@@ -3604,6 +3707,10 @@ const learningRecord = def({
       opportunity_id: opportunityId,
       prior_ice: priorIce,
       new_ice: newIce,
+      // The agent reading this result learns the same thing the error store does:
+      // whether its verdict actually reached the pool future runs search.
+      outcome_memory_id: outcomeMemoryId,
+      outcome_memory_error: outcomeMemoryError,
     };
   },
 });

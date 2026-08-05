@@ -29,7 +29,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { assessAndQuarantine } from "@/lib/injection-classifier";
+import {
+  getUserWorkspaceRole,
+  writeDeniedReason,
+  type GovernedSurface,
+  type Role,
+} from "./roles.functions";
 
 export type HouseRuleStatus = "pending" | "approved" | "rejected";
 
@@ -270,6 +277,57 @@ export const listHouseRules = createServerFn({ method: "GET" })
     return { rules: (rows ?? []) as HouseRule[] };
   });
 
+/** The two kinds of write this file performs on `house_rules`. */
+export type HouseRuleWriteAction = "decide" | "draft";
+
+/**
+ * PURE. Which governed surface a house-rule write belongs to.
+ *
+ * DECIDING a rule (approve or reject) is an owner/admin act, because an
+ * approved rule is injected verbatim into every agent's system prompt at the
+ * chokepoint. DRAFTING one is a proposal, and a member keeps it: a draft lands
+ * as status='pending' and changes no agent's behaviour until somebody decides
+ * it. Collapsing the two would either hand a viewer the approval or take
+ * proposing away from members, so the choice is made once, here, and tested.
+ */
+export function houseRuleSurface(action: HouseRuleWriteAction): GovernedSurface {
+  return action === "decide" ? "house_rules_decide" : "house_rules_draft";
+}
+
+/**
+ * PURE, and the only place this file decides what to say about a refused write.
+ * Null means the role may write.
+ *
+ * THE DEFECT THIS EXISTS TO PREVENT: RLS refuses an UPDATE by matching zero
+ * rows, not by raising. Once migration 20260805130000 narrows house_rules
+ * writes to owner/admin, a viewer pressing Approve would otherwise watch the
+ * button do nothing and hear nothing, which is strictly worse than the hole
+ * being closed.
+ */
+export function houseRuleWriteDenial(
+  role: Role | null | undefined,
+  action: HouseRuleWriteAction,
+): string | null {
+  return writeDeniedReason(role, houseRuleSurface(action));
+}
+
+/**
+ * Refuse a house-rule write BEFORE attempting it, in a sentence a person can
+ * act on. Reads the role off workspace_members, which is exactly what the
+ * database's own has_workspace_role() reads, so this check and the policy that
+ * enforces it cannot drift into disagreeing.
+ */
+async function assertCanWriteHouseRule(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  workspaceId: string,
+  action: HouseRuleWriteAction,
+): Promise<void> {
+  const role = await getUserWorkspaceRole(supabase, workspaceId, userId);
+  const denial = houseRuleWriteDenial(role, action);
+  if (denial) throw new Error(denial);
+}
+
 const DecideSchema = z.object({
   ruleId: z.string().uuid(),
   decision: z.enum(["approve", "reject"]),
@@ -283,6 +341,22 @@ export const decideHouseRule = createServerFn({ method: "POST" })
   .inputValidator((d: z.input<typeof DecideSchema>) => DecideSchema.parse(d))
   .handler(async ({ context, data }): Promise<DecideHouseRuleResult> => {
     const { supabase, userId } = context;
+    // Read the rule's workspace first so the refusal can name the caller's role
+    // instead of arriving as an unexplained zero-row update.
+    const { data: rule, error: readErr } = await supabase
+      .from("house_rules")
+      .select("workspace_id")
+      .eq("id", data.ruleId)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!rule) throw new Error("That house rule is no longer here, so nothing changed.");
+    await assertCanWriteHouseRule(
+      supabase,
+      userId,
+      (rule as { workspace_id: string }).workspace_id,
+      "decide",
+    );
+
     const status: HouseRuleStatus = data.decision === "approve" ? "approved" : "rejected";
     const { data: updated, error } = await supabase
       .from("house_rules")
@@ -291,10 +365,16 @@ export const decideHouseRule = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
-    // A zero-row update means the rule was already gone or (via RLS) belongs
-    // to a workspace the caller isn't a member of — fail loudly instead of
-    // returning ok:true for a no-op the UI would otherwise render as success.
-    if (!updated) throw new Error("decideHouseRule: rule not found or not accessible");
+    // The role check above has already answered the common case. A zero-row
+    // update that survives it is genuinely ambiguous: a policy refusal and a
+    // rule someone else removed a second ago are the same empty response, and
+    // PostgREST does not say which. Say that, rather than guess, and never
+    // return ok:true for a decision we cannot vouch for.
+    if (!updated) {
+      throw new Error(
+        "We could not confirm that decision. Reload the page and check this rule before relying on it.",
+      );
+    }
     return { ok: true };
   });
 
@@ -323,8 +403,12 @@ export const supersedeHouseRule = createServerFn({ method: "POST" })
       .eq("id", data.oldRuleId)
       .maybeSingle();
     if (oldErr) throw new Error(oldErr.message);
-    if (!oldRule) throw new Error("supersedeHouseRule: original rule not found");
+    if (!oldRule) throw new Error("That house rule is no longer here, so nothing was drafted.");
     const workspaceId = (oldRule as { workspace_id: string }).workspace_id;
+    // A replacement is a DRAFT, not a decision: it lands as status='pending'
+    // and changes no agent's behaviour until somebody approves it. So a member
+    // keeps this, and only a read-only role is turned away.
+    await assertCanWriteHouseRule(supabase, userId, workspaceId, "draft");
 
     // Same untrusted-boundary screening as the AI-drafted path (defense in
     // depth): a human-submitted replacement still ends up injected into every
