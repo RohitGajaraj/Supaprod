@@ -176,7 +176,7 @@ export function GateChip(props: GateChipProps) {
           <button
             type="button"
             onClick={onSendBack}
-            className={cn(GATE_BTN, "border hover:bg-[#202024]")}
+            className={cn(GATE_BTN, "border hover:bg-[var(--ink-raised)]")}
             style={{
               background: "var(--ink-raised)",
               borderColor: "var(--ink-hairline)",

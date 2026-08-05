@@ -1344,7 +1344,7 @@ export function PrototypeFace({ productId, loop, onActivateJourney }: FaceProps)
               href={`/p/${latest.shareSlug}`}
               target="_blank"
               rel="noreferrer"
-              className="ink-focus inline-flex h-8 flex-none items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors hover:bg-[#202024]"
+              className="ink-focus inline-flex h-8 flex-none items-center gap-1.5 rounded-lg border px-3 text-[12px] font-medium transition-colors hover:bg-[var(--ink-raised)]"
               style={{
                 background: "var(--ink-raised)",
                 borderColor: "var(--ink-hairline)",
@@ -2172,7 +2172,7 @@ export function CodeFace({ productId, loop, onActivateJourney }: FaceProps) {
             <Link
               to="/build/$missionId"
               params={{ missionId: focusedId }}
-              className="ink-focus inline-flex h-8 w-fit items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+              className="ink-focus inline-flex h-8 w-fit items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[var(--ink-raised)]"
               style={{
                 background: "var(--ink-raised)",
                 borderColor: "var(--ink-hairline)",
@@ -2282,7 +2282,7 @@ export function ShipFace({ productId, workspaceId, loop, onActivateJourney }: Fa
                     href={d.deploy_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="ink-focus mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+                    className="ink-focus mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[var(--ink-raised)]"
                     style={{
                       background: "var(--ink-raised)",
                       borderColor: "var(--ink-hairline)",

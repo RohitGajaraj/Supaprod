@@ -235,7 +235,7 @@ function back(o: Orr) {
     .map((r, i) => {
       const structural = i < 3; // the three layers read heavier than depth rings
       return `<path d="${arc(o, r, Math.PI, Math.PI * 2)}" fill="none" stroke="url(#fall${o.id})"
-      stroke-width="${structural ? 1.7 : 1.15}" opacity="${(structural ? 0.44 - i * 0.055 : 0.20).toFixed(3)}"/>`;
+      stroke-width="${structural ? 1.7 : 1.15}" opacity="${(structural ? 0.44 - i * 0.055 : 0.2).toFixed(3)}"/>`;
     })
     .join("");
   const nodes = STATIONS.map((_, i) => {
@@ -301,7 +301,7 @@ function front(o: Orr) {
     .map((r, i) => {
       const structural = i < 3;
       return `<path d="${arc(o, r, 0, Math.PI)}" fill="none" stroke="url(#fall${o.id})"
-      stroke-width="${structural ? 1.95 : 1.3}" opacity="${(structural ? 0.66 - i * 0.075 : 0.30).toFixed(3)}"/>`;
+      stroke-width="${structural ? 1.95 : 1.3}" opacity="${(structural ? 0.66 - i * 0.075 : 0.3).toFixed(3)}"/>`;
     })
     .join("");
 
@@ -394,12 +394,13 @@ function starfield(w: number, h: number, seed: string, cx: number, cy: number, c
   if (P.markTone !== "dark") return ""; // paper does not have stars
   let x = 0;
   for (const ch of seed) x = (x * 31 + ch.charCodeAt(0)) >>> 0;
-  const rnd = () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const rnd = () => (x = (x * 1664525 + 1013904223) >>> 0) / 4294967296;
 
   const out: string[] = [];
   for (let i = 0; i < 190; i++) {
     // Bias toward a diagonal band: average two samples pulls density to a line.
-    const u = rnd(), v = rnd();
+    const u = rnd(),
+      v = rnd();
     const sx = u * w;
     const band = (u * 0.55 + rnd() * 0.45) * h;
     const sy = v < 0.62 ? band : rnd() * h;
@@ -410,7 +411,9 @@ function starfield(w: number, h: number, seed: string, cx: number, cy: number, c
     const mag = rnd();
     const r = (0.28 + mag * mag * 1.25).toFixed(2);
     const a = (0.06 + mag * mag * 0.42).toFixed(3);
-    out.push(`<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${r}" fill="#fff" opacity="${a}"/>`);
+    out.push(
+      `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${r}" fill="#fff" opacity="${a}"/>`,
+    );
 
     // The few brightest get a glint, which is what reads as a star.
     if (mag > 0.955) {
@@ -490,7 +493,11 @@ svg.layer{position:absolute;inset:0;pointer-events:none}
  *   6. all seven station names
  */
 function machine(
-  w: number, h: number, o: Orr, markPx: number, coreR: number,
+  w: number,
+  h: number,
+  o: Orr,
+  markPx: number,
+  coreR: number,
   labels?: { r: number; size: number },
 ) {
   return `
@@ -516,5 +523,21 @@ function readout(o: Orr, i: number, label: string, side: "left" | "right", gap =
     </div>`;
 }
 
-export { P, STATIONS, ang, px, py, machine, readout, markEl, GRAIN, page, render, OUT, coreLight, starfield, stationLabels };
+export {
+  P,
+  STATIONS,
+  ang,
+  px,
+  py,
+  machine,
+  readout,
+  markEl,
+  GRAIN,
+  page,
+  render,
+  OUT,
+  coreLight,
+  starfield,
+  stationLabels,
+};
 export type { Orr };

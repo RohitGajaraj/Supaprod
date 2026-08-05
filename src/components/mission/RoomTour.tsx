@@ -145,7 +145,7 @@ export function RoomTour({ open, onClose }: RoomTourProps) {
             type="button"
             onClick={() => (isLast ? onClose() : setStep((s) => s + 1))}
             className={cn(
-              "ink-focus ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]",
+              "ink-focus ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[var(--ink-raised)]",
             )}
             style={{
               background: "var(--ink-panel)",

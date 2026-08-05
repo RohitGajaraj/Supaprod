@@ -632,7 +632,7 @@ export function MissionShell({
                 dismissTourOffer();
                 setTourOpen(true);
               }}
-              className="ink-focus inline-flex h-8 items-center rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+              className="ink-focus inline-flex h-8 items-center rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[var(--ink-raised)]"
               style={{
                 background: "var(--ink-panel)",
                 borderColor: "var(--ink-hairline)",

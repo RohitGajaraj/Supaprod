@@ -174,7 +174,7 @@ export function ComposerSurface({
           onClick={() => pick(rows[askIndex])}
           disabled={streaming || draft.trim().length === 0}
           aria-label="Send"
-          className="ink-focus flex h-8 flex-none items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors hover:bg-[#202024] disabled:cursor-not-allowed disabled:opacity-50"
+          className="ink-focus flex h-8 flex-none items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors hover:bg-[var(--ink-raised)] disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             background: "var(--ink-raised)",
             borderColor: "var(--ink-hairline)",

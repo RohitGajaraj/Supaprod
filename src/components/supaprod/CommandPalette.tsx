@@ -146,7 +146,9 @@ export function CommandPalette() {
   const runRow = (row: PaletteRow) => {
     setOpen(false);
     if (row.section === "ASK") {
-      window.dispatchEvent(new CustomEvent("supaprod:open-ask", { detail: { intent: row.intent } }));
+      window.dispatchEvent(
+        new CustomEvent("supaprod:open-ask", { detail: { intent: row.intent } }),
+      );
       return;
     }
     if (row.section === "ACT" && row.event) {

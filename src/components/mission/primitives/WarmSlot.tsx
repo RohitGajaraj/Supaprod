@@ -98,7 +98,7 @@ export function WarmSlot({ ownWork, sample, sampleNote, line, className }: WarmS
           <button
             type="button"
             onClick={line.onAction}
-            className="ink-focus inline-flex h-8 items-center gap-[7px] whitespace-nowrap rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[#202024]"
+            className="ink-focus inline-flex h-8 items-center gap-[7px] whitespace-nowrap rounded-lg border px-3 text-[12.5px] font-medium transition-colors hover:bg-[var(--ink-raised)]"
             style={{
               background: "var(--ink-raised)",
               borderColor: "var(--ink-hairline)",

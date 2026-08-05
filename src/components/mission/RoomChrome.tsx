@@ -193,7 +193,7 @@ export function RoomTopBar({
           type="button"
           aria-label="Ask Supaprod"
           onClick={onAsk}
-          className="ink-focus flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors hover:bg-[#202024]"
+          className="ink-focus flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors hover:bg-[var(--ink-raised)]"
           style={{
             background: "var(--ink-raised)",
             borderColor: "var(--ink-hairline)",
