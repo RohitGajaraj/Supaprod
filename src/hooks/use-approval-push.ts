@@ -20,9 +20,31 @@ export function useApprovalPush(enabled: boolean) {
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
+    /**
+     * THE PUSH REACHED TWO PANELS AND NOT THE ONE PEOPLE WATCH.
+     *
+     * Found 2026-08-05. This hook is complete and correctly mounted, so an
+     * audit calling it "built and mounted nowhere" was wrong in the letter. It
+     * was right in the effect: it invalidated `ask-pending-approvals` and
+     * `ask-mission-canvas`, while `AskRunCard` reads under `["ask-canvas",
+     * missionId]`, which neither prefix matches. So a gate could be written and
+     * pushed to the browser in milliseconds, and the card a person is actually
+     * staring at went on polling for up to POLL_MS (4s) before it admitted
+     * anything was waiting.
+     *
+     * That is the worst shape this can take: the expensive half (a live socket,
+     * an RLS-filtered subscription, a reconnect sweep) was paid for, and the
+     * cheap half (naming the right key) was missing, so the cost was carried
+     * with none of the benefit.
+     *
+     * Fixed at the source rather than by mounting a second copy of the hook:
+     * one subscription per user still serves every surface, and any future
+     * reader of a gate gets the push by adding its key here.
+     */
     const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ["ask-pending-approvals"] });
       queryClient.invalidateQueries({ queryKey: ["ask-mission-canvas"] });
+      queryClient.invalidateQueries({ queryKey: ["ask-canvas"] });
     };
 
     void supabase.auth.getUser().then(({ data }) => {

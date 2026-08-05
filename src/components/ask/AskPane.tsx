@@ -117,6 +117,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAskStream } from "@/hooks/use-ask-stream";
+import { useApprovalPush } from "@/hooks/use-approval-push";
 import { useAsk, chipLabel } from "@/lib/ask-context";
 import { defaultIntent, contentForIntent, type AskIntent } from "@/lib/ask-intent";
 import { openAskConversation } from "@/lib/ask-open";
@@ -212,6 +213,28 @@ function AskPaneOpen() {
     pointer: "session",
     onDictation: (text) => setDraft((d) => (d ? `${d} ${text}` : text)),
   });
+
+  /**
+   * THE LIVE SURFACE SUBSCRIBES, INSTEAD OF ONLY THE RETIRED ONE.
+   *
+   * `useApprovalPush` is a complete Supabase realtime subscription on this
+   * user's `agent_approvals` rows, and until now its ONLY mount was
+   * `components/obsidian/ask-canvas.tsx`, the retired canvas. The run cards a
+   * person actually watches render from `AskTurn` inside THIS pane, a different
+   * tree, so on the live surface the push was not mounted at all and the card
+   * polled at four seconds to discover a gate the server already knew about.
+   *
+   * Mounted here rather than inside `AskRunCard` deliberately: a turn can render
+   * several cards, and one subscription per card would open several channels
+   * sharing a name for one socket's worth of information. The pane is the
+   * singleton, it is unmounted when closed (so nothing subscribes while nobody
+   * is looking), and it is the parent of every card that benefits.
+   *
+   * The 4s poll in AskRunCard is deliberately KEPT. Realtime drops silently on a
+   * network blip, and a card that stops updating is worse than one that updates
+   * slowly.
+   */
+  useApprovalPush(true);
 
   // THE QUEUE IS READ, AND IT IS NOT DRAWN ON ARRIVAL. Founder ruling
   // 2026-07-30: *"approval should not go under Ask... If I click Ask, it should
