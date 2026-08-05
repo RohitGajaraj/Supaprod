@@ -77,6 +77,25 @@ mounting three real components behind eighteen module mocks.
 Applied and verified: `platform_has_admin()`, a `security definer` boolean so a
 member can learn an admin exists without reading who they are.
 
+**Applied and verified: `20260806040000_the_builder_was_sent_to_work_without_its_loop.sql`.**
+The migration was written earlier in the night and never run. Production was
+carrying a **31-character** builder prompt -- "In-platform development engine."
+-- on all sixteen rows, since 2026-08-01. That string IS the standing
+instruction the build agent runs on (`loop.server.ts` reads
+`agents.system_prompt` straight into the system message), so every Studio
+session since then ran on a work order and a tool list with no method between
+them. Applied in two statements on purpose (function, then backfill), because
+the backfill loops every profile and was the shape most likely to time out
+mid-write. It returned 499 -- a response timeout on this gateway, not a refusal
+-- so the state was QUERIED rather than the write retried. Verified after:
+**16 of 16 builders carry both new steps, shortest prompt 3,792 chars, 283 agent
+rows across 22 seats, `engineer` still correctly disabled.**
+
+A prompt has no type, no import graph and no test. The migration that broke it
+applied cleanly, the agent kept answering, and the loss shows up only as worse
+work. It was found by querying the live rows rather than trusting the file that
+was supposed to have fixed them.
+
 **REVERTED.** I moved two mis-homed opportunities to their theme's workspace,
 then found their SPECS were written into the workspace the bet landed in — so the
 historical rows were internally consistent and disagreed only with the theme.
@@ -92,16 +111,18 @@ that walk is over edges. **A considered migration, not a 4am one.**
    and landing all exist; what is missing is the server emitting `station` and
    `tool` frames DURING a run. `runAgentLoop` fires unawaited, so they cannot
    ride the same stream. Architectural call, not wiring.
-2. **`getPushedInsights` and `markInsightActioned` still have no callers** — same
-   shape as `getFocusNext`. The nightly push writes rows nobody reads.
-3. **Build still cannot start a build.** `dispatchBuilderMission` has no caller.
-4. **Design produces no test cases or acceptance criteria anywhere**, and calls a
-   script-free single screen a prototype.
-5. `WhatShipped` needs its render tests.
-6. Three read ceilings still report as totals: `getIncidents` (40, over five
-   sources each capped at 20) prints its number on the Safety VERDICT line;
-   `getLedgerSeal` (1000) additionally asserts the fingerprint covers the whole
-   ledger.
+2. **Design still calls a script-free single screen a prototype.** Acceptance
+   criteria are NOT missing -- they are the spec's Outcome Contract
+   `success_metrics`, carried into `BuildSpec.acceptanceCriteria`; the audit was
+   wrong about that. What was missing was any instruction to test against them,
+   and the restored builder loop now walks them one at a time.
+3. `WhatShipped` needs its render tests.
+4. The insight push itself has not run since **2026-08-02** though `derive-tick`
+   is active every two hours. The lane now works regardless, but something
+   upstream is quiet.
+
+CLOSED since this list was written: the pushed-insight lane, Build's own start,
+and all three read ceilings.
 
 ## RULES LEARNED THE HARD WAY
 
