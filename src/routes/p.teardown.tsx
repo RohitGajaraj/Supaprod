@@ -103,19 +103,34 @@ function TeardownPage() {
         return;
       }
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}) as Record<string, unknown>);
+        /**
+         * NEVER PRINT THE SERVER'S OWN WORDS TO A STRANGER.
+         *
+         * This used to render `body.error` verbatim on any non-503, and the API
+         * returns "internal error" on its 500 path. That is a sentence written
+         * for a log, shown on the page that decides whether someone signs up.
+         *
+         * The replacements are not softer generic copy. "Something went wrong.
+         * Please try again." is the exact string humanized-output.md names as
+         * passing every automated check while still failing: it tells the
+         * reader nothing about what happened, what survived, or what to do. Each
+         * case now names the failure and says the one thing they most want to
+         * know, which is that their pasted text is still in the box.
+         */
         const message =
           res.status === 503
-            ? "The live teardown is resting right now. Please try again shortly."
-            : typeof body?.error === "string"
-              ? body.error
-              : "Something went wrong. Please try again.";
+            ? "The Critic is offline right now, so nothing was read. Your text is still in the box, and it is worth trying again in a few minutes."
+            : "The Critic could not finish reading that. Your text is still in the box, so you can send it again as it is.";
         setState({ kind: "error", message });
         return;
       }
       const body = (await res.json()) as { teardown?: Teardown };
       if (!body?.teardown) {
-        setState({ kind: "error", message: "Could not generate a teardown. Please try again." });
+        setState({
+          kind: "error",
+          message:
+            "The Critic read your document but could not produce a receipt for it. Your text is still in the box. A longer spec, with the problem and the plan in it, usually gives it more to work with.",
+        });
         return;
       }
       setState({ kind: "done", teardown: body.teardown });
@@ -189,7 +204,7 @@ function TeardownPage() {
 
         {/* Input. */}
         <form onSubmit={submit}>
-          <label htmlFor="teardown-input" className="mono-label" style={{ fontSize: 9 }}>
+          <label htmlFor="teardown-input" className="mono-label">
             Your PRD or product bet
           </label>
           <textarea
@@ -236,7 +251,7 @@ function TeardownPage() {
             {trimmed ? (
               <span
                 className="mono-label"
-                style={{ fontSize: 9, color: nearLimit ? "var(--madder)" : "var(--text-subtle)" }}
+                style={{ color: nearLimit ? "var(--madder)" : "var(--text-subtle)" }}
               >
                 {text.length} / {MAX}
               </span>
@@ -246,7 +261,6 @@ function TeardownPage() {
                 onClick={() => setText(EXAMPLE_BET)}
                 className="mono-label"
                 style={{
-                  fontSize: 9,
                   color: "var(--text-muted)",
                   background: "none",
                   border: "none",
@@ -277,6 +291,35 @@ function TeardownPage() {
 
         {/* Result / states. */}
         <div style={{ marginTop: 24 }}>
+          {/*
+           * THE MINUTE THIS PAGE SPENDS SAYING NOTHING.
+           *
+           * `state.kind === "loading"` has existed since this surface was
+           * built, and this region branched on done / limited / error only. So
+           * for the whole of a run this page's own copy calls "usually in under
+           * a minute", the largest area of the screen was EMPTY and no live
+           * region announced anything. The only feedback was a 14px spinner
+           * inside the disabled submit button.
+           *
+           * This is the front door for strangers: the hero and the receipts row
+           * both point here, and it is what a Product Hunt click lands on. A
+           * minute of nothing is where people close the tab.
+           *
+           * `minHeight` is deliberate and approximates the receipt that lands,
+           * so the page does not jump under the reader at the exact moment they
+           * start reading. `role="status"` is what makes the wait reach a screen
+           * reader at all.
+           */}
+          {state.kind === "loading" ? (
+            <div style={{ ...noticeBox, minHeight: 132, alignItems: "center" }} role="status">
+              <Loader2 size={16} className="animate-spin" style={{ flexShrink: 0 }} />
+              <span>
+                The Critic is reading your document, then checking it against what usually goes
+                wrong with a spec like it. Usually under a minute. Your text stays in the box.
+              </span>
+            </div>
+          ) : null}
+
           {state.kind === "done" ? <TeardownReceipt teardown={state.teardown} /> : null}
 
           {state.kind === "limited" ? (
