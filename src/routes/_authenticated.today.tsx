@@ -34,6 +34,7 @@ import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { openAsk } from "@/lib/ask-open";
+import { FocusNext } from "@/components/today/FocusNext";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import {
   AgentMark,
@@ -653,6 +654,14 @@ function Today() {
           </div>
         </>
       )}
+
+      {/* THE BRAIN LEADS. It sits above the gate on purpose: the gate is what is
+          waiting on YOU, and this is what the product thinks you should do next
+          and why. A director that speaks only after you have cleared your inbox
+          is not directing. Renders nothing at all when the ranking has no clear
+          answer, so a quiet workspace is quiet. See FocusNext.tsx for why this
+          had no door until now. */}
+      <FocusNext />
 
       {call ? (
         <Gate
