@@ -102,6 +102,7 @@ import {
   CtxRow,
   Empty,
   Failed,
+  Loading,
   Gate,
   Num,
   PageHead,
@@ -462,7 +463,9 @@ function PlanPage() {
         </Block>
       </div>
 
-      {specs.isLoading ? null : (
+      {specs.isLoading ? (
+        <Loading>Reading the specs.</Loading>
+      ) : (
         <div ref={refSpecs} id="plan-section-specs" tabIndex={-1} className="outline-none">
           <Block
             title="Specs"
@@ -499,7 +502,8 @@ function PlanPage() {
                 const settled = spec.status === "approved" || spec.status === "shipped";
                 // Show design gate status if the spec is being designed (not yet approved).
                 // Format: "Drafting · design pending" or "In review · design approved".
-                const designGateStatus = (spec as { design_gate_status?: string | null }).design_gate_status;
+                const designGateStatus = (spec as { design_gate_status?: string | null })
+                  .design_gate_status;
                 const designWord =
                   designGateStatus === "approved"
                     ? "approved"

@@ -197,6 +197,7 @@ import {
   CtxRow,
   Empty,
   Failed,
+  Loading,
   Field,
   Gate,
   Input,
@@ -1174,7 +1175,9 @@ export function DiscoverSurface({
         >
           {loadError.message}
         </Failed>
-      ) : loading ? null : signalsEmpty ? (
+      ) : loading ? (
+        <Loading>Reading what your sources have sent.</Loading>
+      ) : signalsEmpty ? (
         <Gate
           question="Which source should it read first?"
           lines={

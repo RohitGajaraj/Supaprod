@@ -93,6 +93,7 @@ import {
   CtxHead,
   Empty,
   Failed,
+  Loading,
   Input,
   Line,
   Num,
@@ -382,7 +383,9 @@ function BuildEngine() {
             : undefined
         }
       >
-        {loading ? null : work.isError ? (
+        {loading ? (
+          <Loading>Reading the build record.</Loading>
+        ) : work.isError ? (
           <Failed onRetry={() => void work.refetch()}>
             The build record did not load, so this list is not the whole picture.
           </Failed>

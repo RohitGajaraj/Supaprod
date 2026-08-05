@@ -124,6 +124,7 @@ import {
   CtxRow,
   Empty,
   Failed,
+  Loading,
   Field,
   Input,
   Num,
@@ -380,7 +381,9 @@ function Learn() {
           <Failed onRetry={() => void ledgerQ.refetch()}>
             The record did not load. {(ledgerQ.error as Error).message}
           </Failed>
-        ) : ledgerQ.isLoading ? null : lead ? (
+        ) : ledgerQ.isLoading ? (
+          <Loading>Reading the record.</Loading>
+        ) : lead ? (
           <>
             <RecordRecess evidence={leadEvidence || null}>{lead.summary}</RecordRecess>
             {highlights.map((h, i) =>
@@ -430,7 +433,9 @@ function Learn() {
             What came back from people did not load.
           </Failed>
         </Block>
-      ) : loading ? null : support.length > 0 ? (
+      ) : loading ? (
+        <Loading>Reading what else it learned.</Loading>
+      ) : support.length > 0 ? (
         <Block>
           <Row
             tight

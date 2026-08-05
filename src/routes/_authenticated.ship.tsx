@@ -95,6 +95,7 @@ import {
   CtxHead,
   Empty,
   Failed,
+  Loading,
   Field,
   Gate,
   Input,
@@ -463,7 +464,9 @@ function Ship() {
             Try again
           </Button>
         </Actions>
-      ) : posts.isLoading ? null : call ? (
+      ) : posts.isLoading ? (
+        <Loading>Reading what is ready to announce.</Loading>
+      ) : call ? (
         <Gate
           question={
             call.status === "pending"
@@ -543,7 +546,9 @@ function Ship() {
         }
         onMore={() => setAllNotes((v) => !v)}
       >
-        {changelog.isLoading ? null : changelog.isError ? (
+        {changelog.isLoading ? (
+          <Loading>Reading the release notes.</Loading>
+        ) : changelog.isError ? (
           <Failed onRetry={() => void changelog.refetch()}>The release notes did not load.</Failed>
         ) : notes.length === 0 ? (
           <Empty>
@@ -573,7 +578,8 @@ function Ship() {
                   canContribute
                     ? () => startFrom(e)
                     : e.production_url
-                      ? () => window.open(e.production_url as string, "_blank", "noopener,noreferrer")
+                      ? () =>
+                          window.open(e.production_url as string, "_blank", "noopener,noreferrer")
                       : e.pr_url
                         ? () => window.open(e.pr_url as string, "_blank", "noopener,noreferrer")
                         : undefined

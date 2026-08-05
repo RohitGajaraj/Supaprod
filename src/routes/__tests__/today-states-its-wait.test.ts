@@ -88,8 +88,7 @@ const jsx = src.slice(src.indexOf("<Surface", TODAY_START === -1 ? 0 : TODAY_STA
 function offenders(source: string, pattern: RegExp): string[] {
   // Same anchor as `jsx` above, or the reported line numbers point at the
   // wrong component and send the reader 300 lines from the offending line.
-  const offset =
-    source === jsx ? src.slice(0, src.length - jsx.length).split("\n").length - 1 : 0;
+  const offset = source === jsx ? src.slice(0, src.length - jsx.length).split("\n").length - 1 : 0;
   return source
     .split("\n")
     .map((line, i) => `${i + 1 + offset}: ${line.trim()}`)
@@ -195,5 +194,67 @@ describe("Today never prints a claim it has not read yet", () => {
     // reading "Reading..." is the surface talking about itself, and the date is a
     // true fact the person came in already holding.
     expect(offenders(src, /if \(loading\) return "Today";/)).toHaveLength(1);
+  });
+});
+
+/**
+ * THE SAME RULE, ACROSS THE WHOLE SPINE.
+ *
+ * Everything above holds Today, and Today alone, because that is the surface
+ * the defect was found on. That scoping was itself the gap: on 2026-08-05 an
+ * audit found the identical `? null` shape live on SIX of the seven stations
+ * while this file sat green, and the team believed the class of bug had been
+ * killed the day before. A guard pointed at one file makes the other six look
+ * examined.
+ *
+ * None of those routes declares a loader, so the router's
+ * `defaultPendingComponent` never covers them either: on a cold cache a visitor
+ * clicking through the spine met a headline over a horizontal rule, six times.
+ * Decide was the worst, showing the bare word "Decide" over an empty body while
+ * its only real element waited.
+ *
+ * Deliberately narrower than the Today suite. It asserts the ONE rule that
+ * generalises cleanly (a wait may not resolve to nothing) rather than pinning
+ * copy per station, because each station legitimately reads different things
+ * and this file must not become a place where adding a read means editing a
+ * test in another directory.
+ */
+describe("no station renders nothing while it reads", () => {
+  const STATIONS = [
+    "_authenticated.discover.tsx",
+    "_authenticated.decide.tsx",
+    "_authenticated.plan.index.tsx",
+    "_authenticated.design.tsx",
+    "_authenticated.build.index.tsx",
+    "_authenticated.ship.tsx",
+    "_authenticated.learn.tsx",
+    // Discover's body lives in a component rather than the route, and it is
+    // where the defect actually was.
+    join("..", "components", "discover", "DiscoverSurface.tsx"),
+  ];
+
+  for (const station of STATIONS) {
+    const path = join(import.meta.dir, "..", station);
+    it(`${station} has no wait branch that resolves to nothing`, () => {
+      let source: string;
+      try {
+        source = stripComments(readFileSync(path, "utf8"));
+      } catch {
+        // A station that has been renamed should fail loudly here rather than
+        // quietly pass by being unreadable.
+        throw new Error(`station source not found: ${station}`);
+      }
+      const bad = source
+        .split("\n")
+        .map((line, i) => `${i + 1}: ${line.trim()}`)
+        .filter((line) => /(isLoading|isPending|\bloading)\s*\?\s*null/.test(line));
+      expect(bad).toEqual([]);
+    });
+  }
+
+  it("covers every station, so a new one cannot be added unguarded", () => {
+    // PRIMARY_NAV carries Today plus the seven loop stations. If the spine
+    // grows, this count fails and the list above has to be revisited.
+    expect(STATIONS.length).toBe(8);
   });
 });

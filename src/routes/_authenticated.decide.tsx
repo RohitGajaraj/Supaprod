@@ -131,6 +131,7 @@ import {
   CtxRow,
   Empty,
   Failed,
+  Loading,
   Gate,
   Line,
   Num,
@@ -668,7 +669,9 @@ function DecideSurface() {
           reason, which is different information, and the way back. */}
       {opps.error ? (
         <Failed onRetry={() => void opps.refetch()}>{(opps.error as Error).message}</Failed>
-      ) : loading ? null : activeOpp ? (
+      ) : loading ? (
+        <Loading>Reading the bets on the table.</Loading>
+      ) : activeOpp ? (
         <Gate
           question={activeOpp.title}
           lines={[
