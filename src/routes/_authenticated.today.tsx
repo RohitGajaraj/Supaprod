@@ -596,16 +596,93 @@ function Today() {
           // as a day where nothing happened.
           <Failed onRetry={() => missions.refetch()}>Could not load what the crew finished.</Failed>
         ) : done.length === 0 ? (
-          <Empty
-            action={
-              <Button variant="ghost" onClick={() => openAsk()}>
-                Ask Supaprod
-              </Button>
-            }
-          >
-            Nothing finished in the last day. The crew is ready. Tell Supaprod what you want to
-            build, or connect data sources so they discover work. When they finish, it appears here.
-          </Empty>
+          <>
+            <Empty
+              action={
+                <Button variant="ghost" onClick={() => openAsk()}>
+                  Ask Supaprod
+                </Button>
+              }
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div>
+                  Nothing finished in the last day yet. The crew is ready — tell Supaprod what you
+                  want to build, or connect data sources so they discover work.
+                </div>
+                <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                  <strong>Here's how it works:</strong> Agents discover opportunities (Discover),
+                  decide which to pursue (Decide), plan the scope (Plan), and then build, ship, and
+                  learn from outcomes. You approve each decision; they do the work. New requests
+                  usually finish overnight.
+                </div>
+              </div>
+            </Empty>
+
+            {rows.length === 0 ? (
+              <Block title="Get started in three steps">
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    padding: "12px 0",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      1. Connect your sources
+                    </div>
+                    <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                      Link Slack channels, support tickets, user interviews, or paste feedback directly.
+                      Agents will continuously scan for opportunities.
+                    </div>
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      2. Review discoveries
+                    </div>
+                    <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                      Visit Discover to see opportunities agents have surfaced. Approve the best ones
+                      to move them into your roadmap.
+                    </div>
+                    <div style={{ marginTop: "8px" }}>
+                      <Door onClick={() => navigate({ to: "/discover" })}>Go to Discover</Door>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      3. Approve and watch them build
+                    </div>
+                    <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                      When opportunities move to Decide, you'll approve each step. Agents then handle
+                      planning, design, build, and deployment. You stay in control.
+                    </div>
+                  </div>
+                </div>
+              </Block>
+            ) : null}
+          </>
+
         ) : (
           done.slice(0, 6).map((m) => (
             <Row

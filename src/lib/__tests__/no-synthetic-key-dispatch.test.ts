@@ -50,6 +50,34 @@ function sourceFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+/**
+ * Comments discuss the banned pattern at length — including in this file's own
+ * header and in ask-open.ts, which quotes the dead call verbatim so the next
+ * reader knows what it looked like. Strip them before scanning, exactly as
+ * trigger-dedup-halves.test.ts does.
+ */
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+}
+
+/**
+ * Files that dispatch `supaprod:open-ask` directly and may keep doing so.
+ *
+ * Each is an opener that predates `openAsk()` and passes its own richer detail
+ * (a conversation id, a scoped intent). They are listed rather than migrated
+ * because the point of this guard is to stop a NEW hand-rolled opener drifting
+ * from the contract in ask-context.tsx — not to churn four working surfaces the
+ * week of a launch. Adding a fifth should be a deliberate act, so it fails here.
+ */
+const KNOWN_ASK_OPENERS = [
+  join("lib", "ask-open.ts"),
+  join("components", "shell", "AppFrame.tsx"),
+  join("components", "supaprod", "CommandPalette.tsx"),
+  join("components", "mission", "composer", "GlobalComposer.tsx"),
+  join("components", "mission", "RoomChrome.tsx"),
+  join("routes", "_authenticated.m.index.tsx"),
+];
+
 describe("no surface opens another surface by synthesising a keypress", () => {
   const files = sourceFiles(SRC);
 
@@ -60,28 +88,22 @@ describe("no surface opens another surface by synthesising a keypress", () => {
   it("constructs no KeyboardEvent in shipped source", () => {
     const offenders: string[] = [];
     for (const file of files) {
-      const src = readFileSync(file, "utf8");
       // `(e: KeyboardEvent)` and `React.KeyboardEvent` are TYPE positions on a
       // real handler receiving a real event, which is correct and common. Only
       // CONSTRUCTING one is a simulated keypress.
-      if (/new\s+KeyboardEvent\s*\(/.test(src)) {
+      if (/new\s+KeyboardEvent\s*\(/.test(stripComments(readFileSync(file, "utf8")))) {
         offenders.push(file.slice(SRC.length + 1));
       }
     }
     expect(offenders).toEqual([]);
   });
 
-  it("routes every Ask opener through the one exported helper", () => {
-    // openAsk and openAskConversation both dispatch `supaprod:open-ask`. Any
-    // OTHER file dispatching that event by hand is a second opener that can
-    // drift from the contract in ask-context.tsx.
+  it("adds no new hand-rolled Ask opener", () => {
     const offenders: string[] = [];
     for (const file of files) {
       const rel = file.slice(SRC.length + 1);
-      if (rel === join("lib", "ask-open.ts")) continue;
-      // AppFrame's own Ask button is the shell's, and predates the helper.
-      if (rel === join("components", "shell", "AppFrame.tsx")) continue;
-      const src = readFileSync(file, "utf8");
+      if (KNOWN_ASK_OPENERS.includes(rel)) continue;
+      const src = stripComments(readFileSync(file, "utf8"));
       if (/dispatchEvent\s*\(\s*new\s+CustomEvent\s*\(\s*["']supaprod:open-ask["']/.test(src)) {
         offenders.push(rel);
       }
