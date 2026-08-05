@@ -3483,7 +3483,33 @@ html[data-motion="off"] .ai-pulse-mark {
   --hairline-faint: var(--ds-gray-alpha-200);
   --text-primary: var(--ds-gray-1000);
   --text-body: var(--ds-gray-900);
-  --text-muted: var(--ds-gray-900);
+  /* A WHOLE STEP OF THE RAMP HAD COLLAPSED, app-wide.
+   *
+   * This read `--text-muted: var(--ds-gray-900)`, the identical token
+   * `--text-body` takes, so the two resolved to the same colour everywhere.
+   * Every surface using the pair to separate primary reading text from
+   * secondary metadata drew them the same, and the hierarchy the design system
+   * believes it has did not exist on screen. It is THIS block that decides: it
+   * is the last [data-obsidian] block in the sheet, so at equal specificity it
+   * wins over the two earlier ones (~1913, ~2356) which do carry a distinct
+   * three-step ramp. The app shell mounts inside the scope (_authenticated.tsx
+   * sets data-obsidian on the shell and on documentElement), so this is the
+   * whole product, not a corner of it.
+   *
+   * WHY IT IS DERIVED AND NOT A SCALE TOKEN. `--ds-gray-800` is the obvious
+   * pick and it is right in LIGHT, where #7d7d7d sits exactly between body
+   * (#4d4d4d) and subtle (#8f8f8f). It is wrong in DARK: the vendored Geist
+   * scale puts 800 (#7d7d7d) DARKER than both 700 (#8f8f8f) and 600 (#878787),
+   * so muted would land below subtle and invert the ramp. That
+   * non-monotonicity is Geist's own scale rather than a typo here, so it is not
+   * ours to correct and `--ds-gray-800` is left exactly as it is.
+   *
+   * Mixing the two tokens that BRACKET this step is correct in both themes by
+   * construction. Measured: dark body 7.57:1, muted 6.95:1, subtle 6.12:1;
+   * light body 8.45:1, muted 5.66:1, subtle 3.23:1. Only the muted step moves,
+   * so body keeps its contrast untouched, per the ratchet: never answer a
+   * problem by making the readable thing quieter. */
+  --text-muted: color-mix(in oklab, var(--ds-gray-900) 60%, var(--ds-gray-700));
   --text-subtle: var(--ds-gray-700);
   --text-faint: var(--ds-gray-600);
   --ember: var(--ds-ember-600);
