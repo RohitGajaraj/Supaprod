@@ -72,16 +72,52 @@ export const amIAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ isAdmin: boolean; anyAdminExists: boolean }> => {
     const sb = context.supabase;
-    const [mine, all] = await Promise.all([
+    /**
+     * `anyAdminExists` CANNOT BE COUNTED FROM HERE, and believing it could is
+     * what put an invitation to take over the workspace in front of thirteen of
+     * sixteen people.
+     *
+     * This ran a `count` over `user_roles` on the caller's own client. The only
+     * select policy on that table is `user_id = auth.uid()`, so a non-admin can
+     * see exactly one row -- their own, which is not an admin row. The count
+     * came back 0 for every non-admin no matter how many admins existed, and
+     * Settings rendered "This workspace has no admin yet · Claim admin" on the
+     * strength of it. Measured live: 3 platform admins, 16 users. The button
+     * then took them to /admin, where the bootstrap RPC refused them with a raw
+     * Postgres error.
+     *
+     * NOT AN ESCALATION, and the correction is worth keeping because the first
+     * reading of this was that it was one. `admin_bootstrap_self_as_admin` is
+     * SECURITY DEFINER, sees past RLS, and genuinely refuses once any admin
+     * exists. The bootstrap was doing its job; the UI was asking a question it
+     * had no way to answer and then trusting the answer.
+     *
+     * `platform_has_admin()` is SECURITY DEFINER and returns ONE BOOLEAN. The
+     * alternative -- widening the RLS policy so members could count admin rows
+     * -- would have answered the same question by exposing who the admins are.
+     * A caller learns the one bit the UI needed and nothing else.
+     *
+     * `isAdmin` stays on the caller's own client on purpose: "am I an admin" is
+     * exactly the row RLS already lets them read, so it needs no elevation.
+     */
+    const [mine, anyAdmin] = await Promise.all([
       sb
         .from("user_roles")
         .select("user_id")
         .eq("user_id", context.userId)
         .eq("role", "admin")
         .maybeSingle(),
-      sb.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "admin"),
+      sb.rpc("platform_has_admin"),
     ]);
-    return { isAdmin: !!mine.data, anyAdminExists: (all.count ?? 0) > 0 };
+    /**
+     * A FAILED READ MEANS "YES", not "no". If the RPC errors -- it is missing,
+     * the grant was dropped, the connection died -- the honest default is that
+     * an admin DOES exist, because the cost is asymmetric: guessing "yes" hides
+     * a block from someone who might have needed it, and guessing "no" invites
+     * every member of every workspace to claim ownership of it. The quiet
+     * failure is the one to prefer.
+     */
+    return { isAdmin: !!mine.data, anyAdminExists: anyAdmin.error ? true : !!anyAdmin.data };
   });
 
 export const bootstrapSelfAdmin = createServerFn({ method: "POST" })
