@@ -527,8 +527,26 @@ function Today() {
         </Gate>
       ) : (
         <Gate question="Nothing is waiting on you.">
+          <Button
+            variant="primary"
+            onClick={() => {
+              // Focus the Ask panel by opening it (Cmd+J equivalent).
+              // This sets the conversational interface as the primary entry point
+              // for new work, aligned with agentic-first UX.
+              const evt = new KeyboardEvent("keydown", {
+                key: "j",
+                code: "KeyJ",
+                ctrlKey: false,
+                metaKey: true,
+                bubbles: true,
+              });
+              window.dispatchEvent(evt);
+            }}
+          >
+            Ask Supaprod what to build
+          </Button>
           <Button variant="ghost" onClick={() => navigate({ to: "/runs" })}>
-            Look at the runs
+            View all runs
           </Button>
         </Gate>
       )}
