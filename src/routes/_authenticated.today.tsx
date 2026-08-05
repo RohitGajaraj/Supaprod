@@ -680,8 +680,8 @@ function Today() {
                       2. Connect your data (optional)
                     </div>
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      Link Slack channels, support tickets, or feedback sources. The AI will scan for
-                      new opportunities and bring them to your attention automatically.
+                      Link Slack channels, support tickets, or feedback sources. The AI will scan
+                      for new opportunities and bring them to your attention automatically.
                     </div>
                   </div>
 

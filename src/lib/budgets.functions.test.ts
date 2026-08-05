@@ -95,8 +95,8 @@ function createMockSupabase(config: {
       }),
       update: (_data: any) => eqChain({ data: null, error: err }),
       delete: () => eqChain({ data: null, error: err }),
-      insert: async (_data: any) => ({ data: null, error: err }),
-      upsert: async (_data: any, _opts?: any) => ({ data: null, error: err }),
+      insert: (_data: any) => writeChain(),
+      upsert: (_data: any, _opts?: any) => writeChain(),
     }),
   } as any as SupabaseClient;
 }

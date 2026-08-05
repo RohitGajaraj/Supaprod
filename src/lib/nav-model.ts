@@ -112,7 +112,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     index: "01",
     zone: "loop",
     group: "workflow",
-    tagline: "Signals become ranked bets.",
+    tagline: "Rank opportunities by impact.",
   },
   {
     to: "/decide",
@@ -120,7 +120,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     index: "02",
     zone: "loop",
     group: "workflow",
-    tagline: "Keep or kill each bet.",
+    tagline: "Approve ideas or pass on them.",
   },
   {
     to: "/plan",
@@ -160,7 +160,7 @@ export const PRIMARY_NAV: readonly NavItemDef[] = [
     index: "07",
     zone: "loop",
     group: "workflow",
-    tagline: "Outcomes close the loop.",
+    tagline: "See results and system insights.",
   },
   // OPERATIONS. Two doors the shell has always drawn and the keyboard could
   // never reach. Their labels here are the labels AppFrame's rail draws, on
