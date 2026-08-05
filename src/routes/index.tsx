@@ -32,8 +32,16 @@ const SITE = "https://supaprod.ai";
 // The canonical identity line (founder-ratified 2026-07-25): the hero sub,
 // the meta description, the title, and the machine view all carry the SAME
 // sentence, verbatim, so answer engines never reconcile drift (plan 6.3).
-// It ends on "guide the next call" on purpose: the memory is never storage.
-const TAGLINE = "Agents that know what to build, ship it, remember, and guide the next call.";
+//
+// "REMEMBER" IS OUT, and this is the highest-leverage word on the site. The
+// doctrine is that Supaprod learns and guides and never remembers, stores or
+// logs, because storage is a commodity every tool claims and guidance is the
+// only defensible half. This one sentence propagates verbatim into <title>, the
+// meta description, og:, twitter: and /llms.txt, so the single most duplicated
+// string in the product was the one breaking the positioning rule.
+//
+// It still ends on "guide the next call", which was always the good half.
+const TAGLINE = "Agents that know what to build, ship it, and guide the next call.";
 const TITLE = `Supaprod: ${TAGLINE.charAt(0).toLowerCase()}${TAGLINE.slice(1, -1)}`;
 const DESC = `Supaprod is for product managers. ${TAGLINE} You approve every gate.`;
 
