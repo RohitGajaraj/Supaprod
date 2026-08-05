@@ -33,6 +33,7 @@ export type ChangelogEntry = {
   pr_url: string | null;
   released_at: string;
   product_name?: string | null;
+  production_url?: string | null;
 };
 
 export const listChangelog = createServerFn({ method: "GET" })
@@ -76,6 +77,30 @@ export const listChangelog = createServerFn({ method: "GET" })
       const nameById = new Map((products ?? []).map((p) => [p.id as string, p.name as string]));
       for (const e of entries) {
         e.product_name = e.product_id ? (nameById.get(e.product_id) ?? null) : null;
+      }
+    }
+
+    // Resolve production deployment URLs. A changeset may have multiple deployments
+    // across environments (preview, production, etc.); we want the production URL
+    // if it exists. RLS-scoped read via workspace_id.
+    const changesetIds = Array.from(
+      new Set(entries.map((e) => e.changeset_id).filter((id): id is string => !!id)),
+    );
+    if (changesetIds.length) {
+      const { data: deployments } = await db
+        .from("deployments")
+        .select("changeset_id,deploy_url")
+        .eq("workspace_id", workspaceId)
+        .eq("environment", "production")
+        .eq("status", "success")
+        .in("changeset_id", changesetIds);
+      const urlByChangesetId = new Map(
+        (deployments ?? []).map((d) => [(d.changeset_id as string) ?? "", d.deploy_url as string]),
+      );
+      for (const e of entries) {
+        if (e.changeset_id) {
+          e.production_url = urlByChangesetId.get(e.changeset_id) ?? null;
+        }
       }
     }
     return { entries };
