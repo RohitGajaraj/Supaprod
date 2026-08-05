@@ -297,6 +297,21 @@ export type RecordedOutcome = {
   /** The learnings row this outcome wrote. An overturn replaces THAT row by id
    *  rather than guessing at the newest one for the spec. */
   settled_learning_id?: string | null;
+  /**
+   * The agent_memory row this outcome distilled into, and the reason there is
+   * none. Exactly one of the two is set on any outcome settled from 2026-08-05.
+   *
+   * They exist because the memory write is best-effort and used to fail into a
+   * `console.error` inside a Cloudflare Worker. A settled outcome whose lesson
+   * never reached the brain looked identical to one whose lesson did, left the
+   * pending queue for good, and nothing retried it. Now the gap is one query:
+   * `select id from prds where outcome->>'settled_memory_error' is not null`.
+   *
+   * Absent on rows settled before this, which is honestly "not recorded" and
+   * must never be read as "wrote a memory".
+   */
+  settled_memory_id?: string | null;
+  settled_memory_error?: string | null;
   overturns?: OutcomeOverturn[];
 };
 
@@ -368,6 +383,10 @@ export type ApplyOutcomeResult = {
   learning: LearningRow | null;
   opportunity: { id: string; prior_ice: number | null; new_ice: number | null } | null;
   memory_id: string | null;
+  /** Why no memory was written, when none was. Null when one was. The receipt
+   *  can say so out loud instead of quietly reporting a closed loop that is
+   *  open. */
+  memory_error: string | null;
   prdTitle: string | null;
   opportunityTitle: string | null;
   arcHold: { slug: string; arc: string } | null;
@@ -565,7 +584,9 @@ export async function applyOutcome(
     }
     const learningId = (learning as { id?: string } | null)?.id ?? null;
 
-    // ---- The record of who settled it, written last. --------------------
+    // ---- The record of who settled it. `prds.outcome` is still the last write
+    // in this function; the overturn is computed here because the memory content
+    // below has to name the verdict this one replaced.
     const overturned: OutcomeOverturn | null = prior
       ? {
           from_verdict: prior.verdict,
@@ -580,37 +601,26 @@ export async function applyOutcome(
           note: data.summary.slice(0, 500),
         }
       : null;
-    const recorded: RecordedOutcome = {
-      verdict: data.verdict,
-      summary: data.summary,
-      metric_label: data.metricLabel ?? null,
-      metric_value: data.metricValue ?? null,
-      checked_at: now,
-      settled_by: data.by.kind,
-      settled_by_agent_slug: data.by.kind === "agent" ? data.by.slug : null,
-      settled_confidence: data.by.kind === "agent" ? data.by.decision.evidence : null,
-      settled_reason: data.by.kind === "agent" ? data.by.decision.reason : null,
-      settled_evidence: data.by.kind === "agent" ? data.by.decision.because : null,
-      settled_learning_id: learningId,
-      overturns: overturned ? [...(prior?.overturns ?? []), overturned] : (prior?.overturns ?? []),
-    };
-    const { error: outErr } = await db
-      .from("prds")
-      .update({ outcome: recorded, updated_at: now })
-      .eq("id", prd.id);
-    if (outErr) throw new Error(outErr.message);
-
     // v6 Phase 2 (W1) — close the compounding loop: distil the outcome into a
     // global, searchable agent_memory so future agent runs recall "we shipped
     // this and it was {verdict}" when they re-encounter the opportunity. The
     // re-score already moved the ICE; this makes the loop actually LEARN, not
     // just record. Best-effort — never let a memory write break the outcome.
     //
-    // rememberOutcome is already idempotent per spec: it drops the prior
-    // outcome memory before inserting. So an overturn REPLACES the agent's
-    // memory rather than leaving the compounding layer holding two verdicts
-    // that contradict each other. The contrast survives where it belongs, on
-    // the record, not in the thing that whispers advice into the next prompt.
+    // rememberOutcome ACCUMULATES: it marks the prior outcome memories for this
+    // spec superseded and keeps them, so an overturn leaves a walkable chain
+    // rather than deleting the agent's original. That pair, "the agent said
+    // validated and a person said missed", is the highest-signal thing this
+    // product owns, and it used to be destroyed on the way in.
+    //
+    // IT RUNS BEFORE prds.outcome IS WRITTEN, ON PURPOSE. It used to run after,
+    // and a failure there was a console line in a Worker: the spec would carry a
+    // settled outcome, leave the pending queue forever, and no surface and no
+    // query could tell that its lesson never reached the brain. Running first
+    // means the memory id, or the reason there is none, is written INTO the
+    // record on the very next statement. `prds.outcome` is still the last write,
+    // so the invariant it was ordered for (never claim a settled outcome before
+    // the learning it points at exists) is unchanged.
     const settlerNote =
       data.by.kind === "agent"
         ? `\n\nSettled by ${data.by.slug} on the evidence, not by a person.`
@@ -641,6 +651,33 @@ export async function applyOutcome(
       prdTitle: (prd.title as string | null) ?? null,
       oppTitle,
     });
+    if (memory.error) {
+      console.error("applyOutcome rememberOutcome wrote nothing:", memory.error);
+    }
+
+    const recorded: RecordedOutcome = {
+      verdict: data.verdict,
+      summary: data.summary,
+      metric_label: data.metricLabel ?? null,
+      metric_value: data.metricValue ?? null,
+      checked_at: now,
+      settled_by: data.by.kind,
+      settled_by_agent_slug: data.by.kind === "agent" ? data.by.slug : null,
+      settled_confidence: data.by.kind === "agent" ? data.by.decision.evidence : null,
+      settled_reason: data.by.kind === "agent" ? data.by.decision.reason : null,
+      settled_evidence: data.by.kind === "agent" ? data.by.decision.because : null,
+      settled_learning_id: learningId,
+      // The two fields that make a swallowed memory write findable. Exactly one
+      // of them is set on every settled outcome from here on.
+      settled_memory_id: memory.id,
+      settled_memory_error: memory.error,
+      overturns: overturned ? [...(prior?.overturns ?? []), overturned] : (prior?.overturns ?? []),
+    };
+    const { error: outErr } = await db
+      .from("prds")
+      .update({ outcome: recorded, updated_at: now })
+      .eq("id", prd.id);
+    if (outErr) throw new Error(outErr.message);
 
     // BYO-P3 WI4/WI6 — ensure the shipped change appears in the in-app changelog.
     // The merge trigger normally materializes it; this is the durable TS fallback
@@ -675,7 +712,7 @@ export async function applyOutcome(
         verdict: data.verdict,
         summary: data.summary,
         learningId,
-        memoryId: memory?.id ?? null,
+        memoryId: memory.id,
         aiEventId: null,
       });
     } catch (e) {
@@ -767,7 +804,8 @@ export async function applyOutcome(
     return {
       learning,
       opportunity,
-      memory_id: memory?.id ?? null,
+      memory_id: memory.id,
+      memory_error: memory.error,
       prdTitle,
       opportunityTitle: oppTitle,
       arcHold,
@@ -921,8 +959,30 @@ export type AgentSettledOutcome = {
   } | null;
 };
 
-/** Shipped specs with no outcome on file, newest ship first. This is the queue
- *  stage 07 exists to drain. */
+/**
+ * Every unsettled outcome a person can be asked to call, newest first. This is
+ * the queue stage 07 exists to drain.
+ *
+ * TWO POPULATIONS, AND IT USED TO CARRY ONLY ONE.
+ *
+ *  1. Specs that shipped and carry no outcome. The original queue.
+ *  2. Specs whose measurement window has CLOSED and carry no outcome, shipped
+ *     or not: a `launch_plans.check_by` in the past.
+ *
+ * The second was missing and that was a hole, not a scope choice. The hourly
+ * sweep (`runOutcomeReviews`) selects its candidates from exactly population 2
+ * and never looks at `shipped_at`, and when it declines to settle one it writes
+ * NOTHING on purpose, with the comment "the window stays in the human queue"
+ * (ai/outcome-review.server.ts). A queue narrower than the sweep that feeds it
+ * silently drops every one of those asks. Worse, the sweep's own
+ * `verdictIsRecordFact` names the case this filter guaranteed a person could
+ * never see: the window closed and the spec never shipped, which is the most
+ * ordinary real outcome there is and the one a `shipped_at NOT NULL` filter
+ * excludes by construction.
+ *
+ * Measured on production the day this changed, the union adds zero rows, which
+ * is the honest state of the record and not a reason to leave the hole in.
+ */
 export const listPendingOutcomes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ pending: PendingOutcome[] }> => {
@@ -937,15 +997,59 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       outcome_suggestion: OutcomeSuggestion | null;
       contract: unknown;
     };
-    const { data: prdRows, error } = await db
-      .from("prds")
-      .select("id,title,shipped_at,opportunity_id,outcome_suggestion,contract")
-      .is("outcome", null)
-      .not("shipped_at", "is", null)
-      .order("shipped_at", { ascending: false })
-      .limit(12);
-    if (error) throw new Error(error.message);
-    const prds = (prdRows ?? []) as PrdRow[];
+    const PRD_COLS = "id,title,shipped_at,opportunity_id,outcome_suggestion,contract";
+    const nowIso = new Date().toISOString();
+
+    // The same two reads the sweep makes, run together. `check_by` is the
+    // workspace's own stated measurement window, so a closed one is the
+    // workspace saying the answer is due, not this surface deciding it is.
+    const [shippedRes, dueRes] = await Promise.all([
+      db
+        .from("prds")
+        .select(PRD_COLS)
+        .is("outcome", null)
+        .not("shipped_at", "is", null)
+        .order("shipped_at", { ascending: false })
+        .limit(12),
+      db
+        .from("launch_plans")
+        .select("prd_id,check_by")
+        .not("check_by", "is", null)
+        .lte("check_by", nowIso)
+        .order("check_by", { ascending: true })
+        .limit(60),
+    ]);
+    if (shippedRes.error) throw new Error(shippedRes.error.message);
+    const shippedPrds = (shippedRes.data ?? []) as PrdRow[];
+
+    const byId = new Map<string, PrdRow>();
+    for (const p of shippedPrds) byId.set(p.id, p);
+
+    const duePrdIds = [
+      ...new Set(
+        ((dueRes.data ?? []) as Array<{ prd_id: string | null }>)
+          .map((r) => r.prd_id)
+          .filter((v): v is string => !!v && !byId.has(v)),
+      ),
+    ];
+    if (duePrdIds.length > 0) {
+      // A read failure here narrows the queue back to the shipped half rather
+      // than blanking it: fewer asks beats none. RLS already scopes the rows.
+      const { data: dueRows } = await db
+        .from("prds")
+        .select(PRD_COLS)
+        .is("outcome", null)
+        .in("id", duePrdIds)
+        .limit(12);
+      for (const p of (dueRows ?? []) as PrdRow[]) {
+        if (!byId.has(p.id)) byId.set(p.id, p);
+      }
+    }
+
+    // Shipped first and newest ship first, exactly as before; the window-closed
+    // rows follow in the order their windows came due. Nothing is dropped from
+    // what the queue used to show.
+    const prds = [...byId.values()].slice(0, 12);
     if (prds.length === 0) return { pending: [] };
 
     const prdIds = prds.map((p) => p.id);
@@ -1079,15 +1183,22 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       const holdsPromotion = arc === "observing" || arc === "proving";
 
       // The verdict the agent would have put on the record, read the same way
-      // the sweep reads it. Everything in this queue has shipped (the query
-      // filters on it), so `verdictIsRecordFact` can never be true here.
+      // the sweep reads it.
+      //
+      // `verdictIsRecordFact` is computed here rather than hardcoded false. It
+      // was false because the query admitted shipped specs only; now that a
+      // closed measurement window also puts a spec on this desk, the unshipped
+      // case is reachable and it is exactly the one the sweep calls a fact of
+      // the calendar rather than a reading of what happened. Leaving the
+      // constant would have printed a reason the sweep did not act on, which
+      // this file holds to be worse than printing none.
       const verdictOnTable = asVerdict(p.outcome_suggestion?.verdict);
       const planWorkspaceId = planByPrd.get(p.id)?.workspace_id ?? null;
       const settlement = verdictOnTable
         ? decideSettlement(
             {
               verdict: verdictOnTable,
-              verdictIsRecordFact: false,
+              verdictIsRecordFact: !p.shipped_at && verdictOnTable === "missed",
               metricDeclared: metricWasDeclared(
                 planByPrd.get(p.id)?.success_metric ?? null,
                 gradeOutcomeContract(

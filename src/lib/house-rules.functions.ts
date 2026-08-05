@@ -107,6 +107,111 @@ export function filterRulesForAgent(
 }
 
 /**
+ * The provenance columns the weekly steward pass reads off `house_rules` to
+ * work out where to look next. `source_learning_ids` is RF-04's own
+ * provenance; `source_run_ids` belongs to the nightly retro (RPT-39), which
+ * writes into this same table, so an EMPTY source_run_ids is what marks a row
+ * as the steward pass's own work.
+ */
+export type HouseRuleProvenance = {
+  workspace_id: string;
+  status: string;
+  source_learning_ids: string[] | null;
+  source_run_ids: string[] | null;
+  created_at: string;
+};
+
+/**
+ * One workspace the weekly pass should spend a model call on, plus the exact
+ * undistilled learnings that earned it the slot (newest first).
+ */
+export type DistillTarget = {
+  workspaceId: string;
+  ownerId: string;
+  learningIds: string[];
+};
+
+export type SelectDistillTargetsInput = {
+  /** Every workspace in scope, any order. */
+  workspaces: { id: string; owner_id: string }[];
+  /** Existing house_rules provenance across those workspaces. */
+  existingRules: HouseRuleProvenance[];
+  /** Learnings inside the lookback window, NEWEST FIRST. */
+  learnings: { id: string; workspace_id: string | null }[];
+  /** Start of the current ISO week (UTC) as an ISO timestamp. */
+  weekStartIso: string;
+  minLearnings: number;
+  maxLearningsPerWorkspace: number;
+  maxWorkspaces: number;
+};
+
+/**
+ * PURE. Decide which workspaces this week's steward pass distils, and from
+ * which learnings.
+ *
+ * THE DEFECT THIS EXISTS TO PREVENT, measured on production 2026-08-05: the
+ * tick used to take the five OLDEST workspaces by created_at and nothing else.
+ * Those five held zero `learnings` between them, all time, while every one of
+ * the eleven workspaces that did hold learnings had been created later and so
+ * could never enter the window. The pass ran on schedule, finished in 515ms
+ * without ever reaching a model, and reported ok. That is why `house_rules`
+ * held five rows and not one of them was distilled from a learning. Selection
+ * now follows where the undistilled material actually is, never workspace age.
+ *
+ * Ranking is by how much undistilled material a workspace holds, so the scarce
+ * model calls go where the evidence is. Provenance dedup drains that pool as
+ * rules get drafted, so a busy workspace cannot hold the slots forever. Ties
+ * break on workspace id so a pass is deterministic and replayable.
+ */
+export function selectDistillTargets(input: SelectDistillTargetsInput): DistillTarget[] {
+  const owners = new Map(input.workspaces.map((w) => [w.id, w.owner_id]));
+
+  // A learning cited by any non-rejected rule is spent, so a learning is
+  // distilled at most once. A REJECTED draft releases its learnings again: a
+  // human turning down one framing of a pattern must not bury that pattern
+  // forever.
+  const spent = new Set(
+    input.existingRules
+      .filter((r) => r.status !== "rejected")
+      .flatMap((r) => r.source_learning_ids ?? []),
+  );
+
+  // Weekly idempotency: a workspace this pass already drafted for during THIS
+  // ISO week is finished. Scoped to the pass's own drafts (empty
+  // source_run_ids) so the nightly retro's rows, which land in the same table,
+  // never suppress it.
+  const doneThisWeek = new Set(
+    input.existingRules
+      .filter((r) => (r.source_run_ids ?? []).length === 0 && r.created_at >= input.weekStartIso)
+      .map((r) => r.workspace_id),
+  );
+
+  const pools = new Map<string, string[]>();
+  for (const learning of input.learnings) {
+    const wsId = learning.workspace_id;
+    if (!wsId || !owners.has(wsId) || doneThisWeek.has(wsId) || spent.has(learning.id)) continue;
+    const pool = pools.get(wsId) ?? [];
+    // The per-workspace cap keeps the drafting prompt bounded, and it is
+    // applied AFTER dedup, never before. Capping first was the second half of
+    // the same starvation bug: a workspace whose newest N learnings were all
+    // already distilled would read as empty while undistilled ones sat just
+    // outside the cut.
+    if (pool.length >= input.maxLearningsPerWorkspace) continue;
+    pool.push(learning.id);
+    pools.set(wsId, pool);
+  }
+
+  return [...pools.entries()]
+    .filter(([, ids]) => ids.length >= input.minLearnings)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .slice(0, input.maxWorkspaces)
+    .flatMap(([workspaceId, learningIds]) => {
+      const ownerId = owners.get(workspaceId);
+      return ownerId ? [{ workspaceId, ownerId, learningIds }] : [];
+    });
+}
+
+/**
  * Load this workspace's currently-active house rules: status='approved' and
  * not retired by an approved supersedes edge. Called directly (not a
  * createServerFn) from the chokepoint in loop.server.ts, same as the brief

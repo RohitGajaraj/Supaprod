@@ -218,10 +218,74 @@
  * key that StandingRules and CrewCarries already share, so surfacing this costs
  * zero additional requests.
  *
- * WHY recordHeadline AND guidanceLines ARE EXPORTED. Both decide what this page
- * is allowed to CLAIM, and every rule they hold is one a future edit can break
- * while typechecking clean and looking fine in a diff, so they are pure and
- * guarded by src/routes/__tests__/brain-guidance.test.tsx. That costs two
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE MAP COMES UP OFF TAB FIVE, 2026-08-05. THE PROOF WAS BURIED.
+ *
+ * A design audit put the two facts side by side. GraphForceCanvas (36 KB) and
+ * GraphUniverseCanvas (43 KB) are a real DPR-aware physics canvas with typed
+ * edges, a time scrubber that replays over actual edge timestamps, drift rings,
+ * and per-edge rationale plus created_by_agent attribution: the one place in
+ * this product where the crew's work is DRAWN rather than described. Everywhere
+ * else, agent work is text; `<svg` appears zero times across the four core work
+ * surfaces, and the entire visual vocabulary for "an agent is working" is a 6px
+ * breathing dot, a 14px rotating glyph and a static chip. And that one drawn
+ * thing sat behind rail row 3, then tab 5 of 5, then a view toggle. Nobody who
+ * had not been told it existed ever saw it.
+ *
+ * Brain's job is to prove the record GUIDES. The graph is that proof, drawn. So
+ * it gets a region of its own, above the tabs.
+ *
+ * THE THREE WAYS TO RAISE IT, AND WHY THIS ONE.
+ *
+ *   MAKE GRAPH THE DEFAULT TAB when the record has edges. Strongest exposure,
+ *   and it takes something away: a returning PM lands on Brain to answer "was
+ *   this decided before", and that answer is the decision ledger. Moving the
+ *   default moves the surface's stated one task out from under the person who
+ *   uses it daily, which fails the ratchet's own test. Rejected.
+ *
+ *   MOVE GRAPH TO TAB POSITION 1 or 2. Cheap, and it does not fix the defect.
+ *   A tab is still a door you have to know to open; a first-time visitor who
+ *   never clicks it still never meets the canvas. It answers "buried deep" and
+ *   not "no visitor reaches it", and only the second one matters. Rejected.
+ *
+ *   A LIVE PREVIEW ABOVE THE TABS, which is what this is. It is strictly
+ *   ADDITIVE: every tab, every label, every deep link and the whole Graph tab
+ *   with its legend, scrubber, replay, Universe/Flat toggle and outline stay
+ *   exactly where they were. Nothing moved, so nobody's habit broke, and the
+ *   drawn record is now unavoidable rather than one more thing to find. It is
+ *   also the only one of the three that lets the canvas be CONDITIONAL, which
+ *   is what makes the honest-degradation rule below possible at all.
+ *
+ * WHERE IT SITS, AND WHY NOT HIGHER. Directly above the tab strip, under
+ * StandingRules. The recess-then-rule pair above it is deliberate and stated in
+ * section 5 of this header ("outcome, then consequence, in two elements, above
+ * the fold"), so the map does not get to split it. The resulting order is the
+ * argument the surface has always been making, and now the last rung is a
+ * picture: what the record did, what it changed, the rule it wrote, THE WHOLE
+ * THING DRAWN, and then the doors into it.
+ *
+ * IT DEGRADES HONESTLY, WHICH IS THE POINT OF THE THRESHOLD. A canvas holding
+ * two dots and one line does not read as a young workspace, it reads as a
+ * broken feature, and that is the state EVERY new user is in. So the canvas is
+ * drawn only at PREVIEW_MIN_EDGES or more, and under it the region says what is
+ * actually there in words: nothing linked yet plus the act that draws the first
+ * thread, or a thin count plus the door to the full map. Nothing is hidden in
+ * either state, because the Graph tab is untouched and both states link to it.
+ *
+ * IT COSTS NOTHING TO LOAD. The 36 KB canvas and its d3-force dependency are
+ * behind `lazy` INSIDE the drawn branch, so a workspace with two edges never
+ * fetches the module at all, and the read is the ["knowledge-graph", kind, id]
+ * key GraphCanvasView already uses, so this is a second consumer of one request
+ * rather than a second request, and opening the Graph tab is now a cache hit.
+ * The read is skipped outright while a drill is open. GraphUniverseCanvas is
+ * deliberately NOT the preview renderer: it pulls three.js, and the flagship
+ * WebGL view belongs on the tab that can afford it.
+ *
+ * WHY recordHeadline, guidanceLines AND graphPreview ARE EXPORTED. All three
+ * decide what this page is allowed to CLAIM, and every rule they hold is one a
+ * future edit can break while typechecking clean and looking fine in a diff, so
+ * they are pure and guarded by src/routes/__tests__/brain-guidance.test.tsx and
+ * src/routes/__tests__/brain-graph-preview.test.tsx. That costs a few
  * react-refresh warnings on this file, which is the same trade CompoundingPanel
  * beside it already makes for whenOf and deltaOf, and for the same reason.
  */
@@ -235,6 +299,8 @@ import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getCompounding } from "@/lib/today.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
 import { getStandingRecord, type RecallRecord } from "@/lib/brain-standing.functions";
+import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
+import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
 import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
@@ -247,6 +313,7 @@ import {
   Empty,
   Failed,
   Grid,
+  Loading,
   Num,
   PageHead,
   Record as RecordRecess,
@@ -287,6 +354,55 @@ const DocsPanel = lazy(() =>
 const ArtifactsView = lazy(() =>
   import("@/components/brain/ArtifactsView").then((m) => ({ default: m.ArtifactsView })),
 );
+
+/**
+ * THE RECORD, DRAWN. Mounted above the tabs, and ONLY from inside the branch
+ * that has already counted enough edges to be worth drawing, so the 36 KB
+ * renderer and its d3-force dependency are never fetched by a workspace that
+ * would get two dots and a line.
+ *
+ * The component is defined inside the factory rather than imported so that
+ * `graph-visual` rides in the SAME lazy chunk. It is a small module of pure
+ * constants plus one media-query hook, and importing `usePrefersReducedMotion`
+ * at the top of this route would pull the whole vocabulary into the chunk every
+ * Brain visit pays for, to serve the one visit in five that draws a map.
+ *
+ * `reducedMotion` is read here rather than passed because the canvas answers it
+ * itself: it renders a settled still instead of a running simulation, which is
+ * the same contract GraphPanel already honours on the tab.
+ */
+const GraphRecordPreview = lazy(async () => {
+  const [{ GraphForceCanvas }, { usePrefersReducedMotion }] = await Promise.all([
+    import("@/components/knowledge/GraphForceCanvas"),
+    import("@/components/knowledge/graph-visual"),
+  ]);
+  function Preview({
+    graph,
+    onOpenNode,
+  }: {
+    graph: KnowledgeGraph;
+    onOpenNode: (kind: string, id: string) => void;
+  }) {
+    const reducedMotion = usePrefersReducedMotion();
+    const [selected, setSelected] = useState<string | null>(null);
+    return (
+      <GraphForceCanvas
+        graph={graph}
+        selectedKey={selected}
+        onSelect={setSelected}
+        // A double-click on the preview is the handoff: it opens the full Graph
+        // tab already focused on the thing you pointed at, which is the drill
+        // the ?focusKind= / ?focusId= contract has always supported.
+        onOpenStory={(key) => {
+          const node = graph.nodes.find((n) => n.key === key);
+          if (node) onOpenNode(node.kind, node.id);
+        }}
+        reducedMotion={reducedMotion}
+      />
+    );
+  }
+  return { default: Preview };
+});
 
 type Tab = "decisions" | "learnings" | "artifacts" | "docs" | "graph";
 const TABS: Tab[] = ["decisions", "learnings", "artifacts", "docs", "graph"];
@@ -668,6 +784,89 @@ export function guidanceLines(args: {
   return out;
 }
 
+/**
+ * THE FEWEST LINKS THAT MAKE A SHAPE.
+ *
+ * Three, and the number is a judgment about what a picture SAYS rather than
+ * about performance. One link is two dots and a line; two links are three dots
+ * in a row. Neither reads as "this workspace is young", they read as "this
+ * feature is broken", and a physics canvas holding three objects reads worst of
+ * all because the motion has nothing to resolve into. Three links is the first
+ * count that can branch, and a branch is the whole claim: this came from that,
+ * and so did the other thing.
+ */
+export const PREVIEW_MIN_EDGES = 3;
+
+/**
+ * WHAT THE PREVIEW REGION IS ALLOWED TO DO, given what came back.
+ *
+ * PURE, for the same reason recordHeadline and guidanceLines are: every rule
+ * here is one a future edit can break while typechecking clean.
+ *
+ *   NEVER DRAW A CANVAS THAT READS AS BROKEN. Under PREVIEW_MIN_EDGES the
+ *   region says what is really there in words. This is not a smaller claim, it
+ *   is the true one, and it is the state every new workspace is in.
+ *
+ *   "NOTHING IS LINKED" AND "WE COULD NOT READ IT" ARE DIFFERENT FACTS, and
+ *   they get different states, because a person acts differently on each.
+ *
+ *   A STALE GRAPH STILL DRAWS. `failed` with data in hand means the refetch
+ *   failed, not that the record went away, so the map we have is still true and
+ *   blanking it would lose information over a network blip.
+ *
+ *   IT STANDS DOWN WHERE IT WOULD BE NOISE. On the Graph tab the full canvas is
+ *   already on screen, and drawing a second physics simulation above it is both
+ *   a duplicate and a real cost. On an open drill the reader came to read ONE
+ *   record, which is the identical rule the record recess above already follows.
+ */
+export type GraphPreviewState =
+  | { state: "hidden" }
+  | { state: "loading" }
+  | { state: "failed" }
+  | { state: "empty" }
+  | { state: "thin"; edges: number }
+  | { state: "drawn"; nodes: number; edges: number };
+
+export function graphPreview(args: {
+  /** Structural on purpose: the only thing this decision needs is how much
+   *  there is to draw, so a test never has to build a whole KnowledgeGraph. */
+  graph: { nodes: unknown[]; edges: unknown[] } | null;
+  loading: boolean;
+  failed: boolean;
+  onGraphTab: boolean;
+  drilling: boolean;
+}): GraphPreviewState {
+  const { graph, loading, failed, onGraphTab, drilling } = args;
+  if (onGraphTab || drilling) return { state: "hidden" };
+  if (!graph) return failed && !loading ? { state: "failed" } : { state: "loading" };
+  const nodes = graph.nodes.length;
+  const edges = graph.edges.length;
+  if (edges === 0) return { state: "empty" };
+  if (edges < PREVIEW_MIN_EDGES || nodes < PREVIEW_MIN_EDGES) return { state: "thin", edges };
+  return { state: "drawn", nodes, edges };
+}
+
+/**
+ * The height the canvas is about to take, held while the read is in flight so
+ * the tabs do not slide 500px down the page under the reader's cursor. It
+ * mirrors GraphForceCanvas's own recess verbatim, including the border and the
+ * sink, so the reservation is the exact shape of the thing arriving rather than
+ * a grey box approximating it. If that file's height ever changes, this follows.
+ *
+ * The thin and empty states collapse this reservation UPWARDS, which is the
+ * cheap direction: it never pushes away something the reader is already looking
+ * at, and it happens once, on workspaces that have no map to wait for anyway.
+ */
+const PREVIEW_RESERVE = {
+  height: "clamp(420px, 58vh, 640px)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "var(--sp-sink)",
+  border: "1px solid var(--sp-line)",
+  borderRadius: "var(--sp-radius-panel)",
+};
+
 function MemoryPage() {
   const search = Route.useSearch();
   // validateSearch already normalized legacy ids at parse time, so the
@@ -705,6 +904,18 @@ function MemoryPage() {
   const standing = useQuery({
     queryKey: ["brain-standing", activeWorkspaceId],
     queryFn: () => fStanding({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  // The record DRAWN. THE KEY IS CHARACTER-IDENTICAL TO GraphCanvasView's, so
+  // this page and the Graph tab are two consumers of ONE request: the preview
+  // costs nothing extra on any visit that opens the tab, and the tab it hands
+  // off to now opens on a cache hit instead of a cold read. Skipped entirely
+  // while a drill is open, because that is a state the preview never draws in.
+  const drilling = Boolean(decision || learning);
+  const fGraph = useServerFn(getKnowledgeGraph);
+  const graphQ = useQuery({
+    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null],
+    queryFn: () => fGraph({ data: { focusKind: focusKind as GraphNodeKind | undefined, focusId } }),
+    enabled: !drilling,
   });
 
   // Fresh search object: every drill param clears on a tab switch.
@@ -789,6 +1000,17 @@ function MemoryPage() {
     recall,
     rescoreCount: summary ? summary.rescoreCount : null,
     recallSaidBelow: tab === "learnings" && !learning,
+  });
+
+  // Whether the record is drawn on this screen, and in what state. See the
+  // header section "THE MAP COMES UP OFF TAB FIVE" for why the answer is a
+  // region here rather than a reordered tab or a new default.
+  const preview = graphPreview({
+    graph: graphQ.data ?? null,
+    loading: graphQ.isLoading,
+    failed: graphQ.isError,
+    onGraphTab: tab === "graph",
+    drilling,
   });
 
   // The second line is the SIZE of the record: what the headline no longer
@@ -954,6 +1176,110 @@ function MemoryPage() {
           agent's prompt. Cause, then consequence, and it stands above the tabs
           because it is true whichever door you are behind. */}
       <StandingRules />
+
+      {/* THE RECORD, DRAWN, and the last thing before the doors.
+
+          Every other region on this page states the record's work in a
+          sentence. This one shows it, and it is the only element in the product
+          that does: the four core work surfaces render agent work entirely as
+          text, and the whole visual vocabulary for "an agent is working" is a
+          breathing dot and a rotating glyph. That made an 80 KB physics canvas
+          with typed edges, a real time scrubber and per-edge attribution into
+          the best-kept secret in the app, three levels down.
+
+          It sits UNDER StandingRules rather than higher because the recess and
+          the rule above it are a deliberate pair, outcome then consequence, and
+          the map is not allowed to split them. It sits ABOVE the tabs for the
+          same reason StandingRules does: it is true whichever door you are
+          behind, and here it also hands off into them.
+
+          THE LABEL NAMES THE OUTCOME. "Graph" is the tab's name and a shape;
+          what you get from it is the answer to what led to what. */}
+      {preview.state !== "hidden" ? (
+        <Block
+          title="What led to what"
+          sub={
+            preview.state === "drawn" ? (
+              <>
+                <Num>{preview.nodes}</Num> pieces of work and the <Num>{preview.edges}</Num> links
+                between them. Double click any one to open it on the full map, with the reason the
+                link was drawn and the agent that drew it.
+              </>
+            ) : undefined
+          }
+          more={preview.state === "drawn" ? "Open the full map" : undefined}
+          onMore={() => setTab("graph")}
+        >
+          {/* A read in flight, holding the shape of what is coming. */}
+          {preview.state === "loading" ? (
+            <div style={PREVIEW_RESERVE}>
+              <Loading>Drawing what the record connects.</Loading>
+            </div>
+          ) : null}
+
+          {/* NOT an empty state. The map exists; this read of it failed. */}
+          {preview.state === "failed" ? (
+            <Failed onRetry={() => void graphQ.refetch()}>
+              The map did not load. Nothing it draws is lost, and the Graph tab still holds it.
+            </Failed>
+          ) : null}
+
+          {/* THE STATE EVERY NEW WORKSPACE IS IN. Naming the act that draws the
+              first thread is the difference between a surface that reads as
+              broken and one that reads as waiting for you. The act named is one
+              the product genuinely performs: Discover clustering a signal onto
+              a bet writes that lineage row itself. */}
+          {preview.state === "empty" ? (
+            <Empty
+              action={
+                <Button variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                  Turn a signal into a bet
+                </Button>
+              }
+            >
+              Nothing on the record is linked to anything else yet. The first thread is drawn the
+              moment one piece of work comes from another: a signal becomes a bet, a bet becomes a
+              spec, an outcome comes back on a call you shipped.
+            </Empty>
+          ) : null}
+
+          {/* Enough to count, not enough to be a shape. Said plainly, with the
+              full map still one click away, so the thin state hides nothing the
+              tab used to offer. */}
+          {preview.state === "thin" ? (
+            <Empty
+              action={
+                <Button variant="ghost" onClick={() => setTab("graph")}>
+                  Open the map
+                </Button>
+              }
+            >
+              {preview.edges === 1 ? "One link is" : `${preview.edges} links are`} on the record so
+              far, which is a list and not yet a shape. The map draws itself as the work connects,
+              and every thread on it carries why it was drawn.
+            </Empty>
+          ) : null}
+
+          {/* The canvas itself, and the ONLY place the heavy module is
+              referenced, so nothing above ever pays to load it. */}
+          {preview.state === "drawn" && graphQ.data ? (
+            <Suspense
+              fallback={
+                <div style={PREVIEW_RESERVE}>
+                  <Loading>Drawing what the record connects.</Loading>
+                </div>
+              }
+            >
+              <GraphRecordPreview
+                graph={graphQ.data}
+                onOpenNode={(kind, id) =>
+                  navigate({ search: { tab: "graph", focusKind: kind, focusId: id } })
+                }
+              />
+            </Suspense>
+          ) : null}
+        </Block>
+      ) : null}
 
       <div className="sp-tabs" role="tablist" aria-label="What the record holds">
         {TABS.map((id) => (

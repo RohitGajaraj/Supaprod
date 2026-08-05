@@ -231,25 +231,25 @@ export function Hero() {
               style={{ animationDelay: "180ms" }}
             >
               {/* THIS POINTED AT A DOOR THAT DID NOT NEED TO EXIST.
-                *
-                * It sent every visitor to #join, the email waitlist. Measured on
-                * 2026-08-05: 1,294 landing_visit events and ZERO rows in
-                * waitlist_signups. Not a poor rate. Zero.
-                *
-                * Signup is fully open with auto-confirm, and the product says so
-                * on two other surfaces: /pricing offers "Start free" straight to
-                * /signup, and /demo says "the beta is open for sign-ups". The
-                * home page was the only surface pretending the product was
-                * gated, and it is the page a Product Hunt listing sends its
-                * entire spike to.
-                *
-                * A visitor's question at second eight is "can I try this". The
-                * nav answered "Sign in", implying accounts exist, and this
-                * button answered "wait". That ambiguity at the primary CTA is
-                * the whole loss.
-                *
-                * Nothing is removed: the waitlist form is untouched and still
-                * reachable at #join from the closing section. */}
+               *
+               * It sent every visitor to #join, the email waitlist. Measured on
+               * 2026-08-05: 1,294 landing_visit events and ZERO rows in
+               * waitlist_signups. Not a poor rate. Zero.
+               *
+               * Signup is fully open with auto-confirm, and the product says so
+               * on two other surfaces: /pricing offers "Start free" straight to
+               * /signup, and /demo says "the beta is open for sign-ups". The
+               * home page was the only surface pretending the product was
+               * gated, and it is the page a Product Hunt listing sends its
+               * entire spike to.
+               *
+               * A visitor's question at second eight is "can I try this". The
+               * nav answered "Sign in", implying accounts exist, and this
+               * button answered "wait". That ambiguity at the primary CTA is
+               * the whole loss.
+               *
+               * Nothing is removed: the waitlist form is untouched and still
+               * reachable at #join from the closing section. */}
               <a
                 href="/signup"
                 className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-white"
