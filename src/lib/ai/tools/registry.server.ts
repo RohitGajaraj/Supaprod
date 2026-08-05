@@ -3558,12 +3558,31 @@ const learningRecord = def({
     // cite it. Best effort: the learning is already written and a memory miss
     // must not fail the tool. rememberOutcome refuses to insert an unembeddable
     // memory by design, since match_agent_memory hard filters on the vector.
-    if (a.prd_id) {
+    /* THE MOAT'S ONLY WRITER, GATED ON THE WRONG VARIABLE.
+     *
+     * This tested `a.prd_id`, the RAW argument, while the learning row four
+     * dozen lines up is written with `resolvedPrdId` (:3542), the mission
+     * resolved id added precisely so an agent that names no prd still files its
+     * learning against the right one. So the exact case that fix exists for
+     * wrote the learning and then skipped the memory.
+     *
+     * The consequence is the whole product claim. `agent_memory` has 846
+     * reflections, 28 precedents, 26 notes, 8 corrections and ZERO rows of kind
+     * "outcome", and outcome is the kind every precedent path filters on:
+     * loadDecisionPrecedent, the RF-02 outcome-weighted rerank, the Critic's
+     * red-team block. loadDecisionPrecedent has fired 71 times since 2026-07-30
+     * and returned nothing on all 71, because the pool it searches has never had
+     * a single row in it. "It learns and guides" is true of reflections, which
+     * do get recalled, and was not yet true of OUTCOMES, which is the half that
+     * makes it a moat.
+     *
+     * Using the resolved id is what lets the pool start filling. */
+    if (resolvedPrdId) {
       try {
         await rememberOutcome(supabase, {
           userId,
           workspaceId: resolvedWorkspace,
-          prdId: a.prd_id,
+          prdId: resolvedPrdId,
           opportunityId,
           learningId,
           content: a.summary,
