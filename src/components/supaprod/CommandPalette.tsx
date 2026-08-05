@@ -525,19 +525,56 @@ export function GotoShortcuts() {
 
       disarm();
 
+      /**
+       * THE SECOND KEY BELONGS TO NAVIGATION, AND NOTHING ELSE MAY HAVE IT.
+       *
+       * THE DEFECT, proven live 2026-08-06 with the network blocked so it could
+       * not commit: pressing `g` then `d` on /today navigated to Discover AND
+       * fired `decideApprovalItem` with `verdict: "reject"` on the waiting
+       * call. One keystroke, two acts, and the destructive one was silent and
+       * irreversible. The same shape on /approvals (`g r` rejects the focused
+       * call), on /decide (`g k` drafts a spec and spends money, `g c` runs the
+       * Critic) and on /discover.
+       *
+       * WHY THE OLD CODE COULD NOT PREVENT IT. `preventDefault` stops the
+       * BROWSER's default action; it does nothing to other listeners. Both this
+       * handler and the surfaces' handlers bind `keydown` on `window`, so both
+       * always ran. The armed marker could not rescue it either: `disarm()`
+       * fires above before the key is resolved, so a page handler reading the
+       * attribute would always see it already cleared.
+       *
+       * WHY CAPTURE, and why nothing weaker works. `stopPropagation` in the
+       * bubble phase only silences listeners registered AFTER this one on the
+       * same target, and `defaultPrevented` is only visible to those same later
+       * listeners -- both depend on registration order, which is decided by
+       * where React happens to mount things. A window CAPTURE listener runs
+       * before every bubble listener in the document, always, whatever the tree
+       * looks like. That is why the listener below is registered with
+       * `capture: true`: it is the only position from which this can be settled
+       * once rather than re-argued in every surface that ever binds a letter.
+       *
+       * A MISTYPED CHORD NOW COSTS NOTHING, which is what the comment on
+       * CHORD_WINDOW_MS already promised. Any single-character key pressed
+       * while armed is consumed: it navigates if it is bound, and if it is not,
+       * it does nothing at all. Before this, `g` then a typo'd `x` on /decide
+       * dropped a bet. Keys that cannot be a chord's second key -- Escape,
+       * Enter, Tab, the arrows -- disarm and pass straight through, so a chord
+       * left armed can never swallow an Escape out of a dialog.
+       */
+      if (key.length !== 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+
       const target = [...PRIMARY_NAV, ...FOOTER_NAV].find((item) => {
         const hint = navKeyHint(item);
         return hint !== "" && hint === key;
       });
-      if (target) {
-        e.preventDefault();
-        navigate({ to: target.to, search: target.search as never });
-      }
+      if (target) navigate({ to: target.to, search: target.search as never });
     };
 
-    window.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
     return () => {
-      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onKey, true);
       disarm();
     };
   }, [navigate]);

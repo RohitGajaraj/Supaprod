@@ -1338,8 +1338,23 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               <Link
                 to="/settings"
                 className="sp-setbtn"
-                title={SETTINGS_KEY ? `Settings, shortcut ${SETTINGS_KEY}` : "Settings"}
-                aria-label={SETTINGS_KEY ? `Settings, shortcut ${SETTINGS_KEY}` : "Settings"}
+                /* The same stale-prefix defect the rail rows carried: this said
+                   "shortcut s", and `s` alone opens nothing. The gear is the
+                   ONLY place Settings' key is stated anywhere in the product --
+                   it draws no keycap (three 34px buttons in a 236px foot have
+                   no room) and the command palette that used to list it is not
+                   mounted -- so this string was the whole affordance, and it
+                   was wrong. */
+                title={
+                  SETTINGS_KEY
+                    ? `Settings, shortcut ${NAV_CHORD_PREFIX} then ${SETTINGS_KEY}`
+                    : "Settings"
+                }
+                aria-label={
+                  SETTINGS_KEY
+                    ? `Settings, shortcut ${NAV_CHORD_PREFIX} then ${SETTINGS_KEY}`
+                    : "Settings"
+                }
                 activeProps={{ "aria-current": "page" }}
               >
                 <IconGear />
