@@ -558,10 +558,11 @@ function Ship() {
         ) : (
           (allNotes ? notes : notes.slice(0, VISIBLE)).map((e) => {
             // A second line is a DIFFERENT fact, never the first one continued:
-            // which product, which pull request, and whether it's live in production.
+            // which product, origin opportunity, which pull request, and whether it's live in production.
             // The body belongs to the one post in focus, not to every row.
             const meta = [
               e.product_name ?? null,
+              e.opportunity_title ? `from ${e.opportunity_title}` : null,
               e.pr_number ? `PR #${e.pr_number}` : null,
               e.production_url ? "live in production" : null,
             ]

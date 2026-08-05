@@ -34,6 +34,9 @@ export type ChangelogEntry = {
   released_at: string;
   product_name?: string | null;
   production_url?: string | null;
+  /** Origin bet this release came from (when available). */
+  opportunity_id?: string | null;
+  opportunity_title?: string | null;
 };
 
 export const listChangelog = createServerFn({ method: "GET" })
@@ -100,6 +103,42 @@ export const listChangelog = createServerFn({ method: "GET" })
       for (const e of entries) {
         if (e.changeset_id) {
           e.production_url = urlByChangesetId.get(e.changeset_id) ?? null;
+        }
+      }
+    }
+
+    // Resolve origin opportunities. Walk: changelog ← changeset ← mission ← spec ← opportunity.
+    // This traces the decision chain so users can see what bet this release came from.
+    const prdIds = Array.from(
+      new Set(entries.map((e) => e.prd_id).filter((id): id is string => !!id)),
+    );
+    if (prdIds.length) {
+      const { data: specs } = await db
+        .from("prds")
+        .select("id,opportunity_id")
+        .in("id", prdIds);
+      const oppIdByPrdId = new Map(
+        (specs ?? []).map((s) => [(s as { id: string; opportunity_id: string | null }).id, (s as { id: string; opportunity_id: string | null }).opportunity_id]),
+      );
+      const oppIds = Array.from(
+        new Set([...oppIdByPrdId.values()].filter((id): id is string => !!id)),
+      );
+      if (oppIds.length) {
+        const { data: opportunities } = await db
+          .from("opportunities")
+          .select("id,title")
+          .in("id", oppIds);
+        const oppTitleById = new Map(
+          (opportunities ?? []).map((o) => [(o as { id: string; title: string }).id, (o as { id: string; title: string }).title]),
+        );
+        for (const e of entries) {
+          if (e.prd_id) {
+            const oppId = oppIdByPrdId.get(e.prd_id);
+            if (oppId) {
+              e.opportunity_id = oppId;
+              e.opportunity_title = oppTitleById.get(oppId) ?? null;
+            }
+          }
         }
       }
     }
