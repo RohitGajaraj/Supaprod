@@ -548,7 +548,13 @@ describe("The volumes on the door (facts the reads already returned)", () => {
     });
     expect(figure(record, "steps recorded")?.value).toBe("23");
     expect(figure(record, "steps recorded")?.note).toBe("across 3 runs");
-    expect(figure(record, "runs that hit an error")?.value).toBe("1");
+    // SINGULAR, because there is one. The card sets the figure and its label
+    // together as a phrase, so "1 runs that hit an error" is a grammatical
+    // error on the surface rather than in a log -- and one errored run is the
+    // commonest reading a healthy workspace has. Seen on the live engine room
+    // before it was fixed.
+    expect(figure(record, "run that hit an error")?.value).toBe("1");
+    expect(figure(record, "runs that hit an error")).toBeUndefined();
     expect(figure(record, "receipts sealed")?.value).toBe("412");
     expect(record.latest).toEqual({
       what: "Ship the pricing page",

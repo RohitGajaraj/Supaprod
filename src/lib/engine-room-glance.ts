@@ -902,7 +902,13 @@ export function buildRecordGlance(input: RecordGlanceInput): RoomGlance {
     }
     if (errored > 0) {
       figures.push({
-        label: "runs that hit an error",
+        // SINGULAR WHEN IT IS ONE, because the card reads it aloud as a
+        // sentence: the figure and its label sit together, so "1 runs that hit
+        // an error" is a grammatical error on the surface, not in a log. The
+        // sibling figure two lines up already pluralises its note; this one did
+        // not pluralise its label, and one errored run is the commonest reading
+        // there is on a healthy workspace.
+        label: `run${errored === 1 ? "" : "s"} that hit an error`,
         value: fmtCount(errored),
         note: "at least one failed step",
       });
