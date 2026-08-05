@@ -148,6 +148,7 @@ import {
   NAV_CHORD_PREFIX,
 } from "@/lib/nav-model";
 import { BoardPanel } from "./BoardPanel";
+import { ShortcutSheet, useShortcutSheetKey } from "./ShortcutSheet";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
 import {
@@ -561,6 +562,12 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   // only a run does. See that file's header for the founder ruling this obeys.
   const [strip, setStrip] = React.useState<RunStripSpec | null>(null);
   const [boardOpen, setBoardOpen] = React.useState(false);
+  const [keysOpen, setKeysOpen] = React.useState(false);
+  // `?` from anywhere. Memoised so the capture listener registers once for the
+  // life of the shell rather than on every render of a frame that re-renders
+  // on every route change and every live-line tick.
+  const openKeys = React.useCallback(() => setKeysOpen(true), []);
+  useShortcutSheetKey(openKeys);
   const { theme, toggleTheme } = useTheme();
 
   // THE STRIP DOES NOT COLLAPSE. Founder, 2026-07-29, revising the earlier
@@ -1359,6 +1366,24 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               >
                 <IconGear />
               </Link>
+              {/* THE DOOR ONTO THE KEYBOARD, and it is drawn rather than left
+                to be guessed. `?` is what Gmail, GitHub, Linear, Jira, Slack,
+                Notion and Superhuman all bind, so most people will try it --
+                but "most people will try it" is not a door, it is a hope, and
+                this repo's signature defect is a capability with no door. The
+                keycap IS the affordance: it is the only mark in the shell that
+                is its own instruction. */}
+              <button
+                type="button"
+                className="sp-setbtn sp-keysbtn"
+                onClick={() => setKeysOpen(true)}
+                title="Keyboard shortcuts"
+                aria-label="Keyboard shortcuts, press question mark"
+                aria-haspopup="dialog"
+                aria-expanded={keysOpen}
+              >
+                <span aria-hidden="true">?</span>
+              </button>
               <button
                 type="button"
                 className="sp-collapse"
@@ -1380,6 +1405,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <BoardPanel open={boardOpen} onClose={() => setBoardOpen(false)} />
+        {/* The keyboard, on `?` from anywhere. It is mounted here rather than
+          beside GotoShortcuts because the sheet needs the pathname to answer
+          "what do the keys do HERE", and the shell is what knows it. */}
+        <ShortcutSheet open={keysOpen} onClose={() => setKeysOpen(false)} pathname={pathname} />
         {/* THE MOUNT THAT WAS MISSING. `openLineage()` has fired a window event
         with no listener since 2026-07-13, because this component was written,
         tested and never rendered anywhere. That is why BetCard's audit tag has

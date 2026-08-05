@@ -1615,3 +1615,162 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
     left: 0;
   }
 }
+
+/* ---------- the keyboard sheet ----------
+ * `?` opens it, from anywhere. The product had no surface that listed its own
+ * shortcuts: the only place the chord table was ever written on screen was the
+ * Cmd+K palette's JUMP section, and that palette is not mounted. Fourteen bound
+ * keys with no door.
+ *
+ * Built on the board panel's geometry above rather than a new one, because the
+ * two are the same object -- a summoned overlay that reads and closes -- and a
+ * second scrim recipe is a second thing to keep in step. Narrower, because this
+ * is two columns of text and the board is five columns of state. */
+.sp-keys {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 64px 24px 24px;
+}
+.sp-keys-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  cursor: default;
+  background: var(--sp-scrim, rgb(0 0 0 / 0.58));
+  animation: sp-boardpanel-in var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-keys-sheet {
+  position: relative;
+  width: min(680px, 100%);
+  max-height: calc(100vh - 88px);
+  display: flex;
+  flex-direction: column;
+  background: var(--sp-sheet);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-lg, 12px);
+  box-shadow: var(--sp-shadow-lg, 0 24px 64px rgb(0 0 0 / 0.45));
+  overflow: hidden;
+  animation: sp-boardpanel-rise var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-keys-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--sp-line-soft);
+  flex: none;
+}
+.sp-keys-title {
+  font-size: var(--sp-text-prose);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-ink);
+}
+.sp-keys-esc {
+  font-size: var(--sp-text-label);
+  color: var(--sp-mute);
+}
+.sp-keys-body {
+  padding: 18px 20px 22px;
+  overflow: auto;
+}
+.sp-keys-rules {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 5px;
+}
+.sp-keys-rules li {
+  font-size: var(--sp-text-body);
+  color: var(--sp-body);
+}
+.sp-keys-section + .sp-keys-section {
+  margin-top: 20px;
+}
+.sp-keys-sectionname {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-mute);
+  margin: 0 0 8px;
+  font-weight: var(--sp-weight-regular);
+}
+.sp-keys-note {
+  margin: 0;
+  font-size: var(--sp-text-body);
+  color: var(--sp-mute);
+}
+.sp-keys-list {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+/* Two columns, and the keycap column is fixed so every cap in the sheet lines
+ * up. A ragged left edge here would make the list read as prose with keys in
+ * it rather than as a table you can scan down. */
+.sp-keys-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 5px 8px;
+  border-radius: var(--sp-radius-sm);
+}
+.sp-keys-row:hover {
+  background: var(--sp-hover);
+}
+.sp-keys-row dt,
+.sp-keys-row dd {
+  margin: 0;
+}
+.sp-keys-row dd {
+  font-size: var(--sp-text-body);
+  color: var(--sp-body);
+}
+.sp-keys-cap {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-kbd);
+  font-weight: var(--sp-weight-regular);
+  color: var(--sp-ink);
+  padding: 2px 6px;
+  border-radius: var(--sp-radius-xs);
+  background: color-mix(in oklab, var(--sp-ink) 13%, transparent);
+  white-space: nowrap;
+}
+/* A WORD, NOT ONLY A COLOUR. The keys that commit something you cannot take
+ * back are the reason to read a shortcut list before using it, so the mark has
+ * to survive a monochrome screen and a screen reader. Ember is the product's
+ * one colour for "this wants a person", used here for "this acts as a person
+ * would". */
+.sp-keys-bites {
+  margin-left: 8px;
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-gate);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-keys-scrim,
+  .sp-keys-sheet {
+    animation: none;
+  }
+}
+
+/* The `?` door in the rail foot. It wears `.sp-setbtn` for its geometry and
+ * hover, and overrides only the glyph: the other three buttons hold a 17px
+ * stroked icon and this one holds a character, which would otherwise render at
+ * body size and sit a pixel low against them. */
+.sp-keysbtn {
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-kbd);
+  font-weight: var(--sp-weight-regular);
+  line-height: 1;
+}
