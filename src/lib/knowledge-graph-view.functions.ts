@@ -22,6 +22,7 @@ import {
   type OutcomeVerdict,
   type RawLineageEdge,
 } from "./knowledge-graph-view";
+import { cleanTitle } from "@/components/plan/format";
 
 const KindSchema = z.enum(GRAPH_NODE_KINDS);
 
@@ -239,7 +240,12 @@ async function hydrateTitles(
     for (const row of (data as Array<Record<string, unknown>> | null) ?? []) {
       const id = row.id as string | undefined;
       const title = row[spec.titleCol];
-      if (id) titleMap.set(nodeKey(kind, id), typeof title === "string" ? title : "");
+      // Cleaned here because this map feeds the WHOLE graph surface: the
+      // record regions, the node story, the force canvas, the node actions and
+      // the tree view. lineage-graph.functions.ts got this strip when the leak
+      // was first reported and the OTHER TWO graph pipelines were missed, which
+      // is the recurring shape of this bug: a fix lands on one sibling.
+      if (id) titleMap.set(nodeKey(kind, id), typeof title === "string" ? cleanTitle(title) : "");
     }
   }
   return titleMap;

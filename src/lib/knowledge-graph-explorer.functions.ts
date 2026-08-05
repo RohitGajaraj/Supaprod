@@ -6,6 +6,7 @@ import { artifactTable } from "@/lib/artifact-tables";
 import { ARTIFACT_KINDS, type ArtifactKind } from "./lineage.functions";
 import { buildLineageTree, hydrateTreeTitles, type LineageNode } from "./knowledge-graph-explorer";
 import { resolveLineageCols } from "./knowledge-graph-view.functions";
+import { cleanTitle } from "@/components/plan/format";
 
 const KindSchema = z.enum(ARTIFACT_KINDS);
 
@@ -80,7 +81,10 @@ export const getLineageTree = createServerFn({ method: "GET" })
         const id = row.id as string | undefined;
         const title = row[col];
         if (id) {
-          titleMap.set(id, typeof title === "string" ? title : null);
+          // The third graph pipeline, cleaned for the same reason as the other
+          // two: this hydrates GraphTreeView, and a raw "[auto] " marker is a
+          // dedup key, never copy.
+          titleMap.set(id, typeof title === "string" ? cleanTitle(title) : null);
         }
       }
 
