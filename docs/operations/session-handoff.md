@@ -124,6 +124,46 @@ that walk is over edges. **A considered migration, not a 4am one.**
 CLOSED since this list was written: the pushed-insight lane, Build's own start,
 and all three read ceilings.
 
+## ONE THING I FOUND AND DELIBERATELY DID NOT DO
+
+**Geist Pixel is still on twelve app surfaces**, against the founder's own
+ruling of 2026-08-05 (`DESIGN-SYSTEM.md`): pixel is kept for public marketing
+(`/`, `/demo`, `/p/teardown`, `/brief`, `/investors`) and retired from the
+authenticated app, because "it is an instrument someone works in all day. Pixel
+is costume there."
+
+The live app sites, verified as reachable:
+
+| File | What wears it |
+| --- | --- |
+| `routes/__root.tsx:56` | a 52px display numeral |
+| `components/onboarding/ObsidianOnboarding.tsx:1194, :1670` | the arrival headline and the verdict stamp -- the FIRST authenticated screen a signup sees |
+| `components/onboarding/ArrivalButterfly.tsx:13` | the arrival mark |
+| `components/supaprod/Primitives.tsx:281` | a shared primitive, **imported by 13 files** |
+| `components/supaprod/EmptyState.tsx:68` | shared, 5 files |
+| `components/supaprod/PageHeader.tsx:77` | shared, 2 files |
+| `components/supaprod/PixelStat.tsx:43` | shared, 3 files |
+| `components/supaprod/AuthScaffold.tsx:163` | shared, 6 files |
+| `components/missions/MissionOrchestratorDetail.tsx:670` | mounted at `/runs/$missionId` |
+
+`styles.css` also aliases `--font-dotted` and `--font-pencil` to `--font-pixel`,
+and defines `.ai-working-word` and `.ai-pulse-mark` in that face -- both of which
+are **dead CSS**, used by nothing.
+
+**WHY IT IS NOT DONE.** Four of those are shared primitives, so the sweep
+touches thirty-plus surfaces. Doing part of it leaves the product MORE
+inconsistent than either end state, and doing all of it is a large, highly
+visible aesthetic change whose result I cannot judge from here. The founder also
+placed branding in a different lane. This is the same reasoning that made the
+opportunities backfill get reverted earlier tonight: a half-applied sweep is
+worse than an un-applied one.
+
+**It is ready to run.** The list above is complete and verified; the marketing
+sites are correctly excluded; and the replacement is `var(--sp-font-sans)` with
+sizes moving onto the named ramp (`--sp-text-greet` is 30px and is literally
+commented "the door greeting"). It wants one person looking at the screen while
+it happens.
+
 ## RULES LEARNED THE HARD WAY
 
 - **A column default is a guess about the WRITER, never about the row.**
