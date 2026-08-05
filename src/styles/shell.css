@@ -346,14 +346,18 @@
   font-size: var(--sp-text-meta);
   font-weight: var(--sp-weight-medium);
   color: var(--sp-ink);
-  background: var(--sp-lift);
+  background: var(--sp-float);
   border: 1px solid var(--sp-line);
   border-radius: var(--sp-radius-ctl);
   cursor: pointer;
-  transition: background var(--sp-dur-fast) var(--sp-ease);
+  transition:
+    background var(--sp-dur-fast) var(--sp-ease),
+    box-shadow var(--sp-dur-fast) var(--sp-ease);
+  box-shadow: 0 0 0 0.5px color-mix(in oklab, var(--sp-ink) 8%, transparent);
 }
 .sp-askbtn:hover {
   background: var(--sp-float);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--sp-ink) 12%, transparent);
 }
 .sp-askbtn-icon {
   width: var(--sp-icon-sm);

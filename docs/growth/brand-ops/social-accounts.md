@@ -104,6 +104,16 @@ Not alphabetical. Contested and reliable-signal platforms go first, because thos
 
 Every line below is cut from ratified canon, aimed at whoever actually walks in that particular door. Paste them exactly. Character counts are measured, not estimated.
 
+> ### ⛔ THE STATION-NAME RULE, founder ruling 2026-08-05
+>
+> **Never list the seven station names in a bio.** "Discover, decide, plan, design, build, ship, learn" is *internal vocabulary*. To a stranger it is seven words that explain nothing: it describes our architecture, not their benefit. The GitHub org description shipped with exactly that list and the founder rejected it on sight.
+>
+> **Every bio states the category, then what the product DOES, in plain verbs:**
+>
+> > The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.
+>
+> That is the same three layers — director, operating system, company brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
+
 > **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `THE AI-NATIVE, AGENTIC-FIRST OPERATING SYSTEM FOR PRODUCT TEAMS`, and `agentic-first` is the phrase used in eight places across `src/`. The kit had taken `agent-first` from `README.md` line 8, which is now the only place that still says it. What a visitor has just read on the site beats a line in a document they will never open. **`README.md` line 8 needs the same fix**; it is the last holdout.
 
 **Shared facts for every profile**
@@ -130,9 +140,9 @@ About:
 
 > Engineers got agents. Product people got chatbots.
 >
-> Supaprod is the operating system that closes that gap. It runs the whole product lifecycle across seven stations, from Discover through Decide, Plan, Design, Build and Ship, to Learn. Agents do the product work end to end. You make the calls. Every call is on the record with the evidence behind it.
+> Supaprod is the operating system that closes that gap. It tells you what to build, builds and ships it, then learns what actually worked. Agents do the product work end to end. You make the calls, and every call is on the record with the evidence behind it.
 >
-> The part that compounds is the last station. Supaprod joins the decisions you made to the outcomes you actually got, labelled over time. So the next call is not a blank page. It tells you what is right, and it warns you before you repeat what went wrong.
+> The part that compounds is the last step. Supaprod joins the decisions you made to the outcomes you actually got, labelled over time. So the next call is not a blank page: it tells you what is right, and warns you before you repeat what went wrong.
 >
 > That is the difference between a tool that files your history and one that improves your judgement.
 >
@@ -144,7 +154,17 @@ About:
 
 ### GitHub org, `supaprod` — aimed at the developer and the candidate
 
-> The agentic-first operating system for product teams. Discover, decide, plan, design, build, ship, learn.
+> The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.
+
+132 characters. **Corrected 2026-08-05** from a version that ended "Discover, decide, plan, design, build, ship, learn" — see the station-name rule above.
+
+**GitHub has no organisation banner.** Verified live against `api.github.com/orgs/supaprod`: the only image field is `avatar_url`, a square profile picture. There is no banner, cover or header field anywhere on an org. Three separate things are easy to confuse:
+
+| What | Where | Image |
+| --- | --- | --- |
+| Org profile picture | Org → Settings → Profile | square avatar only |
+| **Repo** social preview | `Repo → Settings → General → Social preview → Edit` | 1280x640, **under 1MB** — use the 1x file, the @2x is 1.15MB and will be rejected. This is the card shown when the repo LINK is shared; it does not appear on the org page. |
+| Org profile README | a **public** repo named `.github`, file `profile/README.md` | the only way to put a banner image on `github.com/supaprod` |
 
 ### YouTube, `@supaprodhq` — aimed at the user
 
@@ -154,7 +174,7 @@ Channel description:
 >
 > It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so the next call comes with evidence instead of a blank page.
 >
-> Here you will find product walkthroughs, teardowns of real product bets, and the seven stations of the loop in practice: Discover, Decide, Plan, Design, Build, Ship, Learn.
+> Here you will find product walkthroughs, teardowns of real product bets, and the whole loop running in practice, from the first signal to what the outcome taught us.
 >
 > Pronounced SOO-pa-prod. Say it with an A.
 >
@@ -170,7 +190,7 @@ Same bio as Instagram. Same avatar. Nothing new to write.
 
 ### TikTok, `@supaprodhq`
 
-> Agents that run the product loop. You make the calls.
+> Agents that own outcomes, not just output. The agentic-first OS for product teams.
 
 ### Bluesky, `supaprod.bsky.social` — the exact name is free here
 
@@ -180,7 +200,7 @@ Same bio as Instagram. Same avatar. Nothing new to write.
 
 > The agentic-first operating system for product teams.
 >
-> Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. Agents do the product work end to end, you make the calls, and the loop learns what actually worked so the next call is not a blank page.
+> It tells you what to build, builds and ships it, then learns what actually worked. Agents do the product work end to end, you make the calls, and the next call is not a blank page.
 >
 > Pronounced SOO-pa-prod. Say it with an A.
 
@@ -196,11 +216,11 @@ Description:
 
 ### Discord
 
-> Agents that run the product loop. You make the calls.
+> Agents that own outcomes, not just output. The agentic-first OS for product teams.
 
 ### Crunchbase — aimed at the investor and procurement
 
-> Supaprod is the agentic-first operating system for product teams. It runs the product lifecycle across seven stations, from discovery through build and ship to learning, with agents doing the product work end to end and the human making every call. Its compounding asset is the join between a team's own decisions and its own outcomes, labelled over time, which turns past judgement into forward guidance.
+> Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds and ships it, then learns what actually worked, with agents doing the product work end to end and the human making every call. Its compounding asset is the join between a team's own decisions and its own outcomes, labelled over time, which turns past judgement into forward guidance.
 
 ### npm and PyPI
 

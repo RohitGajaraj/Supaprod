@@ -90,6 +90,9 @@ function daysSince(iso: string | null): number | null {
  */
 const STOPPED = new Set(["cancelled", "halted"]);
 
+/** Statuses that mean work is currently underway. */
+const WORKING = new Set(["running", "in_progress"]);
+
 /** "While you were gone" has to mean something, so it means the last day. */
 function finishedRecently(m: MissionListRow): boolean {
   if (!m.completed_at) return false;
@@ -600,6 +603,31 @@ function Today() {
           ))}
         </Block>
       ) : null}
+
+      {/* Agent Activity Ticker: Show currently running/in-progress missions */}
+      {(() => {
+        const running = rows.filter((m) => WORKING.has(m.status));
+        if (running.length === 0) return null;
+
+        return (
+          <Block title="Agents working now">
+            {running.map((mission) => {
+              const elapsed = ago(mission.created_at);
+              const agent = mission.current_agent_slug
+                ? agentDisplayName(mission.current_agent_slug)
+                : "The crew";
+              return (
+                <Row
+                  key={mission.id}
+                  lead={stripAutoPrefix(mission.title)}
+                  sub={`${agent} · ${elapsed} running`}
+                  onClick={() => navigate({ to: `/runs/${mission.id}` })}
+                />
+              );
+            })}
+          </Block>
+        );
+      })()}
 
       <Block
         title="Done without you"

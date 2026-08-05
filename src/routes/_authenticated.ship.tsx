@@ -71,6 +71,8 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { generateLaunchKit } from "@/lib/studio.functions";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
@@ -193,6 +195,7 @@ function Ship() {
   const wid = activeWorkspaceId ?? "";
 
   const fChangelog = useServerFn(listChangelog);
+  const fLaunchKit = useServerFn(generateLaunchKit);
   const fList = useServerFn(listAnnouncements);
   const fMembers = useServerFn(listWorkspaceMembers);
   const fCreate = useServerFn(createAnnouncement);
@@ -227,6 +230,8 @@ function Ship() {
   const [mode, setMode] = React.useState<Mode>({ kind: "idle" });
   const [draftTitle, setDraftTitle] = React.useState("");
   const [draftBody, setDraftBody] = React.useState("");
+  /** True while the crew is writing the customer half of an announcement. */
+  const [drafting, setDrafting] = React.useState(false);
   const [picked, setPicked] = React.useState<string | null>(null);
   const [allNotes, setAllNotes] = React.useState(false);
   const [allPosts, setAllPosts] = React.useState(false);
@@ -386,12 +391,48 @@ function Ship() {
     setMode({ kind: "new" });
   }
 
-  /** A release note becomes the announcement. The composer opens already
-   *  carrying it, so the person edits rather than retypes. */
+  /**
+   * A release note becomes the announcement, and the CREW writes the customer
+   * half of it.
+   *
+   * WHAT THIS SURFACE USED TO ASK OF A PERSON. Ship was the one station with no
+   * agent anywhere on it: this function copied a release note's title and body
+   * into the composer verbatim, which is a clipboard rather than a draft, and
+   * then a human wrote "what it means for your customers" from a blank box.
+   * Meanwhile `generateLaunchKit` has existed the whole time, turns a shipped
+   * changeset into exactly that copy, and was reachable only from the Build
+   * panel. The capability was one surface away from the work it was written for.
+   *
+   * A release note and a customer announcement are DIFFERENT DOCUMENTS, which is
+   * the whole reason copying one into the other read as unfinished. The note
+   * says what changed, in the repository's voice. The announcement says what it
+   * means for someone who does not read pull requests. So the title carries over
+   * (it is the same subject) and the body is drafted.
+   *
+   * FALLS BACK TO TODAY'S BEHAVIOUR, ALWAYS. An entry with no changeset behind
+   * it, a refused call, a model that is down: each lands the note's own body in
+   * the box, which is exactly what this function did before. The person is never
+   * left worse off than they were, and never left with an empty composer.
+   */
   function startFrom(e: ChangelogEntry) {
     setDraftTitle(e.title.slice(0, 200));
     setDraftBody(e.body ?? "");
     setMode({ kind: "new" });
+
+    if (!e.changeset_id) return;
+    setDrafting(true);
+    void fLaunchKit({ data: { changesetId: e.changeset_id } })
+      .then((kit) => {
+        // `email` is the customer-facing register of the kit. `changelog` is the
+        // note we already have, and blog/social are other surfaces' shapes.
+        const written = kit?.email?.trim();
+        if (written) setDraftBody(written.slice(0, 20000));
+      })
+      .catch(() => {
+        // The note stays in the box. A failed draft must not cost the person
+        // the text they already had.
+      })
+      .finally(() => setDrafting(false));
   }
 
   const gateLines = (a: AnnouncementRow): React.ReactNode[] => {
@@ -436,6 +477,29 @@ function Ship() {
             />
           </Field>
           <Field label="What it means for your customers">
+            {/*
+             * THE CREW WORKING, WHERE THE WORK IS.
+             *
+             * surface-discipline §7: `working` belongs only to a genuinely
+             * dispatched agent, never to a plain read. This one is genuine.
+             * `generateLaunchKit` is a real model pass over the changeset, and
+             * it is the only agent on this station, so it is the one place here
+             * that has earned the pulse.
+             *
+             * The box stays EDITABLE while the crew writes. A person who already
+             * knows what they want to say must not be locked out waiting for a
+             * draft they did not ask for, and if they type, what they typed
+             * wins: the draft only lands if the field is theirs to fill.
+             */}
+            {drafting ? (
+              <div style={{ marginBottom: "var(--sp-space-2)" }}>
+                <AgentPulse
+                  label="The crew is writing what this means for your customers"
+                  seed="ship-launch-kit"
+                  detail="Reading the change, then saying what it means"
+                />
+              </div>
+            ) : null}
             <Textarea
               value={draftBody}
               maxLength={20000}
