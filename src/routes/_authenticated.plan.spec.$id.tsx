@@ -682,6 +682,45 @@ function SpecEditorPage() {
     onError: (e: Error) => commit("Your edits are not saved", e.message, true),
   });
 
+  /**
+   * APPROVE THE SPEC, which nothing in the product could do.
+   *
+   * THE GAP, and it is the purest form of this repo's signature defect. Plan's
+   * whole job is to turn a decision into an approved spec -- `loop-surfaces.ts`
+   * literally says the station "produces: an approved spec" -- and no control
+   * anywhere set that status. The ONLY app-code writer of `prds.status` sets it
+   * to "review". Fifty-five approved specs exist on the live database and not
+   * one of them was approved by a person using this product.
+   *
+   * EVERY OTHER PIECE WAS ALREADY BUILT. `savePrd` accepts the status and
+   * already detects the draft-or-review to approved transition to write its
+   * Decisions entry and grade the contract. The `prds_reactor_fanout` trigger
+   * fires on UPDATE. `prd.approved` is a registered event type, it is offered
+   * in the governance Controls picker, and `reactor.functions.ts` carries a
+   * written prompt for it: "A spec was just approved. Plan a multi-agent
+   * execution: break it into specialist steps, dispatch the first wave."
+   *
+   * So a whole downstream automation has been sitting dark behind a missing
+   * button. The station could not finish its own artifact, and the agents
+   * waiting on it were never woken.
+   *
+   * IT SAVES THE EDITS IN THE SAME WRITE. Approving a spec while the body on
+   * screen differs from the body on the record would approve a version nobody
+   * read. One call, one row, one transition.
+   */
+  const approve = useMutation({
+    mutationFn: () => mSave({ data: { id, title, body_md: body, status: "approved" } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["prds"] });
+      setSavedAt(stamp());
+      commit(
+        "You approved the spec",
+        "Build can pick it up, and the crew has been told to plan the work.",
+      );
+    },
+    onError: (e: Error) => commit("The spec is not approved", e.message, true),
+  });
+
   // The retired action bar was sticky and blurred, which is the glass ban. The
   // keycap on Save replaces what stickiness bought on a long document, and it
   // is bound for real: a keycap that does nothing is a lie.
@@ -954,10 +993,25 @@ function SpecEditorPage() {
         ) : null}
 
         <Actions>
+          {/* APPROVE LEADS WHEN IT IS THE NEXT REAL ACT, and Save steps down to
+              secondary. This station exists to produce an approved spec; while
+              one is still a draft, saving is housekeeping and approving is the
+              thing the loop is waiting for. Once approved, the primary action
+              is saving edits again, because there is nothing left to approve. */}
+          {prd.status !== "approved" ? (
+            <Button
+              variant="primary"
+              disabled={approve.isPending || save.isPending}
+              onClick={() => approve.mutate()}
+              title="Save these edits and approve the spec, so Build can pick it up"
+            >
+              {approve.isPending ? "Approving" : "Approve the spec"}
+            </Button>
+          ) : null}
           <Button
-            variant="primary"
+            variant={prd.status === "approved" ? "primary" : undefined}
             shortcut="⌘S"
-            disabled={save.isPending}
+            disabled={save.isPending || approve.isPending}
             onClick={() => save.mutate()}
           >
             {save.isPending ? "Saving" : "Save"}
