@@ -33,6 +33,7 @@ import {
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { openAsk } from "@/lib/ask-open";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import {
   AgentMark,
@@ -461,16 +462,33 @@ function Today() {
       />
 
       {call ? (
-        <>
-          <Gate
-            // The stored title carries a machine "[auto]" origin prefix when the
-            // loop raised it. That is provenance, not copy, and it must never
-            // reach the one sentence the human is asked to judge.
-            question={stripAutoPrefix(call.title)}
-            lines={[
-              <span key="consequence">{call.approveConsequence}</span>,
-            ]}
-          >
+        <Gate
+          // The stored title carries a machine "[auto]" origin prefix when the
+          // loop raised it. That is provenance, not copy, and it must never
+          // reach the one sentence the human is asked to judge.
+          question={stripAutoPrefix(call.title)}
+          // Attribute the evidence without moving it away from the question it
+          // answers. See Gate: a change that lifted these lines into a titled
+          // block AFTER the Gate put the reasoning below the Approve button, so
+          // a person was asked to decide above the reasons for deciding.
+          linesLabel={call.evidence.length > 0 ? "Why the crew raised this" : undefined}
+          lines={[
+            ...call.evidence
+              .slice(0, 3)
+              .map((line, i) => <span key={`ev-${i}`}>{stripAutoPrefix(line)}</span>),
+            // Never truncate in silence. Three is what a glance holds; when
+            // there is more, say how much and where the rest of it is.
+            ...(call.evidence.length > 3
+              ? [
+                  <span key="more">
+                    {call.evidence.length - 3} more{" "}
+                    {call.evidence.length - 3 === 1 ? "fact" : "facts"} on this call, in Approvals.
+                  </span>,
+                ]
+              : []),
+            <span key="consequence">{call.approveConsequence}</span>,
+          ]}
+        >
             <Button
               variant="primary"
               shortcut="a"
@@ -494,17 +512,7 @@ function Today() {
             <Button variant="ghost" shortcut="z" disabled={busy} onClick={() => defer.mutate()}>
               Snooze
             </Button>
-          </Gate>
-
-          {/* AGENT REASONING SECTION - Makes why the agent recommends this transparent and obvious */}
-          {call.evidence.length > 0 ? (
-            <Block title="Why the agent recommends this" sub="Agent reasoning and supporting evidence">
-              {call.evidence.map((line, i) => (
-                <Row key={i} lead={stripAutoPrefix(line)} />
-              ))}
-            </Block>
-          ) : null}
-        </>
+        </Gate>
       ) : queue.isLoading ? (
         /* THE THIRD FACT, and the front door was the one surface missing it.
          *
@@ -535,22 +543,7 @@ function Today() {
         </Gate>
       ) : (
         <Gate question="Nothing is waiting on you.">
-          <Button
-            variant="primary"
-            onClick={() => {
-              // Focus the Ask panel by opening it (Cmd+J equivalent).
-              // This sets the conversational interface as the primary entry point
-              // for new work, aligned with agentic-first UX.
-              const evt = new KeyboardEvent("keydown", {
-                key: "j",
-                code: "KeyJ",
-                ctrlKey: false,
-                metaKey: true,
-                bubbles: true,
-              });
-              window.dispatchEvent(evt);
-            }}
-          >
+          <Button variant="primary" onClick={() => openAsk()}>
             Ask Supaprod what to build
           </Button>
           <Button variant="ghost" onClick={() => navigate({ to: "/runs" })}>
@@ -605,22 +598,7 @@ function Today() {
         ) : done.length === 0 ? (
           <Empty
             action={
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  // Open the Ask panel (Cmd+J equivalent) to let users tell Supaprod
-                  // what to build. This makes the conversational interface discoverable
-                  // even when there are no approval items in the Gate.
-                  const evt = new KeyboardEvent("keydown", {
-                    key: "j",
-                    code: "KeyJ",
-                    ctrlKey: false,
-                    metaKey: true,
-                    bubbles: true,
-                  });
-                  window.dispatchEvent(evt);
-                }}
-              >
+              <Button variant="ghost" onClick={() => openAsk()}>
                 Ask Supaprod
               </Button>
             }

@@ -443,12 +443,28 @@ export function Diffstat({
 export function Gate({
   question,
   lines,
+  linesLabel,
   children,
 }: {
   /** A question, in plain words. Never a mechanism word. */
   question: React.ReactNode;
   /** What it actually does. One fact per line, never four ways of saying one. */
   lines?: React.ReactNode[];
+  /**
+   * Optional caption over the lines, naming where they came from.
+   *
+   * THE REGRESSION THIS EXISTS TO PREVENT (2026-08-05). A change meant to make
+   * agent reasoning "visibly obvious" lifted the evidence OUT of the Gate into
+   * a titled block placed after it. Since the actions render LAST inside the
+   * Gate, that put the reasoning below the Approve button: a person was asked
+   * to decide, with a keyboard shortcut, above the reasons for deciding.
+   *
+   * The intent was right and the placement inverted it. A Gate is one question,
+   * the facts that answer it, then the actions, in that order; anything that
+   * argues for the answer belongs between the question and the buttons. So the
+   * attribution lives HERE, on the lines, instead of pulling the lines away.
+   */
+  linesLabel?: React.ReactNode;
   /** The actions. One primary, and only one. */
   children?: React.ReactNode;
 }) {
@@ -457,6 +473,7 @@ export function Gate({
       <h2 className="sp-gate-q">{question}</h2>
       {lines?.length ? (
         <div className="sp-gate-what">
+          {linesLabel ? <p className="sp-gate-what-label">{linesLabel}</p> : null}
           {lines.map((line, i) => (
             <div className="sp-gate-line" key={i}>
               <span>{line}</span>

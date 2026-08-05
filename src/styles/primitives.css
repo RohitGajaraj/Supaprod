@@ -497,6 +497,20 @@
   border-radius: var(--sp-radius-panel);
   padding: var(--sp-space-4) 18px;
 }
+/* Names where the facts below came from, so the crew's reasoning is attributed
+ * without being moved away from the question it answers. The machine voice,
+ * matching .sp-trail-label exactly: this is the crew speaking about its own
+ * work, so it takes the mono label the system already uses for that register
+ * rather than introducing a new one. Quiet on purpose — a caption over the
+ * evidence, never a second heading competing with the question. */
+.sp-gate-what-label {
+  margin: 0 0 8px;
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-mute);
+}
 .sp-gate-line {
   display: flex;
   gap: 11px;

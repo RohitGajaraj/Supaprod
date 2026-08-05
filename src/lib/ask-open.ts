@@ -29,6 +29,35 @@ import {
 import type { AskOpenDetail } from "@/lib/ask-context";
 
 /**
+ * Open the Ask pane. The one way any surface asks for the front door.
+ *
+ * WHY THIS EXISTS RATHER THAN EACH CALLER DOING IT. Two buttons shipped on
+ * Today (2026-08-05) that opened Ask by synthesising a keyboard event:
+ *
+ *     window.dispatchEvent(new KeyboardEvent("keydown", { key: "j", metaKey: true }))
+ *
+ * Both were DEAD. The binding in AskProvider is `(metaKey || ctrlKey) && key === "k"`
+ * (ask-context.tsx), never "j", so those events landed on no listener at all and
+ * clicking either button did nothing. Neither typecheck nor any test could see
+ * it: a synthetic event is valid TypeScript, and nothing asserts that a
+ * dispatched key matches a registered binding.
+ *
+ * Two lessons are baked in here. Never drive the app by simulating the input a
+ * human would make — call the thing the shortcut calls, so a button and its
+ * shortcut cannot disagree. And `supaprod:open-ask` is that thing: it is the
+ * event AskProvider listens for, and what the shell's own Ask button dispatches.
+ *
+ * `intent` runs the moment the pane opens, so a surface that already knows what
+ * the person came to do can hand the conversation its first turn.
+ */
+export function openAsk(intent?: string): void {
+  if (typeof window === "undefined") return;
+  const trimmed = intent?.trim();
+  const detail: AskOpenDetail = trimmed ? { intent: trimmed } : {};
+  window.dispatchEvent(new CustomEvent("supaprod:open-ask", { detail }));
+}
+
+/**
  * Reopen a conversation in Ask.
  *
  * `productId` is the THREAD's product, not the active one: a thread that was

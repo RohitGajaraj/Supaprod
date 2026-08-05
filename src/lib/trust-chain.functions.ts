@@ -47,6 +47,10 @@ export type ChainStep = {
   occurredAt: string | null;
   /** The backing row id (for click-through + the trace ref), when present. */
   backingId: string | null;
+  /** Agent that created/discovered this step, if known. Null for user-initiated or agent unknown. */
+  agentName: string | null;
+  /** Agent slug for styling/filtering purposes. */
+  agentSlug: string | null;
 };
 
 export type MissionChain = {
@@ -87,7 +91,16 @@ const LINK_LABEL: Record<ChainLinkKey, string> = {
  * link (already resolved by the server fn). `design.off` marks the design
  * station structurally disabled (no substrate today). */
 export type ChainEvidence = Partial<
-  Record<ChainLinkKey, { id: string; at: string | null; detail: string } | null>
+  Record<
+    ChainLinkKey,
+    {
+      id: string;
+      at: string | null;
+      detail: string;
+      agentName?: string | null;
+      agentSlug?: string | null;
+    } | null
+  >
 > & { designOff?: boolean };
 
 /**
@@ -132,6 +145,8 @@ export function assembleChain(
       detail,
       occurredAt: row?.at ?? null,
       backingId: row?.id ?? null,
+      agentName: row?.agentName ?? null,
+      agentSlug: row?.agentSlug ?? null,
     };
   });
 
@@ -201,6 +216,27 @@ export const getMissionChain = createServerFn({ method: "GET" })
       prd_id: string | null;
       created_at: string;
     }>;
+
+    // Load agent_runs for this mission to attribute decisions to agents
+    // (typically the Decide agent creates decision records during the decide phase).
+    type AgentRunRow = {
+      id: string;
+      agent_slug: string | null;
+      agent_name: string | null;
+      created_at: string | null;
+    };
+    const agentRuns = must(
+      await db
+        .from("agent_runs")
+        .select("id, agent_slug, agent_name, created_at")
+        .eq("mission_id", missionId)
+        .limit(100),
+    ) as AgentRunRow[];
+    // Map agent runs by approximate creation time to attribute decisions
+    const agentsByTime = new Map<string, AgentRunRow>();
+    for (const ar of agentRuns ?? []) {
+      if (ar.agent_name) agentsByTime.set(ar.created_at ?? "", ar);
+    }
 
     // Changesets for this mission (build/merge) + the prds they point at.
     const changesets = must(
@@ -379,6 +415,20 @@ export const getMissionChain = createServerFn({ method: "GET" })
     const mergedChangeset = changesetRows.find((c) => c.status === "merged") ?? null;
     const firstDecision = decisionRows[0] ?? null;
 
+    // Attribute decision to the agent run closest in time (during the decide phase).
+    // This is a best-effort heuristic: the agent that created the decision typically
+    // ran around the time the decision was recorded.
+    const decisionAgent = firstDecision
+      ? agentRuns.find(
+          (ar) =>
+            ar.created_at &&
+            firstDecision.created_at &&
+            Math.abs(
+              new Date(ar.created_at).getTime() - new Date(firstDecision.created_at).getTime(),
+            ) < 60000, // within 1 minute
+        )
+      : null;
+
     const evidence: ChainEvidence = {
       signal: signalRow
         ? { id: signalRow.id, at: signalRow.created_at, detail: signalRow.title ?? "Signal" }
@@ -388,6 +438,8 @@ export const getMissionChain = createServerFn({ method: "GET" })
             id: firstDecision.id,
             at: firstDecision.created_at,
             detail: cleanTitle(firstDecision.title) ?? "Decision recorded",
+            agentName: decisionAgent?.agent_name ?? null,
+            agentSlug: decisionAgent?.agent_slug ?? null,
           }
         : null,
       contract: prdRow

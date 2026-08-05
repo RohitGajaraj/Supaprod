@@ -57,6 +57,12 @@ function StepRow({ step }: { step: ChainStep }) {
       lead={
         <>
           {step.label}
+          {step.agentName && (
+            <>
+              {" "}
+              <Value tone="quiet">by {step.agentName}</Value>
+            </>
+          )}
           {word ? (
             <>
               {" "}
