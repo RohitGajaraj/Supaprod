@@ -285,7 +285,7 @@ The `-safe` files fix that by designing inside the centre 74%. **The founder tri
 | Platform | Avatar | Banner or cover |
 | --- | --- | --- |
 | X | `avatars/avatar-dark-800.png` | `social/x-header-dark-1500x500@2x.png` (WIDE, deliberate; see rule 3) |
-| LinkedIn | `avatars/avatar-dark-800.png` | `social/linkedin-cover-dark-1128x191@2x.png` |
+| LinkedIn | `avatars/avatar-dark-1024.png` | **`social/linkedin-cover-dark-4200x700.jpg`** — 4200x700, NOT 1128x191 |
 | YouTube | `avatars/avatar-dark-800.png` | `social/youtube-banner-dark-2560x1440.png` (1x IS the spec size) |
 | GitHub org | `avatars/avatar-dark-512.png` | no banner exists; see the org profile README note above |
 | Instagram · Threads | `avatars/avatar-dark-320.png` | none |
@@ -420,7 +420,11 @@ You need your personal LinkedIn profile to be the admin; it must meet LinkedIn's
 8. Company type: `Privately Held`. ⚠️ No entity is incorporated yet, so if a legal-entity field is required, leave it blank rather than inventing one.
 9. Logo: `avatars/avatar-dark-400.png`. Tagline: the LinkedIn tagline from §3.
 10. Tick the authorisation checkbox and create.
-11. **Edit page** and add: the About text from §3, cover image `social/linkedin-cover-dark-1128x191@2x.png`, location `Remote`, founded year.
+11. **Edit page** and add: the About text from §3, cover image **`social/linkedin-cover-dark-4200x700.jpg`**, location `Remote`, founded year.
+
+> **⚠️ LinkedIn covers are 4200x700, and this file said 1128x191 for a day.** That is the OLD company-page spec. LinkedIn now slots the cover into a 4200x700 frame, so a 1128-wide upload is upscaled 3.7x in each dimension: the crop dialog letterboxes it with black bars and the result looks soft. The founder caught the quality loss before the number was checked.
+>
+> **Upload the `.jpg`, not the `.png`.** LinkedIn's own guidance is "choose a high-resolution JPEG instead of a PNG", because their pipeline re-encodes the upload and handing it a JPEG avoids a second lossy pass. Cap is **3MB**; the JPEG is 107KB at quality 94 with 4:4:4 chroma, so there is no visible cost. The `-legacy-1128x191` files remain only for any surface still asking for the old size.
 12. Close-out applies to your personal LinkedIn login, which is what actually controls the page.
 
 ---

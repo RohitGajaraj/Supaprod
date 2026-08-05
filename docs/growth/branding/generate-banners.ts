@@ -321,7 +321,7 @@ function youtube() {
 function strip(w: number, h: number, id: string) {
   const s = h / 191;
   const o: Orr = {
-    cx: w + 92 * s,
+    cx: w + 20 * s,
     cy: h * 0.5,
     k: 0.34,
     shells: [70 * s, 124 * s, 190 * s, 262 * s, 340 * s],
@@ -337,7 +337,7 @@ function strip(w: number, h: number, id: string) {
       radial-gradient(70% 160% at 26% 0%, ${P.lift} 0%, transparent 58%)"></div>
     ${machine(w, h, o, 52 * s, 11 * s)}
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:${286 * s}px;top:50%;transform:translateY(-50%);
+    <div style="position:absolute;left:${230 * s}px;top:50%;transform:translateY(-50%);
         display:flex;align-items:center;gap:${28 * s}px">
       ${lockup(36 * s, 26 * s, id + "lk")}
       <span style="width:1px;height:${46 * s}px;background:${P.brass};opacity:.34"></span>
@@ -365,7 +365,20 @@ const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[
   { base: "mastodon-header-safe", w: 1500, h: 500, fn: (i) => bannerSafe(1500, 500, i) },
   { base: "bluesky-banner", w: 3000, h: 1000, fn: (i) => banner(3000, 1000, i) },
   { base: "bluesky-banner-safe", w: 3000, h: 1000, fn: (i) => bannerSafe(3000, 1000, i) },
-  { base: "linkedin-cover", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
+  // LINKEDIN IS 4200x700, NOT 1128x191.
+  //
+  // 1128x191 is the OLD company-page spec and it is what this kit shipped. On
+  // the current page LinkedIn slots the cover into a 4200x700 frame, so a
+  // 1128-wide file gets upscaled 3.7x in each dimension: the crop dialog
+  // letterboxes it with black bars and the result looks soft. The founder spotted
+  // the quality loss before the number was checked.
+  //
+  // Cap is 3MB, and LinkedIn's own guidance prefers JPEG over PNG here because
+  // their pipeline re-encodes; `linkedin-cover-*.jpg` is emitted alongside for
+  // that reason. The old size is kept only as a fallback for any surface still
+  // asking for it.
+  { base: "linkedin-cover", w: 4200, h: 700, fn: (i) => strip(4200, 700, i) },
+  { base: "linkedin-cover-legacy", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
   { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
   { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i) },
   { base: "github-social-preview", w: 1280, h: 640, fn: (i) => card(1280, 640, i) },
