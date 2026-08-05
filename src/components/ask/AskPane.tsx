@@ -322,7 +322,24 @@ function AskPaneOpen() {
     // Sending is the end of dictating. The box goes read-only while an answer
     // streams, so a mic still running would be talking into a locked door.
     if (dictation.listening) dictation.stop();
-    stream.sendIntent(contentForIntent(text, intent));
+    /**
+     * BOTH HALVES OF THE CHOICE TRAVEL NOW.
+     *
+     * `contentForIntent` only ever carried the INSTRUCTION half, by prefixing
+     * `@cos` so a resolved mention skips the server's classifier. The question
+     * half had no representation on the wire at all, so pressing Ask sent a
+     * bare sentence and the classifier was free to read it as work and dispatch
+     * a mission that spends money. The request field `api/chat.ts` reads into
+     * `forcedAsk` was never emitted by anything.
+     *
+     * The vocabulary differs on purpose and is mapped rather than renamed: this
+     * pane thinks in "question / instruction", which is what the control says,
+     * and the API speaks "ask / do".
+     */
+    stream.sendIntent(
+      contentForIntent(text, intent),
+      intent === "question" ? "ask" : "do",
+    );
     setDraft("");
     setIntentOverride(null);
     // The answer is the thing to look at now, not the list you came from.

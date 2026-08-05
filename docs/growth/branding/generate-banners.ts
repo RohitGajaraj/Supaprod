@@ -40,7 +40,7 @@ import type { Orr } from "./orrery.ts";
 // "Not just code" is the sharpest differentiation available. Every buyer already
 // has coding agents; nobody has agents that run PRODUCT. It concedes nothing,
 // names the gap, and makes the category line below it land as the answer.
-const HOOK = "Agents that run product.<br>Not just code.";
+const HOOK = `Agents that run <span style="font-weight:600">product</span>.<br>Not just <span style="color:${P.slate};font-weight:400">code</span>.`;
 
 // THE CATEGORY. Always present, always directly under the hook. This is the line
 // the founder asked to be explicit about: agentic-first, product teams.
@@ -160,7 +160,7 @@ function card(w: number, h: number, id: string, opts: { wedge?: boolean } = {}) 
     <div style="position:absolute;left:${44 * s}px;top:${40 * s}px">${lockup(28 * s, 21 * s, id + "lk")}</div>
     <div style="position:absolute;left:0;right:0;bottom:${58 * s}px;text-align:center;padding:0 ${60 * s}px">
       <div style="font-size:${50 * s}px;line-height:1.08;font-weight:500;letter-spacing:-.042em;color:${P.bone}">
-        Agents that run product. Not just code.
+        Agents that run <span style="font-weight:600">product</span>. Not just <span style="color:${P.slate};font-weight:400">code</span>.
       </div>
       <div style="margin-top:${20 * s}px;display:flex;align-items:center;justify-content:center;gap:${14 * s}px">
         <span style="width:${24 * s}px;height:1px;background:${P.ember};opacity:.8"></span>
@@ -207,7 +207,7 @@ function youtube() {
     <div style="position:absolute;left:50%;top:762px;transform:translateX(-50%);width:1546px;text-align:center">
       <div style="display:flex;justify-content:center">${lockup(40, 30, "ytlk")}</div>
       <div style="margin-top:26px;font-size:66px;line-height:1.08;font-weight:500;letter-spacing:-.04em;color:${P.bone}">
-        Agents that run product. Not just code.
+        Agents that run <span style="font-weight:600">product</span>. Not just <span style="color:${P.slate};font-weight:400">code</span>.
       </div>
       <div style="margin-top:22px;display:flex;align-items:center;justify-content:center;gap:18px">
         <span style="width:30px;height:1px;background:${P.ember};opacity:.8"></span>

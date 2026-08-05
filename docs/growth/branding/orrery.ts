@@ -194,6 +194,27 @@ type Orr = {
   id: string;
 };
 
+
+// THE LOOP IS A SPIRAL, NOT A CIRCLE.
+//
+// Founder note 2026-08-05: "why don't we segregate across multiple spirals, so
+// it says nothing is on the same thing."
+//
+// Splitting the seven stations onto separate orbits would break brand canon,
+// which is explicit that they are "one continuous curve, so the lifecycle reads
+// as a single connected journey, not seven separate marks." They are also all
+// one layer: the seven stations ARE layer 02, the operating system.
+//
+// What satisfies the instinct without breaking that is to make the single orbit
+// a true spiral. Each station sits fractionally further out than the last, so
+// the loop VISIBLY DOES NOT CLOSE: the return path re-enters Discover at a
+// higher orbit than it left. That is compounding judgement, drawn rather than
+// claimed, and it is the one thing a circle can never say.
+const SPIRAL_GROWTH = 0.052;
+function stationRadius(o: Orr, i: number) {
+  return o.stationR * (1 + i * SPIRAL_GROWTH);
+}
+
 const ang = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / 7;
 const px = (o: Orr, r: number, t: number) => o.cx + r * Math.cos(t);
 const py = (o: Orr, r: number, t: number) => o.cy + r * o.k * Math.sin(t);
@@ -241,8 +262,8 @@ function back(o: Orr) {
   const nodes = STATIONS.map((_, i) => {
     const t = ang(i);
     if (Math.sin(t) >= 0) return "";
-    return `<circle cx="${px(o, o.stationR, t).toFixed(1)}" cy="${py(o, o.stationR, t).toFixed(1)}"
-      r="${(o.nodeR * 0.72).toFixed(2)}" fill="${P.brass}" opacity="0.58"/>`;
+    return `<circle cx="${px(o, stationRadius(o, i), t).toFixed(1)}" cy="${py(o, stationRadius(o, i), t).toFixed(1)}"
+      r="${(o.nodeR * 0.74).toFixed(2)}" fill="${P.brass}" opacity="0.58"/>`;
   }).join("");
   return `${defs(o)}${rings}${nodes}`;
 }
@@ -259,10 +280,10 @@ function back(o: Orr) {
 function returnPath(o: Orr) {
   const tL = ang(6),
     tD = ang(0);
-  const lx = px(o, o.stationR, tL),
-    ly = py(o, o.stationR, tL);
-  const dx = px(o, o.stationR, tD),
-    dy = py(o, o.stationR, tD);
+  const lx = px(o, stationRadius(o, 6), tL),
+    ly = py(o, stationRadius(o, 6), tL);
+  const dx = px(o, stationRadius(o, 0), tD),
+    dy = py(o, stationRadius(o, 0), tD);
 
   const bend = o.stationR * 0.42;
   const c1x = (lx + o.cx) / 2 - bend * 0.5,
@@ -295,6 +316,48 @@ function returnPath(o: Orr) {
     ${bead(0.72, o.nodeR * 0.26, 0.72)}${bead(0.88, o.nodeR * 0.32, 0.95)}`;
 }
 
+
+/**
+ * THE FORWARD PATH — 01 through 07, in sequence, along the spiral.
+ *
+ * Founder note 2026-08-05: "why is only 01 and 07 connected? what does that
+ * convey to an end user?" He was right and it was a communication bug. The
+ * previous version drew only the RETURN edge, so a stranger read the picture as
+ * "Discover and Learn are linked, the other five are inert" — which is half the
+ * story and the wrong half.
+ *
+ * The product is a route walked in order AND an outcome that feeds back. Both
+ * edges have to be on the page, and they must not look alike:
+ *
+ *   FORWARD  platinum, thin, quiet. It is the work being done.
+ *   RETURN   ember, lit, with flow beads. It is the moat, and it is the only
+ *            thing in the frame allowed to glow.
+ *
+ * Because the stations sit on a spiral, the forward path visibly climbs, and the
+ * gap between 07 and 01 is the width of one turn: the loop does not close on
+ * itself, it comes back higher.
+ */
+function forwardPath(o: Orr) {
+  const seg: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const t0 = ang(i), t1 = ang(i + 1);
+    const r0 = stationRadius(o, i), r1 = stationRadius(o, i + 1);
+    // Interpolate radius along the arc so the segment rides the spiral rather
+    // than cutting a straight chord across it.
+    let d = "";
+    for (let j = 0; j <= 34; j++) {
+      const f = j / 34;
+      const t = t0 + (t1 - t0) * f;
+      const r = r0 + (r1 - r0) * f;
+      d += `${j === 0 ? "M" : "L"}${(o.cx + r * Math.cos(t)).toFixed(2)} ${(o.cy + r * o.k * Math.sin(t)).toFixed(2)} `;
+    }
+    seg.push(`<path d="${d.trim()}" fill="none" stroke="${P.brass}"
+      stroke-width="${(o.nodeR * 0.42).toFixed(2)}" stroke-linecap="round"
+      opacity="${(0.46 + i * 0.055).toFixed(3)}"/>`);
+  }
+  return seg.join("");
+}
+
 /** Front halves, near-side nodes, the two lit endpoints. Drawn AFTER the core. */
 function front(o: Orr) {
   const rings = o.shells
@@ -310,20 +373,20 @@ function front(o: Orr) {
     const t = ang(i);
     if (Math.sin(t) < 0) return "";
     const depth = 0.74 + 0.4 * ((Math.sin(t) + 1) / 2);
-    return `<circle cx="${px(o, o.stationR, t).toFixed(1)}" cy="${py(o, o.stationR, t).toFixed(1)}"
+    return `<circle cx="${px(o, stationRadius(o, i), t).toFixed(1)}" cy="${py(o, stationRadius(o, i), t).toFixed(1)}"
       r="${(o.nodeR * depth).toFixed(2)}" fill="${P.brass}" opacity="${(0.68 + 0.28 * depth).toFixed(2)}"/>`;
   }).join("");
 
   const lit = (i: number, scale: number) => {
     const t = ang(i),
-      x = px(o, o.stationR, t),
-      y = py(o, o.stationR, t);
+      x = px(o, stationRadius(o, i), t),
+      y = py(o, stationRadius(o, i), t);
     return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(o.nodeR * 6.4 * scale).toFixed(1)}" fill="url(#halo${o.id})"/>
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(o.nodeR * 1.32 * scale).toFixed(1)}" fill="${P.ember}"/>
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(o.nodeR * 0.48 * scale).toFixed(1)}" fill="${P.emberHi}"/>`;
   };
 
-  return `${rings}${nodes}${returnPath(o)}${lit(6, 1)}${lit(0, 0.86)}`;
+  return `${rings}${forwardPath(o)}${nodes}${returnPath(o)}${lit(6, 1)}${lit(0, 0.86)}`;
 }
 
 function markEl(size: number, id: string, tone?: "dark" | "light") {
@@ -439,8 +502,9 @@ function starfield(w: number, h: number, seed: string, cx: number, cy: number, c
 function stationLabels(o: Orr, labelR: number, size: number) {
   return STATIONS.map((name, i) => {
     const t = ang(i);
-    const lx = o.cx + labelR * Math.cos(t);
-    const ly = o.cy + labelR * o.k * Math.sin(t);
+    const lr = labelR * (1 + i * SPIRAL_GROWTH);
+    const lx = o.cx + lr * Math.cos(t);
+    const ly = o.cy + lr * o.k * Math.sin(t);
     const lit = i === 0 || i === 6;
     // Anchor away from the centre so nothing overlaps the orbit it belongs to.
     const anchor = Math.cos(t) > 0.25 ? "start" : Math.cos(t) < -0.25 ? "end" : "middle";

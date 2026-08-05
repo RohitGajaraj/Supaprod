@@ -192,7 +192,8 @@ export function Hero() {
             </h1>
 
             {/* ONE WEIGHT, WHOLE SENTENCE (founder 2026-07-25). The tail
-                "remember, and guide." used to sit a stop brighter than the
+                (then "remember, and guide.", now "learn, and guide.") used to
+                sit a stop brighter than the
                 rest, a leftover from when it was the clause the headline did
                 not cover. The founder's objection is the correct one: every
                 verb in this sentence matters, so lifting two of them demotes
@@ -223,7 +224,28 @@ export function Hero() {
               className="hero-sub hero-rise mb-9 text-base leading-relaxed text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
               style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
-              Agents that know what to build, ship it, remember, and guide.
+              {/*
+               * THE MOST-READ SENTENCE WE HAVE, AND IT USED THE BANNED VERB.
+               *
+               * It read "...ship it, remember, and guide." CLAUDE.md:7 and
+               * README.md:45 both ban "remember" outright: a filing cabinet
+               * remembers, and storage is not defensible. The vocabulary is the
+               * moat, which is why it binds UI copy and not just docs.
+               *
+               * The page was also arguing with itself. ThreeLayers.tsx, one
+               * screen below this, carries the comment "it learns and it
+               * guides, it never remembers, stores or logs" and prints "It
+               * learns, and it guides." A visitor scrolling from the hero to
+               * the mechanism met two different claims about the same layer.
+               *
+               * WIDTH IS SAFE. The comment above measures this line to 472px of
+               * text in a 511px column with 39px of slack, and the whole
+               * `lg:whitespace-nowrap` treatment depends on it staying one
+               * line. "learn" is two characters SHORTER than "remember", so the
+               * sentence can only get slacker, never tighter. The four-beat
+               * rhythm is kept: know, ship, learn, guide.
+               */}
+              Agents that know what to build, ship it, learn, and guide.
             </p>
 
             <div

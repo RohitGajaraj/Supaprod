@@ -1,0 +1,126 @@
+import { describe, it, expect } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * THE CHOICE A PERSON MAKES MUST REACH THE SERVER THAT ACTS ON IT.
+ *
+ * THE DEFECT THIS PREVENTS, found 2026-08-05. Ask renders a visible two-option
+ * fork: answer my question, or hand the work over. Both ends of the wire were
+ * built for it. `use-ask-stream.ts` `send()` accepted an `intent` and forwarded
+ * it in the request body; `api/chat.ts` read `body.intent` into `forcedAsk` and
+ * `forcedDo`. Between them sat the exported wrapper:
+ *
+ *     const sendIntent = (content: string) => { void send(content); };
+ *
+ * One argument in, one argument out. The field was never emitted by anything,
+ * so both server flags were permanently false and the classifier went on
+ * guessing while the pane showed a control implying it did not have to.
+ *
+ * WHY THE BROKEN HALF WAS THE ONE THAT MATTERS. "Hand it over" survived the gap
+ * by accident: `contentForIntent` prefixes `@cos`, and `api/chat.ts` skips its
+ * classifier for a resolved mention. ASK had no such fallback. So the failure
+ * mode was a question being misread as work and dispatching a mission the
+ * person never asked for, spending their money -- which is, verbatim, what the
+ * field's own comment in chat.ts says it exists to prevent.
+ *
+ * NOTHING COULD SEE IT. Every file typechecked. The narrower wrapper type was
+ * itself valid TypeScript, and no test asserted the shape of the request body.
+ * A field is only real once something puts it on the wire.
+ */
+
+const SRC = join(import.meta.dir, "..", "..");
+const read = (rel: string) => readFileSync(join(SRC, rel), "utf8");
+const stripComments = (s: string) =>
+  s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+describe("Ask's visible fork travels to the server", () => {
+  const hook = stripComments(read(join("hooks", "use-ask-stream.ts")));
+  const pane = stripComments(read(join("components", "ask", "AskPane.tsx")));
+  const server = stripComments(read(join("routes", "api", "chat.ts")));
+
+  it("the server still reads the field, so this guard is protecting something live", () => {
+    expect(server).toMatch(/body\.intent\s*===\s*["']ask["']/);
+    expect(server).toMatch(/body\.intent\s*===\s*["']do["']/);
+  });
+
+  it("the exported sendIntent accepts an intent, not just content", () => {
+    // The declared type and the implementation, both. The bug was a wrapper
+    // narrower than the function it wrapped.
+    expect(hook).toMatch(/sendIntent:\s*\(content:\s*string,\s*intent\?/);
+    expect(hook).toMatch(/const sendIntent = React\.useCallback\(\s*\(content: string, intent\?/);
+  });
+
+  it("sendIntent forwards the intent rather than dropping it", () => {
+    const flat = hook.replace(/\s+/g, " ");
+    expect(flat).toMatch(/void send\(content, intent\)/);
+    // The exact shape of the old defect, so it cannot come back quietly.
+    expect(flat).not.toMatch(/const sendIntent = React\.useCallback\( \(content: string\) =>/);
+  });
+
+  it("the request body carries the field when an intent was chosen", () => {
+    const flat = hook.replace(/\s+/g, " ");
+    expect(flat).toMatch(/\.\.\.\(intent \? \{ intent \} : \{\}\)/);
+  });
+
+  it("the pane passes what the person pressed, mapped to the API's words", () => {
+    const flat = pane.replace(/\s+/g, " ");
+    // The pane thinks in question/instruction (what the control says); the API
+    // speaks ask/do. The mapping must be present, not just the call.
+    expect(flat).toMatch(/stream\.sendIntent\([^)]*intent === "question" \? "ask" : "do"/);
+  });
+});
+
+/**
+ * THE VOCABULARY IS THE MOAT, SO IT BINDS THE COPY.
+ *
+ * CLAUDE.md:7 and README.md:45: "It learns and guides; it never 'remembers',
+ * 'stores', or 'logs'." A filing cabinet remembers, and storage is not
+ * defensible; what is being sold is that the last outcome changes the next
+ * call. The rule exists because the claim is the company's, not because the
+ * word is ugly.
+ *
+ * It had drifted where it mattered most. The landing hero -- the single
+ * most-read sentence the product owns -- read "Agents that know what to build,
+ * ship it, remember, and guide", while ThreeLayers.tsx one screen below printed
+ * "It learns, and it guides." and carried a comment saying the product "never
+ * remembers, stores or logs". A visitor scrolling from the hero to the
+ * mechanism met two different claims about the same layer.
+ *
+ * Scoped to PUBLIC marketing surfaces and to rendered copy only. Comments and
+ * server code are deliberately out of scope: the founder's 2026-08-02 ruling is
+ * that this cleanup is consumer-facing, never backend source, comments, .md or
+ * .sql -- and the comments explaining this rule necessarily quote the word.
+ */
+describe("public copy keeps the vocabulary the moat is built on", () => {
+  const PUBLIC_SURFACES = [
+    join("components", "landing", "Hero.tsx"),
+    join("components", "landing", "ThreeLayers.tsx"),
+    join("components", "landing", "Receipts.tsx"),
+    join("components", "landing", "LandingFooter.tsx"),
+    join("components", "landing", "LandingNav.tsx"),
+  ];
+
+  /** Rendered text only: JSX text nodes and quoted copy, never identifiers. */
+  const BANNED = /\b(remembers?|remembering)\b/i;
+
+  for (const rel of PUBLIC_SURFACES) {
+    it(`${rel} never claims the product remembers`, () => {
+      const code = stripComments(read(rel));
+      const offenders = code
+        .split("\n")
+        .map((line, i) => ({ n: i + 1, line: line.trim() }))
+        .filter(({ line }) => BANNED.test(line));
+      expect(offenders.map((o) => `${o.n}: ${o.line}`)).toEqual([]);
+    });
+  }
+
+  it("the hero and the mechanism agree, rather than contradicting each other", () => {
+    const hero = stripComments(read(join("components", "landing", "Hero.tsx")));
+    const three = stripComments(read(join("components", "landing", "ThreeLayers.tsx")));
+    // Both must speak the doctrine's verbs. This is the pair that disagreed.
+    expect(hero).toMatch(/\blearn\b/i);
+    expect(hero).toMatch(/\bguide\b/i);
+    expect(three).toMatch(/It learns, and it guides\./);
+  });
+});

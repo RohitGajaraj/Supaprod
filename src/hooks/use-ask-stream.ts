@@ -138,7 +138,7 @@ export type AskStreamState = {
   streaming: boolean;
   liveStatus: ResearchStatus | null;
   /** Send one user intent into the thread (no-op while a stream is in flight). */
-  sendIntent: (content: string) => void;
+  sendIntent: (content: string, intent?: "ask" | "do") => void;
   /** Remove an error exchange and resend its content. */
   retry: (msgId: string, content: string) => void;
   startNewConversation: () => void;
@@ -426,9 +426,25 @@ export function useAskStream(options: UseAskStreamOptions = {}): AskStreamState 
     [streaming, ensureConversation, scope, retrievalProductId],
   );
 
+  /**
+   * THE FORK THE PERSON PRESSED WAS THROWN AWAY HERE.
+   *
+   * `send` above has always accepted an `intent` and forwarded it as a request
+   * field, and `api/chat.ts:399-400` has always read it into `forcedAsk` /
+   * `forcedDo`. This wrapper took one argument and passed one argument, so the
+   * field was never emitted by anything and both flags were permanently false.
+   * The classifier went on guessing while the pane showed a control implying it
+   * did not have to.
+   *
+   * "Hand it over" survived the gap by accident: `contentForIntent` prefixes
+   * `@cos`, and a resolved mention skips the classifier on its own. ASK had no
+   * such fallback, so the half that was broken is the half that matters — the
+   * one where a question misread as an instruction dispatches a mission the
+   * person never asked for and spends real money doing it.
+   */
   const sendIntent = React.useCallback(
-    (content: string) => {
-      void send(content);
+    (content: string, intent?: "ask" | "do") => {
+      void send(content, intent);
     },
     [send],
   );
