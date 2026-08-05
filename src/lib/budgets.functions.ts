@@ -11,9 +11,59 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
- * Extracted logic for getBudgetOverview - testable without TanStack wrappers.
+ * Said when a cap write RAN and the database returned no row.
+ *
+ * A write refused by RLS RESOLVES rather than throwing: PostgREST reports it as
+ * zero rows matched, which is byte for byte what a successful write of nothing
+ * looks like. Migration 20260805130000 narrowed both budget tables to owner,
+ * admin or member, so from that migration onward a viewer pressing Save on
+ * /budgets got `ok: true` back having changed nothing at all, and the page
+ * redrew showing the cap they had typed.
+ *
+ * We cannot tell a refusal apart from a row someone else removed a moment
+ * earlier — both come back empty and PostgREST does not say which — so this
+ * states the uncertainty rather than picking one. Same ruling, same wording as
+ * `guardrails.functions.ts`.
  */
-export async function getBudgetOverviewImpl(supabase: SupabaseClient, userId: string) {
+function unconfirmedWrite(what: string): string {
+  return `We could not confirm ${what}. Reload /budgets and check it before relying on it.`;
+}
+
+/**
+ * Which workspace the PER-RUN ceiling below belongs to.
+ *
+ * Written out here rather than imported from `governance.functions.ts`, which
+ * has the same helper: that module statically imports `loop.server.ts`, and
+ * this one is reached by the header BudgetBar on every page, so importing it
+ * would pull the whole agent runtime into a bundle that only wanted a number.
+ *
+ * Order matches the governance copy exactly, and for the same reason: the
+ * caller's active workspace first, then `current_user_default_workspace()`
+ * (the function every governed table defaults `workspace_id` to), and the
+ * previous behaviour last so a caller that sends nothing still gets an answer.
+ */
+async function resolveCeilingWorkspace(
+  supabase: SupabaseClient,
+  workspaceId: string | null | undefined,
+): Promise<string | null> {
+  if (workspaceId) return workspaceId;
+  const { data } = await supabase.rpc("current_user_default_workspace");
+  return (data as string | null) ?? null;
+}
+
+/**
+ * Extracted logic for getBudgetOverview - testable without TanStack wrappers.
+ *
+ * `workspaceId` is optional and the fallback is the old behaviour, so callers
+ * that cannot yet send it keep working. A caller that KNOWS its active
+ * workspace should send it: see the ceiling read below for why a guess here is
+ * not a cosmetic problem.
+ */
+export async function getBudgetOverviewImpl(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId?: string | null,
+) {
   const [g, s, a] = await Promise.all([
     supabase.from("ai_budgets").select("*").eq("user_id", userId).maybeSingle(),
     supabase.from("ai_surface_budgets").select("*").eq("user_id", userId).order("surface"),
@@ -42,13 +92,24 @@ export async function getBudgetOverviewImpl(supabase: SupabaseClient, userId: st
   // answer is null, which the surfaces render as "nothing caps this" rather than
   // asserting a ceiling that may not hold. Understating a control is recoverable;
   // claiming one that is not there is not.
+  //
+  // WHICH WORKSPACE'S CEILING (2026-08-05). This read used to be
+  // `.limit(1).maybeSingle()` with no filter at all, so on an account with more
+  // than one workspace it showed whichever row Postgres returned first, while
+  // `resolveMissionSpendCap` enforces the one the RUN carries, found by
+  // `.eq("id", workspaceId)`. The page said one number and the loop obeyed
+  // another. It is filtered by id now, resolved the same way enforcement
+  // resolves it.
   let missionCapUsd: number | null = null;
   try {
-    const { data: ws } = await supabase
-      .from("workspaces")
-      .select("default_mission_spend_cap_usd")
-      .limit(1)
-      .maybeSingle();
+    const capWorkspaceId = await resolveCeilingWorkspace(supabase, workspaceId);
+    const { data: ws } = capWorkspaceId
+      ? await supabase
+          .from("workspaces")
+          .select("default_mission_spend_cap_usd")
+          .eq("id", capWorkspaceId)
+          .maybeSingle()
+      : { data: null };
     const rawCap = (ws as { default_mission_spend_cap_usd?: number | string | null } | null)
       ?.default_mission_spend_cap_usd;
     missionCapUsd =
@@ -67,11 +128,18 @@ export async function getBudgetOverviewImpl(supabase: SupabaseClient, userId: st
   };
 }
 
+const WorkspaceScopeSchema = z
+  .object({ workspaceId: z.string().uuid().nullable().optional() })
+  .strip();
+
 export const getBudgetOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: z.input<typeof WorkspaceScopeSchema> | undefined) =>
+    WorkspaceScopeSchema.parse(d ?? {}),
+  )
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    return getBudgetOverviewImpl(supabase, userId);
+    return getBudgetOverviewImpl(supabase, userId, data.workspaceId);
   });
 
 export const GlobalSchema = z.object({
@@ -96,11 +164,31 @@ export async function updateGlobalBudgetImpl(
     .eq("user_id", userId)
     .maybeSingle();
   if (existing) {
-    const { error } = await supabase.from("ai_budgets").update(data).eq("id", existing.id);
+    // `.select()` is the difference between a saved cap and a believed one.
+    // See unconfirmedWrite: an RLS refusal on UPDATE resolves with zero rows
+    // and no error, so this used to return ok:true for a budget that never
+    // changed, and the caps page redrew the numbers the person had typed.
+    const { data: written, error } = await supabase
+      .from("ai_budgets")
+      .update(data)
+      .eq("id", existing.id)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!written || written.length === 0) {
+      throw new Error(unconfirmedWrite("that your spend caps changed"));
+    }
   } else {
-    const { error } = await supabase.from("ai_budgets").insert({ user_id: userId, ...data });
+    // The INSERT half does raise on a WITH CHECK violation, so this one is
+    // belt and braces — but it is the same shape as the update above, and a
+    // reader should not have to work out which branch can lie.
+    const { data: written, error } = await supabase
+      .from("ai_budgets")
+      .insert({ user_id: userId, ...data })
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!written || written.length === 0) {
+      throw new Error(unconfirmedWrite("that your spend caps were set"));
+    }
   }
   return { ok: true };
 }
@@ -128,10 +216,17 @@ export async function upsertSurfaceBudgetImpl(
   userId: string,
   data: z.infer<typeof SurfaceSchema>,
 ) {
-  const { error } = await supabase
+  // An UPSERT that lands on the UPDATE branch is refused by RLS the same silent
+  // way an UPDATE is: zero rows, no error. `.select()` makes the two tellable
+  // apart, and this cap is the one that bounds a single surface's spend.
+  const { data: written, error } = await supabase
     .from("ai_surface_budgets")
-    .upsert({ user_id: userId, ...data }, { onConflict: "user_id,surface" });
+    .upsert({ user_id: userId, ...data }, { onConflict: "user_id,surface" })
+    .select("id");
   if (error) throw new Error(error.message);
+  if (!written || written.length === 0) {
+    throw new Error(unconfirmedWrite(`the cap on ${data.surface}`));
+  }
   return { ok: true };
 }
 
@@ -145,18 +240,36 @@ export const upsertSurfaceBudget = createServerFn({ method: "POST" })
 
 /**
  * Extracted logic for deleteSurfaceBudget - testable without TanStack wrappers.
+ *
+ * THE SILENT ONE. A DELETE refused by RLS reports zero rows and no error, and
+ * a DELETE is the only write here with nothing left behind to check: after a
+ * refused update the old number is still on screen and looks wrong, whereas
+ * after a refused delete the row is still there and the page has already
+ * removed it from the list. So this handler used to be the surest way to
+ * believe a spend cap was gone while it went on capping.
+ *
+ * IT NO LONGER RETURNS ok FOR AN EMPTY DELETE, and that is deliberate even
+ * though it costs the idempotent read of "already gone". We cannot distinguish
+ * a policy refusal from a row a teammate removed a second earlier — PostgREST
+ * gives the same empty answer to both — and of the two possible mistakes,
+ * telling someone a cap was removed when it was not is the one that lets money
+ * be spent against a rule they think they lifted.
  */
 export async function deleteSurfaceBudgetImpl(
   supabase: SupabaseClient,
   userId: string,
   surface: string,
 ) {
-  const { error } = await supabase
+  const { data: removed, error } = await supabase
     .from("ai_surface_budgets")
     .delete()
     .eq("user_id", userId)
-    .eq("surface", surface);
+    .eq("surface", surface)
+    .select("id");
   if (error) throw new Error(error.message);
+  if (!removed || removed.length === 0) {
+    throw new Error(unconfirmedWrite(`that the cap on ${surface} is gone`));
+  }
   return { ok: true };
 }
 
@@ -170,6 +283,15 @@ export const deleteSurfaceBudget = createServerFn({ method: "POST" })
 
 /**
  * Extracted logic for acknowledgeAlert - testable without TanStack wrappers.
+ *
+ * NO `.select()` HERE, AND THAT IS THE DECISION, not an omission. Every other
+ * write in this file ends in one because it is a governed write that RLS can
+ * refuse in silence. This is not a governed write: `ai_budget_alerts` is an
+ * alert RECORD rather than a cap, and migration 20260805130000 says why it was
+ * left ungated — the runtime inserts the alert through the ACTING USER's
+ * client, so role-gating it would silence the safety warning for exactly the
+ * person who triggered it. Dismissing a notice you have read is not the kind of
+ * act that needs a receipt.
  */
 export async function acknowledgeAlertImpl(
   supabase: SupabaseClient,

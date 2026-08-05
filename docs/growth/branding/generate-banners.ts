@@ -1,115 +1,117 @@
 // ORRERY — the full platform set.
 //
-// MESSAGE ARCHITECTURE (corrected after the founder's note that the copy was
-// punchy but never said what the product IS, and that the moat is the whole
-// three-layer chain rather than the Learn station alone).
+// =============================================================================
+// TYPOGRAPHY, corrected 2026-08-05 after a founder review that rejected the
+// previous pass as "too spacey, elements highlighted for namesake, everything
+// else dulled down."
 //
-//   WEDGE      "You have agents for code. Nothing runs product."
-//   CATEGORY   "The agentic-first operating system for product teams."  <- ALWAYS
-//   MECHANISM  01 tells you what to build · 02 builds and ships it
-//              · 03 learns what actually worked
-//   MOAT       the outcome re-ranks the next bet
+// Both faults were mine and both came from over-correcting an earlier note:
 //
-// The three MECHANISM beats are numbered to match the three orbital shells, so
-// the diagram and the copy state the same three things and each explains the
-// other. Geist Pixel Square carries the wordmark ONLY, small: the founder's own
-// ruling is one Pixel word per asset, and Pixel at display size stops reading as
-// a typeface and starts reading as a broken image.
+//   LEADING  He asked for "a little more breathing space" and I went from 1.06
+//            to 1.30. At 1.30 the two lines stop reading as one headline and
+//            drift into separate objects. 1.14 is the answer: enough silence
+//            before the counterpoint lands, not so much that the pair breaks.
+//
+//   CONTRAST I pushed the connectives ("that own", "Not just") down to #5E6068,
+//            almost the background. That does not spotlight the hero word, it
+//            dulls the whole room. In the reference the founder approved,
+//            "Agents that run" sits at FULL brightness and only the negative
+//            word is dimmed. Contrast is made by lifting one thing above a
+//            bright field, never by darkening the field.
+//
+// So the system is: body at full bone weight 500, the hero word at 700, and
+// exactly ONE word dimmed -- the thing we are not.
+// =============================================================================
+//
+// LAYOUT. Every platform lays its own furniture over the banner, so each layout
+// below encodes measured exclusion zones rather than a shared centred grid. See
+// the ZONES block before each function.
 
 import { join } from "node:path";
-import {
-  P,
-  machine,
-  readout,
-  markEl,
-  GRAIN,
-  page,
-  render,
-  OUT,
-  ang,
-  px,
-  py,
-  setGround,
-} from "./orrery.ts";
+import { P, machine, markEl, GRAIN, page, render, OUT, setGround } from "./orrery.ts";
 import type { Orr } from "./orrery.ts";
 
-// THE HOOK. Short enough to be set LARGE, which is the whole point: the previous
-// pass made the 52-character category line the headline, and a line that long
-// can only ever be small. Small type is not impactful type.
+// --- Copy, ratified 2026-08-05 (variant H) ----------------------------------
 //
-// "Not just code" is the sharpest differentiation available. Every buyer already
-// has coding agents; nobody has agents that run PRODUCT. It concedes nothing,
-// names the gap, and makes the category line below it land as the answer.
-const HOOK = `Agents that run <span style="font-weight:600">product</span>.<br>Not just <span style="color:${P.slate};font-weight:400">code</span>.`;
+// `output` is what you shipped; `outcome` is whether it worked. That word pair
+// IS the moat, and the near-rhyme makes it stick before the reader has analysed
+// it. It also earns the picture: the lit return path from 07 Learn back to
+// 01 Discover is literally an outcome being owned.
+//
+// Frame constraint: 28 characters per line or fewer. Longer than that cannot
+// hold display size.
 
-// THE CATEGORY. Always present, always directly under the hook. This is the line
-// the founder asked to be explicit about: agentic-first, product teams.
-const CATEGORY = "The agentic-first operating system for product teams";
+/** The hero word. Lifted by WEIGHT above a bright field. */
+const hi = (t: string) => `<span style="font-weight:700">${t}</span>`;
+/** The one dimmed word: the thing we are not. Nothing else is dimmed. */
+const dim = (t: string) => `<span style="color:#6E7078;font-weight:500">${t}</span>`;
 
-// THE MECHANISM, in the canon's own order: 01 director, 02 operating system,
-// 03 company brain. Numbered to rhyme with the three orbital shells.
-const BEATS: [string, string][] = [
-  ["01", "Tells you what to build"],
-  ["02", "Builds it, ships it"],
-  ["03", "Learns what actually worked"],
-];
+const HOOK = `Agents that own ${hi("outcomes")}.<br>Not just ${dim("output")}.`;
+const HOOK_FLAT = `Agents that own ${hi("outcomes")}. Not just ${dim("output")}.`;
 
-/** The numbered mechanism list, rhyming with the three shells. */
-function beats(size = 14, gap = 11) {
-  return `<div style="display:flex;flex-direction:column;gap:${gap}px">${BEATS.map(
-    ([nRaw, t]) => `
-      <div style="display:flex;align-items:baseline;gap:13px">
-        <span class="mono" style="font-size:${(size * 0.72).toFixed(1)}px;letter-spacing:.16em;color:${P.brass};opacity:.85;min-width:${size * 1.5}px">${nRaw}</span>
-        <span style="font-size:${size}px;color:${P.slate};letter-spacing:-.005em">${t}</span>
-      </div>`,
-  ).join("")}</div>`;
+/** Category line. `product teams` lifted by COLOUR only, so it never competes
+ *  with the headline's weight contrast. */
+const CATEGORY =
+  `The <span style="color:${P.bone};opacity:.8">agentic-first</span> operating system for ` +
+  `<span style="color:${P.bone};font-weight:500">product teams</span>`;
+
+/**
+ * Headline leading, set to the reference the founder approved: 1.08.
+ *
+ * Confirmed 2026-08-05: "if there is no breathing space, it's fine, if you match
+ * the reference image that is good." Tight is correct here and the earlier 1.30
+ * was simply wrong. At display size with -0.042em tracking, a two-line headline
+ * wants its lines locked together as ONE object; the counterpoint lands harder
+ * arriving immediately than it does after a pause. Loose leading is for reading
+ * paragraphs, not for delivering a two-beat claim.
+ */
+const LEAD = 1.08;
+
+/**
+ * The masthead: mark + "Supaprod" in Geist Pixel Square.
+ *
+ * Brand is rank 2 in the hierarchy and was previously drawn at rank 5. Pixel
+ * Square's square terminals crowd at small sizes and open up when given air, so
+ * a touch of positive tracking is what makes it read as deliberate rather than
+ * as a rendering artefact. Pixel appears HERE and nowhere else: one Pixel word
+ * per asset.
+ */
+function lockup(markPx: number, textPx: number, id: string) {
+  return `<div style="display:flex;align-items:center;gap:${(markPx * 0.36).toFixed(0)}px">
+    ${markEl(markPx, id)}
+    <span class="pixel" style="font-size:${textPx}px;color:${P.bone};line-height:1;
+      letter-spacing:${(textPx * 0.015).toFixed(2)}px">Supaprod</span>
+  </div>`;
 }
 
-/** Wordmark: the mark + "Supaprod" in Pixel, small. One Pixel word per asset. */
-function lockup(markPx: number, textPx: number, id: string) {
-  return `<div style="display:flex;align-items:center;gap:${(markPx * 0.32).toFixed(0)}px">
-    ${markEl(markPx, id)}
-    <span class="pixel" style="font-size:${textPx}px;color:${P.bone};line-height:1">Supaprod</span>
+/** Category line with its ember tick. */
+function categoryLine(size: number, gap: number, center = false) {
+  return `<div style="display:flex;align-items:center;gap:${gap}px;
+      ${center ? "justify-content:center;" : ""}">
+    <span style="width:${(size * 1.5).toFixed(0)}px;height:1px;background:${P.ember};opacity:.9"></span>
+    <span style="font-size:${size}px;color:${P.slate};letter-spacing:-.006em">${CATEGORY}</span>
   </div>`;
 }
 
 // =============================================================================
-// AVATAR OCCLUSION — measured, not guessed.
+// WIDE BANNER — X, Mastodon, Bluesky.
 //
-// Every one of these platforms lays a CIRCULAR profile picture over the bottom
-// left of the banner. A layout that centres its text vertically will always put
-// its last line underneath that circle.
-//
-//   X          avatar renders 133.5px against a ~600px-wide banner display, so
-//              the scale into 1500x500 banner coordinates is 2.5x: a 334px
-//              circle centred near x=207 on the bottom edge. It covers roughly
-//              x 40..374, y 333..500.
-//   Mastodon   same shape, same corner.
-//   Bluesky    same shape, same corner, and it scales with the 3000x1000 canvas.
-//   LinkedIn   a square company logo, not a circle, overlapping the cover's
-//              bottom LEFT. On a 1128x191 cover it eats roughly the first 200px
-//              of width, which is why the strip layout indents rather than
-//              lifts: at 191px tall there is no vertical room to lift into.
-//   YouTube    NO overlap. The avatar sits BELOW the banner in the channel
-//              header, so the only constraint there is the 1546x423 safe box.
-//
-// SAFE_TOP is the fraction of the height the text block is centred on. 0.35
-// puts a ~216px block at y 67..283 on a 500px banner, clearing the circle's
-// y=333 top edge with room for the platform to shift its layout slightly.
-const AVATAR_SAFE_CENTER = 0.35;
-
-// =============================================================================
-// WIDE BANNER  — X, Mastodon, Bluesky. Machine right, message left, and the
-// text block LIFTED clear of the avatar circle rather than vertically centred.
+// ZONES, measured on a 1500x500 master:
+//   AVATAR    a 334px circle centred near x=207 on the bottom edge, covering
+//             x 40..374, y 333..500. The text block therefore centres on
+//             0.35 x height, not 0.5, and the bottom-left quadrant stays empty.
+//   INSTRUMENT centre pulled to w-340 so the leftmost station label (06 SHIP,
+//             at cx - labelR) lands clear of where the headline ends. Text and
+//             diagram must never share a column.
 // =============================================================================
 function banner(w: number, h: number, id: string) {
-  const s = h / 500; // everything scales off the 1500x500 master
+  const s = h / 500;
   const o: Orr = {
-    cx: w - 380 * s,
+    cx: w - 336 * s,
     cy: h * 0.5,
     k: 0.38,
-    shells: [128 * s, 228 * s, 350 * s, 470 * s, 600 * s],
-    stationR: 228 * s,
+    shells: [124 * s, 218 * s, 336 * s, 452 * s, 580 * s],
+    stationR: 218 * s,
     nodeR: 4.8 * s,
     id,
   };
@@ -119,16 +121,20 @@ function banner(w: number, h: number, id: string) {
     `
     <div style="position:absolute;inset:0;background:
       radial-gradient(85% 130% at 14% 2%, ${P.lift} 0%, transparent 56%)"></div>
-    ${machine(w, h, o, 104 * s, 19 * s, { r: 268 * s, size: 10.5 * s })}
+    ${machine(w, h, o, 100 * s, 18 * s, { r: 258 * s, size: 10 * s })}
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:${92 * s}px;top:${(h * AVATAR_SAFE_CENTER).toFixed(0)}px;transform:translateY(-50%);width:${700 * s}px">
-      ${lockup(28 * s, 21 * s, id + "lk")}
-      <div style="margin-top:${28 * s}px;font-size:${54 * s}px;line-height:1.06;font-weight:500;
-          letter-spacing:-.042em;color:${P.bone}">${HOOK}</div>
-      <div style="margin-top:${24 * s}px;display:flex;align-items:center;gap:${14 * s}px">
-        <span style="width:${26 * s}px;height:1px;background:${P.ember};opacity:.8"></span>
-        <span style="font-size:${17.5 * s}px;letter-spacing:-.008em;color:${P.slate}">${CATEGORY}</span>
-      </div>
+    <!-- WIDTH IS LOAD-BEARING. "Agents that own outcomes." is 25 characters; at
+         56px with -0.042em tracking Geist runs ~0.47em/char, so the line needs
+         ~658px. A 660px box left 2px of slack and the line wrapped, turning a
+         two-beat headline into three ragged lines. 704px at 54px carries it with
+         real margin, and still stops well clear of the instrument: text ends at
+         x=800, the leftmost station label sits at x=906. -->
+    <div style="position:absolute;left:${96 * s}px;top:${(h * 0.35).toFixed(0)}px;
+        transform:translateY(-50%);width:${704 * s}px">
+      ${lockup(30 * s, 22 * s, id + "lk")}
+      <div style="margin-top:${30 * s}px;font-size:${54 * s}px;line-height:${LEAD};
+          font-weight:500;letter-spacing:-.042em;color:${P.bone};white-space:nowrap">${HOOK}</div>
+      <div style="margin-top:${26 * s}px">${categoryLine(17 * s, 13 * s)}</div>
     </div>
   `,
   );
@@ -136,16 +142,17 @@ function banner(w: number, h: number, id: string) {
 
 // =============================================================================
 // SHARE CARD — OG, GitHub preview, Product Hunt, Discord, square.
-// Machine above, message below. Seen small, so the hierarchy is steeper.
+// No platform furniture overlays these. Instrument above, message below, and
+// the hierarchy is steeper because a link preview is read small.
 // =============================================================================
-function card(w: number, h: number, id: string, opts: { wedge?: boolean } = {}) {
+function card(w: number, h: number, id: string) {
   const s = Math.min(w, h) / 630;
   const o: Orr = {
     cx: w / 2,
-    cy: h * 0.4,
+    cy: h * 0.38,
     k: 0.36,
-    shells: [116 * s, 200 * s, 300 * s, 408 * s, 530 * s],
-    stationR: 200 * s,
+    shells: [112 * s, 196 * s, 296 * s, 402 * s, 524 * s],
+    stationR: 196 * s,
     nodeR: 4.8 * s,
     id,
   };
@@ -155,43 +162,42 @@ function card(w: number, h: number, id: string, opts: { wedge?: boolean } = {}) 
     `
     <div style="position:absolute;inset:0;background:
       radial-gradient(90% 90% at 50% 0%, ${P.lift} 0%, transparent 55%)"></div>
-    ${machine(w, h, o, 106 * s, 19 * s, { r: 250 * s, size: 11 * s })}
+    ${machine(w, h, o, 102 * s, 18 * s, { r: 244 * s, size: 10.5 * s })}
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:${44 * s}px;top:${40 * s}px">${lockup(28 * s, 21 * s, id + "lk")}</div>
-    <div style="position:absolute;left:0;right:0;bottom:${58 * s}px;text-align:center;padding:0 ${60 * s}px">
-      <div style="font-size:${50 * s}px;line-height:1.08;font-weight:500;letter-spacing:-.042em;color:${P.bone}">
-        Agents that run <span style="font-weight:600">product</span>. Not just <span style="color:${P.slate};font-weight:400">code</span>.
-      </div>
-      <div style="margin-top:${20 * s}px;display:flex;align-items:center;justify-content:center;gap:${14 * s}px">
-        <span style="width:${24 * s}px;height:1px;background:${P.ember};opacity:.8"></span>
-        <span style="font-size:${18 * s}px;color:${P.slate}">${CATEGORY}</span>
-      </div>
-      <div style="margin-top:${22 * s}px;display:flex;justify-content:center;gap:${28 * s}px;flex-wrap:wrap">
-        ${BEATS.map(
-          ([nn, t]) => `<span style="font-size:${14.5 * s}px;color:${P.slate}">
-          <span class="mono" style="font-size:${10.5 * s}px;letter-spacing:.14em;color:${P.brass};opacity:.85">${nn}</span>
-          &nbsp;${t}</span>`,
-        ).join("")}
-      </div>
+    <div style="position:absolute;left:${46 * s}px;top:${42 * s}px">${lockup(30 * s, 22 * s, id + "lk")}</div>
+    <div style="position:absolute;left:0;right:0;bottom:${62 * s}px;text-align:center;padding:0 ${60 * s}px">
+      <div style="font-size:${52 * s}px;line-height:${LEAD};font-weight:500;
+          letter-spacing:-.042em;color:${P.bone}">${HOOK_FLAT}</div>
+      <div style="margin-top:${24 * s}px">${categoryLine(18 * s, 14 * s, true)}</div>
     </div>
   `,
   );
 }
 
 // =============================================================================
-// YOUTUBE 2560x1440 — the machine fills the full canvas so a TV sees an
-// instrument; every word stays inside the 1546x423 safe box (y 508..931).
+// YOUTUBE 2560x1440.
+//
+// ZONES: no avatar overlap (YouTube puts the avatar BELOW the banner), but the
+// crop is brutal. A TV sees all 2560x1440, desktop sees a 2560x423 band, mobile
+// sees only the centred 1546x423 box at x 507..2053, y 508..931. So the
+// instrument is scaled to the FULL canvas while every WORD lives inside the
+// smallest box. One asset, three correct crops.
 // =============================================================================
 function youtube() {
   const w = 2560,
     h = 1440;
+  // The instrument sits HIGH so its lowest station labels clear the type band.
+  // At cy=512 with labelR=570 the bottom labels landed at y~772, which put
+  // "05 BUILD" and "04 DESIGN" straight through the Supaprod lockup. Raising the
+  // centre to 432 and pulling the label ring in to 512 puts the lowest label at
+  // y~668, leaving a clean 60px gutter before the text band starts at 730.
   const o: Orr = {
     cx: 1280,
-    cy: 548,
+    cy: 432,
     k: 0.42,
-    shells: [286, 500, 742, 1010, 1330],
-    stationR: 500,
-    nodeR: 9.6,
+    shells: [258, 452, 674, 918, 1215],
+    stationR: 452,
+    nodeR: 9.2,
     id: "yt",
   };
   return page(
@@ -200,26 +206,21 @@ function youtube() {
     `
     <div style="position:absolute;inset:0;background:
       radial-gradient(85% 105% at 50% 0%, ${P.lift} 0%, transparent 55%)"></div>
-    ${machine(w, h, o, 214, 40, { r: 596, size: 21 })}
-    <div style="position:absolute;left:0;right:0;top:690px;height:330px;
-      background:radial-gradient(56% 100% at 50% 50%, rgba(${P.scrim},.88) 0%, rgba(${P.scrim},.55) 44%, transparent 78%)"></div>
+    ${machine(w, h, o, 190, 36, { r: 512, size: 20 })}
+    <!-- Scrim under the type only. The orbits run behind the headline and would
+         otherwise cross the letterforms; this lifts contrast without putting a
+         visible box on the frame. -->
+    <div style="position:absolute;left:0;right:0;top:700px;height:320px;
+      background:radial-gradient(52% 100% at 50% 50%, rgba(${P.scrim},.92) 0%, rgba(${P.scrim},.6) 42%, transparent 76%)"></div>
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:50%;top:762px;transform:translateX(-50%);width:1546px;text-align:center">
-      <div style="display:flex;justify-content:center">${lockup(40, 30, "ytlk")}</div>
-      <div style="margin-top:26px;font-size:66px;line-height:1.08;font-weight:500;letter-spacing:-.04em;color:${P.bone}">
-        Agents that run <span style="font-weight:600">product</span>. Not just <span style="color:${P.slate};font-weight:400">code</span>.
-      </div>
-      <div style="margin-top:22px;display:flex;align-items:center;justify-content:center;gap:18px">
-        <span style="width:30px;height:1px;background:${P.ember};opacity:.8"></span>
-        <span style="font-size:24px;color:${P.slate}">${CATEGORY}</span>
-      </div>
-      <div style="margin-top:22px;display:flex;justify-content:center;gap:44px">
-        ${BEATS.map(
-          ([nn, t]) => `<span style="font-size:22px;color:${P.slate}">
-          <span class="mono" style="font-size:15px;letter-spacing:.14em;color:${P.brass};opacity:.85">${nn}</span>
-          &nbsp;${t}</span>`,
-        ).join("")}
-      </div>
+    <!-- Text band: y 730..930, entirely inside the 1546x423 mobile safe box
+         (y 508..931) and 60px clear of the lowest station label at y~668. -->
+    <div style="position:absolute;left:50%;top:730px;transform:translateX(-50%);
+        width:1546px;text-align:center">
+      <div style="display:flex;justify-content:center">${lockup(44, 32, "ytlk")}</div>
+      <div style="margin-top:30px;font-size:68px;line-height:${LEAD};font-weight:500;
+          letter-spacing:-.04em;color:${P.bone}">${HOOK_FLAT}</div>
+      <div style="margin-top:26px">${categoryLine(25, 18, true)}</div>
     </div>
     <div style="position:absolute;left:0;right:0;bottom:0;height:420px;
       background:linear-gradient(to top, rgba(255,107,44,.05) 0%, transparent 100%)"></div>
@@ -228,18 +229,31 @@ function youtube() {
 }
 
 // =============================================================================
-// STRIP — LinkedIn cover 1128x191. Too short for the machine, so it carries a
-// horizontal lockup and a single rule, which is what the 6:1 ratio wants.
+// STRIP — LinkedIn company cover, 1128x191.
+//
+// ZONES, and this layout was genuinely broken before:
+//   LOGO       LinkedIn overlays a SQUARE company logo on the bottom left,
+//              eating roughly x 0..215. The previous version started its text at
+//              x=212, so the wordmark butted straight against the logo with no
+//              breathing room at all. Text now starts at x=286.
+//   INSTRUMENT the orrery previously sat at cx = w-150 with shells out to 268,
+//              putting its left edge at x=710 -- directly underneath "product
+//              teams". Type on top of the spiral. It now bleeds off the RIGHT
+//              edge (centre past the canvas) so only an outer arc is visible and
+//              its leftmost geometry stops at x=898, clear of text ending ~840.
+//   HEIGHT     at 191px there is no vertical room to lift into, so this layout
+//              indents rather than lifts. Station labels are dropped entirely:
+//              10px mono on a 191px strip is noise, not information.
 // =============================================================================
 function strip(w: number, h: number, id: string) {
   const s = h / 191;
   const o: Orr = {
-    cx: w - 150 * s,
+    cx: w + 92 * s,
     cy: h * 0.5,
     k: 0.34,
-    shells: [52 * s, 92 * s, 142 * s, 200 * s, 268 * s],
-    stationR: 92 * s,
-    nodeR: 2.6 * s,
+    shells: [70 * s, 124 * s, 190 * s, 262 * s, 340 * s],
+    stationR: 124 * s,
+    nodeR: 3.1 * s,
     id,
   };
   return page(
@@ -247,14 +261,14 @@ function strip(w: number, h: number, id: string) {
     h,
     `
     <div style="position:absolute;inset:0;background:
-      radial-gradient(80% 150% at 12% 0%, ${P.lift} 0%, transparent 58%)"></div>
-    ${machine(w, h, o, 44 * s, 8 * s)}
+      radial-gradient(70% 160% at 26% 0%, ${P.lift} 0%, transparent 58%)"></div>
+    ${machine(w, h, o, 52 * s, 11 * s)}
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:${212 * s}px;top:50%;transform:translateY(-50%);
-        display:flex;align-items:center;gap:${26 * s}px">
-      ${lockup(34 * s, 24 * s, id + "lk")}
-      <span style="width:1px;height:${44 * s}px;background:${P.brass};opacity:.32"></span>
-      <span style="font-size:${17 * s}px;color:${P.slate};letter-spacing:-.008em">${CATEGORY}</span>
+    <div style="position:absolute;left:${286 * s}px;top:50%;transform:translateY(-50%);
+        display:flex;align-items:center;gap:${28 * s}px">
+      ${lockup(36 * s, 26 * s, id + "lk")}
+      <span style="width:1px;height:${46 * s}px;background:${P.brass};opacity:.34"></span>
+      <span style="font-size:${17.5 * s}px;color:${P.slate};letter-spacing:-.006em">${CATEGORY}</span>
     </div>
   `,
   );
@@ -262,13 +276,11 @@ function strip(w: number, h: number, id: string) {
 
 // =============================================================================
 // The spec table. `base` carries NO ground and NO dimensions: both are appended,
-// so a file is always `<base>-<ground>-<W>x<H>.png`. The previous kit baked the
-// ground into the base name (`og-dark-1200x630`), which is why adding a light
-// pass to it would have produced `og-dark-light-1200x630`.
+// so a file is always `<base>-<ground>-<W>x<H>.png` plus an `@2x` twin.
 //
-// Dimensions stay in the filename because the renderer measures each written
-// PNG against them and refuses to write a file whose pixels disagree with its
-// own name. That invariant exists because this kit once shipped a file called
+// Dimensions stay in the filename because the renderer measures each written PNG
+// against them and refuses to write a file whose pixels disagree with its own
+// name. That invariant exists because this kit once shipped a file called
 // og-dark-1200x630.png that was actually 600x315.
 const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[] = [
   { base: "x-header", w: 1500, h: 500, fn: (i) => banner(1500, 500, i) },
@@ -276,23 +288,13 @@ const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[
   { base: "bluesky-banner", w: 3000, h: 1000, fn: (i) => banner(3000, 1000, i) },
   { base: "linkedin-cover", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
   { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
-  { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i, { wedge: true }) },
-  {
-    base: "github-social-preview",
-    w: 1280,
-    h: 640,
-    fn: (i) => card(1280, 640, i, { wedge: true }),
-  },
-  { base: "producthunt-gallery", w: 1270, h: 760, fn: (i) => card(1270, 760, i, { wedge: true }) },
+  { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i) },
+  { base: "github-social-preview", w: 1280, h: 640, fn: (i) => card(1280, 640, i) },
+  { base: "producthunt-gallery", w: 1270, h: 760, fn: (i) => card(1270, 760, i) },
   { base: "discord-banner", w: 960, h: 540, fn: (i) => card(960, 540, i) },
-  { base: "square", w: 1200, h: 1200, fn: (i) => card(1200, 1200, i, { wedge: true }) },
+  { base: "square", w: 1200, h: 1200, fn: (i) => card(1200, 1200, i) },
 ];
 
-// Both grounds, every platform. LIGHT is rendered as a first-class expression
-// rather than as an afterthought variant: the founder asked three times for a
-// light, premium feeling, and the brands he benchmarks (Anthropic, OpenAI,
-// Google) are predominantly light. A dark banner sitting on a light platform UI
-// reads heavy rather than premium. He picks per platform, from real files.
 console.log(`ORRERY — full platform set, both grounds, 3x supersample\n`);
 for (const g of ["light", "dark"] as const) {
   setGround(g);

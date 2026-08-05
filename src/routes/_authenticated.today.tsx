@@ -659,30 +659,14 @@ function Today() {
                         color: "var(--sp-ink)",
                       }}
                     >
-                      1. Connect your sources
+                      1. Make a bet in Decide
                     </div>
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      Link Slack channels, support tickets, user interviews, or paste feedback
-                      directly. Agents will continuously scan for opportunities.
-                    </div>
-                  </div>
-
-                  <div>
-                    <div
-                      style={{
-                        fontWeight: "600",
-                        marginBottom: "6px",
-                        color: "var(--sp-ink)",
-                      }}
-                    >
-                      2. Review discoveries
-                    </div>
-                    <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      Visit Discover to see opportunities agents have surfaced. Approve the best
-                      ones to move them into your roadmap.
+                      The Critic red-teams your idea and gives a verdict: Ship, Revise, or Kill.
+                      You're in control—approve the verdicts, and agents handle the work.
                     </div>
                     <div style={{ marginTop: "8px" }}>
-                      <Door onClick={() => navigate({ to: "/discover" })}>Go to Discover</Door>
+                      <Door onClick={() => navigate({ to: "/decide" })}>Go to Decide</Door>
                     </div>
                   </div>
 
@@ -694,11 +678,27 @@ function Today() {
                         color: "var(--sp-ink)",
                       }}
                     >
-                      3. Approve and watch them build
+                      2. Connect your sources (optional)
                     </div>
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      When opportunities move to Decide, you'll approve each step. Agents then
-                      handle planning, design, build, and deployment. You stay in control.
+                      Link Slack channels, support tickets, user interviews, or paste feedback.
+                      Agents will continuously scan for opportunities and bring them to Decide.
+                    </div>
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "var(--sp-ink)",
+                      }}
+                    >
+                      3. Watch them build and ship
+                    </div>
+                    <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+                      Once approved, agents plan, design, build, and ship. You stay in control
+                      every step. Outcomes close the loop and teach the system.
                     </div>
                   </div>
                 </div>

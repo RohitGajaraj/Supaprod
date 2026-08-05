@@ -38,6 +38,123 @@ import {
   type AutonomyField,
   type AutonomyPolicy,
 } from "@/lib/autonomy-policy";
+import {
+  asRole,
+  canManageWorkspace,
+  getUserWorkspaceRole,
+  writeDeniedReason,
+  type Role,
+} from "@/lib/roles.functions";
+import type { Database } from "@/integrations/supabase/types";
+
+/* ------------------------------------------------------------------ *
+ * WHICH WORKSPACE, AND WHO MAY MOVE IT (2026-08-05)
+ * ------------------------------------------------------------------ */
+
+/**
+ * The workspace a governance surface is talking about.
+ *
+ * THE DEFECT THIS CLOSES. Every ceiling on this page used to find its workspace
+ * with `.eq("owner_id", userId).limit(1)`, unordered and with no active-workspace
+ * filter, while ENFORCEMENT finds it by id: `resolveMissionSpendCap` reads the
+ * workspace the RUN carries (`.eq("id", workspaceId)`), and so does
+ * `loadAutonomyPolicy`. A user who owns more than one workspace therefore read
+ * and moved whichever row Postgres happened to hand back first, and the run
+ * obeyed a different one. The product creates that second workspace itself —
+ * `ensureDefaultWorkspace` plus the Explore path — so this is the ordinary case
+ * rather than an edge one, and the symptom is the worst kind a spend control
+ * has: the number on screen is not the number that binds.
+ *
+ * THE ORDER, each step a fallback for the one above it:
+ *   1. What the caller said. A screen that knows its active workspace is the
+ *      only party that can be right, so it wins outright.
+ *   2. `current_user_default_workspace()` — the same function every governed
+ *      table defaults `workspace_id` to and the same one `getMyWorkspaceRole`
+ *      falls back to. Using it here means the role we check and the ceiling we
+ *      move are read in ONE workspace, which is the point of the whole helper.
+ *   3. The oldest live workspace this user owns. The old behaviour, kept so the
+ *      callers this change cannot reach still get an answer, but ordered and
+ *      with deleted rows excluded so it stops being a coin toss.
+ */
+async function resolveGovernedWorkspace(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  explicit: string | null | undefined,
+): Promise<string | null> {
+  if (explicit) return explicit;
+
+  const { data: fallback } = await supabase.rpc("current_user_default_workspace");
+  if (fallback) return fallback as unknown as string;
+
+  const { data: owned } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("owner_id", userId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  return (owned as { id: string } | null)?.id ?? null;
+}
+
+/**
+ * WHY THE CEILING ON `workspaces` IS NOT THE `spend_caps` SURFACE.
+ *
+ * `GOVERNED_WRITES.spend_caps` is owner, admin or member, and that is exactly
+ * right for the two tables it mirrors: `ai_budgets` and `ai_surface_budgets`
+ * name those three roles in their policies (migration 20260805130000 §4). But
+ * `default_mission_spend_cap_usd`, `default_track_spend_cap_usd` and the
+ * autonomy bars are COLUMNS ON `workspaces`, whose write policy has been
+ * `has_workspace_role(id, [owner, admin])` since 20260619210000 and which
+ * 20260805130000 deliberately left alone.
+ *
+ * So gating these writes on `spend_caps` would wave a member through a check
+ * the database then refuses by matching zero rows. A check that disagrees with
+ * the policy is worse than no check, because the person believes it. This asks
+ * the question the database asks.
+ *
+ * The sentence is word for word what `writeDeniedReason` produces for a
+ * two-role surface, so refusals across the app stay one voice. Exported so it
+ * can be pinned by a test without a database, like `guardrailWriteDenial`.
+ */
+export function workspaceRowWriteDenial(role: Role | null | undefined): string | null {
+  if (canManageWorkspace(role)) return null;
+  return role
+    ? `Your role here is ${role}. Only owner or admin can change this.`
+    : "You are not a member of this workspace, so only owner or admin can change this.";
+}
+
+/** Said when no workspace could be resolved at all. Distinct from "not allowed". */
+const NO_WORKSPACE = "We could not tell which workspace this belongs to, so nothing changed.";
+
+/**
+ * Refuse a write to the workspace row BEFORE attempting it, in a sentence a
+ * person can act on. Mirrors the live policy exactly; the database remains the
+ * thing that binds, and this is defence in depth plus readable copy.
+ */
+async function assertCanWriteWorkspaceRow(
+  supabase: SupabaseClient<Database>,
+  workspaceId: string | null,
+  userId: string,
+): Promise<void> {
+  if (!workspaceId) throw new Error(NO_WORKSPACE);
+  const role = asRole(await getUserWorkspaceRole(supabase, workspaceId, userId));
+  const denial = workspaceRowWriteDenial(role);
+  if (denial) throw new Error(denial);
+}
+
+/**
+ * Said when a governed write RAN and the database returned no row.
+ *
+ * We cannot tell a policy refusal apart from a row somebody removed a moment
+ * earlier: both come back as zero rows and PostgREST does not say which. So
+ * this states the uncertainty rather than picking one, and the call sites throw
+ * it instead of returning ok:true for a write they cannot vouch for. Same
+ * ruling as `guardrails.functions.ts`.
+ */
+function unconfirmedWrite(what: string): string {
+  return `We could not confirm ${what}. Reload the page and check it before relying on it.`;
+}
 
 /** Returns the current pause state for a workspace + recent in-flight missions + stale approvals. */
 export const getGovernanceOverview = createServerFn({ method: "POST" })
@@ -105,12 +222,26 @@ const SetPauseSchema = z.object({
   reason: z.string().max(500).optional().nullable(),
 });
 
-/** Pause/unpause a workspace. Workspace owners/admins only (enforced by RLS). */
+/**
+ * Pause/unpause a workspace. Owner or admin, which is what the `kill_switches`
+ * policies have always required and what `GOVERNED_WRITES.kill_switches` says.
+ *
+ * The role is asked here as well as in the database so a refusal arrives as a
+ * sentence rather than as silence, and both writes end in `.select()` for the
+ * reason the update half makes unavoidable: RLS refuses an UPDATE by matching
+ * zero rows, not by raising, so without it a viewer pressing Pause got ok:true
+ * back and a workspace that kept running. A pause that reports success and did
+ * not happen is the single most dangerous lie this file can tell.
+ */
 export const setWorkspacePause = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.infer<typeof SetPauseSchema>) => SetPauseSchema.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const role = asRole(await getUserWorkspaceRole(supabase, data.workspaceId, userId));
+    const denial = writeDeniedReason(role, "kill_switches");
+    if (denial) throw new Error(denial);
+
     const { data: existing } = await supabase
       .from("kill_switches")
       .select("id")
@@ -119,7 +250,7 @@ export const setWorkspacePause = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existing) {
-      const { error } = await supabase
+      const { data: written, error } = await supabase
         .from("kill_switches")
         .update({
           paused: data.paused,
@@ -127,17 +258,31 @@ export const setWorkspacePause = createServerFn({ method: "POST" })
           set_by: userId,
           set_at: new Date().toISOString(),
         })
-        .eq("id", existing.id);
+        .eq("id", existing.id)
+        .select("id");
       if (error) throw new Error(error.message);
+      if (!written || written.length === 0) {
+        throw new Error(
+          unconfirmedWrite(data.paused ? "that this workspace is paused" : "that it is running"),
+        );
+      }
     } else {
-      const { error } = await supabase.from("kill_switches").insert({
-        scope: "workspace",
-        workspace_id: data.workspaceId,
-        paused: data.paused,
-        reason: data.reason ?? null,
-        set_by: userId,
-      });
+      const { data: written, error } = await supabase
+        .from("kill_switches")
+        .insert({
+          scope: "workspace",
+          workspace_id: data.workspaceId,
+          paused: data.paused,
+          reason: data.reason ?? null,
+          set_by: userId,
+        })
+        .select("id");
       if (error) throw new Error(error.message);
+      if (!written || written.length === 0) {
+        throw new Error(
+          unconfirmedWrite(data.paused ? "that this workspace is paused" : "that it is running"),
+        );
+      }
     }
     return { ok: true };
   });
@@ -479,32 +624,80 @@ export const resolveApproval = createServerFn({ method: "POST" })
  * risk officer will refuse. The cap is not a brake on that story, it is what
  * makes it sayable.
  */
+const SpendPolicyReadSchema = z
+  .object({ workspaceId: z.string().uuid().nullable().optional() })
+  .strip();
+
+/** The answer when there is no workspace to read, or none this caller may see. */
+type SpendPolicy = {
+  /**
+   * DEPRECATED NAME, KEPT ON PURPOSE. It no longer means "you own this row"; it
+   * means "you may move this ceiling", which is the question the two screens
+   * reading it were really asking. They gate the whole ceiling block on it, so
+   * while it answered ownership an ADMIN — who the database has always let write
+   * this row — saw no ceiling at all. Prefer `can_edit`; this field goes when
+   * both routes have moved to it.
+   */
+  is_owner: boolean;
+  /** May this caller move the ceiling? The same predicate the database enforces. */
+  can_edit: boolean;
+  /** The caller's role here, so a surface can say WHY rather than just hide. */
+  role: Role | null;
+  /** Which workspace answered. The whole defect was not knowing. */
+  workspace_id: string | null;
+  cap_usd: number | null;
+  is_default: boolean;
+  track_cap_usd: number | null;
+  track_is_default: boolean;
+};
+
 export const getWorkspaceSpendPolicy = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: z.input<typeof SpendPolicyReadSchema> | undefined) =>
+    SpendPolicyReadSchema.parse(d ?? {}),
+  )
+  .handler(async ({ context, data }): Promise<SpendPolicy> => {
     const { supabase, userId } = context;
-    // RLS plus the owner filter: this is a boundary, and only the person who
-    // owns the workspace may read or move it.
+    // WHICH workspace, asked once and answered the way enforcement answers it.
+    // A caller that knows its active workspace passes the id; see
+    // resolveGovernedWorkspace for why the old owner-scoped guess was wrong.
+    const workspaceId = await resolveGovernedWorkspace(supabase, userId, data.workspaceId);
+    const nothing: SpendPolicy = {
+      is_owner: false,
+      can_edit: false,
+      role: null,
+      workspace_id: null,
+      cap_usd: null,
+      is_default: true,
+      track_cap_usd: null,
+      track_is_default: true,
+    };
+    if (!workspaceId) return nothing;
+
+    // Read by id, exactly as resolveMissionSpendCap does, so the number shown
+    // and the number enforced come from the same row. RLS still decides whether
+    // this caller may see it: `ws members read` is SELECT for any member, so a
+    // viewer reads the ceiling and simply cannot move it.
     const { data: ws } = await supabase
       .from("workspaces")
       .select("id,default_mission_spend_cap_usd,default_track_spend_cap_usd")
-      .eq("owner_id", userId)
-      .limit(1)
+      .eq("id", workspaceId)
       .maybeSingle();
 
-    if (!ws)
-      return {
-        is_owner: false,
-        cap_usd: null as number | null,
-        is_default: true,
-        track_cap_usd: null as number | null,
-        track_is_default: true,
-      };
+    if (!ws) return nothing;
+
+    // Role, not ownership. The database gates this row on owner-or-admin, so an
+    // admin gets the control and a member and a viewer read it without one.
+    const role = asRole(await getUserWorkspaceRole(supabase, workspaceId, userId));
+    const canEdit = canManageWorkspace(role);
 
     const raw = (ws as { default_mission_spend_cap_usd: number | string | null })
       .default_mission_spend_cap_usd;
     return {
-      is_owner: true,
+      is_owner: canEdit,
+      can_edit: canEdit,
+      role,
+      workspace_id: workspaceId,
       // null here is a real answer, "this workspace has no ceiling", and it is
       // reported as such rather than folded into the built-in number. The UI
       // has to be able to say which of the two is true.
@@ -535,18 +728,23 @@ export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
         cap_usd: z.number().positive().max(100_000).nullable().optional(),
         /** The ceiling on one piece of work, end to end. Same null semantics. */
         track_cap_usd: z.number().positive().max(100_000).nullable().optional(),
+        /**
+         * The workspace whose ceiling this is. Optional so the callers this
+         * change cannot reach keep working, but a screen that knows its active
+         * workspace MUST send it: resolving one server-side means the ceiling
+         * you moved may not be the ceiling that binds the run you are watching,
+         * which is the exact defect this parameter exists to end.
+         */
+        workspaceId: z.string().uuid().nullable().optional(),
       })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { data: ws } = await supabase
-      .from("workspaces")
-      .select("id")
-      .eq("owner_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (!ws) throw new Error("Only the workspace owner can move the spend ceiling.");
+    const workspaceId = await resolveGovernedWorkspace(supabase, userId, data.workspaceId);
+    // Role, not ownership: `workspaces` is gated on owner-or-admin, and an
+    // admin who could always make this change was being turned away by us.
+    await assertCanWriteWorkspaceRow(supabase, workspaceId, userId);
 
     // Only what was sent. `null` is a real value here ("no ceiling"), so the
     // two are distinguished by presence rather than by nullishness: writing an
@@ -556,9 +754,25 @@ export const setWorkspaceSpendPolicy = createServerFn({ method: "POST" })
     if ("track_cap_usd" in data) patch.default_track_spend_cap_usd = data.track_cap_usd ?? null;
     if (!Object.keys(patch).length) return { ok: true, cap_usd: null, track_cap_usd: null };
 
-    const { error } = await supabase.from("workspaces").update(patch).eq("id", ws.id);
+    // `.select()` is load-bearing. A write refused by RLS RESOLVES rather than
+    // throwing, so without it this handler returned ok:true for a ceiling that
+    // never moved, and the receipt on screen told the person their spend was
+    // bounded at a number nothing enforces.
+    const { data: written, error } = await supabase
+      .from("workspaces")
+      .update(patch)
+      .eq("id", workspaceId as string)
+      .select("id");
     if (error) throw new Error(error.message);
-    return { ok: true, cap_usd: data.cap_usd ?? null, track_cap_usd: data.track_cap_usd ?? null };
+    if (!written || written.length === 0) {
+      throw new Error(unconfirmedWrite("that the ceiling moved"));
+    }
+    return {
+      ok: true,
+      workspace_id: workspaceId,
+      cap_usd: data.cap_usd ?? null,
+      track_cap_usd: data.track_cap_usd ?? null,
+    };
   });
 
 /* ------------------------------------------------------------------ *
@@ -627,18 +841,18 @@ export const setWorkspaceAutonomyPolicy = createServerFn({ method: "POST" })
           .max(AUTONOMY_BOUNDS.neverSettleAboveImpact.max)
           .nullable()
           .optional(),
+        /** Same story as the spend ceiling: the surface that knows must say. */
+        workspaceId: z.string().uuid().nullable().optional(),
       })
       .parse(i),
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { data: ws } = await supabase
-      .from("workspaces")
-      .select("id")
-      .eq("owner_id", userId)
-      .limit(1)
-      .maybeSingle();
-    if (!ws) throw new Error("Only the workspace owner can move these boundaries.");
+    const workspaceId = await resolveGovernedWorkspace(supabase, userId, data.workspaceId);
+    // Owner or admin, which is `GOVERNED_WRITES.autonomy_policy` and is also
+    // what the live `workspaces` policy asks. The old check asked ownership and
+    // so turned away the admin the policy admits.
+    await assertCanWriteWorkspaceRow(supabase, workspaceId, userId);
 
     // Only what was sent. `null` clears a field back to the shipped default, so
     // presence and nullishness mean different things and writing an absent
@@ -649,10 +863,21 @@ export const setWorkspaceAutonomyPolicy = createServerFn({ method: "POST" })
     }
     if (!Object.keys(patch).length) return { ok: true };
 
+    // `.select()` for the same reason the ceiling needs it: a refused UPDATE
+    // comes back as zero rows and no error, and these two bars decide what
+    // happens with nobody watching. Reporting a bar that did not move is worse
+    // than refusing to move it.
     const db = supabase as unknown as SupabaseClient;
-    const { error } = await db.from("workspaces").update(patch).eq("id", ws.id);
+    const { data: written, error } = await db
+      .from("workspaces")
+      .update(patch)
+      .eq("id", workspaceId as string)
+      .select("id");
     if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!written || written.length === 0) {
+      throw new Error(unconfirmedWrite("that the bar moved"));
+    }
+    return { ok: true, workspace_id: workspaceId };
   });
 
 /* ------------------------------------------------------------------ *
@@ -691,7 +916,10 @@ export const setWorkspaceAutonomyPolicy = createServerFn({ method: "POST" })
  */
 export const getBoundary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: z.input<typeof SpendPolicyReadSchema> | undefined) =>
+    SpendPolicyReadSchema.parse(d ?? {}),
+  )
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
 
     // Platform policy plus this account's overrides, never the stored rows
@@ -741,14 +969,27 @@ export const getBoundary = createServerFn({ method: "GET" })
       else asks.push(t);
     }
 
-    // The ceilings. Owner-scoped, and reported as absent rather than as zero
-    // when the caller does not own the workspace.
-    const { data: ws } = await supabase
-      .from("workspaces")
-      .select("id,default_mission_spend_cap_usd,default_track_spend_cap_usd")
-      .eq("owner_id", userId)
-      .limit(1)
-      .maybeSingle();
+    // The ceilings, read from the workspace this surface is actually about
+    // rather than from whichever one this user happens to own first. Before
+    // this, /boundary could show a ceiling belonging to a different workspace
+    // than the runs listed beside it obeyed.
+    const workspaceId = await resolveGovernedWorkspace(supabase, userId, data.workspaceId);
+    const { data: ws } = workspaceId
+      ? await supabase
+          .from("workspaces")
+          .select("id,default_mission_spend_cap_usd,default_track_spend_cap_usd")
+          .eq("id", workspaceId)
+          .maybeSingle()
+      : { data: null };
+
+    // The role decides which controls are OFFERED; the database decides which
+    // are accepted, and the two now ask the same question. An admin used to see
+    // no ceiling and no autonomy bars here despite having always been allowed
+    // to move both.
+    const role = ws
+      ? asRole(await getUserWorkspaceRole(supabase, workspaceId as string, userId))
+      : null;
+    const canWriteWorkspaceRow = canManageWorkspace(role);
 
     let paused = false;
     if (ws) {
@@ -785,7 +1026,22 @@ export const getBoundary = createServerFn({ method: "GET" })
       alone,
       asks,
       never,
-      isOwner: Boolean(ws),
+      /**
+       * DEPRECATED NAME, KEPT SO THE ROUTE STILL COMPILES. It gates both the
+       * ceiling block and the autonomy block, and what both actually need to
+       * know is "may this person move a workspace boundary", not "do they own
+       * the row". Prefer `canSetCaps` / `canSetAutonomy`, which say which of
+       * the two a caller is asking about.
+       */
+      isOwner: canWriteWorkspaceRow,
+      /** Both are owner-or-admin today, and they are separate fields because
+       *  the surfaces are separate and one may loosen without the other. */
+      canSetCaps: canWriteWorkspaceRow,
+      canSetAutonomy: canWriteWorkspaceRow,
+      /** The caller's role, so the surface can say why a control is absent. */
+      role,
+      /** Which workspace answered — the question this file used to guess at. */
+      workspaceId,
       /** Where this workspace puts the promotion bar and the settle-or-ask bar,
        *  with the shipped defaults standing in for anything it has not set. */
       autonomy,
