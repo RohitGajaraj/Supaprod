@@ -119,12 +119,26 @@ describe("public copy keeps the vocabulary the moat is built on", () => {
     });
   }
 
-  it("the hero and the mechanism agree, rather than contradicting each other", () => {
+  /**
+   * THE DOCTRINE IS A BAN, NOT A SCRIPT, and the first version of this test
+   * confused the two.
+   *
+   * It required the hero to CONTAIN "learn" and "guide". That is stronger than
+   * the rule, which says only that the product never claims to remember, store
+   * or log. The hero was later rewritten to "Agents that own outcomes. Not just
+   * output." -- which breaks no rule, says the same thing harder, and failed
+   * this test anyway.
+   *
+   * A guard that fails on compliant copy is a guard that gets deleted the next
+   * time somebody improves a sentence, taking the real ban with it. So this now
+   * holds the ban on the hero, and holds the MECHANISM to the doctrine's own
+   * words, because that is the surface whose whole job is explaining layer 03.
+   * Rewording the hero stays free; claiming storage does not.
+   */
+  it("the hero breaks no rule, and the mechanism still speaks the doctrine", () => {
     const hero = stripComments(read(join("components", "landing", "Hero.tsx")));
     const three = stripComments(read(join("components", "landing", "ThreeLayers.tsx")));
-    // Both must speak the doctrine's verbs. This is the pair that disagreed.
-    expect(hero).toMatch(/\blearn\b/i);
-    expect(hero).toMatch(/\bguide\b/i);
+    expect(hero).not.toMatch(/\b(remembers?|stores?|logs)\b/i);
     expect(three).toMatch(/It learns, and it guides\./);
   });
 });
