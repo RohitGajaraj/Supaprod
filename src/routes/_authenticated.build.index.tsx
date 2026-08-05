@@ -85,6 +85,7 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { ago } from "@/components/runs/run-state";
+import { ReadyToBuild } from "@/components/build/ReadyToBuild";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import {
   AgentMark,
@@ -348,11 +349,11 @@ function BuildEngine() {
           ) : null}
           <CtxHead>Where work comes from</CtxHead>
           <CtxBody>
-            A change is written by a run. Hand work over on{" "}
+            An approved spec can be started here. Anything else is handed over on{" "}
             <Link to="/runs" style={{ color: "var(--sp-ink)" }}>
               Runs
             </Link>
-            , and it arrives here as the crew writes it.
+            , and arrives here as the crew writes it.
           </CtxBody>
         </>
       }
@@ -364,6 +365,13 @@ function BuildEngine() {
           this one is bound to the run. See use-live-agents.ts. */}
       <CrewWorking />
       <PageHead title={headline} sub="Every change the crew has written, across every run." />
+
+      {/* THE STATION CAN START ITS OWN WORK. Until now this surface could only
+          watch: its own context panel said "hand work over on Runs, and it
+          arrives here". A station whose job is building that told you to begin
+          somewhere else. `dispatchBuilderMission` was already written and
+          called nowhere. Renders nothing when no approved spec is waiting. */}
+      <ReadyToBuild />
 
       {/* The live and gated rows appear here AND in the full list below, on
         purpose. Pulling them out of the record to avoid repeating them would
