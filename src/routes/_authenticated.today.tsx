@@ -322,6 +322,24 @@ function Today() {
    */
   const loading = queue.isLoading || missions.isLoading;
 
+  /* ONBOARDING'S HANDOFF, READ ONCE. The verdict screen sets
+   * `supaprod.onboarding.justLanded` and navigates here. It was written and
+   * never read anywhere in the codebase, so the last step of the first run
+   * handed off to a page that had no idea anyone had just arrived.
+   *
+   * Read in a lazy initialiser and cleared in an effect, so it survives
+   * exactly one render pass of this page: refresh, or come back tomorrow, and
+   * you get the ordinary front door instead of being greeted forever. Guarded
+   * on `window` because this route server-renders. */
+  const [justLanded] = React.useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem("supaprod.onboarding.justLanded") === "1",
+  );
+  React.useEffect(() => {
+    if (justLanded) window.sessionStorage.removeItem("supaprod.onboarding.justLanded");
+  }, [justLanded]);
+
   // The headline is a fact assembled from real counts. While loading, show
   // the date — a headline that says "Reading" advertises latency; a headline
   // that says the date tells the user they arrived. Data fills in instantly
@@ -329,6 +347,19 @@ function Today() {
   // the shell already provides structure.
   const headline = React.useMemo(() => {
     if (loading) return "Today";
+    // THE HANDOFF FROM ONBOARDING. Read the flag before the counts, because for
+    // the account that just arrived the counts are all zero and the ordinary
+    // headline reads "Nothing finished overnight. Nothing needs you." three
+    // seconds after the product delivered a verdict. That is true and it is a
+    // terrible first sentence: it describes an absence to someone who just did
+    // something. This says the same fact from the other side.
+    //
+    // It deliberately does NOT claim the teardown was saved. Today cannot see
+    // that write, and onboarding already gates that exact claim on whether a
+    // row came back (`beliefIsOnRecord`). Claiming it here from a flag that
+    // only means "you navigated" would be the product asserting a receipt it
+    // never checked.
+    if (justLanded) return "You are set up. Nothing is running yet.";
     // Counts finishes, not stops. `done` still lists a cancelled run, because
     // seeing it is useful, but calling it a finish in the headline was the
     // product claiming work it did not do.
@@ -342,7 +373,7 @@ function Today() {
     const needs =
       g === 0 ? "Nothing needs you." : g === 1 ? "One call needs you." : `${g} calls need you.`;
     return `${ran}. ${needs}`;
-  }, [loading, done, items.length]);
+  }, [loading, done, items.length, justLanded]);
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",

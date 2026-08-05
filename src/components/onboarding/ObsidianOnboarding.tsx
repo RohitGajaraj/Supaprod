@@ -31,7 +31,17 @@ import {
   type OnboardingTrack,
 } from "@/lib/onboarding.functions";
 import { isDemoSeedEnabled, triggerWorkspaceSeed } from "@/lib/onboarding/onboarding.functions";
-import { runCriticReview, runWedgeTeardown, listOpportunities } from "@/lib/discovery.functions";
+import { soloTrack, foundingTrack, techTrack } from "@/lib/onboarding/track-seeds";
+import {
+  runCriticReview,
+  runWedgeTeardown,
+  listOpportunities,
+  createSignal,
+} from "@/lib/discovery.functions";
+// Client-safe by declaration (see the module header): string work only, no
+// server imports. The paste step needs both - the same body ceiling the server
+// validator enforces, and the same first-line rule the sink uses for a title.
+import { titleFromBody, MAX_BODY_CHARS } from "@/lib/sources/manual";
 import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalMark } from "@/components/onboarding/ArrivalButterfly";
@@ -67,11 +77,108 @@ const TRACKS: OnboardingTrack[] = ["solo", "founding", "tech"];
  * ever judges what this user actually typed, pasted, or what their own
  * workspace actually contains. The empty case is COMPOSED instead: this line
  * tells them what to write, and it is pure so a test can pin it.
+ *
+ * WHERE THE BOX'S CONTENTS CAME FROM IS PART OF WHAT THIS LINE SAYS, and until
+ * now it was guessed from a string being non-empty. Every prefill therefore
+ * claimed "this is what Supaprod read from what you just connected" - including
+ * the three that connect nothing: the product name echoed back from step 1, the
+ * notes the user pasted, and the case where they pressed "skip and connect
+ * later" and no source exists at all. The source is passed in now, so the
+ * sentence can only describe what actually happened.
  */
-export function beliefGuidance(seeded: string): string {
-  return seeded.trim()
-    ? "This is what Supaprod read from what you just connected. Edit it, or write your own bet."
-    : "Write the bet you want challenged, in your own words. The Critic reads only what is in this box.";
+export type BeliefSource =
+  /** Nothing in the box. The user writes their own. */
+  | "none"
+  /** A real bet already in this user's workspace, pulled by `listOpportunities`. */
+  | "opportunity"
+  /** The product name they typed on step 1, echoed back. Nothing was read. */
+  | "product-name"
+  /** The first line of the notes they pasted on step 2. */
+  | "pasted";
+
+export function beliefGuidance(source: BeliefSource): string {
+  switch (source) {
+    case "opportunity":
+      return "This is a bet Supaprod found in your workspace. Edit it, or write your own.";
+    case "product-name":
+      return "This is the product name you gave, not something Supaprod read. Edit it into the bet you want challenged.";
+    case "pasted":
+      return "This is the first line of what you pasted. Edit it, or write your own bet.";
+    case "none":
+      return "Write the bet you want challenged, in your own words. The Critic reads only what is in this box.";
+  }
+}
+
+/**
+ * THE CANNED BETS, AND WHY THE CRITIC MUST NEVER BE POINTED AT ONE.
+ *
+ * Deleting `FALLBACK_BELIEF` closed the front door and left the back one open.
+ * Step 1 fires `seedWorkspaceForTrack("solo")` unconditionally, which writes
+ * four sample opportunities into the user's REAL workspace (track-seeds.ts).
+ * `afterConnected` then took `opportunities[0]` - ordered by ice_score, so
+ * reliably the highest-scoring SAMPLE row - as the belief AND as the Critic's
+ * target. The product's first act was a teardown of "Redesign onboarding to
+ * reduce day-1 drop-off": a bet about a mobile app the user does not have,
+ * scored by numbers they did not choose. That is the exact defect the constant
+ * was deleted for, arriving through the seed table instead.
+ *
+ * The sample data is kept (a workspace with something in it is a better first
+ * run, and track-seeds.ts labels it "Example:" where a human will see it). It is
+ * simply never mistaken for a bet this person made. Pure, so a test pins it, and
+ * derived from the seeds themselves so a new fixture cannot drift past it.
+ */
+const SEEDED_EXAMPLE_TITLES: ReadonlySet<string> = new Set(
+  [soloTrack, foundingTrack, techTrack].flatMap((t) =>
+    t.opportunities.map((o) => o.title.trim().toLowerCase()),
+  ),
+);
+
+export function isSeededExampleTitle(title: string): boolean {
+  return SEEDED_EXAMPLE_TITLES.has(title.trim().toLowerCase());
+}
+
+/**
+ * The belief a pasted document leads with.
+ *
+ * `pasteNotes.slice(0, 200)` took 200 characters of whatever the clipboard
+ * happened to start with - a markdown title fence, a metadata block, half of the
+ * second paragraph - and sent that to the Critic as the user's bet. The first
+ * line that carries words is what a person actually wrote at the top of a
+ * document, and it is the same rule the signal sink uses to title one, so the
+ * row and the belief cannot disagree. 200 is the wedge validator's own ceiling.
+ */
+export function beliefFromPaste(text: string): string {
+  return titleFromBody(text, "").slice(0, 200);
+}
+
+/**
+ * A VERDICT WORD WITH NOTHING BEHIND IT IS NOT A REVIEW.
+ *
+ * `runCritic` never returns a half-review on purpose, but it does coerce: a
+ * model reply it cannot read yields `verdict: "revise"`, `summary: ""`, and
+ * empty `risks`/`missing_evidence`, and only a hard failure returns null. The
+ * results screen tested `review === null`, so that coerced shell rendered as a
+ * SUCCESS: one uppercase word in a coloured box, a confidence bar at its default
+ * half, and nothing else - with "Copy this teardown" underneath, which put a
+ * verdict word and a link to our own site on the user's clipboard.
+ *
+ * Substance is the honest test: did the Critic actually say anything. Pure, and
+ * shared by the render, the failure flag, and the copy action so all three
+ * agree.
+ */
+export function reviewHasSubstance(
+  review: {
+    summary?: string;
+    risks?: string[];
+    missing_evidence?: string[];
+  } | null,
+): boolean {
+  if (!review) return false;
+  return (
+    (review.summary ?? "").trim().length > 0 ||
+    (review.risks ?? []).some((r) => r.trim().length > 0) ||
+    (review.missing_evidence ?? []).some((m) => m.trim().length > 0)
+  );
 }
 
 /** The verdict word the results screen stamps when a review arrives without
@@ -579,6 +686,22 @@ export function ObsidianOnboarding() {
   const [criticReview, setCriticReview] = useState<any>(null);
   const [pasteNotes, setPasteNotes] = useState("");
   const [showPaste, setShowPaste] = useState(false);
+  // Where the belief box's contents came from, so the guidance line can only
+  // describe what actually happened. See `beliefGuidance`.
+  const [beliefSource, setBeliefSource] = useState<BeliefSource>("none");
+  // Whether the belief the Critic ran on is genuinely on the record as an
+  // opportunity. The failure screen promises exactly this ("nothing is lost"),
+  // and it must not promise it on a run that never wrote a row.
+  const [beliefIsOnRecord, setBeliefIsOnRecord] = useState(false);
+  // What the paste step reported: it captures the whole document now, and a
+  // capture that failed says so rather than pretending the PRD is filed.
+  const [pasteNote, setPasteNote] = useState<string | null>(null);
+
+  // The workspace this session created, straight from the seed call. The
+  // ["workspaces"] query refetch that populates `activeWorkspace` lands some
+  // time AFTER step 1, and every milestone fired in between was silently
+  // dropped for want of an id. Server truth first, context second.
+  const [seededWorkspaceId, setSeededWorkspaceId] = useState<string | null>(null);
 
   // PC-02: data source connections
   const fListConnections = useServerFn(listConnections);
@@ -627,6 +750,14 @@ export function ObsidianOnboarding() {
   // hands us a title, so an untouched box can never read as a kept suggestion.
   const seededBeliefRef = useRef<string>("");
 
+  /** The step-1 product name, echoed into the box and labelled as such. */
+  function fallBackToProductName() {
+    if (!productName) return;
+    setBelief(productName);
+    seededBeliefRef.current = productName;
+    setBeliefSource("product-name");
+  }
+
   async function afterConnected() {
     // Track data_connected milestone
     await trackMilestone("data_connected");
@@ -636,21 +767,28 @@ export function ObsidianOnboarding() {
     // an empty box if they typed none. Never to a canned belief.
     try {
       const { opportunities } = await fListOpportunities();
-      if (opportunities[0]) {
-        setBelief(opportunities[0].title);
-        seededBeliefRef.current = opportunities[0].title;
-        setBeliefTarget({ kind: "opportunity", id: opportunities[0].id });
-      } else if (productName) {
-        setBelief(productName);
-        seededBeliefRef.current = productName;
+      // The FIRST bet this person actually owns. `opportunities` is ordered by
+      // ice_score, and step 1's track seed put four sample rows in this
+      // workspace with scores the user never chose, so the top row is reliably
+      // one of ours. Pointing the Critic at it would be the deleted
+      // FALLBACK_BELIEF wearing a database row. See `isSeededExampleTitle`.
+      const own = opportunities.find(
+        (o) => typeof o.title === "string" && !isSeededExampleTitle(o.title),
+      );
+      if (own) {
+        setBelief(own.title);
+        seededBeliefRef.current = own.title;
+        setBeliefTarget({ kind: "opportunity", id: own.id });
+        setBeliefSource("opportunity");
+        // It is already a row; a failed Critic run loses nothing.
+        setBeliefIsOnRecord(true);
+      } else {
+        fallBackToProductName();
       }
     } catch {
       // The read failed. Fall back to the product name this user typed, and to
       // nothing at all if they typed none.
-      if (productName) {
-        setBelief(productName);
-        seededBeliefRef.current = productName;
-      }
+      fallBackToProductName();
     }
     setPhase("critic");
   }
@@ -706,13 +844,67 @@ export function ObsidianOnboarding() {
     onSettled: () => setConnectingId(null),
   });
 
+  // The workspace this flow is writing to. `seededWorkspaceId` is the server's
+  // answer from step 1 and is available immediately; `activeWorkspace` is the
+  // context's, and only after its own query refetches. Preferring the first
+  // removes the window where onboarding knew nothing about its own workspace.
+  const workspaceId = seededWorkspaceId ?? activeWorkspace?.id ?? null;
+
   const mDemo = useMutation({
     mutationFn: async () => {
-      if (!activeWorkspace?.id) throw new Error("Workspace not ready yet");
-      return fTriggerSeed({ data: { workspaceId: activeWorkspace.id } });
+      if (!workspaceId) throw new Error("Workspace not ready yet");
+      return fTriggerSeed({ data: { workspaceId } });
     },
     onSuccess: () => afterConnected(),
     onError: (e: Error) => setConnectError(e.message || "Could not seed the demo workspace"),
+  });
+
+  /**
+   * "SUPAPROD WILL ANALYZE IT DIRECTLY" - AND THEN IT KEPT 200 CHARACTERS.
+   *
+   * The paste card offers a PRD as one of the three ways to feed the product,
+   * and its handler was `setBelief(pasteNotes.slice(0, 200))`. Nothing was
+   * written anywhere. A user who pasted eight pages of a spec had 200 characters
+   * of it cut mid-sentence into the belief box and the rest dropped on the
+   * floor, silently, with no row to show for it afterwards - the promise on the
+   * card was simply false, and the loss was invisible.
+   *
+   * `createSignal` with kind "document" is the door that already exists for
+   * exactly this material: it captures the body whole through the signal sink,
+   * which is what gives it dedup, the manual `source_kind` stamp, a stage_events
+   * trail and an embedding. The belief becomes the document's FIRST LINE (the
+   * same rule the sink's own title uses) instead of an arbitrary 200-character
+   * cut.
+   *
+   * Non-fatal: if the capture fails the user still goes to the Critic with their
+   * text, and the screen says the document was not filed rather than implying it
+   * was.
+   */
+  const fCreateSignal = useServerFn(createSignal);
+  const mPaste = useMutation({
+    mutationFn: async (raw: string) => {
+      // The server validator caps the body at MAX_BODY_CHARS; sending more is a
+      // rejected request rather than a truncated one, so the cut happens here
+      // and gets reported instead of guessed at.
+      const body = raw.trim().slice(0, MAX_BODY_CHARS);
+      const overflow = Math.max(0, raw.trim().length - MAX_BODY_CHARS);
+      const result = await fCreateSignal({
+        data: { content: body, source: "paste", kind: "document" },
+      });
+      return { result, overflow };
+    },
+    onSuccess: ({ overflow }) => {
+      setPasteNote(
+        overflow > 0
+          ? `Filed in your workspace. It was long, so the last ${overflow.toLocaleString()} characters were not kept.`
+          : "Filed in your workspace, whole.",
+      );
+    },
+    onError: (e: Error) => {
+      setPasteNote(
+        `Could not file this document (${e.message || "the write failed"}). Your bet still goes to the Critic; paste it again from Discover later.`,
+      );
+    },
   });
 
   const fRunCritic = useServerFn(runCriticReview);
@@ -725,11 +917,20 @@ export function ObsidianOnboarding() {
     stage:
       "signup" | "product_named" | "data_connected" | "critic_completed" | "onboarding_completed",
     metadata?: Record<string, unknown>,
+    /** For the caller that IS the moment the workspace came into existence and
+     *  therefore holds an id no piece of state has caught up to yet. */
+    explicitWorkspaceId?: string | null,
   ) {
-    if (!activeWorkspace?.id) return;
+    // A brand-new account has no workspace until step 1's seed creates one, and
+    // the context's copy arrives later still, so this used to return here for
+    // every real signup and drop `product_named` on the floor. `workspaceId`
+    // prefers the id the seed call handed back. Still a guard, not a throw: a
+    // milestone is never worth failing onboarding over.
+    const target = explicitWorkspaceId ?? workspaceId;
+    if (!target) return;
     try {
       await fRecordMilestone({
-        data: { workspaceId: activeWorkspace.id, stage, metadata },
+        data: { workspaceId: target, stage, metadata },
       });
     } catch (e) {
       console.error("[PC-02] trackMilestone failed:", e);
@@ -737,13 +938,69 @@ export function ObsidianOnboarding() {
     }
   }
 
+  /**
+   * Release the first-run gate. Extracted so the Critic run is not the only
+   * thing in this flow that can do it - see `mLeaveEarly`.
+   *
+   * Non-fatal by the same contract it always had: a user who has reached the
+   * end of onboarding is finished whether or not the flag write succeeded, and
+   * `needsOnboarding` fails open on a read error, so the worst case is being
+   * shown this flow again rather than being locked out of the app.
+   */
+  async function finishOnboarding() {
+    try {
+      await fComplete({ data: {} });
+      const { data } = await supabase.auth.getSession();
+      if (data.session) await markOnboarded(data.session.user.id);
+      await trackMilestone("onboarding_completed");
+    } catch (e) {
+      console.error("onboarding completion failed:", e);
+    }
+  }
+
+  /** Clear the resume state and hand off to the app. */
+  function leave() {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem("supaprod.onboarding.phase");
+      window.sessionStorage.removeItem("supaprod.onboarding.startTime");
+      window.sessionStorage.setItem("supaprod.onboarding.justLanded", "1");
+    }
+    navigate({ to: "/today" });
+  }
+
+  /**
+   * THE STEP THE USER COULD NOT LEAVE.
+   *
+   * Step 3 had exactly one control, and it disabled itself below three
+   * characters. That was survivable while `FALLBACK_BELIEF` prefilled the box;
+   * with the box now honestly empty it is a trap, and a closing one: onboarding
+   * renders chromeless (no nav, no shortcuts - see _authenticated.tsx), the
+   * phase is persisted to sessionStorage so a reload returns here, and the
+   * first-run gate bounces any hand-typed URL straight back to /onboarding. A
+   * new account that cleared the box to write its own bet and then hesitated
+   * had no way into the product at all.
+   *
+   * So there is a second door, and it is honest about the trade: no verdict,
+   * everything else kept. It never depends on the Critic, which is the one step
+   * here that talks to a model and the one most likely to be slow or down on a
+   * launch day.
+   */
+  const mLeaveEarly = useMutation({
+    mutationFn: async () => {
+      await finishOnboarding();
+    },
+    onSettled: () => leave(),
+  });
+
   // Honest failure (2026-07-11): a failed Critic run is a FAILED state, never
   // an eternal spinner. The results screen reads this flag and offers Try
   // again / Continue instead of pretending to load.
   const [criticFailed, setCriticFailed] = useState(false);
 
-  // Critic-run theater: the AiPulse cycles the honest stages while the run
-  // is live, advancing every 2.4s and holding on the last stage.
+  // Seconds elapsed since the Critic run started. Not stages: the comment here
+  // still described the retired three-string performance on a 2400ms interval
+  // long after the strings were replaced by a real count, which is how a stale
+  // comment turns back into a stale feature. It counts, and only counts.
   const [criticStage, setCriticStage] = useState(0);
 
   // PC-02: run Critic and display results, then mark onboarded
@@ -759,6 +1016,11 @@ export function ObsidianOnboarding() {
         if (editedBelief) {
           const result = await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } });
           review = result?.review ?? null;
+          // The wedge records the idea BEFORE it judges it, so once this
+          // resolves the belief is genuinely a row and the failure screen is
+          // allowed to say so. Reading the returned opportunity rather than
+          // assuming it: only what came back is claimed.
+          if (result?.opportunity?.id) setBeliefIsOnRecord(true);
         } else if (beliefTarget) {
           const result = await fRunCritic({
             data: { target_kind: beliefTarget.kind, target_id: beliefTarget.id },
@@ -794,23 +1056,15 @@ export function ObsidianOnboarding() {
       });
 
       setCriticReview(review);
-      // No verdict = the run did not finish. Say so instead of spinning.
-      setCriticFailed(review === null);
+      // No verdict, or a verdict with nothing behind it, means the run did not
+      // reach a review worth showing. Say so instead of stamping a bare word.
+      // See `reviewHasSubstance`.
+      setCriticFailed(!reviewHasSubstance(review));
 
       // Move to results display before marking onboarded
       setPhase("results");
 
-      // Complete onboarding in the background
-      try {
-        await fComplete({ data: {} });
-        const { data } = await supabase.auth.getSession();
-        if (data.session) await markOnboarded(data.session.user.id);
-
-        // Track onboarding_completed milestone
-        await trackMilestone("onboarding_completed");
-      } catch (e) {
-        console.error("onboarding completion failed:", e);
-      }
+      await finishOnboarding();
     },
     onError: (e) => {
       toast.error("Could not complete onboarding. Redirecting...");
@@ -835,11 +1089,17 @@ export function ObsidianOnboarding() {
     mutationFn: async (track: OnboardingTrack) => {
       return fSeedTrack({ data: { track } });
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ["opportunities"] });
       qc.invalidateQueries({ queryKey: ["workspaces"] });
-      // Track product_named milestone
-      void trackMilestone("product_named", { productName });
+      // The id the server just created, held directly rather than waited for.
+      const seeded = (result as { workspaceId?: string | null } | undefined)?.workspaceId ?? null;
+      if (seeded) setSeededWorkspaceId(seeded);
+      // Track product_named milestone. Passed explicitly: this callback runs
+      // BEFORE the setState above lands and before ["workspaces"] refetches, so
+      // reading either would find null and drop the milestone - which is
+      // precisely what used to happen, for every signup.
+      void trackMilestone("product_named", { productName }, seeded);
       // PC-33: capture the one-liner as the initial positioning brief now
       // that seeding has resolved a real workspace. Best-effort only, same
       // non-fatal pattern as trackMilestone above - a Brief write must
@@ -1153,19 +1413,31 @@ export function ObsidianOnboarding() {
               <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 16 }}>
                 <Button
                   variant="accent"
-                  disabled={!pasteNotes.trim()}
+                  disabled={!pasteNotes.trim() || mPaste.isPending}
+                  loading={mPaste.isPending}
                   title={!pasteNotes.trim() ? "Paste some notes first" : undefined}
                   onClick={() => {
-                    if (pasteNotes.trim()) {
-                      setBelief(pasteNotes.slice(0, 200));
-                      seededBeliefRef.current = pasteNotes.slice(0, 200);
-                      setPhase("critic");
-                    }
+                    const raw = pasteNotes.trim();
+                    if (!raw || mPaste.isPending) return;
+                    const lead = beliefFromPaste(raw);
+                    setBelief(lead);
+                    seededBeliefRef.current = lead;
+                    setBeliefSource("pasted");
+                    setPasteNote(null);
+                    // Capture the whole document, then move on regardless of
+                    // how it went. `onSettled` rather than `onSuccess`: a failed
+                    // file must not strand the user on this screen, and the note
+                    // set by the handlers above tells them which happened.
+                    mPaste.mutate(raw, { onSettled: () => setPhase("critic") });
                   }}
                 >
-                  Use these notes
+                  {mPaste.isPending ? "Filing your notes…" : "Use these notes"}
                 </Button>
-                <Button variant="tertiary" onClick={() => setShowPaste(false)}>
+                <Button
+                  variant="tertiary"
+                  disabled={mPaste.isPending}
+                  onClick={() => setShowPaste(false)}
+                >
                   Back
                 </Button>
               </div>
@@ -1194,8 +1466,19 @@ export function ObsidianOnboarding() {
             className="text-copy-13"
             style={{ color: "var(--ds-gray-900)", margin: "0 0 10px", lineHeight: 1.55 }}
           >
-            {beliefGuidance(seededBeliefRef.current)}
+            {beliefGuidance(beliefSource)}
           </p>
+          {/* What the paste step actually managed to do with the document,
+              said on the next screen because that is where the user is by the
+              time it resolves. */}
+          {pasteNote ? (
+            <p
+              className="text-label-12"
+              style={{ color: "var(--ds-gray-700)", margin: "0 0 10px", lineHeight: 1.5 }}
+            >
+              {pasteNote}
+            </p>
+          ) : null}
           <input
             autoFocus
             aria-label="The belief the Critic will challenge"
@@ -1240,6 +1523,32 @@ export function ObsidianOnboarding() {
               {running ? "Analyzing…" : "Get the Critic's take"}
             </Button>
           </div>
+          {/* THE WAY OUT. See `mLeaveEarly`: without this the only control on
+              this screen disables itself on an empty box, and onboarding is
+              chromeless behind a gate that redirects every other route back
+              here. Hidden while the run is live so it cannot race it. */}
+          {!running ? (
+            <div style={{ marginTop: 10 }}>
+              <Button
+                variant="tertiary"
+                disabled={mLeaveEarly.isPending}
+                loading={mLeaveEarly.isPending}
+                onClick={() => mLeaveEarly.mutate()}
+                style={{ width: "100%" }}
+              >
+                {mLeaveEarly.isPending
+                  ? "Opening your workspace…"
+                  : "Skip this and go to your workspace"}
+              </Button>
+              <p
+                className="text-label-12"
+                style={{ color: "var(--ds-gray-700)", marginTop: 8, marginBottom: 0 }}
+              >
+                No verdict yet. Everything you set up is kept, and the Critic is on every bet
+                inside.
+              </p>
+            </div>
+          ) : null}
         </Frame>
       </Screen>
     );
@@ -1275,26 +1584,25 @@ export function ObsidianOnboarding() {
       letterSpacing: "0.06em",
     };
 
-    function leave() {
-      if (typeof window !== "undefined") {
-        window.sessionStorage.removeItem("supaprod.onboarding.phase");
-        window.sessionStorage.removeItem("supaprod.onboarding.startTime");
-        window.sessionStorage.setItem("supaprod.onboarding.justLanded", "1");
-      }
-      navigate({ to: "/today" });
-    }
+    // ONE test, in all three places that used to ask it differently. The render
+    // asked `criticReview && !criticFailed`, the flag asked `review === null`,
+    // and the copy action asked nothing at all, so a review with a verdict and
+    // no content took the success branch. See `reviewHasSubstance`.
+    const showVerdict = !criticFailed && reviewHasSubstance(criticReview);
 
     return (
       <Screen>
         <Frame
           heading={
-            criticFailed || !criticReview
-              ? "The Critic couldn't finish this run."
-              : "Here's what Supaprod found."
+            showVerdict
+              ? "Here's what Supaprod found."
+              : criticReview
+                ? "The Critic came back with nothing to show."
+                : "The Critic couldn't finish this run."
           }
           showTimer={elapsed}
         >
-          {criticReview && !criticFailed ? (
+          {showVerdict ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* Verdict stamp - the results screen's one Geist Pixel brand
                   moment, landing with the confidence bar below. */}
@@ -1398,13 +1706,22 @@ export function ObsidianOnboarding() {
           ) : (
             // Honest failure: failed is not loading. Say what happened, offer
             // a retry, and let the user move on with their belief kept.
+            //
+            // "Your belief is saved as an opportunity" was stated
+            // unconditionally, including on the run where the write is the very
+            // thing that failed. `beliefIsOnRecord` is set only when a row came
+            // back, so the reassurance is now a fact rather than a hope.
             <div>
               <p
                 className="text-copy-13"
                 style={{ color: "var(--ds-gray-900)", margin: 0, maxWidth: 460 }}
               >
-                The run hit an error before it could reach a verdict. Your belief is saved as an
-                opportunity, so nothing is lost.
+                {criticReview
+                  ? "The run finished but returned no findings, so there is nothing worth stamping a verdict on."
+                  : "The run hit an error before it could reach a verdict."}{" "}
+                {beliefIsOnRecord
+                  ? "Your belief is saved as an opportunity, so nothing is lost."
+                  : "Your belief was not saved, so try again or take it into your workspace."}
               </p>
               <div
                 style={{
@@ -1425,7 +1742,9 @@ export function ObsidianOnboarding() {
                   Try again
                 </Button>
                 <Button variant="tertiary" onClick={leave}>
-                  Continue - your belief is saved as an opportunity
+                  {beliefIsOnRecord
+                    ? "Continue - your belief is saved as an opportunity"
+                    : "Continue to your workspace"}
                 </Button>
               </div>
             </div>

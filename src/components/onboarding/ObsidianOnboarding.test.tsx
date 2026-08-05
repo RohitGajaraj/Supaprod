@@ -1,6 +1,14 @@
 import { describe, it, expect } from "bun:test";
 import * as onboarding from "./ObsidianOnboarding";
-import { timeEstimateFor, beliefGuidance, criticReviewAsShareable } from "./ObsidianOnboarding";
+import {
+  timeEstimateFor,
+  beliefGuidance,
+  criticReviewAsShareable,
+  isSeededExampleTitle,
+  reviewHasSubstance,
+  beliefFromPaste,
+} from "./ObsidianOnboarding";
+import { soloTrack, foundingTrack, techTrack } from "@/lib/onboarding/track-seeds";
 import { asPlainText } from "../public/TeardownReceipt";
 
 /**
@@ -33,24 +41,131 @@ describe("ObsidianOnboarding - the Critic judges only what the user wrote", () =
   });
 
   it("composes the empty case instead of filling the box in", () => {
-    const empty = beliefGuidance("");
+    const empty = beliefGuidance("none");
     expect(empty).toContain("your own words");
     expect(empty.length).toBeGreaterThan(0);
   });
 
   it("says something different once the user's own workspace supplied a title", () => {
-    const seeded = beliefGuidance("Ship the mobile capture flow");
-    expect(seeded).not.toBe(beliefGuidance(""));
+    const seeded = beliefGuidance("opportunity");
+    expect(seeded).not.toBe(beliefGuidance("none"));
     expect(seeded).toContain("Edit it");
   });
 
-  it("treats a whitespace-only seed as no seed at all", () => {
-    expect(beliefGuidance("   ")).toBe(beliefGuidance(""));
+  /* The line claimed "Supaprod read this from what you just connected" for any
+     non-empty box. Three of the four ways to reach step 3 connect nothing: the
+     product name echoed from step 1, a pasted document, and pressing "skip and
+     connect later". The source is passed in now, so the sentence can only
+     describe what happened. */
+  it("never claims a source read anything when nothing was connected", () => {
+    for (const source of ["none", "product-name", "pasted"] as const) {
+      expect(beliefGuidance(source)).not.toContain("connected");
+    }
   });
 
-  it("keeps both guidance lines free of em and en dashes", () => {
-    expect(beliefGuidance("")).not.toMatch(/[—–]/);
-    expect(beliefGuidance("anything")).not.toMatch(/[—–]/);
+  it("names the product name as the product name, not as something it read", () => {
+    const line = beliefGuidance("product-name");
+    expect(line).toContain("product name");
+    expect(line).toContain("not something Supaprod read");
+  });
+
+  it("gives every source its own line", () => {
+    const lines = (["none", "opportunity", "product-name", "pasted"] as const).map(beliefGuidance);
+    expect(new Set(lines).size).toBe(lines.length);
+    for (const line of lines) expect(line.length).toBeGreaterThan(0);
+  });
+
+  it("keeps every guidance line free of em and en dashes", () => {
+    for (const source of ["none", "opportunity", "product-name", "pasted"] as const) {
+      expect(beliefGuidance(source)).not.toMatch(/[—–]/);
+    }
+  });
+});
+
+/* THE REGRESSION THAT SURVIVED DELETING THE CONSTANT.
+   Step 1 seeds four sample opportunities into the user's real workspace, and
+   `afterConnected` took the top row by ice_score as the belief AND as the
+   Critic's target. That row is reliably one of ours, so the first thing the
+   product did was still tear down a canned bet - the deleted FALLBACK_BELIEF
+   arriving through the seed table instead of a constant. */
+describe("ObsidianOnboarding - the Critic is never pointed at seeded sample data", () => {
+  it("recognises every seeded opportunity title in every track", () => {
+    for (const track of [soloTrack, foundingTrack, techTrack]) {
+      for (const opp of track.opportunities) {
+        expect(isSeededExampleTitle(opp.title)).toBe(true);
+      }
+    }
+  });
+
+  it("recognises the exact title the solo seed puts at the top of the list", () => {
+    // Highest ICE in soloTrack (9/8/6), so this is the row afterConnected used
+    // to hand the Critic for a user who had connected nothing at all.
+    expect(isSeededExampleTitle("Redesign onboarding to reduce day-1 drop-off")).toBe(true);
+  });
+
+  it("ignores whitespace and case, so a lightly edited copy is still ours", () => {
+    expect(isSeededExampleTitle("  ADD OFFLINE MODE FOR CORE FEATURES  ")).toBe(true);
+  });
+
+  it("lets a bet the user actually wrote through", () => {
+    expect(isSeededExampleTitle("Ship the mobile capture flow")).toBe(false);
+    expect(isSeededExampleTitle("")).toBe(false);
+    expect(isSeededExampleTitle("Launch push notifications")).toBe(false); // near, not equal
+  });
+});
+
+/* A verdict word with nothing behind it took the SUCCESS branch: `runCritic`
+   coerces an unreadable model reply into verdict "revise" with an empty summary
+   and empty lists, and the screen only tested `review === null`. The user got
+   one uppercase word in a coloured box, a confidence bar at its default half,
+   and a copy button that put that word plus a link to our own site on their
+   clipboard. */
+describe("ObsidianOnboarding - an empty review is not a verdict", () => {
+  it("rejects a null review", () => {
+    expect(reviewHasSubstance(null)).toBe(false);
+  });
+
+  it("rejects the coerced shell runCritic returns for an unreadable reply", () => {
+    expect(reviewHasSubstance({ summary: "", risks: [], missing_evidence: [] })).toBe(false);
+  });
+
+  it("rejects a review whose fields are present but blank", () => {
+    expect(reviewHasSubstance({ summary: "   ", risks: ["  "], missing_evidence: [""] })).toBe(
+      false,
+    );
+  });
+
+  it("accepts a review carrying any one of the three kinds of substance", () => {
+    expect(reviewHasSubstance({ summary: "The bet has no named user." })).toBe(true);
+    expect(reviewHasSubstance({ risks: ["No success metric"] })).toBe(true);
+    expect(reviewHasSubstance({ missing_evidence: ["Nobody has been asked to pay"] })).toBe(true);
+  });
+
+  it("does not accept a verdict alone, because a verdict is not a finding", () => {
+    expect(reviewHasSubstance({ ...{ verdict: "revise" } })).toBe(false);
+  });
+});
+
+/* "Paste a PRD ... Supaprod will analyze it directly" was answered with
+   `slice(0, 200)` and no write at all. The belief now leads with the document's
+   first line, the same rule the signal sink titles it by. */
+describe("ObsidianOnboarding - a pasted document leads with its first line", () => {
+  it("takes the first line that carries words, not the first 200 characters", () => {
+    const prd =
+      "\n\nMobile capture is our biggest gap\n\nBackground: we shipped the web flow first.";
+    expect(beliefFromPaste(prd)).toBe("Mobile capture is our biggest gap");
+  });
+
+  it("strips a markdown heading fence, because that is not part of the bet", () => {
+    expect(beliefFromPaste("# Ship offline sync\n\nDetail follows.")).toBe("Ship offline sync");
+  });
+
+  it("stays inside the wedge validator's 200 character ceiling", () => {
+    expect(beliefFromPaste("x".repeat(500)).length).toBeLessThanOrEqual(200);
+  });
+
+  it("returns nothing for a whitespace-only paste rather than inventing a lead", () => {
+    expect(beliefFromPaste("   \n\n  ")).toBe("");
   });
 });
 

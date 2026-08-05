@@ -182,9 +182,16 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
 
       if (countError) throw countError;
       if ((existingOpps ?? 0) > 0) {
+        // The workspace id travels back even on the fast-forward, for the same
+        // reason it does on a genuine seed (see the return below): the client
+        // has no workspace of its own to name yet. Read-only and best-effort on
+        // purpose - this branch's whole job is to be the cheap path, so it
+        // resolves an EXISTING default and never creates one.
+        const { data: resumedWorkspaceId } = await supabase.rpc("current_user_default_workspace");
         return {
           success: true,
           alreadySeeded: true,
+          workspaceId: (resumedWorkspaceId as string | null) ?? null,
           projectId: null,
           signalsCount: 0,
           opportunitiesCount: 0,
@@ -294,9 +301,20 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         opportunities: seed.opportunities.length,
       });
 
+      // WHY THE WORKSPACE ID COMES BACK.
+      //
+      // This call is the moment a brand-new account first HAS a workspace:
+      // ensureDefaultWorkspace above creates it. The client had no way to learn
+      // that id except by waiting for its own ["workspaces"] query to refetch,
+      // so everything onboarding does in the seconds right after this - the
+      // funnel milestones, the demo-seed action - read `activeWorkspace?.id`,
+      // found null, and silently did nothing. `product_named` was dropped for
+      // essentially every real signup that way. Returning the id makes the
+      // caller's next step deterministic instead of a race.
       return {
         success: true,
         alreadySeeded: false,
+        workspaceId,
         projectId,
         signalsCount: seed.signals.length,
         opportunitiesCount: seed.opportunities.length,
