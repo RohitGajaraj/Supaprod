@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { LandingStats } from "@/lib/landing.functions";
+import { listPublicDecisions } from "@/lib/decisions-share.functions";
 
 /**
  * Beat 4 - Receipts (the investor beat).
@@ -25,13 +26,99 @@ import type { LandingStats } from "@/lib/landing.functions";
  * and it is centred on purpose: it is a statement, not a row.
  *
  * The `stats` prop is accepted and ignored so the route can keep passing it.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-05 - two truthfulness defects fixed, and why the fix took this shape.
+ *
+ * DEFECT 1, the decision link was a SEEDED row. This section hardcoded
+ * /d/acf1fa74a20840cda5759644c6f02c05. Checked against the live DB: that slug
+ * belongs to workspace e375a61c ("Explore workspace") with is_sample = true. It
+ * is a seed fixture, and it is exactly the class of row listPublicDecisions()
+ * deliberately filters out of /proof so the trust ledger can never show
+ * fabricated content as real dogfood history. The landing page was linking, as
+ * "a decision, with its receipt", the very row the ledger refuses to show.
+ *
+ * The fix is a LIVE READ, not a swapped constant. listPublicDecisions() already
+ * applies the sample-workspace filter server-side, so whatever it returns is by
+ * construction real. Today it returns nothing: every one of the 28 public,
+ * slugged decisions in the database sits in an is_sample workspace, so there is
+ * no real slug to hardcode even if we wanted one. A constant would therefore
+ * have to be either fake again or absent. A live read is the only version that
+ * is true today AND stays true the moment the founder shares a real decision,
+ * with no code change and no chance of this rotting back into a lie.
+ *
+ * Until one exists the row resolves to /proof, which is itself a live object and
+ * which states the same emptiness honestly. The row also carries a visible tag
+ * saying so, because the ratchet forbids hiding the state: a visitor learns MORE
+ * than before, not less. Nothing is removed; the destination is just never
+ * allowed to be a fixture.
+ *
+ * DEFECT 2, the ledger table is invented, and 10px grey is not a disclosure.
+ * Real data genuinely cannot back these four rows yet. A graded row needs a
+ * verdict, and there are ZERO graded learnings anywhere outside seed fixtures
+ * and sample workspaces (the founder's own workspace has 49 decisions and 0
+ * graded outcomes). So the table stays illustrative, and per the ratchet it
+ * stays, period. What changes is the disclosure: the old label was 10px
+ * zinc-600, the faintest text on the page, sitting under a sentence that
+ * claimed everything here was a live object. That is a disclosure engineered
+ * not to be read.
+ *
+ * It is now a bordered, tinted banner directly above the table with a
+ * full-contrast chip, body text at 14px, and a link to where the real graded
+ * record is published. It is the loudest object in the section, which is the
+ * correct weight for the one thing on this page that is not our data.
+ *
+ * The claim above the table was reworded to match. It used to say "Every
+ * artifact HERE is a live object in our workspace" while the table sat inside
+ * that same "here". The sentence now scopes itself to the links (which are all
+ * real pages, one of them resolved live) and hands the table to the banner. The
+ * sentence and the object it points at now agree, which is the whole ask: this
+ * is the page whose entire argument is that the product does not make things
+ * up, so it is the last page that can afford a made-up object presented gently.
+ *
+ * NOT re-added: live counters. The 2026-07-25 founder ruling removed them from
+ * this beat and that ruling still stands, so the banner links to /proof (which
+ * publishes the real calibration number live) rather than printing a number
+ * here.
  */
 export function Receipts(_props: { stats?: LandingStats | null }) {
+  // The decision receipt is resolved live from the same server fn that powers
+  // /proof, so the sample-workspace filter is applied server-side and this can
+  // only ever point at a real, shared decision. Null means "asked, and there is
+  // genuinely none yet", which the row then says out loud.
+  const [decisionSlug, setDecisionSlug] = useState<string | null>(null);
+  const [decisionResolved, setDecisionResolved] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    listPublicDecisions()
+      .then((rows) => {
+        if (!alive) return;
+        setDecisionSlug(rows?.[0]?.share_slug ?? null);
+        setDecisionResolved(true);
+      })
+      .catch(() => {
+        // A failed read is not evidence of emptiness, so the row keeps its
+        // neutral destination and claims nothing about what we have published.
+        if (alive) setDecisionResolved(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const artifacts = [
-    { label: "A decision, with its receipt", href: "/d/acf1fa74a20840cda5759644c6f02c05" },
-    { label: "A public teardown, no signup", href: "/p/teardown" },
-    { label: "The trust ledger", href: "/proof" },
-    { label: "What shipped this week", href: "/updates" },
+    {
+      label: "A decision, with its receipt",
+      // Before it resolves, and when there is none, the row points at the
+      // ledger: a live page that publishes the same emptiness honestly. It is
+      // never allowed to point at a seeded fixture.
+      href: decisionSlug ? `/d/${decisionSlug}` : "/proof",
+      note: decisionResolved && !decisionSlug ? "none shared publicly yet" : null,
+    },
+    { label: "A public teardown, no signup", href: "/p/teardown", note: null },
+    { label: "The trust ledger", href: "/proof", note: null },
+    { label: "What shipped this week", href: "/updates", note: null },
   ];
 
   const ledger = [
@@ -105,8 +192,14 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
               <br />
               not claims.
             </h2>
+            {/* Scoped to the links on purpose. The old sentence said "every
+                artifact here", and the illustrative table sat inside that same
+                "here", which is what made the section arguable. The table is
+                now handed to its own banner, which says what it is at full
+                contrast. */}
             <p className="text-lg text-zinc-400" style={{ maxWidth: "48ch" }}>
-              Every artifact here is a live object in our workspace. Supaprod has run on its own
+              Every link here opens a real page, and the decision receipt is resolved live, so it
+              can only point at something we have actually published. Supaprod has run on its own
               loop since June 2026. We publish the misses on the same ledger as the wins.
             </p>
             <div className="cap-scrim hidden md:flex flex-col gap-2.5 mt-12 py-6 px-8 -mx-8">
@@ -127,13 +220,26 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
 
           {/* Artifact row: every link is a real, live object */}
           <div className="md:order-1 grid grid-cols-1 gap-y-1">
+            {/* Keyed by label, not href: the decision row falls back to /proof
+                when nothing real is published, which would collide with the
+                trust ledger row's key. */}
             {artifacts.map((a) => (
               <a
-                key={a.href}
+                key={a.label}
                 href={a.href}
                 className="group flex items-baseline justify-between gap-4 py-3 border-b border-white/[0.07] text-sm text-zinc-300 hover:text-white transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
               >
-                <span>{a.label}</span>
+                <span>
+                  {a.label}
+                  {a.note ? (
+                    <span
+                      className="ml-2 font-mono text-[10px] uppercase text-zinc-500"
+                      style={{ letterSpacing: "0.14em" }}
+                    >
+                      {a.note}
+                    </span>
+                  ) : null}
+                </span>
                 <span className="text-zinc-600 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
                   &rarr;
                 </span>
@@ -146,19 +252,68 @@ export function Receipts(_props: { stats?: LandingStats | null }) {
             scored. Mobile stacks each row; md+ resolves it to four columns
             via `contents` on the week/verdict wrapper. */}
         <div className="mt-24" ref={ledgerRef}>
-          <span
-            className="block font-mono text-[10px] uppercase text-zinc-600 mb-6"
-            style={{ letterSpacing: "0.2em" }}
+          {/* The disclosure. It was 10px zinc-600, the faintest text on the
+              page, which is a disclosure written not to be read. It is now the
+              loudest object in the section, because it is the one thing here
+              that is not our data. Neutral white, never ember: this is a
+              statement of fact, not a brand moment. */}
+          <div
+            className="mb-8 rounded-lg px-5 py-4"
+            style={{
+              border: "1px solid rgba(255,255,255,0.16)",
+              background: "rgba(255,255,255,0.04)",
+            }}
           >
-            Illustrative &middot; one product team, one quarter
-          </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className="font-mono text-[11px] uppercase font-medium rounded px-2 py-1"
+                style={{
+                  letterSpacing: "0.18em",
+                  color: "#0b0b0d",
+                  background: "#e4e4e7",
+                }}
+              >
+                Worked example
+              </span>
+              <span
+                className="font-mono text-[11px] uppercase text-zinc-400"
+                style={{ letterSpacing: "0.14em" }}
+              >
+                not our data, not a customer's
+              </span>
+            </div>
+            <p
+              className="mt-3 text-[14px] leading-relaxed text-zinc-300"
+              style={{ maxWidth: "62ch" }}
+            >
+              The four rows below show the shape a graded ledger takes for one product team over one
+              quarter. They are written to explain the format, and no row is a real call by anyone.
+              Our own graded record is published live, including the misses.
+            </p>
+            <a
+              href="/proof"
+              className="group inline-flex items-baseline gap-2 mt-3 text-[13px] text-zinc-200 hover:text-white transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.22)" }}
+            >
+              See the real ledger
+              <span className="transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5">
+                &rarr;
+              </span>
+            </a>
+          </div>
 
+          {/* The column head carries the word too. The banner above is the real
+              disclosure, but a screenshot cropped to the table would leave it
+              behind, and that crop is exactly how a made-up table travels. */}
           <div
             className="hidden md:grid md:grid-cols-[96px_1.3fr_1.1fr_88px] md:gap-8 pb-3 font-mono text-[10px] uppercase text-zinc-600"
             style={{ letterSpacing: "0.2em" }}
             aria-hidden
           >
-            <span>week</span>
+            <span className="flex flex-col gap-1">
+              <span className="text-zinc-400">example</span>
+              <span>week</span>
+            </span>
             <span>decision</span>
             <span>evidence</span>
             <span>verdict</span>

@@ -26,6 +26,8 @@ import {
   type DemoTeardown,
   type DemoLedgerRow,
   type DemoMissionTrace,
+  type DemoStepState,
+  type MissionOutcome,
 } from "@/lib/demo.functions";
 import { trackActivation } from "@/lib/activation.functions";
 
@@ -40,6 +42,43 @@ const VERDICT_COLOR: Record<string, string> = {
   ship: "#4ac26b",
   revise: "#d9a13c",
   kill: "#e5534b",
+};
+
+// How a mission outcome reads on a public page. The row status never reaches
+// the screen: `halted` used to be printed raw, in agent blue, which said
+// "live" about a run that had stopped. Each outcome gets its own word and its
+// own tone, and the stopped case says so plainly instead of borrowing the
+// language of motion.
+const MISSION_OUTCOME_VIEW: Record<
+  MissionOutcome,
+  { eyebrow: string; word: string; color: string; note: string | null }
+> = {
+  delivered: {
+    eyebrow: "One mission, end to end",
+    word: "delivered",
+    color: "#4ac26b",
+    note: null,
+  },
+  open: {
+    eyebrow: "One mission, in motion",
+    word: "still open",
+    color: AGENT_BLUE,
+    note: null,
+  },
+  stopped: {
+    eyebrow: "One mission, stopped short",
+    word: "stopped",
+    color: "#e5534b",
+    note: "This one stopped before it finished. Supaprod shows you the stop, with the work each agent had already done. Nothing here is hidden because it went badly.",
+  },
+};
+
+// Step states get outcome words too, for the same reason.
+const STEP_STATE_WORD: Record<DemoStepState, string> = {
+  done: "done",
+  working: "working",
+  planned: "planned",
+  stopped: "stopped",
 };
 
 export const Route = createFileRoute("/demo")({
@@ -105,22 +144,55 @@ function ArtifactLink({ href, children }: { href: string; children: React.ReactN
   );
 }
 
+// THE WORKSPACE NAME, decided 2026-08-05. The eyebrow used to read "Today, in
+// Sample sandbox" about fifty pixels under the h1 "This is a real Supaprod
+// workspace." Two separate faults. "Today" was false: the newest mission here
+// is weeks old, so the line claimed a freshness the data does not have. And
+// the bare name, sat under that h1, read as a rebuttal to it.
+//
+// The name stays, because it is the real name of the real workspace these
+// numbers come from and the ratchet does not let a page drop a true fact to
+// look better. What changes is the claim wrapped around it. "Live from" says
+// only what is actually true - these counts are read live, at request time -
+// and it stops competing with the h1, because the hero paragraph directly
+// above already tells the reader this is a seeded demo workspace. Once that
+// is said out loud, "Sample sandbox" is corroboration, not contradiction.
 function OverviewSection({ overview }: { overview: DemoOverview | null }) {
   if (!overview) return null;
   return (
     <section className="px-6 pb-14">
       <div className="max-w-5xl mx-auto">
-        <Eyebrow>Today, in {overview.workspaceName}</Eyebrow>
+        <Eyebrow>Live from {overview.workspaceName}</Eyebrow>
         <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           What Supaprod is watching right now.
         </h2>
+        {/* Every number here is counted by the words next to it, and the three
+            mission counts are exhaustive: delivered plus open plus stopped is
+            every mission in the workspace. That is the point of splitting the
+            old single "missions in flight" figure, which summed halted runs
+            into a claim of motion. A zero is printed, never suppressed - a
+            workspace with nothing running says so. */}
         <div className="flex flex-wrap gap-x-10 gap-y-4">
           {[
-            [overview.openOpportunities, "open opportunities"],
-            [overview.decisionsRecorded, "decisions on record"],
-            [overview.missionsInFlight, "missions in flight"],
-          ].map(([n, label]) => (
-            <div key={label as string} className="flex items-baseline gap-2.5">
+            // Each label carries its singular, because these counts really do
+            // land on 1 - the workspace has exactly one delivered mission - and
+            // "1 missions delivered" undoes the credibility the honest number
+            // just bought.
+            {
+              n: overview.openOpportunities,
+              one: "opportunity in play",
+              many: "opportunities in play",
+            },
+            {
+              n: overview.decisionsRecorded,
+              one: "decision on record",
+              many: "decisions on record",
+            },
+            { n: overview.missionsDelivered, one: "mission delivered", many: "missions delivered" },
+            { n: overview.missionsOpen, one: "mission still open", many: "missions still open" },
+            { n: overview.missionsStopped, one: "mission stopped", many: "missions stopped" },
+          ].map(({ n, one, many }) => (
+            <div key={many} className="flex items-baseline gap-2.5">
               <span
                 className="text-2xl"
                 style={{
@@ -133,7 +205,7 @@ function OverviewSection({ overview }: { overview: DemoOverview | null }) {
               >
                 {n}
               </span>
-              <span className="text-sm text-zinc-500">{label}</span>
+              <span className="text-sm text-zinc-500">{n === 1 ? one : many}</span>
             </div>
           ))}
         </div>
@@ -253,24 +325,49 @@ function LedgerSection({ ledger }: { ledger: DemoLedgerRow[] }) {
   );
 }
 
+// The demo's climax. It is headed by the OUTCOME the picked mission actually
+// reached, never by a fixed promise of motion: the old copy said "One mission,
+// in motion" over whichever mission was newest, and the newest one here had
+// been halted for sixteen days. The picker in demo.functions.ts now hands over
+// the best evidence the workspace holds, and this section reports it as what
+// it is. A stopped mission still gets shown, in full, with its own heading.
 function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
   if (!mission) return null;
+  const view = MISSION_OUTCOME_VIEW[mission.outcome];
+  const stamp = mission.finishedAt ?? mission.createdAt;
+  const stampLabel = mission.finishedAt ? "finished" : "started";
   return (
     <section className="px-6 pb-16">
       <div className="max-w-5xl mx-auto">
-        <Eyebrow>One mission, in motion</Eyebrow>
+        <Eyebrow>{view.eyebrow}</Eyebrow>
         <h2 className="text-2xl font-semibold text-white mb-6" style={{ letterSpacing: "-0.02em" }}>
           {stripAutoPrefix(mission.title)}
         </h2>
         <Card>
-          <p
-            className="font-mono text-[10.5px] uppercase mb-4"
-            style={{ color: AGENT_BLUE, letterSpacing: "0.06em" }}
-          >
-            {mission.status}
-          </p>
+          {/* The date is not decoration. Without it the page implies this run
+              is happening as you read, which is the same overclaim the counts
+              above used to make. */}
+          <div className="flex items-baseline gap-3 mb-4 flex-wrap">
+            <span
+              className="font-mono text-[10.5px] uppercase"
+              style={{ color: view.color, letterSpacing: "0.06em" }}
+            >
+              {view.word}
+            </span>
+            <span className="font-mono text-[10px] text-zinc-600">
+              {stampLabel}{" "}
+              {new Date(stamp).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+          {view.note ? (
+            <p className="text-sm text-zinc-400 leading-relaxed mt-0 mb-4">{view.note}</p>
+          ) : null}
           {mission.steps.length === 0 ? (
-            <p className="text-sm text-zinc-600 m-0">This mission has not dispatched a step yet.</p>
+            <p className="text-sm text-zinc-600 m-0">No agent has picked this one up yet.</p>
           ) : (
             <div className="flex flex-col gap-2.5">
               {mission.steps.map((s, i) => (
@@ -282,7 +379,9 @@ function MissionSection({ mission }: { mission: DemoMissionTrace | null }) {
                     {agentDisplayName(s.agentSlug)}
                   </span>
                   <span className="text-sm text-zinc-400 flex-1">{s.subGoal ?? "Working"}</span>
-                  <span className="font-mono text-[10px] uppercase text-zinc-600">{s.status}</span>
+                  <span className="font-mono text-[10px] uppercase text-zinc-600">
+                    {STEP_STATE_WORD[s.state]}
+                  </span>
                 </div>
               ))}
             </div>
