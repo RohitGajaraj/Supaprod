@@ -3,7 +3,6 @@ import { requireHookCaller } from "./-_auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   evaluateTriggers,
-  isAutoMissionTitle,
   shouldAutoPromote,
   AUTO_TRIGGER_DAILY_CAP,
   MAX_PROPOSALS_PER_TICK,
@@ -130,7 +129,9 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       .limit(50),
     supabaseAdmin
       .from("missions")
-      .select("title, status")
+      // auto_trigger_source, not the title, is how the tick finds its own work.
+      // See the openTitles note below for why this had to change with autoTitle.
+      .select("title, status, auto_trigger_source")
       .eq("workspace_id", workspaceId)
       .in("status", OPEN_MISSION_STATUSES)
       .limit(200),
@@ -151,10 +152,27 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       .gte("created_at", cutoff24h),
   ]);
 
+  /* HOW THE TICK FINDS ITS OWN WORK, and why it can no longer be the title.
+   *
+   * This filtered on isAutoMissionTitle, i.e. titles starting with "[auto] ".
+   * That prefix was a machine dedup key living in a DISPLAY column and it
+   * leaked to the founder three times, so autoTitle stopped writing it and
+   * migration 20260805120000 stripped it from all 195 existing rows.
+   *
+   * THE TWO HALVES MUST SHIP TOGETHER, and the one time they did not, this
+   * became a live incident: with clean titles and a title-based filter,
+   * isAutoMissionTitle matched NOTHING, openTitles came back empty, dedup was
+   * silently disabled, and the tick re-proposed its whole backlog every 15
+   * minutes (15 missions a tick, roughly 1400 a day) until it was caught by
+   * reading production rather than the diff.
+   *
+   * So the filter is the column that the insert below stamps. If you change one
+   * of those two lines, change the other in the same commit. */
   const openTitles = new Set(
     (openMissions ?? [])
+      .filter((m) => (m as { auto_trigger_source?: string | null }).auto_trigger_source != null)
       .map((m) => m.title as string | null)
-      .filter((t): t is string => isAutoMissionTitle(t)),
+      .filter((t): t is string => typeof t === "string" && t.length > 0),
   );
 
   const senseState: SignalSenseState = {
@@ -244,6 +262,11 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         title: p.title,
         goal: p.goal,
         status: "proposed",
+        /* The column openTitles above reads. 'trigger' and NOT 'auto' on
+         * purpose: 'auto' means auto-PROMOTED and is counted for the daily
+         * spend cap, so reusing it here would trip that cap on the first
+         * proposal of every day. The CHECK constraint allows both. */
+        auto_trigger_source: "trigger",
         ...(currentAgentId ? { current_agent_id: currentAgentId } : {}),
       } as never)
       .select("id")
