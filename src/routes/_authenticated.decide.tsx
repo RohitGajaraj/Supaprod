@@ -119,6 +119,7 @@ import {
   OpportunityDetailSheet,
   type OpportunityDetailRecord,
 } from "@/components/discover/OpportunityDetailSheet";
+import { VerdictBadge } from "@/components/discover/VerdictBadge";
 import { LineageDrawer } from "@/components/supaprod/LineageDrawer";
 import {
   Actions,
@@ -713,7 +714,11 @@ function DecideSurface() {
             ...(activeOpp.problem ? [<span key="problem">{activeOpp.problem}</span>] : []),
             ...(activeOpp.critic_review?.summary
               ? [
-                  <span key="critic">
+                  <span key="critic" className="flex items-center gap-2">
+                    <VerdictBadge
+                      verdict={activeVerdict}
+                      confidence={activeOpp.critic_review.confidence}
+                    />
                     <b>{challengerName}</b> {activeOpp.critic_review.summary}
                   </span>,
                 ]
