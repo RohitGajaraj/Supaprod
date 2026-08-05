@@ -24,6 +24,15 @@ export type ThemeState = {
   frequency: number;
   severity: number;
   status: string;
+  /**
+   * How new this cluster is against everything the workspace already holds, 0..1.
+   * Written by the embedding sweeper alongside `themes.novelty_basis`.
+   *
+   * NULL is a real and common state, not an error: a theme is inserted before it
+   * is embedded, so it has no novelty until the next sweeper pass. It is
+   * deliberately treated as "unknown", never as "new" — see `RE_DISCOVERY`.
+   */
+  novelty?: number | null;
 };
 
 export type OutcomeState = {
@@ -75,6 +84,114 @@ export const MAX_PROPOSALS_PER_TICK = 5;
 
 /** All auto-originated missions carry this title prefix, so the tick can find + dedup them. */
 export const AUTO_TITLE_PREFIX = "[auto]";
+
+// ---------------------------------------------------------------------------
+// RE_DISCOVERY — the gate that stops the brain asking a question it already asked
+// ---------------------------------------------------------------------------
+//
+// THE DEFECT THIS EXISTS TO KILL, measured on the live Helio Labs workspace
+// (2026-08-05): 18 of 37 pending calls were the same three problems under new
+// names. "Alert fatigue" was raised as a fresh call SEVEN times across two days;
+// "redundant data entry" seven times; "outage vs firmware reboot" four times.
+//
+// The brain had already worked out that each was a repeat and wrote the number
+// down. `themes.novelty` on those rows: 0.250 (0.875 similar to a theme already
+// held), 0.400 (0.800), 0.423, 0.494. Then `evaluateTriggers` opened a new call
+// anyway, because ThemeState did not carry novelty and dedup was exact-title
+// only. `trigger-tick` did not even SELECT the column.
+//
+// That is the product's own claim failing in production. Supaprod "learns and
+// guides, it never merely remembers"; a loop that re-derives alert fatigue seven
+// times and asks the human to investigate each one is doing neither. Worse, the
+// same workspace had ALREADY COMMITTED to "Daily notification digest with an
+// urgent-only override" on 2026-07-06 and went on proposing the same work for
+// four more weeks.
+//
+// TWO GATES, because they fail in opposite directions and one alone is a trap:
+//
+//  1. THE NOVELTY GATE (semantic). Precise, and only available once the sweeper
+//     has embedded the theme.
+//  2. THE NEAR-TITLE GATE (deterministic). Cheap, pure, always available, and
+//     catches the case novelty cannot: a theme with novelty still NULL. Two rows
+//     titled "Alert Fatigue Leading to Muted Notifications" landed on one day,
+//     both with novelty NULL, and exact-title dedup let the second through
+//     because the OPEN MISSION titles differed by a word.
+//
+// WHY UNKNOWN NOVELTY FAILS OPEN, and this is the load-bearing call. Gating on
+// `novelty != null` would silence the entire sensing layer the moment the
+// embedder went down, and the embedder HAS gone down here (ai_events had no
+// `embed` row for a day, 2026-08-03). A brain that goes quiet is far worse than
+// one that occasionally repeats itself, and this repo's recorded failure mode is
+// exactly that class: four silent failures each hiding the next. So an unknown
+// novelty still raises the call, and the deterministic gate is what keeps it
+// honest in the meantime.
+
+/**
+ * Novelty at or below this is a RE-DISCOVERY, not a discovery.
+ *
+ * Calibrated against the live re-discoveries rather than guessed. Novelty falls
+ * as similarity to a known theme rises, and on the observed rows the two track
+ * as roughly novelty = 2 * (1 - similarity):
+ *
+ *   suppress   0.250 (0.875 similar)   0.400 (0.800)   0.423 (0.789)   0.494 (0.753)
+ *   allow      0.821 (0.383 similar)
+ *
+ * 0.5 sits in the gap, and corresponds to about 0.75 cosine similarity. A theme
+ * three quarters identical to one the workspace already holds is the same
+ * problem wearing a new sentence.
+ */
+export const NOVELTY_FLOOR = 0.5;
+
+/** Overlap at or above this between two cluster names means they name one problem. */
+export const TITLE_OVERLAP_FLOOR = 0.6;
+
+/**
+ * Words that carry no topic. Without this, "Leads to" and "Causes" alone push
+ * unrelated clusters over the overlap floor and a real signal gets swallowed,
+ * which is the one outcome worse than a duplicate.
+ */
+const STOP_WORDS = new Set([
+  "the","a","an","and","or","to","of","in","on","at","for","with","by","from",
+  "is","are","was","were","be","been","being","that","this","these","those",
+  "it","its","as","into","during","causes","causing","leads","leading","cause",
+  "cluster","investigate","issue","issues","problem","problems",
+  // The boilerplate every auto title carries. Without these the wrapper words
+  // are the comparison: two unrelated clusters both reduced to {"auto"} and
+  // scored a perfect 1.0 against each other, which suppressed real work. Caught
+  // by the existing cap test, so the guard for it is already in the suite.
+  "auto",
+]);
+
+/** Topic words of a cluster name, lowercased and de-duplicated. */
+function topicWords(title: string): Set<string> {
+  return new Set(
+    (title || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w)),
+  );
+}
+
+/**
+ * How much two cluster names say the same thing, 0..1 (Jaccard over topic words).
+ *
+ * Pure and deterministic by design: this file's whole contract is NO database,
+ * NO AI call, NO I/O, and the gate has to keep working when the embedder does not.
+ *
+ * Exported for the tests, which prove it separates the real live collisions
+ * ("Alert Fatigue Leading to Muted Notifications" against "Alert Fatigue Leading
+ * to Feature Disengagement") from genuinely different clusters.
+ */
+export function titleOverlap(a: string, b: string): number {
+  const A = topicWords(a);
+  const B = topicWords(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let shared = 0;
+  for (const w of A) if (B.has(w)) shared += 1;
+  const union = A.size + B.size - shared;
+  return union === 0 ? 0 : shared / union;
+}
 
 // ---------------------------------------------------------------------------
 // SF-AUTOTRIGGER — auto-promotion policy (pure, no I/O)
@@ -147,15 +264,46 @@ export function evaluateTriggers(
   const max = opts?.max ?? MAX_PROPOSALS_PER_TICK;
   const out: TriggerProposal[] = [];
 
+  /**
+   * IS THE NOVELTY PIPELINE ALIVE? Decided from the batch itself, so this stays
+   * pure and needs no health endpoint.
+   *
+   * If ANY theme carries a novelty score, the sweeper is running, and a theme
+   * still showing NULL is simply one it has not reached yet. Raising a call on
+   * that theme now is raising it blind, so it waits for the next tick, by which
+   * time it will have a score and can be judged properly.
+   *
+   * If NO theme carries a score the sweeper is down (it has been), and waiting
+   * would silence sensing entirely. So every theme is judged on the
+   * deterministic gate alone and the loop keeps running.
+   */
+  const noveltyPipelineAlive = (state.themes ?? []).some(
+    (t) => t && typeof t.novelty === "number" && Number.isFinite(t.novelty),
+  );
+  /** Cluster names already spoken for: open missions, plus this tick's own picks. */
+  const spokenFor: string[] = [...openTitles];
+
   for (const t of state.themes ?? []) {
     if (!t || typeof t.id !== "string") continue;
     if (!OPEN_THEME_STATUSES.has((t.status || "").toLowerCase())) continue;
     const freq = Number(t.frequency) || 0;
     const sev = Number(t.severity) || 0;
     if (freq < freqT && sev < sevT) continue;
+
+    // GATE 1, semantic. The brain already scored this as a repeat; honour it.
+    const novelty = typeof t.novelty === "number" && Number.isFinite(t.novelty) ? t.novelty : null;
+    if (novelty !== null && novelty <= NOVELTY_FLOOR) continue;
+    // Scored themes exist, so an unscored one is mid-sweep rather than new.
+    if (novelty === null && noveltyPipelineAlive) continue;
+
     const name = truncate(t.title || "untitled", 80);
     const title = autoTitle(`Investigate the "${name}" cluster`);
     if (openTitles.has(title)) continue;
+    // GATE 2, deterministic. Catches the repeat whose novelty is not in yet, and
+    // the second near-identical cluster inside a single tick, which exact-title
+    // dedup let straight through.
+    if (spokenFor.some((seen) => titleOverlap(seen, title) >= TITLE_OVERLAP_FLOOR)) continue;
+    spokenFor.push(title);
     out.push({
       kind: "cluster",
       title,

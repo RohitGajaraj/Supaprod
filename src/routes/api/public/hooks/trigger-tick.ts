@@ -110,8 +110,15 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
     { count: customerSigCount },
   ] = await Promise.all([
     supabaseAdmin
+      // `novelty` is the whole reason this loop stopped re-asking answered
+      // questions. It was computed by the embedding sweeper and stored the whole
+      // time; this SELECT simply never asked for it, so evaluateTriggers judged
+      // every cluster blind and raised "alert fatigue" as new seven times in two
+      // days. Dropping the column from this list silently restores that bug, and
+      // no type error would catch it (a wrong column in a select string
+      // typechecks clean here and only shows up at runtime).
       .from("themes")
-      .select("id, title, frequency, severity, status")
+      .select("id, title, frequency, severity, status, novelty")
       .eq("user_id", ownerId)
       .limit(100),
     supabaseAdmin

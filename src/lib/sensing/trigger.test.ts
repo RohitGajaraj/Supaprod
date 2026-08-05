@@ -8,6 +8,8 @@ import {
   CLUSTER_FREQUENCY_THRESHOLD,
   WATCH_SIGNAL_THRESHOLD,
   LISTEN_SIGNAL_THRESHOLD,
+  TITLE_OVERLAP_FLOOR,
+  titleOverlap,
   type ThemeState,
   type OutcomeState,
   type SignalSenseState,
@@ -217,5 +219,123 @@ describe("shouldAutoPromote — SF-AUTOTRIGGER eligibility", () => {
     expect(shouldAutoPromote({ ...base, ambientCount: 1 })).toBe(false);
     // cap hit alone blocks
     expect(shouldAutoPromote({ ...base, autoTodayCount: AUTO_TRIGGER_DAILY_CAP })).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RE-DISCOVERY — proven from the live defect, not from an invented scenario
+// ---------------------------------------------------------------------------
+//
+// Every fixture below is a real row from the Helio Labs workspace
+// (60000000-0000-4000-8000-000000000000) as it stood on 2026-08-05, including
+// the real `themes.novelty` values. 18 of that workspace's 37 pending calls were
+// three problems re-discovered under new names, so these tests fail against the
+// code as it was and pass against the gates.
+describe("evaluateTriggers — re-discovery gate", () => {
+  it("suppresses a cluster the brain already scored as a repeat", () => {
+    // Live row: novelty 0.249906, maxThemeSim 0.875. The brain knew, then asked anyway.
+    const out = evaluateTriggers({
+      themes: [
+        theme({
+          id: "live-1",
+          title: "Redundant Data Entry causing Checkout Abandonment",
+          novelty: 0.249906,
+        }),
+      ],
+    });
+    expect(out).toHaveLength(0);
+  });
+
+  it("suppresses every live re-discovery, and keeps the one genuinely new cluster", () => {
+    const out = evaluateTriggers({
+      themes: [
+        theme({ id: "a", title: "Alert Fatigue Leading to Feature Disengagement", novelty: 0.399948 }),
+        theme({ id: "b", title: "Redundant Checkout Workflow Friction", novelty: 0.422833 }),
+        theme({ id: "c", title: "Notification Overload and User Disengagement", novelty: 0.494124 }),
+        theme({ id: "d", title: "Alert Fatigue Leading to Systemic Disengagement", novelty: 0.532158 }),
+        // novelty 0.820917 (only 0.383 similar to anything known) — a real discovery.
+        theme({ id: "e", title: "Redundant Address Entry During Checkout", novelty: 0.820917 }),
+      ],
+    });
+    const titles = out.map((p) => p.title);
+    expect(titles).toHaveLength(2);
+    expect(titles.some((t) => t.includes("Redundant Address Entry During Checkout"))).toBe(true);
+    // 0.532 clears the floor, so it survives the semantic gate on its own merit.
+    expect(titles.some((t) => t.includes("Systemic Disengagement"))).toBe(true);
+  });
+
+  it("raises the call when novelty is unknown and the sweeper is down", () => {
+    // The embedder HAS gone down here. A quiet brain is worse than a repeat, so
+    // an all-NULL batch must still produce work.
+    const out = evaluateTriggers({
+      themes: [theme({ id: "n1", title: "Serial scans fail on the second generation label" })],
+    });
+    expect(out).toHaveLength(1);
+  });
+
+  it("waits on an unscored theme while the sweeper is demonstrably running", () => {
+    // One scored theme proves the sweeper is alive, so the unscored one is
+    // mid-sweep rather than new, and judging it blind is what created duplicates.
+    const out = evaluateTriggers({
+      themes: [
+        theme({ id: "scored", title: "Roof glare makes the wiring diagram unreadable", novelty: 0.9 }),
+        theme({ id: "unscored", title: "Meter firmware drift shows yesterday production" }),
+      ],
+    });
+    expect(out).toHaveLength(1);
+    expect(out[0].title).toContain("Roof glare");
+  });
+
+  it("drops the second near-identical cluster inside ONE tick", () => {
+    // Both landed 2026-08-04 with novelty NULL. Exact-title dedup let the second
+    // through because the two titles differ by a word.
+    const out = evaluateTriggers({
+      themes: [
+        theme({ id: "x1", title: "Redundant Address Entry Causes Abandonment" }),
+        theme({ id: "x2", title: "Redundant Address Entry During Checkout" }),
+      ],
+    });
+    expect(out).toHaveLength(1);
+  });
+
+  it("drops a near-identical cluster against an ALREADY-OPEN mission", () => {
+    const open = new Set([`${AUTO_TITLE_PREFIX} Investigate the "Redundant Data Entry" cluster`]);
+    const out = evaluateTriggers(
+      { themes: [theme({ id: "y", title: "Redundant Data Entry causing Checkout Abandonment" })] },
+      open,
+    );
+    expect(out).toHaveLength(0);
+  });
+
+  it("does not let shared filler words swallow an unrelated cluster", () => {
+    // "Leads to" / "Causes" are pure filler. If they counted, a real signal
+    // would be suppressed, which is worse than the duplicate being fixed here.
+    const out = evaluateTriggers({
+      themes: [
+        theme({ id: "p", title: "Alert Overload Leads to Muting" }),
+        theme({ id: "q", title: "Partner installers stall at the invite step" }),
+      ],
+    });
+    expect(out).toHaveLength(2);
+  });
+});
+
+describe("titleOverlap", () => {
+  it("scores identical cluster names 1", () => {
+    expect(titleOverlap("Redundant Data Entry", "Redundant Data Entry")).toBe(1);
+  });
+
+  it("separates the live collisions from genuinely different clusters", () => {
+    expect(
+      titleOverlap("Redundant Address Entry Causes Abandonment", "Redundant Address Entry During Checkout"),
+    ).toBeGreaterThanOrEqual(TITLE_OVERLAP_FLOOR);
+    expect(
+      titleOverlap("Alert Overload Leads to Muting", "Roof glare makes the wiring diagram unreadable"),
+    ).toBe(0);
+  });
+
+  it("is 0 against an empty or filler-only name", () => {
+    expect(titleOverlap("", "Redundant Data Entry")).toBe(0);
+    expect(titleOverlap("the and to of", "Redundant Data Entry")).toBe(0);
   });
 });

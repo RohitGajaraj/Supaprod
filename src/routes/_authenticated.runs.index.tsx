@@ -737,12 +737,27 @@ function BuildPage() {
         : running === 1
           ? "One run is building"
           : `${running} runs are building`;
+    /* NAME THE NOUN, because two true numbers were reading as one contradiction.
+     *
+     * This said "41 need you." while the header 200px above said "52 calls need
+     * you." Both were correct and they count different things: the header counts
+     * CALLS from the approvals queue (pending decisions plus tool-call gates plus
+     * memory candidates), and this counts RUNS sitting in a gate state. Several
+     * calls can belong to one run, so the two can never be made equal, and
+     * forcing them to match would mean one of them lying.
+     *
+     * A bare "41 need you" leaves the reader to work out which quantity it is,
+     * and the standing bar is that a quick glance must not put that load on
+     * them. So the noun is said out loud. The seven-stage strip already says
+     * "runs waiting on you" for the same reason, and it agrees with this line
+     * (39 at Discover plus 2 at Build), so naming it here makes all three
+     * numbers reconcilable instead of just two of them. */
     const needs =
       waiting.length === 0
-        ? "Nothing needs you."
+        ? "No run needs you."
         : waiting.length === 1
-          ? "One needs you."
-          : `${waiting.length} need you.`;
+          ? "One run needs you."
+          : `${waiting.length} runs need you.`;
     return `${ran}. ${needs}`;
   }, [loading, sessions.isError, running, waiting.length]);
 

@@ -6,6 +6,8 @@ import {
   splitCitationMarkers,
   decisionOptionLabel,
   specRecommendation,
+  stripAutoPrefix,
+  isAutoTitle,
 } from "./format";
 
 describe("stateChip", () => {
@@ -137,5 +139,39 @@ describe("splitCitationMarkers", () => {
   });
   test("empty string", () => {
     expect(splitCitationMarkers("")).toEqual([]);
+  });
+});
+
+// The `[auto]` marker is a dedup key for the sensing tick, never copy. It has
+// leaked to the founder twice, most recently through Today's evidence bullet
+// (`From [auto] Investigate the "Alert Fatigue..." cluster`), because
+// `decisions.source_label` is derived from a raw mission title. These pin the
+// helper that fix relies on, using the real titles that leaked.
+describe("stripAutoPrefix", () => {
+  test("strips the marker from a real leaked title", () => {
+    expect(stripAutoPrefix('[auto] Investigate the "Alert Fatigue Leading to Feature Disengagement" cluster'))
+      .toBe('Investigate the "Alert Fatigue Leading to Feature Disengagement" cluster');
+  });
+
+  test("leaves a human-authored title untouched", () => {
+    expect(stripAutoPrefix("Build next: fix checkout before anything else on Relay"))
+      .toBe("Build next: fix checkout before anything else on Relay");
+  });
+
+  test("is idempotent, so stripping twice cannot eat real text", () => {
+    const once = stripAutoPrefix("[auto] Watch: review recent signals");
+    expect(stripAutoPrefix(once)).toBe(once);
+    expect(once).toBe("Watch: review recent signals");
+  });
+
+  test("only strips a LEADING marker, never one inside the sentence", () => {
+    expect(stripAutoPrefix("Review the [auto] tagging rule")).toBe("Review the [auto] tagging rule");
+  });
+
+  test("isAutoTitle still recognises the origin after the text is cleaned", () => {
+    const raw = '[auto] Investigate the "Redundant Data Entry" cluster';
+    expect(isAutoTitle(raw)).toBe(true);
+    // The provenance chip reads the RAW title; the visible text reads the clean one.
+    expect(isAutoTitle(stripAutoPrefix(raw))).toBe(false);
   });
 });

@@ -5,6 +5,8 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 import { track } from "@/lib/observability";
 import { extractAssumptions } from "@/lib/ai/assumptions.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+// Pure string helpers, zero imports of their own, so they are safe on the server.
+import { stripAutoPrefix } from "@/components/plan/format";
 
 export type DecisionSource = "meeting" | "mission" | "prd" | "manual";
 
@@ -89,12 +91,29 @@ export const listDecisions = createServerFn({ method: "GET" })
       (meetings.data ?? []).map((r) => [r.id as string, r.title as string]),
     );
 
+    /**
+     * WHERE `[auto]` STOPPED LEAKING, and why the fix belongs here.
+     *
+     * `source_label` is a mission/PRD/meeting TITLE, and a mission raised by the
+     * sensing tick carries `AUTO_TITLE_PREFIX` in its stored title. So every
+     * consumer that printed this field printed the marker: Today's evidence
+     * bullet read `From [auto] Investigate the "Alert Fatigue..." cluster`. The
+     * founder has reported this class of leak twice.
+     *
+     * `stripAutoPrefix`'s own contract is "call this on ANY title that may have
+     * come from the trigger pipeline", and this is the single point where those
+     * titles become a display string, so stripping here fixes every consumer at
+     * once instead of leaving the next surface to rediscover the bug. The
+     * provenance is not lost: the caller still has `source_kind`, and the auto
+     * origin is drawn as its own chip where it is worth showing.
+     */
     for (const d of decisions) {
-      d.source_label =
+      const label =
         (d.mission_id && missionMap.get(d.mission_id)) ||
         (d.prd_id && prdMap.get(d.prd_id)) ||
         (d.meeting_id && meetingMap.get(d.meeting_id)) ||
         null;
+      d.source_label = label ? stripAutoPrefix(label) : null;
     }
     return { decisions };
   });
