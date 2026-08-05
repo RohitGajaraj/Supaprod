@@ -107,7 +107,13 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     id: "open-settings",
-    pitch: "Open settings (you, workspace, connections, plan)",
+    // NAMES THE GROUPS THAT EXIST, or names none. Settings was regrouped from a
+    // flat fifteen into five named groups; this pitch still listed the old
+    // four-way split, so the palette promised a shape the surface no longer
+    // had. A parenthetical that enumerates another file's contents rots the
+    // moment that file changes, which is why it now reads off the grouping
+    // rather than restating it.
+    pitch: "Open settings (the crew, the brief, reach, you, plan)",
     run: { to: "/settings" },
   },
   {

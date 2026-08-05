@@ -1108,6 +1108,11 @@ function DesignRail() {
         Rendered through your brand kit.{" "}
         <Link
           to="/settings"
+          // THE CONTROL PERFORMS THE ACT IT NAMES. It said "Brand kit lives in
+          // Settings" and landed on Profile, leaving a person to find the brand
+          // pane themselves among fifteen sections -- which is the same defect
+          // as a keycap that does nothing, one layer up.
+          search={{ section: "brand" } as never}
           className="ink-focus underline underline-offset-2"
           style={{ color: "var(--ink-subtle)" }}
         >

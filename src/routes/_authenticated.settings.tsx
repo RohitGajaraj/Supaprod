@@ -538,7 +538,12 @@ function SettingsPage() {
         id={PANE_ID}
         tabIndex={-1}
         className="sp-main"
-        style={{ flex: "1 1 460px", maxWidth: "none", outline: "none" }}
+        /* NO `outline: none`. The pane takes focus when the nav moves between
+           sections, so suppressing its ring left a keyboard user with nothing
+           on screen saying where focus went -- on the one surface whose whole
+           point was to become a single tab stop with arrow keys. The ring is
+           drawn only for keyboard focus, so a mouse click still shows nothing. */
+        style={{ flex: "1 1 460px", maxWidth: "none" }}
       >
         {active === "profile" && <ProfileSection />}
         {active === "notifications" && <NotificationsSection />}
