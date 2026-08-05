@@ -39,6 +39,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 
+import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import { getEntityLineage } from "@/lib/audit-lineage.functions";
 import { getLineageGraph, type LineageNodeView } from "@/lib/lineage-graph.functions";
 import type { LineageStep } from "@/lib/lineage-graph";
@@ -190,17 +191,71 @@ export function AuditLineageSheet() {
     return () => window.removeEventListener(OPEN_LINEAGE_EVENT, onOpen);
   }, []);
 
-  // Escape closes, like every other summoned surface in the shell.
+  /**
+   * ESCAPE CLOSES THE TRAIL, AND NOTHING BEHIND IT.
+   *
+   * THE DEFECT THIS PREVENTS, and it cost a person their place in the engine
+   * room. Standing in a room with Ask open and a trail traced, ONE Escape ran
+   * all three handlers in a single dispatch: this one closed the trail, AskPane's
+   * closed the pane, and the room's (`_authenticated.engine-room.tsx`) navigated
+   * back out of the room. The person meant to close one thing and lost three,
+   * including the room they were reading. All three listened on `window` in the
+   * BUBBLE phase, so which ran first was decided by the order their effects
+   * happened to mount, and the room's mounts first because the room is already on
+   * screen before anyone traces anything. The room's own `e.defaultPrevented`
+   * check could not rescue it: this handler does call preventDefault, but it ran
+   * last, after the damage.
+   *
+   * NOTHING CAUGHT IT because each handler is correct read on its own, and the
+   * three live in three files that never import each other. A type cannot see a
+   * listener ordering, and no test had ever pressed one key with two layers open.
+   *
+   * THE FIX IS A LADDER BUILT OUT OF THE PROPAGATION PATH, so the order is a
+   * property of the DOM instead of a property of mount order:
+   *
+   *   window capture    this pane (z-index 62, the topmost surface in the shell)
+   *   document capture  MoreMenu, a popover that opens inside Ask (primitives.tsx)
+   *   document bubble   AskPane (z-index 60)
+   *   window bubble     the engine room, the page underneath all of it
+   *
+   * Every rung but the last calls stopPropagation, so exactly one layer hears
+   * one press no matter what mounted when; the room is last and has nothing left
+   * to stop. MoreMenu already worked this way and is the model for all of it.
+   *
+   * NO FIELD GUARD, deliberately. The bare-key house pattern stands a shortcut
+   * down whenever focus is in a field because a letter typed into a textarea is
+   * text; Escape is a dismissal in every surface a person has ever used, and this
+   * pane is read with focus anywhere on the page.
+   */
   useEffect(() => {
     if (ref === null) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setRef(null);
-      }
+      /**
+       * TWO GUARDS THIS HANDLER SHIPPED WITHOUT, and each one made Escape close
+       * more than the person asked for.
+       *
+       * `defaultPrevented`: without it, a layer that has already claimed the
+       * press is ignored and this closes as well. The shortcut sheet does claim
+       * it, on window capture, so one Escape shut the sheet AND wiped the trail
+       * underneath it -- the exact "one press, three layers" defect this file's
+       * own header says it exists to end, reintroduced one rung down.
+       *
+       * `OPEN_MODAL_SELECTOR`: a window CAPTURE listener always outranks Radix,
+       * whose dismissable layer listens on `document`. So with a real dialog
+       * open over this pane, Escape reached here first, stopped propagation and
+       * cleared the trail while the dialog stayed on screen. Standing down under
+       * a modal is what gives Radix back its own key. Same selector the chord
+       * and the shortcut sheet use, imported rather than copied: this repo has
+       * already paid twice for a guard that existed in two ages.
+       */
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      if (document.querySelector(OPEN_MODAL_SELECTOR)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setRef(null);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [ref]);
 
   const fLineage = useServerFn(getEntityLineage);

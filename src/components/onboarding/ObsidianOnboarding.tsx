@@ -1356,7 +1356,10 @@ export function ObsidianOnboarding() {
                   gap: "var(--geist-space-2x)",
                 }}
               >
-                <div className="text-label-12" style={{ color: "var(--ds-gray-600)", marginBottom: -4 }}>
+                <div
+                  className="text-label-12"
+                  style={{ color: "var(--ds-gray-600)", marginBottom: -4 }}
+                >
                   Or connect a live source
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1385,7 +1388,10 @@ export function ObsidianOnboarding() {
                         }}
                       >
                         <span>
-                          <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
+                          <span
+                            className="text-heading-14"
+                            style={{ color: "var(--ds-gray-1000)" }}
+                          >
                             {spec.label}
                           </span>
                           <MonoLabel style={{ display: "block", marginTop: 3 }}>

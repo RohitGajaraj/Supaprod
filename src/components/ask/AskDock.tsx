@@ -42,13 +42,30 @@ import { useLiveAgents } from "@/hooks/use-live-agents";
  * rather than sitting silent while the product works. Nothing is fabricated:
  * with nothing running it shows the invitation and nothing else.
  */
-export function AskDock() {
+/**
+ * `pane` IS A TESTING SEAM AND NOTHING ELSE, and it exists because the
+ * alternative broke another suite.
+ *
+ * GlobalComposer's tests are about WHICH DOOR renders on which route. They do
+ * not want the pane's whole graph -- its workspace read, its threads read, its
+ * stream -- so they replaced it with `mock.module("@/components/ask/AskPane")`.
+ * That swap is PROCESS-WIDE: whenever that file loaded before AskPane's own
+ * suite, AskPane's tests imported the stub and its conversation-switcher
+ * assertions ran against a bare div. Three of four full-suite runs were clean
+ * and the fourth failed three tests, in a file that does not import the file
+ * that failed.
+ *
+ * A default prop is the whole fix. The app never passes it, so production is
+ * byte-identical; a test passes its own stub and leaves the module registry
+ * untouched, so nothing it does can reach another file.
+ */
+export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType } = {}) {
   const ask = useAsk();
   const { working } = useLiveAgents();
 
   // The pane owns the screen while it is open; the dock stands down so there is
   // never a second input for the same conversation.
-  if (ask.isOpen) return <AskPane />;
+  if (ask.isOpen) return <Pane />;
 
   const lead = working[0];
   const others = working.length - 1;
@@ -58,7 +75,7 @@ export function AskDock() {
       {/* Still mounted, still self-hiding. Keeping it here rather than in the
           branch above means opening and closing never remounts the pane, so a
           conversation survives a collapse. */}
-      <AskPane />
+      <Pane />
       <div className="sp-dock" data-testid="ask-dock">
         <button
           type="button"

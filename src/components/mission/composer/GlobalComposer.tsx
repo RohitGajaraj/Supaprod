@@ -38,7 +38,7 @@ import { AskDock } from "@/components/ask/AskDock";
 /** The summon events the PALETTE overlay answers. Ask has its own door now. */
 export const OPEN_COMPOSER_EVENTS = ["supaprod:open-cmdk"] as const;
 
-export function GlobalComposer() {
+export function GlobalComposer({ pane }: { pane?: React.ComponentType } = {}) {
   // The room owns its composer and Thread; never a second stream there.
   // Matched route ids, not a pathname prefix: the room moved from /m/<uuid> to
   // /$workspaceSlug/$productSlug, and a startsWith("/m/") test would have gone
@@ -66,7 +66,7 @@ export function GlobalComposer() {
   // and adds the collapsed row that makes the door visible from everywhere.
   // See AskDock.tsx: the pane keeps Cmd+K, Escape and both forks exactly as
   // they were, so this is a presence change and not a behaviour change.
-  return <AskDock />;
+  return <AskDock pane={pane} />;
 }
 
 function GlobalComposerHost() {

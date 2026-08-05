@@ -757,6 +757,42 @@ function BuildRun() {
   });
   const canSend = closedReason == null && note.trim().length > 0 && !steer.isPending;
 
+  /**
+   * Cmd/Ctrl+Enter sends the note from anywhere inside the note box.
+   *
+   * THE DEFECT THIS FIXES, found 2026-08-06. The chord was already bound on the
+   * textarea and drawn NOWHERE. Sending a note is the most repeated act on this
+   * surface, once per course correction, and every comparable chord in the
+   * product is drawn on the button that performs it: the runs board on Start,
+   * MissionOnboarding on Continue, the spec surface on Save. So the person
+   * steering a live run either reached for the mouse on every correction, or
+   * found the chord by accident and then had no way to know it was meant
+   * rather than tolerated.
+   * A binding nobody can see is worth roughly what an unbound keycap is worth,
+   * and it costs the same thing: the surface stops being readable as a whole.
+   * Nothing caught it because a missing <kbd> is an absence. The handler
+   * compiles, the button works, every test passes, and only reading this file
+   * beside the two that get it right shows what is not here.
+   *
+   * The scope moved off the textarea and onto the box for the same reason the
+   * keycap now exists: the promise is drawn on the BUTTON, so the chord has to
+   * be true wherever the button is, including when the button itself holds
+   * focus after a tab. See the twin on the runs board composer, which had the
+   * worse half of this bug.
+   *
+   * The house bare-key guard from _authenticated.today.tsx is deliberately not
+   * here. It stands a key down under a modifier and inside a text field, and
+   * this chord requires the modifier and is meant to fire in the text field.
+   * Scope does that job instead: React bubbles keydown from this box's own
+   * children only, so nothing else on a long run page can lose Cmd+Enter.
+   */
+  const onNoteChord = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!(e.metaKey || e.ctrlKey) || e.key !== "Enter") return;
+    if (!canSend) return;
+    e.preventDefault();
+    steer.mutate();
+  };
+
   const [showAll, setShowAll] = React.useState(false);
 
   const busy = decide.isPending;
@@ -1163,29 +1199,30 @@ function BuildRun() {
             {closedReason ? (
               <Empty>{closedReason}</Empty>
             ) : (
-              <>
+              <div onKeyDown={onNoteChord}>
                 <Textarea
                   rows={2}
                   value={note}
                   aria-label="What it should do next"
                   onChange={(e) => setNote(e.target.value)}
-                  onKeyDown={(e) => {
-                    if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canSend) {
-                      e.preventDefault();
-                      steer.mutate();
-                    }
-                  }}
                 />
                 <Actions>
                   <Button
                     variant={call ? "default" : "primary"}
+                    // The same glyph the runs board and the spec surface draw,
+                    // and drawn on the same terms as the board: `canSend` is
+                    // the entire condition the chord tests, so the keycap and
+                    // the key cannot drift apart. An empty note has nothing to
+                    // send, and a keycap on that button would be promising a
+                    // press that does nothing.
+                    shortcut={canSend ? "⌘⏎" : undefined}
                     disabled={!canSend}
                     onClick={() => steer.mutate()}
                   >
                     Send the note
                   </Button>
                 </Actions>
-              </>
+              </div>
             )}
             {steers.map((s) => (
               <Row

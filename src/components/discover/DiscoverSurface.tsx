@@ -937,13 +937,37 @@ export function DiscoverSurface({
         if (prev) setFocusedId(prev.theme.id);
         return;
       }
-      if (e.key === "1") {
+      /**
+       * LETTERS, NOT DIGITS, and this station was the last place in the product
+       * that broke the rule.
+       *
+       * FOUNDER RULING 2026-08-05: "if you are using alphanumeric in between it
+       * really confuses the user. Either you go with numbers or you go with
+       * alphabets." Navigation was converted to the `g` chord that day. This
+       * handler was missed, and it was the worst place to miss it.
+       *
+       * WHY HERE WAS WORST. The rows immediately below this gate are numbered
+       * 1 to 6 (`marks={<Num>{i + 1}</Num>}`), and the station marker above
+       * reads 01. So a person looking at the third row in the ranking and
+       * pressing `3` to pick it DECLINED the first one instead -- a digit
+       * meaning position in one place and disposition in another, six pixels
+       * apart, with the destructive reading winning. AppFrame's own comment
+       * promises "the marker is a bare mono number and the key is in a keycap";
+       * on this one screen that safeguard was doing nothing.
+       *
+       * THE LETTERS ARE THE PRODUCT'S, not chosen for this file. `a` accepts
+       * and `d` declines on Today, Design and Crew, so they mean the same thing
+       * here: `a` accepts the cluster as a bet, `d` declines it. `m` is the one
+       * new letter and it is the first letter of what it does -- merge into a
+       * bet you already have.
+       */
+      if (e.key === "a") {
         e.preventDefault();
         promote.mutate(focused.theme.id);
-      } else if (e.key === "2") {
+      } else if (e.key === "m") {
         e.preventDefault();
         setPicking(true);
-      } else if (e.key === "3") {
+      } else if (e.key === "d") {
         e.preventDefault();
         decline.mutate(focused.theme.id);
       }
@@ -1284,15 +1308,15 @@ export function DiscoverSurface({
           <Button
             variant="primary"
             disabled={busy}
-            shortcut="1"
+            shortcut="a"
             onClick={() => promote.mutate(focused.theme.id)}
           >
             {promote.isPending ? "Making it a bet" : "Make it a bet"}
           </Button>
-          <Button disabled={busy} shortcut="2" onClick={() => setPicking(true)}>
+          <Button disabled={busy} shortcut="m" onClick={() => setPicking(true)}>
             Add to an existing bet
           </Button>
-          <Button disabled={busy} shortcut="3" onClick={() => decline.mutate(focused.theme.id)}>
+          <Button disabled={busy} shortcut="d" onClick={() => decline.mutate(focused.theme.id)}>
             Not a pattern
           </Button>
           <MoreMenu label={`More for ${focused.theme.title}`}>
@@ -1392,6 +1416,12 @@ export function DiscoverSurface({
       {!picking && ranked.length > 1 ? (
         <Block
           title="The ranking"
+          /* j AND k WERE BOUND AND DRAWN NOWHERE, which is the same defect as
+             the seven stations carrying live chords with no keycap: a person
+             could only find these by reading the source. The list they move
+             through is the one place the hint belongs, and it is the same
+             pair /approvals uses for the same job. */
+          sub="j and k move the focus. The one in focus is the one the keys act on."
           more={
             ranked.length > VISIBLE_CLUSTERS
               ? showAllClusters

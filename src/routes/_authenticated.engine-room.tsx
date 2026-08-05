@@ -190,8 +190,30 @@ function EngineRoomPage() {
     [navigate],
   );
 
-  // Escape closes the innermost layer only, kept from the retired chassis: an
-  // open overlay or a focused field keeps it.
+  /**
+   * BACKING OUT OF A ROOM IS THE OUTERMOST THING ESCAPE CAN DO, so this is the
+   * last rung of the ladder and it stays there: `window`, BUBBLE phase, which is
+   * the final stop on a key event's propagation path. Every layer that can sit
+   * over this page (the lineage pane on window capture, MoreMenu on document
+   * capture, Ask on document bubble) hears the press earlier and calls
+   * stopPropagation, so this handler only ever runs when the room is genuinely
+   * the innermost open thing. The full ladder is documented on the lineage
+   * pane's own Escape handler in components/supaprod/AuditLineageSheet.tsx.
+   *
+   * DO NOT MOVE THIS TO CAPTURE to fix some other surface. Being last is the
+   * whole contract, and losing it is what caused the defect the ladder exists
+   * for: one press used to leave the room AND close Ask AND close the trail,
+   * because all three listened in the same phase on the same node and mount
+   * order decided the winner.
+   *
+   * THE TWO GUARDS BELOW ARE NOT THAT MECHANISM and never could be. They are
+   * about the target: a focused field and a real dialog keep the key. Both Ask
+   * and the lineage pane are `role="complementary"` on purpose (they sit beside
+   * the work rather than over it), so neither matches the dialog test, and while
+   * an answer streams the composer is disabled and focus has fallen to <body>,
+   * so neither matches the field test either. They are kept because they are
+   * right about what they cover, not because they cover this.
+   */
   React.useEffect(() => {
     if (!room) return;
     const onEsc = (e: KeyboardEvent) => {

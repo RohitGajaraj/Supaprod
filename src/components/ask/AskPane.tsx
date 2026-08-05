@@ -122,6 +122,7 @@ import { useAsk, chipLabel } from "@/lib/ask-context";
 import { defaultIntent, contentForIntent, type AskIntent } from "@/lib/ask-intent";
 import { openAskConversation } from "@/lib/ask-open";
 import { detectReference } from "@/lib/palette-reference";
+import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import { openLineage } from "@/components/supaprod/AuditLineageSheet";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { listMissions } from "@/lib/missions.functions";
@@ -300,12 +301,72 @@ function AskPaneOpen() {
     };
   }, [focusBox]);
 
+  /**
+   * ESCAPE CLOSES THIS PANE, AND STOPS THERE.
+   *
+   * THE DEFECT THIS PREVENTS. This handler used to be `if (e.key === "Escape")
+   * ask.close()` on `window`, claiming nothing and yielding to nobody, so a
+   * single press in an engine room with Ask open and a lineage trail traced ran
+   * three handlers at once and took the person out of the room as well. The
+   * footer below makes that far worse than an ordering nit: while an answer
+   * streams it prints "Escape leaves it running.", INSTRUCTING the press, and
+   * that is exactly the moment the composer is disabled and focus has fallen to
+   * <body>, so the room's own "is focus in a field" guard sees nothing to hold it
+   * back. We were telling people to press the key that lost their place.
+   *
+   * THIS IS THE THIRD RUNG of the ladder documented on AuditLineageSheet's own
+   * Escape handler: document BUBBLE, which is after MoreMenu's document-capture
+   * listener (a popover inside this pane, which must still win) and before the
+   * engine room's window-bubble one (the page underneath, which must lose).
+   * Position on the propagation path is the layer order, and unlike mount order
+   * it cannot drift.
+   *
+   * `!e.defaultPrevented` is belt to that braces: if a future layer claims the
+   * key without stopping propagation, this pane respects the claim rather than
+   * closing on top of it.
+   *
+   * ON `document` RATHER THAN `window`, and the difference is only visible to a
+   * test: a real key event targets the focused element and passes through
+   * document on the way up, so this hears every genuine press. An event
+   * synthesised with `window.dispatchEvent` has a propagation path of exactly
+   * one node and never reaches here. Shipped source may not synthesise keypresses
+   * at all (src/lib/__tests__/no-synthetic-key-dispatch.test.ts), so a test that
+   * dispatches on `window` is testing something no user can do; dispatch on the
+   * focused element, or on document.body, as the real thing does.
+   *
+   * NO FIELD GUARD, for the same reason the sheet has none, and one more: Escape
+   * with focus in this pane's own composer is the single most common way anybody
+   * closes it, so standing down inside a textarea would break the pane's most
+   * used gesture.
+   */
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") ask.close();
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      /**
+       * ASK IS NOT THE INNERMOST LAYER, and the first version of this assumed
+       * it was.
+       *
+       * `stopPropagation` here was unconditional, which silences every listener
+       * this handler happens to beat. Ask binds on `document`; BoardPanel and
+       * the other summoned overlays bind on `window`, which in the bubble phase
+       * runs AFTER document. So with the board open over Ask, one Escape closed
+       * Ask and the board never heard the key -- a person who opened the board
+       * to glance at a run had to press Escape twice and watched the wrong thing
+       * close first.
+       *
+       * Standing down under an open modal restores the order the shell actually
+       * has: the thing on top goes first. `defaultPrevented` above covers any
+       * layer that claimed the press before us; this covers the ones that run
+       * after. Ask still closes on Escape with nothing over it, which is the
+       * gesture its own footer promises while an answer streams.
+       */
+      if (document.querySelector(OPEN_MODAL_SELECTOR)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      ask.close();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [ask]);
 
   // An intent handed in by an opener (a palette row, a "ask about this" link)

@@ -13,6 +13,11 @@ import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ThreadSummary } from "@/lib/threads.functions";
+import {
+  threadsMock,
+  resetThreadsMock,
+  threadsModuleMock,
+} from "@/lib/testing/threads-mock";
 import type { DictationState } from "@/hooks/use-voice";
 
 let pathname = "/today";
@@ -70,14 +75,14 @@ mock.module("@tanstack/react-start", () => ({
 
 // The switcher reads the SAME server function `/threads` does; nothing new was
 // written for it, so the mock is that one read.
-let threadRows: ThreadSummary[] = [];
-let threadsThrow = false;
-mock.module("@/lib/threads.functions", () => ({
-  listThreads: async () => {
-    if (threadsThrow) throw new Error("no");
-    return { threads: threadRows };
-  },
-}));
+//
+// THROUGH THE SHARED STORE, not a literal here. `mock.module` is process-wide
+// and is only observed when a consumer is FIRST imported, so whichever test
+// file mounts AskPane first decides what AskPane sees for the whole run. That
+// is not hypothetical: escape-layers.test.tsx mounts this pane to test Escape
+// ordering, loaded it first, and these switcher tests started failing in the
+// full suite while passing on their own. See src/lib/testing/threads-mock.ts.
+mock.module("@/lib/threads.functions", () => threadsModuleMock());
 
 // The way in is built from real runs, so the pane reads the SAME missions the
 // rail counts. Grounded suggestions need a grounding source in the test too.
@@ -151,8 +156,7 @@ beforeEach(() => {
   liveStatus = null;
   missionRows = [];
   missionsThrow = false;
-  threadRows = [];
-  threadsThrow = false;
+  resetThreadsMock();
   dictation = {
     supported: false,
     listening: false,
@@ -438,7 +442,7 @@ describe("AskPane: the conversation switcher", () => {
   });
 
   test("it opens in place and lists what was already asked", async () => {
-    threadRows = [thread()];
+    threadsMock.rows = [thread()];
     const r = await openSwitcher();
     expect(screen.getByText("Conversations").getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByTestId("ask-pane").textContent).toContain("Why the caller fix shipped");
@@ -449,7 +453,7 @@ describe("AskPane: the conversation switcher", () => {
   // reason worth a test: that string is the DEFAULT title of every thread
   // nobody renamed, so the button would have worn the same words as the rows.
   test("starting fresh is one press, and it is not the primary", async () => {
-    threadRows = [thread({ title: "New conversation" })];
+    threadsMock.rows = [thread({ title: "New conversation" })];
     const r = await openSwitcher();
     expect(screen.getAllByText("New conversation").length).toBe(1);
     const fresh = screen.getByText("Start fresh");
@@ -476,7 +480,7 @@ describe("AskPane: the conversation switcher", () => {
   });
 
   test("a failed read says so, and never wears the empty state's clothes", async () => {
-    threadsThrow = true;
+    threadsMock.throws = true;
     const r = await openSwitcher();
     const text = screen.getByTestId("ask-pane").textContent ?? "";
     expect(text).toContain("could not read your conversations");

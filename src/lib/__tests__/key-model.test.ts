@@ -138,7 +138,7 @@ describe("the surface lookup answers with the right one", () => {
    * converted so far to that pair, and it is the list that grows as the rest
    * are converted rather than a rule asserted over surfaces that have not been.
    */
-  const CONVERTED = ["/today", "/design", "/crew"];
+  const CONVERTED = ["/today", "/design", "/crew", "/discover"];
   for (const path of CONVERTED) {
     it(`${path} accepts with a and declines with d`, () => {
       const keys = surfaceKeysFor(path)?.keys.map((k) => k.key) ?? [];
@@ -155,7 +155,11 @@ describe("the surface lookup answers with the right one", () => {
     for (const path of CONVERTED) {
       const surface = surfaceKeysFor(path)!;
       const src = read(surface.source);
-      for (const k of surface.keys.filter((x) => x.key.length === 1)) {
+      // Scoped to the keys that COMMIT. A movement key (j, k) has no button of
+      // its own to wear a keycap, and /discover states them in the ranking's
+      // own subtitle instead. The rule that matters is that nothing which
+      // changes a record can fire from a key a person was never shown.
+      for (const k of surface.keys.filter((x) => x.key.length === 1 && x.destructive)) {
         expect({ path, key: k.key, drawn: src.includes(`shortcut="${k.key}"`) }).toEqual({
           path,
           key: k.key,
@@ -167,15 +171,30 @@ describe("the surface lookup answers with the right one", () => {
 });
 
 describe("the sheet does not claim more than the product does", () => {
-  it("never promises that digits are unbound, because /discover binds three", () => {
-    // The audit's draft of the rules carried "no digits anywhere". /discover
-    // binds 1, 2 and 3 to promote, merge and decline. Shipping that line would
-    // have made the help sheet itself the lie it exists to prevent.
-    const discover = SURFACE_KEYS.find((s) => s.path === "/discover");
-    expect(discover?.keys.map((k) => k.key)).toContain("1");
-    for (const rule of KEYBOARD_RULES) {
-      expect(rule).not.toMatch(/no (digits|numbers) anywhere/i);
-    }
+  /**
+   * ONE ALPHABET, AND NOW IT IS ACTUALLY TRUE.
+   *
+   * This test was written the other way up. The sheet's rules were forbidden
+   * from claiming "no digits anywhere" BECAUSE /discover bound 1, 2 and 3 to
+   * promote, merge and decline -- directly above a ranking whose rows are
+   * numbered 1 to 6, so pressing `3` to pick the third row declined the first.
+   * A digit meaning position in one place and disposition six pixels away, with
+   * the destructive reading winning.
+   *
+   * Those became `a`, `m` and `d`. So the claim is now honest and the test
+   * flips from banning the sentence to ENFORCING the fact: no surface may bind
+   * a digit, and the moment one does, this fails rather than the help sheet
+   * quietly starting to lie.
+   */
+  it("binds no digit on any surface, so the rule the sheet states is true", () => {
+    const digits = SURFACE_KEYS.flatMap((s) =>
+      s.keys.filter((k) => /^[0-9]$/.test(k.key)).map((k) => `${s.path} binds "${k.key}"`),
+    );
+    expect(digits).toEqual([]);
+  });
+
+  it("says so in the rules, now that it can", () => {
+    expect(KEYBOARD_RULES.some((r) => /never a number|no digits/i.test(r))).toBe(true);
   });
 
   it("marks the keys that bite", () => {

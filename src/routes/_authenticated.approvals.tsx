@@ -273,14 +273,49 @@ function ApprovalsSurface() {
     },
   });
 
-  // j/k move focus, a/r decide the focused call. Ignored while typing.
+  /* j/k move focus, a/r settle the focused call. Both guards run before any of
+   * them, and the order is the whole point.
+   *
+   * THE DEFECT THIS CLOSES, found 2026-08-05. This was the one gate surface
+   * with no modifier guard at all, so every browser and OS chord whose letter
+   * happened to be one of ours arrived here as a verdict on the call in focus.
+   * `e.key` on a Cmd+R keydown is exactly "r": the modifier lives on a separate
+   * field this handler never read. So Cmd+R and Ctrl+R, the reload people press
+   * constantly, DECLINED the focused approval on their way out of the page.
+   * Cmd+A, select-all, APPROVED it. Cmd+K opened Ask and walked the queue focus
+   * underneath the overlay at the same time. decideApprovalItem writes the
+   * verdict to the trust ledger and there is no undo, so the cost of one stray
+   * reload was a settled call the user never made, attributed to them forever,
+   * and a queue one item shorter than they left it.
+   *
+   * WHY NOTHING CAUGHT IT. The handler was correct TypeScript, it rendered, and
+   * every test passed: reading `e.key` without reading `e.metaKey` is not an
+   * error, it is an omission, and an omission is invisible in a diff of one
+   * file. /today and /decide had both carried this guard for weeks. Only a
+   * reader who opened all three at once would see that this one lacked it,
+   * which is why the check below is now also asserted in
+   * src/routes/__tests__/approvals-keys-stand-down.test.ts.
+   *
+   * The two lines are copied verbatim from the house pattern in
+   * _authenticated.today.tsx rather than reworded, so the three gate surfaces
+   * cannot quietly drift apart again.
+   *
+   * SELECT joins INPUT, TEXTAREA and contenteditable, and it was missing here
+   * too. A native <select> keeps focus while it is open and type-ahead jumps to
+   * the option whose label starts with the letter you press, so "r" inside one
+   * was both a selection and a rejection, and the arrow keys moved the option
+   * and the queue together.
+   *
+   * j and k are not destructive and still stand down under a modifier, for the
+   * reason Cmd+K showed: a surface that moves its own focus underneath an
+   * overlay the user just opened has taken a keypress that was never addressed
+   * to it, and the call they then settle is not the call they were reading. */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      const typing =
-        target &&
-        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
-      if (typing || visibleItems.length === 0) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (visibleItems.length === 0) return;
       const idx = visibleItems.findIndex((i) => i.id === focusedId);
       if (e.key === "j") {
         e.preventDefault();

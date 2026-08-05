@@ -107,9 +107,9 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
     keys: [
       { key: "j", does: "Moves down the ranking." },
       { key: "k", does: "Moves up it." },
-      { key: "1", does: "Promotes the focused cluster to a bet.", destructive: true },
-      { key: "2", does: "Adds it to a bet you already have.", destructive: true },
-      { key: "3", does: "Declines it.", destructive: true },
+      { key: "a", does: "Accepts the focused cluster as a bet.", destructive: true },
+      { key: "m", does: "Merges it into a bet you already have.", destructive: true },
+      { key: "d", does: "Declines it, so it is not a pattern.", destructive: true },
     ],
   },
   {
@@ -229,12 +229,15 @@ export const GLOBAL_KEYS: readonly SurfaceKey[] = [
 /**
  * The rules, one line each, and every one of them true today.
  *
- * The audit's draft of this section carried a fourth line, "no digits
- * anywhere". It is FALSE: /discover binds 1, 2 and 3 to promote, merge and
- * decline, directly above a list whose rows are numbered 1 to 6, so pressing
- * `3` to pick the third row declines the first. That is the founder's own
- * ruling broken inside one `useEffect`, and it is reported rather than papered
- * over here. The navigation half of the rule IS true and is what is claimed.
+ * The audit's draft carried a fourth line, "no digits anywhere", and it had to
+ * be cut because it was FALSE: /discover bound 1, 2 and 3 to promote, merge and
+ * decline, directly above a ranking whose rows are numbered 1 to 6, so pressing
+ * `3` to pick the third row declined the first.
+ *
+ * That was fixed rather than tolerated -- they are `a`, `m` and `d` now -- so
+ * the claim is true and is made. `key-model.test.ts` enforces it from the other
+ * side: no surface may bind a digit, and the moment one does the test fails
+ * instead of this sentence quietly becoming a lie.
  */
 export const KEYBOARD_RULES: readonly string[] = [
   "A bare letter acts on the thing in front of you.",

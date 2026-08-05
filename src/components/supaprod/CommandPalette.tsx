@@ -9,6 +9,7 @@ import {
   type JumpDestination,
 } from "@/lib/palette-sections";
 import { getRecents, type RecentObject } from "@/lib/palette-recents";
+import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import { PRIMARY_NAV, FOOTER_NAV, navKeyHint, NAV_CHORD_PREFIX } from "@/lib/nav-model";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
 import { EmptyState } from "@/components/supaprod/EmptyState";
@@ -476,6 +477,61 @@ const CHORD_WINDOW_MS = 2000;
  */
 const CHORD_ATTR = "data-chord";
 
+/**
+ * WHAT COUNTS AS AN OPEN OVERLAY, and it was not what the old selector said.
+ *
+ * THE DEFECT, found 2026-08-06. The guard below stood down under
+ * `[role="dialog"]` and nothing else. Radix gives a DESTRUCTIVE confirmation
+ * `role="alertdialog"` instead, which is the entire purpose of that role, so
+ * "Revoke token", "Delete this page?" and "Cancel subscription?" were precisely
+ * the overlays this guard could not see. Every confirmation in the product goes
+ * through ConfirmProvider's AlertDialog (use-confirm.tsx, "used by 32
+ * surfaces"), mounted above `<Outlet/>` in __root.tsx and therefore OUTSIDE the
+ * route that renders it. So `g` then a letter moved the router while the
+ * question stayed on screen, and what was left was a confirmation floating over
+ * a page that never named the thing being deleted -- with Confirm still live
+ * and still holding the promise resolver of the surface you just left, because
+ * unmounting a component does not cancel an awaited promise. Pressing it there
+ * would have performed the deletion.
+ *
+ * IT GOT LOUDER THIS MORNING. Since the keycap reveal shipped, arming the chord
+ * lights every keycap in the product; under an alertdialog it lit them UNDER
+ * the scrim, which reads as the product inviting the press that breaks it.
+ *
+ * WHY NOTHING CAUGHT IT. A CSS selector that matches fewer nodes than intended
+ * fails OPEN: navigation kept working, the chord kept firing, and every test
+ * stayed green. Nothing in the repo asserted what this guard must REFUSE, only
+ * what it must allow, so the one case it got wrong was the one nobody looked
+ * at. `chord-stands-down-under-a-confirmation.test.tsx` asserts the refusal.
+ *
+ * WHY `[role="complementary"]` IS NOT HERE, considered and rejected. AskPane
+ * and AuditLineageSheet are complementary regions, and both are deliberately
+ * NOT modal: Ask records "KILL the scrim, the focus trap and `aria-modal` ...
+ * the page behind it stays live and readable", lineage records "the pane, not a
+ * modal sheet ... a person tracing provenance is comparing it against what they
+ * were already looking at". A surface built to sit BESIDE the work must not
+ * confiscate the keyboard that moves the work; adding it would answer a dialog
+ * bug by making two working surfaces less capable, which is the ratchet run
+ * backwards. `complementary` is also a plain landmark role that any future
+ * sidebar may take, and one such sidebar would silently kill navigation
+ * everywhere it mounts. A lineage trail surviving a navigation is correct: it
+ * holds its own audit id and its own trail, and it stays true on any page.
+ *
+ * ONE CONSTANT, TWO CALL SITES. MissionShell.tsx runs the identical guard for
+ * its 1-7 spine keys and carried a hand-copied duplicate of the old string,
+ * which is how one guard came to have two ages. It imports this now, so the
+ * next role that needs adding gets added once instead of remembered twice.
+ */
+/**
+ * MOVED TO `@/lib/overlay`, re-exported here so the modules that already import
+ * it from this file keep working. It left because three unrelated layers needed
+ * it and reaching for it meant importing this entire component -- catalog,
+ * recents, Radix dialog and all -- which broke AskPane's test suite the moment
+ * AskPane asked for one string. A constant several layers depend on belongs
+ * below all of them.
+ */
+export { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
+
 export function GotoShortcuts() {
   const navigate = useNavigate();
   useEffect(() => {
@@ -495,19 +551,34 @@ export function GotoShortcuts() {
     };
 
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable)
-        return;
+      /* SELECT WAS MISSING, and this handler is the one place it costs most.
+         The house guard is `/^(INPUT|TEXTAREA|SELECT)$/` (today.tsx, decide.tsx,
+         design.tsx, crew.tsx). This wrote its own three-way check and left the
+         third out, so with a native dropdown focused, the browser's own
+         type-ahead -- typing letters to jump to an option -- also fed this
+         handler. Type "g" then "d" into a select looking for "Google Docs" and
+         you left the page. Every surface that wrote its own variant of this
+         guard has now been wrong once; the regex is the version that is right. */
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       // LOOM W4: never fire surface switches under an open dialog/overlay - a
       // keystroke into a focused-but-non-input dialog must not yank the user
-      // to another station and drop their in-flight decision.
-      if (
-        document.querySelector(
-          '[role="dialog"][data-state="open"], [role="dialog"][aria-modal="true"]',
-        )
-      )
+      // to another station and drop their in-flight decision. What counts as
+      // open, and why alertdialog had to join it, is on OPEN_MODAL_SELECTOR.
+      if (document.querySelector(OPEN_MODAL_SELECTOR)) {
+        // DISARM ON THE WAY OUT, rather than the bare `return` this used to be.
+        // An overlay can open in the two seconds AFTER `g`: press `g`, then
+        // reach for the mouse and click Revoke token. The chord is still armed,
+        // so every keycap in the product stays lit under the scrim until the
+        // window expires -- advertising letters that the line above is already
+        // refusing to act on. A keycap that does nothing is a lie, and it was
+        // one for up to two seconds. disarm() is the single funnel out of the
+        // armed state, so this exits exactly the way every other dead chord
+        // does rather than hand-clearing the attribute here.
+        disarm();
         return;
+      }
 
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
       const armed = armedAt !== 0 && Date.now() - armedAt < CHORD_WINDOW_MS;

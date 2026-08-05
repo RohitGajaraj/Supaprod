@@ -473,6 +473,11 @@ function DecideSurface() {
   const openBusy = openId ? busyIds.has(openId) : false;
   const openVerdict = openOpp ? verdictFor(openOpp) : "PENDING";
 
+  /* Returns what the person answered, because the caller has to know. The
+     record behind this dialog may only be dismissed on a yes; on a no, the
+     caller leaves it standing. Swallowing the boolean here is what forced the
+     caller to guess, and the guess it made is the defect written out at the
+     onDelete handler below. */
   const askDelete = React.useCallback(
     async (opp: OpportunityDetailRecord) => {
       const ok = await confirm({
@@ -482,6 +487,7 @@ function DecideSurface() {
         confirmLabel: "Delete bet",
       });
       if (ok) del.mutate(opp.id);
+      return ok;
     },
     [confirm, del],
   );
@@ -986,11 +992,45 @@ function DecideSurface() {
           setOpenId(null);
         }}
         onSetStatus={(status) => openOpp && setStatus.mutate({ id: openOpp.id, status })}
+        /* THE GUARD HAS TO SURVIVE THE QUESTION IT IS GUARDING.
+           This handler used to call setOpenId(null) and only then await
+           askDelete, and openId is the only thing standing between the confirm
+           dialog and the gate keys: the effect that binds k, c and x returns
+           early while a record is open. Clearing it first re-armed all three
+           for the entire life of "Delete this bet?", and they are addressed to
+           `activeOpp`, the bet under the Gate, not to the bet the dialog names.
+
+           "x" was the expensive one. It is the obvious way to wave a dialog
+           away, it was still DRAWN on the keycaps behind the scrim, so it read
+           as the offered exit, and pressing it dropped a different bet than the
+           one you were reading while the question about this one was still on
+           screen. The receipt then named a bet the person had not touched, and
+           the delete they came for went ahead as well the moment they answered.
+
+           Nothing caught it because both statements are correct in isolation
+           and they sit in the order anyone would write them. The only thing
+           separating them is an await, which occupies no line in a diff. Tests
+           did not see it either: it needs a modal owned by ConfirmProvider and
+           a window keydown owned by this route to be live at the same instant,
+           and no test in the suite had ever put both on screen together.
+
+           Held on openId rather than on a second `confirming` flag, because
+           openId already carries the fact the effect actually cares about,
+           which is that an overlay owns this surface's keyboard. A parallel
+           flag would be a second source of truth for one fact, the effect would
+           have to check both, and the next overlay added here would have to
+           remember all of them. This is the same shape as onViewLineage above,
+           which hands the guard to lineageId before it lets go of openId, so
+           the keyboard is never unowned for a frame.
+
+           The record now closes only on a yes. On a no you are back on the bet
+           you were reading, which is what Cancel means; it used to vanish for a
+           deletion that never happened. */
         onDelete={() => {
           if (!openOpp) return;
-          const target = openOpp;
-          setOpenId(null);
-          void askDelete(target);
+          void askDelete(openOpp).then((deleted) => {
+            if (deleted) setOpenId(null);
+          });
         }}
       />
     </Surface>

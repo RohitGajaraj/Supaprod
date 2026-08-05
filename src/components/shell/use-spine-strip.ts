@@ -90,9 +90,10 @@ export function useSpineStrip(active: AgentStation | null): void {
       const b = tally.get(station) ?? { total: 0, working: 0, gate: 0 };
       const isLearn = station === "learn";
       // For Learn station, add pending outcomes to the note
-      const learnExtra = isLearn && pendingCount > 0
-        ? `, ${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
-        : "";
+      const learnExtra =
+        isLearn && pendingCount > 0
+          ? `, ${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
+          : "";
 
       // Most urgent true thing first. A stage with a gate says so even while
       // something else on it is running, because the gate is the one that

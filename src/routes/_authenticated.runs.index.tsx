@@ -477,99 +477,150 @@ function Composer({
       : prompt.trim().length >= 4 && !isPending;
   const run = () => (mode === "ship" ? void gatedDispatch() : startRun.mutate());
 
+  /**
+   * Cmd/Ctrl+Enter starts the run from anywhere inside the composer.
+   *
+   * THE DEFECT THIS FIXES, found 2026-08-06. The chord used to be an onKeyDown
+   * on the TEXTAREA while the keycap was drawn on the Start button fifty lines
+   * below it, and nothing tied the two together. On the "From a spec"
+   * door the common path is to pick an approved spec from the Select and press
+   * go without typing a word, because `canStart` accepts a spec with an empty
+   * prompt. Focus is then on the Select, the textarea never saw the keydown,
+   * and the button sat there drawing a key that could not fire. The person
+   * presses it, nothing happens, and the surface has told them a lie about
+   * itself; the second thing they stop trusting is the keycap on every other
+   * button. Nothing caught it because both halves are correct in isolation:
+   * the handler works, the <kbd> renders, and only opening the file and
+   * holding both in your head at once shows that a focus boundary runs between
+   * them.
+   *
+   * WHY HOIST RATHER THAN HIDE THE KEYCAP WHILE THE TEXTAREA IS BLURRED. Both
+   * make the promise true; only one of them keeps the promise worth making.
+   * Hiding it would mean the fastest path through this surface, pick a spec
+   * and go, is the one path with no keyboard, and the person who learned the
+   * chord in the goal door would find it gone in the spec door for a reason
+   * they can never see. The scope is the composer, not the window, so the
+   * chord is still unavailable everywhere it would be ambiguous.
+   *
+   * WHY THE HOUSE BARE-KEY GUARD IS DELIBERATELY ABSENT. The pattern at
+   * _authenticated.today.tsx returns early on a modifier and inside an INPUT,
+   * TEXTAREA, SELECT or contenteditable, and it guards BARE keys: keys that a
+   * person pressed meaning to type them. This chord is the inverse on both
+   * counts. It REQUIRES the modifier, which is what makes it unambiguous, and
+   * a textarea is precisely where it is supposed to fire. What the house guard
+   * buys elsewhere, this one buys by scope: React bubbles keydown up the tree
+   * from the composer's own children and nowhere else, so no other field on
+   * the page can lose Cmd+Enter to it. The dialog stays outside this element
+   * on purpose, because a portal still bubbles through the React tree and the
+   * chord would otherwise fire behind an open repo gate.
+   */
+  const onComposerChord = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!(e.metaKey || e.ctrlKey) || e.key !== "Enter") return;
+    if (!canStart) return;
+    e.preventDefault();
+    run();
+  };
+
   return (
     <>
-      <div className="sp-tabs" role="tablist" aria-label="How to start">
-        <button
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={mode === "goal"}
-          onClick={() => setMode("goal")}
-        >
-          From a goal
-        </button>
-        <button
-          type="button"
-          role="tab"
-          className="sp-tab"
-          aria-selected={mode === "ship"}
-          onClick={() => setMode("ship")}
-        >
-          From a spec
-        </button>
+      <div onKeyDown={onComposerChord}>
+        <div className="sp-tabs" role="tablist" aria-label="How to start">
+          <button
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={mode === "goal"}
+            onClick={() => setMode("goal")}
+          >
+            From a goal
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className="sp-tab"
+            aria-selected={mode === "ship"}
+            onClick={() => setMode("ship")}
+          >
+            From a spec
+          </button>
+        </div>
+
+        <Textarea
+          id={PROMPT_ID}
+          aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          rows={3}
+          placeholder={
+            mode === "ship"
+              ? "Describe what to ship. Engineer plans it against the connected repo."
+              : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
+          }
+        />
+
+        {mode === "ship" ? (
+          <>
+            <Field label="Spec">
+              <Select
+                value={prdId ?? ""}
+                onChange={(e) => setPrdId(e.target.value || null)}
+                disabled={approvedPrds.length === 0}
+              >
+                <option value="">No spec</option>
+                {approvedPrds.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            {/* Loading, error and empty each speak for themselves rather than one
+                of them wearing another's clothes. */}
+            {prds.isError ? (
+              <Failed onRetry={() => void prds.refetch()}>The approved specs did not load.</Failed>
+            ) : !prds.isLoading && approvedPrds.length === 0 ? (
+              <Empty>
+                No spec is approved yet, so describe the work instead.{" "}
+                <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
+                  Approve one in Plan
+                </Link>
+                .
+              </Empty>
+            ) : null}
+          </>
+        ) : null}
+
+        <Actions>
+          <Button
+            variant={startIsPrimary ? "primary" : "default"}
+            // THE KEYCAP ARRIVES WITH THE KEY AND LEAVES WITH IT. `canStart` is
+            // the whole of what the chord tests, so this <kbd> is true by
+            // construction rather than by a reader remembering to keep two
+            // conditions in step. Drawn unconditionally it promised a key on a
+            // dim button that would do nothing at all: an empty composer offers
+            // no work to start, and a person who presses the advertised chord
+            // there learns that the keycaps on this product are decoration.
+            // This is not the surface going quiet under the ratchet. Nothing is
+            // removed: the button, its label and the title that says what
+            // unlocks it all stay, and the keycap appearing the moment there is
+            // something to start is a signal the surface did not have before.
+            shortcut={canStart ? "⌘⏎" : undefined}
+            disabled={!canStart}
+            onClick={run}
+            // A disabled control pairs with an explanation: a dim button on its
+            // own says nothing about what would unlock it.
+            title={
+              canStart || isPending
+                ? undefined
+                : mode === "ship"
+                  ? "Describe the work in a few words, or pick an approved spec"
+                  : "Describe the goal in a few words"
+            }
+          >
+            {isPending ? "Starting" : "Hand it over"}
+          </Button>
+        </Actions>
       </div>
-
-      <Textarea
-        id={PROMPT_ID}
-        aria-label={mode === "ship" ? "Describe what to ship" : "Describe the goal"}
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canStart) {
-            e.preventDefault();
-            run();
-          }
-        }}
-        rows={3}
-        placeholder={
-          mode === "ship"
-            ? "Describe what to ship. Engineer plans it against the connected repo."
-            : "Describe the goal, for example: find the three strongest churn signals this week and draft a spec for the biggest fix."
-        }
-      />
-
-      {mode === "ship" ? (
-        <>
-          <Field label="Spec">
-            <Select
-              value={prdId ?? ""}
-              onChange={(e) => setPrdId(e.target.value || null)}
-              disabled={approvedPrds.length === 0}
-            >
-              <option value="">No spec</option>
-              {approvedPrds.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          {/* Loading, error and empty each speak for themselves rather than one
-              of them wearing another's clothes. */}
-          {prds.isError ? (
-            <Failed onRetry={() => void prds.refetch()}>The approved specs did not load.</Failed>
-          ) : !prds.isLoading && approvedPrds.length === 0 ? (
-            <Empty>
-              No spec is approved yet, so describe the work instead.{" "}
-              <Link to="/plan" style={{ color: "var(--sp-ink)" }}>
-                Approve one in Plan
-              </Link>
-              .
-            </Empty>
-          ) : null}
-        </>
-      ) : null}
-
-      <Actions>
-        <Button
-          variant={startIsPrimary ? "primary" : "default"}
-          shortcut="⌘⏎"
-          disabled={!canStart}
-          onClick={run}
-          // A disabled control pairs with an explanation: a dim button on its
-          // own says nothing about what would unlock it.
-          title={
-            canStart || isPending
-              ? undefined
-              : mode === "ship"
-                ? "Describe the work in a few words, or pick an approved spec"
-                : "Describe the goal in a few words"
-          }
-        >
-          {isPending ? "Starting" : "Hand it over"}
-        </Button>
-      </Actions>
 
       <RepoGateDialog
         open={repoGate !== null}

@@ -46,6 +46,7 @@ import { getLoopState } from "@/lib/loop-state.functions";
 import { getBriefing } from "@/lib/briefing.functions";
 import type { JourneyId } from "@/lib/journeys";
 import { DESK_COMPOSE_EVENTS, fireDeskCompose } from "@/lib/desk-compose";
+import { OPEN_MODAL_SELECTOR } from "@/lib/overlay";
 import type { PaletteRun } from "@/lib/palette-sections";
 import { toast } from "@/lib/notify";
 import { SPINE_STAGES, type StageId, type StageLoopState } from "@/components/mission/Spine";
@@ -430,17 +431,23 @@ export function MissionShell({
 
   // Keys 1-7 walk the Spine. Shell-local; same guards as the old app's
   // GotoShortcuts (never while typing, never under an open dialog).
+  //
+  // "SAME GUARDS" IS NOW LITERAL. This carried a hand-copied copy of the dialog
+  // selector, and a copy is a guard with its own age: when GotoShortcuts learned
+  // on 2026-08-06 that Radix confirmations are role="alertdialog" and not
+  // role="dialog", this one did not, so pressing 3 under "Revoke token" walked
+  // the Spine out from under the question. Importing the string is what keeps
+  // the two the same guard rather than two guards that agreed once.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
-      if (el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.isContentEditable) return;
+      // SELECT included, matching the house guard. This file's own comment two
+      // lines up says these two handlers should be "the same guard rather than
+      // two guards that agreed once", and they had drifted again on exactly the
+      // field a native dropdown's type-ahead fires from.
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (
-        document.querySelector(
-          '[role="dialog"][data-state="open"], [role="dialog"][aria-modal="true"]',
-        )
-      )
-        return;
+      if (document.querySelector(OPEN_MODAL_SELECTOR)) return;
       const idx = Number(e.key) - 1;
       if (Number.isInteger(idx) && idx >= 0 && idx < SPINE_STAGES.length && e.key.length === 1) {
         e.preventDefault();

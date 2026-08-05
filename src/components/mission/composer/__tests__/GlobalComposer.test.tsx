@@ -71,10 +71,26 @@ mock.module("@/hooks/use-voice", () => ({
   useReadAloud: () => ({ supported: false, speakingId: null, toggle: () => {}, stop: () => {} }),
 }));
 
-// The pane has its own tests. Here it only has to be mountable.
-mock.module("@/components/ask/AskPane", () => ({
-  AskPane: () => <div data-testid="ask-pane-stub" />,
-}));
+/**
+ * THE PANE HAS ITS OWN TESTS. Here it only has to be MOUNTABLE, so these tests
+ * INJECT a stub through `GlobalComposer`'s `pane` prop rather than swapping the
+ * module.
+ *
+ * IT USED TO STUB THE MODULE, and that quietly broke another suite.
+ * `mock.module("@/components/ask/AskPane", …)` is not scoped to this file: it
+ * swaps a process-wide registry entry. Whenever this file loaded before
+ * `components/ask/__tests__/AskPane.test.tsx`, that suite imported THIS stub --
+ * a bare div -- and its conversation-switcher tests failed against a pane that
+ * structurally could not render a conversation. Three of four full-suite runs
+ * were clean and the fourth failed three tests, from a file that does not
+ * import the file that failed.
+ *
+ * The comment that used to sit here read "the pane has its own tests", which
+ * was exactly right and exactly the problem: a module stub takes those tests
+ * with it. A prop leaves the registry alone, so nothing here can reach another
+ * file.
+ */
+const AskPaneStub = () => <div data-testid="ask-pane-stub" />;
 
 /**
  * The dock reads live agents so its collapsed row can name a running one. That
@@ -93,7 +109,7 @@ const { AskProvider } = await import("@/lib/ask-context");
 function mount() {
   return render(
     <AskProvider>
-      <GlobalComposer />
+      <GlobalComposer pane={AskPaneStub} />
     </AskProvider>,
   );
 }
