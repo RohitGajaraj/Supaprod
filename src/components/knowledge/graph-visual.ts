@@ -48,7 +48,8 @@ export const KIND_VISUAL: Record<string, KindVisual> = {
   learning: { token: "--sp-stage-learn", fallback: "#a89f66", label: "Outcome" },
   deployment: { token: "--sp-stage-ship", fallback: "#bd8092", label: "Deploy" },
   changeset: { token: "--sp-stage-build", fallback: "#6d97c2", label: "Changeset" },
-  prototype: { token: "--sp-stage-design", fallback: "#ab7fa0", label: "Prototype" },
+  // "Mockup": one static screen, no script. See ArtifactsView for the full note.
+  prototype: { token: "--sp-stage-design", fallback: "#ab7fa0", label: "Mockup" },
   // Both are parts OF a spec rather than things of their own, so they share the
   // plan stage and are told apart by their label, not by a hue nobody can name.
   prd_scaffold: { token: "--sp-stage-plan", fallback: "#8fa464", label: "Spec scaffold" },

@@ -39,7 +39,10 @@ const KIND_LABEL: Record<ArtifactKind, string> = {
   mission: "Build session",
   house_rule: "House rule",
   design_memory: "Design memory",
-  prototype: "Prototype",
+  // "Mockup", not "Prototype": the generator forbids <script> and produces one
+  // static screen, so the word promised interactivity the artifact does not
+  // have. The DB kind is unchanged; this is the reader's word for it.
+  prototype: "Mockup",
   capability_change: "Capability change",
   // Added 2026-08-02 with the four kinds a live census found stored but declared
   // nowhere. Plain words, per the voice convention: what the thing IS to a

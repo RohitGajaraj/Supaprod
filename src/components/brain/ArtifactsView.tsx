@@ -154,15 +154,30 @@ import {
   Who,
 } from "@/components/shell/primitives";
 
-/** Said once, on the group heading, instead of on a chip on every row. */
+/**
+ * Said once, on the group heading, instead of on a chip on every row.
+ *
+ * `prototype` READS "MOCKUP", because that is what it is. The generator's own
+ * prompt forbids `<script>` tags and asks for "the MAIN screen" -- one static
+ * page, with `[User Name]` placeholders where content goes. In product design a
+ * prototype is interactive: clickable, multi-state, a flow you can walk. Calling
+ * a still image a prototype promises a designer something the artifact cannot
+ * do, and the founder draws exactly that distinction himself ("what and all
+ * prototypes, mock up needs to be there").
+ *
+ * The DB kind stays `prototype`. Slugs are stable forever under the
+ * rename-disclaimer rule; only the word a person reads changes, which is the
+ * same edge-translation `/design` already does when it renders this kind as
+ * "shared link".
+ */
 const KIND_ONE: Record<ArtifactKind, string> = {
   spec: "Spec",
-  prototype: "Prototype",
+  prototype: "Mockup",
   doc: "Doc",
 };
 const KIND_MANY: Record<ArtifactKind, string> = {
   spec: "Specs",
-  prototype: "Prototypes",
+  prototype: "Mockups",
   doc: "Docs",
 };
 /** Spec first: it is the artifact a product lead comes back to most. */
