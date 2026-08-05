@@ -42,6 +42,13 @@ Open one only when you are building that thing. Each carries per-ID specs: conte
 
 ---
 
+## Launch, and the gaps still open against it
+
+| File | What it holds |
+| --- | --- |
+| [`launch-audit/GAP-CLOSURE-REGISTER.md`](./launch-audit/GAP-CLOSURE-REGISTER.md) | The register of gaps found by the pre-launch audits and whether each is closed. Read it beside [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) section 0, which owns status; this owns the audit's own list. |
+| [`3-gaps-implementation-plan.md`](./3-gaps-implementation-plan.md) | The plan for three named gaps carried into launch week. Subject to the rule below: it moves to `archive/` the moment its work is done. |
+
 ## The rule that keeps this folder small
 
 **A plan stops being a plan the moment its work is done.** When an initiative closes, or its campaign is archived, or its status line reads SHIPPED, the bible moves to [`archive/`](./archive/README.md) with a line saying which of those happened. It does not sit at the top level looking live.

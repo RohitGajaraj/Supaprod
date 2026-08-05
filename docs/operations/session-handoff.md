@@ -1,3 +1,124 @@
+# Session close 2026-08-06 ~05:00 IST — autonomous overnight run, 18 commits
+
+Gate: **tsc 0 · 7,948 pass 0 fail · build 0 · lint clean.** The suite is stable
+across five consecutive full runs, which mattered more than any single fix — see
+"the suite was lying" below.
+
+## READ THIS FIRST: one defect wore eighteen coats
+
+Almost everything found overnight is the same defect. **The product kept claiming
+things it had not verified**, and nothing could catch it, because in every case
+the code typechecked, the tests passed and the surface looked finished.
+
+- A work order told the builder **"a human passed this markup through the design
+  gate"** for a mockup that may have been rejected or never reviewed.
+  `prd_scaffolds` has no status column, and the gate stands down whenever the
+  design stage is toggled off — a switch that also fails open on a read error.
+- An engine-room card could print **"up from $0.00 the day before"** about a day
+  nobody looked at: the capped read drops its OLDEST days and the zero-fill was
+  read as a real figure.
+- An acceptance criterion could be **lengthened** while carrying a note saying it
+  had been shortened for space. Thirty grew a document 12,994 → 14,279 chars with
+  no receipt written.
+- **Thirteen of sixteen people** were told "this workspace has no admin", with a
+  button that could only error, because the count ran through their own RLS scope
+  and could only ever see their own row.
+- A release document opened with **"Nobody typed any of it"** over prose the crew
+  writes at merge, 153–311 chars of it on all eight live entries.
+- "Yesterday" was a **UTC bucket wearing a local label** — wrong on the founder's
+  own screen for 5.5 hours out of every 24.
+
+**If one thing carries into the next session: a sentence on a surface is a claim,
+and a claim needs a row behind it.**
+
+## THE SECOND PATTERN: capabilities with no door
+
+Three features were fully built and never connected. Already named in this repo
+as its signature defect; it is worse than believed.
+
+| Built | Missing |
+| --- | --- |
+| `getFocusNext` ranks every theme by severity x recency x novelty-vs-memory and writes a recommendation with evidence | **Zero React callers.** The moat was computed nightly and rendered nowhere. |
+| `savePrd` accepts `status:"approved"`, the transition logic exists, `prds_reactor_fanout` fires, `prd.approved` has a written handler | **No button.** 55 approved specs exist; none approved by a person using the product. |
+| `ask-sse` parses a `landing` frame, `use-ask-stream` accumulates, `AskLanding` renders, `AskTurn` takes the prop | **Nothing emitted it, nothing passed it.** You dispatched work and the conversation stopped. |
+
+All three now connected. **Nothing can catch this class**: an absent control
+leaves no trace except in what never happens. Only findable by asking "what is
+this station's job, and can you finish it here?"
+
+## THE SUITE WAS LYING, and that had to be fixed before anything else
+
+It failed **three runs of four**, with different tests failing each time, from
+files that do not import the ones that failed. `mock.module` is PROCESS-WIDE and
+is only observed when a consumer is first imported. `GlobalComposer`'s test
+replaced the entire `AskPane` module with a bare div; its comment read "the pane
+has its own tests", which was exactly right and exactly the problem.
+
+Fixed structurally: `AskDock`/`GlobalComposer` take an optional `pane` prop
+defaulting to the real one, so a test injects a stub without touching the
+registry. `threads.functions` got a shared live store. `escape-layers` stopped
+mounting three real components behind eighteen module mocks.
+
+## THE KEYBOARD IS FINISHED
+
+- **One alphabet**: `a` accepts, `d` declines on Today, Approvals, Decide,
+  Design, Crew, Discover. `c` (Critic) and `m` (merge) keep their own letters.
+- **The worst collision is gone**: `k` moved the cursor on Approvals and
+  COMMITTED on Decide.
+- **`g` then a letter** navigates; pressing `g` lights every keycap for two
+  seconds. The seven stations draw their keys at last.
+- **`?` opens a shortcuts sheet** derived from `key-model.ts`, held to the code
+  in BOTH directions by a drift test.
+- `g d` on Today used to navigate to Discover AND decline the call behind you.
+  Proven live with the network blocked. Fixed at the capture phase.
+
+## LIVE DATABASE: what changed, and what I undid
+
+Applied and verified: `platform_has_admin()`, a `security definer` boolean so a
+member can learn an admin exists without reading who they are.
+
+**REVERTED.** I moved two mis-homed opportunities to their theme's workspace,
+then found their SPECS were written into the workspace the bet landed in — so the
+historical rows were internally consistent and disagreed only with the theme.
+Moving the bet alone separated it from its own spec; prd-vs-opportunity
+mismatches went 1 to 2. Database restored to exactly the state found: **2
+opportunity-vs-theme, 1 prd-vs-opportunity.** The code fix ships. A correct
+backfill must walk the whole lineage, and `missions` has no `prd_id` column, so
+that walk is over edges. **A considered migration, not a 4am one.**
+
+## OPEN, in priority order
+
+1. **The conversational-first shift is the biggest unmet ask.** Dock, work line
+   and landing all exist; what is missing is the server emitting `station` and
+   `tool` frames DURING a run. `runAgentLoop` fires unawaited, so they cannot
+   ride the same stream. Architectural call, not wiring.
+2. **`getPushedInsights` and `markInsightActioned` still have no callers** — same
+   shape as `getFocusNext`. The nightly push writes rows nobody reads.
+3. **Build still cannot start a build.** `dispatchBuilderMission` has no caller.
+4. **Design produces no test cases or acceptance criteria anywhere**, and calls a
+   script-free single screen a prototype.
+5. `WhatShipped` needs its render tests.
+6. Three read ceilings still report as totals: `getIncidents` (40, over five
+   sources each capped at 20) prints its number on the Safety VERDICT line;
+   `getLedgerSeal` (1000) additionally asserts the fingerprint covers the whole
+   ledger.
+
+## RULES LEARNED THE HARD WAY
+
+- **A column default is a guess about the WRITER, never about the row.**
+  `current_user_default_workspace()` looks like a safety net and is a silent
+  tenancy decision.
+- **A guard nobody has watched fail is not a guard.** Two of mine passed with the
+  defect planted, one because a single clause never went over budget so the code
+  path never ran. **Check the fixture reaches the branch.**
+- **`499` from the Lovable MCP is a response timeout, not a refusal.** The
+  statement runs. Never retry a non-idempotent write; query the state first.
+- **Both ends can be internally consistent and still disagree about the wire.**
+  The first `landing` emit sent the parser's RETURN type instead of its input. No
+  type could see it; walking a real line through the real parser did.
+
+---
+
 # Session close 2026-08-05 ~00:30 IST — Comprehensive audit + top 5 UX gaps fixed
 
 Gate: **tsc 0 · 7,613 pass 0 fail · build 0 · check-humanized clean.**
