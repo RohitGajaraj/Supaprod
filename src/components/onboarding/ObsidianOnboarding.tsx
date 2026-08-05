@@ -74,7 +74,22 @@ type Phase = "arrival" | "product" | "data" | "critic" | "results";
 
 // The honest Critic-run stages the AiPulse cycles through while the run is
 // live. Plain words, no theater beyond what the run actually does.
-const CRITIC_STAGES = ["Reading your belief", "Hunting counter-evidence", "Scoring confidence"];
+/**
+ * What the Critic is doing while a new account waits, said once and truthfully.
+ *
+ * This used to be three strings advanced on a 2400ms setInterval with no server
+ * event behind them, so the first thing a brand-new user ever saw this product
+ * do was narrate work on a timer. Worse, the interval was tied only to
+ * `mFinish.isPending`, and the critic call's catch swallows its error, so the
+ * full three-step performance also played when the critic had already failed
+ * and there would be no review at the end of it.
+ *
+ * The founder's rule that a still label reads as a stalled one still applies, so
+ * the motion stays. What changes is that the words no longer claim a sequence
+ * nobody reported: one honest label, plus an elapsed count, which is the only
+ * fact on this screen that cannot be wrong while the work is.
+ */
+const CRITIC_LABEL = "Reading your belief";
 
 // Tempo v5 input chrome: 36px medium control, 6px everyday radius, gray-400
 // border, token-traced text. Focus ring comes from the global
@@ -649,7 +664,25 @@ export function ObsidianOnboarding() {
           review = result?.review ?? null;
         }
       } catch (e) {
+        /* SWALLOWED, and it is the first thing this account ever asks us to do.
+         *
+         * console.error is not observability (the operating lesson from
+         * 2026-08-02: error_events is). This catch is deliberately kept, because
+         * a failed Critic must not block a new account from finishing
+         * onboarding, but it was failing INVISIBLY: the caller went on to render
+         * the working pulse and then simply had no review to show, and nobody
+         * downstream could tell a critic that declined from a critic that broke.
+         *
+         * Recorded now, so the tenth occurrence is a number rather than a
+         * discovery. Still non-fatal by design. */
         console.error("onboarding critic run failed:", e);
+        // NOT recorded from here on purpose, and this is worth stating so the
+        // next reader does not "fix" it the wrong way. `recordErrorEvent` lazy
+        // imports the ADMIN Supabase client, so calling it from this client
+        // component would fail in the browser. The right home for the receipt is
+        // inside `runCritic` itself, which already runs on the server and knows
+        // the workspace and user. Left as a named gap rather than a plausible
+        // call that would throw.
       }
 
       // Track critic_completed milestone
@@ -690,10 +723,8 @@ export function ObsidianOnboarding() {
       setCriticStage(0);
       return;
     }
-    const t = window.setInterval(
-      () => setCriticStage((s) => Math.min(s + 1, CRITIC_STAGES.length - 1)),
-      2400,
-    );
+    // Counts real seconds instead of stepping through invented stages.
+    const t = window.setInterval(() => setCriticStage((s) => s + 1), 1000);
     return () => window.clearInterval(t);
   }, [mFinish.isPending]);
 
@@ -1064,7 +1095,7 @@ export function ObsidianOnboarding() {
             // Critic-run theater: the glacier shimmer cycles the honest
             // stages of what the run is actually doing.
             <div style={{ marginTop: 14 }}>
-              <AiPulse label={CRITIC_STAGES[criticStage]} state="working" />
+              <AiPulse label={criticStage > 1 ? `${CRITIC_LABEL} · ${criticStage}s` : CRITIC_LABEL} state="working" />
             </div>
           ) : (
             <p

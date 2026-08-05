@@ -40,6 +40,23 @@ import {
 
 const POLL_MS = 4000;
 
+/**
+ * Statuses a run never leaves. Everything else, including the queued and
+ * in_progress states a freshly dispatched mission passes through, means the
+ * card should keep watching.
+ *
+ * Deliberately an "is it finished" set rather than an "is it working" one: a
+ * status nobody anticipated then keeps the card live instead of freezing it,
+ * and that is the safe direction to be wrong in.
+ */
+const TERMINAL_RUN_STATUS = new Set([
+  "completed",
+  "completed_with_failures",
+  "failed",
+  "cancelled",
+  "halted",
+]);
+
 /** Plain words for one loop step. Never "thinking": an agent works. */
 function stepLine(step: LoopStep): string {
   if (step.kind === "tool_call") return ACTION_LABEL[step.name] ?? "working";
@@ -66,9 +83,25 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
   const canvas = useQuery({
     queryKey: ["ask-canvas", missionId],
     queryFn: () => fetchCanvas({ data: { missionId } }),
-    // Stop polling the moment the run stops. Motion confirms; a settled run has
-    // nothing left to confirm.
-    refetchInterval: (q) => (q.state.data?.run?.status === "running" ? POLL_MS : false),
+    /* Stop polling the moment the run stops. Motion confirms; a settled run has
+     * nothing left to confirm.
+     *
+     * Tested the RIGHT way round, and that is the fix. This asked "is it
+     * running" and stopped for everything else, which silently included every
+     * status a run holds BEFORE it runs: a mission dispatched from Ask is
+     * queued, then in_progress, and only sometimes literally "running". So on
+     * the one path this card exists for, the poll never installed at all and
+     * the card sat on its first empty read forever.
+     *
+     * Asking "is it finished" instead means an unrecognised or brand-new status
+     * keeps the card live rather than freezing it, which is the safe direction
+     * to be wrong in: a card that polls a little too long costs a request, one
+     * that stops too early lies about the work. */
+    refetchInterval: (q) => {
+      const status = q.state.data?.run?.status;
+      if (!status) return POLL_MS; // dispatched, no run row yet: keep looking
+      return TERMINAL_RUN_STATUS.has(status) ? false : POLL_MS;
+    },
   });
 
   if (canvas.isError) {

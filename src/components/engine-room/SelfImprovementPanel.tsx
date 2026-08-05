@@ -66,28 +66,46 @@ function MonoChip({ children }: { children: React.ReactNode }) {
  * screening -> writing the rule -> recording) beside a pulsing ember dot, so the
  * user always sees motion + what's happening and never assumes it stalled.
  */
-function ActivePulse({ messages }: { messages: string[] }) {
-  const [i, setI] = useState(0);
+function ActivePulse({ label }: { label: string }) {
+  /* THIS USED TO INVENT THE AGENT'S STEPS, and on this product that is the one
+   * unaffordable defect.
+   *
+   * It took a list of strings and cycled them on a 1500ms setInterval with NO
+   * server event behind any of them. So "Recording it on the Trust Ledger"
+   * appeared while nothing had been recorded, and then un-appeared as the
+   * modulo wrapped back to the first message. The whole claim of this product
+   * is that you can see what the agents are actually doing; a fabricated step
+   * cycle is the exact screenshot a skeptical reviewer needs to argue the
+   * opposite, and it would be a fair argument.
+   *
+   * It also wore `StepDot status="gate"`, which is the system's single reserved
+   * blink. That blink belongs to the one thing actually asking a human for
+   * something. A background task is not asking, so it takes `running`.
+   *
+   * THE FOUNDER'S RULE STILL HOLDS: never a grayed-out dead label, because a
+   * still surface reads as a stalled one. So this is not simply deleted. It
+   * keeps the motion and replaces the invented narration with the one thing
+   * here that is measurably true: how long this has actually been going. An
+   * honest elapsed second-count is better proof of life than a script, because
+   * it cannot be right when the work is wrong. */
+  const [seconds, setSeconds] = useState(0);
   useEffect(() => {
-    if (messages.length <= 1) return;
-    // Cycle the step messages while the work runs; cleans up when the parent
-    // stops rendering this (i.e. the moment the result arrives).
-    const t = setInterval(() => setI((v) => (v + 1) % messages.length), 1500);
+    const t = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(t);
-  }, [messages.length]);
+  }, []);
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 12 }}>
-      {/* the ember gate dot pulses continuously (dot-gate keyframes) = the live signal */}
-      <StepDot status="gate" />
+      <StepDot status="running" />
       <span
         style={{
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
-          color: "var(--ember-text)",
+          color: "var(--text-muted)",
         }}
       >
-        {messages[i % messages.length]}
+        {label}
+        {seconds > 1 ? ` · ${seconds}s` : ""}
       </span>
     </span>
   );
@@ -121,15 +139,10 @@ function ProposalEnricher({
 
   if (!data) {
     if (enrich.isPending) {
-      return (
-        <ActivePulse
-          messages={[
-            "Reading the records...",
-            "Spotting the pattern...",
-            "Composing a grounded fix...",
-          ]}
-        />
-      );
+      // One true label. The old three-step script claimed a sequence this call
+      // does not report back, so it named work that may not have happened in
+      // that order, or at all.
+      return <ActivePulse label="Reading the records" />;
     }
     return (
       <button
@@ -208,13 +221,7 @@ function ProposalEnricher({
           ) : (
             <>
               {apply.isPending ? (
-                <ActivePulse
-                  messages={[
-                    "Screening the fix for safety...",
-                    "Writing the house rule...",
-                    "Recording it on the Trust Ledger...",
-                  ]}
-                />
+                <ActivePulse label="Applying the fix" />
               ) : (
                 <button
                   type="button"

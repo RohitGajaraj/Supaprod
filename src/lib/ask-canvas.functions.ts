@@ -40,11 +40,26 @@ export const getAskMissionCanvas = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<AskMissionCanvasResult> => {
     const db = context.supabase as unknown as SupabaseClient;
 
+    /* THE CMD+K HERO PATH ENDED IN A CARD THAT COULD NEVER FILL.
+     *
+     * This filtered on agent_slug "builder". Nothing Ask dispatches is ever a
+     * builder: api/chat.ts runs the loop as "orchestrator", `@cos` resolves to
+     * orchestrator too, and loop.server.ts writes whichever seat actually holds
+     * the run. So the lookup matched no row, `run` stayed null, and the card
+     * under "Hand it over" said "The run has not reported a step yet" for the
+     * lifetime of the mission, including long after it finished.
+     *
+     * That is the product's single most important demo: you type intent, an
+     * agent takes the work. It ended in a permanently empty box.
+     *
+     * The right filter is no filter. This surface asks "what is happening on
+     * THIS mission", and the answer is its most recent run regardless of which
+     * seat holds it, which is also what makes it correct when the orchestrator
+     * hands off to a specialist mid-mission. */
     const { data: runRow } = await db
       .from("agent_runs")
-      .select("id,status")
+      .select("id,status,agent_slug")
       .eq("mission_id", data.missionId)
-      .eq("agent_slug", "builder")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
