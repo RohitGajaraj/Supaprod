@@ -461,42 +461,50 @@ function Today() {
       />
 
       {call ? (
-        <Gate
-          // The stored title carries a machine "[auto]" origin prefix when the
-          // loop raised it. That is provenance, not copy, and it must never
-          // reach the one sentence the human is asked to judge.
-          question={stripAutoPrefix(call.title)}
-          lines={[
-            ...call.evidence
-              .slice(0, 3)
-              .map((line, i) => <span key={i}>{stripAutoPrefix(line)}</span>),
-            <span key="consequence">{call.approveConsequence}</span>,
-          ]}
-        >
-          <Button
-            variant="primary"
-            shortcut="a"
-            disabled={busy}
-            onClick={() => settle.mutate("approve")}
+        <>
+          <Gate
+            // The stored title carries a machine "[auto]" origin prefix when the
+            // loop raised it. That is provenance, not copy, and it must never
+            // reach the one sentence the human is asked to judge.
+            question={stripAutoPrefix(call.title)}
+            lines={[
+              <span key="consequence">{call.approveConsequence}</span>,
+            ]}
           >
-            Approve
-          </Button>
-          {revisable ? (
             <Button
+              variant="primary"
+              shortcut="a"
               disabled={busy}
-              onClick={() => navigate({ to: "/approvals" })}
-              title="Send it back with a note"
+              onClick={() => settle.mutate("approve")}
             >
-              Send back
+              Approve
             </Button>
+            {revisable ? (
+              <Button
+                disabled={busy}
+                onClick={() => navigate({ to: "/approvals" })}
+                title="Send it back with a note"
+              >
+                Send back
+              </Button>
+            ) : null}
+            <Button shortcut="d" disabled={busy} onClick={() => settle.mutate("reject")}>
+              Decline
+            </Button>
+            <Button variant="ghost" shortcut="z" disabled={busy} onClick={() => defer.mutate()}>
+              Snooze
+            </Button>
+          </Gate>
+
+          {/* AGENT REASONING SECTION - Makes why the agent recommends this transparent and obvious */}
+          {call.evidence.length > 0 ? (
+            <Block title="Why the agent recommends this" sub="Agent reasoning and supporting evidence">
+              {call.evidence.map((line, i) => (
+                <Row key={i} lead={stripAutoPrefix(line)} />
+              ))}
+            </Block>
           ) : null}
-          <Button shortcut="d" disabled={busy} onClick={() => settle.mutate("reject")}>
-            Decline
-          </Button>
-          <Button variant="ghost" shortcut="z" disabled={busy} onClick={() => defer.mutate()}>
-            Snooze
-          </Button>
-        </Gate>
+        </>
       ) : queue.isLoading ? (
         /* THE THIRD FACT, and the front door was the one surface missing it.
          *
