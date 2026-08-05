@@ -341,22 +341,23 @@ function ChoiceCard({
 }) {
   const interactive = !disabled && !busy;
   return (
-    <style>
-      {`
-        .choice-card-interactive {
-          background-color: var(--ds-gray-100);
-          border-color: var(--ds-gray-alpha-400);
-        }
-        .choice-card-interactive:hover {
-          background-color: var(--ds-gray-200);
-          border-color: var(--ds-gray-alpha-500);
-        }
-        .choice-card-interactive:active {
-          background-color: var(--ds-gray-300);
-        }
-      `}
-    </style>
-    <button
+    <>
+      <style>
+        {`
+          .choice-card-interactive {
+            background-color: var(--ds-gray-100);
+            border-color: var(--ds-gray-alpha-400);
+          }
+          .choice-card-interactive:hover {
+            background-color: var(--ds-gray-200);
+            border-color: var(--ds-gray-alpha-500);
+          }
+          .choice-card-interactive:active {
+            background-color: var(--ds-gray-300);
+          }
+        `}
+      </style>
+      <button
       type="button"
       disabled={disabled}
       aria-busy={busy || undefined}
@@ -382,7 +383,8 @@ function ChoiceCard({
       }}
     >
       {children}
-    </button>
+      </button>
+    </>
   );
 }
 
