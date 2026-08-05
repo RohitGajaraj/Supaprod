@@ -53,6 +53,7 @@ import {
   type EmbedResult,
 } from "@/lib/rag/embed.server";
 import { recordErrorEvent } from "@/lib/observability/errors";
+import { cleanTitle } from "@/components/plan/format";
 
 /** Chars of any one entity fed to the embedder. Same budget the signal and theme
  *  builders use, so vectors across the brain stay comparable in how much text
@@ -126,7 +127,12 @@ function joinParts(parts: string[], maxChars: number = MAX_EMBED_CHARS): string 
  * the similarity score. That is worse than not finding it. `status` is a facet.
  */
 export function decisionEmbeddingText(title: string | null, rationale: string | null): string {
-  return joinParts([collapseText(title), collapseText(rationale)]);
+  // The retired "[auto] " marker must never be embedded. It is a dedup key,
+  // so it carries no meaning, and because EVERY auto-raised decision shared
+  // it, it pulled them together in vector space for a reason that has nothing
+  // to do with what they say. Rows embedded before this are stale and need a
+  // recompute, not just a strip.
+  return joinParts([collapseText(cleanTitle(title)), collapseText(rationale)]);
 }
 
 /**

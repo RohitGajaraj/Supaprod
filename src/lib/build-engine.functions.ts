@@ -36,6 +36,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { cleanTitle } from "@/components/plan/format";
 
 /** One changeset, as the Build engine's list needs it. */
 export type BuildWorkItem = {
@@ -149,7 +150,7 @@ export const listBuildWork = createServerFn({ method: "GET" })
       files.set(c.changeset_id, f);
     }
     const title = new Map(
-      ((missionRows ?? []) as { id: string; title: string }[]).map((m) => [m.id, m.title]),
+      ((missionRows ?? []) as { id: string; title: string }[]).map((m) => [m.id, cleanTitle(m.title)]),
     );
     const liveSet = new Set(
       ((liveRuns ?? []) as { mission_id: string | null }[])

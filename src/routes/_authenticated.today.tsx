@@ -33,7 +33,7 @@ import {
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
-import { stripAutoPrefix } from "@/components/plan/format";
+import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
 import {
   AgentMark,
   Block,
@@ -78,10 +78,32 @@ function daysSince(iso: string | null): number | null {
   return Number.isFinite(d) && d >= 0 ? d : null;
 }
 
+/**
+ * Statuses that mean the crew STOPPED, rather than finished.
+ *
+ * `cancelMission` writes `completed_at` when a human cancels
+ * (missions.functions.ts:565), which is correct as a timestamp and wrong as a
+ * claim: it made a cancelled run indistinguishable from a delivered one to
+ * anything that keyed on that column alone.
+ */
+const STOPPED = new Set(["cancelled", "halted"]);
+
 /** "While you were gone" has to mean something, so it means the last day. */
 function finishedRecently(m: MissionListRow): boolean {
   if (!m.completed_at) return false;
   return Date.now() - new Date(m.completed_at).getTime() < 86_400_000;
+}
+
+/**
+ * Did this run actually FINISH, or was it stopped?
+ *
+ * The headline counts "N runs finished" off this block, so a cancelled run was
+ * being reported to the founder as work the crew delivered overnight. The row
+ * still appears in the list, because "you cancelled this" is worth seeing; it
+ * just no longer counts as a finish and no longer wears the success mark.
+ */
+function actuallyFinished(m: MissionListRow): boolean {
+  return finishedRecently(m) && !STOPPED.has(m.status);
 }
 
 function Today() {
@@ -206,7 +228,25 @@ function Today() {
         },
         ...r,
       ]);
-      void qc.invalidateQueries({ queryKey: ["today"] });
+      /* SNOOZE USED TO DO NOTHING YOU COULD SEE, and it was one missing line.
+       *
+       * `["today"]` prefix-matches only the learnings query on this page. The
+       * queue this call actually lives in is `approvalsQueueKey(ws)`, which is
+       * `["approvals-queue", ws]`, and the missions list is `["missions-list",
+       * ws]`. Neither begins with "today", so neither refetched. With
+       * refetchOnWindowFocus off and a 30s staleTime, nothing else rescued it
+       * either.
+       *
+       * So the receipt said "You snoozed it. It comes back with tomorrow's
+       * brief" while the identical call stayed on screen, still asking, and the
+       * header count did not move. Pressing it again just produced a second
+       * receipt. A control that reports a consequence the surface then
+       * contradicts is worse than one that does nothing, because the user has
+       * to work out which of the two is lying.
+       *
+       * `settle` directly above has always called this; `defer` was simply
+       * never given it. */
+      invalidateShellReads(qc);
     },
     onError: (e: Error) =>
       setReceipts((r) => [
@@ -246,13 +286,20 @@ function Today() {
   // the shell already provides structure.
   const headline = React.useMemo(() => {
     if (loading) return "Today";
-    const n = done.length;
+    // Counts finishes, not stops. `done` still lists a cancelled run, because
+    // seeing it is useful, but calling it a finish in the headline was the
+    // product claiming work it did not do.
+    const n = done.filter((m) => !STOPPED.has(m.status)).length;
     const g = items.length;
     const ran =
       n === 0 ? "Nothing finished overnight" : n === 1 ? "One run finished" : `${n} runs finished`;
-    const needs = g === 0 ? "Nothing needs you." : g === 1 ? "One needs you." : `${g} need you.`;
+    // The noun, said out loud. The header 200px above counts the SAME approvals
+    // queue and says "N calls need you", so a bare "N need you" here read as a
+    // second, contradicting number. Same fix as the Runs board.
+    const needs =
+      g === 0 ? "Nothing needs you." : g === 1 ? "One call needs you." : `${g} calls need you.`;
     return `${ran}. ${needs}`;
-  }, [loading, done.length, items.length]);
+  }, [loading, done, items.length]);
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -444,6 +491,22 @@ function Today() {
               // Every run on this block rendered state="idle", so MarkState
               // "verified" existed solely to show a win and was never once used:
               // Today could shout a loss and had no way to show a success.
+              /* A CANCELLED RUN WAS WEARING THE GREEN SUCCESS MARK.
+               *
+               * This ternary sent everything that was not `failed` or
+               * `completed_with_failures` to `verified`, and the block it sits in
+               * selects on `completed_at` alone (finishedRecently, above).
+               * `cancelMission` writes `status:"cancelled", completed_at: now`
+               * (missions.functions.ts:565), so a run the human deliberately
+               * stopped arrived here, was painted green, and was counted in the
+               * headline as one of the runs that finished. `halted` did the same.
+               *
+               * That breaks the primitive's own written contract: verified "IS
+               * NOT done... A run that claims done with nothing behind it stays
+               * neutral, because painting every finished run green would be the
+               * product asserting success it never checked." Colour carries
+               * status here, so green has to mean a real outcome and nothing
+               * else. Stopped work is neutral, not a win and not a failure. */
               marks={
                 <AgentMark
                   slug={null}
@@ -451,13 +514,15 @@ function Today() {
                   state={
                     m.status === "failed"
                       ? "failed"
-                      : m.status === "completed_with_failures"
+                      : m.status === "completed_with_failures" ||
+                          m.status === "cancelled" ||
+                          m.status === "halted"
                         ? "idle"
                         : "verified"
                   }
                 />
               }
-              lead={<Who>{m.title}</Who>}
+              lead={<Who>{cleanTitle(m.title)}</Who>}
               sub={
                 <>
                   {m.hop_count > 0 ? (

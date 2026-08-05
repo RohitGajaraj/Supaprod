@@ -26,6 +26,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { embedThroughChokepointWithModel } from "@/lib/rag/embed.server";
+import { cleanTitle } from "@/components/plan/format";
 
 export type JudgmentKind = "decision" | "opportunity" | "prd" | "learning";
 
@@ -116,7 +117,10 @@ export function formatWorkspaceRecord(hits: JudgmentHit[], now = new Date()): st
   const lines = hits.map((h) => {
     const label = KIND_LABEL[h.kind];
     const state = h.verdict?.trim() || h.status?.trim() || "";
-    const name = h.title?.trim() || "(untitled)";
+    // The Critic reads this block. A raw "[auto] " here does not just look
+    // wrong, it teaches the model the marker is part of the decision's name
+    // and it comes back out in generated prose.
+    const name = cleanTitle(h.title)?.trim() || "(untitled)";
     const age = ageLabel(h.createdAt, now);
     const by = h.agentSlug ? `, decided by ${h.agentSlug}` : "";
     const head = `- [${label}${state ? ` ${state.toUpperCase()}` : ""}] "${name}"${age ? ` (${age}${by})` : by ? ` (${by.slice(2)})` : ""}`;

@@ -275,8 +275,10 @@ function PublicTeardownPage() {
           lineHeight: 1.5,
         }}
       >
+        {/* Same doctrine fix as d.$slug: it learns and guides, it never remembers. */}
         A read-only snapshot of one Critic teardown. Supaprod is the PM chief of staff that
-        red-teams your calls, runs the reversible work, and remembers every outcome.
+        red-teams your calls, runs the reversible work, and lets what happened guide the next
+        call.
       </p>
 
       <PreSignupCTA sourceType="teardown" />

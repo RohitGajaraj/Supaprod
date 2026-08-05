@@ -8,6 +8,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { toolRisk } from "@/lib/tool-consequences";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
+import { cleanTitle } from "@/components/plan/format";
 import { executeApproval, type Json } from "@/lib/ai/loop.server";
 import {
   summarizeAgentRecords,
@@ -284,8 +285,14 @@ export const listGovernApprovals = createServerFn({ method: "POST" })
         ? supabase.from("agent_tools").select("tool_name,mode,enabled").eq("user_id", userId)
         : Promise.resolve({ data: [] as { tool_name: string; mode: string }[] }),
     ]);
+    // Cleaned HERE, at the one place mission titles enter this module, rather
+    // than at each place they leave it. This map feeds ApprovalsPanel (two
+    // lines) and VerifyCockpit (two more), and every one of those four rendered
+    // the raw "[auto] " marker. Stripping at the source closes all four and any
+    // consumer added later, which is the failure mode the audit actually found:
+    // the strip and the leak keep turning up as neighbouring lines.
     const titleOf = new Map<string, string>(
-      (missions.data ?? []).map((m) => [m.id as string, m.title as string]),
+      (missions.data ?? []).map((m) => [m.id as string, cleanTitle(m.title as string)]),
     );
     const { TOOL_REGISTRY } = await import("@/lib/ai/tools/registry.server");
     const effectiveMode = new Map(

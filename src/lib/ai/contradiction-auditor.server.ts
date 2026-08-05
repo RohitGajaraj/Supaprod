@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "./runtime.server";
+import { cleanTitle } from "@/components/plan/format";
 
 // RPT-25: the contradiction auditor (drift pointed inward). A standing judge
 // re-reads a bounded window of the workspace's prior decisions after a new one
@@ -100,10 +101,10 @@ export async function auditDecisionContradictions(
   const corpusBlock = corpus
     .map((c, i) => {
       const why = c.rationale ? ` Rationale: ${c.rationale}` : "";
-      return `[${i}] ${c.title}.${why}`.slice(0, 500);
+      return `[${i}] ${cleanTitle(c.title)}.${why}`.slice(0, 500);
     })
     .join("\n");
-  const subjectBlock = `THE DECISION JUST MADE: ${subject.title}${
+  const subjectBlock = `THE DECISION JUST MADE: ${cleanTitle(subject.title)}${
     subject.rationale ? `\nRationale: ${subject.rationale}` : ""
   }`;
 

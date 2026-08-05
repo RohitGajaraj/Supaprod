@@ -44,8 +44,14 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
           maxWidth: 430,
         }}
       >
+        {/* The conversion line, and it was selling the weakest version of the product.
+            "Remembers every outcome" and "keeps your decision memory" both describe
+            storage, which is a commodity and which every tool already claims. What is
+            actually being bought is that the record CHANGES the next recommendation, so
+            the paid line now names that instead of the filing cabinet. */}
         Supaprod is the PM chief of staff that red-teams your decisions, runs the reversible work,
-        and remembers every outcome. Free to start; Pro keeps your decision memory forever.
+        and learns from every outcome. Free to start; Pro keeps what it learned guiding every call
+        you make after.
       </p>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
         <a href={`/signup?from=${sourceType}`} className="btn btn-primary">

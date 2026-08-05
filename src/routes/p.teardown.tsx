@@ -268,8 +268,12 @@ function TeardownPage() {
                 margin: "0 auto 12px",
               }}
             >
-              Keep this teardown and your decision history. Create a free workspace and Supaprod
-              remembers every call you make.
+              {/* This is the conversion moment on the strongest public asset we have, and
+                  it was promising storage. The visitor has just watched the Critic judge
+                  their idea; what earns the signup is that the NEXT judgement is sharper
+                  because of this one, not that this one is filed somewhere. */}
+              Keep this teardown and your decision history. Create a free workspace and every call
+              you make sharpens the next one.
             </p>
             <Link
               to="/signup"

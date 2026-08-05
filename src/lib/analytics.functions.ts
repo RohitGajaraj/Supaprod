@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { cleanTitle } from "@/components/plan/format";
 
 const DaysSchema = z.object({ days: z.number().int().min(1).max(90).default(7) });
 
@@ -450,7 +451,7 @@ export const getAgentAnalyticsDetail = createServerFn({ method: "POST" })
     if (missionIds.length) {
       const ms = await context.supabase.from("missions").select("id,title").in("id", missionIds);
       if (ms.error) throw new Error(ms.error.message);
-      for (const m of ms.data ?? []) titles.set(m.id as string, m.title as string);
+      for (const m of ms.data ?? []) titles.set(m.id as string, cleanTitle(m.title as string));
     }
 
     return {

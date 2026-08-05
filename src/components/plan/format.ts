@@ -11,6 +11,31 @@ export function stripAutoPrefix(title: string): string {
 }
 
 /**
+ * The same strip, for a value that may be null or undefined.
+ *
+ * WHY THIS EXISTS. An audit on 2026-08-05 found roughly thirty surfaces
+ * rendering a raw title, against twenty-three that stripped correctly, and the
+ * telling part was WHERE they sat: `today.tsx` strips on lines 347 and 351 and
+ * leaks on 460. `DecisionDetail.tsx` strips on 286 and leaks on 409.
+ * `RunBoard.tsx` strips the visible lead on 523 and leaks into the tooltip and
+ * the accessible name on 528. The strip and the leak are neighbours, written by
+ * the same hand in the same pass.
+ *
+ * So the problem was never carelessness, it was that the call was optional and
+ * the nullable case made it awkward: `t ? stripAutoPrefix(t) : t` at every site
+ * is exactly the kind of noise people drop. This overload removes the excuse.
+ *
+ * The real fix is that the marker is leaving the data entirely (migration
+ * 20260805120000 moves provenance to `decisions.auto_origin` and
+ * `missions.auto_trigger_source`). This helper stays afterwards as the belt to
+ * that migration's braces: rows written before it, and any future writer that
+ * reintroduces a prefix, still cannot reach a human.
+ */
+export function cleanTitle<T extends string | null | undefined>(title: T): T {
+  return (typeof title === "string" ? stripAutoPrefix(title) : title) as T;
+}
+
+/**
  * Whether a stored title carries the machine "[auto]" origin prefix. Pairs with
  * `stripAutoPrefix`: strip the prefix for the visible text, then use this to
  * decide whether to show a small "Auto" provenance chip, so a user or an agent

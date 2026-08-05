@@ -21,6 +21,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { cleanTitle } from "@/components/plan/format";
 
 /** The nine canonical links, in pipeline order. */
 export type ChainLinkKey =
@@ -386,7 +387,7 @@ export const getMissionChain = createServerFn({ method: "GET" })
         ? {
             id: firstDecision.id,
             at: firstDecision.created_at,
-            detail: firstDecision.title ?? "Decision recorded",
+            detail: cleanTitle(firstDecision.title) ?? "Decision recorded",
           }
         : null,
       contract: prdRow
@@ -433,7 +434,7 @@ export const getMissionChain = createServerFn({ method: "GET" })
         : null,
     };
 
-    return assembleChain(missionId, m.title ?? "Untitled mission", evidence);
+    return assembleChain(missionId, cleanTitle(m.title) ?? "Untitled mission", evidence);
   });
 
 /** List recent missions for the chain picker, pinned to the active workspace

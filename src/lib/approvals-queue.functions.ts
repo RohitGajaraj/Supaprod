@@ -78,6 +78,7 @@ import { ACTION_LABEL } from "@/lib/agent-vocabulary";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { ApprovalItem } from "@/components/ink/ApprovalCard";
 import type { VerdictTone } from "@/components/ink/chips";
+import { cleanTitle } from "@/components/plan/format";
 
 /** The ten gate families this queue federates. Used to route the decide
  *  call to the right existing resolver - never to brand anything in the UI. */
@@ -403,7 +404,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         kind: "PROPOSAL",
         kindTone: "human",
         project: proj?.name,
-        title: d.title,
+        title: cleanTitle(d.title),
         evidence,
         impact: d.source_kind === "mission" ? "raised during a pass" : undefined,
         approveConsequence: "Approve · decision recorded",

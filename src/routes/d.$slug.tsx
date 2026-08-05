@@ -246,8 +246,14 @@ function PublicDecisionPage() {
           lineHeight: 1.5,
         }}
       >
+        {/* "remembers every outcome" understated the moat on the one page built to be
+            shared. A filing cabinet remembers. The claim that is actually ours, and that
+            the STILL STANDS chip above has already proved to the reader, is that the last
+            outcome changes the next call. Doctrine: it learns and guides, it never
+            remembers, stores or logs. */}
         A read-only snapshot of one product decision. Supaprod is the PM chief of staff that
-        surfaces the calls, runs the reversible work, and remembers every outcome.
+        surfaces the calls, runs the reversible work, and lets what happened guide the next
+        call.
       </p>
 
       <PreSignupCTA sourceType="decision" />
