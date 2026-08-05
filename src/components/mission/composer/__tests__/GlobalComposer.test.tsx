@@ -155,21 +155,42 @@ describe("GlobalComposer: one door, and it is Ask", () => {
     expect(screen.queryByTestId("composer-overlay")).toBe(null);
   });
 
-  // The room owns its own composer and Thread; a second stream on the same
-  // conversation would go stale mid-answer, so Ask stands down in there.
-  test("stands down inside the room at its readable URL", () => {
+  /**
+   * ASK NO LONGER STANDS DOWN ANYWHERE, AND THAT IS THE IMPROVEMENT.
+   *
+   * These two tests asserted the opposite: that Ask hid itself inside the room,
+   * at both of the room's URLs. The reason was sound while the room existed.
+   * It owned its own composer and Thread, and a second stream on the same
+   * conversation would go stale mid-answer, so the shell composer withdrew.
+   *
+   * The room is retired. All three of its routes are redirect stubs to /today,
+   * because it is the one unported legacy surface and it carries its own
+   * five-region shell in the retired --ink- tokens. Nothing renders there to
+   * stand down for, and a person who follows an old link arrives on Today with
+   * Ask exactly where it is on every other surface.
+   *
+   * That is the founder ruling this feature was built on, finally true without
+   * an exception: ONE door, and it is Ask. The stand-down was the last place in
+   * the product where the answer to "where do I ask" changed depending on which
+   * URL you were standing on.
+   */
+  test("is present at the room's old readable URL, which now lands on Today", () => {
     pathname = "/helio-labs/relay";
     routeId = "/_authenticated/$workspaceSlug/$productSlug";
     mount();
-    expect(screen.queryByTestId("ask-pane-stub")).toBe(null);
-    expect(screen.queryByTestId("composer-overlay")).toBe(null);
+    act(() => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+    });
+    expect(screen.queryByTestId("ask-pane-stub")).not.toBe(null);
   });
 
-  test("stands down inside the room at its legacy uuid URL too", () => {
+  test("is present at the room's old uuid URL too", () => {
     pathname = "/m/p-1";
     routeId = "/_authenticated/m/$productId";
     mount();
-    expect(screen.queryByTestId("ask-pane-stub")).toBe(null);
-    expect(screen.queryByTestId("composer-overlay")).toBe(null);
+    act(() => {
+      window.dispatchEvent(new CustomEvent("supaprod:open-ask"));
+    });
+    expect(screen.queryByTestId("ask-pane-stub")).not.toBe(null);
   });
 });

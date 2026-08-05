@@ -14,14 +14,31 @@
 // stops matching the moment the room moves, and nothing in the type system
 // catches it. The matched route id survives a rename of the URL.
 
-/** The room routes that carry their own composer, Thread and five-region shell. */
-export const ROOM_PRODUCT_ROUTE_IDS = [
-  "/_authenticated/$workspaceSlug/$productSlug",
-  "/_authenticated/m/$productId",
-] as const;
+/**
+ * The room routes that carry their own composer, Thread and five-region shell.
+ *
+ * EMPTY NOW, AND THAT IS THE POINT. All three room routes are redirect stubs to
+ * /today: the room is the one unported legacy surface, drawn in the retired
+ * `--ink-*` tokens, and this list is what told `_authenticated.tsx` to render a
+ * bare Outlet for it, stripping the rail, the header and the spine strip.
+ *
+ * With it empty, AppFrame wraps 100% of authenticated surfaces, so there is
+ * exactly one answer to "where am I" for the first time. It also un-blocks
+ * `AuthedNotFound`, which could never fire for a two-segment URL while
+ * `/$workspaceSlug/$productSlug` was catching every unmatched one.
+ *
+ * KEPT rather than deleted, with the ids intact, because they are the exact
+ * strings to restore when the room is ported. The type is `readonly string[]`
+ * so `matchesRoom` still compiles against an empty list; a tuple of nothing
+ * narrows to `never` and takes every caller with it.
+ */
+export const ROOM_PRODUCT_ROUTE_IDS: readonly string[] = [
+  // "/_authenticated/$workspaceSlug/$productSlug",
+  // "/_authenticated/m/$productId",
+];
 
 /** Every route that wears the room chrome instead of the retired AppShell. */
-export const ROOM_ROUTE_IDS = [...ROOM_PRODUCT_ROUTE_IDS, "/_authenticated/m/"] as const;
+export const ROOM_ROUTE_IDS: readonly string[] = [...ROOM_PRODUCT_ROUTE_IDS];
 
 /** True when one of the given matched route ids is the room itself. */
 export function matchesRoom(routeIds: readonly string[], ids: readonly string[]): boolean {

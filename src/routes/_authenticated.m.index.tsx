@@ -1,69 +1,31 @@
-// Mission Control index. This is the product's home, not a sandbox: index.tsx
-// sends every signed-in user to /m, which lands here and resolves a product.
-// /m resolves the last-active product (the same useWorkspace resolution the
-// AppShell switcher uses: stored per workspace, first product as fallback)
-// and redirects to the room's readable URL, /$workspaceSlug/$productSlug.
-// It stays the slug-free entry point on purpose: at this moment nobody has
-// told us which workspace is active, so resolving it here is the whole job.
-// A zero-product workspace renders the prospect state via WarmSlot - never
-// blank (Addendum 1.1 rule 7).
-import { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useWorkspace } from "@/hooks/use-workspace";
-import { useOpenRoom } from "@/hooks/use-open-room";
-import { WarmSlot } from "@/components/mission/primitives";
-import { RoomChromeShell } from "@/components/mission/RoomChrome";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/**
+ * /m retired. It resolved your newest product and opened the room.
+ *
+ * THE ROOM IS THE ONE UNPORTED LEGACY SURFACE. It carries its own five-region
+ * shell instead of AppFrame and is drawn in the retired `--ink-*` tokens, which
+ * is why `_authenticated.tsx` had to special-case it (ROOM_ROUTE_IDS) and
+ * render a bare Outlet with no rail, no header and no spine strip. That special
+ * case is what this removes: every authenticated URL now gets the real shell.
+ *
+ * THE URL STAYS ALIVE, because bookmarks and the room's own account menu still
+ * point at it and repo doctrine is that a URL keeps working. It simply lands on
+ * Today rather than opening a surface the product has replaced.
+ *
+ * A redirect in `beforeLoad` rather than a component that navigates. The old
+ * one rendered a chromeless "Opening Mission Control." on `--ink-bg` while it
+ * resolved a product, so the shell was torn down for a frame on the way to
+ * somewhere else. Nothing renders here now, and RoomChromeShell no longer
+ * enters this route's chunk.
+ *
+ * WHAT IS LOST, said plainly: a zero-product workspace used to get a WarmSlot
+ * here inviting it to describe what it is building. Today's own empty state now
+ * carries that invitation, and it does it inside the real shell rather than
+ * inside the retired one.
+ */
 export const Route = createFileRoute("/_authenticated/m/")({
-  component: MissionIndex,
-  head: () => ({ meta: [{ title: "Mission Control · Supaprod" }] }),
+  beforeLoad: () => {
+    throw redirect({ to: "/today" });
+  },
 });
-
-function MissionIndex() {
-  const openRoom = useOpenRoom();
-  const { products, activeProductId, isLoading } = useWorkspace();
-
-  // Last-active product when it still exists here, else the first product.
-  const targetId =
-    activeProductId && products.some((p) => p.id === activeProductId)
-      ? activeProductId
-      : (products[0]?.id ?? null);
-
-  useEffect(() => {
-    if (isLoading || !targetId) return;
-    openRoom(targetId, { replace: true });
-  }, [isLoading, targetId, openRoom]);
-
-  // A zero-product workspace used to render this WarmSlot on a bare div with
-  // no TopBar at all, which stranded the user: no doors, no workspace switch,
-  // and (since the retired AppShell holds the only other one) no way to sign
-  // out. Wear the room chrome so the account layer is present here too. The
-  // redirecting branch stays bare on purpose, it is gone in a frame.
-  if (!isLoading && !targetId) {
-    return (
-      <RoomChromeShell activeDoor="mission">
-        <div className="flex h-full items-center justify-center p-8">
-          <WarmSlot
-            className="w-full max-w-[460px]"
-            line={{
-              text: "No products in this workspace yet. Tell Supaprod what you are building and the loop starts from your first signal.",
-              actionLabel: "Ask Supaprod",
-              onAction: () => window.dispatchEvent(new CustomEvent("supaprod:open-ask")),
-            }}
-          />
-        </div>
-      </RoomChromeShell>
-    );
-  }
-
-  return (
-    <div
-      className="flex h-dvh items-center justify-center p-8"
-      style={{ background: "var(--ink-bg)" }}
-    >
-      <p className="font-mono text-[11px]" style={{ color: "var(--ink-subtle)" }}>
-        Opening Mission Control.
-      </p>
-    </div>
-  );
-}
