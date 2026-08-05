@@ -33,6 +33,7 @@ import type { PaletteRun } from "@/lib/palette-sections";
 import type { StageId } from "@/components/mission/Spine";
 import { AskPane } from "@/components/ask/AskPane";
 import { ComposerOverlay } from "./ComposerOverlay";
+import { AskDock } from "@/components/ask/AskDock";
 
 /** The summon events the PALETTE overlay answers. Ask has its own door now. */
 export const OPEN_COMPOSER_EVENTS = ["supaprod:open-cmdk"] as const;
@@ -61,7 +62,11 @@ export function GlobalComposer() {
   // is a separate call from retiring this overlay. Nothing dispatches
   // `supaprod:open-cmdk` on a rebuilt surface any more, and Cmd+K belongs to
   // AskProvider, so the overlay is unreachable rather than merely discouraged.
-  return <AskPane />;
+  // THE DOCK, not the bare pane. AskDock renders this same AskPane unchanged
+  // and adds the collapsed row that makes the door visible from everywhere.
+  // See AskDock.tsx: the pane keeps Cmd+K, Escape and both forks exactly as
+  // they were, so this is a presence change and not a behaviour change.
+  return <AskDock />;
 }
 
 function GlobalComposerHost() {

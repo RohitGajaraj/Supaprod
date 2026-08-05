@@ -1,0 +1,88 @@
+import * as React from "react";
+import { AskPane } from "@/components/ask/AskPane";
+import { useAsk } from "@/lib/ask-context";
+import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { useLiveAgents } from "@/hooks/use-live-agents";
+
+/**
+ * THE FRONT DOOR, STANDING OPEN.
+ *
+ * FOUNDER'S ASK, and it is the one this whole surface exists to answer:
+ * *"Today the platform still feels like a traditional application with multiple
+ * screens, deep navigation and fragmented surfaces... explore how prompting can
+ * become the primary interaction while agents orchestrate everything behind the
+ * scenes."*
+ *
+ * WHAT THIS IS, AND WHAT IT DELIBERATELY IS NOT. It is `AskPane`, unchanged,
+ * with a collapsed row underneath it that is always there. It is NOT a second
+ * conversational surface, and building one would have been the ratchet
+ * regression in its purest form: a new front door with a new visual language,
+ * competing with a composed surface that already has one. AskPane is already
+ * mounted on every authenticated route and already owns Cmd+K. What it lacked
+ * was PRESENCE. A door you have to know a keyboard shortcut to find is not the
+ * primary interaction, however good it is once you are through it.
+ *
+ * So the interaction change lands ON ITS OWN, with no new capability attached.
+ * Ask and Hand it over behave exactly as they did an hour ago, Cmd+K is
+ * untouched, and Escape still closes. The only new fact on screen is that the
+ * product now visibly invites you to say what you want, from everywhere.
+ *
+ * WHY A ROW AND NOT A BUTTON. A button says "there is a chat in here". A row
+ * that looks like the thing you type into says "type here", and the difference
+ * is the entire point: it has to read as the primary way to work rather than as
+ * a support affordance parked in a corner.
+ *
+ * IT NEVER COVERS THE WORK. `.sp-work` carries a matching `padding-bottom`, so
+ * the last row of a station is always reachable above the dock. Anything that
+ * floats over content and cannot be dismissed is a worse sin than the one this
+ * fixes.
+ *
+ * WHAT IT SAYS WHEN THE CREW IS BUSY. It borrows `useLiveAgents`, the same read
+ * the stations use, so the collapsed row can report a genuinely running agent
+ * rather than sitting silent while the product works. Nothing is fabricated:
+ * with nothing running it shows the invitation and nothing else.
+ */
+export function AskDock() {
+  const ask = useAsk();
+  const { working } = useLiveAgents();
+
+  // The pane owns the screen while it is open; the dock stands down so there is
+  // never a second input for the same conversation.
+  if (ask.isOpen) return <AskPane />;
+
+  const lead = working[0];
+  const others = working.length - 1;
+
+  return (
+    <>
+      {/* Still mounted, still self-hiding. Keeping it here rather than in the
+          branch above means opening and closing never remounts the pane, so a
+          conversation survives a collapse. */}
+      <AskPane />
+      <div className="sp-dock" data-testid="ask-dock">
+        <button
+          type="button"
+          className="sp-dock-row"
+          onClick={ask.summon}
+          // The accessible name is the invitation, not the mechanism. A screen
+          // reader hears what it is for, the same as a sighted reader.
+          aria-label="Ask Supaprod what to build"
+        >
+          <span className="sp-dock-mark" aria-hidden="true">
+            <SupaprodMark size={17} />
+          </span>
+          <span className="sp-dock-prompt">What should we build?</span>
+          {lead ? (
+            <span className="sp-dock-live">
+              {lead.name} is working
+              {others > 0 ? ` · ${others} more` : ""}
+            </span>
+          ) : null}
+          <kbd className="sp-dock-key" aria-hidden="true">
+            ⌘K
+          </kbd>
+        </button>
+      </div>
+    </>
+  );
+}

@@ -1385,3 +1385,106 @@ button.sp-me {
   color: var(--sp-ink);
   text-decoration: underline;
 }
+
+/* ---------- the dock ----------
+ * The front door, standing open. See src/components/ask/AskDock.tsx for why
+ * this is a persistent ROW rather than a button: a button says "there is a chat
+ * in here", a row that looks like the thing you type into says "type here", and
+ * that difference is the whole interaction change.
+ *
+ * FIXED TO THE WORK REGION, NOT THE VIEWPORT EDGE. `left` clears the rail so
+ * the dock never sits under it, and it follows the rail's own collapse via the
+ * same custom property the shell already uses, so there is one source of truth
+ * for that width rather than a second number that drifts.
+ *
+ * It never covers content: `.sp-work` carries a matching padding-bottom below,
+ * so the last row of a station stays reachable. Anything that floats over the
+ * work and cannot be dismissed is a worse fault than the one this fixes. */
+.sp-dock {
+  position: fixed;
+  left: var(--sp-rail-w, 236px);
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  /* 40px, because that is `.sp-inner`'s own gutter. MEASURED in a browser
+   * rather than guessed: at 18px the dock row sat 22px inside the column above
+   * it, and a front door that does not line up with the work reads as bolted
+   * on. One number, taken from the thing it has to agree with. */
+  padding: 10px 40px 14px;
+  background: linear-gradient(to top, var(--sp-bg) 62%, transparent);
+  pointer-events: none;
+}
+.sp-dock-row {
+  pointer-events: auto;
+  width: 100%;
+  /* The work column's own cap, so the row is exactly as wide as the station
+   * above it on any screen. */
+  max-width: var(--sp-work-max, 1400px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: var(--sp-text-prose);
+  text-align: left;
+  color: var(--sp-mute);
+  background: var(--sp-sheet);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-ctl);
+  cursor: pointer;
+  transition:
+    border-color var(--sp-dur-fast) var(--sp-ease),
+    background var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-dock-row:hover {
+  border-color: var(--sp-line-strong, var(--sp-line));
+  background: var(--sp-float, var(--sp-sheet));
+}
+.sp-dock-row:focus-visible {
+  outline: 2px solid var(--sp-gate);
+  outline-offset: 2px;
+}
+.sp-dock-mark {
+  display: flex;
+  flex: none;
+  color: var(--sp-ink);
+}
+/* The invitation carries the weight: it is the thing being offered. */
+.sp-dock-prompt {
+  flex: 1;
+  min-width: 0;
+  color: var(--sp-body);
+}
+/* A real running agent, in the machine voice, never a spinner and never a
+ * fabricated step. Empty when nothing is running. */
+.sp-dock-live {
+  flex: none;
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.04em;
+  color: var(--sp-mute);
+  white-space: nowrap;
+}
+.sp-dock-key {
+  flex: none;
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-kbd);
+  font-weight: var(--sp-weight-regular);
+  padding: 1px 5px;
+  border-radius: var(--sp-radius-xs);
+  background: color-mix(in oklab, currentColor 13%, transparent);
+}
+/* The dock's own height, given back to the scroller so the last row of a
+ * station is never trapped underneath it. */
+.sp-work {
+  padding-bottom: 68px;
+}
+@media (max-width: 900px) {
+  .sp-dock {
+    left: 0;
+  }
+  .sp-dock-live {
+    display: none;
+  }
+}

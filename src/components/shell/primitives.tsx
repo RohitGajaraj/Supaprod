@@ -673,7 +673,29 @@ export function Empty({
 }) {
   return (
     <div className="sp-empty">
-      <p>{children}</p>
+      {/*
+       * A DIV, NOT A P, AND THAT IS A BUG FIX RATHER THAN A PREFERENCE.
+       *
+       * This was `<p>{children}</p>`. A `<p>` may only contain phrasing
+       * content, so the moment a caller passed anything with structure, the
+       * markup became invalid and React refused to hydrate it. Caught in a
+       * browser on /today, where the empty state composes two paragraphs inside
+       * a flex column: "In HTML, <div> cannot be a descendant of <p>. This will
+       * cause a hydration error."
+       *
+       * The `<p>` was buying nothing. Every style on this component lives on
+       * `.sp-empty` (font size, colour, leading, the 52ch measure) and there is
+       * no `.sp-empty p` rule anywhere in the sheet, so the two render
+       * identically for the thirty-odd callers that pass a plain sentence. What
+       * it did do was set a trap: a primitive whose contract is "some words
+       * about why this is empty" silently forbade the most natural way to write
+       * two of them.
+       *
+       * A hydration error is not cosmetic either. React discards the server
+       * markup and re-renders on the client, which is a real cost on the
+       * surface every session opens on.
+       */}
+      <div>{children}</div>
       {action ? <div className="sp-acts">{action}</div> : null}
     </div>
   );

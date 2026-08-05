@@ -76,6 +76,17 @@ mock.module("@/components/ask/AskPane", () => ({
   AskPane: () => <div data-testid="ask-pane-stub" />,
 }));
 
+/**
+ * The dock reads live agents so its collapsed row can name a running one. That
+ * is a react-query read, and these tests mount GlobalComposer without a
+ * QueryClientProvider on purpose: what they are about is WHICH DOOR renders on
+ * which route, not what the crew happens to be doing. Stubbed to idle, which is
+ * also the state every assertion below cares about.
+ */
+mock.module("@/hooks/use-live-agents", () => ({
+  useLiveAgents: () => ({ working: [], any: false }),
+}));
+
 const { GlobalComposer } = await import("../GlobalComposer");
 const { AskProvider } = await import("@/lib/ask-context");
 
