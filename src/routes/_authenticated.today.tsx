@@ -119,14 +119,12 @@ function FirstRunBridge() {
       <Block
         title="Your first bet is ready for review"
         sub={
-          <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+          <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
             The Critic reviewed your idea from setup. See the verdict and approve next steps.
           </div>
         }
       >
-        <Door onClick={() => navigate({ to: "/decide" })}>
-          Go to Decide →
-        </Door>
+        <Door onClick={() => navigate({ to: "/decide" })}>Go to Decide →</Door>
       </Block>
     </Surface>
   );
@@ -634,7 +632,7 @@ function Today() {
                   Nothing finished in the last day yet. The crew is ready — tell Supaprod what you
                   want to build, or connect data sources so they discover work.
                 </div>
-                <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
                   <strong>Here's how it works:</strong> Agents discover opportunities (Discover),
                   decide which to pursue (Decide), plan the scope (Plan), and then build, ship, and
                   learn from outcomes. You approve each decision; they do the work. New requests
@@ -643,7 +641,7 @@ function Today() {
               </div>
             </Empty>
 
-            {rows.length === 0 ? (
+            {rows.length === 0 && !justLanded ? (
               <Block title="Get started in three steps">
                 <div
                   style={{
@@ -658,12 +656,12 @@ function Today() {
                       style={{
                         fontWeight: "600",
                         marginBottom: "6px",
-                        color: "var(--text-primary)",
+                        color: "var(--sp-ink)",
                       }}
                     >
                       1. Connect your sources
                     </div>
-                    <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
                       Link Slack channels, support tickets, user interviews, or paste feedback
                       directly. Agents will continuously scan for opportunities.
                     </div>
@@ -674,12 +672,12 @@ function Today() {
                       style={{
                         fontWeight: "600",
                         marginBottom: "6px",
-                        color: "var(--text-primary)",
+                        color: "var(--sp-ink)",
                       }}
                     >
                       2. Review discoveries
                     </div>
-                    <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
                       Visit Discover to see opportunities agents have surfaced. Approve the best
                       ones to move them into your roadmap.
                     </div>
@@ -693,12 +691,12 @@ function Today() {
                       style={{
                         fontWeight: "600",
                         marginBottom: "6px",
-                        color: "var(--text-primary)",
+                        color: "var(--sp-ink)",
                       }}
                     >
                       3. Approve and watch them build
                     </div>
-                    <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
                       When opportunities move to Decide, you'll approve each step. Agents then
                       handle planning, design, build, and deployment. You stay in control.
                     </div>

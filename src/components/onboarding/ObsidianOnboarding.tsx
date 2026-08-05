@@ -341,6 +341,21 @@ function ChoiceCard({
 }) {
   const interactive = !disabled && !busy;
   return (
+    <style>
+      {`
+        .choice-card-interactive {
+          background-color: var(--ds-gray-100);
+          border-color: var(--ds-gray-alpha-400);
+        }
+        .choice-card-interactive:hover {
+          background-color: var(--ds-gray-200);
+          border-color: var(--ds-gray-alpha-500);
+        }
+        .choice-card-interactive:active {
+          background-color: var(--ds-gray-300);
+        }
+      `}
+    </style>
     <button
       type="button"
       disabled={disabled}
@@ -348,6 +363,7 @@ function ChoiceCard({
       aria-label={ariaLabel}
       title={title}
       onClick={onClick}
+      className={interactive ? "choice-card-interactive" : ""}
       style={{
         textAlign: "left",
         width: "100%",
@@ -363,28 +379,6 @@ function ChoiceCard({
         cursor: interactive ? "pointer" : "default",
         transition:
           "background-color 0.2s var(--ds-motion-timing-swift), border-color 0.2s var(--ds-motion-timing-swift)",
-      }}
-      onMouseEnter={(e) => {
-        if (interactive) {
-          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-200)";
-          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-gray-alpha-500)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (interactive) {
-          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-100)";
-          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--ds-gray-alpha-400)";
-        }
-      }}
-      onMouseDown={(e) => {
-        if (interactive) {
-          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-300)";
-        }
-      }}
-      onMouseUp={(e) => {
-        if (interactive) {
-          (e.currentTarget as HTMLButtonElement).style.background = "var(--ds-gray-200)";
-        }
       }}
     >
       {children}
@@ -1631,16 +1625,20 @@ export function ObsidianOnboarding() {
                   borderRadius: "var(--ds-radius-small)",
                   background: verdictBg,
                   border: `1px solid ${verdictBorder}`,
-                  animation: "cadRise 0.3s var(--ds-motion-timing-swift) both",
+                  animation: "cadRise 0.4s var(--ds-motion-timing-swift) both",
+                  transform: "scale(1)",
+                  transformOrigin: "center",
                 }}
               >
                 <p
                   style={{
                     margin: 0,
                     fontFamily: "var(--font-pixel)",
+                    fontSize: "30px",
                     lineHeight: 1.2,
                     textTransform: "uppercase",
                     color: verdictColor,
+                    letterSpacing: "0.05em",
                   }}
                 >
                   {verdict}
@@ -1692,6 +1690,8 @@ export function ObsidianOnboarding() {
                   padding: "10px 12px",
                   borderRadius: "var(--ds-radius-small)",
                   background: "var(--ds-gray-100)",
+                  animation: "cadRise 0.5s var(--ds-motion-timing-swift) 0.1s both",
+                  opacity: 0,
                 }}
               >
                 <p style={{ ...sectionLabel, marginBottom: 4 }}>Confidence</p>

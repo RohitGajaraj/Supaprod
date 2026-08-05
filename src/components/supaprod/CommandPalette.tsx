@@ -484,6 +484,7 @@ export function GotoShortcuts() {
       }
 
       disarm();
+
       const target = [...PRIMARY_NAV, ...FOOTER_NAV].find((item) => {
         const hint = navKeyHint(item);
         return hint !== "" && hint === key;
