@@ -74,8 +74,33 @@ function lockup(markPx: number, textPx: number, id: string) {
 }
 
 // =============================================================================
+// AVATAR OCCLUSION — measured, not guessed.
+//
+// Every one of these platforms lays a CIRCULAR profile picture over the bottom
+// left of the banner. A layout that centres its text vertically will always put
+// its last line underneath that circle.
+//
+//   X          avatar renders 133.5px against a ~600px-wide banner display, so
+//              the scale into 1500x500 banner coordinates is 2.5x: a 334px
+//              circle centred near x=207 on the bottom edge. It covers roughly
+//              x 40..374, y 333..500.
+//   Mastodon   same shape, same corner.
+//   Bluesky    same shape, same corner, and it scales with the 3000x1000 canvas.
+//   LinkedIn   a square company logo, not a circle, overlapping the cover's
+//              bottom LEFT. On a 1128x191 cover it eats roughly the first 200px
+//              of width, which is why the strip layout indents rather than
+//              lifts: at 191px tall there is no vertical room to lift into.
+//   YouTube    NO overlap. The avatar sits BELOW the banner in the channel
+//              header, so the only constraint there is the 1546x423 safe box.
+//
+// SAFE_TOP is the fraction of the height the text block is centred on. 0.35
+// puts a ~216px block at y 67..283 on a 500px banner, clearing the circle's
+// y=333 top edge with room for the platform to shift its layout slightly.
+const AVATAR_SAFE_CENTER = 0.35;
+
+// =============================================================================
 // WIDE BANNER  — X, Mastodon, Bluesky. Machine right, message left, and the
-// bottom-left quadrant deliberately empty because X drops the avatar there.
+// text block LIFTED clear of the avatar circle rather than vertically centred.
 // =============================================================================
 function banner(w: number, h: number, id: string) {
   const s = h / 500; // everything scales off the 1500x500 master
@@ -96,7 +121,7 @@ function banner(w: number, h: number, id: string) {
       radial-gradient(85% 130% at 14% 2%, ${P.lift} 0%, transparent 56%)"></div>
     ${machine(w, h, o, 104 * s, 19 * s, { r: 268 * s, size: 10.5 * s })}
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:${92 * s}px;top:50%;transform:translateY(-50%);width:${700 * s}px">
+    <div style="position:absolute;left:${92 * s}px;top:${(h * AVATAR_SAFE_CENTER).toFixed(0)}px;transform:translateY(-50%);width:${700 * s}px">
       ${lockup(28 * s, 21 * s, id + "lk")}
       <div style="margin-top:${28 * s}px;font-size:${54 * s}px;line-height:1.06;font-weight:500;
           letter-spacing:-.042em;color:${P.bone}">${HOOK}</div>
@@ -225,7 +250,7 @@ function strip(w: number, h: number, id: string) {
       radial-gradient(80% 150% at 12% 0%, ${P.lift} 0%, transparent 58%)"></div>
     ${machine(w, h, o, 44 * s, 8 * s)}
     ${GRAIN(P.grain)}
-    <div style="position:absolute;left:${52 * s}px;top:50%;transform:translateY(-50%);
+    <div style="position:absolute;left:${212 * s}px;top:50%;transform:translateY(-50%);
         display:flex;align-items:center;gap:${26 * s}px">
       ${lockup(34 * s, 24 * s, id + "lk")}
       <span style="width:1px;height:${44 * s}px;background:${P.brass};opacity:.32"></span>
