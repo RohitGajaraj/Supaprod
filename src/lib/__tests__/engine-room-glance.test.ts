@@ -273,3 +273,292 @@ describe("Engine Room recommended action (derived from real state, watch only)",
     expect(record.action).toBeUndefined();
   });
 });
+
+/**
+ * THE ZERO-GUARDRAIL BUG (fixed 2026-08-06).
+ *
+ * `buildSafetyGlance` keyed its state on `incidentCount > 0` and nothing else,
+ * so a workspace that had never switched a guardrail on came back `healthy`,
+ * and the Engine Room headline counted it into "All four rooms are clear."
+ * Seventeen of the twenty-one workspaces in the live database have zero
+ * guardrail rules, so that was the majority reading.
+ *
+ * WHY NOTHING CAUGHT IT. Every Safety case in the block above passes a
+ * non-empty `rules` array with at least one `enabled: true`. The zero-enabled
+ * branch had never once been executed by a test, which is the ordinary way a
+ * suite can be green and a defect can be the common case: the fixture never
+ * reached the code path.
+ */
+describe("Safety: zero enabled guardrails is unconfigured, not clear", () => {
+  it("returns unconfigured, not healthy, when no rule has ever been set", () => {
+    const safety = buildSafetyGlance({ rules: [], incidentCount: 0 });
+    expect(safety.state).toBe("unconfigured");
+    expect(safety.verdict).toBe("No guardrails set · 0 incidents");
+  });
+
+  it("points the next step at the tab where guardrails are actually set", () => {
+    const safety = buildSafetyGlance({ rules: [], incidentCount: 0 });
+    // "What is allowed" is the plain label of the `rules` tab, which is the
+    // door this state exists to send someone through. An unconfigured state
+    // with no door is only half a fix.
+    expect(safety.action).toContain("What is allowed");
+    expect(ROOM_TAB_META.safety.some((t) => t.label === "What is allowed")).toBe(true);
+  });
+
+  it("calls a workspace with rules configured but all switched off unconfigured too", () => {
+    // The same position as having none, and keying on `rules.length` instead of
+    // the enabled count would have called this one healthy: the same bug one
+    // step to the left.
+    const safety = buildSafetyGlance({
+      rules: [{ enabled: false }, { enabled: false }, { enabled: false }],
+      incidentCount: 0,
+    });
+    expect(safety.state).toBe("unconfigured");
+    expect(safety.verdict).toBe("3 guardrails set, none switched on · 0 incidents");
+    expect(safety.action).toContain("switched off");
+  });
+
+  it("lets a real incident outrank the empty setup without losing either fact", () => {
+    const safety = buildSafetyGlance({ rules: [], incidentCount: 2 });
+    // Something that went wrong is more urgent than something never set up.
+    expect(safety.state).toBe("watch");
+    // But the action must still say how to set it up, or the more urgent fact
+    // silently swallows the structural one.
+    expect(safety.action).toContain("What is allowed");
+    expect(safety.action).toContain("What went wrong");
+  });
+
+  it("keeps a configured, quiet workspace healthy (the state is not now always unconfigured)", () => {
+    const safety = buildSafetyGlance({ rules: [{ enabled: true }], incidentCount: 0 });
+    expect(safety.state).toBe("healthy");
+    expect(safety.action).toBeUndefined();
+  });
+});
+
+describe("The volumes on the door (facts the reads already returned)", () => {
+  // 2026-08-06. Every figure asserted here was computed on the server, sent
+  // over the wire and dropped: the founder's "those are NOT SPEAKING TO THE
+  // VOLUMES AND DEPTH" was, underneath, nine reads forwarded as four sentences.
+  const ASOF = Date.parse("2026-08-06T12:00:00Z");
+
+  function figure(
+    g: { figures: { label: string; value: string; note?: string }[] },
+    label: string,
+  ) {
+    return g.figures.find((f) => f.label === label);
+  }
+
+  const DAILY = [
+    { day: "2026-08-04", cost: 1.1522 },
+    { day: "2026-08-05", cost: 0.6348 },
+    { day: "2026-08-06", cost: 0.2 },
+  ];
+
+  it("carries Spend's call count, token volume and day-over-day move", () => {
+    const spend = buildSpendGlance({
+      global: null,
+      costThisWeek: 9.26,
+      missionCapUsd: 10,
+      callsThisWeek: 15577,
+      tokensThisWeek: 22_157_443,
+      daily: DAILY,
+      windowIsWhole: true,
+      asOfMs: ASOF,
+    });
+    expect(figure(spend, "calls")?.value).toBe("15,577");
+    expect(figure(spend, "tokens")?.value).toBe("22M");
+    /**
+     * THE DAYS ARE NAMED, NOT CALLED "YESTERDAY".
+     *
+     * The buckets are keyed on `created_at.slice(0, 10)`, which is UTC, while
+     * "yesterday" is a claim about the READER'S calendar. East of UTC the two
+     * disagree for part of every day: in IST, before 05:30 local, the bucket
+     * labelled "yesterday" is the day before last. That was wrong on the
+     * founder's own screen for five and a half hours out of every twenty-four,
+     * silently, and no test could catch it because both the label and the
+     * bucket were internally consistent.
+     *
+     * A date is true in every timezone. It is the complete day before the
+     * partial one, which is still why today's bucket is not the number here.
+     */
+    expect(figure(spend, "5 Aug")?.value).toBe("$0.63");
+    expect(figure(spend, "5 Aug")?.note).toBe("down from $1.15 on 4 Aug");
+    expect(figure(spend, "yesterday")).toBeUndefined();
+  });
+
+  it("states no trend at all when the read was capped", () => {
+    /**
+     * A CAPPED READ CANNOT STATE A TREND, because the days it is missing are
+     * exactly the days it would compare against. `getAnalyticsOverview` reads
+     * `created_at DESC` under a cap, so when the cap bites the OLDEST events
+     * fall out and the earliest buckets vanish. Zero-filling then supplies 0
+     * for them and the trend read that 0 as real: "up from $0.00 the day
+     * before", about a day nobody had looked at.
+     */
+    const spend = buildSpendGlance({
+      global: null,
+      costThisWeek: 9.26,
+      missionCapUsd: 10,
+      daily: DAILY,
+      windowIsWhole: false,
+      asOfMs: ASOF,
+    });
+    expect(spend.figures.find((f) => f.note?.includes("on 4 Aug"))).toBeUndefined();
+    expect(figure(spend, "5 Aug")).toBeUndefined();
+  });
+
+  it("stands down for a caller that has not been taught to pass the flag", () => {
+    // The default is FALSE on purpose. A caller wired before this existed gets
+    // silence rather than a trend that may be fabricated, because a wrong
+    // direction of travel is worse than a missing figure.
+    const spend = buildSpendGlance({
+      global: null,
+      costThisWeek: 9.26,
+      missionCapUsd: 10,
+      daily: DAILY,
+      asOfMs: ASOF,
+    });
+    expect(figure(spend, "5 Aug")).toBeUndefined();
+  });
+
+  it("names the COSTLIEST model, not the chattiest one", () => {
+    const spend = buildSpendGlance({
+      global: null,
+      costThisWeek: 4,
+      byModel: [
+        // The read hands these over sorted by runs, so a naive [0] picks the
+        // cheap chatty one and answers the wrong question in a room whose
+        // question is "what is this costing me".
+        { model: "haiku", runs: 9000, cost: 0.4 },
+        { model: "opus", runs: 120, cost: 3.6 },
+      ],
+    });
+    expect(figure(spend, "costliest model")?.value).toBe("opus");
+    expect(figure(spend, "costliest model")?.note).toBe("$3.60 across 120 calls");
+  });
+
+  it("shows the share of a configured cap alongside the meter reading", () => {
+    const spend = buildSpendGlance({
+      global: { daily_usd_cap: null, monthly_usd_cap: 100, monthly_usd_used: 42 },
+      costThisWeek: 12,
+    });
+    expect(spend.verdict).toBe("$42 of $100 monthly cap");
+    expect(figure(spend, "of the cap")?.value).toBe("42%");
+    expect(figure(spend, "of the cap")?.note).toBe("used this month");
+  });
+
+  it("carries Quality's judge score, trend and suite count, and dates the open drift", () => {
+    const quality = buildQualityGlance({
+      passRate: 0.92,
+      totalRuns: 20,
+      verdict: "healthy",
+      driftOpenCount: 4,
+      avgScore: 84.63,
+      errorRate: 0.05,
+      suiteCount: 14,
+      flakyCount: 1,
+      trend: "declining",
+      latestDrift: {
+        surface: "roadmap",
+        metric: "latency_ms",
+        delta_pct: 37.4,
+        detected_at: "2026-08-05T09:00:00Z",
+      },
+    });
+    // avg_score is stored 0-100, so the scale is named rather than left to be
+    // guessed at against a pass rate on the same card that is a percentage.
+    expect(figure(quality, "average score")?.value).toBe("85");
+    expect(figure(quality, "average score")?.note).toBe("out of 100, judged");
+    expect(figure(quality, "trend")?.value).toBe("declining");
+    expect(figure(quality, "suites")?.value).toBe("14");
+    expect(figure(quality, "errored")?.value).toBe("5%");
+    expect(figure(quality, "flaky suites")?.value).toBe("1");
+    expect(quality.latest).toEqual({
+      what: "latency_ms on roadmap moved +37%",
+      at: "2026-08-05T09:00:00Z",
+    });
+  });
+
+  it("reports the guardrail floor, which is what makes 'unconfigured' a prompt and not an alarm", () => {
+    const safety = buildSafetyGlance({
+      rules: [],
+      incidentCount: 0,
+      floorCount: 7,
+      hits: [{ rule_name: "Email address", created_at: "2026-08-05T10:00:00Z" }],
+      hitLimit: 100,
+      incidents: [],
+    });
+    expect(figure(safety, "always on")?.value).toBe("7");
+    expect(figure(safety, "always on")?.note).toBe("screen every call whatever you set");
+    expect(figure(safety, "calls a rule caught")?.value).toBe("1");
+  });
+
+  it("states a capped hit list as a floor, never as a total", () => {
+    // getGuardrailOverview stops at 100 rows. The live sandbox workspace has
+    // 7,141 recorded hits, so a bare "100" understates it by two orders of
+    // magnitude: the rows exist, the count does not describe them.
+    const safety = buildSafetyGlance({
+      rules: [{ enabled: true }],
+      incidentCount: 0,
+      hits: Array.from({ length: 100 }, () => ({ rule_name: "Email address" })),
+      hitLimit: 100,
+    });
+    expect(figure(safety, "calls a rule caught")?.value).toBe("100+");
+  });
+
+  it("dates Safety's newest incident on the door", () => {
+    const safety = buildSafetyGlance({
+      rules: [{ enabled: true }],
+      incidentCount: 2,
+      incidents: [
+        { title: "search_web failed", at: "2026-08-05T11:00:00Z" },
+        { title: "an event failed", at: "2026-08-04T11:00:00Z" },
+      ],
+    });
+    expect(safety.latest).toEqual({ what: "search_web failed", at: "2026-08-05T11:00:00Z" });
+  });
+
+  it("says 200+ when the trace read came back full, and 200 exactly is a ceiling", () => {
+    // listTraces caps at the limit it was given. The live workspace logs over
+    // 15,000 AI events a week, so the Record verdict was printing that ceiling
+    // as an exact total.
+    const record = buildRecordGlance({ traceCount: 200, ledgerVerifies: true, traceLimit: 200 });
+    expect(record.verdict).toBe("200+ runs this week · ledger intact");
+    const under = buildRecordGlance({ traceCount: 34, ledgerVerifies: true, traceLimit: 200 });
+    expect(under.verdict).toBe("34 runs this week · ledger intact");
+  });
+
+  it("carries Record's step count, failed runs, sealed receipts and newest run", () => {
+    const record = buildRecordGlance({
+      traceCount: 3,
+      ledgerVerifies: true,
+      traceLimit: 200,
+      sealCount: 412,
+      traces: [
+        { spans: 12, errors: 0, title: "Ship the pricing page", last_at: "2026-08-05T12:00:00Z" },
+        {
+          spans: 4,
+          errors: 2,
+          title: null,
+          root_surface: "agent",
+          last_at: "2026-08-05T09:00:00Z",
+        },
+        { spans: 7, errors: 0, title: "Draft the release notes", last_at: "2026-08-04T18:00:00Z" },
+      ],
+    });
+    expect(figure(record, "steps recorded")?.value).toBe("23");
+    expect(figure(record, "steps recorded")?.note).toBe("across 3 runs");
+    expect(figure(record, "runs that hit an error")?.value).toBe("1");
+    expect(figure(record, "receipts sealed")?.value).toBe("412");
+    expect(record.latest).toEqual({
+      what: "Ship the pricing page",
+      at: "2026-08-05T12:00:00Z",
+    });
+  });
+
+  it("draws no figures at all from a caller that passes none (an old caller keeps the old card)", () => {
+    expect(buildSpendGlance({ global: null, costThisWeek: 1 }).figures).toEqual([]);
+    expect(buildRecordGlance({ traceCount: 2, ledgerVerifies: true }).figures).toEqual([]);
+    expect(buildRecordGlance({ traceCount: 2, ledgerVerifies: true }).latest).toBeUndefined();
+  });
+});

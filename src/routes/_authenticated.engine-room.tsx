@@ -53,16 +53,36 @@
  *          state: how many sources are bound, and whether sync is stuck.
  *          => the list itself belongs to /sync, where it already exists.
  *
- * 4. ONE CLICK AWAY. Everything except the verdict. A room row is one line, the
- *    name plus what it says, and grows a second line only when the room needs a
- *    look or its read failed. The tables, charts, rosters and traces are inside
- *    the room, and the full source list is on /sync.
+ * 4. ONE CLICK AWAY. The tables, charts, rosters and traces are inside the
+ *    room, and the full source list is on /sync.
+ *
+ *    AMENDED 2026-08-06. This said "a room row is one line, the name plus what
+ *    it says", and the founder's verdict on that shape was: "We have four
+ *    sections but those are NOT SPEAKING TO THE VOLUMES AND DEPTH until and
+ *    unless the user clicks and checks." He was describing a real waste, not a
+ *    taste: `useEngineRoomGlance` makes nine server reads and the four rows
+ *    rendered four sentences of them, dropping the call count, the token
+ *    volume, the day-over-day move, the costliest model, the judge score, the
+ *    open drift, the guardrail floor, the recorded steps and the sealed
+ *    receipts. A row is now a card carrying those figures, the room's newest
+ *    dated event and its next step. Nothing was made smaller to fit them; the
+ *    argument for where the room came from is in RoomGlanceCard.tsx's header.
+ *    The evidence itself still lives inside the rooms.
  *
  * 5. THE MOMENT, AND THE CONFUSION. The moment is "All four rooms are clear" on
  *    one line, from four real reads, on the one surface that exists to find
  *    trouble. The confusion this surface must keep refusing is a failed read
  *    wearing a healthy verdict's clothes, so a room that did not load says so
  *    on its own line, keeps its verdict blank, and offers one retry.
+ *
+ *    A SECOND CONFUSION, closed the same day: an UNSET room wearing a clear
+ *    one's clothes. `buildSafetyGlance` returned healthy whenever no incident
+ *    had been recorded, so a workspace that had never switched a guardrail on
+ *    was counted into "All four rooms are clear" — the reading for seventeen of
+ *    the twenty-one workspaces in the live database. The headline now counts
+ *    that case in its own clause, because nothing has gone wrong in a room
+ *    nobody has set up and sending someone to "look at" it would be the wrong
+ *    instruction.
  *
  * The room bodies (SpendRoom, QualityRoom, SafetyRoom, RecordRoom) are
  * untouched: they are the dense tables the engineer came for.
@@ -74,6 +94,11 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 
 import { useEngineRoomGlance, type RoomStatus } from "@/components/engine-room/EngineRoomSurface";
+import {
+  RoomGlanceCard,
+  RoomGlanceCardFailed,
+  RoomGlanceCardPending,
+} from "@/components/engine-room/RoomGlanceCard";
 import type { RoomBodyProps } from "@/components/engine-room/RoomDetail";
 import { SpendRoom } from "@/components/engine-room/rooms/SpendRoom";
 import { QualityRoom } from "@/components/engine-room/rooms/QualityRoom";
@@ -91,7 +116,6 @@ import {
   PageHead,
   Row,
   Surface,
-  Who,
 } from "@/components/shell/primitives";
 
 const ROOM_KEYS: RoomKey[] = ["spend", "quality", "safety", "record"];
@@ -137,35 +161,43 @@ export const Route = createFileRoute("/_authenticated/engine-room")({
 });
 
 /**
- * One room's line in the overview.
+ * One room's door in the overview.
  *
- * The name leads and the VERDICT rides the same line, because the verdict is
- * the answer and the name alone is a menu item. The second line exists only
- * when there is something a healthy room would not have: a read that failed, or
- * a room that wants a look. A clear engine is therefore four one-line rows.
+ * WAS a single `Row`: the name, the verdict, and a "Needs a look" second line.
+ * Founder, 2026-08-06: "We have four sections but those are NOT SPEAKING TO THE
+ * VOLUMES AND DEPTH until and unless the user clicks and checks." The verdict
+ * is one sentence assembled from nine server reads, and the rest of what those
+ * reads returned was being dropped, so the router had a name and a headline on
+ * each door and nothing to choose between them with. `RoomGlanceCard` carries
+ * the same name and the same verdict plus the volumes behind it, the room's
+ * newest dated event, and the next step. Where the vertical room comes from,
+ * and what was NOT shrunk to pay for it, is argued in that file's header.
  *
- * The next-step sentence deliberately does NOT appear here. It names a tab that
- * is not on screen yet, so it does its job completely inside the room and would
- * only be a duplicate out here.
+ * The next-step sentence now DOES appear here. The note it replaces said it was
+ * withheld because it names a tab that is not on screen yet; it still does, and
+ * that is now the point, because the overview is where you choose which room to
+ * open and "raise it in Limits" is the fact that chooses it. The room's own
+ * context column keeps its copy, so nothing moved out of the room.
  */
-function roomLine(status: RoomStatus): { lead: React.ReactNode; sub?: React.ReactNode } {
-  const name = <Who>{ROOM_NAMES[status.key]}</Who>;
+function roomCard(status: RoomStatus, openRoom: (key: RoomKey) => void): React.ReactNode {
   if (status.error !== null) {
-    // No verdict. A room that did not load never wears a healthy one's clothes.
-    return { lead: name, sub: <span className="sp-fail">{status.error}</span> };
+    // No verdict and no figures. A room that did not load never wears a healthy
+    // one's clothes, and it certainly never wears its volumes.
+    return (
+      <RoomGlanceCardFailed
+        key={status.key}
+        room={status.key}
+        message={status.error}
+        onRetry={status.retry}
+      />
+    );
   }
   if (status.loading || status.glance === null) {
-    return { lead: <>{name} · Reading.</> };
+    return <RoomGlanceCardPending key={status.key} room={status.key} />;
   }
-  return {
-    lead: (
-      <>
-        {name} · {status.glance.verdict}
-      </>
-    ),
-    sub:
-      status.glance.state === "watch" ? <span className="sp-warn">Needs a look</span> : undefined,
-  };
+  return (
+    <RoomGlanceCard key={status.key} glance={status.glance} onOpen={() => openRoom(status.key)} />
+  );
 }
 
 function EngineRoomPage() {
@@ -263,9 +295,21 @@ function EngineRoomPage() {
               <span className="sp-fail">This room&rsquo;s summary did not load.</span>
             ) : status?.glance ? (
               <>
+                {/* The unconfigured state gets its own word here for the same
+                    reason it gets one on the card: it is the absence of a
+                    control, not a fault, and putting it in warn amber beside
+                    real trouble is how a governance surface teaches people to
+                    stop reading its colours. Without this clause a room in that
+                    state showed a bare verdict and the reader had to infer the
+                    state from the sentence. */}
                 {status.glance.state === "watch" ? (
                   <>
                     <span className="sp-warn">Needs a look</span>
+                    {" · "}
+                  </>
+                ) : status.glance.state === "unconfigured" ? (
+                  <>
+                    <span style={{ color: "var(--sp-mute)" }}>Not set up</span>
                     {" · "}
                   </>
                 ) : null}
@@ -317,20 +361,33 @@ function EngineRoomOverview({
   const reading = rooms.some((r) => r.loading);
   const failed = rooms.filter((r) => r.error !== null);
   const watching = rooms.filter((r) => r.glance !== null && r.glance.state === "watch");
+  const unset = rooms.filter((r) => r.glance !== null && r.glance.state === "unconfigured");
 
-  // A fact, assembled from real state. It never claims a count it does not
-  // have, and a failed read is never folded into a clear verdict.
+  /**
+   * A fact, assembled from real state. It never claims a count it does not
+   * have, and a failed read is never folded into a clear verdict.
+   *
+   * `unset` joined the arithmetic 2026-08-06 with the Safety room's
+   * `unconfigured` state, and it had to. Seventeen of the twenty-one workspaces
+   * in the live database have no guardrail rules at all, so before that state
+   * existed this line told the clear majority of workspaces that all four rooms
+   * were clear while one of them had never been switched on. It reads as its
+   * own clause rather than being folded into "needs a look", because nothing
+   * has gone wrong in an unconfigured room and telling someone to go look at a
+   * room that is merely empty is how a status line stops being read.
+   */
   const headline = React.useMemo(() => {
     if (reading) return "Reading the engine.";
     const w = watching.length;
     const f = failed.length;
-    const needs = w === 1 ? "One room needs a look." : `${w} rooms need a look.`;
-    const broke = f === 1 ? "One room did not load." : `${f} rooms did not load.`;
-    if (w > 0 && f > 0) return `${needs} ${broke}`;
-    if (f > 0) return broke;
-    if (w > 0) return needs;
-    return "All four rooms are clear.";
-  }, [reading, watching.length, failed.length]);
+    const u = unset.length;
+    const clauses: string[] = [];
+    if (w > 0) clauses.push(w === 1 ? "One room needs a look." : `${w} rooms need a look.`);
+    if (u > 0) clauses.push(u === 1 ? "One room is not set up." : `${u} rooms are not set up.`);
+    if (f > 0) clauses.push(f === 1 ? "One room did not load." : `${f} rooms did not load.`);
+    if (clauses.length === 0) return "All four rooms are clear.";
+    return clauses.join(" ");
+  }, [reading, watching.length, unset.length, failed.length]);
 
   return (
     // No context column. The overview's whole job is the routing decision, and
@@ -338,11 +395,14 @@ function EngineRoomOverview({
     <Surface>
       <PageHead title={headline} />
 
+      {/* A column of cards rather than a row-list. The gap is the system's
+          between-components step; nothing sets a height, so a room with six
+          figures is as tall as it needs to be and a room with three is not
+          padded out to match it. */}
       <Block>
-        {rooms.map((r) => {
-          const { lead, sub } = roomLine(r);
-          return <Row key={r.key} tight lead={lead} sub={sub} onClick={() => openRoom(r.key)} />;
-        })}
+        <div style={{ display: "grid", gap: "var(--sp-space-2)" }}>
+          {rooms.map((r) => roomCard(r, openRoom))}
+        </div>
         {failed.length > 0 ? (
           <Actions>
             <Button

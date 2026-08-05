@@ -62,14 +62,36 @@ export const RoomCard = React.forwardRef<HTMLButtonElement, RoomCardProps>(
           {glance.name}
         </span>
         {/* VALIDATED's moss hue is the exact HEALTHY token match; the tone label
-         * is overridden to the room's own HEALTHY/WATCH word. */}
-        <VerdictChip tone={glance.state === "watch" ? "WATCH" : "VALIDATED"}>
-          {glance.state === "watch" ? "WATCH" : "HEALTHY"}
+         * is overridden to the room's own HEALTHY/WATCH word.
+         *
+         * NOT SET UP takes PENDING, the one tone in the chip's vocabulary that
+         * carries no hue, and that is the whole reason it is right: an absent
+         * control is not an outcome, so it must not borrow moss (which would
+         * repeat the exact defect this state was added to fix, a room with no
+         * guardrails reading as validated) and it must not borrow marigold
+         * (which says something went wrong when nothing has).
+         *
+         * NOTE FOR WHOEVER MOUNTS THIS: as of 2026-08-06 nothing imports
+         * EngineRoomGlance, so this card renders nowhere. It is kept correct
+         * rather than left to rot, because a stale third branch is how a
+         * remounted component ships a lie. */}
+        <VerdictChip
+          tone={
+            glance.state === "watch"
+              ? "WATCH"
+              : glance.state === "unconfigured"
+                ? "PENDING"
+                : "VALIDATED"
+          }
+        >
+          {glance.state === "watch"
+            ? "WATCH"
+            : glance.state === "unconfigured"
+              ? "NOT SET UP"
+              : "HEALTHY"}
         </VerdictChip>
       </span>
-      <span
-        style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}
-      >
+      <span style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}>
         {glance.question}
       </span>
       <span
@@ -123,9 +145,7 @@ export function RoomCardSkeleton({ room }: { room: RoomKey }) {
         </span>
         <ShimmerBar width={56} height={16} />
       </span>
-      <span
-        style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}
-      >
+      <span style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}>
         {ROOM_QUESTIONS[room]}
       </span>
       <ShimmerBar width="55%" />
@@ -175,9 +195,7 @@ export function RoomCardError({
           NOT LOADED
         </span>
       </span>
-      <span
-        style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}
-      >
+      <span style={{ fontFamily: "var(--font-sans)", color: "var(--text-subtle)" }}>
         {ROOM_QUESTIONS[room]}
       </span>
       <span

@@ -1,16 +1,108 @@
 /**
- * SETTINGS-SEGREGATE (v11 #13) -> OBS-13 -> front-end reimagining Phase 4 - the
- * pure grouping model for the Settings surface. The reimagining recluster
- * (founder-approved 2026-07-19) presents Settings as **five named groups**
- * (You · Workspace · Agents · Connections & Data · Plan & Usage), promoting
- * Agents to its own group per charter requirement 9. Every original `SectionId`
- * and the `?section=` deep-link contract are preserved unchanged - only the
- * grouping presentation moved, so no renderer moves and no deep link breaks.
+ * SETTINGS: THE INFORMATION ARCHITECTURE, AND THE ONLY PLACE IT IS WRITTEN DOWN.
  *
- * PURE: no React / db / network. The route imports these to drive the group
- * index (tier 1) and, inside the active group, that group's member sections
- * (tier 2). The invariants (every section in exactly one group, primary-is-
- * first, legacy ids resolve, round-trip group derivation) are unit-verified.
+ * Founder verdict, 2026-08-05: "Especially the engine room and settings, we
+ * have NEVER GAVE A THOUGHT ABOUT IT. It is just randomly designed and a little
+ * layer and tweaks." This file is the thought. It is pure - no React, no db, no
+ * network - so the IA can be asserted by a unit test rather than eyeballed in a
+ * browser, and so there is exactly ONE list of what Settings contains.
+ *
+ * ------------------------------------------------------------------------
+ * 1. THE FIFTEEN, AND WHAT A PERSON IS ACTUALLY LOOKING FOR
+ * ------------------------------------------------------------------------
+ *
+ * Fifteen panes render on /settings. Nobody has ever opened Settings to look at
+ * things; they arrive mid-sentence, with one of these in their head:
+ *
+ *   "stop asking me before it edits code"        -> autonomy
+ *   "why did that agent touch production"        -> staff (reach)
+ *   "which model is burning my credit"           -> ai
+ *   "the crew keeps writing the wrong thing"     -> workspace (brief and voice)
+ *   "it drew the wrong colours again"            -> brand
+ *   "attach this mission to the right product"   -> products
+ *   "where did the memory settings go"           -> memory
+ *   "connect my GitHub"                          -> connections
+ *   "which repo is this workspace pointed at"    -> sync
+ *   "let Cursor read my workspace"               -> interop
+ *   "export everything and delete me"            -> data
+ *   "stop emailing me at midnight"               -> notifications
+ *   "call me Jane, and I am asleep at 22:00"     -> profile
+ *   "cancel my plan"                             -> billing
+ *   "how much is left, and cap the top-ups"      -> credits
+ *   "why is everything failing"                  -> health
+ *
+ * Every one of those is a BOUNDARY: something set once so it never has to be
+ * asked in the moment. That is the surface's whole job, so the groups are named
+ * by which boundary they set, in the product's own words. Not "General" and
+ * "Advanced", which name nothing and are where settings go to be lost.
+ *
+ * ------------------------------------------------------------------------
+ * 2. THE FIVE GROUPS
+ * ------------------------------------------------------------------------
+ *
+ *   What the crew may do                  autonomy · staff · ai
+ *   What the crew reads                   workspace · brand · products · memory
+ *   What it can reach                     connections · sync · interop · data
+ *   What reaches you                      profile · notifications
+ *   What it costs, and whether it works   billing · credits · health
+ *
+ * The retired cut (You · Workspace · Agents · Connections & Data · Plan & Usage)
+ * grouped by WHOSE THING IT IS. That is the data model's shape, not a person's:
+ * "Agents" and "Connections" are both places a person looks when the crew did
+ * something they did not want, and no label told them which. These five group by
+ * WHAT YOU ARE STOPPING OR STARTING, which is the sentence people actually
+ * arrive with.
+ *
+ * ------------------------------------------------------------------------
+ * 3. WHAT LEADS, AND WHY IT IS NOT PROFILE
+ * ------------------------------------------------------------------------
+ *
+ * DEFAULT_SECTION is `autonomy`, not `profile`. `g s` and every bare
+ * `navigate({ to: "/settings" })` now land on the boundary that governs the
+ * crew.
+ *
+ * Profile is identity and appearance. It is filled once during onboarding and
+ * then, by the rows, never touched again: of 16 profiles, ZERO have moved
+ * working hours off the 9-18 default and ZERO have written a voice anchor
+ * (checked against the live database, 2026-08-05). Landing every visit on the
+ * one pane nobody returns to, while the pane they came for sat fourteen tab
+ * stops away, is the "randomly designed" the founder named. Autonomy is the
+ * opposite: it is the only pane whose entire content IS standing policy, and
+ * "stop asking me before it does X" is the most common sentence in the head of
+ * someone opening this surface.
+ *
+ * Profile loses nothing. It is still a door, still `?section=profile`, still
+ * where the account menu's Profile item lands, and now reachable from the nav in
+ * one keypress instead of a crawl.
+ *
+ * ------------------------------------------------------------------------
+ * 4. WHAT BELONGS ELSEWHERE, AND WHAT IS DEAD
+ * ------------------------------------------------------------------------
+ *
+ * DEAD, reported not removed (removing it would break saved links, and the
+ * fix belongs to whoever owns the redirect table):
+ *   · `memory` renders a pane whose entire content is a sentence saying memory
+ *     moved to Brain. A pane that exists to apologise for itself is dead weight;
+ *     it should be a redirect to /brain, not a section. It keeps its address so
+ *     old links land, and it draws no door.
+ *
+ * BELONGS ELSEWHERE (all left rendering - see the route header for the
+ * hand-off notes, since moving them needs the receiving lane):
+ *   · `staff` and `autonomy` -> /crew.
+ *   · the credit debit ledger inside `credits` -> Engine room, Spend.
+ *   · Members and Team inside `workspace` -> /admin.
+ *   · `sync` -> /sync, which renders the same bindings. It already folds: the
+ *     address answers on Connectors and draws no door of its own.
+ *
+ * ------------------------------------------------------------------------
+ * 5. THE ROUTING CONTRACT, UNCHANGED
+ * ------------------------------------------------------------------------
+ *
+ * Every `SectionId` survives, every `?section=` value still resolves, and every
+ * legacy alias still lands. Regrouping moved which HEADING a door sits under and
+ * nothing else. `?section=plan` still lands on Plan (the signup checkout
+ * redirect and the account menu depend on it), `?section=brief` still lands on
+ * Brief and voice, `?section=agents` still lands on the Roster.
  */
 
 export type SectionId =
@@ -31,76 +123,84 @@ export type SectionId =
   | "notifications"
   | "memory";
 
-export type GroupId = "you" | "workspace" | "agents" | "connections" | "plan";
+export type GroupId = "crew" | "brief" | "reach" | "you" | "plan";
 
-export type SettingsSection = { id: SectionId; label: string };
+export type SettingsSection = {
+  id: SectionId;
+  label: string;
+  /**
+   * Omitted means a door is drawn in the nav. `false` means the ADDRESS still
+   * answers but no door is drawn, which is how a folded or apologising section
+   * keeps every saved link alive without spending a row of the index on itself.
+   */
+  door?: false;
+  /**
+   * This address renders another section's pane. `sync` folds into Connectors,
+   * which shows the bindings /sync used to duplicate.
+   */
+  foldsInto?: SectionId;
+};
 
 export type SettingsGroup = {
   id: GroupId;
   label: string;
-  /** One-line description shown under the active pane's index entry. */
+  /** One line saying what this group of boundaries governs. Rendered in the nav
+   *  under the active group's heading, so a person can tell whether they are in
+   *  the right neighbourhood before they read four door labels. */
   desc: string;
-  /** Member sections in display order. The FIRST is the pane's landing section. */
+  /** Member sections in display order. The FIRST is the group's landing section
+   *  and must be one that draws a door - `primaryIsADoor` in the tests. */
   sections: SettingsSection[];
 };
 
-// FRONT-END REIMAGINING Phase 4 (founder-approved recluster, 2026-07-19): the
-// four OBS-13 panes (You / Workspace / Connections / Billing) become the FIVE
-// approved groups (You / Workspace / Agents / Connections & Data / Plan & Usage),
-// with Agents promoted to its own group (charter requirement 9: a deliberate
-// agent home). This is a pure REGROUPING - every `SectionId` and the `?section=`
-// deep-link contract are unchanged, so no renderer moves and no link breaks;
-// only which group each section sits under changed. Source: the reclustering
-// spec (research/ia-reclustering.md §2). The larger relocations it also
-// proposes (a Brand feed item, moving Memory to Brain, folding /sync in, and a
-// dedicated Autonomy & approvals panel) are the follow-on; those touch working
-// cross-surface components or new backend and are tracked separately.
 export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
+    id: "crew",
+    label: "What the crew may do",
+    desc: "How far each agent may reach, when it stops to ask you, and which model runs the work.",
+    sections: [
+      { id: "autonomy", label: "Autonomy and approvals" },
+      { id: "staff", label: "Roster" },
+      { id: "ai", label: "Models and keys" },
+    ],
+  },
+  {
+    id: "brief",
+    label: "What the crew reads",
+    desc: "The standing instruction every mission starts by reading, before it does anything.",
+    sections: [
+      { id: "workspace", label: "Brief and voice" },
+      { id: "brand", label: "Brand" },
+      { id: "products", label: "Products" },
+      // Dead pane, live address. See section 4 of the header.
+      { id: "memory", label: "Memory", door: false },
+    ],
+  },
+  {
+    id: "reach",
+    label: "What it can reach",
+    desc: "What flows in, what an agent outside Supaprod may read, and what we keep of yours.",
+    sections: [
+      { id: "connections", label: "Connectors" },
+      // Folded into Connectors, which shows the same bindings. Address only.
+      { id: "sync", label: "Sync and bindings", door: false, foldsInto: "connections" },
+      { id: "interop", label: "Agent access" },
+      { id: "data", label: "Your data" },
+    ],
+  },
+  {
     id: "you",
-    label: "You",
-    desc: "Your profile, look, and alerts.",
+    label: "What reaches you",
+    desc: "Your name, your hours, and what is allowed to interrupt them.",
     sections: [
       { id: "profile", label: "Profile" },
       { id: "notifications", label: "Notifications" },
     ],
   },
   {
-    id: "workspace",
-    label: "Workspace",
-    desc: "What you are building, your brand, and your team.",
-    sections: [
-      { id: "workspace", label: "Brief & voice" },
-      { id: "brand", label: "Brand" },
-      { id: "products", label: "Products" },
-      { id: "memory", label: "Memory" },
-    ],
-  },
-  {
-    id: "agents",
-    label: "Agents",
-    desc: "Your AI staff: what they may do, on whose approval, and which models.",
-    sections: [
-      { id: "staff", label: "Roster" },
-      { id: "autonomy", label: "Autonomy & approvals" },
-      { id: "ai", label: "Models & keys" },
-    ],
-  },
-  {
-    id: "connections",
-    label: "Connections & Data",
-    desc: "What flows in, what external agents can read, and what we store.",
-    sections: [
-      { id: "connections", label: "Connectors" },
-      { id: "sync", label: "Sync & bindings" },
-      { id: "interop", label: "Agent access" },
-      { id: "data", label: "Your data" },
-    ],
-  },
-  {
     id: "plan",
-    label: "Plan & Usage",
-    desc: "Your plan, credits, and whether the agents are healthy.",
+    label: "What it costs, and whether it works",
+    desc: "Your plan, what credit is left, and whether the loop is running clean.",
     sections: [
       { id: "billing", label: "Plan" },
       { id: "credits", label: "Credits" },
@@ -114,26 +214,49 @@ export const ALL_SECTION_IDS: readonly SectionId[] = SETTINGS_GROUPS.flatMap((g)
   g.sections.map((s) => s.id),
 );
 
-/** Where a bare `/settings` (no `?section=`) lands. */
-export const DEFAULT_SECTION: SectionId = "profile";
+/**
+ * The groups as the NAV draws them: same order, same headings, only the sections
+ * that draw a door. A group whose every member is doorless would draw a heading
+ * over nothing, so it is dropped rather than rendered empty.
+ */
+export const NAV_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS.map((g) => ({
+  ...g,
+  sections: g.sections.filter((s) => s.door !== false),
+})).filter((g) => g.sections.length > 0);
 
 /**
- * Legacy deep links still arrive with old `?section=` values; keep them landing.
- *   brief    -> workspace   (the strategic brief lives in the Workspace pane)
- *   calendar -> connections (calendar accounts live under Yours)
- *   plan     -> billing     (the user-chip "Plan & billing" entry and the
- *                            signup checkout redirect target the PANE id;
- *                            they must land on the Plan pane, never Profile)
- *   you      -> profile     (pane-id symmetry: every GroupId resolves)
+ * Every door, flattened in nav order. This is the roving-tabindex ring: index 0
+ * is what Home reaches and the last entry is what End reaches. End is
+ * Diagnostics on purpose - it was the fourteen-stop Tab crawl the founder
+ * named, and it is now one keypress from anywhere in the nav.
+ */
+export const NAV_DOOR_IDS: readonly SectionId[] = NAV_GROUPS.flatMap((g) =>
+  g.sections.map((s) => s.id),
+);
+
+/** Where a bare `/settings` (no `?section=`) lands. Defended in header §3. */
+export const DEFAULT_SECTION: SectionId = "autonomy";
+
+/**
+ * Legacy and shorthand `?section=` values that must keep landing.
+ *   brief    -> workspace   (the strategic brief lives in the Brief and voice pane)
+ *   calendar -> connections (calendar accounts are a connector)
+ *   plan     -> billing     (the account menu's "Plan and billing" item and the
+ *                            signup checkout redirect both target this; they
+ *                            must land on Plan, never on the default)
+ *   agents   -> staff       (the retired Agents group id; saved links still send it)
+ *   you      -> profile     (the retired You group id)
+ * Plus group-id symmetry for the live groups, so `?section=<GroupId>` always
+ * lands inside that group rather than falling back to the default.
  */
 export const LEGACY_SECTION_MAP: Readonly<Record<string, SectionId>> = {
   brief: "workspace",
   calendar: "connections",
   plan: "billing",
-  you: "profile",
-  // Group-id symmetry: the Agents group id resolves to its landing section, so
-  // `?section=agents` (and the SettingsIndex round-trip) lands inside Agents.
   agents: "staff",
+  you: "profile",
+  crew: "autonomy",
+  reach: "connections",
 };
 
 function isSectionId(raw: string): raw is SectionId {
@@ -152,17 +275,33 @@ const SECTION_TO_GROUP = Object.fromEntries(
   SETTINGS_GROUPS.flatMap((g) => g.sections.map((s) => [s.id, g.id] as const)),
 ) as Record<SectionId, GroupId>;
 
-/** The pane a section belongs to. */
+const FOLDS: Readonly<Partial<Record<SectionId, SectionId>>> = Object.fromEntries(
+  SETTINGS_GROUPS.flatMap((g) =>
+    g.sections.filter((s) => s.foldsInto).map((s) => [s.id, s.foldsInto!] as const),
+  ),
+);
+
+/**
+ * Which PANE a resolved section renders. `sync` renders Connectors; everything
+ * else renders itself. Kept here rather than in the route because the fold is
+ * part of the address contract, and the route used to carry a second private
+ * copy of it that nothing compared against this file.
+ */
+export function paneForSection(section: SectionId): SectionId {
+  return FOLDS[section] ?? section;
+}
+
+/** The group a section belongs to. */
 export function groupForSection(section: SectionId): GroupId {
   return SECTION_TO_GROUP[section];
 }
 
-/** The pane definition by id (returns undefined if unknown - never throws). */
+/** The group definition by id (returns undefined if unknown - never throws). */
 export function findGroup(groupId: GroupId): SettingsGroup | undefined {
   return SETTINGS_GROUPS.find((g) => g.id === groupId);
 }
 
-/** The landing section for a pane (its first member). */
+/** The landing section for a group (its first member, which always has a door). */
 export function primarySection(groupId: GroupId): SectionId {
   return findGroup(groupId)?.sections[0]?.id ?? DEFAULT_SECTION;
 }
@@ -176,7 +315,85 @@ export function sectionLabel(section: SectionId): string {
   return section;
 }
 
-/** All five groups are primary - the reimagining keeps no recessed fold. */
+/**
+ * Which door carries `tabIndex={0}` - the nav's single tab stop.
+ *
+ * THE DEFECT THIS PREVENTS, which the old nav shipped: with a roving tabindex,
+ * the naive rule is "the active door gets 0, every other gets -1". Two of the
+ * fifteen sections draw NO door (`memory`, and `sync` before it folds), so on
+ * `?section=memory` no door matches the active section, every door gets -1, and
+ * the entire settings nav drops out of the tab order. A keyboard-only person
+ * arriving on that address could not reach ANY other section without a mouse.
+ * Nothing caught it because the old nav had no roving tabindex at all - it had
+ * fourteen unmanaged tab stops, which is a different bug that happens to hide
+ * this one. Falling back to the first door keeps the nav always reachable.
+ */
+export function navTabStop(active: SectionId): SectionId {
+  const pane = paneForSection(active);
+  const first = NAV_DOOR_IDS[0] ?? DEFAULT_SECTION;
+  return NAV_DOOR_IDS.includes(pane) ? pane : first;
+}
+
+/** The arrow/Home/End keys the settings nav answers. */
+const NAV_KEYS = ["ArrowDown", "ArrowUp", "Home", "End"] as const;
+export type NavKey = (typeof NAV_KEYS)[number];
+
+export function isNavKey(key: string): key is NavKey {
+  return (NAV_KEYS as readonly string[]).includes(key);
+}
+
+/**
+ * Where Up/Down/Home/End move focus from a given door. Pure so the keyboard
+ * contract is unit-tested rather than trusted: the nav is a vertical list, so
+ * Down/Up wrap around the ring and Home/End jump to the ends.
+ *
+ * Returns null for a key the nav does not own, so the caller knows not to
+ * swallow the event - preventDefault on an unowned key is how a nav quietly
+ * breaks page scrolling and browser find.
+ */
+export function stepDoor(from: SectionId, key: string): SectionId | null {
+  if (!isNavKey(key)) return null;
+  const ids = NAV_DOOR_IDS;
+  if (ids.length === 0) return null;
+  const at = ids.indexOf(from);
+  const cur = at >= 0 ? at : 0;
+  if (key === "Home") return ids[0]!;
+  if (key === "End") return ids[ids.length - 1]!;
+  const delta = key === "ArrowDown" ? 1 : -1;
+  return ids[(cur + delta + ids.length) % ids.length]!;
+}
+
+const DOOR_LABELS: Readonly<Record<string, string>> = Object.fromEntries(
+  NAV_DOOR_IDS.map((id) => [id, sectionLabel(id).toLowerCase()] as const),
+);
+
+/**
+ * Typeahead: the shortcut INTO any of the fifteen that the surface never had.
+ * Type "d" in the nav and focus goes to Diagnostics; type "cr" and it goes to
+ * Credits. Repeating one letter cycles through every door starting with it,
+ * which is why a single-character buffer starts its search AFTER the current
+ * door while a longer buffer starts AT it - a refining buffer must be allowed
+ * to keep matching the door you are already on.
+ *
+ * Returns null when nothing matches, so the caller leaves focus where it is
+ * rather than jumping somewhere arbitrary on a typo.
+ */
+export function doorByTypeahead(buffer: string, from: SectionId): SectionId | null {
+  const needle = buffer.trim().toLowerCase();
+  if (!needle) return null;
+  const ids = NAV_DOOR_IDS;
+  if (ids.length === 0) return null;
+  const at = ids.indexOf(from);
+  const cur = at >= 0 ? at : 0;
+  const offset = needle.length === 1 ? 1 : 0;
+  for (let i = 0; i < ids.length; i += 1) {
+    const id = ids[(cur + offset + i) % ids.length]!;
+    if (DOOR_LABELS[id]?.startsWith(needle)) return id;
+  }
+  return null;
+}
+
+/** All five groups are primary - this IA keeps no recessed fold. */
 export const PRIMARY_GROUPS: readonly SettingsGroup[] = SETTINGS_GROUPS;
 
 /** No group is recessed under the five-group model. */

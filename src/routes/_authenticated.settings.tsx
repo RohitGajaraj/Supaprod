@@ -28,9 +28,22 @@
  *    most of the verdicts below.
  *
  *    A consequence worth stating, because it is a decision and not an
- *    oversight: there is no Settings landing page and /settings still opens on
- *    Profile. An overview screen would be a surface whose job is "look at
- *    things", which question 1 says is the finding rather than the design.
+ *    oversight: there is no Settings landing page. An overview screen would be a
+ *    surface whose job is "look at things", which question 1 says is the finding
+ *    rather than the design.
+ *
+ *    WHAT LEADS INSTEAD, changed 2026-08-06: /settings opens on Autonomy and
+ *    approvals, not Profile. Question 1 says the sentence in the visitor's head
+ *    is "stop asking me before it edits code"; Autonomy is the pane that answers
+ *    it, and it is the only pane whose entire content is standing policy.
+ *    Profile is identity and appearance, filled once at onboarding and then, by
+ *    the rows, never returned to - of 16 profiles, none has moved working hours
+ *    off the 9-18 default and none has written a voice anchor. Opening every
+ *    visit on the pane nobody comes back for, with the pane they came for
+ *    fourteen tab stops away, was the "randomly designed" the founder named.
+ *    Profile keeps its door, its address and its place in the account menu. The
+ *    defence in full, with the grouping it belongs to, is the header of
+ *    lib/settings-sections.ts, which is now the only place the IA is written.
  *
  * 3. KEEP / MOVE / KILL, every element:
  *    KEEP - profile identity and working hours (working hours ARE quiet hours,
@@ -113,6 +126,18 @@
  * and a setting is a label on the left with its control on the right, one per
  * line, divided by a rule rather than boxed in a card each.
  *
+ * WHAT THE GROUPS ARE NAMED, changed 2026-08-06. The five headings used to be
+ * You / Workspace / Agents / Sources and data / Plan, which group by whose thing
+ * it is - the data model's shape, not a person's. They are now named by which
+ * boundary you came to move: What the crew may do · What the crew reads · What
+ * it can reach · What reaches you · What it costs, and whether it works. No door
+ * was removed and no pane moved file; only which heading a door sits under.
+ *
+ * THE KEYBOARD, added 2026-08-06. The index was fourteen unmanaged tab stops
+ * with no arrow keys and no skip link, so Diagnostics was a fourteen-press
+ * crawl. It is one tab stop now, with Up/Down/Home/End, typeahead and a skip
+ * link. See SettingsIndex.
+ *
  * UNCHANGED: the ?section= / ?tab= / ?connector= / ?checkout= contract, every
  * legacy deep link, and every server function, mutation and query key still
  * rendered. Destructive actions keep their confirmation.
@@ -161,7 +186,17 @@ import { planPresentation, type PlanTier } from "@/lib/entitlements";
 import { amIAdmin, getPricingCatalog } from "@/lib/pricing.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { CONNECTOR_REGISTRY, type ProviderId, type ProviderSpec } from "@/lib/connectors/registry";
-import { normalizeSection, type SectionId } from "@/lib/settings-sections";
+import {
+  doorByTypeahead,
+  groupForSection,
+  isNavKey,
+  navTabStop,
+  NAV_GROUPS,
+  normalizeSection,
+  paneForSection,
+  stepDoor,
+  type SectionId,
+} from "@/lib/settings-sections";
 
 import {
   AccountConnectionsSection,
@@ -205,69 +240,25 @@ import {
 /* ================================================================== *
  * The index
  *
- * The doors, decided here rather than read from settings-sections.ts,
- * because which doors EXIST is a design decision belonging to this
- * surface while that module owns the deep-link contract (SectionId and
- * normalizeSection, both still imported and still authoritative). Two
- * rows the retired IA carried are absent: Sync, which duplicated /sync,
- * and Memory, which was a sentence saying it moved to Brain.
+ * The doors are READ FROM settings-sections.ts now, and are no longer
+ * declared here.
+ *
+ * THE DEFECT THAT CHANGE PREVENTS, which this file shipped for a month:
+ * there were two lists of what Settings contains. This route carried a
+ * private GROUPS array of five groups and fourteen doors, and
+ * settings-sections.ts carried a DIFFERENT five groups holding sixteen
+ * sections, and nothing anywhere compared them. They had already drifted
+ * - the module still filed Memory under Workspace and Sync under
+ * Connections while this file had dropped both doors, and the module
+ * called the same pane "Models & keys" while the nav drew "Models and
+ * keys". The unit tests passed the whole time, because they only ever
+ * read the module, and the module was the copy nobody rendered. One
+ * list, asserted by those tests, is the fix.
+ *
+ * The fold (`sync` -> Connectors) moved with it, for the same reason:
+ * it is part of the address contract, and a second private copy of an
+ * address contract is how a saved link quietly starts 404ing.
  * ================================================================== */
-
-type Door = { id: SectionId; label: string };
-type DoorGroup = { id: string; label: string; doors: Door[] };
-
-const GROUPS: DoorGroup[] = [
-  {
-    id: "you",
-    label: "You",
-    doors: [
-      { id: "profile", label: "Profile" },
-      { id: "notifications", label: "Notifications" },
-    ],
-  },
-  {
-    id: "workspace",
-    label: "Workspace",
-    doors: [
-      { id: "workspace", label: "Brief and voice" },
-      { id: "brand", label: "Brand" },
-      { id: "products", label: "Products" },
-    ],
-  },
-  {
-    id: "agents",
-    label: "Agents",
-    doors: [
-      { id: "staff", label: "Roster" },
-      { id: "autonomy", label: "Autonomy" },
-      { id: "ai", label: "Models and keys" },
-    ],
-  },
-  {
-    id: "sources",
-    label: "Sources and data",
-    doors: [
-      { id: "connections", label: "Connectors" },
-      { id: "interop", label: "Agent access" },
-      { id: "data", label: "Your data" },
-    ],
-  },
-  {
-    id: "plan",
-    label: "Plan",
-    doors: [
-      { id: "billing", label: "Plan" },
-      { id: "credits", label: "Credits" },
-      { id: "health", label: "Diagnostics" },
-    ],
-  },
-];
-
-/** Retired doors whose ADDRESS still answers, so no saved link breaks. `sync`
- *  folds into Sources, which now shows the bindings it used to duplicate.
- *  `memory` keeps its own one-line pane because sending it to Brief and voice
- *  would land a person somewhere that does not explain their click. */
-const FOLDED: Partial<Record<SectionId, SectionId>> = { sync: "connections" };
 
 /* ================================================================== *
  * Route
@@ -311,12 +302,82 @@ export const Route = createFileRoute("/_authenticated/settings")({
   ),
 });
 
-/** The left-hand index. The founder liked this shape, so it keeps it: named
- *  groups, every door visible at once, no numbering and no fold. */
+/** Where the skip link lands, and what the nav's Tab exit reaches. */
+const PANE_ID = "settings-pane";
+
+/**
+ * The left-hand index. The founder liked this shape, so it keeps it verbatim:
+ * named groups, every door visible at once, no numbering and no fold. What
+ * changed is underneath it.
+ *
+ * ONE TAB STOP, NOT FOURTEEN. Every door used to be its own tab stop, so
+ * reaching Diagnostics from the top of the surface was a fourteen-press crawl
+ * and Tabbing "past" the nav to the actual settings took fourteen presses more.
+ * This is the roving-tabindex pattern, taken from the repo's existing reference
+ * implementation in components/obsidian/flashlight-tabs.tsx rather than invented
+ * a second time: exactly one door holds tabIndex 0, and Up/Down/Home/End move
+ * focus between them. The axis is Up/Down because this nav is a vertical list -
+ * flashlight-tabs uses Left/Right because its row is horizontal, and copying the
+ * axis rather than the pattern would have been the wrong kind of consistency.
+ *
+ * Focus MOVES, it does not select. Arrowing to a door focuses it; Enter or Space
+ * opens it (native button activation). Manual activation, again as in
+ * flashlight-tabs, so arrowing down the list does not fire fifteen route
+ * navigations and fifteen sets of queries on the way past.
+ *
+ * TYPEAHEAD is the shortcut into any of the fifteen that this surface has never
+ * had. Type "d" and focus lands on Diagnostics. The buffer clears after a second
+ * of no typing, which is the standard listbox interval.
+ */
 function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: SectionId) => void }) {
+  const doorRefs = useRef<Map<SectionId, HTMLButtonElement>>(new Map());
+  const typeBuffer = useRef<{ text: string; at: number }>({ text: "", at: 0 });
+  const [skipFocused, setSkipFocused] = useState(false);
+
+  // The single tab stop. Derived, not assumed: two of the fifteen sections draw
+  // no door, and on those addresses the active section is not in this ring.
+  const tabStop = navTabStop(active);
+  const activeGroup = groupForSection(paneForSection(active));
+
+  const focusDoor = (id: SectionId | null) => {
+    if (id) doorRefs.current.get(id)?.focus();
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    // Only a DOOR drives this. The skip link lives inside the same nav, and
+    // without this check pressing End while it held focus would jump focus to
+    // Diagnostics instead of scrolling the page, and typing would drag focus
+    // into the index from a link whose whole purpose is to leave it.
+    const focusedId = [...doorRefs.current.entries()].find(
+      ([, el]) => el === document.activeElement,
+    )?.[0];
+    if (!focusedId) return;
+
+    // Never swallow a key this nav does not own. preventDefault on an unowned
+    // key is how a nav silently breaks page scrolling and browser find.
+    if (isNavKey(e.key)) {
+      e.preventDefault();
+      focusDoor(stepDoor(focusedId, e.key));
+      return;
+    }
+
+    // A single printable character, with no modifier, is typeahead. Space is
+    // excluded: it activates the focused button, which is the ARIA contract.
+    if (e.key.length !== 1 || e.key === " " || e.metaKey || e.ctrlKey || e.altKey) return;
+    const now = Date.now();
+    const buf = now - typeBuffer.current.at > 1000 ? e.key : typeBuffer.current.text + e.key;
+    typeBuffer.current = { text: buf, at: now };
+    const match = doorByTypeahead(buf, focusedId);
+    if (match) {
+      e.preventDefault();
+      focusDoor(match);
+    }
+  };
+
   return (
     <nav
       aria-label="Settings"
+      onKeyDown={onKeyDown}
       style={{
         flex: "0 1 200px",
         maxWidth: 220,
@@ -328,42 +389,117 @@ function SettingsIndex({ active, onSet }: { active: SectionId; onSet: (id: Secti
         top: 0,
       }}
     >
-      {GROUPS.map((g) => (
-        <div key={g.id}>
-          <div className="sp-ctx-head" style={{ marginBottom: "var(--sp-space-2)" }}>
-            {g.label}
+      {/* Announced and reachable, drawn only while it holds focus. There is a
+          .sp-sr-only utility but no focus-visible variant of it in the sheet,
+          and the stylesheet is not this lane's to change, so the reveal is
+          done here. */}
+      <a
+        href={`#${PANE_ID}`}
+        onFocus={() => setSkipFocused(true)}
+        onBlur={() => setSkipFocused(false)}
+        style={
+          skipFocused
+            ? {
+                fontSize: "var(--sp-text-meta)",
+                color: "var(--sp-ink)",
+                padding: "4px 8px",
+                borderRadius: "var(--sp-radius-chip)",
+                background: "var(--sp-lift)",
+                boxShadow: "inset 0 0 0 1px var(--sp-line)",
+              }
+            : {
+                position: "absolute",
+                width: 1,
+                height: 1,
+                overflow: "hidden",
+                clipPath: "inset(50%)",
+                whiteSpace: "nowrap",
+              }
+        }
+      >
+        Skip to the settings
+      </a>
+
+      {NAV_GROUPS.map((g) => {
+        const headingId = `settings-group-${g.id}`;
+        return (
+          <div key={g.id}>
+            <div
+              id={headingId}
+              className="sp-ctx-head"
+              style={{ marginBottom: "var(--sp-space-2)" }}
+            >
+              {g.label}
+            </div>
+            {/* The active group says what it governs. A person who arrived on a
+                deep link needs to know which neighbourhood they are in before
+                they read four door labels; showing it for every group at once
+                would be five paragraphs in a 200px column. */}
+            {g.id === activeGroup ? (
+              <div
+                style={{
+                  fontSize: "var(--sp-text-label)",
+                  color: "var(--sp-mute)",
+                  lineHeight: "var(--sp-leading-body)",
+                  marginBottom: "var(--sp-space-2)",
+                }}
+              >
+                {g.desc}
+              </div>
+            ) : null}
+            <div
+              role="group"
+              aria-labelledby={headingId}
+              style={{ display: "flex", flexDirection: "column", gap: 1, margin: "0 -10px" }}
+            >
+              {g.sections.map((d) => {
+                const here = d.id === active;
+                return (
+                  <button
+                    key={d.id}
+                    ref={(el) => {
+                      if (el) doorRefs.current.set(d.id, el);
+                      else doorRefs.current.delete(d.id);
+                    }}
+                    type="button"
+                    // A nav, not a tablist: aria-current says where you are, so
+                    // the active look is set here rather than by sp-tab's
+                    // aria-selected rule.
+                    className="sp-tab"
+                    aria-current={here ? "page" : undefined}
+                    tabIndex={d.id === tabStop ? 0 : -1}
+                    onClick={() => onSet(d.id)}
+                    style={{
+                      textAlign: "left",
+                      ...(here
+                        ? {
+                            background: "var(--sp-lift)",
+                            color: "var(--sp-ink)",
+                            fontWeight: "var(--sp-weight-medium)",
+                          }
+                        : null),
+                    }}
+                  >
+                    {d.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 1, margin: "0 -10px" }}>
-            {g.doors.map((d) => {
-              const here = d.id === active;
-              return (
-                <button
-                  key={d.id}
-                  type="button"
-                  // A nav, not a tablist: aria-current says where you are, so
-                  // the active look is set here rather than by sp-tab's
-                  // aria-selected rule.
-                  className="sp-tab"
-                  aria-current={here ? "page" : undefined}
-                  onClick={() => onSet(d.id)}
-                  style={{
-                    textAlign: "left",
-                    ...(here
-                      ? {
-                          background: "var(--sp-lift)",
-                          color: "var(--sp-ink)",
-                          fontWeight: "var(--sp-weight-medium)",
-                        }
-                      : null),
-                  }}
-                >
-                  {d.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+        );
+      })}
+
+      {/* The keys exist whether or not this line is here; without it nobody
+          finds them, and a shortcut nobody can find is not a shortcut. */}
+      <div
+        style={{
+          fontSize: "var(--sp-text-label)",
+          color: "var(--sp-mute)",
+          lineHeight: "var(--sp-leading-body)",
+        }}
+      >
+        Up and Down move, Home and End jump to the ends, or type a name.
+      </div>
     </nav>
   );
 }
@@ -373,7 +509,7 @@ function SettingsPage() {
   // ?section= is canonical; legacy ?tab= keeps landing.
   const rawSection = section ?? tab;
   const resolved = normalizeSection(rawSection);
-  const active = FOLDED[resolved] ?? resolved;
+  const active = paneForSection(resolved);
   const activeConnector = active === "connections" ? normalizeConnector(connector) : undefined;
   const navigate = useNavigate({ from: "/settings" });
   const { activeWorkspace } = useWorkspace();
@@ -394,7 +530,16 @@ function SettingsPage() {
       }}
     >
       <SettingsIndex active={active} onSet={setTab} />
-      <div className="sp-main" style={{ flex: "1 1 460px", maxWidth: "none" }}>
+      {/* tabIndex -1 so the skip link can actually land focus here. Without it
+          the anchor scrolls the pane into view and leaves focus in the nav, so
+          the next Tab goes back to where it already was - a skip link that does
+          not move focus is a skip link that does not work. */}
+      <div
+        id={PANE_ID}
+        tabIndex={-1}
+        className="sp-main"
+        style={{ flex: "1 1 460px", maxWidth: "none", outline: "none" }}
+      >
         {active === "profile" && <ProfileSection />}
         {active === "notifications" && <NotificationsSection />}
 

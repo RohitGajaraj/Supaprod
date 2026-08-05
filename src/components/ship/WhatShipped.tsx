@@ -67,11 +67,26 @@
  * order is the order a person reads in: what shipped, why it was built, what it
  * promised, whether it worked, and only then the receipts.
  *
- * SHIPS UNMOUNTED. `_authenticated.ship.tsx` is owned by another lane this
- * hour. The two lines that mount it are in this file's own report; nothing here
- * depends on them.
+ * MOUNTED ON /ship (2026-08-06), under "The release document", against whichever
+ * release the reader picked out of the "What shipped" list and, until they pick
+ * one, the newest. Before that it shipped built-but-unreachable, which by house
+ * rule 3 is the same as not existing.
+ *
+ * THE READS ARRIVE THROUGH A PROP, and that is a testability decision with a
+ * price already paid behind it. This component's three reads are server
+ * functions, and `useServerFn` calls `useRouter()`, so a test that renders the
+ * component has to stand up a router or replace the module. Replacing the module
+ * is the trap: `mock.module` is process-wide and is only observed when a
+ * consumer is FIRST imported, so a stub registered here binds itself into every
+ * later suite that loads the same module, and the failure lands in a file that
+ * does not import this one (see src/lib/testing/threads-mock.ts, which exists
+ * because that bill was paid three times in one night). So the queries live in
+ * `AssembledRelease`, which takes its reads as a plain object, and `WhatShipped`
+ * is the thin door that binds the real server functions to it. Same seam
+ * GlobalComposer uses for `pane`.
  */
 
+import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -478,7 +493,21 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
           "changelog_entries.prd_id (null)",
         )
       : null,
-    entry.prd_id && !contract.intent
+    // A SPEC ID THAT DOES NOT RESOLVE, which became reachable the moment a
+    // not-found from `getPrd` stopped failing the whole document (see
+    // `isAbsentRow`). The row is deleted, or it sits outside what this reader is
+    // allowed to see; either way nobody read it. Without this line the gap
+    // immediately below would fire instead and report "the spec carries no
+    // outcome contract", which is a confident statement about the contents of a
+    // row that was never fetched — the product claiming knowledge it does not
+    // have, which is rule 2 in its quietest form.
+    entry.prd_id && !prd
+      ? fact(
+          "This release names a spec, but that spec could not be read, so what it set out to do and what it promised are not stated here.",
+          "prds (row not readable)",
+        )
+      : null,
+    entry.prd_id && prd && !contract.intent
       ? fact(
           "The spec carries no outcome contract, so nothing states the intent this release was built against.",
           "prds.contract.intent (empty)",
@@ -496,10 +525,60 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
           "prds.opportunity_id (null)",
         )
       : null,
-    !approval
+    // Only claimed when the spec was actually read, or when there is no spec to
+    // read at all. With an id that did not resolve, the line above already says
+    // the truthful thing and this one would be guessing at a column nobody saw.
+    /**
+     * ONLY WHEN THERE IS A SPEC TO HAVE A GATE ON. The guard used to admit
+     * `!entry.prd_id`, so a release with NO SPEC AT ALL printed "No design gate
+     * was decided on this spec" -- a definite article for a row that does not
+     * exist, one line after this same document had said "This release is not
+     * linked to a spec". Two sentences contradicting each other about whether
+     * there is a spec, in the document whose whole claim is that every line is
+     * traceable to a row.
+     *
+     * A design gate lives on `prds.design_gate_status`. With no prd there is no
+     * column to be undecided, and the absence of the spec is already stated
+     * above. Saying nothing here is the accurate reading.
+     */
+    !approval && !!prd
       ? fact(
           "No design gate was decided on this spec, so no human approval is on the record for how it looks.",
           "prds.design_gate_status (undecided)",
+        )
+      : null,
+    // THE CHANGE ITSELF, WHICH THIS DOCUMENT USED TO DROP IN SILENCE.
+    //
+    // The receipts read the repository, the branch and the file count off the
+    // resolved changeset and simply omit all three when it is null, so a
+    // document assembled for a release whose changeset fell off the end of
+    // `listAppliedChanges` (a bounded page of 40, merged only) or was rolled
+    // back out of `merged` printed no repository line and said nothing about
+    // why. That is exactly the silent omission this file's header promises does
+    // not happen: "a fact whose backing row is absent is NAMED in Not on the
+    // record". Three different absences, three different sentences, because
+    // "no changeset is linked" and "the linked changeset did not resolve" send a
+    // reader to two different places.
+    !entry.changeset_id
+      ? fact(
+          "This release is not linked to a changeset, so the repository, the branch and the number of files it touched are not on the record.",
+          "changelog_entries.changeset_id (null)",
+        )
+      : null,
+    entry.changeset_id && !applied
+      ? fact(
+          "The changeset behind this release did not resolve, so the repository, the branch and the number of files it touched are not stated.",
+          "studio_changesets (not resolved)",
+        )
+      : null,
+    // A resolved changeset carrying no file rows. Counted rather than assumed:
+    // `listAppliedChanges` derives `file_count` from real `studio_changes` rows,
+    // and seven of the eight live workspaces hold a merged changeset with none
+    // of them, so this is the common case rather than the exotic one.
+    applied && applied.file_count === 0
+      ? fact(
+          "No file rows are stored for this changeset, so this document does not say how many files the release touched.",
+          "studio_changes (no rows)",
         )
       : null,
     !live
@@ -662,12 +741,74 @@ export function ReleaseDocument({
 }
 
 /* ------------------------------------------------------------------ *
- * The mounted component: three reads, then the assembler.
+ * Three reads, then the assembler.
  * ------------------------------------------------------------------ */
 
-export function WhatShipped({
+/**
+ * The three rows this document needs, as plain async functions.
+ *
+ * A PROP RATHER THAN A MODULE IMPORT, for the reason the file header gives at
+ * length: a `mock.module` stub of a shared module is process-wide and leaks into
+ * every suite that loads that module afterwards. Injecting here means the render
+ * tests exercise the real assembler and the real markup against fixtures, and
+ * nothing outside the test file changes shape.
+ *
+ * `workspaceId` is threaded through the arguments rather than closed over
+ * because the deployments read is the one that must never answer about a
+ * different workspace, and a signature that carries it is a signature a test can
+ * hold to account.
+ */
+export type ReleaseReads = {
+  prd: (args: { id: string }) => Promise<{ prd?: unknown } | null | undefined>;
+  applied: (args: {
+    workspaceId: string | null;
+  }) => Promise<{ changes?: AppliedChange[] } | null | undefined>;
+  deployments: (args: {
+    changesetId: string;
+    workspaceId: string | null;
+  }) => Promise<{ deployments?: DeploySource[] } | null | undefined>;
+};
+
+/**
+ * Is this failure "there is no such row" rather than "the read broke"?
+ *
+ * THE DEFECT IT ENDS. `getPrd` selects with `.single()`, so a spec id that
+ * matches nothing — deleted, or invisible to this reader under RLS — comes back
+ * as a PostgREST error rather than an empty result, and `getPrd` rethrows it as
+ * a bare `Error` carrying only the message. This component treated any thrown
+ * read as a failed read, so ONE missing spec row collapsed the entire release
+ * document into "could not be assembled", hiding the title, the crew's own
+ * words, the pull request and the deployment — every one of which had loaded
+ * fine. Meanwhile the assembler already had a tested, deliberate path for
+ * exactly this case (`prd: null`, and the hole named out loud), and nothing
+ * could reach it.
+ *
+ * MATCHED ON THE MESSAGE, WHICH IS NOT A CHOICE. The PostgREST error code
+ * (PGRST116) is discarded by `getPrd` before the client ever sees it, and
+ * `discovery.functions.ts` is not this lane's file to change. So the known
+ * zero-row phrasings are matched — PostgREST 11's and PostgREST 12's differ —
+ * and ONLY those. Anything unrecognised stays a failure, which is the safe
+ * direction: a network error or a broken policy must never be quietly
+ * redescribed as "this release has no spec", because that sentence would appear
+ * in a document a person forwards to a customer.
+ */
+export function isAbsentRow(err: unknown): boolean {
+  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+  const m = raw.toLowerCase();
+  return (
+    m.includes("pgrst116") ||
+    // PostgREST 11 and earlier, and still what supabase-js surfaces today.
+    m.includes("multiple (or no) rows returned") ||
+    // PostgREST 12 rewrote the same condition.
+    m.includes("cannot coerce the result to a single json object") ||
+    m.includes("the result contains 0 rows")
+  );
+}
+
+export function AssembledRelease({
   entry,
-  workspaceId,
+  workspaceId = null,
+  reads,
   onOpen = openUrl,
 }: {
   /** One row from `listChangelog`, which Ship already holds. */
@@ -675,20 +816,26 @@ export function WhatShipped({
   /** The active workspace. `listAppliedChanges` falls back to the caller's
    *  default when it is absent, so this is a scoping hint, not a requirement. */
   workspaceId?: string | null;
+  reads: ReleaseReads;
   onOpen?: (url: string) => void;
 }) {
-  const fPrd = useServerFn(getPrd);
-  const fApplied = useServerFn(listAppliedChanges);
-  const fDeploys = useServerFn(listDeployments);
-
   const prdQ = useQuery({
     queryKey: ["what-shipped-prd", entry.prd_id],
-    queryFn: () => fPrd({ data: { id: entry.prd_id as string } }),
+    queryFn: () => reads.prd({ id: entry.prd_id as string }),
     enabled: !!entry.prd_id,
+    /**
+     * A MISSING ROW IS NOT WORTH RETRYING, and retrying it costs the reader the
+     * document. React Query retries a rejected read three times with backoff by
+     * default, so a spec that simply is not there held this component in
+     * "Assembling the release document" for several seconds before settling —
+     * a spinner over an answer that had already arrived and was never going to
+     * change. Everything else still retries, because everything else might.
+     */
+    retry: (count, err) => !isAbsentRow(err) && count < 3,
   });
   const appliedQ = useQuery({
     queryKey: ["what-shipped-applied", workspaceId ?? null],
-    queryFn: () => fApplied({ data: workspaceId ? { workspaceId } : {} }),
+    queryFn: () => reads.applied({ workspaceId: workspaceId ?? null }),
   });
   const deployQ = useQuery({
     /**
@@ -706,11 +853,9 @@ export function WhatShipped({
      */
     queryKey: ["what-shipped-deploys", workspaceId ?? null, entry.changeset_id],
     queryFn: () =>
-      fDeploys({
-        data: {
-          changesetId: entry.changeset_id as string,
-          ...(workspaceId ? { workspaceId } : {}),
-        },
+      reads.deployments({
+        changesetId: entry.changeset_id as string,
+        workspaceId: workspaceId ?? null,
       }),
     enabled: !!entry.changeset_id,
   });
@@ -724,10 +869,18 @@ export function WhatShipped({
     appliedQ.isLoading ||
     (!!entry.changeset_id && deployQ.isLoading);
 
+  // A SPEC THAT IS NOT THERE IS NOT A BROKEN READ. `getPrd` throws for both, so
+  // the two were indistinguishable here and the absent row won: one deleted spec
+  // took down a document whose title, body, pull request and deployment had all
+  // loaded. `isAbsentRow` separates them, and only the genuinely absent one
+  // falls through to `prd: null`, where the assembler already knows what to say.
+  const prdAbsent = !!entry.prd_id && prdQ.isError && isAbsentRow(prdQ.error);
+
   // A failed read is a different fact from a missing row, and the gap list would
   // otherwise report "no production deployment" when the truth is that we could
   // not find out. Failed says so, and offers the retry.
-  const failed = (!!entry.prd_id && prdQ.isError) || appliedQ.isError || deployQ.isError;
+  const failed =
+    (!!entry.prd_id && prdQ.isError && !prdAbsent) || appliedQ.isError || deployQ.isError;
 
   if (waiting) return <Loading>Assembling the release document.</Loading>;
   if (failed) {
@@ -772,6 +925,39 @@ export function WhatShipped({
 
   const doc = assembleReleaseDoc({ entry, prd, applied, deployments });
   return <ReleaseDocument doc={doc} onOpen={onOpen} />;
+}
+
+/**
+ * The mounted component: the real server functions, bound once, handed down.
+ *
+ * Everything this file decides lives in `AssembledRelease` and the assembler
+ * above it. This is the eight lines that cannot be tested without a router, and
+ * they are eight lines on purpose.
+ */
+export function WhatShipped({
+  entry,
+  workspaceId = null,
+  onOpen = openUrl,
+}: {
+  entry: ChangelogEntry;
+  workspaceId?: string | null;
+  onOpen?: (url: string) => void;
+}) {
+  const fPrd = useServerFn(getPrd);
+  const fApplied = useServerFn(listAppliedChanges);
+  const fDeploys = useServerFn(listDeployments);
+
+  const reads = React.useMemo<ReleaseReads>(
+    () => ({
+      prd: ({ id }) => fPrd({ data: { id } }),
+      applied: ({ workspaceId: w }) => fApplied({ data: w ? { workspaceId: w } : {} }),
+      deployments: ({ changesetId, workspaceId: w }) =>
+        fDeploys({ data: { changesetId, ...(w ? { workspaceId: w } : {}) } }),
+    }),
+    [fPrd, fApplied, fDeploys],
+  );
+
+  return <AssembledRelease entry={entry} workspaceId={workspaceId} reads={reads} onOpen={onOpen} />;
 }
 
 /** Nothing has shipped, so there is no document. Named here rather than left to

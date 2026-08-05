@@ -23,9 +23,26 @@ export type GovTone = "quiet" | "pass" | "warn" | "fail";
  * @param iso - ISO timestamp string of when something expires, or null
  * @returns Object with text and expired flag, or null if no timestamp provided
  */
-export function relExpiry(iso: string | null): { text: string; expired: boolean } | null {
+export function relExpiry(
+  iso: string | null,
+  /**
+   * INJECTABLE CLOCK, and it exists because the absence of one made a test
+   * flaky in a way that only appeared under load.
+   *
+   * The suite captured `now`, built an ISO at `now + 1_800_000`, and called
+   * this -- which read `Date.now()` AGAIN. Lose a single millisecond between
+   * the two and `abs` is 1,799,999, so `Math.round(abs / 3_600_000)` flips from
+   * 1 to 0, the hours branch stops matching, and "expires in 1h" becomes
+   * "expires in 30m". The test passed on an idle machine and failed inside a
+   * full run, which is the worst shape a failure can have: it looks like the
+   * change you just made.
+   *
+   * Defaulting to `Date.now()` keeps every existing caller unchanged.
+   */
+  nowMs: number = Date.now(),
+): { text: string; expired: boolean } | null {
   if (!iso) return null;
-  const ms = new Date(iso).getTime() - Date.now();
+  const ms = new Date(iso).getTime() - nowMs;
   const abs = Math.abs(ms);
   const m = Math.max(1, Math.round(abs / 60_000));
   const h = Math.round(abs / 3_600_000);

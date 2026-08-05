@@ -1,14 +1,19 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type * as React from "react";
 
 import {
+  AssembledRelease,
   assembleReleaseDoc,
+  isAbsentRow,
   pickProductionDeploy,
   readOutcome,
   ReleaseDocument,
   type DeploySource,
   type PrdSource,
   type ReleaseFact,
+  type ReleaseReads,
   type ReleaseSources,
 } from "./WhatShipped";
 import type { ChangelogEntry } from "@/lib/changelog.functions";
@@ -317,7 +322,7 @@ describe("every line traces to a row", () => {
     }
   });
 
-  test("a release with no spec behind it invents nothing and names four holes", () => {
+  test("a release with no spec behind it invents nothing, and claims no gate on a spec that is not there", () => {
     const bare: ChangelogEntry = {
       ...ENTRY,
       prd_id: null,
@@ -344,8 +349,23 @@ describe("every line traces to a row", () => {
     const gaps = doc.gaps.map((g) => g.text).join(" | ");
     expect(gaps).toContain("not linked to a spec");
     expect(gaps).toContain("not traced to a bet");
-    expect(gaps).toContain("No design gate was decided");
     expect(gaps).toContain("No successful production deployment");
+    /**
+     * AND NOT A WORD ABOUT A DESIGN GATE, which this test used to REQUIRE.
+     *
+     * The gap line reads "No design gate was decided on this spec" -- a
+     * definite article for a row that does not exist -- and it was printed one
+     * line after this same document had said "This release is not linked to a
+     * spec". Two sentences contradicting each other about whether there is a
+     * spec, inside the document whose entire claim is that every line traces to
+     * a row.
+     *
+     * A design gate lives on `prds.design_gate_status`. With no prd there is no
+     * column to be undecided. The absence of the spec is already stated, and
+     * saying nothing further is the accurate reading. The old assertion is
+     * inverted rather than deleted, so the claim cannot come back quietly.
+     */
+    expect(gaps).not.toContain("No design gate was decided");
   });
 
   test("the missing test receipt is named on every release, settled or not", () => {
@@ -421,5 +441,233 @@ describe("the rendered document", () => {
     expect(screen.getByRole("button", { name: /Pull request #128/ })).toBeTruthy();
     // The file count does not, so it must never light up under the cursor.
     expect(screen.queryByRole("button", { name: /9 files changed/ })).toBeNull();
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * 7. The document as a person actually receives it: real reads, real
+ *    queries, real markup.
+ *
+ * WHY THESE ARE RENDER TESTS AND THE ONES ABOVE ARE NOT. Everything above
+ * argues with `assembleReleaseDoc`, which is pure and takes its four sources as
+ * arguments. But the three failure modes that matter most on this component are
+ * not in the assembler at all -- they are in how the READS are turned into those
+ * four sources, and a pure test cannot see them:
+ *
+ *   · a spec row that is not there arriving as a thrown error rather than an
+ *     empty result, and taking the whole document down with it;
+ *   · a changeset that did not resolve, whose three facts were dropped in
+ *     silence;
+ *   · a workspace switch serving the previous workspace's deployments, which in
+ *     THIS component means the sentence "Live at <address>" about a release that
+ *     is not live here.
+ *
+ * NO `mock.module` ANYWHERE IN THIS FILE, and that is a rule with a bill behind
+ * it. Bun's module mocks are process-wide and are only observed when a consumer
+ * is first imported, so a stub of `discovery.functions` or `studio.functions`
+ * registered here would bind itself into whichever suite loads those modules
+ * next and fail in a file that does not import this one. The reads arrive
+ * through `AssembledRelease`'s `reads` prop instead, which is the same seam
+ * GlobalComposer uses for `pane` and the same lesson src/lib/testing/threads-mock.ts
+ * was written to record.
+ * ------------------------------------------------------------------ */
+
+/** Two real workspace ids from the live database, so the switch under test is
+ *  the switch a person actually makes. */
+const WS_A = "10000000-0000-4000-8000-000000000000";
+const WS_B = "20000000-0000-4000-8000-000000000000";
+
+/** The message PostgREST returns for `.single()` over zero rows, which is what
+ *  `getPrd` rethrows, stripped of its PGRST116 code, when a spec is deleted or
+ *  invisible to this reader. Copied verbatim rather than paraphrased: this
+ *  string is the entire evidence `isAbsentRow` has to work from. */
+const NO_SUCH_ROW = "JSON object requested, multiple (or no) rows returned";
+
+let qc: QueryClient;
+
+beforeEach(() => {
+  qc = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        // ZERO BACKOFF, because one test drives a read that is SUPPOSED to
+        // retry. React Query's default schedule is 1s, 2s, 4s, which would put
+        // seven seconds of real waiting into the suite for no extra coverage.
+        retryDelay: 0,
+        /**
+         * INFINITE STALENESS IS THE POINT OF THE WORKSPACE-SWITCH TEST, not a
+         * convenience. With the default `staleTime: 0`, a cache entry whose key
+         * failed to distinguish two workspaces is still served immediately and
+         * then refetched in the background, so the wrong-workspace answer is on
+         * screen for one paint and gone by the time an `await` resolves -- the
+         * test would pass over a broken key. Freezing staleness makes the cache
+         * hit permanent, so a key that cannot tell WS_A from WS_B shows WS_A's
+         * "Live at" under WS_B forever, which is what the assertion catches.
+         */
+        staleTime: Infinity,
+        gcTime: Infinity,
+      },
+    },
+  });
+});
+
+afterEach(() => qc.clear());
+
+function mount(ui: React.ReactElement) {
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>);
+}
+
+/** The three reads, answering with the fixtures above unless a test says
+ *  otherwise. Every override below replaces exactly one of them, so a failure
+ *  names which read caused it. */
+function reads(over: Partial<ReleaseReads> = {}): ReleaseReads {
+  return {
+    prd: async () => ({ prd: PRD }),
+    applied: async () => ({ changes: [APPLIED] }),
+    deployments: async () => ({ deployments: [LIVE_DEPLOY] }),
+    ...over,
+  };
+}
+
+describe("the changeset behind a release", () => {
+  test("one that does not resolve is NAMED, and its three facts stay off the page", async () => {
+    mount(
+      <AssembledRelease
+        entry={ENTRY}
+        workspaceId={WS_A}
+        reads={reads({ applied: async () => ({ changes: [] }) })}
+        onOpen={() => {}}
+      />,
+    );
+
+    // The document still assembles. A changeset that did not resolve is a hole
+    // in it, never a reason to withhold the title, the body or the deployment.
+    expect(await screen.findByText("Batch firmware push scheduler")).toBeTruthy();
+    expect(screen.queryByText(/could not be assembled/)).toBeNull();
+
+    // The hole is stated in the one section that makes the rest believable.
+    expect(screen.getByText(/The changeset behind this release did not resolve/)).toBeTruthy();
+
+    // And the three facts that hole covers are genuinely absent, so the gap
+    // line is describing the page rather than decorating it.
+    expect(screen.queryByText("helio-labs/atlas-installer-portal")).toBeNull();
+    expect(screen.queryByText(/on firmware-batch-push/)).toBeNull();
+    expect(screen.queryByText("9 files changed")).toBeNull();
+  });
+
+  test("one that resolves with no file rows says so instead of counting nothing", async () => {
+    mount(
+      <AssembledRelease
+        entry={ENTRY}
+        workspaceId={WS_A}
+        reads={reads({ applied: async () => ({ changes: [{ ...APPLIED, file_count: 0 }] }) })}
+        onOpen={() => {}}
+      />,
+    );
+
+    // The repository and the branch are still on the record; only the count is not.
+    expect(await screen.findByText("helio-labs/atlas-installer-portal")).toBeTruthy();
+    expect(screen.queryByText(/files changed/)).toBeNull();
+    expect(screen.getByText(/No file rows are stored for this changeset/)).toBeTruthy();
+  });
+});
+
+describe("deployments are never read from the wrong workspace", () => {
+  test("switching workspace does not carry the previous one's 'Live at'", async () => {
+    const asked: (string | null)[] = [];
+    const r = reads({
+      deployments: async ({ workspaceId }) => {
+        asked.push(workspaceId);
+        // The same changeset id, and only workspace A ever put it in production.
+        // This is the shape the server genuinely answers in: `listDeployments`
+        // filters on workspace_id before it filters on changeset_id.
+        return { deployments: workspaceId === WS_A ? [LIVE_DEPLOY] : [] };
+      },
+    });
+
+    const view = mount(
+      <AssembledRelease entry={ENTRY} workspaceId={WS_A} reads={r} onOpen={() => {}} />,
+    );
+    expect(await screen.findByText(/Live at atlas\.helio-labs\.example\.com/)).toBeTruthy();
+
+    view.rerender(
+      <QueryClientProvider client={qc}>
+        <AssembledRelease entry={ENTRY} workspaceId={WS_B} reads={r} onOpen={() => {}} />
+      </QueryClientProvider>,
+    );
+
+    // The claim a person forwards to a customer. Under WS_B it must be gone,
+    // and its absence must be stated rather than left as a blank.
+    expect(await screen.findByText(/No successful production deployment/)).toBeTruthy();
+    expect(screen.queryByText(/Live at atlas\.helio-labs\.example\.com/)).toBeNull();
+    expect(screen.queryByText("Deployed to production")).toBeNull();
+
+    // The read was asked twice, once per workspace. One entry here means the
+    // cache key could not tell the two apart.
+    expect(asked).toEqual([WS_A, WS_B]);
+  });
+});
+
+describe("a spec row that is not there", () => {
+  test("PostgREST's zero-row phrasings are recognised, and nothing else is", () => {
+    expect(isAbsentRow(new Error(NO_SUCH_ROW))).toBe(true);
+    expect(isAbsentRow(new Error("Cannot coerce the result to a single JSON object"))).toBe(true);
+    expect(isAbsentRow(new Error("PGRST116"))).toBe(true);
+    // The safe direction: anything unrecognised stays a failure, because
+    // redescribing a broken read as "this release has no spec" would put a
+    // false sentence in a document somebody forwards.
+    expect(isAbsentRow(new Error("fetch failed"))).toBe(false);
+    expect(isAbsentRow(new Error("permission denied for table prds"))).toBe(false);
+    expect(isAbsentRow(undefined)).toBe(false);
+  });
+
+  test("leaves a hole in the document instead of collapsing it", async () => {
+    mount(
+      <AssembledRelease
+        entry={ENTRY}
+        workspaceId={WS_A}
+        reads={reads({
+          prd: async () => {
+            throw new Error(NO_SUCH_ROW);
+          },
+        })}
+        onOpen={() => {}}
+      />,
+    );
+
+    // Everything that DID load survives: the release, the crew's own words, and
+    // the deployment. Losing all of that to one missing row was the defect.
+    expect(await screen.findByText("Batch firmware push scheduler")).toBeTruthy();
+    expect(screen.getByText(/Firmware can now be pushed/)).toBeTruthy();
+    expect(screen.getByText(/Live at atlas\.helio-labs\.example\.com/)).toBeTruthy();
+    expect(screen.queryByText(/could not be assembled/)).toBeNull();
+
+    // And the absence is described as what it is -- a spec nobody could read --
+    // never as a confident report on the contents of a row nobody fetched.
+    expect(
+      screen.getByText(/This release names a spec, but that spec could not be read/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/The spec carries no outcome contract/)).toBeNull();
+    expect(screen.queryByText(/No design gate was decided/)).toBeNull();
+  });
+
+  test("a read that genuinely broke is still a failure, with the retry", async () => {
+    mount(
+      <AssembledRelease
+        entry={ENTRY}
+        workspaceId={WS_A}
+        reads={reads({
+          prd: async () => {
+            throw new Error("fetch failed");
+          },
+        })}
+        onOpen={() => {}}
+      />,
+    );
+
+    expect(await screen.findByText(/The release document could not be assembled/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
+    // A failed read must never be reported as an absent row.
+    expect(screen.queryByText("Batch firmware push scheduler")).toBeNull();
   });
 });

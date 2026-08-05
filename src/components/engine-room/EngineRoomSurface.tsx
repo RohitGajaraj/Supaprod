@@ -18,6 +18,8 @@ import {
   buildQualityGlance,
   buildSafetyGlance,
   buildRecordGlance,
+  GUARDRAIL_HIT_READ_LIMIT,
+  TRACE_READ_LIMIT,
   type RoomGlance,
   type RoomKey,
 } from "@/lib/engine-room-glance";
@@ -120,9 +122,13 @@ export function useEngineRoomGlance(): {
   const incidentsQ = useQuery({ queryKey: ["incidents"], queryFn: () => fIncidents() });
   // The glance needs a count, not an archive: 7 days (window named in the
   // verdict), against the audit's 30-day/200-row count-only read (D-43).
+  //
+  // The limit is named once, in the pure module, and passed to the builder as
+  // well as to the query, so the number that truncates the read and the number
+  // that words the verdict cannot drift apart. See TRACE_READ_LIMIT.
   const tracesQ = useQuery({
     queryKey: ["traces", 7, "all"],
-    queryFn: () => fTraces({ data: { days: 7, status: "all", limit: 200 } }),
+    queryFn: () => fTraces({ data: { days: 7, status: "all", limit: TRACE_READ_LIMIT } }),
   });
   const sealQ = useQuery({ queryKey: ["ledger-seal"], queryFn: () => fSeal({ data: {} }) });
   // RPT-09: the "While you worked" amplifier strip reads value-receipts (RPT-33 --
@@ -130,12 +136,32 @@ export function useEngineRoomGlance(): {
   // 7-day totalRuns from the spend read.
   const receiptsQ = useQuery({ queryKey: ["value-receipts"], queryFn: () => fReceipts() });
 
+  /**
+   * THE VOLUMES WERE ALWAYS HERE. Every field added below 2026-08-06 is read
+   * out of a query this hook already made and already paid for; not one of them
+   * costs a round trip. The founder's complaint that the four rooms say nothing
+   * until you click was, underneath, a complaint that this function fetched
+   * nine reports and forwarded four sentences of them.
+   *
+   * A field is passed only where the query genuinely answers it, and every one
+   * is optional on the builder side, so a read that came back thin produces a
+   * shorter card rather than a card full of zeros.
+   */
   const rooms: RoomStatus[] = [
     roomStatus("spend", [budgetQ, cost7Q], () =>
       buildSpendGlance({
         global: budgetQ.data?.global ?? null,
         costThisWeek: cost7Q.data?.summary.totalCost ?? 0,
         missionCapUsd: budgetQ.data?.missionCapUsd ?? null,
+        callsThisWeek: cost7Q.data?.summary.totalRuns,
+        tokensThisWeek: cost7Q.data?.summary.totalTokens,
+        failedThisWeek: cost7Q.data?.summary.errors,
+        byModel: cost7Q.data?.byModel,
+        daily: cost7Q.data?.daily,
+        // Without this the trend stands down (see SpendGlanceInput): a capped
+        // read drops its OLDEST days, and a zero-filled missing day reads as a
+        // real $0.00 that never happened.
+        windowIsWhole: cost7Q.data?.windowIsWhole,
       }),
     ),
     roomStatus("quality", [evalHealthQ, driftQ], () =>
@@ -144,18 +170,36 @@ export function useEngineRoomGlance(): {
         totalRuns: evalHealthQ.data?.health.totalRuns ?? 0,
         verdict: evalHealthQ.data?.health.verdict ?? "no-data",
         driftOpenCount: driftQ.data?.openIncidents.length ?? 0,
+        avgScore: evalHealthQ.data?.health.avgScore ?? null,
+        errorRate: evalHealthQ.data?.health.errorRate,
+        suiteCount: evalHealthQ.data?.health.suites.length,
+        flakyCount: evalHealthQ.data?.health.flakySuites.length,
+        trend: evalHealthQ.data?.health.trend,
+        // getDriftOverview orders open incidents by detected_at descending, so
+        // index 0 is genuinely the newest and no re-sort is needed here.
+        latestDrift: driftQ.data?.openIncidents[0] ?? null,
       }),
     ),
     roomStatus("safety", [guardrailsQ, incidentsQ], () =>
       buildSafetyGlance({
         rules: guardrailsQ.data?.rules ?? [],
         incidentCount: incidentsQ.data?.count ?? 0,
+        floorCount: guardrailsQ.data?.floor.length,
+        hits: guardrailsQ.data?.hits,
+        hitLimit: GUARDRAIL_HIT_READ_LIMIT,
+        // getIncidentsInternal sorts by `at` descending before it slices, so
+        // index 0 is the newest incident across all four of its sources.
+        incidents: incidentsQ.data?.incidents,
       }),
     ),
     roomStatus("record", [tracesQ, sealQ], () =>
       buildRecordGlance({
         traceCount: tracesQ.data?.traces.length ?? 0,
         ledgerVerifies: sealQ.data?.available ?? false,
+        traceLimit: TRACE_READ_LIMIT,
+        // listTraces sorts by last_at descending, so index 0 is the newest run.
+        traces: tracesQ.data?.traces,
+        sealCount: sealQ.data?.count,
       }),
     ),
   ];
@@ -183,6 +227,10 @@ export function EngineRoomGlance() {
   const { rooms, throughput } = useEngineRoomGlance();
   const showThroughput =
     throughput.totalRuns > 0 || throughput.decisionsClosed > 0 || throughput.prsShipped > 0;
+  // "healthy" is now one of THREE states, so this has to test for it by name
+  // rather than by "not watch". Before the unconfigured state existed the two
+  // were the same test; they are not any more, and a room nobody has switched
+  // on must not light the moss glow or print the all-healthy line.
   const allHealthy =
     rooms.length > 0 && rooms.every((r) => r.glance !== null && r.glance.state === "healthy");
   // Loom §2b glow tone: moss on an all-healthy day, ember when any room asks

@@ -105,6 +105,35 @@
  *    such rule -- RLS membership is the whole of it -- so inventing a client
  *    gate would hide a control from someone the server would have let through,
  *    which is a smaller surface bought with a fiction.
+ *
+ * 7. THE RELEASE DOCUMENT, mounted 2026-08-06 (founder ask, same day).
+ *
+ *    "What shipped" above is a LIST: one line per release, and by its own rule a
+ *    row is a lead plus one different second fact and never wraps. That is the
+ *    right shape for choosing between releases and the wrong shape for the
+ *    question the founder actually asked -- documentation of what got shipped,
+ *    the thing you forward to a customer or an exec. So the list keeps its job
+ *    and `WhatShipped` renders the document form of whichever row is in focus,
+ *    directly beneath it: the bet, the spec, the outcome contract, the design
+ *    gate, the changeset, the pull request, the deploy, the settled outcome, and
+ *    a closing section naming everything the product cannot say.
+ *
+ *    NOT ONE WORD OF IT IS TYPED. That is the whole claim, and it is why the
+ *    section's own lead-in states where the sentences come from: a release note
+ *    a person cannot trace is worth less than none.
+ *
+ *    THE PRECONDITION IS A RELEASE, not a deployment and not an announcement.
+ *    A changelog entry is materialized only from a MERGED changeset, so an entry
+ *    existing is exactly "something shipped". Until the changelog read has
+ *    answered, this section says it is reading; when the read fails it says so
+ *    and offers the retry, because "nothing has shipped yet" and "we could not
+ *    find out" are different sentences and only one of them is ever true.
+ *
+ *    WHICH RELEASE. The newest, until the reader picks another from the list
+ *    above. The pick is a NEW door in the row's action slot rather than the
+ *    row's own click, which was already taken twice over: a contributor's click
+ *    starts an announcement draft, and everyone else's opens the production URL.
+ *    Stealing either would have traded one capability for another.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -150,6 +179,7 @@ import {
   Input,
   Num,
   PageHead,
+  Prose,
   Receipt,
   Row,
   Surface,
@@ -157,6 +187,10 @@ import {
 } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
+// The release document. It renders its own top-level Blocks, so it is a sibling
+// of them rather than a child of one: a Block inside a Block is the second
+// nested container the standard caps at one.
+import { NoReleaseYet, WhatShipped } from "@/components/ship/WhatShipped";
 
 /** Anti-scroll: each list opens short and expands on demand. */
 const VISIBLE = 6;
@@ -181,12 +215,7 @@ function Addr({ href, children }: { href: string; children: React.ReactNode }) {
        left was colour. This is the second time this surface has made an address
        unreachable, which is why the test now asserts the absence of the
        override rather than the presence of the class. */
-    <a
-      className={QUIET}
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <a className={QUIET} href={href} target="_blank" rel="noopener noreferrer">
       {children}
     </a>
   );
@@ -627,6 +656,9 @@ function Ship() {
   const [allPosts, setAllPosts] = React.useState(false);
   const [allAddresses, setAllAddresses] = React.useState(false);
   const [allReleases, setAllReleases] = React.useState(false);
+  /** Which release the document below is about. Null means "the newest", so the
+   *  section is never empty while something has shipped and nobody has chosen. */
+  const [docId, setDocId] = React.useState<string | null>(null);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["announcements", wid] });
 
@@ -845,6 +877,24 @@ function Ship() {
         const t = new Date(e.released_at).getTime();
         return Number.isFinite(t) && (lastPublished === null || t > lastPublished);
       }).length;
+
+  /**
+   * The release the document is assembled for, and whether we may say anything
+   * about it yet.
+   *
+   * `changelog.isLoading` IS NOT ENOUGH ON ITS OWN. Every read on this surface
+   * is `enabled: !!wid`, and a disabled query is pending without fetching, so
+   * `isLoading` is false before a workspace is known. Reading it alone would
+   * draw "nothing has shipped yet" during the first paint of every session --
+   * a confident, false sentence about an empty list nobody has looked in.
+   *
+   * A picked id that has since left the list falls back to the newest rather
+   * than to nothing, because a release document that vanishes on a background
+   * refetch is worse than one that moves.
+   */
+  const docReading = !wid || changelog.isLoading;
+  const docEntry: ChangelogEntry | null =
+    (docId ? (notes.find((e) => e.id === docId) ?? null) : null) ?? notes[0] ?? null;
 
   const headline = posts.isError
     ? "The announcements did not load."
@@ -1383,27 +1433,45 @@ function Ship() {
             ]
               .filter((x): x is string => !!x)
               .join(" · ");
-            const doors =
-              e.production_url || e.pr_url ? (
-                <>
-                  {e.production_url ? <Addr href={e.production_url}>Open it</Addr> : null}
-                  {e.pr_url ? (
-                    <Addr href={e.pr_url}>
-                      {e.pr_number ? (
-                        <>
-                          PR <Num>{e.pr_number}</Num>
-                        </>
-                      ) : (
-                        "The PR"
-                      )}
-                    </Addr>
-                  ) : null}
-                </>
-              ) : null;
+            //
+            // THE THIRD DOOR ON THIS ROW, and it had to be a door of its own.
+            // The row's click is already spoken for twice over -- a contributor
+            // starts an announcement draft, everyone else opens the production
+            // address -- so binding the document to it would have taken one
+            // capability to pay for another. It sits in the action slot, which
+            // is outside the clickable region, so all three survive.
+            //
+            // Absent on the release already in focus, because a control that
+            // does nothing is worse than no control: the row is marked
+            // `focused` instead, which says the same thing without promising an
+            // act it cannot perform.
+            const inFocus = docEntry?.id === e.id;
+            const doors = (
+              <>
+                {e.production_url ? <Addr href={e.production_url}>Open it</Addr> : null}
+                {e.pr_url ? (
+                  <Addr href={e.pr_url}>
+                    {e.pr_number ? (
+                      <>
+                        PR <Num>{e.pr_number}</Num>
+                      </>
+                    ) : (
+                      "The PR"
+                    )}
+                  </Addr>
+                ) : null}
+                {inFocus ? null : (
+                  <button type="button" className={QUIET} onClick={() => setDocId(e.id)}>
+                    Its document
+                  </button>
+                )}
+              </>
+            );
             return (
               <Row
                 key={e.id}
                 tight
+                focused={inFocus}
                 lead={e.title}
                 sub={meta || null}
                 time={ago(e.released_at)}
@@ -1423,6 +1491,43 @@ function Ship() {
           })
         )}
       </Block>
+
+      {/* THE RELEASE DOCUMENT. `WhatShipped` renders its own top-level Blocks --
+          the release, why it was built, what it promised, who signed it off, the
+          receipts, and what is not on the record -- so it is mounted as a
+          SIBLING of this one rather than inside it.
+
+          This Block is the lead-in, and its children are the one thing the
+          document itself cannot say: where its sentences come from. That is not
+          decoration. The document's entire worth is that a reader can trace
+          every line to a row, and a reader who does not know that reads it as
+          generated prose and discounts all of it. */}
+      <Block title="The release document">
+        {docReading ? (
+          <Loading>Reading what has shipped.</Loading>
+        ) : changelog.isError ? (
+          <Failed onRetry={() => void changelog.refetch()}>
+            The releases did not load, so there is no document to assemble.
+          </Failed>
+        ) : !docEntry ? (
+          <NoReleaseYet />
+        ) : (
+          <Prose markdown>
+            <p>
+              Everything below is read from rows this release already has: the bet it came from, the
+              spec and its outcome contract, the design gate, the changeset and its pull request,
+              the production deploy, and the outcome once Learn settles it. No sentence here was
+              written for this document, and whatever is missing is named rather than left out.
+              {notes.length > 1
+                ? " It covers the release marked above; pick another to read that one instead."
+                : null}
+            </p>
+          </Prose>
+        )}
+      </Block>
+      {!docReading && !changelog.isError && docEntry ? (
+        <WhatShipped entry={docEntry} workspaceId={wid || null} />
+      ) : null}
 
       {posts.isError ? null : announcements.length === 0 ? (
         <Block title="Announcements">

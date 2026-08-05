@@ -22,6 +22,13 @@ type EventRow = {
   error_message: string | null;
 };
 
+/**
+ * The ceiling on the analytics read. Named rather than inline so the value and
+ * the "is this window whole" test below cannot drift apart -- a cap compared
+ * against a different literal is a cap that stops reporting itself.
+ */
+const ANALYTICS_EVENT_READ_LIMIT = 2000;
+
 export const getAnalyticsOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => DaysSchema.parse(i ?? {}))
@@ -32,7 +39,7 @@ export const getAnalyticsOverview = createServerFn({ method: "POST" })
       .select("id,created_at,surface,model,via,status,total_tokens,est_cost_usd,latency_ms")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
-      .limit(2000);
+      .limit(ANALYTICS_EVENT_READ_LIMIT);
     if (error) throw new Error(error.message);
 
     const events = (rows ?? []) as Pick<
@@ -108,6 +115,24 @@ export const getAnalyticsOverview = createServerFn({ method: "POST" })
         .map(([k, v]) => ({ model: k, ...v }))
         .sort((a, b) => b.runs - a.runs),
       daily,
+      /**
+       * WHETHER THE WINDOW IS WHOLE, and it has to travel because `daily` is
+       * silently WRONG when it is not.
+       *
+       * The read is ordered `created_at DESC` and capped. When the cap bites it
+       * is the OLDEST events that fall out, so the earliest days vanish from
+       * `daily` entirely -- and a consumer that zero-fills a missing day then
+       * reads a real figure of $0.00 for a day that was merely unread. The
+       * engine room's day-over-day figure did exactly that and could print
+       * "yesterday $4.10 · up from $0.00 the day before" off a busy day nobody
+       * had actually looked at. A fabricated trend is worse than no trend.
+       *
+       * Live headroom when this was added: the busiest workspace reaches 1,414
+       * of 2,000 in seven days, so it is latent rather than firing. Latent is
+       * exactly when to fix it, because the day it fires the product simply
+       * starts lying and nothing changes colour.
+       */
+      windowIsWhole: events.length < ANALYTICS_EVENT_READ_LIMIT,
     };
   });
 

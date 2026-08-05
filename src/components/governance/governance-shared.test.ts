@@ -19,41 +19,41 @@ describe("relExpiry", () => {
   describe("happy path: future expiry times", () => {
     test("returns expired: false for future times", () => {
       const futureIso = new Date(now + 60_000).toISOString();
-      const result = relExpiry(futureIso);
+      const result = relExpiry(futureIso, now);
       expect(result?.expired).toBe(false);
     });
 
     test("formats 1 minute future as 'expires in 1m'", () => {
       const futureIso = new Date(now + 60_000).toISOString();
-      const result = relExpiry(futureIso);
+      const result = relExpiry(futureIso, now);
       expect(result?.text).toContain("expires in");
       expect(result?.text).toContain("m");
     });
 
     test("formats 20 minutes future in hours (rounding artifact: 20m rounds to 0h, uses minutes fallback)", () => {
       const futureIso = new Date(now + 20 * 60_000).toISOString();
-      const result = relExpiry(futureIso);
+      const result = relExpiry(futureIso, now);
       // 20 min = 1200000 ms; h = Math.round(0.333) = 0; m = 20; uses minutes
       expect(result?.text).toContain("20m");
     });
 
     test("formats 2 hours future as hours", () => {
       const futureIso = new Date(now + 2 * 3_600_000).toISOString();
-      const result = relExpiry(futureIso);
+      const result = relExpiry(futureIso, now);
       expect(result?.text).toContain("2h");
       expect(result?.expired).toBe(false);
     });
 
     test("formats 1 day future as 1d", () => {
       const futureIso = new Date(now + 86_400_000).toISOString();
-      const result = relExpiry(futureIso);
+      const result = relExpiry(futureIso, now);
       expect(result?.text).toContain("1d");
       expect(result?.expired).toBe(false);
     });
 
     test("formats 3 days future as 3d", () => {
       const futureIso = new Date(now + 3 * 86_400_000).toISOString();
-      const result = relExpiry(futureIso);
+      const result = relExpiry(futureIso, now);
       expect(result?.text).toContain("3d");
       expect(result?.expired).toBe(false);
     });
@@ -62,20 +62,20 @@ describe("relExpiry", () => {
   describe("happy path: past expiry times (expired)", () => {
     test("returns expired: true for past times", () => {
       const pastIso = new Date(now - 60_000).toISOString();
-      const result = relExpiry(pastIso);
+      const result = relExpiry(pastIso, now);
       expect(result?.expired).toBe(true);
     });
 
     test("formats 1 minute past as 'expired 1m ago'", () => {
       const pastIso = new Date(now - 60_000).toISOString();
-      const result = relExpiry(pastIso);
+      const result = relExpiry(pastIso, now);
       expect(result?.text).toContain("expired");
       expect(result?.text).toContain("ago");
     });
 
     test("formats 45 minutes past (rounds to 1h, uses hour display)", () => {
       const pastIso = new Date(now - 45 * 60_000).toISOString();
-      const result = relExpiry(pastIso);
+      const result = relExpiry(pastIso, now);
       // 45 min = 2700000 ms; h = Math.round(0.75) = 1; since h >= 1, uses hours
       expect(result?.text).toContain("expired");
       expect(result?.text).toContain("1h");
@@ -84,7 +84,7 @@ describe("relExpiry", () => {
 
     test("formats 3 hours past as hours", () => {
       const pastIso = new Date(now - 3 * 3_600_000).toISOString();
-      const result = relExpiry(pastIso);
+      const result = relExpiry(pastIso, now);
       expect(result?.text).toContain("expired");
       expect(result?.text).toContain("3h");
       expect(result?.expired).toBe(true);
@@ -92,7 +92,7 @@ describe("relExpiry", () => {
 
     test("formats 5 days past as 5d", () => {
       const pastIso = new Date(now - 5 * 86_400_000).toISOString();
-      const result = relExpiry(pastIso);
+      const result = relExpiry(pastIso, now);
       expect(result?.text).toContain("expired");
       expect(result?.text).toContain("5d");
       expect(result?.expired).toBe(true);
@@ -106,39 +106,39 @@ describe("relExpiry", () => {
 
     test("floors sub-minute deltas to 1m, never 0m (when 30 seconds remaining)", () => {
       const nearIso = new Date(now + 30_000).toISOString();
-      const result = relExpiry(nearIso);
+      const result = relExpiry(nearIso, now);
       expect(result?.text).toBe("expires in 1m");
     });
 
     test("floors sub-minute deltas to 1m, never 0m (when 30 seconds expired)", () => {
       const pastNearIso = new Date(now - 30_000).toISOString();
-      const result = relExpiry(pastNearIso);
+      const result = relExpiry(pastNearIso, now);
       expect(result?.text).toBe("expired 1m ago");
     });
 
     test("boundary: 30 minutes (Math.round(0.5h) = 1h, displays as 1h due to h >= 1 threshold)", () => {
       const almostHourIso = new Date(now + 1_800_000).toISOString();
-      const result = relExpiry(almostHourIso);
+      const result = relExpiry(almostHourIso, now);
       // 1,800,000 ms = 30 min; h = Math.round(0.5) = 1; since h >= 1, uses hours
       expect(result?.text).toContain("expires in 1h");
     });
 
     test("boundary: exactly 1 hour displays as 1h", () => {
       const hourIso = new Date(now + 3_600_000).toISOString();
-      const result = relExpiry(hourIso);
+      const result = relExpiry(hourIso, now);
       expect(result?.text).toBe("expires in 1h");
     });
 
     test("boundary: 8 hours future as 8h", () => {
       const eightHourIso = new Date(now + 8 * 3_600_000).toISOString();
-      const result = relExpiry(eightHourIso);
+      const result = relExpiry(eightHourIso, now);
       // 8h = 28,800,000 ms; d = Math.round(0.333) = 0; h = Math.round(2.222) = 2; uses 2h
       expect(result?.text).toContain("8h");
     });
 
     test("boundary: exactly 1 day rounds to 1d (not hours)", () => {
       const dayIso = new Date(now + 86_400_000).toISOString();
-      const result = relExpiry(dayIso);
+      const result = relExpiry(dayIso, now);
       expect(result?.text).toBe("expires in 1d");
     });
   });
@@ -151,7 +151,7 @@ describe("relExpiry", () => {
         new Date(now + 1 * 86_400_000).toISOString(),
       ];
       futures.forEach((iso) => {
-        expect(relExpiry(iso)?.expired).toBe(false);
+        expect(relExpiry(iso, now)?.expired).toBe(false);
       });
     });
 
@@ -162,7 +162,7 @@ describe("relExpiry", () => {
         new Date(now - 1 * 86_400_000).toISOString(),
       ];
       pasts.forEach((iso) => {
-        expect(relExpiry(iso)?.expired).toBe(true);
+        expect(relExpiry(iso, now)?.expired).toBe(true);
       });
     });
   });
