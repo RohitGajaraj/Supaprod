@@ -604,8 +604,8 @@ function Today() {
           <Failed onRetry={() => missions.refetch()}>Could not load what the crew finished.</Failed>
         ) : done.length === 0 ? (
           <Empty>
-            Nothing finished in the last day. The crew picks work up on its own, so this fills in as
-            runs land.
+            Nothing finished in the last day. The crew is ready. Tell Supaprod what you want to
+            build, or connect data sources so they discover work. When they finish, it appears here.
           </Empty>
         ) : (
           done.slice(0, 6).map((m) => (
