@@ -108,6 +108,30 @@ function actuallyFinished(m: MissionListRow): boolean {
   return finishedRecently(m) && !STOPPED.has(m.status);
 }
 
+/**
+ * FirstRunBridge: When a user completes onboarding, their bet lands in Decide.
+ * This component guides them there explicitly, connecting onboarding to first value moment.
+ */
+function FirstRunBridge() {
+  const navigate = useNavigate();
+  return (
+    <Surface>
+      <Block
+        title="Your first bet is ready for review"
+        sub={
+          <div style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+            The Critic reviewed your idea from setup. See the verdict and approve next steps.
+          </div>
+        }
+      >
+        <Door onClick={() => navigate({ to: "/decide" })}>
+          Go to Decide →
+        </Door>
+      </Block>
+    </Surface>
+  );
+}
+
 function Today() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -597,6 +621,7 @@ function Today() {
           <Failed onRetry={() => missions.refetch()}>Could not load what the crew finished.</Failed>
         ) : done.length === 0 ? (
           <>
+            {rows.length === 0 && <FirstRunBridge />}
             <Empty
               action={
                 <Button variant="ghost" onClick={() => openAsk()}>

@@ -125,7 +125,7 @@ const FONTS_CSS = [
 function stars(w: number, h: number, seed: string, count: number, ground: Ground): string {
   let x = 0;
   for (const ch of seed) x = (x * 31 + ch.charCodeAt(0)) >>> 0;
-  const rnd = () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const rnd = () => (x = (x * 1664525 + 1013904223) >>> 0) / 4294967296;
   const tint = ground === "dark" ? "255,255,255" : "0,0,0";
   const dots: string[] = [];
   for (let i = 0; i < count; i++) {
@@ -325,7 +325,7 @@ function build(s: Spec): string {
     case "card": {
       const markPx = Math.round(s.h * 0.155);
       const kickPx = Math.max(9, Math.round(s.h * 0.0225));
-      const heroPx = Math.round(s.h * 0.20);
+      const heroPx = Math.round(s.h * 0.2);
       const linePx = Math.round(s.h * 0.042);
       const footPx = Math.max(8, Math.round(s.h * 0.019));
       // The live /brief hero, in order: mark, mono caps kicker, the wordmark at
@@ -360,7 +360,7 @@ function build(s: Spec): string {
       const sh = s.safeH ?? Math.round(s.h * 0.29);
       const markPx = Math.round(sh * 0.32);
       const kickPx = Math.max(10, Math.round(sh * 0.05));
-      const heroPx = Math.round(sh * 0.30);
+      const heroPx = Math.round(sh * 0.3);
       const linePx = Math.round(sh * 0.072);
       // Bloom is pulled to the safe area's own centre, not the canvas centre,
       // so the lit part of the frame is the part every device actually shows.

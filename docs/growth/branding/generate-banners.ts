@@ -18,7 +18,18 @@
 
 import { join } from "node:path";
 import {
-  P, machine, readout, markEl, GRAIN, page, render, OUT, ang, px, py, setGround,
+  P,
+  machine,
+  readout,
+  markEl,
+  GRAIN,
+  page,
+  render,
+  OUT,
+  ang,
+  px,
+  py,
+  setGround,
 } from "./orrery.ts";
 import type { Orr } from "./orrery.ts";
 
@@ -45,12 +56,13 @@ const BEATS: [string, string][] = [
 
 /** The numbered mechanism list, rhyming with the three shells. */
 function beats(size = 14, gap = 11) {
-  return `<div style="display:flex;flex-direction:column;gap:${gap}px">${
-    BEATS.map(([nRaw, t]) => `
+  return `<div style="display:flex;flex-direction:column;gap:${gap}px">${BEATS.map(
+    ([nRaw, t]) => `
       <div style="display:flex;align-items:baseline;gap:13px">
         <span class="mono" style="font-size:${(size * 0.72).toFixed(1)}px;letter-spacing:.16em;color:${P.brass};opacity:.85;min-width:${size * 1.5}px">${nRaw}</span>
         <span style="font-size:${size}px;color:${P.slate};letter-spacing:-.005em">${t}</span>
-      </div>`).join("")}</div>`;
+      </div>`,
+  ).join("")}</div>`;
 }
 
 /** Wordmark: the mark + "Supaprod" in Pixel, small. One Pixel word per asset. */
@@ -66,18 +78,23 @@ function lockup(markPx: number, textPx: number, id: string) {
 // bottom-left quadrant deliberately empty because X drops the avatar there.
 // =============================================================================
 function banner(w: number, h: number, id: string) {
-  const s = h / 500;                       // everything scales off the 1500x500 master
+  const s = h / 500; // everything scales off the 1500x500 master
   const o: Orr = {
-    cx: w - 380 * s, cy: h * 0.5, k: 0.38,
+    cx: w - 380 * s,
+    cy: h * 0.5,
+    k: 0.38,
     shells: [128 * s, 228 * s, 350 * s, 470 * s, 600 * s],
-    stationR: 228 * s, nodeR: 4.8 * s, id,
+    stationR: 228 * s,
+    nodeR: 4.8 * s,
+    id,
   };
-  return page(w, h, `
+  return page(
+    w,
+    h,
+    `
     <div style="position:absolute;inset:0;background:
       radial-gradient(85% 130% at 14% 2%, ${P.lift} 0%, transparent 56%)"></div>
-    ${machine(w, h, o, 74 * s, 26 * s)}
-    ${readout(o, 6, "07 Learn", "left", 54 * s, 9.5 * s)}
-    ${readout(o, 0, "01 Discover", "right", 54 * s, 9.5 * s)}
+    ${machine(w, h, o, 104 * s, 19 * s, { r: 268 * s, size: 10.5 * s })}
     ${GRAIN(P.grain)}
     <div style="position:absolute;left:${92 * s}px;top:50%;transform:translateY(-50%);width:${700 * s}px">
       ${lockup(28 * s, 21 * s, id + "lk")}
@@ -88,7 +105,8 @@ function banner(w: number, h: number, id: string) {
         <span style="font-size:${17.5 * s}px;letter-spacing:-.008em;color:${P.slate}">${CATEGORY}</span>
       </div>
     </div>
-  `);
+  `,
+  );
 }
 
 // =============================================================================
@@ -98,14 +116,21 @@ function banner(w: number, h: number, id: string) {
 function card(w: number, h: number, id: string, opts: { wedge?: boolean } = {}) {
   const s = Math.min(w, h) / 630;
   const o: Orr = {
-    cx: w / 2, cy: h * 0.40, k: 0.36,
+    cx: w / 2,
+    cy: h * 0.4,
+    k: 0.36,
     shells: [116 * s, 200 * s, 300 * s, 408 * s, 530 * s],
-    stationR: 200 * s, nodeR: 4.8 * s, id,
+    stationR: 200 * s,
+    nodeR: 4.8 * s,
+    id,
   };
-  return page(w, h, `
+  return page(
+    w,
+    h,
+    `
     <div style="position:absolute;inset:0;background:
       radial-gradient(90% 90% at 50% 0%, ${P.lift} 0%, transparent 55%)"></div>
-    ${machine(w, h, o, 76 * s, 27 * s)}
+    ${machine(w, h, o, 106 * s, 19 * s, { r: 250 * s, size: 11 * s })}
     ${GRAIN(P.grain)}
     <div style="position:absolute;left:${44 * s}px;top:${40 * s}px">${lockup(28 * s, 21 * s, id + "lk")}</div>
     <div style="position:absolute;left:0;right:0;bottom:${58 * s}px;text-align:center;padding:0 ${60 * s}px">
@@ -117,12 +142,15 @@ function card(w: number, h: number, id: string, opts: { wedge?: boolean } = {}) 
         <span style="font-size:${18 * s}px;color:${P.slate}">${CATEGORY}</span>
       </div>
       <div style="margin-top:${22 * s}px;display:flex;justify-content:center;gap:${28 * s}px;flex-wrap:wrap">
-        ${BEATS.map(([nn, t]) => `<span style="font-size:${14.5 * s}px;color:${P.slate}">
+        ${BEATS.map(
+          ([nn, t]) => `<span style="font-size:${14.5 * s}px;color:${P.slate}">
           <span class="mono" style="font-size:${10.5 * s}px;letter-spacing:.14em;color:${P.brass};opacity:.85">${nn}</span>
-          &nbsp;${t}</span>`).join("")}
+          &nbsp;${t}</span>`,
+        ).join("")}
       </div>
     </div>
-  `);
+  `,
+  );
 }
 
 // =============================================================================
@@ -130,15 +158,24 @@ function card(w: number, h: number, id: string, opts: { wedge?: boolean } = {}) 
 // instrument; every word stays inside the 1546x423 safe box (y 508..931).
 // =============================================================================
 function youtube() {
-  const w = 2560, h = 1440;
+  const w = 2560,
+    h = 1440;
   const o: Orr = {
-    cx: 1280, cy: 548, k: 0.42,
-    shells: [286, 500, 742, 1010, 1330], stationR: 500, nodeR: 9.6, id: "yt",
+    cx: 1280,
+    cy: 548,
+    k: 0.42,
+    shells: [286, 500, 742, 1010, 1330],
+    stationR: 500,
+    nodeR: 9.6,
+    id: "yt",
   };
-  return page(w, h, `
+  return page(
+    w,
+    h,
+    `
     <div style="position:absolute;inset:0;background:
       radial-gradient(85% 105% at 50% 0%, ${P.lift} 0%, transparent 55%)"></div>
-    ${machine(w, h, o, 152, 56)}
+    ${machine(w, h, o, 214, 40, { r: 596, size: 21 })}
     <div style="position:absolute;left:0;right:0;top:690px;height:330px;
       background:radial-gradient(56% 100% at 50% 50%, rgba(${P.scrim},.88) 0%, rgba(${P.scrim},.55) 44%, transparent 78%)"></div>
     ${GRAIN(P.grain)}
@@ -152,14 +189,17 @@ function youtube() {
         <span style="font-size:24px;color:${P.slate}">${CATEGORY}</span>
       </div>
       <div style="margin-top:22px;display:flex;justify-content:center;gap:44px">
-        ${BEATS.map(([nn, t]) => `<span style="font-size:22px;color:${P.slate}">
+        ${BEATS.map(
+          ([nn, t]) => `<span style="font-size:22px;color:${P.slate}">
           <span class="mono" style="font-size:15px;letter-spacing:.14em;color:${P.brass};opacity:.85">${nn}</span>
-          &nbsp;${t}</span>`).join("")}
+          &nbsp;${t}</span>`,
+        ).join("")}
       </div>
     </div>
     <div style="position:absolute;left:0;right:0;bottom:0;height:420px;
       background:linear-gradient(to top, rgba(255,107,44,.05) 0%, transparent 100%)"></div>
-  `);
+  `,
+  );
 }
 
 // =============================================================================
@@ -169,14 +209,21 @@ function youtube() {
 function strip(w: number, h: number, id: string) {
   const s = h / 191;
   const o: Orr = {
-    cx: w - 150 * s, cy: h * 0.5, k: 0.34,
+    cx: w - 150 * s,
+    cy: h * 0.5,
+    k: 0.34,
     shells: [52 * s, 92 * s, 142 * s, 200 * s, 268 * s],
-    stationR: 92 * s, nodeR: 2.6 * s, id,
+    stationR: 92 * s,
+    nodeR: 2.6 * s,
+    id,
   };
-  return page(w, h, `
+  return page(
+    w,
+    h,
+    `
     <div style="position:absolute;inset:0;background:
       radial-gradient(80% 150% at 12% 0%, ${P.lift} 0%, transparent 58%)"></div>
-    ${machine(w, h, o, 32 * s, 11 * s)}
+    ${machine(w, h, o, 44 * s, 8 * s)}
     ${GRAIN(P.grain)}
     <div style="position:absolute;left:${52 * s}px;top:50%;transform:translateY(-50%);
         display:flex;align-items:center;gap:${26 * s}px">
@@ -184,7 +231,8 @@ function strip(w: number, h: number, id: string) {
       <span style="width:1px;height:${44 * s}px;background:${P.brass};opacity:.32"></span>
       <span style="font-size:${17 * s}px;color:${P.slate};letter-spacing:-.008em">${CATEGORY}</span>
     </div>
-  `);
+  `,
+  );
 }
 
 // =============================================================================
@@ -198,16 +246,21 @@ function strip(w: number, h: number, id: string) {
 // own name. That invariant exists because this kit once shipped a file called
 // og-dark-1200x630.png that was actually 600x315.
 const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[] = [
-  { base: "x-header",              w: 1500, h: 500,  fn: (i) => banner(1500, 500, i) },
-  { base: "mastodon-header",       w: 1500, h: 500,  fn: (i) => banner(1500, 500, i) },
-  { base: "bluesky-banner",        w: 3000, h: 1000, fn: (i) => banner(3000, 1000, i) },
-  { base: "linkedin-cover",        w: 1128, h: 191,  fn: (i) => strip(1128, 191, i) },
-  { base: "youtube-banner",        w: 2560, h: 1440, fn: () => youtube() },
-  { base: "og",                    w: 1200, h: 630,  fn: (i) => card(1200, 630, i, { wedge: true }) },
-  { base: "github-social-preview", w: 1280, h: 640,  fn: (i) => card(1280, 640, i, { wedge: true }) },
-  { base: "producthunt-gallery",   w: 1270, h: 760,  fn: (i) => card(1270, 760, i, { wedge: true }) },
-  { base: "discord-banner",        w: 960,  h: 540,  fn: (i) => card(960, 540, i) },
-  { base: "square",                w: 1200, h: 1200, fn: (i) => card(1200, 1200, i, { wedge: true }) },
+  { base: "x-header", w: 1500, h: 500, fn: (i) => banner(1500, 500, i) },
+  { base: "mastodon-header", w: 1500, h: 500, fn: (i) => banner(1500, 500, i) },
+  { base: "bluesky-banner", w: 3000, h: 1000, fn: (i) => banner(3000, 1000, i) },
+  { base: "linkedin-cover", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
+  { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
+  { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i, { wedge: true }) },
+  {
+    base: "github-social-preview",
+    w: 1280,
+    h: 640,
+    fn: (i) => card(1280, 640, i, { wedge: true }),
+  },
+  { base: "producthunt-gallery", w: 1270, h: 760, fn: (i) => card(1270, 760, i, { wedge: true }) },
+  { base: "discord-banner", w: 960, h: 540, fn: (i) => card(960, 540, i) },
+  { base: "square", w: 1200, h: 1200, fn: (i) => card(1200, 1200, i, { wedge: true }) },
 ];
 
 // Both grounds, every platform. LIGHT is rendered as a first-class expression

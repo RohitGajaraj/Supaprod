@@ -63,7 +63,7 @@ const SS = 3;
 // that colour must carry status rather than decorate.
 const DARK = {
   ground: "#050507",
-  brass: "#A8AEB8",        // platinum hairline. Name kept so callers stay stable.
+  brass: "#A8AEB8", // platinum hairline. Name kept so callers stay stable.
   ember: C.ember,
   emberHi: C.emberHi,
   gold: C.gold,
@@ -76,12 +76,12 @@ const DARK = {
 };
 
 const LIGHT = {
-  ground: "#F7F4EE",       // warm bone, the paper
-  brass: "#9A8256",        // copperplate engraving, darker so it holds on paper
+  ground: "#F7F4EE", // warm bone, the paper
+  brass: "#9A8256", // copperplate engraving, darker so it holds on paper
   ember: C.ember,
   emberHi: "#FF9A5C",
   gold: "#B8862F",
-  bone: "#14120F",         // "bone" is the type colour; on paper it is near-black
+  bone: "#14120F", // "bone" is the type colour; on paper it is near-black
   slate: "#6B655C",
   markTone: "light" as "dark" | "light",
   lift: "rgba(20,18,15,.05)",
@@ -90,12 +90,20 @@ const LIGHT = {
 };
 
 const P = { ...DARK };
-export function setGround(g: "dark" | "light") { Object.assign(P, g === "dark" ? DARK : LIGHT); }
+export function setGround(g: "dark" | "light") {
+  Object.assign(P, g === "dark" ? DARK : LIGHT);
+}
 
 function findChrome(): string {
   const c = [
-    ...["1228", "1223"].map((v) => join(homedir(), "Library/Caches/ms-playwright",
-      `chromium_headless_shell-${v}`, "chrome-headless-shell-mac-arm64/chrome-headless-shell")),
+    ...["1228", "1223"].map((v) =>
+      join(
+        homedir(),
+        "Library/Caches/ms-playwright",
+        `chromium_headless_shell-${v}`,
+        "chrome-headless-shell-mac-arm64/chrome-headless-shell",
+      ),
+    ),
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   ];
   for (const p of c) if (existsSync(p)) return p;
@@ -109,19 +117,57 @@ async function render(html: string, w: number, h: number, outFile: string) {
   mkdirSync(scratch, { recursive: true });
   writeFileSync(join(scratch, "page.html"), html);
   try {
-    execFileSync(CHROME, ["--headless", "--disable-gpu", "--hide-scrollbars",
-      `--force-device-scale-factor=${SS}`, "--allow-file-access-from-files",
-      "--font-render-hinting=none", "--disable-lcd-text",
-      `--screenshot=${join(scratch, "shot.png")}`,
-      `--window-size=${w},${h}`, `file://${join(scratch, "page.html")}`], { stdio: "pipe" });
+    execFileSync(
+      CHROME,
+      [
+        "--headless",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        `--force-device-scale-factor=${SS}`,
+        "--allow-file-access-from-files",
+        "--font-render-hinting=none",
+        "--disable-lcd-text",
+        `--screenshot=${join(scratch, "shot.png")}`,
+        `--window-size=${w},${h}`,
+        `file://${join(scratch, "page.html")}`,
+      ],
+      { stdio: "pipe" },
+    );
     const shot = join(scratch, "shot.png");
     const m = await sharp(shot).metadata();
     if (m.width !== w * SS || m.height !== h * SS)
       throw new Error(`${outFile}: got ${m.width}x${m.height}, want ${w * SS}x${h * SS}`);
-    await sharp(shot).resize(w, h, { kernel: "lanczos3", fit: "fill" })
-      .png({ compressionLevel: 9, palette: false, effort: 10 }).toFile(outFile);
-    console.log(`  ${outFile.split("/").pop()!.padEnd(34)} ${w}x${h}  ${(readFileSync(outFile).length / 1024).toFixed(0)}KB`);
-  } finally { rmSync(scratch, { recursive: true, force: true }); }
+
+    // TWO deliverables from one 3x master.
+    //
+    // The 1x file matches the platform's stated spec, which is what strict
+    // uploaders want. But every platform is viewed on retina hardware, so a 1x
+    // upload gets UPSCALED by the browser and looks soft. That softness is what
+    // reads as "pixelated" even when the pixels are exactly correct.
+    //
+    // The @2x file is the one to upload wherever the platform accepts it: X,
+    // LinkedIn, YouTube and Product Hunt all downscale gracefully, and a
+    // downscale is always sharper than an upscale.
+    for (const [ww, hh, file] of [
+      [w, h, outFile],
+      [w * 2, h * 2, outFile.replace(/\.png$/, "@2x.png")],
+    ] as const) {
+      await sharp(shot)
+        .resize(ww, hh, { kernel: "lanczos3", fit: "fill" })
+        .png({ compressionLevel: 9, palette: false, effort: 10 })
+        .toFile(file);
+      const got = await sharp(file).metadata();
+      // The invariant, kept: a filename that lies about its own pixels is the
+      // exact defect this kit shipped once already.
+      if (got.width !== ww || got.height !== hh)
+        throw new Error(`${file}: wrote ${got.width}x${got.height}, expected ${ww}x${hh}`);
+    }
+    console.log(
+      `  ${outFile.split("/").pop()!.padEnd(34)} ${w}x${h} +@2x  ${(readFileSync(outFile).length / 1024).toFixed(0)}KB`,
+    );
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
 }
 
 const ff = (f: string, file: string, w = "400") =>
@@ -138,7 +184,9 @@ const FONTS_CSS = [
 const STATIONS = ["Discover", "Decide", "Plan", "Design", "Build", "Ship", "Learn"];
 
 type Orr = {
-  cx: number; cy: number; k: number;
+  cx: number;
+  cy: number;
+  k: number;
   /** [director, lifecycle, brain] + optional depth rings beyond */
   shells: number[];
   stationR: number;
@@ -164,8 +212,8 @@ function defs(o: Orr) {
   return `<defs>
     <radialGradient id="fall${o.id}" cx="${o.cx}" cy="${o.cy}" r="${outer}" gradientUnits="userSpaceOnUse">
       <stop offset="0%"   stop-color="${P.brass}" stop-opacity="1"/>
-      <stop offset="42%"  stop-color="${P.brass}" stop-opacity="0.8"/>
-      <stop offset="100%" stop-color="${P.brass}" stop-opacity="0.14"/>
+      <stop offset="42%"  stop-color="${P.brass}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="${P.brass}" stop-opacity="0.34"/>
     </radialGradient>
     <radialGradient id="halo${o.id}">
       <stop offset="0%"   stop-color="${P.ember}" stop-opacity="0.6"/>
@@ -183,16 +231,18 @@ function defs(o: Orr) {
 
 /** Back halves + the far-side nodes. Drawn BEFORE the core. */
 function back(o: Orr) {
-  const rings = o.shells.map((r, i) => {
-    const structural = i < 3; // the three layers read heavier than depth rings
-    return `<path d="${arc(o, r, Math.PI, Math.PI * 2)}" fill="none" stroke="url(#fall${o.id})"
-      stroke-width="${structural ? 1.2 : 0.8}" opacity="${(structural ? 0.34 - i * 0.05 : 0.14).toFixed(3)}"/>`;
-  }).join("");
+  const rings = o.shells
+    .map((r, i) => {
+      const structural = i < 3; // the three layers read heavier than depth rings
+      return `<path d="${arc(o, r, Math.PI, Math.PI * 2)}" fill="none" stroke="url(#fall${o.id})"
+      stroke-width="${structural ? 1.7 : 1.15}" opacity="${(structural ? 0.44 - i * 0.055 : 0.20).toFixed(3)}"/>`;
+    })
+    .join("");
   const nodes = STATIONS.map((_, i) => {
     const t = ang(i);
     if (Math.sin(t) >= 0) return "";
     return `<circle cx="${px(o, o.stationR, t).toFixed(1)}" cy="${py(o, o.stationR, t).toFixed(1)}"
-      r="${(o.nodeR * 0.72).toFixed(2)}" fill="${P.brass}" opacity="0.42"/>`;
+      r="${(o.nodeR * 0.72).toFixed(2)}" fill="${P.brass}" opacity="0.58"/>`;
   }).join("");
   return `${defs(o)}${rings}${nodes}`;
 }
@@ -207,25 +257,32 @@ function back(o: Orr) {
  * banner scale always looks like clip art.
  */
 function returnPath(o: Orr) {
-  const tL = ang(6), tD = ang(0);
-  const lx = px(o, o.stationR, tL), ly = py(o, o.stationR, tL);
-  const dx = px(o, o.stationR, tD), dy = py(o, o.stationR, tD);
+  const tL = ang(6),
+    tD = ang(0);
+  const lx = px(o, o.stationR, tL),
+    ly = py(o, o.stationR, tL);
+  const dx = px(o, o.stationR, tD),
+    dy = py(o, o.stationR, tD);
 
   const bend = o.stationR * 0.42;
-  const c1x = (lx + o.cx) / 2 - bend * 0.5, c1y = (ly + o.cy) / 2 + bend * 0.28 * o.k;
-  const c2x = (o.cx + dx) / 2 + bend * 0.5, c2y = (o.cy + dy) / 2 + bend * 0.28 * o.k;
+  const c1x = (lx + o.cx) / 2 - bend * 0.5,
+    c1y = (ly + o.cy) / 2 + bend * 0.28 * o.k;
+  const c2x = (o.cx + dx) / 2 + bend * 0.5,
+    c2y = (o.cy + dy) / 2 + bend * 0.28 * o.k;
 
   const d = `M${lx.toFixed(1)} ${ly.toFixed(1)} Q${c1x.toFixed(1)} ${c1y.toFixed(1)} ${o.cx} ${o.cy}
              Q${c2x.toFixed(1)} ${c2y.toFixed(1)} ${dx.toFixed(1)} ${dy.toFixed(1)}`;
 
   const bead = (t: number, r: number, a: number) => {
     // sample the composite curve at parameter t in [0,1]
-    const q = (p0: number[], c: number[], p1: number[], s: number) =>
-      [(1 - s) ** 2 * p0[0] + 2 * (1 - s) * s * c[0] + s ** 2 * p1[0],
-       (1 - s) ** 2 * p0[1] + 2 * (1 - s) * s * c[1] + s ** 2 * p1[1]];
-    const pt = t < 0.5
-      ? q([lx, ly], [c1x, c1y], [o.cx, o.cy], t * 2)
-      : q([o.cx, o.cy], [c2x, c2y], [dx, dy], (t - 0.5) * 2);
+    const q = (p0: number[], c: number[], p1: number[], s: number) => [
+      (1 - s) ** 2 * p0[0] + 2 * (1 - s) * s * c[0] + s ** 2 * p1[0],
+      (1 - s) ** 2 * p0[1] + 2 * (1 - s) * s * c[1] + s ** 2 * p1[1],
+    ];
+    const pt =
+      t < 0.5
+        ? q([lx, ly], [c1x, c1y], [o.cx, o.cy], t * 2)
+        : q([o.cx, o.cy], [c2x, c2y], [dx, dy], (t - 0.5) * 2);
     return `<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="${r}" fill="${P.emberHi}" opacity="${a}"/>`;
   };
 
@@ -240,11 +297,13 @@ function returnPath(o: Orr) {
 
 /** Front halves, near-side nodes, the two lit endpoints. Drawn AFTER the core. */
 function front(o: Orr) {
-  const rings = o.shells.map((r, i) => {
-    const structural = i < 3;
-    return `<path d="${arc(o, r, 0, Math.PI)}" fill="none" stroke="url(#fall${o.id})"
-      stroke-width="${structural ? 1.35 : 0.9}" opacity="${(structural ? 0.5 - i * 0.07 : 0.2).toFixed(3)}"/>`;
-  }).join("");
+  const rings = o.shells
+    .map((r, i) => {
+      const structural = i < 3;
+      return `<path d="${arc(o, r, 0, Math.PI)}" fill="none" stroke="url(#fall${o.id})"
+      stroke-width="${structural ? 1.95 : 1.3}" opacity="${(structural ? 0.66 - i * 0.075 : 0.30).toFixed(3)}"/>`;
+    })
+    .join("");
 
   const nodes = STATIONS.map((_, i) => {
     if (i === 6 || i === 0) return "";
@@ -252,11 +311,13 @@ function front(o: Orr) {
     if (Math.sin(t) < 0) return "";
     const depth = 0.74 + 0.4 * ((Math.sin(t) + 1) / 2);
     return `<circle cx="${px(o, o.stationR, t).toFixed(1)}" cy="${py(o, o.stationR, t).toFixed(1)}"
-      r="${(o.nodeR * depth).toFixed(2)}" fill="${P.brass}" opacity="${(0.5 + 0.3 * depth).toFixed(2)}"/>`;
+      r="${(o.nodeR * depth).toFixed(2)}" fill="${P.brass}" opacity="${(0.68 + 0.28 * depth).toFixed(2)}"/>`;
   }).join("");
 
   const lit = (i: number, scale: number) => {
-    const t = ang(i), x = px(o, o.stationR, t), y = py(o, o.stationR, t);
+    const t = ang(i),
+      x = px(o, o.stationR, t),
+      y = py(o, o.stationR, t);
     return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(o.nodeR * 6.4 * scale).toFixed(1)}" fill="url(#halo${o.id})"/>
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(o.nodeR * 1.32 * scale).toFixed(1)}" fill="${P.ember}"/>
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(o.nodeR * 0.48 * scale).toFixed(1)}" fill="${P.emberHi}"/>`;
@@ -267,8 +328,9 @@ function front(o: Orr) {
 
 function markEl(size: number, id: string, tone?: "dark" | "light") {
   const t = tone ?? P.markTone;
-  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" fill="none" style="display:block">${
-    markInner({ spiral: t === "dark" ? SILVER : GRAPHITE, sw: strokeFor(size), coreGlow: true, idSuffix: id })}</svg>`;
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" fill="none" style="display:block">${markInner(
+    { spiral: t === "dark" ? SILVER : GRAPHITE, sw: strokeFor(size), coreGlow: true, idSuffix: id },
+  )}</svg>`;
 }
 
 /**
@@ -289,18 +351,112 @@ function coreLight(cx: number, cy: number, r: number, k: number) {
     `<div style="position:absolute;left:${cx - rx}px;top:${cy - ry}px;width:${rx * 2}px;height:${ry * 2}px;
        border-radius:50%;background:radial-gradient(closest-side, ${col} 0%, rgba(0,0,0,0) 100%);
        opacity:${a};mix-blend-mode:${dark ? "plus-lighter" : "multiply"};pointer-events:none"></div>`;
+  // FOUNDER RULING 2026-08-05: "the product marker needs to be visible; the glow
+  // around it is too much, overpowering and contrasty." He was right, and it was
+  // the worst defect in the kit.
+  //
+  // The previous version stacked a near-white layer at 0.9 opacity at roughly the
+  // mark's own radius, so the brightest thing in the frame sat exactly ON the
+  // seven petals and washed them out. The mark is the product marker; it has to
+  // be the most legible object here, not the least.
+  //
+  // So the light is now strictly AMBIENT and strictly BEHIND: wide, soft, low,
+  // and with nothing inside the mark's own footprint. The hot point comes from
+  // the mark's own ember bead, which is drawn on top and stays crisp.
   return dark
     ? [
-        L(r * 10, r * 10 * k * 0.6, "rgba(255,120,55,.22)", 0.62),
-        L(r * 5.4, r * 5.4 * Math.max(k, 0.52), "rgba(255,107,44,.46)", 0.6),
-        L(r * 2.5, r * 2.5, "rgba(255,145,72,.66)", 0.75),
-        L(r * 1.1, r * 1.1, "rgba(255,212,162,.9)", 0.9),
+        L(r * 9, r * 9 * k * 0.62, "rgba(255,120,55,.17)", 0.5),
+        L(r * 4.2, r * 4.2 * Math.max(k, 0.55), "rgba(255,112,48,.26)", 0.5),
       ].join("")
     : [
-        L(r * 9, r * 9 * k * 0.62, "rgba(214,150,96,.30)", 0.5),
-        L(r * 4.4, r * 4.4 * Math.max(k, 0.55), "rgba(255,140,70,.34)", 0.55),
-        L(r * 1.9, r * 1.9, "rgba(255,107,44,.42)", 0.6),
+        L(r * 8, r * 8 * k * 0.62, "rgba(214,150,96,.20)", 0.42),
+        L(r * 3.6, r * 3.6 * Math.max(k, 0.58), "rgba(255,140,70,.22)", 0.45),
       ].join("");
+}
+
+/**
+ * A star field, deliberately not the old kit's version.
+ *
+ * The retired generator scattered 48 uniform dots at uniform alpha and it read as
+ * sensor dust on a lens. Three things separate a field from noise:
+ *
+ *   DENSITY VARIES.  Stars cluster along a faint diagonal band, the way a galactic
+ *                    plane does. Uniform scatter is the tell of a random() loop.
+ *   MAGNITUDE VARIES. Most are sub-pixel and barely there; a handful are bright
+ *                    enough to carry a tiny cross glint, which is what the eye
+ *                    actually reads as "star" rather than "speck".
+ *   IT AVOIDS THE SUBJECT. Nothing is drawn inside the orrery's bright zone,
+ *                    where it would compete with the instrument.
+ *
+ * Seeded from the asset name so re-running never reshuffles into a false diff.
+ */
+function starfield(w: number, h: number, seed: string, cx: number, cy: number, clear: number) {
+  if (P.markTone !== "dark") return ""; // paper does not have stars
+  let x = 0;
+  for (const ch of seed) x = (x * 31 + ch.charCodeAt(0)) >>> 0;
+  const rnd = () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+  const out: string[] = [];
+  for (let i = 0; i < 190; i++) {
+    // Bias toward a diagonal band: average two samples pulls density to a line.
+    const u = rnd(), v = rnd();
+    const sx = u * w;
+    const band = (u * 0.55 + rnd() * 0.45) * h;
+    const sy = v < 0.62 ? band : rnd() * h;
+
+    const d = Math.hypot(sx - cx, (sy - cy) / 0.45);
+    if (d < clear) continue; // keep the instrument's own zone clean
+
+    const mag = rnd();
+    const r = (0.28 + mag * mag * 1.25).toFixed(2);
+    const a = (0.06 + mag * mag * 0.42).toFixed(3);
+    out.push(`<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${r}" fill="#fff" opacity="${a}"/>`);
+
+    // The few brightest get a glint, which is what reads as a star.
+    if (mag > 0.955) {
+      const g = (2.6 + rnd() * 2.2).toFixed(1);
+      out.push(
+        `<line x1="${(sx - +g).toFixed(1)}" y1="${sy.toFixed(1)}" x2="${(sx + +g).toFixed(1)}" y2="${sy.toFixed(1)}" stroke="#fff" stroke-width="0.45" opacity="0.30"/>`,
+        `<line x1="${sx.toFixed(1)}" y1="${(sy - +g).toFixed(1)}" x2="${sx.toFixed(1)}" y2="${(sy + +g).toFixed(1)}" stroke="#fff" stroke-width="0.45" opacity="0.30"/>`,
+      );
+    }
+  }
+  return `<svg class="layer" viewBox="0 0 ${w} ${h}">${out.join("")}</svg>`;
+}
+
+/**
+ * All SEVEN station names, set on the orbit.
+ *
+ * FOUNDER RULING 2026-08-05: only 01 and 07 were legible and the other five were
+ * anonymous dots. The seven stations ARE the operating-system layer, so rendering
+ * five of them as decoration undersold the product. Every station is now named.
+ * 01 and 07 stay lit because they are the two ends of the return path; the other
+ * five are present, precise and quiet.
+ */
+function stationLabels(o: Orr, labelR: number, size: number) {
+  return STATIONS.map((name, i) => {
+    const t = ang(i);
+    const lx = o.cx + labelR * Math.cos(t);
+    const ly = o.cy + labelR * o.k * Math.sin(t);
+    const lit = i === 0 || i === 6;
+    // Anchor away from the centre so nothing overlaps the orbit it belongs to.
+    const anchor = Math.cos(t) > 0.25 ? "start" : Math.cos(t) < -0.25 ? "end" : "middle";
+    const dy = Math.sin(t) > 0.25 ? size * 1.05 : Math.sin(t) < -0.25 ? -size * 0.55 : size * 0.34;
+    // KNOCKOUT. Without this the orbit ring runs straight through the glyphs,
+    // which is the single most amateur-looking thing a technical drawing can do.
+    //
+    // paint-order="stroke fill" reverses SVG's default: the stroke is painted
+    // FIRST, so a thick stroke in the ground colour becomes a halo the orbit
+    // line vanishes behind, while the glyph keeps its intended weight. Painting
+    // it the normal way round would just fatten the letterforms instead.
+    return `<text x="${lx.toFixed(1)}" y="${(ly + dy).toFixed(1)}" text-anchor="${anchor}"
+      font-family="Geist Mono, ui-monospace, monospace" font-size="${size.toFixed(1)}"
+      letter-spacing="${(size * 0.17).toFixed(2)}" font-weight="500"
+      paint-order="stroke fill" stroke="${P.ground}" stroke-width="${(size * 0.42).toFixed(2)}"
+      stroke-linejoin="round" stroke-opacity="0.92"
+      fill="${lit ? P.gold : P.brass}" opacity="${lit ? 0.97 : 0.7}"
+      >${String(i + 1).padStart(2, "0")} ${name.toUpperCase()}</text>`;
+  }).join("");
 }
 
 const GRAIN = (o: number) => `
@@ -322,18 +478,35 @@ svg.layer{position:absolute;inset:0;pointer-events:none}
 </style></head><body>${body}</body></html>`;
 }
 
-/** The whole machine, as one composable block. */
-function machine(w: number, h: number, o: Orr, markPx: number, coreR: number) {
+/**
+ * The whole machine, as one composable block.
+ *
+ * Draw order is load-bearing and is the reason the frame reads as depth:
+ *   1. star field, far behind, avoiding the instrument's own zone
+ *   2. back halves of every orbit
+ *   3. ambient core light  (behind the mark, never on it)
+ *   4. THE MARK           (the product marker, the most legible object here)
+ *   5. front halves + return path + lit stations
+ *   6. all seven station names
+ */
+function machine(
+  w: number, h: number, o: Orr, markPx: number, coreR: number,
+  labels?: { r: number; size: number },
+) {
   return `
+    ${starfield(w, h, o.id, o.cx, o.cy, o.shells[1] * 0.78)}
     <svg class="layer" viewBox="0 0 ${w} ${h}">${back(o)}</svg>
     ${coreLight(o.cx, o.cy, coreR, o.k)}
     <div style="position:absolute;left:${o.cx - markPx / 2}px;top:${o.cy - markPx / 2}px">${markEl(markPx, o.id)}</div>
-    <svg class="layer" viewBox="0 0 ${w} ${h}">${front(o)}</svg>`;
+    <svg class="layer" viewBox="0 0 ${w} ${h}">${front(o)}</svg>
+    ${labels ? `<svg class="layer" viewBox="0 0 ${w} ${h}">${stationLabels(o, labels.r, labels.size)}</svg>` : ""}`;
 }
 
 /** A readout tag on a leader rule, anchored to a station node. */
 function readout(o: Orr, i: number, label: string, side: "left" | "right", gap = 52, size = 9.5) {
-  const t = ang(i), x = px(o, o.stationR, t), y = py(o, o.stationR, t);
+  const t = ang(i),
+    x = px(o, o.stationR, t),
+    y = py(o, o.stationR, t);
   const isL = side === "left";
   return `<div style="position:absolute;${isL ? `left:${x - gap - 210}px` : `left:${x + gap}px`};
       top:${y}px;transform:translateY(-50%);width:210px;display:flex;align-items:center;
@@ -343,5 +516,5 @@ function readout(o: Orr, i: number, label: string, side: "left" | "right", gap =
     </div>`;
 }
 
-export { P, STATIONS, ang, px, py, machine, readout, markEl, GRAIN, page, render, OUT, coreLight };
+export { P, STATIONS, ang, px, py, machine, readout, markEl, GRAIN, page, render, OUT, coreLight, starfield, stationLabels };
 export type { Orr };
