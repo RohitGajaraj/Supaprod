@@ -573,6 +573,22 @@ function AskPaneOpen() {
               queue={items}
               initials={initials}
               onRetry={stream.retry}
+              /**
+               * WHERE THIS TURN PUT SOMETHING, on the turn that put it.
+               *
+               * `stream.work.landings` describes the run in flight, so it
+               * belongs to the LAST turn and to no other. Handing it to every
+               * turn would re-label old answers with a new run's result each
+               * time one arrived, which is the shape of lie this register
+               * exists to prevent.
+               *
+               * Until tonight nothing emitted a `landing` frame at all, so
+               * every one of these four pieces -- the parser, the accumulator,
+               * this prop and `AskLanding` itself -- sat connected to nothing.
+               * A person dispatched work and the conversation stopped, with the
+               * mission reachable only by knowing to go and look for it.
+               */
+              landings={t.answer?.id === lastId ? stream.work.landings : undefined}
             />
           ))
         )}

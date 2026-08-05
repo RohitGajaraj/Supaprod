@@ -849,6 +849,46 @@ You must output a JSON object EXACTLY in this format:
                   ],
                 });
                 controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+
+                /**
+                 * WHERE THE WORK CAME TO REST, so the pane can hand it back to
+                 * a station instead of ending in a chat log.
+                 *
+                 * THE GAP THIS CLOSES. `ask-sse.ts` has parsed a `landing`
+                 * frame for hours, `use-ask-stream.ts` accumulates them, and
+                 * `AskLanding.tsx` renders one. NOTHING EMITTED ONE. Four
+                 * pieces of a capability, none of them connected, which is this
+                 * repo's signature defect stated four times over: a person
+                 * dispatched work and the conversation simply stopped, with the
+                 * mission reachable only by knowing to go and look for it.
+                 *
+                 * THIS FRAME IS A FACT, NOT A FORECAST, and that distinction is
+                 * why it is the one being emitted. By this line `createMission`
+                 * has returned a real row with a real id, and a mission is a
+                 * Build-station artifact by definition. Compare the routing
+                 * sentence withdrawn from the reply above: the classifier's
+                 * guess at an entry station is not acted on by anything, so
+                 * saying it would report work nobody does. This says only that
+                 * a row exists and where it lives, both checkable the instant
+                 * the person follows the link.
+                 */
+                controller.enqueue(
+                  encoder.encode(
+                    // The wire shape is a `landing` KEY, matching every other
+                    // frame in this protocol (`status`, `meta`, `block`,
+                    // `station`, `tool`). The first draft here emitted
+                    // `{kind:"landing", artifact:{…}}` -- the parser's RETURN
+                    // type rather than its INPUT -- which `parseSseLine` read
+                    // as `ignored` and dropped in silence. Caught by walking a
+                    // real emitted line through the real parser before shipping;
+                    // no type could catch it, because both ends were internally
+                    // consistent and only disagreed about the wire.
+                    `data: ${JSON.stringify({
+                      landing: { kind: "mission", id: mission.id, station: "build" },
+                    })}\n\n`,
+                  ),
+                );
+
                 const missionMeta: ChatMeta = {
                   model,
                   via: "gateway",

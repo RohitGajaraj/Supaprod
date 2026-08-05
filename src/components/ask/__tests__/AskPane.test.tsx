@@ -119,6 +119,22 @@ mock.module("@/hooks/use-ask-stream", () => ({
     readAloud: { supported: false, speakingId: null, toggle: () => {}, stop: () => {} },
     scopeKey: "product:p-1",
     conversationId: null,
+    /**
+     * `work` IS PART OF THE HOOK'S CONTRACT AND THIS MOCK HAD DRIFTED OFF IT.
+     *
+     * The real hook always returns it -- `NO_WORK` is a frozen default returned
+     * by identity so a memoised consumer sees no change while no frame is on
+     * the wire -- so `stream.work` is never undefined in the product. This mock
+     * simply predated the field, and the moment AskPane read it, fourteen tests
+     * died on `undefined is not an object`.
+     *
+     * Filled in rather than answered with `?.` in the component. Optional
+     * chaining there would have made the production code defend against a state
+     * the hook cannot produce, and hidden the fact that a mock had stopped
+     * describing the thing it stands in for. A mock that has drifted is a test
+     * suite asserting against a contract nobody ships.
+     */
+    work: { station: null, tools: [], landings: [] },
   }),
 }));
 
