@@ -231,6 +231,23 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
 
       // 4. Insert signals
       // If this fails, the handler will throw and profile won't be marked onboarded (guard below).
+      /**
+       * THESE ROWS SAY WHAT THEY ARE NOW.
+       *
+       * They are invented: "90% of sign-ups drop after day 1", "Competitor
+       * just launched push notifications". Specific, alarming, and about a
+       * product the reader has told us nothing about. They land in the user's
+       * REAL workspace at step 1 of onboarding, and until 2026-08-05 nothing on
+       * any screen said so.
+       *
+       * The label was believed to exist and could not render. `track-seeds.ts`
+       * claims it lives in the project name and "the description under it";
+       * `projects` has no description column, and no surface joined the project
+       * name. So Decide opened on "4 bets ranked, strongest first" about a
+       * product the visitor does not have. For a product whose whole claim is
+       * that its judgement is grounded in YOUR record, that reads as a faked
+       * demo.
+       */
       const signalRows = seed.signals.map((sig) => ({
         user_id: userId,
         workspace_id: workspaceId,
@@ -238,6 +255,7 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         source: sig.source,
         title: sig.title,
         content: sig.content,
+        is_sample: true,
       }));
 
       const { error: signalsError } = await supabase.from("signals").insert(signalRows);
@@ -259,6 +277,9 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
         confidence: opp.confidence,
         ease: opp.ease,
         status: "backlog",
+        // See the note on signalRows above. A bet nobody made must never be
+        // presented as one the workspace holds.
+        is_sample: true,
       }));
 
       const { data: insertedOpps, error: opportunitiesError } = await supabase

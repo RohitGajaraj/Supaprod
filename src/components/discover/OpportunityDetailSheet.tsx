@@ -144,6 +144,15 @@ export interface OpportunityDetailRecord {
   theme_id: string | null;
   created_at: string;
   updated_at: string;
+  /**
+   * Written by onboarding seeding rather than by a person or an agent.
+   *
+   * Optional because the column is newer than this interface and the read goes
+   * through `select("*")`, so an older cached payload simply omits it. Treat
+   * `undefined` as "not a sample", which is the safe reading: mislabelling a
+   * real bet as fiction is worse than leaving one example unmarked.
+   */
+  is_sample?: boolean | null;
   // RPT-47: the strategic top bet a human tied this opportunity to (nullable).
   linked_brief_item_id?: string | null;
   // PC-29 layer 3 (2026-07-17): the agent that recorded the decision behind

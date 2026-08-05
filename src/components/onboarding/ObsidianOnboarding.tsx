@@ -772,9 +772,28 @@ export function ObsidianOnboarding() {
       // workspace with scores the user never chose, so the top row is reliably
       // one of ours. Pointing the Critic at it would be the deleted
       // FALLBACK_BELIEF wearing a database row. See `isSeededExampleTitle`.
-      const own = opportunities.find(
-        (o) => typeof o.title === "string" && !isSeededExampleTitle(o.title),
-      );
+      /**
+       * THE FLAG FIRST, THE TITLE ONLY AS A FALLBACK.
+       *
+       * `isSeededExampleTitle` matches against the strings in track-seeds.ts,
+       * which worked but rested on a convention. 2026-08-05 showed exactly how
+       * that convention breaks: the same file also claims its seed projects are
+       * named "Example: ...", and a live check found ZERO such projects, because
+       * the prefix was added later and every existing row predates it. A rule
+       * that lives in a string is one edit away from going quiet with no test
+       * failing.
+       *
+       * `opportunities.is_sample` is now a column the row carries itself. It
+       * survives a retitle, and the migration backfilled the 20 live rows that
+       * predate it. The title check is kept behind it, not replaced by it, so a
+       * row written before the column and missed by the backfill is still
+       * caught. Either signal is enough to disqualify a bet from being treated
+       * as one this person made.
+       */
+      const own = opportunities.find((o) => {
+        const flagged = (o as { is_sample?: boolean | null }).is_sample === true;
+        return typeof o.title === "string" && !flagged && !isSeededExampleTitle(o.title);
+      });
       if (own) {
         setBelief(own.title);
         seededBeliefRef.current = own.title;

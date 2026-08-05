@@ -672,6 +672,31 @@ function DecideSurface() {
         <Gate
           question={activeOpp.title}
           lines={[
+            /**
+             * SAY IT BEFORE ASKING THEM TO JUDGE IT.
+             *
+             * Onboarding writes four invented opportunities into the user's
+             * real workspace so Decide has something to show on day one. Until
+             * 2026-08-05 nothing said so anywhere: `track-seeds.ts` believed
+             * the label lived in the project name and a description column that
+             * does not exist, and no surface joined the project name. So the
+             * first thing a visitor met here was a gate asking them to keep or
+             * drop a bet about a product they do not have, and pressing "Keep
+             * it" spent real model credits writing a spec for fiction.
+             *
+             * It is the FIRST line deliberately. A person reads the question,
+             * then the facts, then presses a key; a disclaimer below the
+             * evidence would arrive after the decision was already forming.
+             */
+            ...(activeOpp.is_sample
+              ? [
+                  <span key="sample">
+                    <b>This is an example.</b> It came with your workspace so this station had
+                    something to show. It is not from your product, and nothing here has been
+                    learned from your record.
+                  </span>,
+                ]
+              : []),
             /* Which of the queue this is. The row below says where it sits;
                this says the Gate is showing that row. Suppressed at one bet,
                because "1 of 1" is a fact about nothing. */
