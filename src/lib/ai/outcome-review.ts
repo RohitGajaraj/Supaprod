@@ -168,10 +168,16 @@ export function buildSkeletonReview(input: SkeletonReviewInput): SkeletonReview 
       provisional: true,
     };
   }
+  // A spec reviewed on its ship alone has no window that could have closed, and
+  // saying one did would be the review inventing the very fact it reports on.
+  // Reachable since the sweep stopped drawing candidates from launch plans only.
+  const shippedOn = String(input.shippedAt).slice(0, 10);
   return {
     verdict: "mixed",
     predicted,
-    actual: `Shipped ${String(input.shippedAt).slice(0, 10)}, but the window closed${closedClause} with no recorded result and no strong signal.`,
+    actual: closedOn
+      ? `Shipped ${shippedOn}, but the window closed${closedClause} with no recorded result and no strong signal.`
+      : `Shipped ${shippedOn}, with no measurement window set, no recorded result and no strong signal.`,
     provisional: true,
   };
 }
@@ -193,7 +199,13 @@ export function composeReviewSummary(input: {
   provisional: boolean;
 }): string {
   const closedOn = str(input.checkBy)?.slice(0, 10) ?? null;
-  const head = `Outcome window closed${closedOn ? ` ${closedOn}` : ""}; review drafted by the Historian.`;
+  // Same rule as the skeleton: name the window when there was one, and say
+  // plainly that there was not when there was not. A learnings row that opens
+  // "Outcome window closed" for a spec nobody ever set a window on is the record
+  // asserting a date that does not exist.
+  const head = closedOn
+    ? `Outcome window closed ${closedOn}; review drafted by the Historian.`
+    : `Reviewed on the ship, with no measurement window set; review drafted by the Historian.`;
   const betLine = input.designation
     ? `Bet call: ${input.betCall} (designated "${input.designation}").`
     : `Bet call: ${input.betCall} (no designation derivable at review time).`;

@@ -34,10 +34,15 @@
  * desk. Next tick it is re-examined, so a window that escalated on thin
  * evidence settles itself once the usage data arrives.
  *
- * Idempotency: one settlement per launch plan. A launch plan is keyed by prd_id
- * and a settlement IS a learnings row, so any learnings row for the PRD (a human
- * recordOutcome, an agent settlement, or a legacy skeleton review) marks the
- * window closed. No schema change needed.
+ * Extended 2026-08-05: it also reviews specs that SHIPPED and carry no outcome,
+ * whether or not a launch plan exists, because nothing on the ship path creates
+ * one and this is the only automatic writer of outcome memory. See the long note
+ * at the second candidate query for the measurement that forced it.
+ *
+ * Idempotency: one settlement per spec. Candidates are keyed by prd_id and a
+ * settlement IS a learnings row, so any learnings row for the PRD (a human
+ * recordOutcome, an agent settlement, or a legacy skeleton review) marks it
+ * closed. No schema change needed.
  *
  * Attribution and reversal: the write goes through `applyOutcome`, the ONE copy
  * of the outcome arithmetic, tagged `settled_by: "agent"` with the evidence
@@ -77,11 +82,19 @@ import {
 
 export const HISTORIAN_AGENT_SLUG = "historian";
 
-/** Expired windows considered per tick; the review cap keeps the AI spend
- *  bounded while a backlog drains oldest-window-first. */
+/** Candidates considered per tick; the review cap keeps the AI spend bounded
+ *  while a backlog drains oldest-first. */
 const CANDIDATE_LIMIT = 25;
 const REVIEWS_PER_TICK = 5;
 
+/**
+ * One thing to reach a decision on. `check_by` and `success_metric` come from
+ * the launch plan when the spec has one; a spec that shipped without a launch
+ * plan is a candidate on its ship alone and carries neither, which every
+ * downstream step already handles (the skeleton says so in words, and the
+ * settle-or-ask rule reads the standing outcome contract when no launch-plan
+ * metric was declared).
+ */
 type PlanRow = {
   prd_id: string;
   workspace_id: string | null;
@@ -137,7 +150,62 @@ export async function runOutcomeReviews(
   const { data: planRows } = await planQuery
     .order("check_by", { ascending: true })
     .limit(CANDIDATE_LIMIT);
-  let plans = (planRows ?? []) as PlanRow[];
+  let plans = [...((planRows ?? []) as PlanRow[])];
+
+  /* THE POPULATION THIS SWEEP COULD NOT SEE, AND IT IS THE ONLY ONE SHIPPING
+   * PRODUCES.
+   *
+   * This sweep is the ONE automatic writer on the path from a shipped spec to
+   * an outcome memory: `applyOutcome` -> `rememberOutcome` -> the `agent_memory`
+   * rows of kind "outcome" that every precedent path filters on. Its candidates
+   * came from `launch_plans.check_by` alone, and NOTHING ON THE SHIP PATH
+   * CREATES A LAUNCH PLAN. The only code writer is the production promote
+   * (deployments.functions.ts), which is unreachable on a customer's own repo
+   * and is exactly why the merge stamp had to be built; the merge stamp itself
+   * (`stampSpecShippedOnStudioMerge`) writes `prds.shipped_at` and no plan. So
+   * `prds.shipped_at` and this sweep were connected by nothing at all: a spec
+   * could ship, sit unsettled forever, and never once be looked at by the agent
+   * whose whole job is to look at it. Measured on production the day this
+   * changed: 7 rows carry `shipped_at`, 7 launch plans exist, and their
+   * `check_by` is in the FUTURE, so this sweep had zero candidates and
+   * `agent_memory` had zero outcome rows since the table existed.
+   *
+   * `listPendingOutcomes` was widened to the union of both populations for the
+   * human queue and this sweep was left on the narrow half, which inverted the
+   * invariant that file states: the queue may not show a reason the sweep did
+   * not act on, and here the sweep could not act on a population the queue
+   * shows. Same union, same order of precedence, both halves now.
+   *
+   * NOTHING IS SETTLED MORE EASILY BECAUSE OF THIS. A spec arriving with no
+   * launch plan has no declared success metric, so gate 1 of
+   * `classifyOutcomeSettlement` escalates it unless a standing outcome contract
+   * declared one, and an escalation writes nothing and stays on the person's
+   * desk. This widens WHAT IS CONSIDERED, never what clears the bar.
+   *
+   * Lapsed windows keep the head of the queue: a `check_by` in the past is the
+   * workspace saying the answer is due on a date it chose, which is a stronger
+   * claim on the review budget than a ship with no stated window. */
+  let shippedQuery = db
+    .from("prds")
+    .select("id,workspace_id")
+    .not("shipped_at", "is", null)
+    .is("outcome", null);
+  if (workspaceId) shippedQuery = shippedQuery.eq("workspace_id", workspaceId);
+  const { data: shippedRows } = await shippedQuery
+    .order("shipped_at", { ascending: true })
+    .limit(CANDIDATE_LIMIT);
+  const seenPrdIds = new Set(plans.map((p) => p.prd_id));
+  for (const row of (shippedRows ?? []) as Array<{ id: string; workspace_id: string | null }>) {
+    if (!row.id || seenPrdIds.has(row.id)) continue;
+    seenPrdIds.add(row.id);
+    plans.push({
+      prd_id: row.id,
+      workspace_id: row.workspace_id,
+      check_by: null,
+      success_metric: null,
+    });
+  }
+
   if (!plans.length) return result;
 
   // THE BOUNDARY THE HUMAN SET HAS TO BIND.
