@@ -986,6 +986,7 @@ export type Database = {
       ai_events: {
         Row: {
           cache_hit: boolean
+          cached_tokens: number | null
           completion_tokens: number
           created_at: string
           error_code: string | null
@@ -1015,6 +1016,7 @@ export type Database = {
         }
         Insert: {
           cache_hit?: boolean
+          cached_tokens?: number | null
           completion_tokens?: number
           created_at?: string
           error_code?: string | null
@@ -1044,6 +1046,7 @@ export type Database = {
         }
         Update: {
           cache_hit?: boolean
+          cached_tokens?: number | null
           completion_tokens?: number
           created_at?: string
           error_code?: string | null
@@ -2653,6 +2656,7 @@ export type Database = {
       decisions: {
         Row: {
           alternatives_considered: Json
+          auto_origin: boolean
           cited_by_count: number
           created_at: string
           decided_by_agent_slug: string | null
@@ -2676,6 +2680,7 @@ export type Database = {
         }
         Insert: {
           alternatives_considered?: Json
+          auto_origin?: boolean
           cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
@@ -2699,6 +2704,7 @@ export type Database = {
         }
         Update: {
           alternatives_considered?: Json
+          auto_origin?: boolean
           cited_by_count?: number
           created_at?: string
           decided_by_agent_slug?: string | null
@@ -3866,6 +3872,7 @@ export type Database = {
           name: string
           pattern: string
           user_id: string
+          workspace_id: string
         }
         Insert: {
           action?: string
@@ -3878,6 +3885,7 @@ export type Database = {
           name: string
           pattern: string
           user_id: string
+          workspace_id?: string
         }
         Update: {
           action?: string
@@ -3890,8 +3898,17 @@ export type Database = {
           name?: string
           pattern?: string
           user_id?: string
+          workspace_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guardrail_rules_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       house_rules: {
         Row: {
@@ -9572,78 +9589,74 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      match_agent_memory:
-        | {
-            Args: {
-              for_account?: string
-              for_agent_slug?: string
-              for_user: string
-              for_workspace?: string
-              match_count?: number
-              query_embedding: string
-            }
-            Returns: {
-              agent_slug: string
-              content: string
-              id: string
-              importance: number
-              kind: string
-              similarity: number
-            }[]
-          }
-        | {
-            Args: {
-              for_account?: string
-              for_agent_slug?: string
-              for_user?: string
-              for_workspace?: string
-              match_count?: number
-              query_embedding: string
-            }
-            Returns: {
-              agent_slug: string
-              content: string
-              id: string
-              importance: number
-              kind: string
-              similarity: number
-            }[]
-          }
-      match_decisions: {
+      match_agent_memory: {
         Args: {
-          embedding_model?: string
-          for_user?: string
+          for_account?: string
+          for_agent_slug?: string
+          for_user: string
+          for_workspace?: string
           match_count?: number
           query_embedding: string
         }
         Returns: {
+          agent_slug: string
+          content: string
+          id: string
+          importance: number
+          kind: string
+          similarity: number
+        }[]
+      }
+      match_decisions: {
+        Args: {
+          exclude_id?: string
+          for_model?: string
+          for_workspace: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          created_at: string
+          decided_by_agent_slug: string
           id: string
           rationale: string
           similarity: number
+          status: string
           title: string
         }[]
       }
       match_learnings: {
         Args: {
-          embedding_model?: string
-          for_user?: string
+          exclude_id?: string
+          for_model?: string
+          for_workspace: string
           match_count?: number
           query_embedding: string
         }
         Returns: {
+          created_at: string
           id: string
+          metric_label: string
+          metric_value: string
+          new_ice: number
+          opportunity_id: string
+          prd_id: string
+          prior_ice: number
           similarity: number
           summary: string
+          verdict: string
         }[]
       }
       match_opportunities: {
         Args: {
-          embedding_model?: string
-          for_user?: string
+          exclude_id?: string
+          for_model?: string
+          for_workspace: string
           match_count?: number
           query_embedding: string
         }
         Returns: {
+          created_at: string
           id: string
           problem: string
           similarity: number
@@ -9652,13 +9665,15 @@ export type Database = {
       }
       match_prds: {
         Args: {
-          embedding_model?: string
-          for_user?: string
+          exclude_id?: string
+          for_model?: string
+          for_workspace: string
           match_count?: number
           query_embedding: string
         }
         Returns: {
           body_md: string
+          created_at: string
           id: string
           similarity: number
           title: string
@@ -9684,64 +9699,34 @@ export type Database = {
           title: string
         }[]
       }
-      match_signals:
-        | {
-            Args: {
-              embedding_model?: string
-              for_user?: string
-              match_count?: number
-              query_embedding: string
-            }
-            Returns: {
-              content: string
-              id: string
-              similarity: number
-              title: string
-            }[]
-          }
-        | {
-            Args: {
-              for_product?: string
-              for_user?: string
-              match_count?: number
-              query_embedding: string
-            }
-            Returns: {
-              content: string
-              id: string
-              similarity: number
-              title: string
-            }[]
-          }
-      match_themes:
-        | {
-            Args: {
-              exclude_id?: string
-              for_user: string
-              match_count?: number
-              query_embedding: string
-            }
-            Returns: {
-              id: string
-              similarity: number
-              summary: string
-              title: string
-            }[]
-          }
-        | {
-            Args: {
-              embedding_model?: string
-              for_user?: string
-              match_count?: number
-              query_embedding: string
-            }
-            Returns: {
-              id: string
-              similarity: number
-              summary: string
-              title: string
-            }[]
-          }
+      match_signals: {
+        Args: {
+          for_product?: string
+          for_user?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: string
+          similarity: number
+          title: string
+        }[]
+      }
+      match_themes: {
+        Args: {
+          exclude_id?: string
+          for_user: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          id: string
+          similarity: number
+          summary: string
+          title: string
+        }[]
+      }
       memory_expiry_enabled: { Args: never; Returns: boolean }
       mission_cap_state: {
         Args: { _run_id: string }
@@ -9806,6 +9791,7 @@ export type Database = {
         Args: { _older_than_days?: number }
         Returns: Json
       }
+      reap_stuck_job_runs: { Args: { older_than?: string }; Returns: number }
       recent_agent_reflections: {
         Args: {
           for_account?: string
@@ -9824,6 +9810,10 @@ export type Database = {
       }
       record_mission_usage: {
         Args: { _cost_usd: number; _run_id: string; _tokens: number }
+        Returns: undefined
+      }
+      recount_theme_frequency: {
+        Args: { p_theme_id: string }
         Returns: undefined
       }
       redeem_voucher: { Args: { _code: string }; Returns: Json }
