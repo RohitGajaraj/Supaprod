@@ -276,6 +276,20 @@
   --sp-line-soft: rgba(255, 255, 255, 0.055); /* a rule between sections */
   --sp-hover: rgba(255, 255, 255, 0.045);
   --sp-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.7), 0 4px 10px -3px rgba(0, 0, 0, 0.5);
+  /* THE SCRIM, and it is the one overlay token that genuinely did not exist.
+   *
+   * Five were being referenced -- `--sp-scrim`, `--sp-shadow-md/-lg`,
+   * `--sp-radius-md/-lg` -- and none were defined. Four of those are duplicates
+   * of a scale that is already here and already SEMANTIC: `--sp-radius-pane` is
+   * "floating panes" and `--sp-shadow` is the shadow. Defining size-named
+   * aliases beside role-named tokens would have given the system two vocabularies
+   * for one idea, so the call sites moved to the names that exist instead.
+   *
+   * A scrim is not a duplicate. Every overlay fell back to a hard-coded
+   * `rgb(0 0 0 / 0.58)`, which is right on this theme and wrong on paper: pure
+   * black over a warm ground reads as a hole rather than a dimming, and the
+   * light theme's whole argument is that it is paper. */
+  --sp-scrim: rgb(0 0 0 / 0.58);
 
   /* ---- Atmosphere ---- the door field, the context starfield, the lamp */
   --sp-star: rgba(255, 255, 255, 0.62);
@@ -313,6 +327,9 @@
   --sp-line-soft: rgba(70, 55, 30, 0.065);
   --sp-hover: rgba(70, 55, 30, 0.04);
   --sp-shadow: 0 10px 26px -10px rgba(80, 60, 25, 0.16), 0 2px 5px -2px rgba(80, 60, 25, 0.09);
+  /* Warm and lighter, so a dimmed page still reads as paper under glass rather
+   * than as a hole cut in it. Same family as the shadow directly above. */
+  --sp-scrim: rgb(70, 55, 30, 0.42);
 
   --sp-star: rgba(90, 70, 40, 0.26);
   --sp-grid: rgba(80, 60, 25, 0.03);

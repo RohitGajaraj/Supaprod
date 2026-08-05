@@ -1058,7 +1058,7 @@
   border: 0;
   padding: 0;
   cursor: default;
-  background: var(--sp-scrim, rgb(0 0 0 / 0.58));
+  background: var(--sp-scrim);
   animation: sp-boardpanel-in var(--sp-dur-fast) var(--sp-ease);
 }
 .sp-boardpanel-sheet {
@@ -1069,8 +1069,8 @@
   flex-direction: column;
   background: var(--sp-sheet);
   border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-lg, 12px);
-  box-shadow: var(--sp-shadow-lg, 0 24px 64px rgb(0 0 0 / 0.45));
+  border-radius: var(--sp-radius-pane);
+  box-shadow: var(--sp-shadow);
   overflow: hidden;
   animation: sp-boardpanel-rise var(--sp-dur-fast) var(--sp-ease);
 }
@@ -1140,8 +1140,8 @@
   padding: 6px;
   background: var(--sp-sheet);
   border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-md, 10px);
-  box-shadow: var(--sp-shadow-md, 0 12px 32px rgb(0 0 0 / 0.34));
+  border-radius: var(--sp-radius-card);
+  box-shadow: var(--sp-shadow);
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -1641,7 +1641,7 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   border: 0;
   padding: 0;
   cursor: default;
-  background: var(--sp-scrim, rgb(0 0 0 / 0.58));
+  background: var(--sp-scrim);
   animation: sp-boardpanel-in var(--sp-dur-fast) var(--sp-ease);
 }
 .sp-keys-sheet {
@@ -1652,8 +1652,8 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
   flex-direction: column;
   background: var(--sp-sheet);
   border: 1px solid var(--sp-line);
-  border-radius: var(--sp-radius-lg, 12px);
-  box-shadow: var(--sp-shadow-lg, 0 24px 64px rgb(0 0 0 / 0.45));
+  border-radius: var(--sp-radius-pane);
+  box-shadow: var(--sp-shadow);
   overflow: hidden;
   animation: sp-boardpanel-rise var(--sp-dur-fast) var(--sp-ease);
 }

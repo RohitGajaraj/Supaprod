@@ -1463,13 +1463,13 @@ export function DiscoverSurface({
                 sub={
                   <>
                     {entry.theme.frequency} signal{plural(entry.theme.frequency)} ·{" "}
-                    <span style={{ fontSize: "var(--sp-text-small)", color: "var(--text-muted)" }}>
+                    <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--text-muted)" }}>
                       {sourceList}
                     </span>
                     {" · "}
                     <span
                       style={{
-                        fontSize: "var(--sp-text-small)",
+                        fontSize: "var(--sp-text-meta)",
                         color: confidenceColor,
                         fontWeight: "500",
                       }}

@@ -517,8 +517,18 @@ function Today() {
         <div
           style={{
             background: "var(--sp-float)",
-            borderLeft: "4px solid var(--sp-accent)",
-            borderRadius: "var(--sp-radius-lg)",
+            /* `--sp-radius-lg` and `--sp-accent` were BOTH undefined -- named
+               nowhere in ink.css -- so this card rendered with square corners
+               and no left border at all, while every other surface in the
+               product sits on the named scale. The scale is semantic, not
+               t-shirt sized: `--sp-radius-panel` is commented "record recess,
+               gate detail", which is what this is.
+
+               The stripe is deleted rather than given a colour. A coloured bar
+               down the side of a card is banned outright in primitives.css, so
+               defining `--sp-accent` to rescue it would have been inventing a
+               token in order to break a rule. */
+            borderRadius: "var(--sp-radius-panel)",
             padding: "20px",
             marginBottom: "20px",
           }}
@@ -609,7 +619,13 @@ function Today() {
             style={{
               background: "var(--sp-float)",
               border: "1px solid var(--sp-line)",
-              borderRadius: "var(--sp-radius-lg)",
+              /* THE PRIMARY INTERFACE WAS THE ONE SQUARE OBJECT ON THE PAGE.
+                 `--sp-radius-lg` is defined nowhere, so this resolved to 0 --
+                 and it has a visible 1px border, which makes hard corners
+                 unmissable next to 10 and 12px everywhere else. `--sp-radius-card`
+                 is commented, in ink.css, "agent card, ask composer". This IS
+                 the ask composer; the token was always there. */
+              borderRadius: "var(--sp-radius-card)",
               padding: "20px",
               marginBottom: "20px",
               display: "flex",
