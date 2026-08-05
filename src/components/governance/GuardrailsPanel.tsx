@@ -51,6 +51,9 @@ import {
   seedBuiltInGuardrails,
   testGuardrailRule,
 } from "@/lib/guardrails.functions";
+import { humanWriteError } from "@/lib/roles.functions";
+import { useGovernedWrite } from "@/hooks/use-workspace-role";
+import { GovernedWriteNote } from "./GovernedWriteNote";
 import { relTime } from "@/components/product/format";
 import {
   Actions,
@@ -152,8 +155,14 @@ function emptyRule(): RuleForm {
  * The surface
  * ------------------------------------------------------------------ */
 
+/** Shown when a guardrail write failed for a reason the database wrote. */
+const GUARDRAIL_WRITE_FAILED = "That rule did not save. Nothing on this surface changed.";
+
 export function GuardrailsPanel() {
   const confirm = useConfirm();
+  // A guardrail is the `guardrail_rules` governed surface: owner or admin, the
+  // same pair can_manage_workspace() enforces on every write policy below it.
+  const { allowed: mayWrite, reason: writeDenied } = useGovernedWrite("guardrail_rules");
   const fOverview = useServerFn(getGuardrailOverview);
   const fUpsert = useServerFn(upsertGuardrailRule);
   const fDelete = useServerFn(deleteGuardrailRule);
@@ -279,6 +288,11 @@ export function GuardrailsPanel() {
     return (
       <RuleEditor
         rule={editing}
+        // Opening a rule is a READ, and the migration deliberately left every
+        // read alone. So the detail stays reachable and only the two writes at
+        // the bottom of it are refused.
+        canWrite={mayWrite}
+        writeDenied={writeDenied}
         onChange={setEditing}
         onBack={() => setEditing(null)}
         onSave={() => upsert.mutate(editing)}
@@ -310,6 +324,10 @@ export function GuardrailsPanel() {
 
   return (
     <>
+      {/* Said once, above every control it explains, and nothing at all for an
+          owner or an admin. */}
+      <GovernedWriteNote reason={writeDenied} />
+
       <Block
         title="What the rules check"
         sub={
@@ -320,17 +338,30 @@ export function GuardrailsPanel() {
             </>
           )
         }
-        more={rules.length > 0 ? "Write a rule" : undefined}
+        // ABSENT rather than disabled: "Write a rule" opens an editor whose only
+        // ending is a Save this person cannot press, so offering it would be a
+        // promise the surface cannot keep.
+        more={rules.length > 0 && mayWrite ? "Write a rule" : undefined}
         onMore={() => setEditing(emptyRule())}
       >
         {rules.length === 0 ? (
           <Empty
             action={
               <>
-                <Button variant="primary" disabled={seed.isPending} onClick={() => seed.mutate()}>
+                <Button
+                  variant="primary"
+                  disabled={seed.isPending || !mayWrite}
+                  title={writeDenied ?? undefined}
+                  onClick={() => seed.mutate()}
+                >
                   Add the built-ins
                 </Button>
-                <Button variant="ghost" onClick={() => setEditing(emptyRule())}>
+                <Button
+                  variant="ghost"
+                  disabled={!mayWrite}
+                  title={writeDenied ?? undefined}
+                  onClick={() => setEditing(emptyRule())}
+                >
                   Write your own
                 </Button>
               </>
@@ -373,19 +404,24 @@ export function GuardrailsPanel() {
               <Switch
                 checked={g.enabled}
                 label={`${g.name} checks every call`}
-                disabled={tog.isPending}
+                disabled={tog.isPending || !mayWrite}
                 onChange={(next) => tog.mutate({ id: g.id, enabled: next, name: g.name })}
               />
             </Line>
           ))
         )}
 
-        {tog.error ? <Failed>{(tog.error as Error).message}</Failed> : null}
-        {seed.error ? <Failed>{(seed.error as Error).message}</Failed> : null}
+        {tog.error ? <Failed>{humanWriteError(tog.error, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
+        {seed.error ? <Failed>{humanWriteError(seed.error, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
 
         {rules.length > 0 ? (
           <Actions>
-            <Button variant="ghost" disabled={seed.isPending} onClick={() => seed.mutate()}>
+            <Button
+              variant="ghost"
+              disabled={seed.isPending || !mayWrite}
+              title={writeDenied ?? undefined}
+              onClick={() => seed.mutate()}
+            >
               Add any missing built-ins
             </Button>
           </Actions>
@@ -451,6 +487,8 @@ export function GuardrailsPanel() {
 
 function RuleEditor({
   rule,
+  canWrite,
+  writeDenied,
   onChange,
   onBack,
   onSave,
@@ -467,6 +505,9 @@ function RuleEditor({
   testResult,
 }: {
   rule: RuleForm;
+  /** False for a role the database will refuse. The fields stay readable. */
+  canWrite: boolean;
+  writeDenied: string | null;
   onChange: (next: RuleForm) => void;
   onBack: () => void;
   onSave: () => void;
@@ -486,6 +527,8 @@ function RuleEditor({
 
   return (
     <>
+      <GovernedWriteNote reason={writeDenied} />
+
       <Block
         title={rule.id ? "This rule" : "A new rule"}
         // The sentence it currently spells out, which is the one thing the six
@@ -610,18 +653,32 @@ function RuleEditor({
       </Block>
 
       <Block>
-        {saveError ? <Failed>{saveError.message}</Failed> : null}
-        {deleteError ? <Failed>{deleteError.message}</Failed> : null}
+        {saveError ? <Failed>{humanWriteError(saveError, GUARDRAIL_WRITE_FAILED)}</Failed> : null}
+        {deleteError ? (
+          <Failed>
+            {humanWriteError(deleteError, "That rule was not deleted. It still checks every call.")}
+          </Failed>
+        ) : null}
         <Actions
           trailing={
             rule.id ? (
-              <Button variant="ghost" disabled={deleting} onClick={onDelete}>
+              <Button
+                variant="ghost"
+                disabled={deleting || !canWrite}
+                title={writeDenied ?? undefined}
+                onClick={onDelete}
+              >
                 Delete this rule
               </Button>
             ) : null
           }
         >
-          <Button variant="primary" disabled={incomplete || saving} onClick={onSave}>
+          <Button
+            variant="primary"
+            disabled={incomplete || saving || !canWrite}
+            title={writeDenied ?? undefined}
+            onClick={onSave}
+          >
             Save
           </Button>
           <Button variant="ghost" onClick={onBack}>

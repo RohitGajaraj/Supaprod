@@ -11,7 +11,10 @@
  *   - viewer: read-only
  */
 
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 
 export type Role = "owner" | "admin" | "member" | "viewer";
@@ -98,6 +101,114 @@ export function writeDeniedReason(
   if (!role) return `You are not a member of this workspace, so only ${who} can change this.`;
   return `Your role here is ${role}. Only ${who} can change this.`;
 }
+
+/**
+ * The fingerprints of a message that came out of Postgres or PostgREST rather
+ * than out of this product.
+ *
+ * WHY THIS LIST EXISTS. Every governed write in the UI renders the thrown
+ * message straight into a Failed block or a toast. That is right for the
+ * sentences this codebase writes ("Your role here is viewer...") and wrong for
+ * the ones the database writes. A person who pressed Save and was told
+ *
+ *   new row violates row-level security policy for table "guardrail_rules"
+ *
+ * has been handed the mechanism instead of the outcome, plus the name of an
+ * internal table. Matching on the phrase rather than on an error code is
+ * deliberate: PostgREST flattens the code into the message by the time it
+ * reaches a server function, so the code is usually gone and the phrase is not.
+ */
+const RAW_DATABASE_FINGERPRINTS: readonly RegExp[] = [
+  /row[- ]level security/i,
+  /violates .*policy/i,
+  /permission denied for/i,
+  /\bpgrst\d*\b/i,
+  /violates (unique|foreign key|check|not-null) constraint/i,
+  /duplicate key value/i,
+  /null value in column/i,
+  /relation "[^"]+" does not exist/i,
+  /column "[^"]+"/i,
+  /\b(42501|42P01|23502|23503|23505|23514|PGRST\d+)\b/,
+  /could not choose a best candidate function/i,
+  /\bJW[ST]\b/,
+  /\bfailed to fetch\b/i,
+];
+
+/**
+ * What to SHOW a person when a governed write failed.
+ *
+ * Returns the thrown message when this codebase wrote it, and `fallback` when
+ * the database did. Never returns an empty string, because a Failed block with
+ * nothing in it is worse than a wrong sentence: it reads as "it worked".
+ *
+ * The role check in front of each write already answers the common refusal in
+ * plain words. This is the floor under everything that check cannot foresee.
+ */
+export function humanWriteError(error: unknown, fallback: string): string {
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : ((error as { message?: unknown } | null)?.message ?? "");
+  const message = typeof raw === "string" ? raw.trim() : "";
+  if (!message) return fallback;
+  if (RAW_DATABASE_FINGERPRINTS.some((re) => re.test(message))) return fallback;
+  return message;
+}
+
+const MyRoleSchema = z.object({ workspaceId: z.string().uuid().nullable().optional() }).strip();
+
+export type MyWorkspaceRoleResult = {
+  /** null means "not a member of this workspace", which writes nothing. */
+  role: Role | null;
+  /** The workspace the role was read in, so a caller can tell which one answered. */
+  workspaceId: string | null;
+};
+
+/**
+ * THE CANONICAL ROLE SOURCE FOR THE CLIENT.
+ *
+ * Before this existed the browser had no way to learn the signed-in user's role
+ * except `listWorkspaceMembers`, which returns `selfRole` as a by-product of
+ * listing everybody and is only ever called from the Members card in Settings.
+ * So every governed surface (guardrails, house rules, tool overrides, spend
+ * caps) drew an enabled Save for a viewer, and migration 20260805130000 makes
+ * the database refuse those writes. A control that is enabled, pressed, and
+ * then refused in the database's own words is the difference between an
+ * enterprise-ready app and a demo.
+ *
+ * Reads `workspace_members` through the caller's own client, which is exactly
+ * what the database's `has_workspace_role()` reads, so this answer and the
+ * policy that enforces it cannot drift into disagreeing.
+ *
+ * WHICH WORKSPACE. A caller that knows its active workspace passes the id. A
+ * caller that does not falls back to `current_user_default_workspace()`, which
+ * is the same function `guardrail_rules.workspace_id` defaults to, so the
+ * prediction and the insert are talking about the same workspace.
+ */
+export const getMyWorkspaceRole = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof MyRoleSchema> | undefined) => MyRoleSchema.parse(d ?? {}))
+  .handler(async ({ context, data }): Promise<MyWorkspaceRoleResult> => {
+    const { supabase, userId } = context;
+    let workspaceId = data.workspaceId ?? null;
+    if (!workspaceId) {
+      // Same narrow escape hatch guardrails.functions.ts uses: the RPC is live,
+      // the generated types are what is stale.
+      const { data: fallback } = await (
+        supabase as unknown as {
+          rpc: (fn: "current_user_default_workspace") => Promise<{ data: string | null }>;
+        }
+      ).rpc("current_user_default_workspace");
+      workspaceId = fallback ?? null;
+    }
+    if (!workspaceId) return { role: null, workspaceId: null };
+    // Narrowed rather than cast: a role string the app does not know is not a
+    // licence, it is an unknown, and an unknown writes nothing.
+    const role = asRole(await getUserWorkspaceRole(supabase, workspaceId, userId));
+    return { role, workspaceId };
+  });
 
 /**
  * Typed error for permission denied.

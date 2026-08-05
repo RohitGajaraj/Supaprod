@@ -65,6 +65,9 @@ import {
   MISSION_CONCURRENCY_CAP,
 } from "@/lib/governance.functions";
 import { listTools, updateToolMode } from "@/lib/agent_loop.functions";
+import { humanWriteError } from "@/lib/roles.functions";
+import { useGovernedWrite } from "@/hooks/use-workspace-role";
+import { GovernedWriteNote } from "./GovernedWriteNote";
 import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
 import { toolRisk } from "@/lib/tool-consequences";
 import {
@@ -188,6 +191,15 @@ function firedPhrase(iso: string): string {
 
 export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const { activeWorkspaceId } = useWorkspace();
+  /**
+   * A tool override is platform policy, not a user row: `agent_tools` writes are
+   * owner or admin. The pause switch beside it is the same pair, and has been
+   * since before this file existed. Both are asked in the workspace this panel
+   * is actually showing, because a person can be an owner in one and a viewer
+   * in the next.
+   */
+  const toolWrite = useGovernedWrite("agent_tools", activeWorkspaceId);
+  const pauseWrite = useGovernedWrite("kill_switches", activeWorkspaceId);
   const qc = useQueryClient();
   const overviewFn = useServerFn(getGovernanceOverview);
   const pauseFn = useServerFn(setWorkspacePause);
@@ -243,7 +255,10 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       );
       qc.invalidateQueries({ queryKey: ["agent-tools"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      toast.error(
+        humanWriteError(e, "That boundary did not move. The tool runs as it did before."),
+      ),
   });
 
   const [reason, setReason] = useState("");
@@ -262,7 +277,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       setReason("");
       qc.invalidateQueries({ queryKey: ["governance"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      toast.error(humanWriteError(e, "That switch did not save. The crew is as it was.")),
   });
 
   type UpsertSubInput = {
@@ -342,7 +358,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const data = overview.data;
   const ks = data?.killState;
   const killed = !!(ks?.system_paused || ks?.workspace_paused);
-  const killDisabled = pauseMut.isPending || !!ks?.system_paused || !activeWorkspaceId;
+  const killDisabled =
+    pauseMut.isPending || !!ks?.system_paused || !activeWorkspaceId || !pauseWrite.allowed;
   const stuck = (data?.approvals ?? []).filter((a) => a.escalation_state === "expired").length;
   const subs = subsQ.data?.subscriptions ?? [];
   const runs = data?.runs ?? [];
@@ -378,12 +395,17 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   // frame that will be replaced a beat later.
   if (overview.isLoading) return null;
 
-  /** What the pause switch currently lets through, or why it is locked. */
+  /** What the pause switch currently lets through, or why it is locked.
+   *
+   *  A system-wide pause outranks the role, because it locks the switch for
+   *  everybody including the owner. Below that, the role is the reason, and it
+   *  is said here rather than left as a switch that does nothing. */
   const pauseSub = ks?.system_paused
     ? "A system-wide pause is on. This unlocks when that lifts."
-    : killed
-      ? "Every agent is holding. Nothing was lost, and nothing runs until you turn this back on."
-      : "Turning this off holds every agent mid-step, reversibly.";
+    : (pauseWrite.reason ??
+      (killed
+        ? "Every agent is holding. Nothing was lost, and nothing runs until you turn this back on."
+        : "Turning this off holds every agent mid-step, reversibly."));
 
   return (
     <>
@@ -581,6 +603,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           tighten a tool's stored mode; the ramp (reflection.server.ts) can then
           propose loosening it back after TRUST_RAMP_CLEAN_N clean runs, which
           arrives in the approvals queue. */}
+      <GovernedWriteNote reason={toolWrite.reason} />
       <Block
         title="Tool oversight"
         sub="Tighten a tool and the agent asks before every run. After five clean runs in a row, Supaprod proposes handing it back, and you decide in the approvals queue."
@@ -656,10 +679,17 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                         style={{ width: 140 }}
                         aria-label={`Oversight for ${t.display_name || t.tool_name}`}
                         title={
-                          autoBlocked ? "This tool never runs unattended. Safety floor." : undefined
+                          // The role outranks the floor in the tooltip: a person
+                          // who cannot set ANY of these does not need to be told
+                          // which one of them is pinned.
+                          toolWrite.reason ??
+                          (autoBlocked
+                            ? "This tool never runs unattended. Safety floor."
+                            : undefined)
                         }
                         disabled={
-                          toolModeMut.isPending && toolModeMut.variables?.toolName === t.tool_name
+                          !toolWrite.allowed ||
+                          (toolModeMut.isPending && toolModeMut.variables?.toolName === t.tool_name)
                         }
                         onChange={(e) =>
                           toolModeMut.mutate({

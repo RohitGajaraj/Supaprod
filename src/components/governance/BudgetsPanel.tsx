@@ -53,6 +53,9 @@ import {
   deleteSurfaceBudget,
   acknowledgeAlert,
 } from "@/lib/budgets.functions";
+import { humanWriteError } from "@/lib/roles.functions";
+import { useGovernedWrite } from "@/hooks/use-workspace-role";
+import { GovernedWriteNote } from "./GovernedWriteNote";
 import {
   Actions,
   Block,
@@ -189,7 +192,22 @@ function globalPayload(g: GlobalBudget | null, patch: Partial<Record<string, num
   };
 }
 
+/** Shown when a ceiling write failed for a reason the database wrote. */
+const CAP_WRITE_FAILED = "That ceiling did not save. Your spend is bounded as it was before.";
+
 export function BudgetsPanel() {
+  /**
+   * A spend cap is money, so a read-only role does not set one. A member does:
+   * ai_budgets and ai_surface_budgets are the NOT-A-VIEWER tier, not the
+   * governance tier, and taking a self-limit away from a member would be
+   * tightening the product past what the database asks for.
+   *
+   * Acknowledging an alert is deliberately NOT gated. It writes ai_budget_alerts,
+   * which the migration left open on purpose: an alert is a record that a soft
+   * cap was crossed, and silencing it for the person who crossed it is the
+   * opposite of the point.
+   */
+  const capWrite = useGovernedWrite("spend_caps");
   const qc = useQueryClient();
   const fetchFn = useServerFn(getBudgetOverview);
   const saveGlobal = useServerFn(updateGlobalBudget);
@@ -198,6 +216,13 @@ export function BudgetsPanel() {
   const ackFn = useServerFn(acknowledgeAlert);
 
   const overview = useQuery({ queryKey: ["budget_overview"], queryFn: () => fetchFn() });
+
+  /**
+   * What a failed write SAYS. Never the database's own words: a person who set a
+   * ceiling and was refused needs to know their ceiling did not move, not the
+   * name of the policy that refused it or the table it lives in.
+   */
+  const capWriteFailed = (e: Error) => toast.error(humanWriteError(e, CAP_WRITE_FAILED));
 
   const inv = () => {
     qc.invalidateQueries({ queryKey: ["budget_overview"] });
@@ -240,7 +265,7 @@ export function BudgetsPanel() {
       ]);
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: capWriteFailed,
   });
 
   const setPctMut = useMutation({
@@ -262,7 +287,7 @@ export function BudgetsPanel() {
       ]);
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: capWriteFailed,
   });
 
   const addSurfaceMut = useMutation({
@@ -308,7 +333,7 @@ export function BudgetsPanel() {
       setAdding(false);
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: capWriteFailed,
   });
 
   const toggleSurfaceMut = useMutation({
@@ -336,7 +361,7 @@ export function BudgetsPanel() {
       ]);
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: capWriteFailed,
   });
 
   const removeSurfaceMut = useMutation({
@@ -352,13 +377,16 @@ export function BudgetsPanel() {
       ]);
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: capWriteFailed,
   });
 
   const ackMut = useMutation({
     mutationFn: (id: string) => ackFn({ data: { id } }),
     onSuccess: () => inv(),
-    onError: (e: Error) => toast.error(e.message),
+    // A different failure from a ceiling that would not move, so it says a
+    // different thing. The note is still on the record either way.
+    onError: (e: Error) =>
+      toast.error(humanWriteError(e, "That note was not cleared, so it is still on the record.")),
   });
 
   if (overview.isLoading) return <Loading>Reading what you have spent.</Loading>;
@@ -433,6 +461,10 @@ export function BudgetsPanel() {
         )}
       </p>
 
+      {/* Said once, above every ceiling it explains, and nothing at all for a
+          role that may set one. */}
+      <GovernedWriteNote reason={capWrite.reason} />
+
       <Block
         title="What you will not spend past"
         sub="Checked before every call. Past the ceiling the call is refused and the run stops with the reason on the record. There is no separate ceiling on any one mission."
@@ -489,6 +521,8 @@ export function BudgetsPanel() {
                   </Value>
                   <Button
                     variant="ghost"
+                    disabled={!capWrite.allowed}
+                    title={capWrite.reason ?? undefined}
                     onClick={() => {
                       setEditCap(w.key);
                       setCapDraft(w.cap != null ? String(w.cap) : "");
@@ -518,7 +552,12 @@ export function BudgetsPanel() {
               <Value>
                 <Num>{alertPct}%</Num> of the ceiling
               </Value>
-              <Button variant="ghost" onClick={() => setPctDraft(String(alertPct))}>
+              <Button
+                variant="ghost"
+                disabled={!capWrite.allowed}
+                title={capWrite.reason ?? undefined}
+                onClick={() => setPctDraft(String(alertPct))}
+              >
                 Change it
               </Button>
             </>
@@ -551,7 +590,7 @@ export function BudgetsPanel() {
         </Line>
 
         {setCapMut.error || setPctMut.error ? (
-          <Failed>{((setCapMut.error ?? setPctMut.error) as Error).message}</Failed>
+          <Failed>{humanWriteError(setCapMut.error ?? setPctMut.error, CAP_WRITE_FAILED)}</Failed>
         ) : null}
 
         {capDone.map((d, i) => (
@@ -572,7 +611,12 @@ export function BudgetsPanel() {
           <Empty
             action={
               adding ? undefined : (
-                <Button variant="ghost" onClick={() => setAdding(true)}>
+                <Button
+                  variant="ghost"
+                  disabled={!capWrite.allowed}
+                  title={capWrite.reason ?? undefined}
+                  onClick={() => setAdding(true)}
+                >
                   Cap one
                 </Button>
               )
@@ -620,14 +664,15 @@ export function BudgetsPanel() {
               >
                 <Button
                   variant="ghost"
-                  disabled={removeSurfaceMut.isPending}
+                  disabled={removeSurfaceMut.isPending || !capWrite.allowed}
+                  title={capWrite.reason ?? undefined}
                   onClick={() => removeSurfaceMut.mutate(row.surface)}
                 >
                   Remove
                 </Button>
                 <Switch
                   checked={row.enabled}
-                  disabled={toggleSurfaceMut.isPending}
+                  disabled={toggleSurfaceMut.isPending || !capWrite.allowed}
                   label={`The ${row.surface} ceiling is in force`}
                   onChange={() => toggleSurfaceMut.mutate(row)}
                 />
@@ -675,7 +720,12 @@ export function BudgetsPanel() {
               />
             </Field>
             <Actions>
-              <Button variant="primary" type="submit" disabled={addSurfaceMut.isPending}>
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={addSurfaceMut.isPending || !capWrite.allowed}
+                title={capWrite.reason ?? undefined}
+              >
                 Cap it
               </Button>
               <Button variant="ghost" onClick={() => setAdding(false)}>
@@ -685,7 +735,12 @@ export function BudgetsPanel() {
           </form>
         ) : surfaces.length > 0 ? (
           <Actions>
-            <Button variant="ghost" onClick={() => setAdding(true)}>
+            <Button
+              variant="ghost"
+              disabled={!capWrite.allowed}
+              title={capWrite.reason ?? undefined}
+              onClick={() => setAdding(true)}
+            >
               Cap another
             </Button>
           </Actions>
@@ -693,10 +748,10 @@ export function BudgetsPanel() {
 
         {addSurfaceMut.error || toggleSurfaceMut.error || removeSurfaceMut.error ? (
           <Failed>
-            {
-              ((addSurfaceMut.error ?? toggleSurfaceMut.error ?? removeSurfaceMut.error) as Error)
-                .message
-            }
+            {humanWriteError(
+              addSurfaceMut.error ?? toggleSurfaceMut.error ?? removeSurfaceMut.error,
+              CAP_WRITE_FAILED,
+            )}
           </Failed>
         ) : null}
 

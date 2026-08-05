@@ -43,6 +43,9 @@ import {
   supersedeHouseRule,
   type HouseRule,
 } from "@/lib/house-rules.functions";
+import { humanWriteError } from "@/lib/roles.functions";
+import { useGovernedWrite } from "@/hooks/use-workspace-role";
+import { GovernedWriteNote } from "./GovernedWriteNote";
 import {
   Actions,
   AgentMark,
@@ -100,6 +103,18 @@ type Settled = {
 };
 
 export function HouseRulesPanel() {
+  /**
+   * TWO DIFFERENT ACTS, TWO DIFFERENT ROLES, and the split is not cosmetic.
+   *
+   * DECIDING a rule puts a sentence into every agent's system prompt, so it is
+   * owner or admin. DRAFTING a replacement lands as status='pending' and
+   * changes nothing until somebody decides it, so a member keeps it. That is
+   * exactly the split the migration's house_rules policies enforce, and
+   * collapsing the two here would either hand a viewer the approval or take
+   * proposing away from members.
+   */
+  const decideWrite = useGovernedWrite("house_rules_decide");
+  const draftWrite = useGovernedWrite("house_rules_draft");
   const fList = useServerFn(listHouseRules);
   const fDecide = useServerFn(decideHouseRule);
   const fSupersede = useServerFn(supersedeHouseRule);
@@ -129,7 +144,10 @@ export function HouseRulesPanel() {
       inv();
     },
     // A failure is never silent. It is not a receipt, because nothing happened.
-    onError: (e: Error) => toast.error(e.message),
+    // It is also never the database's own words: a person who pressed Approve
+    // must not be handed a policy name and a table name.
+    onError: (e: Error) =>
+      toast.error(humanWriteError(e, "That decision did not save. The rule is where it was.")),
   });
 
   const supersede = useMutation({
@@ -147,7 +165,10 @@ export function HouseRulesPanel() {
       setDraft("");
       inv();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      toast.error(
+        humanWriteError(e, "That replacement was not drafted. The rule you have still stands."),
+      ),
   });
 
   if (q.isLoading) return <Loading>Reading the rules in force.</Loading>;
@@ -197,17 +218,23 @@ export function HouseRulesPanel() {
             ) : (
               "Written straight in, with no learnings behind it yet."
             ),
+            // The refusal rides INSIDE the question rather than above the
+            // surface, because it is this decision that is not yours to make.
+            // The rule itself, and everything behind it, still reads.
+            ...(decideWrite.reason ? [decideWrite.reason] : []),
           ]}
         >
           <Button
             variant="primary"
-            disabled={busyOn(live.id)}
+            disabled={busyOn(live.id) || !decideWrite.allowed}
+            title={decideWrite.reason ?? undefined}
             onClick={() => decide.mutate({ rule: live, decision: "approve" })}
           >
             Make it a rule
           </Button>
           <Button
-            disabled={busyOn(live.id)}
+            disabled={busyOn(live.id) || !decideWrite.allowed}
+            title={decideWrite.reason ?? undefined}
             onClick={() => decide.mutate({ rule: live, decision: "reject" })}
           >
             Not this one
@@ -257,6 +284,10 @@ export function HouseRulesPanel() {
         />
       ))}
 
+      {/* Drafting a replacement is a member's to make, so this sentence appears
+          only for a read-only role and says something the Gate's did not. */}
+      <GovernedWriteNote reason={draftWrite.reason} />
+
       <Block
         title="In force"
         sub="Set once, and they hold inside every call. Nothing here asks you again in the moment."
@@ -271,7 +302,8 @@ export function HouseRulesPanel() {
             <Line key={r.id} label={r.rule_text} sub={provenance(r)}>
               <Button
                 variant="ghost"
-                disabled={replacing?.id === r.id}
+                disabled={replacing?.id === r.id || !draftWrite.allowed}
+                title={draftWrite.reason ?? undefined}
                 onClick={() => {
                   setReplacing(r);
                   setDraft(r.rule_text);
@@ -316,21 +348,32 @@ export function HouseRulesPanel() {
             <Button
               variant="primary"
               disabled={
-                supersede.isPending || !draft.trim() || draft.trim() === replacing.rule_text
+                supersede.isPending ||
+                !draft.trim() ||
+                draft.trim() === replacing.rule_text ||
+                !draftWrite.allowed
               }
               title={
-                !draft.trim()
+                draftWrite.reason ??
+                (!draft.trim()
                   ? "Write the replacement first"
                   : draft.trim() === replacing.rule_text
                     ? "This is the rule you already have"
-                    : undefined
+                    : undefined)
               }
               onClick={() => supersede.mutate({ rule: replacing, ruleText: draft.trim() })}
             >
               Draft it
             </Button>
           </Actions>
-          {supersede.isError ? <Failed>{(supersede.error as Error).message}</Failed> : null}
+          {supersede.isError ? (
+            <Failed>
+              {humanWriteError(
+                supersede.error,
+                "That replacement was not drafted. The rule you have still stands.",
+              )}
+            </Failed>
+          ) : null}
         </Block>
       ) : null}
 
