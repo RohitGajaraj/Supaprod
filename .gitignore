@@ -165,6 +165,17 @@ docs/screenshots/
 # Brand kit (GTM): the ready-to-upload logo / icon / social raster set MUST be
 # committed so we never rebuild the branding assets. Exception to the global
 # *.png/*.jpg ignore, scoped to the branding folder only.
+#
+# PATH FIXED 2026-08-05. This pointed at "docs/Growth Strategy/branding/", a
+# folder that was renamed to "docs/growth/" in the 2026-08-03 documentation
+# cleanup. The exception was never moved with it, so for two days the rule above
+# it silently won and every NEW brand raster was ignored. Files already in the
+# index kept being tracked, which is why nothing looked broken: the old
+# cadence-* PNGs and icons/ still showed up in git status while a freshly
+# generated banner did not. The stale path is kept below so an old checkout
+# still resolves.
+!docs/growth/branding/**/*.png
+!docs/growth/branding/**/*.jpg
 !docs/Growth Strategy/branding/**/*.png
 !docs/Growth Strategy/branding/**/*.jpg
 
