@@ -1284,79 +1284,9 @@ export function ObsidianOnboarding() {
                   </Button>
                 </div>
               ) : null}
+
+              {/* DEMO DATA FIRST - Primary option for new users */}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {providers.slice(0, 5).map((spec) => {
-                  const on = isConnected(spec);
-                  const configured =
-                    connectionsQ.data?.providerAvailability?.[spec.id]?.configured ?? false;
-                  const busy = connectingId === spec.id && mConnect.isPending;
-                  const estimate = timeEstimateFor(spec.id);
-                  return (
-                    <ChoiceCard
-                      key={spec.id}
-                      disabled={on || busy || !configured}
-                      busy={busy}
-                      dimmed={!configured && !on}
-                      title={
-                        !configured && !on
-                          ? `${spec.label} is not set up on this workspace yet`
-                          : undefined
-                      }
-                      ariaLabel={on ? `${spec.label} connected` : `Connect ${spec.label}`}
-                      onClick={() => {
-                        setConnectError(null);
-                        setConnectingId(spec.id);
-                        mConnect.mutate(spec);
-                      }}
-                    >
-                      <span>
-                        <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
-                          {spec.label}
-                        </span>
-                        <MonoLabel style={{ display: "block", marginTop: 3 }}>
-                          {estimate.toUpperCase()}
-                        </MonoLabel>
-                      </span>
-                      <span
-                        aria-hidden="true"
-                        className="text-label-12-mono"
-                        style={{ color: "var(--ds-gray-700)" }}
-                      >
-                        {on ? "✓" : busy ? "…" : "→"}
-                      </span>
-                    </ChoiceCard>
-                  );
-                })}
-              </div>
-
-              <div
-                style={{
-                  borderTop: "1px solid var(--ds-gray-alpha-400)",
-                  paddingTop: 12,
-                  marginTop: 4,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "var(--geist-space-2x)",
-                }}
-              >
-                <ChoiceCard onClick={() => setShowPaste(true)}>
-                  <span>
-                    <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
-                      Or paste your notes
-                    </span>
-                    <span
-                      className="text-label-12"
-                      style={{
-                        display: "block",
-                        color: "var(--ds-gray-600)",
-                        marginTop: 3,
-                      }}
-                    >
-                      Paste a PRD, product notes, or your bet · Supaprod will analyze it directly.
-                    </span>
-                  </span>
-                </ChoiceCard>
-
                 {seedLive ? (
                   <ChoiceCard
                     busy={mDemo.isPending}
@@ -1390,6 +1320,89 @@ export function ObsidianOnboarding() {
                     </span>
                   </ChoiceCard>
                 ) : null}
+
+                {/* PASTE NOTES SECOND - Alternative for users with existing docs */}
+                <ChoiceCard onClick={() => setShowPaste(true)}>
+                  <span>
+                    <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
+                      Paste your notes or a PRD
+                    </span>
+                    <span
+                      className="text-label-12"
+                      style={{
+                        display: "block",
+                        color: "var(--ds-gray-600)",
+                        marginTop: 3,
+                      }}
+                    >
+                      Supaprod will analyze it directly.
+                    </span>
+                  </span>
+                </ChoiceCard>
+              </div>
+
+              {mDemo.isPending ? (
+                <AiPulse label="Seeding demo data" style={{ marginTop: 4 }} />
+              ) : null}
+
+              {/* LIVE INTEGRATIONS - Secondary, organized below a divider */}
+              <div
+                style={{
+                  borderTop: "1px solid var(--ds-gray-alpha-400)",
+                  paddingTop: 12,
+                  marginTop: 8,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--geist-space-2x)",
+                }}
+              >
+                <div className="text-label-12" style={{ color: "var(--ds-gray-600)", marginBottom: -4 }}>
+                  Or connect a live source
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {providers.slice(0, 5).map((spec) => {
+                    const on = isConnected(spec);
+                    const configured =
+                      connectionsQ.data?.providerAvailability?.[spec.id]?.configured ?? false;
+                    const busy = connectingId === spec.id && mConnect.isPending;
+                    const estimate = timeEstimateFor(spec.id);
+                    return (
+                      <ChoiceCard
+                        key={spec.id}
+                        disabled={on || busy || !configured}
+                        busy={busy}
+                        dimmed={!configured && !on}
+                        title={
+                          !configured && !on
+                            ? `${spec.label} is not set up on this workspace yet`
+                            : undefined
+                        }
+                        ariaLabel={on ? `${spec.label} connected` : `Connect ${spec.label}`}
+                        onClick={() => {
+                          setConnectError(null);
+                          setConnectingId(spec.id);
+                          mConnect.mutate(spec);
+                        }}
+                      >
+                        <span>
+                          <span className="text-heading-14" style={{ color: "var(--ds-gray-1000)" }}>
+                            {spec.label}
+                          </span>
+                          <MonoLabel style={{ display: "block", marginTop: 3 }}>
+                            {estimate.toUpperCase()}
+                          </MonoLabel>
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          className="text-label-12-mono"
+                          style={{ color: "var(--ds-gray-700)" }}
+                        >
+                          {on ? "✓" : busy ? "…" : "→"}
+                        </span>
+                      </ChoiceCard>
+                    );
+                  })}
+                </div>
               </div>
 
               {mDemo.isPending ? (

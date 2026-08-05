@@ -739,9 +739,6 @@ function Today() {
           <Button variant="primary" onClick={() => openAsk()}>
             Ask Supaprod what to build
           </Button>
-          <Button variant="ghost" onClick={() => navigate({ to: "/runs" })}>
-            View all runs
-          </Button>
         </Gate>
       )}
 

@@ -859,6 +859,45 @@ function Opening({
         it, and it becomes a run you watch from here.
       </div>
 
+      {/* INTENT PREVIEW. The two options, shown before anything is typed,
+          so the fork is not invisible until you commit. This is the same
+          vocabulary the footer's Choices uses, drawn as a visual label
+          rather than a control: the control appears the moment you start
+          typing, and this is what prepares you to see it. */}
+      <div
+        style={{
+          display: "flex",
+          gap: "var(--sp-space-2)",
+          marginTop: "var(--sp-space-4)",
+          marginBottom: "var(--sp-space-1)",
+        }}
+        aria-hidden="true"
+      >
+        <span
+          className="sp-btn"
+          data-variant="default"
+          style={{ pointerEvents: "none", fontSize: "var(--sp-text-label)", opacity: 0.6 }}
+        >
+          Ask
+        </span>
+        <span
+          className="sp-btn"
+          data-variant="default"
+          style={{ pointerEvents: "none", fontSize: "var(--sp-text-label)", opacity: 0.6 }}
+        >
+          Hand it over
+        </span>
+      </div>
+      <div
+        style={{
+          fontSize: "var(--sp-text-data)",
+          color: "var(--sp-mute)",
+          marginBottom: "var(--sp-space-4)",
+        }}
+      >
+        Ask gets an answer. Hand it over starts a run and spends credits.
+      </div>
+
       {/* ONE STRIP, NOT TWO HEADED LISTS. Founder ruling 2026-07-30: "in
           workspace you have two messages, in what you can do you have three.
           Instead of this, can we have two or three lines maximum combining

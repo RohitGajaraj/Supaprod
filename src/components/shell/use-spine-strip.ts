@@ -30,6 +30,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { listStudioSessions } from "@/lib/studio.functions";
+import { listPendingOutcomes } from "@/lib/outcome.functions";
 import { runState } from "@/components/runs/run-state";
 import { AGENT_STATION_ORDER, type AgentStation } from "@/lib/agent-vocabulary";
 import { usePublishRunStrip, STATION_ROUTE, type RunStage } from "./run-strip";
@@ -47,6 +48,7 @@ import { usePublishRunStrip, STATION_ROUTE, type RunStage } from "./run-strip";
 export function useSpineStrip(active: AgentStation | null): void {
   const navigate = useNavigate();
   const fList = useServerFn(listStudioSessions);
+  const fListPending = useServerFn(listPendingOutcomes);
 
   // The board's exact key, so the two share one fetch rather than racing two.
   const sessions = useQuery({
@@ -55,7 +57,17 @@ export function useSpineStrip(active: AgentStation | null): void {
     refetchInterval: 5000,
   });
 
+  // Pending outcomes for the Learn station badge. 60s staleTime: outcome queue
+  // moves slowly and this is ambient notification, not a live gate.
+  const pendingOutcomes = useQuery({
+    queryKey: ["pending-outcomes"],
+    queryFn: () => fListPending(),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+
   const rows = sessions.data?.sessions;
+  const pendingCount = pendingOutcomes.data?.pending.length ?? 0;
 
   const stages = React.useMemo<RunStage[] | null>(() => {
     // No strip until the record answers. A strip of seven "none"s while the
@@ -76,6 +88,12 @@ export function useSpineStrip(active: AgentStation | null): void {
 
     return AGENT_STATION_ORDER.map((station) => {
       const b = tally.get(station) ?? { total: 0, working: 0, gate: 0 };
+      const isLearn = station === "learn";
+      // For Learn station, add pending outcomes to the note
+      const learnExtra = isLearn && pendingCount > 0
+        ? `, ${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
+        : "";
+
       // Most urgent true thing first. A stage with a gate says so even while
       // something else on it is running, because the gate is the one that
       // wants a person and the person is who the line is for.
@@ -97,8 +115,10 @@ export function useSpineStrip(active: AgentStation | null): void {
         : b.working
           ? `${b.working} running`
           : b.total
-            ? `${b.total} ${b.total === 1 ? "run" : "runs"}`
-            : "";
+            ? `${b.total} ${b.total === 1 ? "run" : "runs"}${learnExtra}`
+            : isLearn && pendingCount > 0
+              ? `${pendingCount} ${pendingCount === 1 ? "outcome" : "outcomes"} to record`
+              : "";
       const state: RunStage["state"] = b.gate
         ? "gate"
         : b.working
@@ -108,7 +128,7 @@ export function useSpineStrip(active: AgentStation | null): void {
             : "quiet";
       return { station, state, note };
     });
-  }, [rows]);
+  }, [rows, pendingCount]);
 
   usePublishRunStrip(
     stages

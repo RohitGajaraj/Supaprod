@@ -32,7 +32,7 @@
  */
 
 import * as React from "react";
-import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { agentDisplayName, agentBlurb } from "@/lib/agent-vocabulary";
 import { glyphForSlug, stageHueForSlug } from "./agent-glyphs";
 import { IconMore } from "./icons";
 import { AgentPulse } from "@/components/shell/AgentPulse";
@@ -82,7 +82,9 @@ export function AgentMark({
   title?: string;
 }) {
   const Glyph = glyphForSlug(slug);
-  const label = title ?? agentDisplayName(slug, name);
+  const displayName = title ?? agentDisplayName(slug, name);
+  const blurb = agentBlurb(slug);
+  const label = blurb ? `${displayName} · ${blurb}` : displayName;
   return (
     <span
       className="sp-mark"
