@@ -5,7 +5,8 @@ import { buildSkillpack, clampSkillpackLimit, type SkillpackLessonInput } from "
 import { supersededChildIds, type LineageEdgeLite } from "./trust-ledger.functions";
 import { screenIngestText, INGEST_REVIEW_TAG } from "./ingest-guardrails";
 import { OutcomeContractSchema } from "./discovery.functions";
-import { buildArdDocument } from "./ard-schema";
+import { buildArdDocument, type ArdDesignSection } from "./ard-schema";
+import { loadDesignDispatchContext } from "@/lib/build/design-gate.server";
 
 /**
  * Q1-MCP · Read-only MCP (Model Context Protocol) server functions.
@@ -332,11 +333,51 @@ export async function getPRD(supabaseClient: any, workspace_id: string, prd_id: 
 }
 
 /**
+ * PURE. The design section `get_ard` returns: the design station's own output,
+ * projected for a READER rather than for a dispatch budget.
+ *
+ * `toArdDesignSection` (build/design-gate.ts) exists for the other half of this
+ * and caps `scaffold_html` at `ARD_SCAFFOLD_HTML_CAP`, which is right when the
+ * section is about to ride inside a work order that has a token budget. It is
+ * wrong here. `get_ard` is the RECOVERY path the work order's own omission
+ * notice points a dispatched agent at, so capping the mockup here would mean
+ * the recovery hands back the same partial value the reader came to escape.
+ * Hence the deliberate duplication: same shape, no cap.
+ */
+type DesignReadContext = {
+  memory: Array<{ category: string; title: string; content: string }>;
+  flow: { steps: unknown } | null;
+  scaffoldHtml: string | null;
+};
+
+function designSectionForRead(ctx: DesignReadContext | null): ArdDesignSection | null {
+  if (!ctx) return null;
+  const memory = ctx.memory.map((m) => ({
+    category: m.category,
+    title: m.title,
+    content: m.content,
+  }));
+  const flow_steps = ctx.flow?.steps ?? null;
+  const scaffold_html = ctx.scaffoldHtml ?? null;
+  if (memory.length === 0 && flow_steps == null && scaffold_html == null) return null;
+  return { memory, flow_steps, scaffold_html };
+}
+
+/**
  * CNV-03 · fetch a spec's Outcome Contract wrapped as a portable ARD document.
  * The dispatch-time counterpart to `get_prd`: `get_prd` never exposed
  * `contract` (it predates CNV-01), so this is the one MCP read path that
  * hands a dispatched agent the same structured acceptance contract Supaprod
  * itself checks a build against, instead of the narrative body.
+ *
+ * It also carries the DESIGN section (mission 3.4's shape, wired here
+ * 2026-08-05). It did not before, and that was the second half of the mockup
+ * defect: when the work-order ARD block ran out of budget it told the agent to
+ * "fetch it with the MCP get_ard tool", and this function returned an envelope
+ * with no design key at all. The notice named a recovery that could not
+ * recover, which is a control promising an act it cannot perform. Nothing
+ * caught it because the two halves were written months apart and no test
+ * asserted the promise and the tool agreed.
  */
 export async function getArdDocument(
   supabaseClient: any,
@@ -362,7 +403,21 @@ export async function getArdDocument(
     throw new Error("This spec has no Outcome Contract yet");
   }
   const contract = OutcomeContractSchema.parse(partial.data);
-  return buildArdDocument(origin, prd.id, prd.title, contract);
+  // Every read inside `loadDesignDispatchContext` degrades to empty rather than
+  // throwing, so a spec whose design station never ran still returns its
+  // contract exactly as it did before this section existed.
+  const designCtx = await loadDesignDispatchContext(supabaseClient, {
+    id: prd.id,
+    workspace_id,
+  });
+  return buildArdDocument(
+    origin,
+    prd.id,
+    prd.title,
+    contract,
+    undefined,
+    designSectionForRead(designCtx),
+  );
 }
 
 /**

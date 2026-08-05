@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { ingestSignal, outcomeHistory } from "./mcp.functions";
+import { getArdDocument, ingestSignal, outcomeHistory } from "./mcp.functions";
 import { INGEST_REVIEW_TAG } from "./ingest-guardrails";
 
 /**
@@ -255,5 +255,116 @@ describe("outcomeHistory", () => {
       initiative: string | null;
     }>;
     expect(rows[0].initiative).toBe("Faster onboarding");
+  });
+});
+
+/**
+ * CNV-03 / mission 3.4 · get_ard IS the recovery path.
+ *
+ * THE DEFECT THESE PROTECT. When the ARD work-order block ran out of budget it
+ * told the dispatched agent to "fetch it with the MCP get_ard tool" — and
+ * get_ard returned an envelope with no design key at all, so the mockup was
+ * unreachable by the one route the product named. A control that promises an
+ * act it cannot perform. Nothing caught it because the notice and the tool were
+ * written months apart and no test held them to each other.
+ */
+function ardClient(tables: Record<string, unknown>) {
+  return {
+    from(table: string) {
+      const rows = tables[table];
+      const result = { data: rows ?? null, error: null as { message: string } | null };
+      const builder: Record<string, unknown> = {};
+      const self = () => builder;
+      Object.assign(builder, {
+        select: self,
+        eq: self,
+        in: self,
+        order: () => Promise.resolve(result),
+        single: () => Promise.resolve(result),
+        maybeSingle: () => Promise.resolve(result),
+        then: (onOk: (r: typeof result) => unknown) => Promise.resolve(result).then(onOk),
+      });
+      return builder;
+    },
+  };
+}
+
+const CONTRACT = {
+  version: 1,
+  intent: "Ship the design station handoff",
+  evidence_links: [],
+  success_metrics: [
+    {
+      id: "22222222-2222-4222-8222-222222222222",
+      text: "p95 under 200ms",
+      status: "standing",
+      superseded_by: null,
+      oracle_kind: "ci",
+      oracle_ref: null,
+      created_at: "2026-07-07T00:00:00.000Z",
+    },
+  ],
+  non_goals: [],
+  budget: null,
+  ambiguity_policy: null,
+  drafted_by: "agent",
+  drafted_at: "2026-07-07T00:00:00.000Z",
+};
+
+describe("getArdDocument — the design section the truncation notice promises", () => {
+  const mockup = '<section class="row"><h2>Station</h2></section>'.repeat(500);
+
+  it("returns the mockup, the flow and the design memory, not just the contract", async () => {
+    const client = ardClient({
+      prds: { id: "p1", title: "A spec", contract: CONTRACT },
+      design_memory: [
+        {
+          id: "m1",
+          workspace_id: "ws-1",
+          category: "token",
+          title: "Accent color",
+          content: "Indigo 600 for primary actions.",
+          status: "approved",
+          created_at: "2026-07-07T00:00:00.000Z",
+        },
+      ],
+      prd_flows: { steps: [{ label: "Land on the station" }], edges: [] },
+      prd_scaffolds: { html: mockup },
+    });
+
+    const doc = await getArdDocument(client, "ws-1", "p1", "https://app.supaprod.com");
+
+    expect(doc.contract.intent).toBe("Ship the design station handoff");
+    expect(doc.design).toBeDefined();
+    // The whole point: this is the value the work order dropped for budget.
+    expect(doc.design!.scaffold_html).toBe(mockup);
+    expect(doc.design!.flow_steps).toEqual([{ label: "Land on the station" }]);
+    expect(doc.design!.memory).toEqual([
+      {
+        category: "token",
+        title: "Accent color",
+        content: "Indigo 600 for primary actions.",
+      },
+    ]);
+  });
+
+  it("returns the mockup WHOLE — the dispatch budget must not follow it into the recovery", async () => {
+    // 25k: past ARD_SCAFFOLD_HTML_CAP, the cap that is right for a work order
+    // and wrong for the route an agent takes to escape a truncated one.
+    const huge = "<div>x</div>".repeat(2500);
+    expect(huge.length).toBeGreaterThan(20_000);
+    const client = ardClient({
+      prds: { id: "p1", title: "A spec", contract: CONTRACT },
+      prd_scaffolds: { html: huge },
+    });
+    const doc = await getArdDocument(client, "ws-1", "p1", "");
+    expect(doc.design!.scaffold_html).toBe(huge);
+  });
+
+  it("a spec whose design station never ran carries no design key at all", async () => {
+    const client = ardClient({ prds: { id: "p1", title: "A spec", contract: CONTRACT } });
+    const doc = await getArdDocument(client, "ws-1", "p1", "");
+    expect(doc.contract.intent).toBe("Ship the design station handoff");
+    expect(doc.design).toBeUndefined();
   });
 });

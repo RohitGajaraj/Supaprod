@@ -67,11 +67,58 @@
  * Preserved: listChangelog ["changelog", wid], listAnnouncements
  * ["announcements", wid], listWorkspaceMembers ["workspace-members", wid], and
  * all four announcement mutations with their transitions and role checks.
+ *
+ * 6. A PERSON COULD NOT SHIP FROM SHIP (fixed 2026-08-06).
+ *
+ *    The nav has always told the reader this station is "Preview to
+ *    production." It was not. The three acts the station is named for --
+ *    promote, watch, roll back -- existed only inside the Changes tab of one
+ *    Build run (src/components/studio/ChangesPanel.tsx), which is where you are
+ *    when you have just finished building ONE change. Everything on /ship was
+ *    an announcement composer. So the door said one thing and the room did
+ *    another, and the only way to put a change in front of customers was to
+ *    remember which run had produced it and go back into that run.
+ *
+ *    Three surfaces answer it, all of them reusing the server functions that
+ *    already shipped rather than growing a second deploy path that could
+ *    disagree with the first:
+ *      - "Ready to promote", a Gate over every merged release whose preview is
+ *        up and which nobody has moved to production, calling the same
+ *        `promoteToProduction`.
+ *      - "Where it is live", the addresses actually serving right now, read
+ *        from `listDeployments` and refetched every 30s because a deploy
+ *        finishes while you are looking at the page.
+ *      - "Live releases", every release that reached production, each with the
+ *        `rollbackRelease` door behind the SAME prompt ChangesPanel uses. A
+ *        rollback reachable through a lighter confirmation than the one it
+ *        already has would be a regression, so the copy is asserted identical
+ *        by a test rather than left to whoever edits next.
+ *
+ *    NOTHING WAS REMOVED FROM ChangesPanel. Two doors onto one act is correct
+ *    here and is not duplication: the run is where you are standing when you
+ *    finish building, the station is where you are standing when you are
+ *    thinking about releases, and those are different moments in a day.
+ *
+ *    NO ROLE GATE ON EITHER ACT, deliberately. The announcement half of this
+ *    surface gates on `selfRole` because `TRANSITION_ROLES` is a real rule the
+ *    server re-checks. `promoteToProduction` and `rollbackRelease` carry no
+ *    such rule -- RLS membership is the whole of it -- so inventing a client
+ *    gate would hide a control from someone the server would have let through,
+ *    which is a smaller surface bought with a fiction.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+// The launch-kit import stands alone, and merging the two lines will go red.
+// ship-has-an-agent.test.ts guards the exact statement `import {
+// generateLaunchKit } from "@/lib/studio.functions"` because that capability
+// existed for weeks with its only caller on another surface, and the guard
+// exists so nobody quietly drops it again. Adding a name to that line breaks a
+// rule about a different thing entirely, so the rollback comes in on its own.
 import { generateLaunchKit } from "@/lib/studio.functions";
+import { rollbackRelease } from "@/lib/studio.functions";
+import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
+import { usePrompt } from "@/hooks/use-confirm";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
@@ -114,6 +161,37 @@ import { CrewWorking } from "@/components/shell/CrewWorking";
 /** Anti-scroll: each list opens short and expands on demand. */
 const VISIBLE = 6;
 
+/**
+ * A quiet control or link inside a row, at the system's own weight for it
+ * (`Failed` uses the same class for its retry, ChangesPanel for its per-row
+ * controls). A 38px Button in a `tight` row doubles the row's height, so a
+ * control that belongs to ONE row wears this instead. It is a real button or a
+ * real anchor either way: quieter paint, identical capability.
+ */
+const QUIET = "sp-block-more";
+
+/** An address rendered as the door it is. Sits in a Row's `action` slot and
+ *  never in `sub`, because `Row` renders a clickable row as a <button> and an
+ *  <a> inside a <button> is invalid markup that React refuses to hydrate. */
+function Addr({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    /* NO textDecoration OVERRIDE. It was set to "none", which strips the dotted
+       rest-state underline QUIET supplies and which hover cannot put back -- so
+       the address stopped announcing itself as a link at all, and the only cue
+       left was colour. This is the second time this surface has made an address
+       unreachable, which is why the test now asserts the absence of the
+       override rather than the presence of the class. */
+    <a
+      className={QUIET}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {children}
+    </a>
+  );
+}
+
 /* ------------------------------------------------------------------ *
  * Formatting. Local on purpose: nothing here reaches into another
  * surface's folder, so a parallel port cannot break this one.
@@ -122,7 +200,17 @@ const VISIBLE = 6;
 /** Plain-words relative time. Mono is applied by the row, not here. */
 type ShipReceipt = {
   verb: string;
-  consequence: string;
+  /**
+   * A NODE, NOT A STRING, since the promote and the rollback landed.
+   *
+   * Publishing's consequence is an address on this product's own domain, so the
+   * Receipt could compose it from `slug` alone. A promote's consequence is a
+   * customer-facing URL this product did not choose, and a rollback's is a run
+   * elsewhere in the app; both have to arrive as a real link or the person is
+   * handed a URL to copy by hand. Widening the field is what lets each act
+   * build its own sentence instead of the Receipt guessing at every shape.
+   */
+  consequence: React.ReactNode;
   slug?: string | null;
   failed?: boolean;
 };
@@ -185,6 +273,263 @@ function stateLine(a: AnnouncementRow): string {
   return "Draft";
 }
 
+/* ------------------------------------------------------------------ *
+ * The release layer: what shipped, where it is serving, what can move.
+ *
+ * PURE AND EXPORTED ON PURPOSE. Every decision below is one a person acts on
+ * irreversibly -- "promote this to production" reaches customers and cannot be
+ * taken back from inside the product -- and every one of them is derived from
+ * two lists that arrive separately and can each be stale, partial or failed.
+ * Deriving that inline in JSX would put the reasoning somewhere no test can
+ * reach, which is exactly how a promote button appears over something that has
+ * already gone live. Same shape /brain uses (recordHeadline, guidanceLines).
+ * ------------------------------------------------------------------ */
+
+/**
+ * One row of the `deployments` table as this surface reads it.
+ *
+ * Declared here rather than imported because `listDeployments` returns the raw
+ * Supabase row shape and that table is not in the generated types yet, so every
+ * caller casts. ChangesPanel makes the identical cast. Declaring the shape lets
+ * the functions below be exercised with plain objects instead of a database.
+ */
+export type ShipDeployment = {
+  id: string;
+  changeset_id: string | null;
+  environment: string;
+  status: string;
+  deploy_url: string | null;
+  deployed_at?: string | null;
+  created_at?: string | null;
+};
+
+/** One merged release, with everywhere it is currently serving. */
+export type ReleaseState = {
+  changesetId: string;
+  title: string;
+  productName: string | null;
+  releasedAt: string;
+  prNumber: number | null;
+  prUrl: string | null;
+  /** Newest SUCCESSFUL preview deploy that recorded an address. */
+  previewUrl: string | null;
+  /** Newest SUCCESSFUL production deploy that recorded an address. */
+  productionUrl: string | null;
+  /** When that production deploy landed. Null until one has. */
+  productionAt: string | null;
+  /**
+   * Status of the newest production attempt of ANY outcome, or null when none
+   * has ever been attempted.
+   *
+   * A URL alone cannot answer "is it live", because a production deploy can
+   * fail, be queued, or succeed without recording an address. Collapsing all of
+   * those to "not live" would offer a second promote on top of one already
+   * running, which is how you get two production deploys of the same commit
+   * racing each other.
+   */
+  lastProductionStatus: string | null;
+};
+
+/** Sort key for a deploy row. `deployed_at` is the truth; `created_at` is the
+ *  fallback for a row captured before it finished. */
+function deployStamp(d: ShipDeployment): number {
+  const t = new Date(d.deployed_at ?? d.created_at ?? "").getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+/**
+ * The newest deploy for one environment. `successOnly` also demands a recorded
+ * address, because a success with no `deploy_url` is not a door and rendering
+ * it as one would be a link to nowhere.
+ *
+ * Ties keep the EARLIER array element. The server orders newest first, so on
+ * equal timestamps that is still the newest row rather than an arbitrary one.
+ */
+function newestDeployment(
+  rows: readonly ShipDeployment[],
+  environment: string,
+  successOnly: boolean,
+): ShipDeployment | null {
+  let best: ShipDeployment | null = null;
+  for (const d of rows) {
+    if (d.environment !== environment) continue;
+    if (successOnly && (d.status !== "success" || !d.deploy_url)) continue;
+    if (!best || deployStamp(d) > deployStamp(best)) best = d;
+  }
+  return best;
+}
+
+/**
+ * Join the changelog to the deploy record, one state per merged release.
+ *
+ * WHY THE CHANGELOG IS THE SPINE AND NOT THE DEPLOY LIST. `promoteToProduction`
+ * refuses anything whose changeset is not `merged`, and a changelog entry is
+ * materialized ONLY from a merged changeset (changelog.ts,
+ * `shouldPublishChangelog`). Driving the list from deployments instead would
+ * offer a promote over a preview of an unmerged branch, which the server would
+ * then refuse -- a control promising an act it cannot perform. It also gives
+ * every row a human title instead of a changeset uuid.
+ *
+ * THE PRODUCTION URL IS READ FROM BOTH SOURCES, and that is a correctness fix
+ * rather than belt and braces. `listDeployments` returns a bounded page of the
+ * newest rows, so an older release's production row can fall off the end of it
+ * while `listChangelog` still resolves that same release's `production_url`
+ * server-side. Trusting only the page would show a promote button over
+ * something that has been live for a month.
+ */
+export function releaseStates(
+  notes: readonly ChangelogEntry[],
+  deployments: readonly ShipDeployment[],
+): ReleaseState[] {
+  const byChangeset = new Map<string, ShipDeployment[]>();
+  for (const d of deployments) {
+    if (!d.changeset_id) continue;
+    const list = byChangeset.get(d.changeset_id);
+    if (list) list.push(d);
+    else byChangeset.set(d.changeset_id, [d]);
+  }
+
+  const states: ReleaseState[] = [];
+  for (const e of notes) {
+    if (!e.changeset_id) continue;
+    const rows = byChangeset.get(e.changeset_id) ?? [];
+    const preview = newestDeployment(rows, "preview", true);
+    const prodOk = newestDeployment(rows, "production", true);
+    const prodAny = newestDeployment(rows, "production", false);
+    const fromChangelog = (e.production_url ?? "").trim() || null;
+    const productionUrl = prodOk?.deploy_url ?? fromChangelog;
+    states.push({
+      changesetId: e.changeset_id,
+      title: e.title,
+      productName: e.product_name ?? null,
+      releasedAt: e.released_at,
+      prNumber: e.pr_number ?? null,
+      prUrl: e.pr_url ?? null,
+      previewUrl: preview?.deploy_url ?? null,
+      productionUrl,
+      productionAt: prodOk?.deployed_at ?? prodOk?.created_at ?? null,
+      // A resolved address IS a successful production deploy: listChangelog
+      // derives it from environment=production AND status=success.
+      lastProductionStatus: productionUrl ? "success" : (prodAny?.status ?? null),
+    });
+  }
+  states.sort((a, b) => {
+    const at = new Date(a.releasedAt).getTime();
+    const bt = new Date(b.releasedAt).getTime();
+    return (Number.isFinite(bt) ? bt : 0) - (Number.isFinite(at) ? at : 0);
+  });
+  return states;
+}
+
+/**
+ * Can a person move this one to production right now?
+ *
+ * The three conditions are the server's own, restated so the button is only
+ * drawn where the click will work: merged (guaranteed by being a changelog
+ * entry at all), a successful preview to promote (`promoteChangesetToProduction`
+ * throws without one), and nothing already in production.
+ *
+ * A FAILED production attempt IS promotable again -- that is the retry, and
+ * withholding it would strand a release whose deploy fell over on a network
+ * blip. A pending, in-progress, unknown or address-less success is NOT: one
+ * production deploy of a commit is already under way or already happened, and a
+ * second click would race it.
+ */
+export function isReadyToPromote(s: ReleaseState): boolean {
+  if (!s.previewUrl) return false;
+  if (s.productionUrl) return false;
+  return s.lastProductionStatus === null || s.lastProductionStatus === "failure";
+}
+
+/** Live means a production address a stranger can open. Nothing weaker. */
+export function isLive(s: ReleaseState): boolean {
+  return !!s.productionUrl;
+}
+
+/**
+ * The address a release is currently answering on, and the plain-words state
+ * behind it.
+ *
+ * EVERY `DeployStatus` HAS A SENTENCE (deployments.ts normalizes provider vocab
+ * to success | failure | pending | in_progress | unknown). A status this
+ * function did not name would fall through to "no deploy on the record", which
+ * reports an attempted deploy as an absent one -- the product claiming less
+ * than it did, which is the same defect as claiming more.
+ */
+export function whereItIs(s: ReleaseState): { address: string | null; state: string } {
+  if (s.productionUrl) return { address: s.productionUrl, state: "In production" };
+  const st = s.lastProductionStatus;
+  if (st === "pending" || st === "in_progress") {
+    return { address: s.previewUrl, state: "A production deploy is running" };
+  }
+  if (st === "failure")
+    return { address: s.previewUrl, state: "The last production deploy failed" };
+  if (st === "success") {
+    return { address: s.previewUrl, state: "Production deployed, and recorded no address" };
+  }
+  if (st === "unknown") {
+    return { address: s.previewUrl, state: "The last production deploy ended in an unknown state" };
+  }
+  if (s.previewUrl) return { address: s.previewUrl, state: "Preview only, nobody has promoted it" };
+  return { address: null, state: "No deploy is on the record" };
+}
+
+/**
+ * Why there is no promote button.
+ *
+ * A DISABLED BUTTON WITH NO EXPLANATION IS THE DEFECT THIS PREVENTS. "Promote
+ * to production" greyed out teaches a person nothing: they cannot tell whether
+ * they lack a permission, whether the read failed, or whether there is simply
+ * nothing merged. Each of those wants a different next move, so each gets its
+ * own answer and the control is absent rather than dead.
+ */
+export type PromoteAbsence =
+  | { kind: "ready"; count: number }
+  | { kind: "reading" }
+  | { kind: "failed" }
+  | { kind: "no-releases" }
+  | { kind: "all-live"; count: number }
+  | { kind: "no-preview"; count: number };
+
+export function promoteAbsence(args: {
+  reading: boolean;
+  failed: boolean;
+  states: readonly ReleaseState[];
+}): PromoteAbsence {
+  // FAILED OUTRANKS READING. A read that threw is not a read still in flight,
+  // and a spinner over a failure is the product waiting for something that is
+  // never coming.
+  if (args.failed) return { kind: "failed" };
+  if (args.reading) return { kind: "reading" };
+  const ready = args.states.filter(isReadyToPromote).length;
+  if (ready > 0) return { kind: "ready", count: ready };
+  if (args.states.length === 0) return { kind: "no-releases" };
+  const live = args.states.filter(isLive).length;
+  if (live === args.states.length) return { kind: "all-live", count: live };
+  return { kind: "no-preview", count: args.states.length - live };
+}
+
+/** The sentence for an absence, or null where another element already says it
+ *  (the Gate, the Loading, the Failed). Never two things saying one thing. */
+export function absenceSentence(a: PromoteAbsence): string | null {
+  switch (a.kind) {
+    case "ready":
+    case "reading":
+    case "failed":
+      return null;
+    case "no-releases":
+      return "Nothing has merged yet, so there is nothing to promote. A merged change deploys a preview on its own, and promoting that preview is what puts it in front of customers.";
+    case "all-live":
+      return a.count === 1
+        ? "The one release on the record is already in production."
+        : `All ${a.count} releases on the record are already in production.`;
+    case "no-preview":
+      return a.count === 1
+        ? "One release has merged and has no successful preview yet. The preview lands on its own after a merge, in about two minutes."
+        : `${a.count} releases have merged and none has a successful preview yet. The preview lands on its own after a merge, in about two minutes.`;
+  }
+}
+
 type Mode = { kind: "idle" } | { kind: "new" } | { kind: "edit"; id: string };
 
 function Ship() {
@@ -192,7 +537,7 @@ function Ship() {
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
   useSpineStrip("ship");
   const qc = useQueryClient();
-  const { activeWorkspace, activeWorkspaceId } = useWorkspace();
+  const { activeWorkspaceId } = useWorkspace();
   const wid = activeWorkspaceId ?? "";
 
   const fChangelog = useServerFn(listChangelog);
@@ -203,10 +548,33 @@ function Ship() {
   const fUpdate = useServerFn(updateAnnouncement);
   const fSubmit = useServerFn(submitForApproval);
   const fPublish = useServerFn(approveAndPublish);
+  const fDeployments = useServerFn(listDeployments);
+  const fPromote = useServerFn(promoteToProduction);
+  const fRollback = useServerFn(rollbackRelease);
 
+  /**
+   * THE WORKSPACE ID WAS DROPPED ON THE FLOOR HERE, and the read still
+   * succeeded, which is what made it survive.
+   *
+   * This query keyed on and passed `activeWorkspace?.id` -- the full workspace
+   * ROW, which arrives from the workspaces list query -- while every other read
+   * on this surface uses `wid` (`activeWorkspaceId`), which is restored
+   * synchronously. On first paint, and on every workspace switch until the list
+   * settles, the row is undefined, so this fired with `workspaceId: undefined`.
+   * `listChangelog` treats that as "not specified" and falls back to
+   * `current_user_default_workspace`, so it answered confidently with SOMEONE
+   * ELSE'S releases: a person who had switched workspaces read their default
+   * workspace's changelog under the active workspace's name, and it cached
+   * under the key ["changelog", undefined] where no invalidation could find it.
+   *
+   * `enabled` is the other half. Without it the fallback read fires before a
+   * workspace is known at all, which is precisely the request whose answer is
+   * guaranteed to be about the wrong workspace.
+   */
   const changelog = useQuery({
-    queryKey: ["changelog", activeWorkspace?.id],
-    queryFn: () => fChangelog({ data: { workspaceId: activeWorkspace?.id } }),
+    queryKey: ["changelog", wid],
+    queryFn: () => fChangelog({ data: { workspaceId: wid } }),
+    enabled: !!wid,
   });
   const posts = useQuery({
     queryKey: ["announcements", wid],
@@ -221,8 +589,29 @@ function Ship() {
     enabled: !!wid,
   });
 
+  /**
+   * Where every release in this workspace is currently serving.
+   *
+   * REFETCHED ON A TIMER, which is not decoration. A preview deploy lands about
+   * two minutes after a merge and a production deploy finishes while you are
+   * reading the page; without the interval, "nothing is ready to promote" stays
+   * on screen after it has stopped being true, and the person's only recourse
+   * is to reload a page that told them nothing was wrong. 30s is the same
+   * cadence ChangesPanel uses for the identical read, so the two doors onto the
+   * same act cannot disagree about how fresh they are.
+   */
+  const deployments = useQuery({
+    queryKey: ["ship-deployments", wid],
+    queryFn: () => fDeployments({ data: { workspaceId: wid, limit: 100 } }),
+    enabled: !!wid,
+    refetchInterval: 30_000,
+  });
+
   const notes = changelog.data?.entries ?? [];
   const announcements = posts.data?.announcements ?? [];
+  // The deployments table is not in the generated Supabase types yet, so the
+  // read arrives untyped. Same cast ChangesPanel makes, made once.
+  const deployRows = (deployments.data?.deployments ?? []) as ShipDeployment[];
 
   const role = (members.data?.selfRole ?? null) as WorkspaceRole | null;
   const canContribute = !!role && TRANSITION_ROLES["draft->pending"].includes(role);
@@ -236,6 +625,8 @@ function Ship() {
   const [picked, setPicked] = React.useState<string | null>(null);
   const [allNotes, setAllNotes] = React.useState(false);
   const [allPosts, setAllPosts] = React.useState(false);
+  const [allAddresses, setAllAddresses] = React.useState(false);
+  const [allReleases, setAllReleases] = React.useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["announcements", wid] });
 
@@ -310,6 +701,116 @@ function Ship() {
     onError: (e: Error) =>
       setReceipt({ verb: "It did not publish", consequence: e.message, failed: true }),
   });
+
+  /* -------------------------------------------------------------- *
+   * Preview to production, which is what the nav has always promised.
+   * -------------------------------------------------------------- */
+
+  // Computed, not memoised, for the reason stated further down this file about
+  // the announcement counts: both inputs are short bounded lists (100 entries
+  // and 100 deploy rows at most), and a useMemo over two `?? []` fallbacks
+  // re-runs on every render anyway because each fallback is a fresh array.
+  const states = releaseStates(notes, deployRows);
+  const ready = states.filter(isReadyToPromote);
+  const live = states.filter(isLive);
+
+  // A release read is TWO reads, and either one failing makes the join a guess:
+  // deployments alone cannot say which changeset merged, and the changelog
+  // alone cannot say what is serving. So both halves gate together rather than
+  // letting one render a confident half-answer.
+  const releaseReading = changelog.isLoading || deployments.isLoading;
+  const releaseFailed = changelog.isError || deployments.isError;
+  const absence = promoteAbsence({
+    reading: releaseReading,
+    failed: releaseFailed,
+    states,
+  });
+  const retryRelease = () => {
+    void changelog.refetch();
+    void deployments.refetch();
+  };
+
+  const promote = useMutation({
+    mutationFn: (v: { changesetId: string; title: string }) =>
+      fPromote({ data: { changesetId: v.changesetId } }),
+    onSuccess: (res, v) => {
+      setReceipt({
+        verb: "You promoted it",
+        consequence: (
+          <>
+            {v.title} is live in production at{" "}
+            <a
+              href={res.productionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--sp-ink)" }}
+            >
+              <Num>{res.productionUrl}</Num>
+            </a>
+            . Customers are seeing it now.
+          </>
+        ),
+      });
+      void qc.invalidateQueries({ queryKey: ["ship-deployments", wid] });
+      void qc.invalidateQueries({ queryKey: ["changelog", wid] });
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not reach production", consequence: e.message, failed: true }),
+  });
+
+  /**
+   * Rolling back from the station, behind ChangesPanel's own prompt.
+   *
+   * THE COPY IS COPIED DELIBERATELY, word for word. This is the second door
+   * onto an act that already had one, and the failure mode of a second door is
+   * that it is easier to walk through than the first: a rollback confirmed by a
+   * one-word dialog here and by a typed reason there would mean the safer path
+   * is the one nobody takes. A test asserts the two strings are still identical
+   * rather than trusting whoever edits either file next.
+   */
+  const promptDialog = usePrompt();
+  const rollback = useMutation({
+    mutationFn: (v: { changesetId: string; title: string; reason: string }) =>
+      fRollback({ data: { changesetId: v.changesetId, reason: v.reason } }),
+    onSuccess: (res, v) => {
+      // WHAT THIS SAYS IS WHAT HAS HAPPENED, and no more. `rollbackRelease`
+      // stages the inverse changeset and starts a Build run that stops at its
+      // first approval gate; it does NOT open the revert PR by itself. A
+      // receipt reading "rolled back" would report a future.
+      setReceipt({
+        verb: "You started the revert",
+        consequence: (
+          <>
+            A revert of {v.title} is staged and its run is open. It opens the pull request once you
+            clear that run's gates in{" "}
+            <a href={`/studio/${res.revertMissionId}`} style={{ color: "var(--sp-ink)" }}>
+              <Num>the revert run</Num>
+            </a>
+            , and it still passes CI and your review before it merges.
+          </>
+        ),
+      });
+      void qc.invalidateQueries({ queryKey: ["ship-deployments", wid] });
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "The revert did not start", consequence: e.message, failed: true }),
+  });
+
+  async function askRollback(s: ReleaseState) {
+    const reason = await promptDialog({
+      title: "Roll back this release",
+      body: "Opens a revert PR that restores the touched paths to their pre-merge state. It still passes CI and your review before it merges.",
+      label: "Reason (optional)",
+      placeholder: "Why are you rolling this back?",
+      confirmLabel: "Open revert PR",
+    });
+    if (reason === null) return;
+    rollback.mutate({
+      changesetId: s.changesetId,
+      title: s.title,
+      reason: reason || "Operator-initiated rollback",
+    });
+  }
 
   const busy = create.isPending || update.isPending || submit.isPending || publish.isPending;
   const composing = mode.kind !== "idle";
@@ -462,6 +963,19 @@ function Ship() {
               publish.
             </CtxBody>
           </>
+        ) : ready.length > 0 ? (
+          // The column follows whatever the reader's business actually is. With
+          // no announcement in focus but a change waiting on production, the
+          // question they are holding is what the promote costs, so that is
+          // what the margin answers instead of standing empty.
+          <>
+            <CtxHead>What promote does</CtxHead>
+            <CtxBody>
+              It serves the commit already running on the preview from the production address. Same
+              build, new audience. Taking it back means a revert pull request, which is why this is
+              the one call on this station that reaches customers.
+            </CtxBody>
+          </>
         ) : null
       }
     >
@@ -472,6 +986,63 @@ function Ship() {
           this one is bound to the run. See use-live-agents.ts. */}
       <CrewWorking />
       <PageHead title={headline} sub={gapLine()} />
+
+      {/* PRODUCTION COMES BEFORE THE ANNOUNCEMENT, and the order is the
+          argument. This station is called Ship and the nav calls it "Preview to
+          production"; putting a change in front of customers is the act it is
+          named for, and saying something about that change is what you do
+          afterwards. The announcement gate below is untouched, and both are
+          drawn at once when both are genuinely waiting, because they are two
+          different decisions and hiding either would be the surface deciding
+          for the reader which one their morning is about. */}
+      {ready.length > 0 ? (
+        <Gate
+          question={`Take "${ready[0].title}" to production?`}
+          lines={[
+            <span key="preview">
+              The preview is up at{" "}
+              <a
+                href={ready[0].previewUrl as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit" }}
+              >
+                <Num>{ready[0].previewUrl}</Num>
+              </a>
+            </span>,
+            ...(since(ready[0].releasedAt)
+              ? [
+                  <span key="when">
+                    Merged <Num>{since(ready[0].releasedAt)}</Num>
+                    {ready[0].productName ? ` into ${ready[0].productName}` : ""}
+                  </span>,
+                ]
+              : []),
+            <span key="cost">
+              It moves that same commit to the production address. Customers see it immediately, and
+              undoing it means a revert pull request.
+            </span>,
+            ...(ready.length > 1
+              ? [
+                  <span key="more">
+                    <Num>{ready.length - 1}</Num> more {ready.length - 1 === 1 ? "is" : "are"}{" "}
+                    ready, each with its own promote under Where it is live.
+                  </span>,
+                ]
+              : []),
+          ]}
+        >
+          <Button
+            variant="primary"
+            disabled={promote.isPending}
+            onClick={() =>
+              promote.mutate({ changesetId: ready[0].changesetId, title: ready[0].title })
+            }
+          >
+            {promote.isPending ? "Promoting it" : "Promote it"}
+          </Button>
+        </Gate>
+      ) : null}
 
       {composing ? (
         <Block title={mode.kind === "new" ? "A new announcement" : "Editing the announcement"}>
@@ -607,6 +1178,161 @@ function Ship() {
         />
       ) : null}
 
+      {/* THE ADDRESSES, which is the question "where is it live" taken
+          literally. One row per merged release, led by the URL that is actually
+          answering, because that is the thing you copy, open and send to
+          someone. The block that follows is led by the release TITLE instead:
+          they are two different questions asked in two different moods, and a
+          single list that tried to be both would lead with a title and bury the
+          address in a sub, which is how the URL became unreachable text on this
+          surface in the first place. */}
+      <Block
+        title="Where it is live"
+        sub={absenceSentence(absence)}
+        more={
+          states.length > VISIBLE
+            ? allAddresses
+              ? "Show fewer"
+              : `All ${states.length}`
+            : undefined
+        }
+        onMore={() => setAllAddresses((v) => !v)}
+      >
+        {releaseFailed ? (
+          <Failed onRetry={retryRelease}>
+            Where each release is serving did not load, so this list would be a guess.{" "}
+            {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
+          </Failed>
+        ) : releaseReading ? (
+          <Loading>Reading where each release is serving.</Loading>
+        ) : states.length === 0 ? (
+          <Empty>
+            No deploy is on the record yet. A merged change deploys a preview on its own, and one
+            promote moves that same commit to the production address.
+          </Empty>
+        ) : (
+          (allAddresses ? states : states.slice(0, VISIBLE)).map((s) => {
+            const at = whereItIs(s);
+            const promotable = isReadyToPromote(s);
+            const promotingThis =
+              promote.isPending && promote.variables?.changesetId === s.changesetId;
+            return (
+              <Row
+                key={s.changesetId}
+                tight
+                lead={at.address ? <Num>{at.address}</Num> : s.title}
+                sub={at.address ? `${at.state} · ${s.title}` : at.state}
+                time={ago(s.productionAt ?? s.releasedAt)}
+                onClick={
+                  at.address
+                    ? () => window.open(at.address as string, "_blank", "noopener,noreferrer")
+                    : undefined
+                }
+                action={
+                  promotable ? (
+                    // THE SECOND DOOR ONTO THE PROMOTE. The Gate above focuses
+                    // one release; every other ready release needs its own way
+                    // through or it is a capability with no door until the
+                    // first one happens to go live.
+                    <button
+                      type="button"
+                      className={QUIET}
+                      disabled={promote.isPending}
+                      onClick={() => promote.mutate({ changesetId: s.changesetId, title: s.title })}
+                    >
+                      {promotingThis ? "Promoting it" : "Promote it"}
+                    </button>
+                  ) : null
+                }
+              />
+            );
+          })
+        )}
+      </Block>
+
+      {/* THE RELEASES THAT REACHED CUSTOMERS, each carrying the one act that
+          takes it back. Rollback lived only inside the Changes tab of the run
+          that produced the release, so undoing a bad ship meant first
+          remembering which run it came from. Here it is a row on the station. */}
+      <Block
+        title="Live releases"
+        more={
+          live.length > VISIBLE ? (allReleases ? "Show fewer" : `All ${live.length}`) : undefined
+        }
+        onMore={() => setAllReleases((v) => !v)}
+      >
+        {releaseFailed ? (
+          <Failed onRetry={retryRelease}>What is in production did not load.</Failed>
+        ) : releaseReading ? (
+          <Loading>Reading what is in production.</Loading>
+        ) : live.length === 0 ? (
+          <Empty>
+            Nothing is in production yet.{" "}
+            {ready.length > 0
+              ? `${ready.length === 1 ? "One change has" : `${ready.length} changes have`} a preview waiting for the promote above.`
+              : "A release appears here the moment it is promoted, and each one keeps a way back."}
+          </Empty>
+        ) : (
+          (allReleases ? live : live.slice(0, VISIBLE)).map((s) => {
+            const reverting =
+              rollback.isPending && rollback.variables?.changesetId === s.changesetId;
+            return (
+              <Row
+                key={s.changesetId}
+                tight
+                lead={s.title}
+                sub={
+                  [
+                    s.productName ?? null,
+                    // `since` returns null for a timestamp it cannot read, and
+                    // "live since null" is the classic template-literal leak: a
+                    // string built from a value nobody checked. The bare "live"
+                    // is the honest fallback, since being in production is a
+                    // fact we hold even when the clock on it is not.
+                    s.productionAt && since(s.productionAt)
+                      ? `live since ${since(s.productionAt)}`
+                      : "live",
+                    // A pull request number with no URL behind it is still a
+                    // fact worth stating; it just is not a door, so it stays
+                    // text here while the linked case moves to the action slot.
+                    s.prNumber && !s.prUrl ? `PR #${s.prNumber}` : null,
+                  ]
+                    .filter((x): x is string => !!x)
+                    .join(" · ") || null
+                }
+                time={ago(s.productionAt ?? s.releasedAt)}
+                onClick={() =>
+                  window.open(s.productionUrl as string, "_blank", "noopener,noreferrer")
+                }
+                action={
+                  <>
+                    {s.prUrl ? (
+                      <Addr href={s.prUrl}>
+                        {s.prNumber ? (
+                          <>
+                            PR <Num>{s.prNumber}</Num>
+                          </>
+                        ) : (
+                          "The PR"
+                        )}
+                      </Addr>
+                    ) : null}
+                    <button
+                      type="button"
+                      className={QUIET}
+                      disabled={rollback.isPending}
+                      onClick={() => void askRollback(s)}
+                    >
+                      {reverting ? "Starting the revert" : "Roll back"}
+                    </button>
+                  </>
+                }
+              />
+            );
+          })
+        )}
+      </Block>
+
       <Block
         title="What shipped"
         sub={
@@ -631,14 +1357,49 @@ function Ship() {
             // A second line is a DIFFERENT fact, never the first one continued:
             // which product, origin opportunity, which pull request, and whether it's live in production.
             // The body belongs to the one post in focus, not to every row.
+            //
+            // TWO ADDRESSES USED TO BE PRINTED AS PROSE HERE. `production_url`
+            // rendered as the words "live in production" and `pr_url` as "PR
+            // #12", both flat text, while the URLs sat in the payload
+            // unreachable: the only way to open either was to guess that
+            // clicking the row might do it, which it only did for a reader who
+            // could NOT contribute (a contributor's click starts a draft
+            // instead). So the whole capability was hidden behind not having
+            // permission to write.
+            //
+            // They move to the row's `action` slot rather than becoming links
+            // in place, and that is forced rather than stylistic: `Row` renders
+            // a clickable row as a <button>, and an <a> inside a <button> is
+            // invalid markup React refuses to hydrate. The slot sits outside
+            // the clickable region, so the row keeps its own click AND the
+            // addresses become real doors.
             const meta = [
               e.product_name ?? null,
               e.opportunity_title ? `from ${e.opportunity_title}` : null,
-              e.pr_number ? `PR #${e.pr_number}` : null,
+              // A PR number with no URL is a fact but not a door, so it stays
+              // as text; the linked case is in the action slot.
+              e.pr_number && !e.pr_url ? `PR #${e.pr_number}` : null,
               e.production_url ? "live in production" : null,
             ]
               .filter((x): x is string => !!x)
               .join(" · ");
+            const doors =
+              e.production_url || e.pr_url ? (
+                <>
+                  {e.production_url ? <Addr href={e.production_url}>Open it</Addr> : null}
+                  {e.pr_url ? (
+                    <Addr href={e.pr_url}>
+                      {e.pr_number ? (
+                        <>
+                          PR <Num>{e.pr_number}</Num>
+                        </>
+                      ) : (
+                        "The PR"
+                      )}
+                    </Addr>
+                  ) : null}
+                </>
+              ) : null;
             return (
               <Row
                 key={e.id}
@@ -646,6 +1407,7 @@ function Ship() {
                 lead={e.title}
                 sub={meta || null}
                 time={ago(e.released_at)}
+                action={doors}
                 onClick={
                   canContribute
                     ? () => startFrom(e)

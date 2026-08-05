@@ -18,7 +18,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { nativeBuildDriver } from "@/lib/build/native.server";
 import type { BuildSpec } from "@/lib/build/driver";
 import { buildArdDocument, parseArdDocument } from "@/lib/ard-schema";
-import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
+import {
+  formatArdWorkOrderBlock,
+  formatScaffoldHtmlBlock,
+  standingClauseTexts,
+} from "@/lib/build/ard-block";
 import { recordLineage } from "@/lib/lineage.functions";
 import { TOOL_REGISTRY } from "@/lib/ai/tools/registry.server";
 import type { LoopStep } from "@/lib/ai/loop.server";
@@ -46,6 +50,7 @@ import {
   designGateBlocksDispatch,
   toArdDesignSection,
   DESIGN_GATE_BLOCK_MESSAGE,
+  type DesignDispatchContext,
 } from "@/lib/build/design-gate";
 import { loadDesignGateState, loadDesignDispatchContext } from "@/lib/build/design-gate.server";
 import type { ArdDesignSection } from "@/lib/ard-schema";
@@ -176,6 +181,40 @@ const WORK_ORDER_HEADER =
   "Studio work order · plan against the connected repo, stage a multi-file changeset, ship a PR, watch CI, and request the merge on green.";
 
 /**
+ * PURE. Everything the design station contributes to a work order, in the order
+ * a builder needs to read it: the workspace's standing design language, the
+ * flow the spec walks, then the gate-approved mockup as its OWN fenced html
+ * section.
+ *
+ * THE DEFECT THIS SHAPE PREVENTS. Until 2026-08-05 the mockup travelled only as
+ * a JSON string inside the ARD block, as the last field of the last key, and
+ * that block met its 8,000-char budget by slicing characters. A real
+ * 17,475-char mockup was therefore cut inside a string literal, which
+ * invalidated the ENTIRE fence — the acceptance criteria and the outcome
+ * contract went down with it even though both are small and sat thousands of
+ * characters earlier in the document. The agent received a fence it could not
+ * parse and silently built from the prose, so the failure looked like a build
+ * that ignored the design rather than a serialisation bug. Markup in its own
+ * fence competes with nothing, arrives as markup instead of an escaped blob,
+ * and survives a cut the way JSON never can.
+ *
+ * It is extracted from `dispatchStudioSession` so it can be tested at all: the
+ * handler needs a database and a live agent roster, so the wiring that decides
+ * WHAT a builder sees had no guard while it lived inside one.
+ */
+export function formatDesignDispatchSections(ctx: DesignDispatchContext | null): string[] {
+  if (!ctx) return [];
+  const out: string[] = [];
+  const memory = formatDesignMemoryContext(ctx.memory);
+  if (memory) out.push(memory);
+  const flow = formatFlowContext((ctx.flow as PrdFlowRow | null) ?? null);
+  if (flow) out.push(flow);
+  const scaffold = ctx.scaffoldHtml ? formatScaffoldHtmlBlock(ctx.scaffoldHtml) : "";
+  if (scaffold) out.push(scaffold);
+  return out;
+}
+
+/**
  * Dispatch a Studio session (the agent door). Builds a structured work order
  * from a PRD, an opportunity, or a raw prompt; creates the mission; enqueues
  * the run (the resume-runs sweeper starts it within its next tick); records
@@ -256,10 +295,7 @@ export const dispatchStudioSession = createServerFn({ method: "POST" })
       // the ARD's design section below.
       const designCtx = await loadDesignDispatchContext(db, prd);
       if (designCtx) {
-        const designContext = formatDesignMemoryContext(designCtx.memory);
-        if (designContext) sections.push(designContext);
-        const flowContext = formatFlowContext((designCtx.flow as PrdFlowRow | null) ?? null);
-        if (flowContext) sections.push(flowContext);
+        sections.push(...formatDesignDispatchSections(designCtx));
         ardDesign = toArdDesignSection(designCtx);
       }
     }

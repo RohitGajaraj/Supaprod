@@ -1,6 +1,7 @@
 import { describe, test, expect } from "bun:test";
 import {
   decideStudioMergeShipStamp,
+  formatDesignDispatchSections,
   stampSpecShippedOnStudioMerge,
   type StudioMergeShipInput,
 } from "@/lib/studio.functions";
@@ -224,5 +225,74 @@ describe("stampSpecShippedOnStudioMerge", () => {
     expect(d.stamp).toBe(false);
     expect(d.stamp === false && d.reason).toBe("the spec already records when it shipped");
     expect(stageEvents).toHaveLength(0);
+  });
+});
+
+/**
+ * THE DEFECT THESE PROTECT. Founder question, 2026-08-05: "how will Build pick
+ * up the design and prototype developed in the previous station and deliver
+ * code against it?" It could not. The gate-approved mockup rode only as a JSON
+ * string inside the ARD block, as the last field of the last key, and that
+ * block met its 8,000-char budget with a character slice — so a real mockup was
+ * cut inside a string literal and the entire fence stopped parsing, acceptance
+ * criteria included. These pin the fix: the markup arrives in its OWN html
+ * fence, so nothing it does can invalidate the contract beside it.
+ */
+describe("formatDesignDispatchSections (the design station's half of the work order)", () => {
+  const bigMockup = '<section class="row"><h2>Station</h2></section>'.repeat(400);
+
+  const ctx = {
+    memory: [
+      {
+        id: "m1",
+        workspace_id: "w1",
+        category: "token" as const,
+        title: "Accent color",
+        content: "Indigo 600 for primary actions.",
+        rationale: null,
+        source_kind: "default" as const,
+        source_ref: null,
+        status: "approved" as const,
+        created_by: null,
+        created_at: "2026-07-07T00:00:00.000Z",
+      },
+    ],
+    flow: { steps: [{ label: "Land on the station" }, { label: "Approve" }], edges: [] },
+    scaffoldHtml: bigMockup,
+  };
+
+  test("returns design language, then the flow, then the mockup — in that order", () => {
+    const sections = formatDesignDispatchSections(ctx as never);
+    expect(sections).toHaveLength(3);
+    expect(sections[0]).toContain("Accent color");
+    expect(sections[1]).toContain("Land on the station");
+    // The header no longer claims a human approved the markup, because at this
+    // point in the pipeline that is not knowable and is frequently false: the
+    // scaffolds table has no status column, and the design gate stands down
+    // entirely when the design stage is toggled off. What survives is the
+    // instruction, which is true either way. See SCAFFOLD_BLOCK_HEADER.
+    expect(sections[2]).toContain("build the UI against this markup");
+    expect(sections[2]).not.toMatch(/approved/i);
+  });
+
+  test("the mockup rides its OWN html fence, whole, not as an escaped JSON string", () => {
+    const sections = formatDesignDispatchSections(ctx as never);
+    const mockupSection = sections[2];
+    expect(mockupSection).toContain("```html\n");
+    expect(mockupSection).toContain(bigMockup);
+    // The escaped form is what used to travel. If this ever reappears the
+    // markup is back inside JSON and one budget away from breaking the contract.
+    expect(mockupSection).not.toContain('\\"row\\"');
+  });
+
+  test("no mockup means no mockup section, never an empty promise of one", () => {
+    const sections = formatDesignDispatchSections({ ...ctx, scaffoldHtml: null } as never);
+    expect(sections).toHaveLength(2);
+    expect(sections.join("\n")).not.toContain("build the UI against this markup");
+    expect(formatDesignDispatchSections({ ...ctx, scaffoldHtml: "   " } as never)).toHaveLength(2);
+  });
+
+  test("no design context at all yields no sections", () => {
+    expect(formatDesignDispatchSections(null)).toEqual([]);
   });
 });
