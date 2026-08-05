@@ -9,8 +9,8 @@ import * as React from "react";
 //     rotate + energy flows along the curve (the loop turning) and the core
 //     pulses (the beat).
 // Curve u(t) = ((R-r)cos t + d cos((R-r)t/r), (R-r)sin t - d sin((R-r)t/r)),
-// R=7, r=1, d=3 → K=6 → seven petals. A clean, confident ember→blue stroke
-// (human work flowing into machine execution around the loop) + warm core.
+// R=7, r=1, d=3 → K=6 → seven petals. Strokes text-primary (ink), core glows
+// with ember accent (human work flowing through machine execution).
 
 const R = 7;
 const r = 1;

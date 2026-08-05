@@ -3,9 +3,8 @@
 // is working - shown in ONE place (the top bar). It shows the ACTION
 // ("Drafting changes"), never the mission title. The shimmer follows the
 // platform AI-presence signature: working = glacier gloss, waiting = ember
-// gloss (the CSS maps both). The mark is the pixel "C" monogram wearing the
-// same text-clip sweep; the Butterfly mark is retired in Tempo v5
-// (DESIGN-TEMPO.md section 8). Motion guards ride the styles.css classes.
+// gloss (the CSS maps both). The mark is the SupaprodMark (seven-petal loop),
+// animated when the machine is working. Motion guards ride the styles.css classes.
 import * as React from "react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 
