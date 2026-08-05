@@ -61,8 +61,24 @@ function stripComments(source: string): string {
 
 const src = stripComments(readFileSync(ROUTE, "utf8"));
 
-/** Everything the component actually renders, which is where these rules bite. */
-const jsx = src.slice(src.indexOf("<Surface"));
+/**
+ * Everything the Today component actually renders, which is where these rules
+ * bite.
+ *
+ * SCOPED TO `Today`, not to the first `<Surface>` in the file. It used to be
+ * `src.slice(src.indexOf("<Surface"))`, which assumed Today was the only
+ * component in the route. On 2026-08-05 a `FirstRunBridge` component was added
+ * ABOVE it, rendering its own `<Surface>`, so the slice began 300 lines early
+ * and swallowed Today's entire component body. Every `loading` in that body --
+ * the declaration, the headline branch, a dependency array -- then read as a
+ * region waiting on the union, and the guard failed on correct code.
+ *
+ * A guard that fails on correct code gets deleted by the next person in a
+ * hurry, which is worse than not having it. Anchoring on the component keeps it
+ * pointed at what it was written to protect.
+ */
+const TODAY_START = src.indexOf("function Today()");
+const jsx = src.slice(src.indexOf("<Surface", TODAY_START === -1 ? 0 : TODAY_START));
 
 /**
  * The offending lines, quoted with their real line numbers. Asserting
@@ -70,7 +86,10 @@ const jsx = src.slice(src.indexOf("<Surface"));
  * and a build failure a person has to scroll past is one they learn to skim.
  */
 function offenders(source: string, pattern: RegExp): string[] {
-  const offset = source === jsx ? src.slice(0, src.indexOf("<Surface")).split("\n").length - 1 : 0;
+  // Same anchor as `jsx` above, or the reported line numbers point at the
+  // wrong component and send the reader 300 lines from the offending line.
+  const offset =
+    source === jsx ? src.slice(0, src.length - jsx.length).split("\n").length - 1 : 0;
   return source
     .split("\n")
     .map((line, i) => `${i + 1 + offset}: ${line.trim()}`)
