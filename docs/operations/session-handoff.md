@@ -1,3 +1,115 @@
+# Session close 2026-08-05 19:20 IST
+
+main = `3e422f9a`, pushed and deployed. 29 commits today. tsc 0, `bun run build` exit 0,
+7,557 tests 0 fail, check-humanized clean. Tree clean. Four agents ran in parallel on
+disjoint file sets and all four landed.
+
+## The one thing blocking everything
+
+The permission classifier now refuses BOTH `create policy` and `select cron.alter_job(...)`
+through the Lovable MCP. It allowed them earlier the same day, so this is a mode change and
+not a credential problem. The Supabase MCP is not loaded and there is no local `psql`, so
+there is currently no path to execute DDL at all. **Two migrations are written, verified
+against live state, and NOT applied.**
+
+1. `20260805130000_role_aware_writes_on_governance_tables.sql` is applied for
+   `guardrail_rules` ONLY. `house_rules`, `agent_tools`, `ai_budgets` and
+   `ai_surface_budgets` still let a viewer write. Verified live: `is_workspace_member` has
+   no role filter at all, so a viewer passes it. There are 21 owners, 1 admin, 1 member and
+   **zero viewers** today, so nothing is exposed right now. It breaks the first time a
+   read-only teammate is invited.
+2. `20260805160000_cron_fleet_targets_production_with_deadlines.sql` is not applied at all,
+   and this is the most urgent applied-state defect open. See below.
+
+## The cron fleet is worse than "14 still on preview"
+
+The hand repoint that moved 22 jobs to `supaprod.ai` rewrote their commands with a compact
+template carrying **no `timeout_milliseconds` argument**, silently reverting
+`20260803120000`. Six tuned jobs went back to the pg_net 5s default:
+
+    track-tick    180000 -> none    34.0s average, was 57.3% stuck
+    goal-tick     120000 -> none     7.1s average, was 43.5% stuck
+    embed-tick    120000 -> none     8.2s average, was 28.2% stuck
+    sense-tick     60000 -> none     5.3s average, was 18.6% stuck
+    derive-tick    60000 -> none     4.4s average, was 18.2% stuck
+    resume-runs    30000 -> none     2.8s average
+
+The tell: the only two that kept their deadline, `cadence-indexer-tick` and
+`researcher-tick`, are precisely the two the repoint had not reached. The loss tracks the
+repoint, not the schedule and not the workload. Those jobs are silently dying again now.
+
+The migration regenerates all 36 from one template rather than patching text, because the
+fleet had drifted into **five** command formats. A chained `replace()` matched only 9 of the
+14 stragglers, which is how the drift was found. It fails rather than leave the fleet half
+converted.
+
+## The moat: still zero rows, and now the whole chain is mapped
+
+`agent_memory where kind='outcome'` is 0 and always has been (against 862 reflections, 28
+precedents, 26 notes, 8 corrections).
+
+**Do not trust `prds where shipped_at is not null` = 7.** Those 7 are July-8 demo seeds, one
+per demo workspace, all the same title, all already carrying an `outcome`, none written
+through `applyOutcome`. `prds where status='shipped'` is **0**: the merge stamp has never
+fired for anyone. An earlier reading of this session took those 7 as proof the stamp worked.
+It was wrong.
+
+**Fixed (`5ac2cbe0`).** `runOutcomeReviews` drew candidates from one place,
+`launch_plans.check_by <= now()`, and nothing on the ship path creates a launch plan. All 7
+launch plans belong to those same seeds and do not lapse until 2026-08-07, so the query
+returned zero rows every hour of its life. The cron is and always was healthy. It now also
+draws from `prds where shipped_at is not null and outcome is null`.
+
+**Two upstream breaks remain, either one enough on its own:**
+
+- `studio_changesets.prd_id` is null on all 23 real changesets, so
+  `decideStudioMergeShipStamp` refuses every real merge. Its own doc comment says the value
+  is stamped by the `studio_changeset_link_prd` trigger. **That trigger and its function do
+  not exist in the live database**, though the migration adding the column was applied.
+- Restoring the trigger recovers only 2 of 23. The other 21 have no prd-to-mission edge in
+  `artifact_lineage`, so `dispatchStudioSession` is not writing that edge. Populating
+  `prd_id` in application code at changeset creation would fix both and needs no DDL.
+
+## Shipped today, after the earlier close
+
+- **The Critic was judging a sample row we wrote ourselves.** Deleting `FALLBACK_BELIEF`
+  closed the front door; `seedWorkspaceForTrack` reopened it by writing four sample
+  opportunities into the user's real workspace, and `afterConnected` took the highest-ICE
+  one as the belief. Plus six more first-run defects, including a hard dead end that this
+  session created, an empty review rendering as a success with a share button, and
+  "paste a PRD, Supaprod will analyze it directly" answered with `slice(0,200)` and no write.
+- **Seven keys took you where the rail could not follow.** The real number is seven, not
+  eight; `/settings` was a false positive. `ENGINE_ROOM_PATHS` was declared and consumed by
+  nothing, so `/govern`, `/trust-ledger` and `/sync` went dark too.
+- **The browser had no way to learn your role**, so every viewer saw a live Save on four
+  governance panels. Server-side `GOVERNED_WRITES` existed; nothing client-side did.
+- **The lanes work again.** Every worktree `.git` file pointed at the pre-rename `Superprod`
+  path, and `scripts/lane.sh`, `.remember/LANE.md`, `feature-dashboard.md` and
+  `cadence-parallel.code-workspace` had all been deleted.
+
+## Left deliberately, with diffs written
+
+`updateToolMode` (upserts `agent_tools` with no role assert and no `.select()`, so a viewer
+gets `ok:true` having changed nothing), the three budget write `*Impl` functions, and
+`_authenticated.boundary.tsx` as a second ungated writer of `agent_tools`. Also still never
+written: the workspace-scoped `match_agent_memory` migration. Exactly one overload exists
+today, `match_agent_memory(vector,uuid,text,integer,uuid,uuid)`; keep that signature exactly
+or `CREATE OR REPLACE` forks a second one. `real_public` is still 0.
+
+## What cost real time
+
+- **tsc and 7,557 tests are not a build.** `roles.client.ts` passed both and failed
+  `bun run build`: `**/*.client.*` is a pattern TanStack Start refuses to pull into the
+  server graph, and only the build builds that graph.
+- **A hand repoint can silently revert a migration.** Check what you are replacing.
+- **`replace()` across a fleet is a lie detector.** Matching 9 of 14 is what exposed the
+  five formats.
+- Four edit-capable agents shared this tree safely by being given disjoint file sets and an
+  explicit ban on `git stash`/`commit`/`checkout`. That worked; the failure mode from
+  earlier today did not recur.
+
+---
+
 # Session close 2026-08-05 18:20 IST
 
 main = `76a2b4f4`, pushed, deployed. 19 commits. tsc 0, build clean, 7,527 tests, 0 fail,

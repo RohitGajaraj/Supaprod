@@ -32,7 +32,11 @@ echo "== docs-doctor =="
 # markdown-only check reported clean. Build config and lockfiles are legitimate and
 # whitelisted; anything else is either misplaced or belongs in a gitignored directory.
 echo "-- [1] stray files at repo root (docs, images, data, anything loose) --"
-ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc requirements.txt skills-lock.json "
+# cadence-parallel.code-workspace is editor config, the same class as the build
+# config below it, and it has to be at root: its "folders" paths are resolved
+# relative to the workspace file itself, so "." and "../cadence-lane-0" only mean
+# the repo and its sibling lanes from here.
+ROOT_ALLOWED=" AGENTS.md CLAUDE.md GEMINI.md README.md package.json package-lock.json bun.lock bunfig.toml tsconfig.json vite.config.ts eslint.config.js playwright.config.ts components.json wrangler.jsonc requirements.txt skills-lock.json cadence-parallel.code-workspace "
 for f in *; do
   [ -f "$f" ] || continue
   case "$ROOT_ALLOWED" in *" $f "*) continue ;; esac
