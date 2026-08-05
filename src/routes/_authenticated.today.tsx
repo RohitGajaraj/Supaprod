@@ -366,6 +366,29 @@ function Today() {
     if (justLanded) window.sessionStorage.removeItem("supaprod.onboarding.justLanded");
   }, [justLanded]);
 
+  // Capture Critic result from onboarding for post-onboarding value moment
+  const [criticResult, setCriticResult] = React.useState<{
+    idea: string;
+    verdict?: string;
+    confidence?: number;
+    challenges?: string[];
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (justLanded && typeof window !== "undefined") {
+      const stored = window.sessionStorage.getItem("supaprod.onboarding.criticReview");
+      if (stored) {
+        try {
+          setCriticResult(JSON.parse(stored));
+          // Clear it after reading (one-time display)
+          window.sessionStorage.removeItem("supaprod.onboarding.criticReview");
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    }
+  }, [justLanded]);
+
   // The headline is a fact assembled from real counts. While loading, show
   // the date — a headline that says "Reading" advertises latency; a headline
   // that says the date tells the user they arrived. Data fills in instantly
@@ -385,6 +408,7 @@ function Today() {
     // row came back (`beliefIsOnRecord`). Claiming it here from a flag that
     // only means "you navigated" would be the product asserting a receipt it
     // never checked.
+    if (justLanded && criticResult) return "Your idea got an AI analysis";
     if (justLanded) return "You are set up. Nothing is running yet.";
     // Counts finishes, not stops. `done` still lists a cancelled run, because
     // seeing it is useful, but calling it a finish in the headline was the
@@ -399,7 +423,7 @@ function Today() {
     const needs =
       g === 0 ? "Nothing needs you." : g === 1 ? "One call needs you." : `${g} calls need you.`;
     return `${ran}. ${needs}`;
-  }, [loading, done, items.length, justLanded]);
+  }, [loading, done, items.length, justLanded, criticResult]);
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -485,6 +509,150 @@ function Today() {
           </>
         }
       />
+
+      {/* POST-ONBOARDING VALUE MOMENT: Show Critic analysis result */}
+      {justLanded && criticResult ? (
+        <div
+          style={{
+            background: "var(--sp-float)",
+            borderLeft: "4px solid var(--sp-accent)",
+            borderRadius: "var(--sp-radius-lg)",
+            padding: "20px",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div>
+              <div
+                style={{
+                  fontSize: "var(--sp-text-label)",
+                  color: "var(--sp-mute)",
+                  marginBottom: "6px",
+                }}
+              >
+                Your idea
+              </div>
+              <div
+                style={{ fontSize: "var(--sp-text-body)", color: "var(--sp-ink)", fontWeight: 500 }}
+              >
+                {criticResult.idea}
+              </div>
+            </div>
+
+            {criticResult.verdict ? (
+              <div>
+                <div
+                  style={{
+                    fontSize: "var(--sp-text-label)",
+                    color: "var(--sp-mute)",
+                    marginBottom: "6px",
+                  }}
+                >
+                  AI Analyst's assessment
+                </div>
+                <div
+                  style={{
+                    fontSize: "var(--sp-text-body)",
+                    color: "var(--sp-ink)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {criticResult.verdict}
+                </div>
+              </div>
+            ) : null}
+
+            {criticResult.challenges && criticResult.challenges.length > 0 ? (
+              <div>
+                <div
+                  style={{
+                    fontSize: "var(--sp-text-label)",
+                    color: "var(--sp-mute)",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Challenges to consider
+                </div>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: "20px",
+                    color: "var(--sp-mute)",
+                    fontSize: "var(--sp-text-meta)",
+                  }}
+                >
+                  {criticResult.challenges.slice(0, 3).map((challenge, i) => (
+                    <li key={i} style={{ marginBottom: "4px" }}>
+                      {challenge}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            <div style={{ display: "flex", gap: "8px", paddingTop: "8px" }}>
+              <Button variant="primary" onClick={() => navigate({ to: "/decide" })}>
+                See analysis →
+              </Button>
+              <Button variant="ghost" onClick={() => setCriticResult(null)}>
+                Try another idea
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* PRIMARY INTERFACE: Ask bar (agentic-first entry point) */}
+          <div
+            style={{
+              background: "var(--sp-float)",
+              border: "1px solid var(--sp-line)",
+              borderRadius: "var(--sp-radius-lg)",
+              padding: "20px",
+              marginBottom: "20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}
+          >
+            <div
+              style={{ fontSize: "var(--sp-text-label)", color: "var(--sp-mute)", fontWeight: 500 }}
+            >
+              What should we build?
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => openAsk()}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                fontSize: "var(--sp-text-body)",
+                textAlign: "left",
+                justifyContent: "space-between",
+                display: "flex",
+              }}
+            >
+              <span>Tell Supaprod what to build...</span>
+              <span
+                style={{
+                  fontFamily: "var(--sp-font-mono)",
+                  fontSize: "var(--sp-text-kbd)",
+                  marginLeft: "12px",
+                  flexShrink: 0,
+                }}
+              >
+                ⌘K
+              </span>
+            </Button>
+            <div
+              style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", lineHeight: 1.5 }}
+            >
+              Describe a feature, ask a question, or submit an idea. AI agents will analyze it,
+              suggest next steps, and build what you approve.
+            </div>
+          </div>
+        </>
+      )}
 
       {call ? (
         <Gate

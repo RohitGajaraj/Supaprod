@@ -1079,6 +1079,19 @@ export function ObsidianOnboarding() {
       // Move to results display before marking onboarded
       setPhase("results");
 
+      // Store Critic result for display on Today (post-onboarding value moment)
+      if (review && typeof window !== "undefined") {
+        window.sessionStorage.setItem(
+          "supaprod.onboarding.criticReview",
+          JSON.stringify({
+            idea: typed.slice(0, 200),
+            verdict: review.verdict,
+            confidence: review.confidence,
+            challenges: review.challenges,
+          }),
+        );
+      }
+
       await finishOnboarding();
     },
     onError: (e) => {

@@ -1348,7 +1348,7 @@ export function DiscoverSurface({
       {picking && focused ? (
         <Block title="Open bets">
           {opportunities.isLoading ? (
-            <Empty>Reading the queue.</Empty>
+            <Loading>Reading the queue.</Loading>
           ) : (opportunities.data?.opportunities ?? []).length === 0 ? (
             <Empty>
               There are no bets yet, so there is nothing to merge into. Keeping it makes the first
