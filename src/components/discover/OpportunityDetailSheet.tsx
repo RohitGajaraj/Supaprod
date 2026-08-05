@@ -79,6 +79,7 @@ import { submitPulse } from "@/lib/pulse.functions";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import { updateOpportunity } from "@/lib/discovery.functions";
 import type { CriticReview } from "@/lib/discovery.functions";
+import { getTeardownShareState, setTeardownShared } from "@/lib/opportunities-share.functions";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { ProductAnalyticsPanel } from "@/components/product/ProductAnalyticsPanel";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -93,6 +94,7 @@ import {
   Field,
   Input,
   Line,
+  Loading,
   Num,
   PageHead,
   Record as RecordRecess,
@@ -554,6 +556,240 @@ function TeardownPulse({ targetId }: { targetId: string }) {
           </Button>
         </Actions>
       </form>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Publishing the teardown
+ * ------------------------------------------------------------------ */
+
+/**
+ * PUBLISH THE TEARDOWN. The door onto the /t/<slug> page.
+ *
+ * THE DEFECT THIS CLOSES. Every part of the shareable teardown was built and
+ * deployed and none of it was reachable: the SSR route with verdict-aware
+ * preview cards (routes/t.$slug.tsx), the safe anon projection, the per-IP
+ * limiter, the RLS policy, the column grants, and a PreSignupCTA with a
+ * "teardown" variant already written for it. `getTeardownShareState` and
+ * `setTeardownShared` had zero call sites anywhere outside their own file, so
+ * nothing in the product could flip a bet public and no teardown ever had been.
+ *
+ * WHY HERE, AND NOT SOMEWHERE ELSE. Three surfaces could have held it:
+ *   - A workspace or account settings screen. Wrong: sharing is per bet, not
+ *     per workspace, and a person deciding whether THIS teardown is worth
+ *     showing anyone is not in settings and is not carrying the teardown in
+ *     their head when they get there.
+ *   - The queue row (OpportunityRow) or its menu. Wrong: the row deliberately
+ *     stopped drawing the teardown, so the control would be offering to publish
+ *     something the surface is not showing. Publishing what you cannot see is
+ *     the one press this should never be.
+ *   - This block, under the verdict itself. Right: it is the only place in the
+ *     product where the exact words that would go public are already on screen,
+ *     next to the Critic's mark that signed them. The disclosure below is then
+ *     a claim the reader can check by looking up, not a promise to trust.
+ *
+ * SHARING IS PUBLISHING, so the consequence is stated BEFORE the press, in the
+ * fields it actually is, and the read comes from `getTeardownShareState` rather
+ * than being assumed from a local flag.
+ */
+
+/** Exactly what a reader with the link gets. Every entry is a field
+ *  `getPublicTeardown` selects and `t.$slug.tsx` draws; nothing here is a
+ *  category or a guess. If that projection ever widens, this widens with it. */
+const PUBLISHED_FIELDS: string[] = [
+  "the title of this bet",
+  "the Critic verdict, and the confidence behind it",
+  "the summary the Critic wrote",
+  "the risks it listed",
+  "what it said would kill this",
+  "what it said you cannot prove yet",
+  "the date the bet was raised",
+];
+
+/** The columns anon is never granted, named so the sentence is checkable
+ *  against the migration rather than reassuring. */
+const WITHHELD_FIELDS =
+  "The problem, the hypothesis, the target user, your impact, confidence and ease scores, and every workspace, project and owner id stay behind the login.";
+
+/** A verdict the public page can actually render. `getPublicTeardown` returns
+ *  null for anything else, so publishing without one would mint a live link to
+ *  a page that reads "Not available". */
+function hasPublishableVerdict(review: CriticReview | null): boolean {
+  const v = review?.verdict;
+  return v === "ship" || v === "revise" || v === "kill";
+}
+
+function teardownLink(slug: string): string {
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  return `${origin}/t/${slug}`;
+}
+
+export function PublishTeardown({
+  opportunity,
+  disabled = false,
+}: {
+  opportunity: OpportunityDetailRecord;
+  disabled?: boolean;
+}) {
+  const qc = useQueryClient();
+  const fState = useServerFn(getTeardownShareState);
+  const fSet = useServerFn(setTeardownShared);
+  const key = React.useMemo(() => ["teardown-share", opportunity.id], [opportunity.id]);
+  const [copied, setCopied] = React.useState(false);
+
+  const state = useQuery({
+    queryKey: key,
+    queryFn: () => fState({ data: { id: opportunity.id } }),
+  });
+
+  const toggle = useMutation({
+    mutationFn: (isPublic: boolean) => fSet({ data: { id: opportunity.id, isPublic } }),
+    // The server hands back the row it just wrote, slug included, so the state
+    // shown after the press is the state the database holds, never an optimistic
+    // guess about it.
+    onSuccess: (res) => qc.setQueryData(key, res),
+  });
+
+  React.useEffect(() => {
+    if (!copied) return;
+    const t = window.setTimeout(() => setCopied(false), 1500);
+    return () => window.clearTimeout(t);
+  }, [copied]);
+
+  const copy = React.useCallback((slug: string) => {
+    const url = teardownLink(slug);
+    // Copying changes nothing, so it leaves no receipt. When the clipboard is
+    // blocked the link itself is put in front of the person to take by hand,
+    // which is why it is also printed above.
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(
+        () => setCopied(true),
+        () => toast.message(url),
+      );
+    } else {
+      toast.message(url);
+    }
+  }, []);
+
+  if (state.isPending) return <Loading>Checking whether this is public.</Loading>;
+
+  if (state.isError) {
+    return (
+      <Failed onRetry={() => void state.refetch()}>
+        Could not read whether this teardown is public, so nothing here says either way.
+      </Failed>
+    );
+  }
+
+  const s = state.data;
+  if (!s) return null;
+
+  // The write is unavailable, not the idea. Say which.
+  if (!s.available) {
+    return (
+      <Stated label="Publish this teardown">
+        Publishing lights up once the next sync applies the share columns to this workspace.
+      </Stated>
+    );
+  }
+
+  const failure = toggle.isError ? (toggle.error as Error).message : null;
+
+  if (s.is_public) {
+    const slug = s.share_slug;
+    return (
+      <>
+        <Stated label="This teardown is public">
+          Anyone with this link can read it, with no account and no sign in.
+        </Stated>
+        {slug ? (
+          <>
+            <Meta>
+              <a
+                href={teardownLink(slug)}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "var(--sp-ink)", wordBreak: "break-all" }}
+              >
+                {teardownLink(slug)}
+              </a>
+            </Meta>
+            <Actions>
+              <Button onClick={() => copy(slug)}>{copied ? "Copied" : "Copy the link"}</Button>
+              <Button
+                variant="ghost"
+                disabled={disabled || toggle.isPending}
+                onClick={() => toggle.mutate(false)}
+                title="Takes the page down. Anyone holding the link gets nothing."
+              >
+                {toggle.isPending ? "Making it private" : "Make it private"}
+              </Button>
+            </Actions>
+          </>
+        ) : (
+          <>
+            {/* is_public with no slug is not a state the migration can produce
+                (share_slug carries a CSPRNG default and a unique index), so it
+                is reported rather than papered over with a dead copy button. */}
+            <Failed>
+              This is marked public but carries no link, so there is nothing to hand anyone.
+            </Failed>
+            <Actions>
+              <Button
+                variant="ghost"
+                disabled={disabled || toggle.isPending}
+                onClick={() => toggle.mutate(false)}
+              >
+                {toggle.isPending ? "Making it private" : "Make it private"}
+              </Button>
+            </Actions>
+          </>
+        )}
+        {failure ? <Failed>{failure}</Failed> : null}
+      </>
+    );
+  }
+
+  const publishable = hasPublishableVerdict(opportunity.critic_review);
+
+  return (
+    <>
+      <Stated label="Publish this teardown">
+        It goes on the open web at a link that needs no account. What a reader gets:
+      </Stated>
+      <ul
+        style={{
+          margin: "var(--sp-space-1) 0 0",
+          paddingLeft: "1.1em",
+          fontSize: "var(--sp-text-meta)",
+          lineHeight: "var(--sp-leading-body)",
+          color: "var(--sp-body)",
+        }}
+      >
+        {PUBLISHED_FIELDS.map((f) => (
+          <li key={f}>{f}</li>
+        ))}
+      </ul>
+      <Meta>
+        {WITHHELD_FIELDS} You can make it private again at any time, and the link dies with it.
+      </Meta>
+      {publishable ? (
+        <Actions>
+          <Button
+            disabled={disabled || toggle.isPending}
+            onClick={() => toggle.mutate(true)}
+            title="Puts this teardown on the open web and gives you the link"
+          >
+            {toggle.isPending ? "Publishing it" : "Publish it and get the link"}
+          </Button>
+        </Actions>
+      ) : (
+        <Meta>
+          {`${agentDisplayName(CHALLENGER)} has not reached a verdict on this bet, so the public page would have nothing to render. Challenge it first and this becomes publishable.`}
+        </Meta>
+      )}
+      {failure ? <Failed>{failure}</Failed> : null}
     </>
   );
 }
@@ -1043,6 +1279,11 @@ export function OpportunityDetailSheet({
               {opportunity.critic_review?.summary ? (
                 <TeardownPulse targetId={opportunity.id} />
               ) : null}
+              {/* The door onto /t/<slug>. It sits under the verdict because
+                  this is the one surface where the exact words that would go
+                  public are already on screen, so the disclosure above the
+                  button is checkable by looking up rather than a promise. */}
+              <PublishTeardown opportunity={opportunity} disabled={busy} />
             </Block>
 
             {/* SW-7 step 3: the bet's judgment. Precedent recall in the record

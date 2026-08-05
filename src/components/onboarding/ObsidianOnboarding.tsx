@@ -36,6 +36,10 @@ import { markOnboarded } from "@/lib/onboarding-gate";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ArrivalMark } from "@/components/onboarding/ArrivalButterfly";
 import { AiPulse } from "@/components/obsidian/AiPulse";
+// The results screen's copy action reuses the receipt formatter the public
+// /p/teardown page already ships. One formatter, two surfaces, no drift.
+import { asPlainText } from "@/components/public/TeardownReceipt";
+import type { Teardown, TeardownVerdict } from "@/lib/ai/public-teardown.server";
 
 const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 // SW-7: multi-account suite providers (Calendar + Gmail/Outlook Mail), same
@@ -49,7 +53,63 @@ const SUITE_PROVIDERS: Partial<
   microsoft_mail: { provider: "microsoft", product: "mail" },
 };
 const TRACKS: OnboardingTrack[] = ["solo", "founding", "tech"];
-export const FALLBACK_BELIEF = "Mobile capture is our biggest gap";
+
+/**
+ * THE FIRST THING THIS PRODUCT EVER DID WAS JUDGE A STRANGER'S BET.
+ *
+ * A constant, `FALLBACK_BELIEF = "Mobile capture is our biggest gap"`, used to
+ * be the initial value of the belief input AND the initial value of
+ * `seededBeliefRef`. So a brand-new account that skimmed step 3 and pressed the
+ * button got a Critic teardown of a sentence they never wrote, about a product
+ * they do not have. That is the product's first act, spent on someone else.
+ *
+ * There is no default belief now. The box starts empty, and the Critic only
+ * ever judges what this user actually typed, pasted, or what their own
+ * workspace actually contains. The empty case is COMPOSED instead: this line
+ * tells them what to write, and it is pure so a test can pin it.
+ */
+export function beliefGuidance(seeded: string): string {
+  return seeded.trim()
+    ? "This is what Supaprod read from what you just connected. Edit it, or write your own bet."
+    : "Write the bet you want challenged, in your own words. The Critic reads only what is in this box.";
+}
+
+/** The verdict word the results screen stamps when a review arrives without
+ *  one. Shared with the copyable receipt so both say the same thing. */
+const VERDICT_WHEN_UNSTATED = "hold";
+
+/**
+ * A CriticReview, shaped for the ONE receipt formatter this product has.
+ *
+ * `asPlainText` already ships on the anonymous /p/teardown page, so onboarding
+ * reuses it rather than growing a second formatter that drifts from the first.
+ * Exported for the test that pins what a user actually gets on their clipboard.
+ */
+export function criticReviewAsShareable(review: {
+  verdict?: string;
+  summary?: string;
+  risks?: string[];
+  missing_evidence?: string[];
+  confidence?: number;
+}): Teardown {
+  return {
+    // The Critic's OWN verdict word, the same one stamped on the screen the
+    // user is looking at. `asPlainText` only ever uppercases this field, and
+    // translating "revise" into the public teardown's "needs work" would hand
+    // a reader a verdict the machine never returned. The widening cast is the
+    // honest move here; the vocabulary swap is not.
+    verdict: (review.verdict ?? VERDICT_WHEN_UNSTATED) as TeardownVerdict,
+    headline: review.summary ?? "",
+    // Every risk and every gap the Critic found, not the three and the one the
+    // screen has room for.
+    risks: review.risks ?? [],
+    gaps: review.missing_evidence ?? [],
+    // A CriticReview has no recommendation field. asPlainText drops the block
+    // when it is empty, which is the right outcome: absent beats invented.
+    recommendation: "",
+    confidence: review.confidence ?? 0,
+  };
+}
 
 // Presentation-only estimates (no such field exists on the connector
 // registry) - the copy the spec names verbatim, plus a sensible default.
@@ -411,6 +471,48 @@ function Screen({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * The results screen's second action: put the verdict on the clipboard.
+ *
+ * Reuses `asPlainText`, the receipt formatter the public teardown page already
+ * ships, so the text a new account pastes into a team channel is the same
+ * receipt a stranger gets, footer and all. A blocked clipboard is reported as a
+ * failure, never as a button that quietly does nothing.
+ */
+function CopyTeardown({ review }: { review: Parameters<typeof criticReviewAsShareable>[0] }) {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  return (
+    <Button
+      variant="tertiary"
+      style={{ width: "100%" }}
+      // Reports what the press DID, not what the button is.
+      aria-live="polite"
+      onClick={() => {
+        // Not every context has a clipboard (an insecure origin has none at
+        // all), and reading through it blind would throw inside the handler.
+        const clipboard = typeof navigator !== "undefined" ? navigator.clipboard : undefined;
+        if (!clipboard) {
+          setState("failed");
+          return;
+        }
+        void clipboard.writeText(asPlainText(criticReviewAsShareable(review))).then(
+          () => {
+            setState("copied");
+            window.setTimeout(() => setState("idle"), 2400);
+          },
+          () => setState("failed"),
+        );
+      }}
+    >
+      {state === "copied"
+        ? "Copied, paste it anywhere"
+        : state === "failed"
+          ? "Your browser blocked the clipboard"
+          : "Copy this teardown"}
+    </Button>
+  );
+}
+
 export function ObsidianOnboarding() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -468,7 +570,9 @@ export function ObsidianOnboarding() {
   const [productName, setProductName] = useState<string>("");
   const [pendingOneLiner, setPendingOneLiner] = useState<string>("");
   const fUpsertBrief = useServerFn(upsertBriefItem);
-  const [belief, setBelief] = useState<string>(FALLBACK_BELIEF);
+  // Empty on purpose. See `beliefGuidance` above: nothing this user did not
+  // write ever reaches the Critic.
+  const [belief, setBelief] = useState<string>("");
   const [beliefTarget, setBeliefTarget] = useState<{ kind: "opportunity"; id: string } | null>(
     null,
   );
@@ -519,15 +623,17 @@ export function ObsidianOnboarding() {
 
   // Tracks the exact prefilled title so mFinish can tell "user kept the
   // suggestion" (evidence-linked critic) from "user typed their own belief"
-  // (verbatim wedge teardown).
-  const seededBeliefRef = useRef<string>(FALLBACK_BELIEF);
+  // (verbatim wedge teardown). Empty until this user's own workspace actually
+  // hands us a title, so an untouched box can never read as a kept suggestion.
+  const seededBeliefRef = useRef<string>("");
 
   async function afterConnected() {
     // Track data_connected milestone
     await trackMilestone("data_connected");
 
-    // Pull a real seeded/connected opportunity to point the Critic at; fall
-    // back to the product belief if the workspace has none yet.
+    // Pull a real opportunity out of THIS user's workspace to point the Critic
+    // at. If there is none, fall back to the product name they typed, and to
+    // an empty box if they typed none. Never to a canned belief.
     try {
       const { opportunities } = await fListOpportunities();
       if (opportunities[0]) {
@@ -539,7 +645,8 @@ export function ObsidianOnboarding() {
         seededBeliefRef.current = productName;
       }
     } catch {
-      // Fall back to product name or constant belief
+      // The read failed. Fall back to the product name this user typed, and to
+      // nothing at all if they typed none.
       if (productName) {
         setBelief(productName);
         seededBeliefRef.current = productName;
@@ -1071,6 +1178,10 @@ export function ObsidianOnboarding() {
 
   if (phase === "critic") {
     const running = mFinish.isPending;
+    // The empty box is composed, not filled in with a stranger's bet: the
+    // guidance line says what to write, the placeholder shows the shape, and
+    // the disabled action says why it is disabled.
+    const beliefTooShort = belief.trim().length < 3;
     return (
       <Screen>
         <Frame
@@ -1079,8 +1190,16 @@ export function ObsidianOnboarding() {
           heading={running ? "Challenging your thinking…" : "Challenge your thinking."}
           showTimer={elapsed}
         >
+          <p
+            className="text-copy-13"
+            style={{ color: "var(--ds-gray-900)", margin: "0 0 10px", lineHeight: 1.55 }}
+          >
+            {beliefGuidance(seededBeliefRef.current)}
+          </p>
           <input
+            autoFocus
             aria-label="The belief the Critic will challenge"
+            placeholder="The one thing you believe that could be wrong"
             value={belief}
             disabled={running}
             onChange={(e) => setBelief(e.target.value)}
@@ -1110,7 +1229,11 @@ export function ObsidianOnboarding() {
           <div style={{ marginTop: 16 }}>
             <Button
               variant="accent"
-              disabled={running || belief.trim().length < 3}
+              disabled={running || beliefTooShort}
+              // Disabled pairs with an explanation, always.
+              title={
+                !running && beliefTooShort ? "Write the bet you want challenged first" : undefined
+              }
               onClick={() => mFinish.mutate()}
               style={{ width: "100%" }}
             >
@@ -1124,7 +1247,7 @@ export function ObsidianOnboarding() {
 
   // phase === "results" - show Critic findings + brain warming signals
   if (phase === "results") {
-    const verdict: string = criticReview?.verdict ?? "hold";
+    const verdict: string = criticReview?.verdict ?? VERDICT_WHEN_UNSTATED;
     const verdictColor =
       verdict === "ship"
         ? "var(--ds-green-900)"
@@ -1248,10 +1371,28 @@ export function ObsidianOnboarding() {
                 <ConfidenceBar value={criticReview.confidence ?? 0.5} />
               </div>
 
-              <div style={{ marginTop: 8 }}>
+              <div
+                style={{
+                  marginTop: 8,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--geist-space-2x)",
+                }}
+              >
                 <Button variant="accent" onClick={leave} style={{ width: "100%" }}>
                   Go to your workspace
                 </Button>
+                {/* THE MOST SHAREABLE THING A REAL USER EVER GETS FROM US, AND
+                    IT HAD NO WAY OUT OF THIS SCREEN.
+                    A verdict on the user's own bet, two minutes after signup,
+                    and the only action was to walk away from it. The public
+                    /p/teardown page has shipped copy-to-share for a stranger's
+                    pasted document since RPT-03; the account holder looking at
+                    a verdict on their own words had nothing. Same formatter,
+                    same promise: it copies rather than minting a link, because
+                    a share URL would mean persisting and publishing the review,
+                    which is the founder's call, not a side effect of a button. */}
+                <CopyTeardown review={criticReview} />
               </div>
             </div>
           ) : (

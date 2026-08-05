@@ -5,7 +5,29 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { getTrackSeed, type OnboardingTrack } from "@/lib/onboarding/track-seeds";
 import { callModel } from "@/lib/ai/runtime.server";
-import type { FunnelStage } from "@/lib/activation-funnel.types";
+import { ONBOARDING_MILESTONES, type ActivationMoment } from "@/lib/activation.functions";
+
+/**
+ * Record a moment from inside a server handler that already holds a verified
+ * session. Lazy import for the same reason the funnel import always was: this
+ * module is imported by a client component (ObsidianOnboarding), and the
+ * registry reaches the admin Supabase client.
+ *
+ * The moment is recorded server-side ON PURPOSE. The client fires the same
+ * moments too, and both resolve to one row (the funnel ledger deduplicates in
+ * the database, the stream deduplicates per user per name), but only this
+ * side survives a browser that navigated away mid-request. On launch day that
+ * is the difference between a drop-off you can see and one you cannot.
+ */
+async function noteMoment(
+  moment: ActivationMoment,
+  userId: string,
+  workspaceId: string | null,
+  metadata?: Record<string, unknown>,
+): Promise<void> {
+  const { recordActivationMoment } = await import("@/lib/activation.functions");
+  await recordActivationMoment({ moment, userId, workspaceId, metadata });
+}
 
 /**
  * Resolve the caller's default workspace, creating one (with an owner membership)
@@ -254,6 +276,24 @@ export const seedWorkspaceForTrack = createServerFn({ method: "POST" })
       //    an interrupted user is routed back here and the alreadySeeded
       //    guard above fast-forwards them.
 
+      // 7. The funnel's "data arrived" moment, fired from the server that did
+      //    the arriving. The sample-track seed is one of the three ways this
+      //    product's onboarding puts data in a workspace, and the client
+      //    already counted it as one (afterConnected runs on this path), so
+      //    this changes who reports it, not what is claimed. `path` keeps the
+      //    three ways tellable apart instead of flattening them.
+      //
+      //    Only on a genuine first seed. The alreadySeeded branch above returns
+      //    early on purpose: recording "connected" now for a workspace that
+      //    connected last week would date the milestone to today and quietly
+      //    bend the cohort it lands in.
+      await noteMoment("data_connected", userId, workspaceId, {
+        path: "track_seed",
+        track,
+        signals: seed.signals.length,
+        opportunities: seed.opportunities.length,
+      });
+
       return {
         success: true,
         alreadySeeded: false,
@@ -303,12 +343,41 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       throw new Error("Failed to complete onboarding (profile not found or RLS denied)");
     }
 
+    // The end of the funnel, recorded by the function that ends it. There is no
+    // funnel_milestones stage for "finished onboarding" (the CHECK admits five
+    // values and none of them is this), so the stream is its home. Until now it
+    // was accepted from the client and then dropped, which is exactly the step
+    // where a launch-day visitor is most likely to stop.
+    const { data: workspaceId } = await supabase.rpc("current_user_default_workspace");
+    await noteMoment("onboarding_completed", userId, (workspaceId as string | null) ?? null, {
+      path: "complete_onboarding",
+    });
+
     return { success: true };
   });
 
 /**
- * PC-02: Track onboarding funnel milestones for analytics (signup, product_named,
- * data_connected, critic_completed, onboarding_completed).
+ * PC-02: the client's report of an onboarding milestone.
+ *
+ * The private onboarding-to-funnel map that used to live here is gone: it was
+ * the second of three vocabularies for the same five moments, and every one of
+ * them now resolves in ONE registry (src/lib/activation.functions.ts), which is
+ * also what decides which of the two tables the row belongs in. The behaviour it
+ * encoded is preserved there exactly (data_connected resolves to the funnel
+ * stage `connected`, critic_completed to `first_teardown`, signup to `signup`),
+ * including the 2026-07-11 fix it was written for: the raw onboarding stage must
+ * never reach funnel_milestones, whose CHECK rejects it and whose error is
+ * swallowed, which is how `connected` and `first_teardown` stayed empty for a
+ * month.
+ *
+ * WHAT CHANGES: product_named and onboarding_completed are no longer dropped.
+ * They have no funnel stage, so they land in activation_events, which has no
+ * CHECK and can hold them. "Nothing to record" was never true; it meant nobody
+ * could see the two steps between connecting data and finishing.
+ *
+ * This stays a client-callable path because the client sees moments the server
+ * does not (product_named happens in a form). The moments the server does see
+ * are ALSO fired server-side now, and the two resolve to one row.
  */
 export const recordOnboardingMilestone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -316,13 +385,7 @@ export const recordOnboardingMilestone = createServerFn({ method: "POST" })
     z
       .object({
         workspaceId: z.string().uuid(),
-        stage: z.enum([
-          "signup",
-          "product_named",
-          "data_connected",
-          "critic_completed",
-          "onboarding_completed",
-        ]),
+        stage: z.enum(ONBOARDING_MILESTONES),
         metadata: z.record(z.unknown()).optional(),
       })
       .parse(i),
@@ -330,37 +393,27 @@ export const recordOnboardingMilestone = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { userId } = context;
 
-    // PC-06: the onboarding milestone set is a SUPERSET of the activation-funnel
-    // stages -- product_named / onboarding_completed are onboarding-only and have
-    // no funnel row. The two overlapping steps also carry different names on each
-    // side (data_connected -> connected, critic_completed -> first_teardown).
-    // Translate here and record ONLY genuine funnel stages. Before this map the
-    // raw onboarding stage was passed through with `as any` and inserted verbatim,
-    // where the funnel_milestones stage CHECK (signup/connected/first_teardown/
-    // first_mission/week_2_return) rejected data_connected/critic_completed/... and
-    // the error was swallowed -- so the "connected" and "first_teardown" funnel
-    // stages silently never populated. Dropping the cast restores the type check.
-    const FUNNEL_STAGE_BY_ONBOARDING: Partial<Record<typeof data.stage, FunnelStage>> = {
-      signup: "signup",
-      data_connected: "connected",
-      critic_completed: "first_teardown",
-    };
-    const funnelStage = FUNNEL_STAGE_BY_ONBOARDING[data.stage];
-
-    // Onboarding-only milestone (product_named / onboarding_completed): nothing to
-    // record in the activation funnel. Still a success from the caller's view.
-    if (!funnelStage) {
-      return { success: true };
-    }
-
     try {
-      const { trackFunnelMilestone } = await import("./activation-funnel.server");
-      await trackFunnelMilestone(data.workspaceId, userId, funnelStage, data.metadata);
-      return { success: true };
+      const { recordActivationMoment } = await import("@/lib/activation.functions");
+      const result = await recordActivationMoment({
+        moment: data.stage,
+        userId,
+        workspaceId: data.workspaceId,
+        metadata: data.metadata,
+      });
+      // The caller learns where the moment went and whether this call is the
+      // one that recorded it. `success` keeps its old meaning (the call did not
+      // fail); a duplicate is a success, not a failure.
+      return {
+        success: result.reason !== "write_failed",
+        sink: result.sink,
+        name: result.name,
+        recorded: result.recorded,
+      };
     } catch (e) {
       console.error("[PC-02] recordOnboardingMilestone failed:", e);
       // Fail gracefully - funnel tracking is non-critical
-      return { success: false };
+      return { success: false, sink: null, name: data.stage, recorded: false };
     }
   });
 
@@ -566,6 +619,17 @@ Key metric I care about: ${data.keyMetric}`;
     if (!profData || profData.length === 0) {
       throw new Error("Failed to mark profile as onboarded (RLS denied or profile not found)");
     }
+
+    // The Concierge is the third way data arrives, and the only path that also
+    // finishes onboarding in the same call, so it reports both moments. Same
+    // registry, same two rows anyone else would produce; `path` is what keeps
+    // "generated from their own context" distinguishable from a track seed.
+    await noteMoment("data_connected", userId, workspaceId, {
+      path: "concierge",
+      signals: signalRows.length,
+      opportunities: oppRows.length,
+    });
+    await noteMoment("onboarding_completed", userId, workspaceId, { path: "concierge" });
 
     return {
       success: true,
