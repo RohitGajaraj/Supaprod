@@ -206,7 +206,10 @@ export const FULL_LOG: LogEntry[] = [
     actor: "agent",
     agentName: "Sentry",
     station: 6,
-    msg: "Activation +8%. Call validated. Memory updated.",
+    // "Memory updated" is a database talking, and it is the last beat the
+    // reader sees, so it was the one place the replay sold storage instead of
+    // the thing that compounds. The payoff is what the next call inherits.
+    msg: "Activation +8%. Call validated. Next call sharper.",
     mark: true,
   },
 ];

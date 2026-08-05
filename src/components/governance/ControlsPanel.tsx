@@ -103,6 +103,29 @@ type EventType =
   | "outcome.recorded"
   | "decision.made";
 
+/**
+ * What each event IS, in the words the picker below already puts beside it.
+ *
+ * `signal.created` is the key the reactor routes on, and it was reaching the
+ * page in six places: the pipeline name, both add receipts, the live-event
+ * line, and the history rows. The dotted key is the engine's own address for a
+ * moment, and a person setting policy is owed the moment. An event this map
+ * has not seen prints its key rather than a guess, which is the honest failure
+ * on a surface about what runs unattended.
+ */
+const EVENT_WORD: Record<string, string> = {
+  "signal.created": "A new signal",
+  "opportunity.scored": "An opportunity scored",
+  "prd.approved": "A spec approved",
+  "signal.clustered": "Signals clustered",
+  "outcome.recorded": "An outcome recorded",
+  "decision.made": "A decision made",
+};
+
+function eventWord(type: string): string {
+  return EVENT_WORD[type] ?? type;
+}
+
 type OversightMode = "auto" | "confirm" | "review";
 
 /** What a decided write left behind. `handoff` is drawn only when something
@@ -147,11 +170,13 @@ const CONTROL_WORD = {
   color: "var(--sp-mute)",
 };
 
-/** What a reactor event is about, taken from its own payload. Falls back to the
- *  short source id rather than inventing a title for it. */
+/** What a reactor event is about, taken from its own payload. A payload with no
+ *  title is named generically rather than given an invented one - and never by
+ *  eight characters of its uuid, which asked "Let Scout run on 3f2a1b9c?" and
+ *  named nothing a person could recognise. */
 function eventLabel(e: { payload: unknown; source_id: string }): string {
   const t = (e.payload as Record<string, unknown> | null)?.title;
-  return typeof t === "string" && t.trim() ? t : e.source_id.slice(0, 8);
+  return typeof t === "string" && t.trim() ? t : "this event";
 }
 
 /** relTime hands back "now" for anything under a minute, so "now ago" has to be
@@ -249,7 +274,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     filter?: Record<string, unknown>;
   };
   const pipeName = (s: { event_type: string; target_agent_slug: string }) =>
-    `${s.event_type} → ${s.target_agent_slug}`;
+    `${eventWord(s.event_type)} → ${agentDisplayName(s.target_agent_slug)}`;
 
   const toggleSubMut = useMutation({
     mutationFn: (v: UpsertSubInput & { name: string }) => upsertSubFn({ data: v }),
@@ -270,8 +295,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
       commit(
         "You added a pipeline",
         v.approval_mode === "auto"
-          ? `${v.event_type} dispatches ${agentDisplayName(v.target_agent_slug)} the moment it fires, without asking you.`
-          : `${v.event_type} comes to you for a confirm before ${agentDisplayName(v.target_agent_slug)} runs.`,
+          ? `${eventWord(v.event_type)} dispatches ${agentDisplayName(v.target_agent_slug)} the moment it fires, without asking you.`
+          : `${eventWord(v.event_type)} comes to you for a confirm before ${agentDisplayName(v.target_agent_slug)} runs.`,
       );
       setAddOpen(false);
       qc.invalidateQueries({ queryKey: ["reactor", "subs"] });
@@ -437,7 +462,7 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                   >
                     <AgentMark slug={s.target_agent_slug} state={s.enabled ? "idle" : "quiet"} />
                     <span>
-                      <Num>{s.event_type}</Num> → {agentDisplayName(s.target_agent_slug)}
+                      <Num>{eventWord(s.event_type)}</Num> → {agentDisplayName(s.target_agent_slug)}
                     </span>
                   </span>
                 }
@@ -771,8 +796,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
           question={`Let ${agentDisplayName(live.target_agent_slug)} run on ${eventLabel(live)}?`}
           lines={[
             <>
-              <Num>{live.event_type}</Num> fired {firedPhrase(live.created_at)}, and this pipeline
-              asks you before it dispatches.
+              <Num>{eventWord(live.event_type)}</Num> fired {firedPhrase(live.created_at)}, and this
+              pipeline asks you before it dispatches.
             </>,
             <>Skipping runs nothing. The event stays on the record either way.</>,
           ]}
@@ -864,7 +889,8 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
                         }
                       />
                       <span>
-                        <Num>{e.event_type}</Num> to {agentDisplayName(e.target_agent_slug)}
+                        <Num>{eventWord(e.event_type)}</Num> to{" "}
+                        {agentDisplayName(e.target_agent_slug)}
                       </span>
                     </span>
                   }

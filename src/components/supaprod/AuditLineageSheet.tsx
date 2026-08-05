@@ -46,6 +46,7 @@ import { getMissionChain } from "@/lib/trust-chain.functions";
 import { MissionChain } from "@/components/trust/MissionChain";
 import { Empty, Failed, Loading } from "@/components/shell/primitives";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { artifactWord, relationWord } from "@/lib/artifact-words";
 
 export const OPEN_LINEAGE_EVENT = "supaprod:open-lineage";
 
@@ -139,18 +140,19 @@ function ChainNode({
   relation: string | null;
   onFollow: (ref: string) => void;
 }) {
+  const word = artifactWord(node.kind);
   const label = node.title
     ? stripAutoPrefix(node.title)
     : node.resolved
-      ? `A ${node.kind} with no title on the record`
-      : `A ${node.kind} we could not read`;
+      ? `A ${word} with no title on the record`
+      : `A ${word} we could not read`;
   return (
     <li className="sp-chain-node" data-resolved={node.resolved ? "true" : "false"}>
       <span className="sp-chain-mark" aria-hidden="true" />
       <div className="sp-chain-body">
         <div className="sp-chain-kind">
-          {node.kind}
-          {relation ? <span className="sp-chain-rel"> · {relation}</span> : null}
+          {word}
+          {relation ? <span className="sp-chain-rel"> · {relationWord(relation)}</span> : null}
         </div>
         <div className="sp-chain-title">{label}</div>
         <div className="sp-chain-meta">

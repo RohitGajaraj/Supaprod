@@ -40,6 +40,7 @@ import { getDecisionShareState, setDecisionShared } from "@/lib/decisions-share.
 import { runCriticReview } from "@/lib/discovery.functions";
 import { startOrchestratedMission } from "@/lib/orchestrator.functions";
 import type { GraphNode } from "@/lib/knowledge-graph-view";
+import { artifactWord } from "@/lib/artifact-words";
 import { Actions, Button, Receipt } from "@/components/shell/primitives";
 
 function copyShareLink(slug: string) {
@@ -138,7 +139,7 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
       commit({
         verb: "You sent this to the Critic",
         // The real verdict the server returned, not a confirmation of the click.
-        consequence: `It came back ${review.verdict}. The full review is on the ${node.kind === "prd" ? "spec" : node.kind}.`,
+        consequence: `It came back ${review.verdict}. The full review is on the ${artifactWord(node.kind)}.`,
         handoff: { slug: "critic", name: "Critic" },
       });
     },
@@ -154,13 +155,16 @@ export function GraphNodeActions({ node }: { node: GraphNode }) {
   const startMission = useMutation({
     mutationFn: () =>
       fStartMission({
-        data: { goal: `Follow up on: ${node.title || `this ${node.kind}`}`, title: node.title },
+        data: {
+          goal: `Follow up on: ${node.title || `this ${artifactWord(node.kind)}`}`,
+          title: node.title,
+        },
       }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["missions"] });
       commit({
         verb: "You started a mission",
-        consequence: `The crew is working on "${node.title || `this ${node.kind}`}" and it spends credits until it finishes or you stop it.`,
+        consequence: `The crew is working on "${node.title || `this ${artifactWord(node.kind)}`}" and it spends credits until it finishes or you stop it.`,
         handoff: { slug: "orchestrator", name: "Orchestrator" },
       });
       // Straight to the run's own surface, which is where the seven-stage

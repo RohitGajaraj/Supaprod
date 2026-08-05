@@ -276,7 +276,7 @@ const PER_COLUMN = 6;
  *  way actorName does, rather than lowercasing its output, because Engineer is
  *  a name and "queued for engineer" is a typo with extra steps. */
 function holderPhrase(s: StudioSessionListItem): string {
-  return s.kind === "build" ? actorName(s) : "the crew";
+  return s.kind === "build" ? actorName(s.kind) : "the crew";
 }
 
 /**
@@ -313,11 +313,11 @@ function cardSub(
   if (state === "working") {
     return (
       <>
-        <Who>{actorName(s)}</Who>
+        <Who>{actorName(s.kind)}</Who>
         {/* The verb only when there is no progress to report, because then it
             is the only thing known about the work and a name alone says less
             than the mark beside it already does. */}
-        {steps ? <> &middot; {steps}</> : <> is {actorVerb(s)}</>}
+        {steps ? <> &middot; {steps}</> : <> is {actorVerb(s.kind)}</>}
       </>
     );
   }
@@ -369,7 +369,7 @@ function cardSub(
   const when = ago(s.updated_at);
   return (
     <>
-      <Who>{actorName(s)}</Who>
+      <Who>{actorName(s.kind)}</Who>
       {when ? <> &middot; {when}</> : null}
     </>
   );
@@ -525,7 +525,7 @@ export function RunBoard({
                     <Cell
                       key={s.mission_id}
                       title={title}
-                      mark={<AgentMark slug={actorSlug(s)} state={mark} name={s.title} />}
+                      mark={<AgentMark slug={actorSlug(s.kind)} state={mark} name={s.title} />}
                       lead={title}
                       sub={cardSub(s, c.state, progressById.get(s.mission_id))}
                       onClick={() => onOpen(s.mission_id)}

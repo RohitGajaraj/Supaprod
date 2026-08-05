@@ -82,7 +82,10 @@ const LAYERS: Layer[] = [
   {
     n: "03",
     name: "the company brain",
-    claim: "It remembers, and it guides.",
+    // A filing cabinet remembers. What is actually being sold is that the last
+    // outcome changes the next call, which is the verb pair the whole product
+    // is bound to: it learns and it guides, it never remembers, stores or logs.
+    claim: "It learns, and it guides.",
     context:
       "Every decision is recorded with its evidence, then graded against what actually happened. It compounds. Next time it tells you what is right, and warns you before you repeat what was wrong.",
     hue: "#E8B44C",

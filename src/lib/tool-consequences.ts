@@ -157,17 +157,17 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     undo: "Delete the task.",
   },
   "notes.create": {
-    effect: "Saves a note to Knowledge.",
+    effect: "Adds a note to Knowledge.",
     reversible: "reversible",
     undo: "Delete the note.",
   },
   "signals.log": {
-    effect: "Logs a signal to the feed.",
+    effect: "Adds a signal to the feed.",
     reversible: "reversible",
     undo: "Delete the signal.",
   },
   "memory.remember": {
-    effect: "Writes a durable memory the agents recall later.",
+    effect: "Every run after this one is guided by it.",
     reversible: "reversible",
     undo: "Forget it in the agent's memory.",
   },
@@ -177,7 +177,7 @@ const CONSEQUENCES: Record<string, ToolConsequence> = {
     undo: "Demote or forget it.",
   },
   "memory.reflect": {
-    effect: "Records a self-reflection note.",
+    effect: "Draws a lesson from this run.",
     reversible: "reversible",
     undo: "Forget it.",
   },

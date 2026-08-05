@@ -92,10 +92,10 @@ export const Route = createFileRoute("/_authenticated/approvals")({
 const TOAST_APPROVE: Record<ApprovalQueueItem["kindKey"], string> = {
   tool_call: "Approved.",
   decision: "Approved.",
-  memory_candidate: "Saved to workspace memory.",
+  memory_candidate: "In. It guides the next call.",
   house_rule: "Approved.",
   trust_graduation: "Approved.",
-  spec: "Spec approved. The decision is logged.",
+  spec: "Spec approved. It becomes precedent.",
   opportunity: "Kept. It moves to Now on the roadmap.",
   assumption_challenge: "Reopened for review.",
   design_gate: "Design approved. This spec can now dispatch to Build.",
@@ -203,7 +203,22 @@ function ApprovalsSurface() {
   const rest = visibleItems.filter((i) => i.id !== focusedId);
   const groups = useMemo(() => groupByProject(rest), [rest]);
 
-  const queueKey = ["approvals", "queue", activeWorkspaceId];
+  /* THE OPTIMISTIC UPDATE ON THIS PAGE HAD NEVER WORKED, and it looked correct.
+   *
+   * This was `["approvals", "queue", activeWorkspaceId]` while the query that
+   * actually feeds the list reads `approvalsQueueKey(activeWorkspaceId)`, which
+   * is `["approvals-queue", ws]`. Two different keys, so onMutate wrote its
+   * filtered list into a cache entry NOTHING reads, and onError rolled back the
+   * same phantom. The settled row therefore stayed on screen with live buttons
+   * until the refetch landed, which is the very thing the optimistic update was
+   * written to prevent.
+   *
+   * This is the exact defect query-keys.ts was created to close, described in
+   * its own header: "Three key families also meant three caches of one number,
+   * so invalidating after an approval refreshed some of them and left the others
+   * showing a stale count." One hand-built key survived the migration. Use the
+   * helper, never a literal, so this cannot drift again. */
+  const queueKey = approvalsQueueKey(activeWorkspaceId);
   const decide = useMutation({
     mutationFn: (vars: { item: ApprovalQueueItem; verdict: "approve" | "reject" }) =>
       mDecide({

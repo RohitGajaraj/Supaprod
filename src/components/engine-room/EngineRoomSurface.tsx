@@ -258,7 +258,7 @@ export function EngineRoomGlance() {
               margin: "8px 0 0",
             }}
           >
-            Your judgment, amplified and remembered.
+            Your judgment, amplified and compounding.
           </p>
         </div>
       ) : null}

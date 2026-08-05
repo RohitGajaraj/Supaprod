@@ -51,20 +51,39 @@ export const MARK_STATE: Record<RunState, MarkState> = {
   done: "idle",
 };
 
+/** The one fact that decides who a run may be attributed to. 'build' means the
+ *  session carries `agent_slug='builder'` runs; 'mission' means it does not. */
+export type RunKind = StudioSessionListItem["kind"];
+
 /**
- * WHO IS ON THIS ROW. A 'build' row is selected by `agent_slug='builder'`, so
+ * WHO IS ON THIS RUN. A 'build' run is selected by `agent_slug='builder'`, so
  * naming Engineer is a fact rather than a guess. A goal run's holder lives in
  * `missions.current_agent_id`, a uuid with no client-reachable slug resolver,
  * so it stays "The crew": unspecific and true beats specific and invented.
+ *
+ * THESE TAKE THE KIND, not a list row, and that is the point. The run DETAIL
+ * page has no list row, so it answered the same question with its own hardcoded
+ * `const BUILDER = "builder"` and credited Engineer in the headline, in "Who is
+ * on it", in "What happens next", on every ledger row and on every receipt of
+ * EVERY run. "From a goal" is the default composer door, so most runs are
+ * orchestrator runs with no build agent in them at all, and the list one click
+ * back was correctly calling the same row "The crew". Attribution is the proof
+ * of the whole product: a surface that invents one, or that disagrees with the
+ * surface next to it about one, is the single claim this cannot afford to get
+ * wrong. Taking the kind is what lets both surfaces read the same mapping.
+ *
+ * Anything that is not 'build' resolves to the crew, so a page that has not
+ * loaded its kind yet is honest by construction rather than by the caller
+ * remembering to be.
  */
-export function actorSlug(s: StudioSessionListItem): string | null {
-  return s.kind === "build" ? "builder" : null;
+export function actorSlug(kind: RunKind | null | undefined): string | null {
+  return kind === "build" ? "builder" : null;
 }
-export function actorName(s: StudioSessionListItem): string {
-  return s.kind === "build" ? agentDisplayName("builder") : "The crew";
+export function actorName(kind: RunKind | null | undefined): string {
+  return kind === "build" ? agentDisplayName("builder") : "The crew";
 }
-export function actorVerb(s: StudioSessionListItem): string {
-  return (s.kind === "build" ? agentRelayVerb("builder") : null) ?? "working";
+export function actorVerb(kind: RunKind | null | undefined): string {
+  return (kind === "build" ? agentRelayVerb("builder") : null) ?? "working";
 }
 
 /** Plain-words relative time. Mono is applied by the caller, not here.

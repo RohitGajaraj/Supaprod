@@ -201,7 +201,7 @@ export const Route = createFileRoute("/api/public/hooks/researcher-tick")({
 
               // Synthesize competitive brief via AI
               const system = `You are a competitive intelligence analyst. Given web search results, write a concise 3-5 bullet competitive brief (plain text, no markdown headers, no em-dashes).
-Each bullet: one signal — a product update, market move, or pricing change worth knowing.
+Each bullet is one signal: a product update, market move, or pricing change worth knowing.
 Return only the bullets, nothing else.`;
 
               const userMsg = `Search queries: ${queries.join(", ")}\n\nResults:\n${snippets}`;

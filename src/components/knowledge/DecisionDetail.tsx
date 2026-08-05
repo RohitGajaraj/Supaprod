@@ -301,7 +301,7 @@ export function DecisionDetail({ id }: { id: string }) {
           <>
             <span className={outcome.tone || undefined}>{outcome.word}</span>
             {" · "}
-            {decidedBy} {d.status === "pending" ? "logged it" : "settled it"}
+            {decidedBy} {d.status === "pending" ? "raised it" : "settled it"}
             {" · from "}
             {SOURCE_LABEL[sourceKind]}
             {d.source_label ? ` (${d.source_label})` : ""}
@@ -359,7 +359,7 @@ export function DecisionDetail({ id }: { id: string }) {
               Open the {sourceNoun}
             </SourceLink>
           ) : (
-            <Value>Nothing to open. The call was logged by hand.</Value>
+            <Value>Nothing to open. The call was entered by hand.</Value>
           )}
         </Line>
       </Block>

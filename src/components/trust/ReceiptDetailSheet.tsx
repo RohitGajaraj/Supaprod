@@ -61,6 +61,7 @@ import {
 } from "@/components/shell/primitives";
 import { traceRef } from "@/components/discover/format";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
+import { artifactWord, relationWord } from "@/lib/artifact-words";
 import { setDecisionShared } from "@/lib/decisions-share.functions";
 import { getStageEvents } from "@/lib/stage-events.functions";
 import type { ReceiptEdge, TrustReceipt } from "@/lib/trust-ledger.functions";
@@ -252,7 +253,7 @@ export function ReceiptDetail({
           <Prose>No reasoning was recorded with this one.</Prose>
         )}
         {r.outcome === "proven" && r.provenBy ? (
-          <Prose>{r.provenBy.summary ?? `Proven by learning ${r.provenBy.id.slice(0, 8)}.`}</Prose>
+          <Prose>{r.provenBy.summary ?? "Proven by a learning with no summary on it."}</Prose>
         ) : null}
       </Block>
 
@@ -264,7 +265,9 @@ export function ReceiptDetail({
               <Row
                 key={`${e.kind}-${e.id}-${e.relation}`}
                 lead={stripAutoPrefix(e.label)}
-                sub={[e.kind, e.relation ?? "linked"].filter(Boolean).join(", ")}
+                sub={[e.kind ? artifactWord(e.kind) : null, relationWord(e.relation)]
+                  .filter(Boolean)
+                  .join(", ")}
                 tight
                 onClick={go ?? undefined}
               />
@@ -280,8 +283,8 @@ export function ReceiptDetail({
             return (
               <Row
                 key={`${s.kind}-${s.id}`}
-                lead={s.label ?? s.id.slice(0, 8)}
-                sub={s.kind}
+                lead={s.label ?? `Untitled ${artifactWord(s.kind)}`}
+                sub={artifactWord(s.kind)}
                 tight
                 onClick={go ?? undefined}
               />
@@ -290,7 +293,7 @@ export function ReceiptDetail({
         ) : (
           <Prose>
             {r.source.label
-              ? `${r.source.kind ? `${r.source.kind}: ` : ""}${r.source.label}`
+              ? `${r.source.kind ? `${artifactWord(r.source.kind)}: ` : ""}${r.source.label}`
               : r.kind === "decision"
                 ? "Recorded directly, with nothing upstream linked to it."
                 : "An autonomous action, decided at its own approval gate."}

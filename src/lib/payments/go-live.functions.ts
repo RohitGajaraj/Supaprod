@@ -53,10 +53,10 @@ export const getBillingGoLiveReadiness = createServerFn({ method: "GET" })
         ? "Live keys present."
         : sandboxReady
           ? providerId === "paddle"
-            ? "Sandbox only — live keys await the merchant-of-record account."
-            : "Sandbox only — live keys not set yet."
+            ? "Sandbox only. Live keys await the merchant-of-record account."
+            : "Sandbox only. Live keys are not set yet."
           : providerId === "paddle"
-            ? "Not configured — awaiting the merchant-of-record account (PADDLE_API_KEY / PADDLE_WEBHOOK_SECRET)."
+            ? "Not configured. Awaiting the merchant-of-record account (PADDLE_API_KEY / PADDLE_WEBHOOK_SECRET)."
             : "No keys configured for this rail.",
     });
 
@@ -158,7 +158,7 @@ export const getBillingGoLiveReadiness = createServerFn({ method: "GET" })
       status: lastSeen ? "pass" : "warn",
       detail: lastSeen
         ? `Last billing write ${lastSeen}.`
-        : "No billing writes recorded yet — run a sandbox checkout to prove the webhook path.",
+        : "No billing writes recorded yet. Run a sandbox checkout to prove the webhook path.",
     });
 
     // 5. The meter itself.
@@ -173,8 +173,8 @@ export const getBillingGoLiveReadiness = createServerFn({ method: "GET" })
       label: "Metering switch",
       status: "pass",
       detail: meterOn
-        ? "ON — debits are live."
-        : "OFF (dormant) — flip via the guarded admin toggle when every check above passes.",
+        ? "ON. Debits are live."
+        : "OFF (dormant). Flip via the guarded admin toggle when every check above passes.",
     });
 
     const readyToFlip = checks.every((c) => c.status !== "fail");

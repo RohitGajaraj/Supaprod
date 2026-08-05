@@ -75,6 +75,7 @@ function approvalAgentSlug(kind: ApprovalKind, explicit: string | null): string 
   return station ? (castByStation(station)[0]?.slug ?? null) : null;
 }
 import { ACTION_LABEL } from "@/lib/agent-vocabulary";
+import { sourceLabel } from "@/lib/memory-candidates";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import type { ApprovalItem } from "@/components/ink/ApprovalCard";
 import type { VerdictTone } from "@/components/ink/chips";
@@ -430,9 +431,12 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         kindTone: "neutral",
         title: c.content.length > 140 ? `${c.content.slice(0, 140)}…` : c.content,
         evidence,
-        impact: `importance ${c.importance ?? 3}/5 · from ${c.source_kind}`,
-        approveConsequence: "Approve · saves to workspace memory",
-        rejectConsequence: "Reject · nothing saved",
+        // Where it came from, in the words the memory surface already uses.
+        // The raw `source_kind` and the 1-5 importance are ranking inputs the
+        // decay sweep reads, not something a person weighs before approving.
+        impact: sourceLabel(c.source_kind),
+        approveConsequence: "Approve · it guides the next call",
+        rejectConsequence: "Reject · nothing changes",
         timestamp: c.created_at,
         projectId: null,
         projectName: null,
@@ -504,7 +508,7 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         title: p.title,
         evidence: [criticEvidenceLine(cr)],
         impact: "spec in review",
-        approveConsequence: "Approve · marks the spec approved and logs the decision",
+        approveConsequence: "Approve · the spec is approved and becomes precedent",
         rejectConsequence: "Reject · sends it back to draft",
         timestamp: p.updated_at,
         projectId: proj.id,

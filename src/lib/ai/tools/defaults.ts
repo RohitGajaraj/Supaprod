@@ -184,9 +184,9 @@ export const TOOL_DEFAULTS: Readonly<
   "notes.create": { mode: "confirm", enabled: true, label: "Create a note" },
 
   // Memory.
-  "memory.remember": { mode: "auto", enabled: true, label: "Remember this" },
-  "memory.reflect": { mode: "auto", enabled: true, label: "Reflect on memory" },
-  "memory.promote": { mode: "confirm", enabled: true, label: "Promote a memory" },
+  "memory.remember": { mode: "auto", enabled: true, label: "Learn from this" },
+  "memory.reflect": { mode: "auto", enabled: true, label: "Draw a lesson from a run" },
+  "memory.promote": { mode: "confirm", enabled: true, label: "Share a lesson with the crew" },
 };
 
 /**

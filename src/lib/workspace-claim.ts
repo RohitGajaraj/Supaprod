@@ -141,8 +141,8 @@ export function inventoryLines(inv: ClaimInventory): { label: string; count: num
     { label: "Decisions", count: inv.decisions },
     { label: "Learnings", count: inv.learnings },
     { label: "Lineage links", count: inv.artifactLineage },
-    { label: "Shared memories", count: inv.memoriesShared },
-    { label: "Private memories, kept private", count: inv.memoriesPrivate },
+    { label: "Shared lessons", count: inv.memoriesShared },
+    { label: "Private lessons, kept private", count: inv.memoriesPrivate },
   ];
 }
 

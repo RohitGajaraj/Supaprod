@@ -336,7 +336,7 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
           userId: ownerId,
         });
         if (dRes.error) {
-          console.error("[SF-AUTOTRIGGER] decision receipt update failed — audit gap", {
+          console.error("[SF-AUTOTRIGGER] decision receipt update failed, audit gap", {
             missionId,
             err: dRes.error.message,
           });

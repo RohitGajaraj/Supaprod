@@ -157,9 +157,7 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
             <ArrowRight size={16} strokeWidth={1.5} />
             Recommendation
           </div>
-          <p style={{ color: "var(--text-body)", lineHeight: 1.55 }}>
-            {teardown.recommendation}
-          </p>
+          <p style={{ color: "var(--text-body)", lineHeight: 1.55 }}>{teardown.recommendation}</p>
         </>
       ) : null}
 
@@ -201,19 +199,19 @@ export function TeardownReceipt({ teardown }: { teardown: Teardown }) {
       </div>
 
       {/* THE MOST SHAREABLE THING WE MAKE, AND IT HAD NO WAY OUT.
-        *
-        * A decision gets a public /d/<slug>, a teardown got nothing, so the one
-        * artifact a visitor actually wants to paste into a team channel died on
-        * their screen. That is the growth loop, missing.
-        *
-        * It copies rather than minting a link ON PURPOSE. This page's promise is
-        * "Your text is sent once to Supaprod's Critic to write this receipt.
-        * Nothing is stored to an account until you make one", and the API keeps
-        * that promise by persisting nothing at all. A share URL would require
-        * storing the teardown, which is a real change to that promise and the
-        * founder's call to make, not a side effect of a share button. Copying
-        * hands the reader the whole receipt, costs no schema, and leaves the
-        * privacy line true exactly as written. */}
+       *
+       * A decision gets a public /d/<slug>, a teardown got nothing, so the one
+       * artifact a visitor actually wants to paste into a team channel died on
+       * their screen. That is the growth loop, missing.
+       *
+       * It copies rather than minting a link ON PURPOSE. This page's promise is
+       * "Your text is sent once to Supaprod's Critic to write this receipt.
+       * Nothing is stored to an account until you make one", and the API keeps
+       * that promise by persisting nothing at all. A share URL would require
+       * storing the teardown, which is a real change to that promise and the
+       * founder's call to make, not a side effect of a share button. Copying
+       * hands the reader the whole receipt, costs no schema, and leaves the
+       * privacy line true exactly as written. */}
       <CopyReceipt teardown={teardown} />
 
       {/* Honest caption: what this receipt is, and what it is not. */}

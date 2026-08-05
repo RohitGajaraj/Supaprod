@@ -373,7 +373,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         name: "Pro",
         price: "$20/mo",
         tagline:
-          "One author, and the whole record is yours. Memory never fades, and nothing about it is held back for a higher plan.",
+          "One author, and the whole record is yours. It never stops guiding, and nothing about it is held back for a higher plan.",
         forWhom: "Built for one person doing product work that needs to compound. One seat.",
         hasCreditDropdown: true,
         hasBillingToggle: true,
@@ -383,10 +383,10 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // worth saying but are not why anyone upgrades. On Free the record fades at 30
           // days; that is the charge, so it goes first.
           "Everything in Free, plus:",
-          "Your decision record stops fading. It is kept for good.",
+          "Your decision record stops fading. It keeps guiding.",
           "Every spec and bet gets torn apart by the Critic before you commit to it",
           "Read connectors, unlimited sources. Connect your tools once and signals arrive on their own",
-          "Memory recalls across all your workspaces",
+          "What one workspace learned guides them all",
           "Up to 3 products, pooled workspaces",
           "Up to 3 agents running in parallel",
           // Founder ruling 2026-08-02: sharing is never presented as a locked row, and
@@ -492,7 +492,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
         name: "Free",
         price: "$0",
         tagline:
-          "The full product loop, free. Memory rolls 30 days. Upgrade when your work outgrows it.",
+          "The full product loop, free. It guides for 30 days. Upgrade when your work outgrows it.",
         forWhom: "Get started with Supaprod. No card, no commitment. One seat.",
         hasCreditDropdown: false,
         hasBillingToggle: false,
@@ -510,7 +510,7 @@ export function planPresentation(tier: PlanTier): PlanPresentation {
           // and the PlanPicker, both of which key off the "Read connectors" prefix.
           "Read connectors, up to 3 sources",
           "Share any decision by link. The reader needs no account and no seat.",
-          "Decision memory kept " + FREE_MEMORY_RETENTION_DAYS + " days, then it fades",
+          "Past calls guide the next for " + FREE_MEMORY_RETENTION_DAYS + " days, then fade",
           // RPT-14: the fade above is the AI's own recall cache, never the
           // decision record itself - decisions have no expiry in the schema
           // and the export never reads the fading table, so this is a real

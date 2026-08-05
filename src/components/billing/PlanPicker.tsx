@@ -167,7 +167,7 @@ export function PlanTable({
       <p style={{ ...META, margin: "var(--sp-space-3) 0 0" }}>
         {tab === "personal"
           ? "One seat. You are the only author, so nothing in your record is held back for a higher plan, and you can hand any decision to a colleague with a link."
-          : "Two seats minimum. Business is what appears once a second person starts writing decisions too. It is not a lock lifted on memory you already have."}
+          : "Two seats minimum. Business is what appears once a second person starts writing decisions too. It is not a lock lifted on what already guides you."}
       </p>
 
       <div

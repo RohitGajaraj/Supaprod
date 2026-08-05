@@ -27,6 +27,7 @@ import type { SurfaceHeaderState } from "@/components/mission/primitives/Surface
 import type { MissionStateId } from "@/lib/mission-vocabulary";
 import { drawWorkingLine } from "@/lib/mission-vocabulary";
 import {
+  ACTION_LABEL,
   castByStation,
   agentDisplayName,
   stepLabel,
@@ -816,7 +817,7 @@ export function SpecFace({ productId, loop, onActivateJourney }: FaceProps) {
         specs.length === 0
           ? {
               text: "No spec yet. Approve a bet and Draft turns it into a cited spec, or ask for one straight away.",
-              actionLabel: "Just write the PRD",
+              actionLabel: "Just write the spec",
               onAction: () => onActivateJourney?.("j3"),
             }
           : null
@@ -2416,7 +2417,9 @@ export function GrowthFace({ productId, loop, onActivateJourney }: FaceProps) {
                   key={a.id}
                   chip={
                     <>
-                      {a.tool_name ? <Chip>{a.tool_name}</Chip> : null}
+                      {/* The outcome-named caption, never the raw tool id: a
+                        chip reading "studio.pr.merge" is the engine talking. */}
+                      {a.tool_name ? <Chip>{ACTION_LABEL[a.tool_name] ?? "an action"}</Chip> : null}
                       {a.status ? <Chip>{a.status}</Chip> : null}
                     </>
                   }

@@ -57,6 +57,33 @@ const TERMINAL_RUN_STATUS = new Set([
   "halted",
 ]);
 
+/**
+ * Plain words for a run that is not currently working, in the voice of the
+ * sentence they land in ("The run is ... after 4 steps"). `agent_runs.status`
+ * is a column value, not something a person says, so it never reaches the
+ * page: "completed_with_failures" is the engine talking.
+ *
+ * An unrecognised status reads "still going" rather than the raw word, which
+ * is both honest (the poll above keeps watching anything outside the terminal
+ * set) and the safe direction to be wrong in.
+ */
+const RUN_WORD: Record<string, string> = {
+  queued: "queued",
+  in_progress: "still going",
+  waiting_approval: "waiting on you",
+  blocked: "waiting on you",
+  completed: "finished",
+  done: "finished",
+  completed_with_failures: "finished, with failures",
+  failed: "failed",
+  cancelled: "cancelled",
+  halted: "stopped",
+};
+
+function runWord(status: string): string {
+  return RUN_WORD[status] ?? "still going";
+}
+
 /** Plain words for one loop step. Never "thinking": an agent works. */
 function stepLine(step: LoopStep): string {
   if (step.kind === "tool_call") return ACTION_LABEL[step.name] ?? "working";
@@ -174,7 +201,7 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
           </>
         ) : data.run ? (
           <>
-            The run is <Num>{data.run.status}</Num> after <Num>{steps.length}</Num>{" "}
+            The run is <Num>{runWord(data.run.status)}</Num> after <Num>{steps.length}</Num>{" "}
             {steps.length === 1 ? "step" : "steps"}.
           </>
         ) : (
@@ -199,7 +226,7 @@ export function AskRunCard({ missionId, initials }: { missionId: string; initial
       {pending.map((a) => (
         <div key={a.id} style={{ marginTop: "var(--sp-space-4)" }}>
           <div className="sp-ctx-name">
-            It is waiting on you to allow {ACTION_LABEL[a.tool_name] ?? a.tool_name}.
+            It is waiting on you to allow {ACTION_LABEL[a.tool_name] ?? "this action"}.
           </div>
           {a.rationale ? <div className="sp-ctx-sub">{a.rationale}</div> : null}
           <Actions>

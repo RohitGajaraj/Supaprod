@@ -80,7 +80,7 @@ export function buildArdJsonSchema(origin: string) {
     $id: `${origin}${ARD_SCHEMA_PATH}`,
     title: "Supaprod Agent Requirements Document (ARD)",
     description:
-      "The published wire format for Supaprod's Outcome Contract: a typed, versioned acceptance contract a spec carries — intent, success metrics with their proof oracle, non-goals, a budget, and an ambiguity policy — the same contract Supaprod itself checks a build against.",
+      "The published wire format for Supaprod's Outcome Contract. A typed, versioned acceptance contract a spec carries: intent, success metrics with their proof oracle, non-goals, a budget, and an ambiguity policy. The same contract Supaprod itself checks a build against.",
     type: "object",
     properties: {
       ard_version: {

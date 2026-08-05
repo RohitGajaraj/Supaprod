@@ -49,7 +49,7 @@ function ProductPage() {
     {
       station: "Discover",
       headline: "All your signals in one place",
-      body: "Your Brain threads signals from 13+ tools into themes. No manual clustering. Human stays in the loop — every theme is a gate.",
+      body: "Your Brain threads signals from 13+ tools into themes. No manual clustering. Human stays in the loop: every theme is a gate.",
       capabilities: ["LIVE SIGNALS", "THEME CLUSTERING", "HUMAN GATE", "PRECEDENT CHECK"],
       imagePath: "/images/discover.png",
       imageAlt: "The Discover surface: signal fabric and theme clustering",

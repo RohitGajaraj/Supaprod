@@ -77,7 +77,7 @@ export const STAGE_DECKS: Record<MissionStage, readonly string[]> = {
     "scoring impact against effort",
     "stress-testing the top pick",
     "arguing the other side",
-    "checking the bet against memory",
+    "checking the bet against precedent",
     "reading past outcomes for a precedent",
     "weighing what it costs to wait",
     "narrowing the field",
@@ -156,7 +156,7 @@ export const STAGE_DECKS: Record<MissionStage, readonly string[]> = {
     "checking whether the bet held",
     "flagging what surprised us",
     "writing the verdict",
-    "feeding the result back to memory",
+    "feeding the result into the next call",
     "drafting the recap",
     "looking for the second-order effect",
     "closing the loop",
@@ -241,8 +241,8 @@ export const AGENT_SIGNATURE_LINES: Record<string, readonly string[]> = {
 export const AMBIENT_BRIDGE_LINES: readonly string[] = [
   "picking up where it left off",
   "handing the work to the next agent",
-  "checking memory before starting",
-  "writing down what just happened",
+  "checking what worked before starting",
+  "learning from what just happened",
   "queuing the next step",
 ];
 

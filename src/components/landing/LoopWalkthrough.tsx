@@ -33,8 +33,8 @@ import { LoopReplay, type ReplayTab } from "./replay/Replay";
 const REPLAY_RECEIPTS = [
   { label: "Named agents", gloss: "Every step is signed by the agent that ran it." },
   { label: "Human gates", gloss: "The merge waits for your approval." },
-  { label: "Precedent memory", gloss: "Past calls surface before this one is made." },
-  { label: "Outcome grading", gloss: "The result is scored and kept." },
+  { label: "Precedent first", gloss: "Past calls surface before this one is made." },
+  { label: "Outcome grading", gloss: "The result is scored, and it guides." },
 ] as const;
 export function LoopWalkthrough() {
   const [activeTab, setActiveTab] = useState<ReplayTab>("full");

@@ -239,7 +239,7 @@ export function GauntletMetricsPanel() {
   let liftBlocked = "Not enough data yet.";
   if (lift && liftReady && !liftBounded) {
     liftBlocked =
-      "Your memory store is larger than we can score in one pass right now, so this is withheld rather than under-reported.";
+      "Your record is larger than we can score in one pass right now, so this is withheld rather than under-reported.";
   } else if (lift && liftReady && liftBounded && liftPoints == null) {
     if (lift.reason === "not-enough-outcomes") {
       liftBlocked =
@@ -297,7 +297,7 @@ export function GauntletMetricsPanel() {
           judgment, which is what separates a claim from a statistic. */}
       <Block
         title="Outcome accuracy"
-        sub="We do not claim a causal memory lift here. That needs an on and off control we do not have, so this is the validated share and nothing more."
+        sub="We do not claim that learning caused this. That needs an on and off control we do not have, so this is the validated share and nothing more."
       >
         {accuracyQ.isLoading ? (
           <Loading>Reading what your bets came to.</Loading>
@@ -330,8 +330,8 @@ export function GauntletMetricsPanel() {
       </Block>
 
       <Block
-        title="Memory-depth split"
-        sub="Correlational, within your account. It compares bets by how much precedent had accumulated when each was decided, never a memory on and off test, so getting better with practice could explain it instead."
+        title="Precedent-depth split"
+        sub="Correlational, within your account. It compares bets by how much precedent had accumulated when each was decided, never an on and off test, so getting better with practice could explain it instead."
       >
         {liftQ.isLoading ? (
           <Loading>Reading the split.</Loading>
@@ -363,14 +363,14 @@ export function GauntletMetricsPanel() {
       </Block>
 
       <Block
-        title="Memory compounds"
-        sub="Of what the loop stored, the share it has read back at least once. A store the loop reopens is a moat; one it never reopens is a log. Net dollar retention is deliberately absent: it needs recurring revenue, so it lands once billing ships."
+        title="Learning compounds"
+        sub="Of what the loop learned, the share it has read back at least once. Learning it reopens is a moat; learning it never reopens is a log. Net dollar retention is deliberately absent: it needs recurring revenue, so it lands once billing ships."
       >
         {memQ.isLoading ? (
-          <Loading>Reading the store.</Loading>
+          <Loading>Reading the record.</Loading>
         ) : memError ? (
           <Failed onRetry={() => void memQ.refetch()}>
-            The store did not load, so nothing here is a claim about what it remembers. {memError}
+            The record did not load, so nothing here is a claim about what it learned. {memError}
           </Failed>
         ) : memHasData ? (
           <>
@@ -378,7 +378,7 @@ export function GauntletMetricsPanel() {
               label="Recalled back"
               sub={
                 <>
-                  <Num>{mem.recalled}</Num> of the <Num>{mem.stored}</Num> memories it holds
+                  <Num>{mem.recalled}</Num> of the <Num>{mem.stored}</Num> lessons learned
                 </>
               }
             >
@@ -388,7 +388,7 @@ export function GauntletMetricsPanel() {
             </Line>
             <Line
               label="New this week"
-              sub="The loop writes one each time it records an outcome or an agent reflects on a run."
+              sub="The loop learns one each time an outcome lands or an agent reflects on a run."
             >
               <Value>
                 <Num>{`+${mem.newThisWeek}`}</Num>
@@ -406,8 +406,8 @@ export function GauntletMetricsPanel() {
         ) : (
           <Empty>
             {memReady
-              ? "Not enough data yet, nothing is stored. The loop writes a memory each time it records an outcome or an agent reflects on a run, then reads them back on its next pass."
-              : "Not enough data yet. Memory tracking lights up on the next sync."}
+              ? "Not enough data yet, nothing learned. The loop learns each time an outcome lands or an agent reflects on a run, then draws on it the next pass."
+              : "Not enough data yet. This lights up on the next sync."}
           </Empty>
         )}
       </Block>

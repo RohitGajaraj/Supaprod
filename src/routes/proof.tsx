@@ -32,7 +32,7 @@ export const Route = createFileRoute("/proof")({
       {
         name: "description",
         content:
-          "Supaprod's own calibration score and public decision receipts — published, including the misses.",
+          "Supaprod's own calibration score and public decision receipts. Published, including the misses.",
       },
       { property: "og:title", content: "The Ledger" },
       {
@@ -177,7 +177,7 @@ function CalibrationHero({
               margin: 0,
             }}
           >
-            This page updates automatically as calibrated outcomes land — we would rather show you
+            This page updates automatically as calibrated outcomes land. We would rather show you
             an honest zero than a number that isn't real yet.
           </p>
         </>
@@ -226,7 +226,7 @@ function ProofPage() {
             style={{ fontSize: 13, color: "var(--ink-muted, #4a4438)", margin: 0, lineHeight: 1.6 }}
           >
             No public decisions yet. Every one of these is a real call from Supaprod's own build,
-            shared by its owner, receipt and all, never seeded or staged — that is why this section
+            shared by its owner, receipt and all, never seeded or staged. That is why this section
             is honestly empty until one exists.
           </p>
         </div>

@@ -233,7 +233,7 @@ function AdminProof() {
     <>
       <Block
         title={title}
-        sub="The claim this page exists to support: the system gets measurably better at this workspace's decisions as its memory grows. Every figure below is read from real records, and a measure with nothing behind it says so rather than showing a zero."
+        sub="The claim this page exists to support: the system gets measurably better at this workspace's decisions as it learns more of them. Every figure below is read from real records, and a measure with nothing behind it says so rather than showing a zero."
       >
         {measures.map((m) => (
           <Row key={m.id} lead={m.claim} sub={m.backing} time={m.figure} />
@@ -260,7 +260,7 @@ function AdminProof() {
         <Row
           tight
           lead="Engine room, Quality"
-          sub="Acceptance, autonomy, ritual retention, outcome accuracy and memory compounding"
+          sub="Acceptance, autonomy, ritual retention, outcome accuracy and compounding learning"
           onClick={() => void navigate({ to: "/engine-room", search: { room: "quality" } })}
         />
       </Block>

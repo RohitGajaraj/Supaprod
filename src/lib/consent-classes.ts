@@ -79,7 +79,7 @@ const CLASSES: Record<ConsequenceClassId, ConsequenceClass> = {
     id: "internal-write",
     label: "Internal writes",
     description:
-      "Writes that stay inside your workspace (tasks, notes, memory, plans). Reversible.",
+      "Writes that stay inside your workspace (tasks, notes, lessons, plans). Reversible.",
     defaultPosture: {
       posture: "ask-first",
       mode: "confirm",

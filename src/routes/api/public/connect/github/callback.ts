@@ -101,7 +101,7 @@ export const Route = createFileRoute("/api/public/connect/github/callback")({
           // via polling (invalidateQueries) and shows the toast there.
           return new Response(
             `<!DOCTYPE html><html><head><meta charset="utf-8">
-<title>GitHub Connected — Supaprod</title>
+<title>GitHub Connected - Supaprod</title>
 <style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0a0a0a;color:#e5e5e5;text-align:center}</style>
 </head><body>
 <div><h2 style="color:#f97316;margin-bottom:.5rem">GitHub connected</h2>

@@ -53,7 +53,7 @@ export function AuditTag({
             trace();
           }
         }}
-        title={title ?? `Trace ${tag} — its full audit trail`}
+        title={title ?? `Trace ${tag}: its full audit trail`}
         aria-label={`Trace audit id ${tag}`}
         className="loom-press outline-none transition-colors hover:[color:var(--text-primary)] hover:[border-color:var(--ember-line)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
         style={{

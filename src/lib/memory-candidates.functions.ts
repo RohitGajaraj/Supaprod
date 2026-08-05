@@ -359,7 +359,7 @@ export const decideMemoryCandidate = createServerFn({ method: "POST" })
     }
     if (!emb) {
       throw new Error(
-        "Could not embed this memory, so it would not be recallable. Nothing was saved; try approving again.",
+        "This could not be filed in a way the agents would ever reach, so nothing changed. Try approving again.",
       );
     }
 

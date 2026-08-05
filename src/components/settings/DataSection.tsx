@@ -211,12 +211,12 @@ export function DataSection({ workspaceId }: { workspaceId?: string }) {
           sub={
             closed ? (
               <>
-                Every product, signal, opportunity, decision, spec, task, outcome and memory row,
+                Every product, signal, opportunity, decision, spec, task, outcome and lesson,
                 including the <Num>{closed.decisionsClosed}</Num> decisions closed and{" "}
                 <Num>{closed.prsShipped}</Num> pull requests shipped here. No selection, no lock-in.
               </>
             ) : (
-              "Every product, signal, opportunity, decision, spec, task, outcome and memory row. No selection, no lock-in."
+              "Every product, signal, opportunity, decision, spec, task, outcome and lesson. No selection, no lock-in."
             )
           }
         >

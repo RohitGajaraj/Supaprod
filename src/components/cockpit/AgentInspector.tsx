@@ -114,7 +114,7 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
           label="Which one"
           // A different fact from the control beside it: the control says WHICH
           // agent, this says what picking one gets you.
-          sub="Its last runs, and the memory it draws on, both read live."
+          sub="Its last runs, and what it draws on, both read live."
           htmlFor="agent-inspector-pick"
         >
           <Select
@@ -172,18 +172,18 @@ export function AgentInspector({ agents }: { agents: AgentLite[] }) {
 
       <Block
         title="What it knows"
-        sub="Its own memory, plus the shared pool every agent here can draw on."
+        sub="What it learned itself, plus the shared pool every agent here draws on."
       >
         {memQ.isLoading ? (
-          <Loading>Reading its memory.</Loading>
+          <Loading>Reading what it learned.</Loading>
         ) : memQ.isError ? (
           <Failed onRetry={() => memQ.refetch()}>
-            Its memory did not load, so this is not everything it holds.
+            This did not load, so it is not everything the agent goes on.
           </Failed>
         ) : memories.length === 0 ? (
           <Empty>
-            {name} holds nothing yet. It writes a memory after a run it can learn from, and it can
-            read anything the crew has put in the shared pool.
+            {name} has learned nothing yet. It draws a lesson after a run it can learn from, and it
+            reads anything the crew has put in the shared pool.
           </Empty>
         ) : (
           memories.map((m) => (

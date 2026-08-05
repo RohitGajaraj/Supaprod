@@ -86,7 +86,7 @@ export function GraphCompoundingStrip({
 
   return (
     <Block
-      title="Your memory, compounding"
+      title="Your record, compounding"
       // Different information from the title, not a restatement: this is the
       // read on the graph BELOW, not a standing claim.
       sub="Measured over the nodes in view, and over the last ninety days of runs."
@@ -109,13 +109,13 @@ export function GraphCompoundingStrip({
       ) : (
         <>
           <Line
-            label="What it remembers"
+            label="What it learned"
             sub={
               mem?.tableReady
                 ? mem.stored > 0
                   ? `${mem.newThisWeek} of them landed this week`
-                  : "Nothing stored yet, so there is nothing to compound"
-                : "Lights up after the next sync applies the memory tables"
+                  : "Nothing learned yet, so there is nothing to compound"
+                : "Lights up after the next sync"
             }
           >
             {mem?.tableReady && mem.stored > 0 ? (
@@ -128,7 +128,7 @@ export function GraphCompoundingStrip({
           </Line>
 
           <Line
-            label="What remembering bought"
+            label="What learning bought"
             sub={
               lift?.tableReady && lift.liftPoints != null
                 ? "Runs with richer precedent validated more often, over ninety days"

@@ -50,6 +50,7 @@ import { decideApproval } from "@/lib/agent_loop.functions";
 import { createDecision } from "@/lib/decisions.functions";
 import { LOOM_CARD, SkeletonBlock } from "@/components/studio/studio-ui";
 import { stripAutoPrefix } from "@/components/plan/format";
+import { traceRef } from "@/components/discover/format";
 import { StageTimeline } from "@/components/shared/StageTimeline";
 import { useConfirm } from "@/hooks/use-confirm";
 import { supabase } from "@/integrations/supabase/client";
@@ -484,7 +485,7 @@ function TraceHop({
                 }}
               >
                 {showMemories ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                memory context · {h.recalled_memories.length}
+                what guided it · {h.recalled_memories.length}
               </button>
               {showMemories ? (
                 <div className="fade-up" style={{ marginTop: 4 }}>
@@ -616,8 +617,8 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       `# ${stripAutoPrefix(data.mission.title)}: compounding snapshot`,
       "",
       n === 0
-        ? "This mission started fresh. No prior memory recalled yet."
-        : `Drew on ${n} prior ${n === 1 ? "memory" : "memories"}:`,
+        ? "This mission started fresh. Nothing earlier has guided it yet."
+        : `Drew on ${n} earlier ${n === 1 ? "lesson" : "lessons"}:`,
       ...memories.map(
         (mem) =>
           `- ${mem.summary}${mem.agents.size ? ` (cited by ${[...mem.agents].join(", ")})` : ""}`,
@@ -649,7 +650,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       {n === 0 ? (
         <p style={{ color: "var(--text-body)", lineHeight: 1.5 }}>
           This mission started fresh. As the loop runs it draws on what it has already learned, and
-          that memory compounds here. The next mission on this product will not start cold.
+          that compounds here. The next mission on this product will not start cold.
         </p>
       ) : (
         <>
@@ -664,7 +665,7 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
               {n}
             </span>
             <span style={{ color: "var(--text-body)", lineHeight: 1.4 }}>
-              prior {n === 1 ? "memory" : "memories"} this mission drew on, instead of starting cold
+              earlier {n === 1 ? "lesson" : "lessons"} guided this mission, instead of starting cold
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -941,7 +942,11 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             <MonoLabel
               style={{ color: "color-mix(in oklab, var(--text-primary) 60%, transparent)" }}
             >
-              Mission · {data.mission.id.slice(0, 8)}
+              {/* The platform's own trace ref, the same six characters the
+                Build page and every audit tag show, so a person can paste it
+                into Ask or the lineage pane. Eight characters off the front of
+                a uuid is a database key wearing a label. */}
+              Mission · {traceRef(data.mission.id)}
             </MonoLabel>
             <h1
               style={{

@@ -36,7 +36,12 @@ describe("evaluateTriggers — clusters", () => {
     const out = evaluateTriggers({ themes: [theme({ frequency: CLUSTER_FREQUENCY_THRESHOLD })] });
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe("cluster");
-    expect(out[0].title.startsWith(AUTO_TITLE_PREFIX)).toBe(true);
+    // The title is CLEAN now. The "[auto] " marker was a dedup key living in a
+    // display column and it leaked to the founder three times; provenance moved
+    // to missions.auto_trigger_source and decisions.auto_origin in migration
+    // 20260805120000. This asserts the marker never comes back.
+    expect(out[0].title.startsWith(AUTO_TITLE_PREFIX)).toBe(false);
+    expect(out[0].title).toBe('Investigate the "Off-hours latency" cluster');
     expect(out[0].reversible).toBe(true);
   });
 
@@ -110,7 +115,9 @@ describe("evaluateTriggers — Watch (discovery-scout) proposals", () => {
     expect(out).toHaveLength(1);
     expect(out[0].kind).toBe("watch-scan");
     expect(out[0].agentSlug).toBe("discovery-scout");
-    expect(out[0].title.startsWith(AUTO_TITLE_PREFIX)).toBe(true);
+    // Clean title, same reason as the cluster case above.
+    expect(out[0].title.startsWith(AUTO_TITLE_PREFIX)).toBe(false);
+    expect(out[0].title).toBe("Watch: review recent signals");
     expect(out[0].reversible).toBe(true);
   });
 
@@ -299,7 +306,8 @@ describe("evaluateTriggers — re-discovery gate", () => {
   });
 
   it("drops a near-identical cluster against an ALREADY-OPEN mission", () => {
-    const open = new Set([`${AUTO_TITLE_PREFIX} Investigate the "Redundant Data Entry" cluster`]);
+    // Open titles come off missions, which no longer carry the marker.
+    const open = new Set(['Investigate the "Redundant Data Entry" cluster']);
     const out = evaluateTriggers(
       { themes: [theme({ id: "y", title: "Redundant Data Entry causing Checkout Abandonment" })] },
       open,

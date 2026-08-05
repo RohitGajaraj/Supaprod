@@ -78,7 +78,7 @@ export function MemoryList() {
           marginBottom: "var(--sp-space-3)",
         }}
       >
-        <Num>{totalAll}</Num> stored
+        <Num>{totalAll}</Num> learned
         {totalAll > rows.length ? (
           <>
             {" · showing the "}

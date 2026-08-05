@@ -256,7 +256,7 @@ function SwitchesBlock() {
           sub={
             expiryOn
               ? "On. New memories for free-tier users expire 14 days after they are written; existing ones are kept."
-              : "Off. Everything the machine remembers for a free-tier user is kept indefinitely."
+              : "Off. Nothing the machine learns for a free-tier user ever fades."
           }
         >
           <Switch

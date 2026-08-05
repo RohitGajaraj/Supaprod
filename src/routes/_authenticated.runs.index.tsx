@@ -188,7 +188,7 @@
 
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import * as React from "react";
 import { z } from "zod";
 
@@ -608,10 +608,26 @@ function BuildPage() {
   const [deleteTarget, setDeleteTarget] = React.useState<StudioSessionListItem | null>(null);
   const [receipts, setReceipts] = React.useState<CommitReceipt[]>([]);
 
+  /* MANAGING IS A VIEW, AND A VIEW MUST NOT COST THE SURFACE ITS DATA.
+   *
+   * `managing` has to stay in the key. `["studio-sessions", false]` is a shared
+   * cache entry: the seven-stage strip on this very page and the board panel
+   * both ride it (see use-spine-strip.ts and BoardPanel.tsx), and widening this
+   * read to includeArchived: true would orphan /runs onto a second five second
+   * poll of the same rows.
+   *
+   * But a key change lands on an empty cache entry, and every region below was
+   * gated on that emptiness, so pressing Manage blanked the whole surface -
+   * every row, the gate, the headline, the context column, and the Manage
+   * button itself - and slammed it back a moment later. keepPreviousData holds
+   * the answer already on screen until the wider one arrives, the same way the
+   * top bar's pulse holds its line across a refetch. The rows it holds are
+   * true, just not yet the full set; archived ones announce themselves. */
   const sessions = useQuery({
     queryKey: ["studio-sessions", managing],
     queryFn: () => fList({ data: { includeArchived: managing } }),
     refetchInterval: 5000,
+    placeholderData: keepPreviousData,
   });
 
   // The connection state is visible before the hand-over, so "not connected" is
@@ -623,7 +639,17 @@ function BuildPage() {
   });
 
   const rows = React.useMemo(() => sessions.data?.sessions ?? [], [sessions.data]);
-  const loading = sessions.isLoading;
+  /* "NOTHING TO SHOW YET" IS THE QUESTION, NOT "IS A FETCH IN FLIGHT".
+   *
+   * The regions below used to ask `sessions.isLoading`, which is a fetch state:
+   * it goes true again on any read that starts with an empty cache entry, and
+   * answering a fetch state by rendering nothing is how a surface that HAS an
+   * answer ends up blank. Ask whether an answer is on hand instead.
+   *
+   * An error IS an answer, so it is excluded here and handled by the branch
+   * that follows every use of this flag. Without that exclusion a first load
+   * that failed would render nothing at all and never say why. */
+  const firstLoad = !sessions.data && !sessions.isError;
 
   const waiting = React.useMemo(
     () =>
@@ -729,7 +755,7 @@ function BuildPage() {
   // The headline shows the station name instantly; data fills in from cache.
   // Never say "Reading" — that advertises latency.
   const headline = React.useMemo(() => {
-    if (loading) return "Build";
+    if (firstLoad) return "Build";
     if (sessions.isError) return "The runs did not load.";
     const ran =
       running === 0
@@ -759,7 +785,7 @@ function BuildPage() {
           ? "One run needs you."
           : `${waiting.length} runs need you.`;
     return `${ran}. ${needs}`;
-  }, [loading, sessions.isError, running, waiting.length]);
+  }, [firstLoad, sessions.isError, running, waiting.length]);
 
   /* ---- THE SPINE ----
    * FOUNDER RULING 2026-07-30: "if you click on the run section, why is that
@@ -906,7 +932,7 @@ function BuildPage() {
       </div>
 
       {board ? (
-        loading ? (
+        firstLoad ? (
           <Loading>Reading the record.</Loading>
         ) : sessions.isError ? (
           <Failed onRetry={() => void sessions.refetch()}>
@@ -932,7 +958,7 @@ function BuildPage() {
             onOpen={openRun}
           />
         )
-      ) : loading ? null : sessions.isError ? (
+      ) : firstLoad ? null : sessions.isError ? (
         <Gate question="The runs did not load.">
           <Button variant="primary" onClick={() => void sessions.refetch()}>
             Try again
@@ -1020,7 +1046,7 @@ function BuildPage() {
           more={rows.length > VISIBLE ? (showAll ? "Show fewer" : `All ${rows.length}`) : undefined}
           onMore={() => setShowAll((v) => !v)}
         >
-          {loading ? null : sessions.isError ? (
+          {firstLoad ? null : sessions.isError ? (
             // "Nothing here" and "we could not find out" are different facts and
             // a person acts differently on each, so they never share a shape.
             <Failed onRetry={() => void sessions.refetch()}>
@@ -1055,7 +1081,7 @@ function BuildPage() {
                 state === "working"
                   ? [
                       <>
-                        <Who>{actorName(s)}</Who> is {actorVerb(s)}
+                        <Who>{actorName(s.kind)}</Who> is {actorVerb(s.kind)}
                       </>,
                       steps,
                     ]
@@ -1072,10 +1098,10 @@ function BuildPage() {
                     : state === "stopped"
                       ? [steps ? <>Stopped at {steps}</> : "Stopped"]
                       : state === "queued"
-                        ? [`Queued for ${actorName(s).toLowerCase()}`]
+                        ? [`Queued for ${actorName(s.kind).toLowerCase()}`]
                         : [
                             <>
-                              <Who>{actorName(s)}</Who> finished
+                              <Who>{actorName(s.kind)}</Who> finished
                             </>,
                             files > 0 ? (
                               <>
@@ -1130,7 +1156,9 @@ function BuildPage() {
                 <Row
                   key={s.mission_id}
                   tight
-                  marks={<AgentMark slug={actorSlug(s)} state={MARK_STATE[state]} name={s.title} />}
+                  marks={
+                    <AgentMark slug={actorSlug(s.kind)} state={MARK_STATE[state]} name={s.title} />
+                  }
                   lead={stripAutoPrefix(s.title)}
                   sub={<Meta parts={sub} />}
                   time={ago(s.updated_at)}
@@ -1140,7 +1168,10 @@ function BuildPage() {
             })
           )}
 
-          {loading || sessions.isError || rows.length === 0 ? null : (
+          {/* The control that turns Managing on has to survive turning it on.
+              Gated on isLoading this button removed itself the instant it was
+              pressed, so the toggle had no visible off switch for a beat. */}
+          {firstLoad || sessions.isError || rows.length === 0 ? null : (
             <Actions>
               <Button variant="ghost" onClick={() => setManaging((v) => !v)}>
                 {managing ? "Done" : "Manage"}

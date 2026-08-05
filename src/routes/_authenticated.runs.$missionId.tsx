@@ -78,10 +78,17 @@
  *
  * f. WHERE THE CREW APPEARS, AND WHAT IT PROVES. Remove the agents and this
  *    surface is empty, not merely plainer.
- *    - Attribution on EVERY row. The ledger's step rows used to carry no mark
- *      at all, so the majority of this page's rows were work with nobody
- *      attached to it. Each act now carries Engineer's mark; your ask and your
- *      notes carry yours.
+ *    - Attribution on EVERY row, and NEVER a name the record does not hold.
+ *      The ledger's step rows used to carry no mark at all, so the majority of
+ *      this page's rows were work with nobody attached to it. Each act now
+ *      carries the holder's mark; your ask and your notes carry yours.
+ *      The holder is resolved once, from the run's kind, through the same
+ *      run-state.ts mapping the run LIST uses: Engineer on a 'build' session,
+ *      because getStudioSession selects those runs by agent_slug='builder',
+ *      and "The crew" on a goal-run, whose holder is a uuid this client cannot
+ *      resolve to a name. This page used to hardcode Engineer onto both, which
+ *      credited a build agent that was never in the run. Attribution is the
+ *      proof of the product; an invented one is the one claim it cannot afford.
  *    - Work in motion, while it happens: exactly one running mark on the page
  *      (the live run and its latest act), the live phrase in the headline and
  *      in the context column, and the silence age. It stops the moment the run
@@ -124,7 +131,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { agentDisplayName, agentRelayVerb, stepLabel } from "@/lib/agent-vocabulary";
+import { stepLabel } from "@/lib/agent-vocabulary";
 import { REVERSIBILITY_LABEL, toolConsequence } from "@/lib/tool-consequences";
 import { stripAutoPrefix } from "@/components/plan/format";
 import {
@@ -167,10 +174,7 @@ import {
   type MarkState,
 } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
-
-/** Every run on this surface is the build agent's. Display name comes from the
- *  catalog, so a rename there lands here with no change. */
-const BUILDER = "builder";
+import { actorName, actorSlug, actorVerb } from "@/components/runs/run-state";
 
 /** The three views this run's output is worth looking at. */
 type Tab = "changes" | "preview" | "receipts";
@@ -309,16 +313,23 @@ function markFor(status: string): MarkState {
 
 /** What the crew is doing, in plain words. NEVER "thinking": that is the word
  *  that turns a worker into a chatbot, and stepLabel returns it for a thought
- *  step, so a thought falls back to the agent's own relay verb instead. */
-function actionOf(step: StepLike | undefined): string {
+ *  step, so a thought falls back to the holder's own relay verb instead.
+ *
+ *  The verb is PASSED IN rather than looked up here, because this file used to
+ *  hold the builder slug as a constant and reached for it from module scope.
+ *  Only the component knows which kind of run this is, so only the component
+ *  can say whose verb it is. See `actorVerb` in runs/run-state.ts. */
+function actionOf(step: StepLike | undefined, holderVerb: string): string {
   if (step && step.kind === "tool_call") return stepLabel(step);
-  return agentRelayVerb(BUILDER) ?? "working";
+  return holderVerb;
 }
 
 /** What the run is doing, in the agent's own voice. Present tense while it is
  *  alive, past tense once it is not. */
-function runPhrase(run: StudioRunDetail): string {
-  if (run.status === "running") return `is ${actionOf(run.steps[run.steps.length - 1])}`;
+function runPhrase(run: StudioRunDetail, holderVerb: string): string {
+  if (run.status === "running") {
+    return `is ${actionOf(run.steps[run.steps.length - 1], holderVerb)}`;
+  }
   if (run.status === "queued") return "is waiting to start";
   if (run.status === "waiting_approval") return "is waiting on you";
   if (run.status === "completed") return "finished";
@@ -329,10 +340,14 @@ function runPhrase(run: StudioRunDetail): string {
 
 /** The live caption. When no run is alive but the mission still is, say so
  *  rather than going quiet: continuous feedback, never dead air. */
-function currentAction(runs: StudioRunDetail[], missionLive: boolean): string | null {
+function currentAction(
+  runs: StudioRunDetail[],
+  missionLive: boolean,
+  holderVerb: string,
+): string | null {
   const liveRun = [...runs].reverse().find((r) => r.status === "running" || r.status === "queued");
   if (!liveRun) return missionLive ? "lining up the next run" : null;
-  return actionOf(liveRun.steps[liveRun.steps.length - 1]);
+  return actionOf(liveRun.steps[liveRun.steps.length - 1], holderVerb);
 }
 
 /** Why a note will not be read, or null while the run can still take one. All
@@ -464,7 +479,7 @@ function approveVerb(tool: string): string {
  *  per-tool table. Never a paraphrase: this is a safety property, and the
  *  claim may not outrun the wiring. The agent's own reasoning sits beneath,
  *  in quotes, because a claim is not a receipt. */
-function gateLines(a: StudioApproval): React.ReactNode[] {
+function gateLines(a: StudioApproval, holder: string): React.ReactNode[] {
   const c = toolConsequence(a.tool_name);
   const lines: React.ReactNode[] = [
     <span key="effect">{c.effect}</span>,
@@ -475,7 +490,7 @@ function gateLines(a: StudioApproval): React.ReactNode[] {
   if (a.rationale) {
     lines.push(
       <span key="why">
-        {agentDisplayName(BUILDER)} says: &ldquo;{clip(a.rationale, 200)}&rdquo;
+        {holder} says: &ldquo;{clip(a.rationale, 200)}&rdquo;
       </span>,
     );
   }
@@ -540,6 +555,23 @@ function BuildRun() {
   // A mission with no build-agent run is an orchestrator goal-run, not a build
   // session: it has no changeset, no PR and no diff, so it renders its own body.
   const isOrchestrator = data?.kind === "mission";
+  /* WHO THIS PAGE IS ALLOWED TO NAME, read from the SAME mapping the run
+   * list reads (runs/run-state.ts) so one run cannot be Engineer here and
+   * The crew one click back.
+   *
+   * THE DEFECT THIS REPLACES: this file held `const BUILDER = "builder"` and
+   * spent it unconditionally on the headline, on "Who is on it", on "What
+   * happens next", on every ledger row and on every receipt. `getStudioSession`
+   * selects runs by `agent_slug='builder'`, so that is a fact for a 'build'
+   * session and an invention for every other one. "From a goal" is the default
+   * composer door, so most runs ARE the other one: orchestrator goal-runs with
+   * no build agent in them at all, whose holder is `missions.current_agent_id`,
+   * a uuid with no client-reachable slug resolver and never something to print.
+   * Attribution is the proof of the whole product, so where the worker cannot
+   * be resolved this says "The crew" and stops there. */
+  const holder = actorName(data?.kind);
+  const holderSlug = actorSlug(data?.kind);
+  const holderVerb = actorVerb(data?.kind);
   const mission = (data?.mission ?? null) as MissionRow | null;
   const runs = (data?.runs ?? []) as StudioRunDetail[];
   const changeset = (data?.changeset ?? null) as
@@ -596,14 +628,38 @@ function BuildRun() {
   // furthest stage that actually happened. Once you pick, your pick holds.
   const [pickedStage, setPickedStage] = React.useState<AgentStation | null>(null);
   const stages = stagesQ.data?.stages ?? null;
-  const stage: AgentStation = pickedStage ?? stagesQ.data?.focus ?? "build";
+
+  /* AUTO-FOCUS IS A LANDING, NOT A SUBSCRIPTION.
+   *
+   * THE DEFECT: `stage` used to read `stagesQ.data?.focus` straight through on
+   * every render. The session query paints the Build body first and this one
+   * lands about a second later, and `getRunStages` puts focus on ship or learn
+   * for any merged changeset, which is every successful run. So the person
+   * watched the ledger, the steer box and the diff vanish a second after they
+   * appeared, with no message and nothing they did to cause it. Reading it
+   * through also meant every 8s refetch could move the region again, out from
+   * under someone mid-read.
+   *
+   * So the landed focus is copied into state exactly once, on the first settle,
+   * and the copy is what the region follows. `prev ?? landed` is the whole
+   * guard: after the first write there is nothing left for a refetch to change.
+   * Until it lands, `stage` stays "build", which is the body already on screen.
+   */
+  const [landedFocus, setLandedFocus] = React.useState<AgentStation | null>(null);
+  const focus = stagesQ.data?.focus ?? null;
+  React.useEffect(() => {
+    if (!focus) return;
+    setLandedFocus((prev) => prev ?? focus);
+  }, [focus]);
+
+  const stage: AgentStation = pickedStage ?? landedFocus ?? "build";
 
   usePublishRunStrip(stages ? { stages, active: stage, onSelect: (s) => setPickedStage(s) } : null);
 
   const isLive =
     mission?.status === "running" ||
     runs.some((r) => ["queued", "running", "waiting_approval"].includes(r.status));
-  const liveAction = isLive ? currentAction(runs, mission?.status === "running") : null;
+  const liveAction = isLive ? currentAction(runs, mission?.status === "running", holderVerb) : null;
 
   /* ---- the human ---- */
   const [me, setMe] = React.useState<{ email: string | null; name: string | null }>({
@@ -682,7 +738,7 @@ function BuildRun() {
         key: `steer-${Date.now()}`,
         verb: "You sent a note",
         consequence: isLive
-          ? `${agentDisplayName(BUILDER)} reads it at its next step.`
+          ? `${holder} reads it at its next step.`
           : "It waits for the next run to read it.",
         at: clock(),
         handoff: isLive,
@@ -730,10 +786,10 @@ function BuildRun() {
       out.push(
         <Row
           key={run.run_id}
-          marks={<AgentMark slug={BUILDER} state={markFor(run.status)} />}
+          marks={<AgentMark slug={holderSlug} name={holder} state={markFor(run.status)} />}
           lead={
             <>
-              <Who>{agentDisplayName(BUILDER)}</Who> {runPhrase(run)}
+              <Who>{holder}</Who> {runPhrase(run, holderVerb)}
             </>
           }
           sub={
@@ -783,7 +839,8 @@ function BuildRun() {
             tight
             marks={
               <AgentMark
-                slug={BUILDER}
+                slug={holderSlug}
+                name={holder}
                 state={
                   failedStep ? "failed" : alive && i === last && !isThought ? "running" : "quiet"
                 }
@@ -804,7 +861,7 @@ function BuildRun() {
       });
     }
     return out;
-  }, [runs, mission, initials, showAll]);
+  }, [runs, mission, initials, showAll, holder, holderSlug, holderVerb]);
 
   /* ---- the headline: the state, and whose run this is ---- */
   const title = mission ? stripAutoPrefix(mission.title) : null;
@@ -812,7 +869,7 @@ function BuildRun() {
   const started = startedAt(mission?.created_at);
   const sub = mission ? (
     <>
-      {isLive && liveAction ? `${agentDisplayName(BUILDER)} is ${liveAction}` : stateWord}
+      {isLive && liveAction ? `${holder} is ${liveAction}` : stateWord}
       {started ? <> · you asked for this {started}</> : null}
     </>
   ) : undefined;
@@ -866,11 +923,12 @@ function BuildRun() {
       <CtxRow
         mark={
           <AgentMark
-            slug={BUILDER}
+            slug={holderSlug}
+            name={holder}
             state={isLive ? "running" : mission.status === "failed" ? "failed" : "quiet"}
           />
         }
-        name={agentDisplayName(BUILDER)}
+        name={holder}
         sub={liveAction ?? stateWord}
       />
 
@@ -907,8 +965,8 @@ function BuildRun() {
             />
           ) : isLive ? (
             <CtxRow
-              mark={<AgentMark slug={BUILDER} state="running" />}
-              name={`${agentDisplayName(BUILDER)} carries on`}
+              mark={<AgentMark slug={holderSlug} name={holder} state="running" />}
+              name={`${holder} carries on`}
               sub="it does not need you for this part"
             />
           ) : null}
@@ -981,7 +1039,7 @@ function BuildRun() {
       <PageHead title={title} sub={sub} />
 
       {call ? (
-        <Gate question={gateQuestion(call.tool_name)} lines={gateLines(call)}>
+        <Gate question={gateQuestion(call.tool_name)} lines={gateLines(call, holder)}>
           <Button
             variant="primary"
             disabled={busy}
@@ -1007,8 +1065,8 @@ function BuildRun() {
               already in scope: the surface uses it for the verb on the button. */}
           {busy ? (
             <AgentPulse
-              label={`${agentDisplayName(BUILDER)} is carrying on`}
-              seed={BUILDER}
+              label={`${holder} is carrying on`}
+              seed={holderSlug ?? missionId}
               detail={call.tool_name}
             />
           ) : null}
@@ -1023,7 +1081,7 @@ function BuildRun() {
               initials={initials}
               verb={r.verb}
               consequence={r.consequence}
-              handoff={r.handoff ? { slug: BUILDER } : null}
+              handoff={r.handoff ? { slug: holderSlug, name: holder } : null}
               time={r.at}
               failed={r.failed}
             />
@@ -1039,7 +1097,7 @@ function BuildRun() {
               <Row
                 key={a.id}
                 tight
-                marks={<AgentMark slug={BUILDER} state="gate" />}
+                marks={<AgentMark slug={holderSlug} name={holder} state="gate" />}
                 lead={gateQuestion(a.tool_name)}
                 sub={toolConsequence(a.tool_name).effect}
                 time={ago(a.created_at)}
@@ -1052,7 +1110,15 @@ function BuildRun() {
       {/* The work region follows the strip. Build keeps the full body it was
           redesigned to carry; the other six render what the record actually
           holds for this run, and a door to the surface that holds the rest.
-          You never leave the run to walk its own lifecycle. */}
+          You never leave the run to walk its own lifecycle.
+
+          A NON-BUILD STAGE IS ADDED ABOVE, NEVER SWAPPED IN. This used to be
+          one ternary, so choosing ship (or having it chosen for you by the
+          late-landing focus) took the ledger, the steer box and the diff off
+          the screen entirely. The proof of the run is the reason the page
+          exists; a stage panel is a second thing to read, not a replacement
+          for the first. Selecting Build in the strip collapses the panel and
+          leaves the body where it already was. */}
       {stage !== "build" ? (
         <StagePanel
           station={stage}
@@ -1062,7 +1128,9 @@ function BuildRun() {
           error={stagesQ.isError ? clip((stagesQ.error as Error)?.message ?? "", 200) : null}
           onRetry={() => void stagesQ.refetch()}
         />
-      ) : isOrchestrator ? (
+      ) : null}
+
+      {isOrchestrator ? (
         <Block title="What happened, in order">
           <MissionOrchestratorDetail missionId={missionId} />
         </Block>
@@ -1081,8 +1149,8 @@ function BuildRun() {
           >
             {ledger.length === 0 ? (
               <Empty>
-                Nothing has run yet. {agentDisplayName(BUILDER)} picks this up on its own and the
-                steps land here as they happen.
+                Nothing has run yet. {holder} picks this up on its own and the steps land here as
+                they happen.
               </Empty>
             ) : showAll ? (
               ledger

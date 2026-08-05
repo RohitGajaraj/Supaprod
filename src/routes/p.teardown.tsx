@@ -221,18 +221,18 @@ function TeardownPage() {
             }}
           >
             {/* THE BLANK BOX WAS THE CONVERSION KILLER.
-              *
-              * This page asks a stranger to produce a PRD before it will show
-              * them anything. The example lived in the placeholder, where it
-              * cannot be used: you have to retype it. Every grader tool that
-              * works (Lighthouse, Website Grader) hands you a specimen to run,
-              * because the point of the first run is to show what the output
-              * looks like, not to grade the visitor's writing.
-              *
-              * One press fills the box with the same bet the placeholder was
-              * already showing, so nothing new is claimed and the visitor is
-              * one further press from a real receipt. It hides itself once
-              * there is text, so it never competes with their own input. */}
+             *
+             * This page asks a stranger to produce a PRD before it will show
+             * them anything. The example lived in the placeholder, where it
+             * cannot be used: you have to retype it. Every grader tool that
+             * works (Lighthouse, Website Grader) hands you a specimen to run,
+             * because the point of the first run is to show what the output
+             * looks like, not to grade the visitor's writing.
+             *
+             * One press fills the box with the same bet the placeholder was
+             * already showing, so nothing new is claimed and the visitor is
+             * one further press from a real receipt. It hides itself once
+             * there is text, so it never competes with their own input. */}
             {trimmed ? (
               <span
                 className="mono-label"

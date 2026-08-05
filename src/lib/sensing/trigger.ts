@@ -151,10 +151,47 @@ export const TITLE_OVERLAP_FLOOR = 0.6;
  * which is the one outcome worse than a duplicate.
  */
 const STOP_WORDS = new Set([
-  "the","a","an","and","or","to","of","in","on","at","for","with","by","from",
-  "is","are","was","were","be","been","being","that","this","these","those",
-  "it","its","as","into","during","causes","causing","leads","leading","cause",
-  "cluster","investigate","issue","issues","problem","problems",
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "to",
+  "of",
+  "in",
+  "on",
+  "at",
+  "for",
+  "with",
+  "by",
+  "from",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "that",
+  "this",
+  "these",
+  "those",
+  "it",
+  "its",
+  "as",
+  "into",
+  "during",
+  "causes",
+  "causing",
+  "leads",
+  "leading",
+  "cause",
+  "cluster",
+  "investigate",
+  "issue",
+  "issues",
+  "problem",
+  "problems",
   // The boilerplate every auto title carries. Without these the wrapper words
   // are the comparison: two unrelated clusters both reduced to {"auto"} and
   // scored a perfect 1.0 against each other, which suppressed real work. Caught
@@ -231,8 +268,27 @@ export function shouldAutoPromote(opts: {
   );
 }
 
+/**
+ * The proposal's title, and it is now just the title.
+ *
+ * This used to return `[auto] ${label}`. The marker was a DEDUP KEY living in a
+ * DISPLAY column, which is the design flaw behind three separate leaks to the
+ * founder, and it was reaching further than any screen: it went into AI prompts
+ * and into embeddings, so "[auto]" became a literal token in the brain's own
+ * semantic memory, shared by every auto-raised decision.
+ *
+ * Provenance moved to real columns in migration 20260805120000
+ * (`decisions.auto_origin`, `missions.auto_trigger_source`), which also stripped
+ * the marker from all 195 existing rows. The tick now finds its own open work by
+ * that column instead of by this prefix, so both halves changed together.
+ *
+ * AUTO_TITLE_PREFIX and isAutoMissionTitle are deliberately KEPT below rather
+ * than deleted: a row written before the migration, or restored from an older
+ * backup, can still carry the marker, and stripAutoPrefix on the read path is
+ * the belt to this migration's braces.
+ */
 function autoTitle(label: string): string {
-  return `${AUTO_TITLE_PREFIX} ${label}`;
+  return label;
 }
 
 function truncate(s: string, n: number): string {

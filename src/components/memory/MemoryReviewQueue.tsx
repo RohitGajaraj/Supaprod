@@ -158,7 +158,7 @@ export function MemoryReviewQueue() {
             v.decision === "reject"
               ? "It never entered the record."
               : res.superseded
-                ? "It is in the record, and the memory it replaced was retired."
+                ? "It is in the record, and what it contradicts was retired."
                 : "It is in the record. Every run from here reads it.",
           at: stamp(),
         },
@@ -220,8 +220,8 @@ export function MemoryReviewQueue() {
                   <span key="sup">
                     <b>Letting it in retires</b>{" "}
                     {supersedesPreview(focused.supersedes_content)
-                      ? `the memory it contradicts: "${supersedesPreview(focused.supersedes_content)}"`
-                      : "the memory it contradicts."}
+                      ? `what it contradicts: "${supersedesPreview(focused.supersedes_content)}"`
+                      : "what it contradicts."}
                   </span>,
                 ]
               : []),
@@ -275,7 +275,7 @@ export function MemoryReviewQueue() {
               // there, and whether letting it in costs an existing memory.
               sub={
                 willSupersede(c.supersedes_memory_id)
-                  ? `${whoLine(c.source_kind)} · replaces a memory`
+                  ? `${whoLine(c.source_kind)} · replaces an earlier one`
                   : whoLine(c.source_kind)
               }
               time={relativeTime(c.created_at, now)}

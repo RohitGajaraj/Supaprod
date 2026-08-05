@@ -236,8 +236,8 @@ function SignupPage() {
               maxWidth: 290,
             }}
           >
-            Free to start, no card required. Supaprod pressure-tests your calls and remembers every
-            outcome.
+            Free to start, no card required. Supaprod pressure-tests your calls and lets every
+            outcome guide the next.
           </p>
           {planPickLine ? (
             <p

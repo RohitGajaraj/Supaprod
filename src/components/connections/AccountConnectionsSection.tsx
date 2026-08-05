@@ -1195,7 +1195,12 @@ export function ConnectorDetail({
               lead={b.resource_label ?? b.resource_id}
               sub={
                 <>
-                  {b.resource_kind}
+                  {/* The registry's own word for this resource ("Repository",
+                    "Stakeholder digest channel"), never the stored key. A kind
+                    the registry does not carry falls through rather than
+                    printing nothing. */}
+                  {spec.resourceTypes.find((rt) => rt.kind === b.resource_kind)?.label ??
+                    b.resource_kind}
                   {b.owner_display ? <> · bound by {b.owner_display}</> : null}
                   {b.connection_status === "connected" ? null : (
                     <>

@@ -58,9 +58,9 @@ export function kindLabel(kind: string): string {
 }
 
 const KIND_BLURBS: Record<string, string> = {
-  outcome: "What shipped and how it landed, kept so the loop can recall it next time.",
+  outcome: "What shipped and how it landed, so the loop calls the next one better.",
   reflection: "A lesson an agent drew from one of its runs.",
-  note: "A fact the loop saved for later.",
+  note: "A fact the loop leans on later.",
 };
 
 /** One honest line on what a kind of memory is. Empty string for unknown kinds

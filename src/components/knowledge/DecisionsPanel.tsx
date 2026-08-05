@@ -234,14 +234,14 @@ export function DecisionsPanel() {
       // What it CAUSED, not that the click registered: a logged call is read by
       // every agent before it touches the same surface again.
       commit(
-        "You logged a call",
+        "You made a call",
         `"${vars.title}" is on the record. The crew reads it before it acts on the same surface again.`,
       );
       setOpen(false);
     },
     onError: (e: Error, vars) =>
       commit(
-        "You tried to log a call",
+        "You tried to make a call",
         `"${vars.title}" was not written. ${e.message || "The write failed."}`,
         true,
       ),

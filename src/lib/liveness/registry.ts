@@ -107,7 +107,7 @@ export const TRACKED_CAPABILITIES: TrackedCapability[] = [
     proof: "A row in learnings",
     cadence: "weekly",
     probe: { source: "table", table: "learnings", timeColumn: "created_at" },
-    note: "The product's central claim is that it remembers how a bet turned out. If this is dead, the claim is dead, and nothing else on this page matters as much.",
+    note: "The product's central claim is that how a bet turned out changes the next call. If this is dead, the claim is dead, and nothing else on this page matters as much.",
   },
 
   // --- The sweep that keeps findings 1, 2 and 4 fixed -------------------------

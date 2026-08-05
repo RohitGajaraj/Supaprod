@@ -191,6 +191,30 @@ function Today() {
       if (!call) return;
       await decide({ data: { id: call.sourceId, kind: call.kindKey, verdict } });
     },
+    /* THE CALL YOU JUST SETTLED KEPT ASKING, FOR THREE FULL SECONDS.
+     *
+     * There was no onMutate, so `call` stayed items[0] of the stale cache until
+     * the refetch landed, and query-keys.ts measures that refetch at 2944 to
+     * 3271ms. For that whole window the front door showed the receipt below
+     * saying "You approved" while the gate directly above it still asked the
+     * same question with a live Approve, Decline and Snooze. The obvious human
+     * reaction is to press Approve again, which fires a second decide on an
+     * already-settled item.
+     *
+     * Removed optimistically instead of disabling the buttons: disabling hides
+     * the state, advancing it is the fix. The previous list is kept so a failed
+     * write puts the call straight back, next to the receipt that says nothing
+     * was recorded. */
+    onMutate: async () => {
+      if (!call) return { prev: undefined };
+      const key = approvalsQueueKey(workspaceId);
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<{ items: ApprovalQueueItem[] }>(key);
+      qc.setQueryData<{ items: ApprovalQueueItem[] } | undefined>(key, (old) =>
+        old ? { ...old, items: old.items.filter((i) => i.id !== call.id) } : old,
+      );
+      return { prev };
+    },
     onSuccess: (_r, verdict) => {
       setReceipts((r) => [
         {
@@ -207,11 +231,15 @@ function Today() {
       invalidateShellReads(qc);
     },
     // A failed write still writes a receipt, and it goes honest immediately.
-    onError: (e: Error) =>
+    // The call comes BACK at the same time, so the surface and the receipt
+    // agree: nothing was settled, and here is the thing still asking.
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(approvalsQueueKey(workspaceId), ctx.prev);
       setReceipts((r) => [
         { verb: "Nothing was recorded", consequence: e.message, at: stamp(), failed: true },
         ...r,
-      ]),
+      ]);
+    },
   });
 
   const defer = useMutation({
@@ -289,7 +317,7 @@ function Today() {
     // Counts finishes, not stops. `done` still lists a cancelled run, because
     // seeing it is useful, but calling it a finish in the headline was the
     // product claiming work it did not do.
-    const n = done.filter((m) => !STOPPED.has(m.status)).length;
+    const n = done.filter(actuallyFinished).length;
     const g = items.length;
     const ran =
       n === 0 ? "Nothing finished overnight" : n === 1 ? "One run finished" : `${n} runs finished`;

@@ -24,10 +24,7 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
 
   return (
     <div className="bento" style={{ marginTop: 28, padding: "22px 22px", textAlign: "center" }}>
-      <div
-        className="mono-label"
-        style={{ color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}
-      >
+      <div className="mono-label" style={{ color: "var(--ink-faint, #8a8377)", marginBottom: 8 }}>
         Made with Supaprod
       </div>
       <h2

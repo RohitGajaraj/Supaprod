@@ -581,7 +581,7 @@ export function WorkspaceClaimCard() {
     <>
       <Block
         title="Bring your work with you"
-        sub="Hand this workspace, and everything it remembers, to an organisation you belong to. It is one deliberate act, it needs an admin there to accept, and it can be undone."
+        sub="Hand this workspace, and everything it learned, to an organisation you belong to. It is one deliberate act, it needs an admin there to accept, and it can be undone."
       >
         <YourClaim workspaceId={activeWorkspaceId} />
       </Block>

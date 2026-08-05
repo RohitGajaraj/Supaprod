@@ -34,7 +34,7 @@ export function minimalShellHtml(projectName: string): string {
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>${safeName} — hosted by Supaprod</title>
+<title>${safeName} · hosted by Supaprod</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body style="font-family: system-ui, sans-serif; padding: 64px 24px; text-align: center; color: #1a1a1a;">
