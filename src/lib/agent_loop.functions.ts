@@ -280,7 +280,9 @@ export const updateToolMode = createServerFn({ method: "POST" })
       .select("id");
     if (error) throw new Error(error.message);
     if (!written || written.length === 0) {
-      throw new Error("That boundary is still where it was: this workspace did not accept the change.");
+      throw new Error(
+        "That boundary is still where it was: this workspace did not accept the change.",
+      );
     }
     return { ok: true };
   });
