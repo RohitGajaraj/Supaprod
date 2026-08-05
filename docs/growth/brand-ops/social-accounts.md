@@ -114,7 +114,14 @@ Every line below is cut from ratified canon, aimed at whoever actually walks in 
 >
 > That is the same three layers — director, operating system, company brain — but as things that happen *for the reader* rather than labels on our own map. The station names belong in product surfaces and in the diagram on the banners, where they are drawn and therefore self-explaining. They never appear as a bare list in prose.
 
-> **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `THE AI-NATIVE, AGENTIC-FIRST OPERATING SYSTEM FOR PRODUCT TEAMS`, and `agentic-first` is the phrase used in eight places across `src/`. The kit had taken `agent-first` from `README.md` line 8, which is now the only place that still says it. What a visitor has just read on the site beats a line in a document they will never open. **`README.md` line 8 needs the same fix**; it is the last holdout.
+> **Corrected 2026-08-05: it is "agentic-first", not "agent-first".** The live `/brief` and `/investors` heroes both run `THE AI-NATIVE, AGENTIC-FIRST OPERATING SYSTEM FOR PRODUCT TEAMS`, and `agentic-first` is the phrase used in eight places across `src/`.
+>
+> **Where it had actually leaked, checked live 2026-08-05.** This note previously said `README.md` line 8 was "the last holdout". That was stale: `README.md` has zero occurrences of the old form. The two places still carrying it were both on GitHub itself, where nobody thinks to grep:
+>
+> - the **org description** (`github.com/organizations/Supaprod/settings/profile`) — founder-editable only
+> - the **repo description** on `RohitGajaraj/Supaprod` — fixed via the API this session
+>
+> The lesson worth keeping: a phrase can be clean in every file in the repo and still be wrong on the surfaces a stranger actually reads first. Grep the repo, then check the platform fields.
 
 **Shared facts for every profile**
 

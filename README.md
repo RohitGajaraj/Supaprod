@@ -1,9 +1,18 @@
-<h1>
-  <img src="./docs/growth/branding/logo/supaprod-mark-animated.svg" alt="" width="38" height="38" valign="middle">
-  &nbsp;Supaprod
-</h1>
+<p align="center">
+  <img src="./docs/growth/branding/social/x-header-dark-1500x500@2x.png" alt="Supaprod — Agents that own outcomes. Not just output." width="100%">
+</p>
 
-> _Last updated: 2026-08-03_
+<h3 align="center">The agentic-first operating system for product teams</h3>
+
+<p align="center">
+  <a href="https://supaprod.ai"><b>supaprod.ai</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Supaprod">@Supaprod</a>
+  &nbsp;·&nbsp;
+  <a href="https://x.com/supaprodhq">@supaprodhq</a>
+</p>
+
+> _Last updated: 2026-08-05_
 
 **Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
 
