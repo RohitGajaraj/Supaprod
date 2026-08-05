@@ -1,3 +1,128 @@
+# Session close 2026-08-05 ~23:00 IST — the audit's ship-blockers are closed
+
+Gate: **tsc 0 · 7,608 pass 0 fail · build 0 · check-humanized clean.**
+Read the section below this one too; it carries the 499 correction and the
+migrations, and it is still current.
+
+## ALL SEVEN OF THE AUDIT'S SHIP-BLOCKERS ARE CLOSED
+
+1. **The boundary could not save at all.** `updateToolMode` omitted
+   `display_name` and `description` (both NOT NULL, no default) and
+   `workspace_id` (required by the new RLS). Since migration 20260801234500
+   deleted all 864 seeded rows, the FIRST move of any tool boundary died. 7 rows
+   across 2 users against ~55 tools. `/boundary` then printed the raw Postgres
+   text into a receipt, and `setTrackCap` had no `onError` at all.
+2. **The Ask/Do fork never left the browser.** `sendIntent` was a one-argument
+   wrapper around a two-argument `send`, so `forcedAsk`/`forcedDo` were
+   permanently false. The broken half was ASK, where a question misread as work
+   dispatches a mission and spends the user's money.
+3. **The hero dispatch overclaimed and could be cancelled.** Both dispatches
+   fired unawaited on a Workers isolate; the reply asserted "I've planned and
+   dispatched" when `createMission` had only inserted a row. `request.waitUntil`
+   IS the bound Workers `ctx.waitUntil` (traced through nitro's `augmentReq`),
+   probed rather than assumed so non-Workers runtimes are unchanged.
+4. **Six of seven stations rendered nothing while reading.** The guard written
+   for this the day before hardcoded its target to Today. Generalised to eight
+   sources, with a count assertion so a new station cannot arrive unguarded.
+5. **`/p/teardown` said nothing for a minute, then said "internal error".** The
+   no-signup surface a Product Hunt click lands on had no loading branch and
+   rendered `body.error` verbatim.
+6. **The landing hero used the banned verb** while ThreeLayers one screen below
+   said the opposite.
+7. **A second application shell caught stray URLs.** `/m` and `/m/$productId`
+   now redirect to /today, so the retired `--ink-*` chrome cannot render.
+
+## AND FIVE MORE FOUND ALONG THE WAY
+
+- **Every new workspace was handed four invented bets** with the "sample" label
+  provably unable to render. `opportunities.is_sample` and `signals.is_sample`
+  added and backfilled: 20 and 20 flagged, 267 and 433 real rows untouched.
+  NOTE the backfill trap: matching `projects.name like 'Example: %'` matches
+  ZERO rows live, because the prefix was added to track-seeds.ts later than
+  every row that exists. Titles are the stable anchor.
+- **Body text and muted text were the same colour, app-wide.**
+  `[data-obsidian]` pointed both at `--ds-gray-900`. Fixed with a derived mix
+  because `--ds-gray-800` is right in light and WRONG in dark (Geist's own scale
+  is non-monotonic there, and that is not ours to correct). Measured: dark
+  7.57/6.95/6.12, light 8.45/5.66/3.23, strictly ordered in both.
+- **The realtime approval push reached every panel except the one people watch.**
+  Two independent faults: it invalidated keys `AskRunCard` does not use, AND its
+  only mount was the retired obsidian canvas. Either alone made it invisible.
+- **Governance wrote to an arbitrary workspace.** The spend policy read and
+  wrote `.eq("owner_id", userId).limit(1)` with no ordering while enforcement
+  resolved by id, so the number shown was not the number enforced.
+- **The humanization gate could not see a template literal.** See below; it is
+  the most important thing in this handoff.
+
+## ⚠️ THE HUMANIZATION GATE WAS PASSING VIOLATIONS
+
+`check-humanized.sh` stripped backtick-delimited spans from every file, to skip
+markdown inline code. Its scan set is ts and tsx, markdown is not scanned at
+all, and in TypeScript a backtick opens a TEMPLATE LITERAL, which is how most
+user-facing copy here is written. Proven with a probe: a component rendering a
+template literal containing an em dash was reported **clean**.
+
+Fixed (markdown-only stripping), and the second half mattered as much: once
+template literals became visible it reported 28 hits and 26 were test fixtures,
+because `TEST_RE` matched only a `__tests__` directory at the ROOT of src.
+Widened, and applied to the explicit-path scan which had never consulted it.
+28 hits down to 1 real one, now fixed.
+
+**TRAP, recorded in the file:** the scanner is perl inside a single-quoted shell
+string, so an APOSTROPHE in a comment closes the string and breaks the script.
+Writing "the founder's ruling" cost two runs.
+
+## ⚠️⚠️ ANOTHER CLAUDE SESSION SHARED THIS TREE AND DESTROYED WORK THREE TIMES
+
+The third was expensive: at ~22:30 a `git checkout -- .` (invisible in reflog,
+unlike its two `reset: moving to HEAD` entries) wiped the working tree AFTER a
+full gate had passed green, destroying two completed subagent lanes and a
+finished fix. Not recoverable: not stashed, not committed.
+
+**Commit after every single change while any other session is live.** That is
+the only defence that survives it. Batching cost hours here.
+
+It also left `AppFrame.tsx.backup` and `.bak2` in `src/` (deleted), and shipped
+`opportunity-trace.functions.ts` with zero `createServerFn` and zero importers,
+which broke the surface-registry guard; renamed out of the server-function
+namespace rather than given a false registry entry.
+
+## THE INTENT BAR: SPEC IS WRITTEN, BUILD NOT STARTED
+
+A five-agent read-only study answered the founder's biggest question with counts:
+**routing, not a rebuild.** 59 tools in TOOL_REGISTRY; `STATION_ARTIFACT` maps
+all seven stations to a tool with `gap: null`; `driveTrackOnce` already walks all
+seven unattended. The narration exists and is mounted in exactly ONE place
+(`plan.index.tsx:458`). **You cannot start work by talking:** `startTrackCore`
+has two callers and `chat.ts` is not one.
+
+Its sharpest call: do NOT build a new surface. `AskPane` already exists on every
+authenticated route. The intent bar is AskPane moved modal to dock, given a
+third fork ("Run it through", which creates a TRACK rather than a mission), and
+wired to `startTrackCore`. The one genuine rebuild is the transport: `ask-sse.ts`
+defines five frames and has no word for work.
+
+Full spec was written to the session scratchpad and delivered to the founder.
+
+## STILL OPEN
+
+- `getLoopClosure` (`src/lib/moat.functions.ts:36`) has **zero callers**, proved
+  three ways; nothing imports `@/lib/moat.functions` so the endpoint is not even
+  generated. Do NOT delete `src/lib/moat/loop-closure.ts`: `DECISIVE_VERDICTS`
+  from it IS imported by trust-ledger.
+- `agent_memory` outcome rows: still 0 of 933. The chain is now wired end to end
+  (21 of 44 changesets carry a prd_id, up from 0; 31 prd->mission edges, up from
+  2) and the first REAL merge should produce the first row. **There is no honest
+  backfill:** the 7 merged changesets that resolve a spec are all July-8 demo
+  seeds, sequential uuids, identical title, already shipped and already carrying
+  outcomes.
+- `real_public` is 0: all 28 public decisions sit in sample workspaces, so
+  `/proof` is honest and empty until someone shares a real one.
+- Avatars, banners and images belong to a DIFFERENT LANE by founder ruling. Do
+  not touch `docs/growth/branding/**`.
+
+---
+
 # Session close 2026-08-05 ~21:15 IST — the database came back, and both stalled migrations landed
 
 Gate at close: **tsc 0 · 7,591 pass 0 fail · `bun run build` exit 0.** Read the
