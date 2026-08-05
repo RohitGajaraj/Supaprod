@@ -671,7 +671,13 @@
   background: var(--sp-hover);
   color: var(--sp-ink);
 }
-.sp-navrow[aria-current="page"] {
+/* Two tokens, one look. "page" is the row you are standing on; "true" is the
+ * row whose section contains you (Runs while you are on Plan, Engine room while
+ * you are on Govern). They are drawn the same on purpose, because the rail
+ * answers "where am I" at section altitude, and only the spoken label needs to
+ * know the difference. */
+.sp-navrow[aria-current="page"],
+.sp-navrow[aria-current="true"] {
   background: var(--sp-lift);
   color: var(--sp-ink);
   font-weight: var(--sp-weight-strong);
@@ -693,7 +699,8 @@
   color: var(--sp-mute);
   flex: none;
 }
-.sp-navrow[aria-current="page"] .sp-navcount {
+.sp-navrow[aria-current="page"] .sp-navcount,
+.sp-navrow[aria-current="true"] .sp-navcount {
   color: var(--sp-ink);
 }
 /* Ember marks the human, and nothing else: a count is hot when it is waiting

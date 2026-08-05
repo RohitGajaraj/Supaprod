@@ -67,6 +67,12 @@ describe("the rail hint is derived from the binding", () => {
  * to /runs or /crew, this test fails and the rail is already drawing the new
  * hint by then. That is the intended failure: it says the gap closed."
  *
+ * (The second block below was itself rewritten on 2026-08-05, for the same
+ * reason: it recorded "seven bound keys pointing at stations with no rail row"
+ * as a standing gap, and that gap is closed by AppFrame's `owns` field. A test
+ * that keeps asserting a defect after the defect is fixed teaches the next
+ * reader something false.)
+ *
  * That is what happened. Both paths are destinations in PRIMARY_NAV now
  * (nav-model.ts), keyed `u` and `e` - a letter of each label, because `r` is
  * Reject on the approvals queue and `c` is Challenge on the decide gate, and a
@@ -85,14 +91,23 @@ describe("which rail doors the keyboard reaches", () => {
     expect(unkeyed).toEqual([]);
   });
 
-  it("leaves seven bound keys pointing at stations with no rail row", () => {
+  it("still draws no ROW for the seven stations or for Settings", () => {
     const railPaths = new Set(RAIL_DOORS.map((r) => r.to));
-    const homeless = DOORS.filter((d) => navKeyHint(d) !== "" && !railPaths.has(d.to)).map(
+    const noRow = DOORS.filter((d) => navKeyHint(d) !== "" && !railPaths.has(d.to)).map(
       (d) => d.to,
     );
-    // The seven loop stations plus Settings, which has its own door in the
-    // rail foot and carries its hint on that control's name.
-    expect(homeless).toEqual([
+    // The seven loop stations plus Settings. This list is a RECORD OF THE
+    // DECIDED SHAPE, not of a defect: the seven stations live on the 01-07
+    // strip (run-strip.tsx chose that on 2026-08-05 and paid 97px for it) and
+    // Settings is a door in the rail foot rather than a place you live.
+    //
+    // What used to be wrong is that none of these eight lit ANYTHING in the
+    // rail, so the keyboard took you somewhere the shell could not name. That
+    // is now impossible and the impossibility is enforced next door, in
+    // AppFrame.rail-covers-keys.test.ts: the seven hang under the /runs row
+    // via `owns`, Settings lights its own control in the foot. A row for any
+    // of them would be a nav change; a lit row is a fact about where you are.
+    expect(noRow).toEqual([
       "/discover",
       "/decide",
       "/plan",

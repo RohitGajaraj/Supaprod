@@ -132,7 +132,7 @@ import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { stageHueForStation } from "./agent-glyphs";
 import { MarkStack } from "./primitives";
-import { RunStripProvider, STAGE_LABEL, type RunStripSpec } from "./run-strip";
+import { RunStripProvider, STAGE_LABEL, STATION_ROUTE, type RunStripSpec } from "./run-strip";
 import { agentDisplayName, agentStation } from "@/lib/agent-vocabulary";
 import { isAutoTitle, stripAutoPrefix } from "@/components/plan/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,7 +140,7 @@ import { listMissions } from "@/lib/missions.functions";
 import { listAgents } from "@/lib/agents.functions";
 import { getApprovalsQueue } from "@/lib/approvals-queue.functions";
 import { useTheme } from "@/hooks/use-theme";
-import { FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
+import { ENGINE_ROOM_PATHS, FOOTER_NAV, PRIMARY_NAV, navKeyHint } from "@/lib/nav-model";
 import { BoardPanel } from "./BoardPanel";
 import { AccountMenu, ScopeMenu } from "./ScopeMenu";
 import { AuditLineageSheet } from "@/components/supaprod/AuditLineageSheet";
@@ -159,22 +159,89 @@ import {
   IconToday,
 } from "./icons";
 
+/**
+ * THE SEVEN STATIONS THE RAIL STANDS FOR WITHOUT DRAWING.
+ *
+ * Taken from the strip's own station -> route map rather than typed here, so
+ * the rail and the strip cannot disagree about what a station is. If Build's
+ * engine moves again (it has moved once: /runs -> /build, see run-strip.tsx),
+ * the row that stays lit for it moves in the same edit.
+ */
+const LOOP_STATIONS: readonly string[] = Object.values(STATION_ROUTE);
+
+/** A row that stands for nothing but itself. Named rather than repeated so an
+ *  empty `owns` reads as a decision instead of an oversight. */
+const OWNS_NOTHING: readonly string[] = [];
+
 /** The five rail rows. Decided, and not to be relitigated. Settings is not
  *  one of them: it is an icon at the foot, a door you open rather than a
- *  place you live. */
+ *  place you live.
+ *
+ *  `owns` IS THE PLACE-KEEPING FIX (2026-08-05). A row lights for its own path
+ *  and for the paths it owns. It exists because seven bound keys - 1..7, the
+ *  loop stations - navigate to surfaces that are NOT rail rows and never will
+ *  be, so the rail went blank the moment you used the keyboard: press 3, land
+ *  on Plan, and the shell stopped saying where you were standing.
+ *
+ *  The fix is NOT a row per station. That was decided twice and against, most
+ *  recently in run-strip.tsx on this same day, which chose the 01-07 strip as
+ *  the place the seven stations live and paid 97px of viewport on 13 surfaces
+ *  to keep the rail at five. Two controls, two altitudes: the RAIL says which
+ *  SECTION you are in, the STRIP says which STATION. The founder's own ruling
+ *  is that the strip belongs to "the run section" (run-strip.tsx, 2026-07-29),
+ *  and use-spine-strip.ts calls /runs "the section entry rather than one of the
+ *  seven" - so /runs is the row the seven stations hang under, and lighting it
+ *  on /plan is a restatement of the model rather than a claim invented here.
+ *
+ *  The engine room's list was already declared in nav-model.ts and consumed by
+ *  nothing: /govern, /trust-ledger and /sync land inside the engine room and
+ *  the row went dark on all three. Same defect, and it is fixed by the same
+ *  field rather than by a second mechanism.
+ */
 const RAIL = [
-  { to: "/today", label: "Today", Icon: IconToday, count: "gates" },
+  { to: "/today", label: "Today", Icon: IconToday, count: "gates", owns: OWNS_NOTHING },
   // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the
   // rebuild never ported, so the rail's own row for the engine's spine was
   // landing on the legacy five-region shell. That is the founder's "the run
   // section is still rendering in the legacy design", and this line is where it
   // started. /runs is the same surface the route used to call /build, renamed
   // because a run is the whole lifecycle and never was the build leg.
-  { to: "/runs", label: "Runs", Icon: IconRuns, count: "runs" },
-  { to: "/brain", label: "Brain", Icon: IconBrain, count: null },
-  { to: "/crew", label: "Crew", Icon: IconCrew, count: null },
-  { to: "/engine-room", label: "Engine room", Icon: IconEngine, count: null },
+  { to: "/runs", label: "Runs", Icon: IconRuns, count: "runs", owns: LOOP_STATIONS },
+  { to: "/brain", label: "Brain", Icon: IconBrain, count: null, owns: OWNS_NOTHING },
+  { to: "/crew", label: "Crew", Icon: IconCrew, count: null, owns: OWNS_NOTHING },
+  {
+    to: "/engine-room",
+    label: "Engine room",
+    Icon: IconEngine,
+    count: null,
+    owns: ENGINE_ROOM_PATHS,
+  },
 ] as const;
+
+/** True when `path` is `base` or lives underneath it, so /runs/<id> and
+ *  /plan/spec/<id> keep the row that owns them lit. The same shape as
+ *  `engineRoomActive` in nav-model.ts, deliberately: one rule for "inside". */
+function under(path: string, base: string): boolean {
+  return path === base || path.startsWith(base + "/");
+}
+
+/**
+ * PURE - which rail row must be lit for this path, or null when the path is
+ * outside the rail's model entirely (Approvals, Threads, Boundary: real
+ * surfaces that no row stands for, and saying so is honest).
+ *
+ * A row's OWN path wins over any other row's ownership claim, which is why
+ * this is two passes and not one: /runs owns /build, and if /build ever became
+ * a row it must light itself rather than its former owner.
+ *
+ * Exported for the colocated guard test, which is what stops a future binding
+ * from landing somewhere the rail cannot follow.
+ */
+export function railOwnerOf(path: string): string | null {
+  for (const row of RAIL) if (under(path, row.to)) return row.to;
+  for (const row of RAIL) for (const owned of row.owns) if (under(path, owned)) return row.to;
+  return null;
+}
 
 /* ==================================================================
  * THE TWELVE KEYS THAT FIRED AND WERE DRAWN NOWHERE.
@@ -1028,12 +1095,26 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 // The key this row is actually bound to, read off the binding
                 // itself. "" for a row the keyboard does not reach.
                 const shortcut = doorKey(to);
+                // THE ROW THAT STAYS LIT. `activeProps` only knows this row's
+                // own route, so pressing 3 for Plan - or opening /govern - used
+                // to leave the whole rail dark. `railOwnerOf` answers the wider
+                // question the rail is actually asking, "which section am I
+                // in", and it is written on the same attribute the CSS already
+                // draws so nothing about the look is invented here.
+                // "page" is a promise that THIS row is the page you are on, so a
+                // row that is merely the section containing it says "true"
+                // instead. Both are drawn identically (shell.css matches the two
+                // tokens), so the rail looks the same and stops telling a screen
+                // reader you are on Runs when you are standing on Plan.
+                const owner = railOwnerOf(pathname) === to;
+                const current = owner ? (under(pathname, to) ? "page" : "true") : undefined;
                 return (
                   <Link
                     key={to}
                     to={to}
                     className="sp-navrow"
                     activeProps={{ "aria-current": "page" }}
+                    aria-current={current}
                     /* The name carries the key, and that is not decoration. In
                        the narrow rail this string IS the tooltip (shell.css
                        draws it from attr(aria-label)), so collapsing the rail
