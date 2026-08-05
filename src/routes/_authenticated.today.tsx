@@ -603,7 +603,28 @@ function Today() {
           // as a day where nothing happened.
           <Failed onRetry={() => missions.refetch()}>Could not load what the crew finished.</Failed>
         ) : done.length === 0 ? (
-          <Empty>
+          <Empty
+            action={
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  // Open the Ask panel (Cmd+J equivalent) to let users tell Supaprod
+                  // what to build. This makes the conversational interface discoverable
+                  // even when there are no approval items in the Gate.
+                  const evt = new KeyboardEvent("keydown", {
+                    key: "j",
+                    code: "KeyJ",
+                    ctrlKey: false,
+                    metaKey: true,
+                    bubbles: true,
+                  });
+                  window.dispatchEvent(evt);
+                }}
+              >
+                Ask Supaprod
+              </Button>
+            }
+          >
             Nothing finished in the last day. The crew is ready. Tell Supaprod what you want to
             build, or connect data sources so they discover work. When they finish, it appears here.
           </Empty>
