@@ -164,11 +164,15 @@ describe("the rail's ownership is derived, and unambiguous", () => {
     }
   });
 
-  it("goes dark on a surface no row stands for, rather than guessing", () => {
-    // Approvals and Boundary are real surfaces with no rail row and no key. A
-    // rail that lit something for them would be inventing a place.
-    expect(railOwnerOf("/approvals")).toBeNull();
-    expect(railOwnerOf("/boundary")).toBeNull();
+  it("lights the appropriate row for surfaces that own paths (dead zone fix)", () => {
+    // Previously, Approvals, Boundary, and Threads were unreachable dead zones.
+    // Now each is owned by a rail row: Today owns Approvals, Crew owns Boundary,
+    // Brain owns Threads. This ensures the rail row stays lit when navigating there.
+    expect(railOwnerOf("/approvals")).toBe("/today");
+    expect(railOwnerOf("/boundary")).toBe("/crew");
+    expect(railOwnerOf("/threads")).toBe("/brain");
+    
+    // Settings is a special case: it's not owned by any row, it's a foot icon.
     expect(railOwnerOf("/settings")).toBeNull();
   });
 });

@@ -173,6 +173,19 @@ const LOOP_STATIONS: readonly string[] = Object.values(STATION_ROUTE);
  *  empty `owns` reads as a decision instead of an oversight. */
 const OWNS_NOTHING: readonly string[] = [];
 
+/** Paths owned by the Today row. Approvals is a high-urgency surface that was
+ *  previously unreachable from the rail; making Today own it ensures the row
+ *  stays lit when users navigate there. */
+const APPROVALS_PATHS: readonly string[] = ["/approvals"];
+
+/** Paths owned by the Crew row. Boundary (autonomy management) is reached from
+ *  Crew and should keep the Crew row lit. */
+const BOUNDARY_PATHS: readonly string[] = ["/boundary"];
+
+/** Paths owned by the Brain row. Threads (conversation history) is reached from
+ *  Brain and should keep the Brain row lit. */
+const THREADS_PATHS: readonly string[] = ["/threads"];
+
 /** The five rail rows. Decided, and not to be relitigated. Settings is not
  *  one of them: it is an icon at the foot, a door you open rather than a
  *  place you live.
@@ -199,7 +212,7 @@ const OWNS_NOTHING: readonly string[] = [];
  *  field rather than by a second mechanism.
  */
 const RAIL = [
-  { to: "/today", label: "Today", Icon: IconToday, count: "gates", owns: OWNS_NOTHING },
+  { to: "/today", label: "Today", Icon: IconToday, count: "gates", owns: APPROVALS_PATHS },
   // Runs points at /runs, NOT at /m. /m is Mission Control, the one surface the
   // rebuild never ported, so the rail's own row for the engine's spine was
   // landing on the legacy five-region shell. That is the founder's "the run
@@ -207,8 +220,8 @@ const RAIL = [
   // started. /runs is the same surface the route used to call /build, renamed
   // because a run is the whole lifecycle and never was the build leg.
   { to: "/runs", label: "Runs", Icon: IconRuns, count: "runs", owns: LOOP_STATIONS },
-  { to: "/brain", label: "Brain", Icon: IconBrain, count: null, owns: OWNS_NOTHING },
-  { to: "/crew", label: "Crew", Icon: IconCrew, count: null, owns: OWNS_NOTHING },
+  { to: "/brain", label: "Brain", Icon: IconBrain, count: null, owns: THREADS_PATHS },
+  { to: "/crew", label: "Crew", Icon: IconCrew, count: null, owns: BOUNDARY_PATHS },
   {
     to: "/engine-room",
     label: "Engine room",
@@ -226,9 +239,9 @@ function under(path: string, base: string): boolean {
 }
 
 /**
- * PURE - which rail row must be lit for this path, or null when the path is
- * outside the rail's model entirely (Approvals, Threads, Boundary: real
- * surfaces that no row stands for, and saying so is honest).
+ * PURE - which rail row must be lit for this path. Approvals is owned by Today,
+ * Threads by Brain, Boundary by Crew. Previously these were unreachable dead zones;
+ * now each is owned by a rail row so the row stays lit when navigating there.
  *
  * A row's OWN path wins over any other row's ownership claim, which is why
  * this is two passes and not one: /runs owns /build, and if /build ever became

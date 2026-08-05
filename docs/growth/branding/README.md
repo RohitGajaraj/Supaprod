@@ -86,15 +86,39 @@ branding/
 ├─ video/                       ← trailer and product-demo frames
 │  ├─ title-{16x9-3840x2160,9x16-2160x3840}.png
 │  └─ endcard-16x9-3840x2160.png  lowerthird-1920x320.png
-└─ social/                      ← platform banners and share cards
-   ├─ x-header-1500x500.png  x-header-light-1500x500.png
-   ├─ mastodon-header-1500x500.png  linkedin-cover-1128x191.png
-   ├─ youtube-banner-2560x1440.png  bluesky-banner-3000x1000.png
-   ├─ discord-banner-960x540.png  producthunt-gallery-1270x760.png
-   ├─ github-social-preview-1280x640.png (+ .svg source)
-   ├─ og-{dark,light}-1200x630.png
-   └─ square-{dark,light}-1200x1200.png
+├─ orrery.ts                    ← THE BRAND WORLD: geometry, both grounds, light
+├─ generate-banners.ts          ← every banner and share card, from orrery.ts
+└─ social/                      ← platform banners and share cards (ORRERY)
+   └─ <base>-{dark,light}-<W>x<H>.png, for base in:
+      x-header · mastodon-header · bluesky-banner · linkedin-cover
+      youtube-banner · og · github-social-preview
+      producthunt-gallery · discord-banner · square
 ```
+
+## ORRERY, the brand world
+
+**The mark is already an orrery** — a seven-petal curve revolving around a glowing core is a hand-built mechanical model of a system. The world is therefore derived from the mark rather than bolted onto it.
+
+**Why not space.** Perplexity owns cosmic-void and a hundred imitators are in it. More importantly it means the wrong thing: space reads as vast, unknown and exploratory, and Supaprod sells the opposite — accumulated certainty. The instrument, not the void.
+
+**The moat is drawn, not asserted.** A path leaves `07 Learn`, passes *through* the core, and re-enters at `01 Discover`. That is [`../../../README.md`](../../../README.md) verbatim: the verdict is written back against the decision that caused it and re-ranks what Discover surfaces next. An earlier pass drew the orbit and omitted that one edge, which meant it drew everything except the product.
+
+**Three orbital shells are the three layers** — 01 director, 02 operating system, 03 company brain — read as architecture rather than as colour, because the layer tokens (marigold/blue/green) belong to product surfaces.
+
+**Platinum, not brass** (founder ruling, 2026-08-05: "premium, platinum, elite"). Warm brass linework reads as an antique instrument and drifts toward steampunk; cool platinum reads as modern precision engineering. The structure is cold and the heart is hot — platinum orbits, ember and gold only at the core and the two lit stations.
+
+### Four things that make the render premium rather than merely clean
+
+1. **Perspective.** A ring of radius `r` tilted by θ projects to an ellipse with semi-minor axis `r·cos θ`. Flat concentric circles are the shape of a radar sweep and a loading spinner; ellipses read as an object in space.
+2. **Occlusion order.** Back halves (`sin t < 0`) are drawn *before* the core, front halves *after*, so the core eclipses the far side of its own orbits. That single ordering is what makes the eye accept depth.
+3. **Additive light.** On dark, every light layer uses `mix-blend-mode: plus-lighter`, which accumulates toward white-hot. Normal blending averages a low-alpha orange over near-black toward **brown**, which is exactly the muddy stain two earlier passes were rejected for. On light the same layers switch to `multiply`, because adding light to paper returns paper: a glow on paper is not brighter than the paper, it is warmer than it.
+4. **Glows are gradients, never stacked discs.** A disc keeps a hard edge no matter how transparent it is, so stacked low-opacity circles leave visible rims that read as a dark ring around the light source.
+
+### The quality pipeline
+
+Chromium renders at **3× device scale factor**, then libvips downsamples with **Lanczos3** to exactly the spec size — nine rendered samples per output pixel, so thin strokes and type edges get true supersampled antialiasing rather than the rasterizer's one-sample guess. A **fractal-noise grain** layer sits over the frame at roughly 2%: a wide ember gradient over near-black quantises into visible concentric rings in 8-bit PNG, and grain dissolves those steps into something the eye reads as texture.
+
+**The one thing supersampling hurts is pixel type.** Geist Pixel Square's whole identity is hard square steps, and 3× downsampling is a machine for smoothing steps away. The wordmark is therefore set large enough that its steps survive; below roughly 20px it silently stops being a pixel font at all.
 
 ## Regenerating the kit
 
