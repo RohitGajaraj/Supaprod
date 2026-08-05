@@ -273,6 +273,18 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         source_kind: "mission",
         mission_id: missionId,
         decided_by_agent_slug: p.agentSlug ?? "strategist",
+        /* The other half of retiring the "[auto] " title marker, and it was
+         * nearly missed. The mission insert above stamps auto_trigger_source,
+         * but a DECISION carried its provenance only in the title prefix, so
+         * once autoTitle stopped writing that prefix, every newly raised
+         * decision would have arrived indistinguishable from one a human wrote.
+         *
+         * The "Auto" chip and the "Raised automatically by the loop" line read
+         * this column now, and the backfill in migration 20260805120000 set it
+         * on all 84 existing rows. Without this line the backfill would have
+         * been a one-off and provenance would have quietly stopped from the
+         * moment the marker was retired. */
+        auto_origin: true,
         // SW-3: the losing candidates this proposal beat, when any were cut.
         ...(alternativesConsidered.length
           ? { alternatives_considered: alternativesConsidered }

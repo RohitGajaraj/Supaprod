@@ -307,7 +307,12 @@ export function DecisionDetail({ id }: { id: string }) {
             {d.source_label ? ` (${d.source_label})` : ""}
             {" · "}
             {ageOf(d.created_at)}
-            {isAutoTitle(d.title) ? " · titled by the crew" : ""}
+            {/* Column first, title second. The marker is gone from every stored
+                title (migration 20260805120000) AND stripAutoPrefix now runs at
+                the read boundary, so isAutoTitle alone would report "no" for
+                every row and this provenance would silently disappear. The title
+                test survives only for a row restored from an older backup. */}
+            {(d.auto_origin ?? isAutoTitle(d.title)) ? " · raised by the crew" : ""}
           </>
         }
       >
