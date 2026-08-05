@@ -443,6 +443,39 @@ export function CommandPalette() {
  */
 const CHORD_WINDOW_MS = 2000;
 
+/**
+ * PRESS `g` AND THE PRODUCT SHOWS YOU ITS LETTERS.
+ *
+ * THE DEFECT THIS CLOSES, founder-reported 2026-08-06: "I could see those
+ * things only for the app panels — Today, Runs, accept/reject. Don't we have
+ * those for the seven strips, Discover, Decide and so on?" He was reading the
+ * screen correctly. Thirteen doors are bound; only the five RAIL ROWS draw a
+ * keycap, and the seven loop stations are not rail rows — they are chips on the
+ * spine strip, which drew number, name, note and dot and no key. So `g d`
+ * through `g l` have been firing, undrawn, since the chord shipped. AppFrame's
+ * own comment admitted it and left it open.
+ *
+ * WHY NOT SIMPLY PRINT THEM. Seven chips share the strip's width, the note
+ * already drops under a container query at 880px, and the founder's other
+ * standing complaint about this exact strip is noise. A permanent eighth mark
+ * per chip pays for discoverability with the clutter he asked us to remove.
+ *
+ * SO THE CHORD ANNOUNCES ITSELF. Arming `g` stamps `data-chord="armed"` on the
+ * document element, and CSS reveals every keycap in the product for the two
+ * seconds the chord is live. At rest the strip is exactly as quiet as it is
+ * today; the instant a person signals navigation intent, every door shows the
+ * letter that opens it. Discovery costs nothing until it is wanted, and the
+ * chord teaches itself on first use rather than needing a tour.
+ *
+ * A DOM ATTRIBUTE, NOT REACT STATE, and that is deliberate. This fires on
+ * `keydown` for a key the person may be pressing by accident; routing it
+ * through context would re-render every subscriber of the shell twice per
+ * stray `g`. One attribute write reaches every surface at once, including
+ * surfaces this component knows nothing about, and costs no reconciliation.
+ * `prefers-reduced-motion` is respected in the stylesheet, not here.
+ */
+const CHORD_ATTR = "data-chord";
+
 export function GotoShortcuts() {
   const navigate = useNavigate();
   useEffect(() => {
@@ -453,6 +486,12 @@ export function GotoShortcuts() {
       armedAt = 0;
       if (timer) clearTimeout(timer);
       timer = undefined;
+      // Unconditional, and it is the reason this is a function rather than
+      // three inline lines: EVERY exit from the armed state routes through
+      // here -- the second key, a key that is not a letter, the timeout, and
+      // unmount. A keycap left lit after the window closed would promise a
+      // shortcut that no longer fires.
+      document.documentElement.removeAttribute(CHORD_ATTR);
     };
 
     const onKey = (e: KeyboardEvent) => {
@@ -478,6 +517,7 @@ export function GotoShortcuts() {
           // Arm, and do NOT preventDefault: `g` on its own belongs to whatever
           // surface is open until the second key proves this was navigation.
           armedAt = Date.now();
+          document.documentElement.setAttribute(CHORD_ATTR, "armed");
           timer = setTimeout(disarm, CHORD_WINDOW_MS);
         }
         return;

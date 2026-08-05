@@ -285,12 +285,24 @@ export function railOwnerOf(path: string): string | null {
  * changes the drawn keycap in the same edit. Nothing is hand-copied
  * and there is no second list.
  *
- * WHAT THIS DELIBERATELY DOES NOT DO. Three of the five rail rows
- * resolve to a key (/today, /brain, /engine-room). /runs and /crew
- * carry no binding at all, and they get no keycap rather than an
- * invented one. Seven more keys (1..7) fire at the loop stations,
- * which have no rail row; inventing rows for them is a nav change and
- * the five rows are decided. That gap is reported, not papered over.
+ * THE GAP THIS PARAGRAPH USED TO REPORT IS CLOSED (2026-08-06). It
+ * read: "Seven more keys (1..7) fire at the loop stations, which have
+ * no rail row; inventing rows for them is a nav change and the five
+ * rows are decided. That gap is reported, not papered over." Both
+ * halves have since moved. The keys are no longer digits (the chord
+ * replaced them, see NAV_CHORD_PREFIX), and the founder read the
+ * consequence off the screen before any test did: keycaps on Today,
+ * Runs and the gate buttons, and nothing on Discover or Decide.
+ *
+ * It was closed WITHOUT relitigating the five rows, which is what the
+ * old paragraph was really protecting. The seven stations get their
+ * keycaps on the STRIP, where the seven stations already live. Two
+ * controls, two altitudes, each drawing the keys it governs. See
+ * `STATION_DOORS` below and the stage render in the strip.
+ *
+ * /runs and /crew now resolve to `r` and `c`; the sentence claiming
+ * they "carry no binding at all" was written before the prefix freed
+ * their own first letters. Every rail row draws a keycap today.
  * ================================================================== */
 
 /** Every door the keyboard can reach, in one list, so the lookup below
@@ -318,6 +330,24 @@ export const RAIL_DOORS: ReadonlyArray<{ to: string; label: string; key: string 
 
 /** The footer door's key, derived the same way. Exported for the same test. */
 export const SETTINGS_KEY = doorKey("/settings");
+
+/**
+ * THE SEVEN STATIONS, with each one's bound key resolved.
+ *
+ * The same shape and the same lookup as `RAIL_DOORS` above, because it is the
+ * same question asked of the other control. The rail says which SECTION you are
+ * in and the strip says which STATION, and until 2026-08-06 only the first of
+ * the two drew the keys it was governed by.
+ *
+ * Exported for the colocated guard, which is the whole reason it exists as a
+ * const rather than being computed inline in the render: the invariant worth
+ * pinning is that ALL SEVEN resolve to a key. Six of seven would look correct
+ * on screen -- one quiet chip among six annotated ones reads as a station that
+ * simply has no shortcut -- and only a test that counts can tell the difference
+ * between "this door has no key" and "this door lost its key".
+ */
+export const STATION_DOORS: ReadonlyArray<{ station: string; to: string; key: string }> =
+  Object.entries(STATION_ROUTE).map(([station, to]) => ({ station, to, key: doorKey(to) }));
 
 /**
  * The keycap, quiet.
@@ -1088,6 +1118,33 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
               // place that can see all seven at once, so it is the only place
               // that can hold the rule.
               const moving = stage.station === blinkStation;
+              /**
+               * THE STATION'S OWN KEY, drawn on the station at last.
+               *
+               * Founder, 2026-08-06: the keycaps appeared on Today, Runs and
+               * the gate buttons and nowhere on Discover, Decide and the rest.
+               * True, and the reason is structural: only a RAIL ROW drew a
+               * keycap, and the seven stations have never been rail rows (see
+               * the RAIL comment above, which decided that twice and against
+               * relitigating). They live here. So the keycap comes here.
+               *
+               * Derived through STATION_ROUTE, so it is the same fact the rail
+               * reads, twice: station -> route -> `doorKey` -> `navKeyHint`.
+               * Nothing is hand-typed, and moving a station's route moves its
+               * drawn key in the same edit. That is the DERIVATION LAW in
+               * nav-model.ts, held on one more surface.
+               *
+               * NOT IN TAB MODE, and this is the line that keeps the keycap
+               * honest. On the spine (`mode: "nav"`) a chip navigates to the
+               * station, which is exactly what `g d` does, so the keycap is
+               * the keyboard equivalent of the click. INSIDE one run the strip
+               * is a tablist and a chip switches tab without leaving the run --
+               * there `g d` would abandon the run for /discover, a different
+               * act entirely. Drawing it would be a keycap that lies about the
+               * control it sits on, which is the defect `doorKey` returning ""
+               * exists to prevent everywhere else.
+               */
+              const stageKey = asTab ? "" : doorKey(STATION_ROUTE[stage.station]);
               return (
                 <button
                   key={stage.station}
@@ -1101,7 +1158,39 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   onClick={() => strip.onSelect(stage.station)}
                   style={{ "--sp-hue": stageHueForStation(stage.station) } as React.CSSProperties}
                 >
-                  <span className="sp-stage-n">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="sp-stage-n">
+                    {String(i + 1).padStart(2, "0")}
+                    {/* Inline with the 01-07 marker, not stacked, so the chip
+                      keeps its three-line rhythm and the strip keeps its
+                      height. The two are never confusable: the marker is a
+                      bare mono number and the key is in a keycap, which is
+                      the same distinction the rail draws on Today. */}
+                    {stageKey ? (
+                      <kbd
+                        className="sp-stage-key"
+                        data-shortcut={`${NAV_CHORD_PREFIX} ${stageKey}`}
+                        aria-hidden="true"
+                        style={KEYCAP}
+                      >
+                        {NAV_CHORD_PREFIX} {stageKey}
+                      </kbd>
+                    ) : null}
+                  </span>
+                  {/* Said in words, because the keycap above is revealed on
+                    hover and on an armed chord and a screen reader has
+                    neither. An `aria-label` would have been wrong here: it
+                    REPLACES the accessible name, and the name is currently
+                    "01 Discover, 9 runs waiting on you" -- the count is the
+                    most valuable thing on the chip and must not be traded for
+                    a shortcut. `aria-keyshortcuts` was the other candidate and
+                    is also wrong: ARIA reads its space-separated values as
+                    ALTERNATIVE shortcuts, so "g d" would announce as "g or d",
+                    and `d` alone does nothing. */}
+                  {stageKey ? (
+                    <span className="sp-sr-only">
+                      Shortcut: {NAV_CHORD_PREFIX} then {stageKey}
+                    </span>
+                  ) : null}
                   <span className="sp-stage-name">{STAGE_LABEL[stage.station]}</span>
                   <span className="sp-stage-state">{stage.note}</span>
                   {/* The dot repeats what the note already says in words, for
@@ -1156,8 +1245,20 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                        stops costing you the hint instead of hiding it, and a
                        screen reader is told the shortcut it could never have
                        seen drawn. Said in words rather than punctuation,
-                       because "Today, 0" is a riddle when it is spoken. */
-                    aria-label={shortcut ? `${label}, shortcut ${shortcut}` : label}
+                       because "Today, 0" is a riddle when it is spoken.
+
+                       THE PREFIX IS SPOKEN TOO, and it was missing. This read
+                       "Today, shortcut t" while the visible keycap two lines
+                       below correctly read "g t" -- so the sighted user was
+                       told the truth and the screen-reader user was told a key
+                       that does nothing, and the narrow rail's tooltip carried
+                       the wrong one to everybody. Left over from the bare-key
+                       scheme the chord replaced. "g then t" rather than "g t":
+                       spoken, the space is inaudible and the two would run
+                       together into one word. */
+                    aria-label={
+                      shortcut ? `${label}, shortcut ${NAV_CHORD_PREFIX} then ${shortcut}` : label
+                    }
                   >
                     <Icon />
                     <span className="sp-navlabel">{label}</span>

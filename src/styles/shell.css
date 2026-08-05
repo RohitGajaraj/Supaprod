@@ -518,6 +518,107 @@
   font-variant-numeric: tabular-nums;
   font-size: var(--sp-text-data-sm);
   color: var(--sp-mute);
+  /* The marker now shares its line with the station's keycap. Wrapping the two
+   * onto separate lines would change the chip's height, and a strip that grows
+   * a row the moment a person hovers it is the nudge-under-the-reader that the
+   * state line's `min-height` above exists to prevent. */
+  white-space: nowrap;
+}
+
+/* ---------- press `g`, and every door shows its letter ----------
+ * FOUNDER REPORT 2026-08-06: "I could see those things only for the app panels
+ * — Today, Runs, accept/reject. Don't we have those for the seven strips,
+ * Discover, Decide and so on?" He was right. Thirteen doors are bound and only
+ * the five RAIL ROWS drew a keycap; the seven stations are chips on this strip,
+ * not rail rows, so `g d` through `g l` fired and were drawn nowhere.
+ *
+ * WHY IT IS NOT SIMPLY PRINTED. Seven chips divide the strip's width, the note
+ * already drops under a container query at 880px, and this exact strip is what
+ * the founder asked us to make quieter. A permanent eighth mark per chip buys
+ * discoverability with the clutter he asked us to remove.
+ *
+ * SO IT IS REVEALED ON INTENT, in three ways and never at rest:
+ *   - the chord is armed (`g` pressed; GotoShortcuts stamps the attribute),
+ *     which lights EVERY keycap in the product at once — that is what teaches
+ *     the chord on first use with no tour, and it is the pattern Superhuman
+ *     and Raycast use;
+ *   - the pointer is on the chip, for the person who is already reaching;
+ *   - the chip has keyboard focus, so tabbing through the strip surfaces the
+ *     faster way to do what tabbing is doing.
+ *
+ * OPACITY, NOT `display`. The keycap holds its box at rest, so revealing it
+ * moves nothing on the strip. Hiding it with `display: none` would reflow the
+ * marker line on every hover — seven chips of jitter for a hint. */
+.sp-stage-key {
+  margin-left: 6px;
+  opacity: 0;
+  /* Faster than the shell's standard: this answers a keypress, and a hint that
+   * fades in behind the second key of a two-key chord has arrived too late to
+   * be the thing that taught it. */
+  transition: opacity 90ms var(--sp-ease);
+}
+:root[data-chord="armed"] .sp-stage-key,
+.sp-stage:hover .sp-stage-key,
+.sp-stage:focus-visible .sp-stage-key {
+  opacity: 1;
+}
+
+/* THE RAIL ANSWERS THE SAME PRESS. Its keycaps are drawn permanently and
+ * quietly (they are trailing text on a wide row, which has the room the strip
+ * does not), so arming does not reveal them — it RAISES them, out of the
+ * count's volume and up to the row's own ink. Without this, pressing `g` would
+ * light the seven stations and leave the five rows it also governs looking
+ * inert, which reads as "the chord does not reach these". */
+:root[data-chord="armed"] .sp-navkey {
+  color: var(--sp-ink);
+  background: color-mix(in oklab, currentColor 22%, transparent);
+}
+
+/* ---------- and the narrow rail, which had nothing to raise ----------
+ * FOUND IN THE BROWSER, 2026-08-06, and by nothing else. The rule above was
+ * written believing the rail always draws its keycaps. It does not: TWO rules
+ * put `.sp-navcount` — which the keycap wears for exactly this reason — to
+ * `display: none` the moment the rail is 64px, once for the user's own
+ * collapse (`[data-rail="narrow"]`) and once for the 900px viewport. So
+ * pressing `g` lit all seven stations and left all five rail rows blank, which
+ * is the asymmetry the rule above claims to prevent, in the state the shell
+ * spends most of its time in: the rail AUTO-COLLAPSES once a person has
+ * visited enough stations, so the narrow rail is what a returning user sees.
+ *
+ * THE ROW BECOMES ITS KEY. Revealing the keycap beside the icon does not fit
+ * and the measurement is not close: `.sp-nav` leaves a 48px row inside a 64px
+ * rail, and an 18px icon plus an 11px gap plus a 26px keycap is 55px. So for
+ * the two seconds the chord is live, the icon stands down and the letter takes
+ * its place — the row says what opens it, then goes back to saying what it is.
+ * That is also the honest trade: a person who has pressed `g` is not looking
+ * for the icon, they are looking for the letter.
+ *
+ * Both narrow paths need saying separately. The viewport one fires with no
+ * `[data-rail]` attribute involved, so the attribute-scoped selector cannot
+ * cover it, and a media query's contents carry no extra specificity. */
+:root[data-chord="armed"] .sp-app[data-rail="narrow"] .sp-navrow .sp-navkey {
+  display: inline-block;
+}
+:root[data-chord="armed"] .sp-app[data-rail="narrow"] .sp-navrow > svg {
+  display: none;
+}
+@media (max-width: 900px) {
+  :root[data-chord="armed"] .sp-navrow .sp-navkey {
+    display: inline-block;
+  }
+  :root[data-chord="armed"] .sp-navrow > svg {
+    display: none;
+  }
+}
+
+/* The reveal is a cross-fade with no travel, so it is not the class of motion
+ * this media query is for. It is honoured anyway: the transition is the only
+ * part that could feel like animation, and the hint is just as useful arriving
+ * instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .sp-stage-key {
+    transition: none;
+  }
 }
 .sp-stage-name {
   font-size: var(--sp-text-prose);
