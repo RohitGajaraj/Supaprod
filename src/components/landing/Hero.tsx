@@ -230,12 +230,32 @@ export function Hero() {
               className="hero-rise flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-7"
               style={{ animationDelay: "180ms" }}
             >
+              {/* THIS POINTED AT A DOOR THAT DID NOT NEED TO EXIST.
+               *
+               * It sent every visitor to #join, the email waitlist. Measured on
+               * 2026-08-05: 1,294 landing_visit events and ZERO rows in
+               * waitlist_signups. Not a poor rate. Zero.
+               *
+               * Signup is fully open with auto-confirm, and the product says so
+               * on two other surfaces: /pricing offers "Start free" straight to
+               * /signup, and /demo says "the beta is open for sign-ups". The
+               * home page was the only surface pretending the product was
+               * gated, and it is the page a Product Hunt listing sends its
+               * entire spike to.
+               *
+               * A visitor's question at second eight is "can I try this". The
+               * nav answered "Sign in", implying accounts exist, and this
+               * button answered "wait". That ambiguity at the primary CTA is
+               * the whole loss.
+               *
+               * Nothing is removed: the waitlist form is untouched and still
+               * reachable at #join from the closing section. */}
               <a
-                href="#join"
+                href="/signup"
                 className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-white"
               >
                 <span className="flex items-center gap-2">
-                  Join the beta
+                  Start free
                   <span className="hero-arrow inline-block" aria-hidden>
                     &rarr;
                   </span>
@@ -267,8 +287,21 @@ export function Hero() {
               className="hero-rise mt-8 text-[13px] leading-relaxed text-zinc-500 md:text-sm"
               style={{ animationDelay: "240ms", maxWidth: "46ch" }}
             >
-              <span className="text-zinc-300">The first 100 get a free teardown.</span> Our Critic
-              agent tears your riskiest idea apart. No credit card.
+              {/* "The first 100 get a free teardown" was manufactured scarcity on
+                  a thing that is already unlimited: /p/teardown gives anyone a
+                  Critic verdict with no signup, capped only at 20 per IP per
+                  hour, and this very page links to it. Inventing a queue for
+                  something free is the one move a page arguing "receipts, not
+                  claims" cannot afford. What replaces it is the true version,
+                  which is a better offer anyway: try it before you sign up. */}
+              <span className="text-zinc-300">
+                <a href="/p/teardown" className="underline underline-offset-4 hover:text-white">
+                  Try the Critic first
+                </a>
+                , no account needed.
+              </span>{" "}
+              Paste one product bet and it comes back with the risks, the gaps and a verdict in
+              about twenty seconds.
             </p>
           </div>
 

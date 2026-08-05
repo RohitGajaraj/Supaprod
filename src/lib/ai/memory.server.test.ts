@@ -5,21 +5,34 @@ import {
   touchMemory,
   logMemoryRecall,
   rememberOutcome,
+  supersededContent,
+  selectSupersedable,
+  SUPERSEDED_MARK,
   type MemoryRef,
   type RecalledMemory,
 } from "./memory.server";
+
+type AnyRecord = Record<string, unknown>;
+type PriorRow = { id: string; content: string | null; metadata: AnyRecord | null };
 
 /**
  * Spy Supabase client for memory tests.
  * Follows the pattern from fanout.server.test.ts: minimal RPC/query stubs
  * that track calls and return controlled responses.
  */
-function memorySpy() {
+function memorySpy(opts?: { priorOutcomes?: PriorRow[] }) {
   const calls: Record<string, { count: number; args: unknown[] }> = {
     match_agent_memory: { count: 0, args: [] },
     recent_agent_reflections: { count: 0, args: [] },
     from: { count: 0, args: [] },
   };
+  /** Every write rememberOutcome made against agent_memory, so a test can prove
+   *  the prior row was MARKED and not deleted. */
+  const writes: { deletes: number; updates: Array<{ id: string; patch: AnyRecord }> } = {
+    deletes: 0,
+    updates: [],
+  };
+  const priorOutcomes = opts?.priorOutcomes ?? [];
 
   const client = {
     rpc: (name: string, args: unknown) => {
@@ -83,22 +96,35 @@ function memorySpy() {
 
       if (table === "agent_memory") {
         return {
+          // rememberOutcome's prior-outcome read: select(...).eq().filter().filter()
+          // resolves as a promise. touchMemory's update(...).in() also lives here.
           select: () => ({
-            single: async () => ({
-              data: { id: "new-mem-id" },
-              error: null,
-            }),
-          }),
-          update: () => ({
-            in: async () => ({ data: null, error: null }),
-          }),
-          delete: () => ({
+            single: async () => ({ data: { id: "new-mem-id" }, error: null }),
             eq: () => ({
               filter: () => ({
-                filter: async () => ({ data: null, error: null }),
+                filter: async () => ({ data: priorOutcomes, error: null }),
               }),
             }),
           }),
+          update: (patch: AnyRecord) => ({
+            in: async () => ({ data: null, error: null }),
+            eq: async (_col: string, id: string) => {
+              writes.updates.push({ id, patch });
+              return { data: null, error: null };
+            },
+          }),
+          // Kept only so a regression that reintroduces the destructive path is
+          // caught by an assertion rather than passing silently.
+          delete: () => {
+            writes.deletes++;
+            return {
+              eq: () => ({
+                filter: () => ({
+                  filter: async () => ({ data: null, error: null }),
+                }),
+              }),
+            };
+          },
           insert: () => ({
             select: () => ({
               single: async () => ({
@@ -108,6 +134,23 @@ function memorySpy() {
             }),
           }),
         };
+      }
+
+      // embedOne routes through loadBYOKey, which chains two .eq() before
+      // .maybeSingle(). Without this branch the chain throws, the embedding is
+      // null, and every rememberOutcome test silently exercises the skip path.
+      if (table === "user_api_keys") {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }),
+            }),
+          }),
+        };
+      }
+
+      if (table === "ai_events") {
+        return { insert: async () => ({ data: null, error: null }) };
       }
 
       if (table === "memory_recall_log") {
@@ -133,7 +176,7 @@ function memorySpy() {
     },
   } as unknown as SupabaseClient;
 
-  return { client, calls };
+  return { client, calls, writes };
 }
 
 describe("recallMemoryRefs (semantic + recent memory recall)", () => {
@@ -412,186 +455,236 @@ describe("logMemoryRecall (trace-based recall logging)", () => {
   });
 });
 
+/* -------------------------------------------------------------------------- *
+ * THE OUTCOME MEMORY, AND WHY IT NOW ACCUMULATES.
+ *
+ * `rememberOutcome` is the only writer that fills the pool every precedent path
+ * reads (`kind = 'outcome'`). It used to DELETE the prior outcome memory for a
+ * PRD before inserting the new one, which capped the corpus at one row per spec
+ * forever and let the human settle path destroy the agent's memory of the same
+ * spec. These tests hold the two properties that turn it from a cache into a
+ * record: nothing is ever deleted, and a write that does not happen says why.
+ * -------------------------------------------------------------------------- */
+
+/** Make embedOne succeed, so the tests below reach the DB path instead of all
+ *  silently exercising the no-embedding skip. Restores what it replaced. */
+async function withEmbedding<T>(fn: () => Promise<T>): Promise<T> {
+  const priorFetch = globalThis.fetch;
+  const priorKey = process.env.LOVABLE_API_KEY;
+  process.env.LOVABLE_API_KEY = "test-key";
+  globalThis.fetch = (async () =>
+    new Response(
+      JSON.stringify({
+        data: [{ index: 0, embedding: [0.1, 0.2, 0.3] }],
+        usage: { prompt_tokens: 4 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )) as unknown as typeof fetch;
+  try {
+    return await fn();
+  } finally {
+    globalThis.fetch = priorFetch;
+    if (priorKey === undefined) delete process.env.LOVABLE_API_KEY;
+    else process.env.LOVABLE_API_KEY = priorKey;
+  }
+}
+
+const outcomeArgs = (over: Partial<Parameters<typeof rememberOutcome>[1]> = {}) => ({
+  userId: "user-1",
+  workspaceId: "ws-1" as string | null,
+  prdId: "prd-1",
+  opportunityId: "opp-1" as string | null,
+  learningId: "learn-1" as string | null,
+  content: `Outcome on the spec "Checkout retry": MISSED. ${Math.random()}`,
+  importance: 4,
+  verdict: "missed",
+  priorIce: 7,
+  newIce: 5,
+  prdTitle: "Checkout retry",
+  oppTitle: "Cart abandonment",
+  ...over,
+});
+
+describe("supersededContent (the note a replaced outcome memory carries)", () => {
+  it("keeps the original text verbatim and appends what replaced it", () => {
+    const out = supersededContent(
+      'Outcome on the spec "Checkout retry": VALIDATED.',
+      "missed",
+      "2026-08-05T11:22:33.000Z",
+    );
+    expect(out.startsWith('Outcome on the spec "Checkout retry": VALIDATED.')).toBe(true);
+    expect(out).toContain("Later re-recorded as MISSED on 2026-08-05");
+    expect(out).toContain(SUPERSEDED_MARK.trim());
+  });
+
+  it("is idempotent: a second supersession replaces the note, never stacks one", () => {
+    const once = supersededContent("Base outcome.", "missed", "2026-08-05T00:00:00.000Z");
+    const twice = supersededContent(once, "validated", "2026-09-01T00:00:00.000Z");
+    // One mark, naming the verdict that actually replaced it.
+    expect(twice.split(SUPERSEDED_MARK).length).toBe(2);
+    expect(twice.startsWith("Base outcome.")).toBe(true);
+    expect(twice).toContain("Later re-recorded as VALIDATED on 2026-09-01");
+    expect(twice).not.toContain("MISSED");
+  });
+
+  it("uses the date only, never a spurious-precision timestamp", () => {
+    const out = supersededContent("Base.", "mixed", "2026-08-05T11:22:33.456Z");
+    expect(out).not.toContain("11:22:33");
+  });
+
+  it("never emits an empty verdict into a sentence an agent will quote", () => {
+    const out = supersededContent("Base.", "   ", "2026-08-05T00:00:00.000Z");
+    expect(out).toContain("A DIFFERENT VERDICT");
+  });
+
+  it("handles an empty prior content without producing a leading blank", () => {
+    const out = supersededContent("", "missed", "2026-08-05T00:00:00.000Z");
+    expect(out.startsWith(SUPERSEDED_MARK.trimStart())).toBe(true);
+  });
+});
+
+describe("selectSupersedable (which prior rows this write replaces)", () => {
+  it("returns rows that have not been superseded yet", () => {
+    const rows = [
+      { id: "a", content: "x", metadata: { source: "outcome" } },
+      { id: "b", content: "y", metadata: null },
+    ];
+    expect(selectSupersedable(rows).map((r) => r.id)).toEqual(["a", "b"]);
+  });
+
+  it("skips a row already superseded, so its note keeps naming its own successor", () => {
+    const rows = [
+      { id: "a", content: "x", metadata: { superseded_at: "2026-07-01T00:00:00.000Z" } },
+      { id: "b", content: "y", metadata: { source: "outcome" } },
+    ];
+    expect(selectSupersedable(rows).map((r) => r.id)).toEqual(["b"]);
+  });
+
+  it("returns nothing for an empty pool (the first outcome on a spec)", () => {
+    expect(selectSupersedable([])).toEqual([]);
+  });
+});
+
 describe("rememberOutcome (persist outcome memory)", () => {
-  it("persists outcome as global-scope searchable memory", async () => {
+  it("writes a global-scope outcome memory and reports no error", async () => {
     const { client } = memorySpy();
+    const result = await withEmbedding(() => rememberOutcome(client, outcomeArgs()));
 
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: "ws-1",
-      prdId: "prd-1",
-      opportunityId: "opp-1",
-      learningId: null,
-      content: "Outcome: improved the PRD based on feedback",
-      importance: 8,
-      verdict: "success",
-      priorIce: 10,
-      newIce: 15,
-      prdTitle: "PRD Title",
-      oppTitle: "Opportunity Title",
-    });
-
-    // Should return { id } on success
-    expect(result).toBeDefined();
+    expect(result.id).toBe("mem-id-123");
+    expect(result.error).toBeNull();
   });
 
-  it("returns null when embedding fails (non-fatal)", async () => {
-    const { client } = memorySpy();
-
-    // If embedOne returns no embedding, rememberOutcome returns null without inserting
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: "ws-1",
-      prdId: "prd-1",
-      opportunityId: null,
-      learningId: null,
-      content: "Outcome text",
-      importance: 5,
-      verdict: "failed",
-      priorIce: null,
-      newIce: null,
-      prdTitle: null,
-      oppTitle: null,
+  it("MARKS the prior outcome memory instead of deleting it", async () => {
+    const { client, writes } = memorySpy({
+      priorOutcomes: [
+        {
+          id: "old-mem",
+          content: 'Outcome on the spec "Checkout retry": VALIDATED.',
+          metadata: { source: "outcome", prd_id: "prd-1", verdict: "validated" },
+        },
+      ],
     });
 
-    // Could be null or { id } depending on embedding result
-    expect(result === null || (result && typeof result.id === "string")).toBe(true);
+    const result = await withEmbedding(() => rememberOutcome(client, outcomeArgs()));
+
+    // The whole point: the corpus grew by one and lost nothing.
+    expect(writes.deletes).toBe(0);
+    expect(result.supersedes).toEqual(["old-mem"]);
+
+    const marked = writes.updates.find((u) => u.id === "old-mem");
+    expect(marked).toBeDefined();
+    const meta = marked!.patch.metadata as Record<string, unknown>;
+    expect(meta.superseded_by).toBe("mem-id-123");
+    expect(meta.superseded_by_verdict).toBe("missed");
+    // The original metadata survives the merge; nothing is dropped to make room.
+    expect(meta.verdict).toBe("validated");
+    expect(String(marked!.patch.content)).toContain(
+      'Outcome on the spec "Checkout retry": VALIDATED.',
+    );
+    expect(String(marked!.patch.content)).toContain("Later re-recorded as MISSED");
   });
 
-  it("is idempotent: replaces prior outcome for same PRD", async () => {
-    const { client } = memorySpy();
-
-    const content = "Updated outcome for PRD-1";
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: "ws-1",
-      prdId: "prd-1",
-      opportunityId: null,
-      learningId: null,
-      content,
-      importance: 7,
-      verdict: "success",
-      priorIce: null,
-      newIce: null,
-      prdTitle: null,
-      oppTitle: null,
+  it("marks the prior row only AFTER the new one exists, never before", async () => {
+    const { client, writes } = memorySpy({
+      priorOutcomes: [{ id: "old-mem", content: "Prior.", metadata: { source: "outcome" } }],
     });
-
-    // First call should delete any prior outcome for prd-1, then insert new one
-    expect(result === null || (result && typeof result.id === "string")).toBe(true);
+    const result = await withEmbedding(() => rememberOutcome(client, outcomeArgs()));
+    // A supersede-mark that names the new row can only have run after the insert
+    // returned. The old order did the destructive half first, so a failed insert
+    // left the spec with no memory at all.
+    expect(result.id).toBe("mem-id-123");
+    expect(writes.updates.some((u) => u.id === "old-mem")).toBe(true);
   });
 
-  it("handles null optional fields (opportunityId, learningId, etc.)", async () => {
-    const { client } = memorySpy();
-
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: "ws-1",
-      prdId: "prd-1",
-      opportunityId: null,
-      learningId: null,
-      content: "Outcome",
-      importance: 5,
-      verdict: "pending",
-      priorIce: null,
-      newIce: null,
-      prdTitle: null,
-      oppTitle: null,
+  it("leaves an already-superseded row alone", async () => {
+    const { client, writes } = memorySpy({
+      priorOutcomes: [
+        { id: "old-mem", content: "Prior.", metadata: { superseded_at: "2026-07-01T00:00:00Z" } },
+      ],
     });
-
-    expect(result === null || (result && typeof result.id === "string")).toBe(true);
+    const result = await withEmbedding(() => rememberOutcome(client, outcomeArgs()));
+    expect(result.supersedes).toEqual([]);
+    expect(writes.updates.some((u) => u.id === "old-mem")).toBe(false);
   });
 
-  it("handles null workspace (global memory)", async () => {
-    const { client } = memorySpy();
-
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: null,
-      prdId: "prd-1",
-      opportunityId: null,
-      learningId: null,
-      content: "Global outcome memory",
-      importance: 5,
-      verdict: "success",
-      priorIce: null,
-      newIce: null,
-      prdTitle: null,
-      oppTitle: null,
-    });
-
-    expect(result === null || (result && typeof result.id === "string")).toBe(true);
+  it("the first outcome on a spec supersedes nothing", async () => {
+    const { client, writes } = memorySpy();
+    const result = await withEmbedding(() => rememberOutcome(client, outcomeArgs()));
+    expect(result.supersedes).toEqual([]);
+    expect(writes.deletes).toBe(0);
   });
 
-  it("includes metadata with source='outcome' + entity links", async () => {
-    const { client } = memorySpy();
-
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: "ws-1",
-      prdId: "prd-123",
-      opportunityId: "opp-456",
-      learningId: "learn-789",
-      content: "Outcome with full entity links",
-      importance: 9,
-      verdict: "great_success",
-      priorIce: 5,
-      newIce: 20,
-      prdTitle: "My PRD",
-      oppTitle: "My Opportunity",
-    });
-
-    // Should have created a memory with metadata
-    expect(result === null || (result && typeof result.id === "string")).toBe(true);
-  });
-
-  it("handles failure gracefully (console.error, returns null)", async () => {
-    const { client } = memorySpy();
-
-    const result = await rememberOutcome(client, {
-      userId: "user-1",
-      workspaceId: "ws-1",
-      prdId: "prd-1",
-      opportunityId: null,
-      learningId: null,
-      content: "Text that might cause error",
-      importance: 5,
-      verdict: "pending",
-      priorIce: null,
-      newIce: null,
-      prdTitle: null,
-      oppTitle: null,
-    });
-
-    // Should never throw, returns null on error
-    expect(result === null || (result && typeof result.id === "string")).toBe(true);
-  });
-
-  it("encodes importance + verdict for telemetry", async () => {
-    const { client } = memorySpy();
-
-    const importanceValues = [1, 5, 10];
-    const verdictValues = ["failure", "pending", "success"];
-
-    for (const importance of importanceValues) {
-      for (const verdict of verdictValues) {
-        const result = await rememberOutcome(client, {
-          userId: "user-1",
-          workspaceId: "ws-1",
-          prdId: `prd-${importance}-${verdict}`,
-          opportunityId: null,
-          learningId: null,
-          content: `Outcome with importance=${importance}, verdict=${verdict}`,
-          importance,
-          verdict,
-          priorIce: null,
-          newIce: null,
-          prdTitle: null,
-          oppTitle: null,
-        });
-
-        expect(result === null || (result && typeof result.id === "string")).toBe(true);
-      }
+  it("writes nothing and SAYS WHY when the content cannot be embedded", async () => {
+    const { client, writes } = memorySpy();
+    // The embeddings provider is down. The row must NOT be written, because
+    // match_agent_memory hard filters embedding IS NOT NULL and an unrecallable
+    // row is worse than none, and the reason must reach the caller rather than
+    // dying in a console line inside a Worker.
+    const priorFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response("upstream unavailable", { status: 503 })) as unknown as typeof fetch;
+    let result;
+    try {
+      result = await rememberOutcome(client, outcomeArgs());
+    } finally {
+      globalThis.fetch = priorFetch;
     }
+
+    expect(result.id).toBeNull();
+    expect(result.error).toBeTruthy();
+    expect(result.error).toContain("embed");
+    // And it must not have destroyed a prior good row on its way out.
+    expect(writes.deletes).toBe(0);
+    expect(writes.updates).toEqual([]);
+  });
+
+  it("never throws, whatever the client does", async () => {
+    const exploding = {
+      from: () => {
+        throw new Error("agent_memory is on fire");
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await withEmbedding(() => rememberOutcome(exploding, outcomeArgs()));
+    expect(result.id).toBeNull();
+    expect(result.error).toBeTruthy();
+  });
+
+  it("handles a null workspace (the row recalls as global)", async () => {
+    const { client } = memorySpy();
+    const result = await withEmbedding(() =>
+      rememberOutcome(client, outcomeArgs({ workspaceId: null })),
+    );
+    expect(result.id).toBe("mem-id-123");
+    expect(result.error).toBeNull();
+  });
+
+  it("handles null entity links (no opportunity, no learning)", async () => {
+    const { client } = memorySpy();
+    const result = await withEmbedding(() =>
+      rememberOutcome(client, outcomeArgs({ opportunityId: null, learningId: null })),
+    );
+    expect(result.id).toBe("mem-id-123");
+    expect(result.error).toBeNull();
   });
 });

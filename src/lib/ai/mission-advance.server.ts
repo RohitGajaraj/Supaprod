@@ -35,7 +35,12 @@ import {
 } from "./handoff.server";
 import { recallMemoryRefs } from "./memory.server";
 import { DEFAULT_MAX_ATTEMPTS, nextRetryAtIso, shouldRetryStep } from "./retry";
-import { recordPlaybookRunInternal } from "@/lib/playbooks.functions";
+import {
+  classifyRunOutcome,
+  findPlaybook,
+  verdictForPlaybookAttempt,
+  type PlaybookAttemptOutcome,
+} from "@/lib/playbooks/registry";
 
 export type MissionLite = {
   id: string;
@@ -119,16 +124,79 @@ async function hasRetryColumns(supabase: SupabaseClient): Promise<boolean> {
 }
 
 /**
+ * RF-05 (verdict stamping — this is the mechanism the old comment on the
+ * 'completed' branch called "separate, not-yet-wired"). Record ONE application
+ * of a playbook, WITH the verdict it earned, at the instant the step that
+ * applied it reaches a terminal state.
+ *
+ * Why the verdict is written on the INSERT rather than stamped later at mission
+ * finalization: `playbook_runs` carries no mission_id and no step_id (see
+ * 20260624060000_playbook_runs.sql — id, user_id, workspace_id, playbook_id,
+ * playbook_version, station, decision_id, verdict, created_at, resolved_at). A
+ * later UPDATE therefore has nothing to key on, and any "most recent row for
+ * this workspace + playbook" guess would attribute one mission's outcome to
+ * another mission's row. Inventing that correlation is exactly the kind of
+ * fabricated number this table exists to avoid. The step's terminal transition
+ * is the only moment the row's identity is known — and it is already CAS-won by
+ * exactly one caller, which is what makes this write exactly-once under
+ * overlapping sweeper/user ticks.
+ *
+ * Why this does not call `recordPlaybookRunInternal`: that helper takes no
+ * verdict and lives in a module this change does not own. It stays the manual /
+ * user-client path; this is the deterministic engine's path, and it writes the
+ * same row shape plus the verdict and its resolution time.
+ *
+ * Never throws: a best-effort learning write must not break the mission loop.
+ */
+async function recordPlaybookAttempt(
+  supabase: SupabaseClient,
+  step: { user_id: string; workspace_id: string; playbook_id: string },
+  outcome: PlaybookAttemptOutcome,
+): Promise<void> {
+  const def = findPlaybook(step.playbook_id);
+  if (!def) return; // unknown/stale playbook id — silently skip, never break the caller
+  const verdict = verdictForPlaybookAttempt(outcome);
+  try {
+    const { error } = await supabase.from("playbook_runs").insert({
+      user_id: step.user_id,
+      workspace_id: step.workspace_id,
+      playbook_id: def.id,
+      playbook_version: def.version,
+      station: def.station,
+      // NULL verdict is the honest record of an attempt that says nothing about
+      // the method (stopped, never started, abandoned). rankPlaybooksByOutcome
+      // counts it as volume and never as a win or a loss. resolved_at stays null
+      // with it: nothing was resolved.
+      verdict,
+      resolved_at: verdict ? new Date().toISOString() : null,
+    });
+    // Supabase-js resolves DB-level failures (RLS denial, missing table
+    // pre-migration, constraint violation) as {error} rather than throwing, so
+    // this check is the load-bearing one, not the catch below.
+    if (error) console.error("recordPlaybookAttempt insert failed:", error.message);
+  } catch (e) {
+    console.error("recordPlaybookAttempt threw:", e);
+  }
+}
+
+/**
  * When a step's child run failed (or its dispatch threw), decide retry vs. give
  * up. With the retry columns present and attempts under the ceiling, re-queue
  * the step to 'planned' with an exponential backoff (next_retry_at); otherwise
  * terminalize it 'failed'. Returns the chosen outcome.
+ *
+ * `outcome` is what actually ended this attempt, and it is a REQUIRED argument
+ * because the honest verdict depends on it and nothing else here can infer it:
+ * a run that failed on its own is evidence against the playbook, while a lost
+ * dispatch or a governance halt is evidence about nothing. See
+ * verdictForPlaybookAttempt in the registry for the full defence.
  */
 async function failOrRequeueStep(
   supabase: SupabaseClient,
   step: MissionStepRow,
   errorMsg: string,
   retryCols: boolean,
+  outcome: PlaybookAttemptOutcome,
 ): Promise<"retry" | "failed"> {
   const attempts = step.attempts ?? 0;
   const maxAttempts = step.max_attempts ?? DEFAULT_MAX_ATTEMPTS;
@@ -152,15 +220,23 @@ async function failOrRequeueStep(
     .eq("id", step.id)
     .eq("status", step.status)
     .select("id");
-  // RF-05: a station run happened (it ran to a genuine terminal failure, not
-  // a lost dispatch that will retry) — record it so the playbook registry
-  // learns from misses, not just wins.
+  // RF-05: the step is now terminal, so record the attempt WITH the verdict it
+  // earned. Only `work_failed` becomes a loss; a lost dispatch or a governance
+  // halt records the run with a NULL verdict, which counts as neither a win nor
+  // a loss. (The retry branch above returned already: a step that will run
+  // again has not finished its attempt, so nothing is recorded for it yet.)
+  //
+  // This corrects the claim the old comment here made. It asserted the record
+  // was only reached on "a genuine terminal failure, not a lost dispatch", but
+  // every caller funnels through this function, so an exhausted lost dispatch
+  // WAS being written as if the method had been tried. It is now written as
+  // what it is: no evidence.
   if (won?.length && step.playbook_id) {
-    await recordPlaybookRunInternal(supabase, {
-      userId: step.user_id,
-      workspaceId: step.workspace_id,
-      playbookId: step.playbook_id,
-    });
+    await recordPlaybookAttempt(
+      supabase,
+      { user_id: step.user_id, workspace_id: step.workspace_id, playbook_id: step.playbook_id },
+      outcome,
+    );
   }
   return "failed";
 }
@@ -216,6 +292,9 @@ export async function reflectStepStatusFromRuns(
         row,
         "dispatch lost before a child run was created (worker eviction)",
         retryCols,
+        // The agent never ran, so the playbook bound to this step was never
+        // applied. Infrastructure, not method: no verdict either way.
+        "never_started",
       );
     }
   }
@@ -260,15 +339,16 @@ export async function reflectStepStatusFromRuns(
         .eq("id", row.id)
         .eq("status", row.status)
         .select("id");
-      // RF-05: auto-record the station run so rankPlaybooksByOutcome has a
-      // live track record to rank against (verdict stamping is a separate,
-      // not-yet-wired mechanism — see docs/features/playbook-selection.md).
+      // RF-05: auto-record the station run, now WITH the verdict it earned, so
+      // rankPlaybooksByOutcome has a decisive track record to rank against
+      // instead of a column of nulls. The run completed, so the method was
+      // applied end to end and the work it guided passed: `delivered`.
       if (won?.length && row.playbook_id) {
-        await recordPlaybookRunInternal(supabase, {
-          userId: row.user_id,
-          workspaceId: row.workspace_id,
-          playbookId: row.playbook_id,
-        });
+        await recordPlaybookAttempt(
+          supabase,
+          { user_id: row.user_id, workspace_id: row.workspace_id, playbook_id: row.playbook_id },
+          classifyRunOutcome(run.status),
+        );
       }
     } else if (run.status === "halted" || run.status === "failed") {
       await failOrRequeueStep(
@@ -276,6 +356,12 @@ export async function reflectStepStatusFromRuns(
         row,
         run.halted_reason ?? run.output ?? `child run ${run.status}`,
         retryCols,
+        // 'failed' is a durable failure of the work this method guided (bounded
+        // retries are spent by the time the step terminalizes) => a loss.
+        // 'halted' is a governance stop or the stuck-run sweeper killing a run
+        // that stopped checkpointing => the attempt was interrupted, never
+        // judged, so it earns no verdict.
+        classifyRunOutcome(run.status),
       );
     } else if (isLostQueuedRun(run, lostCutoff)) {
       // A child run still 'queued' past the dispatch window was never promoted to
@@ -300,6 +386,11 @@ export async function reflectStepStatusFromRuns(
           row,
           "child run stuck queued past the dispatch window",
           retryCols,
+          // We just marked this run 'failed' OURSELVES because it never got
+          // promoted out of 'queued'. Reading that self-inflicted status back
+          // through classifyRunOutcome would score it as a loss for the
+          // playbook, which would be a fabricated one: the agent never started.
+          "never_started",
         );
       }
     }
@@ -442,7 +533,15 @@ export async function dispatchReadySteps(
       // Enqueue threw AFTER the claim — don't leave the step hung in
       // 'dispatched' with no run; retry it (bounded) or terminalize.
       const msg = e instanceof Error ? e.message : String(e);
-      await failOrRequeueStep(supabase, { ...step, attempts: attemptNo }, msg, retryCols);
+      // enqueue threw, so no child run exists and the agent never started. The
+      // playbook was never applied: no verdict either way.
+      await failOrRequeueStep(
+        supabase,
+        { ...step, attempts: attemptNo },
+        msg,
+        retryCols,
+        "never_started",
+      );
       failed.push({ idx: step.idx, agent_slug: step.agent_slug, error: msg });
     }
   }

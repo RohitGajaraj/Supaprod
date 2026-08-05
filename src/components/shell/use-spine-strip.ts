@@ -127,3 +127,31 @@ export function useSpineStrip(active: AgentStation | null): void {
       : null,
   );
 }
+
+/**
+ * THE SPINE THE SHELL FALLS BACK TO, mounted once for the whole session.
+ *
+ * This is the same workspace spine every station already publishes, with no
+ * station lit, and it is what a surface gets when it publishes nothing of its
+ * own. `RunStripProvider` renders it; see the DEFAULT SPINE section in
+ * run-strip.tsx for why absence stopped being the default.
+ *
+ * It renders no DOM. It exists to hold the query and the publish, because a
+ * hook cannot be conditional and the shell needs one caller that is always
+ * mounted. Being always mounted is also what removes the strip's arrival jump:
+ * the `["studio-sessions", false]` entry is warm from the first read of the
+ * session onward, so navigating between surfaces never re-enters the loading
+ * state where `stages` is null and the region collapses.
+ *
+ * THE POLL IS NOW APP WIDE, and that is the honest cost of an always-on strip.
+ * One query, 5s, deduped with every spine surface and with the board by the
+ * shared key, so the request count does not change on any surface that already
+ * drew a strip and goes from zero to one on the surfaces that did not.
+ */
+export function WorkspaceSpine(): null {
+  // `null` is the whole point: Brain is not a station, so nothing is lit. The
+  // strip still answers "where is the work", which is a question every surface
+  // in the product has.
+  useSpineStrip(null);
+  return null;
+}

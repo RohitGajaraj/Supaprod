@@ -384,12 +384,7 @@ function ProductStep({
           style={{ ...INPUT_STYLE, marginTop: 8 }}
         />
         <div style={{ marginTop: 16 }}>
-          <Button
-            type="submit"
-            variant="accent"
-            disabled={saving || busy}
-            loading={saving || busy}
-          >
+          <Button type="submit" variant="accent" disabled={saving || busy} loading={saving || busy}>
             {saving || busy ? "Saving…" : "Continue"}
           </Button>
         </div>
@@ -1095,7 +1090,10 @@ export function ObsidianOnboarding() {
             // Critic-run theater: the glacier shimmer cycles the honest
             // stages of what the run is actually doing.
             <div style={{ marginTop: 14 }}>
-              <AiPulse label={criticStage > 1 ? `${CRITIC_LABEL} · ${criticStage}s` : CRITIC_LABEL} state="working" />
+              <AiPulse
+                label={criticStage > 1 ? `${CRITIC_LABEL} · ${criticStage}s` : CRITIC_LABEL}
+                state="working"
+              />
             </div>
           ) : (
             <p
@@ -1267,7 +1265,14 @@ export function ObsidianOnboarding() {
                 The run hit an error before it could reach a verdict. Your belief is saved as an
                 opportunity, so nothing is lost.
               </p>
-              <div style={{ display: "flex", gap: "var(--geist-space-2x)", marginTop: 16, flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "var(--geist-space-2x)",
+                  marginTop: 16,
+                  flexWrap: "wrap",
+                }}
+              >
                 <Button
                   variant="accent"
                   disabled={mFinish.isPending}

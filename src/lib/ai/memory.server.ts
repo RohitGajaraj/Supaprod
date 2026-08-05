@@ -204,12 +204,96 @@ export async function logMemoryRecall(
 }
 
 /**
+ * What `rememberOutcome` did, in a shape the caller can put ON THE RECORD.
+ *
+ * It used to return `{ id } | null`, and null meant three different things:
+ * the content could not be embedded, the insert was refused, or something
+ * threw. All three landed in a `console.error` in a Cloudflare Worker, which
+ * is to say nowhere. `prds.outcome` would then read as a settled outcome whose
+ * lesson silently never reached the brain, the row would leave the pending
+ * queue forever, and nothing would ever retry it. That is the defect this type
+ * prevents: the failure now travels back to `applyOutcome`, which writes it
+ * into `prds.outcome` so a settled-but-unremembered outcome is findable with
+ * one query instead of being lost.
+ */
+export type RememberOutcomeResult = {
+  /** The agent_memory row written. Null when nothing was written. */
+  id: string | null;
+  /** Prior outcome memories for this PRD that this one supersedes. They are
+   *  MARKED, never deleted, so the record accumulates. */
+  supersedes: string[];
+  /** One line saying why nothing was written. Null when a row was written. */
+  error: string | null;
+};
+
+/**
+ * The sentinel that makes the supersession note idempotent.
+ *
+ * A spec can be settled, overturned, then re-measured, and each pass would
+ * otherwise staple another note onto the same row until the content was mostly
+ * notes. Cutting at this mark before re-appending means a row carries exactly
+ * one supersession line, always naming its immediate successor.
+ */
+export const SUPERSEDED_MARK = "\n\n[Superseded]";
+
+/**
+ * Append the supersession note to a prior outcome memory's content.
+ *
+ * Pure, so the exact wording the loop reads is unit-tested rather than assumed.
+ *
+ * WHY APPEND RATHER THAN DELETE OR REWRITE. The prior verdict is a true fact
+ * about a real moment and the highest-signal thing this product owns: "we
+ * called it validated in March and it was missed by June" is the precedent a
+ * decision brain exists to hold. Deleting it removed that. Rewriting the
+ * original sentence would falsify it. Appending keeps the original text
+ * verbatim and adds what later happened to it, so the row gains information
+ * and never loses any, and an agent that recalls both rows can tell which one
+ * is current instead of reading two verdicts as two independent data points.
+ */
+export function supersededContent(prior: string, nextVerdict: string, at: string): string {
+  const base = prior.split(SUPERSEDED_MARK)[0].trimEnd();
+  const verdict = nextVerdict.trim().toUpperCase() || "A DIFFERENT VERDICT";
+  // Date only: the day is what a reader needs to order two verdicts, and a full
+  // timestamp reads as false precision in a sentence an agent is about to quote.
+  const day = at.slice(0, 10);
+  // A row whose content was empty gets the note with no leading blank lines, so
+  // the separator never becomes the whole first paragraph of what the loop reads.
+  const mark = base ? SUPERSEDED_MARK : SUPERSEDED_MARK.trimStart();
+  return `${base}${mark} Later re-recorded as ${verdict} on ${day}. This line is the record of what was believed at the time, not the current verdict.`;
+}
+
+type PriorOutcomeMemory = {
+  id: string;
+  content: string | null;
+  metadata: Record<string, unknown> | null;
+};
+
+/** Prior rows this write supersedes: every outcome memory for the PRD that has
+ *  not already been superseded by a later one. Pure, so the selection rule is
+ *  tested rather than inferred from a PostgREST filter chain. Already-superseded
+ *  rows are left alone deliberately: re-stamping them would make each note name
+ *  the newest verdict rather than the one that actually replaced it. */
+export function selectSupersedable(rows: PriorOutcomeMemory[]): PriorOutcomeMemory[] {
+  return rows.filter((r) => !r.metadata?.superseded_at);
+}
+
+/**
  * Persist a recorded outcome as a durable, searchable, GLOBAL-scope memory so
  * EVERY future agent run recalls it (v6 Phase 2 — close the compounding loop).
  * Embedded so it surfaces via `match_agent_memory`; metadata entity-links the
- * PRD / opportunity / learning that produced it. Idempotent on re-record: a
- * prior outcome memory for the same PRD is replaced, not duplicated. Best-effort
- * — returns null (and never throws) so it can never break outcome recording.
+ * PRD / opportunity / learning that produced it.
+ *
+ * IT ACCUMULATES. It used to DELETE the prior outcome memory for the PRD before
+ * inserting, which capped the corpus at one row per spec forever: a cache, not a
+ * moat. Two callers write here (the human settling on /learn, and the agent's
+ * learning.record) against the same prd_id key, so under the old rule a person
+ * settling an outcome silently destroyed the agent's memory of it, and an agent
+ * recording twice in one mission kept only its last word. Nothing that compounds
+ * can be built on a store whose row count per subject is capped at one. Prior
+ * rows are now marked superseded and kept.
+ *
+ * Never throws: a memory write must not break outcome recording. But it no
+ * longer swallows either, see RememberOutcomeResult.
  */
 export async function rememberOutcome(
   supabase: SupabaseClient,
@@ -227,7 +311,8 @@ export async function rememberOutcome(
     prdTitle: string | null;
     oppTitle: string | null;
   },
-): Promise<{ id: string } | null> {
+): Promise<RememberOutcomeResult> {
+  const nothing = (error: string): RememberOutcomeResult => ({ id: null, supersedes: [], error });
   try {
     // A memory the loop can't recall is worse than none: match_agent_memory
     // hard-filters `embedding IS NOT NULL` and there is no re-embed sweep. So if
@@ -245,16 +330,30 @@ export async function rememberOutcome(
     } catch {
       emb = null;
     }
-    if (!emb) return null;
+    if (!emb) {
+      return nothing(
+        "the outcome could not be embedded, and match_agent_memory hard filters embedding IS NOT NULL, so an unrecallable row would be worse than none",
+      );
+    }
 
-    // Idempotent on re-record: drop any prior outcome memory for this PRD, then
-    // insert the fresh one. (Repo jsonb-filter convention: `.filter("col->>key")`.)
-    await supabase
-      .from("agent_memory")
-      .delete()
-      .eq("user_id", args.userId)
-      .filter("metadata->>source", "eq", "outcome")
-      .filter("metadata->>prd_id", "eq", args.prdId);
+    // Read the prior outcome memories for this PRD. READ, not delete: the new
+    // row supersedes them, it does not replace them. (Repo jsonb-filter
+    // convention: `.filter("col->>key")`.) A failed read is non-fatal and simply
+    // supersedes nothing, because losing the chain is better than losing the write.
+    let priors: PriorOutcomeMemory[] = [];
+    try {
+      const { data: priorRows } = await supabase
+        .from("agent_memory")
+        .select("id,content,metadata")
+        .eq("user_id", args.userId)
+        .filter("metadata->>source", "eq", "outcome")
+        .filter("metadata->>prd_id", "eq", args.prdId);
+      priors = selectSupersedable((priorRows ?? []) as PriorOutcomeMemory[]);
+    } catch (e) {
+      console.error("rememberOutcome prior-memory read failed (non-fatal):", e);
+    }
+    const supersedes = priors.map((p) => p.id);
+
     const { data, error } = await supabase
       .from("agent_memory")
       .insert({
@@ -276,29 +375,69 @@ export async function rememberOutcome(
           new_ice: args.newIce,
           prd_title: args.prdTitle,
           opp_title: args.oppTitle,
+          // The chain, walkable in both directions: this row names what it
+          // replaced, and each replaced row names this one (below).
+          supersedes,
         },
         embedding: emb as unknown as string,
       })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`agent_memory insert refused: ${error.message}`);
+    const insertedId = (data as { id?: string } | null)?.id ?? null;
+    if (!insertedId) {
+      return nothing("agent_memory insert returned no row id");
+    }
     // WM-F1: tag the row with its workspace (the column is nullable and has no
     // DEFAULT bridge, so a plain insert leaves it null). Done as a separate,
     // error-tolerant update so it stays pre-migration safe: before the column
     // exists the update simply no-ops, and a null workspace_id recalls as global.
-    if (args.workspaceId && (data as { id?: string } | null)?.id) {
+    if (args.workspaceId) {
       try {
         await supabase
           .from("agent_memory")
           .update({ workspace_id: args.workspaceId })
-          .eq("id", (data as { id: string }).id);
+          .eq("id", insertedId);
       } catch {
         /* column not present yet (pre-migration) — non-fatal */
       }
     }
-    return data as { id: string };
+
+    // Mark the priors, AFTER the new row exists. Order is the whole safety
+    // argument: if this half fails, the corpus holds two live outcome memories
+    // for one spec, which is recoverable and honest. The old code did the
+    // destructive half FIRST, so the same failure left the spec with no memory
+    // at all and no way to tell it had ever had one.
+    //
+    // The embedding is deliberately left as it was. It still points at the same
+    // subject, so the row stays recallable, and the text the agent actually
+    // reads now carries the correction. Re-embedding here would spend a call to
+    // move a vector that was already in the right place.
+    const at = new Date().toISOString();
+    for (const p of priors) {
+      try {
+        await supabase
+          .from("agent_memory")
+          .update({
+            content: supersededContent(p.content ?? "", args.verdict, at),
+            metadata: {
+              ...(p.metadata ?? {}),
+              superseded_at: at,
+              superseded_by: insertedId,
+              superseded_by_verdict: args.verdict,
+            },
+          })
+          .eq("id", p.id);
+      } catch (e) {
+        // Non-fatal by design: an unmarked prior is a stale row, a lost prior
+        // is a lost fact, and only one of those is recoverable.
+        console.error("rememberOutcome supersede-mark failed (non-fatal):", e);
+      }
+    }
+
+    return { id: insertedId, supersedes, error: null };
   } catch (e) {
     console.error("rememberOutcome failed:", e);
-    return null;
+    return nothing(e instanceof Error ? e.message : String(e));
   }
 }

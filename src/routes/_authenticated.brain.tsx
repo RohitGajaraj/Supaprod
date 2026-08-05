@@ -147,6 +147,147 @@
  * LEGACY_TABS, the ?decision= / ?learning= / ?focusKind= / ?focusId= drills
  * still work, and every query key is untouched, which matters because they are
  * shared caches with Today, Learn and the panels themselves.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE GUIDANCE PASS, 2026-08-05. THE SURFACE WAS PROVING STORAGE.
+ *
+ * The founder read the live demo workspace's own headline back to the page:
+ * "49 calls and 8 learnings are on the record, and none has re-scored a call
+ * yet." Every word of that is true and it is still the wrong sentence, because
+ * BOTH of its clauses are about the size of a pile. The product's claim is that
+ * the record learns and GUIDES. That headline concedes the opposite.
+ *
+ * WHAT IS ACTUALLY FIRING, AND WAS SHOWN NOWHERE. This page already pays for
+ * the answer. getStandingRecord returns two halves; StandingRules reads the
+ * rules half and CrewCarries reads the recall half, and CrewCarries lives on
+ * the Outcomes tab, which is not the tab anybody lands on. So the surface
+ * fetched the proof and then rendered it behind a door. On the demo workspace
+ * the recall half reads: 694 of 846 things the record has learned have been
+ * read back by a run, across 3115 recalls. That is not storage. A memory is
+ * pulled at recall time, written into the system prompt, and the model acts
+ * with it in front of it (recallMemoryRefs -> lines -> the prompt; touchMemory
+ * stamps last_used_at; logMemoryRecall writes the row). It is the single most
+ * load-bearing true sentence available to this page and it was not on it.
+ *
+ * SO: THE HEADLINE LADDER GAINS A RUNG. A re-scored call still wins, because an
+ * outcome that moved a ranking is the strongest claim in the product. Under it
+ * now sits the recall claim, and only under THAT does the page fall back to the
+ * manifest. A workspace with nothing yet still gets the manifest, unchanged.
+ *
+ * NOTHING IS LOST TO THE MOVE, which is the ratchet. The call, learning and doc
+ * counts were already the second line, as Doors. The one clause that leaves the
+ * head is "and none has re-scored a call yet", and it does not evaporate: it
+ * becomes a line of its own in the new region, next to the mechanism it is
+ * about and next to what makes it move, which is where an admission belongs.
+ *
+ * ADDED: THE GUIDANCE REGION, above the tabs because it is true whichever door
+ * you are behind (the same argument StandingRules already stands on). Three
+ * mechanisms, each rendered in the state it is actually in, and the empty and
+ * thin states ARE the design here because they are what every new workspace
+ * sees:
+ *
+ *   READ BACK      firing. What the record learned goes into a later run's
+ *                  prompt. Real counts, or, when nothing has been reached for
+ *                  yet, what makes the first one happen. Never a zero.
+ *   RATED          wired, thin. A rating on a run calls bump_memory_importance
+ *                  on every memory that run recalled (feedback.functions.ts:39-54)
+ *                  and importance is in the recall RPC's own ORDER BY
+ *                  (20260802190000_agent_memory_workspace_visibility.sql:143-146,
+ *                  and reflections order by importance desc). So "rating moves
+ *                  what the crew reads first" is a wired claim, not a promise.
+ *                  Today every row is still 'ignored', and the line says that.
+ *   RE-SCORED      wired, empty. agent_memory holds no outcome rows yet, so no
+ *                  outcome has moved an ICE. Stated plainly, with the act that
+ *                  moves one, and a door to the outcomes.
+ *
+ * WHAT THIS REGION IS NOT. It is not a stat strip. The substrate disclosure at
+ * the foot of this page is the inventory shape and it stays the inventory
+ * shape; these are Rows, the system's grammar for who did what, because every
+ * line here is an EVENT or the absence of one. And there is no "teams like
+ * yours" number anywhere, invented or averaged. There is no such data and a
+ * fabricated benchmark would be the exact thing this file's own test asks of
+ * every panel.
+ *
+ * NOTHING IS SAID TWICE. The recall lines are suppressed on the Outcomes tab,
+ * where CrewCarries says the same fact better because the list it describes is
+ * directly underneath it. That is the identical rule the record recess above
+ * already follows. The re-score line survives on every tab, because nothing
+ * else on any of them states it.
+ *
+ * ONE READ, THREE CONSUMERS. The region uses the ["brain-standing", workspace]
+ * key that StandingRules and CrewCarries already share, so surfacing this costs
+ * zero additional requests.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE MAP COMES UP OFF TAB FIVE, 2026-08-05. THE PROOF WAS BURIED.
+ *
+ * A design audit put the two facts side by side. GraphForceCanvas (36 KB) and
+ * GraphUniverseCanvas (43 KB) are a real DPR-aware physics canvas with typed
+ * edges, a time scrubber that replays over actual edge timestamps, drift rings,
+ * and per-edge rationale plus created_by_agent attribution: the one place in
+ * this product where the crew's work is DRAWN rather than described. Everywhere
+ * else, agent work is text; `<svg` appears zero times across the four core work
+ * surfaces, and the entire visual vocabulary for "an agent is working" is a 6px
+ * breathing dot, a 14px rotating glyph and a static chip. And that one drawn
+ * thing sat behind rail row 3, then tab 5 of 5, then a view toggle. Nobody who
+ * had not been told it existed ever saw it.
+ *
+ * Brain's job is to prove the record GUIDES. The graph is that proof, drawn. So
+ * it gets a region of its own, above the tabs.
+ *
+ * THE THREE WAYS TO RAISE IT, AND WHY THIS ONE.
+ *
+ *   MAKE GRAPH THE DEFAULT TAB when the record has edges. Strongest exposure,
+ *   and it takes something away: a returning PM lands on Brain to answer "was
+ *   this decided before", and that answer is the decision ledger. Moving the
+ *   default moves the surface's stated one task out from under the person who
+ *   uses it daily, which fails the ratchet's own test. Rejected.
+ *
+ *   MOVE GRAPH TO TAB POSITION 1 or 2. Cheap, and it does not fix the defect.
+ *   A tab is still a door you have to know to open; a first-time visitor who
+ *   never clicks it still never meets the canvas. It answers "buried deep" and
+ *   not "no visitor reaches it", and only the second one matters. Rejected.
+ *
+ *   A LIVE PREVIEW ABOVE THE TABS, which is what this is. It is strictly
+ *   ADDITIVE: every tab, every label, every deep link and the whole Graph tab
+ *   with its legend, scrubber, replay, Universe/Flat toggle and outline stay
+ *   exactly where they were. Nothing moved, so nobody's habit broke, and the
+ *   drawn record is now unavoidable rather than one more thing to find. It is
+ *   also the only one of the three that lets the canvas be CONDITIONAL, which
+ *   is what makes the honest-degradation rule below possible at all.
+ *
+ * WHERE IT SITS, AND WHY NOT HIGHER. Directly above the tab strip, under
+ * StandingRules. The recess-then-rule pair above it is deliberate and stated in
+ * section 5 of this header ("outcome, then consequence, in two elements, above
+ * the fold"), so the map does not get to split it. The resulting order is the
+ * argument the surface has always been making, and now the last rung is a
+ * picture: what the record did, what it changed, the rule it wrote, THE WHOLE
+ * THING DRAWN, and then the doors into it.
+ *
+ * IT DEGRADES HONESTLY, WHICH IS THE POINT OF THE THRESHOLD. A canvas holding
+ * two dots and one line does not read as a young workspace, it reads as a
+ * broken feature, and that is the state EVERY new user is in. So the canvas is
+ * drawn only at PREVIEW_MIN_EDGES or more, and under it the region says what is
+ * actually there in words: nothing linked yet plus the act that draws the first
+ * thread, or a thin count plus the door to the full map. Nothing is hidden in
+ * either state, because the Graph tab is untouched and both states link to it.
+ *
+ * IT COSTS NOTHING TO LOAD. The 36 KB canvas and its d3-force dependency are
+ * behind `lazy` INSIDE the drawn branch, so a workspace with two edges never
+ * fetches the module at all, and the read is the ["knowledge-graph", kind, id]
+ * key GraphCanvasView already uses, so this is a second consumer of one request
+ * rather than a second request, and opening the Graph tab is now a cache hit.
+ * The read is skipped outright while a drill is open. GraphUniverseCanvas is
+ * deliberately NOT the preview renderer: it pulls three.js, and the flagship
+ * WebGL view belongs on the tab that can afford it.
+ *
+ * WHY recordHeadline, guidanceLines AND graphPreview ARE EXPORTED. All three
+ * decide what this page is allowed to CLAIM, and every rule they hold is one a
+ * future edit can break while typechecking clean and looking fine in a diff, so
+ * they are pure and guarded by src/routes/__tests__/brain-guidance.test.tsx and
+ * src/routes/__tests__/brain-graph-preview.test.tsx. That costs a few
+ * react-refresh warnings on this file, which is the same trade CompoundingPanel
+ * beside it already makes for whenOf and deltaOf, and for the same reason.
  */
 import { lazy, Suspense, useState, type ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -157,9 +298,13 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { getBrainStatus, getCompanyBrainStats } from "@/lib/brain.functions";
 import { getCompounding } from "@/lib/today.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
+import { getStandingRecord, type RecallRecord } from "@/lib/brain-standing.functions";
+import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
+import type { GraphNodeKind, KnowledgeGraph } from "@/lib/knowledge-graph-view";
 import { RetentionLine } from "@/components/brain/RetentionLine";
 import { CrewCarries, StandingRules } from "@/components/brain/StandingRecord";
 import {
+  AgentMark,
   Block,
   Button,
   Cell,
@@ -168,9 +313,11 @@ import {
   Empty,
   Failed,
   Grid,
+  Loading,
   Num,
   PageHead,
   Record as RecordRecess,
+  Row,
   Surface,
 } from "@/components/shell/primitives";
 
@@ -207,6 +354,55 @@ const DocsPanel = lazy(() =>
 const ArtifactsView = lazy(() =>
   import("@/components/brain/ArtifactsView").then((m) => ({ default: m.ArtifactsView })),
 );
+
+/**
+ * THE RECORD, DRAWN. Mounted above the tabs, and ONLY from inside the branch
+ * that has already counted enough edges to be worth drawing, so the 36 KB
+ * renderer and its d3-force dependency are never fetched by a workspace that
+ * would get two dots and a line.
+ *
+ * The component is defined inside the factory rather than imported so that
+ * `graph-visual` rides in the SAME lazy chunk. It is a small module of pure
+ * constants plus one media-query hook, and importing `usePrefersReducedMotion`
+ * at the top of this route would pull the whole vocabulary into the chunk every
+ * Brain visit pays for, to serve the one visit in five that draws a map.
+ *
+ * `reducedMotion` is read here rather than passed because the canvas answers it
+ * itself: it renders a settled still instead of a running simulation, which is
+ * the same contract GraphPanel already honours on the tab.
+ */
+const GraphRecordPreview = lazy(async () => {
+  const [{ GraphForceCanvas }, { usePrefersReducedMotion }] = await Promise.all([
+    import("@/components/knowledge/GraphForceCanvas"),
+    import("@/components/knowledge/graph-visual"),
+  ]);
+  function Preview({
+    graph,
+    onOpenNode,
+  }: {
+    graph: KnowledgeGraph;
+    onOpenNode: (kind: string, id: string) => void;
+  }) {
+    const reducedMotion = usePrefersReducedMotion();
+    const [selected, setSelected] = useState<string | null>(null);
+    return (
+      <GraphForceCanvas
+        graph={graph}
+        selectedKey={selected}
+        onSelect={setSelected}
+        // A double-click on the preview is the handoff: it opens the full Graph
+        // tab already focused on the thing you pointed at, which is the drill
+        // the ?focusKind= / ?focusId= contract has always supported.
+        onOpenStory={(key) => {
+          const node = graph.nodes.find((n) => n.key === key);
+          if (node) onOpenNode(node.kind, node.id);
+        }}
+        reducedMotion={reducedMotion}
+      />
+    );
+  }
+  return { default: Preview };
+});
 
 type Tab = "decisions" | "learnings" | "artifacts" | "docs" | "graph";
 const TABS: Tab[] = ["decisions", "learnings", "artifacts", "docs", "graph"];
@@ -374,12 +570,27 @@ export const Route = createFileRoute("/_authenticated/brain")({
  * the record is real and useful, so it moves to the second line, where a size
  * belongs.
  *
- * Priority is by strength of claim: an outcome that moved a ranking beats a
- * count of anything. A young workspace that has not compounded yet falls back
- * to the honest manifest rather than to a claim it has not earned.
+ * Priority is by strength of claim: an outcome that moved a ranking beats the
+ * record being read back, and being read back beats a count of anything. A
+ * young workspace that has not compounded yet falls back to the honest manifest
+ * rather than to a claim it has not earned.
+ *
+ * THE MIDDLE RUNG, ADDED 2026-08-05, AND WHY IT IS NOT A SECOND MANIFEST. It
+ * counts recall EVENTS, not rows: memory_recall_log gets a row when a memory is
+ * pulled into a run's system prompt, so every one of them is a moment the crew
+ * read the record before it acted. That is the product's claim, stated in the
+ * one place a person always reads, and until this rung existed every workspace
+ * that had not yet re-scored a call landed on the manifest no matter how hard
+ * its record was working.
+ *
+ * SCOPES ARE NEVER MIXED IN ONE SENTENCE. The recall counts are owner-scoped
+ * (agent_memory RLS is auth.uid() = user_id) and the calls and learnings below
+ * are workspace-scoped, which is why they live in different sentences and never
+ * in one clause. brain-standing.functions.ts states the same rule at the read.
  */
-function recordHeadline(
+export function recordHeadline(
   summary: CompoundingSummary | null,
+  recall: RecallRecord | null,
   calls: number | null,
   learnings: number | null,
   loading: boolean,
@@ -389,6 +600,17 @@ function recordHeadline(
     return rescored === 1
       ? "A real outcome has re-scored one call."
       : `Real outcomes have re-scored ${rescored} calls.`;
+  }
+  // `memoriesReached` comes from last_used_at and is true whether or not the
+  // recall log can be read, so it is what qualifies the rung; `events` only
+  // supplies the number. A log we could not read contributes no number rather
+  // than a zero, and the claim still stands without one.
+  if (recall && recall.memoriesReached > 0) {
+    if (recall.events === 1) return "The crew has read this record before acting once.";
+    if (recall.events > 1) {
+      return `The crew has read this record before acting ${recall.events} times.`;
+    }
+    return "The crew has read this record before acting.";
   }
   if (calls === null && learnings === null) {
     return loading ? "Brain" : "The record did not load.";
@@ -411,9 +633,7 @@ function recordHeadline(
    * is simply false, and it undersells the product's own claim: the outcomes are
    * there, they have not yet changed a ranking. Say that instead.
    */
-  const tail = learnings
-    ? "and none has re-scored a call yet."
-    : "and nothing has come back yet.";
+  const tail = learnings ? "and none has re-scored a call yet." : "and nothing has come back yet.";
   const sentence = `${clauses.join(" and ")} ${verb} on the record, ${tail}`;
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
@@ -433,6 +653,219 @@ function verdictLine(verdict: "validated" | "missed" | "mixed", subject: string)
   if (verdict === "missed") return `${subject} did not pay off.`;
   return `${subject} came back mixed.`;
 }
+
+/**
+ * One guidance mechanism, in the state it is actually in.
+ *
+ * `door` names a destination this page can honestly reach. It is absent, never
+ * pointed at something adjacent, wherever there is nowhere to send anybody:
+ * the same rule the substrate counts below already follow, and the same one
+ * that keeps `meetings` unlinked down there.
+ */
+export type GuidanceLine = {
+  key: string;
+  lead: ReactNode;
+  sub: ReactNode;
+  door?: "outcomes";
+};
+
+/**
+ * WHAT THE RECORD IS DOING TO THE WORK, and where it is not doing it yet.
+ *
+ * PURE, so the honesty is testable without a browser. Every branch here is a
+ * different FACT, and the distinction that matters most is between "this has
+ * not happened" and "we could not find out", because a zero standing in for the
+ * second is the lie this whole surface exists not to tell.
+ *
+ * THE RULES THIS FUNCTION IS BOUND BY:
+ *
+ *   A number is drawn only when it was read. `logReady` false means
+ *   memory_recall_log could not be read at all, in which case its counts are
+ *   all 0 and none of them may be shown; the read-back line survives anyway,
+ *   because last_used_at is a different column on a different table and it is
+ *   still true.
+ *
+ *   A "not yet" line is drawn only once the thing it denies is KNOWN to be
+ *   absent. `rescoreCount: null` means the compounding read is in flight or
+ *   failed, and "no outcome has moved a priority" would then be a claim rather
+ *   than an admission, so nothing is drawn.
+ *
+ *   A "not yet" line always names the act that ends it. That is the difference
+ *   between a surface that reads as broken and one that reads as sharpening,
+ *   and the act named is always one the product genuinely performs.
+ *
+ *   No line compares this workspace to anybody else's. There is no such data,
+ *   and inventing an average would be the fabrication this repo fails builds
+ *   over.
+ */
+export function guidanceLines(args: {
+  recall: RecallRecord | null;
+  /** null while the compounding read is unresolved. See the rules above. */
+  rescoreCount: number | null;
+  /** True on the Outcomes tab, where CrewCarries states the recall fact
+   *  directly above the list it is about, which is the better place for it. */
+  recallSaidBelow: boolean;
+}): GuidanceLine[] {
+  const { recall, rescoreCount, recallSaidBelow } = args;
+  const out: GuidanceLine[] = [];
+  const showRecall = recall !== null && !recallSaidBelow;
+
+  // 1. READ BACK. The mechanism that is firing today. A memory is pulled at
+  //    recall time and written into the system prompt, so this counts moments
+  //    the crew read the record BEFORE it acted, not rows it kept.
+  if (showRecall && recall.memoriesTotal > 0) {
+    out.push(
+      recall.memoriesReached > 0
+        ? {
+            key: "read-back",
+            lead: (
+              <>
+                <Num>{recall.memoriesReached}</Num> of <Num>{recall.memoriesTotal}</Num> things the
+                record has learned have gone back into a later run.
+              </>
+            ),
+            sub: "Each one is written into the agent's prompt before it acts, not looked up afterwards.",
+          }
+        : {
+            key: "read-back",
+            lead: "Nothing the record has learned has gone into a run yet.",
+            sub: "The next run over the same ground reads it first. That is the whole mechanism, and it needs one more run.",
+          },
+    );
+  }
+
+  // 2. RATED. Wired end to end and thin on data: a rating calls
+  //    bump_memory_importance on every memory that run recalled, and importance
+  //    sits in the recall RPC's ORDER BY. So the sentence below describes a
+  //    real consequence, not an intention.
+  if (showRecall && recall.logReady && recall.events > 0) {
+    const rated = recall.helped > 0 || recall.contradicted > 0;
+    out.push(
+      rated
+        ? {
+            key: "rated",
+            lead: "Your ratings have moved what the crew reaches for first.",
+            sub: (
+              <>
+                {recall.helped > 0 ? (
+                  <span className="sp-pass">
+                    <Num>{recall.helped}</Num> helped
+                  </span>
+                ) : null}
+                {recall.helped > 0 && recall.contradicted > 0 ? " · " : null}
+                {recall.contradicted > 0 ? (
+                  <span className="sp-fail">
+                    <Num>{recall.contradicted}</Num> contradicted by what happened
+                  </span>
+                ) : null}
+              </>
+            ),
+          }
+        : {
+            key: "rated",
+            lead: "None of that has been rated yet.",
+            sub: "Rate one run and every lesson it leaned on moves up or down in what the crew reads next.",
+          },
+    );
+  }
+
+  // 3. RE-SCORED. Wired, and empty on every workspace today. This is the clause
+  //    the headline used to carry, and it is better here: an admission belongs
+  //    beside the mechanism it is about and beside the act that ends it.
+  if (rescoreCount === 0) {
+    out.push({
+      key: "rescored",
+      lead: "No outcome has moved a call's priority yet.",
+      sub: "Record what a shipped bet actually did, and the ranking it came from moves with it.",
+      door: "outcomes",
+    });
+  }
+
+  return out;
+}
+
+/**
+ * THE FEWEST LINKS THAT MAKE A SHAPE.
+ *
+ * Three, and the number is a judgment about what a picture SAYS rather than
+ * about performance. One link is two dots and a line; two links are three dots
+ * in a row. Neither reads as "this workspace is young", they read as "this
+ * feature is broken", and a physics canvas holding three objects reads worst of
+ * all because the motion has nothing to resolve into. Three links is the first
+ * count that can branch, and a branch is the whole claim: this came from that,
+ * and so did the other thing.
+ */
+export const PREVIEW_MIN_EDGES = 3;
+
+/**
+ * WHAT THE PREVIEW REGION IS ALLOWED TO DO, given what came back.
+ *
+ * PURE, for the same reason recordHeadline and guidanceLines are: every rule
+ * here is one a future edit can break while typechecking clean.
+ *
+ *   NEVER DRAW A CANVAS THAT READS AS BROKEN. Under PREVIEW_MIN_EDGES the
+ *   region says what is really there in words. This is not a smaller claim, it
+ *   is the true one, and it is the state every new workspace is in.
+ *
+ *   "NOTHING IS LINKED" AND "WE COULD NOT READ IT" ARE DIFFERENT FACTS, and
+ *   they get different states, because a person acts differently on each.
+ *
+ *   A STALE GRAPH STILL DRAWS. `failed` with data in hand means the refetch
+ *   failed, not that the record went away, so the map we have is still true and
+ *   blanking it would lose information over a network blip.
+ *
+ *   IT STANDS DOWN WHERE IT WOULD BE NOISE. On the Graph tab the full canvas is
+ *   already on screen, and drawing a second physics simulation above it is both
+ *   a duplicate and a real cost. On an open drill the reader came to read ONE
+ *   record, which is the identical rule the record recess above already follows.
+ */
+export type GraphPreviewState =
+  | { state: "hidden" }
+  | { state: "loading" }
+  | { state: "failed" }
+  | { state: "empty" }
+  | { state: "thin"; edges: number }
+  | { state: "drawn"; nodes: number; edges: number };
+
+export function graphPreview(args: {
+  /** Structural on purpose: the only thing this decision needs is how much
+   *  there is to draw, so a test never has to build a whole KnowledgeGraph. */
+  graph: { nodes: unknown[]; edges: unknown[] } | null;
+  loading: boolean;
+  failed: boolean;
+  onGraphTab: boolean;
+  drilling: boolean;
+}): GraphPreviewState {
+  const { graph, loading, failed, onGraphTab, drilling } = args;
+  if (onGraphTab || drilling) return { state: "hidden" };
+  if (!graph) return failed && !loading ? { state: "failed" } : { state: "loading" };
+  const nodes = graph.nodes.length;
+  const edges = graph.edges.length;
+  if (edges === 0) return { state: "empty" };
+  if (edges < PREVIEW_MIN_EDGES || nodes < PREVIEW_MIN_EDGES) return { state: "thin", edges };
+  return { state: "drawn", nodes, edges };
+}
+
+/**
+ * The height the canvas is about to take, held while the read is in flight so
+ * the tabs do not slide 500px down the page under the reader's cursor. It
+ * mirrors GraphForceCanvas's own recess verbatim, including the border and the
+ * sink, so the reservation is the exact shape of the thing arriving rather than
+ * a grey box approximating it. If that file's height ever changes, this follows.
+ *
+ * The thin and empty states collapse this reservation UPWARDS, which is the
+ * cheap direction: it never pushes away something the reader is already looking
+ * at, and it happens once, on workspaces that have no map to wait for anyway.
+ */
+const PREVIEW_RESERVE = {
+  height: "clamp(420px, 58vh, 640px)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "var(--sp-sink)",
+  border: "1px solid var(--sp-line)",
+  borderRadius: "var(--sp-radius-panel)",
+};
 
 function MemoryPage() {
   const search = Route.useSearch();
@@ -462,6 +895,28 @@ function MemoryPage() {
     queryKey: ["compounding"],
     queryFn: () => fCompounding(),
   });
+  // Whether the crew reaches for what the record learned. THE KEY IS THE ONE
+  // StandingRules AND CrewCarries ALREADY USE, so this is a third reader of one
+  // request rather than a third request. It has to stay character-identical to
+  // the key in StandingRecord.tsx: a drifted key would silently double the read
+  // and could show two different numbers on one screen.
+  const fStanding = useServerFn(getStandingRecord);
+  const standing = useQuery({
+    queryKey: ["brain-standing", activeWorkspaceId],
+    queryFn: () => fStanding({ data: { workspaceId: activeWorkspaceId } }),
+  });
+  // The record DRAWN. THE KEY IS CHARACTER-IDENTICAL TO GraphCanvasView's, so
+  // this page and the Graph tab are two consumers of ONE request: the preview
+  // costs nothing extra on any visit that opens the tab, and the tab it hands
+  // off to now opens on a cache hit instead of a cold read. Skipped entirely
+  // while a drill is open, because that is a state the preview never draws in.
+  const drilling = Boolean(decision || learning);
+  const fGraph = useServerFn(getKnowledgeGraph);
+  const graphQ = useQuery({
+    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null],
+    queryFn: () => fGraph({ data: { focusKind: focusKind as GraphNodeKind | undefined, focusId } }),
+    enabled: !drilling,
+  });
 
   // Fresh search object: every drill param clears on a tab switch.
   const setTab = (next: Tab) => navigate({ search: { tab: next } });
@@ -469,13 +924,19 @@ function MemoryPage() {
   const counts = brain.data?.counts ?? null;
   const learningCount = stats.data?.learnings ?? null;
   const summary = compounding.data?.summary ?? null;
+  const recall = standing.data?.recall ?? null;
   const countsLoading = brain.isLoading || stats.isLoading;
   const countsFailed = (brain.isError || stats.isError) && !counts && learningCount === null;
+  // `standing.isLoading` joins the loading flag so the head holds on "Brain"
+  // until the recall rung is decidable. Without it the title would settle on
+  // the manifest and then jump to the recall claim a moment later, which reads
+  // as the page correcting itself.
   const headline = recordHeadline(
     summary,
+    recall,
     counts?.decisions ?? null,
     learningCount,
-    countsLoading || compounding.isLoading,
+    countsLoading || compounding.isLoading || standing.isLoading,
   );
   const lastAdded = day(brain.data?.latest);
   const emptyRecord =
@@ -531,6 +992,26 @@ function MemoryPage() {
   // on the Outcomes tab, where the feed below already leads with it.
   const latest = summary?.latest ?? null;
   const showRecord = !decision && !learning && tab !== "learnings" && latest !== null;
+
+  // What the record is DOING, and where it is not doing it yet. The recall half
+  // stands down on the Outcomes tab for the identical reason the recess above
+  // does: CrewCarries says it there, one line above the list it is about.
+  const guidance = guidanceLines({
+    recall,
+    rescoreCount: summary ? summary.rescoreCount : null,
+    recallSaidBelow: tab === "learnings" && !learning,
+  });
+
+  // Whether the record is drawn on this screen, and in what state. See the
+  // header section "THE MAP COMES UP OFF TAB FIVE" for why the answer is a
+  // region here rather than a reordered tab or a new default.
+  const preview = graphPreview({
+    graph: graphQ.data ?? null,
+    loading: graphQ.isLoading,
+    failed: graphQ.isError,
+    onGraphTab: tab === "graph",
+    drilling,
+  });
 
   // The second line is the SIZE of the record: what the headline no longer
   // says, because a manifest is not a claim. Every clause is a count that
@@ -656,11 +1137,149 @@ function MemoryPage() {
         </Block>
       ) : null}
 
+      {/* WHERE THE RECORD IS REACHING THE WORK. Above the tabs, because it is
+          true whichever door you are behind, and above StandingRules because
+          this is the mechanism that has data on every workspace today while a
+          standing rule is the distilled thing that comes later: the crew reads
+          the record back, and THEN the steward turns the pattern into a rule
+          every agent carries. Cause, then consequence, in that order.
+
+          NOTHING HERE IS A STAT STRIP. The substrate disclosure at the foot of
+          this page is the Grid-of-Cells inventory shape and keeps it; these are
+          Rows, which is this system's grammar for who did what, because every
+          line is an event or the honest absence of one. The mark is the crew in
+          its `quiet` state on every row including the "not yet" ones: it names
+          whose behaviour the line is about, and quiet is precisely the state
+          that claims nothing is happening right now.
+
+          A row is clickable only when it has somewhere real to go, and the one
+          door here is already-open on the Outcomes tab, so it stops being an
+          affordance there rather than becoming one that does nothing. */}
+      {guidance.length > 0 ? (
+        <Block title="What the record has changed so far">
+          {guidance.map((g) => (
+            <Row
+              key={g.key}
+              marks={<AgentMark slug={null} name="the crew" state="quiet" />}
+              lead={g.lead}
+              sub={g.sub}
+              onClick={
+                g.door === "outcomes" && tab !== "learnings" ? () => setTab("learnings") : undefined
+              }
+            />
+          ))}
+        </Block>
+      ) : null}
+
       {/* What changed BECAUSE of all that. The outcome speaks in the recess
           above; this is the sentence the record has since written into every
           agent's prompt. Cause, then consequence, and it stands above the tabs
           because it is true whichever door you are behind. */}
       <StandingRules />
+
+      {/* THE RECORD, DRAWN, and the last thing before the doors.
+
+          Every other region on this page states the record's work in a
+          sentence. This one shows it, and it is the only element in the product
+          that does: the four core work surfaces render agent work entirely as
+          text, and the whole visual vocabulary for "an agent is working" is a
+          breathing dot and a rotating glyph. That made an 80 KB physics canvas
+          with typed edges, a real time scrubber and per-edge attribution into
+          the best-kept secret in the app, three levels down.
+
+          It sits UNDER StandingRules rather than higher because the recess and
+          the rule above it are a deliberate pair, outcome then consequence, and
+          the map is not allowed to split them. It sits ABOVE the tabs for the
+          same reason StandingRules does: it is true whichever door you are
+          behind, and here it also hands off into them.
+
+          THE LABEL NAMES THE OUTCOME. "Graph" is the tab's name and a shape;
+          what you get from it is the answer to what led to what. */}
+      {preview.state !== "hidden" ? (
+        <Block
+          title="What led to what"
+          sub={
+            preview.state === "drawn" ? (
+              <>
+                <Num>{preview.nodes}</Num> pieces of work and the <Num>{preview.edges}</Num> links
+                between them. Double click any one to open it on the full map, with the reason the
+                link was drawn and the agent that drew it.
+              </>
+            ) : undefined
+          }
+          more={preview.state === "drawn" ? "Open the full map" : undefined}
+          onMore={() => setTab("graph")}
+        >
+          {/* A read in flight, holding the shape of what is coming. */}
+          {preview.state === "loading" ? (
+            <div style={PREVIEW_RESERVE}>
+              <Loading>Drawing what the record connects.</Loading>
+            </div>
+          ) : null}
+
+          {/* NOT an empty state. The map exists; this read of it failed. */}
+          {preview.state === "failed" ? (
+            <Failed onRetry={() => void graphQ.refetch()}>
+              The map did not load. Nothing it draws is lost, and the Graph tab still holds it.
+            </Failed>
+          ) : null}
+
+          {/* THE STATE EVERY NEW WORKSPACE IS IN. Naming the act that draws the
+              first thread is the difference between a surface that reads as
+              broken and one that reads as waiting for you. The act named is one
+              the product genuinely performs: Discover clustering a signal onto
+              a bet writes that lineage row itself. */}
+          {preview.state === "empty" ? (
+            <Empty
+              action={
+                <Button variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                  Turn a signal into a bet
+                </Button>
+              }
+            >
+              Nothing on the record is linked to anything else yet. The first thread is drawn the
+              moment one piece of work comes from another: a signal becomes a bet, a bet becomes a
+              spec, an outcome comes back on a call you shipped.
+            </Empty>
+          ) : null}
+
+          {/* Enough to count, not enough to be a shape. Said plainly, with the
+              full map still one click away, so the thin state hides nothing the
+              tab used to offer. */}
+          {preview.state === "thin" ? (
+            <Empty
+              action={
+                <Button variant="ghost" onClick={() => setTab("graph")}>
+                  Open the map
+                </Button>
+              }
+            >
+              {preview.edges === 1 ? "One link is" : `${preview.edges} links are`} on the record so
+              far, which is a list and not yet a shape. The map draws itself as the work connects,
+              and every thread on it carries why it was drawn.
+            </Empty>
+          ) : null}
+
+          {/* The canvas itself, and the ONLY place the heavy module is
+              referenced, so nothing above ever pays to load it. */}
+          {preview.state === "drawn" && graphQ.data ? (
+            <Suspense
+              fallback={
+                <div style={PREVIEW_RESERVE}>
+                  <Loading>Drawing what the record connects.</Loading>
+                </div>
+              }
+            >
+              <GraphRecordPreview
+                graph={graphQ.data}
+                onOpenNode={(kind, id) =>
+                  navigate({ search: { tab: "graph", focusKind: kind, focusId: id } })
+                }
+              />
+            </Suspense>
+          ) : null}
+        </Block>
+      ) : null}
 
       <div className="sp-tabs" role="tablist" aria-label="What the record holds">
         {TABS.map((id) => (

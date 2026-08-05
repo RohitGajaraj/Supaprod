@@ -43,11 +43,14 @@ export function LandingNav() {
         <a href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">
           Sign in
         </a>
+        {/* Points at the open door, matching the hero and /pricing. The
+            waitlist stays reachable at #join from the closing section; it is
+            simply no longer the only thing a visitor can do. */}
         <a
-          href="#join"
+          href="/signup"
           className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
         >
-          Join the beta
+          Start free
         </a>
         <button
           title="Machine view (M key)"

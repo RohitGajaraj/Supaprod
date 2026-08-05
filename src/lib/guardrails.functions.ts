@@ -10,9 +10,12 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { evaluateGuardrails, type GuardrailRule } from "./ai/guardrails.server";
 import { GUARDRAIL_FLOOR } from "@/lib/ai/guardrail-floor";
+import { getUserWorkspaceRole, writeDeniedReason, type Role } from "./roles.functions";
 
 const BUILTIN_SEED = [
   {
@@ -119,6 +122,116 @@ export const getGuardrailOverview = createServerFn({ method: "GET" })
     };
   });
 
+/**
+ * PURE, and the only place this file decides what to say about a refused write.
+ * A guardrail rule is the `guardrail_rules` governed surface, so the answer is
+ * writeDeniedReason's, and null means the role may write.
+ *
+ * THE DEFECT THIS EXISTS TO PREVENT: RLS refuses an UPDATE or a DELETE by
+ * matching zero rows, not by raising. Migration 20260805130000 narrowed every
+ * guardrail write to owner or admin, so from that migration onward a viewer or
+ * a member pressing Save on /guardrails would have got ok:true back having
+ * changed nothing at all. A control that silently does nothing is the exact
+ * failure this codebase has spent the day removing. The INSERT half is no
+ * kinder unaided: a WITH CHECK violation does raise, but it raises "new row
+ * violates row-level security policy", which names the mechanism at a person
+ * who only wanted to know they are not allowed.
+ */
+export function guardrailWriteDenial(role: Role | null | undefined): string | null {
+  return writeDeniedReason(role, "guardrail_rules");
+}
+
+/** Said when the rule is not there to begin with. Distinct from "not allowed". */
+const RULE_IS_GONE = "That guardrail rule is no longer here, so nothing changed.";
+
+/**
+ * Said when the write RAN and the database returned no row.
+ *
+ * We genuinely cannot tell a policy refusal apart from a row someone else
+ * removed a moment earlier: both come back as zero rows and PostgREST does not
+ * say which. So this states the uncertainty instead of picking one, and the
+ * call sites throw it rather than returning ok:true for a write they cannot
+ * vouch for.
+ */
+function unconfirmedWrite(what: string): string {
+  return `We could not confirm ${what}. Reload the page and check this rule before relying on it.`;
+}
+
+/**
+ * The narrow escape hatch used to reach `guardrail_rules.workspace_id` and the
+ * current_user_default_workspace() RPC.
+ *
+ * Both are LIVE, verified against the database on 2026-08-05: the column landed
+ * in migration 20260803191000. What is stale is
+ * src/integrations/supabase/types.ts, which has not been regenerated since, so
+ * tsc cannot see a column that really is there. Typed this narrowly rather than
+ * as `any` so the escape hatch stays exactly two calls wide and disappears the
+ * day the types are regenerated.
+ */
+type StaleTypedReads = {
+  from: (table: "guardrail_rules") => {
+    select: (columns: "workspace_id") => {
+      eq: (
+        column: "id",
+        value: string,
+      ) => { maybeSingle: () => Promise<{ data: { workspace_id: string } | null }> };
+    };
+  };
+  rpc: (fn: "current_user_default_workspace") => Promise<{ data: string | null }>;
+};
+
+/**
+ * The workspace a guardrail rule belongs to, or null when the caller cannot see
+ * the rule at all (the SELECT policy is membership-keyed).
+ */
+async function guardrailRuleWorkspace(
+  supabase: SupabaseClient<Database>,
+  ruleId: string,
+): Promise<string | null> {
+  const { data } = await (supabase as unknown as StaleTypedReads)
+    .from("guardrail_rules")
+    .select("workspace_id")
+    .eq("id", ruleId)
+    .maybeSingle();
+  return data?.workspace_id ?? null;
+}
+
+/**
+ * The workspace a NEW rule will land in. guardrail_rules.workspace_id defaults
+ * to current_user_default_workspace(), so asking the same function the column
+ * default asks is how the permission check and the insert stay talking about
+ * the same workspace.
+ */
+async function defaultGuardrailWorkspace(
+  supabase: SupabaseClient<Database>,
+): Promise<string | null> {
+  const { data } = await (supabase as unknown as StaleTypedReads).rpc(
+    "current_user_default_workspace",
+  );
+  return data ?? null;
+}
+
+/**
+ * Refuse a guardrail write BEFORE attempting it, in a sentence a person can act
+ * on. Mirrors can_manage_workspace() exactly (owner or admin, read off
+ * workspace_members), because the database is the enforcement and a check that
+ * disagreed with it would be worse than none.
+ */
+async function assertCanWriteGuardrails(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  workspaceId: string | null,
+): Promise<void> {
+  if (!workspaceId) {
+    throw new Error(
+      "We could not tell which workspace this guardrail belongs to, so nothing was changed.",
+    );
+  }
+  const role = await getUserWorkspaceRole(supabase, workspaceId, userId);
+  const denial = guardrailWriteDenial(role);
+  if (denial) throw new Error(denial);
+}
+
 const RuleSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(1).max(120),
@@ -135,7 +248,13 @@ export const upsertGuardrailRule = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     if (data.id) {
-      const { error } = await supabase
+      const workspaceId = await guardrailRuleWorkspace(supabase, data.id);
+      if (!workspaceId) throw new Error(RULE_IS_GONE);
+      await assertCanWriteGuardrails(supabase, userId, workspaceId);
+      // .select() is load-bearing, not decoration: without it a refused update
+      // and a saved update are the same empty response, and this handler used
+      // to return ok:true for both.
+      const { data: updated, error } = await supabase
         .from("guardrail_rules")
         .update({
           name: data.name,
@@ -145,10 +264,14 @@ export const upsertGuardrailRule = createServerFn({ method: "POST" })
           applies_to: data.applies_to,
           enabled: data.enabled,
         })
-        .eq("id", data.id);
+        .eq("id", data.id)
+        .select("id")
+        .maybeSingle();
       if (error) throw new Error(error.message);
+      if (!updated) throw new Error(unconfirmedWrite("that your edit saved"));
       return { ok: true, id: data.id };
     }
+    await assertCanWriteGuardrails(supabase, userId, await defaultGuardrailWorkspace(supabase));
     const { data: ins, error } = await supabase
       .from("guardrail_rules")
       .insert({
@@ -171,8 +294,17 @@ export const deleteGuardrailRule = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase.from("guardrail_rules").delete().eq("id", data.id);
+    const workspaceId = await guardrailRuleWorkspace(supabase, data.id);
+    if (!workspaceId) throw new Error(RULE_IS_GONE);
+    await assertCanWriteGuardrails(supabase, userId, workspaceId);
+    const { data: deleted, error } = await supabase
+      .from("guardrail_rules")
+      .delete()
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!deleted) throw new Error(unconfirmedWrite("that the rule was deleted"));
     return { ok: true };
   });
 
@@ -183,11 +315,17 @@ export const toggleGuardrailRule = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
+    const workspaceId = await guardrailRuleWorkspace(supabase, data.id);
+    if (!workspaceId) throw new Error(RULE_IS_GONE);
+    await assertCanWriteGuardrails(supabase, userId, workspaceId);
+    const { data: toggled, error } = await supabase
       .from("guardrail_rules")
       .update({ enabled: data.enabled })
-      .eq("id", data.id);
+      .eq("id", data.id)
+      .select("id")
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!toggled) throw new Error(unconfirmedWrite("that the switch saved"));
     return { ok: true };
   });
 
@@ -195,6 +333,10 @@ export const seedBuiltInGuardrails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    // Seeding is nine INSERTs, so it is gated on the same role as any other
+    // guardrail write. Checked before the read so a read-only role is told it
+    // cannot seed, rather than watching the button do nothing.
+    await assertCanWriteGuardrails(supabase, userId, await defaultGuardrailWorkspace(supabase));
     const { data: existing } = await supabase
       .from("guardrail_rules")
       .select("name")

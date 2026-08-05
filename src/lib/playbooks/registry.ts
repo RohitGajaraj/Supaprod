@@ -135,8 +135,109 @@ export function findPlaybook(id: string): PlaybookDefinition | null {
 /** A recorded application of a playbook (from `playbook_runs`). */
 export type PlaybookRun = { playbook_id: string; verdict?: string | null };
 
-const POSITIVE = new Set(["validated", "confirmed", "win"]);
-const NEGATIVE = new Set(["missed", "invalidated", "refuted", "loss"]);
+/**
+ * The two verdicts the MACHINE writes. `rankPlaybooksByOutcome` also accepts the
+ * hand-entered synonyms below, but everything stamped automatically uses exactly
+ * these, so the writer and the counter can never drift apart.
+ */
+export const VERDICT_VALIDATED = "validated";
+export const VERDICT_MISSED = "missed";
+export type PlaybookVerdict = typeof VERDICT_VALIDATED | typeof VERDICT_MISSED;
+
+const POSITIVE = new Set([VERDICT_VALIDATED, "confirmed", "win"]);
+const NEGATIVE = new Set([VERDICT_MISSED, "invalidated", "refuted", "loss"]);
+
+/**
+ * What actually happened to the ONE attempt that applied a playbook — a mission
+ * step bound to it, observed at the moment that step reaches a terminal state.
+ *
+ *  - `delivered`     the agent ran under this method and its run completed.
+ *  - `work_failed`   the agent ran under this method and its run failed for
+ *                    good — bounded retries already exhausted (retry.ts), so a
+ *                    transient blip never lands here.
+ *  - `interrupted`   something STOPPED the attempt mid-flight: a governance
+ *                    halt, the stuck-run sweeper, or a terminal status this
+ *                    code does not recognise.
+ *  - `never_started` the agent never ran at all: the dispatch was lost to a
+ *                    worker eviction, the child run sat 'queued' past the
+ *                    window, or enqueue threw after the claim.
+ *  - `abandoned`     the operator cancelled it, or an upstream failure skipped
+ *                    it, so the method was dropped rather than judged.
+ */
+export type PlaybookAttemptOutcome =
+  "delivered" | "work_failed" | "interrupted" | "never_started" | "abandoned";
+
+/**
+ * PURE. The verdict one attempt earns for the playbook it applied, or `null`
+ * when the attempt is NO EVIDENCE about the method and must count as neither a
+ * win nor a loss.
+ *
+ * THE LINE: was the method actually applied, and did the system reach a
+ * judgment on the work it guided?
+ *
+ *   applied, judged good  -> validated
+ *   applied, judged bad   -> missed
+ *   applied, then stopped -> null   (interrupted)
+ *   never applied         -> null   (never_started, abandoned)
+ *
+ * Why `interrupted` / `never_started` / `abandoned` are null rather than a loss:
+ * none of them is a referendum on the method. A worker eviction, an operator
+ * hitting cancel, a spend guardrail firing, an upstream sibling failing — each
+ * would sink the BEST playbook exactly as often as the worst, so counting them
+ * adds noise, not signal, and would quietly punish whichever method the
+ * workspace happens to reach for most. The run is still recorded (the volume is
+ * real and shows as `runs`); it simply never moves the win rate. "Not enough
+ * decisive runs yet" is the honest reading, and this product cannot afford an
+ * invented number.
+ *
+ * Why `work_failed` IS a loss, even though a run can fail for reasons that are
+ * not the method's fault (a provider 500, a tool crash): the step only
+ * terminalizes 'failed' after its bounded retries are spent, so what reaches
+ * here is "the work this method guided did not stand up, repeatedly". The
+ * alternative — never recording a loss at all — is the worse lie, because it
+ * hands every playbook a permanent 100% win rate.
+ *
+ * Scope of "validated": the method's application DELIVERED. It is not a claim
+ * that the decision it produced later proved right. A decision-outcome-level
+ * verdict (playbook_runs.decision_id, still unwired) is a strictly richer signal
+ * and may supersede this one; until it exists, delivery is what actually
+ * happened and is the only thing this may assert.
+ */
+export function verdictForPlaybookAttempt(outcome: PlaybookAttemptOutcome): PlaybookVerdict | null {
+  if (outcome === "delivered") return VERDICT_VALIDATED;
+  if (outcome === "work_failed") return VERDICT_MISSED;
+  return null;
+}
+
+/**
+ * PURE. Classify a playbook-bound step's attempt from the terminal status of the
+ * child agent run that carried it. Callers that know the agent never ran at all
+ * (lost dispatch, enqueue threw) pass `never_started` directly instead.
+ *
+ * An unknown or empty status classifies as `interrupted` — no evidence — on
+ * purpose: a status this code has never seen must never be turned into a
+ * verdict. Silence is the only honest answer to something we cannot read.
+ */
+export function classifyRunOutcome(runStatus: string | null | undefined): PlaybookAttemptOutcome {
+  switch (
+    String(runStatus ?? "")
+      .trim()
+      .toLowerCase()
+  ) {
+    case "completed":
+      return "delivered";
+    case "failed":
+      return "work_failed";
+    case "halted":
+      return "interrupted";
+    case "cancelled":
+    case "canceled":
+    case "stopped":
+      return "abandoned";
+    default:
+      return "interrupted";
+  }
+}
 
 export type PlaybookRanking = {
   playbook: PlaybookDefinition;

@@ -437,7 +437,7 @@ function TraceHop({
             }}
           ></span>
         </span>
-        <span className="mono-label tabular-nums" style={{ }}>
+        <span className="mono-label tabular-nums" style={{}}>
           {fmtDuration(hopElapsedMs(h))}
         </span>
         <StatusBadge status={badgeStatus(h.status)} />
@@ -522,7 +522,15 @@ function TraceHop({
             ))
           )}
           {/* Production: raw input/output expanders — mono pre on canvas. */}
-          <div style={{ ...rail, paddingTop: 4, display: "flex", gap: "var(--geist-space-3x)", alignItems: "center" }}>
+          <div
+            style={{
+              ...rail,
+              paddingTop: 4,
+              display: "flex",
+              gap: "var(--geist-space-3x)",
+              alignItems: "center",
+            }}
+          >
             <button
               onClick={() => setShowInput(!showInput)}
               aria-expanded={showInput}
@@ -1343,10 +1351,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       </span>
                       <StatusBadge status={badgeStatus(s.status)} />
                       {s.deps.length > 0 ? (
-                        <span
-                          className="mono-label"
-                          style={{ color: "var(--text-subtle)" }}
-                        >
+                        <span className="mono-label" style={{ color: "var(--text-subtle)" }}>
                           after {s.deps.map((d) => d + 1).join(", ")}
                         </span>
                       ) : null}
@@ -1364,9 +1369,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                       {s.goal}
                     </div>
                     {s.note ? (
-                      <div style={{ color: "var(--madder)", marginTop: 2 }}>
-                        {s.note}
-                      </div>
+                      <div style={{ color: "var(--madder)", marginTop: 2 }}>{s.note}</div>
                     ) : null}
                   </div>
                 </div>
@@ -1445,7 +1448,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                     </VerdictChip>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <code style={{ }}>{tc.tool_name}</code>
+                    <code style={{}}>{tc.tool_name}</code>
                     <span
                       style={{
                         display: "block",

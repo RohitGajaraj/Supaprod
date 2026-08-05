@@ -16,6 +16,89 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type Role = "owner" | "admin" | "member" | "viewer";
 
+export const ROLES: readonly Role[] = ["owner", "admin", "member", "viewer"] as const;
+
+/** Narrow an unknown value (a DB string, a URL param) to a Role, or null. */
+export function asRole(value: unknown): Role | null {
+  return typeof value === "string" && (ROLES as readonly string[]).includes(value)
+    ? (value as Role)
+    : null;
+}
+
+/**
+ * The governed surfaces, and the roles the DATABASE lets write each one.
+ *
+ * This mirrors, exactly, the RLS policies installed by
+ * supabase/migrations/20260805130000_role_aware_writes_on_governance_tables.sql.
+ * The database is the enforcement; this table exists so the UI can say WHY a
+ * control is refused instead of surfacing a bare RLS "0 rows" as success.
+ *
+ * If you change one, change the other. The migration header explains each choice.
+ */
+export const GOVERNED_WRITES = {
+  /** Hard floors screening every AI call. Admin edits guardrails (see header). */
+  guardrail_rules: ["owner", "admin"],
+  /** Approving, retiring or rewriting a rule injected into every agent prompt. */
+  house_rules_decide: ["owner", "admin"],
+  /** Drafting a rule for someone to decide. A member keeps this. */
+  house_rules_draft: ["owner", "admin", "member"],
+  /** Tool overrides are platform policy, not user rows. */
+  agent_tools: ["owner", "admin"],
+  /** Pausing or resuming the workspace. */
+  kill_switches: ["owner", "admin"],
+  /** promotion_min_* and settle_* on workspaces: what happens with no human. */
+  autonomy_policy: ["owner", "admin"],
+  /** A spend cap is money, so a read-only role does not set one. */
+  spend_caps: ["owner", "admin", "member"],
+  /** Plan and billing sit with the account owner alone. */
+  billing: ["owner"],
+} as const satisfies Record<string, readonly Role[]>;
+
+export type GovernedSurface = keyof typeof GOVERNED_WRITES;
+
+/**
+ * Can this role write this governed surface? Pure, and the single place the app
+ * should ask, so no screen invents its own idea of what a viewer may do.
+ * An unknown or absent role is a non-member, which writes nothing.
+ */
+export function canWriteGoverned(role: Role | null | undefined, surface: GovernedSurface): boolean {
+  if (!role) return false;
+  return (GOVERNED_WRITES[surface] as readonly Role[]).includes(role);
+}
+
+/** Owner or admin: the pair the DB calls can_manage_workspace(). */
+export function canManageWorkspace(role: Role | null | undefined): boolean {
+  return role === "owner" || role === "admin";
+}
+
+/** A member of any writing rank. False for a viewer and for a non-member. */
+export function canWriteAnything(role: Role | null | undefined): boolean {
+  return role === "owner" || role === "admin" || role === "member";
+}
+
+/** Read-only by design. Distinct from "not a member at all", which is null. */
+export function isReadOnly(role: Role | null | undefined): boolean {
+  return role === "viewer";
+}
+
+/**
+ * The sentence to show when a control is refused. Names the outcome, not the
+ * mechanism: nobody needs to hear the words "row level security".
+ */
+export function writeDeniedReason(
+  role: Role | null | undefined,
+  surface: GovernedSurface,
+): string | null {
+  if (canWriteGoverned(role, surface)) return null;
+  const allowed = GOVERNED_WRITES[surface] as readonly Role[];
+  const who =
+    allowed.length === 1
+      ? `the ${allowed[0]}`
+      : allowed.slice(0, -1).join(", ") + ` or ${allowed[allowed.length - 1]}`;
+  if (!role) return `You are not a member of this workspace, so only ${who} can change this.`;
+  return `Your role here is ${role}. Only ${who} can change this.`;
+}
+
 /**
  * Typed error for permission denied.
  */

@@ -25,6 +25,11 @@ export type DecisionRow = {
   snapshot_before: string | null;
   created_at: string;
   source_label?: string | null;
+  /* Provenance, since the title no longer carries it. The "[auto] " prefix was
+   * retired from the data in migration 20260805120000, and stripAutoPrefix now
+   * runs at the read boundary anyway, so isAutoTitle(title) returns false for
+   * every row and the "Auto" chip would have silently vanished. Read this. */
+  auto_origin?: boolean | null;
 };
 
 export const listDecisions = createServerFn({ method: "GET" })
@@ -49,7 +54,7 @@ export const listDecisions = createServerFn({ method: "GET" })
     let q = supabase
       .from("decisions")
       .select(
-        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at",
+        "id,title,rationale,status,source_kind,meeting_id,mission_id,prd_id,decided_by_agent_slug,snapshot_before,created_at,auto_origin",
       )
       .order("created_at", { ascending: false })
       .limit(data?.limit ?? 100);

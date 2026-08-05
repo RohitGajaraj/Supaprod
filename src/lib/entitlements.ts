@@ -305,9 +305,7 @@ export type ConnectorCapability = "inflow" | "outflow";
 export function assertConnectorCapability(tier: PlanTier, capability: ConnectorCapability): void {
   const e = entitlementsFor(tier);
   if (e.connectorTier === "none") {
-    throw new Error(
-      "This plan does not permit live connectors.",
-    );
+    throw new Error("This plan does not permit live connectors.");
   }
   if (capability === "outflow" && e.connectorTier === "read") {
     throw new Error(

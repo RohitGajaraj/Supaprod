@@ -1348,6 +1348,210 @@ export const getChangesetByPrd = createServerFn({ method: "GET" })
     return { changeset: changeset ?? null };
   });
 
+/* ------------------------------------------------------------------------ *
+ * SHIP STAMP - the write that closes spec -> build -> merge -> learn.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * THE DEFECT THIS PREVENTS. Merging a Studio changeset stamped nothing on the
+ * spec it came from. Only two writers ever set prds.shipped_at: checkPrdShipped
+ * (outcome.functions.ts), which needs a linked GitHub issue that closed, and the
+ * production promote (deployments.functions.ts). The promote is unreachable on a
+ * customer's own repo: it refuses without a successful PREVIEW deployment row,
+ * and ci-poll-tick only creates those for Supaprod-managed repos (supaprod.json)
+ * with Deno Deploy configured. So on a bring-your-own repo the chain ended at
+ * "merged" and went no further: no shipped spec, so no outcome to settle, so no
+ * outcome memory, so the precedent pool stayed empty and "past calls surface
+ * before this one is made" was not true. Sixteen merged changesets stood in
+ * production behind zero shipped specs.
+ *
+ * WHY MERGE IS THE HONEST TRIGGER AND NOT DEPLOY. A merged pull request is not
+ * always a deploy, and this deliberately does not claim it is. It claims exactly
+ * one thing: the change reached the repository's default branch. That is the
+ * right moment for THIS record for three reasons.
+ *
+ *   1. It is the last event Supaprod performs and can verify for itself. Studio
+ *      opens every pull request against the default branch (studio.pr.open
+ *      passes `base: defaultBranch`), the merge runs only after the CI-green
+ *      gate and the eval-regression gate, and GitHub answers with `merged:true`
+ *      plus a commit SHA. Nothing is inferred. What a customer's own CD does
+ *      afterwards is outside Supaprod's reach on a repo it does not host, so
+ *      waiting for a deploy signal that can never arrive is precisely how the
+ *      loop stayed broken.
+ *   2. It is a STRICTLY STRONGER fact than the writer the product already
+ *      trusts. checkPrdShipped stamps shipped_at when a linked GitHub issue
+ *      closes, and an issue closes for any reason at all, wontfix and duplicate
+ *      included. A merge into trunk behind green CI is better evidence than
+ *      that. This raises the bar for the stamp; it does not lower it.
+ *   3. It never displaces a stronger record. The stamp is refused when
+ *      shipped_at is already set, and the UPDATE carries its own
+ *      `shipped_at IS NULL` guard so a concurrent production promote cannot be
+ *      clobbered by a slower merge. The production deploy keeps its own precise
+ *      time on the deployments row regardless, so no information is lost.
+ *
+ * WHAT WOULD BE DISHONEST AND IS THEREFORE REFUSED. A merge into any branch
+ * other than the default one is not shipping (a stacked branch, a release
+ * train's integration branch), so an unconfirmed or non-default base refuses
+ * rather than guesses. A merge GitHub did not confirm, or one that produced no
+ * commit, refuses. A changeset with no spec behind it refuses, because there is
+ * nothing to learn against.
+ */
+export type StudioMergeShipInput = {
+  /** GitHub's own `merged` flag from the merge response, not an HTTP status. */
+  mergeConfirmed: boolean;
+  /** The commit the merge produced. GitHub returns one only on a real merge. */
+  mergeSha: string | null;
+  /** The branch the pull request actually targeted, read back from GitHub. */
+  baseBranch: string | null;
+  /** The repository's default branch, read back from GitHub. */
+  defaultBranch: string | null;
+  /** The changeset's status after the merge write (must already be 'merged'). */
+  changesetStatus: string;
+  /** The spec this changeset resolves to (studio_changesets.prd_id). */
+  prdId: string | null;
+  /** What the spec already records. A recorded ship is never restamped. */
+  existingShippedAt: string | null;
+};
+
+export type StudioMergeShipDecision =
+  { stamp: true; prdId: string } | { stamp: false; reason: string };
+
+/**
+ * The pure decision: does THIS merge result close the loop on a spec?
+ *
+ * Deny by default, and every refusal names what was missing so the Ship station
+ * can say why rather than going quiet. Kept free of I/O so the rule can be
+ * judged without a database, which is the only way a claim this load-bearing
+ * stays checkable.
+ */
+export function decideStudioMergeShipStamp(input: StudioMergeShipInput): StudioMergeShipDecision {
+  if (!input.mergeConfirmed) {
+    return { stamp: false, reason: "GitHub did not confirm the merge" };
+  }
+  if (!input.mergeSha || input.mergeSha.trim().length === 0) {
+    return { stamp: false, reason: "the merge produced no commit" };
+  }
+  if (input.changesetStatus !== "merged") {
+    return { stamp: false, reason: `the change is ${input.changesetStatus}, not merged` };
+  }
+  // An unknown base is not a default base. Guessing here is how a release
+  // train's integration branch would get recorded as a ship.
+  if (!input.baseBranch || !input.defaultBranch) {
+    return { stamp: false, reason: "the branch this merged into could not be confirmed" };
+  }
+  if (input.baseBranch !== input.defaultBranch) {
+    return {
+      stamp: false,
+      reason: `this merged into ${input.baseBranch}, not the default branch`,
+    };
+  }
+  if (!input.prdId) {
+    return { stamp: false, reason: "this change has no spec behind it" };
+  }
+  if (input.existingShippedAt) {
+    return { stamp: false, reason: "the spec already records when it shipped" };
+  }
+  return { stamp: true, prdId: input.prdId };
+}
+
+/**
+ * Record the ship on the spec behind a Studio changeset that just merged.
+ *
+ * Call this ONLY from the merge path, immediately after GitHub confirms the
+ * merge and the changeset row has been moved to 'merged'. It resolves the spec
+ * through studio_changesets.prd_id (stamped at creation by the
+ * studio_changeset_link_prd trigger), applies the pure decision above, and on a
+ * yes writes status + shipped_at and files the stage event so the Ship to Learn
+ * transition reads from a real row like every other transition.
+ *
+ * Returns the decision, including the refusal reason, so the caller can report
+ * what it did instead of narrating a step that never happened.
+ */
+export async function stampSpecShippedOnStudioMerge(
+  db: SupabaseClient,
+  args: {
+    changesetId: string;
+    userId: string | null;
+    mergeConfirmed: boolean;
+    mergeSha: string | null;
+    baseBranch: string | null;
+    defaultBranch: string | null;
+    /** When the merge landed. Defaults to now. */
+    mergedAt?: string;
+  },
+): Promise<StudioMergeShipDecision> {
+  const { data: csRow, error: csErr } = await db
+    .from("studio_changesets")
+    .select("id,status,prd_id,workspace_id")
+    .eq("id", args.changesetId)
+    .maybeSingle();
+  if (csErr) return { stamp: false, reason: csErr.message };
+  if (!csRow) return { stamp: false, reason: "the change no longer exists" };
+  const cs = csRow as unknown as {
+    status: string;
+    prd_id: string | null;
+    workspace_id: string | null;
+  };
+
+  let priorStatus: string | null = null;
+  let existingShippedAt: string | null = null;
+  if (cs.prd_id) {
+    const { data: prdRow, error: prdErr } = await db
+      .from("prds")
+      .select("id,status,shipped_at")
+      .eq("id", cs.prd_id)
+      .maybeSingle();
+    if (prdErr) return { stamp: false, reason: prdErr.message };
+    if (!prdRow) return { stamp: false, reason: "the linked spec no longer exists" };
+    const prd = prdRow as unknown as { status: string | null; shipped_at: string | null };
+    priorStatus = prd.status ?? null;
+    existingShippedAt = prd.shipped_at ?? null;
+  }
+
+  const decision = decideStudioMergeShipStamp({
+    mergeConfirmed: args.mergeConfirmed,
+    mergeSha: args.mergeSha,
+    baseBranch: args.baseBranch,
+    defaultBranch: args.defaultBranch,
+    changesetStatus: cs.status,
+    prdId: cs.prd_id,
+    existingShippedAt,
+  });
+  if (!decision.stamp) return decision;
+
+  const shippedAt = args.mergedAt ?? new Date().toISOString();
+  // The never-overwrite rule lives on the UPDATE, not only in the decision
+  // above: a production promote can stamp between the read and this write, and
+  // a read-then-write check would let the slower merge clobber the better
+  // record. `shipped_at IS NULL` makes the guard atomic.
+  const { data: updated, error: upErr } = await db
+    .from("prds")
+    .update({
+      status: "shipped",
+      shipped_at: shippedAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", decision.prdId)
+    .is("shipped_at", null)
+    .select("id");
+  if (upErr) return { stamp: false, reason: upErr.message };
+  if (!updated || (updated as unknown[]).length === 0) {
+    return { stamp: false, reason: "the spec already records when it shipped" };
+  }
+
+  await recordStageEvent(db, {
+    entityType: "spec",
+    entityId: decision.prdId,
+    from: priorStatus,
+    to: "shipped",
+    actor: "studio",
+    workspaceId: cs.workspace_id,
+    userId: args.userId,
+  });
+
+  return decision;
+}
+
 /**
  * K2: revert the changeset's branch to a prior revision's file state. Operator
  * door for the rollback in `studio-revert.server.ts` (non-destructive: a forward

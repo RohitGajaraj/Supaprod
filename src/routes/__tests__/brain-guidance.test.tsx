@@ -1,0 +1,280 @@
+/**
+ * Brain's guidance honesty, guarded.
+ *
+ * THE DEFECT THIS EXISTS TO KILL, found 2026-08-05. Brain's own headline on the
+ * live demo workspace read "49 calls and 8 learnings are on the record, and none
+ * has re-scored a call yet". Every word true, and both clauses about the size of
+ * a pile, on the one surface whose entire claim is that the record LEARNS AND
+ * GUIDES rather than stores. Meanwhile the page was already fetching the proof
+ * that it guides (694 of 846 things learned had been read back by a run, across
+ * 3115 recalls) and rendering it only behind the Outcomes tab.
+ *
+ * WHY A TEST AND NOT A REVIEW NOTE. Every rule below is one a future change can
+ * break while typechecking perfectly and looking fine in a diff, and each break
+ * produces the same two failures, which are the only two failures that matter
+ * here:
+ *
+ *   A CLAIM MADE BEFORE IT IS KNOWN. "No outcome has moved a priority yet" drawn
+ *   while the compounding read is still in flight is a statement about the
+ *   product that nobody checked.
+ *
+ *   A ZERO STANDING IN FOR "WE COULD NOT FIND OUT". memory_recall_log being
+ *   unreadable sets every one of its counts to 0. Rendering those zeros would
+ *   report a working mechanism as an idle one.
+ *
+ * The third rule is the founder's: no invented comparison. There is no "teams
+ * like yours" data anywhere in this schema, so no line here may carry one.
+ */
+import { describe, it, expect } from "bun:test";
+import type { ReactNode } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { RecallRecord } from "@/lib/brain-standing.functions";
+import type { CompoundingSummary } from "@/lib/moat-vis";
+import { guidanceLines, recordHeadline } from "../_authenticated.brain";
+
+/** The rendered words of a line, with the markup and React's entity escaping
+ *  taken back off, so an assertion reads as the sentence a person sees. */
+function text(node: ReactNode): string {
+  return renderToStaticMarkup(<>{node}</>)
+    .replace(/<[^>]*>/g, "")
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function recall(over: Partial<RecallRecord> = {}): RecallRecord {
+  return {
+    memoriesTotal: 846,
+    memoriesReached: 694,
+    events: 3115,
+    helped: 0,
+    contradicted: 0,
+    logReady: true,
+    ...over,
+  };
+}
+
+function summary(over: Partial<CompoundingSummary> = {}): CompoundingSummary {
+  return {
+    rescoreCount: 0,
+    movedUp: 0,
+    movedDown: 0,
+    netIceLift: 0,
+    validatedCount: 0,
+    missedCount: 0,
+    mixedCount: 0,
+    latest: null,
+    ...over,
+  };
+}
+
+const lineByKey = (lines: ReturnType<typeof guidanceLines>, key: string) =>
+  lines.find((l) => l.key === key);
+
+const allCopy = (lines: ReturnType<typeof guidanceLines>) =>
+  lines.map((l) => `${text(l.lead)} ${text(l.sub)}`).join(" ");
+
+describe("Brain headline: guidance outranks the manifest", () => {
+  it("still leads with a re-scored call, which is the strongest claim there is", () => {
+    const head = recordHeadline(summary({ rescoreCount: 4 }), recall(), 49, 8, false);
+    expect(head).toBe("Real outcomes have re-scored 4 calls.");
+  });
+
+  it("says the crew read the record back rather than counting the pile", () => {
+    // THE DEFECT: with no re-score, every workspace fell straight through to the
+    // manifest no matter how hard its record was working.
+    const head = recordHeadline(summary(), recall(), 49, 8, false);
+    expect(head).toBe("The crew has read this record before acting 3115 times.");
+    expect(head).not.toMatch(/on the record/);
+    expect(head).not.toMatch(/\d+ calls and/);
+  });
+
+  it("makes the claim without a number when the recall log cannot be read", () => {
+    // last_used_at and memory_recall_log are different columns on different
+    // tables. The first still proves the crew reached for it; the second
+    // supplies the count. A 0 from an unreadable log must never be printed.
+    const head = recordHeadline(summary(), recall({ events: 0, logReady: false }), 49, 8, false);
+    expect(head).toBe("The crew has read this record before acting.");
+    expect(head).not.toMatch(/\b0\b/);
+  });
+
+  it("falls back to the honest manifest for a workspace that has not compounded", () => {
+    const head = recordHeadline(
+      summary(),
+      recall({ memoriesTotal: 0, memoriesReached: 0, events: 0 }),
+      49,
+      8,
+      false,
+    );
+    expect(head).toBe(
+      "49 calls and 8 learnings are on the record, and none has re-scored a call yet.",
+    );
+  });
+
+  it("holds the placeholder until the recall rung is decidable", () => {
+    // A head that settles on the manifest and then jumps to the recall claim
+    // reads as the page correcting itself in front of the reader.
+    expect(recordHeadline(null, null, null, null, true)).toBe("Brain");
+    expect(recordHeadline(null, null, null, null, false)).toBe("The record did not load.");
+  });
+});
+
+describe("Brain guidance: what is firing", () => {
+  const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
+
+  it("shows how much of what was learned has gone back into a run", () => {
+    const read = lineByKey(lines, "read-back");
+    expect(read).toBeDefined();
+    expect(text(read!.lead)).toBe(
+      "694 of 846 things the record has learned have gone back into a later run.",
+    );
+  });
+
+  it("names the outcome of the mechanism, never the table behind it", () => {
+    // ENGINE-ROOM DOCTRINE: no raw enums, uuids, table or column names in front
+    // of a person.
+    const copy = allCopy(lines);
+    for (const leak of [
+      "agent_memory",
+      "memory_recall_log",
+      "last_used_at",
+      "house_rules",
+      "learnings",
+      "ICE",
+      "outcome_",
+      "uuid",
+    ]) {
+      expect(copy).not.toContain(leak);
+    }
+  });
+
+  it("carries no invented comparison to anybody else", () => {
+    const copy = allCopy(lines).toLowerCase();
+    for (const invented of ["teams like", "average", "typical", "benchmark", "industry"]) {
+      expect(copy).not.toContain(invented);
+    }
+  });
+
+  it("writes UI copy with no em dash and no en dash", () => {
+    expect(allCopy(lines)).not.toMatch(/[–—]/);
+  });
+});
+
+describe("Brain guidance: a zero never stands in for an unreadable read", () => {
+  it("draws no rating line at all when the recall log could not be read", () => {
+    // logReady false zeroes events, helped and contradicted. Rendering "0
+    // helped" would report a working mechanism as an idle one.
+    const lines = guidanceLines({
+      recall: recall({ events: 0, helped: 0, contradicted: 0, logReady: false }),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+    });
+    expect(lineByKey(lines, "rated")).toBeUndefined();
+    // The read-back line survives, because its column is on the other table.
+    expect(lineByKey(lines, "read-back")).toBeDefined();
+  });
+
+  it("says nothing has been rated, and names what a rating does", () => {
+    const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
+    const rated = lineByKey(lines, "rated");
+    expect(rated).toBeDefined();
+    expect(text(rated!.lead)).toBe("None of that has been rated yet.");
+    // A "not yet" that does not name the act that ends it reads as broken.
+    expect(text(rated!.sub)).toMatch(/^Rate one run/);
+  });
+
+  it("reports both sides of a rating in their own colour once ratings land", () => {
+    const lines = guidanceLines({
+      recall: recall({ helped: 12, contradicted: 3 }),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+    });
+    const rated = lineByKey(lines, "rated")!;
+    expect(text(rated.lead)).toBe("Your ratings have moved what the crew reaches for first.");
+    const markup = renderToStaticMarkup(<>{rated.sub}</>);
+    expect(markup).toContain("sp-pass");
+    expect(markup).toContain("sp-fail");
+    expect(text(rated.sub)).toContain("12 helped");
+    expect(text(rated.sub)).toContain("3 contradicted by what happened");
+  });
+
+  it("draws only the side that happened", () => {
+    const lines = guidanceLines({
+      recall: recall({ helped: 12, contradicted: 0 }),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+    });
+    const sub = renderToStaticMarkup(<>{lineByKey(lines, "rated")!.sub}</>);
+    expect(sub).toContain("sp-pass");
+    expect(sub).not.toContain("sp-fail");
+    expect(sub).not.toContain("0");
+  });
+});
+
+describe("Brain guidance: a young record sharpens, and never reads as broken", () => {
+  it("tells a workspace whose record has never been reached for what happens next", () => {
+    const lines = guidanceLines({
+      recall: recall({ memoriesReached: 0, events: 0 }),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+    });
+    const read = lineByKey(lines, "read-back")!;
+    expect(text(read.lead)).toBe("Nothing the record has learned has gone into a run yet.");
+    expect(text(read.sub)).toContain("next run");
+    // Not a failure word anywhere.
+    expect(allCopy(lines).toLowerCase()).not.toMatch(/broken|unavailable|error|failed|disabled/);
+  });
+
+  it("says nothing about recall at all when the record has learned nothing", () => {
+    const lines = guidanceLines({
+      recall: recall({ memoriesTotal: 0, memoriesReached: 0, events: 0 }),
+      rescoreCount: 0,
+      recallSaidBelow: false,
+    });
+    expect(lineByKey(lines, "read-back")).toBeUndefined();
+    expect(lineByKey(lines, "rated")).toBeUndefined();
+  });
+});
+
+describe("Brain guidance: the re-score admission", () => {
+  it("states it plainly, names the act that ends it, and opens a real door", () => {
+    // This is the clause the headline used to carry. It must not evaporate when
+    // the headline stops saying it.
+    const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: false });
+    const line = lineByKey(lines, "rescored")!;
+    expect(text(line.lead)).toBe("No outcome has moved a call's priority yet.");
+    expect(text(line.sub)).toMatch(/^Record what a shipped bet actually did/);
+    expect(line.door).toBe("outcomes");
+  });
+
+  it("is silent while the compounding read is unresolved", () => {
+    // THE RULE: a "not yet" drawn before the thing is known to be absent is a
+    // claim, not an admission.
+    const lines = guidanceLines({ recall: recall(), rescoreCount: null, recallSaidBelow: false });
+    expect(lineByKey(lines, "rescored")).toBeUndefined();
+  });
+
+  it("stands down once a re-score exists, because the head and the recess say it", () => {
+    const lines = guidanceLines({ recall: recall(), rescoreCount: 2, recallSaidBelow: false });
+    expect(lineByKey(lines, "rescored")).toBeUndefined();
+  });
+});
+
+describe("Brain guidance: nothing is said twice", () => {
+  it("stands the recall lines down on the tab where CrewCarries says them", () => {
+    const lines = guidanceLines({ recall: recall(), rescoreCount: 0, recallSaidBelow: true });
+    expect(lineByKey(lines, "read-back")).toBeUndefined();
+    expect(lineByKey(lines, "rated")).toBeUndefined();
+    // And keeps the one nothing else on that tab states.
+    expect(lineByKey(lines, "rescored")).toBeDefined();
+  });
+
+  it("renders nothing at all rather than an empty region", () => {
+    const lines = guidanceLines({ recall: null, rescoreCount: null, recallSaidBelow: false });
+    expect(lines).toEqual([]);
+  });
+});

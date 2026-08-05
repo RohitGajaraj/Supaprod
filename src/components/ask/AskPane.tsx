@@ -681,12 +681,34 @@ function AskPaneOpen() {
  * WHAT IT SAYS INSTEAD is true, and specific to this workspace at this moment:
  *  - what this conversation is scoped to, so the chip is explained the first
  *    time and never again,
- *  - up to three questions built out of runs that genuinely exist, which is the
+ *  - WHAT IT CAN SETTLE HERE, which is TWO things and used to be one. The
+ *    opening described where an answer comes from and said nothing at all about
+ *    the other half of this box: the same line, handed over instead of asked,
+ *    becomes a run that plays out in this pane. That fork is real (`Choices`
+ *    below, `contentForIntent`, the run card polled off `getAskMissionCanvas`)
+ *    and it was invisible until you typed, so the one capability that makes
+ *    this not a chat window was the one thing a new user could not discover.
+ *  - up to six questions built out of runs that genuinely exist (`MAX` in
+ *    ask-starters.ts, raised from three when the strip replaced the list), which
+ *    is the
  *    other founder ruling of the day: the suggestions must "know the knowledge
  *    about the product", and the honest floor is FEWER of them rather than
  *    invented ones (see ask-starters.ts),
  *  - where the conversation goes afterwards, because "is this a chat window or
  *    is this Threads" was the founder's actual question.
+ *
+ * AND ONE OFFER HOLDS STILL. Every way in used to be a chip in the marquee, and
+ * a marquee is deliberately ambient: it travels, it pauses only once you have
+ * already reached for it, and its capsules clip at 300px. That is right for
+ * thirteen suggestions read out of the corner of an eye and wrong as the ONLY
+ * offer on the screen, because it leaves a person on day one looking at a
+ * blank composer with the alternatives sliding past it. So the first offer is
+ * lifted out of the strip and stands still, full width, at the top: same
+ * object, same press, no motion to chase. It is lifted, never copied, so
+ * nothing is offered twice, and it is not chosen by this component: it is
+ * whatever `starterPrompts` and `contextualStarters` already put first, which
+ * is the live run when there is one and the surface's own best question when
+ * there is not.
  *
  * A returning user rarely sees this at all: the pane opens holding the running
  * conversation for this scope, hydrated from the same table Threads reads.
@@ -709,30 +731,43 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * ONE SUGGESTION, AND THE SUBJECT COMES FIRST.
+ * THE FIRST MOVE, AND IT HOLDS STILL.
  *
- * Founder, on the first cut: the prompts were "not logically put" and did not
- * read well. The sourcing was right and the SHAPE was wrong: "What is the crew
+ * WHY IT IS A ROW AND NOT A FOURTH MARQUEE ROW. A chip is a capsule: nowrap,
+ * clipped at 300px, and travelling. That is the right shape for the thirteen
+ * behind it and the wrong one for the offer a person is meant to take first, so
+ * this one gets the product's ordinary row instead. It wraps rather than
+ * ellipsising, which means a long run title is READ here where the strip could
+ * only truncate it, and the subject leads in ink with the question under it in
+ * mute, which is the founder's shape ruling of 2026-07-30 ("What is the crew
  * doing on Ship SSO login for Beacon?" buries a nine-word proper noun mid
- * sentence, so the eye has to finish the line before it knows what the line is
- * about. Subject on top in ink, question under it in mute, and the whole
- * sentence is what gets sent. A use case has no subject and is one line.
+ * sentence) expressed by the primitive that already does it everywhere else.
+ * A local `Suggestion` component used to hand-draw that same two-line split and
+ * nothing had rendered it since the marquee landed; `Row`'s lead and sub are
+ * it, so it is gone rather than kept as a second way to say one thing.
+ *
+ * IT IS NOT A NAVIGATION ROW, which this pane's KILL list bans and means. It
+ * goes nowhere: it puts its sentence in the composer, where the person can edit
+ * it before sending, exactly as a chip does. "That comes into the chat and
+ * continues from there."
+ *
+ * THE DOT SURVIVES THE PROMOTION. A chip for work in motion carries the live
+ * blue the shell uses for exactly that; being lifted out of the strip must not
+ * cost it, or the stationary offer would say less than the moving one did.
  */
-function Suggestion({ subject, question }: { subject: string | null; question: string }) {
-  if (!subject) return <span>{question}</span>;
+function FirstMove({ starter, onPick }: { starter: Starter; onPick: (prompt: string) => void }) {
   return (
-    <span style={{ display: "block", minWidth: 0 }}>
-      <span style={{ display: "block", color: "var(--sp-ink)" }}>{subject}</span>
-      <span
-        style={{
-          display: "block",
-          color: "var(--sp-mute)",
-          fontSize: "var(--sp-text-meta)",
-        }}
-      >
-        {question}
-      </span>
-    </span>
+    <div style={{ marginTop: "var(--sp-space-4)" }}>
+      <SectionLabel>Start here</SectionLabel>
+      <Row
+        marks={
+          starter.kind === "running" ? <span className="sp-chip-dot" aria-hidden="true" /> : null
+        }
+        lead={starter.subject ?? starter.question}
+        sub={starter.subject ? starter.question : undefined}
+        onClick={() => onPick(starter.prompt)}
+      />
+    </div>
   );
 }
 
@@ -761,6 +796,11 @@ function Opening({
   onRetry: () => void;
   onPick: (q: string) => void;
 }) {
+  // ONE LIST, AND THE FRONT OF IT STANDS STILL. Grounded prompts already come
+  // first, so lifting the head is how the stationary offer names a live run
+  // when there is one without this component ever choosing which.
+  const offers = [...starters, ...contextual];
+  const first = offers[0] ?? null;
   return (
     <>
       <div
@@ -770,8 +810,16 @@ function Opening({
           lineHeight: "var(--sp-leading-body)",
         }}
       >
+        {/* BOTH HALVES OF THE BOX, BEFORE ANYTHING IS TYPED. The second sentence
+            is the one that was missing: until you had typed a line, nothing on
+            this surface said the same box also hands work over, and that fork is
+            the difference between this pane and a chat window. It names the
+            OUTCOME, a run you watch here, rather than the dispatch that causes
+            it, and the footer still says what it costs at the moment you
+            commit. */}
         Ask about <b style={{ color: "var(--sp-ink)" }}>{scopeLabel}</b>. The crew answers from this
-        workspace's own record, and cites what it read.
+        workspace's own record, and cites what it read. Or hand the work over rather than ask about
+        it, and it becomes a run you watch from here.
       </div>
 
       {/* ONE STRIP, NOT TWO HEADED LISTS. Founder ruling 2026-07-30: "in
@@ -800,10 +848,17 @@ function Opening({
         </div>
       ) : null}
 
+      {/* The offer that does not move, above the ones that do. It sits UNDER
+          the read's own verdict on purpose: where the workspace read failed,
+          "the suggestions below are general ones" has to cover this one too. */}
+      {first ? <FirstMove starter={first} onPick={onPick} /> : null}
+
       {/* The use cases ride along even when the workspace read failed or came
           back empty: they name nothing, so they cannot be wrong, and a person
-          on day one needs them more than anyone. */}
-      <SuggestionMarquee items={[...starters, ...contextual]} onPick={onPick} />
+          on day one needs them more than anyone. Everything except the head,
+          which is standing still above: lifted, not copied, so the accessibility
+          tree and the eye each meet every suggestion exactly once. */}
+      <SuggestionMarquee items={offers.slice(1)} onPick={onPick} />
 
       {knownEmpty ? (
         <div

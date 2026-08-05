@@ -154,14 +154,20 @@ import {
 import { setAgentArc, decideTrustGraduation } from "@/lib/trust.functions";
 import { setAgentToolCap, listAgentReflections } from "@/lib/agents.functions";
 import { setAgentEnabled } from "@/lib/onboarding.functions";
+import { CrewMethods } from "@/components/crew/CrewMethods";
 
 export const Route = createFileRoute("/_authenticated/crew")({
   // One agent open at a time, in the URL, so the browser's own back button
   // closes the detail and a teammate can be sent straight to it. A modal would
   // have neither, and a governance pane with three controls in it is exactly
   // the modal abuse the anti-slop list bans.
-  validateSearch: (search: Record<string, unknown>): { agent?: string } => ({
+  // `view` earns its place in the URL for the same three reasons `agent` did:
+  // the back button closes it, the address bar names what you are looking at,
+  // and a teammate can be sent straight to it. It is a closed set of one, so an
+  // unrecognised value falls back to the roster rather than rendering nothing.
+  validateSearch: (search: Record<string, unknown>): { agent?: string; view?: "methods" } => ({
     agent: typeof search.agent === "string" && search.agent ? search.agent : undefined,
+    view: search.view === "methods" ? "methods" : undefined,
   }),
   component: Crew,
   head: () => ({ meta: [{ title: "Crew · Supaprod" }] }),
@@ -280,7 +286,7 @@ const CARD_RESET: React.CSSProperties = {
  * ------------------------------------------------------------------ */
 
 function Crew() {
-  const { agent } = Route.useSearch();
+  const { agent, view } = Route.useSearch();
   const navigate = useNavigate();
 
   const open = React.useCallback(
@@ -289,6 +295,12 @@ function Crew() {
     },
     [navigate],
   );
+
+  // The methods surface answers a question about the crew as a WHOLE, so it
+  // takes precedence over an agent left open in the same URL rather than
+  // competing with it. `open(null)` clears both keys, so the one back control
+  // closes whichever of the two is showing.
+  if (view === "methods") return <CrewMethods onBack={() => open(null)} />;
 
   return agent ? <MemberView slug={agent} onBack={() => open(null)} /> : <Roster onOpen={open} />;
 }
@@ -469,6 +481,33 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           lead="The boundary"
           sub="Every tool, across the whole crew. Set once, and it never interrupts work already running."
           onClick={() => navigate({ to: "/boundary" })}
+        />
+      </Block>
+
+      {/* THE DOOR TO THE METHODS.
+        The third standing question about the crew, beside "who works here" and
+        "what may they do without me": HOW do they work, and what has actually
+        held up. It had no door at all. `getPlaybooks` has been live server code
+        with zero UI callers, while the loop has been picking a method per
+        mission step on the reader's behalf the whole time
+        (orchestrator.server.ts, via rankPlaybooksByOutcome), so the one thing
+        the product calls its moat was invisible to the person it is meant to
+        convince. Capability built, door missing.
+
+        It sits on Crew rather than in the Engine Room or in Brain, and the
+        component's own header argues that choice out. Same shape as the
+        boundary door directly above, and for the same reason: a row here, not
+        a sixth rail entry.
+
+        Its own Block rather than a second row under the boundary's, because
+        "what they may do without you" is a true title for exactly one of these
+        two and would have to be watered down to cover both. */}
+      <Block title="How they work">
+        <Row
+          tight
+          lead="The methods"
+          sub="The named ways of working the crew draws on, how often each has been used, and what has held up so far."
+          onClick={() => navigate({ to: "/crew", search: { view: "methods" } })}
         />
       </Block>
 
