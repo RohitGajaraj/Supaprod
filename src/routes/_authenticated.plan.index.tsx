@@ -507,20 +507,61 @@ function PlanPage() {
               shownSpecs.map((spec) => {
                 const bet = spec.opportunity_id ? betTitleById.get(spec.opportunity_id) : null;
                 const settled = spec.status === "approved" || spec.status === "shipped";
-                // Show design gate status if the spec is being designed (not yet approved).
-                // Format: "Drafting · design pending" or "In review · design approved".
+                /**
+                 * THE DESIGN SUFFIX SAYS A VERDICT OR IT SAYS NOTHING.
+                 *
+                 * It used to read `· design pending` on every unsettled spec,
+                 * because the condition was only "design_gate_status is truthy"
+                 * and `prds.design_gate_status` is `not null default 'pending'`
+                 * (supabase/migrations/20260708170000_sw4_design_station.sql:16).
+                 * So the column was never empty and the suffix never absent.
+                 * Measured live on 2026-08-06: 26 unsettled specs carried the
+                 * label and 2 of them had anything drawn, so 24 of 26 announced
+                 * a design step that was not owed - including bug fixes the
+                 * reader had deliberately routed straight to Build one click
+                 * earlier, on this very surface's own spec page.
+                 *
+                 * src/lib/build/design-gate.ts already ruled on this exact
+                 * default for dispatch: an unmade drawing does not block. This
+                 * list is that ruling applied to what the list SAYS. 'approved'
+                 * and 'rejected' are only ever written by a human settling the
+                 * gate (`decideDesignGate`), so they are facts. 'pending' is the
+                 * value nobody wrote, so it is not a fact and gets no words.
+                 *
+                 * WHAT THIS ROW STILL CANNOT SAY, and it is the half that needs
+                 * a server change. The product's word for a spec deliberately
+                 * sent past Design is "skipped on purpose"
+                 * (DESIGN_SKIPPED_ON_PURPOSE in src/lib/trust-chain.functions.ts,
+                 * and already on screen at /design and on the spec page). This
+                 * row cannot use it, because `listSpecs`
+                 * (src/lib/discovery.functions.ts) returns neither a
+                 * `prd_scaffolds` count nor the newest `design_skipped` /
+                 * `design_requested` stage event, so a deliberate skip and an
+                 * untouched default arrive here identical. Silence is the honest
+                 * reading of the two until `listSpecs` carries them; a guess
+                 * would only be wrong in a new way.
+                 *
+                 * THE PRICE, STATED. One live spec does have a drawing sitting
+                 * on an undecided gate, and it loses its suffix along with the
+                 * 24 false ones, because this row cannot tell it apart from
+                 * them. That call genuinely IS owed and it is still shown where
+                 * it is made - /design lists it, and the spec page's route
+                 * picker names it. What is lost here is a reminder; what was
+                 * removed is a false claim on 24 other rows.
+                 */
                 const designGateStatus = (spec as { design_gate_status?: string | null })
                   .design_gate_status;
+                // The column's check constraint is ('pending','approved','rejected')
+                // (supabase/migrations/20260708170000_sw4_design_station.sql:17),
+                // so these two are the whole set of human verdicts. Anything
+                // else, 'pending' included, is not one.
                 const designWord =
                   designGateStatus === "approved"
                     ? "approved"
                     : designGateStatus === "rejected"
                       ? "rejected"
-                      : "pending";
-                const withDesignStatus =
-                  spec.status !== "approved" && spec.status !== "shipped" && designGateStatus
-                    ? ` · design ${designWord}`
-                    : "";
+                      : null;
+                const withDesignStatus = !settled && designWord ? ` · design ${designWord}` : "";
                 return (
                   <Row
                     key={spec.id}
@@ -530,7 +571,8 @@ function PlanPage() {
                     marks={<AgentMark slug="prd-writer" state={settled ? "quiet" : "idle"} />}
                     lead={stripAutoPrefix(spec.title)}
                     // One line, one different fact: where the spec has got to,
-                    // which bet it is, and (if drafting) design gate status.
+                    // which bet it is, and - only when a human actually settled
+                    // it - the design gate's verdict.
                     sub={
                       bet
                         ? `${specState(spec.status)} · serves ${bet}${withDesignStatus}`

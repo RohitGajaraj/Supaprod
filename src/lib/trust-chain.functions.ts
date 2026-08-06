@@ -28,9 +28,44 @@ export type ChainLinkKey =
   "signal" | "decision" | "contract" | "design" | "build" | "test" | "merge" | "deploy" | "outcome";
 
 /**
+ * THE PRODUCT'S ONE WORD FOR A DELIBERATELY SKIPPED STATION, and the reason it
+ * is a constant rather than three string literals.
+ *
+ * The founder has ruled twice that the seven stations are the FULL path and not
+ * the ONLY path: a code-level change needs no design station, because design for
+ * it lives outside the product as prototypes, mockups and wireframes, so the
+ * work goes plan -> build directly. A product that supports that skip and then
+ * reports it as unfinished has not supported it.
+ *
+ * Two surfaces already said it in these words - `/design`'s row subtitle
+ * (src/routes/_authenticated.design.tsx, "Design skipped on purpose · <date>")
+ * and the spec page's chosen-route line (src/routes/_authenticated.plan.spec.$id.tsx,
+ * "Design was skipped on purpose") - so this is the existing vocabulary written
+ * down, not a new one invented. Three phrasings for one state is how the defect
+ * regrows, so anything that has to name this state imports the phrase:
+ * src/components/ship/WhatShipped.tsx does.
+ *
+ * NOT YET SAID ON /plan's spec list. `listSpecs` returns neither the drawing
+ * count nor the newest route stage event, so that row cannot tell a deliberate
+ * skip from a gate nobody has touched; rather than guess, it now says nothing at
+ * all about an undecided gate. See the note at the suffix in
+ * src/routes/_authenticated.plan.index.tsx.
+ */
+export const DESIGN_SKIPPED_ON_PURPOSE = "skipped on purpose";
+
+/** The two `stage_events.to_stage` words the /plan route picker writes
+ *  (`ROUTE_STAGE`, src/lib/design-scaffold.functions.ts). Repeated as literals
+ *  rather than imported because that module is a server-function module for the
+ *  design station and this one only ever READS the trail it leaves. */
+const ROUTE_STAGE_SKIPPED = "design_skipped";
+const ROUTE_STAGE_REQUESTED = "design_requested";
+
+/**
  * - present: a real backing row exists.
- * - skipped: structurally not applicable (the design station is founder-gated /
- *   configured off for this workspace) - honest, not a hole.
+ * - skipped: not owed on this mission, and the record says who decided that -
+ *   either the workspace never turned the design stage on (`designOff`), or this
+ *   spec was routed straight to Build on purpose (`designSkip`). Honest, not a
+ *   hole.
  * - missing: a GAP - this link is absent but a LATER link is present, so a
  *   receipt that should exist does not. This is the broken-chain signal.
  * - pending: not yet reached (the mission has not progressed this far). Not a
@@ -88,8 +123,10 @@ const LINK_LABEL: Record<ChainLinkKey, string> = {
 };
 
 /** The evidence the pure assembler classifies - one optional backing row per
- * link (already resolved by the server fn). `design.off` marks the design
- * station structurally disabled (no substrate today). */
+ * link (already resolved by the server fn). `designOff` marks the design
+ * station configured off for the whole workspace; `designSkip` marks THIS spec
+ * routed straight to Build on purpose, which is a per-spec human decision and a
+ * different fact. */
 export type ChainEvidence = Partial<
   Record<
     ChainLinkKey,
@@ -101,13 +138,20 @@ export type ChainEvidence = Partial<
       agentSlug?: string | null;
     } | null
   >
-> & { designOff?: boolean };
+> & {
+  designOff?: boolean;
+  /** The newest `design_skipped` stage event for this spec, already worded.
+   *  Null / absent means nobody chose to skip - NOT "straight to build". */
+  designSkip?: { at: string | null; detail: string } | null;
+};
 
 /**
  * PURE. Classify each of the nine links into present / skipped / missing /
  * pending from the resolved evidence. A link is:
  *   present  when evidence[key] is set;
- *   skipped  for `design` when designOff and no design evidence;
+ *   skipped  for `design` when designSkip (this spec was routed straight to
+ *            Build on purpose) or designOff (the workspace never turned the
+ *            stage on), and there is no design evidence;
  *   missing  when absent AND a later link is present (a real gap);
  *   pending  when absent AND no later link is present (not yet reached).
  * Unit-tested in trust-chain.test.ts.
@@ -123,11 +167,19 @@ export function assembleChain(
 
   const steps: ChainStep[] = LINK_ORDER.map((key, i) => {
     const row = evidence[key] ?? null;
+    // A per-spec skip is a decision somebody made and is checked BEFORE the
+    // workspace-wide toggle, because "a person sent this one straight to Build"
+    // is a stronger and more specific statement than "this workspace does not
+    // run a design station".
+    const skip = key === "design" ? (evidence.designSkip ?? null) : null;
     let status: ChainLinkStatus;
     let detail: string;
     if (row) {
       status = "present";
       detail = row.detail;
+    } else if (skip) {
+      status = "skipped";
+      detail = skip.detail;
     } else if (key === "design" && evidence.designOff) {
       status = "skipped";
       detail = "Design stage is off for this workspace.";
@@ -143,7 +195,9 @@ export function assembleChain(
       label: LINK_LABEL[key],
       status,
       detail,
-      occurredAt: row?.at ?? null,
+      // A skip has a real timestamp of its own - the stage event - so the row
+      // carries WHEN the decision was made, exactly as a present link does.
+      occurredAt: row?.at ?? skip?.at ?? null,
       backingId: row?.id ?? null,
       agentName: row?.agentName ?? null,
       agentSlug: row?.agentSlug ?? null,
@@ -178,6 +232,16 @@ async function resolveWorkspaceId(db: SupabaseClient): Promise<string | null> {
 function must<T>(res: { data: T | null; error: { message: string } | null }): T | null {
   if (res.error) throw new Error(res.error.message);
   return res.data;
+}
+
+/** `stage_events.actor` in plain words. The column holds 'human', an agent slug
+ *  or 'system' (`recordStageEvent`), and a chain of custody names who acted
+ *  rather than printing a slug at a reader. */
+function actorWords(actor: string | null | undefined): string {
+  const a = (actor ?? "").trim();
+  if (!a || a === "system") return "The system";
+  if (a === "human") return "A person";
+  return `The ${a} agent`;
 }
 
 export const getMissionChain = createServerFn({ method: "GET" })
@@ -371,7 +435,38 @@ export const getMissionChain = createServerFn({ method: "GET" })
     // design gate as "skipped, off for this workspace" (found live 2026-07-08).
     // Off is still honest when the workspace never turned the stage on; a
     // decided gate is present; an undecided gate on an enabled stage is pending.
+    //
+    // 2026-08-06, AND IT IS THE FOUNDER'S RULING MADE CONCRETE. Two defects on
+    // this one branch, both of which made THE PROOF SURFACE assert a human
+    // judgement no human made:
+    //
+    //   1. A COLUMN DEFAULT WAS BEING READ AS A DECISION. `design_gate_status`
+    //      is `not null default 'pending'`
+    //      (supabase/migrations/20260708170000_sw4_design_station.sql:16), so
+    //      the old `prdDesign?.design_gate_status` test was true for every spec
+    //      ever written - 80 of 81 live rows sit at that untouched default with
+    //      `design_decided_at` null. `assembleChain` classifies any non-null
+    //      evidence row as `present`, so a shipped bug fix that legitimately
+    //      skipped design drew its Design link satisfied, over the detail line
+    //      "Design gate pending". A gate is now evidence only when
+    //      `design_decided_at` says a human actually decided it.
+    //
+    //   2. THE SKIP THE PRODUCT RECORDS WAS NEVER READ. The /plan route picker
+    //      writes a `design_skipped` stage event (`chooseDesignRoute`,
+    //      src/lib/design-scaffold.functions.ts) and until now that row was read
+    //      in exactly two places, both inside that same file. The `skipped`
+    //      status has existed here all along but was wired only to the
+    //      workspace-wide toggle, so the per-spec decision - the founder's own
+    //      path - had no way to reach the chain. It does now.
+    //
+    // FIVE STATES, NOT TWO, and the order below is the order of the evidence:
+    // a decided gate (present) beats a recorded skip (skipped, with an actor and
+    // a time) beats nothing ever drawn (skipped, with neither, and it says so).
+    // A drawing that exists with the gate undecided, and a spec routed
+    // `design_requested` with nothing drawn, both fall through to missing or
+    // pending, because those two ARE holes.
     let designEvidence: { id: string; at: string | null; detail: string } | null = null;
+    let designSkip: { at: string | null; detail: string } | null = null;
     let designOff = true;
     if (prdRow) {
       const prdDesign = must(
@@ -395,11 +490,69 @@ export const getMissionChain = createServerFn({ method: "GET" })
         ) as { design_stage_enabled: boolean | null } | null;
         designOff = !ws?.design_stage_enabled;
       }
-      if (!designOff && prdDesign?.design_gate_status) {
+
+      // The newest route this spec was put on. Newest wins, so a spec routed
+      // straight to Build and LATER handed to Design stops reading as skipped.
+      // Read through `must` like every other load here: a swallowed error would
+      // be indistinguishable from "nobody chose", and this surface must never
+      // guess about the record.
+      const routeRows = must(
+        await db
+          .from("stage_events")
+          .select("to_stage, at, actor")
+          .eq("entity_type", "spec")
+          .eq("entity_id", prdRow.id)
+          .in("to_stage", [ROUTE_STAGE_SKIPPED, ROUTE_STAGE_REQUESTED])
+          .order("at", { ascending: false })
+          .limit(1),
+      ) as Array<{ to_stage: string; at: string; actor: string | null }> | null;
+      const newestRoute = firstBy(routeRows ?? []);
+
+      // WAS THERE EVER A DESIGN TO JUDGE? `designGateBlocksDispatch`
+      // (src/lib/build/design-gate.ts) already rules that an unmade drawing does
+      // not block a dispatch, and the same fact decides what this link can
+      // honestly SAY. Without it, requiring `design_decided_at` above would flip
+      // 80 of the 81 live specs from a false "present" to "missing - a gap in
+      // the chain", which is the same defect wearing the opposite coat: the
+      // proof surface calling the founder's own supported path a failure of the
+      // record. head+count, so asking costs no markup.
+      const drawings = await db
+        .from("prd_scaffolds")
+        .select("id", { count: "exact", head: true })
+        .eq("prd_id", prdRow.id);
+      if (drawings.error) throw new Error(drawings.error.message);
+      const hasDrawing = (drawings.count ?? 0) > 0;
+
+      if (!designOff && prdDesign?.design_gate_status && prdDesign.design_decided_at) {
         designEvidence = {
           id: prdRow.id,
           at: prdDesign.design_decided_at,
           detail: `Design gate ${prdDesign.design_gate_status}`,
+        };
+      } else if (newestRoute?.to_stage === ROUTE_STAGE_SKIPPED) {
+        // A decided gate outranks a recorded skip: if a human judged a drawing,
+        // that judgement is the stronger fact and the link is genuinely present.
+        designSkip = {
+          at: newestRoute.at,
+          // The product's one word for this state, plus WHO chose. WHEN is the
+          // row's own time column, fed by `occurredAt` from the same event, so
+          // the detail line does not say it a second time.
+          detail: `Design ${DESIGN_SKIPPED_ON_PURPOSE}. ${actorWords(newestRoute.actor)} sent this straight to Build.`,
+        };
+      } else if (!designOff && !hasDrawing && newestRoute?.to_stage !== ROUTE_STAGE_REQUESTED) {
+        // NOTHING WAS DRAWN AND NOBODY ASKED FOR ONE. Not owed, so not a hole -
+        // but this branch has NO actor and NO time, and it deliberately claims
+        // neither. It reports the absence of a drawing, which is a real read,
+        // and stops short of the sentence above it, which reports a decision.
+        // The route picker is what turns this into that.
+        //
+        // The two cases this must NOT swallow, both of which fall through to
+        // missing/pending: a drawing that exists with the gate undecided (a call
+        // a human genuinely owes), and a spec routed `design_requested` with
+        // nothing drawn yet (design was asked for and has not arrived).
+        designSkip = {
+          at: null,
+          detail: "Nothing was drawn for this spec, so there was no design gate to clear.",
         };
       }
     }
@@ -447,6 +600,7 @@ export const getMissionChain = createServerFn({ method: "GET" })
         : null,
       design: designEvidence,
       designOff,
+      designSkip,
       build: buildChangeset
         ? {
             id: buildChangeset.id,

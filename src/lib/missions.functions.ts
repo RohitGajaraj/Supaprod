@@ -10,6 +10,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isSideEffectingTool } from "@/lib/tool-consequences";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { runAgentLoop } from "@/lib/ai/loop.server";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 
@@ -661,51 +662,145 @@ export const renameMission = createServerFn({ method: "POST" })
   });
 
 /**
- * HITL gate: promote a proposed mission to queued so the resume-runs cron
- * picks it up.
+ * HITL gate: the human's "launch this mission" action. Flips a proposed mission
+ * to 'running' AND actually starts the orchestrator on it.
  *
- * The trigger-tick creates missions with status='proposed'. The resume-runs
- * executor only processes 'queued' missions, so the user (or an approval flow)
- * must explicitly promote. This fn enforces:
+ * WHAT THIS USED TO SAY, AND WHY IT WAS WRONG. The old comment here promised
+ * "promote a proposed mission to queued so the resume-runs cron picks it up",
+ * and "the resume-runs executor only processes 'queued' missions". Neither is
+ * true and neither ever was: every missions select in
+ * src/routes/api/public/hooks/resume-runs.ts reads 'blocked' (:203) or
+ * ['running','in_progress'] (:308, :344, :430) — the one `.eq("status","queued")`
+ * in that file (:242) is on agent_runs, not missions. Nothing anywhere consumes a
+ * mission at 'queued'. So the old write was a terminal state wearing a
+ * non-terminal label: the toast said an agent would pick it up shortly, nothing
+ * ever did, and the detail page then read the mission as live with no Start and
+ * no Advance — only Cancel. Eight missions had been sitting there, the oldest 32
+ * days, with zero steps and zero runs.
+ *
+ * WHAT DRIVES A MISSION, FOR REAL. `createMission` inserts at status 'running'
+ * (src/lib/ai/handoff.server.ts) and `startOrchestratedMission` then calls
+ * runAgentLoop('orchestrator', …) to plan and dispatch wave 0
+ * (src/lib/orchestrator.functions.ts:112). From there the deterministic engine
+ * carries it: resume-runs advances every running/in_progress mission through
+ * advanceMissionCore, and re-plans one that never persisted a DAG. Launching is
+ * therefore the same two moves, in that order, and this uses exactly that path
+ * rather than inventing a second one.
+ *
+ * This fn enforces:
  *   - Caller owns the mission (RLS-scoped via the authenticated Supabase
  *     client — if the row is not visible, .maybeSingle() returns null).
- *   - Only 'proposed' → 'queued' is accepted (all other statuses are rejected
- *     so we cannot promote a running / completed / cancelled mission).
+ *   - Only a not-yet-started mission is accepted: 'proposed' (the trigger-tick's
+ *     HITL gate) or 'queued'. 'queued' is accepted so the eight missions stranded
+ *     by the old behaviour above are recoverable rather than dead — but note the
+ *     door for it is not built yet: MissionOrchestratorDetail.tsx renders Launch
+ *     only when status === 'proposed' (missionProposed, :820) and reads 'queued'
+ *     as already-live (missionRunning, :816), so this half of the fix is
+ *     unreachable from the UI until that component learns the difference. Every
+ *     other status is rejected, so a running / completed / cancelled mission can
+ *     never be relaunched.
  */
 export const promoteMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { missionId: string }) => z.object({ missionId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }): Promise<{ ok: boolean; missionId: string }> => {
     const { supabase, userId } = context;
+    const LAUNCHABLE = ["proposed", "queued"];
 
     const { data: mission, error: fetchErr } = await supabase
       .from("missions")
-      .select("id,status,workspace_id")
+      .select("id,status,goal,workspace_id")
       .eq("id", data.missionId)
       .maybeSingle();
     if (fetchErr) throw new Error(fetchErr.message);
     if (!mission) throw new Error("Mission not found");
-    if (mission.status !== "proposed") {
-      throw new Error(`Only proposed missions can be launched (current status: ${mission.status})`);
+    if (!LAUNCHABLE.includes(mission.status)) {
+      throw new Error(
+        `Only a mission that has not started yet can be launched (current status: ${mission.status})`,
+      );
     }
 
-    const { error: updateErr } = await supabase
+    // 'running' is the live state the whole engine keys on, so the flip IS the
+    // hand-off to the sweeper. Guarded on the status we read, so two clicks
+    // cannot both launch. supabase-js RESOLVES a refused write, so an empty row
+    // set here is the refusal case and must be read as one: without the
+    // .select("id"), an RLS denial or a lost race would look identical to a
+    // successful launch and we would go on to start an agent on a mission this
+    // caller does not own.
+    const { data: updated, error: updateErr } = await supabase
       .from("missions")
-      .update({ status: "queued" })
+      .update({ status: "running", updated_at: new Date().toISOString() })
       .eq("id", data.missionId)
-      .eq("status", "proposed"); // guard against a race
+      .eq("status", mission.status)
+      .select("id")
+      .maybeSingle();
     if (updateErr) throw new Error(updateErr.message);
+    if (!updated) {
+      throw new Error("This mission changed status while you were launching it. Reload and retry.");
+    }
 
     // SEAM-1: the operator promoted (launched) this proposed mission.
     await recordStageEvent(supabase, {
       entityType: "mission",
       entityId: data.missionId,
-      from: "proposed",
-      to: "queued",
+      from: mission.status,
+      to: "running",
       actor: "human",
       workspaceId: mission.workspace_id,
       userId,
     });
+
+    // Start the work. Everything below mirrors startOrchestratedMission's launch
+    // step, including its failure handling, because that is the path a mission is
+    // genuinely driven by today.
+    try {
+      // Self-healing, exactly as the resume-runs re-plan does before its own
+      // runAgentLoop: seed_default_agents seeds 'orchestrator' at signup, but an
+      // account restored from an older backup would otherwise fail here forever
+      // with "Unknown agent: orchestrator". Idempotent; cheap.
+      const { error: seedErr } = await supabase.rpc("seed_orchestrator_agent", {
+        p_user_id: userId,
+      });
+      if (seedErr) throw new Error(`seed orchestrator failed: ${seedErr.message}`);
+      await runAgentLoop(supabase, userId, {
+        agentSlug: "orchestrator",
+        goal: mission.goal,
+        missionId: data.missionId,
+        workspaceId: mission.workspace_id,
+      });
+    } catch (e) {
+      // A launch that threw must not leave the mission at 'running' with no run
+      // and no plan: the UI's retry affordance is gated on failed/halted, and the
+      // sweeper's re-plan path gives up on an unplanned mission older than
+      // ABANDON_MS measured from missions.created_at — which, for a proposal that
+      // sat for days before anyone pressed launch, is already in the past. So mark
+      // it halted here, where the cause is known, rather than let it be swept.
+      // The missions table has no halted_reason column, so status + updated_at is
+      // the whole record, matching startOrchestratedMission's own halt-mark.
+      try {
+        await supabase
+          .from("missions")
+          .update({ status: "halted", updated_at: new Date().toISOString() })
+          .eq("id", data.missionId)
+          .eq("status", "running");
+        await recordStageEvent(supabase, {
+          entityType: "mission",
+          entityId: data.missionId,
+          from: "running",
+          to: "halted",
+          actor: "system",
+          workspaceId: mission.workspace_id,
+          userId,
+        });
+      } catch (markErr) {
+        console.error("[promoteMission] mission halt-mark failed (launch):", markErr);
+      }
+      throw new Error(
+        `Launch failed, so the mission is halted rather than left looking live: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
 
     return { ok: true, missionId: data.missionId };
   });

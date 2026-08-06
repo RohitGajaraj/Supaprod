@@ -73,6 +73,44 @@ type MissionStepRow = {
  *  treated as a lost dispatch (worker eviction between claim and enqueue). */
 const DISPATCH_LOST_MS = 3 * 60 * 1000;
 
+/**
+ * The child-run statuses that mean the run is STILL IN FLIGHT — i.e. the only
+ * statuses that may leave a step sitting in 'dispatched'/'running'. Every other
+ * status is terminal, and the last branch of the reflector terminalizes the step
+ * once the run has carried it longer than UNKNOWN_STATUS_LOST_MS.
+ *
+ * THIS LIST IS THE THING A FUTURE WRITER MUST UPDATE when a status is added to
+ * the agent_runs lifecycle. Forgetting to add a genuinely in-flight status here
+ * now costs one bounded retry and a step error that names the status. Forgetting
+ * the other way is what this file did before: it had no branch at all for
+ * `completed_with_failures` — the single most common terminal status in this
+ * database (452 of 1135 runs) — so every mission whose step ran into one sat at
+ * 'Running' for weeks, with no error and nothing to click.
+ *
+ * Why each member is in it:
+ *  - `queued`           enqueued, not yet picked up by the loop. (Past the
+ *                       dispatch window `isLostQueuedRun` terminalizes it first,
+ *                       so this membership only protects a FRESH queued run.)
+ *  - `dispatched`       claimed for execution but not yet promoted to 'running';
+ *                       counted as live by maybeCompleteMission
+ *                       (handoff.server.ts) and by cancelMission's RUN_IN_FLIGHT.
+ *  - `running`          the agent loop is executing it right now.
+ *  - `waiting_approval` PAUSED ON A HUMAN, legitimately for days — production
+ *                       runs have sat here 17 days against a genuinely pending
+ *                       agent_approvals row. This member is load-bearing: the
+ *                       stuck-run sweeper exempts the same status in two
+ *                       independent places, and terminalizing it here would kill
+ *                       work a person is still deciding on.
+ */
+const RUN_IN_FLIGHT_STATUSES = new Set(["queued", "dispatched", "running", "waiting_approval"]);
+
+/** How long a child run must have carried a status this module does not
+ *  recognise before the reflector treats it as terminal. Deliberately longer
+ *  than DISPATCH_LOST_MS: an unrecognised status is as likely to be a new
+ *  in-flight state as a new terminal one, and being fifteen minutes late to
+ *  terminalize costs a tick, while stealing a live step costs duplicated work. */
+const UNKNOWN_STATUS_LOST_MS = 15 * 60 * 1000;
+
 /** KI-15: an inbound handoff left unconsumed this long is treated as stale (its
  *  receiver run was never started, e.g. a non-orchestrated single mission whose
  *  one handoff was dropped). Past this window the message no longer blocks
@@ -256,9 +294,18 @@ export function isLostQueuedRun(
 
 /**
  * Cross-check every in-flight mission_step.run_id against agent_runs.status and
- * reflect the terminal state back onto the step. A failed/halted child triggers
- * the bounded-retry decision. Cheap; shared by the orchestrator tools and the
- * auto-advance sweeper so progress is always fresh without a separate reactor.
+ * reflect the terminal state back onto the step. A failed/halted/partly-failed
+ * child triggers the bounded-retry decision. Cheap; shared by the orchestrator
+ * tools and the auto-advance sweeper so progress is always fresh without a
+ * separate reactor.
+ *
+ * This is the ONLY writer of mission_steps.status on the advance path, which is
+ * why it is closed rather than open: a status it does not branch on leaves the
+ * step in flight, and a step in flight pins the whole mission (the ready-RPC
+ * never releases its dependents, the skip-cascade only cascades from 'failed',
+ * and maybeCompleteMission never sees an all-terminal DAG). So it now ends with
+ * a defensive branch keyed on RUN_IN_FLIGHT_STATUSES instead of falling through
+ * silently — see that constant for the list to keep current.
  */
 export async function reflectStepStatusFromRuns(
   supabase: SupabaseClient,
@@ -321,7 +368,13 @@ export async function reflectStepStatusFromRuns(
     if (!run) continue;
     if (run.status === "running" && row.status !== "running") {
       await supabase.from("mission_steps").update({ status: "running" }).eq("id", row.id);
-    } else if (run.status === "completed") {
+    } else if (run.status === "completed" || run.status === "complete") {
+      // The singular "complete" is the single-agent path's spelling
+      // (agents.functions.ts:210) and means the same clean finish; crew.functions.ts
+      // normalizes it the same way and for the same reason. No mission step's run
+      // is written by that path today, so accepting it here is defensive — but it
+      // is REQUIRED defence, because without it the unknown-status branch at the
+      // end of this loop would read a clean finish as a failure.
       // CAS on the pre-read status: this function is documented as callable
       // from both the admin-client sweeper and a user-client `advanceMission`,
       // so overlapping calls on the same mission are a designed-for scenario.
@@ -347,10 +400,17 @@ export async function reflectStepStatusFromRuns(
         await recordPlaybookAttempt(
           supabase,
           { user_id: row.user_id, workspace_id: row.workspace_id, playbook_id: row.playbook_id },
-          classifyRunOutcome(run.status),
+          // Normalize the singular spelling before classifying: classifyRunOutcome
+          // only knows "completed", and letting "complete" fall to its default
+          // would record a clean delivery as no-evidence and under-report the win.
+          classifyRunOutcome(run.status === "complete" ? "completed" : run.status),
         );
       }
-    } else if (run.status === "halted" || run.status === "failed") {
+    } else if (
+      run.status === "halted" ||
+      run.status === "failed" ||
+      run.status === "completed_with_failures"
+    ) {
       await failOrRequeueStep(
         supabase,
         row,
@@ -361,6 +421,26 @@ export async function reflectStepStatusFromRuns(
         // 'halted' is a governance stop or the stuck-run sweeper killing a run
         // that stopped checkpointing => the attempt was interrupted, never
         // judged, so it earns no verdict.
+        // 'completed_with_failures' is the loop's own verdict on a run that
+        // reached an answer with at least one tool step failed. It is terminal
+        // everywhere else in this repo (run-state.ts, ask-blocks.server.ts,
+        // credit-policy.ts, build-status.ts) and it belongs on this side of the
+        // line rather than with 'completed', matching maybeCompleteMission, which
+        // reads a single failed STEP as a mission that completed_with_failures.
+        // KNOW WHAT THIS COSTS, because it is the ORDINARY outcome (452 of 1135
+        // runs), not the rare one: routing it here also gives it the bounded
+        // retry, so a partly-failed step is re-dispatched ONCE (attempts ceiling
+        // 2) before it terminalizes, and its dependents are then skip-cascaded.
+        // That is deliberate — it is exactly how a 'failed' step is treated, and
+        // finishing honestly beats finishing cleanly. If the duplicate attempt
+        // proves too expensive in practice, pass `false` for retryCols on THIS
+        // branch only; the step then terminalizes on the first reflection.
+        // On the verdict: classifyRunOutcome does not know this status, so it
+        // classifies 'interrupted' and the attempt is recorded with a NULL
+        // verdict — volume, neither a win nor a loss. That is deliberately
+        // conservative and NOT a claim that the method was judged; a decisive
+        // reading of a partly-failed run belongs in classifyRunOutcome
+        // (src/lib/playbooks/registry.ts), which this change does not own.
         classifyRunOutcome(run.status),
       );
     } else if (isLostQueuedRun(run, lostCutoff)) {
@@ -391,6 +471,41 @@ export async function reflectStepStatusFromRuns(
           // through classifyRunOutcome would score it as a loss for the
           // playbook, which would be a fabricated one: the agent never started.
           "never_started",
+        );
+      }
+    } else if (!RUN_IN_FLIGHT_STATUSES.has(run.status)) {
+      // DEFENSIVE TERMINALIZER. Every branch above names a status explicitly, so
+      // reaching here means the run carries a status this module has never seen.
+      // Before this branch existed the step simply stayed in flight and pinned
+      // the mission at 'Running' forever with no error anywhere — which is
+      // exactly what `completed_with_failures` did to every running mission in
+      // production. Unknown is therefore treated as TERMINAL, not as in-flight:
+      // the in-flight set is the closed list (RUN_IN_FLIGHT_STATUSES), and a
+      // status outside it gets the same bounded retry-or-fail as any other
+      // terminal outcome.
+      //
+      // Bounded on time as well as attempts: we wait UNKNOWN_STATUS_LOST_MS from
+      // the run's creation (falling back to the step's dispatch time) so a status
+      // that turns out to be a new IN-FLIGHT state is not stolen the instant it
+      // appears. If it really is in-flight, add it to RUN_IN_FLIGHT_STATUSES —
+      // the step error below names the status precisely so whoever reads it knows
+      // what to add.
+      const sinceIso = run.created_at ?? row.dispatched_at;
+      const unknownCutoff = new Date(Date.now() - UNKNOWN_STATUS_LOST_MS).toISOString();
+      if (sinceIso && sinceIso < unknownCutoff) {
+        await failOrRequeueStep(
+          supabase,
+          row,
+          `child run reported the unrecognised status '${run.status}', which this ` +
+            `mission reflector has no branch for; treated as terminal so the mission ` +
+            `can finish. If that status means the run is still working, add it to ` +
+            `RUN_IN_FLIGHT_STATUSES in src/lib/ai/mission-advance.server.ts.`,
+          retryCols,
+          // A status we cannot read is no evidence about the method. This is what
+          // classifyRunOutcome's documented default ("a terminal status this code
+          // does not recognise" => 'interrupted') is for, so the verdict comes out
+          // NULL rather than invented.
+          classifyRunOutcome(run.status),
         );
       }
     }

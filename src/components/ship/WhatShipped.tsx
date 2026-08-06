@@ -31,8 +31,15 @@
  *                    clauses are individually supersedable, so ONLY standing
  *                    ones are read (see `standingClauses`).
  *   the design gate  prds.design_gate_status + .design_decided_at. A real human
- *                    judgment, and the only one this document can source
- *                    without a server function that does not exist yet.
+ *                    judgment -- but only once `design_decided_at` is set, since
+ *                    the status column is `not null default 'pending'` and an
+ *                    untouched default is nobody's decision.
+ *   the design route stage_events.to_stage = design_skipped / design_requested,
+ *                    read through `getSpecDesignRoute` (2026-08-06). The OTHER
+ *                    human judgment on this spec, and the one that says a design
+ *                    gate was never owed. Without it this document reported a
+ *                    governance hole on every spec deliberately routed straight
+ *                    to Build, which is most of them.
  *   the change       studio_changesets via `listAppliedChanges`: repo, branch,
  *                    pull request, and a REAL file count from studio_changes.
  *   the deploy       deployments: environment, status, commit_sha, deploy_url.
@@ -92,8 +99,10 @@ import { useServerFn } from "@tanstack/react-start";
 
 import type { ChangelogEntry } from "@/lib/changelog.functions";
 import { getPrd } from "@/lib/discovery.functions";
+import { getSpecDesignRoute } from "@/lib/design-scaffold.functions";
 import { listAppliedChanges, type AppliedChange } from "@/lib/studio.functions";
 import { listDeployments } from "@/lib/deployments.functions";
+import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
 import { Answer } from "@/components/ask/Answer";
 import {
   Block,
@@ -255,6 +264,26 @@ export type DeploySource = {
   created_at: string | null;
 };
 
+/**
+ * THE ROUTE THIS SPEC WAS PUT ON, from `stage_events` rather than a column.
+ *
+ * `prds.design_gate_status` is `not null default 'pending'` and
+ * `design_decided_at` is null on every spec that never went through Design, so
+ * the gate columns alone cannot tell "nobody has judged this yet" from "a person
+ * decided on purpose that there was nothing to judge". The decision itself lives
+ * in the trail: `chooseDesignRoute` (src/lib/design-scaffold.functions.ts) writes
+ * a `design_skipped` / `design_requested` stage event naming the actor.
+ *
+ * `route: "direct"` IS the skip. Undefined means the read was not supplied or
+ * did not answer - never "straight to Build" - and the document falls back to
+ * what the gate columns alone can support.
+ */
+export type DesignRouteSource = {
+  route: "design" | "direct";
+  at: string | null;
+  actor: string | null;
+} | null;
+
 export type ReleaseSources = {
   entry: ChangelogEntry;
   /** null when the release is not linked to a spec, which the document says. */
@@ -262,6 +291,9 @@ export type ReleaseSources = {
   /** The merged changeset behind the entry, null when it cannot be resolved. */
   applied: AppliedChange | null;
   deployments: DeploySource[];
+  /** OPTIONAL on purpose: absent means the route was not read, which is a
+   *  different fact from "no route was ever chosen". See DesignRouteSource. */
+  designRoute?: DesignRouteSource;
 };
 
 /**
@@ -337,6 +369,16 @@ function designGateWords(status: string | null): string | null {
   return null;
 }
 
+/** `stage_events.actor` in plain words. Same three readings the chain of custody
+ *  uses (`actorWords`, src/lib/trust-chain.functions.ts), so one decision does
+ *  not get two names in two documents about the same spec. */
+function actorWords(actor: string | null): string {
+  const a = (actor ?? "").trim();
+  if (!a || a === "system") return "The system";
+  if (a === "human") return "A person";
+  return `The ${a} agent`;
+}
+
 /** Green and red carry outcomes (SYSTEM.md rule 1), and nothing else does. */
 function verdictTone(verdict: string | null): "pass" | "fail" | "warn" | "quiet" {
   if (verdict === "validated") return "pass";
@@ -373,7 +415,24 @@ export type ReleaseDoc = {
 };
 
 export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
-  const { entry, prd, applied, deployments } = s;
+  const { entry, prd, applied, deployments, designRoute } = s;
+  /**
+   * A DELIBERATE SKIP IS A DECISION, and this is the row that proves it.
+   *
+   * The founder's ruling, twice given: the seven stations are the full path and
+   * not the only path, so a code-level change goes plan -> build and its design
+   * lives outside the product. `chooseDesignRoute` records that choice as a
+   * `design_skipped` stage event with an actor and a time. Until now nothing
+   * outside the design station read it, so this document judged the same specs
+   * by `design_decided_at` alone - null on 80 of the 81 live specs, measured
+   * 2026-08-06 - and reported a governance hole on work whose route was chosen
+   * on purpose and written down.
+   *
+   * Only meaningful with a spec to have had a route: with no prd the document
+   * already says the spec is absent, and a route event keyed to nothing is not
+   * a fact about this release.
+   */
+  const skipped = prd && designRoute?.route === "direct" ? designRoute : null;
   const contract = readContract(prd?.contract);
   const outcome = readOutcome(prd?.outcome);
   const live = pickProductionDeploy(deployments);
@@ -435,9 +494,13 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
     }
   }
 
-  // The ONE human judgment this document can source today. A gate that is still
-  // pending is not an approval and never wears one's clothes: `designGateWords`
-  // returns null for anything undecided, and the hole is named below instead.
+  // The one human judgment this document draws as a SIGN-OFF. A gate that is
+  // still pending is not an approval and never wears one's clothes:
+  // `designGateWords` returns null for anything undecided, and the hole is named
+  // below instead. A recorded skip is also a human judgment, but it is not a
+  // sign-off on how anything looks, so it lands in the receipts rather than
+  // under "Who signed it off" - the difference between "somebody approved this
+  // design" and "somebody decided there was no design to approve".
   const gateWords = designGateWords(prd?.design_gate_status ?? null);
   const approval =
     gateWords && prd?.design_decided_at
@@ -451,6 +514,19 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
 
   const receipts = kept([
     prd ? fact(prd.title, "prds.title", { detail: `Spec · ${prd.status ?? "no status"}` }) : null,
+    // THE SKIP, AS A RECEIPT. It sits here rather than in "Not on the record"
+    // because it is a row that EXISTS: somebody decided, the product wrote it
+    // down, and this is the document that reads the product's rows back. Naming
+    // the actor and the day is the whole point - an unattributed skip would be
+    // exactly the "human judgement no human made" this file exists to prevent.
+    skipped
+      ? fact(`Design ${DESIGN_SKIPPED_ON_PURPOSE}`, "stage_events.to_stage = design_skipped", {
+          detail:
+            [`${actorWords(skipped.actor)} sent it straight to Build`, onDay(skipped.at)]
+              .filter(Boolean)
+              .join(" · ") || null,
+        })
+      : null,
     applied
       ? fact(applied.repo || "the repository", "studio_changesets.repo", {
           detail: applied.branch ? `on ${applied.branch}` : null,
@@ -540,8 +616,20 @@ export function assembleReleaseDoc(s: ReleaseSources): ReleaseDoc {
      * A design gate lives on `prds.design_gate_status`. With no prd there is no
      * column to be undecided, and the absence of the spec is already stated
      * above. Saying nothing here is the accurate reading.
+     *
+     * AND ONLY WHEN A GATE WAS ACTUALLY OWED. The sentence is still exactly
+     * right for a spec that was supposed to go through Design and did not, so it
+     * is kept word for word - but it fired on EVERY spec whose
+     * `design_decided_at` was null, which includes every spec routed straight to
+     * Build on purpose. Reporting a decision the team made and the product
+     * recorded as a hole the team failed to close is the same defect in reverse,
+     * and it contradicted the chain of custody, which for the same spec now
+     * reads the same stage event and draws the link `skipped`. So it is split,
+     * not deleted: a recorded skip is a receipt above, a genuine gap is this
+     * line, and a route that was never read leaves this line standing, because
+     * "we did not look" must never be published as "they decided".
      */
-    !approval && !!prd
+    !approval && !!prd && !skipped
       ? fact(
           "No design gate was decided on this spec, so no human approval is on the record for how it looks.",
           "prds.design_gate_status (undecided)",
@@ -767,6 +855,14 @@ export type ReleaseReads = {
     changesetId: string;
     workspaceId: string | null;
   }) => Promise<{ deployments?: DeploySource[] } | null | undefined>;
+  /** The recorded design route. OPTIONAL, so a caller (and every existing test)
+   *  that supplies only the three original reads still type-checks and still
+   *  gets the document it always got - one where the skip is simply not known.
+   *  Only `chosen` is read, so the full `SpecDesignRoute` shape is not required
+   *  of a stub. */
+  designRoute?: (args: {
+    prdId: string;
+  }) => Promise<{ chosen?: DesignRouteSource } | null | undefined>;
 };
 
 /**
@@ -859,6 +955,23 @@ export function AssembledRelease({
       }),
     enabled: !!entry.changeset_id,
   });
+  /**
+   * THE FOURTH READ, and the one allowed to fail quietly.
+   *
+   * It answers one question: was this spec deliberately routed straight to
+   * Build? A yes turns a reported hole into a receipt. A no, and an unanswered
+   * read, both leave the document exactly as it was before this read existed -
+   * which is why it is NOT in `failed` below. Collapsing a whole release
+   * document into "could not be assembled" because one supporting fact did not
+   * load would be a worse outcome than the sentence it improves, and the
+   * assembler's fallback is already the honest one.
+   */
+  const routeQ = useQuery({
+    queryKey: ["what-shipped-design-route", entry.prd_id],
+    queryFn: () => reads.designRoute!({ prdId: entry.prd_id as string }),
+    enabled: !!entry.prd_id && !!reads.designRoute,
+    retry: false,
+  });
 
   // A read still in flight is not an empty document and must not be drawn as
   // one: a half-assembled release note reads as "there is no outcome" for the
@@ -867,7 +980,8 @@ export function AssembledRelease({
   const waiting =
     (!!entry.prd_id && prdQ.isLoading) ||
     appliedQ.isLoading ||
-    (!!entry.changeset_id && deployQ.isLoading);
+    (!!entry.changeset_id && deployQ.isLoading) ||
+    (!!entry.prd_id && !!reads.designRoute && routeQ.isLoading);
 
   // A SPEC THAT IS NOT THERE IS NOT A BROKEN READ. `getPrd` throws for both, so
   // the two were indistinguishable here and the absent row won: one deleted spec
@@ -923,7 +1037,11 @@ export function AssembledRelease({
     created_at: d.created_at ?? null,
   }));
 
-  const doc = assembleReleaseDoc({ entry, prd, applied, deployments });
+  // Undefined when the read was absent or did not answer, which the assembler
+  // reads as "not known" rather than "no route was chosen".
+  const designRoute = routeQ.isSuccess ? (routeQ.data?.chosen ?? null) : undefined;
+
+  const doc = assembleReleaseDoc({ entry, prd, applied, deployments, designRoute });
   return <ReleaseDocument doc={doc} onOpen={onOpen} />;
 }
 
@@ -946,6 +1064,11 @@ export function WhatShipped({
   const fPrd = useServerFn(getPrd);
   const fApplied = useServerFn(listAppliedChanges);
   const fDeploys = useServerFn(listDeployments);
+  // `getSpecDesignRoute` is the design station's own read of the route trail,
+  // borrowed rather than re-queried here: a second copy of "what is the newest
+  // design_skipped / design_requested row" is how two surfaces quietly start
+  // disagreeing about one decision.
+  const fRoute = useServerFn(getSpecDesignRoute);
 
   const reads = React.useMemo<ReleaseReads>(
     () => ({
@@ -953,8 +1076,14 @@ export function WhatShipped({
       applied: ({ workspaceId: w }) => fApplied({ data: w ? { workspaceId: w } : {} }),
       deployments: ({ changesetId, workspaceId: w }) =>
         fDeploys({ data: { changesetId, ...(w ? { workspaceId: w } : {}) } }),
+      designRoute: ({ prdId }) =>
+        fRoute({ data: { prdId } }).then((r) => ({
+          chosen: r?.chosen
+            ? { route: r.chosen.route, at: r.chosen.at ?? null, actor: r.chosen.actor ?? null }
+            : null,
+        })),
     }),
-    [fPrd, fApplied, fDeploys],
+    [fPrd, fApplied, fDeploys, fRoute],
   );
 
   return <AssembledRelease entry={entry} workspaceId={workspaceId} reads={reads} onOpen={onOpen} />;

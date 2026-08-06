@@ -3070,35 +3070,117 @@ const researchSynthesize = def({
 
 /**
  * prd.draft — Define stage.
- * Takes an opportunity_id, pulls the opportunity + linked theme + top signals,
- * asks the model to draft a structured PRD, writes a `prds` row in draft status.
+ * Takes an opportunity_id OR a brief. With an opportunity it pulls the
+ * opportunity + linked theme + top signals; with a brief it drafts from the
+ * words the station was given. Either way it asks the model to draft a
+ * structured PRD and writes a `prds` row in draft status.
+ *
+ * THE DEFINE STATION HAD NO DOOR FOR WORK THAT SKIPPED DECIDE.
+ *
+ * `opportunity_id` used to be REQUIRED here, and this is the only spec-creating
+ * tool in the registry — while no tool in the registry can create an
+ * opportunity (all eight `.from("opportunities")` calls in this file are SELECT
+ * or UPDATE). So a track that entered mid-lifecycle with Decide waived, which is
+ * exactly the shape "the seven stations are the full path, not the only path"
+ * asks for, was briefed to call a tool it structurally could not satisfy. Live
+ * consequence, measured: prd-writer had 34 `completed_with_failures` runs
+ * against tracks and `spine_track_members` held ZERO rows of artifact_kind
+ * 'prd' across all 43 tracks. Plan burned its step budget and filed nothing —
+ * and when the model eventually guessed a real uuid, the spec bound to an
+ * unrelated bet and learning.record moved THAT bet's confidence.
+ *
+ * The brief path mirrors `generatePrd` (src/lib/discovery.functions.ts:2449-2557),
+ * which has taken `opportunity_id` OR `brief` for as long as it has existed and
+ * is the human door onto the same shape. `stationGoal` already threads the
+ * track's title and origin into the Define prompt
+ * (src/lib/spine/driver.ts:354-387), so the agent has the words to compose one.
+ *
+ * WHAT A SPEC WITH NO BET COSTS AT LEARN, checked before this was widened rather
+ * than assumed, because trading a dead end for a silent one is not an
+ * improvement:
+ *   - IT IS SETTLEABLE. `applyOutcome` guards every bet-dependent step on
+ *     `if (prd.opportunity_id)` (src/lib/outcome.functions.ts:497), passes
+ *     `?? null` into rememberOutcome (:634), inferSupersession (:710) and
+ *     inferDirectEdge (:730), and skips the theme-support count when there is no
+ *     theme (:768). Nothing on that path requires a bet.
+ *   - IT REACHES THE DESK. `listPendingOutcomes` selects on `outcome is null`
+ *     plus `shipped_at`, never on a bet (:1130-1153), and reads the bet as
+ *     optional (:1320). `SettlePanel` says "No bet is linked to this spec, so
+ *     settling it moves no priority" before the verdict and "No bet was linked,
+ *     so no priority moved" after it (src/components/learn/SettlePanel.tsx:920,998),
+ *     and the settle sweep states the same fact (src/lib/ai/outcome-review.ts:420).
+ *   - IT REACHES THE MOAT. rememberOutcome's `prdId` is what gates the outcome
+ *     memory, and a brief-drafted spec has one.
+ *   - LIVE SHAPE, not a new one: 39 of 81 prds already carry opportunity_id
+ *     null, 21 of them shipped and all 7 settled specs in the database are
+ *     null-bet ones. This widening files the shape the product already stores.
+ *
+ * THE ONE THING IT DOES LOSE, stated because it is real: the learning written
+ * against such a spec carries opportunity_id null, and /decide derives a
+ * learning's theme THROUGH the bet (the `opportunity:opportunities(theme_id)`
+ * embed at src/lib/outcome.functions.ts:1711). So the verdict is recorded,
+ * remembered and visible on /learn, and it does not re-rank new bets on the same
+ * evidence, because there is no evidence cluster to re-rank against. That is a
+ * smaller loss than a station that cannot file at all, and it is the same loss
+ * the human brief path has always carried.
  */
 const prdDraft = def({
   name: "prd.draft",
   description:
-    "Draft a spec from an opportunity. Reads the opportunity, its theme, and supporting signals, then writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks. Use after research.synthesize + an opportunity exists.",
+    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed — say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one and never pass an id of another kind in its place. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks.",
   category: "write",
+  /**
+   * Both fields are optional here and the either/or is enforced in `run`, which
+   * is the same choice `studio.stage` makes for its op-conditional field: a
+   * `.refine()` would wrap this in a ZodEffects whose constraint is invisible in
+   * the JSON Schema the provider is handed (src/lib/ai/tool-schemas.server.ts:39),
+   * so the model would gain nothing and the thrown message would say less.
+   */
   argsSchema: z.object({
-    opportunity_id: z.string().uuid(),
+    opportunity_id: z.string().uuid().optional(),
+    brief: z.string().max(4000).optional(),
     title: z.string().max(280).optional(),
     audience: z.string().max(200).optional(),
   }),
   preview: (a) =>
-    `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? ` — "${a.title}"` : ""}`,
-  run: async (a, { supabase, userId, traceId, runId, agentSlug }) => {
-    const { data: opp, error: oErr } = await supabase
-      .from("opportunities")
-      .select(
-        "id,title,problem,target_user,hypothesis,impact,confidence,ease,theme_id,workspace_id,product_id",
-      )
-      .eq("id", a.opportunity_id)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (oErr) throw new Error(oErr.message);
-    if (!opp) throw new Error("opportunity not found");
+    a.opportunity_id
+      ? `Draft spec for opportunity ${a.opportunity_id.slice(0, 8)}${a.title ? ` — "${a.title}"` : ""}`
+      : `Draft spec from a brief, with no bet behind it${a.title ? ` — "${a.title}"` : ""}`,
+  run: async (a, { supabase, userId, traceId, runId, agentSlug, workspaceId }) => {
+    const brief = a.brief?.trim() ?? "";
+    if (!a.opportunity_id && !brief) {
+      throw new Error(
+        "prd.draft needs either opportunity_id, the bet this spec serves, or brief, what the work is and why it exists when no bet was ever filed. Nothing in this registry creates an opportunity, so pass a brief rather than trying to make one.",
+      );
+    }
+
+    type OppRow = {
+      id: string;
+      title: string;
+      problem: string | null;
+      target_user: string | null;
+      hypothesis: string | null;
+      theme_id: string | null;
+      workspace_id: string | null;
+      product_id: string | null;
+    };
+    let opp: OppRow | null = null;
+    if (a.opportunity_id) {
+      const { data, error: oErr } = await supabase
+        .from("opportunities")
+        .select(
+          "id,title,problem,target_user,hypothesis,impact,confidence,ease,theme_id,workspace_id,product_id",
+        )
+        .eq("id", a.opportunity_id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (oErr) throw new Error(oErr.message);
+      if (!data) throw new Error("opportunity not found");
+      opp = data;
+    }
 
     let themeCtx = "";
-    if (opp.theme_id) {
+    if (opp?.theme_id) {
       const { data: th } = await supabase
         .from("themes")
         .select("title,summary,severity,frequency")
@@ -3108,7 +3190,7 @@ const prdDraft = def({
         themeCtx = `Theme: ${th.title}\n${th.summary}\n(severity ${th.severity}, frequency ${th.frequency})`;
     }
     let signalCtx = "";
-    if (opp.theme_id) {
+    if (opp?.theme_id) {
       const { data: sigs } = await supabase
         .from("signals")
         .select("title,content,sentiment")
@@ -3128,7 +3210,10 @@ const prdDraft = def({
 
     const res = await callModel(supabase, userId, {
       surface: "prd",
-      surface_ref: opp.id,
+      // "brief" on the no-bet path, the same surface_ref generatePrd uses for it
+      // (src/lib/discovery.functions.ts:2640), so spend on the two paths stays
+      // tellable apart in ai_events without a join.
+      surface_ref: opp ? opp.id : "brief",
       model: DRAFT_MODEL,
       traceId: traceId ?? null,
       runId: runId ?? null,
@@ -3140,15 +3225,25 @@ const prdDraft = def({
         },
         {
           role: "user",
-          content: [
-            `Opportunity: ${opp.title}`,
-            `Problem: ${opp.problem || "(not specified)"}`,
-            opp.target_user ? `Target user: ${opp.target_user}` : "",
-            opp.hypothesis ? `Hypothesis: ${opp.hypothesis}` : "",
-            a.audience ? `Audience override: ${a.audience}` : "",
-            themeCtx,
-            signalCtx,
-          ]
+          content: (opp
+            ? [
+                `Opportunity: ${opp.title}`,
+                `Problem: ${opp.problem || "(not specified)"}`,
+                opp.target_user ? `Target user: ${opp.target_user}` : "",
+                opp.hypothesis ? `Hypothesis: ${opp.hypothesis}` : "",
+                a.audience ? `Audience override: ${a.audience}` : "",
+                themeCtx,
+                signalCtx,
+              ]
+            : [
+                `The work, and why it exists:\n${brief}`,
+                a.audience ? `Audience: ${a.audience}` : "",
+                // Said out loud so the model does not invent a bet to anchor to.
+                // It has no theme and no signals here; grounding it in the brief
+                // is the whole job.
+                "No prior bet was filed for this work, so there is no ICE score, theme or signal set behind it. Ground the spec in the brief above and nothing else.",
+              ]
+          )
             .filter(Boolean)
             .join("\n\n"),
         },
@@ -3157,14 +3252,28 @@ const prdDraft = def({
     const body = res.output?.trim();
     if (!body) throw new Error("model returned empty PRD body");
 
+    /** The bet's title when there is one; otherwise the brief's first sentence,
+     *  the same heuristic generatePrd falls back to (discovery.functions.ts:2583-2586).
+     *  Deterministic on purpose: a second model call to name a spec is a cost
+     *  the Define station's step budget has already proven it cannot spare. */
+    const derived = opp
+      ? `Spec: ${opp.title}`
+      : (brief.split(/[\n.!?]/)[0] ?? "").trim().slice(0, 120) || "Untitled spec";
+
+    /** `prds.workspace_id` is NOT NULL with default `current_user_default_workspace()`,
+     *  so an explicit null would be REFUSED where an omitted key is filled. The
+     *  bet's workspace when there is a bet, the run's when there is not, and the
+     *  key dropped entirely when neither is known — which is exactly what
+     *  generatePrd's brief path relies on (discovery.functions.ts:2742-2753). */
+    const specWorkspaceId = opp?.workspace_id ?? workspaceId ?? null;
     const { data: prd, error: pErr } = await supabase
       .from("prds")
       .insert({
         user_id: userId,
-        workspace_id: opp.workspace_id,
-        product_id: opp.product_id ?? null,
-        opportunity_id: opp.id,
-        title: (a.title ?? `Spec: ${opp.title}`).slice(0, 280),
+        ...(specWorkspaceId ? { workspace_id: specWorkspaceId } : {}),
+        product_id: opp?.product_id ?? null,
+        opportunity_id: opp?.id ?? null,
+        title: (a.title ?? derived).slice(0, 280),
         body_md: body,
         status: "draft",
         model: DRAFT_MODEL,
@@ -3178,10 +3287,20 @@ const prdDraft = def({
       entityId: prd.id,
       to: "draft",
       actor: agentSlug ?? "system",
-      workspaceId: opp.workspace_id,
+      workspaceId: specWorkspaceId,
       userId,
     });
-    return { prd_id: prd.id, title: prd.title, status: prd.status, opportunity_id: opp.id };
+    // `opportunity_id` is null on the brief path, and that null is the signal:
+    // it is how a reader tells a spec that serves a bet from one that entered
+    // mid-lifecycle. The field list stays exactly as it was, so
+    // src/lib/spine/attach.ts's `prd.draft` product (idField "prd_id") is
+    // unaffected.
+    return {
+      prd_id: prd.id,
+      title: prd.title,
+      status: prd.status,
+      opportunity_id: opp?.id ?? null,
+    };
   },
 });
 
@@ -3587,6 +3706,23 @@ const learningRecord = def({
     // Fail-soft on purpose. If nothing resolves, the learning is still written with its
     // verdict, exactly as before. An unlinked outcome is worth less than a linked one
     // and far more than a lost one, so this never blocks the write.
+    //
+    // AND THE RECOVERY ABOVE DOES NOT REACH THE PATH THAT NEEDS IT MOST. It is
+    // guarded on `missionId`, which arrives from the run context, and the
+    // autonomous driver attaches a mission only at Build:
+    // `station === "build" ? await missionForTrack(...) : null`
+    // (src/lib/spine/driver.server.ts:783). At Learn, `missionId` is null on
+    // every driver-run track, so the two-hop fallback described above is
+    // unreachable there and the agent's own `prd_id` argument is the only link
+    // that can exist. The second hop is dead on that route too: `decision.record`
+    // writes `prd_id` only when the agent passes one (:3384 below), and at Decide
+    // the spec does not exist yet, so `decisions.prd_id` is null by construction.
+    // Live: the one track that completed the loop autonomously recorded two
+    // verdicts, both with prd_id, opportunity_id and mission_id all NULL.
+    //
+    // The fix for that is in the driver, not here — this tool cannot see a track
+    // — so what this file does about it is the branch below: report the miss
+    // instead of swallowing it. See the block above `outcomeMemoryId`.
     let resolvedPrdId: string | null = a.prd_id ?? null;
     if (!resolvedPrdId && missionId) {
       const { data: fromMission } = await supabase
@@ -3668,8 +3804,9 @@ const learningRecord = def({
     // memory by design, since match_agent_memory hard filters on the vector.
     /* THE MOAT'S ONLY WRITER, GATED ON THE WRONG VARIABLE.
      *
-     * This tested `a.prd_id`, the RAW argument, while the learning row four
-     * dozen lines up is written with `resolvedPrdId` (:3542), the mission
+     * This tested `a.prd_id`, the RAW argument, while the learning row above is
+     * written with `resolvedPrdId` (the `prd_id:` field of the learnings insert,
+     * :3786), the mission
      * resolved id added precisely so an agent that names no prd still files its
      * learning against the right one. So the exact case that fix exists for
      * wrote the learning and then skipped the memory.
@@ -3699,6 +3836,33 @@ const learningRecord = def({
      *
      * Still best effort by design: the learnings row above is already committed
      * and must stay committed, so a memory miss reports and never throws. */
+    /* AND THE REPORT WAS NESTED INSIDE THE THING IT EXISTS TO REPORT ON.
+     *
+     * `recordErrorEvent` — the whole point of which is to make a swallowed
+     * memory write findable — used to sit INSIDE `if (resolvedPrdId)`, the same
+     * branch that decides whether the memory is attempted at all. So the
+     * loudest case was the silent one: a verdict whose spec could not be
+     * resolved landed in `learnings` with prd_id null, produced no
+     * `agent_memory` row, and produced no error event either. Nothing anywhere
+     * said the lesson had been dropped, and the run reported success.
+     *
+     * That is not hypothetical. Measured live: 119 learnings, 93 of them
+     * decisive, and ZERO rows in `agent_memory` of kind 'outcome' — the pool
+     * `loadDecisionPrecedent` and the Critic's red-team block are the only
+     * readers of. The pool has never held a row, and this branch is one of the
+     * mechanisms.
+     *
+     * The reporting half now sits OUTSIDE the guard, so every path that reaches
+     * this point either carries a memory id or says why it does not.
+     *
+     * PARTIAL, AND THIS IS THE HALF THAT IS STILL BROKEN. An unattributable
+     * verdict is now REPORTED. It still does not REACH the pool, because
+     * `rememberOutcome`'s `prdId` is `string`, not `string | null`
+     * (src/lib/ai/memory.server.ts), so there is no call to make without a spec.
+     * The real fix is to widen that parameter to `string | null` and call this
+     * unconditionally, so a verdict compounds on its own text even with no spec
+     * behind it. That is one line in another file plus dropping the `if` here;
+     * until it lands, the branch below is a smoke alarm, not a sprinkler. */
     let outcomeMemoryId: string | null = null;
     let outcomeMemoryError: string | null = null;
     if (resolvedPrdId) {
@@ -3722,26 +3886,35 @@ const learningRecord = def({
       } catch (e) {
         outcomeMemoryError = e instanceof Error ? e.message : String(e);
       }
-      if (outcomeMemoryError) {
-        // Awaited, not fired and forgotten: an unawaited promise in a Cloudflare
-        // Worker can be dropped when the request settles, which would put this
-        // report back in the same nowhere the console line was in.
-        // recordErrorEvent never throws and swallows its own failures.
-        await recordErrorEvent(new Error(outcomeMemoryError), {
-          surface: "learning.record",
-          failure_kind: "outcome_memory_not_written",
-          user_id: userId,
-          workspace_id: resolvedWorkspace ?? undefined,
-          extras: {
-            prd_id: resolvedPrdId,
-            learning_id: learningId,
-            opportunity_id: opportunityId,
-            verdict: a.verdict,
-            agent_slug: agentSlug ?? null,
-            mission_id: missionId ?? null,
-          },
-        });
-      }
+    } else {
+      // Not a failure of the memory writer — the writer was never reachable.
+      // Said in the words a person reading error_events needs, because "no
+      // memory was written" without the reason sends them to the wrong file.
+      outcomeMemoryError =
+        "No spec could be resolved for this verdict, so no outcome memory was written: rememberOutcome requires a prdId. The learning is on the record and carries prd_id null.";
+    }
+    if (outcomeMemoryError) {
+      // Awaited, not fired and forgotten: an unawaited promise in a Cloudflare
+      // Worker can be dropped when the request settles, which would put this
+      // report back in the same nowhere the console line was in.
+      // recordErrorEvent never throws and swallows its own failures.
+      await recordErrorEvent(new Error(outcomeMemoryError), {
+        surface: "learning.record",
+        failure_kind: "outcome_memory_not_written",
+        user_id: userId,
+        workspace_id: resolvedWorkspace ?? undefined,
+        extras: {
+          // Null here is the diagnosis, not a missing field: it says this
+          // verdict had no spec to attach to, which is a different bug from a
+          // spec whose memory write was refused.
+          prd_id: resolvedPrdId,
+          learning_id: learningId,
+          opportunity_id: opportunityId,
+          verdict: a.verdict,
+          agent_slug: agentSlug ?? null,
+          mission_id: missionId ?? null,
+        },
+      });
     }
 
     return {

@@ -31,13 +31,30 @@
  *      wrong; you discover a user-visible surface halfway through Build. A
  *      checklist ticked on Monday cannot reopen itself on Thursday.
  *
- * SO STATIONS ARE NOT SKIPPED, THEY ARE WAIVED, AND A WAIVER CAN EXPIRE. Every
- * waiver carries a reason and a condition that brings the station back. A human
- * may still waive by hand and that is honoured exactly (`by: "human"`,
- * `reopensWhen: "never"`), so the founder's literal ask survives as a manual
- * override. It is simply not the primary mechanism, because a route that
- * corrects itself is an operating system and a checklist is a workflow tool,
- * and the second one is absorbable by any vendor next quarter.
+ * SO STATIONS ARE NOT SKIPPED, THEY ARE WAIVED. Every waiver carries a reason
+ * and a `reopensWhen` condition, and a human may waive or reopen by hand at any
+ * time — that is honoured exactly (`by: "human"`, `reopensWhen: "never"`), so
+ * the founder's literal ask survives as a manual override.
+ *
+ * HALF OF THAT IS BUILT AND HALF IS NOT, corrected 2026-08-06 because the
+ * paragraph above used to read "a waiver CAN EXPIRE ... a condition that brings
+ * the station back" and nothing in the product brings one back.
+ *
+ *   BUILT: the reason and the condition are recorded on every waiver, the
+ *   route is honoured end to end by `nextStation`, and `setStationWaiver`
+ *   (./track.functions.ts) lets a PERSON reopen a station whenever they decide
+ *   the waiver stopped being true.
+ *
+ *   NOT BUILT: nothing evaluates `reopensWhen`. `applyTrigger` below is the
+ *   function that would, and it has no production caller — the loop never
+ *   derives a trigger from what a station filed, so a waiver granted at track
+ *   start stands until a human reopens it. Today the condition is a stated
+ *   intention a reader can audit, not a rule the system enforces.
+ *
+ * The ambition stands and the reason for it is unchanged: a route that corrects
+ * itself is an operating system and a checklist is a workflow tool, and the
+ * second one is absorbable by any vendor next quarter. What is written above is
+ * where the line currently falls.
  *
  * THE ORIGIN RULE, which is the part nobody asked for and the record needs.
  * Work entering below Discover has no evidence behind it, because evidence is
@@ -59,9 +76,12 @@ export type WaiverSource = "policy" | "human" | "agent";
 /**
  * What would bring a waived station back onto the path.
  *
- * A closed vocabulary rather than free text, because these have to be evaluated
- * by machine. `never` is the manual override: a person said no and meant it, and
- * nothing reopens it without another person.
+ * A closed vocabulary rather than free text, because these are meant to be
+ * evaluated by machine — `applyTrigger` is the evaluator and it has no caller
+ * yet, so today every reopen is a person's (corrected 2026-08-06). `never` is
+ * the manual override and is the one value that stays true under a future
+ * wiring: a person said no and meant it, and `reopen` refuses it without
+ * `force`.
  */
 export type ReopenTrigger =
   | "touches-interface" // the work turns out to change something a user sees
@@ -184,8 +204,13 @@ const SHAPES: Record<WorkShape, ShapeSpec> = {
   },
 
   // The one that most needs a reopen condition rather than a skip. "No user
-  // sees this" is a claim about the work, and the claim is often wrong: it
-  // reopens the moment Build touches an interface.
+  // sees this" is a claim about the work, and the claim is often wrong.
+  //
+  // The condition below SAYS it reopens when the work touches an interface. It
+  // does not do so on its own: nothing evaluates `reopensWhen` today, so this
+  // records the intention and a person reopens Design through setStationWaiver
+  // when Build turns out to have touched a screen. See `applyTrigger`.
+  // (Corrected 2026-08-06; this comment previously asserted the reopen happened.)
   "under-the-hood": {
     entry: "define",
     waive: [
@@ -307,10 +332,37 @@ export function reopen(
 /**
  * Every station a trigger brings back, applied at once.
  *
- * The agent calls this when it learns something about the work: it touched a
- * component, it changed a table, it reached customers. Reopening is automatic
- * because the whole argument for waiving over skipping is that the system
- * notices when the waiver stopped being true.
+ * NOT WIRED. NOTHING CALLS THIS IN PRODUCTION — corrected 2026-08-06, when the
+ * text here still read "the agent calls this when it learns something about the
+ * work ... reopening is automatic". No agent calls it and nothing is automatic:
+ * `driveTrackOnce` never derives a `ReopenTrigger` from what a station filed, so
+ * the only reopen that ever happens is the human one through
+ * `setStationWaiver`. The function itself is correct and unit-tested
+ * (./route.test.ts); it has no door.
+ *
+ * WHY IT WAS LEFT UNWIRED RATHER THAN CONNECTED, decided 2026-08-06. The
+ * mechanism it needs does not exist yet, and connecting it would trade a missing
+ * capability for a false claim, which is the worse of the two:
+ *
+ *   1. THE ROUTE WOULD GAIN A STATION NOBODY VISITS. `nextStation` only ever
+ *      returns a station LATER on the path, so reopening Design while the track
+ *      sits at Build puts Design on the path where the driver will never select
+ *      it. The route would then advertise a station the work sails past — and
+ *      the founder's ruling is precisely that a supported skip must not be
+ *      reported as unfinished work.
+ *   2. GOING BACK IS THE CORRECTION LOOP'S JOB, and it is driven by holds, not
+ *      by triggers: a backward move IS a correction (./correction.server.ts) and
+ *      is charged against a bounded correction budget meant for stations that
+ *      failed. A trigger-driven reopen would spend that budget on work that did
+ *      not fail.
+ *   3. THE TRIGGERS CANNOT BE DERIVED FROM WHAT THE DRIVER HAS. An `Attachment`
+ *      carries an artifact kind, an id and a station — no file paths — so
+ *      "touches-interface" and "touches-schema" would need new reads and a
+ *      path-shape guess, and a wrong guess reopens a station on work that never
+ *      needed it.
+ *
+ * So this stays a pure function with a test and no caller until the loop can go
+ * backwards for a reason other than failure. Wiring it is a build, not a fix.
  */
 export function applyTrigger(route: SpineRoute, trigger: ReopenTrigger): SpineRoute {
   if (trigger === "never") return route;

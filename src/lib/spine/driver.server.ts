@@ -31,7 +31,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { runAgentLoop } from "@/lib/ai/loop.server";
 import { createMission } from "@/lib/ai/handoff.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
-import { nextStation, type SpineRoute } from "@/lib/spine/route";
+import { recordLineage } from "@/lib/lineage.functions";
+import { nextStation, waiverFor, type SpineRoute } from "@/lib/spine/route";
 import {
   decideDrive,
   holdLine,
@@ -287,6 +288,196 @@ async function rememberGates(
   }
 }
 
+/** Report a broken link without letting the report become a second failure. */
+async function reportLinkFailure(
+  row: DriveRow,
+  failureKind: string,
+  message: string,
+): Promise<void> {
+  try {
+    // Dynamic import, the same idiom recordLineage uses, so the observability
+    // module never enters this file's import-time graph.
+    const { recordErrorEvent } = await import("@/lib/observability/errors");
+    await recordErrorEvent(new Error(message), {
+      surface: "spine.driver.missionForTrack",
+      user_id: row.user_id,
+      workspace_id: row.workspace_id ?? undefined,
+      failure_kind: failureKind,
+    });
+  } catch {
+    // Recording a missing link must not cost the track its tick.
+  }
+}
+
+/**
+ * Is the prd -> mission edge on the record?
+ *
+ * `true` yes, `false` definitely not, `null` nobody could tell. The three-way
+ * answer is the point: this is read once BEFORE the write to skip redundant
+ * work and once AFTER it to confirm the write landed, and an unreadable table
+ * must not be reported as a missing edge. A false alarm on the one signal that
+ * says "the grading chain is severed" would make the signal worth ignoring.
+ */
+async function dispatchEdgeExists(
+  supabase: SupabaseClient,
+  prdId: string,
+  missionId: string,
+): Promise<boolean | null> {
+  try {
+    const { data, error } = await supabase
+      .from("artifact_lineage")
+      .select("id")
+      .eq("parent_kind", "prd")
+      .eq("parent_id", prdId)
+      .eq("child_kind", "mission")
+      .eq("child_id", missionId)
+      .eq("relation", "dispatched")
+      .limit(1)
+      .maybeSingle();
+    if (error) return null;
+    return Boolean((data as { id?: string } | null)?.id);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * THE EDGE THAT MAKES AN AUTONOMOUS BUILD GRADEABLE.
+ *
+ * A mission carries no prd column, so the `prd -> mission` "dispatched" edge in
+ * `artifact_lineage` IS the only link between a spec and the mission built from
+ * it. `resolvePrdForMission` (src/lib/ai/tools/registry.server.ts) reads exactly
+ * that edge to stamp `studio_changesets.prd_id` when the agent opens a
+ * changeset, and `decideStudioMergeShipStamp` refuses to stamp a merge shipped
+ * when that id is null.
+ *
+ * Both human dispatch paths write it — src/lib/build.functions.ts (relation
+ * "dispatched", rationale "Sent to Build") and src/lib/studio.functions.ts
+ * ("Sent to Studio"). The driver did not, so an agent that built and merged with
+ * nobody watching produced a changeset with `prd_id` null, no spec was ever
+ * stamped shipped, Learn had nothing to grade, and the 30-day outcome window
+ * never opened. Live on 2026-08-06: both tracks that own a mission have zero
+ * prd -> mission edges, and 23 of 44 changesets carry a null `prd_id`.
+ *
+ * SAME SHAPE AND RELATION AS THE HUMAN PATHS, deliberately, so the three
+ * dispatch doors write ONE kind of edge and every reader downstream stays
+ * single-path.
+ *
+ * IT RUNS ON THE REUSE PATH TOO, not only at creation. The mission is made once
+ * and then looked up on every later Build tick; if the edge were written only
+ * beside `createMission`, a transient refusal would be permanent, because the
+ * next tick takes the early return and never looks again. `recordLineage` is
+ * idempotent on its unique index, so re-writing costs nothing and a tick that
+ * failed yesterday repairs itself today.
+ *
+ * WHAT IT DOES NOT DO. The human paths also write a spec-level `stage_events`
+ * row (entity "spec", to "build"). This does not; the driver records its own
+ * `spine_track` transition in `driveTrackOnce` and the spec timeline still shows
+ * no autonomous dispatch. Only the lineage edge — the link the grading chain
+ * reads — is closed here.
+ *
+ * NEVER THROWS, and the outer catch is load-bearing rather than defensive. This
+ * runs on the reuse path, so a transport error escaping it would send
+ * `missionForTrack` down its own catch and return null for a mission that
+ * exists; `studio.stage` then refuses, the station fails, and the track burns an
+ * attempt. Losing the link is bad. Losing the build over the link is worse.
+ */
+async function linkSpecToMission(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  missionId: string,
+  agentSlug: string,
+): Promise<void> {
+  try {
+    await linkSpecToMissionOrThrow(supabase, row, missionId, agentSlug);
+  } catch (e) {
+    await reportLinkFailure(
+      row,
+      "prd->mission:dispatched:threw",
+      `Track ${row.id}: linking mission ${missionId} to its spec threw: ` +
+        `${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+}
+
+async function linkSpecToMissionOrThrow(
+  supabase: SupabaseClient,
+  row: DriveRow,
+  missionId: string,
+  agentSlug: string,
+): Promise<void> {
+  const { data: spec } = await supabase
+    .from("spine_track_members")
+    .select("artifact_id")
+    .eq("track_id", row.id)
+    .eq("artifact_kind", "prd")
+    // Newest, because a track sent back to Define for a rewrite files a second
+    // spec and the mission is being built from the one that came back.
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const prdId = (spec as { artifact_id?: string } | null)?.artifact_id;
+
+  if (!prdId) {
+    // A DELIBERATE FORK, because skipping quietly is how the missing edge got
+    // here in the first place. Two different situations wear one shape:
+    //
+    // Define WAIVED (incident-fix enters at Build, "the fix is the spec"). There
+    // is no spec and there never will be. The founder's ruling is that such a
+    // skip is supported, not reported as a fault, so nothing is written and
+    // nothing is reported. The cost is real and is not this function's to fix:
+    // that changeset still reaches Ship with no spec behind it.
+    //
+    // Define ON THE PATH and no spec filed. That is a genuine break — the
+    // station that owes a spec did not file one, and Build is about to produce a
+    // changeset Ship cannot stamp and Learn cannot grade. It is recorded, so the
+    // hole is findable in `error_events` rather than inferred weeks later from an
+    // empty Learn desk. Live on 2026-08-06 this is the state of BOTH tracks that
+    // own a mission, and `prd.draft` refusing a track with no opportunity is why.
+    //
+    // The mission is returned either way by the caller. Refusing to build
+    // because the grading link is missing would trade a broken record for no
+    // work at all, which is a worse trade.
+    if (!waiverFor(routeOf(row), "define")) {
+      await reportLinkFailure(
+        row,
+        "prd->mission:dispatched:no-spec-filed",
+        `Track ${row.id} reached Build with Define on its route and no spec filed, ` +
+          `so mission ${missionId} has no spec behind it and nothing it builds can be graded.`,
+      );
+    }
+    return;
+  }
+
+  // Skip the redundant write once the edge is on the record. Only a definite
+  // yes short-circuits; an unreadable table falls through to the write, which is
+  // idempotent and therefore safe to repeat.
+  if ((await dispatchEdgeExists(supabase, prdId, missionId)) === true) return;
+
+  await recordLineage(supabase, row.user_id, {
+    parent_kind: "prd",
+    parent_id: prdId,
+    child_kind: "mission",
+    child_id: missionId,
+    relation: "dispatched",
+    rationale: "Dispatched by the autonomous driver",
+    created_by_agent: agentSlug,
+  });
+
+  // CONFIRM IT LANDED. supabase-js RESOLVES a refused write rather than
+  // rejecting it, and `recordLineage` returns void, so an awaited call that came
+  // back cleanly is not evidence of a row. Read it back and report only a
+  // definite absence.
+  if ((await dispatchEdgeExists(supabase, prdId, missionId)) === false) {
+    await reportLinkFailure(
+      row,
+      "prd->mission:dispatched:write-did-not-land",
+      `Track ${row.id}: the prd -> mission edge from spec ${prdId} to mission ${missionId} ` +
+        `is still absent after the write, so this build cannot be graded.`,
+    );
+  }
+}
+
 /**
  * The mission this track builds under, created once and then reused.
  *
@@ -303,9 +494,15 @@ async function rememberGates(
  * it. Reusing it matters: without a lookup, every Build tick would open a fresh
  * mission and the changesets of one piece of work would scatter across several.
  *
+ * THE MISSION IS ALSO TIED TO ITS SPEC HERE, on both the creation and the reuse
+ * path, via `linkSpecToMission` — see its header for why that edge is the only
+ * thing that makes an unwatched build gradeable.
+ *
  * Returns null rather than throwing on any failure. A Build station that cannot
  * get a mission is the state we were already in, so it degrades to exactly the
- * old behaviour instead of costing the track its tick.
+ * old behaviour instead of costing the track its tick. A missing spec link never
+ * reaches that branch: `linkSpecToMission` swallows its own failures precisely so
+ * the mission survives them.
  */
 async function missionForTrack(
   supabase: SupabaseClient,
@@ -321,7 +518,12 @@ async function missionForTrack(
       .limit(1)
       .maybeSingle();
     const found = (existing as { artifact_id?: string } | null)?.artifact_id;
-    if (found) return found;
+    if (found) {
+      // On the reuse path too, so a refused edge repairs itself on the next
+      // tick instead of being lost the moment the mission exists.
+      await linkSpecToMission(supabase, row, found, agentSlug);
+      return found;
+    }
 
     if (!row.workspace_id) return null;
     const { data: agent } = await supabase
@@ -343,6 +545,9 @@ async function missionForTrack(
     await writeMembers(supabase, row.id, [
       { artifactKind: "mission", artifactId: mission.id, station: "build" },
     ]);
+    // The spec -> mission link, written here as well as on the reuse path above
+    // so a mission created this tick is gradeable from its first changeset.
+    await linkSpecToMission(supabase, row, mission.id, agentSlug);
     return mission.id;
   } catch (e) {
     console.error(
