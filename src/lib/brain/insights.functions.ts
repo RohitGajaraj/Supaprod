@@ -12,10 +12,50 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server"; // imported (called), never edited
 import { scoreTheme } from "@/lib/brain/score";
 import { summarizeCalibration } from "@/lib/brain/calibrate-insights.server";
+import { INELIGIBLE_STATUSES } from "@/lib/spine/promote"; // pure, dependency-free
 
 const MODEL = "google/gemini-2.5-flash" as const; // same as getBrainAnalysis
 const MIN_SCORE = 0.12; // calm gate: below this, there is no clear "next" → return null
 const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 min
+
+/**
+ * Every theme status that means a person already settled this cluster.
+ *
+ * WHAT WAS HERE: `.neq("status", "archived")`. One value out of the five the
+ * repo uses, and the only one nothing writes. Live theme statuses on 2026-08-06
+ * are new 161, active 64, investigating 14, at_risk 9, confirmed 8, promoted 1
+ * and ZERO archived, so the filter excluded nothing at all. A cluster somebody
+ * dismissed on /discover, or promoted into a bet, stayed in this ranking, could
+ * be the top-scoring theme, and got a paid model call spent presenting it back
+ * as the one thing to focus on next -- on the one card whose job is to show that
+ * the brain acts on the judgments you gave it.
+ *
+ * IMPORTED, NEVER RETYPED. `INELIGIBLE_STATUSES` in @/lib/spine/promote is the
+ * canonical list: `qualifies` gates the autonomous promote sweep on it and
+ * DiscoverSurface.tsx:463 keeps a hand-copy in step with it. A hand-copy here
+ * would be the third, and a hand-copy is exactly how `promoted` came to be
+ * missing from two of them. A status added to that one list now reaches this
+ * ranking with no edit to this file.
+ *
+ * WHAT IT STILL MISSES, because that gap is in the data and not in this list.
+ * 46 themes have an opportunity pointing at them, so they were promoted in
+ * fact, and only 1 of the 46 carries status 'promoted' -- the status write
+ * (discovery.functions.ts:1058) landed after most of them were promoted. So
+ * this excludes 1 live theme today, not 46. Closing the other 45 is a backfill
+ * nobody should run blind: 44 of them sit in `active`/`at_risk`/`confirmed`,
+ * which are Discover's own escalation states, and overwriting those to
+ * 'promoted' would destroy information this filter does not need.
+ *
+ * Rendered once as a PostgREST `in` list. Case-sensitive, unlike `qualifies`,
+ * which lowercases first; every status this repo writes is lowercase and
+ * `themes.status` is NOT NULL DEFAULT 'new', so nothing escapes on either count.
+ *
+ * NOTHING IS EXPLAINED AT THE CALL SITE ON PURPOSE. `the-brain-does-not-rank-
+ * fiction.test.ts` asserts that `.eq("is_sample", false)` sits within 1200
+ * characters of `.from("themes")`, and that gap is already 1051. Explain
+ * changes to the themes read here, not beside it.
+ */
+const SETTLED_THEME_STATUSES = `(${INELIGIBLE_STATUSES.join(",")})`;
 
 export type FocusEvidence = {
   severity: number;
@@ -94,11 +134,11 @@ export const getFocusNext = createServerFn({ method: "GET" })
     if (!workspaceId) return null;
 
     // Rank themes LIVE — no AI for ranking.
-    const { data: themes } = await supabase
+    const { data: themes, error: themesErr } = await supabase
       .from("themes")
       .select("id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status")
       .eq("workspace_id", workspaceId)
-      .neq("status", "archived")
+      .not("status", "in", SETTLED_THEME_STATUSES)
       /**
        * NEVER RECOMMEND A THEME MADE ONLY OF EXAMPLES.
        *
@@ -117,6 +157,15 @@ export const getFocusNext = createServerFn({ method: "GET" })
       .eq("is_sample", false)
       .order("created_at", { ascending: false })
       .limit(60);
+    /**
+     * A REFUSED READ IS NOT AN EMPTY WORKSPACE. On error `themes` is null, the
+     * `?? []` below turns that into no candidates, and the card renders nothing
+     * -- which is byte-for-byte the calm gate this function uses to mean "there
+     * is no clear next". The two are indistinguishable from outside. This does
+     * NOT change the behaviour (rendering nothing is still the safe answer);
+     * it only makes the difference visible in the logs.
+     */
+    if (themesErr) console.error(`[focus-next] theme read failed: ${themesErr.message}`);
     const now = Date.now();
     const ranked = ((themes ?? []) as ThemeRow[])
       .map((t) => ({
@@ -186,7 +235,7 @@ export const getFocusNext = createServerFn({ method: "GET" })
         }
       : null;
 
-    const { data: row } = await supabase
+    const { data: row, error: upsertErr } = await supabase
       .from("insights")
       .upsert(
         {
@@ -206,19 +255,53 @@ export const getFocusNext = createServerFn({ method: "GET" })
       )
       .select("*")
       .single();
+    /**
+     * supabase-js RESOLVES a refused write. The model call above is already
+     * paid for by the time this runs, so an RLS refusal -- or an insert that
+     * lands but cannot be read back -- loses the derivation and the card goes
+     * blank, with nothing anywhere saying why. `row` being null is still the
+     * only thing that decides the return below; this only makes the loss
+     * visible. It does not retry and it does not recover the spend.
+     */
+    if (upsertErr) console.error(`[focus-next] insight upsert failed: ${upsertErr.message}`);
 
     return row ? toFocusInsight(row as Record<string, unknown>, top.s) : null;
   });
 
 // ---------------------------------------------------------------------------
-// InsightRail — all non-next_best_action open insights, scored DESC, limit 6.
-// getFocusNext owns the single top-ranked action; this rail owns everything else.
+// InsightRail — the open insights of the four rail kinds, scored DESC, limit 6.
+// getFocusNext owns the single top-ranked action; the push lane owns the three
+// PushKinds; this rail owns the four foresight kinds named in RAIL_KINDS.
 // Returns an empty array (never null) so the caller can hide the rail cleanly.
 // ---------------------------------------------------------------------------
 
+/**
+ * The kinds this rail renders, and the one place the list lives.
+ *
+ * WAS `.neq("kind", "next_best_action")`: one excluded literal against a column
+ * that holds EIGHT values live -- next_best_action 32, prediction 28, risk 21,
+ * ground_shift 9, bet_contradiction 8, cost_of_inaction 7, assumption_miss 7,
+ * hidden_connection 7. So the rail also selected the 24 `ground_shift`,
+ * `bet_contradiction` and `assumption_miss` rows, which are push-insights.ts's
+ * three PushKinds and belong to PushedInsights.tsx, and then `toInsightRailItem`
+ * cast every one of them to a union that does not contain them.
+ *
+ * Nobody saw it because nothing renders this function today: the InsightRail
+ * component was dropped from Today in OBS-04 and no caller survives anywhere in
+ * src/. It would have shown a duplicate of the push lane the moment somebody
+ * mounted it, and the cast would have gone on lying about the kind.
+ *
+ * Written as an INCLUSION list and the type below is derived from it, so the
+ * declared kinds and the queried kinds cannot drift, and a ninth insight kind
+ * stays off the rail until somebody adds it here on purpose. Whether the three
+ * PushKinds should ever appear here is a product call for whoever re-mounts the
+ * rail; today they are the push lane's and this leaves them there.
+ */
+const RAIL_KINDS = ["prediction", "risk", "cost_of_inaction", "hidden_connection"] as const;
+
 export type InsightRailItem = {
   id: string;
-  kind: "prediction" | "risk" | "cost_of_inaction" | "hidden_connection";
+  kind: (typeof RAIL_KINDS)[number];
   headline: string;
   detail: string;
   evidence: Record<string, string | number | boolean | null>;
@@ -244,6 +327,10 @@ function toInsightRailItem(
   const ra = (row.recommended_action ?? null) as { agent_slug?: string; goal?: string } | null;
   return {
     id: String(row.id),
+    // The cast holds because the only caller filters `kind` to RAIL_KINDS.
+    // `insights.kind` is NOT NULL, so the fallback is belt-and-braces and has
+    // never fired; reuse this helper against an unfiltered read and both of
+    // those stop being true.
     kind: (row.kind as InsightRailItem["kind"]) ?? "prediction",
     headline: String(row.headline ?? ""),
     detail: String(row.detail ?? ""),
@@ -274,7 +361,7 @@ export const getInsightRail = createServerFn({ method: "GET" })
       )
       .eq("workspace_id", workspaceId)
       .eq("status", "open")
-      .neq("kind", "next_best_action")
+      .in("kind", [...RAIL_KINDS])
       .order("score", { ascending: false, nullsFirst: false })
       .limit(6);
 

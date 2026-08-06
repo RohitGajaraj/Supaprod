@@ -10,6 +10,18 @@
 // Until the founder registers a provider's OAuth client (clientIdEnv below),
 // the UI renders an explanatory "Admin setup required" state from setupHint
 // plus the missingEnv list returned by listConnections.
+//
+// COPY IS A PROMISE (2026-08-06 audit). `description` is not an internal note:
+// AccountConnectionsSection renders it verbatim as the connector page's
+// subtitle and as the catalogue cell's hover hint, so a visitor reads it as a
+// shipped feature. There is NO "not yet available" flag in this registry — the
+// four UI states (connected / env-active / connect / soon) are all derived from
+// whether the OAuth client env vars are set, never from whether an adapter
+// exists — and `userFacing: false` is not it either: that hides an entry
+// completely and means "platform infrastructure, env-resolved". So a provider
+// whose connect flow works while its capability is unbuilt has to say that in
+// its own `description`, and three of them do below (figma, jira,
+// google_tasks). If a real state flag ever lands, move them onto it.
 
 export type ProviderId =
   | "github"
@@ -25,9 +37,12 @@ export type ProviderId =
   | "jira"
   | "firecrawl"
   | "intercom"
-  // SF-CONNECTORS (Signal Fabric Phase 2) — the inside-out customer-voice fleet. All
-  // inflow-only pull connectors; each ships on its env-secret token path now and upgrades
-  // to per-user OAuth the moment the gateway client is registered (same as intercom).
+  // SF-CONNECTORS (Signal Fabric Phase 2) — the inside-out customer-voice fleet. Pull
+  // connectors: every one reads customer voice in, and Slack alone also writes back (the
+  // stakeholder digest, JNY-05). Each works today on its env-secret token path. All of
+  // them except Canny have since been converted to per-user oauth_native (same as
+  // intercom); Canny has no third-party OAuth to convert to and still carries the
+  // gateway placeholder — see the note on its entry.
   | "stripe"
   | "slack"
   | "zendesk"
@@ -177,10 +192,13 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
       "Register an Intercom OAuth app: Client ID/Secret go in INTERCOM_CLIENT_ID/INTERCOM_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
   // ── SF-CONNECTORS (Signal Fabric Phase 2): inside-out customer-voice fleet ──
-  // Each is inflow-only (read customer voice in; never writes back), so the catalog
-  // derives minTier 'pro'. The env-secret token path ships today; the oauth_gateway
-  // method is the future per-user upgrade and stays "Admin setup required" until the
-  // founder registers each client. Mirrors the intercom spec shape exactly.
+  // Every one reads customer voice in, so the catalog derives minTier 'pro' — except
+  // Slack, which also writes the stakeholder digest back and therefore derives 'team'
+  // (see the JNY-05 note on its entry). The env-secret token path ships today, and each
+  // of these providers has a real, wired ingest in PULL_INGESTORS. All of them except
+  // Canny now carry a per-user oauth_native method (Supaprod's own registered app);
+  // Canny alone still carries oauth_gateway and stays "Admin setup required" until that
+  // client is registered. Mirrors the intercom spec shape.
   stripe: {
     id: "stripe",
     label: "Stripe",
@@ -313,8 +331,14 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   },
   // No standard third-party OAuth exists for Canny (it authenticates with a single
   // static per-workspace secret API key; Canny's own docs document no
-  // /oauth/authorize or /oauth/token endpoint for third-party apps); stays
-  // admin-token-only until Canny ships one.
+  // /oauth/authorize or /oauth/token endpoint for third-party apps), so unlike every
+  // other SF-CONNECTOR it was never converted to oauth_native. The working path today
+  // is the CANNY_API_KEY env fallback, and the ingest behind it is real. The
+  // oauth_gateway method below is a placeholder, not a second working path: with
+  // CANNY_APP_USER_CONNECTOR_CLIENT_ID unset the UI holds this entry at "Admin setup
+  // required", which is the state it is in. setupHint is deliberately the API-key
+  // instruction rather than an OAuth-app one, because the API key is what actually
+  // unblocks it.
   canny: {
     id: "canny",
     label: "Canny",
@@ -353,6 +377,19 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     setupHint:
       "Register a Productboard OAuth app: Client ID/Secret go in PRODUCTBOARD_CLIENT_ID/PRODUCTBOARD_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
+  // ── The three gateway-era providers: linear, notion, google_docs ──
+  // 2026-08-06 audit. Their descriptions below are TRUE of the product — the two-way
+  // doc/issue sync behind them is real code (lib/sync.functions.ts pull/pushMapping,
+  // lib/linear.functions.ts, lib/notion.functions.ts, lib/gdocs.functions.ts, surfaced
+  // at /sync and in Knowledge docs) — but that code authenticates with the SHARED
+  // admin env keys (LOVABLE_API_KEY + LINEAR_API_KEY / NOTION_API_KEY /
+  // GOOGLE_DOCS_API_KEY) through the Lovable connector gateway. It never reads the
+  // per-user vault token that the oauth_native flows below mint, and their adapters are
+  // still stubAdapter, so "Test it" answers "adapter not implemented". Net effect: the
+  // feature works when the admin has set the env key, and an individual user connecting
+  // their own account changes nothing. Closing that gap is a code change in those
+  // *.functions.ts files (route them through resolveProviderAuth), not a copy change
+  // here, so the copy is left alone and the gap is recorded instead of hidden.
   linear: {
     id: "linear",
     label: "Linear",
@@ -447,6 +484,19 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // this registry entry still carries the real OAuth metadata (client env,
   // endpoints, scopes, refresh support) so oauth-refresh.server.ts's
   // proactive refresh works identically for both connection systems.
+  //
+  // 2026-08-06 audit — UNRESOLVED, and it applies to microsoft_outlook too. The mail
+  // half of SW-7 finished the conversion: gmail/microsoft_mail ingest resolves the
+  // native token via resolveSuiteAuth (providers/suite-resolve.server.ts). The CALENDAR
+  // half did not. src/lib/calendar.functions.ts still reaches the provider with
+  // callAsAppUser({ connectionId: conn.connection_id }), while the native callbacks now
+  // write user_calendar_connections.connection_id = the VAULT SECRET's own id (see the
+  // header of routes/api/public/connect/google_calendar/callback.ts, which states the
+  // column "no longer carries independent meaning"). A vault secret id is not a Lovable
+  // gateway connection id, so what the "Two-way calendar sync" copy above promises is
+  // not verified to work through the connection a user actually makes. Not fixed here:
+  // the fix is in calendar.functions.ts (switch to resolveSuiteAuth and call Google /
+  // Graph directly, as the mail ingests do), which is outside this file.
   google_calendar: {
     id: "google_calendar",
     label: "Google Calendar",
@@ -500,10 +550,21 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // stays a stub until that product decision is made. Connecting succeeds
   // with no error but has no visible effect yet, same as Linear/Notion/Figma/
   // Jira.
+  //
+  // 2026-08-06 audit: that note was true and the `description` contradicted it —
+  // "Sync action items with Google Tasks." is rendered as user-facing page copy, so it
+  // read as shipped. Re-verified: no Google Tasks API call exists anywhere in src/ (the
+  // only "tasklist" in the tree is resourceTypes below). The description now matches
+  // this note. PARTIAL FIX, deliberately: capabilities.outflow stays true, so the
+  // catalog still labels this "Pushes out" and still derives minTier 'team' (Business)
+  // — a Business-tier gate in front of a connector that does nothing. Flipping it to
+  // false would make the label honest and drop the gate to 'pro', but that is a pricing
+  // call and a catalog behaviour change, not copy, so it is left for the founder.
   google_tasks: {
     id: "google_tasks",
     label: "Google Tasks",
-    description: "Sync action items with Google Tasks.",
+    description:
+      "Syncing action items with Google Tasks is not built yet — connecting authorizes the account and nothing more.",
     authMethods: [
       {
         kind: "oauth_native",
@@ -567,10 +628,24 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     setupHint:
       "Register an app in the Microsoft Entra admin center (shared with Outlook Calendar): Client ID/Secret go in MICROSOFT_CLIENT_ID/MICROSOFT_CLIENT_SECRET; add the Supaprod redirect URL under that app's Authentication settings.",
   },
+  // 2026-08-06 audit, launch week: this entry's copy used to read "Reference design
+  // files from specs and briefs." — which is the founder's own working method (design
+  // lives outside the product, as prototypes and mockups) and therefore reads on
+  // Product Hunt as a shipped feature. It is not one. Verified: CONNECTOR_ADAPTERS maps
+  // figma to stubAdapter (providers/index.server.ts), so "Test it" answers "adapter not
+  // implemented"; there is no figma entry in PULL_INGESTORS, so kickFirstIngest returns
+  // 0; and no field on a spec can hold a design reference (the only structured slot in
+  // the spec shape is contract.evidence_links, and no UI writes a design link into it).
+  // The one real Figma surface in the product is the TipTap FigmaEmbed node, reachable
+  // only from Knowledge docs (components/knowledge/DocsPanel.tsx) — never from a spec or
+  // a brief, and it needs no connection at all. The entry STAYS (ratchet: replace, never
+  // remove) and the OAuth flow stays real; only the promise is withdrawn until the
+  // capability lands, at which point this description goes back to the line above.
   figma: {
     id: "figma",
     label: "Figma",
-    description: "Reference design files from specs and briefs.",
+    description:
+      "Referencing design files from specs and briefs is not built yet — connecting authorizes the account and nothing more.",
     authMethods: [
       {
         kind: "oauth_native",
@@ -578,6 +653,11 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         clientSecretEnv: "FIGMA_CLIENT_SECRET",
         authorizeUrl: "https://www.figma.com/oauth",
         tokenUrl: "https://api.figma.com/v1/oauth/token",
+        // NOT NARROWED (2026-08-06 audit): nothing reads any of these yet, so the
+        // consent screen asks a user to approve file content AND comment-write for a
+        // capability that does not exist. Left as-is because narrowing changes what the
+        // provider is asked for and forces re-consent for anyone already connected —
+        // a founder call, not a copy fix. Narrow to what the feature needs when it lands.
         scopes: [
           "file_content:read",
           "file_metadata:read",
@@ -597,10 +677,19 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     setupHint:
       "Register a Figma OAuth app: Client ID/Secret go in FIGMA_CLIENT_ID/FIGMA_CLIENT_SECRET; add the Supaprod redirect URL under that app's OAuth settings.",
   },
+  // 2026-08-06 audit: same defect as figma. This read "Push planned work to Jira
+  // projects." and nothing pushes. Verified against the whole of src/: the only Jira
+  // code outside this entry is the OAuth callback (routes/api/public/connect/jira/
+  // callback.ts) — no api.atlassian.com call site, no adapter (stubAdapter), no
+  // PULL_INGESTORS entry. Note capabilities below are already all-false, so the catalog
+  // labels this "Reference" rather than "Pushes out"; the description was the only place
+  // still claiming the write. Entry and OAuth flow stay; the claim comes back with the
+  // code.
   jira: {
     id: "jira",
     label: "Jira",
-    description: "Push planned work to Jira projects.",
+    description:
+      "Pushing planned work to Jira is not built yet — connecting authorizes the account and nothing more.",
     authMethods: [
       {
         kind: "oauth_native",

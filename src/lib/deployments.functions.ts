@@ -52,8 +52,15 @@ function parseRepo(repo: string | null | undefined): RepoRef | null {
  * writer of `deployments` rows is ci-poll-tick's hosted deploy, which those
  * repos never reach, so /ship read "Nothing is in production yet" forever while
  * the customer's own pipeline deployed every merge. ci-poll-tick now calls this
- * for exactly those changesets; the server function below stays the in-app door
- * onto the same path, so the two cannot drift.
+ * for exactly those changesets, and `captureDeployments` below is the server
+ * half of the in-app door onto the same path, so the two cannot drift.
+ *
+ * "SERVER HALF" IS EXACT AND IT IS NOT A HEDGE. As of 2026-08-06 no component
+ * calls `captureDeployments`; the control that would is being mounted on Ship
+ * separately. This file can only promise that the path is correct and safe to
+ * call, not that a person can reach it. Whoever mounts the control closes that,
+ * and until then the cron's 60-minute window is still the whole story for a
+ * customer's own pipeline.
  *
  * `sha` SCOPES THE READ AND MUST BE A COMMIT THIS CHANGESET ACTUALLY PRODUCED.
  * GitHub's deployments list is repo-wide and reverse-chronological: asked with
@@ -63,9 +70,17 @@ function parseRepo(repo: string | null | undefined): RepoRef | null {
  * changeset's newest successful preview and `promoteChangesetToProductionCore`
  * then deploys that row's `commit_sha`, so one mis-attributed row is a button
  * that ships a commit its owner never wrote. A caller passes a sha it can
- * prove, or captures nothing. The default stays the changeset's `base_sha`
- * (the commit it was staged FROM) purely to leave the existing door's behaviour
- * untouched.
+ * prove, or captures nothing.
+ *
+ * THE `base_sha` FALLBACK IS NOW UNREACHED, AND IT IS KEPT ONLY AS A FLOOR.
+ * It was described here as leaving "the existing door's behaviour untouched" —
+ * which it did, and that behaviour was wrong: `base_sha` is the commit the
+ * branch was staged FROM, so it names the release BEFORE this one. Both callers
+ * now pass a provider-proven sha (the cron reads the merged PR's
+ * merge_commit_sha; `captureDeployments` below reads the same and refuses when
+ * it cannot). It is not turned into a throw here because this core is shared
+ * with a cron owned elsewhere and the fallback is dead on both live paths; a
+ * NEW caller must still pass a sha it can prove rather than rely on it.
  */
 export async function captureDeploymentsCore(
   db: SupabaseClient,
@@ -150,16 +165,152 @@ export async function captureDeploymentsCore(
   return { captured: (upRows as unknown[]).length, deployments: rows };
 }
 
-/** The in-app door. Same path as the cron's, so the two cannot drift. */
+/**
+ * The commit a merged changeset actually LANDED as, read from the provider
+ * rather than guessed. Null when it cannot be proven.
+ *
+ * THIS EXISTS BECAUSE THE DOOR BELOW USED TO GUESS, and the guess was wrong in
+ * the one way that matters. `captureDeploymentsCore` falls back to the
+ * changeset's `base_sha` when no sha is passed, and the server function passed
+ * none — but `base_sha` is the commit the branch was staged FROM. That is a
+ * commit on the default branch belonging to whatever shipped BEFORE this change.
+ * On any repo whose pipeline deploys each push to the default branch there IS a
+ * deployment for it, so the capture would have succeeded and filed the previous
+ * release's environment, status and URL under THIS changeset_id — after which
+ * Ship shows this change live in production at an address it never produced,
+ * and listChangelog hands that address to the release row. (The promote path
+ * cannot be reached from such a row: it takes only `provider = 'deno'` previews.
+ * Every read that merely DISPLAYS a deploy can.) The cron never had this bug —
+ * ci-poll-tick reads the merged PR's merge_commit_sha and skips the changeset
+ * when there is none. The door now reads the same thing, so "same path as the
+ * cron's" is true of the sha as well as of the write.
+ *
+ * A connection failure is NOT swallowed here: `resolveGitHub` throws its own
+ * plain-words "not connected" error and the caller lets it travel, so a missing
+ * connection is never reported as "your pipeline published nothing". Only the
+ * PR read itself is caught, and a caught read returns null, which the caller
+ * turns into a refusal. No capture beats a wrong one.
+ */
+async function landedShaForChangeset(
+  db: SupabaseClient,
+  userId: string,
+  cs: {
+    workspace_id: string | null;
+    product_id: string | null;
+    repo: string | null;
+    pr_number: number | null;
+  },
+): Promise<string | null> {
+  if (!cs.repo || !cs.pr_number) return null;
+  const gh = await resolveGitHub({
+    userId,
+    workspaceId: cs.workspace_id,
+    productId: cs.product_id,
+    userClient: db,
+  });
+  try {
+    const res = await fetch(`https://api.github.com/repos/${cs.repo}/pulls/${cs.pr_number}`, {
+      headers: {
+        Authorization: `Bearer ${gh.token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    });
+    if (!res.ok) return null;
+    const pr = (await res.json()) as { merged?: boolean; merge_commit_sha?: string | null };
+    return pr.merged ? (pr.merge_commit_sha ?? null) || null : null;
+  } catch (e) {
+    console.error("landedShaForChangeset PR read failed (non-fatal):", e);
+    return null;
+  }
+}
+
+/**
+ * The in-app door onto the capture path the cron runs — ask this repo's own
+ * provider what it deployed, now, on demand.
+ *
+ * IT IS THE ONLY WAY TO ASK AFTER THE CRON HAS STOPPED ASKING.
+ * ci-poll-tick gives up at DEPLOY_CAPTURE_WINDOW_MS, 60 minutes from the merge,
+ * and that bound is a GitHub rate-limit decision rather than a belief that an
+ * hour is long enough. A pipeline slower than that — a queued Actions job, a
+ * manual approval gate, a nightly release — publishes its deployment into a
+ * product that has stopped listening, and with no door here Ship reads "Nothing
+ * has merged yet, so there is nothing to promote" for the life of the account
+ * while every merge ships somewhere else.
+ *
+ * Same path as the cron's, so the two cannot drift: same core, same
+ * provider-proven sha, same upsert. It differs from the cron only in refusing
+ * out loud. The cron `continue`s past a changeset it cannot prove a sha for,
+ * because it is sweeping many; a person who pressed a button is owed the reason.
+ *
+ * Returns the core's `{ captured, deployments }` plus the `sha` it asked about
+ * and a `message` fit to show. `captured: 0` is a real answer, not an error, and
+ * its message says so without claiming more than the read can support.
+ */
 export const captureDeployments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ changesetId: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) =>
-    captureDeploymentsCore(
-      context.supabase as unknown as SupabaseClient,
-      context.userId,
-      data.changesetId,
-    ),
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{
+      captured: number;
+      deployments: DeploymentRow[];
+      sha: string;
+      message: string;
+    }> => {
+      const db = context.supabase as unknown as SupabaseClient;
+      const userId = context.userId;
+
+      const { data: cs, error } = await db
+        .from("studio_changesets")
+        .select("id,workspace_id,product_id,repo,pr_number,status")
+        .eq("id", data.changesetId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!cs) {
+        throw new Error(
+          "That change no longer exists, or it belongs to a workspace you are not a member of.",
+        );
+      }
+      if ((cs.status as string) !== "merged") {
+        throw new Error(
+          `Deploys are recorded against a change that has landed, and this one is "${cs.status}". Merge the pull request first.`,
+        );
+      }
+      if (!parseRepo(cs.repo as string | null)) {
+        throw new Error(
+          `This change has no usable repository on it${cs.repo ? ` ("${cs.repo}" is not owner/name)` : ""}, so there is no provider to ask.`,
+        );
+      }
+
+      const sha = await landedShaForChangeset(db, userId, {
+        workspace_id: (cs.workspace_id as string | null) ?? null,
+        product_id: (cs.product_id as string | null) ?? null,
+        repo: (cs.repo as string | null) ?? null,
+        pr_number: (cs.pr_number as number | null) ?? null,
+      });
+      if (!sha) {
+        throw new Error(
+          "Supaprod could not confirm which commit this change landed as, so it will not go looking for deploys: a deploy read scoped to the wrong commit files another release's address under this one. This needs the merged pull request to be readable on the connected account.",
+        );
+      }
+
+      const result = await captureDeploymentsCore(db, userId, cs.id as string, {
+        sha,
+        triggeredBy: "manual-check",
+      });
+      const short = sha.slice(0, 7);
+      return {
+        ...result,
+        sha,
+        message:
+          result.captured > 0
+            ? `Recorded ${result.captured} deploy${result.captured === 1 ? "" : "s"} your pipeline published for the commit this change landed as (${short}).`
+            : `Nothing new was recorded. Either your pipeline has not published a deploy for the commit this change landed as (${short}), or the read did not reach your provider.`,
+      };
+    },
   );
 
 export const listDeployments = createServerFn({ method: "GET" })
@@ -197,13 +348,201 @@ export const listDeployments = createServerFn({ method: "GET" })
     return { deployments: rows ?? [] };
   });
 
+/** The spec columns the ship close-out reads. */
+type SpecForCloseOut = {
+  id: string;
+  status: string | null;
+  shipped_at: string | null;
+  title: string | null;
+  workspace_id: string | null;
+  contract: { intent?: string } | null;
+};
+
+/** How the caller should describe a spec in a sentence a person reads. */
+function specLabel(prd: SpecForCloseOut): string {
+  const t = (prd.title ?? "").trim();
+  return t ? `"${t.slice(0, 120)}"` : `the spec ${prd.id.slice(0, 8)}`;
+}
+
+/**
+ * EVERY spec this release closes the loop on, in the order they were linked.
+ *
+ * `cs.prd_id` ALONE WAS WRONG IN BOTH DIRECTIONS, which is why this is a set and
+ * not a column read.
+ *
+ * Too few: the column is a single nullable uuid stamped once at changeset
+ * CREATION from the FIRST prd->mission lineage edge (resolvePrdForMission,
+ * src/lib/ai/tools/registry.server.ts). A mission dispatched from three specs
+ * gets one of them; the other two never reach Learn, because listPendingOutcomes
+ * admits a spec only on `prds.shipped_at IS NOT NULL` or a due
+ * `launch_plans.check_by`, and both are written only by the close-out. Live on
+ * 2026-08-06 seven missions already carry two distinct prd edges each, so this
+ * is a shape the data has, not a hypothetical.
+ *
+ * None at all: the column is null on every changeset created before that
+ * resolver existed, on every prompt-only mission, and on every revert. Live, all
+ * NINE real merged changesets in the dogfood workspace have prd_id null — and
+ * exactly one of them has a resolvable prd->mission edge, whose spec is still
+ * sitting at 'draft' under a release that is serving in production.
+ *
+ * The read is the same edge the changeset was created from, filtered to edges
+ * that are still valid — artifact_lineage is bi-temporal and invalidates rather
+ * than deletes, so an edge someone withdrew must not resurrect a spec here.
+ *
+ * FAILS LOUD, unlike resolvePrdForMission which fails soft and returns null. A
+ * soft failure is right when the cost is a null column on a new changeset; here
+ * the cost is a release that silently settles nothing, so the caller is told the
+ * read failed and says so on the receipt.
+ */
+async function specsShippedByChangeset(
+  db: SupabaseClient,
+  cs: { prd_id: string | null; mission_id: string | null },
+): Promise<{ prdIds: string[]; lineageRead: "ok" | "skipped" | "failed" }> {
+  const ordered: string[] = [];
+  const seen = new Set<string>();
+  if (cs.prd_id) {
+    ordered.push(cs.prd_id);
+    seen.add(cs.prd_id);
+  }
+  if (!cs.mission_id) return { prdIds: ordered, lineageRead: "skipped" };
+
+  const { data, error } = await db
+    .from("artifact_lineage")
+    .select("parent_id,created_at")
+    .eq("parent_kind", "prd")
+    .eq("child_kind", "mission")
+    .eq("child_id", cs.mission_id)
+    .is("valid_to", null)
+    .order("created_at", { ascending: true })
+    .limit(20);
+  // A DISCARDED READ ERROR MUST NEVER BE READ AS ABSENCE. An empty `data` on a
+  // failed read looks exactly like a mission with no spec, and answering "no
+  // spec" from a query that never ran is how a release gets told it is
+  // unlinked when it is not.
+  if (error) return { prdIds: ordered, lineageRead: "failed" };
+  for (const r of (data ?? []) as Array<{ parent_id: string | null }>) {
+    const id = r.parent_id;
+    if (id && !seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  }
+  return { prdIds: ordered, lineageRead: "ok" };
+}
+
+/**
+ * Mark ONE spec shipped and arm its 30-day outcome window. Returns the warnings
+ * this spec produced — each naming the spec — so a release carrying three specs
+ * says which one it missed instead of pushing an unattributed line onto the
+ * receipt.
+ *
+ * Every write is checked for the refusal supabase-js resolves as success, and
+ * every read that could be mistaken for absence is checked for its error, which
+ * is the whole reason this is a function rather than a loop body: the same four
+ * traps had to be got right N times instead of once.
+ */
+async function closeOutSpecOnPromote(
+  db: SupabaseClient,
+  userId: string,
+  prd: SpecForCloseOut,
+  nowIso: string,
+): Promise<string[]> {
+  const warnings: string[] = [];
+  const name = specLabel(prd);
+
+  if ((prd.status as string | null) !== "shipped") {
+    // THE SHIP STAMP IS THE HINGE BETWEEN SHIP AND LEARN, and it is the write
+    // most able to fail quietly: `prds ws update own` is USING/WITH CHECK
+    // `is_workspace_member(...) AND user_id = auth.uid()`, so a member promoting
+    // someone ELSE's spec is refused — and refused, it resolves with error null
+    // and changes nothing. Left unchecked the spec stays 'draft' after its code
+    // is live, Learn never sees an outcome to measure, and the precedent pool
+    // the brain compounds from stays empty with nothing anywhere saying so.
+    const { data: stamped, error: stampErr } = await db
+      .from("prds")
+      .update({ status: "shipped", shipped_at: nowIso })
+      .eq("id", prd.id)
+      .select("id");
+    if (stampErr || !stamped || (stamped as unknown[]).length === 0) {
+      const reason = stampErr?.message ?? "the update was refused and changed no row";
+      console.error("promote spec ship-stamp failed (non-fatal):", reason);
+      warnings.push(
+        `The deploy is live, but ${name} is still not marked shipped (${reason}). Learn will not open an outcome window for it until that is fixed.`,
+      );
+    } else {
+      // Only after the stamp actually landed. A stage event recorded over a
+      // refused update would file a transition that never happened, which is a
+      // worse record than none.
+      await recordStageEvent(db, {
+        entityType: "spec",
+        entityId: prd.id,
+        from: prd.status ?? null,
+        to: "shipped",
+        actor: "human",
+        workspaceId: prd.workspace_id ?? null,
+        userId,
+      });
+    }
+  }
+
+  // Does an outcome window already exist? THE ERROR IS CHECKED because the count
+  // is about to be used as evidence of absence: a failed count comes back as
+  // null, `(null ?? 0) === 0` is true, and the insert that follows would collide
+  // with `launch_plans_prd_id_key` and be reported as "no outcome window was
+  // armed" for a spec that has had one all along.
+  const { count: hasPlan, error: planReadErr } = await db
+    .from("launch_plans")
+    .select("id", { count: "exact", head: true })
+    .eq("prd_id", prd.id);
+  if (planReadErr) {
+    console.error("promote outcome-window check failed (non-fatal):", planReadErr.message);
+    warnings.push(
+      `The deploy is live, but Supaprod could not check whether ${name} has an outcome window (${planReadErr.message}), so it did not arm one. Open the Launch tab to confirm a check-back date exists.`,
+    );
+    return warnings;
+  }
+
+  if ((hasPlan ?? 0) === 0) {
+    const intent = prd.contract?.intent;
+    const positioning =
+      intent && intent.trim()
+        ? intent.trim()
+        : `"${(prd.title ?? "This spec").slice(0, 200)}" shipped to production on ${nowIso.slice(0, 10)}.`;
+    // Same unchecked-write shape as the stamp above: this row IS the armed
+    // 30-day outcome window, so a refusal here means the release is live and
+    // nothing will ever ask whether it worked.
+    const { data: planRows, error: planErr } = await db
+      .from("launch_plans")
+      .insert({
+        workspace_id: prd.workspace_id,
+        prd_id: prd.id,
+        positioning,
+        checklist: [],
+        check_by: defaultCheckByDate(nowIso),
+        generated_by: userId,
+      })
+      .select("id");
+    if (planErr || !planRows || (planRows as unknown[]).length === 0) {
+      const reason = planErr?.message ?? "the insert was refused and wrote no row";
+      console.error("promote outcome-window arm failed (non-fatal):", reason);
+      warnings.push(
+        `The deploy is live, but no outcome window was armed for ${name} (${reason}). Nothing will come back in 30 days to ask whether this release worked; open the Launch tab to set one.`,
+      );
+    }
+  }
+  return warnings;
+}
+
 // SEAM-2 (mission 3.7) - the single promote-to-production gate. A human click
 // takes the changeset's previewed content live: same commit, production alias.
 // The click itself is RECORDED as a decided approval (tool 'deploy.promote'),
 // so the promote shows up on the Trust Ledger like every other governed call.
-// Ship closes the loop on the spec: status 'shipped' + its stage event, and
-// the 30-day outcome window arms (a minimal, truthful launch_plans row when
-// none exists; the full plan stays regenerable from the Launch tab).
+// Ship closes the loop on EVERY spec the release carries: status 'shipped' +
+// its stage event, and the 30-day outcome window arms (a minimal, truthful
+// launch_plans row when none exists; the full plan stays regenerable from the
+// Launch tab). A release with no spec at all is not silent about it - see the
+// close-out block, which says on the receipt that nothing will come back to
+// ask whether this one worked.
 /**
  * Promote a merged changeset to production.
  *
@@ -501,88 +840,135 @@ export async function promoteChangesetToProductionCore(
       );
     }
 
-    // Close the loop on the spec: shipped + stage event + outcome window.
-    if (cs.prd_id) {
-      try {
-        const { data: prd } = await db
-          .from("prds")
-          .select("id,status,shipped_at,title,workspace_id,contract")
-          .eq("id", cs.prd_id as string)
-          .maybeSingle();
-        if (prd && (prd.status as string) !== "shipped") {
-          // THE SHIP STAMP IS THE HINGE BETWEEN SHIP AND LEARN, and it was the
-          // write most able to fail quietly: the read above proves only that
-          // the caller can SELECT this spec, while the update needs a separate
-          // policy to pass. Refused, it resolved with error null and changed
-          // nothing, so the spec stayed 'draft' after its code was live,
-          // /learn never saw an outcome to measure, and the precedent pool the
-          // brain compounds from stayed empty with nothing anywhere saying so.
-          const { data: stamped, error: stampErr } = await db
-            .from("prds")
-            .update({ status: "shipped", shipped_at: nowIso })
-            .eq("id", prd.id as string)
-            .select("id");
-          if (stampErr || !stamped || (stamped as unknown[]).length === 0) {
-            const reason = stampErr?.message ?? "the update was refused and changed no row";
-            console.error("promote spec ship-stamp failed (non-fatal):", reason);
-            warnings.push(
-              `The deploy is live, but the spec behind it is still not marked shipped (${reason}). Learn will not open an outcome window for this release until that is fixed.`,
-            );
-          } else {
-            // Only after the stamp actually landed. A stage event recorded over
-            // a refused update would file a transition that never happened,
-            // which is a worse record than none.
-            await recordStageEvent(db, {
-              entityType: "spec",
-              entityId: prd.id as string,
-              from: (prd.status as string | null) ?? null,
-              to: "shipped",
-              actor: "human",
-              workspaceId: (prd.workspace_id as string | null) ?? null,
-              userId,
-            });
-          }
-        }
-        const { count: hasPlan } = await db
-          .from("launch_plans")
-          .select("id", { count: "exact", head: true })
-          .eq("prd_id", cs.prd_id as string);
-        if ((hasPlan ?? 0) === 0) {
-          const intent = (prd as { contract?: { intent?: string } | null } | null)?.contract
-            ?.intent;
-          const positioning =
-            intent && intent.trim()
-              ? intent.trim()
-              : `"${((prd?.title as string | null) ?? "This spec").slice(0, 200)}" shipped to production on ${nowIso.slice(0, 10)}.`;
-          // Same unchecked-write shape as the two above: this row IS the armed
-          // 30-day outcome window, so a refusal here means the release is live
-          // and nothing will ever ask whether it worked.
-          const { data: planRows, error: planErr } = await db
-            .from("launch_plans")
-            .insert({
-              workspace_id: prd?.workspace_id ?? cs.workspace_id,
-              prd_id: cs.prd_id,
-              positioning,
-              checklist: [],
-              check_by: defaultCheckByDate(nowIso),
-              generated_by: userId,
-            })
-            .select("id");
-          if (planErr || !planRows || (planRows as unknown[]).length === 0) {
-            const reason = planErr?.message ?? "the insert was refused and wrote no row";
-            console.error("promote outcome-window arm failed (non-fatal):", reason);
-            warnings.push(
-              `The deploy is live, but no outcome window was armed for it (${reason}). Nothing will come back in 30 days to ask whether this release worked; open the Launch tab to set one.`,
-            );
-          }
-        }
-      } catch (e) {
-        const reason = e instanceof Error ? e.message : String(e);
-        console.error("promote spec close-out failed (non-fatal):", reason);
+    // Close the loop on EVERY spec this release carries: shipped + stage event +
+    // outcome window, once per spec.
+    //
+    // THIS USED TO BE `if (cs.prd_id) { ... }` WITH NO ELSE, and the missing else
+    // was the whole failure. A changeset with no spec skipped the stamp, the
+    // stage event and the outcome window, pushed nothing onto `warnings`, and
+    // returned a shape identical to a fully recorded promote — so a person read
+    // "Customers are seeing it now" and thirty days later nothing came back to
+    // ask whether it worked. Live on 2026-08-06 that was not the rare case: all
+    // nine real merged changesets in the dogfood workspace have prd_id null.
+    try {
+      const { prdIds, lineageRead } = await specsShippedByChangeset(db, {
+        prd_id: (cs.prd_id as string | null) ?? null,
+        mission_id: (cs.mission_id as string | null) ?? null,
+      });
+      if (lineageRead === "failed") {
         warnings.push(
-          `The deploy is live, but closing the loop on its spec did not finish (${reason}). Check that the spec is marked shipped and that an outcome window exists.`,
+          "The deploy is live, but Supaprod could not read which specs this release came from, so it may have closed the loop on fewer of them than it should have. Check on Learn that every spec in this release has an outcome window.",
         );
       }
+
+      if (prdIds.length === 0) {
+        // The else that was missing. It states the consequence rather than the
+        // absence, because "no spec is linked" means nothing to someone who has
+        // just shipped and does not know what the link is for.
+        warnings.push(
+          "The deploy is live, but this release is not linked to any spec, so no outcome window was armed and Learn will never ask whether it worked. Link the change to a spec to have it measured.",
+        );
+      } else {
+        // ONE READ FOR ALL OF THEM, and its error is checked: an empty set from
+        // a failed read is indistinguishable from "these specs do not exist",
+        // and the second reading would have this function report a release as
+        // unlinked on the strength of a query that never ran.
+        const { data: prdRows, error: prdErr } = await db
+          .from("prds")
+          .select("id,status,shipped_at,title,workspace_id,contract")
+          .in("id", prdIds);
+        if (prdErr) throw new Error(prdErr.message);
+        const byId = new Map(((prdRows ?? []) as SpecForCloseOut[]).map((p) => [p.id, p] as const));
+
+        const unreadable = prdIds.filter((id) => !byId.has(id));
+        if (unreadable.length) {
+          warnings.push(
+            `The deploy is live, but ${unreadable.length} spec${unreadable.length === 1 ? "" : "s"} this release is linked to could not be read, so ${unreadable.length === 1 ? "it was" : "they were"} not marked shipped and no outcome window was armed for ${unreadable.length === 1 ? "it" : "them"}.`,
+          );
+        }
+
+        const closed: string[] = [];
+        // The spec the changeset gets permanently stamped with, below. It is the
+        // first one this loop actually accepted — NOT `prdIds[0]`, which can be a
+        // spec that was unreadable or belongs to another workspace, and writing
+        // one of those into `studio_changesets.prd_id` would hard-link a release
+        // to a spec this code just declined to touch. That column has no
+        // workspace check of its own, so the check has to be here.
+        let linkableId: string | null = null;
+        for (const id of prdIds) {
+          const prd = byId.get(id);
+          if (!prd) continue;
+          // A SPEC FROM ANOTHER WORKSPACE IS NOT THIS RELEASE'S TO SETTLE. The
+          // lineage read is scoped by RLS to workspaces this caller belongs to,
+          // which is not the same as "this changeset's workspace", and stamping
+          // a neighbouring workspace's spec shipped off the back of this deploy
+          // would put a verdict on someone else's desk for work they did not
+          // release.
+          if (prd.workspace_id && prd.workspace_id !== (cs.workspace_id as string | null)) {
+            warnings.push(
+              `The deploy is live, but ${specLabel(prd)} belongs to a different workspace than this release, so it was left alone rather than marked shipped.`,
+            );
+            continue;
+          }
+          for (const w of await closeOutSpecOnPromote(db, userId, prd, nowIso)) warnings.push(w);
+          closed.push(specLabel(prd));
+          linkableId ??= prd.id;
+        }
+
+        // FAN-IN IS ONLY HALF-HONEST AND THIS SENTENCE IS THE OTHER HALF. A
+        // release genuinely can carry several specs — seven missions already
+        // carry two prd edges each — and this loop now settles each of them.
+        // What the SCHEMA still cannot hold is the set: `studio_changesets.prd_id`
+        // and `changelog_entries.prd_id` are each a single nullable uuid, so the
+        // release document, the changelog row and every lineage walk downstream
+        // still show exactly one spec however many shipped. Naming the count here
+        // is the difference between a person knowing three bets went out and
+        // believing one did. The durable fix is a changeset-to-spec join table,
+        // which is a migration and not this pass.
+        if (closed.length > 1) {
+          warnings.push(
+            `This release carried ${closed.length} specs and all of them were closed out: ${closed.join(", ")}. Supaprod can only record ONE of them against the release itself, so Ship and the release document will name a single spec — the others are settled on Learn but will not appear here.`,
+          );
+        }
+
+        // Make the link durable, rather than re-derived on every future read.
+        // Best-effort and last, so a refusal here cannot cost the close-out that
+        // already succeeded. `studio_changesets ws write` WITH CHECK requires
+        // user_id = auth.uid(), so a member promoting someone else's change is
+        // refused; that is worth one line rather than silence, because the next
+        // reader of this changeset will see prd_id null and conclude the release
+        // was never linked.
+        //
+        // IT DOES NOT REACH AN ALREADY-PUBLISHED CHANGELOG ROW, and saying so
+        // here is the point. trg_studio_changeset_to_changelog is declared
+        // `AFTER INSERT OR UPDATE OF status, release_notes` (checked live on
+        // 2026-08-06), so writing prd_id alone does not re-fire it and an
+        // entry materialized earlier keeps its null prd_id. The release
+        // document therefore still reads "This release is not linked to a
+        // spec" until something rewrites that row — publishChangelogEntry
+        // (src/lib/changelog.functions.ts) now does exactly that and carries
+        // the changeset's current prd_id, so a re-publish repairs it.
+        if (!cs.prd_id && linkableId) {
+          const { data: linked, error: linkErr } = await db
+            .from("studio_changesets")
+            .update({ prd_id: linkableId })
+            .eq("id", cs.id as string)
+            .select("id");
+          if (linkErr || !linked || (linked as unknown[]).length === 0) {
+            const reason = linkErr?.message ?? "the update was refused and changed no row";
+            console.error("promote changeset spec-link failed (non-fatal):", reason);
+            warnings.push(
+              `The deploy is live, but the link from this change back to its spec was not saved (${reason}), so this release will keep reading as unlinked on Ship.`,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : String(e);
+      console.error("promote spec close-out failed (non-fatal):", reason);
+      warnings.push(
+        `The deploy is live, but closing the loop on its spec did not finish (${reason}). Check that the spec is marked shipped and that an outcome window exists.`,
+      );
     }
 
     return { productionUrl: result.url, revisionId: result.revisionId, deploymentId, warnings };

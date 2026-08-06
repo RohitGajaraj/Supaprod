@@ -147,6 +147,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateLaunchKit } from "@/lib/studio.functions";
 import { rollbackRelease } from "@/lib/studio.functions";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
+// The capture door comes in on its own line for the same reason the launch kit
+// does. ship-can-ship.test.ts asserts the statement above character for
+// character, because `listDeployments` and `promoteToProduction` both had to be
+// on this surface before the station could ship anything at all; adding a third
+// name to that line breaks a rule about a different thing entirely.
+import { captureDeployments } from "@/lib/deployments.functions";
 import { usePrompt } from "@/hooks/use-confirm";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -154,7 +160,11 @@ import * as React from "react";
 
 import { useWorkspace } from "@/hooks/use-workspace";
 import { toast } from "@/lib/notify";
-import { listChangelog, type ChangelogEntry } from "@/lib/changelog.functions";
+import {
+  listChangelog,
+  publishChangelogEntry,
+  type ChangelogEntry,
+} from "@/lib/changelog.functions";
 import {
   listAnnouncements,
   createAnnouncement,
@@ -377,6 +387,24 @@ export type ShipDeployment = {
  * some captured rows had landed left every older release "captured" for ever,
  * and the sentence built from that told a customer Supaprod would not build a
  * preview for a repo it now does host.
+ *
+ * "supaprod" IS HISTORICAL EVIDENCE READ IN THE PRESENT TENSE, and that is the
+ * one thing the sentence above claims slightly more of than it can prove. The
+ * set is built from whatever rows are on the page, and it is one-way: a product
+ * admitted on any 'deno' row is never removed, so a repo that WAS Supaprod-
+ * hosted and has since stopped keeps reading "supaprod" until the last of its
+ * Supaprod rows falls off the page. That is the direction to be wrong in, and it
+ * is deliberate rather than overlooked. Nothing here gates a control:
+ * `isReadyToPromote` demands an actual successful 'deno' preview row on THIS
+ * release, and `whereItIs` never reads this field, so a stale "supaprod" cannot
+ * draw a promote or claim an address. Its one reader is `promoteAbsence`, where
+ * it decides only which of two sentences a release lands in -- and the one it
+ * lands in is the CONDITIONAL pair ("for a repo Supaprod hosts ... for a repo it
+ * does not host ..."), which is true either way. So the failure is a release
+ * being told both halves instead of the sharper half; withholding nothing and
+ * asserting nothing false. Being wrong the other way costs the customer
+ * something real: it tells a repo Supaprod DOES host to go and promote
+ * elsewhere.
  *
  * IT IS THE CLIENT'S BEST AVAILABLE ANSWER, NOT THE SERVER'S. The server splits
  * the same refusal on `denoDeployConfigured()` (deployments.functions.ts), which
@@ -985,6 +1013,8 @@ function Ship() {
   const fDeployments = useServerFn(listDeployments);
   const fPromote = useServerFn(promoteToProduction);
   const fRollback = useServerFn(rollbackRelease);
+  const fCapture = useServerFn(captureDeployments);
+  const fRepublish = useServerFn(publishChangelogEntry);
 
   /**
    * THE WORKSPACE ID WAS DROPPED ON THE FLOOR HERE, and the read still
@@ -1249,6 +1279,104 @@ function Ship() {
     },
     onError: (e: Error) =>
       setReceipt({ verb: "It did not reach production", consequence: e.message, failed: true }),
+  });
+
+  /**
+   * ASK THE PROVIDER AGAIN, for a release whose deploy never reached the record.
+   *
+   * THE CASE IT IS THE ONLY ANSWER TO. `ci-poll-tick` stops asking 60 minutes
+   * after the merge (DEPLOY_CAPTURE_WINDOW_MS), a bound set by GitHub's
+   * 5,000/hour installation limit rather than by any belief that an hour is
+   * long enough. A pipeline slower than that -- a queued Actions job, a manual
+   * approval gate, a nightly release -- publishes its deployment into a product
+   * that has stopped listening, and until now nothing in the product could look
+   * again: the server function existed, its own comment called it "the in-app
+   * door", and no surface called it.
+   *
+   * A PRESS, NEVER A POLL. One press is roughly seven GitHub calls, so this is
+   * not fired on mount, not on the 30s interval the list already runs, and not
+   * twice: the mutation is disabled while in flight.
+   *
+   * `captured: 0` IS AN ANSWER AND NOT A FAILURE, so it does not wear failure's
+   * colour and does not invalidate anything -- no row was written, and a refetch
+   * would only spend a request redrawing the same list. The server's own
+   * sentence is shown verbatim because from here "your pipeline has not
+   * published a deploy yet" and "the read did not reach your provider" are
+   * genuinely indistinguishable, and it says so rather than picking one.
+   *
+   * EVERY REFUSAL IS A SENTENCE. Not merged, no usable repo, GitHub not
+   * connected, no provable landed commit, an upsert row-level security refused:
+   * each throws its own plain-words message, and this routes them through the
+   * same Receipt promote and rollback use rather than a toast, because a write
+   * with a consequence renders a receipt on this surface.
+   */
+  const check = useMutation({
+    mutationFn: (v: { changesetId: string; title: string }) =>
+      fCapture({ data: { changesetId: v.changesetId } }),
+    onSuccess: (res, v) => {
+      setReceipt({
+        verb: res.captured > 0 ? "You checked, and the record moved" : "You checked for deploys",
+        consequence: (
+          <>
+            {v.title}. {res.message}
+          </>
+        ),
+      });
+      if (res.captured > 0) {
+        void qc.invalidateQueries({ queryKey: ["ship-deployments", wid] });
+        void qc.invalidateQueries({ queryKey: ["changelog", wid] });
+      }
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "It could not check for deploys", consequence: e.message, failed: true }),
+  });
+
+  /**
+   * BRING A RELEASE'S ENTRY BACK IN LINE WITH THE CHANGE BEHIND IT.
+   *
+   * WHAT DRIFTS, AND WHY NOTHING FIXES IT ON ITS OWN.
+   * `trg_studio_changeset_to_changelog` is declared `AFTER INSERT OR UPDATE OF
+   * status, release_notes` (verified against this database on 2026-08-06), so a
+   * write to any OTHER column of the changeset never re-fires it. The promote is
+   * exactly that write: it stamps `studio_changesets.prd_id` with the spec it
+   * shipped, and the entry's own `prd_id` -- which is what the release document
+   * reads to name the bet, the spec and its outcome contract -- keeps the null it
+   * was created with. The document then says "This release is not linked to a
+   * spec" over a change that is. Title, body, pull request number and pull
+   * request URL drift the same way.
+   *
+   * WHAT IT CANNOT DO, said plainly because the temptation is to expect it. It
+   * cannot make a MISSING release appear here: this surface is spined on the
+   * changelog, so a merge with no entry has no row to press. Live on 2026-08-06,
+   * eight of the nine merges in the dogfood workspace are in exactly that state,
+   * and all eight are missing for one reason -- nobody wrote release notes. Their
+   * repair is Studio's "Write them", which fires the trigger, and the Changes tab
+   * carries both that control and this one. Reaching them from HERE would need a
+   * read this surface does not have: merged changesets with no changelog entry.
+   *
+   * `published: false` IS NOT A FAILURE and is not painted as one; a genuine
+   * refusal throws and is.
+   */
+  const republish = useMutation({
+    mutationFn: (v: { changesetId: string; title: string }) =>
+      fRepublish({ data: { changesetId: v.changesetId } }),
+    onSuccess: (res, v) => {
+      setReceipt({
+        verb: res.published ? "You refreshed the release" : "Nothing was refreshed",
+        consequence: (
+          <>
+            {v.title}. {res.message}
+          </>
+        ),
+      });
+      if (res.published) void qc.invalidateQueries({ queryKey: ["changelog", wid] });
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The release could not be refreshed",
+        consequence: e.message,
+        failed: true,
+      }),
   });
 
   /**
@@ -1754,6 +1882,26 @@ function Ship() {
             const promotable = isReadyToPromote(s);
             const promotingThis =
               promote.isPending && promote.variables?.changesetId === s.changesetId;
+            /**
+             * WHICH ROWS GET "Check for deploys": the ones where the deploy
+             * record is the thing that is missing.
+             *
+             * A live release is finished, and a promotable one already has the
+             * preview it needs and a primary act sitting in this same slot --
+             * putting a second control beside Promote would dilute the one call
+             * on this station that reaches customers. What is left is every
+             * release that merged and has nothing here to open: no deploy row at
+             * all, a preview the customer's own pipeline published with no
+             * production row yet, a failed or in-flight deploy. Those are
+             * exactly the rows the cron may have given up on.
+             *
+             * It is offered on rows that DO carry a deploy row too, and that is
+             * intended: re-checking updates a captured row's status in place
+             * (uq_deployments_capture), so a deploy that has since gone from
+             * pending to success can land here.
+             */
+            const checkable = !promotable && !isLive(s);
+            const checkingThis = check.isPending && check.variables?.changesetId === s.changesetId;
             return (
               <Row
                 key={s.changesetId}
@@ -1779,6 +1927,19 @@ function Ship() {
                       onClick={() => promote.mutate({ changesetId: s.changesetId, title: s.title })}
                     >
                       {promotingThis ? "Promoting it" : "Promote it"}
+                    </button>
+                  ) : checkable ? (
+                    // THE DOOR ONTO THE CAPTURE, at the same weight as the
+                    // promote beside it and never at the same time: a row is
+                    // either waiting on a person or waiting on a deploy record,
+                    // and this answers the second.
+                    <button
+                      type="button"
+                      className={QUIET}
+                      disabled={check.isPending}
+                      onClick={() => check.mutate({ changesetId: s.changesetId, title: s.title })}
+                    >
+                      {checkingThis ? "Checking" : "Check for deploys"}
                     </button>
                   ) : null
                 }
@@ -2006,7 +2167,36 @@ function Ship() {
           decoration. The document's entire worth is that a reader can trace
           every line to a row, and a reader who does not know that reads it as
           generated prose and discounts all of it. */}
-      <Block title="The release document">
+      <Block
+        title="The release document"
+        /* THE REPAIR SITS WHERE THE DRIFT IS READ. Everything below is read
+           from `changelog_entries`, and that row is written by a trigger that
+           only fires on the changeset's status and release notes -- so a
+           promote that stamped the spec afterwards never reaches it, and the
+           document goes on saying "This release is not linked to a spec" over a
+           change that is. This re-reads the changeset and writes the entry
+           again. It is absent while the read is in flight, over a failed read,
+           and over an entry with no changeset behind it (the foreign key is ON
+           DELETE SET NULL, so shipped history outlives a deleted build
+           session), because in each of those there is nothing to refresh from.
+
+           THE GUARD IS IN THE HANDLER because `Block`'s `more` renders a plain
+           button with no `disabled` prop; the label carries the in-flight
+           state, which is the same shape ChangesPanel uses for its own
+           per-section acts. */
+        more={
+          !docReading && !changelog.isError && docEntry?.changeset_id
+            ? republish.isPending
+              ? "Refreshing it"
+              : "Refresh it from the change"
+            : undefined
+        }
+        onMore={() => {
+          const csid = docEntry?.changeset_id;
+          if (republish.isPending || !docEntry || !csid) return;
+          republish.mutate({ changesetId: csid, title: docEntry.title });
+        }}
+      >
         {docReading ? (
           <Loading>Reading what has shipped.</Loading>
         ) : changelog.isError ? (
@@ -2024,6 +2214,14 @@ function Ship() {
               written for this document, and whatever is missing is named rather than left out.
               {notes.length > 1
                 ? " It covers the release marked above; pick another to read that one instead."
+                : null}
+              {/* SAID BECAUSE THE CONTROL IS OTHERWISE UNEXPLAINED. "Refresh it
+                  from the change" is in this Block's header, and a reader who
+                  does not know what it re-reads cannot tell it from a reload.
+                  The named columns are exactly the ones the entry copies from
+                  the changeset. */}
+              {docEntry.changeset_id
+                ? ' If a line here is behind the change itself -- most often the spec, which a promote links after this entry was written -- "Refresh it from the change" re-reads the changeset and brings the title, the notes, the pull request and that link back into the entry.'
                 : null}
             </p>
           </Prose>

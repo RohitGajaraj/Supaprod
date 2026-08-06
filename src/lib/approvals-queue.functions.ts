@@ -673,9 +673,17 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
 
     // Gate snoozes (front-end reimagining Phase 4; founder-authorized
     // 2026-07-19): drop items the operator deferred with H until snoozed_until.
-    // RLS scopes the read to this user. Tolerant by design: the table lands at
-    // the Gate-2 merge, so until then the read errors and `snoozed` stays empty
-    // and every gate shows - the queue never breaks on the un-applied migration.
+    // RLS scopes the read to this user.
+    //
+    // 2026-08-06: the table HAS landed (supabase/migrations/
+    // 20260720000000_mc_approval_snoozes.sql) and carries live rows, so the
+    // "un-applied migration" this comment used to describe is history. The
+    // error is still discarded, deliberately, and here is exactly what that
+    // now costs: if the read fails, `snoozed` is empty and every snoozed gate
+    // reappears. That is the only direction this particular read may fail in -
+    // this queue is the single pull point, so re-showing a deferred gate is a
+    // nuisance while hiding one that needs you is a broken promise. Absence
+    // here is never read as "nothing needs you", only as "defer nothing".
     const snoozeDb = supabase as unknown as SupabaseClient;
     const { data: snoozeRows } = await snoozeDb
       .from("approval_snoozes")
@@ -698,6 +706,88 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       })),
     };
   });
+
+// ---------------------------------------------------------------------------
+// WHAT A STATUS WRITE MEANS FOR A SPEC, STATE BY STATE (2026-08-06).
+//
+// Two verbs in this module write prds.status for kind "spec": decline (via
+// decideApprovalItem -> "draft"), and send back (via sendBackApprovalItem ->
+// "draft", with a note). Neither looked at the spec first. The id is whatever
+// the caller posts - these are POST server functions, not a closed loop over
+// the queue's own items - so a shipped spec's id moved a shipped bet to
+// "draft", and NOTHING in the product writes "shipped" back: every writer of
+// that value is a ship-time path guarded by `shipped_at IS NULL`. The record
+// of a bet that genuinely went out, gone on one keystroke.
+//
+//   draft     Already the revisable state. There is nothing to send back.
+//   review    The gate this queue actually lists (the spec source filters on
+//             status = 'review'). Moving backward is the entire point.
+//   approved  Signed off, not shipped. Backward un-dispatches it and REMOVES
+//             nothing: the "Spec approved" decisions row stays, the stage-event
+//             trail records approved -> draft, and re-approving later is
+//             idempotent on prd_id (discovery.functions.ts savePrd). Allowed.
+//   shipped   Refused. Live today: 41 specs read 'approved' and SEVEN of them
+//             carry a non-null shipped_at, so status alone is not a safe test -
+//             `shipped_at` is the fact and it is what this checks.
+//
+// The forward write is checked for the one case that is a backward write in
+// disguise: approving a spec that has already shipped. savePrd sees
+// `prior.status !== 'approved'`, treats it as a FIRST approval, files a
+// Decisions entry and stamps a stage event leaving 'shipped'
+// (discovery.functions.ts:2055,2112) - so "Approve" on a shipped spec is how
+// those seven rows got that way. This closes that route through the queue; the
+// button that opens it lives on the spec page and is NOT fixed here (see the
+// note on sendBackApprovalItem).
+// ---------------------------------------------------------------------------
+
+type SpecState = { status: string | null; shippedAt: string | null };
+
+/** The spec's live state, or a refusal. Never "absent, therefore fine". */
+async function readSpecState(db: SupabaseClient, prdId: string): Promise<SpecState> {
+  const { data: row, error } = await db
+    .from("prds")
+    .select("status,shipped_at")
+    .eq("id", prdId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  // A null row is the REFUSAL case, not evidence the spec does not exist: an
+  // RLS refusal and a deleted row are indistinguishable from here, and neither
+  // one is permission to write. Refusing on both is the only honest read.
+  if (!row) {
+    throw new Error("Couldn't read that spec, so nothing was changed. It may not be yours.");
+  }
+  const r = row as { status: string | null; shipped_at: string | null };
+  return { status: r.status, shippedAt: r.shipped_at };
+}
+
+/** Shipped is a fact on the record, and `shipped_at` is where that fact lives. */
+function hasShipped(state: SpecState): boolean {
+  return state.status === "shipped" || !!state.shippedAt;
+}
+
+/** Every door named here exists: Ship draws "Roll back" on each live release
+ *  row, Learn's outcome desk keys off `shipped_at` (not status, so a shipped
+ *  bet is still judgeable), and Decide's "Where it sits" moves any bet. */
+const SHIPPED_STATUS_REFUSAL =
+  "This spec has already shipped, so its status can't be rewritten from here - " +
+  "that would drop the record of a bet that really went out. To take the release " +
+  "back, use Roll back on the release in Ship. To put the bet itself on the record " +
+  "as wrong, give it a verdict in Learn or move it in Decide.";
+
+/** Refuses a spec status write that would contradict a record already on the
+ *  books. `to` is the status about to be written. Returns nothing: it either
+ *  permits the caller to proceed or throws with the reason. */
+async function assertSpecStatusWrite(
+  db: SupabaseClient,
+  prdId: string,
+  to: "approved" | "draft",
+): Promise<void> {
+  const state = await readSpecState(db, prdId);
+  if (hasShipped(state)) throw new Error(SHIPPED_STATUS_REFUSAL);
+  if (to === "draft" && state.status === "draft") {
+    throw new Error("This spec is already a draft, so there is nothing to send back.");
+  }
+}
 
 const DecideSchema = z.object({
   id: z.string().min(1),
@@ -723,7 +813,7 @@ export type DecideApprovalItemResult = { ok: boolean };
 export const decideApprovalItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof DecideSchema>) => DecideSchema.parse(d))
-  .handler(async ({ data }): Promise<DecideApprovalItemResult> => {
+  .handler(async ({ context, data }): Promise<DecideApprovalItemResult> => {
     switch (data.kind) {
       case "tool_call": {
         await resolveApproval({
@@ -755,9 +845,12 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
         return { ok: true };
       }
       case "spec": {
-        await savePrd({
-          data: { id: data.id, status: data.verdict === "approve" ? "approved" : "draft" },
-        });
+        // The queue only ever lists specs at status 'review', so this guard is
+        // silent on every item the tray can show. It exists because the id is
+        // posted, not carried: see the state-by-state note above DecideSchema.
+        const to = data.verdict === "approve" ? "approved" : "draft";
+        await assertSpecStatusWrite(context.supabase as unknown as SupabaseClient, data.id, to);
+        await savePrd({ data: { id: data.id, status: to } });
         return { ok: true };
       }
       case "opportunity": {
@@ -822,9 +915,14 @@ export type SnoozeApprovalItemResult = { ok: boolean; snoozedUntil: string };
  * Snooze a gate (the tray's H verb). Defers ANY federated family by
  * (kind, source_id) without touching its source table: a personal triage
  * record in approval_snoozes that getApprovalsQueue filters on until it lapses.
- * Founder-authorized 2026-07-19; the table lands at the Gate-2 merge, so a call
- * against the un-applied DB surfaces a plain error (the UI never claims it
- * worked when it did not).
+ *
+ * Founder-authorized 2026-07-19. 2026-08-06: the table HAS landed
+ * (supabase/migrations/20260720000000_mc_approval_snoozes.sql) and carries live
+ * rows, so the pre-merge caveat this comment used to make is spent - a failure
+ * here is now a real failure and is surfaced as one. The UI has NOT caught up:
+ * MissionShell's snoozeMutation.onError still toasts "Snooze is not live yet.
+ * It turns on with the next release." over what is now a genuine error. That
+ * copy is in src/components/mission/MissionShell.tsx and is not fixed here.
  */
 export const snoozeApprovalItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -833,23 +931,40 @@ export const snoozeApprovalItem = createServerFn({ method: "POST" })
     const db = context.supabase as unknown as SupabaseClient;
     const hours = data.hours ?? 24;
     const snoozedUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
-    const { error } = await db.from("approval_snoozes").upsert(
-      {
-        user_id: context.userId,
-        kind: data.kind,
-        source_id: data.id,
-        snoozed_until: snoozedUntil,
-        reason: data.reason ?? null,
-      },
-      { onConflict: "user_id,kind,source_id" },
-    );
+    // NO ROWS BACK MEANT NO EVIDENCE. Without `.select()` PostgREST returns
+    // nothing and supabase-js resolves with `data: null` whether one row landed
+    // or none did, so the tray's "Snoozed. It will resurface with tomorrow's
+    // briefing." was drawn on a resolved promise rather than on a written row.
+    // The returned id is the evidence; an empty set is the refusal case.
+    const { data: rows, error } = await db
+      .from("approval_snoozes")
+      .upsert(
+        {
+          user_id: context.userId,
+          kind: data.kind,
+          source_id: data.id,
+          snoozed_until: snoozedUntil,
+          reason: data.reason ?? null,
+        },
+        { onConflict: "user_id,kind,source_id" },
+      )
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!rows || rows.length === 0) {
+      throw new Error("The snooze was not recorded, so this gate is still in your queue.");
+    }
     return { ok: true, snoozedUntil };
   });
 
 /** The gate families that can be SENT BACK (returned to a revisable state with
- *  a note), as opposed to only approved/declined. A spec returns to draft; a
- *  design gate returns for revision. Every other family is a binary gate. */
+ *  a note), as opposed to only approved/declined. A spec that has not shipped
+ *  returns to draft; a design gate returns for revision. Every other family is
+ *  a binary gate.
+ *
+ *  KIND, NOT INSTANCE. This answers "can this family be sent back at all",
+ *  which is what the tray needs to draw the verb. Whether a PARTICULAR spec may
+ *  move is a second question answered per state by assertSpecStatusWrite: a
+ *  shipped spec is a revisable KIND whose backward move is refused. */
 export const REVISABLE_KINDS: readonly ApprovalKind[] = ["spec", "design_gate"];
 
 export function isRevisableKind(kind: ApprovalKind): boolean {
@@ -877,15 +992,29 @@ const SendBackSchema = z.object({
 export type SendBackApprovalItemResult = { ok: boolean };
 
 /**
- * Send a revisable gate back with a note (the tray's verb 2). The note is
- * persisted (approval_feedback), then the gate is returned to its revisable
- * state via the SAME resolvers the decide path uses: a spec to draft, a design
- * gate to reject-for-revision, so the agent continues the same thread knowing
- * what to fix. Non-revisable families are refused (decline them instead).
+ * Send a revisable gate back with a note (the tray's verb 2). The spec's live
+ * state is checked FIRST, then the note is persisted (approval_feedback), then
+ * the gate is returned to its revisable state via the SAME resolvers the decide
+ * path uses: a spec to draft, a design gate to reject-for-revision, so the
+ * agent continues the same thread knowing what to fix. Non-revisable families
+ * are refused (decline them instead).
  *
- * Founder-authorized 2026-07-19. The approval_feedback table lands at the Gate-2
- * merge; until then the note insert fails and the whole send-back is refused
- * with an honest message (the UI never claims it worked when it did not).
+ * Founder-authorized 2026-07-19. 2026-08-06: the approval_feedback table HAS
+ * landed (supabase/migrations/20260720010000_mc_approval_feedback.sql), so the
+ * pre-merge caveat this comment used to make is spent - and MissionShell's
+ * sendBackMutation.onError toast, "Send back turns on with the next release.",
+ * now hides real errors including this function's own refusals. That copy lives
+ * in src/components/mission/MissionShell.tsx and is NOT fixed here.
+ *
+ * WHICH SPECS CAN REACH THIS AND WHICH CANNOT (the honest half of the fix).
+ * The state rules above DecideSchema now let an APPROVED, unshipped spec be
+ * sent back, and refuse a shipped one. That is the server half only: the queue
+ * still sources specs with `.eq("status","review")` (one spec live today), so
+ * no surface offers this verb on the 34 approved-and-unshipped specs. Widening
+ * that source is the wrong fix - an approved spec is not a pending approval,
+ * and listing 41 of them would inflate the one count three surfaces badge. The
+ * door belongs on the spec's own page, next to Approve, in
+ * src/routes/_authenticated.plan.spec.$id.tsx. This function is ready for it.
  */
 export const sendBackApprovalItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -896,17 +1025,39 @@ export const sendBackApprovalItem = createServerFn({ method: "POST" })
     }
     const db = context.supabase as unknown as SupabaseClient;
 
-    // 1) Capture the note first. Pre-merge (table absent) this throws, and the
-    //    whole send-back is refused - honest, atomic, mirrors the snooze verb.
-    const { error: fbErr } = await db.from("approval_feedback").insert({
-      user_id: context.userId,
-      kind: data.kind,
-      source_id: data.id,
-      note: data.note,
-    });
-    if (fbErr) throw new Error(fbErr.message);
+    // 1) STATE FIRST, before a single row is written. A send-back the spec's
+    //    own state forbids must leave no trace at all - not even a note that
+    //    reads, later, as guidance somebody acted on. Specs only: a design-gate
+    //    send-back writes prds.design_gate_status via decideDesignGate and
+    //    never touches prds.status, so it cannot contradict a shipped record.
+    if (data.kind === "spec") {
+      await assertSpecStatusWrite(db, data.id, "draft");
+    }
 
-    // 2) Return the gate to its revisable state via the existing resolvers.
+    // 2) Capture the note. Same rule as the snooze write: `.select("id")` so
+    //    the row that comes back is the evidence the note landed, and an empty
+    //    set is treated as the refusal it is. A send-back whose note vanished
+    //    is a decline wearing guidance's clothes.
+    const { data: noteRows, error: fbErr } = await db
+      .from("approval_feedback")
+      .insert({
+        user_id: context.userId,
+        kind: data.kind,
+        source_id: data.id,
+        note: data.note,
+      })
+      .select("id");
+    if (fbErr) throw new Error(fbErr.message);
+    if (!noteRows || noteRows.length === 0) {
+      throw new Error("Your note was not recorded, so nothing was sent back.");
+    }
+
+    // 3) Return the gate to its revisable state via the existing resolvers.
+    //    PARTIAL-FAILURE HONESTY: these are two writes, not a transaction. If
+    //    the resolver below throws, the note from step 2 stays behind. That is
+    //    the safe residue - a record of what you asked for, on a gate the
+    //    caller was just told did not move - and it is not cleaned up here,
+    //    because a compensating delete can fail in exactly the same way.
     if (data.kind === "spec") {
       await savePrd({ data: { id: data.id, status: "draft" } });
     } else {

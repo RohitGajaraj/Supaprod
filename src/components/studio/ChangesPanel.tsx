@@ -83,7 +83,13 @@ import {
 } from "@/components/shell/primitives";
 import { CodeDiff } from "@/components/studio/CodeDiff";
 
-import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
+import {
+  captureDeployments,
+  listDeployments,
+  promoteToProduction,
+} from "@/lib/deployments.functions";
+import { publishChangelogEntry } from "@/lib/changelog.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 
 /** Everything in this panel was written by the run's Build agent. Same slug the
@@ -329,10 +335,49 @@ export function ChangesPanel({
   // Supaprod-managed repo gets an automatic preview deploy (ci-poll-tick); the
   // one human promote click moves production and is recorded as an approval.
   const fDeployments = useServerFn(listDeployments);
+  /**
+   * THE WORKSPACE WAS DROPPED HERE AND THE READ STILL ANSWERED, WHICH IS WHY IT
+   * SURVIVED.
+   *
+   * This passed `{ changesetId }` alone. `listDeployments`
+   * (deployments.functions.ts) resolves an absent `workspaceId` through
+   * `current_user_default_workspace()`, and that RPC is
+   * `ensure_user_default_workspace`, which returns the caller's EARLIEST
+   * `workspace_members` row -- not the workspace they are standing in. The
+   * handler then filters `.eq("workspace_id", ...)` on top of the changeset
+   * filter, so a run in any other workspace came back with zero deploy rows and
+   * this panel reported that as an empty deploy record: "It deploys on its own
+   * after a merge" for ever, "Nothing to promote until the preview is up", and
+   * no Promote button, over a change that already has a successful production
+   * deploy on the record.
+   *
+   * Verified live on 2026-08-06: two users hold deployments outside their
+   * earliest membership, and for one of them that is ALL of them.
+   *
+   * `wid` IS THE ACTIVE WORKSPACE, NOT THE CHANGESET'S OWN, and that is the
+   * limit of what this file can fix. A run opened by URL while the shell is
+   * switched to a different workspace still reads empty. The durable fix is one
+   * line in `listDeployments`: when `changesetId` is supplied, scope by that
+   * changeset's own `workspace_id` rather than the caller's default -- RLS still
+   * enforces access, and it would fix every caller at once, including
+   * `_authenticated.runs.$missionId.tsx`, which makes this same call without a
+   * workspace and whose Production stage marker dies with it.
+   *
+   * ENABLED WAITS FOR A WORKSPACE. Without that gate the first paint of every
+   * session fires the read with no workspace, which is precisely the request
+   * whose answer is guaranteed to be about the wrong one. /ship gates every read
+   * the same way.
+   *
+   * THE KEY GAINS `wid` LAST, so a workspace switch cannot serve the previous
+   * tenant's rows, and every existing `["changeset-deployments", id]`
+   * invalidation still reaches it: react-query matches query keys by prefix.
+   */
+  const { activeWorkspaceId } = useWorkspace();
+  const wid = activeWorkspaceId ?? "";
   const deploymentsQ = useQuery({
-    queryKey: ["changeset-deployments", changeset?.id],
-    queryFn: () => fDeployments({ data: { changesetId: changeset!.id } }),
-    enabled: !!changeset && changeset.status === "merged",
+    queryKey: ["changeset-deployments", changeset?.id, wid],
+    queryFn: () => fDeployments({ data: { changesetId: changeset!.id, workspaceId: wid } }),
+    enabled: !!changeset && changeset.status === "merged" && !!wid,
     refetchInterval: 30_000,
   });
   const deploymentRows = (deploymentsQ.data?.deployments ?? []) as Array<{
@@ -397,6 +442,21 @@ export function ChangesPanel({
    */
   const deploymentsUnread = deploymentsQ.isError && !deploymentsQ.data;
   const deploymentsStale = deploymentsQ.isError && !!deploymentsQ.data;
+  /**
+   * A QUERY THAT HAS NOT BEEN ALLOWED TO RUN IS STILL A READ THAT HAS NOT
+   * HAPPENED, and `isLoading` alone does not say so.
+   *
+   * The query above is now `enabled` only once a workspace is known, and a
+   * disabled query in react-query v5 is pending WITHOUT fetching, so `isLoading`
+   * is false for the whole first paint of a session. Read on its own it would
+   * fall straight through to the rows branch with an empty array and this block
+   * would answer "Nothing to promote until the preview is up." before anything
+   * had been asked -- the confident wrong answer the comment further down says
+   * these branches exist to prevent, reintroduced by the gate that fixed the
+   * workspace. /ship states the same thing the same way (`docReading = !wid ||
+   * changelog.isLoading`).
+   */
+  const deploymentsReading = !wid || deploymentsQ.isLoading;
   const retryDeployments = () => void deploymentsQ.refetch();
   const fPromote = useServerFn(promoteToProduction);
   const promoteMut = useMutation({
@@ -420,8 +480,120 @@ export function ChangesPanel({
       toast.success(`Live in production: ${res.productionUrl}`);
       warnings.forEach((w) => toast.warning(w));
       qc.invalidateQueries({ queryKey: ["changeset-deployments", changeset?.id] });
+      // SHIP READS THIS WRITE TOO, and only this line tells it so. The promote
+      // upserts a production `deployments` row, and that row IS what
+      // `listChangelog` resolves into each entry's `production_url` on every
+      // read -- the column is derived, not stored, so nothing about
+      // `changelog_entries` changes and no invalidation of it happens for free.
+      // Without this a `["changelog", wid]` cache from before the promote goes
+      // on reporting the release as not yet in production. The capture below
+      // does the same thing for the same reason; see its note for why the
+      // prefix rather than `["changelog", wid]`.
+      qc.invalidateQueries({ queryKey: ["changelog"] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Promote failed."),
+  });
+
+  /**
+   * ASK THE PROVIDER AGAIN, ON DEMAND -- the in-app half of the capture the
+   * cron runs, which until now had no door anywhere in the product.
+   *
+   * WHY IT HAS TO EXIST HERE. ci-poll-tick stops asking 60 minutes after the
+   * merge (DEPLOY_CAPTURE_WINDOW_MS), and that bound is a GitHub rate-limit
+   * decision rather than a belief that an hour is enough. A pipeline slower than
+   * that -- a queued Actions job, a manual approval gate, a nightly release --
+   * publishes its deployment into a product that has stopped listening, and with
+   * no control the block below reads "Nothing to promote until the preview is
+   * up" for the life of the account while every merge ships somewhere else.
+   *
+   * IT IS NOT AUTO-FIRED, and that is deliberate rather than lazy. One press
+   * costs roughly seven GitHub calls (the merged PR, the deployments list, up to
+   * five status reads) against a 5,000/hour installation limit, which is the
+   * whole reason the cron's window is bounded in the first place. So it is a
+   * press, never a mount effect and never an interval.
+   *
+   * `captured: 0` IS A REAL ANSWER, NOT A FAILURE. From this side "your pipeline
+   * has not published one yet" and "the read did not reach your provider" are
+   * genuinely indistinguishable, so the server's own sentence covers both and is
+   * shown verbatim at info weight. Only a refusal -- not merged, no usable repo,
+   * GitHub not connected, no provable landed commit, an upsert RLS refused --
+   * throws, and every one of those arrives as a plain sentence already fit to
+   * read.
+   */
+  const fCapture = useServerFn(captureDeployments);
+  const captureMut = useMutation({
+    mutationFn: () => fCapture({ data: { changesetId: changeset!.id } }),
+    onSuccess: (res) => {
+      if (res.captured > 0) {
+        toast.success(res.message);
+        qc.invalidateQueries({ queryKey: ["changeset-deployments", changeset?.id] });
+        // AND SHIP, BECAUSE A CAPTURED PRODUCTION ROW IS WHAT SHIP READS AS THE
+        // RELEASE'S ADDRESS. `listChangelog` does not store `production_url`; it
+        // derives it per read from `deployments` (environment=production,
+        // status=success) and hangs it on the entry, so a row written here
+        // changes /ship's answer without touching `changelog_entries` at all. A
+        // `["changelog", wid]` cache taken before this press then serves the old
+        // address, or none. Same prefix, and for the same reason, as the publish
+        // below: the entry belongs to the CHANGESET's workspace, which this panel
+        // cannot assume is the one the shell is switched to. /ship is not mounted
+        // here, so nothing refetches now -- this only stops it serving a cache
+        // that predates the row.
+        qc.invalidateQueries({ queryKey: ["changelog"] });
+      } else {
+        // NOTHING TO INVALIDATE. No row was written, so a refetch would only
+        // spend another request to redraw the same block.
+        toast.info(res.message);
+      }
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Could not check for deploys."),
+  });
+
+  /**
+   * PUT THIS MERGE ON SHIP -- the repair path for a release that shipped and
+   * never appeared there.
+   *
+   * WHAT IT CAN AND CANNOT FIX, because the difference is the whole of the copy.
+   * `changelogRowFor` declines any changeset that is not merged or whose release
+   * notes are empty, and empty notes are the common case: live on 2026-08-06 the
+   * dogfood workspace holds nine merged changesets, eight of them with no notes
+   * and therefore no `changelog_entries` row and therefore invisible on /ship.
+   * For those eight this call correctly returns `published: false` with
+   * `reason: "no-release-notes"`, and its message names the real repair --
+   * "Write them" on this very Block, after which
+   * `trg_studio_changeset_to_changelog` materializes the entry by itself and
+   * this control is not needed at all. So the control is offered only where the
+   * notes already exist, and the Empty below says the rest in words.
+   *
+   * `published: false` IS NOT A FAILURE. Nothing went wrong; the data is not
+   * publishable, so it is a warning and it does not invalidate. A genuine
+   * refusal (row-level security, a constraint, a lost race) throws instead, and
+   * those messages are plain English already.
+   *
+   * PRESSING IT TWICE IS SAFE AND MEANS SOMETHING: the second press refreshes
+   * the existing entry against the change's current title, notes and pull
+   * request rather than adding a second one.
+   */
+  const fPublishEntry = useServerFn(publishChangelogEntry);
+  const publishEntryMut = useMutation({
+    mutationFn: () => fPublishEntry({ data: { changesetId: changeset!.id } }),
+    onSuccess: (res) => {
+      if (res.published) {
+        toast.success(res.message);
+        // THE PREFIX, NOT ["changelog", wid]. The entry belongs to the
+        // CHANGESET's workspace, and this panel can be open on a run whose
+        // workspace is not the one the shell is switched to -- the same gap the
+        // deploy read above documents. Invalidating the prefix reaches
+        // whichever ["changelog", <id>] cache holds it, and /ship is not
+        // mounted here anyway, so nothing is refetched now: this only stops it
+        // serving a cache that predates the row.
+        qc.invalidateQueries({ queryKey: ["changelog"] });
+      } else {
+        toast.warning(res.message);
+      }
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Could not list it on Ship."),
   });
 
   // F-BUILDER-MULTIFILE: scope policy (touch list + max-files cap). The editor
@@ -867,7 +1039,24 @@ export function ChangesPanel({
 
       {/* SEAM-2 SHIP: the preview, the one human promote, and the live URL. */}
       {changeset.status === "merged" ? (
-        <Block title="Where it is live">
+        <Block
+          title="Where it is live"
+          /* THE DOOR ONTO THE CAPTURE, at the weight this file already uses for
+             a per-section act ("Write them" below is the same slot, the same
+             class, and the same in-flight label swap). It is quiet on purpose:
+             the deploy record filling itself in is the normal path, and this is
+             the way out of the case where it did not.
+
+             THE HANDLER CARRIES THE GUARD BECAUSE THE BUTTON CANNOT. `Block`'s
+             `more` renders a plain button with no `disabled` prop, so the label
+             says the act is in flight and the handler refuses a second press --
+             exactly what `genNotesMut` does below. Without it a double click is
+             two GitHub round trips. */
+          more={captureMut.isPending ? "Checking" : "Check for deploys"}
+          onMore={() => {
+            if (!captureMut.isPending) captureMut.mutate();
+          }}
+        >
           {/* A READ THAT DID NOT HAPPEN IS NOT AN EMPTY DEPLOY RECORD. Without
               these two branches a failed or in-flight `deploymentsQ` collapsed
               to [], and this block answered "Nothing to promote until the
@@ -890,7 +1079,7 @@ export function ChangesPanel({
               Where this change is serving did not load, so anything said here would be a guess.{" "}
               {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
             </Failed>
-          ) : deploymentsQ.isLoading ? (
+          ) : deploymentsReading ? (
             <Loading>Reading where this change is serving.</Loading>
           ) : (
             <>
@@ -1022,8 +1211,40 @@ export function ChangesPanel({
           {changeset.release_notes ? (
             <div style={RECESS}>{changeset.release_notes}</div>
           ) : (
-            <Empty>{builderName} has not drafted notes for this changeset yet.</Empty>
+            <Empty>
+              {builderName} has not drafted notes for this changeset yet.
+              {/* WHY A MERGED CHANGE CAN BE MISSING FROM SHIP, said where the
+                  person is standing when they wonder. Ship's release layer is
+                  spined on `changelog_entries`, and that row is materialized
+                  only from a merged changeset carrying release notes, so a merge
+                  with none is invisible there -- eight of the nine merges in the
+                  dogfood workspace on 2026-08-06. The repair is the control
+                  already at the top of this Block, not a new one: saving the
+                  notes fires the database trigger that writes the entry. */}
+              {changeset.status === "merged"
+                ? ' This change has merged, and Ship lists a release only once there is something to read, so it is not on Ship until these exist. "Write them" above is the whole of the repair: the release appears on its own as soon as they are saved.'
+                : ""}
+            </Empty>
           )}
+          {/* THE SECOND HALF OF THE SAME REPAIR, for the case the first half
+              cannot reach: notes exist, the merge happened, and Ship still does
+              not list it -- the entry the trigger should have written never
+              landed, or it landed and has since drifted from the change.
+
+              OFFERED ONLY WITH NOTES IN HAND, because without them this call
+              can only decline, and a control whose one outcome is a refusal is
+              the defect this whole pass is about. With no notes the Empty above
+              names the real next step instead.
+
+              NOT A PRIMARY BUTTON. Promote is the primary act on this surface
+              and it reaches customers; this one reconciles a record. */}
+          {changeset.status === "merged" && changeset.release_notes ? (
+            <Actions>
+              <Button disabled={publishEntryMut.isPending} onClick={() => publishEntryMut.mutate()}>
+                {publishEntryMut.isPending ? "Listing it" : "List it on Ship"}
+              </Button>
+            </Actions>
+          ) : null}
         </Block>
       ) : null}
 
