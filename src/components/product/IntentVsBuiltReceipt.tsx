@@ -69,15 +69,29 @@ export function IntentVsBuiltReceipt({ prdId }: { prdId: string }) {
           <Receipt className="h-3 w-3" />
           Intent vs built
         </span>
+        {/* THE CLASS, NOT THE `Button` PRIMITIVE, BECAUSE THIS IS A LINK. It is
+            the one control in this port that leaves the app: `Button` renders
+            `<button type="button">`, so adopting it would drop href, target and
+            rel and turn a middle-clickable PR link into a dead box. `.sp-btn` is
+            a plain class selector and dresses an anchor exactly as it dresses a
+            button, which is what the two `<Link className="sp-btn">` call sites
+            in connections and /sync already do.
+
+            An action rather than an escape, so it takes the raised default and
+            no `data-variant`. `inline-flex items-center` went with the pill --
+            `.sp-btn` already declares both -- and `gap-1.5` stayed, because it
+            does not. `normal-case tracking-normal` stay too: the parent is
+            `.mono-label`, and `font: inherit` resets neither text-transform nor
+            letter-spacing. */}
         {changeset?.pr_url ? (
           <a
             href={changeset.pr_url}
             target="_blank"
             rel="noreferrer"
-            className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 normal-case tracking-normal"
+            className="sp-btn gap-1.5 normal-case tracking-normal"
             title={changeset.title ?? "Open the pull request"}
           >
-            <ExternalLink className="h-3 w-3" />
+            <ExternalLink className="h-3.5 w-3.5" />
             {changeset.pr_number ? `PR #${changeset.pr_number}` : "Open PR"}
           </a>
         ) : null}

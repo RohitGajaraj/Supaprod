@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckSquare, Rocket, Square } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/shell/primitives";
 import {
   getLaunchPlan,
   generateLaunchPlan,
@@ -68,13 +69,9 @@ export function LaunchPlanPanel({ prdId }: Props) {
         <div className="mono-label flex items-center gap-2">
           <Rocket className="h-3.5 w-3.5" /> Launch plan
         </div>
-        <button
-          onClick={() => generate.mutate()}
-          disabled={generate.isPending}
-          className="btn-pill-outline px-3 py-1 text-xs disabled:opacity-50"
-        >
+        <Button onClick={() => generate.mutate()} disabled={generate.isPending}>
           {generate.isPending ? "Drafting…" : plan ? "Regenerate" : "Draft launch plan"}
-        </button>
+        </Button>
       </div>
 
       {planQ.isLoading ? (
@@ -149,13 +146,14 @@ export function LaunchPlanPanel({ prdId }: Props) {
                 onChange={(e) => setDays(Number(e.target.value) || 30)}
                 className="input w-16 text-xs"
               />
-              <button
-                onClick={() => rearm.mutate()}
-                disabled={rearm.isPending}
-                className="btn-pill-outline px-3 py-1 text-xs disabled:opacity-50"
-              >
+              {/* An action, not an escape, so it is raised like the Draft above
+                  it. Its neighbour here is the number input rather than another
+                  button, and the shared height is what makes them read as one
+                  control: `.input` stands about 35px and `.sp-btn` is 38, where
+                  the pill it replaces was 26 and visibly short of the field. */}
+              <Button onClick={() => rearm.mutate()} disabled={rearm.isPending}>
                 Rearm, days out
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -914,7 +914,38 @@ function Today() {
               `body:has([data-page-composer])` and one-prompt-per-screen.test.ts
               asserts this route file carries the marker. The surface owns the
               claim that it has a composer; the component owns what it does. */}
-          <div data-page-composer style={{ marginBottom: "24px" }}>
+          {/* THE GAP ABOVE IS NOT DECORATION, AND ITS ABSENCE WAS THE SECOND
+              HALF OF THE FOUNDER'S REPORT. He said the composer was "so tightly
+              placed on top" and that the placement was "not properly thought
+              through". It was: this div had a marginBottom and no marginTop.
+
+              `PageHead` is a bare fragment -- an `<h1 class="sp-title">` with no
+              bottom margin and a `.sp-subtitle` with only a top one
+              (primitives.css:829-841). Nothing in the head reserves space
+              below it. Every other station gets away with that because the
+              first thing it renders is a `<Block>`, and `.sp-block` carries
+              `margin-top: 36px` (primitives.css:255). The gap between a page
+              head and the first thing under it is 36px everywhere in this
+              product; it just happens to be paid for by the block rather than
+              by the head. This surface is the one place that opens with
+              something that is NOT a block, so it was the one place that got
+              no gap at all and sat flush against the date line.
+
+              36px literal, matching `.sp-block`, because that IS the number --
+              the space scale tops out at 32 and 40 and neither is what every
+              other station renders. The right long-term fix is for the head to
+              own its own bottom margin, but that moves every station at once
+              and this is launch week.
+
+              No border-top and no padding-top: those belong to a `Block`,
+              which is a titled section of the record. This is a bare row.
+
+              marginBottom stays. It collapses against `FocusNext`'s block
+              margin today and is therefore inert, but it is what keeps the
+              composer spaced if the brain below it ever renders something that
+              is not a block -- and FocusNext renders nothing at all on a quiet
+              workspace, which is exactly that case. */}
+          <div data-page-composer style={{ marginTop: "36px", marginBottom: "24px" }}>
             <AskComposer />
           </div>
         </>

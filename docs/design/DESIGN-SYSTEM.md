@@ -55,6 +55,27 @@ These outrank anything written earlier.
 
 Colour must **carry status, never decorate**, and never add cognitive load. It must survive a greyscale test: if the screen stops making sense in greyscale, the colour was doing work that structure should have done.
 
+**Buttons: the primary is a solid face on the neutral ladder** (founder ruling, 2026-08-06, given on a screenshot of `/today`). Two designs were rejected in one evening, and they were rejected for the same reason, so the reason is the rule.
+
+| Rejected | What it was | Why it went |
+| --- | --- | --- |
+| **The white slab** | `background: var(--sp-ink)` on the dark canvas, a raw ink inversion | "There is nothing like a white button within our platform." It rendered brighter than the headline above it and belonged to no palette in the product. |
+| **The ember edge** | `--sp-lift` face wearing a partial-ember inset ring and a soft halo | "A subtle ember color on the borders. It's not so great. It is not aligning with the theme." The fill was still the *secondary* fill, so a thin warm line was the only thing separating the main action from its neighbours, and a thin warm line is not an affordance. It also spent the product's one accent on chrome. |
+
+Both tried to make the primary special by **adding a property**: a different fill family, then a different edge family. This theme's separation mechanism is neither. It is **value on a single neutral ramp**, which is how every card, recess and float already distinguishes itself. So the primary is simply the next stop on the ladder the surfaces already climb:
+
+`--sp-bg` → `--sp-sink` → `--sp-sheet` → `--sp-lift` → `--sp-float` → **`--sp-solid`**
+
+Nothing else in the product uses that stop. A secondary button is `--sp-lift`, so the primary is unmistakably the raised one without an accent, a glow or a second vocabulary. Each theme steps **away from its own canvas**: lighter on the dark target, inked on paper. The founder's brief was "something simple, but still feels like a button", and simple here means it needed no new colour idea at all.
+
+Two consequences worth keeping:
+
+- **Ember stays a colour or an edge, never a fill, and never on a button.** `ink.css` declares it the mark that "marks the human, and nothing else". The ember-fill `.btn-pill` and the ember-gradient `.btn-primary` are the *retired* palette; inside the authenticated app they are a defect, and both were ported out on 2026-08-06. On unauthenticated marketing and auth surfaces `.btn-primary` remains correct, because restyling the signup and login heroes is a funnel change and not a cleanup.
+- **`.btn-pill-outline` went too, and for a different reason worth remembering.** An outline is not a fill, so it was never the colour defect and the first sweep correctly left it alone. It had to go because of what that sweep did *to* it: the converted halves stood at 38px and their Cancel and Discard partners stayed at roughly 26px, so four pairs on `/plan/spec/$id` ended up visibly mismatched. **Porting one half of a pair is not finishing the job.** All 14 sites moved: the four escape hatches to `variant="ghost"`, the ten real alternative actions to the raised default.
+- **A filled control cannot be disabled by opacity alone.** Every other button fades figure and ground together so the ratio survives. The primary is the one control whose face and label sit at opposite ends of the ramp, so fading both collapses them into one mid-tone and the label goes with it. Rendered on paper it was a taupe slab with a ghost of a word on it. A disabled primary therefore drops to the ordinary quiet surface, which is also the honest reading: a primary that cannot be pressed is not the main action right now.
+
+> **Look at it before you ship it.** Both rejected designs were reasoned from tokens and neither was ever rendered. The third was screenshotted in both themes before it was offered, and that is the only reason the broken disabled state on paper was caught rather than shipped.
+
 **Type.** Geist Sans for UI, Geist Mono for technical content. The bar for a typeface inside the product is whether it reads as an enterprise instrument.
 
 **Geist Pixel is retired from the APP and kept for MARKETING** (founder ruling, 2026-08-05). The split is by audience, not by taste:

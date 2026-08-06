@@ -320,6 +320,7 @@ import {
   Row,
   Surface,
 } from "@/components/shell/primitives";
+import { CrewWorking } from "@/components/shell/CrewWorking";
 
 // Every tab panel is code-split: only the active tab's module loads.
 const MemoryList = lazy(() =>
@@ -1065,6 +1066,24 @@ function MemoryPage() {
 
   return (
     <Surface wide>
+      {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE THAT IS ABOUT THE CREW.
+          Renders nothing unless a mission row in this workspace is running, so
+          it costs no space when the crew is idle and cannot show a step that
+          did not happen.
+
+          THIS PAGE HAD NO LIVE ELEMENT AT ALL, which on the record surface is
+          the sharpest version of the gap: every agent mark it draws above the
+          tabs is in the `quiet` state -- the guidance rows here, the rules in
+          `StandingRules` -- and quiet is precisely the state that claims
+          nothing is happening. Every sentence here is in the past tense, what
+          the record has changed and what the crew carries, while the crew that
+          wrote it could be mid-run with no sign of it anywhere on the page.
+
+          It sits above the headline, where Decide, Build and Ship put it, so
+          the line reads in the same place whichever station you walked in
+          from. It does NOT claim the running mission is reading this record:
+          it reports a mission mid-run and nothing more. See use-live-agents.ts. */}
+      <CrewWorking />
       <PageHead title={headline} sub={sub} />
 
       {/* A NAKED "Try again" IS NOT AN ERROR STATE. This rendered one ghost

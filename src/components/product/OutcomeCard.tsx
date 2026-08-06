@@ -6,6 +6,7 @@ import { Target, Sparkles } from "lucide-react";
 import { toast } from "@/lib/notify";
 import { recordOutcome, checkPrdShipped, suggestOutcomeVerdict } from "@/lib/outcome.functions";
 import { VerdictChip, type VerdictTone } from "@/components/supaprod/Primitives";
+import { Button } from "@/components/shell/primitives";
 
 type Verdict = "validated" | "mixed" | "missed";
 
@@ -207,14 +208,13 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             <span className="text-[11px] text-muted-foreground">
               Score this bet against what you predicted.
             </span>
-            <button
+            <Button
               onClick={() => suggest.mutate()}
               disabled={suggest.isPending}
-              className="btn-pill-outline px-3 py-1 text-xs disabled:opacity-50"
               title="Let the Historian draft a predicted-vs-actual verdict you can edit"
             >
               {suggest.isPending ? "Drafting…" : "Draft with Historian"}
-            </button>
+            </Button>
           </div>
           {predicted && (
             <p className="text-xs text-muted-foreground">
@@ -270,13 +270,40 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
               className="flex-1 min-w-[160px] rounded-md border hairline bg-background px-3 py-1.5 text-xs outline-none focus:border-foreground"
             />
           </div>
-          <button
+          {/* THE SYSTEM'S BUTTON, AND NOT AN EMBER FILL. This and "Confirm
+              outcome" below wore `.btn-pill`, a SOLID EMBER FACE
+              (styles.css: `background-color: var(--ember)`). Inside the
+              authenticated product ember is a colour or an edge and never a
+              fill: ink.css:236 declares it the mark that "marks the human, and
+              nothing else", and the standing ruling in
+              docs/design/DESIGN-SYSTEM.md is that it is "explicitly not the
+              default for approval buttons, actions or tasks".
+
+              THE RAISED DEFAULT, NOT `variant="primary"`. primitives.css states
+              "one primary per screen", and this card renders on /plan/spec/$id
+              underneath that page's own action row, which already spends the one
+              on Approve/Save. Recording an outcome is the terminal act of THIS
+              card, not of the page.
+
+              The Tailwind size utilities left with the class rather than sitting
+              on top of it: `.sp-btn` carries its own height (--sp-ctl-md) and
+              padding, and keeping both gives a control that is neither size.
+              `disabled:opacity-50` goes for the same reason -- `.sp-btn:disabled`
+              already dims, and the disabled condition itself is unchanged.
+
+              AND NOTHING IN THIS CARD IS A GHOST. The two `.btn-pill-outline`
+              controls that first port left behind, "Draft with Historian" and
+              "Check ship status", are now raised defaults too. Ghost is this
+              system's escape hatch -- the Cancel that backs out of an inline
+              editor -- and neither of these backs out of anything: one asks the
+              Historian for a draft you can edit, the other reads GitHub. Every
+              control here is a thing to do, so every control here is raised. */}
+          <Button
             onClick={() => record.mutate()}
             disabled={!verdict || !summary.trim() || record.isPending}
-            className="btn-pill px-4 py-1.5 text-xs disabled:opacity-50"
           >
             {record.isPending ? "Recording…" : "Record outcome"}
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -284,13 +311,9 @@ export function OutcomeCard({ prd, invalidateKey }: Props) {
             Ships when the linked GitHub issue closes.
           </p>
           {prd.github_issue_url ? (
-            <button
-              onClick={() => check.mutate()}
-              disabled={check.isPending}
-              className="btn-pill-outline px-3 py-1 text-xs disabled:opacity-50"
-            >
+            <Button onClick={() => check.mutate()} disabled={check.isPending}>
               {check.isPending ? "Checking…" : "Check ship status"}
-            </button>
+            </Button>
           ) : (
             <p className="text-xs text-muted-foreground">Link a GitHub issue to track shipping.</p>
           )}
@@ -374,14 +397,13 @@ function OutcomeSuggestionBanner({
         </p>
       )}
       {highConfidence && (
-        <button
+        <Button
           onClick={onConfirm}
           disabled={disabled || confirming}
-          className="btn-pill px-3 py-1 text-xs disabled:opacity-50"
           title="Record this outcome in one click"
         >
           {confirming ? "Confirming…" : "Confirm outcome"}
-        </button>
+        </Button>
       )}
     </div>
   );

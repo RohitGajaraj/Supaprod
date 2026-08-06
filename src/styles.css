@@ -564,7 +564,50 @@
    * `btn btn-primary`, `btn btn-secondary`, `btn btn-tertiary btn-sm`.
    * AFFORDANCE DOCTRINE (Loom v4.1): every button carries a shape (padding +
    * radius) and either a fill or a border, so it can never read as a label.
-   * Sentence case, UI voice; mono-caps is metadata, never an action. */
+   * Sentence case, UI voice; mono-caps is metadata, never an action.
+   *
+   * ------------------------------------------------------------------
+   * THIS FAMILY IS THE RETIRED PALETTE AND IT IS STILL LOAD-BEARING.
+   * DO NOT DELETE IT. Marked, not cut, deliberately.
+   *
+   * WHY THE QUESTION CAME UP. `MissionOrchestratorDetail.tsx` used to hold
+   * five of these on an authenticated station, including a
+   * `btn btn-primary btn-sm` — and `.btn-primary` below is an ember GRADIENT
+   * FILL with an inset white highlight, which is three separate breaches of
+   * the standing ruling at once (ember is rare and "explicitly not the default
+   * for approval buttons, actions or tasks"; ink.css:236 declares ember the
+   * mark that "marks the human, and nothing else"; every legitimate use of it
+   * in the --sp-* system is a COLOUR or an EDGE, never a fill). Those five
+   * moved to `<Button>` / `.sp-btn` from @/components/shell/primitives.
+   *
+   * WHAT THE GREP SAYS AFTER THAT MOVE. Counted 2026-08-06 across every .tsx
+   * file under src, comment lines excluded, and excluding
+   * `design-scaffold.functions.ts`, which emits its own `.btn-*` rules as
+   * strings into GENERATED scaffolds and never consumes this stylesheet:
+   *
+   *   29 call sites across 15 files still compose `.btn`.
+   *   .btn-ghost 16 · .btn-sm 14 · .btn-primary 13.
+   *
+   *   12 of the 15 are unauthenticated surfaces where this palette is still
+   *   the right one: __root (error + not-found chrome), login, signup,
+   *   forgot-password, reset-password, join.$token, checkout.return,
+   *   p.teardown, proof, d.$slug, t.$slug, plg/PreSignupCTA. `.btn-primary`
+   *   on those IS the marketing/auth hero CTA — the ember ruling governs the
+   *   authenticated workspace, and restyling the signup and login primaries
+   *   is a funnel change, not a cleanup.
+   *
+   *   3 are authenticated components not yet ported: missions/MissionDiff,
+   *   studio/PreviewPanel, studio/ReceiptsPanel. Those are the remaining work.
+   *   Port them to `.sp-btn` first; only then is deletion even a question.
+   *
+   * THE SIX WITH NO CONSUMER AT ALL — `.btn-lg`, `.btn-secondary`,
+   * `.btn-tertiary`, `.btn-link`, and `.btn-approve` / `.btn-reject` further
+   * down — are labelled where they are defined rather than
+   * removed. Zero call sites today is not proof of zero call sites at the next
+   * `git pull`: this repo takes commits from more than one tool, and a silent
+   * deletion that turns out to have had one consumer is a visibly broken
+   * control on a live surface. Naming costs nothing and cannot regress.
+   * ------------------------------------------------------------------ */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -601,12 +644,30 @@
     font-size: 12.5px;
     border-radius: 8px;
   }
+  /* NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above. */
   .btn-lg {
     padding: 11px 22px;
     font-size: 14px;
     border-radius: 10px;
   }
-  /* Primary: the ONE main action. Solid top-lit ember gradient. */
+  /* Primary: the ONE main action. Solid top-lit ember gradient.
+   * 13 call sites, 2026-08-06, and every one of them is unauthenticated:
+   * __root, login, signup, forgot-password, reset-password, join.$token,
+   * checkout.return, p.teardown, plg/PreSignupCTA. INSIDE the authenticated
+   * app this gradient is forbidden — ember there is a colour or an edge, never
+   * a fill. Reach for `<Button variant="primary">` instead, and do not "unify"
+   * the two: changing the rule below restyles the signup and login CTAs, which
+   * is a funnel change.
+   *
+   * THAT SENTENCE USED TO DESCRIBE `<Button variant="primary">` AS "the Gate's
+   * ember edge". It is not, as of 2026-08-06. The ember-edged primary was tried
+   * that evening and rejected by the founder for not aligning with the theme;
+   * the sp primary is now `--sp-solid`, a plain raised face one stop up the
+   * neutral ladder, with no accent on it at all. Corrected here rather than
+   * left, because a pointer that mis-describes its target sends the next porter
+   * looking for an edge that no longer exists. See
+   * docs/design/DESIGN-SYSTEM.md, "Buttons: the primary is a solid face on the
+   * neutral ladder", which records both rejected designs and why. */
   .btn-primary {
     background: linear-gradient(180deg, var(--ember), var(--ember-active, var(--ember)));
     color: var(--primary-foreground);
@@ -618,7 +679,8 @@
   .btn-primary:hover:not(:disabled) {
     filter: brightness(1.07);
   }
-  /* Secondary: the workhorse. A raised surface with a visible border. */
+  /* Secondary: the workhorse. A raised surface with a visible border.
+   * NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above. */
   .btn-secondary {
     background: var(--surface-raised, var(--surface-1, var(--canvas)));
     color: var(--ink, var(--text-primary));
@@ -629,7 +691,14 @@
     background: var(--surface-hover, var(--hover, var(--surface-raised)));
   }
   /* Tertiary / ghost: lowest emphasis, but ALWAYS a border + shape so it
-   * reads as a control, never as text. (btn-ghost kept as an alias.) */
+   * reads as a control, never as text. (btn-ghost kept as an alias.)
+   * `.btn-ghost` is the most-used name in the family — 16 call sites,
+   * 2026-08-06. `.btn-tertiary` has none. Note for anyone porting one of the
+   * remaining sixteen: `.sp-btn[data-variant="ghost"]` is NOT the equivalent.
+   * It carries no resting border, so it reads as text, which is precisely what
+   * the sentence above forbids. The like-for-like swap is a plain `<Button>`
+   * (the raised default); reach for sp's ghost only when the control genuinely
+   * is a quiet aside. */
   .btn-tertiary,
   .btn-ghost {
     color: var(--ink-muted, var(--text-body));
@@ -642,7 +711,8 @@
     border-color: var(--text-faint, var(--hairline-strong));
     background: var(--surface-hover, var(--hover, transparent));
   }
-  /* Link: genuine inline text navigation only. Never a primary action. */
+  /* Link: genuine inline text navigation only. Never a primary action.
+   * NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above. */
   .btn-link {
     color: var(--glacier, var(--action-blue));
     background: transparent;
@@ -754,7 +824,20 @@
     white-space: nowrap;
   }
 
-  /* Pill CTA — ember fill (ember = primary CTA / needs-human). */
+  /* Pill CTA — ember fill (ember = primary CTA / needs-human).
+   *
+   * NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above.
+   *
+   * ITS PREMISE WAS ALSO WRONG, which is why the consumers went. "ember =
+   * primary CTA" is the retired palette's rule and it is not this product's:
+   * ink.css:236 declares ember the mark that "marks the human, and nothing
+   * else", and the founder's standing ruling is that ember is rare and
+   * "explicitly not the default for approval buttons, actions or tasks". The
+   * seven authenticated call sites this rule painted — five in
+   * OutcomeContractPanel, two in OutcomeCard, all of them approval or apply
+   * controls on /plan/spec/$id — moved to `<Button>` / `.sp-btn` on 2026-08-06.
+   * Do not reach for this on an authenticated surface; if a marketing surface
+   * ever wants a pill, the premise above still needs rewriting first. */
   .btn-pill {
     display: inline-flex;
     align-items: center;
@@ -773,6 +856,18 @@
   .btn-pill:hover {
     background-color: var(--ember-active);
   }
+  /* NO CONSUMER, 2026-08-06. Kept, not cut — see the family note above.
+   *
+   * It went for a different reason than `.btn-pill` did, and the difference is
+   * worth keeping. An outline is not an ember fill, so this was never the
+   * colour defect and it survived the first sweep untouched. It went because
+   * of what that sweep did TO it: converting the seven fills to `.sp-btn` took
+   * them to 38px and left their Cancel and Discard halves at roughly 26px, so
+   * four pairs on /plan/spec/$id ended the evening visibly mismatched. All 14
+   * outline sites then moved to `.sp-btn` — four as `variant="ghost"` (the
+   * escape half of a pair) and ten as the raised default (a real alternative
+   * action, not an exit). A regression we introduced, caught and closed in the
+   * same session. */
   .btn-pill-outline {
     display: inline-flex;
     align-items: center;
@@ -795,7 +890,16 @@
     border-color: var(--ink-faint);
   }
 
-  /* Approve / reject — consequence-first governance buttons. */
+  /* Approve / reject — consequence-first governance buttons.
+   * NEITHER HAS A CONSUMER AS OF 2026-08-06. `.btn-approve` had none already;
+   * `.btn-reject`'s last one was the reject control in
+   * MissionOrchestratorDetail's governance panel, which moved to `.sp-btn`
+   * because an ember-outlined reject standing next to an ember-gradient
+   * approve spent the human's colour twice on one decision. Kept, not cut —
+   * see the family note on `.btn` above. If a governance pair is ever rebuilt
+   * here, note what the port found: the two halves must carry EQUAL weight.
+   * A reject quieter than its approve nudges the click on the one surface
+   * where the click authorises a tool to run. */
   .btn-approve {
     background-color: var(--deep-green);
     color: var(--canvas);

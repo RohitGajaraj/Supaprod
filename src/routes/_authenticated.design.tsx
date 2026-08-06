@@ -155,6 +155,7 @@ import {
   Who,
 } from "@/components/shell/primitives";
 import { AgentPulse } from "@/components/shell/AgentPulse";
+import { CrewWorking } from "@/components/shell/CrewWorking";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 
 /** One fetch, unfiltered: this surface needs the pending queue and the
@@ -992,6 +993,31 @@ function Design() {
 
   return (
     <Surface context={hasContext ? context : undefined}>
+      {/* THE AUTONOMOUS PATH, VISIBLE, AND IT IS THE ONE THING THIS STATION
+          WAS MISSING. Renders nothing unless a mission row in this workspace
+          is running, so it costs no space when the crew is idle and cannot
+          show a step that did not happen.
+
+          WHY IT IS NOT A FOURTH INDICATOR SAYING WHAT THREE ALREADY SAY. This
+          surface has three `AgentPulse` mounts and they are good ones -- the
+          drawing block's sub, the pulse under the focus Actions, and the
+          Critic block's sub. All three are gated on `drawAt.isPending` or
+          `critic.isPending`, which is react-query mutation state in THIS tab,
+          so between them they report exactly one thing: a run the reader
+          started here, a moment ago, and still has the tab open for. Nothing
+          on Design could report a run a mission is walking through this
+          station, one dispatched from Ask, or one still going after a reload.
+          That is a different fact, not a louder version of the same one.
+
+          AND IT CANNOT DOUBLE THEM. `redrawDesignScaffold` and
+          `runScaffoldDesignCritic` write no mission row at all, so the three
+          pulses and this line are structurally incapable of reporting the same
+          piece of work -- which is what surface-discipline §7 asks before a
+          second live indicator is allowed on a surface.
+
+          Above the headline, as on Decide, Build and Ship. See
+          use-live-agents.ts. */}
+      <CrewWorking />
       <PageHead
         title={headline}
         sub={call ? "Nothing binds into a drawing until you settle it." : undefined}

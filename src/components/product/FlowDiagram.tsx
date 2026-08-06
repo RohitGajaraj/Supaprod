@@ -2,6 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GitBranch, RefreshCw, Workflow } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/shell/primitives";
 import { getFlowForPrd, generateFlow, type FlowStep } from "@/lib/flows.functions";
 
 type Props = {
@@ -56,14 +57,21 @@ export function FlowDiagram({ prdId }: Props) {
         <div className="mono-label flex items-center gap-2">
           <Workflow className="h-3.5 w-3.5" /> User flow
         </div>
-        <button
+        {/* The panel's one action, and not an escape, so it takes the raised
+            default. `gap-1.5` is passed because it has to be: `.btn-pill-outline`
+            carried `gap: 0.5rem` and `.sp-btn` sets no gap at all, so without it
+            the glyph and the word butt together. Passing any className replaces
+            the `sp-btn` the primitive sets (it spreads rest props after it),
+            which is why that class is repeated here. The mark grew with the
+            label, 12px to 14px, to sit at the size of the word beside it. */}
+        <Button
           onClick={() => generate.mutate()}
           disabled={generate.isPending}
-          className="btn-pill-outline px-3 py-1 text-xs disabled:opacity-50"
+          className="sp-btn gap-1.5"
         >
-          <RefreshCw className="h-3 w-3" />
+          <RefreshCw className="h-3.5 w-3.5" />
           {generate.isPending ? "Generating…" : flow ? "Regenerate" : "Generate flow"}
-        </button>
+        </Button>
       </div>
 
       {flowQ.isLoading ? (

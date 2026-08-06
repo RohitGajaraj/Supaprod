@@ -216,6 +216,7 @@ import {
   type MarkState,
 } from "@/components/shell/primitives";
 import { capturedByHand, signalPreview, sourceLabel, withTimeout } from "./format";
+import { CrewWorking } from "@/components/shell/CrewWorking";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { stillWaiting } from "@/lib/query-state";
 
@@ -1297,6 +1298,27 @@ export function DiscoverSurface({
         </>
       }
     >
+      {/* THE AUTONOMOUS PATH, VISIBLE, ON STATION 01. Renders nothing unless a
+          mission row in this workspace is running, so it costs no space when
+          the crew is idle and cannot show a step that did not happen. It sits
+          above the headline for the same reason it does on Decide, Build and
+          Ship: the crew line is about the workspace, and the station's own
+          reporting starts below the title.
+
+          IT IS NOT THE LINE BELOW IT, and the two never say the same thing.
+          `AgentRelay variant="station" station="sense"` reports only agents
+          whose station resolves to sense, in the swarm HUD's own read; this
+          reports any mission mid-run, whichever station it is standing on, so
+          an Engineer building while you read clusters is finally visible from
+          here. Both are honest about their own scope, which is why they can
+          share a surface.
+
+          WHAT IT DOES NOT COVER, said plainly so nobody assumes otherwise:
+          clustering. `clusterSignals` reaches `clusterSignalsCore`, which
+          touches signals, themes and lineage and writes no mission row at all,
+          so pressing "Cluster them now" is still reported by the button's own
+          label and nothing else. See use-live-agents.ts. */}
+      <CrewWorking />
       <PageHead
         title={headline}
         sub={

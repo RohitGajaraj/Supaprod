@@ -365,6 +365,14 @@ function Learn() {
         ) : null
       }
     >
+      {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE A PERSON ACTUALLY READS.
+          This mount existed only inside `errorComponent` above, so the crew
+          line appeared on Learn exactly when the station had CRASHED and never
+          when it was working — the one branch where an agent's sentence is
+          least useful. Above the headline, as on Decide, Build, Ship, Design
+          and Brain. Renders nothing unless an agent is genuinely mid-run. See
+          use-live-agents.ts. */}
+      <CrewWorking />
       <PageHead title={headline} sub={sub} />
 
       {/* The write this stage exists for. It owns its own reads, its own

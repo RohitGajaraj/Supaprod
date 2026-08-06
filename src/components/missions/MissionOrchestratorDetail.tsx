@@ -1,14 +1,31 @@
-// OBS-10: the orchestrator-mission detail body, ported unchanged (same data,
-// same mutations, same Ember-Editorial styling as the rest of /build/$missionId,
-// which itself has not yet moved to the newer Obsidian primitives) from the
-// retired /missions/$missionId route. Rendered by /build/$missionId and the
-// MissionSlideOver's "Open full view" link whenever a mission's `kind` is
-// 'mission' (no 'builder' agent run — an orchestrator goal-run, not a Studio
-// code-gen session). Functionality preserved exactly: live polling, orchestrator
+// OBS-10: the orchestrator-mission detail body, ported from the retired
+// /missions/$missionId route with its data, mutations and Ember-Editorial
+// styling intact. Functionality preserved exactly: live polling, orchestrator
 // advance, the governance gate, memory context, hop input/output/handoffs,
 // capture-as-decision, replay-with-model, cancel, and the failed-mission retry
 // path. Only the route-level chrome (TopBar, back link, outer padding) was
 // dropped — that now comes from the host route.
+//
+// WHERE IT ACTUALLY MOUNTS, because the old header named two doors that are
+// gone. One caller: `_authenticated.runs.$missionId.tsx` renders it inside
+// `<Block title="What happened, in order">` whenever a mission's `kind` is
+// 'mission' (no 'builder' agent run — an orchestrator goal-run, not a Studio
+// code-gen session). `/build/$missionId` and `/missions/$missionId` are both
+// redirect-only route files pointing at `/runs/$missionId` now, and
+// `MissionSlideOver` — whose "Open full view" link the old header credited —
+// was deleted by the runs-board rewrite and survives only in comments.
+//
+// THE BUTTONS ARE NO LONGER EMBER-EDITORIAL. Five controls here composed the
+// retired palette's `.btn` family, and styles.css paints
+// `.btn-primary` as an ember GRADIENT FILL with an inset white highlight. The
+// standing colour ruling (docs/design/DESIGN-SYSTEM.md, "The founder's live
+// rulings") is that ember is rare and "explicitly not the default for approval
+// buttons, actions or tasks", and ink.css:236 declares it the mark that "marks
+// the human, and nothing else" — every legitimate use in the system is a colour
+// or an edge, never a fill. Those five are now `<Button>` / `.sp-btn` from
+// @/components/shell/primitives, which resolves through the --sp-* layer. The
+// rest of the file still runs on the legacy --text-*/--hairline tokens carried
+// by the [data-obsidian] bridge; that port is a separate job.
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +45,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/shell/primitives";
 import { MonoLabel, StepDot, StatusBadge, VerdictChip } from "@/components/supaprod/Primitives";
 import { toolConsequence, REVERSIBILITY_LABEL } from "@/lib/tool-consequences";
 import { MissionGraph, type MissionGraphStep } from "@/components/supaprod/MissionGraph";
@@ -59,7 +77,11 @@ type Hop = MissionDetail["hops"][number];
 type Handoff = MissionDetail["messages"][number];
 
 /* Shared interaction affordances (state audit 2026-07-12): the token-traced
-   focus-visible ring, never removed, on every pressable in this file. */
+   focus-visible ring, never removed, on every BESPOKE pressable in this file:
+   the mono-label chips and the outline pills built out of raw <button>s.
+   The five `<Button>`/`.sp-btn` controls do not carry it and do not need it:
+   `[data-obsidian] :focus-visible` in styles.css paints the same `--focus-ring`
+   on them at (0,2,0), so the utility here would only be a second copy. */
 const FOCUS =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]";
 /* Hover for the quiet outline pills: background in the class (never inline)
@@ -268,29 +290,55 @@ function GatePanel({
               </span>
               {appr.rationale ? `. ${appr.rationale}` : "."}
             </p>
+            {/* NEITHER OF THESE IS `variant="primary"`, AND THE REASON IS ON
+                THE SAME SCREEN. The host route already renders its own <Gate>
+                for these approvals — `getStudioSession` selects every
+                `agent_approvals` row on the mission and runs.$missionId.tsx
+                hands the pending one it picks to `<Button variant="primary">`.
+                This panel re-queries the same table by the live hop's
+                `trace_id`, so
+                a pending call on the live hop draws a gate in BOTH places at
+                once. primitives.css states the rule this file has to keep —
+                "one primary per screen" — so the echo takes the raised default
+                and the page Gate keeps the ember edge.
+                WHAT WAS HERE BEFORE: an ember GRADIENT FILL with `--cta-ink`
+                text (Approve) next to `.btn-reject`, an ember-outlined pill.
+                Both spent the colour reserved for "this one is yours" on the
+                quieter of two copies of one decision.
+                THE PAIR IS SYMMETRIC ON PURPOSE. `variant="ghost"` was the
+                obvious home for Reject and it is wrong here: sp's ghost carries
+                no resting border, so it reads as text, and a reject that is
+                quieter than its approve nudges the click on the one surface in
+                the product where the click authorises a tool to run. Both stay
+                raised controls; the icon and the consequence in the label do
+                the distinguishing, which is this file's grammar already.
+                `className` is passed deliberately, and it repeats `sp-btn`
+                because it has to: `Button` sets `className="sp-btn"` BEFORE
+                spreading its rest props, so a className given here replaces it
+                rather than adding to it. `loom-press` is kept for its one real
+                job — `[data-obsidian] .loom-press` gives a 44px minimum touch
+                target at 768px and below, which `.sp-btn` (a flat 38px, no
+                media query) does not, and dropping it would shrink a governance
+                control on a phone. */}
             <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
-              <button
-                className="btn loom-press"
+              <Button
+                className="sp-btn loom-press"
                 disabled={decide.isPending}
-                style={{
-                  background:
-                    "linear-gradient(180deg, var(--cta-grad-top), var(--cta-grad-bottom))",
-                  color: "var(--cta-ink)",
-                  fontWeight: 600,
-                }}
+                style={{ gap: 6, whiteSpace: "nowrap" }}
                 onClick={() => decide.mutate({ id: appr.id, decision: "approve" })}
               >
                 <Check size={16} />
                 Approve · runs the tool
-              </button>
-              <button
-                className="btn btn-reject"
+              </Button>
+              <Button
+                className="sp-btn loom-press"
                 disabled={decide.isPending}
+                style={{ gap: 6, whiteSpace: "nowrap" }}
                 onClick={() => decide.mutate({ id: appr.id, decision: "reject" })}
               >
                 <X size={16} />
                 Reject · nothing runs
-              </button>
+              </Button>
             </div>
           </div>
         ))}
@@ -663,12 +711,30 @@ function MissionCompounding({ data }: { data: MissionDetail }) {
       ) : (
         <>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12 }}>
-            {/* Geist Pixel brand moment (DESIGN-TEMPO §3/§8): the one numeral
-                on this screen that IS the moat made visible, at most once
-                per surface. */}
+            {/* THIS WAS `font-pixel`, AND PIXEL IS RETIRED FROM THE APP.
+                Founder ruling 2026-08-05, recorded in
+                docs/design/DESIGN-SYSTEM.md under "The founder's live rulings":
+                Geist Pixel stays on the public marketing heroes and leaves
+                every authenticated station, because the app "is an instrument
+                someone works in all day. Pixel is costume there." This is an
+                authenticated station, reached at /runs/$missionId.
+                THE BRAND MOMENT IS NOT REMOVED, IT IS PROMOTED. The Pixel span
+                set no font-size at all, so the numeral rendered at the 13px
+                body size that styles.css gives `body` — the costume was the
+                only thing making it read as a stat. It now says the same thing
+                in the working typeface and louder: Geist at 22/600, still
+                baseline-aligned with the sentence beside it, still the one
+                numeral on this surface that IS the moat made visible. */}
             <span
-              className="font-pixel tabular-nums"
-              style={{ lineHeight: 1, color: "var(--text-primary)" }}
+              className="tabular-nums"
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: 22,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                lineHeight: 1,
+                color: "var(--text-primary)",
+              }}
             >
               {n}
             </span>
@@ -927,14 +993,21 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           <p style={{ color: "var(--text-muted)", marginTop: 8 }}>
             {(m.error as Error)?.message?.slice(0, 160)}
           </p>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm loom-press"
-            style={{ marginTop: 14 }}
+          {/* The raised default, not `variant="primary"`: this branch replaces
+              the whole body, so the retry is the only control on it and needs
+              no ember edge to be found. It was `.btn btn-ghost btn-sm`, a
+              bordered pill from the retired palette; the raised `.sp-btn` is
+              the same shape one step more visible, which is the direction the
+              ratchet allows. `sp-btn` is repeated in `className` because
+              `Button` spreads rest props after its own `className`, and
+              `loom-press` is what keeps the 44px phone touch target. */}
+          <Button
+            className="sp-btn loom-press"
+            style={{ marginTop: 14, whiteSpace: "nowrap" }}
             onClick={() => m.refetch()}
           >
             Retry · reloads the mission
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -983,15 +1056,25 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 a uuid is a database key wearing a label. */}
               Mission · {traceRef(data.mission.id)}
             </MonoLabel>
-            <h1
-              style={{
-                margin: "8px 0 6px",
-                fontFamily: "var(--font-sans)",
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: "var(--text-primary)",
-              }}
-            >
+            {/* `.sp-title`, because the inline rules here set family, weight,
+                tracking and colour and NEVER a font-size. An h1 that declares
+                no size falls through to styles.css's base layer, which sizes
+                every h1 at `clamp(2.25rem, 4vw, 3.75rem)` — 36px at the narrow
+                end, ~58px on a 1440px window. That is two to three times the
+                page title sitting directly above it: runs.$missionId.tsx
+                renders `<PageHead title={title} />`, whose body is
+                `<h1 className="sp-title">` at 25px, printing
+                `stripAutoPrefix(mission.title)` — the SAME string this line
+                prints. So the hierarchy was inverted AND the title was doubled.
+                Sizing is fixed here; the DUPLICATE IS NOT, because deleting one
+                of the two is a call about this page's information architecture
+                and not a styling fix, and the copy carrying the trace ref, the
+                maker's mark and the goal is this one. Left for a decision.
+                The margin stays
+                inline: Tailwind's preflight zeroes heading margins and
+                `.sp-title` sets none, so dropping it would close the gap above
+                the maker's-mark thread below. */}
+            <h1 className="sp-title" style={{ margin: "8px 0 6px" }}>
               {stripAutoPrefix(data.mission.title)}
             </h1>
             {/* §6: the maker's mark — a static 24px thread under the title. */}
@@ -1610,18 +1693,31 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
             </p>
           )}
           <div style={{ display: "flex", gap: "var(--geist-space-2x)", flexWrap: "wrap" }}>
-            <button
-              className="btn btn-primary btn-sm"
+            {/* THE ONE PRIMARY THIS FILE ASKS FOR. `.btn-primary` painted it as
+                an ember gradient fill with an inset white highlight — the exact
+                shape the ruling forbids. `.sp-btn[data-variant="primary"]` says
+                the same "this one is yours" with the Gate's ember EDGE on a
+                raised control, so the recovery action stays the loudest thing
+                in this section without inventing a fill. */}
+            <Button
+              variant="primary"
               disabled={replay.isPending}
+              style={{ gap: 6, whiteSpace: "nowrap" }}
               onClick={() => replay.mutate()}
             >
               <RotateCcw size={16} />
               {replay.isPending ? "Replaying…" : "Replay · same goal, new mission"}
-            </button>
+            </Button>
+            {/* A <Link>, not a <Button>: `Button` renders a <button>, and this
+                one navigates, so it has to stay an <a> to keep middle-click,
+                copy-link and the router's prefetch. It wears the primitive's
+                class directly instead — `.sp-btn` is written against the class,
+                not the element, so an anchor gets the same control. */}
             <Link
               to="/engine-room"
               search={{ room: "safety", view: "rules" }}
-              className="btn btn-ghost btn-sm"
+              className="sp-btn"
+              style={{ whiteSpace: "nowrap" }}
             >
               View guardrails
             </Link>

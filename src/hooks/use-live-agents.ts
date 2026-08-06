@@ -43,6 +43,17 @@ import { agentDisplayName } from "@/lib/agent-vocabulary";
  * DELIBERATELY NOT A POLL OF ITS OWN. `refetchInterval` is left to the shell,
  * which owns the cadence and already tunes it (4s while work is moving). A
  * second interval here would double the traffic to say the same thing.
+ *
+ * AND IT CARRIES THE WORK, NOT ONLY THE NAME. `subGoal` below is the sentence
+ * the planner wrote for the step the mission is actually on, passed through
+ * verbatim — nothing here rewrites it, and nothing should. A name plus a state
+ * proves something is alive; the sentence proves something is thinking. It is
+ * the difference between a surface that can only say "Engineer is working on
+ * Beacon SSO" and one that can put "Implement a /health JSON endpoint and a
+ * plain landing page in the starter app" underneath it. It costs nothing here —
+ * `listMissions` reads `mission_steps` for the step dots either way — and it is
+ * null often enough (single-run missions have no steps at all) that every
+ * reader must have a fallback rather than assume it.
  */
 
 /** The statuses that mean an agent is genuinely mid-run. Same set the shell uses. */
@@ -56,6 +67,27 @@ export type LiveAgent = {
   slug: string | null;
   /** The name a person reads. Falls back to the catalog for an unknown slug. */
   name: string;
+  /**
+   * The step this agent is on, in the planner's own words — a model-written
+   * imperative sentence ("Create a sprint plan outlining the tasks, estimated
+   * effort, and sequence for implementing the /health JSON endpoint and the
+   * landing page, based on the provided PRD."). Measured across all 291
+   * `mission_steps` rows on 2026-08-06: median 110 characters, p90 240, longest
+   * 561, so a reader must decide how much of it fits rather than assume a
+   * phrase.
+   *
+   * NULL IS NORMAL, not an error: the mission has no step mid-flight, or it is
+   * a single-run mission with no `mission_steps` rows. Show the title instead;
+   * never write a sentence to fill the gap.
+   *
+   * It is PROSE, and that rules out one place it must not go: `AgentPulse`'s
+   * `detail` slot is mono, nowrap and single-line (`.sp-pulse-detail`,
+   * primitives.css:2592-2605) and its contract asks for "a NOUN THIS SURFACE
+   * ALREADY READ. Never a second verb" (AgentPulse.tsx:112-117). An imperative
+   * sentence there collides with the rotating verb and gets clipped to a few
+   * mono words. Give it its own line. See CrewWorking.tsx.
+   */
+  subGoal: string | null;
 };
 
 export type LiveAgents = {
@@ -86,6 +118,7 @@ export function useLiveAgents(): LiveAgents {
         title: m.title,
         slug: m.current_agent_slug,
         name: agentDisplayName(m.current_agent_slug, null),
+        subGoal: m.current_sub_goal,
       }));
     return { working, any: working.length > 0 };
   }, [missions.data]);

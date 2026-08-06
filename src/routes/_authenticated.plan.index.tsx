@@ -501,6 +501,15 @@ function PlanPage() {
         ) : null
       }
     >
+      {/* THE AUTONOMOUS PATH, VISIBLE, ON THE SURFACE A PERSON ACTUALLY READS.
+          This mount existed only inside `errorComponent` above, so the crew
+          line appeared on Plan exactly when the station had CRASHED and never
+          when it was working — the one branch where an agent's sentence is
+          least useful. The context rail beside this already says "working on
+          N" per agent, which is a COUNT; this says the sentence the running
+          mission is on. Renders nothing unless an agent is genuinely mid-run.
+          See use-live-agents.ts. */}
+      <CrewWorking />
       <PageHead
         title={headline}
         sub="Every bet names the outcome it promises and how that outcome gets measured."

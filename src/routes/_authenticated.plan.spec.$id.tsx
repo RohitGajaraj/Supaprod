@@ -209,6 +209,61 @@
  * still owed and does not live in this file: /decide declares no
  * `validateSearch`, so there is no way to deep-link ONE bet, and the door here
  * says "Open the ranking" rather than claiming a focus the route cannot honour.
+ *
+ * ----------------------------------------------------------------------------
+ * 2026-08-06, THE HANDOFF PASS: THE PRIMARY SAYS WHAT THE PAGE JUST SAID.
+ *
+ * An approved design had no honest way out of this page. "Where this spec goes
+ * next" printed "A screen is already drawn and its design is approved. This
+ * spec can reach Build." and the primary under it offered to hand the spec to
+ * Design, which wrote `design_requested` and navigated back to the station that
+ * had already finished. The only route to Build was "Straight to Build", whose
+ * own sentence, hint and receipt all said no screen gets drawn, and which
+ * records `design_skipped` on a spec that went through Design and was approved.
+ * A false stage event is the one class of defect that compounds against a
+ * product whose moat is the record.
+ *
+ * SIX SITES, ALL OF THEM THE SAME SENTENCE FACING A DIFFERENT WAY: the section's
+ * own `sub` above the radio, the primary (now "Send it to Build", dispatching
+ * without re-writing a route that Design already honoured), the consequence line
+ * under the radio, BOTH hover hints, and the receipt written after the skip.
+ * `designIsDoneAndApproved` is the one predicate all six read, so they cannot
+ * drift apart again.
+ *
+ * THIS COUNT WENT FOUR, THEN FIVE, THEN SIX, each time because a reader looked
+ * again rather than because the code changed. The fifth was the DESIGN route's
+ * own hover hint, a constant reading "Design draws the screen, then somebody
+ * judges it before Build starts" on a spec whose screen was drawn and judged;
+ * it is `designRouteHint()` now. The sixth was the Block `sub`, which promised
+ * "either way the choice goes on this spec's record" directly above the one
+ * path that deliberately writes no route event; it is `routeSectionSub()` now.
+ * Both are keyed off the same `hasDrawing` / `gateStatus` pair as their
+ * neighbours, and both keep their old words in the undrawn default. The count
+ * is corrected in place rather than quietly, because a docblock that says four
+ * when the code sweeps six is the next reader's wrong map.
+ *
+ * WHAT IS NOT REMOVED, AND THE ONE THING THAT IS. Through Design is still there,
+ * still first, still what the picker opens on unless the workspace turned the
+ * design stage off, and on a spec whose drawing is pending or sent back it still
+ * says "Hand it to Design" and goes there. The direct route on an approved
+ * drawing is still selectable; what changed is that it no longer describes the
+ * record it would write as if that record were true.
+ *
+ * WHAT IS REMOVED, stated plainly because an earlier draft of this docblock
+ * claimed otherwise: on an APPROVED drawing this page no longer has any way
+ * back to Design. That is the finding's own ruling, that re-opening design
+ * would be a different action with a different name and a different event
+ * rather than this one. But it means an approved spec that wants a second
+ * design pass has no door here, and there is no "/design" link below either:
+ * the only two on this surface are the post-choice navigate and the gate-holds
+ * blocker, and neither can fire once the gate reads approved. Whoever adds that
+ * action owns naming the event it writes.
+ *
+ * AND THE SENDS ARE NOW GATED THE SAME WAY, because they are one dispatch: the
+ * GitHub-issue precondition follows `routeSendsToBuild` rather than the radio,
+ * and the missing-issue blocker finally has the door the gate-holds one always
+ * had, running the same `createIssue` mutation as the action row so there is
+ * one writer and two ways to reach it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -648,12 +703,35 @@ function SpecEditorPage() {
       else commit("Nothing was sent", e.message, true);
     },
   });
-  const sendToBuild = () =>
-    gateDispatch({
-      check: () => fCanDispatch({ data: { prdId: id } }),
-      dispatch: () => sendToStudio.mutate(),
-      openGate: (reason) => setRepoGate({ reason }),
-    });
+  /**
+   * THE PRE-CHECK IS A ROUND TRIP, AND NOTHING WAS PENDING DURING IT.
+   *
+   * `gateDispatch` awaits `canDispatchToRepo` before it calls `mutate`, and
+   * across that window `sendToStudio.isPending` is still false. The button that
+   * started it therefore sat enabled, wearing its resting label, with a dispatch
+   * already in flight. A second press there is a SECOND builder mission on the
+   * same spec, which is the defect ReadyToBuild's own docblock records ("two
+   * agents on one issue, and the founder pays for both").
+   *
+   * It mattered less while the only caller was `chooseRoute.onSuccess`, where
+   * the finger has already left the button. The approved-design primary below
+   * calls this on the click itself, so the window is now the first thing a
+   * double click lands in. One flag, cleared in `finally` so a check that throws
+   * cannot leave the control dead.
+   */
+  const [checkingRepo, setCheckingRepo] = useState(false);
+  const sendToBuild = async () => {
+    setCheckingRepo(true);
+    try {
+      await gateDispatch({
+        check: () => fCanDispatch({ data: { prdId: id } }),
+        dispatch: () => sendToStudio.mutate(),
+        openGate: (reason) => setRepoGate({ reason }),
+      });
+    } finally {
+      setCheckingRepo(false);
+    }
+  };
 
   /**
    * THE ROUTE. Read before anything is offered, because both options describe
@@ -677,6 +755,50 @@ function SpecEditorPage() {
     routeInfo?.chosen?.route ??
     (routeInfo?.stageEnabled === false ? "direct" : "design");
 
+  /**
+   * DESIGN HAS ALREADY DONE ITS WORK, SO "THROUGH DESIGN" MEANS "GO TO BUILD".
+   *
+   * THE DEFECT. `routeConsequence` said, correctly, "A screen is already drawn
+   * and its design is approved. This spec can reach Build." The primary under
+   * that sentence still read "Hand it to Design", and pressing it wrote a
+   * `design_requested` stage event and navigated back to the station that had
+   * already finished. The sentence and the button disagreed, and the button was
+   * the one writing to the record. The only way to Build was to flip the radio
+   * to "Straight to Build", which records `design_skipped` on a spec that went
+   * through Design and was approved. On the product whose moat is the record,
+   * a false stage event costs more than the extra click does.
+   *
+   * BOTH HALVES OF THE CONDITION, because branching on the gate word alone
+   * would put "Send it to Build" under the sentence "Design draws the screen
+   * this spec implies" on a spec with nothing drawn: the same defect facing the
+   * other way. This is exactly the pair `routeConsequence` branches on.
+   *
+   * WHY IT WRITES NO ROUTE EVENT. The design path is already on this spec's
+   * stage record without one: `decideDesignGate` records `design_approved` with
+   * its actor at the moment the call is made. Measured 2026-08-06 on the live
+   * database: 81 specs, 5 with a drawing, 2 with an approved gate, and exactly
+   * those 2 carry a `design_approved` stage event. Writing `design_requested`
+   * as the spec LEAVES Design would put the trail out of order to repeat
+   * something the trail already says.
+   *
+   * AND THIS DOES COST SOMETHING, which an earlier draft of this comment denied.
+   * It said a spec wanting another pass still has "Through Design" with its own
+   * "Hand it to Design" and that the Design station is one click away below.
+   * Neither holds on the spec this branch is about: once the gate reads approved
+   * the same radio option reads "Send it to Build", and there is no "/design"
+   * link further down the page. Re-opening an approved design is a real thing
+   * somebody may need and it is not offered here. It should not be THIS action
+   * wearing a second meaning, because that is the false stage event again; it
+   * wants its own name and its own event.
+   */
+  const designIsDoneAndApproved =
+    routeInfo?.hasDrawing === true && routeInfo.gateStatus === "approved";
+
+  /** True when pressing the primary dispatches rather than navigates. Both
+   *  routes can reach Build now, so the preconditions below are read off THIS
+   *  rather than off the radio. */
+  const routeSendsToBuild = route === "direct" || designIsDoneAndApproved;
+
   const chooseRoute = useMutation({
     mutationFn: (next: DesignRouteChoice) => mChooseRoute({ data: { prdId: id, route: next } }),
     onSuccess: (res, next) => {
@@ -690,9 +812,15 @@ function SpecEditorPage() {
         void navigate({ to: "/design", search: { focus: id } as never });
         return;
       }
+      // THE THIRD PLACE THIS SENTENCE WAS WRITTEN, and the only one that lands
+      // after the write. "No screen gets drawn" is not true of a spec that has
+      // one drawn and approved, so on that spec the receipt says what the click
+      // actually put on the record instead of repeating the default.
       commit(
         "You sent it straight to Build",
-        "No screen gets drawn. The skip is on this spec's record and Design shows it was sent past.",
+        designIsDoneAndApproved
+          ? "A skip is on this spec's record and Design shows it was sent past, on a spec whose screen was already drawn and approved."
+          : "No screen gets drawn. The skip is on this spec's record and Design shows it was sent past.",
       );
       void sendToBuild();
     },
@@ -707,23 +835,115 @@ function SpecEditorPage() {
       if (!routeInfo.hasDrawing) {
         return "Design draws the screen this spec implies, and somebody judges the drawing before Build starts.";
       }
-      return routeInfo.gateStatus === "approved"
-        ? "A screen is already drawn and its design is approved. This spec can reach Build."
+      if (routeInfo.gateStatus === "approved") {
+        return "A screen is already drawn and its design is approved. This spec can reach Build.";
+      }
+      // "Sent back" is the word Design itself prints for a rejected gate
+      // (GATE_WORD in components/design/vocabulary.ts), and it is not the same
+      // fact as "waiting": somebody DID judge this drawing and asked for
+      // changes. One sentence for both states told the person who acted that
+      // nobody had.
+      return routeInfo.gateStatus === "rejected"
+        ? "A screen is already drawn and Design sent it back. The next pass happens there."
         : "A screen is already drawn and is waiting on a call at Design.";
     }
-    return routeInfo.gateHolds
-      ? "A screen is already drawn for this spec and nobody has judged it. That call has to be settled at Design first; skipping the step cannot clear it."
-      : "No screen gets drawn. Build reads the spec as it stands, and the skip goes on this spec's record.";
+    if (routeInfo.gateHolds) {
+      return routeInfo.gateStatus === "rejected"
+        ? "A screen is already drawn for this spec and Design sent it back. That call has to be settled there; skipping the step cannot clear it."
+        : "A screen is already drawn for this spec and nobody has judged it. That call has to be settled at Design first; skipping the step cannot clear it.";
+    }
+    // The other half of the same falsehood. With a drawing approved, this route
+    // still writes `design_skipped`, and no design was skipped. The door stays
+    // open, because a person may have a reason; what it stops doing is
+    // describing the record it would write as if it were true.
+    if (designIsDoneAndApproved) {
+      return "A screen is already drawn for this spec and its design is approved, so there is nothing to skip. This route would still put a skip on the record. Through Design sends it to Build without one.";
+    }
+    return "No screen gets drawn. Build reads the spec as it stands, and the skip goes on this spec's record.";
   };
 
+  /**
+   * The hover hint on "Through Design", and it was the fifth of the six.
+   *
+   * It read "Design draws the screen, then somebody judges it before Build
+   * starts" in EVERY state, including the one where the screen is drawn, the
+   * judgment is already in, and the primary directly underneath says "Send it to
+   * Build". Three statements about one spec, one of them describing finished
+   * work as work about to happen. An earlier draft of this comment called it the
+   * LAST constant string in this region; it was not. The Block `sub` above the
+   * radio was still one, and it is `routeSectionSub()` now.
+   *
+   * BOTH HALVES, the same rule `designIsDoneAndApproved` is written under: it
+   * branches on the `hasDrawing` / `gateStatus` PAIR that `routeConsequence`'s
+   * design arm branches on, never on the gate word alone. A spec with nothing
+   * drawn carries `design_gate_status = 'pending'` by column default and no
+   * design was pending, so reading that word by itself is the defect three other
+   * surfaces were corrected for today. The undrawn default is the same words it
+   * always was, and it is still what most specs get.
+   */
+  const designRouteHint = (): string => {
+    if (designIsDoneAndApproved) {
+      return "A screen is already drawn and approved, so this sends the spec to Build rather than back to Design.";
+    }
+    if (routeInfo?.hasDrawing) {
+      return routeInfo.gateStatus === "rejected"
+        ? "Design sent the drawn screen back. This hands it there for the next pass."
+        : "A drawn screen is waiting on a call at Design. This hands it back to the same queue.";
+    }
+    return "Design draws the screen, then somebody judges it before Build starts.";
+  };
+
+  /** The hover hint on "Straight to Build". It has to agree with the sentence
+   *  under the radio rather than restate the default at every gate state. */
+  const directRouteHint = (): string => {
+    if (routeInfo?.gateHolds) {
+      return routeInfo.gateStatus === "rejected"
+        ? "Design sent the drawn screen back. Settle it there first."
+        : "A drawn screen is waiting on a call at Design. Settle it there first.";
+    }
+    return designIsDoneAndApproved
+      ? "A screen is already drawn and approved, so this route would record a skip that did not happen."
+      : "No screen gets drawn. Build reads the spec as it stands.";
+  };
+
+  /**
+   * THE SIXTH SITE, and it was the section's own standing description.
+   *
+   * The Block's `sub` was the constant "A spec can be drawn first or built as
+   * it stands. Pick the one this outcome needs; either way the choice goes on
+   * this spec's record." On an approved drawing both halves of that second
+   * sentence are false. The two options no longer branch on whether a screen
+   * gets drawn, because the screen is drawn: they both end at Build. And
+   * "either way the choice goes on this spec's record" is the exact promise the
+   * approved path deliberately does not keep, since pressing "Send it to Build"
+   * runs `sendToBuild` and never calls `chooseDesignRoute`, which is the only
+   * writer of a route stage event. The sentence that introduced the region
+   * promised the record entry the fix had just stopped writing.
+   *
+   * It sits above the radio, so it is read before any of the five strings the
+   * handoff pass swept, and it is the same predicate as all of them.
+   */
+  const routeSectionSub = (): string =>
+    designIsDoneAndApproved
+      ? "The screen this spec needs is already drawn and approved, so both routes end at Build. Through Design sends it there and writes nothing further, because Design's approval is already on this spec's record."
+      : "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record.";
+
   /** Why the send cannot run right now, or null when it can. Never a greyed
-   *  button with no reason beside it. */
+   *  button with no reason beside it.
+   *
+   *  IT NOW COVERS BOTH DISPATCHING ROUTES. "Through Design" used to be
+   *  unblockable because it only navigated. On an approved drawing it runs the
+   *  same `sendToBuild` the direct route runs, and one dispatch cannot have two
+   *  different preconditions on one page depending on which radio is lit.
+   *  Handing a spec TO Design still blocks on nothing, because nothing
+   *  dispatches. Neither of the two specs this can fire on today is affected:
+   *  both carry an issue url (measured 2026-08-06). */
   const routeBlocker = (): string | null => {
     if (!routeInfo) return null;
-    if (route === "design") return null;
+    if (!routeSendsToBuild) return null;
     if (routeInfo.gateHolds) return "The drawn screen has to be settled at Design first.";
     if (!prdQ.data?.prd?.github_issue_url) {
-      return "Build works from a GitHub issue. Create the issue above and this opens.";
+      return "Build works from a GitHub issue. Open one and this runs.";
     }
     return null;
   };
@@ -1356,7 +1576,11 @@ function SpecEditorPage() {
                 detail={title.trim() || prd.title}
               />
             ) : (
-              "A spec can be drawn first or built as it stands. Pick the one this outcome needs; either way the choice goes on this spec's record."
+              // Derived, like every other sentence in this region. A constant
+              // here promised that "either way the choice goes on this spec's
+              // record" directly above a primary that, on an approved drawing,
+              // writes no route event at all; see `routeSectionSub`.
+              routeSectionSub()
             )
           }
         >
@@ -1376,22 +1600,31 @@ function SpecEditorPage() {
                     {
                       id: "design",
                       label: "Through Design",
-                      title: "Design draws the screen, then somebody judges it before Build starts",
-                      disabled: chooseRoute.isPending || sendToStudio.isPending,
+                      // Derived, exactly like its neighbour. A constant here
+                      // promised a drawing and a judgment on a spec that had
+                      // already had both, under a button reading "Send it to
+                      // Build"; see `designRouteHint`.
+                      title: designRouteHint(),
+                      // `checkingRepo` joins the pair for the same reason the
+                      // other two are here: a send is in flight, and moving the
+                      // radio under it would change the label and the sentence
+                      // describing a dispatch already on its way.
+                      disabled: chooseRoute.isPending || checkingRepo || sendToStudio.isPending,
                     },
                     {
                       id: "direct",
                       label: "Straight to Build",
-                      title: routeInfo?.gateHolds
-                        ? "A drawn screen is waiting on a call at Design. Settle it there first."
-                        : "No screen gets drawn. Build reads the spec as it stands.",
+                      title: directRouteHint(),
                       // The design gate, unchanged and enforced here too: a
                       // drawing that exists and is not approved is a call
                       // somebody owes, and skipping the step is not a way to
                       // stop owing it. The server refuses this as well, so a
                       // stale page cannot get past it either.
                       disabled:
-                        routeInfo?.gateHolds || chooseRoute.isPending || sendToStudio.isPending,
+                        routeInfo?.gateHolds ||
+                        chooseRoute.isPending ||
+                        checkingRepo ||
+                        sendToStudio.isPending,
                     },
                   ]}
                   onPick={setRoutePick}
@@ -1416,18 +1649,33 @@ function SpecEditorPage() {
               ) : null}
 
               <Actions>
+                {/* THE PRIMARY SAYS WHAT THE PAGE JUST SAID. On an approved
+                    drawing it dispatches instead of writing a route, because
+                    the route was chosen and Design honoured it; see
+                    `designIsDoneAndApproved`. Every other state clicks exactly
+                    as it did: pick, record, then navigate or send. The one
+                    other change is `checkingRepo` in the pending pair, which
+                    covers the window the repo pre-check opens. */}
                 <Button
                   variant="primary"
                   disabled={
-                    chooseRoute.isPending || sendToStudio.isPending || routeBlocker() !== null
+                    chooseRoute.isPending ||
+                    checkingRepo ||
+                    sendToStudio.isPending ||
+                    routeBlocker() !== null
                   }
                   title={routeBlocker() ?? undefined}
-                  onClick={() => chooseRoute.mutate(route)}
+                  onClick={() => {
+                    if (route === "design" && designIsDoneAndApproved) void sendToBuild();
+                    else chooseRoute.mutate(route);
+                  }}
                 >
-                  {chooseRoute.isPending || sendToStudio.isPending
+                  {chooseRoute.isPending || checkingRepo || sendToStudio.isPending
                     ? "Sending"
                     : route === "design"
-                      ? "Hand it to Design"
+                      ? designIsDoneAndApproved
+                        ? "Send it to Build"
+                        : "Hand it to Design"
                       : "Send it straight to Build"}
                 </Button>
               </Actions>
@@ -1435,7 +1683,17 @@ function SpecEditorPage() {
               {/* NEVER A DEAD END. When the send cannot run, the reason is on
                   the page under the button rather than hidden in a title
                   attribute a keyboard user never sees, and it names who acts
-                  next. */}
+                  next.
+
+                  AND NOW BOTH REASONS HAVE A DOOR. `routeBlocker` returns
+                  exactly two sentences and only the first one had one; the
+                  second said "create the issue above", which on a surface this
+                  long means scrolling back past the whole document to the
+                  action row and then back down to press send. The button here
+                  is the same `createIssue` mutation that row runs, so there is
+                  one writer and two ways to reach it. The branches mirror
+                  `routeBlocker`'s in order, so a third reason added there needs
+                  a third door here. */}
               {routeBlocker() ? (
                 <Empty
                   action={
@@ -1447,7 +1705,11 @@ function SpecEditorPage() {
                       >
                         Open it on Design
                       </Button>
-                    ) : undefined
+                    ) : (
+                      <Button disabled={createIssue.isPending} onClick={() => createIssue.mutate()}>
+                        {createIssue.isPending ? "Creating" : "Create GitHub issue"}
+                      </Button>
+                    )
                   }
                 >
                   {routeBlocker()}

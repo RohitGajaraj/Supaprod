@@ -244,6 +244,28 @@
   --sp-sink: #0d0d10; /* a recess: the record, the gate detail */
   --sp-float: #1c1c21; /* something genuinely floating */
 
+  /* ---- The one solid control ----
+   * THE PRIMARY BUTTON NEEDS A FACE, and the two obvious candidates were both
+   * wrong. `--sp-ink` is a white slab on this canvas and belongs to no palette
+   * in the product. `--sp-gate` is ember, which is reserved for the human's own
+   * mark and, tried as an edge on 2026-08-06, read as a decorated outline
+   * rather than as a button -- the founder's word for it was "not so great".
+   *
+   * So the primary is simply the FURTHEST STEP ON THE NEUTRAL LADDER the
+   * surfaces already climb: bg -> sink -> sheet -> lift -> float -> solid. It
+   * is the same family as every other surface, one clear stop above the raised
+   * control a secondary button uses, and it needs no new colour idea at all.
+   * A person reads "this is the one" from value, which is the quietest signal
+   * a design system has, and the theme stays one theme.
+   *
+   * Each theme moves AWAY from its own canvas: lighter on the dark target,
+   * inked on paper. Same rule, opposite direction, which is how the rest of
+   * this file already behaves. */
+  --sp-solid: #2b2b34; /* the primary button's face */
+  --sp-solid-hover: #35353f;
+  --sp-solid-ink: #f4f4f7; /* what is written on it */
+  --sp-solid-edge: rgba(255, 255, 255, 0.18);
+
   /* ---- Text ramp ---- prototype: --ink --body --mute */
   --sp-ink: #f4f4f7; /* the thing itself */
   --sp-body: #b4b4bd; /* supporting prose */
@@ -314,6 +336,14 @@
   --sp-lift: #f4efe3;
   --sp-sink: #e8e1d0;
   --sp-float: #fffdf7;
+
+  /* Paper's furthest step is DOWN, not up: the emphatic control on a sheet is
+   * the inked one. A shade softer than --sp-ink so the button is not the same
+   * value as the headline above it, and it darkens toward full ink on hover. */
+  --sp-solid: #3b3227;
+  --sp-solid-hover: #2b2318;
+  --sp-solid-ink: #faf6ed;
+  --sp-solid-edge: rgba(20, 14, 5, 0.28);
 
   --sp-ink: #2b2318;
   --sp-body: #5f5647;

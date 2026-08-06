@@ -628,40 +628,43 @@
  *
  * WHY NOT AN EMBER FILL, WHICH IS THE OBVIOUS SUBSTITUTION. Ember is declared
  * as the mark that "marks the human, and nothing else" (ink.css:236), and every
- * existing use of it is a COLOUR or an EDGE -- `color: var(--sp-gate)` and the
- * inset rings on `.sp-you[data-mine="true"]` and `.sp-field:focus`. There is no
- * ember fill anywhere in the system. Introducing one here would make the
- * loudest object on a station a colour the product has reserved for a quiet
- * signal, and it would fight the Gate, which is the surface that genuinely owns
- * the moment a person acts.
+ * existing use of it is a COLOUR or an EDGE. There is no ember fill anywhere in
+ * the system. Introducing one here would make the loudest object on a station a
+ * colour the product has reserved for a quiet signal, and it would fight the
+ * Gate, which is the surface that genuinely owns the moment a person acts.
  *
- * SO IT BORROWS THE GATE'S OWN GRAMMAR: a raised control that carries the ember
- * edge. Same formula as `.sp-you[data-mine="true"]` at :221-225 -- an inset 1px
- * at partial ember and a soft halo -- because that element means exactly this,
- * "this one is yours". The button now says the same thing in the same language
- * instead of shouting in a different one.
+ * AND NOT AN EMBER EDGE EITHER, WHICH IS WHAT THIS RULE TRIED FIRST. Borrowing
+ * `.sp-you[data-mine="true"]`'s inset ring gave a `--sp-lift` button wearing a
+ * partial-ember outline and a soft halo. Seen on /today the same evening, it
+ * read as a decorated rectangle rather than as a control: the fill was still
+ * the SECONDARY fill, so the only thing separating the main action from the
+ * buttons beside it was a thin warm line, and a thin warm line at 60% is not an
+ * affordance. It also spent the product's one accent on a chrome element. The
+ * founder's verdict was that it does not align with the theme, and he asked for
+ * something simple that still feels like a button.
  *
- * Every value is a token, so paper gets its own darker ember (#c2500f) with no
- * second rule. `border-color` goes transparent rather than the border being
- * removed: the 1px still occupies its box, so nothing reflows, and the ember
- * ring draws in the space the old border held.
+ * SO IT IS A BUTTON: A SOLID FACE, ONE STOP FURTHER UP THE SURFACE LADDER.
+ * The surfaces already run bg -> sink -> sheet -> lift -> float, each a raised
+ * neutral; `--sp-solid` is the next stop and nothing else in the product uses
+ * it. A secondary button is `--sp-lift`, so the primary is unmistakably the
+ * raised one, by value alone -- no accent, no glow, no second vocabulary. The
+ * edge is a plain hairline at 18%, which is what makes it read as an object
+ * with a top rather than a patch of lighter paint.
  *
- * The halo stays at 2px. `.sp-acts` sets the gap between controls, and a wider
- * ring would touch the neighbour before the gap did. */
+ * Every value is a token, so paper inverts the direction for free: there
+ * `--sp-solid` is a warm near-ink and the label flips to `--sp-solid-ink`. One
+ * rule, two themes, and the theme stays one theme.
+ *
+ * Hover moves the face, not the edge. Weight stays strong: with no colour doing
+ * the shouting, the label is part of the emphasis. */
 .sp-btn[data-variant="primary"] {
-  background: var(--sp-lift);
-  color: var(--sp-ink);
-  border-color: transparent;
+  background: var(--sp-solid);
+  color: var(--sp-solid-ink);
+  border-color: var(--sp-solid-edge);
   font-weight: var(--sp-weight-strong);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 60%, transparent),
-    0 0 0 2px color-mix(in oklab, var(--sp-gate) 10%, transparent);
 }
 .sp-btn[data-variant="primary"]:hover {
-  background: var(--sp-float);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 85%, transparent),
-    0 0 0 3px color-mix(in oklab, var(--sp-gate) 16%, transparent);
+  background: var(--sp-solid-hover);
 }
 .sp-btn[data-variant="ghost"] {
   border-color: transparent;
@@ -697,6 +700,23 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* A FILLED CONTROL CANNOT BE DISABLED BY OPACITY ALONE. Everything else on this
+ * button is a quiet face with dark-on-light or light-on-dark text, so fading
+ * the whole box fades figure and ground together and the ratio survives. The
+ * primary is the one control where the face and the label sit at OPPOSITE ends
+ * of the ramp -- near-ink and near-paper -- so fading both collapses them
+ * toward the same mid-tone and the label goes with it. Rendered on paper it
+ * was a taupe slab with a ghost of a word on it.
+ *
+ * So a disabled primary stops being the solid one. It drops to exactly the
+ * surface every other disabled control sits on, which is also the honest
+ * reading: a primary that cannot be pressed is not the main action right now.
+ * The shared 0.45 above still applies and does the dimming. */
+.sp-btn[data-variant="primary"]:disabled {
+  background: var(--sp-lift);
+  color: var(--sp-ink);
+  border-color: var(--sp-line);
+}
 .sp-btn:disabled:active {
   transform: none;
 }
@@ -711,10 +731,10 @@
   opacity: 0.72;
   font-weight: var(--sp-weight-regular);
 }
-.sp-btn[data-variant="primary"] kbd {
-  background: color-mix(in oklab, var(--sp-bg) 22%, transparent);
-  opacity: 0.62;
-}
+/* No primary-specific rule any more. The chip was overridden to a 22% --sp-bg
+ * wash because the primary used to be a white slab and `currentColor` there was
+ * near-black; the base rule's `currentColor` is now light on the primary in
+ * both themes, exactly as it is on every other button. One rule is correct. */
 
 /* ---------- the record speaking ----------
  * This is the moat, so it gets the one spotlight in the product. Not an edge,

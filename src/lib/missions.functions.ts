@@ -138,6 +138,39 @@ export type MissionListRow = {
    * Null only when the mission has never run.
    */
   current_agent_slug: string | null;
+  /**
+   * WHAT THIS MISSION IS ACTUALLY DOING: the `sub_goal` of its in-flight step —
+   * the sentence the planner wrote when it cut the goal into steps, e.g.
+   * "Implement a /health JSON endpoint and a plain landing page in the starter
+   * app, preparing a multi-file changeset".
+   *
+   * WHY IT IS WORTH CARRYING. Every live-agent surface could say a NAME and a
+   * STATE and nothing else, so the strongest thing this product does — a named
+   * agent reasoning about one specific piece of work — read as a spinner with a
+   * name on it. The sentence was already written, already stored, and already
+   * fetched adjacent: `mission_steps` is queried below for the step dots, so
+   * this is one more column on a query that was running anyway.
+   *
+   * WHICH STEP, exactly. The lowest-idx step whose status is `running`, else
+   * the lowest-idx `dispatched` one. A dispatched step is work an agent already
+   * holds: mission-advance.server.ts:418-419 flips it to `running` only once
+   * its run reports running, so excluding it would blank the line for the first
+   * stretch of every step. `waiting_approval` is deliberately NOT in the set —
+   * that step is waiting on a PERSON, and reporting it as an agent working
+   * would be the one lie this indicator exists to avoid.
+   *
+   * NULL IS COMMON AND IS THE HONEST ANSWER. A mission with no step in either
+   * state gets null, and so does every single-run mission, which has no
+   * `mission_steps` rows at all (the step dots fall back to run statuses for
+   * exactly that reason). A caller must fall back to the mission title, never
+   * invent a sentence.
+   *
+   * `mission_steps.sub_goal` is NOT NULL in the schema
+   * (supabase/migrations/20260606120924_1647f92e-4f06-48eb-8737-19e70211d791.sql:9)
+   * and measured non-empty on 291 of 291 rows on 2026-08-06, so a mission with
+   * a live step reliably has one to show.
+   */
+  current_sub_goal: string | null;
   /** Which build engine ran this mission (missions.build_driver), or null.
    * Named honestly for the user via buildDriverLabel (Gate #1 B3). */
   build_driver: string | null;
@@ -201,9 +234,10 @@ export const listMissions = createServerFn({ method: "GET" })
     const ids = missions.map((m) => m.id);
 
     // Batched enrichment (3 queries across ALL rows, never per-mission):
-    // step dots from mission_steps; run fallback + trace ids from agent_runs +
-    // latest checkpoints; cost from ai_events over those traces. Best-effort —
-    // any failure degrades to empty dots / unknown cost.
+    // step dots AND the in-flight step's sub_goal from mission_steps; run
+    // fallback + trace ids from agent_runs + latest checkpoints; cost from
+    // ai_events over those traces. Best-effort — any failure degrades to empty
+    // dots / unknown cost / no sub_goal.
     const stepsByMission = new Map<string, { status: string }[]>();
     const runsByMission = new Map<string, { status: string }[]>();
     /**
@@ -222,12 +256,28 @@ export const listMissions = createServerFn({ method: "GET" })
      * strip: the fact existed, the reader was looking in the wrong place.
      */
     const slugByMission = new Map<string, string>();
+    /**
+     * The sentence the mission is on, keyed by mission. Two maps rather than
+     * one, because `running` must beat `dispatched` no matter which arrives
+     * first in idx order, and a single map with an overwrite rule could not
+     * express that without re-reading what it had already written.
+     *
+     * Both are first-write-wins, which is what makes them "lowest idx": the
+     * select below orders by idx ascending, so a mission's rows arrive in step
+     * order and the earliest live step is the first one seen. This is the same
+     * ordering the step dots already depend on — reverse it and the strip and
+     * the sentence both silently describe the wrong step.
+     */
+    const runningGoalByMission = new Map<string, string>();
+    const dispatchedGoalByMission = new Map<string, string>();
     const costByMission = new Map<string, number>();
     try {
       const [{ data: planSteps }, { data: runs }] = await Promise.all([
         supabase
+          // `sub_goal` rides along on the query that was already fetching the
+          // step dots. It is the only column here that carries a sentence.
           .from("mission_steps")
-          .select("mission_id,idx,status")
+          .select("mission_id,idx,status,sub_goal")
           .in("mission_id", ids)
           .order("idx", { ascending: true }),
         supabase
@@ -240,6 +290,18 @@ export const listMissions = createServerFn({ method: "GET" })
         const arr = stepsByMission.get(s.mission_id) ?? [];
         arr.push({ status: s.status });
         stepsByMission.set(s.mission_id, arr);
+        // An empty sub_goal is not a sentence. The column is NOT NULL and every
+        // row measured non-empty (291/291, 2026-08-06), but a blank one would
+        // render as a stray empty line rather than as nothing, so it is dropped
+        // here and the caller falls back to the title.
+        const goal = (s.sub_goal ?? "").trim();
+        if (!goal) continue;
+        if (s.status === "running" && !runningGoalByMission.has(s.mission_id)) {
+          runningGoalByMission.set(s.mission_id, goal);
+        }
+        if (s.status === "dispatched" && !dispatchedGoalByMission.has(s.mission_id)) {
+          dispatchedGoalByMission.set(s.mission_id, goal);
+        }
       }
       const missionByRun = new Map<string, string>();
       for (const r of runs ?? []) {
@@ -295,6 +357,11 @@ export const listMissions = createServerFn({ method: "GET" })
         steps: stepsByMission.get(m.id) ?? runsByMission.get(m.id) ?? [],
         cost_usd: costByMission.has(m.id) ? costByMission.get(m.id)! : null,
         current_agent_slug: slugByMission.get(m.id) ?? null,
+        // `running` first, then `dispatched`, then nothing. Never a done step:
+        // a finished sentence presented in the present tense is the same defect
+        // as a fabricated one.
+        current_sub_goal:
+          runningGoalByMission.get(m.id) ?? dispatchedGoalByMission.get(m.id) ?? null,
       })),
     };
   });

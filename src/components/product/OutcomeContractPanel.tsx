@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "@/lib/notify";
+import { Button } from "@/components/shell/primitives";
 import { gradeOutcomeContract, verifiabilityLabel } from "@/lib/outcome-contract-grade";
 import {
   compileContractOracles,
@@ -116,13 +117,14 @@ function ArdImportControl({
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5"
-      >
-        <Upload className="h-3 w-3" />
+      // A REAL ALTERNATIVE, SO IT STAYS RAISED. This is the second way to get a
+      // contract onto a spec that has none, standing under "Draft contract from
+      // this spec". Someone arriving with an ARD in hand would legitimately pick
+      // it instead of the drafter, and a ghost would draw that choice as a link.
+      <Button onClick={() => setOpen(true)} className="sp-btn gap-1.5">
+        <Upload className="h-3.5 w-3.5" />
         Import ARD JSON
-      </button>
+      </Button>
     );
   }
 
@@ -140,7 +142,43 @@ function ArdImportControl({
       />
       {error ? <p className="mt-1.5 text-xs text-destructive">{error}</p> : null}
       <div className="mt-2 flex items-center gap-2">
-        <button
+        {/* THE SYSTEM'S BUTTON, AND NOT AN EMBER FILL. This control and the four
+            others in this file wore `.btn-pill`, which paints a SOLID EMBER FACE
+            (styles.css: `background-color: var(--ember)`). Ember is declared the
+            mark that "marks the human, and nothing else" (ink.css:236), every
+            legitimate use of it in the --sp-* system is a COLOUR or an EDGE, and
+            the standing ruling in docs/design/DESIGN-SYSTEM.md is that it is
+            "explicitly not the default for approval buttons, actions or tasks".
+            A fill on an ordinary panel action breaches all three at once, on a
+            surface inside the authenticated product.
+
+            RAISED DEFAULT, NOT `variant="primary"`. primitives.css states "one
+            primary per screen" and /plan/spec/$id already has its one: the
+            Approve/Save pair in the page's own action row. Nothing this panel
+            offers outranks that, so every ACTION here takes the workhorse.
+
+            AND ITS CANCEL IS A GHOST, WHICH IS THE OTHER HALF OF THE SAME
+            GRAMMAR. That first port left the `.btn-pill-outline` controls beside
+            these buttons alone, correctly: an outline is not an ember fill and
+            was not the defect being fixed. What it left behind was a 38px action
+            standing next to a ~25px escape, on four pairs in this file. Finishing
+            it did NOT mean raising every escape to match. A raised action beside
+            a ghost escape is how this system draws two UNEQUAL choices: ghost
+            keeps the same --sp-ctl-md box, so the heights agree, and carries no
+            resting border, so it reads as the quiet way out. That is right for a
+            Cancel or a Discard and wrong for anything offering a real
+            alternative, which is why Import, Export, Compile and Add stay
+            raised. The one shape that takes neither rule is a governance
+            approve/reject, where both halves stay raised because a reject
+            quieter than its approve nudges the click on a surface where the
+            click authorises something. There is no such pair in this file.
+
+            The Tailwind size utilities went with the class rather than on top of
+            it. `.btn-pill` had one fixed size, so each call site overrode it;
+            `.sp-btn` brings its own height (--sp-ctl-md) and padding, and
+            keeping both produces a control that is neither. Same for
+            `disabled:opacity-50`: `.sp-btn:disabled` already dims to 0.45. */}
+        <Button
           onClick={() => {
             let json: unknown;
             try {
@@ -157,20 +195,19 @@ function ArdImportControl({
             importMut.mutate(result.contract);
           }}
           disabled={importMut.isPending || !text.trim()}
-          className="btn-pill px-3 py-1 text-[11px] disabled:opacity-50"
         >
           {importMut.isPending ? "Importing…" : "Parse and apply"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => {
             setOpen(false);
             setText("");
             setError(null);
           }}
-          className="btn-pill-outline px-2 py-1 text-[11px]"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -326,15 +363,25 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
           non-goals, budget). You review before anything is saved.
         </p>
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <button
+          {/* `className` is passed deliberately and it REPEATS `sp-btn`, because
+              `Button` sets `className="sp-btn"` before spreading its rest props,
+              so a className given here replaces it rather than adding to it. The
+              one utility on top is the gap: `.sp-btn` is already an inline-flex
+              row with its items centred, but it sets no gap, so a glyph and a
+              word would butt together. `data-icon` is for a control that is ONLY
+              a glyph and would square this box, which is not this. The mark grew
+              a pixel with the label: `.sp-btn` reads at --sp-text-prose (13.5px)
+              rather than the 12px `text-xs` this used to force, and an icon is
+              set at the size of the label it sits beside. */}
+          <Button
             onClick={() => draftMut.mutate()}
             disabled={draftMut.isPending || !bodyMd.trim()}
-            className="btn-pill px-4 py-1.5 text-xs disabled:opacity-50 inline-flex items-center gap-1.5"
+            className="sp-btn gap-1.5"
             title={!bodyMd.trim() ? "Write the spec body first" : undefined}
           >
-            <Sparkles className="h-3 w-3" />
+            <Sparkles className="h-3.5 w-3.5" />
             {draftMut.isPending ? "Drafting…" : "Draft contract from this spec"}
-          </button>
+          </Button>
         </div>
         <div className="mt-3 text-left">
           <ArdImportControl prdId={prdId} invalidateKey={invalidateKey} />
@@ -359,20 +406,15 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
         <ContractBody contract={draft} />
         <VerifiabilityVerdict contract={draft} />
         <div className="mt-5 flex items-center gap-2">
-          <button
-            onClick={() => applyMut.mutate(draft)}
-            disabled={applyMut.isPending}
-            className="btn-pill px-4 py-1.5 text-xs disabled:opacity-50"
-          >
+          <Button onClick={() => applyMut.mutate(draft)} disabled={applyMut.isPending}>
             {applyMut.isPending ? "Applying…" : "Apply contract"}
-          </button>
-          <button
-            onClick={() => setDraft(null)}
-            className="btn-pill-outline px-3 py-1 text-xs"
-            disabled={applyMut.isPending}
-          >
+          </Button>
+          {/* The escape from a draft review, and the second door out of it: the
+              X in this panel's own header does the same setDraft(null). A ghost
+              is what an exit standing next to the act looks like here. */}
+          <Button variant="ghost" onClick={() => setDraft(null)} disabled={applyMut.isPending}>
             Discard
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -386,29 +428,39 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
     <div className="rounded-lg border hairline bg-card/60 p-6">
       <div className="mono-label mb-3 flex items-center justify-between gap-2 flex-wrap">
         <span>Outcome Contract</span>
+        {/* Two actions, neither an escape, so both stay raised and the row reads
+            as a pair of things you could do rather than one act and an exit.
+
+            `normal-case tracking-normal` SURVIVE THE PORT AND ARE NOT DEAD
+            WEIGHT. The parent is `.mono-label`, which sets text-transform and
+            letter-spacing; `.sp-btn` opens with `font: inherit`, and the font
+            shorthand resets neither of those, so without these two the labels
+            would still arrive UPPERCASE AND TRACKED-OUT. The same two utilities
+            elsewhere in this file had no uppercase ancestor and went with the
+            class. */}
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={() => downloadArd(prdId, specTitle, contract as OutcomeContract)}
-            className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 normal-case tracking-normal"
+            className="sp-btn gap-1.5 normal-case tracking-normal"
             title="Download this contract as a portable ARD JSON file"
           >
-            <Download className="h-3 w-3" />
+            <Download className="h-3.5 w-3.5" />
             Export ARD
-          </button>
+          </Button>
           {(contract?.success_metrics ?? []).some((c) => c.status === "standing") ? (
-            <button
+            <Button
               onClick={() => compileMut.mutate()}
               disabled={compileMut.isPending || uncompiledCount === 0}
-              className="btn-pill-outline px-3 py-1 text-[11px] inline-flex items-center gap-1.5 disabled:opacity-50 normal-case tracking-normal"
+              className="sp-btn gap-1.5 normal-case tracking-normal"
               title="Compile every success metric into an eval case, a CI label, a UAT checklist item, or a watched assumption"
             >
-              <Beaker className="h-3 w-3" />
+              <Beaker className="h-3.5 w-3.5" />
               {compileMut.isPending
                 ? "Compiling…"
                 : uncompiledCount === 0
                   ? "Oracles compiled"
                   : `Compile ${uncompiledCount} oracle${uncompiledCount === 1 ? "" : "s"}`}
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -693,13 +745,17 @@ function AddClauseControl({
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="btn-pill-outline mt-2 px-3 py-1 text-[11px] inline-flex items-center gap-1.5 normal-case tracking-normal"
-      >
-        <Plus className="h-3 w-3" />
+      // The one control that lets a human write an acceptance criterion at all,
+      // so it is an action and stays raised. Two utilities survive the pill and
+      // neither is a size: `mt-2` is this control's place in the column, and
+      // `gap-1.5` is the space `.sp-btn` does not set between a glyph and a
+      // word. `normal-case tracking-normal` went with the class -- unlike the
+      // header pair above, nothing in ClauseList's ancestry is uppercase (the
+      // Intent prose beside it would be too), so here they were a no-op.
+      <Button onClick={() => setOpen(true)} className="sp-btn mt-2 gap-1.5">
+        <Plus className="h-3.5 w-3.5" />
         {isMetric ? "Add a success metric" : "Add a non-goal"}
-      </button>
+      </Button>
     );
   }
 
@@ -717,10 +773,9 @@ function AddClauseControl({
         autoFocus
       />
       <div className="flex flex-col gap-1 shrink-0">
-        <button
+        <Button
           onClick={() => addMut.mutate(text)}
           disabled={addMut.isPending || contractIsStale || !text.trim()}
-          className="btn-pill px-2 py-1 text-[11px] disabled:opacity-50"
           title={
             // Own add first, so the button never explains someone else's write
             // while it is busy with yours; the label already reads "Adding…".
@@ -734,17 +789,17 @@ function AddClauseControl({
           }
         >
           {addMut.isPending ? "Adding…" : contractIsStale ? "Syncing…" : "Add"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => {
             setOpen(false);
             setText("");
           }}
           disabled={addMut.isPending}
-          className="btn-pill-outline px-2 py-1 text-[11px] disabled:opacity-50"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -905,22 +960,18 @@ function ClauseRow({
           autoFocus
         />
         <div className="flex flex-col gap-1 shrink-0">
-          <button
-            onClick={() => supersede.mutate()}
-            disabled={supersede.isPending || !text.trim()}
-            className="btn-pill px-2 py-1 text-[11px] disabled:opacity-50"
-          >
+          <Button onClick={() => supersede.mutate()} disabled={supersede.isPending || !text.trim()}>
             Save
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => {
               setEditing(false);
               setText(clause.text);
             }}
-            className="btn-pill-outline px-2 py-1 text-[11px]"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </li>
     );

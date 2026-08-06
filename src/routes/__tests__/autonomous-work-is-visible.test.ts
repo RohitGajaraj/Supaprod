@@ -25,26 +25,62 @@ import { join } from "node:path";
  * promotes, and the pulse labelled "Build is picking up the spec" stopped at the
  * exact moment the agent actually started.
  *
- * WHAT THIS TEST HOLDS. Every loop station mounts `CrewWorking`, which is bound
- * to real running mission rows rather than to a local mutation. It is a source
- * scan because what is being protected is the MOUNT: a station that quietly
- * drops it goes dark again with nothing else failing.
+ * WHAT THIS TEST HOLDS. Every surface an agent demonstrably runs behind mounts
+ * `CrewWorking`, which is bound to real running mission rows rather than to a
+ * local mutation. It is a source scan because what is being protected is the
+ * MOUNT: a surface that quietly drops it goes dark again with nothing else
+ * failing.
+ *
+ * WHY THE LIST GREW PAST THE FIVE LOOP STATIONS (2026-08-06). Three surfaces
+ * where agents run were not on it, each missed for its own reason.
+ *
+ *   - DISCOVER is station 01, and its body is a COMPONENT rather than a route
+ *     file. A scan rooted at `routes/` could not have caught it, which is why
+ *     the paths below are relative to `src/` instead.
+ *   - DESIGN looked covered: it carries three `AgentPulse` mounts, more than
+ *     any other surface on the list below (Decide, Build and Ship have one
+ *     each; Plan's index, Learn, Discover and Brain have none). Per surface
+ *     and not per station, because the count is per file: plan.spec is a Plan
+ *     route, is not on this list, and carries three of its own. All three of
+ *     Design's are gated on `drawAt.isPending` or
+ *     `critic.isPending`, so between them they report one thing — a run the
+ *     reader started in this tab and still has open. Neither
+ *     `redrawDesignScaffold` nor `runScaffoldDesignCritic` writes a mission row
+ *     (design-scaffold.functions.ts names `missions` nowhere), so those three
+ *     pulses and this line are structurally incapable of reporting the same
+ *     piece of work. A count of indicators was the wrong test; what each one is
+ *     bound to is the right one.
+ *   - BRAIN had no live element at all. Its single agent mark is drawn
+ *     `state="quiet"`, which is precisely the state that claims nothing is
+ *     happening, on the one surface whose every sentence is past tense.
  */
 
-const ROUTES = join(import.meta.dir, "..");
-const read = (f: string) => readFileSync(join(ROUTES, f), "utf8");
+/**
+ * Rooted at `src/`, not at this directory, so a surface that is a component
+ * sits in the same list as a surface that is a route. See Discover above.
+ */
+const SRC = join(import.meta.dir, "..", "..");
+const read = (f: string) => readFileSync(join(SRC, f), "utf8");
 const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-/** The loop stations a person watches work happen on. */
+/** Every surface a person watches work happen on: the seven lifecycle
+ *  stations, in lifecycle order, and then the record the crew writes to. */
 const STATIONS = [
-  "_authenticated.decide.tsx",
-  "_authenticated.plan.index.tsx",
-  "_authenticated.build.index.tsx",
-  "_authenticated.ship.tsx",
-  "_authenticated.learn.tsx",
+  // Station 01. The route file is a shell that parses the deep link; this is
+  // the surface a person actually reads.
+  "components/discover/DiscoverSurface.tsx",
+  "routes/_authenticated.decide.tsx",
+  "routes/_authenticated.plan.index.tsx",
+  "routes/_authenticated.design.tsx",
+  "routes/_authenticated.build.index.tsx",
+  "routes/_authenticated.ship.tsx",
+  "routes/_authenticated.learn.tsx",
+  // Not a station. The company brain, where agents write and where a reader is
+  // most likely to assume nothing is running.
+  "routes/_authenticated.brain.tsx",
 ];
 
-describe("every loop station shows the crew working on its own", () => {
+describe("every surface where agents run shows the crew working on its own", () => {
   for (const station of STATIONS) {
     const src = strip(read(station));
 
@@ -59,10 +95,8 @@ describe("every loop station shows the crew working on its own", () => {
 });
 
 describe("the indicator is bound to the run, not to the reader's click", () => {
-  const hook = strip(readFileSync(join(ROUTES, "..", "hooks", "use-live-agents.ts"), "utf8"));
-  const comp = strip(
-    readFileSync(join(ROUTES, "..", "components", "shell", "CrewWorking.tsx"), "utf8"),
-  );
+  const hook = strip(read("hooks/use-live-agents.ts"));
+  const comp = strip(read("components/shell/CrewWorking.tsx"));
 
   it("reads real mission rows and filters on a working status", () => {
     expect(hook).toMatch(/listMissions/);
