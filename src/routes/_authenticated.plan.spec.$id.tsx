@@ -231,11 +231,23 @@ import { getProvenance } from "@/lib/lineage.functions";
 // detail sheet enters this bundle. Never a second hand-written bet type: that
 // interface's own rule is that every field maps to an `opportunities` column.
 import type { OpportunityDetailRecord } from "@/components/discover/OpportunityDetailSheet";
-// The product's ONE renderer for `opportunities.status`. Its own docstring is
-// that a status must read the same wherever it appears, so this page borrows it
-// rather than writing a second spelling of "Backlog". It is the same function
-// behind the StatusPill /decide draws on every queue row, including that pill's
-// pass-through of a value STATUS_META does not know.
+// The product's ONE label renderer for `opportunities.status`, borrowed rather
+// than writing a second spelling of "Backlog". It and the StatusPill /decide
+// draws are TWINS rather than one function: both read the same `STATUS_META`
+// table, whose docstring is that a status must read the same wherever it
+// appears, and both fall back to the raw value for a status that table does not
+// know -- but StatusPill inlines its own lookup instead of calling this. And
+// /decide draws that pill only for a queue row that HAS a status, the pill
+// sitting inside an `{o.status ? ... : null}` guard.
+//
+// SUPERSEDED, quoted so the claim cannot come back: this read "It is the same
+// function behind the StatusPill /decide draws on every queue row", which
+// overstated both halves. Corrected 2026-08-06. The `statusLabel` call site in
+// the "Why this spec exists" bet line spells the same guard out at length and
+// calls overstating what another file does the defect this pass exists to stop
+// writing; this clause was written by an earlier wave and outlived it. Nothing
+// renders differently today -- 0 of 294 opportunities carry a null status,
+// measured 2026-08-06 -- but the column is nullable.
 import { statusLabel } from "@/components/discover/OpportunityRow";
 // PostgREST serializes the `numeric` ice_score column as a STRING, so the
 // generated Supabase type lies about it. One coercion, shared with moat-vis

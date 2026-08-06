@@ -502,8 +502,9 @@ export async function rememberOutcome(
     // and it grows with every user who gets a second workspace.
     //
     // WHERE A STRANDED ROW CAN AND CANNOT BE REACHED, AND IT DEPENDS ENTIRELY
-    // ON WHICH READER IS ASKING. Two earlier versions of this comment each got
-    // half of it, so both halves are written out.
+    // ON WHICH ARGUMENTS THE READER PASSES. Three earlier versions of this
+    // comment each got a piece of it and each stated it as the whole, so all of
+    // them are written out rather than replaced.
     //
     // The FIRST version quoted `match_agent_memory`'s tenancy filter as
     // `m.workspace_id = for_workspace or m.workspace_id is null` and concluded
@@ -513,23 +514,75 @@ export async function rememberOutcome(
     // w.account_id = for_account))`.
     //
     // The SECOND version therefore said a stranded row "IS still reachable" on
-    // a pooled account, and that over-corrected: it is true of exactly ONE of
-    // the four callers of this RPC, and it is the one in this file.
+    // a pooled account. A THIRD narrowed that to "it is true of exactly ONE of
+    // the four callers of this RPC, and it is the one in this file", and THAT
+    // is wrong in the other direction.
+    //
+    // REACHABILITY IS A PROPERTY OF THE ARGUMENTS, NOT OF THE CALLER, which is
+    // why every version of this so far has landed on the wrong side of it.
+    // Re-pulled from the live function body on 2026-08-06, the tenancy clause is
+    // `(for_account is not null and ...) or (for_account is null and
+    // (for_workspace is null or m.workspace_id = for_workspace or
+    // m.workspace_id is null))`. Pass NEITHER argument and both disjuncts of the
+    // second branch's inner test collapse to TRUE, so the clause narrows
+    // NOTHING: every row the caller is otherwise entitled to see survives it.
+    // And a stranded row sits in a workspace the settler is a member of by
+    // construction (the trigger picked it out of that user's own
+    // `workspace_members`), so it clears the membership clauses too. Passing no
+    // narrowing is therefore the LOOSEST call, not a restricted one.
     //   · `recallMemory` (:112 above) passes `for_account` when
     //     `resolvePoolAccountId` returns one, so on a POOLED account a stranded
     //     row IS reachable there, provided the workspace it was stranded in
     //     belongs to the same account. On a free / single-workspace account it
     //     is not.
+    //   · `brain/novelty.server.ts:42` passes NEITHER argument, so
+    //     `computeNovelty` is in the loose case UNCONDITIONALLY and a stranded
+    //     row is reachable there on ANY tier, paid or free. The bullet this
+    //     replaces read "`brain/novelty.server.ts:42` passes neither. On those
+    //     three a stranded row is NOT reachable on any tier, paid or free": it
+    //     got the fact right and inverted the consequence.
+    //   · `memory-candidates.functions.ts:101` passes `for_workspace`, but
+    //     `resolveWorkspaceId` (:68 there) is typed `string | null` and a NULL
+    //     `for_workspace` is not a narrowing, it is the novelty case above. That
+    //     reader is out of reach only while it resolves a workspace.
     //   · `loadDecisionPrecedent` (decision-precedent.server.ts:98) builds
     //     `{ ...base, for_workspace: args.workspaceId }` and never passes
-    //     `for_account`. So does `memory-candidates.functions.ts:101`, and
-    //     `brain/novelty.server.ts:42` passes neither. On those three a
-    //     stranded row is NOT reachable on any tier, paid or free.
-    // `loadDecisionPrecedent` is the reader the docblock at the top of this
-    // function names as the reason any of this matters — it is the Critic's
-    // red team (critic.server.ts:245), the bet judgment
-    // (decision-judgment.functions.ts) and the supersession engine. For the
-    // precedent surface, which is the moat, "cannot reach it" was right.
+    //     `for_account` — but its own signature is `workspaceId: string | null`
+    //     (:84 there), so IT narrows only when its caller hands it a workspace.
+    //     Which of its callers do is the question below, and it is the one that
+    //     decides whether the moat claim survives.
+    // Both `loadDecisionPrecedent` and `memory-candidates` additionally carry a
+    // PGRST202 fallback that RE-CALLS the RPC without `for_workspace`, which
+    // would put either in the loose case. It is dead today, because the overload
+    // carrying `for_workspace` and `for_account` is live (signature pulled
+    // 2026-08-06), and it is worth knowing it is there.
+    //
+    // SO, WHICH OF ITS CALLERS ACTUALLY HAND IT ONE. An earlier version of this
+    // paragraph named three surfaces and treated them as a group; there are six
+    // caller modules and they do not behave as one. Rather than list all six and
+    // watch the list rot, the rule and the two exceptions, checked 2026-08-06:
+    //   · THE PRECEDENT SURFACE NARROWS ON EVERY CALL, and it is the one the
+    //     docblock above (:324) means by "the pool the Critic's red team and
+    //     `loadDecisionPrecedent` read". The Critic's red team
+    //     (critic.server.ts:245), the bet judgment (all three sites in
+    //     decision-judgment.functions.ts), the proactive nudge
+    //     (decision-precedent.functions.ts:24) and the theme brief
+    //     (`getThemePrecedent` in discovery.functions.ts, by symbol because that
+    //     file is under concurrent edit) all source their `workspaceId` from an
+    //     `opportunities`, `decisions`, `prds` or `themes` row, and ALL FOUR OF
+    //     THOSE COLUMNS ARE NOT NULL (verified live). The `?? null` at those
+    //     call sites is defensive, not a reachable branch. For the moat,
+    //     "cannot reach it" was right.
+    //   · TWO CALLERS PASS NULL AND ARE THEREFORE IN THE LOOSE CASE. The
+    //     supersession engine (supersession.server.ts:87) passes
+    //     `workspaceId: null` literally, and chat (routes/api/chat.ts:1220)
+    //     passes a `workspaceId` that its own guards at :626 and :638 prove can
+    //     be null. A stranded row is a candidate at both. For supersession that
+    //     direction is benign and arguably the useful one, since supersession
+    //     exists to find the PRIOR outcome and mark it replaced and a row
+    //     stranded in the wrong workspace is precisely the one a narrowed read
+    //     would miss. Benign or not, neither is a narrowing and neither may be
+    //     counted as one.
     //
     // So this update is not a nicety, it is a MOVE, and it is what makes the
     // outcome recallable where it was earned on every tier. It stays a separate

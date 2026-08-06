@@ -1144,30 +1144,53 @@ export const updateOpportunity = createServerFn({ method: "POST" })
  *
  * WHAT WAS MISSING. Decide is the highest-stakes human act in the product: keep
  * this bet or kill it. Settling one wrote a status enum on `opportunities` and a
- * `stage_events` row, and nothing else. Re-measured on the live database on
- * 2026-08-06: 267 `decisions` rows exist -- mission 183, roadmap 28, prd 28,
- * manual 10, critic 8, retrospective 8, meeting 2 -- and NOT ONE comes from the
- * gate.
+ * `stage_events` row, and nothing else. For as long as this file has been
+ * audited, `decisions` held NOT ONE row that came from the gate. The counts
+ * behind that zero are re-measured further down; the zero itself is what every
+ * pass over this function was trying to explain.
  *
  * AND THE FIRST DIAGNOSIS OF THAT ZERO WAS WRONG, WHICH IS WHY IT SURVIVED A
  * FIX. It read as "the gate has no caller". It had one -- `updateOpportunity`,
  * below, on the "Drop it" path -- and that caller was refused by the database
  * on every single press. `decisions_source_kind_check` admitted seven tokens
  * (plus NULL) and 'opportunity' was not among them, so every insert this
- * function attempts resolves as an error, hits the guard below, and returns.
- * Widening the check
- * is supabase/migrations/20260806164500_the_gate_wrote_its_judgment_and_a_
- * check_threw_it_away.sql; UNTIL THAT MIGRATION IS APPLIED nothing this
- * function writes reaches the table, and the keep path added at
- * `placeKeptBetInNext` is correct and inert.
+ * function attempted resolved as an error, hit the guard below, and returned.
  *
- * RE-CHECKED against production on 2026-08-06 at 83dd694e, because a claim this
- * load-bearing should not be inherited: `pg_get_constraintdef` still returns the
- * same seven tokens plus NULL, `decisions` still holds 0 rows with source_kind
- * 'opportunity' against 267 total, and that migration file is still untracked
- * and unapplied. So this paragraph describes the database as it is right now,
- * not as it was when the sentence was written. When the migration lands, the
- * only thing that should change here is the tense.
+ * THE MIGRATION HAS LANDED, AND THIS BLOCK SAID THAT WHEN IT DID, THE TENSE WAS
+ * THE ONLY THING TO CHANGE. It was not; the counts moved too. Verbatim, the
+ * three sentences that stood here:
+ *   - "Re-measured on the live database on 2026-08-06: 267 `decisions` rows
+ *     exist -- mission 183, roadmap 28, prd 28, manual 10, critic 8,
+ *     retrospective 8, meeting 2 -- and NOT ONE comes from the gate."
+ *   - "Widening the check is supabase/migrations/20260806164500_the_gate_wrote_
+ *     its_judgment_and_a_check_threw_it_away.sql; UNTIL THAT MIGRATION IS
+ *     APPLIED nothing this function writes reaches the table, and the keep path
+ *     added at `placeKeptBetInNext` is correct and inert."
+ *   - "`pg_get_constraintdef` still returns the same seven tokens plus NULL,
+ *     `decisions` still holds 0 rows with source_kind 'opportunity' against 267
+ *     total, and that migration file is still untracked and unapplied."
+ *
+ * NONE OF THAT HOLDS ANY MORE, and leaving it would tell the next reader the
+ * moat's best input is still being discarded when it is now being written.
+ * Re-measured live on 2026-08-06 through the Lovable MCP (project 371dd588):
+ *   - `pg_get_constraintdef(decisions_source_kind_check)` returns EIGHT tokens
+ *     plus NULL -- meeting | mission | prd | manual | roadmap | retrospective |
+ *     critic | opportunity.
+ *   - `supabase_migrations.schema_migrations` carries version 20260806164500,
+ *     and `git ls-files` shows that migration tracked.
+ *   - `decisions` holds 284 rows -- mission 198, prd 29, roadmap 28, manual 10,
+ *     critic 8, retrospective 8, meeting 2, opportunity 1.
+ *
+ * SO THE GATE HAS WRITTEN ITS FIRST JUDGMENT, and it came from the KEEP path,
+ * not the drop path this header was written about: decisions row
+ * 8cb15ad7-251e-4ae3-8dfc-d677cdd64011, status 'approved', workspace_id
+ * 60000000-0000-4000-8000-000000000000 -- the bet's own workspace, not the
+ * column default -- and rationale "Kept at the gate, set to next, scored impact
+ * 9/10, confidence 8/10, ease 7/10.", byte-identical to what `judgmentFor`
+ * below assembles from that bet's columns. This file makes exactly two writes to
+ * `decisions`: 'opportunity' here and 'prd' in `savePrd`. Both are inside the
+ * widened list, so nothing on this path is still writing a token the check
+ * refuses.
  *
  * WHY THAT BREAKS THE MOAT RATHER THAN A REPORT. Layer 03 is the only layer
  * defensible alone: a settled outcome re-ranks the next call. Learn grades a
@@ -1191,15 +1214,27 @@ export const updateOpportunity = createServerFn({ method: "POST" })
  * BUT IT NO LONGER FAILS WITHOUT SAYING SO, and the sentence that used to stand
  * here is why this went unnoticed for as long as it did. It read: "Failures
  * report themselves through `recordLineageSafe`'s own channel rather than
- * surfacing as a failed settle." Both halves were false. The insert guard below
- * returns BEFORE `recordLineageSafe` is ever called, so a refused insert never
- * reaches that channel; and `recordLineageSafe` (lineage.functions.ts:130-140)
- * is a bare try/catch with no log, so it is not a channel -- it reports to
- * nobody. A silent failure plus a comment asserting it is audible is how a
- * constraint violation ran on every press of "Drop it" and left no trace
- * anywhere. The insert guard below now logs to the Worker: still non-fatal,
- * now findable. `recordLineageSafe` still reports nothing and still lives in
- * another file, so an orphaned decision remains as quiet as it was.
+ * surfacing as a failed settle." That is false about THIS function's failure:
+ * the insert guard below returns BEFORE `recordLineageSafe` is ever called, so
+ * a refused insert never reaches that channel at all. A silent failure plus a
+ * comment asserting it is audible is how a constraint violation ran on every
+ * press of "Drop it" and left no trace anywhere. The insert guard below now
+ * logs to the Worker: still non-fatal, now findable.
+ *
+ * AND THE CORRECTION THAT REPLACED IT WAS ITSELF FALSE, in the clause whose
+ * whole job was to correct a false clause. It read: "`recordLineageSafe`
+ * (lineage.functions.ts:130-140) is a bare try/catch with no log, so it is not
+ * a channel -- it reports to nobody", and closed "an orphaned decision remains
+ * as quiet as it was." The cited range is right for the WRAPPER and wrong about
+ * what the wrapper wraps. `recordLineageSafe` calls `recordLineage`
+ * (lineage.functions.ts:65-121), which destructures the upsert's `error` and on
+ * a refusal hands it to `recordErrorEvent` with failure_kind
+ * `opportunity->decision:decided` (:100-120) -- under a comment at :61-63 that
+ * says in as many words "console.error is not observability, error_events is".
+ * So a REFUSED edge IS on the repo's own observability channel and is findable
+ * by that failure_kind. What the wrapper's catch swallows is narrower: a THROWN
+ * transport error (:137-139). An orphaned decision is quiet in that one case,
+ * not in general.
  */
 /**
  * PURE. The verdict a lane change amounts to, and the sentence that records it.
@@ -2300,14 +2335,31 @@ export const savePrd = createServerFn({ method: "POST" })
 
     // F-DECISIONS-CAPTURE: spec approval is a logged decision. Idempotent on prd_id.
     if (prior && rest.status === "approved" && prior.status !== "approved") {
-      const { count } = await supabase
+      /**
+       * A READ WHOSE ERROR IS DISCARDED IS NOT EVIDENCE OF ABSENCE, and this one
+       * discarded it. The head count is the only thing standing between one
+       * approval and two decision rows on the same spec, and it was written
+       * `const { count } = await ...`: a refused or timed-out read arrives as
+       * `count: null`, `(count ?? 0) === 0` reads that as "no decision exists
+       * yet", and the insert below duplicates.
+       *
+       * SO A FAILED PROBE NOW SKIPS THE WRITE RATHER THAN REPEATING IT. That is
+       * the asymmetry: a missed capture costs one unlogged approval, which Learn
+       * simply does not see; a duplicate is two rows Learn grades twice and
+       * weights double, on the one table the company brain reasons from.
+       */
+      const { count, error: countErr } = await supabase
         .from("decisions")
         .select("id", { count: "exact", head: true })
         .eq("prd_id", id);
-      if ((count ?? 0) === 0) {
+      if (countErr) {
+        console.error(
+          `[spec] ${id} was approved but no decision row was written: the existing-decision check failed, so writing one could duplicate (${countErr.message})`,
+        );
+      } else if ((count ?? 0) === 0) {
         const title = (rest.title ?? prior.title ?? "Untitled spec").slice(0, 240);
         const rationale = (prior.body_md ?? "").slice(0, 500) || "Spec approved.";
-        const { data: decision } = await supabase
+        const { data: decision, error: decErr } = await supabase
           .from("decisions")
           .insert({
             user_id: userId,
@@ -2320,7 +2372,19 @@ export const savePrd = createServerFn({ method: "POST" })
           })
           .select("id")
           .single();
-        if (decision) {
+        // supabase-js RESOLVES a refused write, so an unbound `error` here was
+        // exactly the silence that hid a CHECK violation on `decisions` at the
+        // judgment gate for weeks -- same table, same file. `recordJudgment`
+        // above now announces its own refusals; this one did not. Non-fatal on
+        // purpose: the spec IS approved and the row saved above is the fact, so
+        // this must not fail the save. It only has to be findable.
+        if (decErr || !decision) {
+          console.error(
+            `[spec] ${id} was approved but no decision row was written: ${
+              decErr?.message ?? "the insert was refused and returned no row"
+            }`,
+          );
+        } else {
           // SEAM-1: stage history for the captured decision.
           await recordStageEvent(supabase, {
             entityType: "decision",
@@ -2408,9 +2472,14 @@ export const createGithubIssueForPrd = createServerFn({ method: "POST" })
  * so `critic_review` -- the Critic's risks, kill criteria and missing evidence
  * on this exact bet -- was already in memory, and the prompt that writes the
  * spec's "## Risks & Open Questions" was assembled from title, problem, target
- * user, hypothesis and the three ICE numbers only. Measured live 2026-08-06: 47
- * of 289 opportunities carry a critic_review, and every one of them lost it at
- * this step.
+ * user, hypothesis and the three ICE numbers only, and every bet that carried a
+ * teardown lost it at this step. Re-measured live 2026-08-06 through the Lovable
+ * MCP: 48 of 294 opportunities carry a critic_review. (This line read "47 of
+ * 289" earlier the same day; the shape is what matters and the counts are dated
+ * because they move.) It is carried now -- `formatBetTeardown(opp.critic_review)`
+ * into `priorTeardown` in `generatePrd`, the system-prompt clause that fires only
+ * when it is non-empty, and the user message where the teardown rides between
+ * the bet and the retrieved evidence.
  *
  * WHY IT IS THE EXPENSIVE ONE. A person presses `c` on /decide, waits for a
  * model to red-team the bet, reads "assumes SSO is already shipped; kill if
@@ -2596,12 +2665,23 @@ export function fitToSentence(text: string, max: number): string {
  * throwing, so the old `const { data: placed }` reported success having changed
  * nothing: an RLS refusal or a PostgREST schema-cache miss left `placed` null,
  * no stage event was written, and /decide still said "Keeping it drafts the
- * spec and moves it into Plan". Re-measured 2026-08-06 through the Lovable MCP:
- * 0 of 292 opportunities carry a roadmap_bucket, so this path has never been
- * observed to succeed in production and the code could not tell anyone why. The
- * zero is the load-bearing half and it has not moved; the denominator has, twice
- * inside the same day (this line read 289, a reviewer re-measured 290), which is
- * why a count written into a comment gets a date beside it.
+ * spec and moves it into Plan".
+ *
+ * AND THE ZERO HAS MOVED, WHICH IS THE HALF THAT CARRIED THE ARGUMENT. This
+ * paragraph read: "Re-measured 2026-08-06 through the Lovable MCP: 0 of 292
+ * opportunities carry a roadmap_bucket, so this path has never been observed to
+ * succeed in production and the code could not tell anyone why. The zero is the
+ * load-bearing half and it has not moved; the denominator has, twice inside the
+ * same day (this line read 289, a reviewer re-measured 290), which is why a
+ * count written into a comment gets a date beside it." Re-measured live
+ * 2026-08-06: 1 of 294 carries one -- opportunity
+ * 60000000-0b00-4000-8000-000000000001, "Skip the address re-confirm when
+ * nothing changed", bucket 'next' -- and the gate decision written in the same
+ * call (8cb15ad7-251e-4ae3-8dfc-d677cdd64011, see `recordJudgment`) shows this
+ * path ran end to end for the first time. Its roadmap_outcome and
+ * roadmap_measure are both still NULL, which is the duplicate-guard path calling
+ * this function with a null seed -- behaviour `generatePrd`'s placement block
+ * predicts in as many words, and this is its first live instance.
  *
  * PARTIAL, AND THIS SENTENCE IS THE HONEST PART: the report travels back on the
  * handler's result, and no surface renders it yet. /decide's `draftSpec`
@@ -2669,8 +2749,9 @@ async function placeKeptBetInNext(
     });
 
     /**
-     * THE PRIMARY ANSWER AT THE GATE NOW CALLS FOR A JUDGMENT, AND THE WRITE
-     * LANDS ONLY ONCE ONE MIGRATION IS APPLIED. Read that sentence literally.
+     * THE PRIMARY ANSWER AT THE GATE NOW WRITES A JUDGMENT, AND AS OF TODAY IT
+     * HAS WRITTEN ONE. Read that sentence literally; the paragraphs below record
+     * why it took two corrections to become true.
      *
      * THE CALLER. `recordJudgment` had exactly one caller -- `updateOpportunity`,
      * and only when `status` is in the patch -- so "Drop it" asked for a
@@ -2682,27 +2763,38 @@ async function placeKeptBetInNext(
      * design, for the reason its header gives.
      *
      * THE PART A PREVIOUS PASS OF THIS FILE GOT WRONG, and it matters more than
-     * the caller did. This comment used to open "THE PRIMARY ANSWER AT THE GATE
-     * NOW WRITES A JUDGMENT." It did not, and neither did the "Drop it" path it
+     * the caller did. This comment opened "THE PRIMARY ANSWER AT THE GATE NOW
+     * WRITES A JUDGMENT" while it did not, and neither did the "Drop it" path it
      * cited as the working precedent. `recordJudgment` inserts `source_kind:
      * 'opportunity'` and `decisions_source_kind_check` admitted only
-     * meeting | mission | prd | manual | roadmap | retrospective | critic
-     * (read live with pg_get_constraintdef, 2026-08-06). Every insert from this
-     * function is refused by the database and returns at the guard.
+     * meeting | mission | prd | manual | roadmap | retrospective | critic, so
+     * every insert from this function was refused by the database and returned
+     * at the guard. The zero both passes leaned on -- no decisions rows with
+     * source_kind 'opportunity' -- was never evidence of a missing caller. It
+     * was the constraint, and it had been discarding "Drop it" since that path
+     * was written.
      *
-     * So the live datum both passes leaned on -- ZERO decisions rows with
-     * source_kind 'opportunity', against 267 rows total -- was never evidence
-     * of a missing caller. It is the constraint, and it has been discarding
-     * "Drop it" since that path was written.
+     * AND THE CORRECTION IS NOW STALE IN ITS TURN, which is the reason a comment
+     * carries the date it was measured. Verbatim, the two sentences that stood
+     * here: "Every insert from this function is refused by the database and
+     * returns at the guard", and "supabase/migrations/20260806164500_the_gate_
+     * wrote_its_judgment_and_a_check_threw_it_away.sql, which widens the check
+     * by one token. Until it is applied to production this call is correct and
+     * inert." Both were true when written and neither is true now. Re-measured
+     * live 2026-08-06 through the Lovable MCP: that migration is in
+     * `supabase_migrations.schema_migrations` and tracked in git, and
+     * `pg_get_constraintdef` returns EIGHT tokens plus NULL with 'opportunity'
+     * among them. The count the old text quoted (267 total) is 284 now, one of
+     * them from this very call site.
      *
-     * WHAT MAKES IT TRUE: supabase/migrations/20260806164500_the_gate_wrote_
-     * its_judgment_and_a_check_threw_it_away.sql, which widens the check by one
-     * token. Until it is applied to production this call is correct and inert,
-     * and the guard in `recordJudgment` now logs each refusal to the Worker
-     * rather than returning in silence. After it is applied, the Critic can
-     * cite approvals for the first time and Learn has a call to grade an
-     * outcome against; before it, "the record has been here before" can cite
-     * nothing that happened at the gate, in either direction.
+     * SO THE WRITE LANDS. Decision 8cb15ad7-251e-4ae3-8dfc-d677cdd64011 --
+     * "Kept at the gate, set to next, scored impact 9/10, confidence 8/10, ease
+     * 7/10." -- was written by THIS function for opportunity
+     * 60000000-0b00-4000-8000-000000000001, the one bet in the database carrying
+     * a roadmap_bucket. The Critic can cite an approval for the first time, and
+     * Learn has a call to grade an outcome against. The guard in `recordJudgment`
+     * still logs each refusal to the Worker rather than returning in silence,
+     * which is what should catch the next constraint nobody knew about.
      */
     await recordJudgment(supabase, userId, {
       id: opp.id,

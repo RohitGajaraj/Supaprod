@@ -334,18 +334,28 @@ const CRITIC_VERDICT_WORDS: readonly string[] = ["ship", "revise", "kill"];
  * predicate MORE permissive than the function it describes and reopen the same
  * hole from the other side. That the repo normalises before trusting this
  * column elsewhere (`["ship","revise","kill"].includes(r.verdict.trim())`,
- * discovery.functions.ts:2351) is itself the evidence that a jsonb column
- * written by a model is not trusted to hold only those three.
+ * inside `formatBetTeardown` in src/lib/discovery.functions.ts) is itself the
+ * evidence that a jsonb column written by a model is not trusted to hold only
+ * those three.
+ *
+ * CITED BY SYMBOL, NOT LINE, for the reason `lastRescoreAt` gives further down
+ * this file: discovery.functions.ts is under concurrent edit. This citation
+ * read `:2351`, true at c0be8bfb, and has moved twice since -- once in a landed
+ * commit, then again in an uncommitted tree that shifted it between two greps a
+ * minute apart. A line number here has a shelf life measured in commits.
  *
  * The parameter is typed structurally on purpose. `CriticReview["verdict"]` is
  * declared as the three-word union, so a nominal type here would make this
  * check look statically pointless; the value is parsed out of jsonb at
  * runtime and the declared union is a hope, not a guarantee.
  *
- * UNREACHABLE ON TODAY'S DATA, and written for the day it is not: re-measured
- * through the Lovable MCP on 2026-08-06, 47 of 292 opportunities carry a
- * `critic_review` and all 47 hold one of the three exactly (revise 25, ship 14,
- * kill 8). Zero hold anything else.
+ * UNREACHABLE ON TODAY'S DATA, and written for the day it is not. The claim
+ * that matters is the one that does not rot: OF THE OPPORTUNITIES CARRYING A
+ * `critic_review`, ZERO HOLD A WORD OUTSIDE THE THREE. Re-measured through the
+ * Lovable MCP on 2026-08-06: 48 of 294, all three-word exact (revise 26, ship
+ * 14, kill 8), none other. The counts drifted within that same day -- an
+ * earlier pass wrote 47 of 292 with revise 25 -- so read the invariant and
+ * treat the pair of integers as the date-stamped sample it is.
  */
 function criticGaveTheVerdict(review: { verdict?: string | null } | null | undefined): boolean {
   const v = review?.verdict;
@@ -515,8 +525,12 @@ function DecideSurface() {
    * `listLearnings`, src/lib/outcome.functions.ts, cited BY SYMBOL for the same
    * reason FocusNext.tsx cites `getFocusNext` that way: that file is under
    * concurrent edit and a bare line number here goes stale on the next commit.
-   * This one already had: the statement was at :1713 when this note was written
-   * and is at :1746 today, where :1713 is now a docblock line. That is exactly
+   * This one already had, TWICE, inside a single day -- and the second time was
+   * self-inflicted, which is the part worth carrying: the very commit that
+   * wrote this note added lines ABOVE the statement it cites, and the
+   * replacement number was copied across from the review rather than re-derived
+   * against the file, so a note written to end citation drift shipped citation
+   * drift. No line number is given here for that reason. That is exactly
    * why this must ALSO be `enabled`-gated: an ungated call with a null id would
    * fall back to the cross-workspace read this whole query exists to stop being
    * believed.

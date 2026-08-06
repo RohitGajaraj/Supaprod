@@ -31,8 +31,21 @@
  * shaped drawings (`design_memory --grounded-in--> prd_scaffold`) and drawings
  * never pointed back at the rules they produced, so a rule learned from one
  * spec's mockup showed its origin as a bucket and the ledger could not say what
- * taught it. `insertDesignMemoryItems` now takes an optional source and writes
- * `prd --taught--> design_memory` for every row it inserts.
+ * taught it. `insertDesignMemoryItems` now takes an optional source and, WHEN
+ * ONE IS GIVEN, writes `prd --taught--> design_memory` for every row that
+ * insert landed. A caller that passes no source still inserts rules and still
+ * writes no back-edge, which is the honest shape: nothing knows what taught it.
+ *
+ * THOSE EDGES ARE LIVE, NOT THEORETICAL. Measured against production
+ * 2026-08-06: 6 `taught` rows, alongside 18 `grounded-in`, in a table of 867.
+ * ONE THING DOES NOT KNOW ABOUT THEM YET, and it is worth knowing before the
+ * graph is read: `RELATION_ALIASES` in `src/lib/knowledge-graph-view.ts` has no
+ * `taught` entry, so `canonicalRelation` falls through to its generic rule.
+ * That gets the DIRECTION right by luck of the naming (no `-by` suffix, so
+ * inverted=false, which is correct -- the parent spec teaches, the child rule is
+ * taught) and the legend word right ("Taught"), but the sentence a reader gets
+ * is the placeholder "links to" / "is linked from" rather than anything worth
+ * reading. Nothing breaks; the graph is just duller than the fact deserves.
  *
  * KNOWN LIMIT (inherited, same as house_rules/decisions): artifact_lineage
  * RLS is owner-scoped, not workspace-scoped — a supersession recorded by one

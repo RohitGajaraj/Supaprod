@@ -393,10 +393,13 @@ export function assembleBuilderGoal(input: {
    *
    * They used to reach the agent only inside the ARD's `design` key, and
    * `ardDispatchBlock` returns null before it ever looks at `design` when the
-   * spec has no compiled Outcome Contract. Measured live on 2026-08-06: all 41
-   * specs with status='approved' -- every row the Build Console offers -- carry
-   * `contract = '{}'`, so the ARD was null on 100% of dispatches and the design
-   * station's entire output was loaded, formatted and thrown away every time.
+   * spec has no compiled Outcome Contract. Re-measured 2026-08-06: 41 of the 42
+   * specs with status='approved' -- the rows the Build Console offers -- carry
+   * `contract = '{}'`, so the ARD is null for all but one of them and the design
+   * station's entire output was loaded, formatted and thrown away on every
+   * dispatch but that one. (This read "all 41" when it was written earlier the
+   * same day. One spec has been given a compiled contract since, which moves the
+   * figure and not the argument.)
    * The builder's own system prompt tells it to read the mockup and to "never
    * invent a screen when an approved one was handed to you"; it was handed none,
    * took its documented no-design fallback, and built past the drawing a human
@@ -514,19 +517,25 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
      * builds past a drawing it should have gone looking for.
      *
      * THE COUNT ON THAT SENTENCE WAS WRONG AND IS CORRECTED HERE RATHER THAN
-     * DROPPED. It read "39 of the 41 approved specs on 2026-08-06", which is the
-     * count of approved specs with no DRAWING (41 minus the 2 that have one),
-     * reused as though it were the count with nothing at all. Design memory is
-     * WORKSPACE-scoped, not per-spec: a spec inherits its workspace's standing
-     * design language whether or not anyone ever drew it, so `[]` is much rarer
-     * than that sentence claimed. Re-measured 2026-08-06 through the same filter
-     * `getActiveDesignMemoryForWorkspace` applies (design_memory.status
-     * 'approved', minus any row retired by a `supersedes` edge whose parent is
-     * itself approved): of the 41 approved specs, 28 sit in a workspace WITH
-     * active design memory and therefore carry a non-empty `designSections`, 2
-     * carry a drawing, 0 carry a flow, and 13 yield `[]`. Both drawn specs are
-     * inside the 28, so the ordinary non-empty case is the workspace design
-     * language travelling alone.
+     * DROPPED. It read "39 of the 41 approved specs on 2026-08-06", which was
+     * the count of approved specs with no DRAWING at that moment (41 minus the 2
+     * that had one), reused as though it were the count with nothing at all.
+     * Design memory is WORKSPACE-scoped, not per-spec: a spec inherits its
+     * workspace's standing design language whether or not anyone ever drew it,
+     * so `[]` is much rarer than that sentence claimed. Re-measured 2026-08-06
+     * through the same filter `getActiveDesignMemoryForWorkspace` applies
+     * (design_memory.status 'approved', minus any row retired by a `supersedes`
+     * edge whose parent is itself approved): of the 42 approved specs, 29 sit in
+     * a workspace WITH active design memory and therefore carry a non-empty
+     * `designSections`, 3 carry a drawing, 0 carry a flow, and 13 yield `[]`.
+     * All three drawn specs are inside the 29, so the ordinary non-empty case is
+     * the workspace design language travelling alone.
+     *
+     * READ TWICE ON THE SAME DAY, and the second read is the one above: the
+     * cross-section moved by one spec between them (41/28/2 -> 42/29/3) while
+     * the load-bearing figure, the 13 that yield `[]`, did not. A count in a
+     * comment is a snapshot; what it is here to justify is that `[]` is the
+     * MINORITY case and is handled, and that holds at either reading.
      */
     const designSections = formatDesignDispatchSections(designCtx);
 
@@ -728,23 +737,45 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
      * and a second billed builder run against the same issue.
      *
      * So a failure that lands after the mission exists is REPORTED, not thrown:
-     * the caller gets the mission id it needs to open the run (where the failure
-     * is visible in full) alongside `run_error`. Only a failure with no mission
-     * and no started loop behind it still throws, because for that one the
-     * caller's sentence is true.
+     * the caller gets the mission id it needs to open the run alongside
+     * `run_error`. Only a failure with no mission and no called loop behind it
+     * still throws, because for that one the caller's sentence is true.
      *
-     * `run_started` IS THE THIRD CASE, AND IT WAS MISSING. A caller holding only
-     * `{mission_id, run_error}` cannot tell "the agent ran and then failed" —
-     * where the run page carries the whole story and navigating there is right —
-     * from "the mission row exists and no agent was ever started", which is
-     * reachable when `recordLineage` throws a transport error a few lines below
-     * (`recordStageEvent` cannot throw; stage-events.server.ts swallows its own).
-     * In that second case the mission has no run at all, so a caller that
-     * navigated to it showed an empty page and dropped the reason on the floor.
-     * It mirrors `loopEntered` exactly and is true on every success.
+     * `run_started` IS THE THIRD CASE, AND THE LOOP IS WHAT ANSWERS IT. A caller
+     * holding only `{mission_id, run_error}` cannot tell "a run exists and its
+     * page carries the whole story" from "the mission row exists and nothing was
+     * ever started on it", where /runs/<id> is an empty page. That second state
+     * is reachable when `recordLineage` throws a transport error a few lines
+     * below (`recordStageEvent` cannot throw; stage-events.server.ts swallows its
+     * own). So the field reports the `agent_runs` row `runAgentLoop` says it
+     * inserted — `result.run_id` — and nothing else.
+     *
+     * IT USED TO BE `loopEntered`, ASSIGNED BEFORE THE AWAIT, so it meant "we
+     * called the loop" while every reader took it for "a run exists". Those come
+     * apart on anything that throws before that insert lands, and `runAgentLoop`
+     * has three such sites: `Unknown agent`, `Agent is disabled` (the roster read
+     * above selects `id` alone, so a disabled builder passes it, the mission is
+     * created, and the loop refuses it after), and the `agent_runs insert failed`
+     * guard on the insert itself. Each returned `run_started: true` with no
+     * run behind it, and ReadyToBuild navigates on that field — the exact empty
+     * page it was added to prevent. Latent as of 2026-08-06 (16 of 16 builder
+     * agents enabled) and one RLS refusal on `agent_runs` away.
+     *
+     * ON THE FAILURE PATH THE LOOP'S ANSWER IS GONE WITH THE THROW, so the field
+     * is false there and the caller states the reason in place with a door onto
+     * the mission instead of navigating. That is never worse: the run page is one
+     * click away either way, and the reason is on screen rather than discarded.
+     * What it must NOT do is claim no run exists — a throw from inside the step
+     * loop leaves a real `agent_runs` row behind — so the caller's sentence for
+     * this case says the dispatch got no run id back, which is true of all of
+     * them.
+     *
+     * `loopCalled` keeps the other half of the old variable's job, and only that
+     * half: whether anything is behind this failure at all, which is what decides
+     * between rethrowing and reporting.
      */
     let missionId: string | null = null;
-    let loopEntered = false;
+    let loopCalled = false;
     try {
       if (workspaceId && agent) {
         const m = await createMission(supabase, userId, workspaceId, {
@@ -803,7 +834,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         }
       }
 
-      loopEntered = true;
+      loopCalled = true;
       const result = await runAgentLoop(supabase, userId, {
         agentSlug: "builder",
         goal: fullGoal,
@@ -818,13 +849,16 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         issue_link_error: issueLinkError,
         roster_error: rosterError,
         run_error: null as string | null,
-        run_started: true as boolean,
+        // The loop's own answer, not this function's control flow. `run_id` is
+        // null when the `agent_runs` insert came back empty without erroring,
+        // and a caller sent to that mission's run page would find nothing on it.
+        run_started: (result.run_id ?? null) !== null,
       };
     } catch (e) {
       // Nothing durable to point the caller at: the mission was never created
-      // and the agent never started. "Nothing was dispatched" is true here, so
+      // and the loop was never called. "Nothing was dispatched" is true here, so
       // let it throw and let the caller say it.
-      if (!missionId && !loopEntered) throw e;
+      if (!missionId && !loopCalled) throw e;
       return {
         mission_id: missionId,
         issue_number: issueNumber,
@@ -832,7 +866,9 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         issue_link_error: issueLinkError,
         roster_error: rosterError,
         run_error: e instanceof Error ? e.message : String(e),
-        run_started: loopEntered,
+        // The throw took the loop's answer with it. False means "no run id came
+        // back", never "no run exists" — see the paragraph above.
+        run_started: false,
       };
     }
   });
@@ -866,16 +902,20 @@ export type DispatchDesignGate = {
  * `prds.status === 'approved'` alone and knew nothing about the design gate, so
  * every row read "Approved. Build opens the issue as it starts." while
  * `dispatchBuilderMission` above was going to throw DESIGN_GATE_BLOCK_MESSAGE
- * at it. Measured live 2026-08-06: of the 41 approved specs, 2 carry a drawing
- * and BOTH are still `design_gate_status = 'pending'`, and not one approved spec
- * in the database has an approved design gate.
+ * at it. Re-measured 2026-08-06: of the 42 approved specs, 3 carry a drawing —
+ * 2 still `design_gate_status = 'pending'` and therefore blocked, and one
+ * (4c0391d5, "Skip the address re-confirm when nothing changed") approved, which
+ * is the first approved design gate in the database. No spec anywhere carries
+ * 'rejected'. An earlier reading of this paragraph said no approved spec had an
+ * approved gate; that was true when written and is not now, which is why the
+ * figures here carry the day they were taken.
  *
  * It reuses `loadDesignGateState` + `designGateBlocksDispatch` rather than
  * asking the same three questions in a second shape. That matters more than the
  * query count: the gate rule is subtle (an unmade drawing must NOT block, an
  * unreadable drawing count must), and a surface that guessed at it would go
- * wrong in the direction of telling 39 people their spec is stuck when it is
- * not.
+ * wrong in the direction of telling the 40 approved specs that are NOT blocked
+ * (2026-08-06) that they are stuck when they are not.
  *
  * IT USED TO RETURN BARE IDS, "so the caller cannot re-derive the rule", AND
  * THAT DENIED THE CALLER THE FACT IT NEEDED TO SPEAK ACCURATELY. Holding only
@@ -886,13 +926,23 @@ export type DispatchDesignGate = {
  * (see the `decideDesignGate` server fn in design-scaffold.functions.ts) — and
  * it also blocks when the drawing count could not be read at all
  * (`loadDesignGateState` in design-gate.server.ts keeps the gate shut on
- * unknown, deliberately). BOTH ARE NAMED BY SYMBOL BECAUSE THE FIRST CITATION
- * HERE HAD ALREADY ROTTED: it read "design-scaffold.functions.ts:1029", exact
- * on the day it was written and now pointing inside `saveScaffoldReview`'s
- * `prd_scaffolds` update, because `decideDesignGate` has moved down that file.
- * ReadyToBuild.tsx dropped a line number for this same reason in the wave that
- * added this one. For those two the row asserted the opposite of the
- * truth. So the shape now carries the two facts a true sentence needs and
+ * unknown, deliberately). For those two the row asserted the opposite of the
+ * truth.
+ *
+ * BOTH ARE NAMED BY SYMBOL BECAUSE THE FIRST CITATION HERE HAD ALREADY ROTTED:
+ * it read "design-scaffold.functions.ts:1029", which was exact on the day it was
+ * written — `decideDesignGate` is at that line in commit 83dd694e — and is stale
+ * now because that function has moved several hundred lines down the file. NO
+ * REPLACEMENT NUMBER IS GIVEN ON PURPOSE, and not only because a new one would
+ * rot the same way: the first attempt at this correction described where :1029
+ * "now points" by naming a function that does not exist anywhere in `src/` —
+ * the same defect it was in the middle of fixing, one clause later. What caught
+ * it is the whole argument for symbols: grepping that name across `src/`
+ * returned exactly one hit, the comment that invented it. A symbol can be
+ * checked in one command; a line number can only be trusted. ReadyToBuild.tsx
+ * dropped a line number for this same reason in the wave that added this one.
+ *
+ * So the shape now carries the two facts a true sentence needs and
  * NOTHING MORE: it still does not carry `stageEnabled`, so the rule itself
  * remains underivable here and stays in the one predicate both dispatch paths
  * call.

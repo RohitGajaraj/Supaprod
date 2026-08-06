@@ -130,9 +130,11 @@ export function ReadyToBuild() {
            * and the line now sits inside the PRD lookup, so the throw is named by
            * its message instead. A line number in a comment rots in days.)
            * Measured on the live database: 55 approved specs, ZERO with a
-           * `github_issue_url` -- re-measured 2026-08-06 and it is now 41
-           * approved specs, still ZERO. The control was wrong 100% of the time
-           * from the moment it shipped.
+           * `github_issue_url`. Re-measured 2026-08-06: 42 approved specs and
+           * exactly ONE with an issue url, the same spec that just became the
+           * first with a compiled contract and an approved design gate. So the
+           * first of the three sources now covers one row out of 42, and the
+           * control this flag replaces was wrong on every press before that.
            *
            * And the row already promised this: "Approved. Build opens the issue
            * as it starts." The copy described the behaviour the flag turns on
@@ -194,20 +196,49 @@ export function ReadyToBuild() {
         ? ` The spec was also not linked to the issue (${linkError}), so pressing again would open a second one.`
         : "";
       /**
+       * THE ROSTER REASON HAS TO RIDE THE `run_error` SENTENCE, BECAUSE THAT IS
+       * THE BRANCH A FAILED ROSTER READ ACTUALLY LANDS ON.
+       *
+       * `runAgentLoop` repeats the dispatch's roster read with the same client
+       * and the same filters (`agents`, `user_id` + `slug`, `maybeSingle`) and
+       * throws `Unknown agent: builder` when it comes back empty — and a read
+       * that was REFUSED comes back empty. So an RLS refusal or a transport
+       * failure sets `roster_error` AND `run_error`, and the `roster_error`
+       * branch further down is reachable only in the narrow window where this
+       * dispatch's read failed and the loop's identical read then succeeded.
+       * Without this note the reason the server went to the trouble of capturing
+       * printed nowhere in the ordinary case. Appended rather than promoted
+       * ahead of `run_error`: the panel cannot know that the loop's failure was
+       * caused by the same refusal, only that both happened. Same shape as
+       * `linkNote` above, for the same reason.
+       */
+      const rosterNote = r?.roster_error
+        ? ` Your agent roster could not be read on the way in (${r.roster_error}), which on its own is enough to stop a mission being created for this dispatch.`
+        : "";
+      /**
        * NAVIGATE ONLY WHERE THE REASON SURVIVES THE NAVIGATION.
        *
        * This read `if (missionId)` and returned, so a `run_error` the server had
-       * gone to the trouble of reporting was shown nowhere at all. For a
-       * `runAgentLoop` failure that is fine — the agent ran, and the run page it
-       * lands on carries the failure in full. It is not fine for the window the
-       * server explicitly opened: a mission created and the loop never entered,
-       * which `recordLineage` throwing a transport error reaches. There the run
-       * page has no run on it, so navigating there showed an empty page, no
-       * message, and a build that genuinely did not start.
+       * gone to the trouble of reporting was shown nowhere at all. For a failure
+       * inside `runAgentLoop` that cost little, because the run page it landed on
+       * carried the failure in full. It was wrong for the window the server
+       * explicitly opened: a mission created and no run ever started on it, which
+       * `recordLineage` throwing a transport error reaches. There the run page
+       * has no run on it, so navigating showed an empty page, no message, and a
+       * build that genuinely did not start.
        *
-       * `run_started` is the server's own `loopEntered`, so this branch asks the
-       * question the server already answered rather than inferring it from the
-       * presence of an error string.
+       * `run_started` IS THE LOOP'S OWN ANSWER — whether `runAgentLoop` came back
+       * holding an `agent_runs` id — so this branch asks a question the server
+       * already answered rather than inferring it from the presence of an error
+       * string. It was the server's `loopEntered`, which was assigned BEFORE the
+       * loop was awaited and so was true of every throw that never reaches the
+       * run insert — an unknown agent, a disabled one, the insert itself being
+       * refused; this navigate fired on all of them, onto a page with no run.
+       *
+       * It is false on every failure path, including a failure that landed after
+       * a run did exist. That case loses nothing: the notice below states the
+       * reason and its door opens the mission, so the run page is one click away
+       * instead of being the only place the story lives.
        */
       if (missionId && r?.run_started && !linkError) {
         void navigate({ to: "/runs/$missionId", params: { missionId } });
@@ -221,10 +252,21 @@ export function ReadyToBuild() {
         });
         return;
       }
+      /**
+       * WHAT THIS SENTENCE MAY CLAIM, given `run_started` is false here.
+       *
+       * False means the dispatch got no run id back, and that covers three states
+       * it cannot tell apart: no run was ever created, a run was created and the
+       * loop then threw with the answer inside it, and a loop that returned
+       * normally holding no run id. So the copy states the fact that holds in all
+       * three — no run id came back — and points at the mission, rather than
+       * asserting that nothing is building, which would be this repo's signature
+       * defect written into UI copy.
+       */
       if (missionId) {
         setFailed({
-          lead: "The build stopped before the agent started",
-          sub: `${r?.run_error ?? "No reason was reported."} The GitHub issue is open at #${r?.issue_number} and the mission was created, but no agent run was started for it, so nothing is building yet.${linkNote}`,
+          lead: "The build stopped without a run to open",
+          sub: `${r?.run_error ?? "No reason was reported."} The GitHub issue is open at #${r?.issue_number} and the mission was created, but this dispatch got no run id back for it, so open the mission to see what landed on it.${linkNote}`,
           missionId,
         });
         return;
@@ -248,11 +290,19 @@ export function ReadyToBuild() {
        * line sent the person to fix something that may be perfectly fine. The
        * server now separates the two and `roster_error` carries the read's own
        * words; the confident sentence is kept for the case it is true of.
+       *
+       * THE THIRD BRANCH IS NOT WHERE A FAILED ROSTER READ USUALLY ARRIVES, and
+       * that is why `rosterNote` exists. `runAgentLoop` re-runs the same read and
+       * throws `Unknown agent: builder` on an empty result, so a refusal almost
+       * always sets `run_error` too and the first branch wins. This branch is
+       * left standing for the window it is true of — this dispatch's read failed
+       * and the loop's identical read succeeded — and the note carries the reason
+       * into the branch that actually renders.
        */
       setFailed({
         lead: r?.run_error ? "The build started and then stopped" : "The build has no run to open",
         sub: r?.run_error
-          ? `${r.run_error} The GitHub issue is open at #${r.issue_number} and the work is not finished; nothing here can open the run, because no mission was created for it.${linkNote}`
+          ? `${r.run_error} The GitHub issue is open at #${r.issue_number} and the work is not finished; nothing here can open the run, because no mission was created for it.${rosterNote}${linkNote}`
           : r?.roster_error
             ? `The GitHub issue is open at #${r.issue_number}, but your agent roster could not be read, so no mission was created and nothing here can tell you whether a builder agent exists. The read failed with: ${r.roster_error}${linkNote}`
             : `The GitHub issue is open at #${r.issue_number}, but no mission was created for it, so there is no run to open. Check that a builder agent exists in your roster.${linkNote}`,
@@ -320,11 +370,13 @@ export function ReadyToBuild() {
          * This list filters on `prds.status === 'approved'` — the SPEC approval —
          * and said "Approved. Build opens the issue as it starts." while
          * `dispatchBuilderMission` was going to refuse the press outright because
-         * the spec's DESIGN gate had a drawing waiting on a human. Two of the 41
-         * approved specs are in exactly that state today and not one has an
-         * approved design gate, so the sub-line promised the opposite of what the
-         * button did, with no way to tell beforehand and no link to the page
-         * where the call is actually made.
+         * the spec's DESIGN gate had a drawing waiting on a human. Re-measured
+         * 2026-08-06: two of the 42 approved specs are in exactly that state, and
+         * exactly one spec now has an approved design gate — the first, so this
+         * paragraph's earlier "not one" was true when written and is not now. The
+         * sub-line promised the opposite of what the button did, with no way to
+         * tell beforehand and no link to the page where the call is actually
+         * made.
          *
          * The row is not dropped and the person is not left holding a control
          * that cannot work: the sub-line says which gate is holding it and the
@@ -337,10 +389,11 @@ export function ReadyToBuild() {
          * whose drawing count could not be read (the gate stays shut on unknown,
          * design-gate.server.ts:34). For those two the row asserted the opposite
          * of the truth — this repo's signature defect, written inside the fix for
-         * it. Live today the honest branch is unexercised: of 81 specs not one
-         * carries `design_gate_status = 'rejected'`, and the two approved specs
-         * the gate does block are both drawn-and-pending (all 21 workspaces have
-         * the design stage on). Latent, not broken, and worth stating anyway,
+         * it. Re-measured 2026-08-06, the honest branch is unexercised: of 81
+         * specs not one carries `design_gate_status = 'rejected'`, and the two
+         * approved specs the gate does block are both drawn-and-pending (21 of 21
+         * workspaces have the design stage on). Latent, not broken, and worth
+         * stating anyway,
          * because `decideDesignGate` writes 'rejected' the first time a person
          * uses the button the door below points at.
          */

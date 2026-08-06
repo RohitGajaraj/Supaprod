@@ -135,14 +135,16 @@ describe("assembleBuilderGoal (the Build Console dispatch payload IS the ARD)", 
  *
  * They used to reach the agent only inside the ARD's `design` key, and
  * `ardDispatchBlock` returns null before it looks at `design` when the spec has
- * no compiled Outcome Contract. Every one of the 41 approved specs carries
- * `contract = '{}'`, so the design station's output was computed and discarded
- * on 100% of Build Console dispatches. `assembleBuilderGoal` now carries the
- * prose sections independently, and these three tests pin the two halves of
- * that contract: what a spec WITH design gets, and what a spec with none gets.
+ * no compiled Outcome Contract. 41 of the 42 approved specs carry
+ * `contract = '{}'` (re-measured 2026-08-06; this said "every one of the 41"
+ * hours earlier, before the first spec was given a compiled one), so the design
+ * station's output was computed and discarded on every Build Console dispatch
+ * but that spec's. `assembleBuilderGoal` now carries the prose sections
+ * independently, and these three tests pin the two halves of that contract:
+ * what a spec WITH design gets, and what a spec with none gets.
  *
  * The second is the one that matters most and is the ordinary case.
- * Re-measured 2026-08-06: 13 of the 41 approved specs have no drawing, no flow
+ * Re-measured 2026-08-06: 13 of the 42 approved specs have no drawing, no flow
  * and no workspace design memory, so `formatDesignDispatchSections` hands this
  * function `[]`. An empty labelled heading would be worse than nothing — it is
  * the design station asserting it had nothing to say, and a builder told that

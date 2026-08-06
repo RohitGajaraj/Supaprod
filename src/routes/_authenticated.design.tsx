@@ -463,19 +463,26 @@ function Design() {
    */
   const [reviews, setReviews] = React.useState<Record<string, DesignCriticFinding[] | null>>({});
   /**
-   * THE RULING CAN SURVIVE THE PAGE, so this session's state is no longer the
+   * THE RULING SURVIVES THE PAGE, so this session's state is no longer the
    * only place findings live. `runScaffoldDesignCritic` writes them to the
    * record and `getDesignWorkItem` hands back the ones that are about the
    * drawing currently on screen, so clicking a second spec and clicking back
    * shows the review you already paid for instead of an empty panel and a
    * second bill. A live review still wins: it is newer than the read.
    *
-   * "CAN", AND NOT "DOES", UNTIL ONE MIGRATION IS APPLIED. The ruling is filed
-   * on `prd_scaffolds.critic_review`, added by the migration dated
-   * 20260806170000. Until that runs the write fails, `persisted` comes back
-   * false, and the receipt below says so in the person's own words -- so this
-   * map is the only place the findings live and the panel below still shows
-   * them. Nothing here needs to change when the column arrives.
+   * "SURVIVES" AND NOT "CAN SURVIVE": the column it is filed on,
+   * `prd_scaffolds.critic_review`, was added by the migration dated
+   * 20260806170000 AND THAT MIGRATION IS APPLIED (checked against production
+   * 2026-08-06). This comment said "until one migration is applied" while it
+   * already had been, which is the one kind of sentence this file must not
+   * carry.
+   *
+   * THE MAP IS STILL THE FALLBACK AND STILL EARNS ITS KEEP. If the write is
+   * refused -- RLS, or a database this build is pointed at that has not had the
+   * migration -- `persisted` comes back false, the receipt below says so in the
+   * person's own words, and these findings are then the only copy there is. That
+   * path is unchanged and untested by the column's arrival, which is why it
+   * stays.
    */
   // `in`, not truthiness: null is a value here and means "emptied", which is a
   // different answer from "this session never said anything about this spec".

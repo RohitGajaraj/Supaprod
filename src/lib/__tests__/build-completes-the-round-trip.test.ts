@@ -106,17 +106,41 @@ describe("the dispatch's answer is actually read", () => {
     // A dispatch that produced no mission (no workspace, or no builder agent)
     // must not navigate to /runs/undefined.
     //
-    // The guard was `if (missionId)` and is now `if (missionId && r?.run_started)`,
-    // which is STRICTER: a mission can exist while the agent loop never entered,
-    // and /runs/<id> for a mission with no run is an empty page. So this asserts
-    // the invariant -- every navigate to the run page is gated on missionId --
-    // rather than one spelling of it, and a future tightening will not go red.
-    const navs =
-      PANEL.replace(/\s+/g, " ").match(
-        /if \([^)]*\) \{? ?void navigate\(\{ to: "\/runs\/\$missionId"/g,
-      ) ?? [];
-    expect(navs.length).toBeGreaterThan(0);
-    for (const n of navs) expect(n).toMatch(/missionId/);
+    // The guard was `if (missionId)` and is now
+    // `if (missionId && r?.run_started && !linkError)`, stricter on both counts
+    // it grew: a mission can exist with no run ever started on it and /runs/<id>
+    // is then an empty page, and a dispatch that could not write the issue back
+    // onto the spec has a warning to deliver that a run page cannot carry. So
+    // this pins the invariant rather than one spelling of it, and a further
+    // tightening will not turn it red.
+    //
+    // WHAT IT PINS, EXACTLY -- because the sentence here before overclaimed and
+    // this is the assertion that has to earn its own comment. It swept for
+    // navigates preceded by an `if (...)` and asserted only `length > 0`, so it
+    // matched ONE of the two navigates in this file (the Door at the bottom of
+    // the failure notice is gated by a ternary, not an `if`) and an ungated
+    // third one added anywhere would have left it green under a comment
+    // claiming it pinned EVERY navigate.
+    //
+    // It now anchors on the ROUTE -- every occurrence of "/runs/$missionId" in
+    // the panel, in whatever call shape it is written -- and requires each to
+    // have a *missionId identifier in a truthiness position within the 250
+    // characters of collapsed source before it. That covers both forms in use:
+    // `if (missionId && ...)` and `failedMissionId ? <Door/> : undefined`.
+    // Optional chaining is excluded from the guard, so `const missionId =
+    // r?.mission_id;` sitting above a bare navigate does NOT read as one; that
+    // exact ungated navigate was planted and confirmed to fail this. It is a
+    // proximity check on source text and not a proof, which is why the claim
+    // stops there.
+    const flat = PANEL.replace(/\s+/g, " ");
+    const GUARD = /\b\w*[Mm]issionId\b[^;{]{0,60}(\?[^.]|\))/;
+    const ROUTE = /"\/runs\/\$missionId"/g;
+    const preceding: string[] = [];
+    for (let m = ROUTE.exec(flat); m; m = ROUTE.exec(flat)) {
+      preceding.push(flat.slice(Math.max(0, m.index - 250), m.index));
+    }
+    expect(preceding.length).toBeGreaterThan(0);
+    for (const p of preceding) expect(p).toMatch(GUARD);
   });
 });
 

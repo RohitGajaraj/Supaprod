@@ -53,7 +53,11 @@
  * next click and the gate verdict recorded beside it carried no trace of what
  * the Critic said. It now lands on `prd_scaffolds.critic_review`, a column of
  * its own, added by the migration dated 20260806170000 ("a drawings review
- * belongs to the drawing") under `supabase/migrations/`.
+ * belongs to the drawing") under `supabase/migrations/`. THAT MIGRATION IS
+ * APPLIED: re-read off production 2026-08-06, `prd_scaffolds` carries
+ * `critic_review jsonb`, nullable, no default, and its repair block moved zero
+ * rulings because there were none to move (0 specs still carry a
+ * `scaffold_design` key).
  *
  * IT USED TO LAND ON `prds.critic_review` UNDER A `scaffold_design` KEY, and
  * that was a launch blocker rather than a clever way to skip a migration. That
@@ -62,18 +66,28 @@
  * -- it drops the "Ask the Critic" button and then reads `review.risks.length`,
  * which is a TypeError on an object that only ever held a drawing's findings.
  * /ask renders "The Critic says {verdict}. {summary}" off the same column, and
- * the approvals queue builds its evidence line from it. Measured 2026-08-06:
- * 77 of 81 specs have `critic_review IS NULL`, and all 4 specs that have a
+ * the approvals queue builds its evidence line from it. Re-measured 2026-08-06:
+ * 77 of 81 specs have `critic_review IS NULL`, and all FIVE specs that have a
  * drawing are among them -- so the FIRST "Ask the Critic" on /design would have
- * broken that spec's own page. A review about the markup is a fact about the
- * drawing, so it is filed against the drawing.
+ * broken that spec's own page. (Five, not the four an earlier reading of this
+ * comment counted: a fifth drawing landed the same day. The claim it carries is
+ * unchanged -- every drawn spec is still one whose red-team column is empty.)
+ * A review about the markup is a fact about the drawing, so it is filed against
+ * the drawing.
  *
- * THE WRITE IS TOLERANT OF THE COLUMN NOT BEING THERE YET. Until the migration
- * is applied the update fails, `persisted` comes back false, and /design already
- * says "It could not be saved, so it goes when you leave this page" -- the
- * review is still returned and still rendered. Every read of this table here is
- * `select("*")` for the same reason: naming a column that does not exist would
- * fail the whole query and take THE DRAWING off the page with it.
+ * EVERY READ OF THIS TABLE HERE IS `select("*")`, AND THAT IS STILL LOAD-BEARING
+ * NOW THE COLUMN EXISTS, for a reason that moved rather than went away.
+ * `src/integrations/supabase/types.ts` was generated before the migration and
+ * has no `critic_review` on `prd_scaffolds` (checked 2026-08-06: its Row type
+ * lists created_at, generated_by, html, id, prd_id, source, updated_at,
+ * workspace_id and nothing else), so naming the column in a select fails the
+ * TYPECHECK, and the update needs its `as never`. A star select asks PostgREST
+ * for whatever the table actually has. It also means a checkout whose database
+ * has not been migrated still renders THE DRAWING rather than failing the whole
+ * query: there the update errors, `persisted` comes back false, and /design says
+ * "It could not be saved, so it goes when you leave this page" while still
+ * returning and rendering the review. Regenerating the types is the thing that
+ * would let a named select replace this, and it is not this module's to do.
  *
  * AND FILING IT COSTS THE ROW'S `updated_at`, which is the part that had to be
  * paid for rather than assumed. `prd_scaffolds_updated_at` is an unconditional
@@ -87,6 +101,15 @@
  * own age inside itself, and which drawing it is about is decided by a stamp of
  * the markup rather than by a clock. `readDrawingRecord` is the one place that
  * reconciles the two, and all four readings go through it.
+ *
+ * "ALL FOUR" MEANS THE FOUR IN THIS MODULE, and one reader outside it is worth
+ * naming so nobody reads that sentence as repo-wide. `run-stages.functions.ts`
+ * selects `prd_scaffolds.updated_at` (:447), carries it as `scaffold.updatedAt`
+ * (:797) and `StagePanel.tsx` prints it (:515, :543) -- as "updated {time}",
+ * which is what the column actually means, so a ruling landing there moves a
+ * line that never claimed to be the drawing's age. Checked 2026-08-06; it is
+ * accurate rather than fixed, and it would need `readDrawingRecord` too the day
+ * that label becomes "drawn".
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -282,9 +305,11 @@ export function readContractBrief(contract: unknown): SpecContractBrief | null {
  * criteria or it is not a contract.
  *
  * NOT EVERY BLOCK IN THIS MESSAGE IS BOUNDED, and it would be easy to write here
- * that they are. `formatDesignMemoryContext` (design-memory.functions.ts:143)
- * has no cap at all and rides in this same `userMsg`, so a workspace with a
- * hundred standing rules is still an unbounded prompt. That is a real gap and it
+ * that they are. `formatDesignMemoryContext` (design-memory.functions.ts:156 --
+ * it read 143 until that file's header grew by thirteen lines on 2026-08-06, so
+ * trust the SYMBOL and re-derive the number) has no cap at all and rides in the
+ * same `userMsg` this block does, so a workspace with a hundred standing rules
+ * is still an unbounded prompt. That is a real gap and it
  * is not this constant's to close: those rules are the whole reason DSN-01
  * exists, and truncating them is a judgement about which of a person's own
  * design decisions to drop.
@@ -713,8 +738,10 @@ export const getPersistedScaffold = createServerFn({ method: "GET" })
     // than off `updated_at`: DesignScaffoldPanel prints this as "Generated
     // {time}", and a ruling filed against this row moves `updated_at`, which
     // would have that line claim the drawing was made at the moment somebody
-    // asked the Critic about it. The star is what keeps this query working while
-    // the migration that adds `critic_review` is unapplied.
+    // asked the Critic about it. The star, and not a column list naming
+    // `critic_review`, because the generated types do not know that column yet
+    // (see the module header) -- naming it fails the typecheck here and the
+    // query itself in any database the migration has not reached.
     const { data: row } = await supabase
       .from("prd_scaffolds")
       .select("*")
@@ -940,10 +967,11 @@ export type ScaffoldDesignCriticResult = {
  *
  * `prd_scaffolds.critic_review`, one jsonb column beside the `html` it is a
  * review OF, holding the ruling FLAT -- no wrapper key, because the column is
- * the drawing's alone and has nobody to share it with. The migration that adds
- * it also lifts any `scaffold_design` key an earlier build wrote into
+ * the drawing's alone and has nobody to share it with. The migration that added
+ * it also lifted any `scaffold_design` key an earlier build had written into
  * `prds.critic_review` back out, so no ruling is stranded and no spec is left
- * carrying a drawing's findings where its own red-team verdict should be.
+ * carrying a drawing's findings where its own red-team verdict should be. It
+ * ran and found none to lift, which is the answer it was written to survive.
  *
  * ONE ROW PER SPEC, overwritten by a redraw, which is what lets a rehydrated
  * ruling be checked against the drawing it claims to be about (see
@@ -1008,7 +1036,12 @@ export type StoredScaffoldReviewRead = DesignCriticReview & {
   reviewedAt: string;
   /** Null for a ruling LIFTED here out of `prds.critic_review` by the
    *  migration's repair block: those were written before this column existed
-   *  and carry no stamp. Zero such rows exist today (measured 2026-08-06). */
+   *  and carry no stamp. NO SUCH ROW EXISTS OR CAN BE MADE NOW. The migration
+   *  is applied and its repair moved zero rulings (re-measured 2026-08-06: 0
+   *  specs carry a `scaffold_design` key, 0 scaffolds carry a ruling at all),
+   *  and every write below sets `drawing_stamp` on both branches of its
+   *  ternary. Kept because a null here must read as "unstamped", never as a
+   *  stamp that matches nothing. */
   drawingStamp: string | null;
   drawnAt: string | null;
 };
@@ -1018,8 +1051,10 @@ export type StoredScaffoldReviewRead = DesignCriticReview & {
  * null when the column holds nothing a ruling can be read out of.
  *
  * Null is the answer for every row written before the column existed, and for
- * every row read while the migration is still unapplied (`select("*")` simply
- * does not return the key). Both are "no ruling on file", which is true.
+ * every row read out of a database where the migration has not been applied
+ * (`select("*")` simply does not return the key). Both are "no ruling on file",
+ * which is true. Production has the column as of 2026-08-06 and every one of
+ * its five drawings still reads null here, because no ruling has been filed yet.
  */
 export function readStoredScaffoldReview(criticReview: unknown): StoredScaffoldReviewRead | null {
   if (!criticReview || typeof criticReview !== "object" || Array.isArray(criticReview)) return null;
@@ -1048,7 +1083,8 @@ type ScaffoldRowForReading = {
 /**
  * PURE. THE ONE PLACE THAT DECIDES HOW OLD A DRAWING IS AND WHOSE RULING IS ON
  * IT, because three surfaces used to decide it separately off `updated_at` and
- * all three would have started lying on the day the migration lands.
+ * all three began lying the day the migration landed -- which it has, so this
+ * is load-bearing now rather than in anticipation.
  *
  * `updated_at` means "when this ROW last changed", and once a ruling can be
  * filed against the row that stops being the same fact as "when this DRAWING was
@@ -1059,10 +1095,21 @@ type ScaffoldRowForReading = {
  *   - a ruling whose stamp does not match is about markup that has since been
  *     redrawn: it is dropped, and the row's own `updated_at` is the age, because
  *     the redraw was then the last thing to touch the row;
- *   - a ruling with no stamp at all was lifted out of `prds.critic_review` by the
- *     migration's repair block. Nothing on this row moved `updated_at` while
- *     that ruling lived on the spec, so for exactly those rows the old
- *     `reviewed_at >= updated_at` test is the correct one and is used.
+ *   - a ruling with no stamp at all could only have been lifted out of
+ *     `prds.critic_review` by the migration's repair block, and for those the
+ *     old `reviewed_at >= updated_at` test is all there is, so it is what runs.
+ *     BE CLEAR ABOUT WHAT THAT TEST DOES HERE, because it is easy to write that
+ *     it works: the repair block is itself an UPDATE on this row, so the same
+ *     unconditional trigger fired and set `updated_at` to the migration's clock,
+ *     which is later than the app-server `reviewed_at` the ruling was carrying.
+ *     A lifted ruling therefore reads as stale and is DROPPED. That is the
+ *     conservative answer -- an unstamped ruling cannot be checked against the
+ *     markup, and showing it would be asserting a verdict nothing can verify --
+ *     and it costs nothing, because the migration is applied and lifted zero
+ *     rulings (re-measured 2026-08-06: 0 specs carry a `scaffold_design` key).
+ *     No write below can produce an unstamped ruling, so this branch is now
+ *     unreachable and is kept only so that a null stamp can never be mistaken
+ *     for a stamp that happens to match.
  *
  * KNOWN WINDOW, stated rather than papered over: if the markup reviewed is not
  * the markup on the row (the browser held an older drawing while another tab
@@ -1164,9 +1211,10 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
     // that is still true is the one taken here, a moment before -- and it is
     // stored inside the ruling so `readDrawingRecord` can hand it back.
     //
-    // `select("*")` for the same reason getDesignWorkItem uses one: naming
-    // `critic_review` while the migration is unapplied fails the whole query.
-    // A failed read costs the carried age, not the review.
+    // `select("*")` for the same reason getDesignWorkItem uses one: the
+    // generated types have no `critic_review` on this table, so naming it is a
+    // typecheck failure here and a whole-query failure anywhere the migration
+    // has not reached. A failed read costs the carried age, not the review.
     const { data: rowBefore, error: beforeErr } = await supabase
       .from("prd_scaffolds")
       .select("*")
@@ -1199,8 +1247,9 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
     //
     // THREE WAYS THIS COMES BACK FALSE AND ALL THREE ARE HONEST: RLS refused it
     // (empty row set), no drawing has been persisted for this spec yet (no row
-    // to attach the ruling to), or the migration that adds the column has not
-    // been applied (`error`, code 42703). The column is written whole because it
+    // to attach the ruling to), or this database has not had the migration
+    // applied (`error`, code 42703 -- not production, which has the column as of
+    // 2026-08-06). The column is written whole because it
     // holds one thing; there is no other key here to preserve, which is the
     // point of giving the drawing its own column.
     const stored: StoredScaffoldReview = {
@@ -1514,8 +1563,9 @@ export const listDesignWork = createServerFn({ method: "GET" })
       // counts here so a list of forty drawings is a list, not a payload. The
       // ruling is read for the same reason it is read on the item -- it carries
       // the drawing's real age past the write that moved `updated_at` -- and the
-      // select is `*` because naming `critic_review` before the migration lands
-      // fails the whole query and empties this list of every drawing in it.
+      // select is `*` because the generated types do not carry `critic_review`
+      // on this table, and in an unmigrated database naming it would fail the
+      // whole query and empty this list of every drawing in it.
       supabase
         .from("prd_scaffolds")
         .select("*")
@@ -1755,12 +1805,13 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
             .eq("id", prd.workspace_id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
-      // `select("*")` AND NOT A COLUMN LIST, on purpose. The ruling lives in
-      // `critic_review` on this row, and naming a column PostgREST does not know
-      // about fails the WHOLE query -- which would take the drawing itself off
-      // /design for as long as the migration sat unapplied. A star select
-      // returns whatever the table actually has, so a missing column reads as
-      // "no ruling on file" and the drawing renders either way.
+      // `select("*")` AND NOT A COLUMN LIST, on purpose, and the reason has
+      // outlived the migration rather than been retired by it. Naming a column
+      // PostgREST does not know about fails the WHOLE query, taking the drawing
+      // itself off /design; naming one the GENERATED TYPES do not know about
+      // fails the build, and they still do not carry `critic_review` here. A
+      // star select returns whatever the table actually has, so a missing column
+      // reads as "no ruling on file" and the drawing renders either way.
       supabase.from("prd_scaffolds").select("*").eq("prd_id", data.prdId).maybeSingle(),
       supabase
         .from("prototypes")

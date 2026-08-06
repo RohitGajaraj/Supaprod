@@ -722,8 +722,20 @@ export async function applyOutcome(
     // so a workspace member who is NOT the spec's author passes it, gets all the
     // way here, and is refused with no error. The `.select("id")` closes it: the
     // row was read moments ago under a policy this caller satisfies, so "no rows
-    // returned" cannot mean "no such row" and can only mean the UPDATE policy
-    // said no.
+    // returned" is not "no such row, ever". It is the UPDATE policy saying no —
+    // or, narrowly, the row having been DELETED between that read and this
+    // statement, which `prds ws delete own` permits its author to do. Both mean
+    // the same thing to the caller, so the throw below names RLS as the likely
+    // cause rather than the certain one.
+    //
+    // AND NOTHING ELSE CAN SWALLOW THE RETURNED ROW, which is what actually
+    // makes a false refusal impossible here. Verified live 2026-08-06: `prds`
+    // carries exactly one trigger, `prds_reactor_fanout`, and it is AFTER
+    // INSERT OR UPDATE — there is no BEFORE UPDATE hook that could return NULL
+    // and suppress the row. Note for anyone re-deriving this: `updated_at: now`
+    // always differing is NOT the reason. UPDATE..RETURNING yields every matched
+    // row whether or not a value changed, so a no-op write would return its row
+    // too.
     //
     // IT THROWS, and the message names what already landed, because by this
     // point the opportunity's confidence has moved, a `learnings` row exists and
@@ -740,7 +752,7 @@ export async function applyOutcome(
     if (outErr) throw new Error(outErr.message);
     if (!(outRows ?? []).length) {
       throw new Error(
-        `Writing the outcome onto spec ${prd.id} was refused (no rows updated). RLS on prds allows an UPDATE only to the spec's own author, and reading it needs only workspace membership, so a member who did not write this spec can reach this point and be refused. The learning and the confidence change have already landed; the spec itself is still unsettled.`,
+        `Writing the outcome onto spec ${prd.id} matched no rows, so the verdict did not land. Most likely RLS: an UPDATE on prds needs the spec's own author, while reading it needs only workspace membership, so a member who did not write this spec reaches this point and is refused. A spec deleted since it was read looks identical from here. The learning and the confidence change have already landed; the spec itself is still unsettled.`,
       );
     }
 

@@ -12,7 +12,11 @@
  * read, so a person sees it. `checkDesignParity` — the half that RECORDS it as
  * a real `artifact_lineage` edge, the idempotent-receipt pattern JNY-03's test
  * station uses for `test_verdict` — HAS NO CALLER. Verified against production:
- * zero rows with relation='design_parity' exist. So the verdict is rendered and
+ * zero rows with relation='design_parity' exist. Re-verified 2026-08-06, and by
+ * both halves of the claim: a repo-wide grep names `checkDesignParity` only in
+ * this file and inside a comment on the run page, and the lineage table holds
+ * 867 edges with not one of them 'design_parity', so this is a relation nobody
+ * writes rather than a table nobody uses. So the verdict is rendered and
  * then evaporates: nothing durable records whether a build honoured the design
  * it was handed, and Learn, the lineage graph and the brain never receive the
  * one signal the Design -> Build loop produces.
