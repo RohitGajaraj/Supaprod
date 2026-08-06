@@ -52,6 +52,69 @@ describe("Build can start the work it exists to do", () => {
     expect(LANE).toMatch(/prdId: v\.id/);
   });
 
+  /**
+   * THE PAYLOAD MUST SATISFY WHAT THE DISPATCH DEMANDS, and this test is here
+   * because its own author did not check that.
+   *
+   * `dispatchBuilderMission` requires an issue from one of THREE sources -- a
+   * linked PRD that already carries `github_issue_url`, an `issueNumber` typed
+   * in, or `autoCreateIssue` -- and throws otherwise (build.functions.ts:478).
+   * The first version of this lane passed none of them. Measured on the live
+   * database: 55 approved specs, ZERO with an issue url. So "Build this" threw
+   * on every press from the moment it shipped.
+   *
+   * IT SHIPPED GREEN BECAUSE THIS FILE READS SOURCE TEXT. Every assertion above
+   * greps for a string, and a string was present for everything they ask about.
+   * A grep cannot know that a required field is absent, because absence has no
+   * text to match. That is the lesson, and it is why this assertion is written
+   * against the CONTRACT -- the three ways the handler will accept -- rather
+   * than against the one spelling the lane happens to use today.
+   */
+  it("satisfies one of the three ways the dispatch will accept an issue", () => {
+    /**
+     * COMMENTS STRIPPED FIRST, and this is the whole reason the assertion is
+     * worth having.
+     *
+     * Two earlier versions of this check were vacuous. The first sliced 700
+     * characters from `fDispatch({`, and the flag sat past that window behind a
+     * comment, so it failed on correct code. The second read the whole
+     * `mutationFn` body -- and PASSED with the defect planted, because the
+     * comment explaining the fix contains the words `github_issue_url`, which
+     * is one of the three strings it greps for. The guard was matching its own
+     * documentation.
+     *
+     * That is the failure mode of every source-text test in this repo, and it
+     * is why the ones that work strip comments before asserting.
+     */
+    const strip = (t: string) =>
+      t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const code = strip(LANE);
+    const start = code.indexOf("mutationFn:");
+    const payload = code.slice(start, code.indexOf("onSuccess:", start));
+    const ways = [
+      /autoCreateIssue:\s*true/.test(payload),
+      /issueNumber:/.test(payload),
+      /github_issue_url/.test(payload),
+    ];
+    expect({ payload: payload.slice(0, 0), satisfied: ways.some(Boolean) }).toEqual({
+      payload: "",
+      satisfied: true,
+    });
+  });
+
+  it("the handler still refuses a payload with none of the three", () => {
+    // If this throw is ever removed the guard above stops meaning anything, so
+    // it is pinned: the test protects the requirement, not just the caller.
+    const fn = BUILD_FNS.slice(BUILD_FNS.indexOf("export const dispatchBuilderMission"));
+    expect(fn).toMatch(/if \(!issueNumber\) \{[\s\S]{0,200}throw new Error\(/);
+  });
+
+  it("reports pending on the row that is starting, not on all of them", () => {
+    // One shared mutation drove six buttons: starting one build said six were
+    // starting and disabled five specs nobody touched.
+    expect(LANE).toMatch(/start\.variables\?\.id === row\.id/);
+  });
+
   it("names a failure instead of swallowing it", () => {
     // A dispatch that did not happen must never wear the shape of one that did.
     expect(LANE).toMatch(/onError:/);

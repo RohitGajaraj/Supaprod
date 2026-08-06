@@ -158,6 +158,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { AgentRelay } from "@/components/agents/AgentRelay";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { isModalOpen } from "@/lib/overlay";
 import { scoreTheme } from "@/lib/brain/score";
 import {
   MAX_BODY_CHARS,
@@ -896,6 +897,22 @@ export function DiscoverSurface({
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el?.isContentEditable)
         return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      /**
+       * AND NOT WHILE SOMETHING IS OPEN OVER THIS SURFACE.
+       *
+       * The sharpest case is the shortcut sheet itself: press `?`, read the row
+       * that says "a -- Approves the call in front of you", press `a`, and the
+       * call behind the scrim is settled. The sheet documents the key and then
+       * leaves it armed. `BoardPanel` has the identical shape and opens on an
+       * ordinary rail click.
+       *
+       * The field guards above cannot help: both overlays are made of BUTTONs
+       * and a scrim, so focus is never in an INPUT, TEXTAREA or SELECT. The
+       * chord handler has stood down under this exact selector for hours; the
+       * gates never learned to.
+       */
+      if (isModalOpen()) return;
+
 
       if (e.key === "Escape" && picking) {
         e.preventDefault();

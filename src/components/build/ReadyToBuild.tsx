@@ -58,6 +58,22 @@ export function ReadyToBuild() {
           goal: `Build the approved spec: ${v.title}`,
           prdId: v.id,
           missionTitle: v.title,
+          /**
+           * WITHOUT THIS, EVERY PRESS THREW. `dispatchBuilderMission` needs an
+           * issue from one of three sources -- a linked PRD that already has
+           * one, an issue number typed in, or this flag -- and got none, so it
+           * hit the throw at build.functions.ts:478 on every call. Measured on
+           * the live database: 55 approved specs, ZERO with a
+           * `github_issue_url`. The control was wrong 100% of the time from the
+           * moment it shipped.
+           *
+           * And the row already promised this: "Approved. Build opens the issue
+           * as it starts." The copy described the behaviour the flag turns on
+           * while the flag was absent, which is the same defect as a keycap
+           * that does nothing -- a sentence describing an act the code declines
+           * to perform.
+           */
+          autoCreateIssue: true,
         },
       }),
     onSuccess: (r) => {
@@ -100,13 +116,18 @@ export function ReadyToBuild() {
                 ? "Approved, with a GitHub issue already open."
                 : "Approved. Build opens the issue as it starts."
             }
+            /* PER ROW, not per mutation. One shared `isPending` drove all six
+               buttons, so starting ONE build reported that six were starting
+               and disabled five specs the person had not touched.
+               `start.variables` is the row the mutation is actually running
+               for; fifteen sibling files already use this shape. */
             action={
               <Button
                 variant="primary"
                 disabled={start.isPending}
                 onClick={() => start.mutate({ id: row.id, title: row.title })}
               >
-                {start.isPending ? "Starting" : "Build this"}
+                {start.isPending && start.variables?.id === row.id ? "Starting" : "Build this"}
               </Button>
             }
           />

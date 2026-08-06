@@ -57,6 +57,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { approvalsQueueKey, APPROVALS_QUEUE_PREFIX, invalidateShellReads } from "@/lib/query-keys";
+import { isModalOpen } from "@/lib/overlay";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -313,6 +314,22 @@ function ApprovalsSurface() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      /**
+       * AND NOT WHILE SOMETHING IS OPEN OVER THIS SURFACE.
+       *
+       * The sharpest case is the shortcut sheet itself: press `?`, read the row
+       * that says "a -- Approves the call in front of you", press `a`, and the
+       * call behind the scrim is settled. The sheet documents the key and then
+       * leaves it armed. `BoardPanel` has the identical shape and opens on an
+       * ordinary rail click.
+       *
+       * The field guards above cannot help: both overlays are made of BUTTONs
+       * and a scrim, so focus is never in an INPUT, TEXTAREA or SELECT. The
+       * chord handler has stood down under this exact selector for hours; the
+       * gates never learned to.
+       */
+      if (isModalOpen()) return;
+
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (visibleItems.length === 0) return;

@@ -98,10 +98,42 @@ describe("the lane can settle a card, not merely show it", () => {
     expect(LANE).toMatch(/if \(insights\.length === 0\) return null;/);
   });
 
-  it("sends an unknown action kind somewhere real", () => {
-    // The write side will grow kinds this file has not learned. A lookup that
-    // can return undefined would render a link to nowhere; Brain holds
-    // everything, so it is the honest fallback.
-    expect(LANE).toMatch(/default:\s*\n?\s*return "\/brain";/);
+  it("routes the kinds the writer actually emits, not the artifact nouns", () => {
+    /**
+     * THE FIRST MAP MATCHED NOTHING. It switched on `opportunity`, `theme`,
+     * `decision`, `prd`, `mission` -- nouns -- while `push_action->>'kind'`
+     * carries VERBS. Measured live: 52 cards across seven kinds, zero matches,
+     * every card routed to /brain by the fallback. A default that catches
+     * everything is indistinguishable from one that catches nothing, which is
+     * why it looked fine.
+     */
+    for (const kind of [
+      "open_opportunity",
+      "open_decision",
+      "open_metric",
+      "open_prd",
+      "open_theme",
+      "start_mission",
+      "rerank_bets",
+    ]) {
+      expect({ kind, handled: LANE.includes(`case "${kind}":`) }).toEqual({ kind, handled: true });
+    }
+  });
+
+  it("still lands an unknown kind somewhere real", () => {
+    // The writer will grow kinds. A lookup that can return undefined renders a
+    // link to nowhere; Brain holds everything, so it stays the soft landing.
+    expect(LANE).toMatch(/default:[\s\S]{0,400}return "\/brain";/);
+  });
+
+  it("navigates BEFORE it settles, so a wrong destination is recoverable", () => {
+    // Settling first marked the card `acted`, and the read returns only `open`
+    // rows, so the person could not go back and try again. One click lost the
+    // insight permanently.
+    const click = LANE.slice(LANE.indexOf("onClick={() => {"));
+    const nav = click.indexOf("navigate({ to: targetRoute");
+    const settle = click.indexOf("settle.mutate({ id: i.id, outcome: \"acted\" })");
+    expect(nav).toBeGreaterThan(-1);
+    expect(settle).toBeGreaterThan(nav);
   });
 });

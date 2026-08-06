@@ -1079,8 +1079,15 @@ export function ObsidianOnboarding() {
       // Move to results display before marking onboarded
       setPhase("results");
 
-      // Store Critic result for display on Today (post-onboarding value moment)
-      if (review && typeof window !== "undefined") {
+      /**
+       * THE SAME TEST THE LINE ABOVE USES. `criticFailed` is set from
+       * `reviewHasSubstance(review)`, and this guard was bare truthiness six
+       * lines later -- so a coerced shell (a verdict string, everything else
+       * empty) counted as failed for the screen the person is looking at AND
+       * as a real review for the one they land on next. Onboarding said the
+       * Critic came back with nothing; Today then stamped a verdict.
+       */
+      if (reviewHasSubstance(review) && typeof window !== "undefined") {
         window.sessionStorage.setItem(
           "supaprod.onboarding.criticReview",
           JSON.stringify({

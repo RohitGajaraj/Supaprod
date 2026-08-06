@@ -120,7 +120,19 @@ export function FocusNext() {
               onClick={() =>
                 navigate({
                   to: "/discover",
-                  search: f.themeId ? ({ theme: f.themeId } as never) : undefined,
+                  /**
+                 * `focus`, NOT `theme`. Discover's `validateSearch` returns
+                 * `{ tab, focus }` and the router DISCARDS anything else, so
+                 * `theme` never survived the navigation and the button landed
+                 * on whichever cluster happened to rank first -- with nothing
+                 * saying why, which is the exact defect that route's own header
+                 * comment describes being fixed once already.
+                 *
+                 * `focus` is deliberately untyped beyond string there, and the
+                 * surface resolves either a signal id or a theme id, which its
+                 * comment says in as many words.
+                 */
+                search: f.themeId ? ({ focus: f.themeId } as never) : undefined,
                 })
               }
               title={f.recommendedAction.goal}

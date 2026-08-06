@@ -94,9 +94,18 @@ export function PushedInsights() {
               <Button
                 variant="primary"
                 disabled={settle.isPending}
+                /**
+                 * NAVIGATE FIRST, SETTLE SECOND. Settling first marked the card
+                 * `acted` and `getPushedInsights` returns only `open` rows, so
+                 * a person taken to the wrong place could not go back and try
+                 * again -- the card was gone. Combined with every kind falling
+                 * through to /brain, one click lost the insight permanently.
+                 * The order is the difference between a wrong destination and
+                 * an unrecoverable one.
+                 */
                 onClick={() => {
-                  settle.mutate({ id: i.id, outcome: "acted" });
                   void navigate({ to: targetRoute(i.action.kind) });
+                  settle.mutate({ id: i.id, outcome: "acted" });
                 }}
               >
                 {i.action.label}
@@ -118,29 +127,40 @@ export function PushedInsights() {
 }
 
 /**
- * Where a push's action kind lives. Deliberately a small closed map with a
- * FALLBACK rather than a lookup that can return undefined: an unknown kind
- * sends a person to the Brain, which holds everything, instead of to a broken
- * link. A push whose kind this file has not learned yet is the normal case as
- * the write side grows, not an error.
+ * Where a push's action kind lives.
+ *
+ * THE KINDS ARE THE ONES THE WRITER ACTUALLY EMITS, which the first version of
+ * this map got completely wrong. It switched on `opportunity`, `theme`,
+ * `decision`, `prd`, `mission` -- the artifact nouns -- while
+ * `push_action->>'kind'` carries VERBS. Measured on the live database: 52 push
+ * cards across seven kinds, `open_opportunity`, `open_decision`, `open_metric`,
+ * `open_prd`, `open_theme`, `start_mission`, `rerank_bets`, and not one of them
+ * matched. Every card in the lane went to /brain.
+ *
+ * The fallback was doing its job -- an unknown kind lands somewhere real rather
+ * than nowhere -- which is exactly why nothing looked broken. A default that
+ * catches everything is indistinguishable from a default that catches nothing.
  */
 function targetRoute(kind: string): string {
   switch (kind) {
-    case "opportunity":
-    case "theme":
-      return "/discover";
-    case "decision":
+    case "open_opportunity":
+    case "rerank_bets":
+    case "open_decision":
+      // A bet and the call on it are both settled at the judgment gate.
       return "/decide";
-    case "prd":
-    case "spec":
+    case "open_theme":
+      return "/discover";
+    case "open_prd":
       return "/plan";
-    case "mission":
-    case "changeset":
-      return "/runs";
-    case "outcome":
-    case "learning":
+    case "start_mission":
+      return "/build";
+    case "open_metric":
+      // A metric is an outcome read, and Learn is where outcomes are graded.
       return "/learn";
     default:
+      // Brain holds everything, so an unknown kind still lands somewhere real.
+      // The writer will grow kinds; this must stay a soft landing rather than
+      // a broken link.
       return "/brain";
   }
 }
