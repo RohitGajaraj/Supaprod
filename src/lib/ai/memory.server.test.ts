@@ -108,9 +108,25 @@ function memorySpy(opts?: { priorOutcomes?: PriorRow[] }) {
           }),
           update: (patch: AnyRecord) => ({
             in: async () => ({ data: null, error: null }),
-            eq: async (_col: string, id: string) => {
+            // THE PIN CHAIN IS `.update().eq().select("id")`, AND THIS STUB USED
+            // TO STOP AT `.eq()`. `eq` was a plain async function, so awaiting it
+            // worked but `.select()` on the returned promise was undefined: the
+            // workspace pin threw a TypeError, the real code caught it into
+            // `workspaceError`, and every assertion about the pin was
+            // unreachable. A mock loose enough to miss the shape it is mocking
+            // cannot fail when that shape breaks.
+            //
+            // Now it is a thenable that ALSO answers `.select()`, so both call
+            // sites are faithful: the superseding update below awaits `.eq()`
+            // directly, and the pin chains `.select("id")` and reads the row set
+            // back, which is what proves an RLS refusal is caught rather than
+            // resolved as success.
+            eq: (_col: string, id: string) => {
               writes.updates.push({ id, patch });
-              return { data: null, error: null };
+              const answered = { data: [{ id }], error: null };
+              return Object.assign(Promise.resolve(answered), {
+                select: async () => answered,
+              });
             },
           }),
           // Kept only so a regression that reintroduces the destructive path is
@@ -572,6 +588,48 @@ describe("rememberOutcome (persist outcome memory)", () => {
 
     expect(result.id).toBe("mem-id-123");
     expect(result.error).toBeNull();
+  });
+
+  /**
+   * THE PIN IS LOAD-BEARING, AND NOTHING HELD IT UNTIL NOW.
+   *
+   * `agent_memory` carries a BEFORE INSERT trigger, `trg_set_agent_memory_
+   * workspace`, running `set_row_workspace_from_user()`. Its body is
+   * `if NEW.workspace_id is null then NEW.workspace_id :=
+   * ensure_user_default_workspace(NEW.user_id)`. The insert here never sets
+   * `workspace_id` (the workspace lives in `metadata`), so the trigger ALWAYS
+   * fires and always writes the user's DEFAULT workspace.
+   *
+   * That is not a theory. Probed against production on 2026-08-06 inside a
+   * rolled-back transaction: settling the Helio Labs spec
+   * 10000000-0001-4000-8000-000000000031, whose workspace is
+   * 10000000-0000-4000-8000-000000000000, produced a memory row filed under
+   * b90da531-34aa-4009-bcce-2162b87f50ac. A different workspace, silently.
+   *
+   * The follow-up UPDATE is the only thing that corrects it, and the whole
+   * moat depends on that correction: an outcome filed in the wrong workspace
+   * is recalled for the wrong future call, which is worse than not recalling
+   * it at all. Remove the pin and no test failed before this one, because the
+   * defect lives in a database trigger that unit tests never run.
+   */
+  it("PINS the new memory to the settled spec's workspace, not the user's default", async () => {
+    const { client, writes } = memorySpy();
+
+    const result = await withEmbedding(() =>
+      rememberOutcome(client, outcomeArgs({ workspaceId: "ws-of-the-spec" })),
+    );
+
+    expect(result.id).toBe("mem-id-123");
+    // The correction targets the row just inserted, and sets exactly the
+    // workspace the caller named.
+    const pin = writes.updates.find(
+      (u) => u.id === "mem-id-123" && "workspace_id" in u.patch,
+    );
+    expect(pin).toBeDefined();
+    expect(pin!.patch.workspace_id).toBe("ws-of-the-spec");
+    // A pin that silently did nothing is the failure this guards, so the
+    // result must not be reporting one.
+    expect(result.workspaceError).toBeFalsy();
   });
 
   it("MARKS the prior outcome memory instead of deleting it", async () => {
