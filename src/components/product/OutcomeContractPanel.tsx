@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useIsFetching, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Beaker,
   CheckSquare,
@@ -461,14 +461,29 @@ function ContractBody({
 /**
  * A clause id minted in the browser, because this is the one contract write the
  * client composes itself. `savePrd` validates the whole contract against
- * OutcomeContractSchema, whose clause `id` is `z.string().uuid()`, and zod's
- * uuid check reads the version and variant nibbles, so the id has to be a real
- * v4 before it leaves here. crypto.randomUUID is the first choice and is what
- * the server's draftedClause uses; it needs a secure context and is simply
- * absent on plain http, which is exactly where a `bun run dev` preview opened
- * from a phone on the LAN lives, so getRandomValues assembles the same shape by
- * hand there. Same reasoning, and the same fallback order, as mint() in
- * src/lib/landing-session.ts.
+ * OutcomeContractSchema, whose clause `id` is `z.string().uuid()`.
+ *
+ * Under the pinned zod (^3.25.76) that check is a plain hex-and-dashes regex
+ * with no version or variant class, so 16 bytes of any randomness in the right
+ * shape passes today; no rejection has been observed here. The two nibble lines
+ * below are set anyway, for two reasons that outlive this version. Every other
+ * clause id in the column comes from the server's `draftedClause`, which is
+ * `crypto.randomUUID`, so a hand-added clause reads as the same kind of id as a
+ * drafted one. And zod 4 tightens `.uuid()` to read exactly those nibbles, so
+ * emitting a real v4 now is what carries this through that upgrade instead of
+ * turning it into a validation toast the owner cannot act on.
+ *
+ * crypto.randomUUID is the first choice and is what draftedClause uses; it
+ * needs a secure context and is simply absent on plain http, which is exactly
+ * where a `bun run dev` preview opened from a phone on the LAN lives, so
+ * getRandomValues assembles the same shape by hand there. That secure-context
+ * reasoning is the one mint() in src/lib/landing-session.ts spells out, but the
+ * fallback order is deliberately NOT the same: mint() has no randomUUID branch
+ * at all and returns undefined when the browser offers no randomness, because a
+ * guessable session key is worse than no key. A clause id only has to be
+ * distinct from the handful of other ids inside one contract and is never a
+ * credential, so the last tier here is Math.random, which keeps the owner able
+ * to add a criterion rather than handing them a dead button.
  */
 function newClauseId(): string {
   const c = globalThis.crypto;
@@ -480,8 +495,10 @@ function newClauseId(): string {
     for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
   }
   // Byte 6 high nibble to 4 (version), byte 8 top two bits to 10 (variant).
-  // Without these two lines the string is 32 correct hex characters that zod
-  // still rejects, and the owner gets a validation toast with no way to act.
+  // Without these two lines the string is 32 correct hex characters that the
+  // pinned zod still accepts; what they buy is the two things the doc comment
+  // above names — parity with draftedClause, and surviving zod 4's stricter
+  // .uuid(), which does read these nibbles.
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
   const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
@@ -556,7 +573,25 @@ function contractWithClause(
  * draft-apply and the ARD import already use, so a hand-written clause clears
  * exactly the checks an agent-drafted one clears. No new server function: the
  * contract is composed here and the existing validator judges it.
+ *
+ * That choice has one cost worth naming, because the clause write next door does
+ * not pay it: supersedeContractClause re-reads the row on the server and edits
+ * what it finds, so it cannot clobber a concurrent change. This one sends a
+ * whole contract composed from the `contract` prop, so it is last-write-wins
+ * against whatever landed since that prop was read. The reachable version is one
+ * owner adding twice in a row: add a metric, reopen, add a second before the
+ * invalidated query has refetched, and the second write carries the pre-first
+ * contract, dropping the first clause while the toast still says it was added.
+ * The guard below is the fix that stays on the client — while the panel's own
+ * query is in flight the prop is known stale, so Add waits rather than sending.
  */
+/**
+ * A query key nothing in the app registers under, so `useIsFetching` against it
+ * is always 0. It stands in for `invalidateKey` when the caller has none, which
+ * keeps the staleness guard a plain unconditional hook call.
+ */
+const NO_PANEL_QUERY_KEY = ["outcome-contract", "no-panel-query"] as const;
+
 function AddClauseControl({
   contract,
   prdId,
@@ -573,6 +608,13 @@ function AddClauseControl({
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const isMetric = section === "success_metrics";
+
+  // True while the panel's own query is refetching, which is exactly the window
+  // in which `contract` is a stale copy and composing a whole contract from it
+  // would drop whatever landed in between. A hook cannot be called
+  // conditionally, so with no invalidateKey to watch this matches a key nothing
+  // registers under and stays at 0, leaving the button as it was.
+  const contractIsStale = useIsFetching({ queryKey: invalidateKey ?? NO_PANEL_QUERY_KEY }) > 0;
 
   const addMut = useMutation({
     mutationFn: (t: string) =>
@@ -614,10 +656,15 @@ function AddClauseControl({
       <div className="flex flex-col gap-1 shrink-0">
         <button
           onClick={() => addMut.mutate(text)}
-          disabled={addMut.isPending || !text.trim()}
+          disabled={addMut.isPending || contractIsStale || !text.trim()}
           className="btn-pill px-2 py-1 text-[11px] disabled:opacity-50"
+          title={
+            contractIsStale
+              ? "Reloading the saved contract. Adding now would send the version from before your last change."
+              : undefined
+          }
         >
-          {addMut.isPending ? "Adding…" : "Add"}
+          {addMut.isPending ? "Adding…" : contractIsStale ? "Syncing…" : "Add"}
         </button>
         <button
           onClick={() => {

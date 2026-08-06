@@ -115,8 +115,9 @@ export async function captureDeploymentsCore(
     // deployment `environment` is free text and the providers that write it
     // capitalize: Vercel's GitHub integration creates "Production" and
     // "Preview", Netlify creates "Production". Every reader of this table
-    // compares the string exactly — /ship's newestDeployment does
-    // `d.environment !== "production"`, promote filters
+    // compares the string exactly — /ship's newestDeployment skips a row on
+    // `d.environment !== environment`, where that parameter is passed the
+    // lower-case literal "production" or "preview"; promote filters
     // `.eq("environment","preview")` — so a captured "Production" row would be
     // stored, listed, counted, and still render as "Nothing is in production
     // yet". Normalizing here beats teaching four readers to case-fold.
@@ -268,32 +269,64 @@ export async function promoteChangesetToProductionCore(
     // an unbuilt copy of someone's Next.js repo to a Deno app and then claim it
     // as production, so the two cases are separated here and answered
     // differently instead of one query treating them as interchangeable.
-    const { data: previewRows } = await db
-      .from("deployments")
-      .select("id,commit_sha,deploy_url,status,provider")
-      .eq("changeset_id", cs.id as string)
-      .eq("environment", "preview")
-      .eq("status", "success")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    const previews = (previewRows ?? []) as Array<{
+    //
+    // ASKED AS TWO TARGETED READS, NOT ONE PAGE OF FIVE. Reading the five
+    // newest successful previews and picking the deno one out of them answers
+    // "the newest deno row among the five newest", which is only the same
+    // question while a changeset has at most five successful preview rows. Six
+    // captured previews (a busy pipeline publishing per-push) would push this
+    // changeset's own Deno preview off the page, and promote would then refuse
+    // a perfectly promotable release with the generic "no preview" copy —
+    // wrong, and confidently so. Each side now asks for the one row it needs.
+    type PreviewRow = {
       id: string;
       commit_sha: string;
       deploy_url: string | null;
       status: string;
       provider: string | null;
-    }>;
-    const preview = previews.find((p) => p.provider === "deno") ?? null;
-    const observed = previews.find((p) => p.provider !== "deno") ?? null;
+    };
+    const { data: denoRows } = await db
+      .from("deployments")
+      .select("id,commit_sha,deploy_url,status,provider")
+      .eq("changeset_id", cs.id as string)
+      .eq("environment", "preview")
+      .eq("status", "success")
+      .eq("provider", "deno")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const preview = ((denoRows ?? []) as PreviewRow[])[0] ?? null;
     if (!preview) {
+      // Only asked for when there is no Deno preview to promote, because its
+      // only job is to tell the two refusals apart. `provider` is NOT NULL in
+      // the table, so the null arm is belt and braces — it keeps a row with a
+      // missing provider on the "someone else built this" side, where the old
+      // `p.provider !== "deno"` scan put it.
+      const { data: observedRows } = await db
+        .from("deployments")
+        .select("id,commit_sha,deploy_url,status,provider")
+        .eq("changeset_id", cs.id as string)
+        .eq("environment", "preview")
+        .eq("status", "success")
+        .or("provider.is.null,provider.neq.deno")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const observed = ((observedRows ?? []) as PreviewRow[])[0] ?? null;
       // THE COPY IS SPLIT BECAUSE ONE SENTENCE WAS COVERING TWO OPPOSITE
       // FACTS. "The preview lands automatically after merge; try again
       // shortly" is true only where Supaprod does the deploying. Said to a
       // customer whose repo Supaprod does not host, it is a promise about an
       // event that will never occur, and they read it every time they check.
+      //
+      // AND IT DOES NOT NAME THE DEPLOY PROVIDER, because this row cannot tell
+      // us one. `provider` on a captured row is the REPO provider: capture
+      // passes the literal "github" (the entries it reads carry no provider of
+      // their own), so interpolating it told a Vercel customer their preview
+      // came "from github". The deploy URL is the one thing on the row that
+      // does point at whoever built it, so that is what is shown.
       if (observed) {
+        const builtAt = observed.deploy_url ? ` It is serving at ${observed.deploy_url}.` : "";
         throw new Error(
-          `This preview was published by your own pipeline (recorded here from ${observed.provider ?? "your provider"}), not by Supaprod, so there is nothing here to move to production. Promote it where it was built; Supaprod records the production deploy once your provider reports it.`,
+          `This preview was published by your own pipeline, not by Supaprod — Supaprod only read it from your repository's deployment record — so there is nothing here to move to production.${builtAt} Promote it where it was built; Supaprod records the production deploy once your provider reports it.`,
         );
       }
       throw new Error(

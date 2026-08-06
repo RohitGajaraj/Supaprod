@@ -57,7 +57,16 @@
  *          in focus belongs, and the ledger's first row carries the gist.
  *    KILL  the "Copy the full id" button. The URL is the full id; the short ref
  *          stays, selectable, for pasting into a message.
- *    KILL  every toast on this surface. See THE COMMIT below.
+ *    KILL  every toast THIS FILE fires. Approving and steering are its own two
+ *          actions, and both now confirm with a receipt instead: see THE COMMIT
+ *          below. The KILL stops at the file boundary, and the contract may not
+ *          claim more than that. The child panels mounted here still carry
+ *          their own toasts - ChangesPanel behind the Changes tab,
+ *          MissionOrchestratorDetail on a goal-run, and TestStationPanel added
+ *          above. None of the three can write a receipt from where it stands,
+ *          because the writer (`addReceipt`) is host-local state inside
+ *          BuildRun and is not handed down. Converting them is a reported gap,
+ *          not something this rewrite did.
  *    KILL  the model's thought steps from the default ledger. What the crew DID
  *          and what it SAID may not share a treatment (agent doctrine §7); a
  *          narration row rendered identically to a tool receipt is how a

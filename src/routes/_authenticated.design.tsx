@@ -451,6 +451,27 @@ function Design() {
   const [ruling, setRuling] = React.useState<{ prdId: string; issue: string } | null>(null);
   const pendingIssue = ruling && ruling.prdId === focusId ? ruling.issue : null;
 
+  /**
+   * A DRAFT TAKES DOWN THE MARK IT PUT UP, NOT WHATEVER IS PENDING NOW.
+   *
+   * Tagging the mark by spec is what made a second draft reachable: the button
+   * is disabled by `pendingIssue`, and `pendingIssue` is null on every spec but
+   * the one the draft was started from. So draft a rule on one spec, click
+   * another, review it, draft there, and two are in flight at once. Clearing
+   * unconditionally means whichever answers first blanks the other's
+   * "Drafting", re-enabling its button while its request is still out, and a
+   * second click inserts the same pending brand rule twice.
+   *
+   * Matched on the spec AND the finding, because the slot holds one draft: a
+   * later draft overwrites an earlier one's mark, and only the draft whose mark
+   * is still showing may take it down. Every draft that sets the mark also
+   * clears it on success and on failure, so this cannot leave a button stuck.
+   * What it does not do is show two "Drafting" labels at once; the newest draft
+   * is the one the surface names.
+   */
+  const clearRuling = (prdId: string | null, issue: string) =>
+    setRuling((prev) => (prev && prev.prdId === prdId && prev.issue === issue ? null : prev));
+
   const refreshWork = () => {
     void qc.invalidateQueries({ queryKey: ["design-work"] });
     void qc.invalidateQueries({ queryKey: ["design-work-item"] });
@@ -693,8 +714,8 @@ function Design() {
       if (acted.prdId) setRuling({ prdId: acted.prdId, issue: f.issue });
       return acted;
     },
-    onSuccess: (res, _f, ctx) => {
-      setRuling(null);
+    onSuccess: (res, f, ctx) => {
+      clearRuling(ctx?.prdId ?? null, f.issue);
       note(
         "focus",
         ctx?.prdId ?? null,
@@ -709,8 +730,8 @@ function Design() {
       );
       void qc.invalidateQueries({ queryKey: ["design-memory"] });
     },
-    onError: (e: Error, _f, ctx) => {
-      setRuling(null);
+    onError: (e: Error, f, ctx) => {
+      clearRuling(ctx?.prdId ?? null, f.issue);
       note("focus", ctx?.prdId ?? null, "No rule was drafted", e.message, true);
     },
   });

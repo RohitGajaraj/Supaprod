@@ -57,7 +57,10 @@ import {
  *      rows, so a BYO repo produced none, ever: /ship showed "Nothing is in
  *      production yet" for the whole life of the account while every merge went
  *      live somewhere else. Supaprod does not deploy these repos and does not
- *      pretend to; it reports what their pipeline already did.
+ *      pretend to; it reports what their pipeline already did. A capture that
+ *      lands also generates the changeset's release notes once, exactly as the
+ *      hosted branch does, because /ship is spined on the changelog and a
+ *      captured row with no notes behind it still renders an empty station.
  *
  * Dedup: one non-terminal run per mission at a time, and one fix dispatch per
  * failing head sha (the fix run's input embeds the sha).
@@ -109,6 +112,10 @@ type ChangesetLite = {
   updated_at?: string | null;
   fix_attempts?: number;
   branch_sync_attempts?: number;
+  // Read only to decide whether release notes still need generating, so the
+  // capture branch does not spend a model call on every tick of the window or
+  // overwrite notes a person already wrote.
+  release_notes?: string | null;
 };
 
 function ghHeaders(token: string): Record<string, string> {
@@ -132,7 +139,7 @@ export async function runCiPollTick() {
     const { data: rows, error } = await supabaseAdmin
       .from("studio_changesets")
       .select(
-        "id,mission_id,user_id,workspace_id,product_id,prd_id,repo,branch,pr_number,status,updated_at,fix_attempts,branch_sync_attempts",
+        "id,mission_id,user_id,workspace_id,product_id,prd_id,repo,branch,pr_number,status,updated_at,fix_attempts,branch_sync_attempts,release_notes",
       )
       .in("status", ["pr_open", "merged"])
       // Fairness: oldest-updated first within a 7-day window, so a busy
@@ -237,10 +244,12 @@ export async function runCiPollTick() {
                 production: false,
               });
               // .select("id") on the row that /ship is entirely driven by. An
-              // upsert refused by a constraint resolves with error null here,
-              // and this call did not even read `error`, so a preview that
-              // never got recorded still counted as previewsDeployed and the
-              // Ship surface stayed empty with the job reporting success.
+              // upsert refused by RLS or a constraint resolves with error null
+              // here, and this call did not even read `error`, so a preview
+              // that never got recorded left the Ship surface empty with the
+              // job reporting success. Both halves of that are answered now:
+              // the miss is named in `failures` below, and previewsDeployed
+              // counts the row rather than the deploy call.
               const { data: depRows, error: depErr } = await supabaseAdmin
                 .from("deployments")
                 .upsert(
@@ -260,13 +269,21 @@ export async function runCiPollTick() {
                   { onConflict: "changeset_id,environment,commit_sha" },
                 )
                 .select("id");
-              if (depErr || !depRows || depRows.length === 0) {
+              const previewRecorded = !depErr && !!depRows && depRows.length > 0;
+              if (!previewRecorded) {
                 failures.push(
                   `${cs.id.slice(0, 8)}: preview row not written (${depErr?.message ?? "refused, no row"})`,
                 );
               }
               if (result.ok) {
-                previewsDeployed++;
+                // COUNTED ON THE ROW, NOT ON THE DEPLOY CALL. previewsDeployed
+                // is read as "previews /ship can now show", and /ship can show
+                // exactly the rows in `deployments`, so counting result.ok let
+                // the job report previewsDeployed=1 over a preview nothing can
+                // see. A deploy that went out and was not recorded is not lost
+                // from the report — it is named in `failures` just above, which
+                // is the honest place for it.
+                if (previewRecorded) previewsDeployed++;
                 // Auto-generate release notes on first merge so the changeset appears
                 // in the Ship queue's changelog. Best-effort: if generation fails, the
                 // preview deploy (the primary success) already happened, and release
@@ -320,6 +337,34 @@ export async function runCiPollTick() {
             triggeredBy: "ci-poll-tick",
           });
           deploysCaptured += captured.captured;
+
+          // A CAPTURED ROW ON ITS OWN STILL RENDERS NOTHING ON /ship, so the
+          // capture is only half the fix without this call. /ship's Gate and
+          // its "Live releases" are spined on the CHANGELOG, not on
+          // `deployments`: releaseStates() walks changelog entries and returns
+          // zero states when there are none, however many deployment rows sit
+          // beside them. A changelog row is materialized only by the
+          // studio_changeset_to_changelog trigger, which fires on a merged
+          // changeset whose release_notes are non-empty — and for a BYO merge
+          // nothing writes release_notes at all: the hosted branch above,
+          // promote, and the manual button in ChangesPanel are the only
+          // writers, and a BYO repo reaches none of them. So the customer this
+          // branch was written for would get a captured production row and
+          // still read "Nothing has merged yet, so there is nothing to
+          // promote." This mirrors the hosted branch's own best-effort
+          // generation, with two guards it needs and the hosted one does not:
+          // only when a deploy was really captured (we describe releases that
+          // shipped, not merges that went nowhere), and only while the notes
+          // are still empty, because capture RETRIES every tick for up to the
+          // whole capture window — ungated it would spend a model call every
+          // two minutes and overwrite whatever a person had edited.
+          if (captured.captured > 0 && !(cs.release_notes ?? "").trim()) {
+            try {
+              await generateReleaseNotesCore(supabaseAdmin, cs.user_id, cs.id);
+            } catch (e) {
+              console.error(`auto release-notes on capture failed (non-fatal) for ${cs.id}:`, e);
+            }
+          }
           continue;
         }
         if (!cs.repo || !cs.pr_number || !cs.mission_id) continue;
@@ -419,20 +464,33 @@ export async function runCiPollTick() {
                 .eq("user_id", cs.user_id)
                 .eq("slug", "builder")
                 .maybeSingle();
-              const { error: apprErr } = await supabaseAdmin.from("agent_approvals").insert({
-                user_id: cs.user_id,
-                workspace_id: cs.workspace_id,
-                mission_id: cs.mission_id,
-                agent_id: (builderAgent as { id: string } | null)?.id ?? null,
-                agent_slug: "builder",
-                tool_name: "studio.pr.merge",
-                args: {},
-                status: "pending",
-                rationale:
-                  "CI is green on this PR, but the mission that opened it is no longer running to request the merge itself. Surfaced by ci-poll-tick so this does not sit stuck.",
-              });
-              if (apprErr) {
-                failures.push(`${cs.id.slice(0, 8)}: merge-approval insert ${apprErr.message}`);
+              // .select("id") because THIS INSERT IS THE MERGE GATE. supabase-js
+              // resolves a write the database refused as { data: null, error:
+              // null }, so an insert blocked by RLS or a constraint left
+              // apprErr null and this branch reported nothing — the exact
+              // silence this tick exists to end, one branch over from the
+              // preview row above. Refused, the human never sees the merge
+              // decision, the PR sits green and unmerged forever, and the job
+              // says it swept cleanly. Now the miss is named.
+              const { data: apprRows, error: apprErr } = await supabaseAdmin
+                .from("agent_approvals")
+                .insert({
+                  user_id: cs.user_id,
+                  workspace_id: cs.workspace_id,
+                  mission_id: cs.mission_id,
+                  agent_id: (builderAgent as { id: string } | null)?.id ?? null,
+                  agent_slug: "builder",
+                  tool_name: "studio.pr.merge",
+                  args: {},
+                  status: "pending",
+                  rationale:
+                    "CI is green on this PR, but the mission that opened it is no longer running to request the merge itself. Surfaced by ci-poll-tick so this does not sit stuck.",
+                })
+                .select("id");
+              if (apprErr || !apprRows || apprRows.length === 0) {
+                failures.push(
+                  `${cs.id.slice(0, 8)}: merge-approval insert ${apprErr?.message ?? "refused, no row"}`,
+                );
               }
             }
           }

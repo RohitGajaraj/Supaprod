@@ -1,12 +1,12 @@
 # JNY-03 — The test station
 
-> _Created: 2026-07-03 · Last updated: 2026-07-03_
+> _Created: 2026-07-03 · Last updated: 2026-08-06_
 
-> Status · Shipped 2026-07-03 · Build mission slide-over (`/build/$missionId`, the `?mission=` slide-over) · No new agent
+> Status · Shipped 2026-07-03, re-homed onto the run surface after the runs-board rewrite · Run detail (`/runs/$missionId`) · No new agent
 
 ## What it does
 
-Inside a mission's slide-over, once its PRD has a compiled Outcome Contract (CNV-02), a "Test station" panel shows the mission's real acceptance test plan: which eval cases passed or failed, whether the mission's own build gate is green, and a UAT checklist the operator ticks off. Once everything checks out, one action records the verdict onto the PRD's linked decision, which surfaces on the Trust Ledger for free.
+On a run's own surface, once its PRD has a compiled Outcome Contract (CNV-02), a "Whether it meets the spec" panel shows the run's real acceptance test plan: which eval cases passed or failed, whether the run's own build gate is green, and a UAT checklist the operator ticks off. Once everything checks out, one action records the verdict onto the PRD's linked decision, which surfaces on the Trust Ledger for free.
 
 ## Why it exists
 
@@ -14,12 +14,12 @@ Per [`../strategy/v12-self-improving-os.md`](../strategy/v12-self-improving-os.m
 
 ## Where to find it
 
-Open any Build mission's slide-over. The panel renders only when the mission's PRD has at least one compiled acceptance clause (eval, ci, or uat); otherwise nothing shows, per the calm-front doctrine.
+Open any run from the Runs board (`/runs`); the row lands on that run's own surface, `/runs/$missionId`. The older doors still work and redirect there permanently: `/build/$missionId`, `/missions/$missionId`, and `/runs?mission=<id>`. The panel renders only when the run's PRD has at least one compiled acceptance clause (eval, ci, or uat); otherwise nothing shows — not even the section heading — per the calm-front doctrine.
 
 ## Demo script
 
 1. On a PRD with a compiled Outcome Contract, start (or open) a mission built from it.
-2. Open the mission's slide-over. Below the pending-approval card (if any), the Test station panel lists eval cases, CI expectations, and a UAT checklist, each with a status dot.
+2. Open the run at `/runs/$missionId`. Below the Gate (and the stage panel, when a stage other than Build is selected) and above "What happened, in order", the "Whether it meets the spec" panel lists eval cases, CI expectations, and a UAT checklist, each with a status dot.
 3. Tick a UAT item to check it off live.
 4. Once every eval case passed, the mission's own gate is green, and every UAT item is checked, the header flips to PASSING and a "Record verdict" action appears.
 5. Click it. The verdict lands as an `artifact_lineage` edge on the PRD's decision; open `/trust-ledger` and the mission now shows as new evidence on that decision's receipt.
@@ -29,7 +29,7 @@ Open any Build mission's slide-over. The panel renders only when the mission's P
 - `src/lib/test-station.functions.ts`: `getMissionTestPlan(missionId)` resolves the mission's PRD (missions carries no `prd_id` column; the real link is `studio_changesets.mission_id -> studio_changesets.prd_id`, the same join BYO-P3's `outcome.functions.ts` already relies on), reads the PRD's CNV-02-compiled `contract.success_metrics`, groups the compiled clauses by `oracle_kind`, and computes a pure verdict (`computeVerdict`, unit tested) from the latest `eval_case_results` per case, the mission's own run status (`ciGateStatus`, also pure and tested), and the UAT checklist's checked state.
 - `recordTestStationVerdict(missionId)` recomputes the plan server side (never trusts a client-sent verdict), and when it is genuinely passing, finds the `decisions` row F-DECISIONS-CAPTURE already created for that PRD and inserts one `artifact_lineage` edge (`parent: mission`, `child: decision`, `relation: "test_verdict"`, a plain-language `rationale`). No migration: `artifact_lineage.relation` already accepts arbitrary values (`supersedes`, `contradicts`, `promoted`, ...), so a new relation kind needs no schema change, and the Trust Ledger is a derived read over `decisions`/`agent_approvals`/`artifact_lineage`, so the new edge shows up there automatically as fresh evidence.
 - UAT checking reuses the existing `toggleUatChecklistItem` (CNV-02, `discovery.functions.ts`) rather than a second copy of the same logic.
-- `src/components/obsidian/TestStationPanel.tsx` wired into `src/components/obsidian/MissionSlideOver.tsx`, below the pending-approval `CallCard`. Renders nothing when the mission has no linked PRD or the PRD's contract has not been compiled yet.
+- `src/components/obsidian/TestStationPanel.tsx` is mounted in `src/routes/_authenticated.runs.$missionId.tsx`, above the "What happened, in order" ledger and outside the orchestrator-only branch. It was originally wired into `src/components/obsidian/MissionSlideOver.tsx`; the runs-board rewrite deleted that component and nothing carried the panel across, so for the life of the new surface `TestStationPanel`, `getMissionTestPlan` and `recordTestStationVerdict` had no caller in the repo at all. It now hangs on the surface that replaced the slide-over. The panel owns its own `Block` (the route cannot open one for it — only the query knows whether this run has a test plan), so it renders nothing at all, heading included, when the run has no linked PRD or the PRD's contract has not been compiled yet.
 
 ## Governance & guardrails
 

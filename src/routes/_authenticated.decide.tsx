@@ -97,8 +97,10 @@
  *    on the opportunity branch it has always carried.
  * 3. THE RECESS COULD NOT BE CHECKED. The one surface that claims the record
  *    learned from you had no onClick, so the claim had no evidence behind it.
- *    It opens the outcome it names, or the Learnings record when this bet has no
- *    outcome of its own; it never invents an id.
+ *    It opens the outcome recorded on THIS bet, or the Learnings record when
+ *    this bet has none of its own; it never invents an id. Not the mirrored bet
+ *    the citation names -- that one's ids are filtered out and collapsed to a
+ *    string upstream, and the door's label says which record it is opening.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -553,7 +555,12 @@ function DecideSurface() {
             : bucket === undefined
               ? `${title} sits in ${STATUS_META[status].label}.`
               : bucket === null
-                ? `${title} sits in Backlog, holding no lane on the board in Plan.`
+                ? // "holding no lane on the board" was too soft: `RoadmapColumns`
+                  // draws Now, Next and Later and nothing else, so a bucket-null
+                  // bet is not lane-less on that board, it is absent from it. A
+                  // reader who opened Plan hunting for a Backlog column found
+                  // neither the column nor the bet.
+                  `${title} sits in Backlog, which the board in Plan does not draw: it shows Now, Next and Later only.`
                 : `${title} sits in ${STATUS_META[status].label}, and it is in that lane on the board in Plan.`,
       });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
@@ -576,6 +583,16 @@ function DecideSurface() {
       // The lifecycle write landed in the lane-only case, so the queue is stale
       // whichever half failed.
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      // AND SO IS THE BOARD, in that same lane-only case. `getRoadmap` carries
+      // `opportunities.status` straight through into `RoadmapItem.status`, and
+      // /plan's headline counts committed-but-unplaced bets off that field. The
+      // status write DID land here, so leaving ["roadmap"] alone means the
+      // failure receipt on this surface and the board one click away report
+      // different placements until something else refetches. Fired on both
+      // branches: a refetch that finds nothing changed costs one read, and
+      // splitting it by `laneOnly` would make this a second place that decides
+      // which half landed.
+      void qc.invalidateQueries({ queryKey: ["roadmap"] });
     },
     onSettled: (_d, _e, { id }) => setBusy(id, false),
   });
@@ -1024,30 +1041,44 @@ function DecideSurface() {
           itself, and a heading between the call and its precedent would put a
           third register in the way of the one moment that matters here.
 
-          AND IT OPENS THE RECORD IT IS QUOTING. This is the one surface in the
-          product that claims the moat out loud -- it says the record has been
-          here before and tells you what happened -- and it was rendered with no
-          onClick at all, so the claim could not be checked. A sentence that
-          says "we learned this from your own outcomes" and cannot show you one
-          of them is asking to be taken on faith, which is exactly what the
-          compounding claim cannot afford.
+          AND IT OPENS RECORDED OUTCOMES, WHICH IS NOT THE SAME AS THE ONE IT
+          QUOTES. This is the one surface in the product that claims the moat
+          out loud -- it says the record has been here before and tells you what
+          happened -- and it was rendered with no onClick at all, so the claim
+          could not be checked. A sentence that says "we learned this from your
+          own outcomes" and cannot show you one of them is asking to be taken on
+          faith, which is exactly what the compounding claim cannot afford.
 
-          Two destinations, both real, never a guess. When an outcome has been
-          recorded against THIS bet we hold its id (`activeLearning`, the same
-          row whose ICE delta is already printed as this recess's evidence
-          line), so the door opens that one outcome through the drill Today,
-          CompoundingPanel and graph-doors.ts all use: /brain?tab=learnings
-          &learning=<id>. When there is none, the citation was assembled by
-          `loadDecisionPrecedent` from the workspace's recorded outcomes and
-          this surface never receives their ids, so the door opens the Learnings
-          record itself rather than inventing an id it does not have. */}
+          Two destinations, both real, never a guess, and NEITHER is the bet the
+          body names as the closest mirror. `getPrecedentCitations` excludes this
+          bet's own outcomes from the precedents and then hands this surface one
+          assembled string, so the mirrored bet's memoryId and opportunityId --
+          both carried on `JudgmentPrecedent` -- are gone by the time they get
+          here. Opening it needs those ids kept through the citation, which is a
+          change in decision-judgment.functions.ts, not on this route.
+
+          So: when an outcome has been recorded against THIS bet we hold its id
+          (`activeLearning`, the same row whose ICE delta is already printed as
+          this recess's evidence line), and the door opens that one outcome
+          through the drill Today, CompoundingPanel and graph-doors.ts all use:
+          /brain?tab=learnings&learning=<id>. When there is none, the door opens
+          the Learnings record itself rather than inventing an id it does not
+          have. The title says which of the two it is, so the label never
+          promises the mirrored bet. */}
       {activeCitation ? (
         <RecordRecess
           evidence={activeRescore ?? undefined}
+          /* THE LABEL NAMES THE DESTINATION, NOT THE SENTENCE ABOVE IT.
+             This used to read "Open the outcome this was learned from", and
+             that promised the mirrored bet the body names. It cannot deliver
+             it: `getPrecedentCitations` filters this bet's own outcomes OUT of
+             the precedents (`p.opportunityId !== o.id`) and then collapses the
+             survivors to a string, so the mirrored bet's id never reaches this
+             surface. What the door actually holds is `activeLearning`, the
+             latest outcome recorded ON this bet -- a different record, and the
+             one whose ICE delta is printed as this recess's evidence line. */
           title={
-            activeLearning
-              ? "Open the outcome this was learned from"
-              : "Open the outcomes this was learned from"
+            activeLearning ? "Open the outcome recorded on this bet" : "Open your recorded outcomes"
           }
           onClick={() =>
             void navigate({

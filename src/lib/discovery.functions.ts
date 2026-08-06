@@ -392,12 +392,43 @@ export const bulkImportSignals = createServerFn({ method: "POST" })
     return result;
   });
 
+/**
+ * NO DOOR, ON PURPOSE, AND IT REPORTED SUCCESS ON A DELETE THAT DID NOT HAPPEN.
+ *
+ * A sweep on 2026-08-06 found 97 of 590 server functions referenced by nothing
+ * outside their own file. Most are unbuilt futures; this one is different,
+ * because the reason it has no caller is a PRODUCT decision that was never
+ * written down, so every future reader has to re-derive it.
+ *
+ * DISCOVER DOES NOT DELETE EVIDENCE. Its three dispositions are promote, merge
+ * and decline, and all three keep the signal on the record -- the station's whole
+ * claim is that a cluster can be re-opened when the same complaint arrives again,
+ * and `shouldEscalate` reads the frequency a declined theme had when it was
+ * declined. Hard-deleting rows out from under that makes the corroboration count
+ * a number nobody can reproduce. Leave it doorless unless the founder decides a
+ * mis-captured signal needs removing rather than declining, and if that day
+ * comes, the right shape is almost certainly a soft delete.
+ *
+ * THE BUG IT WOULD HAVE SHIPPED WITH. `.delete()` with no `.select()` returns
+ * `{ error: null }` when row-level security refuses it, because supabase-js
+ * resolves a refusal rather than throwing. So this returned `{ ok: true }` having
+ * removed nothing, and any surface that ever mounted it would have shown the row
+ * vanish optimistically and reappear on the next read, with no error anywhere.
+ * Fixed now rather than left as a trap for whoever wires it up.
+ */
 export const deleteSignal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ context, data }) => {
-    const { error } = await context.supabase.from("signals").delete().eq("id", data.id);
+    const { data: gone, error } = await context.supabase
+      .from("signals")
+      .delete()
+      .eq("id", data.id)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!gone || gone.length === 0) {
+      throw new Error("That signal was not removed. It may not be yours to delete.");
+    }
     return { ok: true };
   });
 

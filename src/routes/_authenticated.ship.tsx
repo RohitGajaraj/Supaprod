@@ -329,6 +329,17 @@ export type ShipDeployment = {
   environment: string;
   status: string;
   deploy_url: string | null;
+  /**
+   * WHO PUBLISHED IT, which decides whether promote can act on this row at all.
+   *
+   * 'deno' is a deploy Supaprod's own hosting served (deployments.functions.ts
+   * and the CI poll tick both stamp it); anything else is a row captured from
+   * the customer's own pipeline, carrying the repo's provider. The column is
+   * `NOT NULL DEFAULT 'github'` and `listDeployments` selects it, so a row that
+   * arrived from the server always carries one. It is optional in the TYPE only,
+   * so the pure functions below can still be exercised with plain objects.
+   */
+  provider?: string | null;
   deployed_at?: string | null;
   created_at?: string | null;
 };
@@ -341,8 +352,29 @@ export type ReleaseState = {
   releasedAt: string;
   prNumber: number | null;
   prUrl: string | null;
-  /** Newest SUCCESSFUL preview deploy that recorded an address. */
+  /** Newest SUCCESSFUL preview deploy that recorded an address, whoever built
+   *  it. This is the address a person can open, so it is the one displayed. */
   previewUrl: string | null;
+  /**
+   * Newest successful preview SUPAPROD ITSELF served, and the only preview
+   * promote can move.
+   *
+   * `promoteChangesetToProductionCore` takes the preview's commit and redeploys
+   * that repo's files to Deno hosting. That is the right act only for a preview
+   * Deno served in the first place: promoting a preview Vercel or Netlify built
+   * would push an unbuilt copy of someone's repo to a Deno app and then call it
+   * production, so the server refuses it outright. Held separately from
+   * `previewUrl` because a captured preview is still a real address worth
+   * showing -- it is only the promote that cannot follow it.
+   */
+  hostedPreviewUrl: string | null;
+  /**
+   * The provider that published the newest successful preview when it was not
+   * Supaprod, and null when there is no such preview. It names the pipeline in
+   * the sentence that explains the missing button, rather than leaving a person
+   * to guess why the promote they can see elsewhere is absent here.
+   */
+  observedPreviewProvider: string | null;
   /** Newest SUCCESSFUL production deploy that recorded an address. */
   productionUrl: string | null;
   /** When that production deploy landed. Null until one has. */
@@ -368,9 +400,24 @@ function deployStamp(d: ShipDeployment): number {
 }
 
 /**
+ * Did Supaprod's own hosting publish this deploy?
+ *
+ * The server answers `provider === "deno"` exactly, and this is the same
+ * question asked of a row that may have been built by hand. A row with NO
+ * provider cannot come from `listDeployments` -- the column is NOT NULL and is
+ * in the select list -- so the absent case is a constructed object, and it is
+ * read as ours: withholding a promote is the one answer a person cannot undo
+ * from the screen they are looking at, so it is never given on a guess.
+ */
+function isSupaprodHosted(d: ShipDeployment): boolean {
+  return (d.provider ?? "deno") === "deno";
+}
+
+/**
  * The newest deploy for one environment. `successOnly` also demands a recorded
  * address, because a success with no `deploy_url` is not a door and rendering
- * it as one would be a link to nowhere.
+ * it as one would be a link to nowhere. `keep` narrows further, for the callers
+ * that care WHO deployed the row and not only that it landed.
  *
  * Ties keep the EARLIER array element. The server orders newest first, so on
  * equal timestamps that is still the newest row rather than an arbitrary one.
@@ -379,11 +426,13 @@ function newestDeployment(
   rows: readonly ShipDeployment[],
   environment: string,
   successOnly: boolean,
+  keep?: (d: ShipDeployment) => boolean,
 ): ShipDeployment | null {
   let best: ShipDeployment | null = null;
   for (const d of rows) {
     if (d.environment !== environment) continue;
     if (successOnly && (d.status !== "success" || !d.deploy_url)) continue;
+    if (keep && !keep(d)) continue;
     if (!best || deployStamp(d) > deployStamp(best)) best = d;
   }
   return best;
@@ -424,6 +473,18 @@ export function releaseStates(
     if (!e.changeset_id) continue;
     const rows = byChangeset.get(e.changeset_id) ?? [];
     const preview = newestDeployment(rows, "preview", true);
+    // THE TWO PREVIEW READS ARE DIFFERENT QUESTIONS. `hosted` is the one the
+    // server would actually promote, so it demands both an address and our own
+    // provider. `observed` only has to EXIST to explain the missing button, so
+    // it mirrors the server's own test (a successful non-'deno' preview) and
+    // does not require an address the person may never have been given.
+    const hosted = newestDeployment(rows, "preview", true, isSupaprodHosted);
+    const observed = newestDeployment(
+      rows,
+      "preview",
+      false,
+      (d) => d.status === "success" && !isSupaprodHosted(d),
+    );
     const prodOk = newestDeployment(rows, "production", true);
     const prodAny = newestDeployment(rows, "production", false);
     const fromChangelog = (e.production_url ?? "").trim() || null;
@@ -436,6 +497,8 @@ export function releaseStates(
       prNumber: e.pr_number ?? null,
       prUrl: e.pr_url ?? null,
       previewUrl: preview?.deploy_url ?? null,
+      hostedPreviewUrl: hosted?.deploy_url ?? null,
+      observedPreviewProvider: observed?.provider ?? null,
       productionUrl,
       productionAt: prodOk?.deployed_at ?? prodOk?.created_at ?? null,
       // A resolved address IS a successful production deploy: listChangelog
@@ -454,10 +517,19 @@ export function releaseStates(
 /**
  * Can a person move this one to production right now?
  *
- * The three conditions are the server's own, restated so the button is only
+ * The four conditions are the server's own, restated so the button is only
  * drawn where the click will work: merged (guaranteed by being a changelog
  * entry at all), a successful preview to promote (`promoteChangesetToProduction`
- * throws without one), and nothing already in production.
+ * throws without one), that preview being one SUPAPROD SERVED, and nothing
+ * already in production.
+ *
+ * THE PROVIDER CONDITION IS NOT DECORATION. `previewUrl` alone was the test,
+ * and it is satisfied by a preview captured from a customer's own pipeline --
+ * a Vercel or Netlify URL this product only recorded. The server refuses those
+ * ("published by your own pipeline ... there is nothing here to move to
+ * production"), so the button was drawn over a click that could only fail after
+ * the person had already decided, which is the exact defect the comment further
+ * down this file says this surface exists to prevent.
  *
  * A FAILED production attempt IS promotable again -- that is the retry, and
  * withholding it would strand a release whose deploy fell over on a network
@@ -466,7 +538,7 @@ export function releaseStates(
  * second click would race it.
  */
 export function isReadyToPromote(s: ReleaseState): boolean {
-  if (!s.previewUrl) return false;
+  if (!s.hostedPreviewUrl) return false;
   if (s.productionUrl) return false;
   return s.lastProductionStatus === null || s.lastProductionStatus === "failure";
 }
@@ -500,7 +572,19 @@ export function whereItIs(s: ReleaseState): { address: string | null; state: str
   if (st === "unknown") {
     return { address: s.previewUrl, state: "The last production deploy ended in an unknown state" };
   }
-  if (s.previewUrl) return { address: s.previewUrl, state: "Preview only, nobody has promoted it" };
+  if (s.previewUrl) {
+    // WHY THE ROW SAYS WHO BUILT IT. "Preview only, nobody has promoted it"
+    // reads as an invitation, and next to it there is no Promote button when
+    // the preview came from the reader's own pipeline. Naming the pipeline is
+    // what turns a control that is merely absent into an absence with a reason.
+    if (!s.hostedPreviewUrl) {
+      return {
+        address: s.previewUrl,
+        state: `Preview only, published by ${s.observedPreviewProvider ?? "your own pipeline"} rather than Supaprod`,
+      };
+    }
+    return { address: s.previewUrl, state: "Preview only, nobody has promoted it" };
+  }
   return { address: null, state: "No deploy is on the record" };
 }
 
@@ -519,7 +603,14 @@ export type PromoteAbsence =
   | { kind: "failed" }
   | { kind: "no-releases" }
   | { kind: "all-live"; count: number }
-  | { kind: "no-preview"; count: number };
+  | { kind: "no-preview"; count: number }
+  /**
+   * The previews exist and this product did not build them. `waiting` carries
+   * the releases in the same block that are genuinely still waiting on a
+   * preview, so the one sentence can answer both instead of the surface picking
+   * a winner and going silent about the rest.
+   */
+  | { kind: "published-elsewhere"; count: number; provider: string | null; waiting: number };
 
 export function promoteAbsence(args: {
   reading: boolean;
@@ -536,7 +627,23 @@ export function promoteAbsence(args: {
   if (args.states.length === 0) return { kind: "no-releases" };
   const live = args.states.filter(isLive).length;
   if (live === args.states.length) return { kind: "all-live", count: live };
-  return { kind: "no-preview", count: args.states.length - live };
+  // A PREVIEW SOMEBODY ELSE PUBLISHED IS NOT A MISSING PREVIEW, and the two
+  // wants opposite next moves. "The preview lands on its own after a merge"
+  // would be a promise about an event that is never coming to a customer whose
+  // repo Supaprod does not host, and they would read it every time they looked.
+  const elsewhere = args.states.filter(
+    (s) => !isLive(s) && !s.hostedPreviewUrl && !!s.observedPreviewProvider,
+  );
+  const notLive = args.states.length - live;
+  if (elsewhere.length > 0) {
+    return {
+      kind: "published-elsewhere",
+      count: elsewhere.length,
+      provider: elsewhere[0].observedPreviewProvider,
+      waiting: notLive - elsewhere.length,
+    };
+  }
+  return { kind: "no-preview", count: notLive };
 }
 
 /** The sentence for an absence, or null where another element already says it
@@ -557,6 +664,19 @@ export function absenceSentence(a: PromoteAbsence): string | null {
       return a.count === 1
         ? "One release has merged and has no successful preview yet. The preview lands on its own after a merge, in about two minutes."
         : `${a.count} releases have merged and none has a successful preview yet. The preview lands on its own after a merge, in about two minutes.`;
+    case "published-elsewhere": {
+      // THE SAME ANSWER THE SERVER GIVES, so the two doors onto this act cannot
+      // tell a person two different stories about the same release.
+      const who = a.provider ?? "your own pipeline";
+      const head =
+        a.count === 1
+          ? `One release's preview was published by your own pipeline (recorded here from ${who}), not by Supaprod, so there is nothing here to move to production. Promote it where it was built; Supaprod records the production deploy once your provider reports it.`
+          : `${a.count} releases have previews your own pipeline published (recorded here from ${who}), not Supaprod, so there is nothing here to move to production. Promote them where they were built; Supaprod records each production deploy once your provider reports it.`;
+      if (a.waiting <= 0) return head;
+      return a.waiting === 1
+        ? `${head} One other release has merged and has no successful preview yet.`
+        : `${head} ${a.waiting} other releases have merged and none has a successful preview yet.`;
+    }
   }
 }
 
@@ -766,9 +886,33 @@ function Ship() {
   const promote = useMutation({
     mutationFn: (v: { changesetId: string; title: string }) =>
       fPromote({ data: { changesetId: v.changesetId } }),
+    /**
+     * THE HALF-RECORDED PROMOTE HAS A DOOR HERE, and this is the only place a
+     * person was ever going to find one.
+     *
+     * `promoteChangesetToProductionCore` ships the code first and then closes
+     * the loop behind it: it stamps the spec shipped, files the stage event,
+     * and arms the 30-day outcome window that is what later asks whether the
+     * release worked. Any of those writes can be refused while the deploy
+     * itself is perfectly live, so the server stopped swallowing them and now
+     * returns `warnings` -- in the person's words, one sentence per thing that
+     * did not get recorded. A receipt that read "You promoted it. Customers are
+     * seeing it now." over a promote that armed no outcome window would be the
+     * product claiming more than it did, and the person would find out in 30
+     * days when nothing came back.
+     *
+     * IT IS NOT A FAILURE, and it does not wear failure's clothes. The deploy
+     * reached production, so the verb still says so and the address is still
+     * the first thing in the sentence; the warnings follow it, as their own
+     * lines, each already carrying its own next move.
+     */
     onSuccess: (res, v) => {
+      const warnings = res.warnings ?? [];
       setReceipt({
-        verb: "You promoted it",
+        verb:
+          warnings.length > 0
+            ? "You promoted it, and part of the record did not follow"
+            : "You promoted it",
         consequence: (
           <>
             {v.title} is live in production at{" "}
@@ -781,6 +925,14 @@ function Ship() {
               <Num>{res.productionUrl}</Num>
             </a>
             . Customers are seeing it now.
+            {/* WARN, NOT FAIL. `--sp-fail` is the colour of a write that did
+                not happen, and this one did: using it here would tell the eye
+                the promote had fallen over. */}
+            {warnings.map((w) => (
+              <span key={w} className="sp-warn" style={{ display: "block", marginTop: 6 }}>
+                {w}
+              </span>
+            ))}
           </>
         ),
       });
@@ -1051,14 +1203,21 @@ function Ship() {
           question={`Take "${ready[0].title}" to production?`}
           lines={[
             <span key="preview">
+              {/* THE ADDRESS QUOTED IS THE ONE THAT MOVES. `previewUrl` is the
+                  newest preview of any origin, which on a repo that also runs
+                  its own pipeline can be a different deploy from the one this
+                  button promotes. A confirmation naming a URL other than the
+                  one it is about to ship is a confirmation of the wrong thing.
+                  `isReadyToPromote` is what put this row here, so the hosted
+                  address is guaranteed present. */}
               The preview is up at{" "}
               <a
-                href={ready[0].previewUrl as string}
+                href={ready[0].hostedPreviewUrl as string}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "inherit" }}
               >
-                <Num>{ready[0].previewUrl}</Num>
+                <Num>{ready[0].hostedPreviewUrl}</Num>
               </a>
             </span>,
             ...(since(ready[0].releasedAt)
