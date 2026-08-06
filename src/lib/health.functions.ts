@@ -26,7 +26,10 @@ import { createServerFn } from "@tanstack/react-start";
  * the banner on the next page load instead of sitting silent. An entry that is
  * MISSING, because someone shipped a migration and did not come here, is still
  * silence. Nothing inside a Worker can see supabase/migrations/, so that half
- * has to be closed by a repo test; see REQUIRED_SCHEMA below.
+ * has to be closed by a repo test THAT DOES NOT EXIST YET as of 2026-08-06.
+ * Read that as the necessity it is, not as a test that is already somewhere.
+ * REQUIRED_SCHEMA below names the path it wants and the two cases it wants
+ * there.
  *
  * TWO PROBES, and only the first can raise the banner on its own:
  *

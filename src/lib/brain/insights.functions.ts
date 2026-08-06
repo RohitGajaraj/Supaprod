@@ -26,9 +26,16 @@ const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 
  * in src/ writes at all, because `done` is equally unwritten. The only
  * theme-status writes anywhere are `new`/`dismissed` (the setThemeStatus enum,
  * discovery.functions.ts:548, applied at :576), `merged` (:671) and `promoted`
- * (:1058). Re-measured 2026-08-06: the live theme statuses are new 161, active
- * 64, investigating 14, at_risk 9, confirmed 8, promoted 1 -- SIX values, and
- * `archived` is not one of them, so the filter excluded nothing at all. (Those
+ * (:1059). CITED BY LINE ONLY BECAUSE THE PREDICATES ARE UNIQUE: all four were
+ * re-checked on 2026-08-06 and discovery.functions.ts is under active edit, so
+ * grep the predicate, not the number -- `z.enum(["new", "dismissed"])`,
+ * `.update(update)`, `.update({ status: "merged" })`, `.update({ status:
+ * "promoted" })`. Each matches exactly once in that file.
+ *
+ * Re-measured through the Lovable MCP on 2026-08-06, second pass of the day: the
+ * live theme statuses are new 164, active 64, investigating 14, at_risk 9,
+ * confirmed 8, promoted 2 -- SIX values, and `archived` is not one of them, so
+ * the filter excluded nothing at all. (Those
  * six are what the column holds; the five above are what this filter drops.
  * The two lists overlap in exactly one place, `promoted`.) A cluster somebody
  * dismissed on /discover, or promoted into a bet, stayed in this ranking, could
@@ -57,13 +64,25 @@ const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 
  * finished".
  *
  * WHAT IT STILL MISSES, because that gap is in the data and not in this list.
- * 46 themes have an opportunity pointing at them, so they were promoted in
- * fact, and only 1 of the 46 carries status 'promoted' -- the status write
- * (discovery.functions.ts:1058) landed after most of them were promoted. So
- * this excludes 1 live theme today, not 46. Closing the other 45 is a backfill
- * nobody should run blind: 44 of them sit in `active`/`at_risk`/`confirmed`,
- * which are Discover's own escalation states, and overwriting those to
- * 'promoted' would destroy information this filter does not need.
+ * 47 themes have an opportunity pointing at them, so they were promoted in
+ * fact, and only 2 of the 47 carry status 'promoted' -- the status write
+ * (the promote sweep's `.update({ status: "promoted" })`, cited above) landed
+ * after most of them were promoted, so this excludes 2 live themes today, not
+ * 47. Closing the other 45 is a
+ * backfill nobody should run blind: 44 of them sit in
+ * `active`/`at_risk`/`confirmed`, which are Discover's own escalation states,
+ * and overwriting those to 'promoted' would destroy information this filter
+ * does not need. (The 45th is still 'new'.)
+ *
+ * THOSE TWO PARAGRAPHS OF COUNTS ROT FASTER THAN A LINE NUMBER DOES, and this
+ * one has already been rewritten once for that reason: the version before it
+ * read "46 ... only 1 of the 46 ... excludes 1 live theme", measured earlier on
+ * this same day, 2026-08-06, and was stale by the afternoon. The gap widens
+ * every time the promote sweep runs. Only two things here are structural and
+ * neither depends on a count: `archived` and `done` are written by nothing in
+ * src/, and the promote sweep's own `status: "promoted"` write postdates most
+ * existing promotions. Re-measure before you quote a number; do not re-derive
+ * the argument.
  *
  * Rendered once as a PostgREST `in` list. Case-sensitive, unlike `qualifies`,
  * which lowercases first; every status this repo writes is lowercase and

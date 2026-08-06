@@ -801,12 +801,22 @@
  * affordance and it is the only thing on the row that says the row continues;
  * a width that landed exactly on three would say nothing.
  *
- * 428px IS THE TIGHT ONE and the first pass skipped it (recounted 2026-08-06):
- * 410/104 is 3.94, so the fourth chip shows about 6px -- its 1px rule and a
- * sliver of padding, before any glyph. That is the weakest this affordance
- * gets on a phone held in portrait, and it is the width to open first in a
- * viewport pass. It does not break there: the row still scrolls, and the thin
- * bar :root already sets is the second cue on any platform that draws one.
+ * 428px IS THE ONE THAT NEARLY FITS FOUR, and the first pass skipped it
+ * (recounted 2026-08-06; the sentence here was CORRECTED the same day, having
+ * read "3.94, so the fourth chip shows about 6px -- its 1px rule and a sliver
+ * of padding, before any glyph". The 6px is what is CUT, not what is shown, and
+ * no width on this row shows a 6px chip. The conclusion it drew was right, but
+ * for the opposite reason, so it is kept below and re-argued rather than cut.)
+ * Taking the second reading above -- 428 less the leading 18px gutter is 410 --
+ * 410/104 is 3.94, so three chips clear the edge whole and the fourth is cut by
+ * about 6px, showing 98 of its 104. That is the weakest this affordance gets on
+ * a phone held in portrait -- a row missing only a sliver reads as four whole
+ * chips and says nothing about the 05, 06 and 07 behind it -- and it is the
+ * width to open first in a viewport pass. Compare the widths above, where the
+ * cut is unmissable: 357-312 leaves 45px of chip four at 375px, 342-312 leaves
+ * 30px at 360px, 372-312 leaves 60px at 390px. It does not break at 428 either:
+ * the row still scrolls, and the thin bar :root already sets is the second cue
+ * on any platform that draws one.
  *
  * It also leaves "Discover" about 17px of slack, and if a longer name ever
  * arrives it truncates with the ellipsis that is already there. */

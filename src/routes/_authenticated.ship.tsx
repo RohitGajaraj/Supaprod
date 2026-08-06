@@ -1307,12 +1307,20 @@ function Ship() {
    * not fired on mount, not on the 30s interval the list already runs, and not
    * twice: the mutation is disabled while in flight.
    *
-   * `captured: 0` IS AN ANSWER AND NOT A FAILURE, so it does not wear failure's
-   * colour and does not invalidate anything -- no row was written, and a refetch
-   * would only spend a request redrawing the same list. The server's own
-   * sentence is shown verbatim because from here "your pipeline has not
-   * published a deploy yet" and "the read did not reach your provider" are
-   * genuinely indistinguishable, and it says so rather than picking one.
+   * `captured: 0` IS AN ANSWER AND NOT A FAILURE -- BUT ONLY WHEN THE PROVIDER
+   * ANSWERED. The server no longer hedges across the two cases and this door no
+   * longer pretends it has to: `captureDeployments` returns `read` beside the
+   * count, `zeroCaptureMessage` has already chosen the one true sentence from
+   * it, and that sentence is shown verbatim because it is the RIGHT one rather
+   * than because "your pipeline has not published a deploy yet" and "the read
+   * did not reach your provider" cannot be told apart. They can, from here, and
+   * the Receipt says which: `not-connected` and `read-failed` wear failure's
+   * verb and colour, because "You checked for deploys" printed over a sentence
+   * saying Supaprod never reached the provider claims a read that never
+   * happened. `answered` keeps the plain verb, which is the case this paragraph
+   * is really about. Neither zero-capture case invalidates anything -- no row
+   * was written, and a refetch would only spend a request redrawing the same
+   * list.
    *
    * EVERY REFUSAL IS A SENTENCE. Not merged, no usable repo, GitHub not
    * connected, no provable landed commit, an upsert row-level security refused:
@@ -1324,13 +1332,30 @@ function Ship() {
     mutationFn: (v: { changesetId: string; title: string }) =>
       fCapture({ data: { changesetId: v.changesetId } }),
     onSuccess: (res, v) => {
+      // `read` IS WHAT SEPARATES THE TWO ZEROES, and it is on the response.
+      // `captured: 0` with `read: "answered"` is the customer's own pipeline
+      // having published nothing for this commit -- a fact about them, and not
+      // a failure. With "not-connected" or "read-failed" nothing was asked, or
+      // the ask never landed, and a Receipt reading "You checked for deploys"
+      // over the server's own "Supaprod could not reach your repository's
+      // deployment record" would be the two halves of one door disagreeing.
+      // ("no-repo" cannot arrive here: the handler's parseRepo guard throws
+      // before the read, and a throw lands on onError below.)
+      const unread = res.captured === 0 && res.read !== "answered";
       setReceipt({
-        verb: res.captured > 0 ? "You checked, and the record moved" : "You checked for deploys",
+        verb: unread
+          ? // The same verb as onError, deliberately: from the person's side
+            // an unreachable provider and a thrown refusal are one outcome.
+            "It could not check for deploys"
+          : res.captured > 0
+            ? "You checked, and the record moved"
+            : "You checked for deploys",
         consequence: (
           <>
             {v.title}. {res.message}
           </>
         ),
+        failed: unread,
       });
       if (res.captured > 0) {
         void qc.invalidateQueries({ queryKey: ["ship-deployments", wid] });
@@ -1506,23 +1531,33 @@ function Ship() {
    * draw "nothing has shipped yet" during the first paint of every session --
    * a confident, false sentence about an empty list nobody has looked in.
    *
-   * THREE CLAUSES WHERE ONE WOULD DO, AND THE REDUNDANCY IS ON THE RECORD
-   * RATHER THAN HIDDEN. `stillWaiting(changelog)` is the whole rule and it
-   * subsumes the other two: a query disabled by `enabled: !!wid` is pending,
-   * and `isLoading` implies pending. The two named clauses stay because they
-   * are what a reader of this surface actually hits and because
+   * THE FIRST TWO CLAUSES ARE REDUNDANT AND ARE ON THE RECORD RATHER THAN
+   * HIDDEN. `stillWaiting(changelog)` subsumes both: a query disabled by
+   * `enabled: !!wid` is pending, and `isLoading` implies pending. They stay
+   * because they are what a reader of this surface actually hits and because
    * `src/routes/__tests__/ship-mounts-the-release-document.test.ts` pins them
-   * by text; collapsing this line to `stillWaiting(changelog)` alone is the
-   * right end state and takes that assertion with it, in the same commit.
-   * The clause that is NOT redundant in behaviour is the third: a query paused
-   * with no network is pending WITHOUT fetching, so `isLoading` is false there
-   * too and only `stillWaiting` still says wait.
+   * by text. What `stillWaiting` adds on its own is the paused case: a query
+   * paused with no network is pending WITHOUT fetching, so `isLoading` is false
+   * there too and only `stillWaiting` still says wait.
+   *
+   * AND WHY THAT THIRD CLAUSE IS CONJOINED WITH `!changelog.isError`, WHICH IS
+   * NOT DECORATION. `stillWaiting` is `q.isPending || q.data === undefined`
+   * (src/lib/query-state.ts:52), and react-query leaves `data` undefined after
+   * a read that failed with nothing cached -- so a cold failure satisfies it
+   * for ever. Both consumers below ("What shipped" and "The release document")
+   * test `docReading` BEFORE `changelog.isError`, so without this clause the
+   * two sections sat on "Reading the release notes." / "Reading what has
+   * shipped." once react-query had exhausted its retries, and neither the
+   * Failed sentence nor its refetch button was reachable. A permanent spinner
+   * in place of a retry is worse than the false empty state this flag exists to
+   * prevent: the empty state at least ends. The error branch owns the errored
+   * case, this flag owns the unanswered one, and they must not both claim it.
    *
    * A picked id that has since left the list falls back to the newest rather
    * than to nothing, because a release document that vanishes on a background
    * refetch is worse than one that moves.
    */
-  const docReading = !wid || changelog.isLoading || stillWaiting(changelog);
+  const docReading = !wid || changelog.isLoading || (stillWaiting(changelog) && !changelog.isError);
   const docEntry: ChangelogEntry | null =
     (docId ? notes.find((e) => e.id === docId) : undefined) ?? notes[0] ?? null;
 

@@ -115,6 +115,37 @@ function LoginPage() {
     setFormError(null);
     setLoadingGoogle(true);
     const result = await lovable.auth.signInWithOAuth("google", {
+      // THE LAST PATH STILL PAYING THE TWO-LOAD DETOUR, AND IT IS LEFT THAT WAY
+      // ON PURPOSE. The code half of this fix cannot ship without a dashboard
+      // half, and shipping it alone breaks Google sign-in outright.
+      //
+      // First, what this line is NOT: it is not a destination someone aimed at
+      // the marketing page. `@lovable.dev/cloud-auth-js@1.1.2` resolves
+      // `opts.redirect_uri ?? window.location.origin`, so this IS the SDK
+      // default, written down. Deleting the line changes nothing.
+      //
+      // What it costs. Outside an iframe the SDK sets `window.location.href` to
+      // its same-origin broker (`DEFAULT_OAUTH_BROKER_URL`, "/~oauth/initiate")
+      // and returns `{ redirected: true }`, which is why the
+      // `window.location.assign(dest)` below is unreachable in the usual case.
+      // The round trip comes back to this URL, "/", so pressing "Continue with
+      // Google" renders the whole marketing landing (getLandingStats fires five
+      // `count: "exact", head: true` queries, landing.functions.ts:60-69) and
+      // only then does the effect at index.tsx:161 notice the session and
+      // `window.location.replace("/today")`. Two documents, on the button most
+      // people press, and precisely the detour SIGNED_IN_HOME removes from the
+      // email path above.
+      //
+      // Why it is not simply `${window.location.origin}${SIGNED_IN_HOME}`.
+      // Whoever runs the broker decides which return URLs are acceptable, and
+      // the broker is Lovable-hosted: nothing in this repo serves
+      // /~oauth/initiate, so that set is neither readable nor changeable from
+      // code. (A broker that returned tokens to any URL a caller named would be
+      // an open redirect, so there is near-certainly a list. That is reasoning,
+      // not something verified here.) If /today is not on it, Google sign-in
+      // FAILS rather than detours, which is worse than one extra load and worst
+      // of all in launch week. One line here, the identical line in signup.tsx,
+      // and one allow-list entry: all three together, or none of them.
       redirect_uri: window.location.origin,
     });
     if (result.error) {

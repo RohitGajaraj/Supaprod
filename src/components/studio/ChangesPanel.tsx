@@ -537,13 +537,21 @@ export function ChangesPanel({
    * whole reason the cron's window is bounded in the first place. So it is a
    * press, never a mount effect and never an interval.
    *
-   * `captured: 0` IS A REAL ANSWER, NOT A FAILURE. From this side "your pipeline
-   * has not published one yet" and "the read did not reach your provider" are
-   * genuinely indistinguishable, so the server's own sentence covers both and is
-   * shown verbatim at info weight. Only a refusal -- not merged, no usable repo,
-   * GitHub not connected, no provable landed commit, an upsert RLS refused --
-   * throws, and every one of those arrives as a plain sentence already fit to
-   * read.
+   * `captured: 0` IS A REAL ANSWER, NOT A FAILURE -- WHEN THE PROVIDER
+   * ANSWERED, and the response says which it was. `captureDeployments` returns
+   * `read` beside the count, and `zeroCaptureMessage` has already chosen the one
+   * true sentence from it, so that sentence is shown verbatim because it is the
+   * RIGHT one and not because the two cases are indistinguishable from here.
+   * They are not: "your pipeline has not published one yet" goes out at info
+   * weight, and a read that never reached the provider goes out as an error,
+   * because info weight over a failed read is exactly how a failure gets
+   * narrated to a person as an empty record. /ship's door onto this same call
+   * draws the same line on its Receipt -- two doors onto one act must not tell
+   * one person two different stories about it.
+   *
+   * Only a refusal -- not merged, no usable repo, GitHub not connected, no
+   * provable landed commit, an upsert RLS refused -- throws, and every one of
+   * those arrives as a plain sentence already fit to read.
    */
   const fCapture = useServerFn(captureDeployments);
   const captureMut = useMutation({
@@ -564,10 +572,17 @@ export function ChangesPanel({
         // here, so nothing refetches now -- this only stops it serving a cache
         // that predates the row.
         qc.invalidateQueries({ queryKey: ["changelog"] });
-      } else {
+      } else if (res.read === "answered") {
         // NOTHING TO INVALIDATE. No row was written, so a refetch would only
         // spend another request to redraw the same block.
         toast.info(res.message);
+      } else {
+        // NOTHING WAS ASKED, OR THE ASK NEVER LANDED. The same missing row and
+        // so the same missing invalidation, but this zero is not news about the
+        // customer's pipeline and must not wear the weight that says it is.
+        // ("no-repo" cannot reach this branch: the handler's parseRepo guard
+        // throws before the read, and a throw lands on onError below.)
+        toast.error(res.message);
       }
     },
     onError: (e: unknown) =>

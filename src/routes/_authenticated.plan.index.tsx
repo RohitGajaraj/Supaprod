@@ -392,15 +392,24 @@ function PlanPage() {
       // that somebody committed to work and never placed it, which is the exact
       // thing this station exists to catch. Say that rather than "nothing".
       //
-      // RE-MEASURED THROUGH THE LOVABLE MCP ON 2026-08-06. The line that stood
-      // here said "2 bets with status 'committed', 0 with any lane at all", and
-      // the first half no longer reproduces: of 292 opportunities, 36 read
-      // 'committed' and 10 read 'now' — 46 decided bets — and EXACTLY 0 carry a
-      // lane. `getRoadmap` applies no workspace filter (roadmap.functions.ts:85-90,
-      // RLS-wide, capped at 300), so both counts span every workspace the caller
-      // belongs to. 0 lanes anywhere means `committed` is empty for every caller,
-      // so this is the branch /plan takes today. The total moves as Discover
-      // writes; the load-bearing pair is 46 decided against 0 lanes.
+      // RE-MEASURED THROUGH THE LOVABLE MCP ON 2026-08-06. Of 294 opportunities,
+      // 36 read 'committed' and 10 read 'now' — 46 decided bets — and exactly 1
+      // carries a lane: `60000000-0b00-4000-8000-000000000001`, bucket 'next',
+      // in Helio Labs. So 45 decided bets sit in no lane, across 13 of the 21
+      // workspaces. `getRoadmap` applies no workspace filter
+      // (roadmap.functions.ts:85-90, RLS-wide, capped at 300), so both counts
+      // span every workspace the caller belongs to.
+      //
+      // WHICH MAKES THIS BRANCH CONDITIONAL, AND THE LINE THAT STOOD HERE SAID
+      // OTHERWISE. It read "0 lanes anywhere means `committed` is empty for every
+      // caller, so this is the branch /plan takes today", which was true of the
+      // database it was measured against and stopped being true 15 minutes after
+      // it was committed, when the first bet was placed. A caller who can reach
+      // that placed bet has a non-empty `committed` and takes the branch below
+      // instead ("Nothing is in Now. 1 is lined up behind."); every caller who
+      // cannot still lands here. Both are correct — only the prose claiming one
+      // of them was universal was wrong. The load-bearing pair is 46 decided
+      // against 45 of them lane-less, not the denominator and not the zero.
       //
       // THE PREDICATE AND THE WORD ARE SHARED WITH THE BOARD ON PURPOSE, and
       // that sharing is the fix. RoadmapColumns' `unplacedDecided` filters on
@@ -411,9 +420,20 @@ function PlanPage() {
       // and the board start contradicting each other again.
       const decided = items.filter((i) => i.status === "committed" || i.status === "now").length;
       if (decided > 0) {
-        return decided === 1
-          ? "One bet is committed but sits in no lane."
-          : `${decided} bets are committed but sit in no lane.`;
+        // <Num> like every other numeral on this page. This was the one count on
+        // /plan set as plain text: the two sibling branches below both wrap
+        // theirs, and so does the board's mirroring copy in RoadmapColumns'
+        // second empty branch, which is the same sentence's other half. `Num`'s
+        // contract is "Every number, duration, count, diff, identifier and
+        // timestamp" (src/components/shell/primitives.tsx:1312). `headline` is
+        // typed React.ReactNode and PageHead renders it, so this costs nothing.
+        return decided === 1 ? (
+          "One bet is committed but sits in no lane."
+        ) : (
+          <>
+            <Num>{decided}</Num> bets are committed but sit in no lane.
+          </>
+        );
       }
       return "Nothing is committed yet.";
     }
@@ -587,7 +607,24 @@ function PlanPage() {
         </Block>
       </div>
 
-      {specs.isLoading ? (
+      {/* THE SAME QUESTION THE ROADMAP HEAD ASKS, ASKED THE SAME WAY. This read
+        `specs.isLoading` while `roadmapUnknown` two hundred lines above had
+        already been widened to `stillWaiting`, and one guard fixed in a file is
+        not a guard: v5's `isLoading` is `isPending && isFetching`, so for a
+        query that is pending but not in flight it is FALSE, the wait stands
+        down, `specList` is [] and the Empty below tells a database holding 81
+        specs (measured 2026-08-06) that it has none. That is the /discover
+        first-frame defect again, on the second of this station's two lists.
+
+        `!specs.isError` IS LOAD-BEARING AND IS NOT BELT AND BRACES.
+        `stillWaiting` is `isPending || data === undefined`
+        (src/lib/query-state.ts:51-53), which is TRUE for a failed query, so
+        without this clause the <Failed> branch inside the Block would be
+        unreachable and a failed read would sit under a permanent wait with no
+        retry on it. RoadmapColumns solves the same collision by ordering its
+        <Failed> above its skeleton; here the error branch lives INSIDE the
+        block below, so the exclusion is written into the wait instead. */}
+      {!specs.isError && stillWaiting(specs) ? (
         <Loading>Reading the specs.</Loading>
       ) : (
         <div ref={refSpecs} id="plan-section-specs" tabIndex={-1} className="outline-none">
@@ -634,9 +671,10 @@ function PlanPage() {
                  * (supabase/migrations/20260708170000_sw4_design_station.sql:16),
                  * so the column was never empty and the suffix never absent.
                  * Re-measured through the Lovable MCP on 2026-08-06: 81 specs,
-                 * 26 of them unsettled, and all 26 carried a label. Exactly 2 of
-                 * the 26 have anything drawn, so 24 of 26 announced a design
-                 * step that nothing had ever been drawn for.
+                 * of which 42 are approved and 14 shipped, so 25 are unsettled -
+                 * and all 25 carried a label. Exactly 2 of the 25 have anything
+                 * drawn, so 23 of 25 announced a design step that nothing had
+                 * ever been drawn for.
                  *
                  * THE TWO DRAWN ONES ARE NOT INTERCHANGEABLE, and the difference
                  * is what makes "the single live spec that owes a design call"
@@ -646,7 +684,7 @@ function PlanPage() {
                  * spec …021 below, still pending. Two drawings, one outstanding
                  * call.
                  *
-                 * WHAT THOSE 24 ARE NOT. They are not specs anybody routed past
+                 * WHAT THOSE 23 ARE NOT. They are not specs anybody routed past
                  * Design. The route picker has never been used in this database:
                  * `stage_events where entity_type = 'spec' and to_stage in
                  * ('design_skipped','design_requested')` returns 0 rows, on the
@@ -683,7 +721,7 @@ function PlanPage() {
                  * ("Comet: a focus timer that plans your day") is draft, its
                  * gate is untouched, and it has one drawing - the single live
                  * spec that genuinely owes a design call. The first pass at this
-                 * fix dropped its reminder along with the 24 false ones, because
+                 * fix dropped its reminder along with the 23 false ones, because
                  * `listSpecs` could not tell it apart from them. Reading
                  * `listDesignWork` above tells them apart, so the reminder is
                  * back on the one row where it was always true.

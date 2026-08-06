@@ -182,8 +182,9 @@ function code(src: string): string {
 const ISLOADING_IS_THE_BRANCH = /\.isLoading\s*\?/;
 
 /** The two files this pass locked. Both mount the release acts, and both had
- *  the defect. Ship is checked whole-file; ChangesPanel at the one guard that
- *  owns an empty answer (see the diff note in that describe). */
+ *  the defect. BOTH are checked whole-file by the loop below -- a second call
+ *  site cannot hide behind a first in either. ChangesPanel additionally has its
+ *  one guard pinned by name further down (see the diff note in that describe). */
 const LOCKED = [
   ["Ship", "routes/_authenticated.ship.tsx"],
   ["Studio changes", "components/studio/ChangesPanel.tsx"],
@@ -271,11 +272,39 @@ describe("the guard is a property of the file, not of one line in it", () => {
     expect(src).toMatch(/const releaseReading = stillWaiting\(changelog, deployments\)/);
     // The release list, sharing the document's flag because it is one read.
     expect(src).toMatch(
-      /const docReading = !wid \|\| changelog\.isLoading \|\| stillWaiting\(changelog\)/,
+      /const docReading = !wid \|\| changelog\.isLoading \|\| \(stillWaiting\(changelog\) && !changelog\.isError\)/,
     );
     expect(src).toMatch(/\{docReading \?\s*\(\s*<Loading>Reading the release notes\./);
     // The Announcements block, which had no wait at all.
     expect(src).toMatch(/\{postsReading \|\| posts\.isError \? null : announcements\.length === 0/);
+  });
+
+  it("a failed changelog read still reaches Failed, on both halves of the one read", () => {
+    /**
+     * THE HALF-FIX THIS RULE ALMOST SHIPPED, and the reason the clause above is
+     * not decoration. Widening `docReading` with `stillWaiting(changelog)`
+     * closed the false empty state and opened a worse hole in the same line:
+     * `stillWaiting` is `isPending || data === undefined`
+     * (src/lib/query-state.ts:52), and a read that failed with nothing cached
+     * leaves `data` undefined for good, so the flag was TRUE in the error state
+     * for ever. Both consumers test the flag BEFORE `changelog.isError`, so
+     * `Failed` and its refetch button became unreachable on a cold failure and
+     * the section held a spinner instead -- strictly worse than the empty state
+     * the widening was for, because a spinner never ends.
+     *
+     * TWO HALVES, because neither catches it alone. The wait must stand down in
+     * the error state (the line pinned above), AND the error arm must be the
+     * next test after the wait in both places, which is what makes standing
+     * down load bearing. `ship-mounts-the-release-document.test.ts` states the
+     * rule -- "a failed changelog read must reach Failed and never
+     * NoReleaseYet" -- and pins only the branch ORDER, which is why the order
+     * held while the semantics moved underneath it.
+     */
+    const src = code(read("routes/_authenticated.ship.tsx"));
+    const blocks = src.split("{docReading ? (").slice(1);
+    expect(blocks.length).toBe(2); // the release list, and the release document
+    for (const b of blocks) expect(b.slice(0, 240)).toContain(") : changelog.isError ? (");
+    expect(src).toContain("stillWaiting(changelog) && !changelog.isError");
   });
 
   it("the Studio deploy block asks the same question the same way", () => {

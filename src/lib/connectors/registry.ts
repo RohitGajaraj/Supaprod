@@ -38,6 +38,24 @@
 // whose connect flow works while its capability is unbuilt has to say that in
 // its own `description`, and three of them do below (figma, jira,
 // google_tasks). If a real state flag ever lands, move them onto it.
+//
+// AND NO AUTOMATED GATE IS WATCHING THOSE STRINGS. `description`, `label` and
+// `setupHint` are consumer copy, but check-humanized.sh scopes itself to an
+// ALLOWLIST -- CONSUMER_RE at scripts/check-humanized.sh:89 is
+// `^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize)` -- and
+// src/lib/connectors/ is in none of those. That is a deliberate founder ruling
+// (scripts/check-humanized.sh:14-16 and :70-73, 2026-08-03: scan what a human or
+// a model will actually read, and treat the rest of src/lib as "server logic
+// whose dashes never leave the repo"), not an oversight in the script. This file
+// is simply the case that ruling did not anticipate, because it is the one
+// src/lib path whose data IS the sentences on screen.
+// It has already cost us once. The three "not built yet" descriptions below
+// landed carrying an em dash in 0bb7df15 on 2026-08-06, and the very next commit
+// 49 seconds later (434e2038) was a dedicated em-dash sweep that fixed six of
+// them in two OTHER files and never saw these, because the hook does not look
+// here and neither did the sweep. Until the allowlist grows a row
+// for this file, apply docs/conventions/humanized-output.md:94 BY HAND to every
+// string literal here: no em dash, no en dash, no AI cliches.
 
 export type ProviderId =
   | "github"
@@ -603,7 +621,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     id: "google_tasks",
     label: "Google Tasks",
     description:
-      "Syncing action items with Google Tasks is not built yet — connecting authorizes the account and nothing more.",
+      "Syncing action items with Google Tasks is not built yet. Connecting authorizes the account and nothing more.",
     authMethods: [
       {
         kind: "oauth_native",
@@ -680,11 +698,30 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // a brief, and it needs no connection at all. The entry STAYS (ratchet: replace, never
   // remove) and the OAuth flow stays real; only the promise is withdrawn until the
   // capability lands, at which point this description goes back to the line above.
+  //
+  // AND THE DESCRIPTION IS NOT THE ONLY PLACE THIS IS PROMISED, same as google_tasks
+  // above and jira below. connect-trust.ts:52 still tells the user at the CONSENT
+  // MOMENT that Supaprod reads "File metadata for the files you reference in a spec
+  // or brief." -- word for word the capability this entry's own `description` now
+  // withdraws -- and ConnectTrustDialog.tsx:58 renders that string verbatim on the
+  // last screen before the OAuth handoff. Same claim, higher-stakes screen, still
+  // false. Outside this file; recorded here so the pair gets fixed together.
+  //
+  // ONE WAY FIGMA IS BETTER OFF THAN JIRA, worth knowing before anyone panics on
+  // launch week: it is not on the public pricing page. Swept every figma mention
+  // in src/ on 2026-08-06 and the consent dialog is the ONLY surface left making
+  // this promise. routes/pricing.tsx READ_CONNECTORS (:23 onward) holds github,
+  // linear, notion, jira and google_docs, no figma. landing/TheGap.tsx:64 names
+  // Figma as an external design tool, which is the founder's own position, not a
+  // Supaprod capability. integrations.functions.ts:10 says "Embed Figma files in
+  // docs", which is TRUE (the TipTap FigmaEmbed node) and is dead copy besides:
+  // its `PROVIDERS` export has no importer anywhere in src/. So the fix list for
+  // this claim is exactly one line, connect-trust.ts:52, and it is not a sweep.
   figma: {
     id: "figma",
     label: "Figma",
     description:
-      "Referencing design files from specs and briefs is not built yet — connecting authorizes the account and nothing more.",
+      "Referencing design files from specs and briefs is not built yet. Connecting authorizes the account and nothing more.",
     authMethods: [
       {
         kind: "oauth_native",
@@ -752,7 +789,7 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
     id: "jira",
     label: "Jira",
     description:
-      "Pushing planned work to Jira is not built yet — connecting authorizes the account and nothing more.",
+      "Pushing planned work to Jira is not built yet. Connecting authorizes the account and nothing more.",
     authMethods: [
       {
         kind: "oauth_native",

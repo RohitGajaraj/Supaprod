@@ -95,7 +95,8 @@ function daysSince(iso: string | null): number | null {
  * Statuses that mean the crew STOPPED, rather than finished.
  *
  * `cancelMission` writes `completed_at` when a human cancels
- * (missions.functions.ts:565), which is correct as a timestamp and wrong as a
+ * (`.update({ status: "cancelled", completed_at: now })`,
+ * missions.functions.ts:566), which is correct as a timestamp and wrong as a
  * claim: it made a cancelled run indistinguishable from a delivered one to
  * anything that keyed on that column alone.
  */
@@ -150,11 +151,11 @@ function FirstRunBridge() {
         title="Your idea got an AI review"
         sub={
           /* THE SAME MISCREDIT, AND THIS ONE IS GUARANTEED TO SHARE A SCREEN
-             WITH THE CARD THAT CONTRADICTS IT. `FirstRunBridge` mounts at :1063
+             WITH THE CARD THAT CONTRADICTS IT. `FirstRunBridge` mounts at :1129
              on `rows.length === 0 && criticResult`, and `criticResult` is only
              ever set by the effect gated on `justLanded` — so any render that
              mounts this also satisfies the assessment card's `justLanded &&
-             criticResult` at :591. The card says "The Critic's assessment";
+             criticResult` at :612. The card says "The Critic's assessment";
              this said "the AI analyst". One agent, two names, one viewport.
              "AI Analyst" is a real and different agent here — the brain's
              intelligence analyst, whose ANALYST_SYSTEM opens "You are the
@@ -446,8 +447,28 @@ function Today() {
     summary?: string;
     risks?: string[];
     missing_evidence?: string[];
-    /** 0.0-1.0. Measured on production 2026-08-06: the 12 stored reviews range
-     *  0.2-0.9, and `runCritic` clamps to [0,1] at critic.server.ts:367. */
+    /** 0.0-1.0.
+     *
+     *  THIS SENTENCE SAID "the 12 stored reviews range 0.2-0.9" AND NEITHER
+     *  FIGURE REPRODUCED. Re-run verbatim through the Lovable MCP on
+     *  2026-08-06 at 12:23 UTC:
+     *
+     *    select count(*), min((critic_review->>'confidence')::numeric),
+     *           max((critic_review->>'confidence')::numeric)
+     *    from opportunities where critic_review ? 'reviewer_model';
+     *
+     *  returns 14 rows spanning 0.2 to 0.95. The row that carries the 0.95 is
+     *  opportunities `60000000-0b00-4000-8000-000000000001` (workspace Helio
+     *  Labs), created 2026-07-14 and last touched 2026-08-05, so it predated
+     *  the claim rather than arriving after it. Scoping to `not is_sample`
+     *  does not rescue the old numbers either: 13 rows, 0.3 to 0.95.
+     *
+     *  Second reader, 2026-08-06 12:38 UTC: 14 rows, 0.2 to 0.95, unchanged.
+     *
+     *  THE RENDER NEVER DEPENDED ON ANY OF IT, which is why the wrong figure
+     *  survived two passes. `runCritic` clamps to [0,1] at
+     *  critic.server.ts:367, so the chip below is in range for every value the
+     *  Critic can produce, whatever the stored spread happens to be today. */
     confidence?: number;
   } | null>(null);
 
@@ -661,7 +682,20 @@ function Today() {
                   ) : null}
                   {/* `confidence` crossed the handoff from the first day and was
                       read by nothing, so the animated meter the user watched on
-                      the results screen became silence one navigation later. */}
+                      the results screen became silence one navigation later.
+
+                      THE ONE THING NOBODY HAS SEEN, SAID OUT LOUD. This row was
+                      flagged as possibly sitting proud, because both this chip
+                      and the `Value` beside it render `.sp-value`, which sets
+                      its own `font-size: var(--sp-text-meta)` and therefore
+                      does not inherit the row's `var(--sp-text-label)`.
+                      Measured from ink.css:97-98 that gap is 13px against
+                      12.5px, half a pixel, and the row is `alignItems:
+                      "center"` rather than baseline, so there is no step to
+                      see. Left exactly as it is on purpose: overriding a
+                      primitive's own size from a call site is how a design
+                      system stops being one. Reasoned from the tokens, not
+                      observed, which is true of this whole card. */}
                   {typeof criticResult.confidence === "number" ? (
                     <ConfidenceDisclosureChip
                       confidence={criticResult.confidence}
@@ -729,29 +763,59 @@ function Today() {
                 carried. One item, which is what that screen shows
                 (ObsidianOnboarding.tsx:1772), under the same heading.
 
-                THE MEASUREMENT ON THIS LINE WAS WRONG AND IS CORRECTED, NOT
-                DELETED. It read: "Measured on production 2026-08-06: of the 12
-                stored reviews, 4 name missing evidence (1 to 5 items) and 8
-                name none, so this block is quiet more often than not." Every
-                one of those figures is wrong. Re-measured through the Lovable
-                MCP on 2026-08-06, the same day the sentence was written:
+                THE MEASUREMENT ON THIS LINE HAS NOW BEEN WRONG TWICE, AND IS
+                CORRECTED RATHER THAN DELETED BOTH TIMES.
+
+                First it read: "of the 12 stored reviews, 4 name missing
+                evidence (1 to 5 items) and 8 name none, so this block is quiet
+                more often than not." Then it was corrected to "names_some 12,
+                names_none 0, min length 3, max length 5". The direction of the
+                second version was right and the figures still were not.
+
+                Run verbatim through the Lovable MCP on 2026-08-06 at 12:15 UTC:
 
                   select count(*) filter (where jsonb_array_length(
                            critic_review->'missing_evidence') > 0) as names_some,
                          count(*) filter (where jsonb_array_length(
                            critic_review->'missing_evidence') = 0) as names_none,
-                         min(...) , max(...)
+                         min(jsonb_array_length(
+                           critic_review->'missing_evidence')) as min_len,
+                         max(jsonb_array_length(
+                           critic_review->'missing_evidence')) as max_len
                   from opportunities
                   where critic_review is not null
                     and critic_review ? 'missing_evidence';
 
-                returns names_some 12, names_none 0, min length 3, max length 5,
-                and all 12 carry at least one non-blank entry. So this block is
-                LOUD, not quiet: it renders for every review today's `runCritic`
-                writes. (47 opportunities carry a critic_review in total; the
-                other 35 are a legacy shape with no missing_evidence key at all
-                and never reach this card, which reads only what onboarding put
-                in sessionStorage seconds earlier.)
+                returns names_some 14, names_none 0, min_len 2, max_len 5, and
+                all 14 carry at least one non-blank entry. Both "12" and "min
+                length 3" were already wrong when they were written: the row
+                that breaks them, opportunities
+                `60000000-0b00-4000-8000-000000000001` (workspace Helio Labs),
+                carries two missing-evidence items, was created 2026-07-14 and
+                was last touched 2026-08-05. Only one of the 14 rows has been
+                written to at all today, so this is a mis-measurement and not
+                drift.
+
+                WHAT ACTUALLY SURVIVES RE-MEASUREMENT is the only part this
+                comment exists to say: names_none is 0 and every row carries a
+                non-blank entry, so this block is LOUD, not quiet. It renders
+                for every review today's `runCritic` writes. (48 opportunities
+                carry a critic_review in total; the other 34 are a legacy shape
+                with no missing_evidence key at all and never reach this card,
+                which reads only what onboarding put in sessionStorage seconds
+                earlier. `prds` is the same story: 4 of 4.)
+
+                SECOND READER, 2026-08-06 12:38 UTC: same query, same four
+                figures (14 / 0 / 2 / 5), and the non-blank claim checked
+                separately with `exists (select 1 from
+                jsonb_array_elements_text(critic_review->'missing_evidence') e
+                where btrim(e) <> '')`, which returns 14 of 14. 48 and 4-of-4
+                also reproduce. This sentence has been wrong twice, so it is
+                measured twice.
+
+                Counts on a live table go stale by the hour. Anything below the
+                sentence above is a snapshot with a timestamp on it, and should
+                be re-run rather than trusted.
 
                 The `.some(...)` guard below is unaffected and stays. It is
                 correct whichever way the data falls, and it is the reason a
@@ -1055,11 +1119,13 @@ function Today() {
                 anyone who skipped onboarding, or whose Critic call degraded,
                 was told on the front door that "Your idea got an AI review"
                 when none had run. It also duplicated the honest card above
-                (:591, "340 lines above" when that sentence was written; the
-                comment work since has pushed the two further apart, so the line
-                is cited instead of a distance), which renders from the same
-                stored result and says the same thing when there IS one. One
-                fact, one claim, one place. */}
+                (`justLanded && criticResult` at :612, "340 lines above" when
+                that sentence was written; the comment work since has pushed the
+                two further apart, so the line is cited instead of a distance,
+                and the EXPRESSION is cited beside the line because a line
+                number in this file has now gone stale twice in one day), which
+                renders from the same stored result and says the same thing
+                when there IS one. One fact, one claim, one place. */}
             {rows.length === 0 && criticResult ? <FirstRunBridge /> : null}
             <Empty
               action={
@@ -1180,8 +1246,8 @@ function Today() {
                * This ternary sent everything that was not `failed` or
                * `completed_with_failures` to `verified`, and the block it sits in
                * selects on `completed_at` alone (finishedRecently, above).
-               * `cancelMission` writes `status:"cancelled", completed_at: now`
-               * (missions.functions.ts:565), so a run the human deliberately
+               * `cancelMission` writes `status: "cancelled", completed_at: now`
+               * (missions.functions.ts:566), so a run the human deliberately
                * stopped arrived here, was painted green, and was counted in the
                * headline as one of the runs that finished. `halted` did the same.
                *
@@ -1197,31 +1263,50 @@ function Today() {
                * `slug` was hard-coded null, so the mark fell to the Unknown
                * glyph and `agentDisplayName(null, m.build_driver)` made the
                * title and the aria-label the value of `build_driver`. Measured
-               * on production 2026-08-06: `select build_driver, count(*) from
-               * missions group by 1` returns exactly one row, `native / 331`.
+               * on production 2026-08-06 at 12:23 UTC: `select build_driver,
+               * count(*) from missions group by 1` returns exactly one row,
+               * `native / 337`. It read 331 when it was written at b225f8b5
+               * (2026-08-06 10:38 UTC), under two hours earlier, so treat the
+               * count as a snapshot and the "exactly one row" as the claim.
                * Every finished run, without exception, hovered as "native" and
                * was read aloud as "native, verified" — an internal mechanism
                * word, on the screen whose whole claim is that named agents did
                * this.
                *
                * `current_agent_slug` is on the same `MissionListRow` and the
-               * working-runs block on this very page already reads it (:983).
+               * working-runs block on this very page already reads it
+               * (`const agent = mission.current_agent_slug`, :1083; it was
+               * cited as :983, which was exact when written, and comment work
+               * in this same file has since pushed it down twice, so the
+               * EXPRESSION is named beside the number and is the half to trust).
                * It is not `missions.current_agent_id`
                * (a uuid that is not reliably maintained); `listMissions` fills it
                * from `agent_runs.agent_slug` on the mission's latest run
                * (missions.functions.ts:254), which is written by the thing that
-               * actually runs. Measured the same day: of the 28 missions with a
-               * `completed_at`, 27 resolve a slug and 1 does not. The eight
-               * slugs that appear are builder, discovery-scout, release,
-               * competitor-watcher, data-analyst, orchestrator, critic and
-               * ux-architect, and SPECIALIST_CATALOG places every one of them
-               * (agent-vocabulary.ts:212-589), so those rows read Engineer,
-               * Watch, Announce, Measure, Chief of Staff, Challenge and Design,
-               * each in its own station's hue and glyph, instead of one machine
-               * word behind the Unknown mark.
+               * actually runs. Re-measured 2026-08-06 at 12:23 UTC, applying
+               * the same "latest run that HAS a slug" rule that line uses: of
+               * the 43 missions with a `completed_at`, 42 resolve a slug and 1
+               * does not. ELEVEN distinct slugs appear, not the eight this
+               * comment claimed under two hours earlier: builder,
+               * competitor-watcher, critic, data-analyst, discovery-scout,
+               * orchestrator, qa, release, sprint-planner, strategist and
+               * ux-architect.
                *
-               * `name` stays exactly as it was, and it is what makes that
-               * twenty-eighth row safe: `agentDisplayName` falls through to it
+               * THE COUNT IS A SNAPSHOT; THE PROPERTY IS THE CLAIM. Every one
+               * of the eleven is placed by `SPECIALIST_CATALOG`
+               * (agent-vocabulary.ts:212-718, the array's own first and last
+               * lines; a second reader re-ran all three queries at 12:38 UTC
+               * and got native/337, 43 completed with 42 resolving, and the
+               * same eleven slugs), so those rows read Engineer,
+               * Watch, Challenge, Measure, Watch, Chief of Staff, Review,
+               * Announce, Plan, Prioritize and Design, each in its own
+               * station's hue and glyph, instead of one machine word behind the
+               * Unknown mark. New slugs keep appearing as the product is
+               * exercised, which is exactly why the fallback below, and not the
+               * list above, is what makes this safe.
+               *
+               * `name` stays exactly as it was, and it is what makes the one
+               * unresolved row safe: `agentDisplayName` falls through to it
                * when the catalog cannot place a slug, so the one run with no
                * agent_slug renders precisely what it renders today. This adds a
                * name where there was none and removes none. */

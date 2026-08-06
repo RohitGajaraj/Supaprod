@@ -106,12 +106,25 @@ export type DeployReadOutcome =
  * for exactly those changesets, and `captureDeployments` below is the server
  * half of the in-app door onto the same path, so the two cannot drift.
  *
- * "SERVER HALF" IS EXACT AND IT IS NOT A HEDGE. As of 2026-08-06 no component
- * calls `captureDeployments`; the control that would is being mounted on Ship
- * separately. This file can only promise that the path is correct and safe to
- * call, not that a person can reach it. Whoever mounts the control closes that,
- * and until then the cron's 60-minute window is still the whole story for a
- * customer's own pipeline.
+ * "SERVER HALF" IS STILL EXACT, AND THE CLIENT HALF IS MOUNTED ON TWO SURFACES.
+ * This paragraph used to read "As of 2026-08-06 no component calls
+ * `captureDeployments`; the control that would is being mounted on Ship
+ * separately", and it was false the moment it was committed: `git log -S
+ * "useServerFn(captureDeployments)"` returns exactly one commit, 8a9d4241, and
+ * that is the SAME commit that wrote the sentence denying it. Re-checked
+ * 2026-08-06: /ship imports it (:155), wraps it (:1016), fires it from the
+ * `check` mutation (:1323) and renders "Check for deploys" (:1983);
+ * ChangesPanel imports (:87), wraps (:548), and renders the same control
+ * (:1099). Both are live end to end.
+ *
+ * So the cron's 60-minute window is NO LONGER the whole story for a customer's
+ * own pipeline, and that is the sentence this file most needs to get right.
+ * A deploy published after ci-poll-tick's DEPLOY_CAPTURE_WINDOW_MS gives up is
+ * now recoverable by hand from either surface, which is the entire reason
+ * `captureDeployments` refuses out loud instead of degrading the way this core
+ * does. Corrected rather than dropped, because the stale version told the next
+ * reader that the in-app recovery door is unreachable, and the reasonable
+ * response to being told that is to go and build a door that already exists.
  *
  * `sha` SCOPES THE READ AND MUST BE A COMMIT THIS CHANGESET ACTUALLY PRODUCED.
  * GitHub's deployments list is repo-wide and reverse-chronological: asked with

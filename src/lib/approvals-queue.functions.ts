@@ -159,8 +159,17 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
      * empty list on failure, and the queue then renders "nothing needs you" --
      * which is the same screen a genuinely clear queue draws. That degradation
      * is deliberate and stays: one refused read must not blank the other nine.
-     * What was missing is any way to know it happened, so each swallow now says
-     * so on the server. TELLING THE USER is the other half and is NOT done here:
+     * What was missing is any way to know it happened, so each of the ten family
+     * sources now says so on the server, and so does the one read a level deeper
+     * (:647, assumption detail) whose refusal drops a whole family from INSIDE
+     * the family. TWO READS IN THIS HANDLER ARE STILL SILENT, deliberately: the
+     * decision-title and spec-title lookups at :672 lose only a title to its
+     * fallback ("A past decision" / "Spec: a spec") and drop no item, and their
+     * `Promise.resolve({ data: [] })` short-circuit branch carries no `error`
+     * key, so reading one would mean widening that literal for a log about
+     * nothing a user can miss. Read the claim as "every swallow that can cost
+     * you an item", not "every discarded error below".
+     * TELLING THE USER is the other half and is NOT done here:
      * it needs a field on ApprovalsQueueResult plus rendering in ApprovalsTray
      * and Today, which spans files this pass does not own.
      */
@@ -621,10 +630,25 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
         created_at: string;
       }[];
       const assumptionIds = [...new Set(rows.map((c) => c.assumption_id))];
-      const { data: assumptionRows } = await supabase
+      /**
+       * THE ONE SWALLOW IN THIS HANDLER THAT DROPS A FAMILY FROM INSIDE IT.
+       * The ten family reads above are the ones the paragraph at :157 is about,
+       * but this one is just as fatal and it sits a level deeper: if this read
+       * is refused, `assumptionRows` is null, every `assumptionById.get(...)`
+       * below misses, and `if (!assumption) continue` at :689 drops EVERY
+       * assumption_challenge item -- so the family vanishes from the single pull
+       * point, from behind a guard that already proved rows exist. That is a
+       * discarded read error standing in as evidence of absence, which is the
+       * shape this file spent a whole pass removing. Latent today (measured
+       * through the Lovable MCP 2026-08-06: `assumption_challenges` holds 0 rows
+       * of any status, so the enclosing `if` never runs), and logged now rather
+       * than when the first challenge lands. Behaviour is unchanged.
+       */
+      const { data: assumptionRows, error: assumptionErr } = await supabase
         .from("assumptions")
         .select("id,statement,decision_id,prd_id")
         .in("id", assumptionIds);
+      noteReadError("assumption detail", assumptionErr);
       const assumptionById = new Map(
         (
           (assumptionRows ?? []) as {

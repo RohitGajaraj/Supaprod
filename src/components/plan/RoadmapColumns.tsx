@@ -192,15 +192,23 @@ export function RoadmapColumns() {
    * a paragraph above counted it out loud: /plan said "3 bets are committed but
    * sit in no lane." and then, forty pixels lower, "No bets on the roadmap yet."
    *
-   * Re-measured through the Lovable MCP on 2026-08-06: of 292 opportunities, 36
-   * read status 'committed' and 10 read 'now' - 46 decided bets - and exactly 0
-   * carry any lane at all. (An earlier read the same day counted 289; the total
-   * moves as Discover writes, so the load-bearing pair is 46 against 0 rather
-   * than the denominator.) So every one of the 21 workspaces draws an empty
-   * board, and in the 13 holding a decided bet that empty board was
-   * contradicting a head which had just counted those bets out loud. The other 8
-   * are the genuinely-empty case and keep the original sentence, instruction and
-   * all.
+   * Re-measured through the Lovable MCP on 2026-08-06: of 294 opportunities, 36
+   * read status 'committed' and 10 read 'now' - 46 decided bets - and exactly 1
+   * carries a lane, `60000000-0b00-4000-8000-000000000001` ("Skip the address
+   * re-confirm when nothing changed", bucket 'next', in Helio Labs). That leaves
+   * 45 decided bets in no lane, across 13 of the 21 workspaces.
+   *
+   * THE LANE COUNT IS NOT A CONSTANT AND MUST NOT BE WRITTEN HERE AS ONE. It was
+   * 0 database-wide all morning, and the earlier version of this paragraph said
+   * so and drew a universal conclusion from it ("every one of the 21 workspaces
+   * draws an empty board"). That became false 15 minutes after it was committed,
+   * when the first bet was placed. So the branch below is CONDITIONAL: a caller
+   * who can reach a placed bet gets a board with a card on it and never sees
+   * this branch at all, and a caller who cannot gets an empty board. On today's
+   * read that is 20 of the 21 workspaces - 12 of them holding a decided bet,
+   * which is where the empty board was contradicting a head that had just
+   * counted those bets out loud, and 8 holding none, which are the
+   * genuinely-empty case and keep the original sentence, instruction and all.
    *
    * TEN OF THOSE 46 CARRY STATUS 'now', AND THIS COPY STILL CALLS THEM
    * "committed". That is deliberate rather than sloppy: plan.index's head uses
@@ -377,11 +385,15 @@ export function RoadmapColumns() {
           the branch above and take the remaining bets off the page with it: the
           door this surface just opened would shut after one press, and a count
           the user had just been shown would silently stop being shown.
-          Re-measured through the Lovable MCP on 2026-08-06 and unchanged: 13
-          workspaces hold unplaced committed bets, 12 of them hold more than one,
-          and the counts run 7,5,5,5,3,3,3,3,3,3,3,2,1. The seven seeded demo
-          workspaces are the seven 3s, so in those (the ones a visitor is most
-          likely to open) the first press leaves two behind.
+          Re-measured through the Lovable MCP on 2026-08-06: 13 workspaces hold
+          unplaced committed bets, 12 of them hold more than one, and the counts
+          run 7,5,5,5,3,3,3,3,3,3,2,2,1. Six of the seven seeded demo workspaces
+          hold 3; the seventh, Helio Labs, holds 2, because the third of its
+          bets is the one bet in the database that has been given a lane - which
+          is also why a caller who can see Helio Labs is, today, the only one who
+          reaches THIS line rather than the empty branch above. So in a seeded
+          workspace (the ones a visitor is most likely to open) the first press
+          leaves two behind, or one in Helio Labs.
 
           THAT IS AS FAR AS THE MEASUREMENT REACHES, and the sentence here used
           to reach further. Across all 13 the first press leaves anywhere from
