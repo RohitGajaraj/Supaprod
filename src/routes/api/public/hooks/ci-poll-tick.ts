@@ -7,6 +7,7 @@ import { overallFromChecks, type CiCheckLite } from "@/lib/ai/studio-ci";
 import { fetchFailingCiDetail } from "@/lib/ai/studio-ci-logs.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { generateReleaseNotesCore } from "@/lib/studio.functions";
+import { captureDeploymentsCore } from "@/lib/deployments.functions";
 import {
   collectRepoFiles,
   denoDeployConfigured,
@@ -49,6 +50,14 @@ import {
  *   4. MERGED changesets on Supaprod-managed repos (supaprod.json) auto-deploy
  *      ONCE to a Deno Deploy preview revision (mission 3.7: merge is not the
  *      end; a live URL is); the promote gate moves production.
+ *   4b. MERGED changesets on every OTHER repo — the ones Supaprod does not host
+ *      — have their own provider's deployments CAPTURED instead (the customer's
+ *      Vercel/Netlify/Actions deploy, read through RepoProvider.readDeployments).
+ *      Until this existed, step 4's gates were the only writer of `deployments`
+ *      rows, so a BYO repo produced none, ever: /ship showed "Nothing is in
+ *      production yet" for the whole life of the account while every merge went
+ *      live somewhere else. Supaprod does not deploy these repos and does not
+ *      pretend to; it reports what their pipeline already did.
  *
  * Dedup: one non-terminal run per mission at a time, and one fix dispatch per
  * failing head sha (the fix run's input embeds the sha).
@@ -69,6 +78,21 @@ const CI_FIX_BUDGET = Math.max(1, Number(process.env.CI_FIX_BUDGET ?? 3) || 3);
 // content-free GitHub API call (no agent, no tokens spent diagnosing), so it
 // gets its own low cap rather than sharing the fix-run budget.
 const BRANCH_SYNC_BUDGET = Math.max(1, Number(process.env.BRANCH_SYNC_BUDGET ?? 2) || 2);
+/**
+ * How long after a merge we keep ASKING an unhosted repo's provider what it
+ * deployed. This is a rate-limit bound, not a preference. A capture attempt
+ * costs one PR read plus the deployments read (one list call and up to five
+ * status calls, per RepoProvider.readDeployments) — about 7 GitHub calls — and
+ * a repo whose CI never publishes GitHub deployment objects (a plain Actions
+ * job deploying with a CLI) NEVER settles, so without a window the tick would
+ * keep paying that every 2 minutes for the 7 days a merged changeset stays in
+ * the sweep: ~5,000 ticks, ~35,000 calls for one changeset, against GitHub's
+ * 5,000/hour per installation. 60 minutes caps it at ~30 attempts. A pipeline
+ * slower than that is not captured, and the promote path says so plainly
+ * rather than promising a preview that is not coming.
+ */
+const DEPLOY_CAPTURE_WINDOW_MS =
+  Math.max(5, Number(process.env.DEPLOY_CAPTURE_WINDOW_MIN ?? 60) || 60) * 60_000;
 const NON_TERMINAL_RUN = ["queued", "running", "in_progress", "waiting_approval"];
 
 type ChangesetLite = {
@@ -82,6 +106,7 @@ type ChangesetLite = {
   branch: string | null;
   pr_number: number | null;
   status: string;
+  updated_at?: string | null;
   fix_attempts?: number;
   branch_sync_attempts?: number;
 };
@@ -107,7 +132,7 @@ export async function runCiPollTick() {
     const { data: rows, error } = await supabaseAdmin
       .from("studio_changesets")
       .select(
-        "id,mission_id,user_id,workspace_id,product_id,prd_id,repo,branch,pr_number,status,fix_attempts,branch_sync_attempts",
+        "id,mission_id,user_id,workspace_id,product_id,prd_id,repo,branch,pr_number,status,updated_at,fix_attempts,branch_sync_attempts",
       )
       .in("status", ["pr_open", "merged"])
       // Fairness: oldest-updated first within a 7-day window, so a busy
@@ -122,6 +147,7 @@ export async function runCiPollTick() {
     let fixesDispatched = 0;
     let exhausted = 0;
     let previewsDeployed = 0;
+    let deploysCaptured = 0;
     const failures: string[] = [];
 
     for (const cs of (rows ?? []) as unknown as ChangesetLite[]) {
@@ -130,76 +156,170 @@ export async function runCiPollTick() {
         // auto-deploys to a PREVIEW revision once (the promote gate
         // moves production). Honest gates: skips silently without a
         // Deno token; only supaprod.json (template-family) repos ride.
+        //
+        // AND, for every repo that fails those gates, the customer's OWN
+        // deployments are captured instead. That branch is new because the
+        // gates used to end the story: a BYO repo fell out here every tick and
+        // nothing else in the codebase wrote a `deployments` row for it
+        // (captureDeployments existed but had no caller anywhere), so /ship was
+        // permanently empty for them — no Gate, no live release, no outcome to
+        // learn from — while their pipeline shipped every merge.
         if (cs.status === "merged") {
-          if (!cs.repo || !cs.workspace_id || !denoDeployConfigured()) continue;
-          const { count: existing } = await supabaseAdmin
+          if (!cs.repo || !cs.workspace_id) continue;
+
+          // One DB read decides what, if anything, this changeset still needs,
+          // BEFORE any GitHub call is spent. Rows we deployed ourselves carry
+          // provider 'deno'; rows captured from the customer's pipeline carry
+          // the repo provider. The hosted deploy is once-only, and capture stops
+          // as soon as a live production deploy is on the record, which is the
+          // fact /ship needs; a preview alone is not a reason to stop asking,
+          // since production is usually the deploy that follows it.
+          const { data: recordedRows } = await supabaseAdmin
             .from("deployments")
-            .select("id", { count: "exact", head: true })
+            .select("provider,environment,status")
             .eq("changeset_id", cs.id)
-            .eq("environment", "preview");
-          if ((existing ?? 0) > 0) continue;
+            .limit(50);
+          const recorded = (recordedRows ?? []) as Array<{
+            provider: string | null;
+            environment: string | null;
+            status: string | null;
+          }>;
+          const hostedPreviewDone = recorded.some(
+            (d) => d.provider === "deno" && d.environment === "preview",
+          );
+          const productionRecorded = recorded.some(
+            (d) =>
+              d.provider !== "deno" && d.environment === "production" && d.status === "success",
+          );
+
+          // updated_at is the merge stamp in practice: the merge handler's
+          // status write is the last thing to touch the row, and capture never
+          // writes to studio_changesets, so this does not drift.
+          const mergedAtMs = Date.parse(cs.updated_at ?? "");
+          const withinCaptureWindow =
+            Number.isFinite(mergedAtMs) && Date.now() - mergedAtMs < DEPLOY_CAPTURE_WINDOW_MS;
+          const canHost = denoDeployConfigured() && !hostedPreviewDone;
+          // A repo Supaprod already previewed is a repo Supaprod hosts, so
+          // there is nothing of the customer's own to capture for it.
+          const shouldCapture =
+            !hostedPreviewDone && !productionRecorded && withinCaptureWindow && !!cs.pr_number;
+          if (!canHost && !shouldCapture) continue;
+
           const gh = await resolveGitHub({
             workspaceId: cs.workspace_id,
             userId: cs.user_id,
           });
           const headers = ghHeaders(gh.token);
-          const repoInfoRes = await fetch(`https://api.github.com/repos/${cs.repo}`, {
-            headers,
-          });
-          if (!repoInfoRes.ok) continue;
-          const defaultBranch =
-            ((await repoInfoRes.json()) as { default_branch?: string }).default_branch ?? "main";
-          const refRes = await fetch(
-            `https://api.github.com/repos/${cs.repo}/git/ref/heads/${encodeURIComponent(defaultBranch)}`,
+
+          if (canHost) {
+            const repoInfoRes = await fetch(`https://api.github.com/repos/${cs.repo}`, {
+              headers,
+            });
+            if (!repoInfoRes.ok) continue;
+            const defaultBranch =
+              ((await repoInfoRes.json()) as { default_branch?: string }).default_branch ?? "main";
+            const refRes = await fetch(
+              `https://api.github.com/repos/${cs.repo}/git/ref/heads/${encodeURIComponent(defaultBranch)}`,
+              { headers },
+            );
+            if (!refRes.ok) continue;
+            const headSha = ((await refRes.json()) as { object: { sha: string } }).object.sha;
+            if (await isSupaprodManaged({ token: gh.token, repo: cs.repo, ref: headSha })) {
+              const files = await collectRepoFiles({
+                token: gh.token,
+                repo: cs.repo,
+                ref: headSha,
+              });
+              const result = await deployChangesetApp({
+                workspaceId: cs.workspace_id ?? "",
+                changesetId: cs.id,
+                files,
+                production: false,
+              });
+              // .select("id") on the row that /ship is entirely driven by. An
+              // upsert refused by a constraint resolves with error null here,
+              // and this call did not even read `error`, so a preview that
+              // never got recorded still counted as previewsDeployed and the
+              // Ship surface stayed empty with the job reporting success.
+              const { data: depRows, error: depErr } = await supabaseAdmin
+                .from("deployments")
+                .upsert(
+                  {
+                    user_id: cs.user_id,
+                    workspace_id: cs.workspace_id,
+                    product_id: cs.product_id ?? null,
+                    changeset_id: cs.id,
+                    provider: "deno",
+                    environment: "preview",
+                    status: result.ok ? "success" : "failure",
+                    commit_sha: headSha,
+                    deploy_url: result.url,
+                    triggered_by: "ci-poll-tick",
+                    deployed_at: new Date().toISOString(),
+                  },
+                  { onConflict: "changeset_id,environment,commit_sha" },
+                )
+                .select("id");
+              if (depErr || !depRows || depRows.length === 0) {
+                failures.push(
+                  `${cs.id.slice(0, 8)}: preview row not written (${depErr?.message ?? "refused, no row"})`,
+                );
+              }
+              if (result.ok) {
+                previewsDeployed++;
+                // Auto-generate release notes on first merge so the changeset appears
+                // in the Ship queue's changelog. Best-effort: if generation fails, the
+                // preview deploy (the primary success) already happened, and release
+                // notes can be written manually. Mirrors promoteToProduction's own
+                // best-effort release-notes-on-ship logic.
+                try {
+                  await generateReleaseNotesCore(supabaseAdmin, cs.user_id, cs.id);
+                } catch (e) {
+                  console.error(`auto release-notes on merge failed (non-fatal) for ${cs.id}:`, e);
+                }
+              } else {
+                failures.push(`${cs.id.slice(0, 8)}: preview ${result.reason ?? "failed"}`);
+              }
+              continue;
+            }
+            // Not a Supaprod-hosted repo. Fall through to capture rather than
+            // dropping the changeset, which is what used to happen here.
+          }
+
+          if (!shouldCapture) continue;
+
+          // WHICH COMMIT THIS CHANGE LANDED AS is the whole correctness of the
+          // capture. GitHub reports it on the merged PR as merge_commit_sha,
+          // and the deployment a provider publishes after a merge carries that
+          // sha. We do NOT fall back to the default branch's head when the PR
+          // read fails or the PR is not merged: the head moves on with the next
+          // merge, so guessing files another release's production URL under
+          // this changeset, and /ship would then offer a promote of a commit
+          // this changeset never produced. No capture beats a wrong one.
+          const mergedPrRes = await fetch(
+            `https://api.github.com/repos/${cs.repo}/pulls/${cs.pr_number}`,
             { headers },
           );
-          if (!refRes.ok) continue;
-          const headSha = ((await refRes.json()) as { object: { sha: string } }).object.sha;
-          if (!(await isSupaprodManaged({ token: gh.token, repo: cs.repo, ref: headSha }))) {
+          if (!mergedPrRes.ok) {
+            failures.push(`${cs.id.slice(0, 8)}: capture get-pr ${mergedPrRes.status}`);
             continue;
           }
-          const files = await collectRepoFiles({
-            token: gh.token,
-            repo: cs.repo,
-            ref: headSha,
+          const mergedPr = (await mergedPrRes.json()) as {
+            merged?: boolean;
+            merge_commit_sha?: string | null;
+          };
+          const landedSha = mergedPr.merged ? (mergedPr.merge_commit_sha ?? null) : null;
+          if (!landedSha) continue;
+
+          // Service-role client: this runs on a cron with no session. The core
+          // scopes every read and write by the changeset's own workspace and
+          // resolves the customer's connection under cs.user_id, so it sees
+          // exactly what that person's own client would.
+          const captured = await captureDeploymentsCore(supabaseAdmin, cs.user_id, cs.id, {
+            sha: landedSha,
+            triggeredBy: "ci-poll-tick",
           });
-          const result = await deployChangesetApp({
-            workspaceId: cs.workspace_id ?? "",
-            changesetId: cs.id,
-            files,
-            production: false,
-          });
-          await supabaseAdmin.from("deployments").upsert(
-            {
-              user_id: cs.user_id,
-              workspace_id: cs.workspace_id,
-              product_id: cs.product_id ?? null,
-              changeset_id: cs.id,
-              provider: "deno",
-              environment: "preview",
-              status: result.ok ? "success" : "failure",
-              commit_sha: headSha,
-              deploy_url: result.url,
-              triggered_by: "ci-poll-tick",
-              deployed_at: new Date().toISOString(),
-            },
-            { onConflict: "changeset_id,environment,commit_sha" },
-          );
-          if (result.ok) {
-            previewsDeployed++;
-            // Auto-generate release notes on first merge so the changeset appears
-            // in the Ship queue's changelog. Best-effort: if generation fails, the
-            // preview deploy (the primary success) already happened, and release
-            // notes can be written manually. Mirrors promoteToProduction's own
-            // best-effort release-notes-on-ship logic.
-            try {
-              await generateReleaseNotesCore(supabaseAdmin, cs.user_id, cs.id);
-            } catch (e) {
-              console.error(`auto release-notes on merge failed (non-fatal) for ${cs.id}:`, e);
-            }
-          } else {
-            failures.push(`${cs.id.slice(0, 8)}: preview ${result.reason ?? "failed"}`);
-          }
+          deploysCaptured += captured.captured;
           continue;
         }
         if (!cs.repo || !cs.pr_number || !cs.mission_id) continue;
@@ -497,6 +617,7 @@ export async function runCiPollTick() {
       fixesDispatched,
       exhausted,
       previewsDeployed,
+      deploysCaptured,
       failures,
     };
   });

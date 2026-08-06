@@ -79,6 +79,26 @@
  * What did NOT change: the comparator, the server functions, the query keys,
  * the k/c/x keys, the Gate's one primary answer, and the record recess sitting
  * directly under the question.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-06. Three things this surface promised and did not do. All three are
+ * doors, not taste, and each one is written out in full at its own site:
+ *
+ * 1. PLACING A BET MOVED NOTHING BUT A WORD. The lane control wrote
+ *    `opportunities.status` and /plan's board reads `opportunities.roadmap_bucket`,
+ *    so "Placing it moves the roadmap" was contradicted one click later by an
+ *    empty Now lane, and a bet placed in Next was not on Plan at all. The write
+ *    is two calls now, `updateOpportunity` then the lenient `updateRoadmapItem`,
+ *    and the receipt names the board it reached. See `laneBucketFor`.
+ * 2. THE TEARDOWN WAS A SENTENCE ABOUT A TEARDOWN. The Critic's risks, kill
+ *    criteria and missing evidence were already on `critic_review` and rendered
+ *    only for a spec; the station that rules on the bet showed a 240-character
+ *    summary and a verdict word. `CriticBadge` is mounted in the context column,
+ *    on the opportunity branch it has always carried.
+ * 3. THE RECESS COULD NOT BE CHECKED. The one surface that claims the record
+ *    learned from you had no onClick, so the claim had no evidence behind it.
+ *    It opens the outcome it names, or the Learnings record when this bet has no
+ *    outcome of its own; it never invents an id.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -101,6 +121,7 @@ import {
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
+import { updateRoadmapItem, type RoadmapBucket } from "@/lib/roadmap.functions";
 import { getProvenance } from "@/lib/lineage.functions";
 import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { getBriefAlignment } from "@/lib/brief-opportunity.functions";
@@ -121,6 +142,7 @@ import {
   type OpportunityDetailRecord,
 } from "@/components/discover/OpportunityDetailSheet";
 import { VerdictBadge } from "@/components/discover/VerdictBadge";
+import { CriticBadge } from "@/components/governance/CriticBadge";
 import { LineageDrawer } from "@/components/supaprod/LineageDrawer";
 import {
   Actions,
@@ -176,6 +198,40 @@ const LANES: { id: OpportunityStatus; label: string; title: string }[] = [
   { id: "later", label: "Later", title: "Agreed in principle, with no cycle behind it" },
   { id: "backlog", label: "Backlog", title: "Kept on the record, with nothing promised" },
 ];
+
+/**
+ * THE LANE IS TWO COLUMNS, AND THIS SURFACE WAS ONLY WRITING ONE.
+ *
+ * `opportunities` carries a placement twice. `status` is the lifecycle word this
+ * station has always written through `updateOpportunity`; `roadmap_bucket` is the
+ * column the board on /plan actually reads -- `getRoadmap` in roadmap.functions.ts
+ * maps `roadmap_bucket` into `RoadmapItem.bucket`, and touches `status` only to
+ * exclude shipped and dropped rows. So picking Now here moved the word and not
+ * the board: /plan drew an empty Now lane under the headline "One bet is
+ * committed but sits in no lane", and a bet placed in Next was not on Plan at
+ * all. The two columns disagreeing one click apart is the same class of defect
+ * the `status` comment in roadmap.functions.ts already documents.
+ *
+ * `undefined` means "this call is not a placement, leave the lane alone", and
+ * dropping is the case that needs it: `getRoadmap` already excludes a dropped row
+ * by status, so clearing its bucket would throw away the lane it was in and a bet
+ * put back into the ranking would come back unplaced.
+ */
+function laneBucketFor(status: OpportunityStatus): RoadmapBucket | null | undefined {
+  if (status === "now" || status === "next" || status === "later") return status;
+  if (status === "backlog") return null;
+  return undefined;
+}
+
+/**
+ * The lifecycle write landed and only the lane write failed. Carried on the
+ * error itself rather than in a second piece of state, so the receipt can say
+ * WHICH HALF moved: "It did not move" would be a lie about the status, and the
+ * two writes are two round-trips that can genuinely disagree (the roadmap write
+ * scopes on `user_id` explicitly, `updateOpportunity` leans on RLS alone).
+ */
+type LaneWriteError = Error & { laneOnly?: true };
+
 /** The server caps a citation request at 12 ids; never ask for more. */
 const MAX_PRECEDENT_IDS = 12;
 
@@ -214,6 +270,11 @@ function DecideSurface() {
   const fCritic = useServerFn(runCriticReview);
   const fDraftSpec = useServerFn(generatePrd);
   const fUpdate = useServerFn(updateOpportunity);
+  // The lenient roadmap write, the same one the /plan drag board uses. NOT
+  // `commitRoadmapItem`: that one enforces the H2 rule (a bucket commitment must
+  // carry a declared outcome AND measure) and would throw on every press of a
+  // lane here, where nothing asks for either.
+  const fRoadmapMove = useServerFn(updateRoadmapItem);
   const fDelete = useServerFn(deleteOpportunity);
   const fThemePrecedent = useServerFn(getThemePrecedent);
   const fProvenance = useServerFn(getProvenance);
@@ -427,12 +488,54 @@ function DecideSurface() {
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
+  /** Claimed by each lane press; only the holder of the newest number writes the
+   *  roadmap bucket. See the comment inside `setStatus.mutationFn`. */
+  const laneSeq = React.useRef(0);
+
   const setStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OpportunityStatus }) =>
-      fUpdate({ data: { id, status } }),
+    // TWO WRITES, because the placement lives in two columns and /plan reads the
+    // one this surface was not writing (see `laneBucketFor`). The lifecycle goes
+    // first: it is what this station has always meant by a lane, it carries the
+    // stage event and the judgment record inside `updateOpportunity`, and the
+    // roadmap write is the one that can be skipped for a non-placement.
+    mutationFn: async ({ id, status }: { id: string; status: OpportunityStatus }) => {
+      /**
+       * ONLY THE NEWEST PRESS WRITES THE LANE, OR THE FIX RE-CREATES ITS OWN BUG.
+       *
+       * `Choices.onKeyDown` (primitives.tsx) calls `onPick` on EVERY arrow, and
+       * this control is deliberately not disabled in flight -- a radio group that
+       * disables itself mid-decision throws focus to the body and loses the arrow
+       * keys, which is the worse failure. That was harmless while this was one
+       * column write. It is not harmless now that it is two: holding ArrowRight
+       * fires several overlapping pairs, and if press 3's status lands after
+       * press 4's bucket, `status` and `roadmap_bucket` end up naming different
+       * lanes -- the exact divergence between /decide and /plan this change
+       * exists to close.
+       *
+       * A sequence token fixes it without taking the keyboard away. Every press
+       * claims the next number; after its status write lands, a press that is no
+       * longer the newest declines to touch the lane and leaves it to the one
+       * that is. The newest press always writes BOTH, in order, so the two
+       * columns converge on it.
+       */
+      const seq = ++laneSeq.current;
+      const result = await fUpdate({ data: { id, status } });
+      const bucket = laneBucketFor(status);
+      if (bucket !== undefined && seq === laneSeq.current) {
+        try {
+          await fRoadmapMove({ data: { id, bucket } });
+        } catch (e) {
+          const err: LaneWriteError = new Error((e as Error).message);
+          err.laneOnly = true;
+          throw err;
+        }
+      }
+      return result;
+    },
     onMutate: ({ id }) => setBusy(id, true),
     onSuccess: (_r, { id, status }) => {
       const title = rows.find((o) => o.id === id)?.title ?? "The bet";
+      const bucket = laneBucketFor(status);
       setReceipt({
         verb: status === "dropped" ? "You dropped it" : "You placed it",
         consequence:
@@ -441,14 +544,39 @@ function DecideSurface() {
           // was contradicted by the list directly underneath it. The row now
           // carries its lane, so a dropped bet reads as dropped and can be put
           // back with one press.
+          //
+          // A placement now names the board it reached, because it reaches one:
+          // the old line stopped at "sits in Now" and the person who then opened
+          // Plan found that sentence contradicted by an empty lane.
           status === "dropped"
             ? `${title} is dropped. Its evidence stays on the record, and so does the call.`
-            : `${title} sits in ${STATUS_META[status].label}.`,
+            : bucket === undefined
+              ? `${title} sits in ${STATUS_META[status].label}.`
+              : bucket === null
+                ? `${title} sits in Backlog, holding no lane on the board in Plan.`
+                : `${title} sits in ${STATUS_META[status].label}, and it is in that lane on the board in Plan.`,
       });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      // The board on /plan reads its own key off `getRoadmap`; without this it
+      // keeps serving the lane the bet was in before this press until something
+      // else refetches it.
+      void qc.invalidateQueries({ queryKey: ["roadmap"] });
     },
-    onError: (e: Error) =>
-      setReceipt({ verb: "It did not move", consequence: e.message, failed: true }),
+    onError: (e: Error, { id, status }) => {
+      const title = rows.find((o) => o.id === id)?.title ?? "The bet";
+      setReceipt(
+        (e as LaneWriteError).laneOnly
+          ? {
+              verb: "Only half of it moved",
+              consequence: `${title} reads as ${STATUS_META[status].label} here, and the board in Plan did not get the lane: ${e.message}`,
+              failed: true,
+            }
+          : { verb: "It did not move", consequence: e.message, failed: true },
+      );
+      // The lifecycle write landed in the lane-only case, so the queue is stale
+      // whichever half failed.
+      void qc.invalidateQueries({ queryKey: ["opportunities"] });
+    },
     onSettled: (_d, _e, { id }) => setBusy(id, false),
   });
 
@@ -595,23 +723,43 @@ function DecideSurface() {
                 sub="recorded the last call on it"
               />
             ) : null}
+            {/* THE TEARDOWN, NOT A SENTENCE ABOUT IT.
+                This row used to read "Critic says revise at 62% confidence" and
+                that was the whole of the Critic on this surface, alongside the
+                Gate's 240-character summary. The risks, the kill criteria and
+                the missing evidence are all already written to
+                `opportunities.critic_review` by `runCritic`, and nothing on the
+                one station where a person rules on the bet could open them: the
+                red team's actual case lived only on the spec surface, which is
+                downstream of the call it was supposed to inform.
+
+                `CriticBadge` is that reader, and it has always carried the
+                opportunity branch (`target.kind === "opportunity"` picks the
+                "Risks / Kill criteria / Missing evidence" labels over the spec
+                wording). It opens IN PLACE under the chip, so nothing slides
+                over the question above it.
+
+                Deliberately NOT <CtxRow>, for the reason written out at the same
+                mount on `_authenticated.plan.spec.$id.tsx`: CtxRow wraps its
+                slots in .sp-ctx-name / .sp-ctx-sub, both display:block with
+                their own size and colour, which is right for a name and wrong
+                for a control. Convert both the day CtxRow grows an unstyled
+                slot, not before. */}
             {activeOpp.critic_review ? (
-              <CtxRow
-                mark={<AgentMark slug={CHALLENGER} state="idle" />}
-                name={challengerName}
-                sub={
-                  <>
-                    {verdictSentence(activeVerdict, challengerName)}
-                    {typeof activeOpp.critic_review.confidence === "number" ? (
-                      <>
-                        {" at "}
-                        <Num>{Math.round(activeOpp.critic_review.confidence * 100)}%</Num>
-                        {" confidence"}
-                      </>
-                    ) : null}
-                  </>
-                }
-              />
+              <div className="sp-ctx-row">
+                <AgentMark slug={CHALLENGER} state="idle" />
+                <span>
+                  <span className="sp-ctx-name">{challengerName}</span>
+                  <CriticBadge
+                    review={activeOpp.critic_review}
+                    target={{ kind: "opportunity", id: activeOpp.id }}
+                    /* The key this surface already reads the bets on, so a
+                       re-run lands in the queue, the Gate and this column at
+                       once rather than in one of the three. */
+                    invalidateKey={["opportunities"]}
+                  />
+                </span>
+              </div>
             ) : null}
             {!activeOpp.decided_by_agent_slug && !activeOpp.critic_review ? (
               <CtxBody>
@@ -874,9 +1022,44 @@ function DecideSurface() {
 
       {/* Unlabelled and directly under the question: the recess announces
           itself, and a heading between the call and its precedent would put a
-          third register in the way of the one moment that matters here. */}
+          third register in the way of the one moment that matters here.
+
+          AND IT OPENS THE RECORD IT IS QUOTING. This is the one surface in the
+          product that claims the moat out loud -- it says the record has been
+          here before and tells you what happened -- and it was rendered with no
+          onClick at all, so the claim could not be checked. A sentence that
+          says "we learned this from your own outcomes" and cannot show you one
+          of them is asking to be taken on faith, which is exactly what the
+          compounding claim cannot afford.
+
+          Two destinations, both real, never a guess. When an outcome has been
+          recorded against THIS bet we hold its id (`activeLearning`, the same
+          row whose ICE delta is already printed as this recess's evidence
+          line), so the door opens that one outcome through the drill Today,
+          CompoundingPanel and graph-doors.ts all use: /brain?tab=learnings
+          &learning=<id>. When there is none, the citation was assembled by
+          `loadDecisionPrecedent` from the workspace's recorded outcomes and
+          this surface never receives their ids, so the door opens the Learnings
+          record itself rather than inventing an id it does not have. */}
       {activeCitation ? (
-        <RecordRecess evidence={activeRescore ?? undefined}>{activeCitation}</RecordRecess>
+        <RecordRecess
+          evidence={activeRescore ?? undefined}
+          title={
+            activeLearning
+              ? "Open the outcome this was learned from"
+              : "Open the outcomes this was learned from"
+          }
+          onClick={() =>
+            void navigate({
+              to: "/brain",
+              search: activeLearning
+                ? { tab: "learnings", learning: activeLearning.id }
+                : { tab: "learnings" },
+            })
+          }
+        >
+          {activeCitation}
+        </RecordRecess>
       ) : null}
 
       {/* WHEN, said on the surface that decides it.
@@ -899,11 +1082,14 @@ function DecideSurface() {
           }
         >
           {/* NOT disabled while a write is in flight, unlike the Gate's verbs.
-              Those dispatch an agent and a second press costs a real run; this
-              is one cheap column write where the last press wins. And a radio
-              group that disables itself mid-decision throws focus to the body
-              and loses the arrow keys, which is a worse failure than a double
-              write nobody can perceive. */}
+              Those dispatch an agent and a second press costs a real run; a
+              radio group that disables itself mid-decision throws focus to the
+              body and loses the arrow keys, which is the worse failure.
+              This USED to say "one cheap column write where the last press
+              wins", and that stopped being true the moment the lane became two
+              writes: arrows fire one pair per keypress and they can interleave.
+              The sequence token in `setStatus.mutationFn` is what makes the last
+              press win now, so this control can stay live. */}
           <Choices
             label="Where this bet sits"
             value={activeOpp.status as OpportunityStatus}

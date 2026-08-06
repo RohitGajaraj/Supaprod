@@ -32,6 +32,12 @@
  *          ANTI-scroll device here: three views of one artifact in one screen
  *          height. Stacking them as blocks would have made the page longer,
  *          which is the pain point the founder named twice.
+ *    ADD   the test station (JNY-03), the one element on this page that was not
+ *          inherited from anywhere. It hung on MissionSlideOver, this rewrite
+ *          deleted that component, and nothing carried it across: the panel and
+ *          both of its server functions sat with no caller in the repo. It is
+ *          the run's acceptance verdict against its own spec, so it belongs on
+ *          the surface that owns the run.
  *    KILL  the click-to-rename h1. An unlabelled affordance that swallows the
  *          page's own title, for a housekeeping job nobody came here to do.
  *          It MOVES to /build, the run list, where you organise runs. Reported
@@ -151,6 +157,7 @@ import { ChangesPanel } from "@/components/studio/ChangesPanel";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
 import { ReceiptsPanel } from "@/components/studio/ReceiptsPanel";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
+import { TestStationPanel } from "@/components/obsidian/TestStationPanel";
 import { fmtCost, summarizeArgs } from "@/components/studio/studio-format";
 import { traceRef } from "@/components/discover/format";
 import {
@@ -1165,6 +1172,31 @@ function BuildRun() {
           onRetry={() => void stagesQ.refetch()}
         />
       ) : null}
+
+      {/* WHETHER IT MEETS THE SPEC (JNY-03). This surface is the one that
+          replaced MissionSlideOver, which is where the test station used to
+          hang and which this rewrite deleted. Nothing carried the panel across,
+          so `TestStationPanel` had no caller anywhere in the repo and neither
+          did `getMissionTestPlan` or `recordTestStationVerdict` — a compiled
+          Outcome Contract's eval cases, CI expectation and UAT checklist were
+          being computed by code no door opened.
+
+          IT SITS ABOVE THE LEDGER AND OUTSIDE THE ORCHESTRATOR BRANCH, on
+          purpose, both times.
+          Above, because when it renders at all it carries a CALL ("Record
+          verdict") and this page's rule is that a call the run cannot make for
+          itself comes before the evidence of what the run did. It is read after
+          the Gate and before the story.
+          Outside, because the panel resolves its spec through
+          `studio_changesets.mission_id -> prd_id`, which is a link an
+          orchestrator goal-run can also hold; putting it inside the build-only
+          branch would have invented a second reason for it to be missing on top
+          of the one it already handles itself.
+
+          NO EMPTY SECTION EITHER WAY: the panel owns its own `Block`, so a run
+          whose spec was never compiled — most runs — draws nothing here at all,
+          not a heading over a rule over silence. */}
+      <TestStationPanel missionId={missionId} />
 
       {isOrchestrator ? (
         <Block title="What happened, in order">

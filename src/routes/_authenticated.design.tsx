@@ -184,6 +184,19 @@ function ago(iso: string | null | undefined): string | null {
 type Trace = {
   id: number;
   at: "page" | "focus";
+  /**
+   * WHICH SPEC A FOCUS RECEIPT IS ABOUT. Null on page writes, which are about
+   * the workspace and not about any one spec.
+   *
+   * A receipt is a sentence about one write -- "It is private. Switch it on
+   * below to hand out /p/x9f2", "This spec can reach Build" -- and the focus
+   * region below redraws for whichever row you click next. Untagged, the
+   * receipt stays put while its subject changes underneath it, so a sentence
+   * written about the spec you just approved is then read as a fact about the
+   * spec now on screen. Four receipts are kept, so it survives three more
+   * writes before it falls off the end.
+   */
+  prdId: string | null;
   verb: string;
   consequence: React.ReactNode;
   failed?: boolean;
@@ -367,20 +380,76 @@ function Design() {
   });
   const focus = item.data ?? null;
 
+  /**
+   * WHICH SPEC A WRITE WAS ABOUT, TAKEN AT THE CLICK AND NOT AT THE ANSWER.
+   *
+   * react-query calls onSuccess and onError with the closures from the most
+   * recent render, not from the render the click happened in, so `focus` read
+   * inside a handler is whichever spec you are LOOKING at when the server
+   * answers. Press "Ask the Critic", click a second row while it runs, and the
+   * handler reads the second spec. `onMutate` is the one callback react-query
+   * takes at mutate() time, so what it returns as context is the spec that was
+   * actually acted on; every review and receipt below is stamped from it and
+   * nothing downstream has to re-derive it.
+   */
+  const actedOn = (): { prdId: string | null } => ({ prdId: focusId });
+
   // Receipts, not toasts (anti-slop.md §5). A write renders what it CAUSED.
   const [trace, setTrace] = React.useState<Trace[]>([]);
   const nextId = React.useRef(1);
   const note = React.useCallback(
-    (at: Trace["at"], verb: string, consequence: React.ReactNode, failed = false) => {
-      setTrace((t) => [{ id: nextId.current++, at, verb, consequence, failed }, ...t].slice(0, 4));
+    (
+      at: Trace["at"],
+      prdId: string | null,
+      verb: string,
+      consequence: React.ReactNode,
+      failed = false,
+    ) => {
+      setTrace((t) =>
+        [{ id: nextId.current++, at, prdId, verb, consequence, failed }, ...t].slice(0, 4),
+      );
     },
     [],
   );
   const pageTrace = trace.filter((t) => t.at === "page").slice(0, 2);
-  const focusTrace = trace.filter((t) => t.at === "focus").slice(0, 2);
+  // A focus receipt is drawn only under the spec it was written about. Not
+  // cleared on a change of focus: the receipt for the other spec is still true
+  // and comes back with it, which is the same read-tagged rule the review uses.
+  const focusTrace = trace.filter((t) => t.at === "focus" && t.prdId === focusId).slice(0, 2);
 
-  const [findings, setFindings] = React.useState<DesignCriticFinding[] | null>(null);
-  const [ruling, setRuling] = React.useState<string | null>(null);
+  /**
+   * THE CRITIC'S FINDINGS BELONG TO ONE DRAWING, AND CARRY ITS ID.
+   *
+   * They were held as a bare list and never reset, and `setPicked` changes
+   * which drawing is on screen without touching them. So the second spec you
+   * clicked rendered the FIRST one's findings under "What the Critic found",
+   * and "Make it a rule" posted the first spec's issue text into a permanent
+   * workspace brand rule while the receipt landed under the second. The mirror
+   * case is as bad: a spec nobody has ever reviewed inherited "The Critic found
+   * nothing against your rules or the accessibility floors", a clean bill of
+   * health for a review that never ran.
+   *
+   * TAGGED, NOT RESET. A reset is a line somebody has to remember to write on
+   * the next code path that moves focus, and there are already two (`setPicked`
+   * and the `?focus=` handoff) plus the fallback when a pick leaves the list. A
+   * read that checks the id cannot be forgotten, because forgetting it means
+   * rendering nothing rather than rendering the wrong spec's findings.
+   *
+   * The other spec's review is kept rather than dropped, so clicking back shows
+   * the review you already paid a model call for.
+   */
+  const [review, setReview] = React.useState<{
+    prdId: string;
+    findings: DesignCriticFinding[];
+  } | null>(null);
+  const findings = review && review.prdId === focusId ? review.findings : null;
+
+  /** Same rule, same reason: which finding is mid-draft is a fact about ONE
+   *  spec's review, and it disables every "Make it a rule" button while it is
+   *  set. Untagged, drafting a rule out of one spec's findings greys out the
+   *  buttons on another spec's. */
+  const [ruling, setRuling] = React.useState<{ prdId: string; issue: string } | null>(null);
+  const pendingIssue = ruling && ruling.prdId === focusId ? ruling.issue : null;
 
   const refreshWork = () => {
     void qc.invalidateQueries({ queryKey: ["design-work"] });
@@ -400,6 +469,7 @@ function Design() {
       const drawn = items.filter((i) => i.drawing).length;
       note(
         "page",
+        null,
         decision === "approve" ? "You approved a brand rule" : "You declined a brand rule",
         decision === "approve" ? (
           drawn > 0 ? (
@@ -416,7 +486,7 @@ function Design() {
       void qc.invalidateQueries({ queryKey: ["design-memory"] });
       refreshWork();
     },
-    onError: (e: Error) => note("page", "Your call did not save", e.message, true),
+    onError: (e: Error) => note("page", null, "Your call did not save", e.message, true),
   });
 
   /**
@@ -476,10 +546,17 @@ function Design() {
       if (!focus) throw new Error("Nothing is in focus.");
       return redraw({ data: { prdId: focus.prdId, fidelity } });
     },
-    onSuccess: (res) => {
-      setFindings(null);
+    onMutate: actedOn,
+    onSuccess: (res, _fidelity, ctx) => {
+      const prdId = ctx?.prdId ?? null;
+      // The drawing the Critic read has just been replaced, so its findings go
+      // with it -- but only for the spec that was redrawn. A redraw of one spec
+      // never said anything about what the Critic found in another, and the
+      // blanket clear this replaces threw away a review you had paid for.
+      setReview((prev) => (prev && prev.prdId === prdId ? null : prev));
       note(
         "focus",
+        prdId,
         `Design drew a ${FIDELITY_WORD[res.fidelity].toLowerCase()}`,
         <>
           <Num>{res.screenCount}</Num> screens, <Num>{res.controlCount}</Num> controls. The drawing
@@ -488,7 +565,8 @@ function Design() {
       );
       refreshWork();
     },
-    onError: (e: Error) => note("focus", "Nothing was drawn", e.message, true),
+    onError: (e: Error, _fidelity, ctx) =>
+      note("focus", ctx?.prdId ?? null, "Nothing was drawn", e.message, true),
   });
 
   const verdict = useMutation({
@@ -510,9 +588,11 @@ function Design() {
       }
       return res;
     },
-    onSuccess: (res) => {
+    onMutate: actedOn,
+    onSuccess: (res, _decision, ctx) => {
       note(
         "focus",
+        ctx?.prdId ?? null,
         res.status === "approved" ? "You approved the design" : "You sent the design back",
         res.status === "approved"
           ? "This spec can reach Build."
@@ -523,7 +603,8 @@ function Design() {
       );
       refreshWork();
     },
-    onError: (e: Error) => note("focus", "The verdict did not save", e.message, true),
+    onError: (e: Error, _decision, ctx) =>
+      note("focus", ctx?.prdId ?? null, "The verdict did not save", e.message, true),
   });
 
   /** The gate off means there is no gate to move, so the verdict has nowhere to
@@ -541,9 +622,11 @@ function Design() {
         },
       });
     },
-    onSuccess: (res, approved) => {
+    onMutate: actedOn,
+    onSuccess: (res, approved, ctx) => {
       note(
         "focus",
+        ctx?.prdId ?? null,
         approved ? "You called it a good fit" : "You called it a poor fit",
         res.learned > 0 ? (
           <>
@@ -555,7 +638,8 @@ function Design() {
       );
       void qc.invalidateQueries({ queryKey: ["design-memory"] });
     },
-    onError: (e: Error) => note("focus", "Nothing was recorded", e.message, true),
+    onError: (e: Error, _approved, ctx) =>
+      note("focus", ctx?.prdId ?? null, "Nothing was recorded", e.message, true),
   });
 
   const critic = useMutation({
@@ -566,20 +650,25 @@ function Design() {
       // failing the request outright.
       return askCritic({ data: { prdId: focus.prdId, html: focus.drawing.html.slice(0, 60000) } });
     },
-    onSuccess: (res) => {
+    onMutate: actedOn,
+    onSuccess: (res, _v, ctx) => {
+      const prdId = ctx?.prdId ?? null;
       if (!res.review) {
-        setFindings(null);
+        // A review that produced nothing clears only its OWN spec's findings.
+        setReview((prev) => (prev && prev.prdId === prdId ? null : prev));
         note(
           "focus",
+          prdId,
           "The Critic could not review it",
           "Nothing was written down. Try again.",
           true,
         );
         return;
       }
-      setFindings(res.review.findings);
+      if (prdId) setReview({ prdId, findings: res.review.findings });
       note(
         "focus",
+        prdId,
         "The Critic reviewed the drawing",
         res.review.findings.length === 0 ? (
           "It found nothing against your rules or the accessibility floors."
@@ -590,18 +679,25 @@ function Design() {
         ),
       );
     },
-    onError: (e: Error) => note("focus", "The Critic could not review it", e.message, true),
+    onError: (e: Error, _v, ctx) =>
+      note("focus", ctx?.prdId ?? null, "The Critic could not review it", e.message, true),
   });
 
   const makeRule = useMutation({
-    mutationFn: async (f: DesignCriticFinding) => {
-      setRuling(f.issue);
-      return draftRule({ data: { text: ruleTextFor(f) } });
+    mutationFn: (f: DesignCriticFinding) => draftRule({ data: { text: ruleTextFor(f) } }),
+    /* Which finding is mid-draft is written HERE rather than inside mutationFn,
+       so the issue text and the spec id it belongs to are taken in the same
+       callback at the same instant and cannot disagree. */
+    onMutate: (f: DesignCriticFinding) => {
+      const acted = actedOn();
+      if (acted.prdId) setRuling({ prdId: acted.prdId, issue: f.issue });
+      return acted;
     },
-    onSuccess: (res) => {
+    onSuccess: (res, _f, ctx) => {
       setRuling(null);
       note(
         "focus",
+        ctx?.prdId ?? null,
         "You turned a finding into a rule",
         res.inserted > 0 ? (
           <>
@@ -613,9 +709,9 @@ function Design() {
       );
       void qc.invalidateQueries({ queryKey: ["design-memory"] });
     },
-    onError: (e: Error) => {
+    onError: (e: Error, _f, ctx) => {
       setRuling(null);
-      note("focus", "No rule was drafted", e.message, true);
+      note("focus", ctx?.prdId ?? null, "No rule was drafted", e.message, true);
     },
   });
 
@@ -624,9 +720,11 @@ function Design() {
       if (!focus) throw new Error("Nothing is in focus.");
       return publish({ data: { prdId: focus.prdId } });
     },
-    onSuccess: (p) => {
+    onMutate: actedOn,
+    onSuccess: (p, _v, ctx) => {
       note(
         "focus",
+        ctx?.prdId ?? null,
         "You made a link for this drawing",
         <>
           It is private. Switch it on below to hand out <Num>/p/{p.shareSlug}</Num>.
@@ -634,15 +732,18 @@ function Design() {
       );
       refreshWork();
     },
-    onError: (e: Error) => note("focus", "No link was made", e.message, true),
+    onError: (e: Error, _v, ctx) =>
+      note("focus", ctx?.prdId ?? null, "No link was made", e.message, true),
   });
 
   const flipShare = useMutation({
     mutationFn: (v: { id: string; isPublic: boolean; slug: string }) =>
       share({ data: { id: v.id, isPublic: v.isPublic } }),
-    onSuccess: (_r, v) => {
+    onMutate: actedOn,
+    onSuccess: (_r, v, ctx) => {
       note(
         "focus",
+        ctx?.prdId ?? null,
         v.isPublic ? "You opened a link" : "You closed a link",
         v.isPublic ? (
           <>
@@ -654,7 +755,8 @@ function Design() {
       );
       refreshWork();
     },
-    onError: (e: Error) => note("focus", "The link did not change", e.message, true),
+    onError: (e: Error, _v, ctx) =>
+      note("focus", ctx?.prdId ?? null, "The link did not change", e.message, true),
   });
 
   const stage = useMutation({
@@ -662,6 +764,7 @@ function Design() {
     onSuccess: (res) => {
       note(
         "page",
+        null,
         res.enabled ? "You turned the design gate on" : "You turned the design gate off",
         res.enabled
           ? "A spec now needs an approved design before it can reach Build."
@@ -669,7 +772,7 @@ function Design() {
       );
       refreshWork();
     },
-    onError: (e: Error) => note("page", "The gate setting did not change", e.message, true),
+    onError: (e: Error) => note("page", null, "The gate setting did not change", e.message, true),
   });
 
   const openBrandRules = () =>
@@ -1145,7 +1248,7 @@ function Design() {
         >
           <Findings
             findings={findings}
-            pendingIssue={ruling}
+            pendingIssue={pendingIssue}
             onMakeRule={(f) => makeRule.mutate(f)}
           />
         </Block>
@@ -1186,7 +1289,12 @@ function Design() {
                   variant="ghost"
                   onClick={() => {
                     void navigator.clipboard?.writeText(shareUrl(s.slug));
-                    note("focus", "You copied a link", `${shareUrl(s.slug)} is on your clipboard.`);
+                    note(
+                      "focus",
+                      focus.prdId,
+                      "You copied a link",
+                      `${shareUrl(s.slug)} is on your clipboard.`,
+                    );
                   }}
                 >
                   Copy

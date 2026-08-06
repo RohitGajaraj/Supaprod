@@ -8,6 +8,7 @@ import {
   FileCheck2,
   GitCommitVertical,
   Pencil,
+  Plus,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -413,6 +414,7 @@ function ContractBody({
         clauses={contract.success_metrics}
         section="success_metrics"
         showOracle
+        contract={contract}
         prdId={prdId}
         invalidateKey={invalidateKey}
       />
@@ -420,6 +422,7 @@ function ContractBody({
         label="Non-goals"
         clauses={contract.non_goals}
         section="non_goals"
+        contract={contract}
         prdId={prdId}
         invalidateKey={invalidateKey}
       />
@@ -455,11 +458,199 @@ function ContractBody({
   );
 }
 
+/**
+ * A clause id minted in the browser, because this is the one contract write the
+ * client composes itself. `savePrd` validates the whole contract against
+ * OutcomeContractSchema, whose clause `id` is `z.string().uuid()`, and zod's
+ * uuid check reads the version and variant nibbles, so the id has to be a real
+ * v4 before it leaves here. crypto.randomUUID is the first choice and is what
+ * the server's draftedClause uses; it needs a secure context and is simply
+ * absent on plain http, which is exactly where a `bun run dev` preview opened
+ * from a phone on the LAN lives, so getRandomValues assembles the same shape by
+ * hand there. Same reasoning, and the same fallback order, as mint() in
+ * src/lib/landing-session.ts.
+ */
+function newClauseId(): string {
+  const c = globalThis.crypto;
+  if (c && typeof c.randomUUID === "function") return c.randomUUID();
+  const bytes = new Uint8Array(16);
+  if (c && typeof c.getRandomValues === "function") {
+    c.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  // Byte 6 high nibble to 4 (version), byte 8 top two bits to 10 (variant).
+  // Without these two lines the string is 32 correct hex characters that zod
+  // still rejects, and the owner gets a validation toast with no way to act.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+/**
+ * The whole contract with one new standing clause appended to one section.
+ *
+ * savePrd validates against the FULL OutcomeContractSchema, not the
+ * `.partial()` one supersedeContractClause parses with, so every required key
+ * has to survive the round trip. Contracts written by draftContractFromPrd and
+ * draftContractFromIntent carry all of them, but a row whose contract reached
+ * the column another way can be missing one, and the failure there is a zod
+ * "Required" toast naming a field the owner has never seen. Each missing key is
+ * filled with the same value the two drafters use, so this changes nothing on a
+ * normal row and keeps the add working on an odd one.
+ *
+ * `drafted_by` is carried through untouched on purpose. It is not a record of
+ * who wrote the newest clause; supersedeContractClause reads it to decide
+ * whether a human edit counts as a correction of an agent draft (RPT-32), so
+ * flipping it to "human" here would silently switch off that gate signal for
+ * every later edit of an agent-drafted contract.
+ */
+function contractWithClause(
+  contract: OutcomeContract,
+  section: "success_metrics" | "non_goals",
+  text: string,
+): OutcomeContract {
+  const partial = contract as Partial<OutcomeContract>;
+  const clause: ContractClause = {
+    id: newClauseId(),
+    text: text.trim().slice(0, 2000),
+    status: "standing",
+    superseded_by: null,
+    // Deliberately uncompiled. Classifying a metric into an eval case, a CI
+    // label, a UAT item or a watched assumption is the oracle compiler's call
+    // (CNV-02), and guessing it here would stamp a verdict on the clause that
+    // no oracle actually backs. Adding a metric makes "Compile oracles" appear.
+    oracle_kind: null,
+    oracle_ref: null,
+    created_at: new Date().toISOString(),
+  };
+  const base = {
+    version: partial.version ?? 1,
+    intent: partial.intent ?? "",
+    evidence_links: partial.evidence_links ?? [],
+    success_metrics: partial.success_metrics ?? [],
+    non_goals: partial.non_goals ?? [],
+    budget: partial.budget ?? null,
+    ambiguity_policy: partial.ambiguity_policy ?? null,
+    drafted_by: partial.drafted_by ?? "human",
+    drafted_at: partial.drafted_at ?? new Date().toISOString(),
+  };
+  return {
+    ...base,
+    success_metrics:
+      section === "success_metrics" ? [...base.success_metrics, clause] : base.success_metrics,
+    non_goals: section === "non_goals" ? [...base.non_goals, clause] : base.non_goals,
+  };
+}
+
+/**
+ * WRITE AN ACCEPTANCE CRITERION BY HAND. This station's stated job is "a spec
+ * with acceptance criteria", and until this control existed a human could not
+ * produce one: ClauseRow can supersede a clause that already exists and the
+ * compiler can classify one, but nothing could create the first, so a contract
+ * the drafter returned with an empty success_metrics stayed empty for good and
+ * the spec approved with nothing to check on outcome day.
+ *
+ * It writes through savePrd({ id, contract }), the same single write path the
+ * draft-apply and the ARD import already use, so a hand-written clause clears
+ * exactly the checks an agent-drafted one clears. No new server function: the
+ * contract is composed here and the existing validator judges it.
+ */
+function AddClauseControl({
+  contract,
+  prdId,
+  section,
+  invalidateKey,
+}: {
+  contract: OutcomeContract;
+  prdId: string;
+  section: "success_metrics" | "non_goals";
+  invalidateKey?: readonly unknown[];
+}) {
+  const qc = useQueryClient();
+  const fSave = useServerFn(savePrd);
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const isMetric = section === "success_metrics";
+
+  const addMut = useMutation({
+    mutationFn: (t: string) =>
+      fSave({ data: { id: prdId, contract: contractWithClause(contract, section, t) } }),
+    onSuccess: () => {
+      setOpen(false);
+      setText("");
+      if (invalidateKey) qc.invalidateQueries({ queryKey: invalidateKey });
+      toast.success(isMetric ? "Success metric added" : "Non-goal added");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="btn-pill-outline mt-2 px-3 py-1 text-[11px] inline-flex items-center gap-1.5 normal-case tracking-normal"
+      >
+        <Plus className="h-3 w-3" />
+        {isMetric ? "Add a success metric" : "Add a non-goal"}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex items-start gap-2">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder={
+          isMetric
+            ? "One falsifiable statement. What has to be true on outcome day."
+            : "One thing this spec will not do."
+        }
+        className="flex-1 min-h-[60px] rounded-md border hairline bg-background px-2 py-1.5 text-xs outline-none focus:border-foreground resize-y"
+        autoFocus
+      />
+      <div className="flex flex-col gap-1 shrink-0">
+        <button
+          onClick={() => addMut.mutate(text)}
+          disabled={addMut.isPending || !text.trim()}
+          className="btn-pill px-2 py-1 text-[11px] disabled:opacity-50"
+        >
+          {addMut.isPending ? "Adding…" : "Add"}
+        </button>
+        <button
+          onClick={() => {
+            setOpen(false);
+            setText("");
+          }}
+          disabled={addMut.isPending}
+          className="btn-pill-outline px-2 py-1 text-[11px] disabled:opacity-50"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One section of the contract, INCLUDING WHEN IT IS EMPTY. This used to return
+ * null on an empty array, which took the heading down with the list: a contract
+ * whose success_metrics came back empty rendered as Intent, "Drafted by agent"
+ * and nothing else, so the panel gave no sign that the spec had no acceptance
+ * criteria at all. An empty section is a fact about the spec worth stating, and
+ * it is the only place the control that fixes it can live.
+ *
+ * The same is true when every clause has been superseded: standing is empty,
+ * which used to leave a bare heading over an empty list.
+ */
 function ClauseList({
   label,
   clauses,
   section,
   showOracle,
+  contract,
   prdId,
   invalidateKey,
 }: {
@@ -467,28 +658,51 @@ function ClauseList({
   clauses: ContractClause[];
   section: "success_metrics" | "non_goals";
   showOracle?: boolean;
+  /** The contract these clauses belong to, so an add can send back the whole of it. */
+  contract: OutcomeContract;
   prdId?: string;
   invalidateKey?: readonly unknown[];
 }) {
-  if (!clauses || clauses.length === 0) return null;
-  const standing = clauses.filter((c) => c.status === "standing");
-  const superseded = clauses.filter((c) => c.status === "superseded");
+  const all = clauses ?? [];
+  const standing = all.filter((c) => c.status === "standing");
+  const superseded = all.filter((c) => c.status === "superseded");
 
   return (
     <div>
       <div className="mono-label text-[10px] text-muted-foreground mb-1.5">{label}</div>
-      <ul className="space-y-1.5">
-        {standing.map((c) => (
-          <ClauseRow
-            key={c.id}
-            clause={c}
-            section={section}
-            showOracle={showOracle}
-            prdId={prdId}
-            invalidateKey={invalidateKey}
-          />
-        ))}
-      </ul>
+      {standing.length > 0 ? (
+        <ul className="space-y-1.5">
+          {standing.map((c) => (
+            <ClauseRow
+              key={c.id}
+              clause={c}
+              section={section}
+              showOracle={showOracle}
+              prdId={prdId}
+              invalidateKey={invalidateKey}
+            />
+          ))}
+        </ul>
+      ) : (
+        /* The labelled empty state carries its own control. Without prdId this
+           is the draft-review pass, where there is no saved row to write to
+           yet, so it states the gap and the Apply step below handles the rest. */
+        <div className="rounded-md border border-dashed hairline px-3 py-2.5">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {section === "success_metrics"
+              ? "No success metric yet. Nothing on this contract can be checked on outcome day until one exists."
+              : "No non-goal yet. Nothing is written down as out of scope, so anything is fair game to build."}
+          </p>
+          {prdId ? (
+            <AddClauseControl
+              contract={contract}
+              prdId={prdId}
+              section={section}
+              invalidateKey={invalidateKey}
+            />
+          ) : null}
+        </div>
+      )}
       {superseded.length > 0 ? (
         <details className="mt-1.5">
           <summary className="text-[11px] text-muted-foreground cursor-pointer">
@@ -502,6 +716,18 @@ function ClauseList({
             ))}
           </ul>
         </details>
+      ) : null}
+      {/* The same control below a list that already has clauses. An empty
+          contract was the loudest case, but a contract with three criteria
+          could not get a fourth either: supersede retires one standing clause
+          as it appends its replacement, so the standing count never grows. */}
+      {standing.length > 0 && prdId ? (
+        <AddClauseControl
+          contract={contract}
+          prdId={prdId}
+          section={section}
+          invalidateKey={invalidateKey}
+        />
       ) : null}
     </div>
   );

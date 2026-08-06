@@ -4,9 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { resolveProviderAuth } from "@/lib/connectors/resolve.server";
 import { repoProviderFor, type RepoRef } from "@/lib/connectors/repo-provider";
-import { deploymentRowsFor } from "@/lib/deployments";
+import { deploymentRowsFor, type DeploymentRow } from "@/lib/deployments";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
-import { collectRepoFiles, deployChangesetApp } from "@/lib/hosting/changeset-deploy.server";
+import {
+  collectRepoFiles,
+  deployChangesetApp,
+  denoDeployConfigured,
+} from "@/lib/hosting/changeset-deploy.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { defaultCheckByDate } from "@/lib/launch-plan.functions";
 import { generateReleaseNotesCore } from "@/lib/studio.functions";
@@ -36,65 +40,126 @@ function parseRepo(repo: string | null | undefined): RepoRef | null {
   return m ? { owner: m[1], repo: m[2] } : null;
 }
 
+/**
+ * Read what the repo's OWN provider says it deployed, and persist it.
+ *
+ * EXTRACTED FROM THE SERVER FUNCTION, behaviour unchanged, so a caller with no
+ * browser session can run the identical path. The extraction exists because
+ * this capability had ZERO callers repo-wide: `captureDeployments` shipped with
+ * BYO-P3 WI1 and nothing — no component, no agent tool, no cron — ever invoked
+ * it. For every repo Supaprod does not host (no `supaprod.json`, or no
+ * DENO_DEPLOY_TOKEN on this install) that was total and silent: the only other
+ * writer of `deployments` rows is ci-poll-tick's hosted deploy, which those
+ * repos never reach, so /ship read "Nothing is in production yet" forever while
+ * the customer's own pipeline deployed every merge. ci-poll-tick now calls this
+ * for exactly those changesets; the server function below stays the in-app door
+ * onto the same path, so the two cannot drift.
+ *
+ * `sha` SCOPES THE READ AND MUST BE A COMMIT THIS CHANGESET ACTUALLY PRODUCED.
+ * GitHub's deployments list is repo-wide and reverse-chronological: asked with
+ * no sha it answers with the ten most recent deployments regardless of which
+ * change made them, and every row written here is filed under THIS
+ * changeset_id. That is not a cosmetic mistake — /ship offers a promote over a
+ * changeset's newest successful preview and `promoteChangesetToProductionCore`
+ * then deploys that row's `commit_sha`, so one mis-attributed row is a button
+ * that ships a commit its owner never wrote. A caller passes a sha it can
+ * prove, or captures nothing. The default stays the changeset's `base_sha`
+ * (the commit it was staged FROM) purely to leave the existing door's behaviour
+ * untouched.
+ */
+export async function captureDeploymentsCore(
+  db: SupabaseClient,
+  userId: string,
+  changesetId: string,
+  opts?: { sha?: string | null; triggeredBy?: string | null },
+): Promise<{ captured: number; deployments: DeploymentRow[] }> {
+  const { data: cs, error } = await db
+    .from("studio_changesets")
+    .select("id,workspace_id,product_id,repo,base_sha")
+    .eq("id", changesetId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!cs) throw new Error("Changeset not found");
+
+  const repoRef = parseRepo(cs.repo as string | null);
+  if (!repoRef) return { captured: 0, deployments: [] };
+
+  // Today studio changesets are GitHub-backed; the read path is still
+  // provider-agnostic so a GitLab-bound product captures identically once
+  // its changesets land here.
+  const resolved = await resolveProviderAuth({
+    userClient: db,
+    userId,
+    workspaceId: (cs.workspace_id as string | null) ?? null,
+    productId: (cs.product_id as string | null) ?? null,
+    provider: "github",
+    resourceKind: "repo",
+  });
+  if (!resolved.auth || resolved.source === "none" || !("token" in resolved.auth)) {
+    return { captured: 0, deployments: [] };
+  }
+
+  const provider = repoProviderFor("github", resolved.auth.token, repoRef);
+  const sha = opts?.sha ?? (cs.base_sha as string | null) ?? undefined;
+  let entries;
+  try {
+    entries = await provider.readDeployments(repoRef, sha);
+  } catch (e) {
+    console.error("readDeployments failed (non-fatal):", e);
+    return { captured: 0, deployments: [] };
+  }
+  if (!entries.length) return { captured: 0, deployments: [] };
+
+  const rows = deploymentRowsFor({
+    // FOLD THE ENVIRONMENT NAME TO LOWER CASE AT THIS EDGE, ONCE. GitHub's
+    // deployment `environment` is free text and the providers that write it
+    // capitalize: Vercel's GitHub integration creates "Production" and
+    // "Preview", Netlify creates "Production". Every reader of this table
+    // compares the string exactly — /ship's newestDeployment does
+    // `d.environment !== "production"`, promote filters
+    // `.eq("environment","preview")` — so a captured "Production" row would be
+    // stored, listed, counted, and still render as "Nothing is in production
+    // yet". Normalizing here beats teaching four readers to case-fold.
+    entries: entries.map((e) => ({
+      ...e,
+      environment: (e.environment ?? "").trim().toLowerCase(),
+    })),
+    userId,
+    workspaceId: cs.workspace_id as string,
+    productId: (cs.product_id as string | null) ?? null,
+    changesetId: cs.id as string,
+    provider: "github",
+    triggeredBy: opts?.triggeredBy ?? null,
+  });
+  // .select("id") because supabase-js RESOLVES a write the database refused:
+  // an upsert blocked by RLS comes back with error null and no rows, so the
+  // old `if (upErr) throw` reported "captured 5" over an empty table. The
+  // returned count is now the number of rows that actually exist.
+  const { data: upRows, error: upErr } = await db
+    .from("deployments")
+    .upsert(rows, { onConflict: "changeset_id,environment,commit_sha" })
+    .select("id");
+  if (upErr) throw new Error(upErr.message);
+  if (!upRows || (upRows as unknown[]).length === 0) {
+    throw new Error(
+      `deployments upsert wrote no row for changeset ${changesetId} (refused by row-level security or a constraint)`,
+    );
+  }
+
+  return { captured: (upRows as unknown[]).length, deployments: rows };
+}
+
+/** The in-app door. Same path as the cron's, so the two cannot drift. */
 export const captureDeployments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ changesetId: z.string().uuid() }).parse(i))
-  .handler(async ({ context, data }) => {
-    const { userId } = context;
-    const db = context.supabase as unknown as SupabaseClient;
-
-    const { data: cs, error } = await db
-      .from("studio_changesets")
-      .select("id,workspace_id,product_id,repo,base_sha")
-      .eq("id", data.changesetId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!cs) throw new Error("Changeset not found");
-
-    const repoRef = parseRepo(cs.repo as string | null);
-    if (!repoRef) return { captured: 0, deployments: [] };
-
-    // Today studio changesets are GitHub-backed; the read path is still
-    // provider-agnostic so a GitLab-bound product captures identically once
-    // its changesets land here.
-    const resolved = await resolveProviderAuth({
-      userClient: db,
-      userId,
-      workspaceId: (cs.workspace_id as string | null) ?? null,
-      productId: (cs.product_id as string | null) ?? null,
-      provider: "github",
-      resourceKind: "repo",
-    });
-    if (!resolved.auth || resolved.source === "none" || !("token" in resolved.auth)) {
-      return { captured: 0, deployments: [] };
-    }
-
-    const provider = repoProviderFor("github", resolved.auth.token, repoRef);
-    const sha = (cs.base_sha as string | null) ?? undefined;
-    let entries;
-    try {
-      entries = await provider.readDeployments(repoRef, sha);
-    } catch (e) {
-      console.error("readDeployments failed (non-fatal):", e);
-      return { captured: 0, deployments: [] };
-    }
-    if (!entries.length) return { captured: 0, deployments: [] };
-
-    const rows = deploymentRowsFor({
-      entries,
-      userId,
-      workspaceId: cs.workspace_id as string,
-      productId: (cs.product_id as string | null) ?? null,
-      changesetId: cs.id as string,
-      provider: "github",
-    });
-    const { error: upErr } = await db
-      .from("deployments")
-      .upsert(rows, { onConflict: "changeset_id,environment,commit_sha" });
-    if (upErr) throw new Error(upErr.message);
-
-    return { captured: rows.length, deployments: rows };
-  });
+  .handler(async ({ context, data }) =>
+    captureDeploymentsCore(
+      context.supabase as unknown as SupabaseClient,
+      context.userId,
+      data.changesetId,
+    ),
+  );
 
 export const listDeployments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -158,13 +223,31 @@ export const listDeployments = createServerFn({ method: "GET" })
  * spine files artifacts from a tool's own reported return value and never from
  * a query for what appeared lately, so a promote that reported only a URL would
  * be invisible to the record.
+ *
+ * `warnings` CARRIES THE HALF-SHIPPED CASES. Everything after the deploy — the
+ * ledger receipt, the spec's shipped stamp, the outcome window — is best-effort
+ * by design, because the production deploy has already happened and cannot be
+ * undone by a bookkeeping failure. Best-effort was being read as "silent",
+ * though: each of those writes sat in a try/catch with no `.select()`, and
+ * supabase-js RESOLVES a write the database refused, so the catch never fired,
+ * console.error never printed, and a promote that stamped nothing returned the
+ * same shape as one that stamped everything. Each write now reports whether a
+ * row really moved, and a promote that shipped code but recorded nothing says
+ * so here instead of looking identical to a clean one.
  */
 export async function promoteChangesetToProductionCore(
   db: SupabaseClient,
   userId: string,
   changesetId: string,
-): Promise<{ productionUrl: string; revisionId?: string | null; deploymentId: string | null }> {
+): Promise<{
+  productionUrl: string;
+  revisionId?: string | null;
+  deploymentId: string | null;
+  warnings: string[];
+}> {
   {
+    // Non-fatal bookkeeping failures, in the person's words, for the Receipt.
+    const warnings: string[] = [];
     const { data: cs, error } = await db
       .from("studio_changesets")
       .select("id,mission_id,workspace_id,product_id,prd_id,repo,status,title,release_notes")
@@ -176,18 +259,47 @@ export async function promoteChangesetToProductionCore(
       throw new Error("Only a merged changeset can promote. Merge the PR first.");
     }
 
-    const { data: preview } = await db
+    // WHO BUILT THE PREVIEW DECIDES WHETHER THIS PROMOTE CAN WORK AT ALL.
+    // Rows written by Supaprod's own hosting carry provider 'deno'; rows
+    // captured from the customer's pipeline (captureDeploymentsCore) carry the
+    // repo provider, 'github'. Promote takes THIS row's commit and redeploys
+    // the repo's files to Deno — that is only the right act for a preview Deno
+    // served in the first place. Promoting a captured Vercel preview would push
+    // an unbuilt copy of someone's Next.js repo to a Deno app and then claim it
+    // as production, so the two cases are separated here and answered
+    // differently instead of one query treating them as interchangeable.
+    const { data: previewRows } = await db
       .from("deployments")
-      .select("id,commit_sha,deploy_url,status")
+      .select("id,commit_sha,deploy_url,status,provider")
       .eq("changeset_id", cs.id as string)
       .eq("environment", "preview")
       .eq("status", "success")
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(5);
+    const previews = (previewRows ?? []) as Array<{
+      id: string;
+      commit_sha: string;
+      deploy_url: string | null;
+      status: string;
+      provider: string | null;
+    }>;
+    const preview = previews.find((p) => p.provider === "deno") ?? null;
+    const observed = previews.find((p) => p.provider !== "deno") ?? null;
     if (!preview) {
+      // THE COPY IS SPLIT BECAUSE ONE SENTENCE WAS COVERING TWO OPPOSITE
+      // FACTS. "The preview lands automatically after merge; try again
+      // shortly" is true only where Supaprod does the deploying. Said to a
+      // customer whose repo Supaprod does not host, it is a promise about an
+      // event that will never occur, and they read it every time they check.
+      if (observed) {
+        throw new Error(
+          `This preview was published by your own pipeline (recorded here from ${observed.provider ?? "your provider"}), not by Supaprod, so there is nothing here to move to production. Promote it where it was built; Supaprod records the production deploy once your provider reports it.`,
+        );
+      }
       throw new Error(
-        "No successful preview deploy exists for this changeset yet. The preview lands automatically after merge; try again shortly.",
+        denoDeployConfigured()
+          ? "No successful preview deploy exists for this changeset yet. Supaprod deploys the preview itself for a repo it hosts (one carrying supaprod.json), usually within about two minutes of the merge, so if this is such a repo, try again shortly. If it is not, Supaprod never builds a preview here and none will appear: it can only record the deploys your own pipeline publishes."
+          : "No preview deploy is recorded for this changeset, and this Supaprod install has no hosting configured, so it will not build one. Supaprod can only record the deploys your own pipeline publishes; nothing will appear here on its own.",
       );
     }
 
@@ -236,7 +348,31 @@ export async function promoteChangesetToProductionCore(
       .select("id")
       .maybeSingle();
     if (depErr) throw new Error(depErr.message);
+    /**
+     * THE FOURTH UNCHECKED WRITE, TEN LINES FROM THREE THAT WERE JUST HARDENED.
+     *
+     * `.select("id").maybeSingle()` with only an `error` check is the same shape
+     * as the three writes fixed above it, and it was missed because it LOOKS
+     * checked -- it selects, and it tests something. supabase-js resolves an RLS
+     * refusal as `{ data: null, error: null }`, so a refused upsert left
+     * `deploymentId` null and execution walked on as though production had been
+     * recorded.
+     *
+     * This is the promote path. The consequence of getting it wrong here is that
+     * a person presses "Promote to production", the deploy genuinely happens at
+     * the provider, no `deployments` row is written, and /ship goes on saying
+     * "Nothing is in production yet" underneath a URL that is serving. The
+     * ship->learn bridge never opens and nothing anywhere reports why.
+     *
+     * `maybeSingle` is kept rather than `single`, because the honest failure is
+     * "the row did not land", not "more than one came back".
+     */
     const deploymentId = (depRow as { id?: string } | null)?.id ?? null;
+    if (!deploymentId) {
+      throw new Error(
+        "The deploy went out but production was not recorded, so nothing downstream can see it. You may not have rights on this workspace's deployments.",
+      );
+    }
 
     // Release notes attach automatically on ship (mission 3.7). Best-effort
     // and skip-if-present - a human may already have written/edited one, and
@@ -252,21 +388,36 @@ export async function promoteChangesetToProductionCore(
 
     // The promote receipt: a decided approval on the ledger. Best-effort - the
     // deploy already happened; a receipt failure must not fail the promote.
+    // The `.select("id")` is the whole point: without it a refusal by RLS or a
+    // constraint arrives as error null with nothing written, so the try/catch
+    // above it never fired and the Trust Ledger simply had no row for a
+    // production deploy that customers were already looking at.
     try {
-      await db.from("agent_approvals").insert({
-        user_id: userId,
-        workspace_id: cs.workspace_id,
-        mission_id: cs.mission_id ?? null,
-        tool_name: "deploy.promote",
-        args: { changeset_id: cs.id, url: result.url },
-        rationale: `Promote to production: ${(cs.title as string | null) ?? cs.id}`,
-        status: "approved",
-        escalation_state: "resolved",
-        decided_at: nowIso,
-        decided_by: userId,
-      });
+      const { data: apprRows, error: apprErr } = await db
+        .from("agent_approvals")
+        .insert({
+          user_id: userId,
+          workspace_id: cs.workspace_id,
+          mission_id: cs.mission_id ?? null,
+          tool_name: "deploy.promote",
+          args: { changeset_id: cs.id, url: result.url },
+          rationale: `Promote to production: ${(cs.title as string | null) ?? cs.id}`,
+          status: "approved",
+          escalation_state: "resolved",
+          decided_at: nowIso,
+          decided_by: userId,
+        })
+        .select("id");
+      if (apprErr) throw new Error(apprErr.message);
+      if (!apprRows || (apprRows as unknown[]).length === 0) {
+        throw new Error("the insert was refused and wrote no row");
+      }
     } catch (e) {
-      console.error("promote receipt failed (non-fatal):", e);
+      const reason = e instanceof Error ? e.message : String(e);
+      console.error("promote receipt failed (non-fatal):", reason);
+      warnings.push(
+        `The deploy is live, but no receipt for it reached the Trust Ledger (${reason}). This production deploy will not appear in the record of decided calls.`,
+      );
     }
 
     // Close the loop on the spec: shipped + stage event + outcome window.
@@ -278,19 +429,38 @@ export async function promoteChangesetToProductionCore(
           .eq("id", cs.prd_id as string)
           .maybeSingle();
         if (prd && (prd.status as string) !== "shipped") {
-          await db
+          // THE SHIP STAMP IS THE HINGE BETWEEN SHIP AND LEARN, and it was the
+          // write most able to fail quietly: the read above proves only that
+          // the caller can SELECT this spec, while the update needs a separate
+          // policy to pass. Refused, it resolved with error null and changed
+          // nothing, so the spec stayed 'draft' after its code was live,
+          // /learn never saw an outcome to measure, and the precedent pool the
+          // brain compounds from stayed empty with nothing anywhere saying so.
+          const { data: stamped, error: stampErr } = await db
             .from("prds")
             .update({ status: "shipped", shipped_at: nowIso })
-            .eq("id", prd.id as string);
-          await recordStageEvent(db, {
-            entityType: "spec",
-            entityId: prd.id as string,
-            from: (prd.status as string | null) ?? null,
-            to: "shipped",
-            actor: "human",
-            workspaceId: (prd.workspace_id as string | null) ?? null,
-            userId,
-          });
+            .eq("id", prd.id as string)
+            .select("id");
+          if (stampErr || !stamped || (stamped as unknown[]).length === 0) {
+            const reason = stampErr?.message ?? "the update was refused and changed no row";
+            console.error("promote spec ship-stamp failed (non-fatal):", reason);
+            warnings.push(
+              `The deploy is live, but the spec behind it is still not marked shipped (${reason}). Learn will not open an outcome window for this release until that is fixed.`,
+            );
+          } else {
+            // Only after the stamp actually landed. A stage event recorded over
+            // a refused update would file a transition that never happened,
+            // which is a worse record than none.
+            await recordStageEvent(db, {
+              entityType: "spec",
+              entityId: prd.id as string,
+              from: (prd.status as string | null) ?? null,
+              to: "shipped",
+              actor: "human",
+              workspaceId: (prd.workspace_id as string | null) ?? null,
+              userId,
+            });
+          }
         }
         const { count: hasPlan } = await db
           .from("launch_plans")
@@ -303,21 +473,38 @@ export async function promoteChangesetToProductionCore(
             intent && intent.trim()
               ? intent.trim()
               : `"${((prd?.title as string | null) ?? "This spec").slice(0, 200)}" shipped to production on ${nowIso.slice(0, 10)}.`;
-          await db.from("launch_plans").insert({
-            workspace_id: prd?.workspace_id ?? cs.workspace_id,
-            prd_id: cs.prd_id,
-            positioning,
-            checklist: [],
-            check_by: defaultCheckByDate(nowIso),
-            generated_by: userId,
-          });
+          // Same unchecked-write shape as the two above: this row IS the armed
+          // 30-day outcome window, so a refusal here means the release is live
+          // and nothing will ever ask whether it worked.
+          const { data: planRows, error: planErr } = await db
+            .from("launch_plans")
+            .insert({
+              workspace_id: prd?.workspace_id ?? cs.workspace_id,
+              prd_id: cs.prd_id,
+              positioning,
+              checklist: [],
+              check_by: defaultCheckByDate(nowIso),
+              generated_by: userId,
+            })
+            .select("id");
+          if (planErr || !planRows || (planRows as unknown[]).length === 0) {
+            const reason = planErr?.message ?? "the insert was refused and wrote no row";
+            console.error("promote outcome-window arm failed (non-fatal):", reason);
+            warnings.push(
+              `The deploy is live, but no outcome window was armed for it (${reason}). Nothing will come back in 30 days to ask whether this release worked; open the Launch tab to set one.`,
+            );
+          }
         }
       } catch (e) {
-        console.error("promote spec close-out failed (non-fatal):", e);
+        const reason = e instanceof Error ? e.message : String(e);
+        console.error("promote spec close-out failed (non-fatal):", reason);
+        warnings.push(
+          `The deploy is live, but closing the loop on its spec did not finish (${reason}). Check that the spec is marked shipped and that an outcome window exists.`,
+        );
       }
     }
 
-    return { productionUrl: result.url, revisionId: result.revisionId, deploymentId };
+    return { productionUrl: result.url, revisionId: result.revisionId, deploymentId, warnings };
   }
 }
 
