@@ -105,28 +105,74 @@ const DEPLOY_CAPTURE_WINDOW_MS =
  * below implements exactly this and nothing more.
  *
  * A preview deploy that RECORDED a failure row is retried at most once per
- * HOSTED_PREVIEW_RETRY_BACKOFF_MS, and only while the merge itself is younger
- * than HOSTED_PREVIEW_RETRY_WINDOW_MS. With the defaults (10 minutes apart, 60
- * minutes from the merge) that is the first attempt plus about five retries,
- * after which Supaprod stops trying on its own. Until this existed a recorded
- * failure was read as "already previewed" and the changeset was never deployed
- * again by anything: the only two callers of deployChangesetApp are that branch
- * and promote, and promote refuses without a SUCCESSFUL preview row, so one 5xx
- * from the Deno API stranded a release permanently while /ship told the customer
- * it was two minutes away.
+ * HOSTED_PREVIEW_RETRY_BACKOFF_MS, and only while the FIRST RECORDED ATTEMPT is
+ * younger than HOSTED_PREVIEW_RETRY_WINDOW_MS. With the defaults (10 minutes
+ * apart, 60 minutes from that first attempt) that is the first attempt plus
+ * about five retries, after which Supaprod stops trying on its own.
+ *
+ * THE PER-BACKOFF RATE HOLDS ONLY WHILE EVERY ATTEMPT RECORDS A ROW. Both
+ * uncovered paths enumerated below write no row at all, so once a failure row
+ * exists and a LATER attempt takes one of them, the backoff has nothing newer
+ * to read and the next sweep is due immediately: the rate degrades to once per
+ * sweep. The WINDOW still holds in that case and is what stops it, because it
+ * anchors on the oldest recorded attempt and that row never moves. So the
+ * guarantee this policy actually makes is the outer one -- retries end -- not
+ * the inner one about spacing. Until this
+ * existed a recorded failure was read as "already previewed" and the changeset
+ * was never deployed again by anything: the only two callers of
+ * deployChangesetApp are that branch and promote, and promote refuses without a
+ * SUCCESSFUL preview row, so one 5xx from the Deno API stranded a release
+ * permanently while /ship told the customer it was two minutes away.
+ *
+ * ANCHORED ON THE FIRST ATTEMPT, NOT ON THE MERGE, and the difference is a bound
+ * versus a second stranding. Anchored on the merge stamp, a changeset whose
+ * first attempt landed AFTER the window had already closed — a tick outage,
+ * DENO_DEPLOY_TOKEN added late, a repo that only becomes supaprod-managed after
+ * the merge — got exactly ONE attempt and was then stranded permanently: the
+ * original blocker's shape, narrowed rather than removed. The anchor is
+ * `deployments.created_at` on the OLDEST deno/preview failure row, which works
+ * because the upsert payload below does NOT carry created_at, so PostgREST
+ * leaves it out of the ON CONFLICT DO UPDATE SET list and it holds the first
+ * insert's value however many retries overwrite that row. `deployed_at`, which
+ * the payload DOES carry, moves with every attempt and drives the backoff.
+ * Putting created_at into that payload would break the bound: the window would
+ * slide with each retry and the retries would never stop.
  *
  * BOUNDED BY TIME, NOT BY A COUNTER, because the deployments upsert conflicts on
  * (changeset_id, environment, commit_sha) and these attempts all carry the same
  * default-branch head: repeated tries overwrite ONE row, so counting rows would
  * count one attempt however many times it ran.
  *
- * NOT COVERED, deliberately: an attempt that throws BEFORE any row is written
- * (collectRepoFiles refusing an oversized repo, a missing main.ts entrypoint, a
- * repo-tree read failure) records nothing, so it is retried every sweep for as
- * long as the changeset stays in the 7-day window, exactly as it was before this
- * change. Bounding that needs durable per-changeset attempt state, which is a
- * column studio_changesets does not have; narrowing it here instead would take
- * away the retry an install that only just received DENO_DEPLOY_TOKEN depends on.
+ * NOT COVERED, deliberately — TWO paths, and what they share is that neither
+ * records a failure row at all. With no row there is no backoff to apply, so
+ * both are retried on EVERY sweep for as long as the changeset stays in the
+ * 7-day window above, not for the hour this policy describes:
+ *
+ *   (a) an attempt that THROWS before any row is written (collectRepoFiles
+ *       refusing an oversized repo, a missing main.ts entrypoint, a repo-tree
+ *       read failure), exactly as it was before this change. Costs a repo-tree
+ *       read per sweep.
+ *   (b) the likelier and more expensive one, and the reason (a) is not the whole
+ *       story: a deploy that SUCCEEDS and whose upsert is then REFUSED — the
+ *       case the `preview row not written` failure below is written to report.
+ *       Nothing is recorded, so the next sweep sees no preview and DEPLOYS
+ *       AGAIN, paying a full repo-tree read AND a real Deno deploy every two
+ *       minutes. This client is service_role, so such a refusal is a CHECK, a
+ *       NOT NULL, or the changeset's foreign key, never RLS; a transient one
+ *       self-heals the moment any upsert lands, a permanent one runs the window
+ *       out. What this file CAN bound is the rest of that cost, and now does:
+ *       the release-notes call on this path is guarded on empty notes, so the
+ *       repeat sweeps no longer spend a model call each or overwrite notes a
+ *       person edited by hand.
+ *
+ * Suppressing the REDEPLOY in either case needs durable per-changeset attempt
+ * state, and there is nowhere to keep it. Both paths are defined by having
+ * written no `deployments` row, so the created_at anchor above has nothing to
+ * read; and studio_changesets has no deploy-attempt column (fix_attempts and
+ * branch_sync_attempts are spoken for by the CI paths and cannot be shared
+ * without corrupting the fix budget). Narrowing these with the merge stamp
+ * instead would take back precisely the late-first-attempt retry the anchor
+ * change above just restored.
  */
 const HOSTED_PREVIEW_RETRY_BACKOFF_MS =
   Math.max(1, Number(process.env.HOSTED_PREVIEW_RETRY_BACKOFF_MIN ?? 10) || 10) * 60_000;
@@ -148,9 +194,9 @@ type ChangesetLite = {
   updated_at?: string | null;
   fix_attempts?: number;
   branch_sync_attempts?: number;
-  // Read only to decide whether release notes still need generating, so the
-  // capture branch does not spend a model call on every tick of the window or
-  // overwrite notes a person already wrote.
+  // Read only to decide whether release notes still need generating, so neither
+  // the capture branch nor the hosted one spends a model call on every tick of
+  // its window or overwrites notes a person already wrote.
   release_notes?: string | null;
 };
 
@@ -196,9 +242,15 @@ export async function runCiPollTick() {
     for (const cs of (rows ?? []) as unknown as ChangesetLite[]) {
       try {
         // SEAM-2 SHIP: a merged changeset on a Supaprod-managed repo
-        // auto-deploys to a PREVIEW revision once (the promote gate
-        // moves production). Honest gates: skips silently without a
-        // Deno token; only supaprod.json (template-family) repos ride.
+        // auto-deploys to a PREVIEW revision until one SUCCEEDS (the
+        // promote gate moves production). NOT "once", which is what this
+        // said and what the file header was corrected for: a preview
+        // that FAILS is retried on the bounded schedule at
+        // HOSTED_PREVIEW_RETRY_BACKOFF_MS above — roughly six attempts
+        // over an hour — because nothing else in the product can
+        // redeploy it. A preview that SUCCEEDS is never redeployed here.
+        // Honest gates: skips silently without a Deno token; only
+        // supaprod.json (template-family) repos ride.
         //
         // AND, for every repo that fails those gates, the customer's OWN
         // deployments are captured instead. That branch is new because the
@@ -219,16 +271,49 @@ export async function runCiPollTick() {
           // deploy is on the record, which is the fact /ship needs; a preview
           // alone is not a reason to stop asking, since production is usually
           // the deploy that follows it.
-          const { data: recordedRows } = await supabaseAdmin
+          //
+          // AN UNREADABLE deployments TABLE IS NOT EVIDENCE OF NO DEPLOY. This
+          // read's `error` used to be discarded, which was survivable while the
+          // branch only asked "has this been previewed" — but the retry bound
+          // now RIDES on it, and that made the omission load-bearing. A
+          // transient PostgREST or connection failure yields recordedRows null,
+          // so `recorded` is [], so hostedPreviewSucceeded is false AND there
+          // are no failure rows to back the backoff off — which made
+          // hostedRetryDue true and redeployed IMMEDIATELY, bypassing the very
+          // schedule above. Worse, it could redeploy over a preview that had
+          // already SUCCEEDED, because the read that would have said so is the
+          // one that failed. So a failed read skips this changeset for this
+          // sweep and says so; the next tick, two minutes later, asks again.
+          // Same reasoning as promote's own deployments reads (see
+          // deployments.functions.ts: "A FAILED READ IS NOT AN ANSWER ABOUT THE
+          // CUSTOMER'S PIPELINE"), different handling: promote rethrows because
+          // it is one person's one irreversible action, whereas this is a sweep
+          // and one changeset's bad read must not end the other nineteen.
+          // ORDERED, BECAUSE THE RETRY BOUND READS THE OLDEST ROW. `.limit(50)`
+          // with no `.order()` lets PostgREST return any 50 of the matching
+          // rows, and the window below anchors on the OLDEST deno/preview
+          // failure. Drop the true oldest and the anchor moves forward on its
+          // own, which restarts the hour and turns a bounded retry into an
+          // unbounded one. Verified live 2026-08-06: the busiest changeset in
+          // production holds 21 rows, so nothing is being truncated today --
+          // this is the guard that keeps it that way, since rows accumulate per
+          // distinct commit_sha and 21 is not far from 50.
+          const { data: recordedRows, error: recordedErr } = await supabaseAdmin
             .from("deployments")
-            .select("provider,environment,status,deployed_at")
+            .select("provider,environment,status,deployed_at,created_at")
             .eq("changeset_id", cs.id)
+            .order("created_at", { ascending: true })
             .limit(50);
+          if (recordedErr) {
+            failures.push(`${cs.id.slice(0, 8)}: deployments read ${recordedErr.message}`);
+            continue;
+          }
           const recorded = (recordedRows ?? []) as Array<{
             provider: string | null;
             environment: string | null;
             status: string | null;
             deployed_at: string | null;
+            created_at: string | null;
           }>;
           // "ALREADY PREVIEWED" MEANS ONE SUCCEEDED. This used to ask only for a
           // deno preview row of ANY status, but the upsert below writes that row
@@ -263,22 +348,56 @@ export async function runCiPollTick() {
           // THE RETRY POLICY DOCUMENTED AT THE TOP OF THIS FILE, IMPLEMENTED.
           // With no failure row at all this is `true` and nothing changes: every
           // sweep attempts the deploy, which is what a changeset whose deploy
-          // threw before recording anything still rides on. With one, the next
-          // attempt waits out the backoff and stops once the merge leaves the
-          // retry window. A failure row with an unreadable deployed_at falls back
-          // to the merge stamp, so it waits out the same backoff instead of
-          // retrying on every tick.
-          const lastHostedFailureMs = hostedPreviewFailures.reduce(
-            (newest, d) => {
-              const t = Date.parse(d.deployed_at ?? "");
-              return Number.isFinite(t) && t > newest ? t : newest;
-            },
-            Number.isFinite(mergedAtMs) ? mergedAtMs : 0,
-          );
+          // threw before recording anything (and the succeeded-but-unrecorded
+          // case beside it) still rides on — both are the paths the constants
+          // comment names as uncovered. With one, the next attempt waits out the
+          // backoff and stops once the FIRST attempt leaves the retry window.
+          //
+          // TWO STAMPS, AND THEY ARE NOT INTERCHANGEABLE. created_at is when the
+          // row first appeared and never moves (the upsert payload below omits
+          // it, so it is not in PostgREST's ON CONFLICT DO UPDATE SET list);
+          // deployed_at is written on every attempt and therefore moves. The
+          // window must hang off the fixed one or it slides forever and nothing
+          // terminates; the backoff must hang off the moving one or every tick
+          // looks due. Anchoring the window on the MERGE instead — what this did
+          // before — stranded any changeset whose first attempt landed after the
+          // window had already closed (tick outage, DENO_DEPLOY_TOKEN added
+          // late, repo becoming supaprod-managed after the merge): one attempt,
+          // then never again. Oldest created_at across the failure rows, because
+          // a moving default-branch head inserts a SECOND row under a new
+          // commit_sha and the newest of those would restart the clock.
+          let firstHostedAttemptMs = Number.POSITIVE_INFINITY;
+          let lastHostedAttemptMs = Number.NEGATIVE_INFINITY;
+          for (const d of hostedPreviewFailures) {
+            const createdMs = Date.parse(d.created_at ?? "");
+            const attemptedMs = Date.parse(d.deployed_at ?? "");
+            // Each stamp covers for the other when one is unreadable, so a row
+            // with a garbled deployed_at still waits out the backoff from when
+            // it was created rather than retrying on every tick.
+            const firstMs = Number.isFinite(createdMs) ? createdMs : attemptedMs;
+            const lastMs = Number.isFinite(attemptedMs) ? attemptedMs : createdMs;
+            if (Number.isFinite(firstMs) && firstMs < firstHostedAttemptMs) {
+              firstHostedAttemptMs = firstMs;
+            }
+            if (Number.isFinite(lastMs) && lastMs > lastHostedAttemptMs) {
+              lastHostedAttemptMs = lastMs;
+            }
+          }
+          // created_at is NOT NULL in the schema, so the merge-stamp fallback is
+          // belt and braces for a row whose stamps are both unreadable. It keeps
+          // the old behaviour for that row, including refusing to retry at all
+          // when the merge stamp will not parse either — the conservative
+          // direction, and unreachable in practice.
+          const hostedRetryAnchorMs = Number.isFinite(firstHostedAttemptMs)
+            ? firstHostedAttemptMs
+            : mergedAtMs;
+          const lastHostedFailureMs = Number.isFinite(lastHostedAttemptMs)
+            ? lastHostedAttemptMs
+            : hostedRetryAnchorMs;
           const hostedRetryDue =
             hostedPreviewFailures.length === 0 ||
-            (Number.isFinite(mergedAtMs) &&
-              nowMs - mergedAtMs < HOSTED_PREVIEW_RETRY_WINDOW_MS &&
+            (Number.isFinite(hostedRetryAnchorMs) &&
+              nowMs - hostedRetryAnchorMs < HOSTED_PREVIEW_RETRY_WINDOW_MS &&
               nowMs - lastHostedFailureMs >= HOSTED_PREVIEW_RETRY_BACKOFF_MS);
           const canHost = denoDeployConfigured() && !hostedPreviewSucceeded && hostedRetryDue;
           // A repo Supaprod already previewed SUCCESSFULLY is a repo Supaprod
@@ -287,6 +406,16 @@ export async function runCiPollTick() {
           // on the old any-status flag stopped reading the customer's own
           // pipeline over a deploy of ours that never served, which is the
           // opposite of what this comment says and was never intended.
+          //
+          // KNOWN AND ACCEPTED CONSEQUENCE: while a hosted repo is WAITING OUT
+          // the backoff, canHost is false but shouldCapture is still true, so
+          // the capture path runs against a repo Supaprod deploys itself and
+          // will usually find nothing there to capture. It costs what any other
+          // capture attempt costs (the get-PR read plus readDeployments' calls,
+          // about seven, as counted at DEPLOY_CAPTURE_WINDOW_MS above) and is
+          // bounded by that same window. It is the direct price of
+          // un-suppressing capture on a failed preview; re-suppressing it would
+          // restore the blocker this branch exists to fix, so it stays.
           const shouldCapture =
             !hostedPreviewSucceeded && !productionRecorded && withinCaptureWindow && !!cs.pr_number;
           if (!canHost && !shouldCapture) continue;
@@ -368,10 +497,32 @@ export async function runCiPollTick() {
                 // preview deploy (the primary success) already happened, and release
                 // notes can be written manually. Mirrors promoteToProduction's own
                 // best-effort release-notes-on-ship logic.
-                try {
-                  await generateReleaseNotesCore(supabaseAdmin, cs.user_id, cs.id);
-                } catch (e) {
-                  console.error(`auto release-notes on merge failed (non-fatal) for ${cs.id}:`, e);
+                //
+                // GUARDED ON EMPTY NOTES, the same guard the capture branch below
+                // carries and this one lacked. It reads as unreachable — a recorded
+                // success stops the branch on the next sweep — but exactly one path
+                // reaches it repeatedly: a deploy that SUCCEEDS whose row write is
+                // REFUSED (see the constants comment's uncovered case (b)). Nothing
+                // is recorded, so every sweep deploys again and landed back here,
+                // spending a model call every two minutes and overwriting notes a
+                // person had edited by hand. This does not stop that redeploy — only
+                // durable attempt state can, and there is none — it stops the model
+                // call and the overwrite.
+                //
+                // Gated on result.ok and NOT on previewRecorded, unlike the capture
+                // branch's `captured.captured > 0`: there, a captured row is the only
+                // evidence anything shipped, whereas here result.ok IS that evidence.
+                // A refused row write is a recording failure, not a shipping one, and
+                // the changelog hangs off release_notes rather than off `deployments`.
+                if (!(cs.release_notes ?? "").trim()) {
+                  try {
+                    await generateReleaseNotesCore(supabaseAdmin, cs.user_id, cs.id);
+                  } catch (e) {
+                    console.error(
+                      `auto release-notes on merge failed (non-fatal) for ${cs.id}:`,
+                      e,
+                    );
+                  }
                 }
               } else {
                 failures.push(`${cs.id.slice(0, 8)}: preview ${result.reason ?? "failed"}`);

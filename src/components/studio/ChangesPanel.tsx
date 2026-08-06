@@ -585,6 +585,26 @@ export function ChangesPanel({
   }
 
   const selected = activePath ? diffByPath.get(activePath) : null;
+  /**
+   * A FAILED REFRESH IS NOT A LOST READ, and the diff owes the reader the same
+   * answer the deploy query above already gives.
+   *
+   * This block was gated on `diff.isError` alone, twelve lines from the query
+   * that had been fixed, so the two halves of one file disagreed about what a
+   * blip means. The diff does not poll, but `refetchOnMount` defaults to true
+   * and the client retries once (router.tsx), so a background refetch that
+   * fails while `diff.data` is still in hand replaced a perfectly readable diff
+   * with the Failed state -- the file taken off the screen of someone who was
+   * reading it, over a read they never asked for.
+   *
+   * HELD IS ASKED PER FILE, NOT PER QUERY, and that is the difference from
+   * `deploymentsUnread`. The held page need not carry the path now selected
+   * (curation drops a file, the builder adds one), and for that file there is
+   * nothing true to draw -- so it takes the unread arm rather than showing a
+   * "this is the last diff that loaded" note over a diff that never loaded.
+   */
+  const diffUnread = diff.isError && !selected;
+  const diffStale = diff.isError && !!selected;
   // Same pure diff the server applies, so hunk ids line up between UI and server.
   const hunks = selected
     ? computeHunks(selected.base_content ?? "", selected.new_content ?? "")
@@ -718,7 +738,19 @@ export function ChangesPanel({
                 </div>
               ) : null}
 
-              {diff.isError ? (
+              {/* THE FILE STAYS AND THIS SAYS WHAT IT IS: the last diff that
+                  loaded, not what is on the branch right now. It sits ABOVE the
+                  branch below, never inside one arm of it, and `diffStale` and
+                  `diffUnread` cannot both be true, so it never stacks with the
+                  Failed. */}
+              {diffStale ? (
+                <Failed onRetry={() => void diff.refetch()} retryLabel="Read it again">
+                  This is the last diff that loaded; the refresh just now did not land, so this file
+                  may have changed since. {(diff.error as Error)?.message?.slice(0, 160)}
+                </Failed>
+              ) : null}
+
+              {diffUnread ? (
                 // A failed read is not an empty state. It names its cause and offers
                 // the retry, because "nothing here" and "we could not find out" are
                 // different facts.
@@ -864,15 +896,33 @@ export function ChangesPanel({
             <>
               {/* THE ROWS STAY AND THIS SAYS WHAT THEY ARE: the last read that
                   landed, not what is serving right now. A stale address is
-                  still a door a person can open, and Promote acts on the
-                  server's own read of the preview row rather than on this one
-                  (`promoteChangesetToProductionCore` selects the deploy itself
-                  and refuses what it cannot move), so keeping the button here
-                  cannot promote something this panel misread. */}
+                  still a door a person can open.
+
+                  WHAT THE SERVER GUARANTEES, AND ONLY THAT. Promote acts on the
+                  server's own read of the preview row rather than on this one:
+                  `promoteChangesetToProductionCore` re-selects the newest
+                  successful 'deno' preview itself and throws on a captured one,
+                  so the click cannot ship a preview this panel misread. It says
+                  NOTHING about whether the button belongs here. Both conditions
+                  that draw it (`!productionDep && hostedPreviewDep`) are read
+                  off these same stale rows, and the server does not check for
+                  an existing production deploy, so rows old enough can leave
+                  Promote over a release someone has promoted since -- and that
+                  click deploys production again rather than refusing. The note
+                  below is the whole of the warning a person gets before it, and
+                  it is the price of keeping the control: hiding a promote on a
+                  blip is the affordance this split exists to protect.
+
+                  IT SAYS "THE RECORD", NOT "THESE ROWS", because a read that
+                  landed and returned zero deploys is stale in exactly the same
+                  way and this sentence sits directly above "Nothing to promote
+                  until the preview is up." Naming rows there would name rows
+                  that do not exist. */}
               {deploymentsStale ? (
                 <Failed onRetry={retryDeployments} retryLabel="Read it again">
-                  These are the last deploy rows that loaded; the refresh just now did not land, so
-                  this may have moved since. {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
+                  This is the deploy record as it last loaded, which may be no deploys at all; the
+                  refresh just now did not land, so this may have moved since.{" "}
+                  {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
                 </Failed>
               ) : null}
               <Line

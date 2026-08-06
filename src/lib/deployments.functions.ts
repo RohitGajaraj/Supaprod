@@ -235,6 +235,17 @@ export const listDeployments = createServerFn({ method: "GET" })
  * same shape as one that stamped everything. Each write now reports whether a
  * row really moved, and a promote that shipped code but recorded nothing says
  * so here instead of looking identical to a clean one.
+ *
+ * THE RELEASE NOTES REPORT FROM ONE HOP AWAY, which is worth stating because
+ * this list names them alongside three writes that live in this file. Their
+ * write does not: generateReleaseNotesCore (src/lib/studio.functions.ts) owns
+ * it, and this function sees only what that call throws. For a while that was a
+ * generation failure and nothing else — the update there checked `error` alone,
+ * so a save the database refused came back looking successful and reached this
+ * function unremarked. That update now selects the row it changed and throws
+ * when none comes back, so a refused save lands in the same catch a failed
+ * generation does and is filed as a warning like the rest. Which of the two
+ * happened is told only by the reason quoted inside the warning's text.
  */
 export async function promoteChangesetToProductionCore(
   db: SupabaseClient,
@@ -435,12 +446,15 @@ export async function promoteChangesetToProductionCore(
     // generation already failed once, so this is the second miss on the same
     // changeset, not a rare one. The warning names the door that exists.
     //
-    // PARTIAL, and it says so: this reports a generation that THROWS. A
-    // release-notes update the database silently refuses does not throw --
-    // generateReleaseNotesCore's final update checks only `error` and has no
-    // `.select()` (src/lib/studio.functions.ts), and supabase-js resolves a
-    // refused write, so that case still returns as though it wrote and passes
-    // here unremarked.
+    // NO LONGER PARTIAL, and here is what closed it. This catch can only report
+    // what generateReleaseNotesCore THROWS, and that used to be a generation
+    // failure and nothing else: its final update checked only `error` and had no
+    // `.select()`, and supabase-js resolves a write the database refused, so a
+    // refusal returned as though it had written and passed here unremarked —
+    // /ship stayed empty with nothing anywhere saying why. That update now
+    // selects the row it changed and throws when none comes back
+    // (src/lib/studio.functions.ts), so a refused save reaches this warning on
+    // the same path a failed generation does.
     if (!cs.release_notes) {
       try {
         await generateReleaseNotesCore(db, userId, cs.id as string);

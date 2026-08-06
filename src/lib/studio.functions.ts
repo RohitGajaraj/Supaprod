@@ -1951,11 +1951,23 @@ export const generateRollbackNote = createServerFn({ method: "POST" })
     }
     const note = result.output.trim();
 
-    const { error: upErr } = await db
+    // SAME SHAPE AS THE RELEASE-NOTES WRITE BELOW, AND FOR THE SAME REASON.
+    // supabase-js resolves a refused write as `{ data: null, error: null }`, so
+    // an `error`-only check returned the generated note to the caller as though
+    // it had been saved. The note is the record of WHY a release was rolled
+    // back; returning it while storing nothing means the reason exists only in
+    // the toast the person is about to dismiss.
+    const { data: savedRows, error: upErr } = await db
       .from("studio_rollbacks")
       .update({ note, updated_at: new Date().toISOString() })
-      .eq("id", rb.id);
+      .eq("id", rb.id)
+      .select("id");
     if (upErr) throw new Error(upErr.message);
+    if (!savedRows || (savedRows as unknown[]).length === 0) {
+      throw new Error(
+        "The rollback note was written but the database refused to save it, so the reason for this rollback is not on the record. You may not have rights to update this rollback.",
+      );
+    }
 
     return { note };
   });
@@ -2051,11 +2063,38 @@ export async function generateReleaseNotesCore(
     throw new Error(result.error || "Release-notes generation failed.");
   const notes = result.output.trim();
 
-  const { error: upErr } = await db
+  // THE WRITE THAT DECIDES WHETHER A RELEASE IS VISIBLE AT ALL, so it is checked
+  // rather than assumed. supabase-js RESOLVES a write the database refused as
+  // `{ data: null, error: null }`, so the old `error`-only check returned
+  // `{ release_notes }` to every caller as though the notes had landed. /ship is
+  // spined on the changelog, and the only writer that fires on THIS path is
+  // trg_studio_changeset_to_changelog, on a merged changeset whose release_notes
+  // are non-empty. (Two TypeScript paths also upsert changelog_entries --
+  // publishChangelogEntry at changelog.functions.ts:174 and recordOutcome at
+  // outcome.functions.ts:690 -- but both are user-triggered and neither runs
+  // here, so neither rescues a refusal on this write.) A silently refused update
+  // therefore means the release never appears on /ship until a person finds one
+  // of those other two doors, and because promote's best-effort catch only fires
+  // on a throw, nothing anywhere reported why. Selecting the
+  // row and requiring one back turns the refusal into the error the callers
+  // already handle — promote files it as a warning on the Receipt, the CI tick
+  // logs it, and the Studio button surfaces it in place of a false success.
+  //
+  // The `.select("id")` cannot itself invent a refusal here: the read at the top
+  // of this function already proved this caller can SELECT this changeset, so an
+  // empty row set means the UPDATE matched nothing, not that the return was
+  // withheld.
+  const { data: savedRows, error: upErr } = await db
     .from("studio_changesets")
     .update({ release_notes: notes, release_notes_at: new Date().toISOString() })
-    .eq("id", cs.id);
+    .eq("id", cs.id)
+    .select("id");
   if (upErr) throw new Error(upErr.message);
+  if (!savedRows || (savedRows as unknown[]).length === 0) {
+    throw new Error(
+      "The release notes were written but the database refused to save them, so nothing downstream can see them. You may not have rights to update this changeset.",
+    );
+  }
   return { release_notes: notes };
 }
 

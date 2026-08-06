@@ -326,6 +326,17 @@ function stateLine(a: AnnouncementRow): string {
 export type ShipDeployment = {
   id: string;
   changeset_id: string | null;
+  /**
+   * WHICH PRODUCT THE ROW BELONGS TO, and `releaseStates` reads it for exactly
+   * one question: has Supaprod's own hosting ever deployed this product.
+   *
+   * `listDeployments` selects it, and every writer sets it from the changeset
+   * (`ci-poll-tick` and both upserts in deployments.functions.ts pass
+   * `product_id: cs.product_id ?? null`). The column is NULLABLE, so a row
+   * without one contributes no evidence either way rather than being read as
+   * belonging to whatever release is asking.
+   */
+  product_id?: string | null;
   environment: string;
   status: string;
   deploy_url: string | null;
@@ -349,13 +360,23 @@ export type ShipDeployment = {
  * question that decides whether "the preview lands on its own after a merge" is
  * a fact or a promise about an event that is never coming.
  *
- * "none"     -- no deploy row of any kind. Nothing has been attempted and the
- *               record cannot say who would attempt it.
- * "supaprod" -- at least one row Supaprod's own hosting served (provider
- *               'deno'). Supaprod deploys for this repo.
- * "captured" -- rows exist and NOT ONE of them is ours. Every deploy on this
- *               release came from the customer's own pipeline and Supaprod only
+ * "none"     -- this release has no deploy row of any kind. Nothing has been
+ *               attempted on it and its own record cannot say who would attempt
+ *               it.
+ * "supaprod" -- this release has rows, and SOMEWHERE ON THE PAGE OF ROWS IN
+ *               HAND there is one Supaprod's own hosting served (provider
+ *               'deno') for it or for another release of the same product.
+ *               Supaprod deploys for this repo.
+ * "captured" -- this release has rows, and NOT ONE row anywhere on that page is
+ *               ours for this product. Every deploy the client can see for this
+ *               product came from the customer's own pipeline and Supaprod only
  *               read it from the repository's deployment record.
+ *
+ * WHY "supaprod" LOOKS PAST THIS RELEASE'S OWN ROWS. See `releaseStates`: read
+ * from one release's rows alone, a repo that turned Supaprod hosting on after
+ * some captured rows had landed left every older release "captured" for ever,
+ * and the sentence built from that told a customer Supaprod would not build a
+ * preview for a repo it now does host.
  *
  * IT IS THE CLIENT'S BEST AVAILABLE ANSWER, NOT THE SERVER'S. The server splits
  * the same refusal on `denoDeployConfigured()` (deployments.functions.ts), which
@@ -363,7 +384,9 @@ export type ShipDeployment = {
  * a browser. So "none" is genuinely unknown here -- an install with no hosting
  * configured looks exactly like a repo whose first preview has not landed yet --
  * and the sentence written for it hedges the way the server's own configured
- * branch hedges, rather than promising.
+ * branch hedges, rather than promising. "captured" is narrowed by the widening
+ * above but not made certain by it: hosting turned on with no Supaprod deploy
+ * row anywhere on the page yet still reads "captured".
  */
 export type DeployOrigin = "none" | "supaprod" | "captured";
 
@@ -427,8 +450,10 @@ export type ReleaseState = {
    * to when there is no door.
    */
   previewStatus: string | null;
-  /** Who deploys this release, as far as its own rows can say. See
-   *  `DeployOrigin`: it decides whether a preview is coming on its own. */
+  /** Who deploys this release, as far as the whole page of deploy rows in hand
+   *  can say -- this release's own rows first, then any row for the same
+   *  product. See `DeployOrigin`: it decides whether a preview is coming on its
+   *  own. */
   deployRecord: DeployOrigin;
   /** Newest SUCCESSFUL production deploy that recorded an address. */
   productionUrl: string | null;
@@ -523,6 +548,20 @@ export function releaseStates(
     else byChangeset.set(d.changeset_id, [d]);
   }
 
+  /**
+   * THE PRODUCTS SUPAPROD IS SEEN TO DEPLOY FOR, read across the WHOLE page of
+   * rows rather than one release's own. A product lands in here the moment any
+   * row anywhere in `deployments` carries its id and `isSupaprodHosted` says
+   * the row is ours, and `deployRecord` below uses it to decide whether
+   * "captured" can be said at all. Rows with no `product_id` are skipped: they
+   * cannot be attributed, and counting them would hand one release's hosting to
+   * every other release.
+   */
+  const hostedProducts = new Set<string>();
+  for (const d of deployments) {
+    if (d.product_id && isSupaprodHosted(d)) hostedProducts.add(d.product_id);
+  }
+
   const states: ReleaseState[] = [];
   for (const e of notes) {
     if (!e.changeset_id) continue;
@@ -549,13 +588,50 @@ export function releaseStates(
     const prodAny = newestDeployment(rows, "production", false);
     const fromChangelog = (e.production_url ?? "").trim() || null;
     const productionUrl = prodOk?.deploy_url ?? fromChangelog;
-    // WHO DEPLOYS THIS ONE. Any environment, any outcome: a captured PRODUCTION
-    // row is as good evidence that the customer's pipeline does the deploying
-    // as a captured preview is, and a FAILED deploy of ours still proves we
-    // deploy here. `isSupaprodHosted` reads a missing provider as ours, so a
-    // hand-built object never lands on the "captured" side by accident.
+    /*
+     * WHO DEPLOYS THIS ONE, AND THE RULE IS EXACTLY THIS: no rows of its own is
+     * "none"; otherwise it is "supaprod" if ANY row on the page in hand is ours
+     * -- this release's or another release of the same product's -- and
+     * "captured" only when no such row exists anywhere on that page.
+     *
+     * Any environment, any outcome: a captured PRODUCTION row is as good
+     * evidence that the customer's pipeline does the deploying as a captured
+     * preview is, and a FAILED deploy of ours still proves we deploy here.
+     * `isSupaprodHosted` reads a missing provider as ours, so a hand-built
+     * object never lands on the "captured" side by accident.
+     *
+     * IT USED TO ASK ONLY THIS RELEASE'S OWN ROWS, and that was wrong in the one
+     * direction that costs a customer something. A repo that added
+     * `supaprod.json` AFTER some captured rows had landed leaves every release
+     * merged before that with captured-only rows for ever, so `promoteAbsence`
+     * counted them as `captured` and /ship said "Supaprod will not build a
+     * preview for it; promote it where it was built" about a repo Supaprod now
+     * DOES host -- a capability the customer has, reported as absent, with an
+     * instruction to go and work around it.
+     *
+     * NOT DECIDED BY RECENCY. The newest row alone can only ever move a release
+     * TOWARDS "captured": a release holding a Supaprod row plus a newer captured
+     * one would flip, and Supaprod plainly deploys for it. One Supaprod row, at
+     * any time, on this release or on any release of the same product, settles
+     * the question and nothing later unsettles it. A release with NO rows of its
+     * own is still "none" whatever the product's other rows say -- that is the
+     * honest answer about its own record, and `promoteAbsence` already gives it
+     * the same hedged sentence "supaprod" would.
+     *
+     * WHAT IT STILL DOES NOT FIX, because the browser cannot see it: hosting
+     * configured with no Supaprod deploy row anywhere on the page yet. The
+     * server splits that on `denoDeployConfigured()`, which reads the process
+     * environment; here a newly hosted repo whose first Supaprod deploy has not
+     * happened still reads "captured", and reads correctly the moment one lands.
+     * A release with no `product_id` gets its own rows and nothing more.
+     */
+    const productHosted = !!e.product_id && hostedProducts.has(e.product_id);
     const deployRecord: DeployOrigin =
-      rows.length === 0 ? "none" : rows.some(isSupaprodHosted) ? "supaprod" : "captured";
+      rows.length === 0
+        ? "none"
+        : rows.some(isSupaprodHosted) || productHosted
+          ? "supaprod"
+          : "captured";
     states.push({
       changesetId: e.changeset_id,
       title: e.title,
@@ -797,10 +873,12 @@ export function promoteAbsence(args: {
   }
   // THE SAME SPLIT AGAIN, ONE STEP FURTHER DOWN. The block above took every
   // release with a preview somebody ELSE published; what is left is a release
-  // whose rows can still say who deploys for it, and one whose deploys all came
-  // from the customer's pipeline is never getting a preview from us.
-  // A "captured" record has no Supaprod row at all, so it can carry no
-  // `hostedPreviewUrl` either; `isLive` is the only other thing to exclude.
+  // whose deploy record can still say who deploys for it, and one with no
+  // Supaprod row anywhere on the page for its product has no preview coming
+  // from us as far as anything the browser can read.
+  // "captured" means no Supaprod row for this product on the page in hand, so
+  // such a release can carry no `hostedPreviewUrl` either; `isLive` is the only
+  // other thing to exclude.
   const captured = args.states.filter((s) => !isLive(s) && s.deployRecord === "captured").length;
   return { kind: "no-preview", count: notLive, captured };
 }
@@ -1642,11 +1720,17 @@ function Ship() {
             because a read that failed with rows in hand is worth saying over
             whatever those rows turn out to be -- a list, or an Empty that is
             the last thing we genuinely read. `releaseUnread` and `releaseStale`
-            cannot both be true, so this never stacks with the Failed below. */}
+            cannot both be true, so this never stacks with the Failed below.
+
+            WHICH IS WHY IT NAMES THE RECORD AND NOT THE ROWS. `releaseStale` is
+            true whenever both reads have answered once, INCLUDING a pair that
+            answered with nothing, and this sentence then sits directly above the
+            Empty. "The last release rows that loaded" would be naming rows that
+            do not exist. ChangesPanel says the same thing the same way. */}
         {releaseStale ? (
           <Failed onRetry={retryRelease} retryLabel="Read it again">
-            These are the last release rows that loaded; the refresh just now did not land, so this
-            may have moved since.{" "}
+            This is the release record as it last loaded, which may be no releases at all; the
+            refresh just now did not land, so this may have moved since.{" "}
             {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
           </Failed>
         ) : null}
@@ -1719,11 +1803,16 @@ function Ship() {
             reason they have to be asked separately here too: gating on
             `isError` alone took every "Roll back" door off the screen on a
             blip, which is the one control a person reaches for when something
-            is going wrong and the read is most likely to be flaky. */}
+            is going wrong and the read is most likely to be flaky.
+
+            And the same wording rule as above: it names the record rather than
+            the releases, because a read that landed on nothing is stale in the
+            same way and this line then sits over "Nothing is in production
+            yet." */}
         {releaseStale ? (
           <Failed onRetry={retryRelease} retryLabel="Read it again">
-            These are the last releases that loaded; the refresh just now did not land, so this may
-            have moved since.
+            This is what was in production as of the last read that landed, which may be nothing at
+            all; the refresh just now did not land, so this may have moved since.
           </Failed>
         ) : null}
         {releaseUnread ? (
