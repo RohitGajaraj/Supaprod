@@ -455,7 +455,12 @@ export function DiscoverSurface({
     return all
       .filter((t) => {
         const st = (t.status ?? "new") as string;
-        return st !== "dismissed" && st !== "merged";
+        // `promoted` belongs here for the same reason the other two do: the
+        // cluster has been settled and re-asking costs a duplicate bet and a
+        // second Critic pass. It was the one settled state nothing wrote, so
+        // the queue kept offering it. Kept in step with INELIGIBLE_STATUSES in
+        // @/lib/spine/promote, which the autonomous sweep reads.
+        return st !== "dismissed" && st !== "merged" && st !== "promoted";
       })
       .map((t) => {
         const members = membersByTheme.get(t.id) ?? [];

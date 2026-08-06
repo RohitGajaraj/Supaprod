@@ -1000,6 +1000,35 @@ export const promoteThemeToOpportunity = createServerFn({ method: "POST" })
     // `evidence` is returned so the surface can render a Receipt that states
     // what the promotion actually carried, rather than a toast asserting that
     // something happened (anti-slop.md §5).
+    /**
+     * THE CLUSTER IS SETTLED NOW, AND NOTHING SAID SO.
+     *
+     * MEASURED LIVE, 2026-08-06: 10 themes carried more than one bet, 50
+     * opportunities between them, one theme with SIX. Every duplicate ran its
+     * own Critic pass, so this was billing the founder for the same judgment
+     * repeatedly and putting six identical bets in front of the user in /decide.
+     *
+     * The cause was that promotion wrote no terminal state. Discover's `ranked`
+     * filter drops only `dismissed` and `merged`, so a promoted cluster stayed
+     * in the queue, `focusedId` still pointed at it, and the Gate re-rendered
+     * the identical question with "Make it a bet" still armed. Pressing `a`
+     * twice -- the fastest key on the station, and the one the surface tells you
+     * to press -- was enough.
+     *
+     * Written LAST, after the opportunity and its lineage exist, so a failure
+     * anywhere above leaves the cluster promotable rather than stranding it in a
+     * state with no bet to show for it. Fail-soft for the same reason: a bet
+     * that exists and is unmarked is recoverable, one that is marked with
+     * nothing behind it is not.
+     */
+    const { error: markErr } = await supabase
+      .from("themes")
+      .update({ status: "promoted" })
+      .eq("id", theme.id);
+    if (markErr) {
+      console.error(`[promote] theme ${theme.id} kept its old status: ${markErr.message}`);
+    }
+
     return { opportunity: opp, evidence: memberIds.length };
   });
 

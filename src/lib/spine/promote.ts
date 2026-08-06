@@ -84,7 +84,19 @@ export const DEFAULT_PROMOTION_BAR: PromotionBar = {
  * judgment applied to it, and re-promoting it would be the platform overruling a
  * person, which no bar is allowed to do.
  */
-export const INELIGIBLE_STATUSES: readonly string[] = ["dismissed", "merged", "archived", "done"];
+/**
+ * `promoted` is here because a cluster that already became a bet must not become
+ * a second one. It was absent while nothing wrote it, so the autonomous sweep
+ * and the manual Gate could each mint a bet for the same theme -- 10 themes and
+ * 50 opportunities deep on the live database before anyone noticed.
+ */
+export const INELIGIBLE_STATUSES: readonly string[] = [
+  "dismissed",
+  "merged",
+  "archived",
+  "done",
+  "promoted",
+];
 
 /** Whether this cluster clears the bar, and the sentence explaining why. */
 export function qualifies(
