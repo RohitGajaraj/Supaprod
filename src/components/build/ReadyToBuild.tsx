@@ -79,7 +79,28 @@ export function ReadyToBuild() {
     onSuccess: (r) => {
       setFailed(null);
       void qc.invalidateQueries({ queryKey: ["build-work"] });
-      const missionId = (r as { missionId?: string } | null)?.missionId;
+      /**
+       * `mission_id`, NOT `missionId`, AND A CAST IS WHY IT TOOK AN AUDIT.
+       *
+       * `dispatchBuilderMission` returns `{ ...result, mission_id, issue_number,
+       * issue_url }` (build.functions.ts). This read asked for `missionId`, so it
+       * was `undefined` on every single dispatch and the navigate never fired.
+       *
+       * The dispatch holds the request open for the whole inline agent loop, so
+       * the visible behaviour was: press "Build this", wait out a full builder
+       * run, and land back on the same row with no toast, no route change and
+       * the status still reading "Approved. Build opens the issue as it starts."
+       * The natural response is to press it again, which starts a SECOND builder
+       * mission against the same reused `github_issue_url` -- two agents on one
+       * issue, and the founder pays for both.
+       *
+       * `as { missionId?: string }` is the whole reason this typechecked. A cast
+       * does not verify the shape, it ASSERTS it, so naming a field the server
+       * never sends silences the one tool that would have caught this instantly.
+       * Reading the field off the value directly keeps tsc in the loop: rename it
+       * server-side and this line goes red.
+       */
+      const missionId = r?.mission_id;
       if (missionId) void navigate({ to: "/runs/$missionId", params: { missionId } });
     },
     // NAMED, NOT SWALLOWED. A dispatch that did not happen must never wear the

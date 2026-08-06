@@ -383,13 +383,16 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       body_md: string | null;
       github_issue_url: string | null;
       workspace_id: string | null;
+      /** Which product this spec belongs to. Read ONLY so the GitHub resolve
+       *  below can honour a product-scoped repo binding; see its use site. */
+      product_id: string | null;
       contract: unknown;
     };
     let prd: PrdCtx | null = null;
     if (data.prdId) {
       const { data: row, error } = await supabase
         .from("prds")
-        .select("id,title,body_md,github_issue_url,workspace_id,contract")
+        .select("id,title,body_md,github_issue_url,workspace_id,product_id,contract")
         .eq("id", data.prdId)
         .single();
       if (error) throw new Error(`PRD lookup failed: ${error.message}`);
@@ -428,6 +431,28 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       const gh = await resolveGitHub({
         userId,
         workspaceId,
+        /**
+         * THE PANEL AND THE DISPATCH MUST RESOLVE THE SAME REPOSITORY.
+         *
+         * `canDispatchToRepo` resolves WITH the active product, so the panel
+         * above this button reads "Where the next build lands:
+         * owner/some-product-repo" off a product-scoped binding. This call
+         * omitted it, and `resolveGitHub` documents productId as the "most
+         * specific, wins over workspace" override -- so the dispatch skipped the
+         * product branch entirely and fell through to the workspace binding,
+         * which is filtered `.is("product_id", null)`.
+         *
+         * Two outcomes, and the second is the dangerous one. With no workspace
+         * binding it throws NOT_CONNECTED_ERROR, printing "GitHub is not
+         * connected" directly beneath a panel that just named the repository.
+         * WITH a workspace binding it succeeds and opens the issue, and later
+         * the pull request, in THE WRONG REPOSITORY -- a customer's, silently.
+         *
+         * Taken from the PRD rather than a parameter because the spec is what is
+         * being built; if the spec belongs to a product, that product's binding
+         * is the correct one whatever the UI happened to have selected.
+         */
+        productId: prd?.product_id ?? null,
         userClient: supabase as unknown as SupabaseClient,
       });
 
