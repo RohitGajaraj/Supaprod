@@ -44,8 +44,19 @@ const BOARD_TRACK: CSSProperties = {
 };
 
 /**
- * The outcome-declared Now/Next/Later board. Backlog items (`bucket: null`) are
- * out of this surface's scope and stay invisible here.
+ * The outcome-declared Now/Next/Later board. Backlog items (`bucket: null`) draw
+ * no card in the columns, which are lanes and can only hold what has a lane.
+ *
+ * ONE EXCEPTION, AND IT IS THE POINT OF THIS SURFACE. A lane-less bet whose
+ * LIFECYCLE status is already 'committed' or 'now' is named here and can be
+ * placed from here, because "we are building this" and "it is in a lane" are
+ * different facts and this is the only surface that can reconcile them. It is
+ * named in BOTH exits below. The empty state names it in a SECOND branch — a
+ * workspace that genuinely holds nothing keeps its original sentence and its
+ * original instruction, untouched — and once the board has drawn its first card
+ * a quiet line above the columns keeps naming what is left, because placing one
+ * bet does not place the rest and the door must not shut after one press. See
+ * `unplacedDecided` for the measurement.
  *
  * It draws no heading and no card of its own: the section holding it is already
  * titled and is the one bordered container in the region.
@@ -163,9 +174,38 @@ export function RoadmapColumns() {
   // returns below, or the hook count changes between the loading and
   // loaded renders and React throws "Rendered more hooks than during the
   // previous render." (found + fixed 2026-07-11).
-  const items = (roadmap.data?.items ?? []).filter(
+  const allItems = roadmap.data?.items ?? [];
+  const items = allItems.filter(
     (i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null,
   );
+
+  /**
+   * THE BETS THIS BOARD CANNOT DRAW, BECAUSE THEY ARE IN NO LANE.
+   *
+   * `status` is the opportunity's LIFECYCLE state and `bucket` is its LANE.
+   * They are different columns meaning different things, and roadmap.functions
+   * .ts:117-131 says so at the point the row is mapped. A bet can therefore be
+   * decided and still carry no lane, and until this list existed such a bet was
+   * invisible on the one surface that exists to place it, while the station head
+   * a paragraph above counted it out loud: /plan said "3 bets are committed but
+   * sit in no lane." and then, forty pixels lower, "No bets on the roadmap yet."
+   *
+   * Re-measured through the Lovable MCP on 2026-08-06: of 289 opportunities, 46
+   * read status 'committed' or 'now' and exactly 0 carry any lane at all. So
+   * every one of the 21 workspaces draws an empty board, and in the 13 holding a
+   * decided bet that empty board was contradicting a head which had just counted
+   * those bets out loud. The other 8 are the genuinely-empty case and keep the
+   * original sentence, instruction and all.
+   *
+   * This reads the SAME ["roadmap"] cache entry the station head reads, and in
+   * the empty branch below no bet has a lane at all, so there this count and the
+   * head's own `decided` are the same number by construction rather than by
+   * coincidence. Sorted by ICE the way every column on this board is, so
+   * "highest-ranked" means one thing on this surface.
+   */
+  const unplacedDecided = allItems
+    .filter((i) => i.bucket === null && (i.status === "committed" || i.status === "now"))
+    .sort((a, b) => (b.ice_score ?? 0) - (a.ice_score ?? 0));
 
   // Memoize bucket grouping so we don't re-filter/sort on every render (e.g., when selectedIds changes).
   // Maps each column key to its sorted items, computed once per items change.
@@ -223,12 +263,92 @@ export function RoadmapColumns() {
     );
   }
 
+  /**
+   * The commit ceremony belongs to BOTH exits below, not just the loaded board.
+   * The empty branch now opens it too, and a dialog mounted on only one of two
+   * returns is a button that silently does nothing on the other.
+   */
+  const ceremony = ceremonyBet ? (
+    <CommitCeremony
+      bet={ceremonyBet}
+      pending={commit.isPending}
+      onCancel={() => setCeremonyBet(null)}
+      onConfirm={(values) => commit.mutate({ id: ceremonyBet.id, ...values })}
+    />
+  ) : null;
+
   if (items.length === 0) {
-    return <Empty>No bets on the roadmap yet. Commit a ranked opportunity from Discover.</Empty>;
+    // RATCHET: a workspace that genuinely has nothing keeps the exact sentence
+    // it has always had, instruction and all. What follows is a second branch
+    // for the case that sentence was WRONG about, never a replacement for it.
+    if (unplacedDecided.length === 0) {
+      return <Empty>No bets on the roadmap yet. Commit a ranked opportunity from Discover.</Empty>;
+    }
+    // The bet the board would have drawn first if it could draw any of them.
+    const top = unplacedDecided[0];
+    const topTitle = stripAutoPrefix(top.title);
+    return (
+      <>
+        <Empty
+          action={
+            /* The station's primary act, finally reachable from the surface
+               that exists to perform it. It calls the SAME `handleMove(item,
+               "now")` a card's "move to Now" calls, so a promise declared from
+               here and one declared from the board are one function and cannot
+               drift. No competing primary is on screen in this state:
+               plan.index's Gate reads its `undeclared` out of the BUCKETED bets,
+               which is the empty set here, and TrackStart's primary only mounts
+               once its form is opened. */
+            <Button variant="primary" onClick={() => handleMove(top, "now")}>
+              Place it in Now
+            </Button>
+          }
+        >
+          {unplacedDecided.length === 1 ? (
+            <>
+              One bet is committed and it is in no lane yet, so this board has nothing to draw:{" "}
+              {topTitle}.
+            </>
+          ) : (
+            <>
+              <Num>{unplacedDecided.length}</Num> bets are committed and none is in a lane yet, so
+              this board has nothing to draw. Highest-ranked: {topTitle}.
+            </>
+          )}
+        </Empty>
+        {ceremony}
+      </>
+    );
   }
 
   return (
     <>
+      {/* THE BETS THE COLUMNS STILL CANNOT DRAW, ONCE THE BOARD CAN DRAW SOME.
+          Placing one bet does not place the others, so without this line the
+          first press of the empty state's button would carry the board out of
+          the branch above and take the remaining bets off the page with it: the
+          door this surface just opened would shut after one press, and a count
+          the user had just been shown would silently stop being shown.
+          Re-measured through the Lovable MCP on 2026-08-06: 13 workspaces hold
+          unplaced committed bets, 12 of them hold more than one (counts run
+          7,5,5,5,3,3,3,3,3,3,3,2,1) and each of the seven seeded demo
+          workspaces holds exactly 3 — so in every workspace a visitor is likely
+          to open, the first press leaves two behind.
+
+          Deliberately NOT variant="primary". Here the columns are not empty, so
+          a placed bet carrying no outcome makes plan.index's Gate fire, and that
+          Gate owns the one primary act on this station; Actions' own contract is
+          one primary among them and only one. */}
+      {unplacedDecided.length > 0 && (
+        <Actions>
+          <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+            <Num>{unplacedDecided.length}</Num>{" "}
+            {unplacedDecided.length === 1 ? "committed bet is" : "committed bets are"} in no lane.
+            Highest-ranked: {stripAutoPrefix(unplacedDecided[0].title)}
+          </span>
+          <Button onClick={() => handleMove(unplacedDecided[0], "now")}>Place it in Now</Button>
+        </Actions>
+      )}
       {/* The bulk bar appears only once a set is selected (calm front), and it is
           a line of actions rather than a panel: a card here would be a card
           inside the section's card. */}
@@ -326,14 +446,7 @@ export function RoadmapColumns() {
           })}
         </div>
       </div>
-      {ceremonyBet && (
-        <CommitCeremony
-          bet={ceremonyBet}
-          pending={commit.isPending}
-          onCancel={() => setCeremonyBet(null)}
-          onConfirm={(values) => commit.mutate({ id: ceremonyBet.id, ...values })}
-        />
-      )}
+      {ceremony}
     </>
   );
 }

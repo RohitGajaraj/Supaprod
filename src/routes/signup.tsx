@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/lib/notify";
@@ -22,13 +22,29 @@ import {
 // Lovable Google OAuth + the /pricing plan-intent carry); this pass is
 // presentation, form states, humanized error copy, and double-submit hardening.
 
+// Where a signup with no `next` lands. NOT "/", which is the marketing landing.
+//
+// Pressing "Create account" used to hand the person straight back the page they
+// had just left: "/" is server-rendered with five COUNT queries (getLandingStats),
+// ships Hero/TheGap/ThreeLayers/LoopWalkthrough/Receipts/TrustClose, hydrates, and
+// only THEN does a client effect in src/routes/index.tsx call getUser() and
+// window.location.replace("/today") — a second full document load — after which the
+// _authenticated gate sends a first-run account on to /onboarding. Two document
+// loads and a marketing page in between, which reads as a signup that failed.
+//
+// Landing on /today runs that same gate chain inside ONE load: _authenticated's
+// beforeLoad reads the session from localStorage, needsOnboarding() sees the
+// onboarded:false row written below, and redirects to /onboarding in-router.
+// Nothing about "/" changes — someone typing the domain still gets the landing page.
+const SIGNED_IN_HOME = "/today" as const;
+
 // Only allow an internal absolute path as a post-signup destination, never an
 // external or protocol-relative URL (open-redirect guard). Mirrors login.tsx; used
 // by the invite flow (/signup?next=/join/<token>). /join is a top-level route, so
 // the invite accepts before the onboarding gate runs.
 function safeNextPath(next: unknown): string {
-  if (typeof next !== "string" || !next.startsWith("/")) return "/";
-  if (next.startsWith("//") || next.startsWith("/\\")) return "/";
+  if (typeof next !== "string" || !next.startsWith("/")) return SIGNED_IN_HOME;
+  if (next.startsWith("//") || next.startsWith("/\\")) return SIGNED_IN_HOME;
   return next;
 }
 
@@ -73,8 +89,10 @@ export const Route = createFileRoute("/signup")({
     if (search.plan) {
       throw redirect({ to: "/settings", search: { section: "plan" } });
     }
+    // Already signed in and no invite to honor: into the workspace, in-router.
+    // A real `next` is an opaque internal path, so reach it via the browser.
     const dest = safeNextPath(search.next);
-    if (dest === "/") throw redirect({ to: "/" });
+    if (dest === SIGNED_IN_HOME) throw redirect({ to: SIGNED_IN_HOME });
     window.location.replace(dest);
   },
   component: SignupPage,
@@ -82,7 +100,8 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
-  const navigate = useNavigate();
+  // No useNavigate here on purpose: every post-signup destination is a full
+  // browser navigation, so the gate chain runs on a fresh document.
   const { next, from, plan, credits, billing } = Route.useSearch();
   const dest = safeNextPath(next);
   const [email, setEmail] = useState("");
@@ -197,12 +216,18 @@ function SignupPage() {
     // Carry a /pricing purchase intent toward the plan section. First-run
     // accounts detour through /onboarding (the gate always wins); the pick
     // note above told the user where to confirm the plan.
-    if (plan && dest === "/") {
+    if (plan && dest === SIGNED_IN_HOME) {
       window.location.assign("/settings?section=plan");
       return;
     }
-    if (dest === "/") navigate({ to: "/" });
-    else window.location.assign(dest);
+    // One full document load, straight into the app. This used to be two arms:
+    // an invite `next` got exactly this call, and everything else got an SPA
+    // navigate to the marketing landing, which then reloaded itself into /today.
+    // Both arms now do the same thing, and the gate chain inside that single
+    // load routes a first-run account on to /onboarding (see SIGNED_IN_HOME).
+    // Deliberately not the SPA transition: login.tsx records it hanging as an
+    // empty Suspense tree mid gate-redirect on fresh accounts.
+    window.location.assign(dest);
   }
 
   async function signupGoogle() {
@@ -217,7 +242,14 @@ function SignupPage() {
       return toast.error(authErrorMessage(result.error, "oauth"));
     }
     if (result.redirected) return;
-    navigate({ to: "/" });
+    // OAuth finished in place instead of leaving the page, which means
+    // src/integrations/lovable already called setSession with the tokens. Same
+    // rule as the email path above: land in the app, in one full navigation,
+    // rather than on the marketing page. The usual case redirects away and comes
+    // back at the OAuth callback URL (window.location.origin), so it never
+    // reaches this line at all — the same round trip the KNOWN GAP note above
+    // describes, and closing it is a change on whatever route the return lands on.
+    window.location.assign(dest);
   }
 
   return (

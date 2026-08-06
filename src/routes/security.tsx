@@ -7,8 +7,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
 const TITLE = "Security · Supaprod";
+// NOT "every AI action" -- the body twelve lines down states the true, narrower
+// claim and this summary promised more than it. The Critic runs unattended
+// (critic.server.ts calls callModel directly), Measure settles outcomes
+// unattended (38 of 119 learnings on production carry a recorded_by_agent_slug,
+// measured 2026-08-06), and Discover clusters unattended. The gate is on
+// IRREVERSIBLE actions, which is the defensible claim and the one the page
+// itself makes under "The merge gate". On a security page the gap between the
+// summary a buyer reads in search results and the body they read after is what
+// costs the deal -- not the posture, which is fine.
 const DESC =
-  "How Supaprod handles access, data, and privacy: workspace isolation, connector scopes, and the human gate on every AI action.";
+  "How Supaprod handles access, data, and privacy: workspace isolation, connector scopes, and the human gate on every irreversible action.";
 
 export const Route = createFileRoute("/security")({
   ssr: true,

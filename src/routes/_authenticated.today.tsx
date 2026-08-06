@@ -56,8 +56,15 @@ import {
   Record as RecordRecess,
   Row,
   Surface,
+  Value,
   Who,
 } from "@/components/shell/primitives";
+// The verdict card below is the Critic's, so it wears what every other Critic
+// verdict in the product wears: the disclosure chip, not a locally invented
+// percentage. See ConfidenceDisclosureChip's header for why disclosure is
+// unconditional even when confidence is high.
+import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { tierFromProbability } from "@/lib/confidence";
 import { stillWaiting } from "@/lib/query-state";
 
 export const Route = createFileRoute("/_authenticated/today")({
@@ -96,6 +103,22 @@ const STOPPED = new Set(["cancelled", "halted"]);
 
 /** Statuses that mean work is currently underway. */
 const WORKING = new Set(["running", "in_progress"]);
+
+/**
+ * The verdict as a word and a tone, the same three the Critic's own chip uses
+ * (CriticBadge.tsx:56-61). Kept as lookups rather than a `Record<CriticReview
+ * ["verdict"], …>` because the verdict below arrives through `sessionStorage`
+ * and `JSON.parse`, so at this boundary it is a string and the type system is
+ * not standing behind it. Both fall back to the raw word in the quiet tone: an
+ * unrecognised verdict is still the Critic's word and gets printed, it just
+ * does not get to claim a colour it has not earned.
+ */
+const VERDICT_LABEL: Record<string, string> = { ship: "Ship", revise: "Revise", kill: "Kill" };
+const VERDICT_TONE: Record<string, "pass" | "warn" | "fail"> = {
+  ship: "pass",
+  revise: "warn",
+  kill: "fail",
+};
 
 /** "While you were gone" has to mean something, so it means the last day. */
 function finishedRecently(m: MissionListRow): boolean {
@@ -386,12 +409,35 @@ function Today() {
     if (justLanded) window.sessionStorage.removeItem("supaprod.onboarding.justLanded");
   }, [justLanded]);
 
-  // Capture Critic result from onboarding for post-onboarding value moment
+  /**
+   * THE ANALYSIS THAT CROSSES FROM ONBOARDING — AND THE FIELD THAT NEVER DID.
+   *
+   * This shape declared `challenges`, and there is no such field on a Critic
+   * review. `CriticReview` (critic.server.ts:157-170) carries `summary`,
+   * `risks` and `missing_evidence`. Onboarding held its review as
+   * `useState<any>`, so `challenges: review.challenges` compiled, arrived
+   * `undefined`, was dropped by `JSON.stringify`, and the "Challenges to
+   * consider" block below never rendered once for anybody. What survived the
+   * handoff was the lowercase verdict enum under a heading — ten seconds after
+   * the same person watched a verdict stamp, a summary, named risks, missing
+   * evidence and a confidence meter land on the results screen.
+   *
+   * This is now exactly the object ObsidianOnboarding.tsx:1116-1126 writes and
+   * nothing else, so no key read here can be a key nobody sends. Every field
+   * stays optional because the write is gated on `reviewHasSubstance`
+   * (ObsidianOnboarding.tsx:170-183), which guarantees only that ONE of
+   * summary / risks / missing_evidence carries words — so each block below
+   * asks for its own content before it prints its heading.
+   */
   const [criticResult, setCriticResult] = React.useState<{
     idea: string;
     verdict?: string;
+    summary?: string;
+    risks?: string[];
+    missing_evidence?: string[];
+    /** 0.0-1.0. Measured on production 2026-08-06: the 12 stored reviews range
+     *  0.2-0.9, and `runCritic` clamps to [0,1] at critic.server.ts:367. */
     confidence?: number;
-    challenges?: string[];
   } | null>(null);
 
   React.useEffect(() => {
@@ -569,30 +615,75 @@ function Today() {
               </div>
             </div>
 
-            {criticResult.verdict ? (
+            {/* THE VERDICT IS A STAMP. IT WAS BEING RENDERED AS THE ASSESSMENT.
+                The body of this block was `criticResult.verdict` — the raw
+                lowercase database enum, in body type, under a heading calling
+                it the assessment. The assessment is the Critic's sentence, and
+                it now crosses the handoff (see the state shape above).
+
+                THE HEADING NAMED THE WRONG AGENT. "AI Analyst" is a different
+                agent in this product: it is the brain's intelligence analyst
+                (brain-insights.functions.ts:437-455, whose prompt opens "You
+                are the Supaprod intelligence analyst"), and it never ran here.
+                What produced this verdict is the Critic — what onboarding
+                called it on the screen this person was looking at ten seconds
+                ago, and what every other verdict surface in the product calls
+                it. */}
+            {criticResult.verdict || criticResult.summary?.trim() ? (
               <div>
                 <div
                   style={{
                     fontSize: "var(--sp-text-label)",
                     color: "var(--sp-mute)",
                     marginBottom: "6px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    flexWrap: "wrap",
                   }}
                 >
-                  AI Analyst's assessment
+                  <span>The Critic&rsquo;s assessment</span>
+                  {criticResult.verdict ? (
+                    <Value tone={VERDICT_TONE[criticResult.verdict] ?? "quiet"}>
+                      {VERDICT_LABEL[criticResult.verdict] ?? criticResult.verdict}
+                    </Value>
+                  ) : null}
+                  {/* `confidence` crossed the handoff from the first day and was
+                      read by nothing, so the animated meter the user watched on
+                      the results screen became silence one navigation later. */}
+                  {typeof criticResult.confidence === "number" ? (
+                    <ConfidenceDisclosureChip
+                      confidence={criticResult.confidence}
+                      tier={tierFromProbability(criticResult.confidence)}
+                    />
+                  ) : null}
                 </div>
-                <div
-                  style={{
-                    fontSize: "var(--sp-text-body)",
-                    color: "var(--sp-ink)",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {criticResult.verdict}
-                </div>
+                {criticResult.summary?.trim() ? (
+                  <div
+                    style={{
+                      fontSize: "var(--sp-text-body)",
+                      color: "var(--sp-ink)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {criticResult.summary}
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
-            {criticResult.challenges && criticResult.challenges.length > 0 ? (
+            {/* THE BLOCK THAT HAS NEVER RENDERED, GIVEN THE DATA IT ALWAYS WANTED.
+                It asked for `criticResult.challenges` — a field no Critic
+                review has ever carried — so for every account that has ever
+                finished onboarding, this heading and this list were dead. It
+                reads `risks` now, which is the thing it was describing, and it
+                is titled what the results screen titled the same three
+                sentences ten seconds earlier (ObsidianOnboarding.tsx:1734), so
+                the analysis does not get renamed on the way over.
+                Blank entries are dropped rather than printed as empty bullets:
+                `reviewHasSubstance` promises only that ONE of summary / risks /
+                missing_evidence carries words, never that every entry does. */}
+            {(criticResult.risks ?? []).some((r) => r.trim().length > 0) ? (
               <div>
                 <div
                   style={{
@@ -601,7 +692,7 @@ function Today() {
                     marginBottom: "8px",
                   }}
                 >
-                  Challenges to consider
+                  Key risks
                 </div>
                 <ul
                   style={{
@@ -611,12 +702,45 @@ function Today() {
                     fontSize: "var(--sp-text-meta)",
                   }}
                 >
-                  {criticResult.challenges.slice(0, 3).map((challenge, i) => (
-                    <li key={i} style={{ marginBottom: "4px" }}>
-                      {challenge}
-                    </li>
-                  ))}
+                  {(criticResult.risks ?? [])
+                    .filter((r) => r.trim().length > 0)
+                    .slice(0, 3)
+                    .map((risk, i) => (
+                      <li key={i} style={{ marginBottom: "4px" }}>
+                        {risk}
+                      </li>
+                    ))}
                 </ul>
+              </div>
+            ) : null}
+
+            {/* The third thing the results screen showed and the handoff never
+                carried. One item, which is what that screen shows
+                (ObsidianOnboarding.tsx:1757), under the same heading. Measured
+                on production 2026-08-06: of the 12 stored reviews, 4 name
+                missing evidence (1 to 5 items) and 8 name none, so this block
+                is quiet more often than not and must not print a heading over
+                an empty line. */}
+            {(criticResult.missing_evidence ?? []).some((m) => m.trim().length > 0) ? (
+              <div>
+                <div
+                  style={{
+                    fontSize: "var(--sp-text-label)",
+                    color: "var(--sp-mute)",
+                    marginBottom: "8px",
+                  }}
+                >
+                  What you need to test
+                </div>
+                <div
+                  style={{
+                    color: "var(--sp-mute)",
+                    fontSize: "var(--sp-text-meta)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {(criticResult.missing_evidence ?? []).filter((m) => m.trim().length > 0)[0]}
+                </div>
               </div>
             ) : null}
 
@@ -624,7 +748,29 @@ function Today() {
               <Button variant="primary" onClick={() => navigate({ to: "/decide" })}>
                 See analysis →
               </Button>
-              <Button variant="ghost" onClick={() => setCriticResult(null)}>
+              {/* "A CONTROL'S LABEL IS A PROMISE ABOUT THE CLICK" (AppFrame.tsx:505).
+                  This one promised another idea and delivered only the loss of
+                  this one. `setCriticResult(null)` is not wrong — it swaps this
+                  card for the ask composer in the other arm of this ternary,
+                  which is where an idea gets typed — but the composer is a card
+                  with a button on it, so the click that said "try another idea"
+                  ended with the user hunting for a second control, having just
+                  destroyed the verdict permanently — the effect that loads this
+                  card removes the sessionStorage key as it reads it, so nothing
+                  on this page or any other brings it back.
+                  Opening Ask is the promise kept: the composer is under the
+                  cursor, not one more click away. `openAsk` was already
+                  imported in this file and called from three other buttons on
+                  this same screen, and it is deliberately called with no intent
+                  — the next idea is the person's to type, and passing one here
+                  would submit a turn they did not write. */}
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setCriticResult(null);
+                  openAsk();
+                }}
+              >
                 Try another idea
               </Button>
             </div>
@@ -983,9 +1129,43 @@ function Today() {
                * product asserting success it never checked." Colour carries
                * status here, so green has to mean a real outcome and nothing
                * else. Stopped work is neutral, not a win and not a failure. */
+              /* EVERY AGENT ON THE FRONT DOOR WAS ANONYMOUS, AND THE BLOCK
+               * EXISTS TO PROVE NAMED AGENTS WORKED WHILE YOU SLEPT.
+               *
+               * `slug` was hard-coded null, so the mark fell to the Unknown
+               * glyph and `agentDisplayName(null, m.build_driver)` made the
+               * title and the aria-label the value of `build_driver`. Measured
+               * on production 2026-08-06: `select build_driver, count(*) from
+               * missions group by 1` returns exactly one row, `native / 331`.
+               * Every finished run, without exception, hovered as "native" and
+               * was read aloud as "native, verified" — an internal mechanism
+               * word, on the screen whose whole claim is that named agents did
+               * this.
+               *
+               * `current_agent_slug` is on the same `MissionListRow` and the
+               * working-runs block on this very page already reads it (:983).
+               * It is not `missions.current_agent_id`
+               * (a uuid that is not reliably maintained); `listMissions` fills it
+               * from `agent_runs.agent_slug` on the mission's latest run
+               * (missions.functions.ts:254), which is written by the thing that
+               * actually runs. Measured the same day: of the 28 missions with a
+               * `completed_at`, 27 resolve a slug and 1 does not. The eight
+               * slugs that appear are builder, discovery-scout, release,
+               * competitor-watcher, data-analyst, orchestrator, critic and
+               * ux-architect, and SPECIALIST_CATALOG places every one of them
+               * (agent-vocabulary.ts:212-589), so those rows read Engineer,
+               * Watch, Announce, Measure, Chief of Staff, Challenge and Design,
+               * each in its own station's hue and glyph, instead of one machine
+               * word behind the Unknown mark.
+               *
+               * `name` stays exactly as it was, and it is what makes that
+               * twenty-eighth row safe: `agentDisplayName` falls through to it
+               * when the catalog cannot place a slug, so the one run with no
+               * agent_slug renders precisely what it renders today. This adds a
+               * name where there was none and removes none. */
               marks={
                 <AgentMark
-                  slug={null}
+                  slug={m.current_agent_slug}
                   name={m.build_driver}
                   state={
                     m.status === "failed"

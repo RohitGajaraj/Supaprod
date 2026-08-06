@@ -37,6 +37,7 @@ import {
   runWedgeTeardown,
   listOpportunities,
   createSignal,
+  type CriticReview,
 } from "@/lib/discovery.functions";
 // Client-safe by declaration (see the module header): string work only, no
 // server imports. The paste step needs both - the same body ceiling the server
@@ -679,7 +680,16 @@ export function ObsidianOnboarding() {
   const [beliefTarget, setBeliefTarget] = useState<{ kind: "opportunity"; id: string } | null>(
     null,
   );
-  const [criticReview, setCriticReview] = useState<any>(null);
+  /**
+   * THE `any` HERE IS WHAT LET A FIELD THAT DOES NOT EXIST SHIP.
+   *
+   * This was `useState<any>`, and the handoff to Today below read
+   * `review.challenges`. `CriticReview` (critic.server.ts:157-170) has
+   * `summary`, `risks` and `missing_evidence` and no `challenges`, so that read
+   * compiled, arrived `undefined`, and the block on the other side never
+   * rendered once. Typed, the same line is a compile error.
+   */
+  const [criticReview, setCriticReview] = useState<CriticReview | null>(null);
   const [pasteNotes, setPasteNotes] = useState("");
   const [showPaste, setShowPaste] = useState(false);
   // Where the belief box's contents came from, so the guidance line can only
@@ -1026,7 +1036,7 @@ export function ObsidianOnboarding() {
       const editedBelief =
         typed.length >= 3 && (!beliefTarget || typed !== seededBeliefRef.current);
 
-      let review: any = null;
+      let review: CriticReview | null = null;
       try {
         if (editedBelief) {
           const result = await fWedgeTeardown({ data: { idea: typed.slice(0, 200) } });
@@ -1087,14 +1097,31 @@ export function ObsidianOnboarding() {
        * as a real review for the one they land on next. Onboarding said the
        * Critic came back with nothing; Today then stamped a verdict.
        */
-      if (reviewHasSubstance(review) && typeof window !== "undefined") {
+      if (review && reviewHasSubstance(review) && typeof window !== "undefined") {
+        /**
+         * THE HANDOFF CARRIES THE REVIEW, NOT ONE WORD OUT OF IT.
+         *
+         * This sent `challenges`, and there is no such field. `CriticReview`
+         * (critic.server.ts:157-170) has `summary`, `risks` and
+         * `missing_evidence`; `review` was `any`, so the read compiled, the key
+         * was `undefined`, `JSON.stringify` dropped it, and Today's "Challenges
+         * to consider" block never rendered for anyone. `confidence` crossed
+         * and was never read on the other side.
+         *
+         * What crosses now is what the screen behind this line is showing: the
+         * Critic's own sentence, the risks it named, the evidence it says is
+         * missing. `reviewHasSubstance` guarantees at least one of those three
+         * carries words, so the card on Today cannot be a heading over nothing.
+         */
         window.sessionStorage.setItem(
           "supaprod.onboarding.criticReview",
           JSON.stringify({
             idea: typed.slice(0, 200),
             verdict: review.verdict,
+            summary: review.summary,
+            risks: review.risks,
+            missing_evidence: review.missing_evidence,
             confidence: review.confidence,
-            challenges: review.challenges,
           }),
         );
       }
@@ -1642,13 +1669,20 @@ export function ObsidianOnboarding() {
     // asked `criticReview && !criticFailed`, the flag asked `review === null`,
     // and the copy action asked nothing at all, so a review with a verdict and
     // no content took the success branch. See `reviewHasSubstance`.
-    const showVerdict = !criticFailed && reviewHasSubstance(criticReview);
+    //
+    // It holds the REVIEW rather than a boolean now that `criticReview` is
+    // `CriticReview | null` instead of `any`: a boolean cannot narrow it, and
+    // every field the branch below prints has to be one the type says exists.
+    // That is the check that was absent when this screen sent Today a field
+    // called `challenges`.
+    const shown: CriticReview | null =
+      !criticFailed && reviewHasSubstance(criticReview) ? criticReview : null;
 
     return (
       <Screen>
         <Frame
           heading={
-            showVerdict
+            shown
               ? "Here's what Supaprod found."
               : criticReview
                 ? "The Critic came back with nothing to show."
@@ -1656,7 +1690,7 @@ export function ObsidianOnboarding() {
           }
           showTimer={elapsed}
         >
-          {showVerdict ? (
+          {shown ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* Verdict stamp - the results screen's one Geist Pixel brand
                   moment, landing with the confidence bar below. */}
@@ -1684,22 +1718,22 @@ export function ObsidianOnboarding() {
                 >
                   {verdict}
                 </p>
-                {criticReview.summary ? (
+                {shown.summary ? (
                   <p
                     className="text-copy-13"
                     style={{ color: "var(--ds-gray-900)", margin: "6px 0 0" }}
                   >
-                    {criticReview.summary}
+                    {shown.summary}
                   </p>
                 ) : null}
               </div>
 
               {/* Brain warming: risks + evidence */}
-              {(criticReview.risks ?? []).length > 0 ? (
+              {(shown.risks ?? []).length > 0 ? (
                 <div>
                   <p style={sectionLabel}>Key risks</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {(criticReview.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
+                    {(shown.risks ?? []).slice(0, 3).map((risk: string, i: number) => (
                       <div
                         key={i}
                         className="text-label-12"
@@ -1713,14 +1747,14 @@ export function ObsidianOnboarding() {
               ) : null}
 
               {/* Missing evidence / precedent */}
-              {(criticReview.missing_evidence ?? []).length > 0 ? (
+              {(shown.missing_evidence ?? []).length > 0 ? (
                 <div>
                   <p style={sectionLabel}>What you need to test</p>
                   <div
                     className="text-label-12"
                     style={{ color: "var(--ds-gray-900)", lineHeight: 1.5 }}
                   >
-                    {criticReview.missing_evidence[0]}
+                    {shown.missing_evidence[0]}
                   </div>
                 </div>
               ) : null}
@@ -1736,7 +1770,7 @@ export function ObsidianOnboarding() {
                 }}
               >
                 <p style={{ ...sectionLabel, marginBottom: 4 }}>Confidence</p>
-                <ConfidenceBar value={criticReview.confidence ?? 0.5} />
+                <ConfidenceBar value={shown.confidence ?? 0.5} />
               </div>
 
               <div
@@ -1760,7 +1794,7 @@ export function ObsidianOnboarding() {
                     same promise: it copies rather than minting a link, because
                     a share URL would mean persisting and publishing the review,
                     which is the founder's call, not a side effect of a button. */}
-                <CopyTeardown review={criticReview} />
+                <CopyTeardown review={shown} />
               </div>
             </div>
           ) : (

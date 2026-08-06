@@ -417,14 +417,24 @@
  * mounted surface (did a run publish a strip?) and not a fact about a class.
  * CSS that hid the region unconditionally was half of why the strip was
  * invisible on the surface that most needed it. See run-strip.tsx. */
-/* NO HORIZONTAL SCROLLBAR. This was `overflow-x: auto` against a 128px
- * min-width per stage, so anything under about 930px of strip put the seven
- * stations behind a scrollbar. Scrolling is the wrong answer here twice over:
- * the strip IS the product's mental model, so hiding half of it hides the
- * thing a new person most needs to see, and the ratchet forbids answering a
- * space problem by making a surface worse. The stages shrink instead, and the
- * per-stage note drops before the name does (see .sp-stage below), so what
- * survives at the narrowest width is all seven numbers and all seven names. */
+/* NO HORIZONTAL SCROLLBAR, DOWN TO 640px. This was `overflow-x: auto` against
+ * a 128px min-width per stage, so anything under about 930px of strip put the
+ * seven stations behind a scrollbar. Scrolling is the wrong answer at those
+ * widths twice over: the strip IS the product's mental model, so hiding half
+ * of it hides the thing a new person most needs to see, and the ratchet
+ * forbids answering a space problem by making a surface worse. The stages
+ * shrink instead, and the per-stage note drops before the name does (see
+ * .sp-stage below), so what survives is all seven numbers and all seven names.
+ *
+ * WHERE THAT STOPS BEING TRUE, and the sentence above used to claim it never
+ * did. Shrinking delivers seven readable names only while there is room for
+ * seven readable names, and below 640px there is not: this rule's own gutters
+ * leave a 375px phone 339px, which is 48px a chip, 19px of it content once the
+ * chip's 28px of padding and 1px rule are taken. Every name truncates to an
+ * ellipsis and the 01-07 markers, which are `white-space: nowrap`, overlap
+ * their neighbours. At that width the shrink answer hides all seven rather
+ * than half. The phone rule at the end of this section takes over there and
+ * only there -- see THE ONE WIDTH WHERE SHRINKING STOPS WORKING. */
 .sp-strip {
   display: flex;
   gap: 0;
@@ -727,6 +737,87 @@
   padding-right: 10px;
 }
 
+/* ---------- THE ONE WIDTH WHERE SHRINKING STOPS WORKING ----------
+ * 640px, and it is the same 640px that takes the rail away further down. That
+ * is not a coincidence, it is the reason: below it this strip is the only
+ * pointer navigation left on the screen, which is exactly the width at which
+ * it has to be readable rather than merely present.
+ *
+ * THE ARITHMETIC IS IN THE COMMENT AT THE TOP OF THIS SECTION. 339px of
+ * content on a 375px phone, seven ways, is 19px of name each; "Discover" needs
+ * about 58px at --sp-text-prose. So the shrink answer, whose whole promise is
+ * that all seven names survive, delivers seven ellipses with their markers
+ * overlapping.
+ *
+ * SO THE CHIPS TAKE A REAL WIDTH AND THE STRIP SCROLLS, on a phone and
+ * nowhere else. Nothing above 640px changes: `overflow-x: clip` and
+ * `min-width: 0` still hold, a laptop still gets no scrollbar, and the note
+ * still drops before the name does. This is the exception the rule above was
+ * written without, not a reversal of it.
+ *
+ * VIEWPORT AND NOT CONTAINER, against this file's own preference recorded at
+ * `container-name: spinestrip`, and deliberately. `overflow-x` has to be set
+ * on `.sp-strip` itself and an element cannot be styled by its own container
+ * query, so that half can only come from a media query. Splitting the pair is
+ * the dangerous version: between 641px and 900px the rail is 64px, which
+ * leaves the strip's container about 540px, so a container condition at 640
+ * would fire THERE, widen the chips past the container, and leave them behind
+ * `clip` with no gesture that reaches them -- which is the exact bug this rule
+ * exists to fix, moved to a different width. The two have to fire together, so
+ * both are viewport.
+ *
+ * 104px, chosen so that no common phone shows a whole number of chips: 339/104
+ * is 3.26 at 375px, 324/104 is 3.11 at 360px, 354/104 is 3.40 at 390px. The
+ * cut-off chip is the affordance and it is the only thing on the row that says
+ * the row continues; a width that landed exactly on three would say nothing.
+ * It also leaves "Discover" about 17px of slack, and if a longer name ever
+ * arrives it truncates with the ellipsis that is already there. */
+@media (max-width: 640px) {
+  .sp-strip {
+    /* SIDEWAYS ONLY, and the pair is written the way `.sp-codediff-body` in
+     * primitives.css writes it, for the reason recorded there: `overflow-x:
+     * auto` alone makes `overflow-y` compute to `auto` as well, and a second
+     * vertical scroll container is how a page comes to feel stuck. Nothing in
+     * this strip overflows vertically, so `hidden` clips nothing -- it only
+     * refuses a scroller that would have no work to do. The bar that does show
+     * is the thin quiet one :root already sets, which is the cue that the row
+     * continues for anyone whose platform draws bars at all. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Proximity and not mandatory. Mandatory fights a person who is scrolling
+     * to LOOK rather than to land, and this row is read more often than it is
+     * pressed. */
+    scroll-snap-type: x proximity;
+    /* The strip's own 18px gutter, kept for a snapped chip, so a chip that has
+     * been scrolled to sits where the first chip sits at rest instead of flush
+     * against the edge of the glass. */
+    scroll-padding-inline-start: 18px;
+    /* A horizontal scroller inside a page that scrolls vertically. Without
+     * this, a swipe right at the left end chains out to the browser's back
+     * gesture, so reaching for station 01 leaves the app. */
+    overscroll-behavior-x: contain;
+  }
+  .sp-stage {
+    /* Beats the `min-width: 0` above on source order. The two are the same
+     * declaration answering two different questions: up there the chips must
+     * be allowed to shrink so seven fit, down here they must not, because
+     * seven fitting is what stopped being worth having. */
+    min-width: 104px;
+    scroll-snap-align: start;
+  }
+}
+/* WHAT THE RULE ABOVE DOES NOT DO, said here because the gap is real and a
+ * reader will otherwise assume it was handled. Nothing scrolls the strip to
+ * the station you are standing on. Ship is the sixth chip, so a phone opening
+ * /ship draws the row from the first chip and the hue bar that says "you are
+ * here" is off-screen until you swipe. CSS cannot set a scroll container's
+ * initial position from a child's state, and the one trick that looks like it
+ * can is worse: `scroll-snap-type: x mandatory` with a snap target on the
+ * active chip alone does jump to it, and then drags the person back to it
+ * every time they try to scroll away. It wants a few lines in AppFrame.tsx --
+ * a ref on the `data-on="true"` chip and `scrollIntoView({ inline: "center",
+ * block: "nearest" })` in an effect keyed on `strip.active`. */
+
 /* ---------- the two lower regions ---------- */
 .sp-mid {
   flex: 1;
@@ -784,9 +875,29 @@
 }
 /* INSTANT TOOLTIP. The browser's native `title` tooltip delays ~400ms, which
  * makes the narrow rail feel slow. This replaces it with a CSS tooltip that
- * appears on hover without delay, positioned to the right of the rail. */
-.sp-app[data-rail="narrow"] .sp-navrow::after {
+ * appears on hover without delay, positioned to the right of the rail.
+ *
+ * DRAWN ONCE, SWITCHED ON TWICE, and the second switch was missing. The rail
+ * narrows two ways -- the user's own collapse (`[data-rail="narrow"]`) and the
+ * 900px viewport rule further down -- and this tooltip was scoped to the first
+ * of them only, along with the `position: relative` it hangs off. So anyone in
+ * a window under 900px who has not auto-collapsed yet, which is every
+ * first-time visitor, got a 64px rail with the labels hidden, no tooltip, and
+ * no `title` on the link either: five doors and not one of them says where it
+ * goes. That is the same trap the chord keycaps hit and recorded above ("Both
+ * narrow paths need saying separately"), found once and then fixed for one
+ * selector out of two.
+ *
+ * The look is declared once for every rail row and switched on by each narrow
+ * path, rather than written out twice. It stays `display: none` in the 236px
+ * rail on purpose: the row already says its name there, and an absolutely
+ * positioned box hanging 10px past a full-width row would sit in `.sp-nav`'s
+ * own scrollable overflow. Scoped to `.sp-rail` and not to `.sp-navrow` alone
+ * so that a row drawn anywhere else -- a summoned sheet on a phone, say --
+ * cannot inherit a tooltip that would point off the side of it. */
+.sp-rail .sp-navrow::after {
   content: attr(aria-label);
+  display: none;
   position: absolute;
   left: calc(100% + 10px);
   top: 50%;
@@ -803,6 +914,9 @@
   opacity: 0;
   z-index: 50;
   transition: opacity var(--sp-dur-fast) var(--sp-ease);
+}
+.sp-app[data-rail="narrow"] .sp-navrow::after {
+  display: block;
 }
 .sp-app[data-rail="narrow"] .sp-navrow:hover::after {
   opacity: 1;
@@ -1047,6 +1161,23 @@ body:has([data-page-composer]) .sp-work {
   .sp-navrow {
     justify-content: center;
     padding: 0;
+    /* The containing block the tooltip hangs off. It was only ever set on the
+     * `[data-rail="narrow"]` path, so on this one the tooltip had nothing to
+     * be positioned against even once it was drawn. */
+    position: relative;
+  }
+  /* THE SECOND NARROW PATH, answering the same press. The rail is 64px here
+   * whatever `data-rail` says, so the row is an unlabelled icon here too and
+   * needs the name back on hover. Said separately because a media query's
+   * contents carry no extra specificity and the attribute-scoped selector
+   * cannot reach this state -- the same reason the chord keycaps above are
+   * written twice. `.sp-rail` is carried so this ties the base rule's
+   * specificity and wins on order. See INSTANT TOOLTIP above. */
+  .sp-rail .sp-navrow::after {
+    display: block;
+  }
+  .sp-rail .sp-navrow:hover::after {
+    opacity: 1;
   }
   .sp-railfoot {
     flex-direction: column;
@@ -1054,6 +1185,23 @@ body:has([data-page-composer]) .sp-work {
     padding: 8px 6px;
   }
 }
+/* WHAT GOES WITH THE RAIL, AND IS NOT REPLACED YET. Hiding it below 640px also
+ * hides the only door to Today, Runs, Brain, Crew and Engine room, and with the
+ * foot it takes Settings, the theme toggle, the board and the shortcut sheet.
+ * The seven stations survive on the strip above and are readable and scrollable
+ * there now (see THE ONE WIDTH WHERE SHRINKING STOPS WORKING), so a phone is no
+ * longer a room with no exits -- but nine doors are still missing on the size of
+ * screen most of a launch day arrives on, and CSS cannot summon what has no
+ * trigger. The fix is a sheet opened from a button in the header, and it costs
+ * almost no new CSS: `.sp-keys` / `.sp-keys-scrim` / `.sp-keys-sheet` are
+ * already the geometry for a summoned overlay, and the sheet's body can hold
+ * the same `<nav class="sp-nav">` and `<div class="sp-railfoot">` the rail
+ * holds. What it needs is the button and the state, which live in AppFrame.tsx,
+ * and one CSS line in the same commit: `.sp-navlabel` / `.sp-navcount` are put
+ * to `display: none` by BOTH narrow paths on the class alone, so a row inside a
+ * sheet would arrive with its name hidden. Scope both pairs to `.sp-rail`, the
+ * way the tooltip above already is, and the sheet needs nothing else.
+ * Until that lands this rule is a known hole, not a finished decision. */
 @media (max-width: 640px) {
   .sp-rail {
     display: none;

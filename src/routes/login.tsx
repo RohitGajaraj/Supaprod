@@ -14,13 +14,23 @@ import { recordAuthEvent } from "@/lib/observability/auth.functions";
 // hardening. Reference deviations kept: SAML SSO button omitted (no SAML in
 // production); consequence-first submit label.
 
+// Where a sign-in with no `next` lands. NOT "/", which is the marketing landing:
+// it server-renders five COUNT queries, ships the whole pitch, hydrates, and only
+// then does a client effect in src/routes/index.tsx notice the session and
+// window.location.replace("/today") — so signing in cost a second full document
+// load and put the page you signed in FROM on screen in between. /today is the
+// first rail row and the workspace's own home; the _authenticated gate still runs
+// on arrival and sends an unfinished first-run account to /onboarding. Nothing
+// about "/" changes: someone typing the domain still gets the landing page.
+const SIGNED_IN_HOME = "/today" as const;
+
 // Only allow an internal absolute path as a post-login destination, never an
 // external or protocol-relative URL (open-redirect guard). Used by the invite
 // flow, which sends a logged-out invitee to /login?next=/join/<token> so they
 // land back on the accept page after signing in.
 function safeNextPath(next: unknown): string {
-  if (typeof next !== "string" || !next.startsWith("/")) return "/";
-  if (next.startsWith("//") || next.startsWith("/\\")) return "/";
+  if (typeof next !== "string" || !next.startsWith("/")) return SIGNED_IN_HOME;
+  if (next.startsWith("//") || next.startsWith("/\\")) return SIGNED_IN_HOME;
   return next;
 }
 
@@ -30,22 +40,27 @@ export const Route = createFileRoute("/login")({
     typeof search.next === "string" ? { next: search.next } : {},
   beforeLoad: async ({ search }) => {
     if (typeof window === "undefined") return;
+    let signedIn = false;
     try {
       const { data } = await supabase.auth.getUser();
-      if (!data.user) return;
-      const dest = safeNextPath(search.next);
-      // Preserve the SPA redirect for the common (no-next) case; a real next is an
-      // opaque internal path, so navigate via the browser to reach it reliably.
-      if (dest === "/") throw redirect({ to: "/" });
-      window.location.replace(dest);
-    } catch (error) {
-      // Suppress stale refresh-token errors from prior session's localStorage.
-      // The login form will handle a fresh signin attempt cleanly.
-      if (error instanceof Error && error.name === "Error") {
-        // Re-throw redirect errors (they are control flow)
-        if ("statusCode" in error) throw error;
-      }
+      signedIn = !!data.user;
+    } catch {
+      // Suppress stale refresh-token errors from a prior session's
+      // localStorage. The form below handles a fresh sign-in attempt cleanly.
+      return;
     }
+    if (!signedIn) return;
+    // The redirect is thrown OUTSIDE that try on purpose. It used to be thrown
+    // inside it, under a catch that re-threw only when `error instanceof Error`
+    // — and a TanStack redirect is a `Response`, not an Error (router-core
+    // redirect.ts), so the catch swallowed it and an already-signed-in visitor
+    // was left looking at the sign-in form. Now it is real control flow.
+    //
+    // SPA redirect for the no-next case; a real `next` is an opaque internal
+    // path, so navigate via the browser to reach it reliably.
+    const dest = safeNextPath(search.next);
+    if (dest === SIGNED_IN_HOME) throw redirect({ to: SIGNED_IN_HOME });
+    window.location.replace(dest);
   },
   component: LoginPage,
   head: () => ({ meta: [{ title: "Sign in · Supaprod" }] }),
@@ -84,9 +99,14 @@ function LoginPage() {
     // Always a full browser navigation, never the SPA transition. The SPA
     // path was observed live (SW-7 step-0 rerun, 2026-07-09) hanging as an
     // empty Suspense tree mid gate-redirect (/ -> /onboarding) on fresh
-    // accounts - a hard blank screen until manual reload. A real page load
-    // runs the whole gate chain server-side and lands correctly every time;
+    // accounts - a hard blank screen until manual reload. A fresh document runs
+    // the gate chain from a clean router (the authenticated tree is ssr:false,
+    // so that chain is client-side either way) and lands correctly every time;
     // login is a full context switch, so the reload cost is right anyway.
+    //
+    // `dest` is /today unless an invite sent a `next`, so this is now one load
+    // into the workspace instead of one into the landing page plus the reload
+    // that page performs on itself.
     window.location.assign(dest);
   }
 
@@ -103,8 +123,12 @@ function LoginPage() {
     }
     if (result.redirected) return;
     // Same rule as the email path: a full browser navigation, so the gate
-    // chain can never strand a fresh account on a hung blank transition.
-    window.location.assign("/");
+    // chain can never strand a fresh account on a hung blank transition. And
+    // `dest`, not a hardcoded "/", so an invitee who signs in with Google
+    // without leaving the page still lands back on the accept page. The usual
+    // case redirects away and returns at the OAuth callback URL instead, which
+    // this line cannot reach.
+    window.location.assign(dest);
   }
 
   return (

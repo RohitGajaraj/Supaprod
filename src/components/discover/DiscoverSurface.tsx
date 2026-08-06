@@ -1005,21 +1005,47 @@ export function DiscoverSurface({
     return () => document.removeEventListener("keydown", onKey);
   }, [focused, focusedIndex, ranked, busy, picking, bodyOpen, promote, decline]);
 
+  /**
+   * THE HEADLINE NAMES THE NOUN IT COUNTS, and for two audits it named another.
+   *
+   * `rows` is raw signals (line 412) and `ranked` is clustered themes (line
+   * 452) -- the comment on `loading` above has said exactly that since it was
+   * written -- and all four branches below said "opportunities". An opportunity
+   * is a different and LATER noun in this product: it exists only once a
+   * cluster is promoted (`promote.mutate`), it has its own table, and it is
+   * what /decide counts. So one workspace read "97 opportunities imported"
+   * here and "31 bets ranked, strongest first." one station to the right, on a
+   * product whose whole claim is that it keeps ONE record. Measured live
+   * through the Lovable MCP on 2026-08-06: 453 signals, 257 themes, 289
+   * opportunities, which is three different numbers for the three nouns.
+   *
+   * CLUSTER, NOT THEME, is the word a person reads for a row of `themes`. The
+   * button below says "Cluster them now", the Gate beside it explains that
+   * "Clustering groups the ones saying the same thing", and /boundary already
+   * says "only clusters at 3 out of 5 or worse start on their own". "Theme" is
+   * our column name and appears in no sentence a user is shown.
+   *
+   * THE RANKED-EMPTY BRANCH SAYS "none in the ranking", not "none clustered
+   * yet", because `ranked` also drops dismissed, merged and promoted clusters
+   * (line 456). A workspace that has judged every cluster it built would
+   * otherwise be told it had never built one. What to do next is the Gate
+   * directly below, which offers the reading; the headline states the fact.
+   */
   const headline: React.ReactNode = loading ? (
     "Discover"
   ) : loadError ? (
     "The record could not be read."
   ) : rows.length === 0 ? (
-    "No opportunities found yet."
+    "Your sources have sent nothing yet."
   ) : ranked.length === 0 ? (
     <>
-      <Num>{rows.length}</Num> opportunities imported. Connect a source to get started.
+      <Num>{rows.length}</Num> signal{plural(rows.length)} in, none in the ranking.
     </>
   ) : ranked.length === 1 ? (
-    "One opportunity needs your decision."
+    "One cluster needs your decision."
   ) : (
     <>
-      <Num>{ranked.length}</Num> opportunities need your decisions.
+      <Num>{ranked.length}</Num> clusters need your decisions.
     </>
   );
 
@@ -1186,12 +1212,41 @@ export function DiscoverSurface({
                      typed by hand and a quote a connector pulled at 4am are the
                      same shape on screen and are not the same level of
                      evidence, and the raw token ("note", "pull_connector") was
-                     our column value rather than a sentence. */
+                     our column value rather than a sentence.
+
+                     AND WHETHER IT IS REAL, which this one line did not say
+                     while every sibling did. The `is_sample` chain marks the
+                     ranking row below, the Gate above it, and the source bet on
+                     a spec -- and stopped at the individual quote, which is the
+                     most literal thing on the surface: the sentence itself, with
+                     where it came from beside it. Seeded signals carry a channel
+                     and no lane. Measured live through the Lovable MCP on
+                     2026-08-06: 20 of 453 signals are samples, and 13 of those
+                     20 carry neither the `manual` lane nor a hand-captured
+                     channel, so `capturedByHand` returned false and every one of
+                     the 13 printed ", sensed". Two are `source: "analytics"`
+                     with a null `source_kind`, which is how the rail came to read
+                     "Analytics, sensed, 2m ago" under an invented number on a
+                     workspace with no connector attached at all.
+
+                     "Sensed" is a claim that we read this out of the user's own
+                     tools, so a sample row does not make it, and carries the
+                     same Example mark in the same words the ranking row uses.
+                     The channel stays: it is what the seed says it is imitating,
+                     and the mark in front of it qualifies the whole line.
+                     `listSignals` selects `*`, so the column is already here. */
                   sub={
                     <>
+                      {s.is_sample ? (
+                        <>
+                          <b>Example</b>
+                          {" · "}
+                        </>
+                      ) : null}
                       {sourceLabel(s.source, s.source_kind)}
-                      {capturedByHand(s.source, s.source_kind) ? "" : ", sensed"},{" "}
-                      <Num>{since(s.created_at)}</Num>
+                      {s.is_sample || capturedByHand(s.source, s.source_kind)
+                        ? ""
+                        : ", sensed"}, <Num>{since(s.created_at)}</Num>
                     </>
                   }
                 />

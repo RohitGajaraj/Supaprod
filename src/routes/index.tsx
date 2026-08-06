@@ -43,7 +43,19 @@ const SITE = "https://supaprod.ai";
 // It still ends on "guide the next call", which was always the good half.
 const TAGLINE = "Agents that know what to build, ship it, and guide the next call.";
 const TITLE = `Supaprod: ${TAGLINE.charAt(0).toLowerCase()}${TAGLINE.slice(1, -1)}`;
-const DESC = `Supaprod is for product managers. ${TAGLINE} You approve every gate.`;
+// "YOU APPROVE EVERY GATE" WAS FALSE, AND IT WAS THE SENTENCE THAT UNFURLS.
+// Measured on production 2026-08-06: 38 of 119 rows in `learnings` carry a
+// `recorded_by_agent_slug` (37 data-analyst, 1 insight-keeper) -- verdicts
+// written to the permanent record with no human click. That is the DESIGN, not
+// a leak: the crew settles outcomes on its own and the product is better for
+// it. But this string feeds <title>, meta description, og:, twitter: and
+// /llms.txt, so a visitor read a safety promise the product deliberately does
+// not keep, and would find the counter-example within a week.
+//
+// The replacement is the claim security.tsx's own body already makes correctly
+// and can defend: agents draft, propose and build unattended, and nothing
+// IRREVERSIBLE happens without a person. Same reassurance, same length, true.
+const DESC = `Supaprod is for product managers. ${TAGLINE} Nothing irreversible happens without you.`;
 
 const ORG_LD = {
   "@context": "https://schema.org",
