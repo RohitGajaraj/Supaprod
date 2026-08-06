@@ -107,10 +107,26 @@ that walk is over edges. **A considered migration, not a 4am one.**
 
 ## OPEN, in priority order
 
-1. **The conversational-first shift is the biggest unmet ask.** Dock, work line
-   and landing all exist; what is missing is the server emitting `station` and
-   `tool` frames DURING a run. `runAgentLoop` fires unawaited, so they cannot
-   ride the same stream. Architectural call, not wiring.
+1. **CORRECTION TO MY OWN EARLIER LINE HERE.** I wrote that the pane shows
+   nothing while a run works and called the conversational-first shift "the
+   biggest unmet ask". That overstated it, and it was checked afterwards rather
+   than before, which is the exact mistake this handoff spends its first section
+   warning about.
+
+   `AskTurn` already renders `AskRunCard` under "What the crew is doing"
+   whenever a turn carries a `mission_id`. That card POLLS, reads the run's loop
+   steps, and prints the tool each step is running in plain words
+   (`ACTION_LABEL[step.name]`, never "thinking"). So the pane already shows live,
+   per-step crew work after a dispatch. What was genuinely missing was the
+   LANDING -- where the artifact came to rest -- and that shipped tonight.
+
+   Two things follow. The `station`/`tool` SSE frames are an ENHANCEMENT (finer
+   granularity, no poll) rather than a missing capability, so they are not
+   urgent and they do still need the missions-vs-tracks call. And
+   **`AskWorkLine.tsx` is dead code that duplicates `AskRunCard`**: built to
+   render those frames, mounted nowhere, and showing what a working component
+   already shows. Delete it or re-scope it; I left it rather than delete another
+   lane's file unasked.
 2. **Design still calls a script-free single screen a prototype.** Acceptance
    criteria are NOT missing -- they are the spec's Outcome Contract
    `success_metrics`, carried into `BuildSpec.acceptanceCriteria`; the audit was
