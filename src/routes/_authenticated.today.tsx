@@ -614,8 +614,12 @@ function Today() {
         </div>
       ) : (
         <>
-          {/* PRIMARY INTERFACE: Ask bar (agentic-first entry point) */}
+          {/* PRIMARY INTERFACE: Ask bar (agentic-first entry point).
+              `data-page-composer` is how the global dock knows to stand down.
+              See shell.css: two identical prompts on one screen, 500px apart,
+              is the friction this marker removes. */}
           <div
+            data-page-composer
             style={{
               background: "var(--sp-float)",
               border: "1px solid var(--sp-line)",

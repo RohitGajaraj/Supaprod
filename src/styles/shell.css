@@ -917,6 +917,33 @@
  * The region asks its OWN width, not the window's. That is the whole
  * adaptive rule, and it is why a context column appears here and never
  * inside a narrow drawer that happens to sit on a wide screen. */
+/* THE DOCK STANDS DOWN WHERE THE SURFACE OWNS THE PROMPT.
+ *
+ * AskDock's own comment already states the rule for the open pane: "the dock
+ * stands down so there is never a second input for the same conversation." The
+ * rule was right and was applied to exactly one case. Today renders its own Ask
+ * card -- the one its comment calls "PRIMARY INTERFACE: Ask bar (agentic-first
+ * entry point)" -- and the dock sat under it reading the same words, so the
+ * front door asked "What should we build?" twice, 500px apart, in two controls
+ * that do the same thing.
+ *
+ * DECLARATIVE, so it maintains itself. Any surface that grows its own composer
+ * marks it `data-page-composer` and the dock yields, with no React state, no
+ * route list to keep in step, and no chance of the two disagreeing. `:has()` is
+ * already how the dock tracks the rail's collapse a few rules below.
+ *
+ * ONLY THE COLLAPSED ROW GOES. `AskDock` also renders `AskPane` itself, kept
+ * mounted so opening and closing never remounts a conversation. That is
+ * untouched: Cmd+K still opens the same pane from the same place, and the
+ * capability is not reduced -- only the second copy of the invitation is. */
+body:has([data-page-composer]) .sp-dock {
+  display: none;
+}
+/* The work region reclaims the space the dock was reserving for itself. */
+body:has([data-page-composer]) .sp-work {
+  padding-bottom: 0;
+}
+
 .sp-work {
   flex: 1;
   min-width: 0;
