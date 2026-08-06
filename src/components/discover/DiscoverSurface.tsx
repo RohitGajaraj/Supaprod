@@ -1932,7 +1932,33 @@ export function DiscoverSurface({
               }}
             />
           </Field>
-          {opportunities.isLoading ? (
+          {/* AN UNANSWERED READ IS NOT AN EMPTY QUEUE, and this block was the
+              last surface in the product still saying otherwise.
+
+              It guarded on `opportunities.isLoading`, which in react-query v5
+              is `isPending && isFetching`. This query is `enabled: picking`, so
+              on the first frame after the picker opens it is pending and NOT
+              yet fetching: `isLoading` is false, `data` is undefined, and the
+              block fell straight through to "There are no bets yet, so there is
+              nothing to merge into." A claim of absence, made from a read that
+              had not happened, on the frame a person is most likely to see.
+              An errored read produced exactly the same sentence, forever.
+
+              `stillWaiting` is `isPending || data === undefined`, which covers
+              both. The error branch has to come FIRST, because a failed read
+              also leaves `data` undefined and would otherwise spin here rather
+              than ever saying what went wrong. Same order Ship uses.
+
+              This was the second of the two surfaces the budget in
+              an-empty-read-is-not-an-empty-workspace.test.ts still allowed;
+              that constant comes down to 1 in the same commit. */}
+          {opportunities.isError ? (
+            <Failed onRetry={() => void opportunities.refetch()}>
+              {opportunities.error instanceof Error
+                ? opportunities.error.message
+                : "The open bets did not load."}
+            </Failed>
+          ) : stillWaiting(opportunities) ? (
             <Loading>Reading the queue.</Loading>
           ) : betCandidates.open.length === 0 ? (
             <Empty>

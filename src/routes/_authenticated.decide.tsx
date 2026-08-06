@@ -683,16 +683,26 @@ function DecideSurface() {
    * because `["themes", <product>]` is Discover's cache entry and the two
    * queries must not overwrite each other's answer.
    *
-   * WHAT IS STILL NOT RIGHT, and it is one file away. `listThemes` caps at 300,
-   * so past that ceiling the map silently loses whichever themes fall outside
-   * the window. WHICH ones changed under this note on 2026-08-06 and the note
-   * did not: that read ordered by `frequency` descending, so the ceiling cost
-   * the LEAST-corroborated themes; it orders by `created_at` descending now, so
-   * it costs the OLDEST ones instead. For this map that is a straight trade of
-   * one wrong count for another -- quiet themes are admitted and long-lived ones
-   * are dropped -- and `listThemes`' own docblock says so from the other side.
-   * Cite the SYMBOL rather than a line: the old citation here (:445-449) went
-   * stale the moment that docblock was written.
+   * THE CEILING IS STILL THERE, BUT IT IS NO LONGER SILENT. `listThemes` caps
+   * at 300, so past that ceiling the map has no entry for whichever themes fall
+   * outside the window. WHICH ones changed under this note on 2026-08-06 and
+   * the note did not: that read ordered by `frequency` descending, so the
+   * ceiling cost the LEAST-corroborated themes; it orders by `created_at`
+   * descending now, so it costs the OLDEST ones instead. For this map that is a
+   * straight trade of one wrong count for another, quiet themes admitted and
+   * long-lived ones dropped, and `listThemes`' own docblock says so from the
+   * other side. Cite the SYMBOL rather than a line: the old citation here
+   * (:445-449) went stale the moment that docblock was written.
+   *
+   * What changed later the same day is that the same read now returns an exact
+   * `total`, so this surface can count the bets it is ranking blind instead of
+   * describing the problem in a comment nobody reading the queue will see. Two
+   * places say it: `rankedOnUnseenCluster` puts it in the headline, and the
+   * context column names it under "What backs it" rather than rendering an
+   * empty space, which on this screen reads as "nothing backs it". The ORDER is
+   * deliberately unchanged, because there is no honest number to sort an
+   * unknown by. Removing the ceiling is still the real fix and still lives one
+   * file away; what is closed here is the surface lying about it.
    *
    * An earlier version of this note said "a workspace past 300 themes", and
    * that is narrower than the real trigger: `listThemes` carries no workspace
@@ -1503,6 +1513,31 @@ function DecideSurface() {
 
   const loading = stillWaiting(opps);
 
+  /**
+   * HOW MANY RANKED BETS REST ON A CLUSTER THIS PAGE CANNOT SEE.
+   *
+   * `listThemes` reads the newest 300 and nothing narrows that to a workspace,
+   * so past the ceiling `themeById` simply has no entry. The ranker at :873
+   * then scores those bets `?? 0`, which is not "few signals" but "we did not
+   * look", and the two are indistinguishable on screen. A bet resting on a
+   * long-lived cluster therefore sinks to the bottom of the one queue whose
+   * entire job is the order.
+   *
+   * The note above this component said that was unfixable from here and one
+   * file away. It is not, as of 2026-08-06: `listThemes` now returns an exact
+   * `total` beside its page, so the surface can COUNT the bets it is ranking
+   * blind and say so. This does not change the order, because there is no
+   * honest number to sort an unknown by. It stops the order being quietly
+   * wrong, which is the part that was costing a person their trust in it.
+   */
+  const rankedOnUnseenCluster = React.useMemo(
+    // `ranked` wraps the record rather than extending it, so the opportunity is
+    // `r.opp`. Reaching for `r.theme_id` compiles to undefined under a looser
+    // type and would have counted zero forever.
+    () => ranked.filter((r) => r.opp.theme_id && !themeById.has(r.opp.theme_id)).length,
+    [ranked, themeById],
+  );
+
   // A fact assembled from real counts. It never claims a number it does not
   // have, and it stays silent while the counts are still loading.
   const headline = React.useMemo(() => {
@@ -1511,8 +1546,12 @@ function DecideSurface() {
     const n = ranked.length;
     if (n === 0) return "Nothing is ranked yet.";
     if (n === 1) return "One bet is ranked, and it is waiting on you.";
-    return `${n} bets ranked, strongest first.`;
-  }, [loading, opps.error, ranked.length]);
+    const base = `${n} bets ranked, strongest first.`;
+    // Silent when the window covers everything, which is every workspace under
+    // 300 clusters, so the common case reads exactly as it did before.
+    if (rankedOnUnseenCluster === 0) return base;
+    return `${base} ${rankedOnUnseenCluster} rest on a cluster outside the newest 300 this reads, so they rank low for want of a count rather than for want of evidence.`;
+  }, [loading, opps.error, ranked.length, rankedOnUnseenCluster]);
 
   const activeVerdict = activeOpp ? verdictFor(activeOpp) : "PENDING";
   const activeSignals = activeOpp?.theme_id
@@ -1710,6 +1749,18 @@ function DecideSurface() {
               <CtxBody>
                 <Num>{activeSignals}</Num> {activeSignals === 1 ? "signal" : "signals"} in the
                 record
+              </CtxBody>
+            ) : activeOpp?.theme_id ? (
+              /* IT HAS A CLUSTER AND WE DID NOT LOOK IT UP, which is not the
+                 same as having no evidence and used to render as nothing at
+                 all. Under "What backs it", an empty space reads as "nothing
+                 backs it" on the one screen where that judgement is the whole
+                 point. It says which it is now, and admits the ranking
+                 consequence rather than leaving the person to wonder why a bet
+                 they know is well evidenced is sitting near the bottom. */
+              <CtxBody>
+                Its cluster is outside the newest 300 this page reads, so the count is not on
+                screen and the bet is ranked as if it had none.
               </CtxBody>
             ) : null}
             {/* THE SCORE STOPS BEING A READ-ONLY FACT.

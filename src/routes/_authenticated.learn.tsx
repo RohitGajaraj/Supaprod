@@ -323,7 +323,12 @@ function Learn() {
   // WAITING leads, because settling it is the job; what came back so far is a
   // different fact and goes in the sub.
   const headline = React.useMemo(() => {
-    if (ledgerQ.isLoading || pendingQ.isLoading) return "Learn";
+    // Same gap as the record Block below, and it matters more here: every
+    // number in this headline is derived from `ledger`/`outcomes`, so an
+    // unanswered read does not produce a blank, it produces CONFIDENT ZEROES.
+    // "None of them decisive yet" is a claim about the record, and it was
+    // reachable from a read that had not returned.
+    if (stillWaiting(ledgerQ, pendingQ)) return "Learn";
     if (waiting > 0) {
       // "Asked for" rather than "waiting on", because the queue is now the
       // exception the agent could not evidence, not the default every outcome
@@ -355,7 +360,7 @@ function Learn() {
           : `${outcomes.validated} of the ${decisive} that settled paid off.`
         : "None of them decisive yet.";
     return `${back}. ${verdict}`;
-  }, [ledgerQ.isLoading, pendingQ.isLoading, waiting, agentSettled, outcomes]);
+  }, [ledgerQ, pendingQ, waiting, agentSettled, outcomes]);
 
   const since = day(ledger?.span.firstAt ?? null);
   const movedPriority = (ledger?.measuredOutcomes ?? 0) > 0;
@@ -554,7 +559,19 @@ function Learn() {
           <Failed onRetry={() => void ledgerQ.refetch()}>
             The record did not load. {(ledgerQ.error as Error).message}
           </Failed>
-        ) : ledgerQ.isLoading ? (
+        ) : /* `isLoading` is `isPending && isFetching` in react-query v5, so it
+              is false in the gap where a read is pending but not in flight:
+              paused, offline, or the instant a fetch resolves. `data` is
+              undefined there, this block fell through to "Nothing has come back
+              yet", and on the station that IS the record that sentence is the
+              worst available lie. `stillWaiting` is `isPending || data ===
+              undefined`, which closes the gap. The error branch stays first,
+              because a failed read also leaves `data` undefined and would
+              otherwise wait here forever instead of saying what broke. Last of
+              the two surfaces the budget in
+              an-empty-read-is-not-an-empty-workspace.test.ts allowed; that
+              constant reaches 0 in the same commit. */
+        stillWaiting(ledgerQ) ? (
           <Loading>Reading the record.</Loading>
         ) : lead ? (
           <>

@@ -191,21 +191,28 @@ const LOCKED = [
 ] as const;
 
 /**
- * Surfaces that still guard a wait on `.isLoading` alone, counted on
- * 2026-08-06 and allowed only to shrink:
+ * ZERO SURFACES NOW GUARD A WAIT ON `.isLoading` ALONE. This started at 2 when
+ * the pass that wrote this test locked Ship and Studio changes and could not
+ * reach the other two; both were closed on 2026-08-06 and the number came down
+ * with each. It may only go down, and it is now at the floor: any surface that
+ * reintroduces the shape fails the check below rather than spending a budget.
  *
- *   Discover, DiscoverSurface.tsx -- the merge picker's "Open bets" list.
- *     `opportunities` is `enabled: picking`, so on the first frame after the
- *     picker opens the query is pending and not yet fetching, and the block
- *     renders "There are no bets yet, so there is nothing to merge into."
- *   Learn, _authenticated.learn.tsx -- the record Block, `ledgerQ.isLoading ?`,
- *     falling through to "Nothing has come back yet." That query carries no
- *     `enabled` gate, so it is the narrower window (paused, offline, or the
- *     instant a fetch resolves) rather than every first paint.
+ *   Discover, DiscoverSurface.tsx -- the merge picker's "Open bets" list, and
+ *     the WIDER of the two windows, which is why it went first. Its
+ *     `opportunities` query is `enabled: picking`, so on the first frame after
+ *     the picker opens it is pending and not yet fetching: `isLoading` false,
+ *     `data` undefined, and the block rendered "There are no bets yet, so there
+ *     is nothing to merge into." An errored read said the same thing forever.
+ *   Learn, _authenticated.learn.tsx -- the record Block, falling through to
+ *     "Nothing has come back yet" on the station that IS the record. Its
+ *     headline went with it: every number there is derived, so an unanswered
+ *     read produced not a blank but confident zeroes.
  *
- * Neither file was in this pass's set. Lower the number when one is fixed.
+ * Both now read `isError` first and `stillWaiting` second, the order Ship uses,
+ * because a failed read also leaves `data` undefined and would otherwise wait
+ * forever rather than say what broke.
  */
-const STILL_GUARDING_ON_ISLOADING = 2;
+const STILL_GUARDING_ON_ISLOADING = 0;
 
 describe("the guard is a property of the file, not of one line in it", () => {
   it("recognises the defect, and does not recognise prose about it", () => {
