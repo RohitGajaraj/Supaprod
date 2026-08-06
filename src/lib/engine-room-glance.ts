@@ -497,8 +497,18 @@ function shortDay(key: string | undefined): string {
   if (!key) return "the day before";
   const [, m, d] = key.split("-");
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   const mi = Number(m) - 1;
   if (!months[mi] || !d) return key;

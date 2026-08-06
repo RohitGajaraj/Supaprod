@@ -13,11 +13,7 @@ import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import type { ApprovalQueueItem } from "@/lib/approvals-queue.functions";
 import type { AskStreamMsg } from "@/lib/ask-stream-core";
 import type { ThreadSummary } from "@/lib/threads.functions";
-import {
-  threadsMock,
-  resetThreadsMock,
-  threadsModuleMock,
-} from "@/lib/testing/threads-mock";
+import { threadsMock, resetThreadsMock, threadsModuleMock } from "@/lib/testing/threads-mock";
 import type { DictationState } from "@/hooks/use-voice";
 
 let pathname = "/today";

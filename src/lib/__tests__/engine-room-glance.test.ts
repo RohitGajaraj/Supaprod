@@ -612,14 +612,23 @@ describe("a capped read says it is a floor", () => {
   });
 
   it("the fingerprint claims only what it covers", () => {
-    const capped = buildRecordGlance({ traceCount: 0, sealCount: 1000, ledgerVerifies: true, sealCapped: true } as never);
+    const capped = buildRecordGlance({
+      traceCount: 0,
+      sealCount: 1000,
+      ledgerVerifies: true,
+      sealCapped: true,
+    } as never);
     const seal = capped.figures.find((f) => f.label === "receipts sealed");
     expect(seal?.value).toContain("+");
     expect(seal?.note).toBe("the newest are covered by the fingerprint");
   });
 
   it("and claims the whole ledger when it really read the whole ledger", () => {
-    const whole = buildRecordGlance({ traceCount: 0, sealCount: 92, ledgerVerifies: true } as never);
+    const whole = buildRecordGlance({
+      traceCount: 0,
+      sealCount: 92,
+      ledgerVerifies: true,
+    } as never);
     const seal = whole.figures.find((f) => f.label === "receipts sealed");
     expect(seal?.value).not.toContain("+");
     expect(seal?.note).toBe("covered by the fingerprint");
@@ -628,7 +637,12 @@ describe("a capped read says it is a floor", () => {
   it("a fingerprint that did not compute says that first, capped or not", () => {
     // The failure outranks the coverage caveat: "did not compute" is the fact
     // that matters, and adding a coverage note to it would bury it.
-    const broken = buildRecordGlance({ traceCount: 0, sealCount: 1000, ledgerVerifies: false, sealCapped: true } as never);
+    const broken = buildRecordGlance({
+      traceCount: 0,
+      sealCount: 1000,
+      ledgerVerifies: false,
+      sealCapped: true,
+    } as never);
     expect(broken.figures.find((f) => f.label === "receipts sealed")?.note).toBe(
       "fingerprint did not compute",
     );
