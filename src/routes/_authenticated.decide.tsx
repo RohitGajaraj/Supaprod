@@ -1759,8 +1759,8 @@ function DecideSurface() {
                  consequence rather than leaving the person to wonder why a bet
                  they know is well evidenced is sitting near the bottom. */
               <CtxBody>
-                Its cluster is outside the newest 300 this page reads, so the count is not on
-                screen and the bet is ranked as if it had none.
+                Its cluster is outside the newest 300 this page reads, so the count is not on screen
+                and the bet is ranked as if it had none.
               </CtxBody>
             ) : null}
             {/* THE SCORE STOPS BEING A READ-ONLY FACT.

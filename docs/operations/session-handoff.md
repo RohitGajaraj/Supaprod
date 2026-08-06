@@ -1,93 +1,125 @@
 # Session handoff
 
-> _Last updated: 2026-08-06 ~16:30 IST · soft launch is THIS WEEK_
+> _Created: 2026-07-02 · Last updated: 2026-08-06_
 
-Read [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) §0 first. This file is only what the last session left open.
+**Written 2026-08-06, ~21:45 IST. Soft launch is THIS WEEK on Product Hunt and X.**
+
+State at handoff: **`tsc` exit 0 · 8,232 pass · 0 fail** on a quiescent tree.
+Everything is committed and pushed to `main` at `104b80ea`. The app is
+**published** at <https://supaprod.lovable.app>, and the deployed commit SHA
+matches what was pushed, so nothing is stranded between git and production.
+
+Migrations: **81 of 81 for August applied**, zero drift between disk and the
+live database.
 
 ---
 
-## Two things need a person. Nothing in code can discharge either.
+## 1. Needs a person. Nothing below can be done by an agent.
 
-### 1. Settle one real outcome, and watch the brain receive it
+**a. Settle one outcome through `/learn`.** This is the last unknown on the
+moat's own path and the only item here that is a product risk rather than an
+account chore.
 
-**This is the last honest gap before launch.** Four surfaces claim to read a precedent pool that has never held a single row.
+`applyOutcome` has still never completed: 957 memories, 119 learnings, **zero of
+`kind='outcome'`**. What changed today is that this is no longer a guess. Every
+write it makes was executed against production inside a rolled-back transaction
+and all three were accepted (`learnings` insert, `agent_memory` insert,
+`prds.outcome` update), the baseline was re-checked unchanged afterwards, and no
+constraint blocks it. So **if it fails now, it fails in the TypeScript, not in
+the database.**
 
-`agent_memory` holds **zero** rows of `kind='outcome'` against 119 learnings. The cause is not a bug: all seven specs carrying an outcome are seed rows with `settled_by` null and neither `settled_memory_id` nor `settled_memory_error`, which means **`applyOutcome` has never completed in this database**. Every agent that has read the write path concluded it is correct. It has simply never run.
-
-So:
-
-1. Pick a workspace that is **not** a sample — `select id, name, is_sample from workspaces order by is_sample, name;`
-2. Open `/learn` standing in it and settle one shipped, unsettled spec **through the UI**, not the agent sweep, so the human path is the one under test.
-3. Then confirm all three:
+Do this: open `/learn` on a workspace with a shipped spec, settle one, then run
 
 ```sql
--- must return one row
-select id, kind, created_at from agent_memory where kind = 'outcome' order by created_at desc limit 1;
--- must be non-null
-select outcome->>'settled_memory_id', outcome->>'settled_memory_error' from prds where outcome is not null order by updated_at desc limit 1;
--- must return one row: today it returns zero for every user in the database
-select l.id, l.new_ice, w.name from learnings l join workspaces w on w.id = l.workspace_id
-where l.new_ice is not null and w.is_sample = false;
+select count(*) from agent_memory where kind = 'outcome';
 ```
 
-Until the third query returns a row, `/decide`'s re-rank subtitle and its record recess have never once been seen in the state this session fixed them to produce.
+It must return 1, and that row's `workspace_id` must equal the settled spec's
+workspace, not your default one. That second check matters: `agent_memory` has a
+`BEFORE INSERT` trigger that files a null `workspace_id` into your *earliest*
+membership, reproduced today filing a Helio Labs spec into an unrelated
+workspace. A follow-up pin corrects it and is now locked by a test.
 
-### 2. Decide whether eight stranded missions should start running
+**b. Rule on the white button on the public landing page.** The nav's
+"Start free" pill is white. Tonight's sweep deliberately did not touch public
+marketing surfaces (`/`, `/d`, `/proof`, `/t`), on the reasoning that restyling
+signup CTAs is a funnel change rather than a cleanup, and `.btn-primary` is
+correct there. But the standing ruling is "nothing white in our platform," and
+this is the first thing a Product Hunt visitor sees. One small isolated change
+if you want it in line.
 
-`supabase/migrations/20260806140000_eight_missions_were_launched_into_a_word_nothing_reads.sql` is **committed and deliberately NOT applied**, because applying it is a product decision, not a repair.
+**c. The four-tier pricing ruling was never implemented.** You locked Free / Pro
+/ Business / Enterprise on 2026-07-13 and retired the thematic names. The code
+and database still ship **five** tiers on the old slugs (`free`, `pro`, `max`,
+`team`, `enterprise`) and `'business'` appears **zero times** in the billing
+code, re-verified today. It touches money, so it was flagged rather than
+migrated. See §2 for why it is now coupled to something else.
 
-Eight missions sit at `status='queued'`, a state nothing consumes. Six came from the auto-promote in `trigger-tick`, two from the human launch button. Both writers are fixed, so no new ones will strand.
-
-**If you deploy the code and do nothing**, `resume-runs` adopts all eight into `running` on its first tick (~1 minute). Four fail immediately on a workspace foreign key and get halted 20 minutes later. The other four are month-old goals in demo workspaces that will **actually run orchestrator loops and spend money**. Nothing is lost either way. The only question is whether you want four month-old demo missions springing to life during launch week.
-
-Read the migration; it states both options.
+**d. Standing founder-gated list** (unchanged, verify before acting): live
+Stripe keys and the credits go-live flip, merchant-of-record pick,
+`RESEND_API_KEY`, Figma OAuth registration, `FIRECRAWL_API_KEY` (not blocking),
+and deleting five merged branches.
 
 ---
 
-## Applied to production today, and recorded
+## 2. One loaded gun, deliberately not fired
 
-The schema history had been drifting from the repo all session. It is back in sync, and a full diff proved no other drift exists: of 33 repo migrations not recorded, 32 pair to a database record within 15 seconds (the re-stamp the apply tooling does) and one was the deliberate hold above.
+`set_agent_memory_expiry` sets `expires_at` to **30 days** for any user not on a
+paid tier. It is **inert today**: `memory_expiry_enabled()` reads `false` and
+zero rows carry an expiry.
 
-| Version | What |
+Two reasons it is written down rather than left to be discovered:
+
+- Its paid list is `('pro','max','team','enterprise')`, so **`'business'` is
+  absent.** Land the §1c pricing ruling first, flip this switch later, and
+  Business customers' outcome memories start expiring.
+- What it deletes is the moat, on a product whose claim is that the record
+  *compounds*.
+
+Flipping it is a founder decision, so it was recorded in the SSOT and left
+exactly as found.
+
+---
+
+## 3. What landed today, after 17:00
+
+Seven commits, each gated on a quiescent tree before pushing.
+
+| Commit | What |
 | --- | --- |
-| `20260806100000` | `prds.outcome_check_by` — a bet can be too early to judge |
-| `20260806103000` | the Learn desk had nothing on it, in any workspace |
-| `20260806120000` | `prds.is_sample` — a spec drawn from an example is an example |
-| `20260806164500` | **the launch blocker**: `decisions_source_kind_check` did not admit `'opportunity'`, so every Keep-it and Drop-it at `/decide`'s gate was refused by the database and swallowed. 276 decision rows, zero from the gate. Widened and verified. |
-| `20260806170000` | `prd_scaffolds.critic_review` — a drawing's review belongs to the drawing, not to the spec's red-team column that five surfaces read whole |
+| `119138b2` | The primary button: a solid face on the neutral ladder. 21 ember controls retired from the authenticated app. Composer spacing on `/today`. |
+| `279496d0` | The dock, on every authenticated route, says what the agent is working on instead of "native is working". |
+| `c445cfd0` | Seeded workspaces were born with no provenance. Fixed at the table with a trigger; the self-healing backfill caught 7 signals the 2026-08-03 pass missed. |
+| `8d28c572` | Fan-out turned "nobody said" into "no ceiling". Two uncapped spend paths closed. |
+| `ed712c24` | **Task #8, seven stations.** 58 findings, 15 launch blockers. Build and Plan came back *not self-sufficient*. |
+| `0972f79d` | The last two surfaces calling an unanswered read an empty workspace. The `.isLoading` budget is now **0**. |
+| `104b80ea` | The outcome write path, proven against production and rolled back. |
+
+**Nothing from tonight's lanes is left open.** Every LEFT UNDONE item the agents
+reported was closed in a later commit, including the two they could not reach
+themselves.
 
 ---
 
-## What the audits found, and where the record lives
+## 4. Two operating rules this session paid for
 
-Four read-only audits ran today. **Their findings are the asset**, and every claim in them was checked against live production data through the Lovable MCP, with each synthesis re-reading the code and dropping what did not survive. Saved outside `/tmp` because macOS clears it on reboot:
+**Verify a finding is still open before dispatching an agent at it.** Four
+agents came back REFUSED today because the work was already done, and the
+`artifact_lineage` board entry was not merely stale but **wrong in both halves**
+— its prescribed fix would have produced a demo with *less* provenance than
+existed. One grep or one query kills most stale findings before they cost
+anything. The SSOT says this about its own tables; believe it.
 
-`~/.claude/projects/-Users-rohitgajaraj-Projects-My-Projects-My-Builds-Supaprod/carry-forward/`
-
-- `seam-findings.json` — the seven linear station seams. 31 breaks: 7 blockers.
-- `nonlinear-findings.json` — skips, external design, mid-chain entry, backward moves, fan-out. 22 breaks: 5 blockers.
-- `design-findings.json` — eight lenses against the launch brief. 19 findings: 10 launch blockers.
-- `round2-residuals.json`, `seam-residuals-round2.json` — what the reviewers found on top of the fixes.
-- `task-outputs/`, `journals/` — every agent's full return value, 141 files.
-
-The design audit's answer to the founder's own question: **real value, not an LLM wrapper** — 851 lineage rows, 267 decisions, 119 learnings of which 38 were settled by an agent — *"but the product consistently under-renders its own work."*
-
----
-
-## Do not rediscover these
-
-**Grep artifacts have produced confident wrong numbers five times this week.** `--include` is not supported by this shell's grep proxy and silently returns zero, making live code look dead. A `tail`-truncated log read as "zero lint errors" when there were 9,203. Sanity-check every count against a case you know has hits.
-
-**Four brittle grep tests have gone red against correct code.** The rules, now written into each: strip comments before asserting a pattern is ABSENT (a test that documents a bad pattern finds its own prose), collapse whitespace (one pinned a single-line ternary that `eslint --fix` wrapped), and **scope the slice to the function under test** — the most recent one swept a whole file and went red on a sibling function that was entirely correct.
-
-**supabase-js resolves a refused write** as `{data: null, error: null}`. Check `error` AND an empty row set via `.select("id")`. And a **read** whose error is discarded must never be used as evidence of absence — that exact pattern produced four separate bugs today, one of them inside the fix for another.
-
-**A `499` from the Lovable MCP is a response timeout, not a refusal.** The statement ran. Query state before retrying anything non-idempotent.
+**A slow agent and a dead one are indistinguishable in a workflow journal.** A
+`started` line with no result, and a 300KB transcript ending at its first
+sentence, describe both. Check `git status`, not the journal. Reading it wrong
+today cost a duplicated workflow and real file collisions.
 
 ---
 
-## Gate
+## 5. Where the detail lives
 
-**tsc 0 · 8,086 pass · 0 fail**, run on a quiescent tree at `c0be8bfb` — the first full-suite run since `d746de15`.
-
-Four tests went red during the session and all four were right to: each pinned a source shape a fix legitimately changed, and three of those changes were improvements. They now assert the contract, not the formatting.
+- Board, open work and open findings: [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md)
+- The button rulings, both rejected designs and why: [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md)
+- The four audits, saved rather than summarised, plus 141 task outputs and every
+  workflow script: `~/.claude/projects/-Users-rohitgajaraj-.../carry-forward/`

@@ -622,9 +622,7 @@ describe("rememberOutcome (persist outcome memory)", () => {
     expect(result.id).toBe("mem-id-123");
     // The correction targets the row just inserted, and sets exactly the
     // workspace the caller named.
-    const pin = writes.updates.find(
-      (u) => u.id === "mem-id-123" && "workspace_id" in u.patch,
-    );
+    const pin = writes.updates.find((u) => u.id === "mem-id-123" && "workspace_id" in u.patch);
     expect(pin).toBeDefined();
     expect(pin!.patch.workspace_id).toBe("ws-of-the-spec");
     // A pin that silently did nothing is the failure this guards, so the
