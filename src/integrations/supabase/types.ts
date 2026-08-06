@@ -5321,6 +5321,7 @@ export type Database = {
           id: string
           impact: number
           is_public: boolean
+          is_sample: boolean
           linked_brief_item_id: string | null
           posthog_event: string | null
           problem: string
@@ -5353,6 +5354,7 @@ export type Database = {
           id?: string
           impact?: number
           is_public?: boolean
+          is_sample?: boolean
           linked_brief_item_id?: string | null
           posthog_event?: string | null
           problem?: string
@@ -5385,6 +5387,7 @@ export type Database = {
           id?: string
           impact?: number
           is_public?: boolean
+          is_sample?: boolean
           linked_brief_item_id?: string | null
           posthog_event?: string | null
           problem?: string
@@ -7037,6 +7040,7 @@ export type Database = {
           embedding_model: string | null
           external_id: string | null
           id: string
+          is_sample: boolean
           product_id: string | null
           project_id: string | null
           reference_urls: Json
@@ -7057,6 +7061,7 @@ export type Database = {
           embedding_model?: string | null
           external_id?: string | null
           id?: string
+          is_sample?: boolean
           product_id?: string | null
           project_id?: string | null
           reference_urls?: Json
@@ -7077,6 +7082,7 @@ export type Database = {
           embedding_model?: string | null
           external_id?: string | null
           id?: string
+          is_sample?: boolean
           product_id?: string | null
           project_id?: string | null
           reference_urls?: Json
@@ -9782,6 +9788,7 @@ export type Database = {
         }
       }
       observability_enabled: { Args: never; Returns: boolean }
+      platform_has_admin: { Args: never; Returns: boolean }
       product_in_workspace: {
         Args: { p_product_id: string; p_workspace_id: string }
         Returns: boolean
