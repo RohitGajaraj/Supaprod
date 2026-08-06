@@ -12,6 +12,7 @@ import { retrieve } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
+import { ROADMAP_TEXT_MAX } from "@/lib/roadmap-governance";
 import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { writeSignals } from "@/lib/sources/sink.server";
 import {
@@ -21,6 +22,7 @@ import {
   typedCandidates,
 } from "@/lib/sources/manual";
 import type { SignalCandidate, SinkResult } from "@/lib/sources/kinds";
+import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ---------- CRITIC (DEC-02 opportunities · DEF-03 specs) ----------
@@ -2224,6 +2226,225 @@ export const createGithubIssueForPrd = createServerFn({ method: "POST" })
     return { url: json.html_url, number: json.number, cached: false };
   });
 
+/**
+ * PURE. THE TEARDOWN THE USER ALREADY PAID FOR, RENDERED FOR THE SPEC WRITER.
+ *
+ * WHAT WAS HAPPENING. `generatePrd` fetches the opportunity with select("*"),
+ * so `critic_review` -- the Critic's risks, kill criteria and missing evidence
+ * on this exact bet -- was already in memory, and the prompt that writes the
+ * spec's "## Risks & Open Questions" was assembled from title, problem, target
+ * user, hypothesis and the three ICE numbers only. Measured live 2026-08-06: 47
+ * of 289 opportunities carry a critic_review, and every one of them lost it at
+ * this step.
+ *
+ * WHY IT IS THE EXPENSIVE ONE. A person presses `c` on /decide, waits for a
+ * model to red-team the bet, reads "assumes SSO is already shipped; kill if
+ * fewer than three enterprise accounts ask", then presses `a`. The spec's own
+ * risk section was then written by a model that had never seen one word of it,
+ * so the only way to keep the teardown was to retype it into the editor. The
+ * product was deleting its own most expensive output at the moment of handoff.
+ *
+ * DEFENSIVE ON PURPOSE. `critic_review` is a jsonb column written by a model,
+ * so every field is checked rather than trusted. A review with nothing usable
+ * in it returns "" and the prompt is left exactly as it was, rather than
+ * carrying an empty heading that implies a red team happened.
+ */
+export function formatBetTeardown(review: unknown): string {
+  if (!review || typeof review !== "object" || Array.isArray(review)) return "";
+  const r = review as Record<string, unknown>;
+  const lines = (v: unknown, max: number) =>
+    Array.isArray(v)
+      ? v
+          .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+          .slice(0, max)
+          .map((s) => `- ${s.trim().slice(0, 400)}`)
+      : [];
+  const risks = lines(r.risks, 8);
+  const kill = lines(r.kill_criteria, 6);
+  const missing = lines(r.missing_evidence, 6);
+  const summary = typeof r.summary === "string" ? r.summary.trim().slice(0, 400) : "";
+  const verdict =
+    typeof r.verdict === "string" && ["ship", "revise", "kill"].includes(r.verdict.trim())
+      ? r.verdict.trim()
+      : "";
+  if (!risks.length && !kill.length && !missing.length && !summary) return "";
+
+  const parts: string[] = [];
+  if (verdict) parts.push(`Verdict: ${verdict}.`);
+  if (summary) parts.push(summary);
+  if (risks.length) parts.push(`Risks the Critic named:\n${risks.join("\n")}`);
+  if (kill.length) parts.push(`What would kill this bet:\n${kill.join("\n")}`);
+  if (missing.length) parts.push(`Evidence the Critic found missing:\n${missing.join("\n")}`);
+
+  return `\n\nPRIOR REVIEW (the Critic's teardown of THIS bet, already run and already read by the person who kept it):\n${parts.join(
+    "\n\n",
+  )}`;
+}
+
+/**
+ * PURE. THE PROMISE THE SPEC JUST MADE, IN THE TWO COLUMNS PLAN READS.
+ *
+ * `generatePrd` drafts success metrics into `prds.contract.success_metrics` and
+ * then places the bet in the Next lane with `roadmap_outcome` and
+ * `roadmap_measure` left null. Nothing copied one into the other, so /plan's
+ * undeclared Gate fired immediately -- "it is a task rather than a promise, and
+ * nothing can tell you later whether it worked" -- and opened a BLANK dialog on
+ * a bet whose promise the product had written forty seconds earlier. The person
+ * read the metric off the spec and typed it back in.
+ *
+ * THE MAPPING IS NOT ARBITRARY. `roadmap_outcome` is "what changes for the
+ * user" (CommitCeremony's own label) and the contract's `intent` is the core
+ * bet in plain language, which is the same sentence. `roadmap_measure` is "how
+ * we will know", and that is what the success metrics are: short, individually
+ * falsifiable statements, most load-bearing first. Two of them at most, because
+ * a measure nobody can hold in their head is not a measure.
+ *
+ * BOTH OR NEITHER, because `isCommitmentGoverned` (roadmap-governance.ts:32)
+ * counts a bet as declared only when it carries both, and /plan's Gate says in
+ * words that an undeclared bet carries "no outcome and no measure". Seeding one
+ * of the two would leave that sentence false on the next station.
+ *
+ * The MODEL'S intent only, never the assembled fallback. `contractIntent` falls
+ * back to the source block ("Title: ... Problem: ...") when the model returns
+ * nothing, and filing that as the outcome a team promised would be worse than
+ * leaving the promise undeclared and letting the Gate ask for it.
+ */
+export function commitmentFromContract(input: {
+  intent: string | null;
+  success_metrics: ContractClause[];
+}): { outcome: string; measure: string } | null {
+  const intent = (input.intent ?? "").trim();
+  const metrics = input.success_metrics
+    .filter((c) => c.status !== "superseded")
+    .map((c) => c.text.trim())
+    .filter((t) => t.length > 0);
+  if (!intent || metrics.length === 0) return null;
+  return {
+    outcome: intent.slice(0, ROADMAP_TEXT_MAX),
+    measure: metrics.slice(0, 2).join("; ").slice(0, ROADMAP_TEXT_MAX),
+  };
+}
+
+/**
+ * THE DECIDE -> PLAN HANDOFF: the lane, the promise, and the judgment.
+ *
+ * Lifted out of `generatePrd` so the second press of "Keep it" can run it too.
+ * A bet whose placement was refused the first time is repaired by pressing the
+ * key again, which costs one update rather than three model calls.
+ *
+ * `next`, not `now`. Keeping a bet means the call is made, not that anyone has
+ * started; claiming `now` would put work in flight that nobody scheduled.
+ *
+ * NEVER OVERWRITES. The `.is("roadmap_bucket", null)` filter is the guard: a
+ * human who already placed this bet has said something more specific than a
+ * default can, and a draft must not move work behind their back. The seeded
+ * promise is held to the same rule -- it is written only when BOTH columns are
+ * blank, so an agent's sentence can never displace a person's.
+ *
+ * THE ERROR IS READ NOW. supabase-js RESOLVES a refused write rather than
+ * throwing, so the old `const { data: placed }` reported success having changed
+ * nothing: an RLS refusal or a PostgREST schema-cache miss left `placed` null,
+ * no stage event was written, and /decide still said "Keeping it drafts the
+ * spec and moves it into Plan". Live on 2026-08-06, 0 of 289 opportunities
+ * carry a roadmap_bucket, so this path has never been observed to succeed in
+ * production and the code could not tell anyone why.
+ *
+ * PARTIAL, AND THIS SENTENCE IS THE HONEST PART: the report travels back on the
+ * handler's result, and no surface renders it yet. /decide's `draftSpec`
+ * mutation (src/routes/_authenticated.decide.tsx:473-490) navigates to the spec
+ * on success and drops every other field, so a refused lane is currently
+ * findable in the Worker log and in the returned object, not on the screen.
+ */
+async function placeKeptBetInNext(
+  supabase: SupabaseClient,
+  userId: string,
+  opp: {
+    id: string;
+    roadmap_bucket: string | null;
+    roadmap_outcome: string | null;
+    roadmap_measure: string | null;
+  },
+  seed: { outcome: string; measure: string } | null,
+): Promise<{ moved: boolean; note: string | null }> {
+  if (opp.roadmap_bucket) {
+    return {
+      moved: false,
+      note: `This bet was already in the ${opp.roadmap_bucket} lane, so the lane was left as it was.`,
+    };
+  }
+  const refused = {
+    moved: false,
+    note: "The lane did not move, so this bet is not on the Plan board yet. The spec was written and is safe.",
+  };
+
+  const patch: Record<string, unknown> = { roadmap_bucket: "next" };
+  if (seed && !opp.roadmap_outcome?.trim() && !opp.roadmap_measure?.trim()) {
+    patch.roadmap_outcome = seed.outcome;
+    patch.roadmap_measure = seed.measure;
+  }
+
+  try {
+    const { data: placed, error: placeErr } = await supabase
+      .from("opportunities")
+      .update(patch)
+      .eq("id", opp.id)
+      .is("roadmap_bucket", null)
+      .select("id,workspace_id,title,impact,confidence,ease,project_id,product_id");
+    if (placeErr) {
+      console.error(`[keep] opportunity ${opp.id} did not reach Next: ${placeErr.message}`);
+      return refused;
+    }
+    const row = placed?.[0] as
+      ({ workspace_id: string | null } & Record<string, unknown>) | undefined;
+    // An empty row set IS the refusal case, and it is the one the old code read
+    // as success. The already-placed reading is ruled out above, off the row
+    // this handler had already fetched.
+    if (!row) return refused;
+
+    await recordStageEvent(supabase, {
+      entityType: "opportunity",
+      entityId: opp.id,
+      from: null,
+      to: "next",
+      actor: "human",
+      workspaceId: row.workspace_id,
+      userId,
+    });
+
+    /**
+     * THE PRIMARY ANSWER AT THE GATE NOW WRITES A JUDGMENT.
+     *
+     * `recordJudgment` had exactly one caller -- `updateOpportunity`, and only
+     * when `status` is in the patch -- so "Drop it" wrote a decision and "Keep
+     * it" wrote none. Live 2026-08-06: `decisions` carries mission, prd,
+     * roadmap, retrospective, critic, manual and meeting rows, and ZERO with
+     * source_kind 'opportunity'. The Critic loads precedent out of that table,
+     * so "the record has been here before" could only ever cite rejections, and
+     * Learn had no approval to grade an outcome against.
+     *
+     * Nobody is asked to type anything: `judgmentFor` already classifies `next`
+     * as an approval and assembles the sentence from the row's own columns,
+     * which is why the row is re-selected with title and the ICE numbers on it.
+     * It never blocks the keep -- `recordJudgment` swallows its own failures by
+     * design, for the reason its header gives.
+     */
+    await recordJudgment(supabase, userId, {
+      id: opp.id,
+      row: row as Record<string, unknown>,
+      from: null,
+      to: "next",
+      workspaceId: row.workspace_id,
+    });
+
+    return { moved: true, note: null };
+  } catch (e) {
+    console.error(
+      `[keep] opportunity ${opp.id} did not reach Next: ${e instanceof Error ? e.message : String(e)}`,
+    );
+    return refused;
+  }
+}
+
 /** AI: generate a PRD from an opportunity (or from a freeform brief). */
 export const generatePrd = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -2233,6 +2454,9 @@ export const generatePrd = createServerFn({ method: "POST" })
         opportunity_id: z.string().uuid().optional(),
         brief: z.string().max(4000).optional(),
         model: z.string().max(80).default("google/gemini-2.5-pro"),
+        /** Write a SECOND spec for a bet that already has one. Off by default;
+         *  see the duplicate guard in the handler. */
+        force: z.boolean().optional(),
       })
       .parse(i),
   )
@@ -2242,6 +2466,22 @@ export const generatePrd = createServerFn({ method: "POST" })
     let source = data.brief ?? "";
     let oppId: string | null = null;
     let title = "";
+    /** The bet this spec serves, kept in scope past its own block: the lane
+     *  write, the seeded promise, the teardown and the sample mark all read it,
+     *  and it was already fetched with select("*"). */
+    let bet: {
+      id: string;
+      is_sample: boolean;
+      roadmap_bucket: string | null;
+      roadmap_outcome: string | null;
+      roadmap_measure: string | null;
+    } | null = null;
+    /** The Critic's teardown of the bet, rendered for the spec writer. "" when
+     *  the bet was never challenged. See `formatBetTeardown`. */
+    let priorTeardown = "";
+    /** What the handoff into Plan actually did. `null` on the brief path, which
+     *  has no bet to place. See `placeKeptBetInNext`. */
+    let placement: { moved: boolean; note: string | null } | null = null;
 
     if (data.opportunity_id) {
       const { data: opp, error } = await supabase
@@ -2252,11 +2492,67 @@ export const generatePrd = createServerFn({ method: "POST" })
       if (error || !opp) throw new Error("Opportunity not found");
       title = opp.title;
       oppId = opp.id;
+      bet = {
+        id: opp.id,
+        is_sample: opp.is_sample === true,
+        roadmap_bucket: opp.roadmap_bucket ?? null,
+        roadmap_outcome: opp.roadmap_outcome ?? null,
+        roadmap_measure: opp.roadmap_measure ?? null,
+      };
+      priorTeardown = formatBetTeardown(opp.critic_review);
       source = `Title: ${opp.title}
 Problem: ${opp.problem}
 Target user: ${opp.target_user ?? "Not specified"}
 Hypothesis: ${opp.hypothesis ?? ""}
 ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
+
+      /**
+       * A SECOND PRESS MINTED A SECOND SPEC.
+       *
+       * The insert below is unconditional and the link is one-way: a bet
+       * carries no forward pointer to its spec, and /decide never queries
+       * specs, so a kept bet still sits in the ranking on Friday looking
+       * undecided. Pressing `a` again cost three model calls plus a Critic run
+       * and put two competing specs on /plan, both reading "serves <same bet>".
+       * Live: two real bets carry two specs each, written a week apart.
+       *
+       * The identical shape was already fixed one station upstream -- the
+       * write-up is at :1037 -- and this is the same answer: the second press
+       * lands on the artifact the first one made, rather than making another.
+       *
+       * NOT A DELETION. The existing spec is returned, so the surface still
+       * navigates the person to a spec; `existing: true` says which one it is.
+       * The lane write still runs on this path, so a second press REPAIRS a
+       * placement that was refused the first time instead of paying for another
+       * generation. It does NOT re-seed the promise: the only intent in hand
+       * here is one already stored on the old contract, and it cannot be told
+       * apart from the assembled fallback that `contractIntent` writes when the
+       * model returns nothing.
+       *
+       * `force` exists for the case a person genuinely wants a second draft.
+       * Nothing calls it yet; it is here so the guard has an escape that is not
+       * "delete the first spec".
+       */
+      if (!data.force) {
+        const { data: existing, error: existingErr } = await supabase
+          .from("prds")
+          .select("*")
+          .eq("opportunity_id", oppId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        // A read that FAILED is not a read that found nothing. Generating is
+        // the safer answer to "I cannot tell": a duplicate spec is recoverable,
+        // a keystroke that refuses to do anything is not.
+        if (existingErr) {
+          console.error(
+            `[keep] could not check for an existing spec on ${oppId}: ${existingErr.message}`,
+          );
+        } else if (existing) {
+          placement = await placeKeptBetInNext(supabase, userId, bet, null);
+          return { prd: existing, existing: true, placement };
+        }
+      }
     }
     if (!source.trim()) throw new Error("Provide an opportunity or a brief.");
 
@@ -2303,7 +2599,13 @@ Sections (use ## headings, in this exact order):
 
 Be concrete, terse, and useful. Use tight bullets. No filler.
 
-When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [2]), cite them inline using those numbers wherever you draw from them. Do not invent citation numbers.`;
+When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [2]), cite them inline using those numbers wherever you draw from them. Do not invent citation numbers.${
+      priorTeardown
+        ? `
+
+The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet this spec comes from, which the person has already read. Carry it forward. Every risk, kill criterion and piece of missing evidence it names must appear in "## Risks & Open Questions" (or be answered outright in "## Scope (MVP)" or "## Out of Scope"). Do not restate it as new, and do not contradict it without saying why.`
+        : ""
+    }`;
 
     // RAG: retrieve workspace evidence (signals, docs, meetings, notes) and
     // expose it as numbered chunks the model can cite as [n]. Citations are
@@ -2340,7 +2642,13 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
       fallbackModel: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: system },
-        { role: "user", content: source + contextBlock },
+        // The teardown rides between the bet and the retrieved evidence, so the
+        // model reads the objection before it reads the supporting quotes. It
+        // is deliberately NOT folded into `source`, which also feeds the RAG
+        // query and the contract's intent fallback: a red team is not a
+        // description of the bet, and using it as one would skew retrieval and
+        // could file a list of risks as the outcome a team promised.
+        { role: "user", content: source + priorTeardown + contextBlock },
       ],
     });
     const body_md = result.output;
@@ -2370,10 +2678,12 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
       ambiguity_policy?: unknown;
     };
     const nowIso = new Date().toISOString();
-    const contractIntent =
-      typeof cj.intent === "string" && cj.intent.trim()
-        ? cj.intent.trim().slice(0, 2000)
-        : source.trim().slice(0, 2000);
+    /** The model's OWN intent, or null. Held separately from `contractIntent`
+     *  because that one falls back to the assembled source block, which reads
+     *  "Title: ... Problem: ..." and must never be filed as the outcome a team
+     *  promised. See `commitmentFromContract`. */
+    const modelIntent = typeof cj.intent === "string" && cj.intent.trim() ? cj.intent.trim() : null;
+    const contractIntent = (modelIntent ?? source.trim()).slice(0, 2000);
     const budgetEstimate =
       typeof cj.budget_estimate === "string" ? cj.budget_estimate.trim().slice(0, 200) : null;
     const blastRadius =
@@ -2398,20 +2708,49 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
       drafted_at: nowIso,
     };
 
-    const { data: prd, error: pErr } = await supabase
-      .from("prds")
-      .insert({
-        user_id: userId,
-        opportunity_id: oppId,
-        title,
-        body_md,
-        model: data.model,
-        citations,
-        contract,
-        contract_migrated_at: nowIso,
-      })
-      .select()
-      .single();
+    /**
+     * A SPEC DESCENDED FROM AN EXAMPLE IS AN EXAMPLE, AND IT COULD NOT SAY SO.
+     *
+     * `is_sample` did not cross this seam, and `prds` had no column to put it
+     * in. /decide is meticulous about the mark in both directions -- the gate's
+     * first line and every queue row -- on the stated grounds that the list is
+     * where a person forms their impression of what is in their workspace. One
+     * keypress later that care was gone: on a day-one workspace the gate holds
+     * a seeded example (decide.tsx falls through to ranked[0] when there is no
+     * real bet), so "Keep it" put an invented bet in the Next lane and an
+     * invented spec in the Specs list, neither carrying the Example tag Decide
+     * printed on the same bet one screen earlier. Live: 20 sample bets across 5
+     * workspaces, and this is launch week.
+     *
+     * The column is added by supabase/migrations/20260806120000_a_spec_drawn_
+     * from_an_example_is_an_example.sql, which follows the theme migration's
+     * rule: a child is a sample only if it descends from one.
+     *
+     * WRITTEN ONLY WHEN TRUE. The column defaults to false, so naming it on
+     * every real spec would be redundant -- and it would make the ONE write
+     * this whole flow depends on fail for everybody if the migration has not
+     * reached PostgREST's schema cache yet. A seeded bet is exactly the case
+     * the column exists for, and it is the only case that names it.
+     *
+     * PARTIAL, and this is the true half of the sentence: the flag now travels
+     * and is stored. NO SURFACE READS IT YET -- `listSpecs` (:1301) does not
+     * select it, `RoadmapItem` (src/lib/roadmap.functions.ts:62) has no such
+     * field, and /plan renders no Example tag. Those live in other files. The
+     * select cannot be widened here either until the generated Database types
+     * carry the column, or the query stops typechecking.
+     */
+    const prdRow: Database["public"]["Tables"]["prds"]["Insert"] & { is_sample?: boolean } = {
+      user_id: userId,
+      opportunity_id: oppId,
+      title,
+      body_md,
+      model: data.model,
+      citations,
+      contract,
+      contract_migrated_at: nowIso,
+      ...(bet?.is_sample ? { is_sample: true } : {}),
+    };
+    const { data: prd, error: pErr } = await supabase.from("prds").insert(prdRow).select().single();
     if (pErr) throw new Error(pErr.message);
     if (prd) {
       // SEAM-1: stage history for the created spec (DB default status is draft).
@@ -2425,7 +2764,7 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
         userId,
       });
     }
-    if (prd && oppId) {
+    if (prd && oppId && bet) {
       await recordLineage(supabase, userId, {
         parent_kind: "opportunity",
         parent_id: oppId,
@@ -2446,42 +2785,41 @@ When the user message contains a CONTEXT block with numbered chunks (e.g. [1], [
       //
       // `next`, not `now`. Keeping a bet means the call is made, not that
       // anyone has started; claiming `now` would put work in flight that
-      // nobody scheduled. It lands as an UNDECLARED commitment (no outcome, no
-      // measure), which Plan already counts and surfaces, and that is the
-      // correct behaviour rather than a gap: the promise is genuinely still
-      // owed, and hiding it would be the comfortable lie.
+      // nobody scheduled.
+      //
+      // IT NO LONGER LANDS UNDECLARED, and the paragraph that used to stand
+      // here said the opposite. It read: "It lands as an UNDECLARED commitment
+      // (no outcome, no measure), which Plan already counts and surfaces, and
+      // that is the correct behaviour rather than a gap." That was true of the
+      // lane and false of the reason. The promise was not still owed -- the
+      // agent had just written it into `contract.success_metrics`, one function
+      // call above, and then dropped it. Plan's Gate fired forty seconds into
+      // the core flow and opened a blank dialog, so the person read the metric
+      // off the spec the product had generated and typed it back in. The
+      // comfortable lie was ours, not Plan's. `commitmentFromContract` carries
+      // it across; the Gate still fires for a bet whose contract drafted
+      // nothing, which is the case where the promise genuinely is still owed.
       //
       // Never overwrites. A human who already placed this bet has said
       // something more specific than a default can, and a draft must not move
       // work behind their back. Fail-soft for the same reason every other
       // stamp here is: the spec exists, and a handoff hiccup must not fail a
       // write that a retry would duplicate.
-      try {
-        const { data: placed } = await supabase
-          .from("opportunities")
-          .update({ roadmap_bucket: "next" })
-          .eq("id", oppId)
-          .is("roadmap_bucket", null)
-          .select("id,workspace_id");
-        if (placed?.length) {
-          await recordStageEvent(supabase, {
-            entityType: "opportunity",
-            entityId: oppId,
-            from: null,
-            to: "next",
-            actor: "human",
-            workspaceId: (placed[0] as { workspace_id: string | null }).workspace_id,
-            userId,
-          });
-        }
-      } catch {
-        // Best-effort placement; the spec and its lineage already survived.
-      }
+      //
+      // The lane, the seeded promise and the judgment now live together in
+      // `placeKeptBetInNext`, above, so the second press of "Keep it" runs the
+      // same writes without paying for a second generation.
+      placement = await placeKeptBetInNext(
+        supabase,
+        userId,
+        bet,
+        commitmentFromContract({ intent: modelIntent, success_metrics: contract.success_metrics }),
+      );
     }
     if (prd) {
       await runCritic(supabase, userId, { kind: "prd", id: prd.id });
     }
-    return { prd };
+    return { prd, existing: false, placement };
   });
 
 /** AI: rewrite/expand/critique a selection within a PRD. */

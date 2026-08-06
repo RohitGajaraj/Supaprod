@@ -101,6 +101,32 @@
  *    this bet has none of its own; it never invents an id. Not the mirrored bet
  *    the citation names -- that one's ids are filtered out and collapsed to a
  *    string upstream, and the door's label says which record it is opening.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-06, second pass. THE SENTENCE THAT STATES THE MOAT WAS FICTION FOR
+ * EVERY USER IN THE DATABASE, and the one element that could have proved it was
+ * gated behind the thing a new account cannot have. Four sites, each written
+ * out in full where it lives:
+ *
+ * 1. THE SUBTITLE CLAIMED A RE-RANK THAT NEVER HAPPENED HERE. `lastRescoreAt`
+ *    was max(created_at) over an unfiltered, cross-workspace learnings read, so
+ *    the timestamp came from whichever workspace had the newest row -- usually
+ *    the seeded Explore one. It is read from a workspace-scoped,
+ *    moved-a-score-only query now, and the no-outcomes-yet branch says what the
+ *    order IS built from rather than hedging the claim it cannot make.
+ * 2. "ENOUGH HISTORY TO CITE HONESTLY" COUNTED OTHER PEOPLE'S WORKSPACES. Same
+ *    read, same defect, one screen further down: it decided whether to spend an
+ *    embedding per visible bet.
+ * 3. CORROBORATION WAS READ IN A NARROWER SCOPE THAN THE BETS. Themes came from
+ *    a product-scoped list, bets from an unscoped one, so about half the
+ *    theme-linked bets showed no signal count at all and the queue reordered
+ *    when the product picker moved, with nothing saying why.
+ * 4. THE ICE DELTA WAS GATED ON A CITATION A FIRST OUTCOME CANNOT PRODUCE. The
+ *    record recess now renders on EITHER the citation or the delta, so the
+ *    first outcome a person ever settles is visibly the one that moved the bet.
+ *
+ * What did NOT change: the comparator, the server functions, the k/c/x keys,
+ * the Gate's one primary answer, and the recess sitting directly under it.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -262,7 +288,9 @@ function DecideSurface() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const confirm = useConfirm();
-  const { activeProductId } = useWorkspace();
+  // No `activeProductId`. The bets on this station are read unscoped, so the
+  // themes beside them are too — see the themes query below.
+  const { activeWorkspaceId } = useWorkspace();
 
   const fOpps = useServerFn(listOpportunities);
   const fThemes = useServerFn(listThemes);
@@ -284,13 +312,83 @@ function DecideSurface() {
   // Same keys as before, so the detail sheet's own writes and the Discover
   // surface keep sharing one cache.
   const opps = useQuery({ queryKey: ["opportunities"], queryFn: () => withTimeout(fOpps()) });
+  /**
+   * THE THEMES ARE READ IN THE SAME SCOPE THE BETS ARE, AND THEY WERE NOT.
+   *
+   * This query used to pass `{ productId: activeProductId }`, which makes
+   * `listThemes` filter `project_id.eq.<product> OR project_id.is.null`. The
+   * bets beside it come from `listOpportunities`, which has NO product filter
+   * at all. So `themeById` was missing every theme belonging to another
+   * product, and both of its readers -- the ranking's corroboration tie-break
+   * and `activeSignals`, the "N signals in the record" line in the context
+   * column -- resolved silently to 0 for those bets. Measured live: 9
+   * theme-linked bets split across two products, so roughly half were zeroed
+   * whichever product the picker had auto-selected, and switching the picker
+   * reordered the queue with nothing on screen saying why. The screen could
+   * print four things a customer actually said and, one heading down, no count
+   * at all.
+   *
+   * Two lists disagreeing about scope is the defect; matching them is the fix.
+   * The unscoped read is a strict SUPERSET of the scoped one, so no bet loses a
+   * count it had, and the key is `"all-products"` rather than `activeProductId`
+   * because `["themes", <product>]` is Discover's cache entry and the two
+   * queries must not overwrite each other's answer.
+   *
+   * WHAT IS STILL NOT RIGHT, and it is one file away: `listThemes` caps at 300
+   * rows ordered by frequency, so a workspace past 300 themes would drop its
+   * least-corroborated ones from this map (257 live today, so unreachable
+   * now). The durable fix is a `theme_frequency` join on `listOpportunities`
+   * (src/lib/discovery.functions.ts:839-898, which already does exactly this
+   * shape of two-hop JS join for `decided_by_agent_slug`), after which this
+   * query and `themeById` both go away.
+   */
   const themes = useQuery({
-    queryKey: ["themes", activeProductId],
-    queryFn: () => withTimeout(fThemes({ data: { productId: activeProductId } })),
+    queryKey: ["themes", "all-products"],
+    queryFn: () => withTimeout(fThemes({ data: { productId: null } })),
   });
+  /**
+   * EVERYTHING THE PERSON HAS LEARNED, ANYWHERE. Deliberately unfiltered, and
+   * it feeds only the two maps below, both of which are keyed by an id
+   * (`opportunity_id`, `opportunity_theme_id`). `listOpportunities` is itself
+   * unscoped -- the queue on this station shows every bet RLS admits,
+   * including the seeded Explore workspace's -- so narrowing this read would
+   * strip the rescore note and the outcome-support term off exactly the rows
+   * that are still rendered. A cross-workspace learning that matches nothing
+   * on screen is inert; one that matches is about a bet the reader is looking
+   * at.
+   */
   const learnings = useQuery({
     queryKey: ["learnings"],
     queryFn: () => withTimeout(fLearnings()),
+  });
+  /**
+   * THE ONE READ THAT IS ALLOWED TO SAY "THIS WORKSPACE RE-RANKED ITSELF".
+   *
+   * `lastRescoreAt` used to be max(created_at) over the unfiltered read above,
+   * and it drives the page subtitle -- the sentence that states the moat, on
+   * the station that IS the moat. Two things were wrong with it at once. The
+   * `learnings` RLS policy admits every workspace the caller belongs to and
+   * every account is handed a seeded Explore workspace at signup, so the
+   * timestamp was routinely lifted out of a workspace the reader was not
+   * standing in: 70 of 103 workspace-attached learnings live in `is_sample`
+   * workspaces. And a learning that moved no score still set it, though only
+   * 49 of 119 carry a `new_ice` at all. Queried per user, `max(created_at)
+   * where not is_sample and new_ice is not null` was NULL for every user in
+   * the database while the unfiltered max was non-null for at least eight of
+   * them. Every one of those eight was being told their queue had been
+   * re-ranked off a recorded outcome. None of them had recorded one.
+   *
+   * Both narrowings are applied SERVER-SIDE, before `order(created_at desc)
+   * limit(50)`, so this returns the newest 50 OF THE FILTERED SET and its max
+   * is the real max rather than the max of whatever survived a client filter.
+   * `workspaceId: null` (no workspace picked yet) is the same as omitting it,
+   * so this stays disabled until there is a workspace to be truthful about.
+   */
+  const rescores = useQuery({
+    queryKey: ["learnings", "moved-score", activeWorkspaceId],
+    queryFn: () =>
+      withTimeout(fLearnings({ data: { workspaceId: activeWorkspaceId, movedScoreOnly: true } })),
+    enabled: Boolean(activeWorkspaceId),
   });
   const briefAlignment = useQuery({
     queryKey: ["brief-alignment"],
@@ -337,12 +435,15 @@ function DecideSurface() {
     return map;
   }, [learnings.data]);
 
+  /** The newest outcome recorded IN THIS WORKSPACE that actually moved a
+   *  score. Null is the honest answer for a workspace that has settled nothing
+   *  yet, and the subtitle has a true sentence for that case. */
   const lastRescoreAt = React.useMemo(() => {
-    const list = learnings.data?.learnings ?? [];
+    const list = rescores.data?.learnings ?? [];
     if (list.length === 0) return null;
     return list.reduce((a, b) => (new Date(a.created_at) > new Date(b.created_at) ? a : b))
       .created_at;
-  }, [learnings.data]);
+  }, [rescores.data]);
 
   // The reinforcement seam: what actually happened to past bets on the same
   // evidence moves the order of new ones.
@@ -412,7 +513,27 @@ function DecideSurface() {
     );
     return ids.slice(0, MAX_PRECEDENT_IDS);
   }, [active, visibleOthers]);
-  const hasEnoughOutcomes = (learnings.data?.learnings.length ?? 0) >= 3;
+  /**
+   * "Enough history to cite honestly" IS A FACT ABOUT THIS WORKSPACE, and this
+   * counted every workspace the caller belongs to. On a real-but-empty
+   * workspace the count was made up almost entirely of the seeded Explore
+   * rows, so the citation query fired -- and paid for an embedding per visible
+   * bet -- on a record that holds nothing of the reader's own.
+   *
+   * Split client-side rather than with a second round trip: `listLearnings`
+   * now returns `workspace_id` on every row unconditionally, exactly so a
+   * caller can attribute rows without re-reading. THE ONE CASE THIS GETS
+   * WRONG, stated rather than hidden: the read above is the newest 50 across
+   * all workspaces, so a caller whose seeded rows outnumber that window would
+   * count 0 of their own and the citations would stay unfetched. It
+   * under-claims, never over-claims, and it is unreachable on today's data
+   * (119 learnings in the entire database). If it ever bites, this wants its
+   * own `fLearnings({ data: { workspaceId } })` read.
+   */
+  const hasEnoughOutcomes =
+    activeWorkspaceId !== null &&
+    (learnings.data?.learnings ?? []).filter((l) => l.workspace_id === activeWorkspaceId).length >=
+      3;
   const citations = useQuery({
     queryKey: ["opportunity-precedent-citations", visibleIds],
     queryFn: () => fCitations({ data: { ids: visibleIds } }),
@@ -876,16 +997,51 @@ function DecideSurface() {
           station is gated on a mutation the reader's own click started;
           this one is bound to the run. See use-live-agents.ts. */}
       <CrewWorking />
+      {/**
+       * THE SENTENCE THAT STATES THE MOAT, AND IT HAS TO BE EARNED EVERY TIME.
+       *
+       * "Re-ranked N ago, on its own, off a recorded outcome" is the strongest
+       * claim this product makes, on the station the claim is about. It was
+       * printed off `max(created_at)` over a cross-workspace, unfiltered
+       * learnings read, so on launch day every user in the database would have
+       * read it in their own empty workspace, on a timestamp lifted from a
+       * seeded row in the Explore workspace they were handed at signup.
+       * Nothing had been re-ranked. `lastRescoreAt` now comes from the
+       * workspace-scoped, moved-a-score-only read, so this branch is reached
+       * only when an outcome recorded HERE genuinely moved a score.
+       *
+       * THE OTHER BRANCH IS NOT A HEDGE, AND IT IS NOT AN APOLOGY. The honest
+       * version of "we re-ranked your queue" is never "we may have re-ranked
+       * your queue" -- a weaker claim about the same thing teaches nothing.
+       * It is a different, true sentence: what the order is actually built
+       * from today, and what changes once an outcome lands.
+       *
+       * "FIRST, THEN" RATHER THAN A LIST, because the list would be wrong. The
+       * comparator in components/discover/ranking.ts has five terms in strict
+       * order -- ICE, the Critic's verdict, brief alignment, recorded-outcome
+       * support, then corroboration -- and this names the three a reader can
+       * see and act on WITHOUT LEAVING THIS SCREEN: the ICE editor in the
+       * context column, the Critic badge above it, and the signal count under
+       * "What backs it". Naming three of five with an "and" would read as the
+       * whole chain and quietly misstate it; the complete per-bet answer is
+       * already one line away, under "Why it ranks here".
+       *
+       * It also stops being said the moment the reader settles an outcome on
+       * Learn, at which point the branch above replaces it and names the day.
+       * And it stays true while the read is still in flight, which the flat
+       * assertion "nothing has been re-ranked yet" would not be.
+       */}
       <PageHead
         title={headline}
         sub={
           rescoredAgo === null ? (
-            "Scores re-rank on their own whenever a new signal or outcome lands."
+            "Ordered by your ICE scores first, then the Critic's verdict and the signals behind each bet. Record an outcome on Learn and it re-ranks off that too."
           ) : rescoredAgo === "now" ? (
-            "Re-ranked just now, on its own, off a recorded outcome."
+            "Re-ranked just now, on its own, off an outcome recorded in this workspace."
           ) : (
             <>
-              Re-ranked <Num>{rescoredAgo}</Num> ago, on its own, off a recorded outcome.
+              Re-ranked <Num>{rescoredAgo}</Num> ago, on its own, off an outcome recorded in this
+              workspace.
             </>
           )
         }
@@ -1064,8 +1220,25 @@ function DecideSurface() {
           /brain?tab=learnings&learning=<id>. When there is none, the door opens
           the Learnings record itself rather than inventing an id it does not
           have. The title says which of the two it is, so the label never
-          promises the mirrored bet. */}
-      {activeCitation ? (
+          promises the mirrored bet.
+
+          AND IT NO LONGER WAITS FOR A CITATION TO SHOW THE LOOP WORKING.
+          `activeRescore` -- "+2.0 after 'churn spiked'" -- is the ONE element on
+          this station that shows a recorded outcome moved THIS bet's score, and
+          it was passed as this recess's `evidence`, which meant it only ever
+          rendered when `activeCitation` was non-null. That citation needs three
+          settled outcomes AND an embedded outcome memory on a DIFFERENT bet
+          scoring past the similarity floor, and `assemblePrecedentBlock`
+          deliberately filters this bet's own outcomes out, so a person's FIRST
+          outcomes structurally cannot produce one. The effect was that settling
+          your first outcome genuinely re-scored the bet and reordered the queue
+          -- and said nothing, for exactly as long as you had too little history
+          to be cited, which is precisely when you most need to see it work.
+
+          So the entry condition is EITHER, and the citation is the body when
+          there is one. When there is not, the body states the thing the
+          evidence line is proof of, in a sentence rather than a delta. */}
+      {activeCitation || activeRescore ? (
         <RecordRecess
           evidence={activeRescore ?? undefined}
           /* THE LABEL NAMES THE DESTINATION, NOT THE SENTENCE ABOVE IT.
@@ -1089,7 +1262,11 @@ function DecideSurface() {
             })
           }
         >
-          {activeCitation}
+          {/* `||`, matching the guard above, not `??`. An empty citation string
+              is falsy for the entry condition, so `??` here would let it
+              through as a blank body on a recess that only rendered because
+              the rescore was there. */}
+          {activeCitation || "An outcome recorded on this bet moved its score."}
         </RecordRecess>
       ) : null}
 

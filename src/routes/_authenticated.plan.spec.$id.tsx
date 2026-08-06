@@ -181,6 +181,33 @@
  *
  * Every server call, mutation, query key, route param and search param is
  * untouched by this pass. It is a layout and a ranking, and nothing else.
+ *
+ * ----------------------------------------------------------------------------
+ * 2026-08-06, THE SEAM PASS: THE PAGE NAMES THE BET IT CAME FROM.
+ *
+ * Two reads were wrong about the same thing, which is that this surface was
+ * judging a spec on less than the spec actually says.
+ *
+ *   1. IT COULD NOT NAME ITS BET. `prds.opportunity_id` is a real foreign key
+ *      and "Keep it" on /decide navigates a person straight here, and this file
+ *      contained not one reference to it. "Why this spec exists" rendered
+ *      `getProvenance`, which walks THROUGH the opportunity node and returns
+ *      only the root signals, so the block jumped from the spec to raw customer
+ *      sentences with the decision that authorised the work missing from the
+ *      middle. That block now names the bet first -- its problem, its ICE, its
+ *      state at Decide, and the Example tag when the bet is a seeded one -- and
+ *      then the quotes underneath it, unchanged.
+ *   2. DESIGN READINESS SCORED THE PROSE AND CALLED IT THE SPEC. The scan is a
+ *      keyword pass and it was handed `body_md` alone, so non-goals and
+ *      criteria written in the Outcome Contract counted as unwritten. It now
+ *      reads the contract's intent and standing clauses alongside the body.
+ *
+ * ONE NEW READ AND NO NEW SERVER FUNCTION. The bet comes from
+ * `listOpportunities` under the shared `["opportunities"]` query key /decide
+ * and Discover already use, so arriving from Decide costs a cache read. What is
+ * still owed and does not live in this file: /decide declares no
+ * `validateSearch`, so there is no way to deep-link ONE bet, and the door here
+ * says "Open the ranking" rather than claiming a focus the route cannot honour.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -194,10 +221,22 @@ import {
   prdAssist,
   createGithubIssueForPrd,
   generateTaskGraph,
+  listOpportunities,
   type CriticReview,
   type OutcomeContract,
 } from "@/lib/discovery.functions";
 import { getProvenance } from "@/lib/lineage.functions";
+// The canonical "real opportunity columns" shape, type-only so nothing of the
+// detail sheet enters this bundle. Never a second hand-written bet type: that
+// interface's own rule is that every field maps to an `opportunities` column.
+import type { OpportunityDetailRecord } from "@/components/discover/OpportunityDetailSheet";
+// PostgREST serializes the `numeric` ice_score column as a STRING, so the
+// generated Supabase type lies about it. One coercion, shared with moat-vis
+// and decision-judgment, rather than a third `Number()` written here.
+import { iceNum } from "@/lib/moat-vis";
+// The standing-clause reader the ARD already uses. Pure, structural, and unit
+// tested; writing a second one is how the two definitions of "standing" drift.
+import { standingClauseTexts } from "@/lib/build/ard-block";
 import { getDecisionCurrency } from "@/lib/decision-currency.functions";
 import { getDecisionPrecedent } from "@/lib/decision-precedent.functions";
 import { CriticBadge } from "@/components/governance/CriticBadge";
@@ -230,6 +269,7 @@ import {
   Choices,
   CtxBody,
   CtxHead,
+  Door,
   Empty,
   Failed,
   Line,
@@ -476,6 +516,42 @@ function SpecEditorPage() {
     queryKey: ["provenance", "prd", id],
     queryFn: () => fProvenance({ data: { kind: "prd", id } }),
   });
+
+  /**
+   * THE BET THIS SPEC WAS WRITTEN FOR, which this surface could not name.
+   *
+   * THE GAP. `prds.opportunity_id` is a real foreign key and `generatePrd`
+   * writes it on every agent-authored spec (42 of 81 live specs carry it), and
+   * this file rendered nothing from it: the word "opportunity" appeared
+   * nowhere in it. Pressing "Keep it" on /decide navigates a person STRAIGHT
+   * here, so the surface the handoff lands on could not say which bet
+   * authorised the work, what problem it was for, or what it scored. "Why this
+   * spec exists" walks the lineage graph past the opportunity node and returns
+   * only the raw signals, so the block jumped from the spec to customer
+   * sentences with the decision in between missing.
+   *
+   * WHY THIS READ. There is no by-id server read for a single bet anywhere in
+   * the product; `listOpportunities` is the only door, and adding a narrower
+   * one would mean editing a file this page does not own. It runs under the
+   * SAME `["opportunities"]` query key /decide and Discover already use, so
+   * the common path -- arriving here from Decide, whose data is already in
+   * cache -- costs a cache read rather than a request, and every existing
+   * `["opportunities"]` invalidation keeps this current for free.
+   *
+   * Gated on the foreign key, so a spec written by hand never pays for it.
+   */
+  const fOpps = useServerFn(listOpportunities);
+  const specOpportunityId =
+    (prdQ.data?.prd as { opportunity_id?: string | null } | undefined)?.opportunity_id ?? null;
+  const oppsQ = useQuery({
+    queryKey: ["opportunities"],
+    queryFn: () => fOpps(),
+    enabled: Boolean(specOpportunityId),
+  });
+  const allBets: OpportunityDetailRecord[] = oppsQ.data?.opportunities ?? [];
+  const sourceBet: OpportunityDetailRecord | null = specOpportunityId
+    ? (allBets.find((o) => o.id === specOpportunityId) ?? null)
+    : null;
 
   // The record speaking, in ONE region instead of three dismissible cards. Same
   // two server functions the retired nudges read; the third (shared premise)
@@ -833,8 +909,37 @@ function SpecEditorPage() {
   const issueMatch = prd.github_issue_url ? prd.github_issue_url.match(/\/issues\/(\d+)/) : null;
   const hasSnapshot = Boolean((prd as { snapshot_before?: unknown }).snapshot_before);
   const citations = (prd as { citations?: Citation[] | null }).citations ?? null;
+  const contract = (prd as { contract?: OutcomeContract | null }).contract ?? null;
   const signals = provQ.data?.source_signals ?? [];
   const signalCount = provQ.data?.signal_count ?? 0;
+  // Coerced, never rendered raw: the column arrives as "7.0000000000000000".
+  const betIce = sourceBet ? iceNum(sourceBet.ice_score) : null;
+
+  /**
+   * WHAT THE READINESS SCAN IS ALLOWED TO READ, and it was reading half the
+   * spec. `analyzeDesignReadiness` is a deterministic keyword pass and it was
+   * handed `body_md` alone, while the Outcome Contract is the most structured
+   * statement of scope this document has -- its intent, its standing success
+   * metrics, its standing non-goals. `savePrd` writes `contract` as its own
+   * column and never regenerates `body_md`, so every contract edit after
+   * creation widened the gap permanently: a spec that stated its non-goals as
+   * contract clauses scored "Early" and was told to "add before design" things
+   * it had already written down.
+   *
+   * THIS WIDENS WHAT IS ANALYSED, NEVER WHAT IS EDITED. The textarea below is
+   * still bound to `body` alone, so no contract text can be written back into
+   * the document by this. Superseded clauses are excluded, because a criterion
+   * that has been replaced is not a criterion the spec still states.
+   */
+  const readinessText = [
+    body,
+    contract?.intent ?? "",
+    ...standingClauseTexts(contract?.success_metrics),
+    ...standingClauseTexts(contract?.non_goals),
+  ]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join("\n\n");
 
   const orderedTasks = [...prdTasks].sort(
     (a: { seq?: number | null }, b: { seq?: number | null }) => (a.seq ?? 999) - (b.seq ?? 999),
@@ -1143,8 +1248,10 @@ function SpecEditorPage() {
               </Actions>
               {/* Advice about the words while you are writing them, so it stays
                   with the state that can act on it. It goes quiet on a blank
-                  spec, so it draws nothing of its own. */}
-              <DesignReadinessPanel body={body} />
+                  spec, so it draws nothing of its own. It reads the contract
+                  alongside the body (see `readinessText`), so a dimension
+                  stated as a contract clause counts as stated. */}
+              <DesignReadinessPanel body={readinessText} />
             </>
           ) : (
             <>
@@ -1339,7 +1446,7 @@ function SpecEditorPage() {
                   prdId={id}
                   specTitle={prd.title}
                   bodyMd={body}
-                  contract={(prd as { contract?: OutcomeContract | null }).contract}
+                  contract={contract}
                   invalidateKey={["prd", id]}
                 />
                 {/* RPT-44: the honest intent-vs-built receipt lives beside the contract. */}
@@ -1354,7 +1461,7 @@ function SpecEditorPage() {
                 title={prd.title}
                 status={prd.status}
                 updatedAt={prd.updated_at}
-                contract={(prd as { contract?: OutcomeContract | null }).contract}
+                contract={contract}
                 bodyMd={body}
                 citations={(citations ?? []).map((c) => ({
                   label: c.title?.trim() || c.source_kind,
@@ -1464,11 +1571,37 @@ function SpecEditorPage() {
             than describing it, and no view owns that question. The Record
             recess it used to draw is gone from here, because the recess is the
             one lit surface in the product and this page spends it above, on
-            the record contradicting you. */}
+            the record contradicting you.
+
+            2026-08-06: IT NAMES THE BET BEFORE IT NAMES THE SIGNALS. The chain
+            used to jump from this spec straight to raw customer sentences,
+            walking through the opportunity node and discarding it, so the page
+            a "Keep it" press lands on could not say which bet authorised the
+            work or what it scored. The bet goes FIRST because it is the nearer
+            and stronger answer to the block's own question: a person asking why
+            this spec exists is asking which decision produced it, and the
+            quotes are the evidence under that decision rather than a
+            replacement for it. */}
         <Block
           title="Why this spec exists"
           sub={
-            signalCount > 0 ? (
+            sourceBet ? (
+              <>
+                {/* "came from" rather than "was kept": a bet can be killed or
+                    dropped after its spec was written, and the line below
+                    prints whichever state it is actually in. */}
+                It was not invented here. It serves a bet that came from Decide
+                {signalCount > 0 ? (
+                  <>
+                    , and that bet traces back through <Num>{provQ.data!.node_count}</Num>{" "}
+                    {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
+                    {signalCount === 1 ? "thing" : "things"} people actually said
+                    {provQ.data!.truncated ? ", and the chain continues past these" : ""}
+                  </>
+                ) : null}
+                .
+              </>
+            ) : signalCount > 0 ? (
               <>
                 It was not invented here. It traces back through <Num>{provQ.data!.node_count}</Num>{" "}
                 {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
@@ -1478,12 +1611,86 @@ function SpecEditorPage() {
             ) : undefined
           }
         >
+          {/* THE BET, read off the `opportunity_id` foreign key this page never
+              touched. A spec with no bet behind it renders nothing here and the
+              signals below read exactly as they always did. */}
+          {specOpportunityId ? (
+            oppsQ.isLoading ? (
+              <Loading>Reading the bet this spec was written for.</Loading>
+            ) : oppsQ.isError ? (
+              <Failed onRetry={() => void oppsQ.refetch()}>
+                This spec names a bet and the bet did not come back.{" "}
+                {(oppsQ.error as Error).message}
+              </Failed>
+            ) : sourceBet ? (
+              <Line
+                label={sourceBet.title}
+                sub={
+                  <>
+                    {/* First in the line, the same ruling /decide made on its
+                        own queue rows: a caveat printed after the numbers
+                        arrives once the impression is already formed. A spec
+                        can be generated from a seeded example bet, and that is
+                        exactly the case a person must not mistake for their
+                        own product. */}
+                    {sourceBet.is_sample ? (
+                      <>
+                        <b>Example</b>
+                        {" · "}
+                      </>
+                    ) : null}
+                    {sourceBet.problem?.trim() ? <>{sourceBet.problem.trim()} · </> : null}
+                    impact <Num>{sourceBet.impact}</Num> · confidence{" "}
+                    <Num>{sourceBet.confidence}</Num> · ease <Num>{sourceBet.ease}</Num>
+                    {betIce !== null ? (
+                      <>
+                        {" · ICE "}
+                        <Num>{betIce.toFixed(1)}</Num>, the score the Decide queue is ordered by
+                      </>
+                    ) : null}
+                    {sourceBet.status ? <> · its state on Decide is {sourceBet.status}</> : null}
+                  </>
+                }
+              >
+                {/* IT LANDS ON THE RANKING, NOT ON THE BET, and the label says
+                    so rather than promising a focus the route cannot honour:
+                    /decide declares no `validateSearch`, so a search param
+                    aimed at one bet would be dropped and the door would open on
+                    whatever ranks first. Naming the ranking is the true
+                    sentence available from this file. */}
+                <Door
+                  onClick={() => void navigate({ to: "/decide" })}
+                  title="Open Decide, where this bet sits in the ranking"
+                >
+                  Open the ranking
+                </Door>
+              </Line>
+            ) : (
+              // NAMES ALL THREE REASONS, including the one the read itself
+              // causes: `listOpportunities` returns the 500 highest-scoring
+              // bets, so a very large workspace can hold a real bet this read
+              // never sees. Saying only "deleted" would blame the record for a
+              // limit in the query.
+              <Empty>
+                This spec names a bet the ranking did not return. It was deleted, it belongs to a
+                workspace you are not in, or it falls outside the 500 highest-scoring bets this read
+                covers.
+              </Empty>
+            )
+          ) : null}
+
           {provQ.isLoading ? null : provQ.isError ? (
             <Failed onRetry={() => provQ.refetch()}>The chain did not come back.</Failed>
           ) : signalCount === 0 ? (
+            // Two different true sentences, because "written directly" is a
+            // claim about the spec's origin and it is FALSE the moment the
+            // opportunity foreign key is set. Keyed on the key itself rather
+            // than on the fetched row, so an unreachable bet still gets the
+            // honest half.
             <Empty>
-              Nothing upstream. This one was written directly rather than raised by something a
-              customer said.
+              {specOpportunityId
+                ? "The chain stops at the bet. Nothing a customer said is linked to it yet."
+                : "Nothing upstream. This one was written directly rather than raised by something a customer said."}
             </Empty>
           ) : (
             // Five, not eight. Depth is a click away, and Discover owns the

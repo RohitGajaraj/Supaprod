@@ -1,9 +1,29 @@
 /**
  * Bundle 9 Slice 1 — Build Console server fns.
  *
- * Read-only view over agent_runs WHERE agent_slug='builder' joined to the
- * github.pr.open tool_call result (PR url, number, branch, path) and any
- * pending agent_approvals for that run. Feeds the /build page.
+ * `listBuilderRuns` is a read-only view over agent_runs WHERE
+ * agent_slug='builder' joined to the github.pr.open tool_call result (PR url,
+ * number, branch, path) and any pending agent_approvals for that run.
+ *
+ * TWO CLAIMS IN THIS HEADER WERE FALSE AND ARE CORRECTED RATHER THAN DELETED.
+ *
+ * It said this "feeds the /build page". It does not: `listBuilderRuns`,
+ * `listBuilderClaims` and `releaseBuilderClaim` have no caller anywhere in
+ * `src/` — /build imports `listBuildWork` and `canDispatchToRepo` instead
+ * (routes/_authenticated.build.index.tsx). They are written, exported and
+ * unmounted, and the file-claim error message in the tool registry still tells
+ * people to "release the claim from /build", a control that page does not have.
+ * Not fixed here: mounting them is a /build change and /build is not this file.
+ *
+ * And the github.pr.open join is now doubly dead. As of 2026-08-06 the work
+ * order this file dispatches names studio.stage → studio.commit →
+ * studio.pr.open (see `assembleBuilderGoal`), so a Build Console run will not
+ * produce a github.pr.open tool_call for this query to find. What DOES carry
+ * the PR is `studio_changesets`, keyed on mission_id, which is what every
+ * mounted reader in the product already uses.
+ *
+ * What this file is actually FOR today is `dispatchBuilderMission` below: the
+ * Build Console's one door from an approved spec to a running build.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -23,6 +43,14 @@ import { recordStageEvent } from "@/lib/stage-events.server";
 import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
 import { nativeBuildDriver } from "@/lib/build/native.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
+/**
+ * ONE DESIGN FOLD, NOT TWO. `formatDesignDispatchSections` is the Studio
+ * dispatch's own function and it is imported rather than reimplemented here on
+ * purpose: the defect this file carried was precisely that the two dispatch
+ * paths disagreed about what a builder is handed, and a second local copy of
+ * the fold would be the same defect with an extra place to drift.
+ */
+import { formatDesignDispatchSections } from "@/lib/studio.functions";
 
 export type BuilderRun = {
   run_id: string;
@@ -314,25 +342,73 @@ export function ardDispatchBlock(
 /**
  * PURE (tested in build/dispatch-parity.test.ts). Assemble the Builder work
  * order the Build Console dispatches. This path hands the goal straight to
- * the agent loop, so the work-order text IS the whole payload: the ARD block
- * and its acceptance criteria travel inside it, after the prose, exactly
- * like the Studio dispatch path.
+ * the agent loop, so the work-order text IS the whole payload: the design
+ * station's sections, the ARD block and its acceptance criteria all travel
+ * inside it, after the prose, exactly like the Studio dispatch path.
+ *
+ * THE WORK ORDER NAMES THE TOOLS THE BUILDER ACTUALLY HAS AN OPERATING LOOP
+ * FOR. It read: "ship a single-file scoped PR via github.pr.open with
+ * idempotency_key". Two things were wrong with that sentence at once.
+ *
+ * First, `github.pr.open` writes NO `studio_changesets` row -- it calls the
+ * GitHub REST API and stops -- and every reader in this product is keyed on
+ * `studio_changesets.mission_id`: the run page's changeset, diff and PR link,
+ * the seven-stage strip, the /build work list, design parity, and the ship
+ * stamp. An obedient agent therefore opened a real pull request that Supaprod
+ * could not see, under a run page still reading "Pull request: not opened yet".
+ *
+ * Second, it contradicted the agent's own instructions. Verified against the
+ * live roster on 2026-08-06: all 16 `builder` agents' system prompts name
+ * `studio.stage` and `studio.pr.open`, and NOT ONE mentions `github.pr.open`.
+ * So there was no branch where both halves were right -- obey the work order
+ * and the product goes blind, obey the prompt and the "Closes #N via
+ * github.pr.open" wiring is simply ignored.
+ *
+ * `studio.pr.open` takes `{title, body}` and has no idempotency argument, so
+ * the "Closes #N" instruction moves into the PR body where GitHub reads it
+ * anyway. Re-opening is already idempotent a level down: `studio.pr.open`
+ * returns the cached `{pr_number, pr_url}` when the changeset already has one.
  */
 export function assembleBuilderGoal(input: {
   issueNumber: number;
   intent: string;
   prd: DispatchPrd | null;
   ard: ReturnType<typeof ardDispatchBlock>;
+  /** The design station's own sections (standing design language, the spec's
+   *  flow, the mockup in its own html fence), already formatted by
+   *  `formatDesignDispatchSections`. Empty when the spec has no design. */
+  designSections?: string[];
   referenceLinks?: string[];
 }): string {
   const sections: string[] = [
-    `Pick up GitHub issue #${input.issueNumber} on the connected repo. Read the issue body, then ship a single-file scoped PR via github.pr.open with idempotency_key="issue-${input.issueNumber}". Closes #${input.issueNumber}.`,
+    `Pick up GitHub issue #${input.issueNumber} on the connected repo. Read the issue body, then build it as this mission's Studio changeset: studio.stage the files, studio.commit them to the mission's studio/* branch, then studio.pr.open. Put "Closes #${input.issueNumber}" in the PR body so merging the pull request closes the issue.`,
     `\nUser intent:\n${input.intent}`,
   ];
   if (input.prd)
     sections.push(
       `\nLinked spec: "${input.prd.title}" (id ${input.prd.id}). Use it as the source of truth for scope.`,
     );
+  /**
+   * THE DESIGN SECTIONS RIDE UNCONDITIONALLY, AND THAT IS THE WHOLE FIX.
+   *
+   * They used to reach the agent only inside the ARD's `design` key, and
+   * `ardDispatchBlock` returns null before it ever looks at `design` when the
+   * spec has no compiled Outcome Contract. Measured live on 2026-08-06: all 41
+   * specs with status='approved' -- every row the Build Console offers -- carry
+   * `contract = '{}'`, so the ARD was null on 100% of dispatches and the design
+   * station's entire output was loaded, formatted and thrown away every time.
+   * The builder's own system prompt tells it to read the mockup and to "never
+   * invent a screen when an approved one was handed to you"; it was handed none,
+   * took its documented no-design fallback, and built past the drawing a human
+   * had just approved.
+   *
+   * Placed before the ARD block for the same reason `dispatchStudioSession`
+   * places it there (studio.functions.ts:296-300): the design is context the
+   * contract is then graded against, so the reader meets it first.
+   */
+  if (input.designSections?.length) {
+    for (const section of input.designSections) sections.push(`\n${section}`);
+  }
   if (input.ard) {
     sections.push(`\n${input.ard.block}`);
     if (input.ard.acceptanceCriteria) {
@@ -356,8 +432,14 @@ export function assembleBuilderGoal(input: {
  *   3. autoCreateIssue=true → open a fresh issue from the goal (+ optional
  *      PRD body and reference links appended as context).
  *
- * The Builder agent's tool contract is unchanged: it still calls
- * github.pr.open with the same allow-list and per-issue idempotency key.
+ * THE BUILDER'S TOOL CONTRACT CHANGED HERE, 2026-08-06. This said "unchanged:
+ * it still calls github.pr.open with the same allow-list and per-issue
+ * idempotency key". The work order now names studio.stage → studio.commit →
+ * studio.pr.open instead, which is what the builder's own system prompt has
+ * always told it to use and the only path that writes a `studio_changesets`
+ * row for the product to read the PR back out of. Both tools remain in the
+ * registry and neither allow-list moved; what changed is which one this
+ * dispatch asks for. The reasoning is on `assembleBuilderGoal` above.
  */
 export const dispatchBuilderMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -410,6 +492,18 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
     // 3.4 adds the design station's structured section to the same fold.
     const designCtx = await loadDesignDispatchContext(supabase as unknown as SupabaseClient, prd);
     const ard = ardDispatchBlock(prd, toArdDesignSection(designCtx));
+    /**
+     * The design station's PROSE half, carried independently of the ARD.
+     *
+     * `toArdDesignSection` above is the structured half and it survives only
+     * inside the ARD document, which does not exist without a compiled
+     * contract. These sections are the same design context in the shape
+     * `dispatchStudioSession` has always sent -- standing design language, the
+     * spec's flow, and the mockup in its OWN fenced html block -- and they now
+     * ride whether or not a contract compiled, which is the only way the
+     * approved mockup reaches a Build Console dispatch today.
+     */
+    const designSections = formatDesignDispatchSections(designCtx);
 
     // Workspace: prefer the PRD's, else the user's default (also used for the mission).
     const { data: ws } = await supabase.rpc("current_user_default_workspace");
@@ -463,6 +557,20 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
           `\n---\n**From PRD:** ${prd.title}\n\n${(prd.body_md ?? "").slice(0, 20_000)}`,
         );
       if (ard) bodyParts.push(`\n---\n${ard.block}`);
+      /**
+       * THE MOCKUP DELIBERATELY DOES NOT GO IN THE ISSUE BODY, AND THIS IS THE
+       * HALF OF THE DESIGN FIX THAT IS NOT DONE HERE.
+       *
+       * `designSections` reaches the building agent through the work order
+       * above, which is the channel the agent actually reads and the one that
+       * was broken. Repeating them here would put an approved mockup (capped at
+       * `ARD_SCAFFOLD_HTML_CAP`, 20,000 chars) plus the standing design language
+       * into a body that already carries the goal (4,000), the spec (20,000) and
+       * the ARD (8,000) -- against GitHub's 65,536-char issue-body limit, whose
+       * only failure mode here is a 422 that throws and kills the whole
+       * dispatch. A human reading the issue can open the spec's Design tab; an
+       * agent that never receives the markup cannot.
+       */
       if (data.referenceLinks?.length) {
         bodyParts.push(
           `\n---\n**References:**\n${data.referenceLinks.map((u) => `- ${u}`).join("\n")}`,
@@ -514,6 +622,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       intent: data.goal,
       prd,
       ard,
+      designSections,
       referenceLinks: data.referenceLinks,
     });
 
@@ -525,71 +634,155 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       .eq("slug", "builder")
       .maybeSingle();
 
+    /**
+     * EVERYTHING FROM HERE IS DURABLE, SO A FAILURE FROM HERE IS NOT "NOTHING
+     * HAPPENED".
+     *
+     * This handler awaits the ENTIRE inline agent turn, and by the time it does
+     * it has already opened the GitHub issue, written `prds.github_issue_url`,
+     * created the mission, written the prd->mission lineage edge and recorded
+     * the stage event. Any failure inside `runAgentLoop` -- a spend cap, a model
+     * error, a later GitHub call, or the request simply timing out on a long
+     * build -- used to be thrown, and the Build Console's error row appends
+     * "Nothing was dispatched, so the spec is still waiting." to whatever it
+     * catches. That is the opposite of what happened, and the natural response
+     * to it is to press again: the second press finds `github_issue_url` set,
+     * skips issue creation, and mints a SECOND mission, a second lineage edge
+     * and a second billed builder run against the same issue.
+     *
+     * So a failure that lands after the mission exists is REPORTED, not thrown:
+     * the caller gets the mission id it needs to open the run (where the failure
+     * is visible in full) alongside `run_error`. Only a failure with no mission
+     * and no started loop behind it still throws, because for that one the
+     * caller's sentence is true.
+     */
     let missionId: string | null = null;
-    if (workspaceId && agent) {
-      const m = await createMission(supabase, userId, workspaceId, {
-        title: (
-          data.missionTitle?.trim() || `Build · #${issueNumber} ${data.goal.slice(0, 60)}`
-        ).slice(0, 200),
-        goal: fullGoal,
-        starting_agent_id: (agent as { id: string }).id,
-        // BD-1: this dispatch runs the in-house loop below, so the mission is
-        // stamped with the engine that actually builds it.
-        build_driver: nativeBuildDriver.id,
-      });
-      missionId = m.id;
-      // Mission 3.4: the spec's dispatch is a stage transition like any
-      // other; the ledger chain walks design -> build on real rows.
-      if (prd) {
-        /**
-         * THE EDGE THAT CARRIES THE SPEC INTO THE RECORD.
-         *
-         * Found 2026-08-05: this is the SECOND path that dispatches a Build
-         * mission from a spec, and it was the only one not writing this edge.
-         * dispatchStudioSession (studio.functions.ts) writes it; this one wrote
-         * the stage event and stopped. Nothing downstream could tell the two
-         * dispatches apart, because a mission carries no prd column — the edge
-         * IS the link.
-         *
-         * What that cost, four hops down: the changeset an agent opens resolves
-         * its spec through this edge, so a mission dispatched here produced a
-         * changeset with a null prd_id; decideStudioMergeShipStamp then refused
-         * every such merge with "this change has no spec behind it"; no spec was
-         * stamped shipped; the settle sweep had nothing to grade; and the
-         * outcome memory pool — the moat — stayed empty. 21 of 23 live
-         * changesets came through here, which is the whole gap.
-         *
-         * Same shape and relation as the Studio dispatch deliberately, so the
-         * two paths write ONE kind of edge and every reader stays single-path.
-         */
-        await recordLineage(supabase, userId, {
-          parent_kind: "prd",
-          parent_id: prd.id,
-          child_kind: "mission",
-          child_id: m.id,
-          relation: "dispatched",
-          rationale: "Sent to Build",
-          created_by_agent: "builder",
+    let loopEntered = false;
+    try {
+      if (workspaceId && agent) {
+        const m = await createMission(supabase, userId, workspaceId, {
+          title: (
+            data.missionTitle?.trim() || `Build · #${issueNumber} ${data.goal.slice(0, 60)}`
+          ).slice(0, 200),
+          goal: fullGoal,
+          starting_agent_id: (agent as { id: string }).id,
+          // BD-1: this dispatch runs the in-house loop below, so the mission is
+          // stamped with the engine that actually builds it.
+          build_driver: nativeBuildDriver.id,
         });
-        await recordStageEvent(supabase, {
-          entityType: "spec",
-          entityId: prd.id,
-          from: null,
-          to: "build",
-          actor: "human",
-          workspaceId,
-          userId,
-        });
+        missionId = m.id;
+        // Mission 3.4: the spec's dispatch is a stage transition like any
+        // other; the ledger chain walks design -> build on real rows.
+        if (prd) {
+          /**
+           * THE EDGE THAT CARRIES THE SPEC INTO THE RECORD.
+           *
+           * Found 2026-08-05: this is the SECOND path that dispatches a Build
+           * mission from a spec, and it was the only one not writing this edge.
+           * dispatchStudioSession (studio.functions.ts) writes it; this one wrote
+           * the stage event and stopped. Nothing downstream could tell the two
+           * dispatches apart, because a mission carries no prd column — the edge
+           * IS the link.
+           *
+           * What that cost, four hops down: the changeset an agent opens resolves
+           * its spec through this edge, so a mission dispatched here produced a
+           * changeset with a null prd_id; decideStudioMergeShipStamp then refused
+           * every such merge with "this change has no spec behind it"; no spec was
+           * stamped shipped; the settle sweep had nothing to grade; and the
+           * outcome memory pool — the moat — stayed empty. 21 of 23 live
+           * changesets came through here, which is the whole gap.
+           *
+           * Same shape and relation as the Studio dispatch deliberately, so the
+           * two paths write ONE kind of edge and every reader stays single-path.
+           */
+          await recordLineage(supabase, userId, {
+            parent_kind: "prd",
+            parent_id: prd.id,
+            child_kind: "mission",
+            child_id: m.id,
+            relation: "dispatched",
+            rationale: "Sent to Build",
+            created_by_agent: "builder",
+          });
+          await recordStageEvent(supabase, {
+            entityType: "spec",
+            entityId: prd.id,
+            from: null,
+            to: "build",
+            actor: "human",
+            workspaceId,
+            userId,
+          });
+        }
       }
+
+      loopEntered = true;
+      const result = await runAgentLoop(supabase, userId, {
+        agentSlug: "builder",
+        goal: fullGoal,
+        missionId,
+      });
+
+      return {
+        ...result,
+        mission_id: missionId,
+        issue_number: issueNumber,
+        issue_url: issueUrl,
+        run_error: null as string | null,
+      };
+    } catch (e) {
+      // Nothing durable to point the caller at: the mission was never created
+      // and the agent never started. "Nothing was dispatched" is true here, so
+      // let it throw and let the caller say it.
+      if (!missionId && !loopEntered) throw e;
+      return {
+        mission_id: missionId,
+        issue_number: issueNumber,
+        issue_url: issueUrl,
+        run_error: e instanceof Error ? e.message : String(e),
+      };
     }
+  });
 
-    const result = await runAgentLoop(supabase, userId, {
-      agentSlug: "builder",
-      goal: fullGoal,
-      missionId,
-    });
-
-    return { ...result, mission_id: missionId, issue_number: issueNumber, issue_url: issueUrl };
+/**
+ * THE GATE, READ FOR A LIST — so a surface can say which rows this dispatch
+ * would refuse BEFORE the person presses.
+ *
+ * The Build Console's "Approved and waiting to be built" list filtered on
+ * `prds.status === 'approved'` alone and knew nothing about the design gate, so
+ * every row read "Approved. Build opens the issue as it starts." while
+ * `dispatchBuilderMission` above was going to throw DESIGN_GATE_BLOCK_MESSAGE
+ * at it. Measured live 2026-08-06: of the 41 approved specs, 2 carry a drawing
+ * and BOTH are still `design_gate_status = 'pending'`, and not one approved spec
+ * in the database has an approved design gate.
+ *
+ * It reuses `loadDesignGateState` + `designGateBlocksDispatch` rather than
+ * asking the same three questions in a second shape. That matters more than the
+ * query count: the gate rule is subtle (an unmade drawing must NOT block, an
+ * unreadable drawing count must), and a surface that guessed at it would go
+ * wrong in the direction of telling 39 people their spec is stuck when it is
+ * not. Returns only the blocked ids, so the caller cannot re-derive the rule.
+ */
+export const listDispatchDesignGates = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ prdIds: z.array(z.string().uuid()).min(1).max(24) }).parse(i),
+  )
+  .handler(async ({ context, data }): Promise<{ blocked: string[] }> => {
+    const { supabase } = context;
+    const { data: rows, error } = await supabase
+      .from("prds")
+      .select("id,workspace_id")
+      .in("id", data.prdIds);
+    if (error) throw new Error(error.message);
+    const prds = (rows ?? []) as Array<{ id: string; workspace_id: string | null }>;
+    const states = await Promise.all(
+      prds.map(async (p) => ({
+        id: p.id,
+        state: await loadDesignGateState(supabase as unknown as SupabaseClient, p),
+      })),
+    );
+    return { blocked: states.filter((s) => designGateBlocksDispatch(s.state)).map((s) => s.id) };
   });
 
 // ─── K1-deploy: Supaprod-triggered deploy gate ────────────────────────────────

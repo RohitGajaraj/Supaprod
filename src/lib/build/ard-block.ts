@@ -68,12 +68,23 @@ const CONTRACT_TAB_RECOVERY = `the spec's Contract tab, or ${MCP_RECOVERY}`;
  *
  * The ordering is a judgement about what the build cannot proceed without.
  * `design.scaffold_html` leads because it is the single largest value in the
- * document by an order of magnitude AND, on the Studio path, the same markup
- * now also rides its own `html` fence (`formatScaffoldHtmlBlock`), so dropping
- * it here usually costs the reader nothing at all. `contract.success_metrics`
- * is absent from this ladder on purpose: those clauses ARE the acceptance
- * criteria the build is graded against, and a document that has surrendered
- * them has stopped being a contract.
+ * document by an order of magnitude AND the same markup now also rides its own
+ * `html` fence (`formatScaffoldHtmlBlock`, reached through
+ * `formatDesignDispatchSections`) on BOTH dispatch paths, so dropping it here
+ * usually costs the reader nothing at all. `contract.success_metrics` is absent
+ * from this ladder on purpose: those clauses ARE the acceptance criteria the
+ * build is graded against, and a document that has surrendered them has stopped
+ * being a contract.
+ *
+ * "BOTH PATHS" IS NEW, AND THIS SENTENCE USED TO SAY "ON THE STUDIO PATH".
+ * It was accurate when written and it was also the reason the Build Console
+ * path lost the mockup: `assembleBuilderGoal` (build.functions.ts) never called
+ * `formatScaffoldHtmlBlock`, so on that path the first rung of this ladder
+ * surrendered the ONLY copy of the markup the design gate exists to produce.
+ * The justification named a safety net that one of the two callers did not
+ * have. It has one now, and the safety net is what makes this rung first —
+ * so if a third dispatch path is ever written without that fence, this rung's
+ * ordering is wrong for it and this comment is the notice.
  */
 type LadderRung = {
   key: string;

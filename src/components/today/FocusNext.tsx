@@ -71,7 +71,54 @@ export function FocusNext() {
   return (
     <Block
       title="What the brain would work on next"
-      sub="Ranked against every outcome this workspace has already settled."
+      /**
+       * THE SUBTITLE SAID WHAT THE PRODUCT SELLS, NOT WHAT THE CODE DOES.
+       *
+       * It read "Ranked against every outcome this workspace has already
+       * settled." `getFocusNext` reads no outcome data of any kind: it queries
+       * the `themes` table alone and ranks on `scoreTheme(severity,
+       * confidence, created_at, last_signal_at, novelty)`. It never touches
+       * `learnings`, `prds.outcome` or `agent_memory`. So a person who settled
+       * five outcomes in their first week opened Today and got a
+       * recommendation byte-for-byte identical to the one they would have got
+       * having settled none -- under a sentence saying those five were what
+       * produced it. Front door, above the gate, headline claim.
+       *
+       * REPLACED, NOT DELETED. The three terms below ARE worth stating: they
+       * are the same three the evidence line prints, so the heading names the
+       * axes and the row names the values, and a reader can argue with the
+       * recommendation on its own terms. The docblock above already described
+       * the ranking correctly; only this line lied.
+       *
+       * ONE PRECISION THE SENTENCE DOES NOT CARRY, so it is written here
+       * instead of being implied. `novelty` IS scored against `agent_memory`,
+       * which is the layer-03 term and the reason it is named here at all --
+       * but it is stamped once at cluster time (cluster.server.ts:252) and no
+       * sweep recomputes it, so it is what the brain held when the cluster
+       * formed rather than a live read. Making the original sentence TRUE is a
+       * different piece of work, and it is one of two changes: `getFocusNext`
+       * grows a settled-outcome term, or an outcome memory landing
+       * re-derives `themes.novelty`. Neither happens today.
+       *
+       * THE SENTENCE NAMES THREE TERMS AND THE SCORE HAS FOUR. Written down
+       * rather than left for the next reader to find, and it under-claims by
+       * one term rather than over-claiming by any. `scoreTheme`
+       * (lib/brain/score.ts:54) multiplies magnitude -- severity AND
+       * `themes.confidence`, which swings it by up to 1.67x -- by recency, by
+       * corroboration and by novelty. Confidence is a real input and is
+       * deliberately unnamed: a numeric confidence on an auto-generated
+       * cluster is kept off the product by founder ruling
+       * (DiscoverSurface.tsx:24-28, "a percentage invites an argument about
+       * the percentage"), and naming an axis whose value the reader is never
+       * shown is that same trade run backwards. The three that ARE named are
+       * exactly the three the row below prints. Corroboration is unnamed for a
+       * different reason: `getFocusNext` selects no `frequency` and passes
+       * none (insights.functions.ts:124-133), so `t.frequency ?? 1` makes that
+       * term an identical constant for every theme and it reorders nothing --
+       * which is itself worth someone's attention, since that term exists
+       * precisely to stop a one-signal item topping a queue.
+       */
+      sub="Ranked on severity, how recently it was heard, and how new it is against what the brain already holds."
     >
       <Row
         lead={f.headline}
@@ -121,18 +168,18 @@ export function FocusNext() {
                 navigate({
                   to: "/discover",
                   /**
-                 * `focus`, NOT `theme`. Discover's `validateSearch` returns
-                 * `{ tab, focus }` and the router DISCARDS anything else, so
-                 * `theme` never survived the navigation and the button landed
-                 * on whichever cluster happened to rank first -- with nothing
-                 * saying why, which is the exact defect that route's own header
-                 * comment describes being fixed once already.
-                 *
-                 * `focus` is deliberately untyped beyond string there, and the
-                 * surface resolves either a signal id or a theme id, which its
-                 * comment says in as many words.
-                 */
-                search: f.themeId ? ({ focus: f.themeId } as never) : undefined,
+                   * `focus`, NOT `theme`. Discover's `validateSearch` returns
+                   * `{ tab, focus }` and the router DISCARDS anything else, so
+                   * `theme` never survived the navigation and the button landed
+                   * on whichever cluster happened to rank first -- with nothing
+                   * saying why, which is the exact defect that route's own header
+                   * comment describes being fixed once already.
+                   *
+                   * `focus` is deliberately untyped beyond string there, and the
+                   * surface resolves either a signal id or a theme id, which its
+                   * comment says in as many words.
+                   */
+                  search: f.themeId ? ({ focus: f.themeId } as never) : undefined,
                 })
               }
               title={f.recommendedAction.goal}

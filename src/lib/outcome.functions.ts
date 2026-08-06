@@ -897,10 +897,62 @@ export async function agentArc(
   return ((row as { arc?: string } | null)?.arc as string | null) ?? null;
 }
 
+/** One clause of the promise a spec was signed on. */
+export type PromisedMetric = {
+  text: string;
+  /** eval | ci | uat | unverifiable, or null when the clause was never
+   *  compiled to an oracle. Carried, not yet rendered. */
+  oracleKind: string | null;
+};
+
+/**
+ * WHAT THE SPEC PROMISED TO MOVE, in the words Plan wrote it in.
+ *
+ * The STANDING clauses of `prds.contract.success_metrics` — the same field, and
+ * the same standing-only rule, that Ship's release document already reads under
+ * the heading "What it promised" (`components/ship/WhatShipped.tsx`,
+ * `standingClauses`). A superseded clause is skipped: a promise that was
+ * withdrawn is not the promise the bet is judged against.
+ *
+ * THE DEFECT THIS CLOSES. `listPendingOutcomes` already SELECTED `contract` and
+ * already read `launch_plans.success_metric`, and collapsed both into a single
+ * boolean for the settle-or-ask rule (`metricWasDeclared`). Nothing else
+ * crossed the wire, so the Learn desk asked "did this pay off?" with three
+ * verdict buttons and nowhere on screen saying what the spec promised to move.
+ * The verdict that came back is precedent the ranking reads forever, and it was
+ * being given from memory. The join was one line away and this is the line.
+ */
+function standingPromises(contract: unknown): PromisedMetric[] {
+  const metrics = (contract as { success_metrics?: unknown } | null)?.success_metrics;
+  if (!Array.isArray(metrics)) return [];
+  const out: PromisedMetric[] = [];
+  for (const raw of metrics) {
+    const c = raw as { text?: unknown; status?: unknown; oracle_kind?: unknown } | null;
+    if (!c || typeof c !== "object") continue;
+    if (c.status !== "standing") continue;
+    const text = typeof c.text === "string" ? c.text.trim() : "";
+    if (!text) continue;
+    out.push({ text, oracleKind: typeof c.oracle_kind === "string" ? c.oracle_kind : null });
+  }
+  return out;
+}
+
+/** A launch plan's own success metric, trimmed, or null when it carries none. */
+function planMetricOf(raw: string | null | undefined): string | null {
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
 export type PendingOutcome = {
   prdId: string;
   title: string;
   shippedAt: string | null;
+  /** What this spec promised to move, from its own Outcome Contract. Empty when
+   *  the spec never carried one — which the desk says out loud rather than
+   *  leaving the question silently unanswered. */
+  promised: PromisedMetric[];
+  /** The launch plan's own success metric, when a launch plan was written. A
+   *  second, narrower statement of the same promise. Null when there is none. */
+  planMetric: string | null;
   opportunity: {
     id: string;
     title: string | null;
@@ -938,6 +990,11 @@ export type AgentSettledOutcome = {
   prdId: string;
   title: string;
   settledAt: string | null;
+  /** What the spec promised to move, same source and same rule as
+   *  `PendingOutcome.promised`. Overturning an agent's verdict writes the same
+   *  permanent precedent a first verdict does, so it is judged against the same
+   *  promise rather than from memory. */
+  promised: PromisedMetric[];
   verdict: OutcomeVerdict;
   summary: string;
   metricLabel: string | null;
@@ -1305,6 +1362,11 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
         prdId: p.id,
         title: (p.title ?? "").trim() || "Untitled spec",
         shippedAt: p.shipped_at,
+        // Both were already in hand: `contract` is on the row this map is
+        // reading, and the launch plan's metric is in `planByPrd`, fetched
+        // above for the settle-or-ask rule. Nothing new is queried.
+        promised: standingPromises(p.contract),
+        planMetric: planMetricOf(planByPrd.get(p.id)?.success_metric),
         opportunity: opp
           ? {
               id: opp.id,
@@ -1361,10 +1423,14 @@ export const listAgentSettledOutcomes = createServerFn({ method: "GET" })
       title: string | null;
       opportunity_id: string | null;
       outcome: unknown;
+      contract: unknown;
     };
     const { data: prdRows, error } = await db
       .from("prds")
-      .select("id,title,opportunity_id,outcome")
+      // `contract` rides along for the same reason the pending queue carries
+      // it: a person disagreeing with an agent's verdict is writing precedent,
+      // and has to be able to read what the spec promised while doing it.
+      .select("id,title,opportunity_id,outcome,contract")
       // Repo jsonb-filter convention (see rememberOutcome): `col->>key`.
       .filter("outcome->>settled_by", "eq", "agent")
       .order("updated_at", { ascending: false })
@@ -1409,6 +1475,7 @@ export const listAgentSettledOutcomes = createServerFn({ method: "GET" })
         prdId: p.id,
         title: (p.title ?? "").trim() || "Untitled spec",
         settledAt: typeof o?.checked_at === "string" ? o.checked_at : null,
+        promised: standingPromises(p.contract),
         verdict: prior.verdict,
         summary: typeof o?.summary === "string" ? o.summary : "",
         metricLabel: typeof o?.metric_label === "string" ? o.metric_label : null,
@@ -1585,22 +1652,70 @@ export const suggestOutcomeVerdict = createServerFn({ method: "POST" })
     return draftOutcomeVerdict(db, context.userId, data);
   });
 
-/** Latest 50 learnings, newest first (workspace-scoped via RLS). Each row carries
- *  the title of the opportunity it rescored (`opportunity_title`) so callers can
- *  NAME the priority a learning moved — "this learning moved THESE priorities"
+const ListLearningsSchema = z
+  .object({
+    /** Narrow to ONE workspace. See the docblock for why this is not the
+     *  default and never can be resolved here. */
+    workspaceId: z.string().uuid().nullable().optional(),
+    /** Only learnings that actually moved a score (`new_ice is not null`). */
+    movedScoreOnly: z.boolean().optional(),
+  })
+  .strip();
+
+/** Latest 50 learnings, newest first. Each row carries the title of the
+ *  opportunity it rescored (`opportunity_title`) so callers can NAME the
+ *  priority a learning moved — "this learning moved THESE priorities"
  *  (MOAT-VIS) — without a second query. The embed rides RLS; a learning with no
- *  opportunity (or one in another workspace) reads `opportunity_title: null`. */
+ *  opportunity (or one in another workspace) reads `opportunity_title: null`.
+ *
+ * WHAT "WORKSPACE-SCOPED VIA RLS" ACTUALLY MEANS, because the old version of
+ * this line said it and it was read as more than it is. The `learnings` policy
+ * admits EVERY workspace the caller belongs to, and every account is handed a
+ * seeded Explore workspace at signup. So the unfiltered top-50 is the union
+ * across all of them, and on a real-but-empty workspace it is mostly seeded
+ * rows. That is fine for a surface that means "everything you have learned,
+ * anywhere" and wrong for any surface that says something about THIS
+ * workspace — a re-rank timestamp, a count, a "you have settled N outcomes".
+ *
+ * TWO OPTIONAL NARROWINGS, AND THE DEFAULT IS DELIBERATELY UNCHANGED.
+ *
+ *  · `workspaceId` filters to one workspace.
+ *  · `movedScoreOnly` keeps only learnings that actually moved a score
+ *    (`new_ice is not null`). Live today: 49 of 119 learnings carry one, so a
+ *    caller counting "outcomes that re-ranked something" and reading the
+ *    unfiltered list is off by more than half.
+ *
+ * The default stays the union, for two reasons and not out of caution. First,
+ * three existing callers (Today, the Compounding panel, the learning detail
+ * sheet) genuinely want everything the person has learned, and silently
+ * narrowing them would DELETE rows from surfaces nobody asked to change.
+ * Second, this handler cannot know the active workspace: there is no active
+ * workspace in the auth context, and defaulting to
+ * `current_user_default_workspace` would be a different wrong answer for
+ * exactly the multi-workspace users the filter exists for. The caller knows
+ * which workspace it is talking about; this function does not.
+ *
+ * `workspace_id` is returned on every row either way, so a caller that needs to
+ * split or attribute rows can do it without a second read.
+ */
 export const listLearnings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: z.input<typeof ListLearningsSchema> | undefined) =>
+    ListLearningsSchema.parse(d ?? {}),
+  )
+  .handler(async ({ context, data }) => {
     const db = context.supabase as unknown as SupabaseClient;
-    const { data: learnings, error } = await db
+    let q = db
       .from("learnings")
       .select(
-        "id, prd_id, opportunity_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, recorded_by_agent_slug, opportunity:opportunities(title, theme_id)",
-      )
-      .order("created_at", { ascending: false })
-      .limit(50);
+        "id, prd_id, opportunity_id, workspace_id, verdict, summary, metric_label, metric_value, prior_ice, new_ice, created_at, recorded_by_agent_slug, opportunity:opportunities(title, theme_id)",
+      );
+    if (data.workspaceId) q = q.eq("workspace_id", data.workspaceId);
+    // `not(...is.null)` rather than a comparison: in SQL a NULL never satisfies
+    // one, so a bare filter would have looked like it worked while quietly
+    // meaning something else.
+    if (data.movedScoreOnly) q = q.not("new_ice", "is", null);
+    const { data: learnings, error } = await q.order("created_at", { ascending: false }).limit(50);
     if (error) throw new Error(error.message);
     // Flatten the embedded opportunity to a plain `opportunity_title`. PostgREST
     // returns a to-one embed as an object, but the generated types can widen it
@@ -1613,6 +1728,10 @@ export const listLearnings = createServerFn({ method: "GET" })
       id: string;
       prd_id: string | null;
       opportunity_id: string | null;
+      /** Which workspace this learning belongs to. Returned unconditionally so
+       *  a caller can tell an own-workspace learning from a seeded one without
+       *  re-querying, whether or not it passed `workspaceId`. */
+      workspace_id: string | null;
       verdict: "validated" | "missed" | "mixed";
       summary: string;
       metric_label: string | null;

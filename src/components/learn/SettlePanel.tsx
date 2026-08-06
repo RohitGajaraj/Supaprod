@@ -55,6 +55,7 @@
 import * as React from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 
 import {
   draftOutcomeSuggestion,
@@ -64,6 +65,7 @@ import {
   deferOutcomeCheck,
   type AgentSettledOutcome,
   type PendingOutcome,
+  type PromisedMetric,
 } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import {
@@ -145,10 +147,34 @@ type Target = {
   prdId: string;
   title: string;
   opportunity: PendingOutcome["opportunity"];
+  /** What the spec promised to move, from its own Outcome Contract. Present on
+   *  both halves of the desk, because an overturn writes the same permanent
+   *  precedent a first verdict does. */
+  promised: PromisedMetric[];
+  /** The launch plan's metric, when one was written. Only the pending queue
+   *  reads launch plans, so this is null on the reconsider path. */
+  planMetric: string | null;
   /** Set only when a person is looking at a verdict an agent already gave. */
   settled: AgentSettledOutcome | null;
   pending: PendingOutcome | null;
 };
+
+/** The seed for "What you measured", when the agent's draft carries none.
+ *
+ *  Longest-truth-that-fits rather than a truncation: `recordOutcome` validates
+ *  `metricLabel` at 200 characters, so seeding a longer clause would fail the
+ *  write, and slicing one would put half a sentence in a field the person is
+ *  about to record as fact. A clause too long to be a label is left out of the
+ *  field and stays fully readable on the Gate line above it, which is where the
+ *  promise is stated anyway. */
+const METRIC_LABEL_MAX = 200;
+function seedMetricLabel(promised: PromisedMetric[], planMetric: string | null): string {
+  const candidates = [planMetric, ...promised.map((p) => p.text)];
+  for (const c of candidates) {
+    if (c && c.length <= METRIC_LABEL_MAX) return c;
+  }
+  return "";
+}
 
 export function SettlePanel() {
   const qc = useQueryClient();
@@ -179,6 +205,8 @@ export function SettlePanel() {
         prdId: reconsidering.prdId,
         title: reconsidering.title,
         opportunity: reconsidering.opportunity,
+        promised: reconsidering.promised,
+        planMetric: null,
         settled: reconsidering,
         pending: null,
       }
@@ -187,6 +215,8 @@ export function SettlePanel() {
           prdId: pendingFocus.prdId,
           title: pendingFocus.title,
           opportunity: pendingFocus.opportunity,
+          promised: pendingFocus.promised,
+          planMetric: pendingFocus.planMetric,
           settled: null,
           pending: pendingFocus,
         }
@@ -224,14 +254,21 @@ export function SettlePanel() {
       // one and can see exactly what they are replacing.
       setVerdict(t.settled.verdict);
       setSummary(t.settled.summary);
-      setMetricLabel(t.settled.metricLabel ?? "");
+      setMetricLabel(t.settled.metricLabel || seedMetricLabel(t.promised, t.planMetric));
       setMetricValue(t.settled.metricValue ?? "");
       return;
     }
     const s = t.pending?.suggestion ?? null;
     setVerdict(s?.verdict ?? null);
     setSummary(s?.summary ?? "");
-    setMetricLabel(s?.metric_label ?? "");
+    // THE PROMISE BEATS THE DEFAULT. `s.metric_label` is hard-coded to
+    // "Distinct users (30d)" by the suggestion drafter whenever any analytics
+    // rows exist (outcome-suggestion.server.ts), which is a generic counter and
+    // not the thing this spec said it would move. So the contract's own clause
+    // is used when the draft carries nothing, and the Gate line above states
+    // the promise either way, so a generic draft label can no longer be the
+    // only metric on the screen.
+    setMetricLabel(s?.metric_label || seedMetricLabel(t.promised, t.planMetric));
     setMetricValue(s?.metric_value ?? "");
   }, [targetId]);
 
@@ -462,6 +499,7 @@ export function SettlePanel() {
         . {settledByAgent.reason ?? ""}
       </span>,
     );
+    lines.push(promiseLine(target.promised, target.planMetric));
     if (settledByAgent.evidence.length > 0) {
       lines.push(<span key="worked">{settledByAgent.evidence.join(" ")}</span>);
     }
@@ -474,6 +512,9 @@ export function SettlePanel() {
       />,
     );
   } else {
+    // FIRST, because it is the standard everything under it is read against.
+    lines.push(promiseLine(target.promised, target.planMetric));
+
     if (s?.predicted?.trim()) {
       lines.push(
         <span key="predicted">
@@ -559,7 +600,13 @@ export function SettlePanel() {
             : `Did ${target.title} pay off?`
         }
         lines={lines}
-      />
+      >
+        {/* The way out, beside the question that needs it. The Gate line above
+            states the promise; this is for the person who wants the whole
+            contract, the body, and the discussion before writing a verdict that
+            does not come back. */}
+        <OpenTheSpec prdId={target.prdId} />
+      </Gate>
 
       {/* The Gate above asks and prices it; this is where the answer is given.
           The title is a verb rather than a noun so it does not restate the Line
@@ -699,6 +746,10 @@ export function SettlePanel() {
                   setOverturnId(null);
                   setPickedId(p.prdId);
                 }}
+                // Outside the clickable region, so the row still focuses the
+                // bet and the link still opens the spec (primitives Row splits
+                // itself when it carries both).
+                action={<OpenTheSpec prdId={p.prdId} quiet />}
               />
             ))}
         </Block>
@@ -713,6 +764,79 @@ export function SettlePanel() {
         }}
       />
     </>
+  );
+}
+
+/**
+ * WHAT THIS SPEC PROMISED TO MOVE, above the three verdict buttons.
+ *
+ * The desk used to ask "Did <spec> pay off?" with nowhere on screen saying what
+ * it promised, so the verdict was given from memory — and that verdict is
+ * precedent the Decide ranking reads forever. The clause text is the same
+ * `prds.contract.success_metrics` Ship's release document already renders under
+ * "What it promised", so the promise a person reads on Ship and the promise
+ * they are judged against on Learn are now the same words.
+ *
+ * NOTHING IS INVENTED, including the absence. A spec that carries no contract
+ * gets a line SAYING it carries none, rather than the silence that let this
+ * look like a form with a missing field. Live today most shipped-and-unsettled
+ * specs have an empty contract, so this branch is the common one and it has to
+ * be honest rather than blank.
+ */
+function promiseLine(promised: PromisedMetric[], planMetric: string | null): React.ReactNode {
+  if (promised.length > 0) {
+    const alsoPlan = planMetric && !promised.some((p) => p.text === planMetric);
+    return (
+      <span key="promised">
+        <b>It promised</b> {promised.map((p) => p.text).join(" · ")}
+        {alsoPlan ? <>. The launch plan measures that as {planMetric}</> : null}.
+      </span>
+    );
+  }
+  if (planMetric) {
+    return (
+      <span key="promised">
+        <b>The launch plan promised</b> {planMetric}. The spec's own contract carries no success
+        metric.
+      </span>
+    );
+  }
+  // Scoped to the contract on purpose. The reconsider path reads the spec's
+  // contract and NOT launch plans, so a wider claim ("nothing was written down
+  // anywhere") would be a sentence this component cannot stand behind there.
+  return (
+    <span key="promised">
+      <b>This spec&apos;s contract named no success metric</b>, so there is nothing in it to judge
+      this against.
+    </span>
+  );
+}
+
+/** The way back to the thing being judged.
+ *
+ *  The desk asked for a permanent verdict and offered no route to the spec that
+ *  earned it: no link, no spec id, not even a URL to paste, so checking the
+ *  promise meant leaving /learn, finding the spec by title on Plan, and coming
+ *  back to re-pick the row. `/plan/spec/$id` is where OutcomeContractPanel
+ *  renders the contract in full, which is the one place the summarised Gate
+ *  line above cannot replace. */
+function OpenTheSpec({ prdId, quiet = false }: { prdId: string; quiet?: boolean }) {
+  // A real <Link>, not a Door with navigate(): the primitive Door is a button,
+  // and the whole point of this fix is that the spec becomes reachable —
+  // middle-click, open in a new tab, copy the address. It wears the Door's own
+  // classes on a list row so a tight row stays tight, and the ghost button in
+  // the Gate's action slot where a control is what the eye expects.
+  const quietClass = "sp-block-more sp-door";
+  return (
+    <Link
+      to="/plan/spec/$id"
+      params={{ id: prdId }}
+      className={quiet ? quietClass : "sp-btn"}
+      {...(quiet ? {} : { "data-variant": "ghost" })}
+      title="Read the spec and its full Outcome Contract"
+    >
+      Open the spec
+    </Link>
   );
 }
 
@@ -769,6 +893,7 @@ function AgentSettledBlock({
           }
           time={shortDay(r.settledAt)}
           onClick={() => onReconsider(r.prdId)}
+          action={<OpenTheSpec prdId={r.prdId} quiet />}
         />
       ))}
     </Block>

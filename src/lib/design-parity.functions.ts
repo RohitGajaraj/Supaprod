@@ -4,11 +4,26 @@
  * `studio.functions.ts`'s `dispatchStudioSession` folds the workspace's
  * standing design language (DSN-01) and the PRD's flow graph (DSN-03) into
  * the mission goal, so the building agent sees the same design contract a
- * human reviewer would. This module closes the return half: once a mission's
- * changeset comes back with a PR, `checkDesignParity` records a lightweight
- * parity signal — did the returning work actually mention the tokens or flow
- * states it was handed — as a real `artifact_lineage` edge, the same
- * idempotent-receipt pattern JNY-03's test station uses for `test_verdict`.
+ * human reviewer would. This module is the return half: did the work that came
+ * back actually mention the tokens or flow states it was handed.
+ *
+ * ONLY ONE OF ITS TWO HALVES IS WIRED, and this comment used to say otherwise.
+ * `getDesignParity` is called by the run page and computes the verdict live on
+ * read, so a person sees it. `checkDesignParity` — the half that RECORDS it as
+ * a real `artifact_lineage` edge, the idempotent-receipt pattern JNY-03's test
+ * station uses for `test_verdict` — HAS NO CALLER. Verified against production:
+ * zero rows with relation='design_parity' exist. So the verdict is rendered and
+ * then evaporates: nothing durable records whether a build honoured the design
+ * it was handed, and Learn, the lineage graph and the brain never receive the
+ * one signal the Design -> Build loop produces.
+ *
+ * The write half is correct and idempotent; what it needs is one caller, and
+ * the caller does not live in this module. It belongs where a changeset is
+ * first seen carrying a `pr_url`: either a mutation fired from the parity
+ * `useQuery` at src/routes/_authenticated.runs.$missionId.tsx:563-568 once the
+ * read lands with `available: true` and `alreadyRecorded: false`, or
+ * server-side in `getStudioSession`. Until then this file states the gap
+ * rather than claiming the shipping.
  *
  * Deliberately "lightweight": this checks the changeset's own recorded
  * title/summary text for the tokens/flow-state vocabulary it was given, not
@@ -169,6 +184,14 @@ export const getDesignParity = createServerFn({ method: "GET" })
     return result;
   });
 
+/**
+ * The write half. NOTHING CALLS THIS YET — see the module header for where the
+ * caller belongs and why it is not written here. Kept, not deleted: the read
+ * half already shows a person this verdict, so recording it is not a new
+ * capability nobody asked for, it is the durable half of one the product is
+ * already performing on screen. Deleting it would leave the seam with no write
+ * path at all and the compounding this product sells with nothing to compound.
+ */
 export const checkDesignParity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ missionId: z.string().uuid() }).parse(i))

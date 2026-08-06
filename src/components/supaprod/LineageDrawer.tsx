@@ -11,14 +11,57 @@ import {
 } from "@/components/ui/sheet";
 import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.functions";
 
+/**
+ * Where a lineage node's link goes, and WHETHER IT CARRIES ITS ID.
+ *
+ * `signal` and `theme` used to be zero-arg — `() => ({ to: "/discover" })` —
+ * which dropped the id for exactly the two kinds this drawer is mostly made of.
+ * Pressing a source quote under "Traces back to" landed you on bare /discover,
+ * which opens on whichever cluster ranks first that day. The chain was intact
+ * in the database and there was no working door from the decision back to it.
+ *
+ * /discover already parses the deep link: src/routes/_authenticated.discover.tsx
+ * validates `?focus=` and DiscoverSurface resolves either shape — a theme id
+ * matched straight against the ranking, a signal id resolved through its
+ * `theme_id` — so both kinds hand it the same param and the surface decides
+ * what it is holding.
+ *
+ * THIS IS A PARTIAL REPAIR, and the part it does not reach is this drawer's
+ * commonest case. DiscoverSurface resolves `?focus=` against the RANKING
+ * (DiscoverSurface.tsx:516-523), and the ranking drops every cluster whose
+ * status is dismissed, merged or `promoted` (:452-463). This drawer's only
+ * mount is /decide (_authenticated.decide.tsx:1252), over an opportunity — and
+ * an opportunity normally exists BECAUSE its theme was promoted. So from there
+ * the parent theme, and every source signal underneath it, still resolves to
+ * null and the surface still opens on the top of the ranking.
+ *
+ * What changes here is that the link now NAMES the signal or cluster instead of
+ * discarding it: the URL is correct and shareable, it lands correctly today for
+ * any cluster still in the ranking, and it is the half of the round trip that
+ * lives in this file. Landing a SETTLED cluster needs DiscoverSurface to resolve
+ * one, which is not this component's to change.
+ *
+ * STILL ZERO-ARG, and honestly so: `opportunity`, `task`, `roadmap_item` and
+ * `decision`. Their destinations (/decide, /tasks, /roadmap, /meetings) declare
+ * no `validateSearch` at all, so there is no param to pass an id through and
+ * inventing one here would be discarded by the router. These land on the
+ * surface, not on the row. Fixing them is a route change, not a map change.
+ */
 const ROUTES: Partial<
-  Record<ArtifactKind, (id: string) => { to: string; params?: Record<string, string> }>
+  Record<
+    ArtifactKind,
+    (id: string) => {
+      to: string;
+      params?: Record<string, string>;
+      search?: Record<string, string>;
+    }
+  >
 > = {
   opportunity: () => ({ to: "/discover" }),
   prd: (id) => ({ to: "/plan/spec/$id", params: { id } }),
   task: () => ({ to: "/tasks" }),
-  signal: () => ({ to: "/discover" }),
-  theme: () => ({ to: "/discover" }),
+  signal: (id) => ({ to: "/discover", search: { focus: id } }),
+  theme: (id) => ({ to: "/discover", search: { focus: id } }),
   meeting: (id) => ({ to: "/meetings/$id", params: { id } }),
   roadmap_item: () => ({ to: "/roadmap" }),
   decision: () => ({ to: "/meetings" }),
@@ -66,6 +109,10 @@ function PeerLink({ kind, id, title }: { kind: ArtifactKind; id: string; title: 
     <Link
       to={route.to as never}
       params={(route.params ?? {}) as never}
+      // Spread, not `search={route.search ?? {}}`: only the two kinds that name
+      // a search param get one, so every other link navigates exactly as it did
+      // before rather than being handed an explicit empty search object.
+      {...(route.search ? { search: route.search as never } : {})}
       className="text-foreground hover:underline underline-offset-2"
     >
       {label}

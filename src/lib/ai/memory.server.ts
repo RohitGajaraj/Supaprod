@@ -388,10 +388,38 @@ export async function rememberOutcome(
     if (!insertedId) {
       return nothing("agent_memory insert returned no row id");
     }
-    // WM-F1: tag the row with its workspace (the column is nullable and has no
-    // DEFAULT bridge, so a plain insert leaves it null). Done as a separate,
-    // error-tolerant update so it stays pre-migration safe: before the column
-    // exists the update simply no-ops, and a null workspace_id recalls as global.
+    // WM-F1: pin the row to the workspace whose spec was settled.
+    //
+    // THE COMMENT THAT USED TO BE HERE WAS FALSE, and its two false halves are
+    // why this is worth spelling out. It said the column "has no DEFAULT bridge,
+    // so a plain insert leaves it null", and that "a null workspace_id recalls
+    // as global". Checked against the live database on 2026-08-06: `agent_memory`
+    // carries a BEFORE INSERT trigger, `trg_set_agent_memory_workspace` ->
+    // `set_row_workspace_from_user()`, which fills a null workspace_id with
+    // `ensure_user_default_workspace(NEW.user_id)`. So the insert above never
+    // leaves it null. It lands the row in the AUTHOR'S DEFAULT workspace, which
+    // for a multi-workspace user is usually the seeded Explore one they were
+    // given at signup, and match_agent_memory's tenancy filter
+    // (`m.workspace_id = for_workspace or m.workspace_id is null`) then cannot
+    // reach it from the workspace that actually settled the outcome. The state
+    // the old comment called safe is unreachable; the state that does occur is
+    // worse than the one it described.
+    //
+    // So this update is not a nicety, it is a MOVE, and it is what makes the
+    // outcome recallable where it was earned. It stays a separate statement for
+    // pre-migration tolerance (before the column exists it simply no-ops), and
+    // it stays best-effort because a memory in the wrong workspace still beats
+    // no memory.
+    //
+    // WHAT IS NOT FIXED HERE. The update's result is still not read, and
+    // supabase-js resolves an RLS refusal as success with zero rows, so a
+    // refused move is invisible and the row would stay in the default
+    // workspace with `settled_memory_id` reading as a clean success. That is
+    // unreachable from `applyOutcome` — `prds.workspace_id` is NOT NULL, and a
+    // settler who can read the spec is a member of its workspace, so both
+    // halves of the UPDATE policy hold — but it IS reachable from any caller
+    // that passes a null workspaceId, and the agent path
+    // (`registry.server.ts` -> `resolvedWorkspace`) can.
     if (args.workspaceId) {
       try {
         await supabase

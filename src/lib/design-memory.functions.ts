@@ -27,9 +27,17 @@
  * house_rules' filterActiveRules — a still-pending replacement never
  * silently mutes the entry it proposes to replace).
  *
+ * PROVENANCE NOW RUNS BOTH WAYS (2026-08-06). It ran one way only: rules
+ * shaped drawings (`design_memory --grounded-in--> prd_scaffold`) and drawings
+ * never pointed back at the rules they produced, so a rule learned from one
+ * spec's mockup showed its origin as a bucket and the ledger could not say what
+ * taught it. `insertDesignMemoryItems` now takes an optional source and writes
+ * `prd --taught--> design_memory` for every row it inserts.
+ *
  * KNOWN LIMIT (inherited, same as house_rules/decisions): artifact_lineage
  * RLS is owner-scoped, not workspace-scoped — a supersession recorded by one
- * member may not be visible to another member's read.
+ * member may not be visible to another member's read. The `taught` edges
+ * inherit that limit exactly, so a colleague's read may not see them.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -232,10 +240,33 @@ function normalizeTitle(title: string): string {
 }
 
 /**
+ * WHERE A RULE CAME FROM, as a fact and not as a category.
+ *
+ * A rule learned from one spec's mockup binds every future drawing and rides
+ * into every Build dispatch, and until this existed the ledger could say only
+ * which BUCKET it arrived in ("pasted", "learned"). Nobody could answer "which
+ * drawing on which spec taught us this?", which is the question a person
+ * staring at a queue of rules to approve actually has.
+ *
+ * `prd`, because that is the durable thing: `prd_scaffolds` holds one row per
+ * spec and a redraw overwrites it in place, so an edge to the scaffold would
+ * point at markup that no longer exists, while the spec is permanent and its
+ * drawing is reachable from it.
+ */
+export type DesignMemorySourceRef = { kind: "prd"; id: string };
+
+/**
  * Insert extracted items, auto-detecting supersession by (category, normalized
  * title) against the workspace's currently-active rows, and screening
  * content/rationale as untrusted input (url_import in particular is
  * externally-sourced text reaching an AI-consumed store).
+ *
+ * `sourceRef` writes the back-edge: `prd --taught--> design_memory`, in
+ * `artifact_lineage`, the same table and the same idempotent conflict key the
+ * FORWARD grounding already uses (`design_memory --grounded-in--> prd_scaffold`,
+ * design-scaffold.functions.ts). No migration: provenance is a
+ * what-came-from-what fact and this repo has one truth for those. Omitting it
+ * writes exactly the rows this function wrote before, edge for edge.
  */
 async function insertDesignMemoryItems(
   supabase: SupabaseClient,
@@ -243,6 +274,7 @@ async function insertDesignMemoryItems(
   workspaceId: string,
   items: ExtractedDesignMemoryItem[],
   sourceKind: DesignMemorySourceKind,
+  sourceRef?: DesignMemorySourceRef | null,
 ): Promise<number> {
   if (items.length === 0) return 0;
   const active = await getActiveDesignMemoryForWorkspace(supabase, workspaceId);
@@ -304,6 +336,28 @@ async function insertDesignMemoryItems(
     await supabase.from("artifact_lineage").upsert(lineageEdges, {
       onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation",
     });
+  }
+
+  // The back-edge. Non-fatal by the same rule the forward grounding uses: a
+  // lost provenance record must never cost a person the rule itself, which is
+  // already inserted and counted above.
+  if (sourceRef && rows.length > 0) {
+    try {
+      await supabase.from("artifact_lineage").upsert(
+        rows.map((row) => ({
+          user_id: userId,
+          parent_kind: sourceRef.kind,
+          parent_id: sourceRef.id,
+          child_kind: "design_memory" as const,
+          child_id: row.id,
+          relation: "taught",
+          created_by_agent: null,
+        })),
+        { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
+      );
+    } catch (e) {
+      console.error("insertDesignMemoryItems: source lineage failed (non-fatal):", e);
+    }
   }
 
   return inserted;
@@ -432,9 +486,24 @@ export const importDesignMemoryFromUrl = createServerFn({ method: "POST" })
     return { inserted };
   });
 
-const ImportTextSchema = z.object({ text: z.string().min(20).max(20000) });
+/**
+ * `prdId` is OPTIONAL and it changes two things, both of them the truth.
+ *
+ * Without it this is the Settings paste box: a human typed or pasted a design
+ * constitution, the origin is "pasted", and nothing taught it. With it the
+ * caller is /design turning a Critic finding on ONE spec's drawing into a
+ * standing rule -- so the origin is "learned", which is the bucket
+ * `recordDesignScaffoldFeedback` already files the taste loop's rules under,
+ * and the back-edge records which spec taught it. Filing that as "pasted" said
+ * a human typed it, which nobody did.
+ */
+const ImportTextSchema = z.object({
+  text: z.string().min(20).max(20000),
+  prdId: z.string().uuid().optional(),
+});
 
-/** Seed design memory from a pasted design constitution (freeform text). */
+/** Seed design memory from a pasted design constitution (freeform text), or
+ *  from a Critic finding on one spec's drawing when `prdId` names it. */
 export const importDesignMemoryFromText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof ImportTextSchema>) => ImportTextSchema.parse(d))
@@ -448,9 +517,16 @@ export const importDesignMemoryFromText = createServerFn({ method: "POST" })
       userId,
       workspaceId,
       data.text,
-      `design-memory-paste`,
+      data.prdId ? `design-memory-finding:${data.prdId}` : `design-memory-paste`,
     );
-    const inserted = await insertDesignMemoryItems(supabase, userId, workspaceId, items, "pasted");
+    const inserted = await insertDesignMemoryItems(
+      supabase,
+      userId,
+      workspaceId,
+      items,
+      data.prdId ? "learned" : "pasted",
+      data.prdId ? { kind: "prd", id: data.prdId } : null,
+    );
     return { inserted };
   });
 
@@ -554,12 +630,16 @@ export const recordDesignScaffoldFeedback = createServerFn({ method: "POST" })
         `SPEC EXCERPT:\n${data.specExcerpt}\n\n${verdictLine}\nExtract what this implies about the workspace's design language (if the spec/verdict is too thin to imply anything concrete, return no items).`,
         `design-memory-scaffold-feedback:${data.prdId}`,
       );
+      // The spec this verdict was about was already in hand and was being spent
+      // on a telemetry surface_ref alone. It is the same fact the back-edge
+      // wants, so it is now recorded as one.
       const learned = await insertDesignMemoryItems(
         supabase,
         userId,
         workspaceId,
         items,
         "learned",
+        { kind: "prd", id: data.prdId },
       );
       return { learned };
     } catch {

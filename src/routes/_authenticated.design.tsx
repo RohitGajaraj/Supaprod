@@ -48,9 +48,16 @@
  *
  * 4. WHAT IS ONE CLICK AWAY. The brand ledger with its import, paste and
  *    defaults machinery stays in Settings. Every prototype ever made stays on
- *    /artifacts. The spec's own text stays on /plan. A row in the list is two
- *    lines; the drawing, its blast radius, its links and the Critic's findings
- *    belong to the ONE spec in focus and are drawn only for it.
+ *    /artifacts. The spec's own text stays on /plan, and (2026-08-06) it is
+ *    genuinely one click from the spec in focus: "Open the spec" in the focus
+ *    Block head. It used to be zero clicks available, because the only
+ *    navigation to /plan/spec/$id on this surface sat inside the too-thin empty
+ *    state -- reachable only for a spec nobody could draw from. What the spec
+ *    PROMISED does not stay on /plan any more: the standing acceptance criteria
+ *    are drawn beside the verdict, because that is the standard the call is
+ *    being made against. A row in the list is two lines; the drawing, its blast
+ *    radius, its links and the Critic's findings belong to the ONE spec in focus
+ *    and are drawn only for it.
  *
  * 5. THE MOMENT, AND THE CONFUSION. The moment is the consequence panel the
  *    instant before you approve: a mockup with no blast radius is a drawing,
@@ -440,9 +447,22 @@ function Design() {
    */
   const [review, setReview] = React.useState<{
     prdId: string;
-    findings: DesignCriticFinding[];
+    /** Null is a real value here and means THIS SESSION emptied it: the drawing
+     *  was redrawn, so the ruling the record still holds is about markup that no
+     *  longer exists. It suppresses the rehydrated one below until the refetch
+     *  lands, which is the window where the server would still return it. */
+    findings: DesignCriticFinding[] | null;
   } | null>(null);
-  const findings = review && review.prdId === focusId ? review.findings : null;
+  /**
+   * THE RULING SURVIVES THE PAGE NOW, so this session's state is no longer the
+   * only place findings live. `runScaffoldDesignCritic` writes them to the
+   * record and `getDesignWorkItem` hands back the ones that are about the
+   * drawing currently on screen, so clicking a second spec and clicking back
+   * shows the review you already paid for instead of an empty panel and a
+   * second bill. A live review still wins: it is newer than the read.
+   */
+  const localReview = review && review.prdId === focusId ? review : null;
+  const findings = localReview ? localReview.findings : (focus?.criticReview?.findings ?? null);
 
   /** Same rule, same reason: which finding is mid-draft is a fact about ONE
    *  spec's review, and it disables every "Make it a rule" button while it is
@@ -583,7 +603,13 @@ function Design() {
       // with it -- but only for the spec that was redrawn. A redraw of one spec
       // never said anything about what the Critic found in another, and the
       // blanket clear this replaces threw away a review you had paid for.
-      setReview((prev) => (prev && prev.prdId === prdId ? null : prev));
+      //
+      // EMPTIED, not cleared, and that is now the difference between the two.
+      // The record still holds the old ruling for the moment it takes the
+      // refetch to land (the server drops it by comparing the review's time
+      // against the drawing's), and a plain clear would fall through to it and
+      // render the previous drawing's findings under the new drawing.
+      if (prdId) setReview({ prdId, findings: null });
       note(
         "focus",
         prdId,
@@ -684,7 +710,10 @@ function Design() {
     onSuccess: (res, _v, ctx) => {
       const prdId = ctx?.prdId ?? null;
       if (!res.review) {
-        // A review that produced nothing clears only its OWN spec's findings.
+        // A review that produced nothing clears only its OWN spec's live
+        // findings, and drops back to whatever the record holds rather than
+        // emptying it: a failed call is not evidence against a ruling already
+        // filed about this same drawing.
         setReview((prev) => (prev && prev.prdId === prdId ? null : prev));
         note(
           "focus",
@@ -696,15 +725,22 @@ function Design() {
         return;
       }
       if (prdId) setReview({ prdId, findings: res.review.findings });
+      // WHETHER IT WAS FILED IS PART OF WHAT HAPPENED. A review that could not
+      // reach the record is still a real review, and a person who is about to
+      // click away is the one who most needs to know it will not be there when
+      // they come back.
+      const kept = res.persisted
+        ? "It is on the record, so it will be here when you come back."
+        : "It could not be saved, so it goes when you leave this page.";
       note(
         "focus",
         prdId,
         "The Critic reviewed the drawing",
         res.review.findings.length === 0 ? (
-          "It found nothing against your rules or the accessibility floors."
+          `It found nothing against your rules or the accessibility floors. ${kept}`
         ) : (
           <>
-            <Num>{res.review.findings.length}</Num> findings, below.
+            <Num>{res.review.findings.length}</Num> findings, below. {kept}
           </>
         ),
       );
@@ -714,7 +750,18 @@ function Design() {
   });
 
   const makeRule = useMutation({
-    mutationFn: (f: DesignCriticFinding) => draftRule({ data: { text: ruleTextFor(f) } }),
+    /* THE SPEC THAT TAUGHT IT TRAVELS WITH IT. The prdId was already in hand --
+       onMutate below captures it for the receipt -- and was not being sent, so a
+       rule learned from one drawing's review was filed with its origin reading
+       "pasted", as though a human typed it, and nothing could answer which
+       drawing on which spec produced it. Sent, the server files it as learned
+       and writes the prd --taught--> design_memory edge.
+
+       Read here rather than from ctx because mutationFn is handed no context;
+       it and onMutate run from the SAME render's closure at mutate() time, so
+       the id this sends and the id the receipt is stamped with cannot differ. */
+    mutationFn: (f: DesignCriticFinding) =>
+      draftRule({ data: { text: ruleTextFor(f), prdId: focusId ?? undefined } }),
     /* Which finding is mid-draft is written HERE rather than inside mutationFn,
        so the issue text and the spec id it belongs to are taken in the same
        callback at the same instant and cannot disagree. */
@@ -1045,7 +1092,28 @@ function Design() {
       </Block>
 
       {focusId ? (
-        <Block title={focus?.title ?? "The screen in focus"}>
+        /* THE SPEC IS ONE CLICK AWAY, and until now it was zero clicks
+           available. The only /plan/spec/$id navigation on this surface sat
+           inside the too-thin empty state, reachable only for a spec with under
+           40 characters of body -- so at the exact moment the surface asks
+           "Approve the design" or "Send it back", the promise it is being
+           judged against could not be opened at all. This file's own header,
+           under "WHAT IS ONE CLICK AWAY", already said the spec's text stays on
+           /plan; the door is what makes that sentence true.
+
+           In the Block head rather than beside the verdict buttons: it is a way
+           OUT of this station, and mixing it into the action bar would put a
+           navigation among two calls and invite a person to press it thinking
+           it settles something. */
+        <Block
+          title={focus?.title ?? "The screen in focus"}
+          more={focus ? "Open the spec" : undefined}
+          onMore={
+            focus
+              ? () => void navigate({ to: "/plan/spec/$id", params: { id: focus.prdId } })
+              : undefined
+          }
+        >
           {item.isLoading ? (
             <Loading>Opening it.</Loading>
           ) : item.isError ? (
@@ -1151,6 +1219,36 @@ function Design() {
                           day: "numeric",
                           month: "short",
                         })} to be drawn before Build.`
+                  }
+                />
+              ) : null}
+
+              {/* WHAT THE DRAWING WAS DRAWN AGAINST.
+
+                  The Outcome Contract is the most structured promise the spec
+                  makes, and this station judged screens without ever showing
+                  it: a person was asked to approve a drawing against criteria
+                  they had to remember or open a second tab to read. The same
+                  criteria now reach the generator and the Critic server-side,
+                  so this panel is the human's copy of the standard those two
+                  were held to.
+
+                  Absent for a spec with no compiled contract, which is most of
+                  them today. An empty "what it promised" panel would claim a
+                  promise nobody wrote. */}
+              {focus.contract ? (
+                <Line
+                  label="What the spec promised"
+                  sub={
+                    <>
+                      {focus.contract.intent ? <>{focus.contract.intent} </> : null}
+                      {focus.contract.successMetrics.length > 0 ? (
+                        <>Must be true: {focus.contract.successMetrics.join("; ")}. </>
+                      ) : null}
+                      {focus.contract.nonGoals.length > 0 ? (
+                        <>Out of scope: {focus.contract.nonGoals.join("; ")}.</>
+                      ) : null}
+                    </>
                   }
                 />
               ) : null}

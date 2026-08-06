@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { listSpecs } from "@/lib/discovery.functions";
-import { dispatchBuilderMission } from "@/lib/build.functions";
-import { Block, Button, Row } from "@/components/shell/primitives";
+import { dispatchBuilderMission, listDispatchDesignGates } from "@/lib/build.functions";
+import { Block, Button, Door, Row } from "@/components/shell/primitives";
 
 /**
  * BUILD COULD NOT START A BUILD.
@@ -40,13 +40,47 @@ export function ReadyToBuild() {
   const qc = useQueryClient();
   const fSpecs = useServerFn(listSpecs);
   const fDispatch = useServerFn(dispatchBuilderMission);
-  const [failed, setFailed] = React.useState<string | null>(null);
+  const fGates = useServerFn(listDispatchDesignGates);
+  /**
+   * THE WHOLE SENTENCE, NOT A FRAGMENT WITH A FIXED TAIL.
+   *
+   * This held the error message alone and the row appended "Nothing was
+   * dispatched, so the spec is still waiting." to it unconditionally. That tail
+   * is true of a failure before the mission exists and false of one after it,
+   * and the dispatch reaches both. Holding lead and sub together is what lets
+   * each outcome say its own true sentence.
+   */
+  const [failed, setFailed] = React.useState<{ lead: string; sub: string } | null>(null);
 
   const specs = useQuery({
     queryKey: ["specs"],
     queryFn: () => fSpecs(),
     staleTime: 60_000,
   });
+
+  const ready = (specs.data?.prds ?? []).filter(
+    (p) => (p as { status?: string }).status === "approved",
+  ) as Array<{ id: string; title: string; github_issue_url?: string | null }>;
+  const visible = ready.slice(0, 6);
+  const visibleIds = visible.map((p) => p.id);
+
+  /**
+   * WHICH OF THESE ROWS WOULD THE DISPATCH REFUSE.
+   *
+   * `listSpecs` already returns `design_gate_status`, and deciding from that
+   * alone would be wrong in the worst direction: the blocking rule also needs
+   * the workspace's design-stage switch and whether a drawing EXISTS at all,
+   * and a spec nobody ever drew must not be gated. Reading it here from the
+   * server fn that reuses the dispatch's own predicate keeps one rule in one
+   * place. No `staleTime`: a gate approved in another tab should stop blocking
+   * this list the next time it mounts.
+   */
+  const gates = useQuery({
+    queryKey: ["build-design-gates", visibleIds],
+    queryFn: () => fGates({ data: { prdIds: visibleIds } }),
+    enabled: visibleIds.length > 0,
+  });
+  const blocked = new Set(gates.data?.blocked ?? []);
 
   const start = useMutation({
     mutationFn: (v: { id: string; title: string }) =>
@@ -101,18 +135,48 @@ export function ReadyToBuild() {
        * server-side and this line goes red.
        */
       const missionId = r?.mission_id;
-      if (missionId) void navigate({ to: "/runs/$missionId", params: { missionId } });
+      if (missionId) {
+        void navigate({ to: "/runs/$missionId", params: { missionId } });
+        return;
+      }
+      /**
+       * A RESOLVED DISPATCH WITH NO MISSION IS NOT A SILENT SUCCESS.
+       *
+       * `dispatchBuilderMission` creates the mission only when it resolved both
+       * a workspace and a `builder` agent in this user's roster; without one it
+       * still runs the agent loop and returns with `mission_id` null. This used
+       * to fall off the end of the handler: no navigation, no message, and a row
+       * still reading "Approved. Build opens the issue as it starts." after a
+       * full builder run had been billed. The `run_error` half is the loop
+       * failing AFTER the work was already durably written, which the server now
+       * reports rather than throwing — see its comment above `runAgentLoop`.
+       */
+      setFailed({
+        lead: r?.run_error ? "The build started and then stopped" : "The build has no run to open",
+        sub: r?.run_error
+          ? `${r.run_error} The GitHub issue is open at #${r.issue_number} and the work is not finished; nothing here can open the run, because no mission was created for it.`
+          : `The GitHub issue is open at #${r.issue_number}, but no mission was created for it, so there is no run to open. Check that a builder agent exists in your roster.`,
+      });
     },
-    // NAMED, NOT SWALLOWED. A dispatch that did not happen must never wear the
-    // shape of one that did: the row stays, and the reason is on screen.
-    onError: (e: Error) => setFailed(e.message),
+    /**
+     * NAMED, NOT SWALLOWED. A dispatch that did not happen must never wear the
+     * shape of one that did: the row stays, and the reason is on screen.
+     *
+     * The tail is stated HERE rather than in the row because only here is it
+     * true. `dispatchBuilderMission` now throws only when no mission was created
+     * and the agent loop was never entered; every failure after that point comes
+     * back through `onSuccess` carrying `run_error`, because a run that opened an
+     * issue and started an agent has not left "the spec still waiting" and
+     * saying so invited a second press and a second billed mission.
+     */
+    onError: (e: Error) =>
+      setFailed({
+        lead: "The build did not start",
+        sub: `${e.message} Nothing was dispatched, so the spec is still waiting.`,
+      }),
   });
 
   if (specs.isLoading || specs.isError) return null;
-
-  const ready = (specs.data?.prds ?? []).filter(
-    (p) => (p as { status?: string }).status === "approved",
-  );
   if (ready.length === 0) return null;
 
   return (
@@ -120,22 +184,35 @@ export function ReadyToBuild() {
       title="Approved and waiting to be built"
       sub="Plan has finished with these. Starting one here opens its run."
     >
-      {failed ? (
-        <Row
-          lead="The build did not start"
-          sub={`${failed} Nothing was dispatched, so the spec is still waiting.`}
-        />
-      ) : null}
-      {ready.slice(0, 6).map((p) => {
-        const row = p as { id: string; title: string; github_issue_url?: string | null };
+      {failed ? <Row lead={failed.lead} sub={failed.sub} /> : null}
+      {visible.map((row) => {
+        /**
+         * "APPROVED" WAS A CLAIM ABOUT THE WRONG GATE.
+         *
+         * This list filters on `prds.status === 'approved'` — the SPEC approval —
+         * and said "Approved. Build opens the issue as it starts." while
+         * `dispatchBuilderMission` was going to refuse the press outright because
+         * the spec's DESIGN gate had a drawing waiting on a human. Two of the 41
+         * approved specs are in exactly that state today and not one has an
+         * approved design gate, so the sub-line promised the opposite of what the
+         * button did, with no way to tell beforehand and no link to the page
+         * where the call is actually made.
+         *
+         * The row is not dropped and the person is not left holding a control
+         * that cannot work: the sub-line says which gate is holding it and the
+         * action becomes the door to the gate.
+         */
+        const gated = blocked.has(row.id);
         return (
           <Row
             key={row.id}
             lead={row.title}
             sub={
-              row.github_issue_url
-                ? "Approved, with a GitHub issue already open."
-                : "Approved. Build opens the issue as it starts."
+              gated
+                ? "Waiting on the design gate: a mockup is drawn and nobody has approved or rejected it, so a build started here would be refused."
+                : row.github_issue_url
+                  ? "Approved, with a GitHub issue already open."
+                  : "Approved. Build opens the issue as it starts."
             }
             /* PER ROW, not per mutation. One shared `isPending` drove all six
                buttons, so starting ONE build reported that six were starting
@@ -143,13 +220,22 @@ export function ReadyToBuild() {
                `start.variables` is the row the mutation is actually running
                for; fifteen sibling files already use this shape. */
             action={
-              <Button
-                variant="primary"
-                disabled={start.isPending}
-                onClick={() => start.mutate({ id: row.id, title: row.title })}
-              >
-                {start.isPending && start.variables?.id === row.id ? "Starting" : "Build this"}
-              </Button>
+              gated ? (
+                <Door
+                  title="Open this spec's drawing at the design gate"
+                  onClick={() => void navigate({ to: "/design", search: { focus: row.id } })}
+                >
+                  Judge the design
+                </Door>
+              ) : (
+                <Button
+                  variant="primary"
+                  disabled={start.isPending}
+                  onClick={() => start.mutate({ id: row.id, title: row.title })}
+                >
+                  {start.isPending && start.variables?.id === row.id ? "Starting" : "Build this"}
+                </Button>
+              )
             }
           />
         );
