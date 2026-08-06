@@ -1,4 +1,88 @@
-# Session close 2026-08-06 ~07:30 IST — the morning pass, on top of the overnight run
+# Session close 2026-08-06 ~11:05 IST — paused mid-run for a machine restart
+
+Gate: **tsc 0 · 8,086 pass · 0 fail.** Working tree clean, everything pushed
+through `d746de15`. Paused because the machine ran short of disk (3.4 GB free of
+228 GB); the founder is restarting and will say when to resume.
+
+## RESUME HERE — one command, nothing re-runs
+
+```
+Workflow({scriptPath: "~/.claude/projects/-Users-rohitgajaraj-Projects-My-Projects-My-Builds-Supaprod/carry-forward/close-findings.js",
+          resumeFromRunId: "wf_d9a6dd8c-251"})
+```
+
+Completed agents replay from cache. The script and its inputs were copied OUT of
+the scratchpad into `carry-forward/` on purpose: the scratchpad lives under
+`/private/tmp`, which macOS can clear on reboot, and the resume script was in it.
+Also there: `doorless-server-functions.txt` (the 97), `problems.json` and
+`groups.json` (the findings and how they were split), and
+`deleted-duplicate-opportunities-backup.json` (the three rows deleted from
+production, restorable).
+
+## THE ONE THING THAT IS NOT VERIFIED
+
+Seven groups of reviewer-finding fixes are committed and pass the gate, **but
+their independent reviewers never reported** — the run was stopped before the
+verify phase. Those edits carry the fixers' word plus tsc and the suite, and NOT
+a second reading. Running the resume above is what verifies them, and it is the
+first thing to do. Do not treat `d746de15` as reviewed work.
+
+## Station self-sufficiency — the session's main objective
+
+| station | gap the audit found | state |
+|---|---|---|
+| sense /discover | promotion was not terminal | **done, pushed** |
+| decide | lane wrote a column /plan never reads | fixed, **unverified** |
+| define /plan | a human could not author an acceptance criterion | fixed, **unverified** |
+| design | test cases had no affordance | fixed, **unverified** |
+| build | dispatch returned no usable door, and could use the wrong repo | **done, pushed** |
+| ship | dark for every repo Supaprod does not host | fixed, **unverified** |
+| learn | no honest "not yet" | **done, verified in a browser** |
+
+Three are finished. Four are one workflow-resume away from being finished.
+
+## What was proven on the live product, not just in code
+
+- **The brain was ranking fiction.** 16 of 257 themes were built entirely from
+  seeded onboarding signals and nothing could tell. Scored with the product's own
+  `scoreTheme` on live values, a seeded theme beat a real compliance finding
+  0.0958 to 0.0666 — fiction winning by 44% on the front door.
+- **Six bets from one cluster.** Ten themes carried duplicate bets, 50
+  opportunities between them, worst case six on one theme, each with its own
+  Critic pass. Promotion is terminal now in all three places that had to agree.
+- **A returning user was told to connect their first source.** Seen in a browser:
+  a workspace with 97 signals and 34 opportunities rendering the first-run screen,
+  because react-query's `isLoading` is false for a query that resolved empty
+  before auth attached. Six surfaces had it; `stillWaiting()` is now the one place
+  that judges it.
+- **/build could not finish a build**, and could open an issue in a customer's
+  wrong repository. Both mine, shipped the night before.
+- **Learn's "Too early to tell"** was exercised end to end on production and the
+  deferral reverted.
+
+## Open calls for the founder, neither blocking
+
+1. **91 remaining doorless server functions.** 97 of 590 are referenced by
+   nothing outside their own file; five sampled were confirmed dead by hand. Most
+   are probably unbuilt futures — but nothing distinguishes "not wired yet" from
+   "wired and forgotten", which is exactly how `captureDeployments` and
+   `TestStationPanel` sat built and unreachable. Worth a triage pass to mark intent.
+2. **`@typescript-eslint/no-unused-vars` is off** and predates this work. It is
+   the rule that would have caught the swallowed push error in `derive-tick.ts`.
+   Turning it on has real blast radius, so it is the founder's call.
+
+## Method note, because it cost time three times
+
+Three grep artifacts this session produced confidently wrong numbers: `--include`
+is not supported by this shell's grep proxy (made 127 functions look dead), a
+`tail`-truncated log read as "zero errors in src", and four separate tests matched
+their own explanatory comments. Sanity-check every repo-wide count against a case
+whose answer is already known, and strip comments before grepping for a pattern
+the file describes in prose.
+
+---
+
+# Previous: session close 2026-08-06 ~07:30 IST — the morning pass, on top of the overnight run
 
 Gate: **tsc 0 · 8,028 pass 0 fail · build 0 · lint clean · docs-doctor clean.**
 Migration applied live and verified. Everything below is pushed to `main`.
