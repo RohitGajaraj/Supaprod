@@ -894,7 +894,7 @@ function Ship() {
    */
   const docReading = !wid || changelog.isLoading;
   const docEntry: ChangelogEntry | null =
-    (docId ? (notes.find((e) => e.id === docId) ?? null) : null) ?? notes[0] ?? null;
+    (docId ? notes.find((e) => e.id === docId) : undefined) ?? notes[0] ?? null;
 
   const headline = posts.isError
     ? "The announcements did not load."
