@@ -1,4 +1,89 @@
-# Session close 2026-08-06 ~05:00 IST — autonomous overnight run, 18 commits
+# Session close 2026-08-06 ~07:30 IST — the morning pass, on top of the overnight run
+
+Gate: **tsc 0 · 8,028 pass 0 fail · build 0 · lint clean · docs-doctor clean.**
+Migration applied live and verified. Everything below is pushed to `main`.
+
+## The one thing to read if you read nothing else
+
+**The brain was ranking fiction above the user's own compliance finding, and
+scoring it 44% higher.**
+
+Onboarding seeds twenty signals into the user's REAL workspace. Migration
+`20260805220000` had taught `signals` and `opportunities` to say they were
+examples; it never taught `themes`, which sit between them. So the seeded signals
+clustered like any others and produced themes that nothing could tell apart from
+the user's own. **16 of 257 live themes were built entirely from seeded signals**,
+sitting unlabelled in five real workspaces.
+
+That mattered because `getFocusNext` — the company brain's recommendation, the
+thing that now leads the front door — ranks themes, takes the top one, spends a
+model call writing about it, and Today prints the result under *"Ranked against
+every outcome this workspace has already settled."*
+
+Scored with **the product's own `scoreTheme`** against the live column values in
+workspace `1eeef8f9`:
+
+| | score | |
+|---|---|---|
+| 1. Strategic Position and Defensibility at Risk | 0.0958 | seeded |
+| 2. Data Export Needed for Compliance and Reporting | 0.0666 | the user's own |
+
+Four further workspaces held **only** seeded themes and were handed a
+recommendation about fiction on every load. The seeds score well *by design* —
+they were written to look like good bets — so no scoring tweak could have fixed
+this. Only knowing what they are could.
+
+**The rule now: a theme is a sample only if EVERY signal in it is.** The clusterer
+merges into existing themes, so a seeded theme can genuinely grow real evidence,
+and marking that one an example would hide a real finding — the worse of the two
+errors. The merge path therefore only ever *clears* the flag, never sets it.
+
+**Deliberately not a filter on the surfaces.** On a fresh workspace the examples
+are all there is, and an empty station teaches nothing. Discover labels them on
+the ranking row (before the click, not after) and in the Gate's first line, in the
+same words Decide already uses. Decide stops *opening* on one: the highest-ranked
+non-sample bet leads, falling back to a labelled example only when that is all
+there is. FocusNext renders nothing rather than something invented — which the
+surface was already built for: *"a quiet workspace is quiet."*
+
+## The push lane was quiet for three days. It was honest quiet.
+
+`runInsightPush` had pushed nothing since 2026-08-02 16:00 UTC (51 cards still
+open). Establishing whether that was a dead channel or a calm one took a live
+database session and a reading of the detector, because the derive tick caught
+its failures in a bare `catch {}`.
+
+It was honest: **zero learnings and zero settled outcomes** in the window, and the
+detectors key off settled outcomes. Nothing to say, so it said nothing.
+
+But "working and quiet" and "throwing on every tick for a week" produced
+byte-identical output, and that is not acceptable for the channel that carries the
+product's central claim. The tick now reports the failure per workspace and still
+never throws — best-effort was always right, discarding the error was not.
+
+## How the guards were verified
+
+Every guard added here was checked by **planting the defect it exists to catch**:
+five for the sample flag, three for the swallowed push. Two of my own tests were
+wrong on the first pass and both are noted in the files where they happened:
+
+- one matched the word "thrown" inside its own explanatory comment — the same
+  self-matching mistake a grep test made on 2026-08-05 against `github_issue_url`;
+- one pinned a line break that `eslint --fix` moved minutes later, turning a
+  passing test red against code whose behaviour had not changed.
+
+## What I could NOT verify, and you should know it
+
+**I did not see any of this in a browser.** The Chrome extension was disconnected
+and Playwright has no session; signing in would mean handling credentials, which I
+will not do. So the rendered "Example" label is verified by source test and by the
+data chain (live column → `select("*")` → `ranked` → the row), each link checked
+individually — **but no human or agent has looked at it on screen.** That is the
+first thing worth doing on waking, and it is about ten seconds of work.
+
+---
+
+# Previous: session close 2026-08-06 ~05:00 IST — autonomous overnight run, 18 commits
 
 Gate: **tsc 0 · 7,948 pass 0 fail · build 0 · lint clean.** The suite is stable
 across five consecutive full runs, which mattered more than any single fix — see
