@@ -8,7 +8,7 @@ import { runCritic } from "@/lib/ai/critic.server";
 import { loadDecisionPrecedent } from "@/lib/ai/decision-precedent.server";
 import { recordLineage, recordLineageSafe } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
-import { retrieve } from "@/lib/rag/retriever.server";
+import { retrieve, type RetrievedChunk } from "@/lib/rag/retriever.server";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 import { prepareScaffoldSpeculative } from "@/lib/design-scaffold.functions";
 import { gradeOutcomeContract } from "@/lib/outcome-contract-grade";
@@ -1089,11 +1089,23 @@ export const updateOpportunity = createServerFn({ method: "POST" })
     let prior: { status: string | null; workspace_id: string | null; user_id: string } | null =
       null;
     if (rest.status) {
-      const { data: p } = await context.supabase
+      const { data: p, error: priorErr } = await context.supabase
         .from("opportunities")
         .select("status,workspace_id,user_id")
         .eq("id", id)
         .maybeSingle();
+      // A READ WHOSE ERROR IS DISCARDED IS NOT EVIDENCE OF ABSENCE, and this one
+      // was discarded. `prior` feeds the stage event's `from` lane and the
+      // judgment's workspace below, so a failed read used to arrive downstream
+      // as "this bet had no prior state and belongs to no workspace" --
+      // indistinguishable from the truth, and on the judgment path that is the
+      // exact input that lets `decisions.workspace_id`'s column default guess.
+      // It still must not block the settle, so it is logged rather than thrown,
+      // and `recordJudgment` now falls back to the updated row's own
+      // workspace_id instead of trusting this value's silence.
+      if (priorErr) {
+        console.error(`[decide] opportunity ${id} prior state unreadable: ${priorErr.message}`);
+      }
       prior = p ?? null;
     }
 
@@ -1276,7 +1288,20 @@ async function recordJudgment(
         // of `current_user_default_workspace()` -- the same trap that put two
         // bets in a workspace that never saw their evidence. A column default
         // is a guess about the WRITER, never about the row.
-        ...(input.workspaceId ? { workspace_id: input.workspaceId } : {}),
+        //
+        // AND IT NOW HAS A SECOND SOURCE, because "explicit" was a guarantee
+        // this code could not keep. `updateOpportunity`'s prior read discards
+        // nothing now but still cannot succeed every time, and on a failure it
+        // arrives here as `workspaceId: null`, the spread below vanishes, and
+        // the default fires -- precisely the trap the paragraph above claims is
+        // avoided. `input.row` is the freshly updated opportunity and carries
+        // its own `workspace_id`, so the row answers for itself before the
+        // writer's default ever gets asked.
+        ...(input.workspaceId
+          ? { workspace_id: input.workspaceId }
+          : typeof r.workspace_id === "string"
+            ? { workspace_id: r.workspace_id }
+            : {}),
         ...(typeof r.project_id === "string" ? { project_id: r.project_id } : {}),
         ...(typeof r.product_id === "string" ? { product_id: r.product_id } : {}),
       } as never)
@@ -1588,6 +1613,69 @@ export const draftContractFromPrd = createServerFn({ method: "POST" })
 
 // ---------- CNV-04: agent-authored contracts (the friction killer) ----------
 
+/**
+ * A SEEDED SPEC MUST NOT BE CITED AS PRECEDENT INSIDE A REAL ONE.
+ *
+ * WHY THIS IS THE READ THAT MATTERS. Marking a sample row is cosmetic until a
+ * judgement stops being formed from it, and RAG retrieval is where this file
+ * forms judgements: both `retrieve` calls in this module hand their chunks to a
+ * model as numbered evidence AND persist them onto the new spec's `citations`
+ * column, so a chunk drawn from an invented spec does not merely tilt one
+ * generation -- it is written down as the provenance of a real one and outlives
+ * the retrieval that fetched it.
+ *
+ * THIS IS A BELT, NOT THE FIX. The permanent fix is at index time:
+ * `indexUserCorpus` (src/lib/rag/indexer.server.ts, the prds read at :127-132
+ * selects id, title and body_md and filters only on user_id, filing each row as
+ * source_kind 'prd' with the prd id as source_id at :135) should never file a
+ * flagged spec at all. Until it stops, every OTHER reader of `rag_chunks` is
+ * still exposed and this function protects only this module's two writes.
+ *
+ * FAIL CLOSED, and this is the deliberate half. A spec id we asked about and
+ * did not get back is not evidence that it is real -- it is a read we could not
+ * complete, or a row this caller may not read. Both resolve to "cannot tell",
+ * and the honest answer to "cannot tell" on a citation is to leave it out. A
+ * missing piece of precedent costs one weaker draft; a cited fiction is on the
+ * record permanently.
+ *
+ * FREE ON TODAY'S DATA, MEASURED RATHER THAN ASSUMED. Re-measured 2026-08-06
+ * through the Lovable MCP: `rag_chunks` holds 16 rows and every one is
+ * source_kind 'finding' -- ZERO 'prd' chunks exist -- and 0 of 81 specs carry
+ * `is_sample`. So the early return below fires on every call today and no extra
+ * query is made. Both of those numbers change the first time the indexer runs
+ * against a seeded workspace, which is the case this exists for.
+ */
+async function dropSampleSpecChunks(
+  supabase: SupabaseClient,
+  chunks: RetrievedChunk[],
+): Promise<RetrievedChunk[]> {
+  const specIds = [
+    ...new Set(
+      chunks
+        .filter((c) => c.source_kind === "prd" && c.source_id)
+        .map((c) => c.source_id as string),
+    ),
+  ];
+  if (specIds.length === 0) return chunks;
+
+  const { data, error } = await supabase.from("prds").select("id,is_sample").in("id", specIds);
+  if (error || !data) {
+    console.error(
+      `[rag] could not tell which of ${specIds.length} retrieved specs are examples, so no spec was cited: ${
+        error?.message ?? "the read returned no rows"
+      }`,
+    );
+    return chunks.filter((c) => c.source_kind !== "prd");
+  }
+
+  const realSpec = new Map(
+    (data as { id: string; is_sample?: boolean | null }[]).map((r) => [r.id, r.is_sample !== true]),
+  );
+  return chunks.filter((c) =>
+    c.source_kind === "prd" ? realSpec.get(c.source_id ?? "") === true : true,
+  );
+}
+
 const CONTRACT_FROM_INTENT_SYSTEM = `You are the Supaprod contract author. Given a one-line product intent plus standing workspace context and precedent (prior specs, docs, notes, meetings — numbered chunks you may draw from), draft a full Outcome Contract in seconds so the human edits deltas instead of writing from a blank page.
 Rules:
 - intent: restate the bet as one tight, sharpened paragraph (not the one-liner verbatim).
@@ -1621,7 +1709,10 @@ export const draftContractFromIntent = createServerFn({ method: "POST" })
 
     let chunks: Awaited<ReturnType<typeof retrieve>> = [];
     try {
-      chunks = await retrieve(supabase, userId, { query: data.intent, k: 8, mmr: true });
+      chunks = await dropSampleSpecChunks(
+        supabase,
+        await retrieve(supabase, userId, { query: data.intent, k: 8, mmr: true }),
+      );
     } catch {
       chunks = [];
     }
@@ -2432,8 +2523,21 @@ export function commitmentFromContract(input: {
  *
  * THE ORDER OF PREFERENCE. A whole sentence beats a whole word beats the hard
  * slice, and the ellipsis is written ONLY on the word-boundary path, where the
- * text genuinely was cut short. A sentence ending in its own full stop must not
- * wear one: that would claim a truncation that did not happen.
+ * cut lands inside a word.
+ *
+ * THE UNMARKED CUT IS NARROWER THAN THIS PARAGRAPH USED TO CLAIM, and the
+ * overclaim was written by the same pass that added the function. It read: "A
+ * sentence ending in its own full stop must not wear one: that would claim a
+ * truncation that did not happen." True of a one-sentence source, false of a
+ * multi-sentence one -- the scan keeps the LAST boundary inside the window, so
+ * every sentence after it is dropped and nothing on screen says so, and "You
+ * are promising: <first sentence>." then reads as the whole promise. That is a
+ * deliberate trade, not the absence of a truncation: an ellipsis inside a
+ * well-formed sentence reads as a system that lost the thread, which is the
+ * defect this function exists to remove. Unreachable on today's data --
+ * re-measured 2026-08-06 through the Lovable MCP, the longest contract intent
+ * in the database is 241 characters against ROADMAP_TEXT_MAX = 500
+ * (roadmap-governance.ts:16), so nothing live reaches either truncation path.
  *
  * The 60% floor stops the fallback becoming its own defect. Without it a
  * paragraph whose first sentence ends at character 12 would be trimmed to
@@ -2492,9 +2596,12 @@ export function fitToSentence(text: string, max: number): string {
  * throwing, so the old `const { data: placed }` reported success having changed
  * nothing: an RLS refusal or a PostgREST schema-cache miss left `placed` null,
  * no stage event was written, and /decide still said "Keeping it drafts the
- * spec and moves it into Plan". Live on 2026-08-06, 0 of 289 opportunities
- * carry a roadmap_bucket, so this path has never been observed to succeed in
- * production and the code could not tell anyone why.
+ * spec and moves it into Plan". Re-measured 2026-08-06 through the Lovable MCP:
+ * 0 of 292 opportunities carry a roadmap_bucket, so this path has never been
+ * observed to succeed in production and the code could not tell anyone why. The
+ * zero is the load-bearing half and it has not moved; the denominator has, twice
+ * inside the same day (this line read 289, a reviewer re-measured 290), which is
+ * why a count written into a comment gets a date beside it.
  *
  * PARTIAL, AND THIS SENTENCE IS THE HONEST PART: the report travels back on the
  * handler's result, and no surface renders it yet. /decide's `draftSpec`
@@ -2783,11 +2890,16 @@ The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet
 
     // RAG: retrieve workspace evidence (signals, docs, meetings, notes) and
     // expose it as numbered chunks the model can cite as [n]. Citations are
-    // persisted on the PRD row so the UI can deep-link back to each source.
+    // persisted on the PRD row so the UI can deep-link back to each source --
+    // which is exactly why `dropSampleSpecChunks` runs before they are read or
+    // stored. See the paragraph above that function.
     const ragQuery = `${title}\n${source}`.slice(0, 1200);
     let chunks: Awaited<ReturnType<typeof retrieve>> = [];
     try {
-      chunks = await retrieve(supabase, userId, { query: ragQuery, k: 8, mmr: true });
+      chunks = await dropSampleSpecChunks(
+        supabase,
+        await retrieve(supabase, userId, { query: ragQuery, k: 8, mmr: true }),
+      );
     } catch {
       chunks = [];
     }
@@ -2934,14 +3046,27 @@ The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet
      *     anywhere carry the flag today.
      *
      * THE READ HALF IS NO LONGER MISSING IN THIS FILE, and the sentence that
-     * stood here was wrong about why it ever was. It read: "`listSpecs` and
-     * `listPrds` are in THIS file and are still blocked ... naming it in a
-     * select or an `.eq()` is a typecheck failure." It is not a typecheck
-     * failure, because there is no typecheck: `context` reaches these handlers
-     * untyped, so an INVENTED column name compiles just as happily (measured
-     * both ways, 2026-08-06). `listPrds` and `listSpecs` now select the column
-     * and the reasoning is written out above `listPrds`, including the
-     * PostgREST probe that shows the schema cache serves it.
+     * stood here was wrong about why it ever was. Verbatim from 83dd694e: "The
+     * select cannot be widened here either until the generated Database types
+     * carry the column, or the query stops typechecking."
+     *
+     * THAT IS THE REAL TEXT, AND THE CORRECTION THAT REPLACED IT QUOTED WORDS
+     * NOBODY WROTE. The version standing here until now attributed this to the
+     * old comment: "`listSpecs` and `listPrds` are in THIS file and are still
+     * blocked ... naming it in a select or an `.eq()` is a typecheck failure."
+     * `git log --all -S` over this file's entire history finds that string in
+     * exactly one commit -- the one that invented it while claiming to preserve
+     * it. The substance was faithful; the form was not. In a repo whose whole
+     * discipline is that a false comment is quoted and corrected rather than
+     * deleted, a quotation the next reader cannot find is the same defect one
+     * turn deeper, and grepping for it is how they would discover that.
+     *
+     * WHY THE REAL SENTENCE WAS WRONG: it is not a typecheck failure, because
+     * there is no typecheck. `context` reaches these handlers untyped, so an
+     * INVENTED column name compiles just as happily (measured both ways,
+     * 2026-08-06). `listPrds` and `listSpecs` now select the column and the
+     * reasoning is written out above `listPrds`, including the PostgREST probe
+     * that shows the schema cache serves it.
      *
      * The generated types ARE still stale -- `prds` carries no `is_sample` in
      * `Database` -- which is why the spread below keeps its explicit
@@ -2954,13 +3079,25 @@ The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet
      * (src/lib/roadmap.functions.ts:62) still has no such field and /plan still
      * renders no Example tag on a spec row or a roadmap card, so a person on
      * /plan cannot yet tell a seeded spec from one they earned. Those two live
-     * in other files. So does the read that matters most: a sample spec must
-     * not enter RAG retrieval, or seeded fiction is cited as evidence inside the
-     * next real spec -- `rag_chunks` files a spec as source_kind 'prd' with the
-     * prd id as source_id (src/lib/rag/indexer.server.ts:135, inside
-     * `indexUserCorpus`, whose prds read at :131-137 selects id, title and
-     * body_md and filters on nothing else), and `retrieve` never learns which
-     * chunk came from an invented spec.
+     * in other files.
+     *
+     * THE READ THAT MATTERS MOST IS NO LONGER ONE OF THEM, and the sentence
+     * that stood here declared it out of reach. It read: "So does the read that
+     * matters most: a sample spec must not enter RAG retrieval, or seeded
+     * fiction is cited as evidence inside the next real spec ... and `retrieve`
+     * never learns which chunk came from an invented spec." The last clause is
+     * still exactly true of `retrieve`. The first was wrong about where a fix
+     * could go: BOTH of this module's retrieval calls persist their chunks onto
+     * a prds row as `citations` -- the insert below, and the one in
+     * `draftContractFromIntent` -- so a post-filter was always available in
+     * this file, and `dropSampleSpecChunks` now runs at both call sites. It
+     * also cited the indexer's prds read as ":131-137"; it is :127-132, and the
+     * push that files the row as source_kind 'prd' is :135.
+     *
+     * INDEX TIME REMAINS THE PERMANENT FIX, and the paragraph above
+     * `dropSampleSpecChunks` says why a read-time filter is a belt rather than
+     * a closure: it protects this module's two writes and no other reader of
+     * `rag_chunks`.
      */
     const prdRow: Database["public"]["Tables"]["prds"]["Insert"] & { is_sample?: boolean } = {
       user_id: userId,

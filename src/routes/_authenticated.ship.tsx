@@ -1185,7 +1185,17 @@ function Ship() {
   // deployments alone cannot say which changeset merged, and the changelog
   // alone cannot say what is serving. So both halves gate together rather than
   // letting one render a confident half-answer.
-  const releaseReading = changelog.isLoading || deployments.isLoading;
+  //
+  // `stillWaiting`, NEVER `isLoading`, AND THIS FLAG IS WHY THE HELPER EXISTS.
+  // Both queries are `enabled: !!wid`; react-query v5 defines `isLoading` as
+  // `isPending && isFetching`, so a disabled query is pending WITHOUT fetching
+  // and `isLoading` reads false for the whole of the first paint. Written as
+  // `changelog.isLoading || deployments.isLoading` this flag therefore said
+  // "not reading" before a workspace was known, and both blocks below fell
+  // through to their `length === 0` arms: "No deploy is on the record yet."
+  // and "Nothing is in production yet.", stated about a record nobody had
+  // looked in. Not a race -- the ordinary path of every session.
+  const releaseReading = stillWaiting(changelog, deployments);
   /**
    * A FAILED REFRESH IS NOT A LOST READ, and react-query v5 keeps `data`
    * through one. Same shape ChangesPanel uses over its own deploy query
@@ -1450,6 +1460,21 @@ function Ship() {
   const rest = announcements.filter((a) => a.id !== call?.id);
   const waitingCount = announcements.filter((a) => a.status === "pending").length;
   const loading = stillWaiting(posts, changelog);
+  /**
+   * THE GATE'S OWN WAIT, narrower than `loading` on purpose: the Gate asks only
+   * about announcements, so holding it behind the changelog read as well would
+   * park the one call to action on this station behind data it never renders.
+   *
+   * IT WAS `posts.isLoading`, AND THAT IS FALSE BEFORE A WORKSPACE IS KNOWN.
+   * `posts` is `enabled: !!wid` and a disabled query in react-query v5 is
+   * pending without fetching, so the branch fell straight past its Loading arm
+   * to `call` -- null over an empty list -- and the biggest element on the
+   * station opened every session asking "Write the first announcement?" of a
+   * workspace whose announcements nobody had read yet. The Announcements block
+   * at the foot of the page took the same fall in the same frame, which is why
+   * it now waits on this flag too.
+   */
+  const postsReading = stillWaiting(posts);
 
   // The one thing only this surface can see: what shipped against what was
   // said. Assembled from real rows, and drawn only when both reads succeeded.
@@ -1468,8 +1493,12 @@ function Ship() {
       }).length;
 
   /**
-   * The release the document is assembled for, and whether we may say anything
-   * about it yet.
+   * HAS THE CHANGELOG ANSWERED? One flag, because it is one read.
+   *
+   * Both the release list ("What shipped") and the release document below it
+   * are drawn from `changelog`, and giving each its own wait flag is precisely
+   * how two panels of one screen end up disagreeing about whether the workspace
+   * has ever shipped. So this answers for both.
    *
    * `changelog.isLoading` IS NOT ENOUGH ON ITS OWN. Every read on this surface
    * is `enabled: !!wid`, and a disabled query is pending without fetching, so
@@ -1477,11 +1506,23 @@ function Ship() {
    * draw "nothing has shipped yet" during the first paint of every session --
    * a confident, false sentence about an empty list nobody has looked in.
    *
+   * THREE CLAUSES WHERE ONE WOULD DO, AND THE REDUNDANCY IS ON THE RECORD
+   * RATHER THAN HIDDEN. `stillWaiting(changelog)` is the whole rule and it
+   * subsumes the other two: a query disabled by `enabled: !!wid` is pending,
+   * and `isLoading` implies pending. The two named clauses stay because they
+   * are what a reader of this surface actually hits and because
+   * `src/routes/__tests__/ship-mounts-the-release-document.test.ts` pins them
+   * by text; collapsing this line to `stillWaiting(changelog)` alone is the
+   * right end state and takes that assertion with it, in the same commit.
+   * The clause that is NOT redundant in behaviour is the third: a query paused
+   * with no network is pending WITHOUT fetching, so `isLoading` is false there
+   * too and only `stillWaiting` still says wait.
+   *
    * A picked id that has since left the list falls back to the newest rather
    * than to nothing, because a release document that vanishes on a background
    * refetch is worse than one that moves.
    */
-  const docReading = !wid || changelog.isLoading;
+  const docReading = !wid || changelog.isLoading || stillWaiting(changelog);
   const docEntry: ChangelogEntry | null =
     (docId ? notes.find((e) => e.id === docId) : undefined) ?? notes[0] ?? null;
 
@@ -1752,7 +1793,7 @@ function Ship() {
             Try again
           </Button>
         </Actions>
-      ) : posts.isLoading ? (
+      ) : postsReading ? (
         <Loading>Reading what is ready to announce.</Loading>
       ) : call ? (
         <Gate
@@ -2058,7 +2099,13 @@ function Ship() {
         }
         onMore={() => setAllNotes((v) => !v)}
       >
-        {changelog.isLoading ? (
+        {/* THE SAME FLAG THE DOCUMENT USES, and it is the same read. This was
+            `changelog.isLoading`, which is false while the query sits disabled
+            waiting for a workspace, so this list answered "Nothing has shipped
+            yet." on the first paint of every session -- to the eight
+            workspaces that hold changelog entries as readily as to a new one
+            (8 entries across 8 workspaces, counted on 2026-08-06). */}
+        {docReading ? (
           <Loading>Reading the release notes.</Loading>
         ) : changelog.isError ? (
           <Failed onRetry={() => void changelog.refetch()}>The release notes did not load.</Failed>
@@ -2176,9 +2223,29 @@ function Ship() {
            document goes on saying "This release is not linked to a spec" over a
            change that is. This re-reads the changeset and writes the entry
            again. It is absent while the read is in flight, over a failed read,
-           and over an entry with no changeset behind it (the foreign key is ON
-           DELETE SET NULL, so shipped history outlives a deleted build
-           session), because in each of those there is nothing to refresh from.
+           and over an entry with no changeset behind it, because in each of
+           those there is nothing to refresh from.
+
+           THE THIRD GUARD RESTS ON THE COLUMN, NOT ON THE FOREIGN KEY, and an
+           earlier version of this comment had that exactly backwards. It said
+           the key was ON DELETE SET NULL "so shipped history outlives a deleted
+           build session". Queried against this database on 2026-08-06,
+           `changelog_entries_changeset_id_fkey` is `REFERENCES
+           studio_changesets(id) ON DELETE CASCADE`; only `prd_id` is SET NULL.
+           Deleting a build session therefore takes the changelog entry with it
+           and shipped history does NOT survive one -- the reverse of what was
+           written here. Two migrations disagree and the later one won:
+           20260629120200_byo_p3_changelog.sql:12-16 declares SET NULL,
+           20260630180128_7bc70fcc-811a-42fa-9d76-f21c7b26d043.sql:93 creates
+           the table with CASCADE, and CASCADE is what is live.
+
+           What actually justifies the guard is that `changeset_id` is NULLABLE
+           (information_schema, same date), so an entry can exist with no
+           changeset to re-read -- one written by anything other than
+           trg_studio_changeset_to_changelog. No entry is in that state today
+           (8 entries, all carrying a changeset), so this guards a shape the
+           schema permits rather than one the data currently shows. The code
+           was right before and is unchanged; only the reason was false.
 
            THE GUARD IS IN THE HANDLER because `Block`'s `more` renders a plain
            button with no `disabled` prop; the label carries the in-flight
@@ -2231,7 +2298,14 @@ function Ship() {
         <WhatShipped entry={docEntry} workspaceId={wid || null} />
       ) : null}
 
-      {posts.isError ? null : announcements.length === 0 ? (
+      {/* THIS BLOCK HAD NO WAIT AT ALL, which is the same defect as the Gate's
+          in its plainest form: it branched straight on `announcements.length`,
+          so "Nothing has gone out yet." was the first thing every session said
+          about a list nobody had read. It renders NOTHING while the read is out
+          rather than a second Loading -- the Gate above already says "Reading
+          what is ready to announce." over the same query, and one read said
+          twice on one screen is how a surface starts contradicting itself. */}
+      {postsReading || posts.isError ? null : announcements.length === 0 ? (
         <Block title="Announcements">
           <Empty>
             Nothing has gone out yet.{" "}

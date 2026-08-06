@@ -50,20 +50,33 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  * no `validateSearch` at all". Held against the map below, it was false at both
  * ends for the first of the four: `opportunity` went to /discover, not /decide,
  * and /discover is the one route in that list that DOES declare a parser. It is
- * replaced rather than deleted, and two of the four are now closed:
+ * replaced rather than deleted, and two of the four have changed, one of them
+ * only halfway:
  *
  * `decision` CARRIES ITS ID NOW, and it is the loudest of them. It was
  * `() => ({ to: "/meetings" })`, and /meetings is a redirect stub whose
- * beforeLoad throws `redirect({ to: "/brain", search: { tab: "calendar" } })`,
- * so a Decision node landed on Brain's CALENDAR with its id discarded twice
- * over — once by a map entry that took no argument, once by a redirect that
- * hard-codes its own search. /brain's `validateSearch` has always kept
+ * beforeLoad throws `redirect({ to: "/brain", search: { tab: "calendar" } })`.
+ *
+ * THE DESTINATION WAS NEVER THE WRONG PAGE, and the first draft of this
+ * paragraph said it was. It read "so a Decision node landed on Brain's CALENDAR
+ * with its id discarded twice over", and Brain has no calendar tab: `TABS` is
+ * decisions / learnings / artifacts / docs / graph, `LEGACY_TABS` maps the
+ * retired token `calendar` onto `decisions`, and `validateSearch` resolves the
+ * raw token through that map before the page ever sees it. So the redirect
+ * landed you on the decision LEDGER, the right tab with every call listed and
+ * no row selected. What was lost was the id alone, and it was lost twice: once
+ * by a map entry that took no argument, once by a redirect that hard-codes its
+ * own search. This repo already had the fact written down correctly in
+ * _authenticated.brain.tsx, in the substrate note on the retired meetings
+ * surface, which is where I checked it. The repair below is therefore "the id
+ * now reaches the row", not "the destination was wrong", and the smaller claim
+ * is the true one. /brain's `validateSearch` has always kept
  * `?decision=`, and its `tab === "decisions"` branch renders
  * `<DecisionDetail id={decision} />`, so the door existed and nothing pointed
  * at it. Measured 2026-08-06 against production: `decision` is the most common
  * node in this drawer's only mount — 40 of an opportunity's descendants and 19
  * of its ancestors are decisions, against 37 theme ancestors — so this was the
- * drawer's most-travelled wrong link, not a corner case.
+ * drawer's most-travelled id-dropping link, not a corner case.
  *
  * WHAT THIS LINK STILL CANNOT REACH, measured per CALLER rather than per
  * workspace, which is the mistake the first draft of this note made.
@@ -75,12 +88,26 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  * heaviest account in the database — 13 of its 18 fall past row 100, and
  * DecisionDetail then draws "That call is not on the record. It may have been
  * removed since the link was made." — which is false, because it is on the
- * record and merely outside a window. THAT IS NOT A REASON TO DROP THE ID: those
- * same 13 are unreachable through Brain's decisions tab by any path today, since
- * DecisionsPanel is fed by the identical 100-row read, so the window is the
- * defect and this link only makes it visible. The fix is one filter in another
- * file — `listDecisions` accepting an `id`, or DecisionDetail reading by id when
- * the list misses — and it is written up in the seam report, not papered over
+ * record and merely outside a window.
+ *
+ * THAT IS STILL NOT A REASON TO DROP THE ID, but the reason has to be stated
+ * accurately, and the first draft of it was not. It claimed "those same 13 are
+ * unreachable through Brain's decisions tab by any path today, since
+ * DecisionsPanel is fed by the identical 100-row read". The read is not
+ * identical and they are not unreachable. DecisionsPanel passes `source`,
+ * `status` and its search box's `q` into `listDecisions`, which applies all
+ * three BEFORE `.limit(100)`, and PostgREST filters before it limits, so typing
+ * a title into that box narrows the window and surfaces a decision sitting past
+ * global row 100. What is true, and what still supports keeping the id: those
+ * 13 are invisible in the DEFAULT list, reachable only through a search or
+ * filter that narrows the window, and that path already ends in the same false
+ * sentence, because the panel's row navigates to
+ * `{ tab: "decisions", decision: d.id }`, byte for byte the destination this
+ * link now produces, and DecisionDetail then resolves the id against its OWN
+ * unfiltered newest-100 read. So this link exposes a defect that is already
+ * live rather than inventing one. The fix is one filter in another file,
+ * `listDecisions` accepting an `id` or DecisionDetail reading by id when the
+ * list misses, and it is written up in the seam report rather than papered over
  * here.
  *
  * `opportunity` NOW POINTS AT /decide, AND IS STILL ZERO-ARG. It pointed at
@@ -114,11 +141,31 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  * nothing writes an edge of that kind, and live `artifact_lineage` holds zero
  * rows of it on either side, so the entry has never once rendered.
  *
+ * CARRIES AN ID AND STILL LANDS SHORT: `meeting`, and this sweep's first pass
+ * missed it, which is worth saying because a reader takes a sweep for a full
+ * pass over the map. /meetings/$id is a redirect stub too, but unlike /tasks
+ * and /roadmap it PRESERVES the id, throwing
+ * `redirect({ to: "/brain", search: { tab: "calendar", meeting: params.id } })`.
+ * `calendar` resolves to the decisions tab, /brain's `validateSearch` keeps
+ * `?meeting=` for exactly that reason, and then nothing on that tab reads it:
+ * the branch renders DecisionDetail for `?decision=` or the ledger, and the
+ * meetings surface itself is gone. brain.tsx says the same thing in its own
+ * words, that the count is real and there is nothing behind it. It is named
+ * here rather than repaired, because the repair is a meeting surface or a Today
+ * deep link and neither is this file's to write, and because it has never
+ * rendered: live `artifact_lineage` holds zero `meeting` rows on either side
+ * (measured 2026-08-06), the same census that retired `roadmap_item`.
+ *
+ * WORKING AND DELIBERATELY UNTOUCHED, so that the list above is a full pass
+ * over the map rather than a partial one: `prd` to /plan/spec/$id and `mission`
+ * to /build/$missionId both carry their id into a route param the destination
+ * declares, and both land on the record itself.
+ *
  * NINE KINDS HAVE NO ENTRY AT ALL — house_rule, design_memory, prototype,
  * capability_change, learning, deployment, changeset, prd_scaffold, prd_flow —
  * and PeerLink draws them as an unlinked label. That is deliberate and stays:
  * an unlinked label beats a link to the wrong place, which is the whole lesson
- * of the two paragraphs above. `learning` is the one worth revisiting later —
+ * of the sweep above. `learning` is the one worth revisiting later —
  * 11 of an opportunity's ancestors are learnings and
  * `/brain?tab=learnings&learning=<id>` is a real door — but adding it is a NEW
  * affordance rather than the repair of a broken one, so it is recorded here
@@ -141,6 +188,10 @@ const ROUTES: Partial<
   task: () => ({ to: "/tasks" }),
   signal: (id) => ({ to: "/discover", search: { focus: id } }),
   theme: (id) => ({ to: "/discover", search: { focus: id } }),
+  // Carries the id and still lands short: /meetings/$id forwards it to
+  // /brain?tab=calendar&meeting=, `calendar` resolves to the decisions tab, and
+  // nothing there reads `?meeting=`. Zero live rows of this kind, so it has
+  // never rendered. See the sweep note above.
   meeting: (id) => ({ to: "/meetings/$id", params: { id } }),
   roadmap_item: () => ({ to: "/roadmap" }),
   // Lands on the record itself, and it is the only kind here that gets there

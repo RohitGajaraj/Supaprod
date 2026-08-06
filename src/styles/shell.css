@@ -443,11 +443,23 @@
   padding: 12px 18px;
   flex: none;
   overflow-x: clip;
-  /* A CONTAINER query, not a viewport one. The strip's width is the work area
-   * minus the rail, and the rail collapses independently, so a viewport
-   * breakpoint would fire at the wrong moment in half the states this shell
-   * has. This is the same trap recorded in the Build terminal work: a
-   * `max-width` viewport query never fires while the pane itself is narrow. */
+  /* A CONTAINER query, not a viewport one -- and NOT for the reason this
+   * comment gave for months. It said "the strip's width is the work area minus
+   * the rail, and the rail collapses independently". The DOM says otherwise:
+   * `.sp-strip` is a direct child of `.sp-app`, which is a flex COLUMN, and it
+   * is a SIBLING of `.sp-mid`; the rail lives inside `.sp-mid`. So the strip
+   * spans the full app width in every rail state and the rail never narrows
+   * it. That is also the only reading under which this rule's own 375px
+   * arithmetic above holds, and the file used to contradict itself between the
+   * two.
+   *
+   * Kept as a container query all the same, and deliberately: it measures the
+   * element it is reasoning about, so it stays correct if the strip is ever
+   * moved inside the work area -- which is the arrangement the false sentence
+   * was imagining. The general trap it named is real and worth keeping: a
+   * `max-width` VIEWPORT query never fires while the pane itself is narrow,
+   * which is what the Build terminal work recorded. It just does not apply to
+   * this element today, where the two would fire at the same widths. */
   container-type: inline-size;
   container-name: spinestrip;
 }
@@ -740,8 +752,12 @@
 /* ---------- THE ONE WIDTH WHERE SHRINKING STOPS WORKING ----------
  * 640px, and it is the same 640px that takes the rail away further down. That
  * is not a coincidence, it is the reason: below it this strip is the only
- * pointer navigation left on the screen, which is exactly the width at which
- * it has to be readable rather than merely present.
+ * pointer navigation to a STATION left on the screen. The header survives that
+ * breakpoint and keeps a fixed handful of doors with it -- the brand link to
+ * Today, both routes to Settings, Ask -- but not one of the seven stations is
+ * among them, which is exactly the width at which this row has to be readable
+ * rather than merely present. (The full count of what the rail takes with it
+ * is at WHAT GOES WITH THE RAIL, further down.)
  *
  * THE ARITHMETIC IS IN THE COMMENT AT THE TOP OF THIS SECTION. 339px of
  * content on a 375px phone, seven ways, is 19px of name each; "Discover" needs
@@ -756,20 +772,42 @@
  * written without, not a reversal of it.
  *
  * VIEWPORT AND NOT CONTAINER, against this file's own preference recorded at
- * `container-name: spinestrip`, and deliberately. `overflow-x` has to be set
- * on `.sp-strip` itself and an element cannot be styled by its own container
- * query, so that half can only come from a media query. Splitting the pair is
- * the dangerous version: between 641px and 900px the rail is 64px, which
- * leaves the strip's container about 540px, so a container condition at 640
- * would fire THERE, widen the chips past the container, and leave them behind
- * `clip` with no gesture that reaches them -- which is the exact bug this rule
- * exists to fix, moved to a different width. The two have to fire together, so
- * both are viewport.
+ * `container-name: spinestrip`, and for ONE reason where this paragraph used
+ * to give two. The reason that holds: `overflow-x` has to be set on
+ * `.sp-strip` itself, an element cannot be styled by its own container query,
+ * and the `min-width` on the chips has to fire at the same instant or the
+ * chips widen with no scroller to reach them. A media query is the only thing
+ * that can carry both halves.
  *
- * 104px, chosen so that no common phone shows a whole number of chips: 339/104
- * is 3.26 at 375px, 324/104 is 3.11 at 360px, 354/104 is 3.40 at 390px. The
- * cut-off chip is the affordance and it is the only thing on the row that says
- * the row continues; a width that landed exactly on three would say nothing.
+ * THE SECOND REASON WAS FABRICATED, and it is corrected here rather than
+ * deleted so nobody rebuilds it. It claimed that between 641px and 900px the
+ * 64px rail leaves "the strip's container about 540px", so a container
+ * condition at 640 would fire THERE and strand widened chips behind `clip`.
+ * It would not: `.sp-strip` is a sibling of `.sp-mid` and the rail is inside
+ * `.sp-mid`, so the strip is full app width at every rail state and
+ * `@container spinestrip (max-width: 640px)` would fire at the same viewport
+ * widths this media query does. The hazard does not exist. The decision is
+ * unchanged; only its second leg was wrong. See the corrected note at
+ * `container-name: spinestrip` above.
+ *
+ * 104px, chosen so that no common phone shows a whole number of chips, and
+ * there are two honest readings of that. Subtracting BOTH 18px gutters:
+ * 339/104 is 3.26 at 375px, 324/104 is 3.11 at 360px, 354/104 is 3.40 at
+ * 390px. What a person actually sees at rest is a little more, because at
+ * scrollLeft 0 only the LEADING gutter is on screen and the trailing one sits
+ * past the last chip inside the scrollable content: 357/104 is 3.43 at 375px,
+ * 342/104 is 3.29 at 360px, 372/104 is 3.58 at 390px. Neither reading lands on
+ * a whole number, which is the property being bought. The cut-off chip is the
+ * affordance and it is the only thing on the row that says the row continues;
+ * a width that landed exactly on three would say nothing.
+ *
+ * 428px IS THE TIGHT ONE and the first pass skipped it (recounted 2026-08-06):
+ * 410/104 is 3.94, so the fourth chip shows about 6px -- its 1px rule and a
+ * sliver of padding, before any glyph. That is the weakest this affordance
+ * gets on a phone held in portrait, and it is the width to open first in a
+ * viewport pass. It does not break there: the row still scrolls, and the thin
+ * bar :root already sets is the second cue on any platform that draws one.
+ *
  * It also leaves "Discover" about 17px of slack, and if a longer name ever
  * arrives it truncates with the ellipsis that is already there. */
 @media (max-width: 640px) {
@@ -1185,22 +1223,35 @@ body:has([data-page-composer]) .sp-work {
     padding: 8px 6px;
   }
 }
-/* WHAT GOES WITH THE RAIL, AND IS NOT REPLACED YET. Hiding it below 640px also
- * hides the only door to Today, Runs, Brain, Crew and Engine room, and with the
- * foot it takes Settings, the theme toggle, the board and the shortcut sheet.
+/* WHAT GOES WITH THE RAIL, AND IS NOT REPLACED YET. SEVEN DOORS, counted
+ * against the markup on 2026-08-06 rather than off the rail's own contents,
+ * because the header keeps two of the nine this comment first claimed. Gone
+ * below 640px: Runs, Brain, Crew and Engine room from `.sp-nav`, and the
+ * board, the theme toggle and the shortcut sheet from `.sp-railfoot`. NOT
+ * gone, and the difference matters because the founder's scheduling call is
+ * priced off this number: TODAY survives, because `.sp-brand` in `.sp-top` is
+ * a `<Link to="/today">` and the header is the one piece of chrome this
+ * breakpoint leaves alone (the rule below only adjusts its gap and padding);
+ * and SETTINGS survives twice over, through the ScopeMenu link and the account
+ * menu's own Settings item, both of which live in that same header. The
+ * `.sp-collapse` button goes too and should not be counted -- it toggles the
+ * width of a rail that is not on screen.
  * The seven stations survive on the strip above and are readable and scrollable
  * there now (see THE ONE WIDTH WHERE SHRINKING STOPS WORKING), so a phone is no
- * longer a room with no exits -- but nine doors are still missing on the size of
- * screen most of a launch day arrives on, and CSS cannot summon what has no
+ * longer a room with no exits -- but seven doors are still missing on the size
+ * of screen most of a launch day arrives on, and CSS cannot summon what has no
  * trigger. The fix is a sheet opened from a button in the header, and it costs
  * almost no new CSS: `.sp-keys` / `.sp-keys-scrim` / `.sp-keys-sheet` are
  * already the geometry for a summoned overlay, and the sheet's body can hold
  * the same `<nav class="sp-nav">` and `<div class="sp-railfoot">` the rail
  * holds. What it needs is the button and the state, which live in AppFrame.tsx,
  * and one CSS line in the same commit: `.sp-navlabel` / `.sp-navcount` are put
- * to `display: none` by BOTH narrow paths on the class alone, so a row inside a
- * sheet would arrive with its name hidden. Scope both pairs to `.sp-rail`, the
- * way the tooltip above already is, and the sheet needs nothing else.
+ * to `display: none` by BOTH narrow paths, and neither is scoped to the rail --
+ * one hangs off `.sp-app[data-rail="narrow"]`, which a sheet rendered inside
+ * the app still matches, and the one in the 900px block below is the bare class
+ * and so fires on every phone. Either way a row inside a sheet would arrive
+ * with its name hidden. Scope both pairs to `.sp-rail`, the way the tooltip
+ * above already is, and the sheet needs nothing else.
  * Until that lands this rule is a known hole, not a finished decision. */
 @media (max-width: 640px) {
   .sp-rail {

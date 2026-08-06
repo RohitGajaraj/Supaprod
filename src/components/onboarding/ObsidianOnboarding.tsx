@@ -97,6 +97,16 @@ export type BeliefSource =
   /** The first line of the notes they pasted on step 2. */
   | "pasted";
 
+/* THE AGENT THIS FILE RUNS IS THE CRITIC, AND TWO STRINGS CALLED IT SOMETHING
+ * ELSE. The "none" line below and the belief input's aria-label (:1580) both
+ * said "the AI analyst". That is a real and DIFFERENT agent in this codebase —
+ * the brain's intelligence analyst, whose ANALYST_SYSTEM opens "You are the
+ * Supaprod intelligence analyst" (brain-insights.functions.ts:455) — and it
+ * never runs here. Everything else on this screen already says Critic,
+ * including the submit button below the input ("Get the Critic's take", :1619)
+ * and the failure copy at :1703-1704, so
+ * a new account was told two names for one agent inside one viewport. Renamed,
+ * matching agent-vocabulary.ts:75 `{ name: "Critic", verb: "challenges" }`. */
 export function beliefGuidance(source: BeliefSource): string {
   switch (source) {
     case "opportunity":
@@ -106,7 +116,7 @@ export function beliefGuidance(source: BeliefSource): string {
     case "pasted":
       return "This is the first line of what you pasted. Edit it, or write your own idea.";
     case "none":
-      return "Write the idea you want analyzed, in your own words. The AI analyst reads only what is in this box.";
+      return "Write the idea you want analyzed, in your own words. The Critic reads only what is in this box.";
   }
 }
 
@@ -1560,9 +1570,14 @@ export function ObsidianOnboarding() {
               {pasteNote}
             </p>
           ) : null}
+          {/* Named agent, not the wrong one. See the note on `beliefGuidance`:
+              the aria-label is what a screen-reader user hears, and it said
+              "the AI analyst" on the same screen as the button below that reads
+              "Get the Critic's take". `challenge` is the Critic's own verb in
+              agent-vocabulary.ts:75. */}
           <input
             autoFocus
-            aria-label="Your key assumption the AI analyst will challenge"
+            aria-label="Your key assumption the Critic will challenge"
             placeholder="Your key assumption that could be wrong"
             value={belief}
             disabled={running}

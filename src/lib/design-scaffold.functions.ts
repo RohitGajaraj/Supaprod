@@ -71,9 +71,22 @@
  * THE WRITE IS TOLERANT OF THE COLUMN NOT BEING THERE YET. Until the migration
  * is applied the update fails, `persisted` comes back false, and /design already
  * says "It could not be saved, so it goes when you leave this page" -- the
- * review is still returned and still rendered. The read is `select("*")` for the
- * same reason: naming a column that does not exist would fail the whole query
- * and take THE DRAWING off the page with it.
+ * review is still returned and still rendered. Every read of this table here is
+ * `select("*")` for the same reason: naming a column that does not exist would
+ * fail the whole query and take THE DRAWING off the page with it.
+ *
+ * AND FILING IT COSTS THE ROW'S `updated_at`, which is the part that had to be
+ * paid for rather than assumed. `prd_scaffolds_updated_at` is an unconditional
+ * before-update trigger running `update_updated_at_column()` -- body
+ * `NEW.updated_at = now()`, no WHEN clause, both read off production 2026-08-06
+ * -- so the moment a ruling lands, the column FOUR readings here treated as "when
+ * this drawing was made" says "just now": the staleness guard would drop the
+ * review it had only just filed, "What it replaces" would say a once-drawn spec
+ * had overwritten something, the stale-rule count would silently zero, and the
+ * spec page's "Generated {time}" would move. So the ruling carries the drawing's
+ * own age inside itself, and which drawing it is about is decided by a stamp of
+ * the markup rather than by a clock. `readDrawingRecord` is the one place that
+ * reconciles the two, and all four readings go through it.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -252,8 +265,15 @@ export function readContractBrief(contract: unknown): SpecContractBrief | null {
  *
  * `ContractClauseSchema` (discovery.functions.ts) caps one clause at 2000
  * characters and caps the COUNT at nothing, so without this a spec with fifty
- * clauses would quietly push the spec body out of the model's attention. The two
- * live contracts carry nine clauses between them, so nothing today reaches this.
+ * clauses would quietly push the spec body out of the model's attention.
+ *
+ * NOTHING TODAY REACHES IT, and the figure this sentence used to carry was wrong
+ * in a way worth naming: it said "nine clauses between them", which is ONE of
+ * the two contracts, not the pair. Re-measured against production 2026-08-06:
+ * 81 specs, 79 of them `{}` and none NULL, so exactly TWO carry a real contract
+ * -- one with 4 standing success metrics and 5 standing non-goals, one with 3
+ * and 4, SIXTEEN standing clauses between them. Composed through the function
+ * below they are blocks of 1216 and 1102 characters against this 4000 ceiling.
  *
  * 4000 because the blocks it rides beside are 8000 (`specBody`, sliced in the
  * same user message; `ARD_BLOCK_MAX_CHARS`, the same idea at Build) and 20000
@@ -689,17 +709,30 @@ export const getPersistedScaffold = createServerFn({ method: "GET" })
   .inputValidator((d: { prdId: string }) => z.object({ prdId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }): Promise<PersistedScaffold | null> => {
     const { supabase } = context;
+    // `select("*")`, and `generatedAt` read through `readDrawingRecord` rather
+    // than off `updated_at`: DesignScaffoldPanel prints this as "Generated
+    // {time}", and a ruling filed against this row moves `updated_at`, which
+    // would have that line claim the drawing was made at the moment somebody
+    // asked the Critic about it. The star is what keeps this query working while
+    // the migration that adds `critic_review` is unapplied.
     const { data: row } = await supabase
       .from("prd_scaffolds")
-      .select("html,source,updated_at")
+      .select("*")
       .eq("prd_id", data.prdId)
       .maybeSingle();
     if (!row) return null;
-    const html = row.html as string;
+    const r = row as unknown as {
+      html: string;
+      source: string;
+      created_at: string;
+      updated_at: string;
+      critic_review?: unknown;
+    };
+    const html = r.html;
     return {
       html,
-      generatedAt: row.updated_at as string,
-      source: row.source as "manual" | "speculative",
+      generatedAt: readDrawingRecord(r).drawnAt,
+      source: r.source as "manual" | "speculative",
       fidelity: readFidelity(html),
     };
   });
@@ -912,21 +945,72 @@ export type ScaffoldDesignCriticResult = {
  * `prds.critic_review` back out, so no ruling is stranded and no spec is left
  * carrying a drawing's findings where its own red-team verdict should be.
  *
- * ONE ROW PER SPEC, overwritten by a redraw, which is what makes `reviewed_at`
- * checkable against `updated_at` on the same row (see getDesignWorkItem).
+ * ONE ROW PER SPEC, overwritten by a redraw, which is what lets a rehydrated
+ * ruling be checked against the drawing it claims to be about (see
+ * `readDrawingRecord`).
  *
  * WHAT THIS IS NOT. It is deliberately NOT `prds.critic_review`. That column
  * belongs to the spec red-team and five surfaces read it whole; putting a
  * drawing's findings in it broke `CriticBadge` on /plan/spec/$id outright. See
  * the module header for the measurement.
  *
- * WHAT IS STORED IN IT is the type below. `reviewed_at` is what makes a
- * rehydrated ruling checkable against the drawing it claims to be about.
+ * WHAT IS STORED IN IT is the type below. `drawing_stamp` is what makes the
+ * ruling checkable against the markup on screen, and `drawn_at` is what carries
+ * the drawing's own age across the write that would otherwise erase it.
  */
 type StoredScaffoldReview = {
   verdict: DesignCriticReview["verdict"];
   findings: DesignCriticReview["findings"];
+  /** App-server clock at the moment the review came back. Display only, and the
+   *  fallback test for a ruling lifted here by the migration's repair block. */
   reviewed_at: string;
+  /** `drawingStamp` of the markup this ruling was actually taken against. */
+  drawing_stamp: string;
+  /** The drawing's own `updated_at`, read off the row IMMEDIATELY BEFORE this
+   *  write moved it, or carried from the ruling this one replaces. Null only
+   *  when that read came back empty, in which case readers fall back to the
+   *  row's own column and are wrong by the length of one round trip. */
+  drawn_at: string | null;
+};
+
+/**
+ * PURE. A stamp of the markup a ruling was taken against: its exact length and
+ * a 32-bit FNV-1a hash of it. Two drawings that differ anywhere differ here.
+ *
+ * WHY NOT A TIMESTAMP, which is what this test used to be. `prd_scaffolds`
+ * carries an UNCONDITIONAL before-update trigger -- `prd_scaffolds_updated_at`,
+ * running `update_updated_at_column()`, whose entire body is
+ * `NEW.updated_at = now()` (both read off production 2026-08-06) -- so FILING A
+ * RULING MOVES THE COLUMN THAT SAYS WHEN THE DRAWING WAS MADE. There is no
+ * writer-side escape: the trigger overwrites whatever an update passes for
+ * `updated_at`. A `reviewed_at >= updated_at` guard therefore compares an
+ * app-server clock reading taken BEFORE the round trip against a database clock
+ * reading taken DURING it, and drops the review it has just filed -- under a
+ * receipt on /design that promises the opposite. The markup is the one thing on
+ * this row the trigger cannot touch, so the markup is what the ruling is pinned
+ * to, and this holds whether or not that trigger is ever made conditional.
+ *
+ * A collision needs two drawings of identical length whose hashes also collide,
+ * and costs one stale review shown. It cannot cost a write.
+ */
+export function drawingStamp(html: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < html.length; i += 1) {
+    hash ^= html.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `${html.length}-${(hash >>> 0).toString(16)}`;
+}
+
+/** The stored ruling as read back: the review itself plus the two facts that say
+ *  which drawing it is about and when that drawing was made. */
+export type StoredScaffoldReviewRead = DesignCriticReview & {
+  reviewedAt: string;
+  /** Null for a ruling LIFTED here out of `prds.critic_review` by the
+   *  migration's repair block: those were written before this column existed
+   *  and carry no stamp. Zero such rows exist today (measured 2026-08-06). */
+  drawingStamp: string | null;
+  drawnAt: string | null;
 };
 
 /**
@@ -937,14 +1021,76 @@ type StoredScaffoldReview = {
  * every row read while the migration is still unapplied (`select("*")` simply
  * does not return the key). Both are "no ruling on file", which is true.
  */
-export function readStoredScaffoldReview(
-  criticReview: unknown,
-): (DesignCriticReview & { reviewedAt: string }) | null {
+export function readStoredScaffoldReview(criticReview: unknown): StoredScaffoldReviewRead | null {
   if (!criticReview || typeof criticReview !== "object" || Array.isArray(criticReview)) return null;
   const raw = criticReview as Record<string, unknown>;
   const reviewedAt = raw.reviewed_at;
   if (typeof reviewedAt !== "string" || !reviewedAt) return null;
-  return { ...parseDesignCriticReview(raw), reviewedAt };
+  const stamp = raw.drawing_stamp;
+  const drawnAt = raw.drawn_at;
+  return {
+    ...parseDesignCriticReview(raw),
+    reviewedAt,
+    drawingStamp: typeof stamp === "string" && stamp ? stamp : null,
+    drawnAt: typeof drawnAt === "string" && drawnAt ? drawnAt : null,
+  };
+}
+
+/** The row shape every drawing reader needs: the markup, when the row was first
+ *  drawn, and the two trigger-managed/JSON columns the reading has to reconcile. */
+type ScaffoldRowForReading = {
+  html: string;
+  created_at: string;
+  updated_at: string;
+  critic_review?: unknown;
+};
+
+/**
+ * PURE. THE ONE PLACE THAT DECIDES HOW OLD A DRAWING IS AND WHOSE RULING IS ON
+ * IT, because three surfaces used to decide it separately off `updated_at` and
+ * all three would have started lying on the day the migration lands.
+ *
+ * `updated_at` means "when this ROW last changed", and once a ruling can be
+ * filed against the row that stops being the same fact as "when this DRAWING was
+ * made". The ruling carries the drawing's age forward itself (`drawn_at`), so:
+ *
+ *   - a ruling whose stamp matches the markup on the row is about THIS drawing,
+ *     and its `drawn_at` is the drawing's real age;
+ *   - a ruling whose stamp does not match is about markup that has since been
+ *     redrawn: it is dropped, and the row's own `updated_at` is the age, because
+ *     the redraw was then the last thing to touch the row;
+ *   - a ruling with no stamp at all was lifted out of `prds.critic_review` by the
+ *     migration's repair block. Nothing on this row moved `updated_at` while
+ *     that ruling lived on the spec, so for exactly those rows the old
+ *     `reviewed_at >= updated_at` test is the correct one and is used.
+ *
+ * KNOWN WINDOW, stated rather than papered over: if the markup reviewed is not
+ * the markup on the row (the browser held an older drawing while another tab
+ * redrew it), the stamp will not match, the ruling is correctly dropped, and
+ * `drawnAt` falls back to a column the ruling write has already bumped -- so the
+ * drawing reads a few seconds younger than it is until the next redraw. A wrong
+ * age is the smaller loss of the two, and the alternative was showing a ruling
+ * about markup nobody is looking at.
+ */
+export function readDrawingRecord(row: ScaffoldRowForReading): {
+  drawnAt: string;
+  /** True when this row's markup has been REDRAWN at least once since insert. */
+  redrawn: boolean;
+  /** The ruling on file when it is about the markup on this row, else null. */
+  review: StoredScaffoldReviewRead | null;
+} {
+  const stored = readStoredScaffoldReview(row.critic_review);
+  const aboutThisDrawing =
+    !!stored &&
+    (stored.drawingStamp !== null
+      ? stored.drawingStamp === drawingStamp(row.html)
+      : new Date(stored.reviewedAt).getTime() >= new Date(row.updated_at).getTime());
+  const drawnAt = (aboutThisDrawing && stored?.drawnAt) || row.updated_at;
+  return {
+    drawnAt,
+    redrawn: new Date(drawnAt).getTime() - new Date(row.created_at).getTime() > 1000,
+    review: aboutThisDrawing ? stored : null,
+  };
 }
 
 /** DSN-02: run the Critic's design lens on a generated scaffold's HTML directly. */
@@ -1011,6 +1157,42 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
     });
     if (!review) return { review: null, persisted: false };
 
+    // THE DRAWING'S AGE IS READ BEFORE THE WRITE THAT DESTROYS IT. The row's
+    // before-update trigger sets `updated_at = now()` on any update with no WHEN
+    // clause, so the moment this ruling lands the column three surfaces read as
+    // "when this drawing was made" says "just now" instead. The one reading of it
+    // that is still true is the one taken here, a moment before -- and it is
+    // stored inside the ruling so `readDrawingRecord` can hand it back.
+    //
+    // `select("*")` for the same reason getDesignWorkItem uses one: naming
+    // `critic_review` while the migration is unapplied fails the whole query.
+    // A failed read costs the carried age, not the review.
+    const { data: rowBefore, error: beforeErr } = await supabase
+      .from("prd_scaffolds")
+      .select("*")
+      .eq("prd_id", data.prdId)
+      .maybeSingle();
+    if (beforeErr) {
+      console.error("runScaffoldDesignCritic: the drawing's own age could not be read:", beforeErr);
+    }
+    const before = (rowBefore ?? null) as {
+      html?: unknown;
+      updated_at?: unknown;
+      critic_review?: unknown;
+    } | null;
+    const beforeHtml = typeof before?.html === "string" ? before.html : null;
+    const beforeUpdatedAt = typeof before?.updated_at === "string" ? before.updated_at : null;
+    // A SECOND RULING ON AN UNCHANGED DRAWING MUST NOT AGE IT. By then
+    // `updated_at` is the FIRST ruling's write time, so the age is carried from
+    // the ruling being replaced rather than re-read off the column.
+    const priorReview = readStoredScaffoldReview(before?.critic_review);
+    const carriedDrawnAt =
+      priorReview?.drawnAt &&
+      beforeHtml !== null &&
+      priorReview.drawingStamp === drawingStamp(beforeHtml)
+        ? priorReview.drawnAt
+        : null;
+
     // A refused write RESOLVES under RLS, so `error` alone is not the test: the
     // row set coming back empty is the refusal. Either way the review is still
     // returned -- the person paid for it -- with `persisted` telling the truth.
@@ -1025,6 +1207,19 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
       verdict: review.verdict,
       findings: review.findings,
       reviewed_at: new Date().toISOString(),
+      // WHICH DRAWING THIS RULING IS ABOUT. The row's markup when what was
+      // reviewed IS the row's markup, and the client's own bytes when it is not
+      // -- a stamp that then matches nothing on read, so a ruling about a drawing
+      // that has since been replaced can never present itself as a ruling about
+      // the replacement. `startsWith` rather than equality because the browser
+      // sends `html.slice(0, 60000)` to stay inside the validator (every drawing
+      // in production is 4,914-9,035 characters as of 2026-08-06, so the slice
+      // takes nothing today -- the column has no ceiling and a model writes it).
+      drawing_stamp:
+        beforeHtml !== null && beforeHtml.startsWith(data.html)
+          ? drawingStamp(beforeHtml)
+          : drawingStamp(data.html),
+      drawn_at: carriedDrawnAt ?? beforeUpdatedAt,
     };
     const { data: saved, error } = await supabase
       .from("prd_scaffolds")
@@ -1236,9 +1431,13 @@ function gateWord(raw: string | null | undefined): DesignGateWord {
 
 export type DesignDrawing = {
   drawnAt: string;
-  /** True when this row has been overwritten at least once. `prd_scaffolds`
-   *  holds one row per spec and a BEFORE UPDATE trigger moves updated_at while
-   *  created_at never moves, so this is read, not inferred. */
+  /** True when the DRAWING has been replaced at least once. `prd_scaffolds`
+   *  holds one row per spec and `created_at` never moves, so this is read, not
+   *  inferred -- but it is read against `readDrawingRecord`'s reading of when
+   *  the drawing was made, NOT against `updated_at` directly. A before-update
+   *  trigger moves that column on any write to the row, so a spec drawn once and
+   *  then sent to the Critic would otherwise say it had overwritten a drawing
+   *  that never existed. */
   redrawn: boolean;
   /** "manual" = you asked for it. "speculative" = drawn while you read the spec. */
   source: "manual" | "speculative";
@@ -1312,10 +1511,14 @@ export const listDesignWork = createServerFn({ method: "GET" })
         .order("updated_at", { ascending: false })
         .limit(WORK_LIMIT),
       // html is read but never returned: readScaffoldShape reduces it to two
-      // counts here so a list of forty drawings is a list, not a payload.
+      // counts here so a list of forty drawings is a list, not a payload. The
+      // ruling is read for the same reason it is read on the item -- it carries
+      // the drawing's real age past the write that moved `updated_at` -- and the
+      // select is `*` because naming `critic_review` before the migration lands
+      // fails the whole query and empties this list of every drawing in it.
       supabase
         .from("prd_scaffolds")
-        .select("prd_id,source,html,created_at,updated_at")
+        .select("*")
         .eq("workspace_id", workspaceId)
         .order("updated_at", { ascending: false })
         .limit(WORK_LIMIT),
@@ -1332,11 +1535,17 @@ export const listDesignWork = createServerFn({ method: "GET" })
     for (const raw of (scaffoldRows ?? []) as Array<Record<string, unknown>>) {
       const html = (raw.html as string) ?? "";
       const shape = readScaffoldShape(html);
-      const createdAt = raw.created_at as string;
-      const updatedAt = raw.updated_at as string;
+      // The same reading the item makes, from the same function, so the list and
+      // the panel can never disagree about how old a drawing is.
+      const record = readDrawingRecord({
+        html,
+        created_at: raw.created_at as string,
+        updated_at: raw.updated_at as string,
+        critic_review: raw.critic_review,
+      });
       drawings.set(raw.prd_id as string, {
-        drawnAt: updatedAt,
-        redrawn: new Date(updatedAt).getTime() - new Date(createdAt).getTime() > 1000,
+        drawnAt: record.drawnAt,
+        redrawn: record.redrawn,
         source: raw.source === "speculative" ? "speculative" : "manual",
         fidelity: readFidelity(html),
         screenCount: shape.screenCount,
@@ -1496,7 +1705,8 @@ export type DesignWorkItem = {
    * Null when no review was ever filed, AND when the drawing has been redrawn
    * since -- a ruling about markup that no longer exists is not a ruling about
    * the screen on the page, and showing it would be the surface asserting a
-   * verdict on work nobody reviewed.
+   * verdict on work nobody reviewed. Which of the two it is is decided by
+   * `readDrawingRecord` against the markup itself, not against a clock.
    */
   criticReview: DesignCriticReview | null;
 };
@@ -1565,19 +1775,26 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
     const stageEnabled = Boolean(w?.design_stage_enabled);
     const gateStatus = gateWord(prd.design_gate_status);
 
+    // ONE READING OF THE ROW, and everything below is taken off it: how old the
+    // drawing is, whether it replaced one, and whose ruling is on it. Those three
+    // used to be three separate readings of `updated_at`, and a ruling write
+    // moves that column (see readDrawingRecord).
     let drawing: DesignWorkItem["drawing"] = null;
+    let record: ReturnType<typeof readDrawingRecord> | null = null;
     if (scaffoldRow) {
       const s = scaffoldRow as unknown as {
         html: string;
         source: string;
         created_at: string;
         updated_at: string;
+        critic_review?: unknown;
       };
       const shape = readScaffoldShape(s.html);
+      record = readDrawingRecord(s);
       drawing = {
         html: s.html,
-        drawnAt: s.updated_at,
-        redrawn: new Date(s.updated_at).getTime() - new Date(s.created_at).getTime() > 1000,
+        drawnAt: record.drawnAt,
+        redrawn: record.redrawn,
         source: s.source === "speculative" ? "speculative" : "manual",
         fidelity: readFidelity(s.html),
         screens: shape.screens,
@@ -1640,19 +1857,13 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       }),
     );
 
-    // A ruling older than the drawing it names is not a ruling about what is on
-    // screen. `prd_scaffolds` holds one row per spec and a redraw overwrites it
-    // in place, moving `updated_at`, so this comparison is read from the record
-    // rather than inferred -- and it is why the persisted review needs no
-    // clearing write on the redraw path. Both halves now come off the SAME ROW,
-    // which is what makes the comparison a fact rather than a join.
-    const storedReview = readStoredScaffoldReview(
-      (scaffoldRow as { critic_review?: unknown } | null)?.critic_review,
-    );
-    const reviewIsAboutThisDrawing =
-      !!storedReview &&
-      !!drawing &&
-      new Date(storedReview.reviewedAt).getTime() >= new Date(drawing.drawnAt).getTime();
+    // A ruling about markup that is no longer on the row is not a ruling about
+    // what is on screen. `prd_scaffolds` holds one row per spec and a redraw
+    // overwrites it in place, so the ruling's stamp of the markup it judged stops
+    // matching the moment the drawing is replaced -- which is why the persisted
+    // review needs no clearing write on the redraw path. Both halves come off the
+    // SAME ROW, which is what makes this a fact rather than a join.
+    const storedReview = record?.review ?? null;
 
     return {
       prdId: prd.id,
@@ -1666,10 +1877,9 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       drawing,
       route,
       contract: readContractBrief(prd.contract),
-      criticReview:
-        reviewIsAboutThisDrawing && storedReview
-          ? { verdict: storedReview.verdict, findings: storedReview.findings }
-          : null,
+      criticReview: storedReview
+        ? { verdict: storedReview.verdict, findings: storedReview.findings }
+        : null,
       consequence: {
         // The identical rule designGateBlocksDispatch enforces at both dispatch
         // paths. Restated as a boolean, not re-derived with different words.

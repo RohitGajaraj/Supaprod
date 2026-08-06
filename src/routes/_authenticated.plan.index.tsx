@@ -84,6 +84,7 @@ import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
 import { useWorkspace } from "@/hooks/use-workspace";
+import { stillWaiting } from "@/lib/query-state";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import type { FleetAgentState } from "@/lib/agent-fleet";
@@ -350,18 +351,64 @@ function PlanPage() {
     return () => window.clearTimeout(settle);
   }, [view, go]);
 
+  /**
+   * WHETHER THIS PAGE HAS AN ANSWER ABOUT THE ROADMAP AT ALL.
+   *
+   * The head below guarded on `roadmap.isLoading` alone, and a head that has no
+   * answer must not state one. With no `data`, `items` is [] and every count
+   * falls to 0, so a FAILED roadmap read printed "Nothing is committed yet." as
+   * a fact while RoadmapColumns, forty pixels lower, correctly rendered <Failed>
+   * with a retry: the same head-contradicts-board defect this station was just
+   * repaired for, running in the other direction. The board owns the failure and
+   * the retry, so the head claims no count rather than printing a second copy of
+   * the error.
+   *
+   * THE TWO CLAUSES MIRROR THE BOARD'S TWO NON-DRAWING BRANCHES EXACTLY, which is
+   * the only way the head can be provably consistent with it: `roadmap.isError`
+   * is RoadmapColumns' <Failed>, and `stillWaiting` is its skeleton. Both files
+   * read the one ["roadmap"] cache entry, so whenever the board declines to draw,
+   * the head declines to count.
+   *
+   * `stillWaiting` rather than `isLoading` because react-query v5 defines
+   * `isLoading` as `isPending && isFetching`, which is FALSE for a query that is
+   * pending but not in flight (src/lib/query-state.ts). Three states have no
+   * answer to give — fetching, pending-but-not-fetching, and failed — and
+   * `isLoading` was only the first. It also keeps a head that DOES hold rows
+   * stating them through a failed background refetch, because v5 leaves `data` in
+   * place through one and `isError` is checked as its own clause rather than
+   * folded into the wait.
+   */
+  const roadmapUnknown = roadmap.isError || stillWaiting(roadmap);
+
   // The head is a fact assembled from real counts, never a slogan. It claims
   // no number it does not have.
   const headline: React.ReactNode = React.useMemo(() => {
-    if (roadmap.isLoading) return "Plan";
+    if (roadmapUnknown) return "Plan";
     if (committed.length === 0) {
-      // "COMMITTED" MEANT TWO THINGS ONE CLICK APART. Decide tagged two bets
+      // "COMMITTED" MEANT TWO THINGS ONE CLICK APART. Decide tagged bets
       // "committed" from opportunities.status while this headline read "Nothing
       // is committed yet" from roadmap_bucket, and both were right about their
-      // own column. Measured live: 2 bets with status 'committed', 0 with any
-      // lane at all. The interesting fact is not that the roadmap is empty, it is
+      // own column. The interesting fact is not that the roadmap is empty, it is
       // that somebody committed to work and never placed it, which is the exact
       // thing this station exists to catch. Say that rather than "nothing".
+      //
+      // RE-MEASURED THROUGH THE LOVABLE MCP ON 2026-08-06. The line that stood
+      // here said "2 bets with status 'committed', 0 with any lane at all", and
+      // the first half no longer reproduces: of 292 opportunities, 36 read
+      // 'committed' and 10 read 'now' — 46 decided bets — and EXACTLY 0 carry a
+      // lane. `getRoadmap` applies no workspace filter (roadmap.functions.ts:85-90,
+      // RLS-wide, capped at 300), so both counts span every workspace the caller
+      // belongs to. 0 lanes anywhere means `committed` is empty for every caller,
+      // so this is the branch /plan takes today. The total moves as Discover
+      // writes; the load-bearing pair is 46 decided against 0 lanes.
+      //
+      // THE PREDICATE AND THE WORD ARE SHARED WITH THE BOARD ON PURPOSE, and
+      // that sharing is the fix. RoadmapColumns' `unplacedDecided` filters on
+      // the byte-identical `status === "committed" || status === "now"` and
+      // calls the set "committed" in its own copy. Ten of the 46 are status
+      // 'now', so the word is loose on both surfaces in the SAME way: change it
+      // on one and it must change on the other in the same commit, or the head
+      // and the board start contradicting each other again.
       const decided = items.filter((i) => i.status === "committed" || i.status === "now").length;
       if (decided > 0) {
         return decided === 1
@@ -387,7 +434,16 @@ function PlanPage() {
         {lead} <Num>{behind}</Num> {behind === 1 ? "is" : "are"} lined up behind.
       </>
     );
-  }, [roadmap.isLoading, committed.length, nowCount]);
+    // `items` IS LOAD-BEARING HERE AND WAS MISSING. `decided` above is computed
+    // from `items`, but this list read only `committed.length` and `nowCount` —
+    // and in the live shape those are BOTH PINNED AT 0, because no opportunity
+    // anywhere carries a lane. So every refetch that changed the decided count
+    // without placing anything (Discover promoting one more bet, a bet being
+    // killed) left this head printing a stale number while RoadmapColumns, which
+    // recomputes `unplacedDecided` on every render off the same ["roadmap"]
+    // cache entry, printed the new one: the exact head-versus-board
+    // contradiction this pass exists to close, reopening on the next write.
+  }, [roadmapUnknown, items, committed.length, nowCount]);
 
   const shownSpecs = showAllSpecs ? specList : specList.slice(0, VISIBLE_SPECS);
 
@@ -505,6 +561,26 @@ function PlanPage() {
         scheduling it. */}
       <TrackStart />
 
+      {/* THE DOOR FOR THE COUNT IN THE HEAD IS INSIDE THIS BLOCK, NOT BESIDE THE
+        HEAD, AND THAT IS DELIBERATE.
+
+        When no bet carries a lane the head above reads "N bets are committed but
+        sit in no lane." and RoadmapColumns' second empty branch names the
+        highest-ranked one and offers "Place it in Now". That button calls the
+        same `handleMove(item, "now")` a card calls, so a promise declared from
+        the empty state and one declared from the board are one code path and
+        cannot drift. Both surfaces read this one ["roadmap"] cache entry, and in
+        that state no bet has a lane at all, so the head's `decided` and the
+        board's `unplacedDecided.length` are the same number by construction
+        rather than by coincidence.
+
+        DO NOT ADD A SECOND DOOR BESIDE THE HEAD. In that state the Gate is empty
+        (it reads `undeclared` out of the BUCKETED bets, which is the empty set
+        here) and TrackStart's primary mounts only once its own form is opened,
+        so on arrival the board's button is the only primary on the station —
+        which is the argument RoadmapColumns writes down at its own empty branch.
+        A primary up here would be the second one on the page and would falsify
+        that comment in the same stroke. */}
       <div ref={refRoadmap} id="plan-section-roadmap" tabIndex={-1} className="outline-none">
         <Block title="Now, Next and Later">
           <RoadmapColumns />
@@ -561,6 +637,14 @@ function PlanPage() {
                  * 26 of them unsettled, and all 26 carried a label. Exactly 2 of
                  * the 26 have anything drawn, so 24 of 26 announced a design
                  * step that nothing had ever been drawn for.
+                 *
+                 * THE TWO DRAWN ONES ARE NOT INTERCHANGEABLE, and the difference
+                 * is what makes "the single live spec that owes a design call"
+                 * below add up rather than contradict the 2. Same read: one is
+                 * "Bank-link drop-off at activation", whose gate a human has
+                 * already APPROVED, so it takes the verdict branch; the other is
+                 * spec …021 below, still pending. Two drawings, one outstanding
+                 * call.
                  *
                  * WHAT THOSE 24 ARE NOT. They are not specs anybody routed past
                  * Design. The route picker has never been used in this database:

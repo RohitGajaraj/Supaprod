@@ -14,6 +14,7 @@ import { isCommitmentGoverned } from "@/lib/roadmap-governance";
 import { stripAutoPrefix } from "./format";
 import { BetCard } from "./BetCard";
 import { revertRoadmapItemToPrevious } from "@/lib/artifact-rewind.functions";
+import { stillWaiting } from "@/lib/query-state";
 import { CommitCeremony, type CommitCeremonyBet } from "./CommitCeremony";
 import { Actions, Button, Empty, Failed, Num } from "@/components/shell/primitives";
 
@@ -170,10 +171,11 @@ export function RoadmapColumns() {
     move.mutate({ id: item.id, bucket });
   };
 
-  // Hooks must run unconditionally before the isLoading/isError early
-  // returns below, or the hook count changes between the loading and
-  // loaded renders and React throws "Rendered more hooks than during the
-  // previous render." (found + fixed 2026-07-11).
+  // Hooks must run unconditionally before the read-state early returns below
+  // (isError, then stillWaiting — the pair was isLoading/isError until the wait
+  // was widened), or the hook count changes between the loading and loaded
+  // renders and React throws "Rendered more hooks than during the previous
+  // render." (found + fixed 2026-07-11).
   const allItems = roadmap.data?.items ?? [];
   const items = allItems.filter(
     (i): i is RoadmapItem & { bucket: RoadmapBucket } => i.bucket !== null,
@@ -190,12 +192,23 @@ export function RoadmapColumns() {
    * a paragraph above counted it out loud: /plan said "3 bets are committed but
    * sit in no lane." and then, forty pixels lower, "No bets on the roadmap yet."
    *
-   * Re-measured through the Lovable MCP on 2026-08-06: of 289 opportunities, 46
-   * read status 'committed' or 'now' and exactly 0 carry any lane at all. So
-   * every one of the 21 workspaces draws an empty board, and in the 13 holding a
-   * decided bet that empty board was contradicting a head which had just counted
-   * those bets out loud. The other 8 are the genuinely-empty case and keep the
-   * original sentence, instruction and all.
+   * Re-measured through the Lovable MCP on 2026-08-06: of 292 opportunities, 36
+   * read status 'committed' and 10 read 'now' - 46 decided bets - and exactly 0
+   * carry any lane at all. (An earlier read the same day counted 289; the total
+   * moves as Discover writes, so the load-bearing pair is 46 against 0 rather
+   * than the denominator.) So every one of the 21 workspaces draws an empty
+   * board, and in the 13 holding a decided bet that empty board was
+   * contradicting a head which had just counted those bets out loud. The other 8
+   * are the genuinely-empty case and keep the original sentence, instruction and
+   * all.
+   *
+   * TEN OF THOSE 46 CARRY STATUS 'now', AND THIS COPY STILL CALLS THEM
+   * "committed". That is deliberate rather than sloppy: plan.index's head uses
+   * the byte-identical predicate and the byte-identical word forty pixels above
+   * (its `decided`), and the two surfaces agreeing is the entire point of this
+   * branch. The word is loose on both in the same way, so it changes on both in
+   * one commit or on neither - correcting it here alone reopens the
+   * contradiction this branch was written to close.
    *
    * This reads the SAME ["roadmap"] cache entry the station head reads, and in
    * the empty branch below no bet has a lane at all, so there this count and the
@@ -221,7 +234,38 @@ export function RoadmapColumns() {
     return grouped;
   }, [items]);
 
-  if (roadmap.isLoading) {
+  // A read that failed is not an empty state. "Nothing is committed" and "we
+  // could not find out" are different facts and a person acts differently on each.
+  //
+  // TESTED BEFORE THE WAIT, AND THE ORDER IS NOW LOAD-BEARING. It used to sit
+  // below the skeleton, which was harmless while the skeleton asked
+  // `roadmap.isLoading`, because v5's `isLoading` is `isPending && isFetching`
+  // and an errored query is neither. The wait below now asks `stillWaiting`,
+  // which is true for ANY query holding no `data` — an errored one included — so
+  // with the old order a failed read would sit under a skeleton for ever and
+  // this branch, with the retry on it, would be unreachable.
+  if (roadmap.isError) {
+    return (
+      <Failed onRetry={() => void roadmap.refetch()}>
+        {(roadmap.error as Error)?.message ?? "The roadmap did not load."}
+      </Failed>
+    );
+  }
+
+  /**
+   * AN ANSWER THAT HAS NOT ARRIVED IS NOT THE ANSWER "NONE".
+   *
+   * This asked `roadmap.isLoading`, which is `isPending && isFetching` in
+   * react-query v5 and therefore FALSE for a query that is pending but not in
+   * flight (paused with no network, or not yet started). In that state the
+   * skeleton stood down and the branch below announced "No bets on the roadmap
+   * yet. Commit a ranked opportunity from Discover." to a workspace whose bets
+   * had simply not arrived — the /discover first-frame defect, on the board that
+   * exists to place bets. `stillWaiting` is the shared guard written for exactly
+   * this (src/lib/query-state.ts) and it also covers the error path, which is
+   * why the <Failed> branch above had to move ahead of it.
+   */
+  if (stillWaiting(roadmap)) {
     return (
       <div role="status" style={BOARD_SCROLLER}>
         <span className="sr-only">Reading the roadmap.</span>
@@ -250,16 +294,6 @@ export function RoadmapColumns() {
           ))}
         </div>
       </div>
-    );
-  }
-
-  // A read that failed is not an empty state. "Nothing is committed" and "we
-  // could not find out" are different facts and a person acts differently on each.
-  if (roadmap.isError) {
-    return (
-      <Failed onRetry={() => void roadmap.refetch()}>
-        {(roadmap.error as Error)?.message ?? "The roadmap did not load."}
-      </Failed>
     );
   }
 
@@ -298,7 +332,21 @@ export function RoadmapColumns() {
                drift. No competing primary is on screen in this state:
                plan.index's Gate reads its `undeclared` out of the BUCKETED bets,
                which is the empty set here, and TrackStart's primary only mounts
-               once its form is opened. */
+               once its form is opened.
+
+               ONE KNOWN LIMIT, STATED RATHER THAN FIXED. A successful commit
+               from here unmounts this whole branch, and CommitCeremony overrides
+               nothing about Radix's close behaviour, so focus returns to a
+               trigger that no longer exists and falls to document.body: a
+               keyboard user loses their place. It is not this branch's
+               invention: three other `<Empty action={<Button…>}>` callers open a
+               dialog that then changes the branch out from under the trigger and
+               behave identically (DecisionsPanel, DesignMemoryPanel and
+               ProductsTab, all checked). The fix belongs where the idiom lives,
+               either as an `onCloseAutoFocus` on the ceremony or as a focus
+               target handed to Empty, and neither of those is this file. Left
+               alone on purpose in launch week rather than solved here for a
+               fourth time in a fourth private way. */
             <Button variant="primary" onClick={() => handleMove(top, "now")}>
               Place it in Now
             </Button>
@@ -329,16 +377,29 @@ export function RoadmapColumns() {
           the branch above and take the remaining bets off the page with it: the
           door this surface just opened would shut after one press, and a count
           the user had just been shown would silently stop being shown.
-          Re-measured through the Lovable MCP on 2026-08-06: 13 workspaces hold
-          unplaced committed bets, 12 of them hold more than one (counts run
-          7,5,5,5,3,3,3,3,3,3,3,2,1) and each of the seven seeded demo
-          workspaces holds exactly 3 — so in every workspace a visitor is likely
-          to open, the first press leaves two behind.
+          Re-measured through the Lovable MCP on 2026-08-06 and unchanged: 13
+          workspaces hold unplaced committed bets, 12 of them hold more than one,
+          and the counts run 7,5,5,5,3,3,3,3,3,3,3,2,1. The seven seeded demo
+          workspaces are the seven 3s, so in those — the ones a visitor is most
+          likely to open — the first press leaves two behind.
+
+          THAT IS AS FAR AS THE MEASUREMENT REACHES, and the sentence here used
+          to reach further. Across all 13 the first press leaves anywhere from
+          six behind (the workspace holding 7) down to none at all (the one
+          holding 1, where this line correctly disappears after the press). What
+          holds for every one of the 13 is only that placing one bet does not
+          place the rest, and that is the whole reason this line exists.
 
           Deliberately NOT variant="primary". Here the columns are not empty, so
-          a placed bet carrying no outcome makes plan.index's Gate fire, and that
-          Gate owns the one primary act on this station; Actions' own contract is
-          one primary among them and only one. */}
+          plan.index's Gate can fire — it reads `undeclared` out of the BUCKETED
+          bets — and that Gate owns the one primary act on this station; Actions'
+          own contract is one primary among them and only one. To be exact about
+          which bets can make it fire, because the looser version of this
+          sentence read as though this button could: never one placed from HERE.
+          CommitCeremony will not confirm until both fields are filled
+          (`canConfirm`), so this path always writes an outcome. It is the
+          lenient drag (`updateRoadmapItem`) and the bulk bar that can leave a
+          placed bet carrying no promise. */}
       {unplacedDecided.length > 0 && (
         <Actions>
           <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>

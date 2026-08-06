@@ -149,8 +149,19 @@ function FirstRunBridge() {
       <Block
         title="Your idea got an AI review"
         sub={
+          /* THE SAME MISCREDIT, AND THIS ONE IS GUARANTEED TO SHARE A SCREEN
+             WITH THE CARD THAT CONTRADICTS IT. `FirstRunBridge` mounts at :1063
+             on `rows.length === 0 && criticResult`, and `criticResult` is only
+             ever set by the effect gated on `justLanded` — so any render that
+             mounts this also satisfies the assessment card's `justLanded &&
+             criticResult` at :591. The card says "The Critic's assessment";
+             this said "the AI analyst". One agent, two names, one viewport.
+             "AI Analyst" is a real and different agent here — the brain's
+             intelligence analyst, whose ANALYST_SYSTEM opens "You are the
+             Supaprod intelligence analyst" (brain-insights.functions.ts:455) —
+             and it does not run on a submitted idea. */
           <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-            See what the AI analyst found. You make the final call on whether to move forward.
+            See what the Critic found. You make the final call on whether to move forward.
           </div>
         }
       >
@@ -422,10 +433,10 @@ function Today() {
    * the same person watched a verdict stamp, a summary, named risks, missing
    * evidence and a confidence meter land on the results screen.
    *
-   * This is now exactly the object ObsidianOnboarding.tsx:1116-1126 writes and
+   * This is now exactly the object ObsidianOnboarding.tsx:1126-1136 writes and
    * nothing else, so no key read here can be a key nobody sends. Every field
    * stays optional because the write is gated on `reviewHasSubstance`
-   * (ObsidianOnboarding.tsx:170-183), which guarantees only that ONE of
+   * (ObsidianOnboarding.tsx:180-193), which guarantees only that ONE of
    * summary / risks / missing_evidence carries words — so each block below
    * asks for its own content before it prints its heading.
    */
@@ -678,7 +689,7 @@ function Today() {
                 finished onboarding, this heading and this list were dead. It
                 reads `risks` now, which is the thing it was describing, and it
                 is titled what the results screen titled the same three
-                sentences ten seconds earlier (ObsidianOnboarding.tsx:1734), so
+                sentences ten seconds earlier (ObsidianOnboarding.tsx:1749), so
                 the analysis does not get renamed on the way over.
                 Blank entries are dropped rather than printed as empty bullets:
                 `reviewHasSubstance` promises only that ONE of summary / risks /
@@ -716,11 +727,36 @@ function Today() {
 
             {/* The third thing the results screen showed and the handoff never
                 carried. One item, which is what that screen shows
-                (ObsidianOnboarding.tsx:1757), under the same heading. Measured
-                on production 2026-08-06: of the 12 stored reviews, 4 name
-                missing evidence (1 to 5 items) and 8 name none, so this block
-                is quiet more often than not and must not print a heading over
-                an empty line. */}
+                (ObsidianOnboarding.tsx:1772), under the same heading.
+
+                THE MEASUREMENT ON THIS LINE WAS WRONG AND IS CORRECTED, NOT
+                DELETED. It read: "Measured on production 2026-08-06: of the 12
+                stored reviews, 4 name missing evidence (1 to 5 items) and 8
+                name none, so this block is quiet more often than not." Every
+                one of those figures is wrong. Re-measured through the Lovable
+                MCP on 2026-08-06, the same day the sentence was written:
+
+                  select count(*) filter (where jsonb_array_length(
+                           critic_review->'missing_evidence') > 0) as names_some,
+                         count(*) filter (where jsonb_array_length(
+                           critic_review->'missing_evidence') = 0) as names_none,
+                         min(...) , max(...)
+                  from opportunities
+                  where critic_review is not null
+                    and critic_review ? 'missing_evidence';
+
+                returns names_some 12, names_none 0, min length 3, max length 5,
+                and all 12 carry at least one non-blank entry. So this block is
+                LOUD, not quiet: it renders for every review today's `runCritic`
+                writes. (47 opportunities carry a critic_review in total; the
+                other 35 are a legacy shape with no missing_evidence key at all
+                and never reach this card, which reads only what onboarding put
+                in sessionStorage seconds earlier.)
+
+                The `.some(...)` guard below is unaffected and stays. It is
+                correct whichever way the data falls, and it is the reason a
+                heading can never print over an empty line — which is a property
+                of the code, not of today's row counts. */}
             {(criticResult.missing_evidence ?? []).some((m) => m.trim().length > 0) ? (
               <div>
                 <div
@@ -1018,9 +1054,12 @@ function Today() {
                 `rows.length === 0` alone, which says nothing about a Critic:
                 anyone who skipped onboarding, or whose Critic call degraded,
                 was told on the front door that "Your idea got an AI review"
-                when none had run. It also duplicated the honest card 340 lines
-                above, which renders from the same stored result and says the
-                same thing when there IS one. One fact, one claim, one place. */}
+                when none had run. It also duplicated the honest card above
+                (:591 — "340 lines above" when that sentence was written; the
+                comment work since has pushed the two further apart, so the line
+                is cited instead of a distance), which renders from the same
+                stored result and says the same thing when there IS one. One
+                fact, one claim, one place. */}
             {rows.length === 0 && criticResult ? <FirstRunBridge /> : null}
             <Empty
               action={
@@ -1062,8 +1101,31 @@ function Today() {
                     >
                       1. Submit an idea for analysis
                     </div>
+                    {/* THE SAME MISCREDIT, THE SAME STATION, A DIFFERENT VISIT.
+                        The assessment card above used to head the Critic's own
+                        verdict "AI Analyst's assessment"; this step described
+                        the same flow, behind the same "See analysis →" door to
+                        the same /decide route, in the same wrong agent's name.
+                        Not literally the same viewport — this block is gated on
+                        `!justLanded` and the card on `justLanded`, so they take
+                        turns rather than stack — but it is the same screen on
+                        the visit after, and a person who read one then the
+                        other was told two names for one agent.
+                        "AI Analyst" is a real and DIFFERENT agent here — the
+                        brain's intelligence analyst, whose ANALYST_SYSTEM opens
+                        "You are the Supaprod intelligence analyst"
+                        (brain-insights.functions.ts:455) and which volunteers
+                        predictions and risk flags from the decision graph. It
+                        does not run on an idea you submit. The Critic does:
+                        /decide's "Challenge it" runs it (no line cited — that
+                        file is being edited by another lane as this ships), and
+                        onboarding runs it ten seconds after signup behind "Get
+                        the Critic's take" (ObsidianOnboarding.tsx:1619).
+                        agent-vocabulary.ts:75 gives it this exact verb —
+                        `{ name: "Critic", verb: "challenges" }`. Renamed here
+                        so the front door names one agent one way. */}
                     <div style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
-                      The AI analyst challenges your thinking and suggests next steps. You decide
+                      The Critic challenges your thinking and suggests next steps. You decide
                       whether to proceed, refine, or pass.
                     </div>
                     <div style={{ marginTop: "8px" }}>

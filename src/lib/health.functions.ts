@@ -10,9 +10,11 @@ import { createServerFn } from "@tanstack/react-start";
  * column, undefined function) deep inside flows like onboarding.
  *
  * WHY THIS IS NOT A LIST OF MIGRATION VERSIONS ANY MORE.
- * It was, and the list had one entry ("20260617") while the repo carried 372
- * migration versions dated after it (counted 2026-08-06 over
- * supabase/migrations/), so the banner could not fire for any of them.
+ * It was, and the list had one entry ("20260617"). Re-counted 2026-08-06 over
+ * supabase/migrations/: 479 distinct versions on disk, of which 372 sort after
+ * that eight-character string and 363 are dated on a LATER DAY — the nine
+ * between them landed on 2026-06-17 itself. On either reading the banner could
+ * not fire for any of them.
  * A bare version number is unfalsifiable at runtime: nothing in the app can
  * tell you whether the number is right, so a wrong number looks exactly like a
  * healthy backend. Every entry below instead names a TABLE AND COLUMN that
@@ -55,6 +57,16 @@ import { createServerFn } from "@tanstack/react-start";
  * that only changes a CHECK constraint or a function body, and a migration
  * that only backfills data. Both need the ledger probe (see above) or a test.
  *
+ * WHAT A USER SEES TODAY: nothing, and that is the intended state, not an
+ * accident. BackendHealthBanner mounts once inside the authenticated layout
+ * (src/routes/_authenticated.tsx), so it is not a landing surface — a visitor
+ * cannot reach it before signing in, and a launch day's first impression does
+ * not run through it. Every column named below was verified present in
+ * production on 2026-08-06, so `ok` is true and the banner does not render.
+ * The whole change here is counterfactual: a signed-in user CAN now be told
+ * about a genuinely absent watched column, where between 2026-06-17 and
+ * 2026-08-06 the bar could not appear for anything at all.
+ *
  * The prebuild twin, scripts/check-migrations.sh, compares every file under
  * supabase/migrations/ against the same ledger, but exits 0 with a warning
  * when PGHOST is unset — which is the Lovable build environment (README.md
@@ -78,10 +90,18 @@ type RequiredSchema = {
  * (information_schema.columns, project 371dd588-1b70-4629-9bb5-9f003f3af373),
  * so this list is silent today rather than alarming on arrival.
  *
- * Exported so a repo test can assert each `since` names a real file under
- * supabase/migrations/ and that a newer column-adding migration has not
- * arrived without an entry. That test does not live here because this file
- * runs in a Worker and cannot read the filesystem.
+ * EXPORTED FOR A TEST THAT DOES NOT EXIST YET, and saying so is the point: as
+ * of 2026-08-06 nothing in src/ imports `REQUIRED_SCHEMA` except this file, so
+ * "exported" buys nothing until somebody writes it. It cannot live here —
+ * this file runs in a Worker and cannot read the filesystem — and it is the
+ * half of the anti-rot that makes a MISSING entry fail loudly instead of
+ * silently. Wanted at
+ * src/lib/__tests__/the-drift-check-knows-what-shipped.test.ts, two cases,
+ * both reading supabase/migrations/ from disk: (1) every `since` prefixes a
+ * real file, and (2) no migration newer than the newest `since` adds a column
+ * to a table already on this list without adding an entry beside it. Case (2)
+ * is the one that fails the day someone repeats the seven-week rot. Until it
+ * lands, this list is a floor and not a census.
  */
 export const REQUIRED_SCHEMA: readonly RequiredSchema[] = [
   {
@@ -108,17 +128,51 @@ export const REQUIRED_SCHEMA: readonly RequiredSchema[] = [
     since: "20260708160000",
     why: "The whole example-workspace honesty chain keys off this; Decide reads it to decide whether the user is standing in a demo.",
   },
+  {
+    // Added 2026-08-06, one migration newer than anything else on this list,
+    // to show the arming step is a habit rather than a one-off refresh. Its
+    // migration reached production the same day (present in
+    // supabase_migrations.schema_migrations, and the column is in
+    // information_schema.columns), so this entry is silent on arrival too.
+    table: "prd_scaffolds",
+    column: "critic_review",
+    since: "20260806170000",
+    why: "runScaffoldDesignCritic in design-scaffold.functions.ts files the design lens ruling on this column and /design reads it back beside the drawing it judged; without it a Critic run on a drawing cannot be stored or shown.",
+  },
 ];
 
 /**
- * SQLSTATEs and PostgREST codes that mean the thing genuinely is not there.
- * Anything else — a timeout, a transport failure, an unrecognised code — is
- * treated as "could not answer" and fails open, because a banner shown to
- * every user on a network blip is worse than the drift it would warn about.
+ * SQLSTATEs that mean the thing genuinely is not there. Anything else — a
+ * timeout, a transport failure, an unrecognised code — is treated as "could
+ * not answer" and fails open, because a banner shown to every user on a
+ * network blip is worse than the drift it would warn about.
+ *
+ * POSTGRES CODES ONLY, AND THE OMISSION IS THE DECISION. This set also carried
+ * PGRST204 and PGRST205 until 2026-08-06. Those are PostgREST SCHEMA-CACHE
+ * answers rather than Postgres verdicts — PGRST205 is "table not found in the
+ * schema cache", PGRST204 its column form — and a cache that has not reloaded
+ * yet reports something that exists as absent. The window in which that
+ * happens is the minutes right after a migration applies, which is exactly
+ * when an operator is standing over this, and an amber "Backend update
+ * pending" bar shown to every signed-in user on a cache lag is a false alarm
+ * worse than the silence it replaced.
+ *
+ * THIS DOES NOT MAKE THE CHECK UNABLE TO FAIL. Every entry in REQUIRED_SCHEMA
+ * names a column added to a table that already exists, and a select naming a
+ * column Postgres does not have comes back 42703, which goes straight to
+ * `pending`. Nor are the two codes ignored: like every other unrecognised
+ * code they fall through to the ledger probe for corroboration, so they can
+ * still raise the banner the day that ledger becomes readable. Where they
+ * cannot be corroborated the entry lands in `inconclusive`, WITH THE CODE
+ * NAMED, and `reason` counts it — unproven and visible, rather than absent
+ * and asserted.
  */
-const ABSENT_CODES = new Set(["42703", "42P01", "PGRST204", "PGRST205"]);
+const ABSENT_CODES = new Set(["42703", "42P01"]);
 
 type ProbeVerdict = "present" | "missing" | "unknown";
+
+/** A probe's answer, plus the code it answered with when it could not decide. */
+type Probe = { verdict: ProbeVerdict; code?: string };
 
 export type BackendHealth = {
   ok: boolean;
@@ -129,7 +183,11 @@ export type BackendHealth = {
   inconclusive?: string[];
 };
 
-/** Warn the operator once per Worker isolate, not once per user session. */
+/**
+ * Warn the operator once per spell of trouble, not once per user session.
+ * Both flags re-arm on a clean check, so a fault that comes back inside the
+ * life of one isolate is reported again rather than swallowed.
+ */
 let warnedLedgerUnreachable = false;
 let warnedDrift = false;
 
@@ -142,16 +200,21 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
       /**
        * An EMPTY ROW SET IS A VALID ANSWER HERE and must not be read as
        * failure: an empty table still proves the column parsed. What proves
-       * presence is the absence of `error`, because PostgREST rejects an
-       * unknown column before it ever runs the query.
+       * presence is the absence of `error` — a read naming a column that is
+       * not there comes back as an error rather than as zero rows, and it is
+       * the same error the user would otherwise hit mid-flow.
        */
-      const probeColumn = async (entry: RequiredSchema): Promise<ProbeVerdict> => {
+      const probeColumn = async (entry: RequiredSchema): Promise<Probe> => {
         const { error } = await supabaseAdmin
           .from(entry.table as never)
           .select(entry.column as never)
           .limit(1);
-        if (!error) return "present";
-        return ABSENT_CODES.has(error.code ?? "") ? "missing" : "unknown";
+        if (!error) return { verdict: "present" };
+        const code = error.code ?? "";
+        if (ABSENT_CODES.has(code)) return { verdict: "missing", code };
+        // Carried so the entry can say WHAT it could not answer with, rather
+        // than joining the pile of things that merely did not resolve.
+        return { verdict: "unknown", code: code || "no code" };
       };
 
       /** Why the ledger could not be read, kept for `reason` and the log line. */
@@ -200,7 +263,7 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
         return applied;
       };
 
-      const [verdicts, applied] = await Promise.all([
+      const [probes, applied] = await Promise.all([
         Promise.all(REQUIRED_SCHEMA.map(probeColumn)),
         probeLedger(),
       ]);
@@ -213,6 +276,12 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
             "schema supabase_migrations and SELECT on supabase_migrations.schema_migrations, " +
             "or expose a SECURITY DEFINER reader in public, to re-arm the fallback.",
         );
+      } else if (applied) {
+        // Re-arm, the same way the drift warning below does. Without this the
+        // two flags disagree about what "once" means: a ledger that becomes
+        // readable and then breaks again inside the life of one isolate would
+        // be reported the first time and swallowed the second.
+        warnedLedgerUnreachable = false;
       }
 
       const pending: string[] = [];
@@ -221,7 +290,7 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
 
       REQUIRED_SCHEMA.forEach((entry, i) => {
         const label = `${entry.table}.${entry.column} (migration ${entry.since})`;
-        const verdict = verdicts[i];
+        const { verdict, code } = probes[i];
         if (verdict === "present") return;
         if (verdict === "missing") {
           pending.push(label);
@@ -236,7 +305,10 @@ export const checkBackendHealth = createServerFn({ method: "GET" }).handler(
           drifted.push(entry);
           return;
         }
-        inconclusive.push(label);
+        // The code rides along because this is where a schema-cache answer
+        // (see ABSENT_CODES) lands, and "unverified" with no code attached is
+        // the shape of report that sends the next person back to the probe.
+        inconclusive.push(code ? `${label} — probe answered ${code}` : label);
       });
 
       // The banner can only say how many, and it reaches the user, not the

@@ -1011,13 +1011,24 @@ export function DiscoverSurface({
    * `rows` is raw signals (line 412) and `ranked` is clustered themes (line
    * 452) -- the comment on `loading` above has said exactly that since it was
    * written -- and all four branches below said "opportunities". An opportunity
-   * is a different and LATER noun in this product: it exists only once a
-   * cluster is promoted (`promote.mutate`), it has its own table, and it is
-   * what /decide counts. So one workspace read "97 opportunities imported"
+   * is a different and LATER noun in this product: it has its own table, and it
+   * is what /decide counts. So one workspace read "97 opportunities imported"
    * here and "31 bets ranked, strongest first." one station to the right, on a
-   * product whose whole claim is that it keeps ONE record. Measured live
-   * through the Lovable MCP on 2026-08-06: 453 signals, 257 themes, 289
-   * opportunities, which is three different numbers for the three nouns.
+   * product whose whole claim is that it keeps ONE record. Re-measured live
+   * through the Lovable MCP on 2026-08-06: 453 signals, 257 themes, 292
+   * opportunities, which is three different numbers for the three nouns. That
+   * third figure moves under you -- it read 289 when this paragraph was first
+   * written and 292 the same day -- which is why the date is on it and why
+   * nothing downstream should be derived from it.
+   *
+   * PROMOTION IS ONE INLET, NOT THE ONLY ONE, and this paragraph said the
+   * opposite until 2026-08-06: that an opportunity "exists only once a cluster
+   * is promoted". `createOpportunity` in discovery.functions.ts inserts one
+   * with no `theme_id` at all, and 209 of the 292 above carry none. The
+   * argument is unaffected -- a later, separate noun with its own table and its
+   * own count is exactly why the headline must not borrow its name -- but a
+   * reader must not leave here thinking the opportunity table is a log of
+   * promotions.
    *
    * CLUSTER, NOT THEME, is the word a person reads for a row of `themes`. The
    * button below says "Cluster them now", the Gate beside it explains that
@@ -1030,6 +1041,21 @@ export function DiscoverSurface({
    * (line 456). A workspace that has judged every cluster it built would
    * otherwise be told it had never built one. What to do next is the Gate
    * directly below, which offers the reading; the headline states the fact.
+   *
+   * THE ONE NUMBER HERE THAT CAN SATURATE, said out loud because naming a noun
+   * makes the count checkable in a way "opportunities" never was. `listSignals`
+   * ends its read `.limit(200)` (cited by symbol, not line: discovery.functions
+   * .ts is under active edit), so `rows.length` cannot exceed 200 and this
+   * branch would print "200 signals in" on a workspace holding more. It is not
+   * live today -- measured 2026-08-06, the largest workspace in production
+   * holds 98 signals, and every workspace with signals also has rankable
+   * clusters, so this branch does not render on any of them -- and the string
+   * it replaced ("<n> opportunities imported") carried the identical cap, as
+   * does the Gate's "<n> signals captured" below. It is not fixed here on
+   * purpose: a second copy of `200` in this file is a number that goes stale
+   * the day the server's changes, which is the rot this repo keeps paying for.
+   * The durable fix is in the read -- return a total beside the page, or raise
+   * the cap for the count.
    */
   const headline: React.ReactNode = loading ? (
     "Discover"
@@ -1219,15 +1245,25 @@ export function DiscoverSurface({
                      ranking row below, the Gate above it, and the source bet on
                      a spec -- and stopped at the individual quote, which is the
                      most literal thing on the surface: the sentence itself, with
-                     where it came from beside it. Seeded signals carry a channel
-                     and no lane. Measured live through the Lovable MCP on
-                     2026-08-06: 20 of 453 signals are samples, and 13 of those
-                     20 carry neither the `manual` lane nor a hand-captured
-                     channel, so `capturedByHand` returned false and every one of
-                     the 13 printed ", sensed". Two are `source: "analytics"`
-                     with a null `source_kind`, which is how the rail came to read
-                     "Analytics, sensed, 2m ago" under an invented number on a
-                     workspace with no connector attached at all.
+                     where it came from beside it. Re-measured live through the
+                     Lovable MCP on 2026-08-06: 20 of 453 signals are samples,
+                     and 13 of those 20 carry neither the `manual` lane nor a
+                     hand-captured channel, so `capturedByHand` returned false
+                     and every one of the 13 printed ", sensed". Two are
+                     `source: "analytics"` with a null `source_kind`, which is
+                     how the rail came to read "Analytics, sensed, 2m ago" under
+                     an invented number on a workspace with no connector attached
+                     at all.
+
+                     NOT "seeded signals carry a channel and no lane", which is
+                     what this comment claimed until 2026-08-06 and is false for
+                     8 of the 20: seven are stamped `source_kind: "manual"` and
+                     one `"web_scout"`. The exact split above is the claim worth
+                     keeping, and it is a statement about the seed as it stands
+                     today rather than an invariant -- change which lanes the
+                     seed migration stamps and the 13 moves, while the branch
+                     below stays right, because it keys on `is_sample` and not
+                     on the lane.
 
                      "Sensed" is a claim that we read this out of the user's own
                      tools, so a sample row does not make it, and carries the

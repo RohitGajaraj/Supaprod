@@ -1281,8 +1281,8 @@ function SpecEditorPage() {
                   returns null on it, and what it is handed is now
                   `readinessText`, not `body`. So a spec with an empty `body_md`
                   and a contract carrying 40 characters draws the panel where it
-                  previously drew nothing. That is the correct behaviour — there
-                  IS something to assess — but it is a behaviour change and the
+                  previously drew nothing. That is the correct behaviour (there
+                  IS something to assess) but it is a behaviour change and the
                   sentence a skimmer reads has to say so. Its other visible
                   effect: scores RISE for specs whose contract states dimensions
                   the body does not, so a spec that read "Early" before this pass
@@ -1637,10 +1637,16 @@ function SpecEditorPage() {
                     up ancestors that never sat under the bet. Measured live on
                     2026-08-06, `artifact_lineage` carries 28 prd->learning and
                     21 prd->decision edges beside the 13 prd->opportunity ones,
-                    and 14 of the 20 specs that have lineage rows at all have
-                    more than one parent kind — so on most of the specs that
-                    render this sentence, an inflated number was being pinned on
-                    the bet. The subject is back on the spec, where the count is
+                    and 14 of the 20 specs that BOTH carry a bet and hold
+                    lineage rows have more than one parent kind. (Re-measured
+                    2026-08-06. An earlier draft named that 14 against "the 20
+                    specs that have lineage rows at all", which is the wrong
+                    population for a right number: 41 specs hold lineage rows in
+                    total. 20 is the set this sentence actually argues about,
+                    the ones carrying a bet AND a chain, which are the only
+                    specs that render it.) So on most of the specs that render
+                    this sentence, an inflated number was being pinned on the
+                    bet. The subject is back on the spec, where the count is
                     exactly what the number means. */}
                 It was not invented here. It serves a bet that came from Decide
                 {signalCount > 0 ? (
@@ -1673,7 +1679,7 @@ function SpecEditorPage() {
               react-query v5 `data` survives a failed background refetch while
               `status` flips to error. So a spec whose bet was already in the
               shared ["opportunities"] cache would replace the rendered bet with
-              "the bet did not come back" on any later refetch failure — a false
+              "the bet did not come back" on any later refetch failure, a false
               sentence about a record this page is holding in its hand. All four
               states survive; only their precedence changed. */}
           {specOpportunityId ? (
@@ -1718,10 +1724,17 @@ function SpecEditorPage() {
                         `discovery` name "a state Decide neither displays nor
                         offers". Half of that is right and half is wrong, and the
                         wrong half is the load-bearing one: /decide's queue row
-                        renders `<StatusPill status={o.status} />` on EVERY row,
-                        and StatusPill falls back to `label: status` for a value
-                        STATUS_META does not know — the identical fallback
-                        `statusLabel` takes. So Decide displays "committed", in
+                        renders `<StatusPill status={o.status} />` for every row
+                        that HAS a status, the pill sitting inside an
+                        `{o.status ? ... : null}` guard, and StatusPill falls
+                        back to `label: status` for a value STATUS_META does not
+                        know, the identical fallback `statusLabel` takes. (An
+                        earlier draft of this note said "on EVERY row" and
+                        skipped the guard. It changes nothing here, since this
+                        branch is itself gated on `sourceBet.status`, but a
+                        comment that overstates what another file does is the
+                        defect this pass exists to stop writing.) So Decide
+                        displays "committed", in
                         exactly the characters this line now prints, and "its
                         state on Decide is committed" is true. Splitting the
                         sentence on lane membership would have introduced a NEW
@@ -1765,10 +1778,15 @@ function SpecEditorPage() {
               <Failed onRetry={() => void oppsQ.refetch()}>
                 This spec names a bet and the bet did not come back.{" "}
                 {/* Optional chain and a fallback, the convention this file
-                    already uses on the spec read two hundred lines up: a
-                    rejection that is not an Error has no `.message`, and
-                    reading it off `undefined` would crash the region that
-                    exists to report the failure. */}
+                    already uses at both of its other failure sites: the route's
+                    own `errorComponent` and the `prdQ` spec-read Failed, each
+                    printing the same `?.message ?? "No reason was reported."`.
+                    Cited by symbol on purpose. An earlier draft said "the spec
+                    read two hundred lines up" and the nearer of the two is
+                    about 870 lines up, which is what a line count is worth in a
+                    file this size. A rejection that is not an Error has no
+                    `.message`, and reading it off `undefined` would crash the
+                    region that exists to report the failure. */}
                 {(oppsQ.error as Error)?.message ?? "No reason was reported."}
               </Failed>
             ) : (

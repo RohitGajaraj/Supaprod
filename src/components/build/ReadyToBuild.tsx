@@ -149,9 +149,13 @@ export function ReadyToBuild() {
       /**
        * `mission_id`, NOT `missionId`, AND A CAST IS WHY IT TOOK AN AUDIT.
        *
-       * `dispatchBuilderMission` returns `{ ...result, mission_id, issue_number,
-       * issue_url }` (build.functions.ts). This read asked for `missionId`, so it
-       * was `undefined` on every single dispatch and the navigate never fired.
+       * `dispatchBuilderMission` returns the agent result spread over
+       * `mission_id`, `issue_number` and `issue_url` (build.functions.ts, which
+       * has since added `run_error`, `run_started`, `issue_link_error` and
+       * `roster_error` alongside them — this paragraph is about the name of the
+       * first one, not a census of the shape). This read asked for `missionId`,
+       * so it was `undefined` on every single dispatch and the navigate never
+       * fired.
        *
        * The dispatch holds the request open for the whole inline agent loop, so
        * the visible behaviour was: press "Build this", wait out a full builder
@@ -169,6 +173,27 @@ export function ReadyToBuild() {
        */
       const missionId = r?.mission_id;
       /**
+       * THE ISSUE WAS OPENED AND THE SPEC DOES NOT KNOW IT, WHICH IS THE ONE
+       * SUCCESS WORTH STOPPING ON.
+       *
+       * `dispatchBuilderMission` writes the new issue's url back onto the spec
+       * so a second press reuses it instead of opening another. That write is a
+       * `prds` update, and `prds` UPDATE is row-level-security'd to the spec's
+       * AUTHOR while READ is open to the whole workspace — so a teammate
+       * building a colleague's approved spec can have it refused. The server
+       * used to drop that on the floor; it now reports it here.
+       *
+       * The build itself is fine, so the door still opens the mission — but the
+       * navigation is withheld, because the one thing the person must not do is
+       * press "Build this" again, and a run page cannot tell them that.
+       */
+      const linkError = r?.issue_link_error ?? null;
+      /** Appended wherever a failure sentence is already being written, so the
+       *  hazard is named there too rather than only on the success path. */
+      const linkNote = linkError
+        ? ` The spec was also not linked to the issue (${linkError}), so pressing again would open a second one.`
+        : "";
+      /**
        * NAVIGATE ONLY WHERE THE REASON SURVIVES THE NAVIGATION.
        *
        * This read `if (missionId)` and returned, so a `run_error` the server had
@@ -184,14 +209,22 @@ export function ReadyToBuild() {
        * question the server already answered rather than inferring it from the
        * presence of an error string.
        */
-      if (missionId && r?.run_started) {
+      if (missionId && r?.run_started && !linkError) {
         void navigate({ to: "/runs/$missionId", params: { missionId } });
+        return;
+      }
+      if (missionId && r?.run_started && linkError) {
+        setFailed({
+          lead: "The build started, but the spec was not linked to its GitHub issue",
+          sub: `Issue #${r?.issue_number} is open and the builder is running against it, so this dispatch worked. What did not: writing that issue back onto the spec. ${linkError} Pressing "Build this" again would open a SECOND issue and start a second billed run, so use the door on this notice instead.`,
+          missionId,
+        });
         return;
       }
       if (missionId) {
         setFailed({
           lead: "The build stopped before the agent started",
-          sub: `${r?.run_error ?? "No reason was reported."} The GitHub issue is open at #${r?.issue_number} and the mission was created, but no agent run was started for it, so nothing is building yet.`,
+          sub: `${r?.run_error ?? "No reason was reported."} The GitHub issue is open at #${r?.issue_number} and the mission was created, but no agent run was started for it, so nothing is building yet.${linkNote}`,
           missionId,
         });
         return;
@@ -207,12 +240,22 @@ export function ReadyToBuild() {
        * full builder run had been billed. The `run_error` half is the loop
        * failing AFTER the work was already durably written, which the server now
        * reports rather than throwing — see its comment above `runAgentLoop`.
+       *
+       * "CHECK THAT A BUILDER AGENT EXISTS IN YOUR ROSTER" WAS AN INSTRUCTION
+       * BUILT ON A DISCARDED READ. The server resolved the builder agent with a
+       * `maybeSingle()` whose `error` it threw away, so a transport failure or an
+       * RLS refusal produced the same `null` as a genuinely empty roster and this
+       * line sent the person to fix something that may be perfectly fine. The
+       * server now separates the two and `roster_error` carries the read's own
+       * words; the confident sentence is kept for the case it is true of.
        */
       setFailed({
         lead: r?.run_error ? "The build started and then stopped" : "The build has no run to open",
         sub: r?.run_error
-          ? `${r.run_error} The GitHub issue is open at #${r.issue_number} and the work is not finished; nothing here can open the run, because no mission was created for it.`
-          : `The GitHub issue is open at #${r.issue_number}, but no mission was created for it, so there is no run to open. Check that a builder agent exists in your roster.`,
+          ? `${r.run_error} The GitHub issue is open at #${r.issue_number} and the work is not finished; nothing here can open the run, because no mission was created for it.${linkNote}`
+          : r?.roster_error
+            ? `The GitHub issue is open at #${r.issue_number}, but your agent roster could not be read, so no mission was created and nothing here can tell you whether a builder agent exists. The read failed with: ${r.roster_error}${linkNote}`
+            : `The GitHub issue is open at #${r.issue_number}, but no mission was created for it, so there is no run to open. Check that a builder agent exists in your roster.${linkNote}`,
       });
     },
     /**

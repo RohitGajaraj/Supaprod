@@ -444,9 +444,20 @@ export function SettlePanel() {
       addReceipt({
         key: `${v.target.prdId}-${Date.now()}`,
         verb: "The outcome did not record",
+        /* THIS LINE USED TO READ "Nothing was written." and that was a promise
+           this screen is in no position to make. `applyOutcome` is not one
+           statement: it moves the opportunity's confidence, writes or updates a
+           `learnings` row, calls `rememberOutcome`, and only THEN writes
+           `prds.outcome` — and it throws on any of them. A failure at the last
+           of those leaves the learning and the confidence change on the record
+           and the spec unsettled, which is the opposite of nothing.
+           What IS true at every throw site is that the verdict never reached
+           the spec, so that is what the receipt now says. The reason travels
+           verbatim in `e.message`, and `applyOutcome`'s own message names what
+           landed when it knows. */
         consequence: (
           <>
-            {v.target.title}. Nothing was written. {e.message}
+            {v.target.title}. The verdict is not on the record. {e.message}
           </>
         ),
         at: clock(),

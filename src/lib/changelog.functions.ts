@@ -6,12 +6,22 @@ import { changelogRowFor, type ChangesetForChangelog } from "@/lib/changelog";
 
 // Resolve the workspace to scope a read to (the active one, else the caller's
 // default). Mirrors the local helper in billing/briefs/audio.functions.ts.
+//
+// THE RPC'S ERROR IS NO LONGER DISCARDED. `listChangelog` turns a null answer
+// into `{ entries: [] }`, which /ship renders as "Nothing has merged yet", so a
+// FAILED rpc looked exactly like an account that has never shipped — a discarded
+// read error spent as evidence of absence, on the station whose whole job is
+// saying what went out. A genuine null (no membership yet) still returns null
+// and still yields an empty list; only a real error travels now.
 async function resolveWorkspaceId(
   supabase: SupabaseClient,
   explicit: string | null | undefined,
 ): Promise<string | null> {
   if (explicit) return explicit;
-  const { data } = await supabase.rpc("current_user_default_workspace");
+  const { data, error } = await supabase.rpc("current_user_default_workspace");
+  if (error) {
+    throw new Error(`Supaprod could not work out which workspace to read: ${error.message}`);
+  }
   return (data as string | null) ?? null;
 }
 
@@ -32,6 +42,11 @@ async function resolveWorkspaceId(
 // note for why that statement can never plan — inside a catch that swallows the
 // error, so recordOutcome has never published a changelog entry either. Fixing
 // it belongs to that file, not this one.
+//
+// STILL TRUE AT outcome.functions.ts:756-757 WHEN LAST CHECKED, 2026-08-06.
+// Dated rather than stated flat, because that file is being worked on
+// separately and this paragraph must not turn into a claim about code that has
+// since been repaired. Check the line before relying on it.
 
 export type ChangelogEntry = {
   id: string;
@@ -82,12 +97,35 @@ export const listChangelog = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const entries = (rows ?? []) as ChangelogEntry[];
 
+    // THE FOUR ENRICHMENT READS BELOW NOW REPORT THEIR FAILURES. Each one used
+    // `const { data } =` and threw the error away, and each one's empty result
+    // is then written onto the entry as a null — so a failed read renders as
+    // "this release has no product", "no production address", "no origin bet".
+    // That is the house's named shape: a read whose error was discarded, used as
+    // evidence of absence. The URL is the one that hurts, because /ship reads a
+    // null `production_url` as a release that never reached production.
+    //
+    // THEY LOG RATHER THAN THROW, AND THAT IS A DELIBERATE HALF. These are
+    // labels hung on a list that has already loaded; failing the whole station
+    // because a product name would not resolve trades a small wrong for a large
+    // one. So the entry still renders without the field — what changed is that
+    // the failure is now visible in ten seconds instead of looking like a calm
+    // empty state. Distinguishing "no production deploy" from "could not ask" ON
+    // THE SURFACE needs a per-field status this return shape does not carry, and
+    // that is a change to every consumer of ChangelogEntry, not to this read.
+
     // Resolve product labels in one round trip (RLS-scoped read).
     const productIds = Array.from(
       new Set(entries.map((e) => e.product_id).filter((id): id is string => !!id)),
     );
     if (productIds.length) {
-      const { data: products } = await db.from("projects").select("id,name").in("id", productIds);
+      const { data: products, error: productsErr } = await db
+        .from("projects")
+        .select("id,name")
+        .in("id", productIds);
+      if (productsErr) {
+        console.error("listChangelog product-label read failed (non-fatal):", productsErr.message);
+      }
       const nameById = new Map((products ?? []).map((p) => [p.id as string, p.name as string]));
       for (const e of entries) {
         e.product_name = e.product_id ? (nameById.get(e.product_id) ?? null) : null;
@@ -101,13 +139,19 @@ export const listChangelog = createServerFn({ method: "GET" })
       new Set(entries.map((e) => e.changeset_id).filter((id): id is string => !!id)),
     );
     if (changesetIds.length) {
-      const { data: deployments } = await db
+      const { data: deployments, error: deploymentsErr } = await db
         .from("deployments")
         .select("changeset_id,deploy_url")
         .eq("workspace_id", workspaceId)
         .eq("environment", "production")
         .eq("status", "success")
         .in("changeset_id", changesetIds);
+      if (deploymentsErr) {
+        console.error(
+          "listChangelog production-url read failed (non-fatal); every release on this page will render without its production address:",
+          deploymentsErr.message,
+        );
+      }
       const urlByChangesetId = new Map(
         (deployments ?? []).map((d) => [(d.changeset_id as string) ?? "", d.deploy_url as string]),
       );
@@ -124,7 +168,13 @@ export const listChangelog = createServerFn({ method: "GET" })
       new Set(entries.map((e) => e.prd_id).filter((id): id is string => !!id)),
     );
     if (prdIds.length) {
-      const { data: specs } = await db.from("prds").select("id,opportunity_id").in("id", prdIds);
+      const { data: specs, error: specsErr } = await db
+        .from("prds")
+        .select("id,opportunity_id")
+        .in("id", prdIds);
+      if (specsErr) {
+        console.error("listChangelog origin-spec read failed (non-fatal):", specsErr.message);
+      }
       const oppIdByPrdId = new Map(
         (specs ?? []).map((s) => [
           (s as { id: string; opportunity_id: string | null }).id,
@@ -135,10 +185,16 @@ export const listChangelog = createServerFn({ method: "GET" })
         new Set([...oppIdByPrdId.values()].filter((id): id is string => !!id)),
       );
       if (oppIds.length) {
-        const { data: opportunities } = await db
+        const { data: opportunities, error: opportunitiesErr } = await db
           .from("opportunities")
           .select("id,title")
           .in("id", oppIds);
+        if (opportunitiesErr) {
+          console.error(
+            "listChangelog origin-bet read failed (non-fatal):",
+            opportunitiesErr.message,
+          );
+        }
         const oppTitleById = new Map(
           (opportunities ?? []).map((o) => [
             (o as { id: string; title: string }).id,
@@ -218,8 +274,19 @@ export type PublishChangelogResult = {
  * the `changelog ws write` policy carries `WITH CHECK (is_workspace_member(...)
  * AND user_id = auth.uid())`, and WITH CHECK is evaluated against the row after
  * an UPDATE too. Leaving the original author's user_id in place would make a
- * refresh by any other workspace member fail. So that column means "who last
- * published this entry", not "who wrote the change".
+ * refresh by any other workspace member fail. So that column means "WHO LAST
+ * PUBLISHED THIS ENTRY", not "who wrote the change".
+ *
+ * That is a real semantic change and it is written down here because nothing
+ * else records it: an entry the merge trigger materialized carries the
+ * changeset's author, and the first repair press by a teammate replaces that
+ * with the presser. Re-read live on 2026-08-06 (`pg_policy` on
+ * `public.changelog_entries`): two policies, `changelog ws read` USING
+ * `is_workspace_member(workspace_id)`, and `changelog ws write` for ALL commands
+ * with USING `is_workspace_member(workspace_id)` and the WITH CHECK above. No
+ * consumer displays or attributes on this column today — `ChangelogEntry` above
+ * does not even select it — so the change costs nothing visible; it would start
+ * costing something the moment anything credits a release to it.
  *
  * The refresh list deliberately matches the trigger's DO UPDATE list — title,
  * body, pr_number, pr_url, and prd_id only when this call has one — so the two
@@ -288,9 +355,15 @@ export const publishChangelogEntry = createServerFn({ method: "POST" })
     // and that distinction is spelled out because reading one as the other is
     // this repo's recurring bug. The SELECT above already proved this caller is a
     // member of the changeset's workspace; `changelog ws write` USING is exactly
-    // that membership, and its WITH CHECK is satisfied by the user_id written
-    // above. A policy refusal on an UPDATE that matched a row arrives as error
-    // 42501, not as silence, and is rethrown below.
+    // that membership — re-read from `pg_policy` on 2026-08-06 and it is
+    // `is_workspace_member(workspace_id)` with nothing else in it — and its WITH
+    // CHECK is satisfied by the user_id written above. A policy refusal on an
+    // UPDATE that matched a row arrives as error 42501, not as silence, and is
+    // rethrown below. The load-bearing part is the USING clause: were it the
+    // same expression as the WITH CHECK, a second member's refresh would match
+    // no row, fall through to the insert, and come back round to the retry as a
+    // unique violation it also could not update — which is why it is verified
+    // here rather than assumed from the WITH CHECK beside it.
     const updated = await db
       .from("changelog_entries")
       .update(refresh)
@@ -317,6 +390,22 @@ export const publishChangelogEntry = createServerFn({ method: "POST" })
       // in the gap between the update above and this insert. That is the
       // idempotent case, not a failure, so it retries the refresh rather than
       // showing a unique-violation to someone who pressed a button twice.
+      //
+      // THE RETRY CAN SEE THE ROW THAT BEAT IT, which is the step this branch
+      // stands or falls on. Postgres does not raise the unique violation while
+      // the other writer is still in flight — the second inserter BLOCKS on the
+      // index tuple until that transaction commits or aborts — so by the time
+      // 23505 arrives here the conflicting row is committed, and `changelog ws
+      // read`/`write` USING is plain workspace membership, which this caller has
+      // already been proved to hold. The retry therefore matches it. It also
+      // depends on the arbiter really covering this row: `uq_changelog_changeset`
+      // is partial on `WHERE changeset_id IS NOT NULL`, and `changelogRowFor`
+      // always sets `changeset_id` to the changeset's own id (src/lib/changelog.ts),
+      // so there is no path here that writes a null and slips past both the index
+      // and the `.eq("changeset_id", …)` filter.
+      //
+      // Reasoned and traced, NOT observed: no concurrent press has been executed
+      // against this branch.
       if ((inserted.error as { code?: string }).code === "23505") {
         const retry = await db
           .from("changelog_entries")

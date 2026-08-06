@@ -21,10 +21,16 @@ const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 
 /**
  * Every theme status that means a person already settled this cluster.
  *
- * WHAT WAS HERE: `.neq("status", "archived")`. One value out of the five the
- * repo uses, and the only one nothing writes. Live theme statuses on 2026-08-06
- * are new 161, active 64, investigating 14, at_risk 9, confirmed 8, promoted 1
- * and ZERO archived, so the filter excluded nothing at all. A cluster somebody
+ * WHAT WAS HERE: `.neq("status", "archived")`. One value out of the five in
+ * `INELIGIBLE_STATUSES` below -- and one of the TWO in that list that nothing
+ * in src/ writes at all, because `done` is equally unwritten. The only
+ * theme-status writes anywhere are `new`/`dismissed` (the setThemeStatus enum,
+ * discovery.functions.ts:548, applied at :576), `merged` (:671) and `promoted`
+ * (:1058). Re-measured 2026-08-06: the live theme statuses are new 161, active
+ * 64, investigating 14, at_risk 9, confirmed 8, promoted 1 -- SIX values, and
+ * `archived` is not one of them, so the filter excluded nothing at all. (Those
+ * six are what the column holds; the five above are what this filter drops.
+ * The two lists overlap in exactly one place, `promoted`.) A cluster somebody
  * dismissed on /discover, or promoted into a bet, stayed in this ranking, could
  * be the top-scoring theme, and got a paid model call spent presenting it back
  * as the one thing to focus on next -- on the one card whose job is to show that
@@ -36,6 +42,19 @@ const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 
  * would be the third, and a hand-copy is exactly how `promoted` came to be
  * missing from two of them. A status added to that one list now reaches this
  * ranking with no edit to this file.
+ *
+ * THE INVENTORY ABOVE IS THE HAND-COPY INVENTORY, NOT THE DEFECT INVENTORY, and
+ * the defect is STILL LIVE one file over. `fetchRankedThemes` in
+ * brain/derive-insights.server.ts:87-92 runs the identical one-literal
+ * `.neq("status", "archived")` against the identical `themes` table, feeds the
+ * identical `scoreTheme`, discards the read error, and has no `is_sample`
+ * filter either. Unlike `getInsightRail` below it is NOT dead: `deriveAllInsights`
+ * is called from routes/api/public/hooks/derive-tick.ts:7, so the autonomous
+ * derive tick is still ranking dismissed, merged and promoted clusters today.
+ * Fixing it is the same two-line change made here (import the list, swap the
+ * filter) plus the `is_sample` guard; it was left alone only because that file
+ * belonged to another pass. Do not read the paragraph above as "the sweep is
+ * finished".
  *
  * WHAT IT STILL MISSES, because that gap is in the data and not in this list.
  * 46 themes have an opportunity pointing at them, so they were promoted in
@@ -49,6 +68,9 @@ const FRESH_MS = 30 * 60 * 1000; // reuse an insight derived within the last 30 
  * Rendered once as a PostgREST `in` list. Case-sensitive, unlike `qualifies`,
  * which lowercases first; every status this repo writes is lowercase and
  * `themes.status` is NOT NULL DEFAULT 'new', so nothing escapes on either count.
+ * The serialisation is not a guess: the same `` `(${arr.join(",")})` `` fed to
+ * `.not(col, "in", ...)` already ships in production at
+ * proof-surface.functions.ts:141-148, on the /proof scorecard.
  *
  * NOTHING IS EXPLAINED AT THE CALL SITE ON PURPOSE. `the-brain-does-not-rank-
  * fiction.test.ts` asserts that `.eq("is_sample", false)` sits within 1200
@@ -129,7 +151,16 @@ export const getFocusNext = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<FocusInsight | null> => {
     const { supabase, userId } = context as unknown as { supabase: SupabaseClient; userId: string };
 
-    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    /**
+     * A REFUSED RPC IS NOT "THIS USER HAS NO WORKSPACE". On error `ws` is null,
+     * the early return below fires, and the themes read never runs -- so the
+     * log on THAT read cannot cover this path. It was the one failure mode in
+     * this function that was completely silent, and it is the house shape: a
+     * discarded read error standing in as evidence of absence. Behaviour is
+     * unchanged (returning null is still the safe answer); this only names it.
+     */
+    const { data: ws, error: wsErr } = await supabase.rpc("current_user_default_workspace");
+    if (wsErr) console.error(`[focus-next] workspace lookup failed: ${wsErr.message}`);
     const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return null;
 
@@ -187,7 +218,7 @@ export const getFocusNext = createServerFn({ method: "GET" })
 
     // Dedup / freshness: reuse a recent insight rather than re-deriving on every Today load.
     const dedupKey = `next_best_action:${top.t.id}:${new Date(now).toISOString().slice(0, 10)}`;
-    const { data: existing } = await supabase
+    const { data: existing, error: existingErr } = await supabase
       .from("insights")
       .select("*")
       .eq("workspace_id", workspaceId)
@@ -196,6 +227,12 @@ export const getFocusNext = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    // This read failing is not free: a refusal is indistinguishable from "no
+    // fresh insight", so every Today load falls through and pays for another
+    // model call. Behaviour is deliberately unchanged -- deriving is still the
+    // right answer when we cannot prove a fresh one exists -- but a silent
+    // repeat spend should not be invisible.
+    if (existingErr) console.error(`[focus-next] dedup read failed: ${existingErr.message}`);
     if (existing) return toFocusInsight(existing as Record<string, unknown>, top.s);
 
     const res = await callModel(supabase as never, userId, {
@@ -350,11 +387,15 @@ export const getInsightRail = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<InsightRailItem[]> => {
     const { supabase, userId } = context as unknown as { supabase: SupabaseClient; userId: string };
 
-    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    // Same silent-absence shape as getFocusNext's workspace lookup above, and
+    // the same treatment: an empty rail is still the safe answer, but a refused
+    // rpc no longer reads as "no workspace" with nothing anywhere saying so.
+    const { data: ws, error: wsErr } = await supabase.rpc("current_user_default_workspace");
+    if (wsErr) console.error(`[insight-rail] workspace lookup failed: ${wsErr.message}`);
     const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return [];
 
-    const { data: rows } = await supabase
+    const { data: rows, error: rowsErr } = await supabase
       .from("insights")
       .select(
         "id,kind,headline,detail,evidence,recommended_action,score,confidence,theme_id,created_at",
@@ -364,6 +405,9 @@ export const getInsightRail = createServerFn({ method: "GET" })
       .in("kind", [...RAIL_KINDS])
       .order("score", { ascending: false, nullsFirst: false })
       .limit(6);
+    // A refused read and a genuinely empty rail both arrive here as `[]`, and
+    // the caller hides the rail either way. Unchanged behaviour, logged cause.
+    if (rowsErr) console.error(`[insight-rail] insights read failed: ${rowsErr.message}`);
 
     const items = (rows ?? []) as Record<string, unknown>[];
 

@@ -93,7 +93,7 @@ describe("assembleBuilderGoal (the Build Console dispatch payload IS the ARD)", 
     // the work order names the issue it is closing and the chain it must use.
     expect(goal).toContain(`issue #42`);
     expect(goal).toMatch(/studio\.stage[\s\S]*studio\.commit[\s\S]*studio\.pr\.open/);
-    expect(goal).toContain('Closes #42');
+    expect(goal).toContain("Closes #42");
     expect(goal).toContain("User intent:\nAdd a rate limiter");
     expect(goal).toContain(`Linked spec: "${PRD.title}" (id ${PRD.id})`);
     // The machine-readable contract rides the work order, after the prose.
@@ -127,5 +127,61 @@ describe("assembleBuilderGoal (the Build Console dispatch payload IS the ARD)", 
     expect(goal).toContain("Pick up GitHub issue #9");
     expect(goal).not.toContain("Linked spec");
     expect(goal).not.toContain("THE CONTRACT (ARD");
+  });
+});
+
+/**
+ * THE DESIGN SECTIONS WERE THE 2026-08-06 FIX AND HAD NO TEST AT ALL.
+ *
+ * They used to reach the agent only inside the ARD's `design` key, and
+ * `ardDispatchBlock` returns null before it looks at `design` when the spec has
+ * no compiled Outcome Contract. Every one of the 41 approved specs carries
+ * `contract = '{}'`, so the design station's output was computed and discarded
+ * on 100% of Build Console dispatches. `assembleBuilderGoal` now carries the
+ * prose sections independently, and these three tests pin the two halves of
+ * that contract: what a spec WITH design gets, and what a spec with none gets.
+ *
+ * The second is the one that matters most and is the ordinary case.
+ * Re-measured 2026-08-06: 13 of the 41 approved specs have no drawing, no flow
+ * and no workspace design memory, so `formatDesignDispatchSections` hands this
+ * function `[]`. An empty labelled heading would be worse than nothing — it is
+ * the design station asserting it had nothing to say, and a builder told that
+ * builds past a mockup it should have gone looking for. So the contract is that
+ * `[]` is INDISTINGUISHABLE from absent, which is stronger and less brittle
+ * than grepping the output for a heading that must not appear.
+ */
+describe("assembleBuilderGoal carries the design station independently of the ARD", () => {
+  const MOCKUP = "THE MOCKUP FOR THIS SPEC (approved):\n```html\n<main/>\n```";
+
+  test("a spec with no contract still carries the design sections", () => {
+    const prd = { id: PRD.id, title: PRD.title };
+    const goal = assembleBuilderGoal({
+      issueNumber: 5,
+      intent: "Build the screen",
+      prd,
+      ard: ardDispatchBlock(prd),
+      designSections: [MOCKUP],
+    });
+    // No contract compiled, so no ARD -- and the mockup rides anyway.
+    expect(goal).not.toContain("THE CONTRACT (ARD");
+    expect(goal).toContain(MOCKUP);
+    expect(goal.indexOf(MOCKUP)).toBeGreaterThan(goal.indexOf("Linked spec:"));
+  });
+
+  test("no design: an empty list is the same work order as none at all", () => {
+    const prd = { id: PRD.id, title: PRD.title };
+    const args = { issueNumber: 5, intent: "Build the screen", prd, ard: ardDispatchBlock(prd) };
+    expect(assembleBuilderGoal({ ...args, designSections: [] })).toBe(assembleBuilderGoal(args));
+  });
+
+  test("with both, the design is read before the contract that grades it", () => {
+    const goal = assembleBuilderGoal({
+      issueNumber: 5,
+      intent: "Build the screen",
+      prd: PRD,
+      ard: ardDispatchBlock(PRD),
+      designSections: [MOCKUP],
+    });
+    expect(goal.indexOf(MOCKUP)).toBeLessThan(goal.indexOf("THE CONTRACT (ARD"));
   });
 });

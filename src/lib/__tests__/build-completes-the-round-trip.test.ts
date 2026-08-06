@@ -111,7 +111,10 @@ describe("the dispatch's answer is actually read", () => {
     // and /runs/<id> for a mission with no run is an empty page. So this asserts
     // the invariant -- every navigate to the run page is gated on missionId --
     // rather than one spelling of it, and a future tightening will not go red.
-    const navs = PANEL.replace(/\s+/g, " ").match(/if \([^)]*\) \{? ?void navigate\(\{ to: "\/runs\/\$missionId"/g) ?? [];
+    const navs =
+      PANEL.replace(/\s+/g, " ").match(
+        /if \([^)]*\) \{? ?void navigate\(\{ to: "\/runs\/\$missionId"/g,
+      ) ?? [];
     expect(navs.length).toBeGreaterThan(0);
     for (const n of navs) expect(n).toMatch(/missionId/);
   });

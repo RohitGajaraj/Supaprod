@@ -154,6 +154,29 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
     const { supabase } = context;
     const wsId = data.workspaceId ?? null;
 
+    /**
+     * A DROPPED FAMILY MUST NOT BE INVISIBLE. Every source below degrades to an
+     * empty list on failure, and the queue then renders "nothing needs you" --
+     * which is the same screen a genuinely clear queue draws. That degradation
+     * is deliberate and stays: one refused read must not blank the other nine.
+     * What was missing is any way to know it happened, so each swallow now says
+     * so on the server. TELLING THE USER is the other half and is NOT done here:
+     * it needs a field on ApprovalsQueueResult plus rendering in ApprovalsTray
+     * and Today, which spans files this pass does not own.
+     */
+    const familyFailed =
+      (family: string) =>
+      (e: unknown): void => {
+        console.error(
+          `[approvals-queue] ${family} dropped from the queue: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      };
+    /** Same, for the sources that resolve with a PostgrestError instead of throwing. */
+    const noteReadError = (family: string, error: { message: string } | null): void => {
+      if (error)
+        console.error(`[approvals-queue] ${family} dropped from the queue: ${error.message}`);
+    };
+
     const [
       govern,
       decisionsRes,
@@ -170,16 +193,20 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       // Govern surface needs the decided history for the track record) - the
       // pending filter below narrows it to the queue. agent_approvals predates
       // workspace tenancy (no workspace_id column), so this stays unscoped.
-      listGovernApprovals().catch(() => ({
-        approvals: [],
-        trackByAgent: {},
-        outcomeByAgent: {},
-        rejectionsByKey: {},
-        medianResponseMs: null,
-      })),
-      listDecisions({ data: { status: "pending", workspaceId: wsId ?? undefined } }).catch(() => ({
-        decisions: [],
-      })),
+      listGovernApprovals().catch((e) => {
+        familyFailed("tool-call gates")(e);
+        return {
+          approvals: [],
+          trackByAgent: {},
+          outcomeByAgent: {},
+          rejectionsByKey: {},
+          medianResponseMs: null,
+        };
+      }),
+      listDecisions({ data: { status: "pending", workspaceId: wsId ?? undefined } }).catch((e) => {
+        familyFailed("pending decisions")(e);
+        return { decisions: [] };
+      }),
       // Direct RLS-wide read, not the workspace-scoped list function: the
       // queue is the single pull point (law 4.4), so a pending candidate in
       // ANY of the caller's workspaces must surface here, unless scoped.
@@ -191,23 +218,33 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
           .order("created_at", { ascending: false })
           .limit(100);
         if (wsId) q = q.eq("workspace_id", wsId);
-        return q.then(({ data: rows }) => ({
-          items: (
-            (rows ?? []) as Array<{
-              id: string;
-              content: string;
-              status: string;
-              importance: number | null;
-              source_kind: string;
-              created_at: string;
-            }>
-          ).map((r) => ({ ...r, supersedes_content: null as string | null })),
-        }));
-      })().catch(() => ({ items: [] })),
-      listHouseRules({ data: { workspaceId: wsId } }).catch(() => ({ rules: [] })),
-      listTrustGraduationProposals().catch(
-        () => [] as Awaited<ReturnType<typeof listTrustGraduationProposals>>,
-      ),
+        return q.then(({ data: rows, error }) => {
+          noteReadError("memory graduation", error);
+          return {
+            items: (
+              (rows ?? []) as Array<{
+                id: string;
+                content: string;
+                status: string;
+                importance: number | null;
+                source_kind: string;
+                created_at: string;
+              }>
+            ).map((r) => ({ ...r, supersedes_content: null as string | null })),
+          };
+        });
+      })().catch((e) => {
+        familyFailed("memory graduation")(e);
+        return { items: [] };
+      }),
+      listHouseRules({ data: { workspaceId: wsId } }).catch((e) => {
+        familyFailed("house rules")(e);
+        return { rules: [] };
+      }),
+      listTrustGraduationProposals().catch((e) => {
+        familyFailed("trust graduation")(e);
+        return [] as Awaited<ReturnType<typeof listTrustGraduationProposals>>;
+      }),
       // Specs in review (mirrors today.functions.ts getNeedsYou's prdCalls read).
       (() => {
         let q = supabase
@@ -270,9 +307,39 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
       })(),
     ]);
 
-    // Design gates: specs with an undecided design_gate_status, scoped to the
-    // workspaces just resolved to have the design stage on. A dependent read
-    // (the workspace ids aren't known until designWsRows lands above).
+    // Design gates, scoped to the workspaces just resolved to have the design
+    // stage on. A dependent read (the workspace ids aren't known until
+    // designWsRows lands above).
+    //
+    // THIS READ RETURNS NOTHING AND CANNOT EVER RETURN ANYTHING. Read the
+    // predicate below as what it is: `prds.design_gate_status` is
+    // `text NOT NULL DEFAULT 'pending'` with `CHECK (design_gate_status in
+    // ('pending','approved','rejected'))` -- migrations 20260707203117:133-134
+    // and 20260708170000_sw4_design_station.sql:16-17 -- so `.is(..., null)` is
+    // unsatisfiable BY SCHEMA, not merely unmatched by today's data. The
+    // undecided sentinel is 'pending' (design-scaffold.functions.ts types the
+    // column as "pending" | "approved" | "rejected" and coalesces a null read
+    // to "pending"; no line cite, that file is moving), and on 2026-08-06 the
+    // live column reads
+    // pending 80, approved 1, NULL 0, with all 80 sitting in the 21 workspaces
+    // that have design_stage_enabled. So one of the ten families this module's
+    // header promises it federates sources nothing, and 80 undecided design
+    // gates are invisible to the single pull point.
+    //
+    // NOT FIXED HERE, ON PURPOSE, AND NOT BECAUSE IT IS DORMANT. The identical
+    // predicate lives at today.functions.ts:291 and :511. Correcting one of the
+    // three sites would be the first thing in this repo to actually break the
+    // ONE COUNT, ONE SOURCE law the header claims: the approvals pill would
+    // read 80 while the Today hero read 0. The fix is `.eq("design_gate_status",
+    // "pending")` at all three sites in one change, and it is a real behaviour
+    // change (an empty family becomes the largest one on the queue), so it is a
+    // founder call in launch week rather than a comment fix. Escalated, not
+    // buried.
+    noteReadError("design-stage workspace lookup", designWsRows.error);
+    noteReadError("specs in review", specRows.error);
+    noteReadError("critic'd opportunities", oppRows.error);
+    noteReadError("assumption challenges", challengeRows.error);
+    noteReadError("proposed playbooks", playbookRows.error);
     const designWsIds = ((designWsRows.data ?? []) as { id: string }[]).map((w) => w.id);
     const designGateRes = designWsIds.length
       ? await supabase
@@ -289,7 +356,11 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
             updated_at: string;
             project_id: string | null;
           }[],
+          // Carried so the union below has one shape and the swallow-log can
+          // reach it; no read ran on this branch, so there is nothing to report.
+          error: null as { message: string } | null,
         };
+    noteReadError("design gates", designGateRes.error);
 
     // Project resolution, one batched pass for every family that carries a
     // project_id (specs, opportunities, design gates directly; decisions only
@@ -715,26 +786,50 @@ export const getApprovalsQueue = createServerFn({ method: "GET" })
 // "draft", with a note). Neither looked at the spec first. The id is whatever
 // the caller posts - these are POST server functions, not a closed loop over
 // the queue's own items - so a shipped spec's id moved a shipped bet to
-// "draft", and NOTHING in the product writes "shipped" back: every writer of
-// that value is a ship-time path guarded by `shipped_at IS NULL`. The record
-// of a bet that genuinely went out, gone on one keystroke.
+// "draft", and no ordinary path writes "shipped" back. The record of a bet that
+// genuinely went out, gone on one keystroke.
+//
+// THREE OF THE FOUR WRITERS OF 'shipped' ARE GUARDED ON `shipped_at`, NOT FOUR.
+// studio.functions.ts (`.is("shipped_at", null)` on the UPDATE itself) and
+// outcome-tick.ts (same) are atomic; outcome.functions.ts checks `if
+// (!shippedAt)` first. The fourth is not: `closeOutSpecOnPromote` in
+// deployments.functions.ts guards on `(prd.status) !== "shipped"` -- a STATUS
+// test -- and then writes `{ status: "shipped", shipped_at: nowIso }`. For a row
+// whose status is anything but 'shipped' while `shipped_at` is already set, the
+// next deploy promote CLOBBERS the original ship timestamp with a fresh one.
+// That is not hypothetical: it is exactly the shape of the seven rows named
+// below. So "nothing writes shipped back" is true of the queue and true of the
+// three guarded paths, and the promote path is the standing exception. Not
+// fixed here - deployments.functions.ts is another file - but do not read this
+// block as a proof that `shipped_at` is immutable once set.
 //
 //   draft     Already the revisable state. There is nothing to send back.
 //   review    The gate this queue actually lists (the spec source filters on
 //             status = 'review'). Moving backward is the entire point.
-//   approved  Signed off, not shipped. Backward un-dispatches it and REMOVES
-//             nothing: the "Spec approved" decisions row stays, the stage-event
-//             trail records approved -> draft, and re-approving later is
-//             idempotent on prd_id (discovery.functions.ts savePrd). Allowed.
-//   shipped   Refused. Live today: 41 specs read 'approved' and SEVEN of them
-//             carry a non-null shipped_at, so status alone is not a safe test -
-//             `shipped_at` is the fact and it is what this checks.
+//   approved  Signed off, not shipped. PERMITTED BEFORE THIS CHANGE AND STILL
+//             PERMITTED: sendBackApprovalItem used to check nothing at all, so
+//             this row documents inherited behaviour rather than granting it.
+//             Backward removes no RECORD - the "Spec approved" decisions row
+//             stays, the stage-event trail records approved -> draft, and
+//             re-approving later is idempotent on prd_id (discovery.functions.ts
+//             savePrd). It does change one live behaviour: outcome-tick.ts polls
+//             `.eq("status","approved").is("shipped_at",null)`, so a spec sent
+//             back drops out of the automatic ship-stamp cron until somebody
+//             re-approves it. Recoverable, and arguably what you want from an
+//             un-dispatch, but it is not nothing. Allowed.
+//   shipped   Refused. Re-measured 2026-08-06: 41 specs read 'approved' and
+//             SEVEN of them carry a non-null shipped_at, so status alone is not
+//             a safe test - `shipped_at` is the fact and it is what this checks.
 //
 // The forward write is checked for the one case that is a backward write in
 // disguise: approving a spec that has already shipped. savePrd sees
 // `prior.status !== 'approved'`, treats it as a FIRST approval, files a
-// Decisions entry and stamps a stage event leaving 'shipped'
-// (discovery.functions.ts:2055,2112) - so "Approve" on a shipped spec is how
+// Decisions entry and stamps a stage event leaving 'shipped' - in
+// discovery.functions.ts, at `rest.status === "approved" && (prior?.status ??
+// null) !== "approved"` and the `if (rest.status)` recordStageEvent below it.
+// (Cited by predicate, not by line: that file is being edited concurrently and
+// these two moved from 2055/2112 to 2141/2198 in a single day.) So "Approve" on
+// a shipped spec is how
 // those seven rows got that way. This closes that route through the queue; the
 // button that opens it lives on the spec page and is NOT fixed here (see the
 // note on sendBackApprovalItem).
@@ -1006,11 +1101,24 @@ export type SendBackApprovalItemResult = { ok: boolean };
  * now hides real errors including this function's own refusals. That copy lives
  * in src/components/mission/MissionShell.tsx and is NOT fixed here.
  *
+ * ORDERING, AND IT IS NOT ONE OF FOUR EQUAL FOLLOW-UPS. Every refusal this
+ * function raises is a NEW error path that did not exist before it. Today none
+ * of them is reachable: the tray lists specs only at status 'review', where
+ * every guard permits, and the optimistic removal in MissionShell pulls the
+ * item out of the list before a second press can land on "This spec is already
+ * a draft". The moment the spec-page door below is mounted, that stops being
+ * true and all three refusal messages -- carefully worded, naming three real
+ * doors -- get replaced on screen by "Send back turns on with the next
+ * release.", which is false about a feature that shipped weeks ago. The toast
+ * fix must land in the SAME change as the door, not after it.
+ *
  * WHICH SPECS CAN REACH THIS AND WHICH CANNOT (the honest half of the fix).
  * The state rules above DecideSchema now let an APPROVED, unshipped spec be
  * sent back, and refuse a shipped one. That is the server half only: the queue
- * still sources specs with `.eq("status","review")` (one spec live today), so
- * no surface offers this verb on the 34 approved-and-unshipped specs. Widening
+ * still sources specs with `.eq("status","review")` (re-measured 2026-08-06:
+ * exactly ONE spec is at 'review' across the whole database), so no surface
+ * offers this verb on the 34 approved-and-unshipped specs (41 approved less the
+ * 7 carrying a shipped_at, same measurement). Widening
  * that source is the wrong fix - an approved spec is not a pending approval,
  * and listing 41 of them would inflate the one count three surfaces badge. The
  * door belongs on the spec's own page, next to Approve, in

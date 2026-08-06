@@ -89,6 +89,7 @@ import {
   promoteToProduction,
 } from "@/lib/deployments.functions";
 import { publishChangelogEntry } from "@/lib/changelog.functions";
+import { stillWaiting } from "@/lib/query-state";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { ChatMarkdown } from "@/components/chat/ChatMarkdown";
 
@@ -363,6 +364,23 @@ export function ChangesPanel({
    * `_authenticated.runs.$missionId.tsx`, which makes this same call without a
    * workspace and whose Production stage marker dies with it.
    *
+   * AND THAT FILE IS THIS PAGE, NOT A SIBLING SURFACE. `runs.$missionId.tsx`
+   * RENDERS this panel (at its ChangesPanel mount) and separately runs the same
+   * deploy read at :607-608 under the OLD key `["changeset-deployments",
+   * changeset?.id]` with no workspace, feeding `productionDeployed` into the
+   * stage rail directly above. Before this fix both readers shared one key, one
+   * cache entry and one wrong answer; now they are two queries, so on a run
+   * whose workspace is not the caller's earliest membership the rail can say
+   * production is not reached while this block, inches below it, prints the
+   * production URL. That is not a reason to revert: the half that is right is
+   * the half a person acts on, and a contradiction on screen is how a silent
+   * wrong answer finally becomes visible. It does raise the `listDeployments`
+   * one-liner above from tidy-up to the thing that closes this. Two smaller
+   * effects, both bounded: two requests where there was one, and the rail no
+   * longer inherits this query's 30s `refetchInterval` -- though the
+   * invalidations below still reach its key by prefix, so its staleness is
+   * capped at the next press rather than unbounded.
+   *
    * ENABLED WAITS FOR A WORKSPACE. Without that gate the first paint of every
    * session fires the read with no workspace, which is precisely the request
    * whose answer is guaranteed to be about the wrong one. /ship gates every read
@@ -453,10 +471,17 @@ export function ChangesPanel({
    * would answer "Nothing to promote until the preview is up." before anything
    * had been asked -- the confident wrong answer the comment further down says
    * these branches exist to prevent, reintroduced by the gate that fixed the
-   * workspace. /ship states the same thing the same way (`docReading = !wid ||
-   * changelog.isLoading`).
+   * workspace.
+   *
+   * `stillWaiting` RATHER THAN `!wid || deploymentsQ.isLoading`, WHICH IS WHAT
+   * THIS LINE USED TO SAY. The two agree on the case above -- a disabled query
+   * is pending, so both call it a wait -- but `stillWaiting` also covers a
+   * query that is enabled and pending WITHOUT fetching, which is what a paused
+   * or offline client looks like, and it is the shared helper
+   * (src/lib/query-state.ts) rather than a fourth hand-rolled copy of the same
+   * rule. /ship asks the same question the same way over its own reads.
    */
-  const deploymentsReading = !wid || deploymentsQ.isLoading;
+  const deploymentsReading = stillWaiting(deploymentsQ);
   const retryDeployments = () => void deploymentsQ.refetch();
   const fPromote = useServerFn(promoteToProduction);
   const promoteMut = useMutation({
@@ -755,6 +780,25 @@ export function ChangesPanel({
   if (!changeset) {
     return <Empty>Nothing is staged. {builderName} writes each file in here as it works.</Empty>;
   }
+
+  /**
+   * NOTES THE SERVER WOULD ACCEPT, not merely a column that is not empty.
+   *
+   * `shouldPublishChangelog` (src/lib/changelog.ts) is `status === "merged" &&
+   * !!(release_notes && release_notes.trim())`, so a whitespace-only value is
+   * not release notes as far as anything downstream is concerned:
+   * `changelogRowFor` declines it and `publishChangelogEntry` answers
+   * `published: false, reason: "no-release-notes"`. Read here as a plain truthy
+   * value it drew a "List it on Ship" button whose only reachable outcome was
+   * that refusal -- the very control the gate below says it exists to prevent
+   * -- above a recessed box holding nothing but the whitespace.
+   *
+   * ONE TEST, THREE USES, so the header's label, the body and the button cannot
+   * drift from each other or from the server. The Block's own existence check
+   * stays truthy on purpose: with whitespace in the column the section must
+   * still appear, and say it has no notes, rather than vanish.
+   */
+  const hasReleaseNotes = !!changeset.release_notes?.trim();
 
   const selected = activePath ? diffByPath.get(activePath) : null;
   /**
@@ -1198,17 +1242,13 @@ export function ChangesPanel({
         <Block
           title="Release notes"
           more={
-            genNotesMut.isPending
-              ? "Writing"
-              : changeset.release_notes
-                ? "Write them again"
-                : "Write them"
+            genNotesMut.isPending ? "Writing" : hasReleaseNotes ? "Write them again" : "Write them"
           }
           onMore={() => {
             if (!genNotesMut.isPending) genNotesMut.mutate();
           }}
         >
-          {changeset.release_notes ? (
+          {hasReleaseNotes ? (
             <div style={RECESS}>{changeset.release_notes}</div>
           ) : (
             <Empty>
@@ -1236,9 +1276,15 @@ export function ChangesPanel({
               the defect this whole pass is about. With no notes the Empty above
               names the real next step instead.
 
+              AND "IN HAND" MEANS THE SERVER'S TEST, NOT A TRUTHY COLUMN: this
+              read `changeset.release_notes` while `shouldPublishChangelog`
+              requires `.trim()`, so whitespace alone drew the button and bought
+              a guaranteed `reason: "no-release-notes"`. `hasReleaseNotes` is
+              that same test, made once.
+
               NOT A PRIMARY BUTTON. Promote is the primary act on this surface
               and it reaches customers; this one reconciles a record. */}
-          {changeset.status === "merged" && changeset.release_notes ? (
+          {changeset.status === "merged" && hasReleaseNotes ? (
             <Actions>
               <Button disabled={publishEntryMut.isPending} onClick={() => publishEntryMut.mutate()}>
                 {publishEntryMut.isPending ? "Listing it" : "List it on Ship"}

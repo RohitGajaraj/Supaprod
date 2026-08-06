@@ -82,8 +82,31 @@ export const Route = createFileRoute("/signup")({
   }),
   beforeLoad: async ({ search }) => {
     if (typeof window === "undefined") return;
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) return;
+    // getUser() is inside the try; every redirect below is OUTSIDE it. Both
+    // halves matter, and login.tsx:44-63 arrived at this exact shape first.
+    //
+    // The try: a stale refresh token left in a prior session's localStorage
+    // makes getUser() THROW. This call was bare, so that throw rendered a route
+    // error where the signup form should be — on the one surface a Product Hunt
+    // visitor reaches before anything else, and the same class of first
+    // impression failure this file was rewritten to remove. login.tsx already
+    // carried the guard; signup did not, and it is the more expensive of the
+    // two to lose.
+    //
+    // The redirects outside it: a TanStack `redirect` is a `Response`, not an
+    // `Error` (router-core), so a try that wrapped them would have to be very
+    // careful not to swallow real control flow. login.tsx:53-57 records that
+    // exact bug leaving a signed-in visitor staring at a sign-in form. Keeping
+    // the try around the one call that can fail makes it unreachable here.
+    let signedIn = false;
+    try {
+      const { data } = await supabase.auth.getUser();
+      signedIn = !!data.user;
+    } catch {
+      // Treated as "not signed in", which is what the form below is for.
+      return;
+    }
+    if (!signedIn) return;
     // Already signed in: honor a purchase intent from /pricing by landing on
     // the plan section directly instead of dropping it at the front door.
     if (search.plan) {
@@ -151,7 +174,36 @@ function SignupPage() {
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        // THE LAST LINE IN THIS FILE STILL POINTING AT THE MARKETING PAGE.
+        // Every other post-signup destination was moved to SIGNED_IN_HOME; the
+        // confirmation link was missed, so a confirming account would have been
+        // dropped on "/" and paid the two-load detour documented above.
+        //
+        // It is dead today and that is why it was easy to miss. Re-measured
+        // through the Lovable MCP on 2026-08-06: `auth.users` has 16 rows, 15
+        // with an `email_confirmed_at`, 13 of those within 5 seconds of
+        // `created_at`, newest signup 2026-07-25 — auto-confirm is on, so
+        // Supabase is not sending this link to anyone. The one event that makes
+        // it live again is a deploy that re-enables confirmation, which is
+        // exactly the case this file's risk register already named, so it is
+        // pointed at the same destination as the rest of the file rather than
+        // left aimed at the page the rest of the file exists to skip.
+        //
+        // The session still arrives: our client sets only storage,
+        // persistSession and autoRefreshToken (integrations/supabase/client.ts),
+        // leaving `detectSessionInUrl` at the auth-js default of true
+        // (@supabase/auth-js GoTrueClient DEFAULT_OPTIONS), so the tokens on
+        // the return URL are consumed wherever it lands and the _authenticated
+        // gate runs on /today the same way it does after a password signup.
+        //
+        // ONE THING THIS LINE CANNOT PROMISE ON ITS OWN: Supabase honours an
+        // emailRedirectTo only if it matches the project's redirect allow-list,
+        // and falls back to the Site URL otherwise. If /today is not on that
+        // list the link lands on "/" — exactly where it landed before — so this
+        // change cannot be worse than what it replaces, but it is not proven
+        // better until confirmation is switched on and the allow-list checked.
+        // That is a dashboard setting, not a code one.
+        emailRedirectTo: `${window.location.origin}${SIGNED_IN_HOME}`,
       },
     });
     if (error) {
@@ -216,6 +268,21 @@ function SignupPage() {
     // Carry a /pricing purchase intent toward the plan section. First-run
     // accounts detour through /onboarding (the gate always wins); the pick
     // note above told the user where to confirm the plan.
+    //
+    // WHAT THIS CONDITION IS, EXACTLY, because it was described elsewhere as
+    // "byte for byte" the old `dest === "/"` and it is not quite that. It
+    // matches for every REACHABLE input and differs on two hand-typed URLs:
+    // `?plan=pro&next=/` no longer fires it (safeNextPath returns "/" verbatim,
+    // so the plan is dropped and the person lands on the marketing page), and
+    // `?plan=pro&next=/today` now does. Neither shape is produced anywhere in
+    // the product: the only link that sends a `next` to /signup is the invite
+    // at join.$token.tsx:137-138 (`/join/<token>`; the sibling at :130-131 is
+    // the same `next` aimed at /login), and /pricing sends
+    // `?from=pricing` with no plan and no next on the free tier while every
+    // paid tier goes to /checkout instead (pricing.tsx:481-485) — a grep for a
+    // `plan=` producer aimed at /signup returns nothing at all, so this branch
+    // is currently reachable only by typing the URL. Said out loud rather than
+    // left as a difference someone rediscovers.
     if (plan && dest === SIGNED_IN_HOME) {
       window.location.assign("/settings?section=plan");
       return;

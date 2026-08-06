@@ -482,25 +482,54 @@ export async function rememberOutcome(
     // state the old comment called safe is unreachable; the state that does
     // occur is worse than the one it described.
     //
-    // MEASURED, so the size of it is not guessed: of 16 users with a workspace
-    // membership, 11 belong to exactly one, and for those the trigger's pick is
-    // necessarily the right one and nothing is stranded. Five belong to more
-    // than one; of the three with exactly two, all three have a SAMPLE
-    // workspace as their earliest membership. So the exposure is real, it is
-    // small today, and it grows with every user who gets a second workspace.
+    // MEASURED, so the size of it is not guessed (re-measured 2026-08-06): of
+    // 16 users with a workspace membership, 11 belong to exactly one, and for
+    // those the trigger's pick is necessarily the right one and nothing is
+    // stranded. Five belong to more than one, three of them to exactly two.
     //
-    // WHERE A STRANDED ROW CAN AND CANNOT BE REACHED. The previous version of
-    // this comment quoted `match_agent_memory`'s tenancy filter as
+    // AN EARLIER VERSION OF THIS PARAGRAPH SAID OF THOSE THREE THAT "all three
+    // have a SAMPLE workspace as their earliest membership". Re-running the
+    // query says only TWO do, and the third case is worse than an off-by-one.
+    // 9e7958c5 resolves to "Sample sandbox" and 1339eea2 to "Sample workspace",
+    // both correctly. But 868ae33b's two `workspace_members` rows carry an
+    // IDENTICAL `created_at` (2026-07-22 15:47:26.270201+00) — one for "My
+    // Workspace" (is_sample false) and one for "Sample workspace" (is_sample
+    // true) — and `ensure_user_default_workspace` picks with `ORDER BY
+    // m.created_at LIMIT 1` and no tiebreak. So for that user the trigger's
+    // choice is NONDETERMINISTIC between a real workspace and a seeded one, and
+    // which workspace their outcome memory lands in is not a fact anyone can
+    // state, this comment included. So the exposure is real, it is small today,
+    // and it grows with every user who gets a second workspace.
+    //
+    // WHERE A STRANDED ROW CAN AND CANNOT BE REACHED, AND IT DEPENDS ENTIRELY
+    // ON WHICH READER IS ASKING. Two earlier versions of this comment each got
+    // half of it, so both halves are written out.
+    //
+    // The FIRST version quoted `match_agent_memory`'s tenancy filter as
     // `m.workspace_id = for_workspace or m.workspace_id is null` and concluded
     // it "cannot reach it". That is only the `for_account is null` branch. The
     // live function also carries `for_account is not null and (m.workspace_id
     // is null or m.workspace_id in (select w.id from workspaces w where
-    // w.account_id = for_account))`, and recall passes `for_account` for paid
-    // accounts (see resolvePoolAccountId above). So on a POOLED account a
-    // stranded row IS still reachable, provided the workspace it was stranded
-    // in belongs to the same account. On a free / single-workspace account it
-    // is not reachable. The unqualified "cannot reach it" overstated it for the
-    // paid tier, which is the tier the pooling exists to serve.
+    // w.account_id = for_account))`.
+    //
+    // The SECOND version therefore said a stranded row "IS still reachable" on
+    // a pooled account, and that over-corrected: it is true of exactly ONE of
+    // the four callers of this RPC, and it is the one in this file.
+    //   · `recallMemory` (:112 above) passes `for_account` when
+    //     `resolvePoolAccountId` returns one, so on a POOLED account a stranded
+    //     row IS reachable there, provided the workspace it was stranded in
+    //     belongs to the same account. On a free / single-workspace account it
+    //     is not.
+    //   · `loadDecisionPrecedent` (decision-precedent.server.ts:98) builds
+    //     `{ ...base, for_workspace: args.workspaceId }` and never passes
+    //     `for_account`. So does `memory-candidates.functions.ts:101`, and
+    //     `brain/novelty.server.ts:42` passes neither. On those three a
+    //     stranded row is NOT reachable on any tier, paid or free.
+    // `loadDecisionPrecedent` is the reader the docblock at the top of this
+    // function names as the reason any of this matters — it is the Critic's
+    // red team (critic.server.ts:245), the bet judgment
+    // (decision-judgment.functions.ts) and the supersession engine. For the
+    // precedent surface, which is the moat, "cannot reach it" was right.
     //
     // So this update is not a nicety, it is a MOVE, and it is what makes the
     // outcome recallable where it was earned on every tier. It stays a separate

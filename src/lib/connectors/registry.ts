@@ -8,13 +8,29 @@
 // connection_id (precedent: calendar-connections.functions.ts). NO user-facing
 // entry may use the api_key method; pasted keys in our DB are rejected.
 // Until the founder registers a provider's OAuth client (clientIdEnv below),
-// the UI renders an explanatory "Admin setup required" state from setupHint
-// plus the missingEnv list returned by listConnections.
+// the UI renders an explanatory not-yet-available state from setupHint plus
+// the missingEnv list returned by listConnections. "Admin setup required" is
+// this file's shorthand for that state and is NOT a string the product renders
+// anywhere; the words on screen are "Waiting on an admin" (the catalogue cell's
+// sub, AccountConnectionsSection.tsx:754) and "Not available yet. {setupHint}"
+// (the detail page's Empty, :1029). Quote those if you are matching UI copy.
 //
-// COPY IS A PROMISE (2026-08-06 audit). `description` is not an internal note:
-// AccountConnectionsSection renders it verbatim as the connector page's
-// subtitle and as the catalogue cell's hover hint, so a visitor reads it as a
-// shipped feature. There is NO "not yet available" flag in this registry — the
+// COPY IS A PROMISE (2026-08-06 audit). `description` is not an internal note,
+// and it reaches a reader through six paths, only two of them verbatim:
+//   verbatim   the connector detail page's subtitle, twice —
+//              AccountConnectionsSection.tsx:994 (configured) and :1028 (not
+//              yet available).
+//   appended   :1041 adds "Connect it once and what it syncs starts feeding
+//              the company brain." unconditionally, and connectHintFor (:327-332)
+//              adds "Connecting opens <label>'s own sign-in." — so the
+//              catalogue cell's hover hint is specifically NOT verbatim.
+//   searched   the catalogue's own filter matches against it (:546).
+//   copied     catalog.ts:152 carries it onto every CatalogEntry.
+//   spoken     the agent tool `sources.connect` hands it straight to the model
+//              (ai/tools/registry.server.ts:496), so a wrong line here is a
+//              wrong line the assistant says out loud.
+// A visitor reads any of these as a shipped feature. There is NO "not yet
+// available" flag in this registry — the
 // four UI states (connected / env-active / connect / soon) are all derived from
 // whether the OAuth client env vars are set, never from whether an adapter
 // exists — and `userFacing: false` is not it either: that hides an entry
@@ -131,7 +147,8 @@ export type ProviderSpec = {
   resourceTypes: { kind: string; label: string }[];
   capabilities: { inflow: boolean; outflow: boolean; sync: boolean };
   envFallback?: { tokenEnv: string; resourceEnv?: string; resourceKind?: string };
-  /** One line for the UI's "Admin setup required" state: where the admin registers the OAuth app. */
+  /** One line for the UI's not-yet-available state ("Not available yet. {this}",
+   *  AccountConnectionsSection.tsx:1029): where the admin registers the OAuth app. */
   setupHint?: string;
   /**
    * false = platform infrastructure resolved via envFallback only — never
@@ -197,8 +214,9 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // (see the JNY-05 note on its entry). The env-secret token path ships today, and each
   // of these providers has a real, wired ingest in PULL_INGESTORS. All of them except
   // Canny now carry a per-user oauth_native method (Supaprod's own registered app);
-  // Canny alone still carries oauth_gateway and stays "Admin setup required" until that
-  // client is registered. Mirrors the intercom spec shape.
+  // Canny alone still carries oauth_gateway, so it is the only one whose Connect flow
+  // is unavailable until that client is registered -- and only while its env fallback
+  // is also unset (see the note on its entry). Mirrors the intercom spec shape.
   stripe: {
     id: "stripe",
     label: "Stripe",
@@ -335,10 +353,17 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // other SF-CONNECTOR it was never converted to oauth_native. The working path today
   // is the CANNY_API_KEY env fallback, and the ingest behind it is real. The
   // oauth_gateway method below is a placeholder, not a second working path: with
-  // CANNY_APP_USER_CONNECTOR_CLIENT_ID unset the UI holds this entry at "Admin setup
-  // required", which is the state it is in. setupHint is deliberately the API-key
-  // instruction rather than an OAuth-app one, because the API key is what actually
-  // unblocks it.
+  // CANNY_APP_USER_CONNECTOR_CLIENT_ID unset there is no Connect flow to offer.
+  //
+  // WHICH STATE A DEPLOYMENT ACTUALLY SHOWS depends on the env fallback, and the
+  // two clauses above can look contradictory unless this is said out loud.
+  // `statusFor` (AccountConnectionsSection.tsx:444-450) resolves connected ->
+  // env-active -> connect -> soon, so env-active WINS over the missing OAuth
+  // client. With CANNY_API_KEY set -- the working path -- the UI reads "Active
+  // through a workspace credential" (:996) and there is nothing for this user to
+  // connect. Only with BOTH unset does it fall through to "Waiting on an admin" /
+  // "Not available yet." setupHint is deliberately the API-key instruction rather
+  // than an OAuth-app one, because the API key is what actually unblocks it.
   canny: {
     id: "canny",
     label: "Canny",
@@ -390,6 +415,15 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // their own account changes nothing. Closing that gap is a code change in those
   // *.functions.ts files (route them through resolveProviderAuth), not a copy change
   // here, so the copy is left alone and the gap is recorded instead of hidden.
+  //
+  // IT IS NOT HYPOTHETICAL FOR LINEAR. On 2026-08-06 `connections` holds github 2,
+  // linear 1, slack 1, salesforce 1 -- a real person has already connected Linear
+  // through the oauth_native flow below. Their per-user token is written and never
+  // read, and linear.functions.ts:11-15 raises "Linear isn't connected yet. Link it
+  // from Integrations." from `headers()` whenever LOVABLE_API_KEY or LINEAR_API_KEY is
+  // unset. So the one user who DID connect is told to go connect, which is this repo's
+  // signature defect wearing an error message. The copy above stays true of the
+  // product; this note is about who can reach it.
   linear: {
     id: "linear",
     label: "Linear",
@@ -560,6 +594,11 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // — a Business-tier gate in front of a connector that does nothing. Flipping it to
   // false would make the label honest and drop the gate to 'pro', but that is a pricing
   // call and a catalog behaviour change, not copy, so it is left for the founder.
+  //
+  // AND THE DESCRIPTION IS NOT THE ONLY PLACE THIS IS PROMISED. connect-trust.ts:40
+  // still tells the user at the CONSENT MOMENT that Supaprod reads "Your Google Tasks
+  // lists, to sync action items." Same claim, higher-stakes screen, still false.
+  // Outside this file; recorded here so the pair gets fixed together.
   google_tasks: {
     id: "google_tasks",
     label: "Google Tasks",
@@ -653,11 +692,29 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
         clientSecretEnv: "FIGMA_CLIENT_SECRET",
         authorizeUrl: "https://www.figma.com/oauth",
         tokenUrl: "https://api.figma.com/v1/oauth/token",
-        // NOT NARROWED (2026-08-06 audit): nothing reads any of these yet, so the
-        // consent screen asks a user to approve file content AND comment-write for a
-        // capability that does not exist. Left as-is because narrowing changes what the
-        // provider is asked for and forces re-consent for anyone already connected —
-        // a founder call, not a copy fix. Narrow to what the feature needs when it lands.
+        // NOT NARROWED, AND THE FOUNDER'S CALL IS STILL OPEN (2026-08-06 audit,
+        // corrected the same day). SIX of these seven are read by nothing: no code
+        // anywhere in src/ touches a Figma file, its metadata, its comments, its
+        // versions or its projects. The SEVENTH is read on every single connect --
+        // routes/api/public/connect/figma/callback.ts fetches api.figma.com/v1/me to
+        // resolve a human-readable account label, and that callback's own header says
+        // the call is "gated on the current_user:read scope already requested". So the
+        // minimum set this product needs TODAY is determinable, and it is exactly
+        // ["current_user:read"]; every other entry below, including the WRITE scope
+        // file_comments:write, is asked for on a launch-week consent screen for a
+        // capability whose own `description` above says it is not built.
+        //
+        // Two things a reader should NOT infer from an earlier version of this note.
+        // (1) Narrowing does not force re-consent for anyone: `select provider,
+        // count(*) from connections` on 2026-08-06 returns github 2, linear 1, slack 1,
+        // salesforce 1 and ZERO figma, and user_calendar_connections is empty, so
+        // nobody is connected and the migration cost is nil. (2) "Wait for the feature
+        // to be designed" is not a reason to keep them, because the ask can be widened
+        // again in one line the day the feature lands.
+        // STILL NOT CHANGED HERE, deliberately: what a product asks a user to authorize
+        // is the founder's decision, not a comment fix, and this file's job right now is
+        // to state it truthfully so he decides on the real facts. The edit, if he wants
+        // it, is to delete every entry below except "current_user:read".
         scopes: [
           "file_content:read",
           "file_metadata:read",
@@ -685,6 +742,12 @@ export const CONNECTOR_REGISTRY: Record<ProviderId, ProviderSpec> = {
   // labels this "Reference" rather than "Pushes out"; the description was the only place
   // still claiming the write. Entry and OAuth flow stay; the claim comes back with the
   // code.
+  //
+  // ONE CLAIM SURVIVES THIS FIX, on the screen that matters most. connect-trust.ts:56
+  // still says at the CONSENT MOMENT that Supaprod reads "Work items and their status
+  // in the projects you connect." Nothing reads Jira at all. Outside this file.
+  // Separately, routes/pricing.tsx:46 lists Jira among READ_CONNECTORS on the PUBLIC
+  // pricing page -- the same false read claim, to a stranger, before signup.
   jira: {
     id: "jira",
     label: "Jira",

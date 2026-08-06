@@ -706,11 +706,43 @@ export async function applyOutcome(
       settled_memory_workspace_error: memory.workspaceError,
       overturns: overturned ? [...(prior?.overturns ?? []), overturned] : (prior?.overturns ?? []),
     };
-    const { error: outErr } = await db
+    // THE LAST WRITE, AND UNTIL NOW ONLY HALF OF IT WAS CHECKED. supabase-js
+    // resolves an RLS refusal as a SUCCESS with zero rows and a null error, so
+    // `if (outErr)` alone could not tell a written outcome from a refused one,
+    // and every reporting key assembled above — `settled_memory_id`,
+    // `settled_memory_error`, `settled_memory_workspace_error` — travels through
+    // exactly this statement. On a refusal none of them reached the record, the
+    // spec still read as unsettled, and `applyOutcome` returned success.
+    //
+    // IT IS REACHABLE, and the shape is specific rather than theoretical. Pulled
+    // from `pg_policy` on 2026-08-06, live RLS on `prds` is: SELECT USING
+    // `is_workspace_member(workspace_id)`; UPDATE USING and WITH CHECK
+    // `is_workspace_member(workspace_id) AND user_id = auth.uid()`. The read at
+    // the top of this function is a plain `.single()` under the SELECT policy,
+    // so a workspace member who is NOT the spec's author passes it, gets all the
+    // way here, and is refused with no error. The `.select("id")` closes it: the
+    // row was read moments ago under a policy this caller satisfies, so "no rows
+    // returned" cannot mean "no such row" and can only mean the UPDATE policy
+    // said no.
+    //
+    // IT THROWS, and the message names what already landed, because by this
+    // point the opportunity's confidence has moved, a `learnings` row exists and
+    // `rememberOutcome` may have written an `agent_memory` row. Reporting a
+    // clean failure here would be the same lie one level up. The two callers
+    // both handle a throw: `recordOutcome` surfaces the message on the Learn
+    // receipt, and the agent sweep (outcome-review.server.ts) catches, logs and
+    // moves to the next spec without counting it settled.
+    const { data: outRows, error: outErr } = await db
       .from("prds")
       .update({ outcome: recorded, updated_at: now })
-      .eq("id", prd.id);
+      .eq("id", prd.id)
+      .select("id");
     if (outErr) throw new Error(outErr.message);
+    if (!(outRows ?? []).length) {
+      throw new Error(
+        `Writing the outcome onto spec ${prd.id} was refused (no rows updated). RLS on prds allows an UPDATE only to the spec's own author, and reading it needs only workspace membership, so a member who did not write this spec can reach this point and be refused. The learning and the confidence change have already landed; the spec itself is still unsettled.`,
+      );
+    }
 
     // BYO-P3 WI4/WI6 — ensure the shipped change appears in the in-app changelog.
     // The merge trigger normally materializes it; this is the durable TS fallback

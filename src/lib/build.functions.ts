@@ -503,16 +503,30 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
      * ride whether or not a contract compiled, which is the only way the
      * approved mockup reaches a Build Console dispatch today.
      *
-     * NOTHING RIDES WHEN THERE IS NOTHING TO SEND, which is the ordinary case
-     * and was worth checking rather than assuming. `formatDesignMemoryContext`,
-     * `formatFlowContext` and `formatScaffoldHtmlBlock` each return "" for an
-     * empty input and `formatDesignDispatchSections` pushes only non-empty
-     * strings, so a spec with no brand rules, no flow and no drawing -- 39 of the
-     * 41 approved specs on 2026-08-06 -- yields `[]` and `assembleBuilderGoal`'s
-     * length guard adds no heading at all. That distinction matters: an empty
-     * labelled section is not silence, it is the design station stating it had
-     * nothing to say, and a builder told that builds past a drawing it should
-     * have gone looking for.
+     * NOTHING RIDES WHEN THERE IS NOTHING TO SEND, which was worth checking
+     * rather than assuming. `formatDesignMemoryContext`, `formatFlowContext` and
+     * `formatScaffoldHtmlBlock` each return "" for an empty input and
+     * `formatDesignDispatchSections` pushes only non-empty strings, so a spec
+     * with no brand rules, no flow and no drawing yields `[]` and
+     * `assembleBuilderGoal`'s length guard adds no heading at all. That
+     * distinction matters: an empty labelled section is not silence, it is the
+     * design station stating it had nothing to say, and a builder told that
+     * builds past a drawing it should have gone looking for.
+     *
+     * THE COUNT ON THAT SENTENCE WAS WRONG AND IS CORRECTED HERE RATHER THAN
+     * DROPPED. It read "39 of the 41 approved specs on 2026-08-06", which is the
+     * count of approved specs with no DRAWING (41 minus the 2 that have one),
+     * reused as though it were the count with nothing at all. Design memory is
+     * WORKSPACE-scoped, not per-spec: a spec inherits its workspace's standing
+     * design language whether or not anyone ever drew it, so `[]` is much rarer
+     * than that sentence claimed. Re-measured 2026-08-06 through the same filter
+     * `getActiveDesignMemoryForWorkspace` applies (design_memory.status
+     * 'approved', minus any row retired by a `supersedes` edge whose parent is
+     * itself approved): of the 41 approved specs, 28 sit in a workspace WITH
+     * active design memory and therefore carry a non-empty `designSections`, 2
+     * carry a drawing, 0 carry a flow, and 13 yield `[]`. Both drawn specs are
+     * inside the 28, so the ordinary non-empty case is the workspace design
+     * language travelling alone.
      */
     const designSections = formatDesignDispatchSections(designCtx);
 
@@ -523,6 +537,9 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
     // Resolve issue number.
     let issueNumber: number | null = data.issueNumber ?? null;
     let issueUrl: string | null = null;
+    /** Set when the issue was opened but writing it back onto the spec did not
+     *  take. Reported, never thrown — the reasoning is on the write itself. */
+    let issueLinkError: string | null = null;
 
     if (!issueNumber && prd?.github_issue_url) {
       const m = prd.github_issue_url.match(/\/issues\/(\d+)/);
@@ -613,10 +630,40 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       issueUrl = json.html_url;
 
       if (prd && !prd.github_issue_url) {
-        await supabase
+        /**
+         * CHECKED, BECAUSE supabase-js RESOLVES A REFUSED WRITE.
+         *
+         * This was a bare `await supabase.from("prds").update(...).eq("id",
+         * prd.id)` with neither an `error` inspection nor a `.select()`, so a
+         * refusal came back as a resolved promise: `github_issue_url` stayed
+         * null and nobody was told.
+         *
+         * IT IS REACHABLE, AND WHAT IT COSTS IS THE DOUBLE DISPATCH THE REST OF
+         * THIS FILE EXISTS TO PREVENT. Live policy on `prds`, pulled from
+         * pg_policy on 2026-08-06: READ is `is_workspace_member(workspace_id)`,
+         * UPDATE is USING and WITH CHECK `is_workspace_member(workspace_id) AND
+         * user_id = auth.uid()`. So a workspace member who is not the spec's
+         * author can see an approved spec, press Build on it, open the GitHub
+         * issue — and have this one write silently refused. The next press finds
+         * `github_issue_url` still null, opens a SECOND issue and mints a SECOND
+         * billed builder run against the same spec.
+         *
+         * NOT THROWN. The issue is already open and the agent is still worth
+         * starting, and a throw from here lands on the caller's "Nothing was
+         * dispatched, so the spec is still waiting" sentence, which would be
+         * false. It rides back on `issue_link_error` instead, and ReadyToBuild
+         * stops navigating away from a dispatch that carries one so the warning
+         * is actually read.
+         */
+        const { data: linked, error: linkErr } = await supabase
           .from("prds")
           .update({ github_issue_url: issueUrl, updated_at: new Date().toISOString() })
-          .eq("id", prd.id);
+          .eq("id", prd.id)
+          .select("id");
+        if (linkErr) issueLinkError = linkErr.message;
+        else if (!(linked ?? []).length)
+          issueLinkError =
+            "The spec's row refused the update and reported no error, which is what row-level security looks like from here.";
       }
     }
 
@@ -637,13 +684,32 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       referenceLinks: data.referenceLinks,
     });
 
-    // Resolve builder agent, create mission, then run.
-    const { data: agent } = await supabase
+    /**
+     * Resolve builder agent, create mission, then run.
+     *
+     * A ROSTER READ THAT FAILED IS NOT AN EMPTY ROSTER, and this read used to
+     * discard its `error` and let `agent === null` stand for both. The two are
+     * not the same fact and the difference reaches a person: `agent` null
+     * suppresses mission creation below, and ReadyToBuild turned that silence
+     * into a definite instruction — "no mission was created for it, so there is
+     * no run to open. Check that a builder agent exists in your roster." On a
+     * transport failure or an RLS refusal that sends someone to fix a roster
+     * that is fine, while the real fault goes unnamed. It is exactly the
+     * absence-as-evidence pattern this repo keeps paying for.
+     *
+     * The read's outcome is unchanged on purpose — a failed read must not
+     * fabricate an agent, so mission creation is still skipped — but the reason
+     * now travels on `roster_error` and the caller says which of the two
+     * happened. Nothing is thrown: by this line the GitHub issue is already
+     * open, so "nothing was dispatched" would be false.
+     */
+    const { data: agent, error: agentError } = await supabase
       .from("agents")
       .select("id")
       .eq("user_id", userId)
       .eq("slug", "builder")
       .maybeSingle();
+    const rosterError = agentError ? agentError.message : null;
 
     /**
      * EVERYTHING FROM HERE IS DURABLE, SO A FAILURE FROM HERE IS NOT "NOTHING
@@ -749,6 +815,8 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         mission_id: missionId,
         issue_number: issueNumber,
         issue_url: issueUrl,
+        issue_link_error: issueLinkError,
+        roster_error: rosterError,
         run_error: null as string | null,
         run_started: true as boolean,
       };
@@ -761,6 +829,8 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         mission_id: missionId,
         issue_number: issueNumber,
         issue_url: issueUrl,
+        issue_link_error: issueLinkError,
+        roster_error: rosterError,
         run_error: e instanceof Error ? e.message : String(e),
         run_started: loopEntered,
       };
@@ -813,9 +883,15 @@ export type DispatchDesignGate = {
  * chose the common one: "a mockup is drawn and nobody has approved or rejected
  * it". `designGateBlocksDispatch` blocks on `status !== "approved"`, which
  * includes `rejected` — a status `decideDesignGate` really writes
- * (design-scaffold.functions.ts:1029) — and it also blocks when the drawing
- * count could not be read at all (design-gate.server.ts:34 keeps the gate shut
- * on unknown, deliberately). For those two the row asserted the opposite of the
+ * (see the `decideDesignGate` server fn in design-scaffold.functions.ts) — and
+ * it also blocks when the drawing count could not be read at all
+ * (`loadDesignGateState` in design-gate.server.ts keeps the gate shut on
+ * unknown, deliberately). BOTH ARE NAMED BY SYMBOL BECAUSE THE FIRST CITATION
+ * HERE HAD ALREADY ROTTED: it read "design-scaffold.functions.ts:1029", exact
+ * on the day it was written and now pointing inside `saveScaffoldReview`'s
+ * `prd_scaffolds` update, because `decideDesignGate` has moved down that file.
+ * ReadyToBuild.tsx dropped a line number for this same reason in the wave that
+ * added this one. For those two the row asserted the opposite of the
  * truth. So the shape now carries the two facts a true sentence needs and
  * NOTHING MORE: it still does not carry `stageEnabled`, so the rule itself
  * remains underivable here and stays in the one predicate both dispatch paths

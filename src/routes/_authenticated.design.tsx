@@ -629,8 +629,9 @@ function Design() {
       //
       // EMPTIED, not cleared, and that is now the difference between the two.
       // The record still holds the old ruling for the moment it takes the
-      // refetch to land (the server drops it by comparing the review's time
-      // against the drawing's), and a plain clear would fall through to it and
+      // refetch to land -- the server drops it by comparing the markup the
+      // ruling was taken against with the markup now on the row, which a redraw
+      // has just replaced -- and a plain clear would fall through to it and
       // render the previous drawing's findings under the new drawing.
       if (prdId) setReviews((prev) => ({ ...prev, [prdId]: null }));
       note(

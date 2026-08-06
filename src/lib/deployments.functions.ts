@@ -17,28 +17,79 @@ import { generateReleaseNotesCore } from "@/lib/studio.functions";
 
 // Resolve the workspace to scope a read to (the active one, else the caller's
 // default). Mirrors the local helper in billing/briefs/audio.functions.ts.
+//
+// THE RPC'S ERROR IS NO LONGER DISCARDED. Both callers treat a null answer as
+// "this person has nothing here" and return an empty list, so `const { data } =`
+// on its own made a FAILED rpc indistinguishable from a caller who genuinely has
+// no workspace: a transient failure rendered as an empty Ship rather than as a
+// failure, which is the discarded-read-error-as-absence shape this repo keeps
+// getting bitten by. A real null (no membership yet) is still returned as null
+// and still yields an empty list; only an actual error travels now.
 async function resolveWorkspaceId(
   supabase: SupabaseClient,
   explicit: string | null | undefined,
 ): Promise<string | null> {
   if (explicit) return explicit;
-  const { data } = await supabase.rpc("current_user_default_workspace");
+  const { data, error } = await supabase.rpc("current_user_default_workspace");
+  if (error) {
+    throw new Error(`Supaprod could not work out which workspace to read: ${error.message}`);
+  }
   return (data as string | null) ?? null;
 }
 
 // BYO-P3 WI1 — Deploy capture server functions.
 // captureDeployments reads the provider's deployment state (provider-agnostic,
 // via RepoProvider.readDeployments) and persists it; listDeployments reads it
-// back for the outcome surface. Deploys are OPTIONAL signal — a missing
-// connection or a provider hiccup yields zero captures, never a thrown error,
-// so the outcome view degrades gracefully. New tables aren't in the generated
-// Supabase types yet (same untyped-client cast as F-V5-LOOP-CLOSE).
+// back for the outcome surface. New tables aren't in the generated Supabase
+// types yet (same untyped-client cast as F-V5-LOOP-CLOSE).
+//
+// "OPTIONAL SIGNAL, NEVER A THROWN ERROR" WAS WRITTEN HERE OF BOTH, AND IT IS
+// NOW TRUE ONLY OF THE CORE. `captureDeploymentsCore` still degrades: no usable
+// repo, no resolvable connection, a provider read that throws, and a provider
+// with nothing to report all come back as zero captures, so a sweep can walk
+// past them. What it does NOT swallow is the changeset read (an error, or no
+// such changeset) and its own write (an error, or the empty row set supabase-js
+// hands back for a refusal), because a write the database refused, reported as
+// a capture, is worse than a failure.
+//
+// THE DOOR REFUSES OUT LOUD, AND THAT IS DELIBERATE. `captureDeployments`
+// throws on a changeset it cannot see, a change that has not merged, an
+// unusable repo, a change with no pull request, a landed commit it cannot
+// prove, and — from `resolveGitHub` inside `landedShaForChangeset` — a missing
+// GitHub connection. A person who pressed a button is owed the reason, and a
+// capture scoped to the wrong commit is the one outcome worse than none. The
+// outcome view still degrades gracefully because it does not go through this
+// door: it renders from `listDeployments` over rows the cron's core path wrote,
+// and reaches the door only when someone presses "Check for deploys".
 
 /** Parse a stored "owner/repo" into a RepoRef; null when malformed. */
 function parseRepo(repo: string | null | undefined): RepoRef | null {
   const m = (repo ?? "").trim().match(/^([^/\s]+)\/([^/\s]+)$/);
   return m ? { owner: m[1], repo: m[2] } : null;
 }
+
+/**
+ * WHAT HAPPENED WHEN THE PROVIDER WAS ASKED, kept separate from how many rows
+ * were written.
+ *
+ * `captured: 0` on its own cannot tell "your pipeline has published nothing for
+ * this commit" from "the request never got there", and the core collapsed all
+ * four of its early exits into that one number. The door then had to hedge —
+ * "either your pipeline has not published a deploy … or the read did not reach
+ * your provider" — which is two opposite facts in one sentence, and the second
+ * of them is the house rule's own shape: a failed read narrated as absence.
+ * They are NOT indistinguishable; the core simply threw the distinction away
+ * fifteen lines before the door had to describe it. It is returned instead.
+ */
+export type DeployReadOutcome =
+  /** The provider answered. Zero captures then genuinely means it has nothing. */
+  | "answered"
+  /** No usable owner/repo on the changeset — nothing was asked. */
+  | "no-repo"
+  /** No provider credential resolved for this changeset — nothing was asked. */
+  | "not-connected"
+  /** The provider was asked and the read threw. Says NOTHING about deploys. */
+  | "read-failed";
 
 /**
  * Read what the repo's OWN provider says it deployed, and persist it.
@@ -81,13 +132,19 @@ function parseRepo(repo: string | null | undefined): RepoRef | null {
  * it cannot). It is not turned into a throw here because this core is shared
  * with a cron owned elsewhere and the fallback is dead on both live paths; a
  * NEW caller must still pass a sha it can prove rather than rely on it.
+ *
+ * `read` REPORTS WHETHER THE PROVIDER WAS REACHED, alongside the count. A caller
+ * sweeping many changesets can keep ignoring it; a caller describing ONE result
+ * to a person must not, because `captured: 0` covers both "the provider has
+ * nothing for this commit" and "the provider was never successfully asked", and
+ * only the first of those is a statement about their pipeline.
  */
 export async function captureDeploymentsCore(
   db: SupabaseClient,
   userId: string,
   changesetId: string,
   opts?: { sha?: string | null; triggeredBy?: string | null },
-): Promise<{ captured: number; deployments: DeploymentRow[] }> {
+): Promise<{ captured: number; deployments: DeploymentRow[]; read: DeployReadOutcome }> {
   const { data: cs, error } = await db
     .from("studio_changesets")
     .select("id,workspace_id,product_id,repo,base_sha")
@@ -97,7 +154,7 @@ export async function captureDeploymentsCore(
   if (!cs) throw new Error("Changeset not found");
 
   const repoRef = parseRepo(cs.repo as string | null);
-  if (!repoRef) return { captured: 0, deployments: [] };
+  if (!repoRef) return { captured: 0, deployments: [], read: "no-repo" };
 
   // Today studio changesets are GitHub-backed; the read path is still
   // provider-agnostic so a GitLab-bound product captures identically once
@@ -111,7 +168,7 @@ export async function captureDeploymentsCore(
     resourceKind: "repo",
   });
   if (!resolved.auth || resolved.source === "none" || !("token" in resolved.auth)) {
-    return { captured: 0, deployments: [] };
+    return { captured: 0, deployments: [], read: "not-connected" };
   }
 
   const provider = repoProviderFor("github", resolved.auth.token, repoRef);
@@ -121,9 +178,9 @@ export async function captureDeploymentsCore(
     entries = await provider.readDeployments(repoRef, sha);
   } catch (e) {
     console.error("readDeployments failed (non-fatal):", e);
-    return { captured: 0, deployments: [] };
+    return { captured: 0, deployments: [], read: "read-failed" };
   }
-  if (!entries.length) return { captured: 0, deployments: [] };
+  if (!entries.length) return { captured: 0, deployments: [], read: "answered" };
 
   const rows = deploymentRowsFor({
     // FOLD THE ENVIRONMENT NAME TO LOWER CASE AT THIS EDGE, ONCE. GitHub's
@@ -162,7 +219,7 @@ export async function captureDeploymentsCore(
     );
   }
 
-  return { captured: (upRows as unknown[]).length, deployments: rows };
+  return { captured: (upRows as unknown[]).length, deployments: rows, read: "answered" };
 }
 
 /**
@@ -190,6 +247,14 @@ export async function captureDeploymentsCore(
  * connection is never reported as "your pipeline published nothing". Only the
  * PR read itself is caught, and a caught read returns null, which the caller
  * turns into a refusal. No capture beats a wrong one.
+ *
+ * NULL HAS TWO MEANINGS AND ONLY ONE OF THEM IS ABOUT GITHUB. The first line
+ * returns null without contacting anything when the changeset carries no repo or
+ * no PR number, and the caller's refusal text blames "the merged pull request
+ * [not being] readable on the connected account" — true of the PR read, false of
+ * those two. `captureDeployments` therefore refuses on a missing pr_number
+ * BEFORE calling here, with its own sentence; the guard below stays as a floor
+ * for any future caller that does not.
  */
 async function landedShaForChangeset(
   db: SupabaseClient,
@@ -226,6 +291,29 @@ async function landedShaForChangeset(
 }
 
 /**
+ * The sentence for a press that wrote nothing, chosen by WHY nothing was
+ * written. Split out so every branch is visible at once and none of them can
+ * quietly claim the customer's pipeline is idle on the strength of a read that
+ * failed.
+ */
+function zeroCaptureMessage(read: DeployReadOutcome, shortSha: string): string {
+  switch (read) {
+    case "read-failed":
+      return `Supaprod could not reach your repository's deployment record, so nothing was recorded — and this says nothing either way about whether your pipeline deployed the commit this change landed as (${shortSha}). Try again; if it keeps failing, re-check the GitHub connection in Settings → Connected accounts.`;
+    case "not-connected":
+      return "Supaprod has no connection it can use to ask this repository what it deployed, so it did not look. Connect GitHub in Settings → Connected accounts, then try again.";
+    case "no-repo":
+      // Unreachable from this door — the parseRepo guard in the handler refuses
+      // first, with a message that can quote the malformed value. Kept so this
+      // switch stays exhaustive over DeployReadOutcome rather than falling
+      // through to a sentence about the customer's pipeline.
+      return "This change has no usable repository on it, so there was no provider to ask.";
+    case "answered":
+      return `Your pipeline has not published a deploy for the commit this change landed as (${shortSha}), so there was nothing to record. That is an answer rather than a failure: Supaprod files each deploy once your provider reports it.`;
+  }
+}
+
+/**
  * The in-app door onto the capture path the cron runs — ask this repo's own
  * provider what it deployed, now, on demand.
  *
@@ -243,9 +331,20 @@ async function landedShaForChangeset(
  * out loud. The cron `continue`s past a changeset it cannot prove a sha for,
  * because it is sweeping many; a person who pressed a button is owed the reason.
  *
- * Returns the core's `{ captured, deployments }` plus the `sha` it asked about
- * and a `message` fit to show. `captured: 0` is a real answer, not an error, and
- * its message says so without claiming more than the read can support.
+ * Returns the core's `{ captured, deployments, read }` plus the `sha` it asked
+ * about and a `message` fit to show.
+ *
+ * `captured` IS "DEPLOY ROWS NOW ON FILE FOR THIS COMMIT", NOT "NEWLY FOUND".
+ * `uq_deployments_capture` is (changeset_id, environment, commit_sha), so a
+ * second press UPDATES the same rows in place and the count comes back the same.
+ * The message says "on file" for exactly that reason: "Recorded 3 deploys" read
+ * as three new discoveries on a press that discovered nothing.
+ *
+ * `captured: 0` IS AN ANSWER, NOT AN ERROR — but only when `read` is "answered".
+ * The zero-capture sentence is chosen from `read` rather than hedging across
+ * both cases in one line, because "your pipeline published nothing" and "the
+ * request never got there" are opposite facts and only the first is about the
+ * customer.
  */
 export const captureDeployments = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -257,6 +356,7 @@ export const captureDeployments = createServerFn({ method: "POST" })
     }): Promise<{
       captured: number;
       deployments: DeploymentRow[];
+      read: DeployReadOutcome;
       sha: string;
       message: string;
     }> => {
@@ -285,11 +385,27 @@ export const captureDeployments = createServerFn({ method: "POST" })
         );
       }
 
+      // ASKED HERE RATHER THAN LEFT TO THE null BELOW, because the refusal that
+      // follows blames the connected account and this case has not contacted
+      // GitHub at all. `landedShaForChangeset` returns null immediately when
+      // `pr_number` is absent, so a merged change with no PR recorded on it
+      // would have been told to check its GitHub permissions for a read that
+      // never happened. Re-measured 2026-08-06: `status='merged' AND pr_number
+      // IS NULL` is 0 of 16 merged changesets, so this is copy hygiene rather
+      // than a live break — but it is the kind that survives until the first
+      // person hits it.
+      const prNumber = (cs.pr_number as number | null) ?? null;
+      if (!prNumber) {
+        throw new Error(
+          "This change has no pull request recorded on it, and the merged pull request is how Supaprod proves which commit the change landed as. Without that proof it will not go looking for deploys, because a read scoped to the wrong commit files another release's address under this one.",
+        );
+      }
+
       const sha = await landedShaForChangeset(db, userId, {
         workspace_id: (cs.workspace_id as string | null) ?? null,
         product_id: (cs.product_id as string | null) ?? null,
         repo: (cs.repo as string | null) ?? null,
-        pr_number: (cs.pr_number as number | null) ?? null,
+        pr_number: prNumber,
       });
       if (!sha) {
         throw new Error(
@@ -307,8 +423,8 @@ export const captureDeployments = createServerFn({ method: "POST" })
         sha,
         message:
           result.captured > 0
-            ? `Recorded ${result.captured} deploy${result.captured === 1 ? "" : "s"} your pipeline published for the commit this change landed as (${short}).`
-            : `Nothing new was recorded. Either your pipeline has not published a deploy for the commit this change landed as (${short}), or the read did not reach your provider.`,
+            ? `${result.captured} deploy${result.captured === 1 ? " is" : "s are"} now on file for the commit this change landed as (${short}). Pressing again re-reads the same commit and updates them in place.`
+            : zeroCaptureMessage(result.read, short),
       };
     },
   );
@@ -330,7 +446,49 @@ export const listDeployments = createServerFn({ method: "GET" })
 
     // Scope to one workspace (active or default) so a multi-workspace user does
     // not see deployments merged across workspaces. RLS still enforces access.
-    const workspaceId = await resolveWorkspaceId(db, data.workspaceId);
+    //
+    // A CHANGESET-SCOPED READ TAKES THE CHANGESET'S OWN WORKSPACE, not the
+    // caller's. `resolveWorkspaceId` falls through to
+    // `current_user_default_workspace`, which is the caller's EARLIEST
+    // membership, and that was stacked on top of the `changeset_id` filter
+    // below — so asking "what did THIS change deploy?" answered "…and only if it
+    // happens to live in your first workspace". Two live users hold deployments
+    // outside their earliest membership; for one of them that is all of them
+    // (re-measured 2026-08-06: 2 users, 4 of 18 rows and 4 of 4 rows). The
+    // damage is not a short list, it is a WRONG one: a run's Production stage
+    // marker reads "not reached" while the panel below it shows the production
+    // URL, on the same screen. Passing an explicit workspaceId (which
+    // ChangesPanel now does and runs.$missionId does not) fixes the common case
+    // but still misses a run opened by URL while the shell is switched
+    // elsewhere; deriving it from the changeset closes every caller at once,
+    // present and future.
+    //
+    // AN EXPLICIT `workspaceId` IS DELIBERATELY OVERRIDDEN WHEN A `changesetId`
+    // IS GIVEN, and that is worth saying because ChangesPanel sends both. There
+    // is exactly one right workspace for "what did this change deploy?" and the
+    // changeset knows it; honouring a caller's guess instead would keep the
+    // narrower bug alive for whichever caller guesses wrong. `workspaceId`
+    // continues to scope the product-wide and unfiltered reads, where the caller
+    // genuinely is the one choosing.
+    //
+    // RLS IS STILL THE GATE. The changeset read below is the caller's own
+    // client, so a changeset they cannot see comes back null and this returns
+    // nothing — the same answer the deployments read would have given, reached
+    // one query earlier. Its error is checked, so a failed read is never spent
+    // as proof of "no such change".
+    let workspaceId: string | null;
+    if (data.changesetId) {
+      const { data: csRow, error: csErr } = await db
+        .from("studio_changesets")
+        .select("workspace_id")
+        .eq("id", data.changesetId)
+        .maybeSingle();
+      if (csErr) throw new Error(csErr.message);
+      if (!csRow) return { deployments: [] };
+      workspaceId = (csRow.workspace_id as string | null) ?? null;
+    } else {
+      workspaceId = await resolveWorkspaceId(db, data.workspaceId);
+    }
     if (!workspaceId) return { deployments: [] };
 
     let q = db
@@ -855,20 +1013,34 @@ export async function promoteChangesetToProductionCore(
         prd_id: (cs.prd_id as string | null) ?? null,
         mission_id: (cs.mission_id as string | null) ?? null,
       });
+      // THESE TWO WARNINGS USED TO BE INDEPENDENT `if`s AND THEY CONTRADICTED
+      // EACH OTHER ON THE SAME RECEIPT. A failed lineage read with no prd_id on
+      // the changeset — the live shape, not a corner: re-measured 2026-08-06,
+      // the dogfood workspace has 9 merged changesets and 0 of them carry a
+      // prd_id — fired both, so a person read "could
+      // not read which specs this release came from" immediately followed by
+      // "this release is not linked to any spec", the second stated as fact from
+      // the query that had just failed. `specsShippedByChangeset` returns the
+      // `failed` discriminant precisely so the caller can tell absence from
+      // ignorance; throwing that away here was the same defect one layer up.
       if (lineageRead === "failed") {
         warnings.push(
-          "The deploy is live, but Supaprod could not read which specs this release came from, so it may have closed the loop on fewer of them than it should have. Check on Learn that every spec in this release has an outcome window.",
+          prdIds.length === 0
+            ? "The deploy is live, but Supaprod could not read which specs this release came from, and the change itself carries no spec link — so it closed the loop on nothing and armed no outcome window. That is a failed read, NOT proof this release is unlinked: check on Learn whether a spec of yours is waiting on this one before treating it as unmeasured."
+            : "The deploy is live, but Supaprod could not read which specs this release came from, so it may have closed the loop on fewer of them than it should have. Check on Learn that every spec in this release has an outcome window.",
         );
       }
 
-      if (prdIds.length === 0) {
+      if (prdIds.length === 0 && lineageRead !== "failed") {
         // The else that was missing. It states the consequence rather than the
         // absence, because "no spec is linked" means nothing to someone who has
-        // just shipped and does not know what the link is for.
+        // just shipped and does not know what the link is for. Guarded on the
+        // read having actually run: this sentence asserts a fact about the data,
+        // and it must never be said on the strength of a query that failed.
         warnings.push(
           "The deploy is live, but this release is not linked to any spec, so no outcome window was armed and Learn will never ask whether it worked. Link the change to a spec to have it measured.",
         );
-      } else {
+      } else if (prdIds.length > 0) {
         // ONE READ FOR ALL OF THEM, and its error is checked: an empty set from
         // a failed read is indistinguishable from "these specs do not exist",
         // and the second reading would have this function report a release as
@@ -887,7 +1059,22 @@ export async function promoteChangesetToProductionCore(
           );
         }
 
-        const closed: string[] = [];
+        // TWO LISTS, BECAUSE THE ONE THEY REPLACE WAS DOING BOTH JOBS AND THE
+        // RECEIPT LIED ABOUT IT. The single `closed` list here was pushed
+        // unconditionally on the line straight after the close-out call, so a
+        // spec whose ship stamp had just been REFUSED still landed in it — and
+        // that refusal is live-reachable, not theoretical: `prds ws update own`
+        // carries USING and WITH CHECK both `is_workspace_member(workspace_id)
+        // AND user_id = auth.uid()` (re-read from pg_policy 2026-08-06), so any
+        // member promoting someone else's spec is refused and changes no row.
+        // The receipt then read "all of them were closed out" one line under
+        // "…is still not marked shipped", and both surfaces render every
+        // warning, so a person reads both sentences.
+        // `carried` is the specs this loop accepted; `settled` is the subset
+        // that produced no warning. The count sentence needs the first, the
+        // "all of them" claim needs the second.
+        const carried: string[] = [];
+        const settled: string[] = [];
         // The spec the changeset gets permanently stamped with, below. It is the
         // first one this loop actually accepted — NOT `prdIds[0]`, which can be a
         // spec that was unreadable or belongs to another workspace, and writing
@@ -910,8 +1097,10 @@ export async function promoteChangesetToProductionCore(
             );
             continue;
           }
-          for (const w of await closeOutSpecOnPromote(db, userId, prd, nowIso)) warnings.push(w);
-          closed.push(specLabel(prd));
+          const specWarnings = await closeOutSpecOnPromote(db, userId, prd, nowIso);
+          for (const w of specWarnings) warnings.push(w);
+          carried.push(specLabel(prd));
+          if (specWarnings.length === 0) settled.push(specLabel(prd));
           linkableId ??= prd.id;
         }
 
@@ -925,9 +1114,18 @@ export async function promoteChangesetToProductionCore(
         // is the difference between a person knowing three bets went out and
         // believing one did. The durable fix is a changeset-to-spec join table,
         // which is a migration and not this pass.
-        if (closed.length > 1) {
+        //
+        // THE "ALL OF THEM" CLAUSE IS NOW EARNED RATHER THAN ASSUMED. It is said
+        // only when every carried spec came back without a warning; otherwise
+        // the same sentence keeps the count and the schema limit — the part it
+        // exists for — and points at the warnings that already named the misses,
+        // instead of overwriting them with a clean-sweep claim.
+        if (carried.length > 1) {
+          const limit = `Supaprod can only record ONE of them against the release itself, so Ship and the release document will name a single spec — the others are settled on Learn but will not appear here.`;
           warnings.push(
-            `This release carried ${closed.length} specs and all of them were closed out: ${closed.join(", ")}. Supaprod can only record ONE of them against the release itself, so Ship and the release document will name a single spec — the others are settled on Learn but will not appear here.`,
+            settled.length === carried.length
+              ? `This release carried ${carried.length} specs and all of them were closed out: ${carried.join(", ")}. ${limit}`
+              : `This release carried ${carried.length} specs — ${carried.join(", ")} — and ${carried.length - settled.length} of them did not close out cleanly; the warnings above name which and why. ${limit}`,
           );
         }
 
@@ -966,8 +1164,11 @@ export async function promoteChangesetToProductionCore(
     } catch (e) {
       const reason = e instanceof Error ? e.message : String(e);
       console.error("promote spec close-out failed (non-fatal):", reason);
+      // PLURAL, because the block this guards settles every spec the release
+      // carries, not one. The singular wording predates the fan-in and would
+      // tell someone who shipped three bets to go and check "the spec".
       warnings.push(
-        `The deploy is live, but closing the loop on its spec did not finish (${reason}). Check that the spec is marked shipped and that an outcome window exists.`,
+        `The deploy is live, but closing the loop on the specs it carries did not finish (${reason}). Check that each spec in this release is marked shipped and that an outcome window exists for it.`,
       );
     }
 

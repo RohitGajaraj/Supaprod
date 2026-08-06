@@ -285,8 +285,13 @@ function ago(iso: string | null | undefined): string | null {
  * WHEN THERE IS A REVIEWER.
  *
  * `verdictFor` (components/discover/format.ts:175-184) consults
- * `critic_review.verdict` FIRST and, absent one, falls through to the lane:
+ * `critic_review.verdict` FIRST and otherwise falls through to the lane:
  * `now`/`shipped` reads SHIP, `dropped` reads KILL, `next`/`later` reads WATCH.
+ * "Otherwise" is WIDER THAN "absent", which is how this paragraph used to state
+ * it: `verdictFor` takes the Critic's word only when it is exactly "ship",
+ * "revise" or "kill", so a stored value it does not recognise falls through
+ * just as an absent one does. See `criticGaveTheVerdict` below, which is the
+ * only correct source for the third argument.
  * Every one of those was rendered here as "<Critic> says ship" -- a judgement
  * attributed by name to an agent that had never opened the bet, on the row a
  * person scans to choose which bet to open. Only the `PENDING` tail was
@@ -304,6 +309,47 @@ function verdictSentence(verdict: VerdictWord, name: string, reviewed: boolean):
   if (verdict === "PENDING") return "not reviewed yet";
   if (!reviewed) return `not reviewed yet, and its lane reads ${verdict.toLowerCase()}`;
   return `${name} says ${verdict.toLowerCase()}`;
+}
+
+/** The three words `verdictFor` will actually take from `critic_review`, in the
+ *  exact form it compares them. Kept beside the predicate that uses them. */
+const CRITIC_VERDICT_WORDS: readonly string[] = ["ship", "revise", "kill"];
+
+/**
+ * DID THE CRITIC ACTUALLY SPEAK THE WORD ON SCREEN? This is the only correct
+ * source for `verdictSentence`'s third argument, and computing it any other way
+ * puts back the defect that function exists to remove.
+ *
+ * The call site used to pass `Boolean(o.critic_review?.verdict)`, which asks
+ * whether the column holds any truthy string -- a different question.
+ * `verdictFor` (components/discover/format.ts:176-179) takes the Critic's word
+ * only when it is EXACTLY one of the three below and otherwise falls through to
+ * the lane. So a `critic_review` carrying anything else set `reviewed = true`
+ * while the word beside it came from the lane: a judgement attributed by name
+ * to an agent that did not give it, which is exactly the misattribution
+ * `verdictSentence` was written to stop.
+ *
+ * NOT TRIMMED AND NOT LOWER-CASED, which is the point rather than an oversight.
+ * `verdictFor` compares raw and exact, so normalising here would make this
+ * predicate MORE permissive than the function it describes and reopen the same
+ * hole from the other side. That the repo normalises before trusting this
+ * column elsewhere (`["ship","revise","kill"].includes(r.verdict.trim())`,
+ * discovery.functions.ts:2351) is itself the evidence that a jsonb column
+ * written by a model is not trusted to hold only those three.
+ *
+ * The parameter is typed structurally on purpose. `CriticReview["verdict"]` is
+ * declared as the three-word union, so a nominal type here would make this
+ * check look statically pointless; the value is parsed out of jsonb at
+ * runtime and the declared union is a hope, not a guarantee.
+ *
+ * UNREACHABLE ON TODAY'S DATA, and written for the day it is not: re-measured
+ * through the Lovable MCP on 2026-08-06, 47 of 292 opportunities carry a
+ * `critic_review` and all 47 hold one of the three exactly (revise 25, ship 14,
+ * kill 8). Zero hold anything else.
+ */
+function criticGaveTheVerdict(review: { verdict?: string | null } | null | undefined): boolean {
+  const v = review?.verdict;
+  return typeof v === "string" && CRITIC_VERDICT_WORDS.includes(v);
 }
 
 function DecideSurface() {
@@ -465,10 +511,15 @@ function DecideSurface() {
    * limit(50)`, so this returns the newest 50 OF THE FILTERED SET and its max
    * is the real max rather than the max of whatever survived a client filter.
    * `workspaceId: null` (no workspace picked yet) is the same as omitting it
-   * server-side (`if (data.workspaceId)`, outcome.functions.ts:1713), which is
-   * exactly why this must ALSO be `enabled`-gated: an ungated call with a null
-   * id would fall back to the cross-workspace read this whole query exists to
-   * stop being believed.
+   * server-side -- `if (data.workspaceId) q = q.eq("workspace_id", ...)` inside
+   * `listLearnings`, src/lib/outcome.functions.ts, cited BY SYMBOL for the same
+   * reason FocusNext.tsx cites `getFocusNext` that way: that file is under
+   * concurrent edit and a bare line number here goes stale on the next commit.
+   * This one already had: the statement was at :1713 when this note was written
+   * and is at :1746 today, where :1713 is now a docblock line. That is exactly
+   * why this must ALSO be `enabled`-gated: an ungated call with a null id would
+   * fall back to the cross-workspace read this whole query exists to stop being
+   * believed.
    *
    * A REFUSED READ RENDERS AS "NOTHING HAS RE-RANKED", AND THAT IS THE SAFE
    * DIRECTION, not an oversight. `lastRescoreAt` reads
@@ -963,6 +1014,70 @@ function DecideSurface() {
   const activeRescore = activeLearning ? rescoreNoteOf(activeLearning) : null;
   const activeCitation = activeOpp ? (citations.data?.citations[activeOpp.id] ?? null) : null;
   const rescoredAgo = ago(lastRescoreAt);
+  /**
+   * WHOSE RECORD THE RECESS IS SPEAKING FROM. The page subtitle was taught to
+   * say this one screen up; the recess below makes a STRONGER and more specific
+   * version of the same claim -- "An outcome recorded on this bet moved its
+   * score", plus a signed ICE delta -- and said nothing about provenance at all.
+   *
+   * IT IS NOT COVERED BY ANYTHING ELSE ON THE PAGE, which is what makes it the
+   * one to close. `activeRescore` derives from `latestLearningByOpp`, which
+   * reads the DELIBERATELY unfiltered `["learnings"]` query above; the widened
+   * entry condition (`activeCitation || activeRescore`) means it renders without
+   * passing `hasEnoughOutcomes`, so the workspace attribution that guards the
+   * citation path never applies to it. The per-row and Gate "Example" marks are
+   * not a mitigation either. Re-measured through the Lovable MCP on 2026-08-06:
+   * 49 learnings carry a `new_ice`; 48 of them sit in an `is_sample` workspace,
+   * the 49th points at a workspace row that has since been deleted, and ZERO
+   * sit in a real one. All 48 hang off an opportunity, and NOT ONE of those 48
+   * opportunities carries `is_sample = true`. `opportunities.is_sample` is
+   * populated and
+   * working -- 20 of 292 true, 0 null -- so those bets are simply unmarked, and
+   * `active` defaults to `ranked.find((r) => !r.opp.is_sample)`, which makes
+   * them eligible to be the DEFAULT selection. Both reads are unscoped, so this
+   * is reachable while standing in a real workspace, not only inside the
+   * example.
+   *
+   * A THIRD TRUE SENTENCE, NOT A SUPPRESSION, which is the same call the
+   * subtitle made and the same one the ratchet requires. The re-score did
+   * happen and the delta is real; what was missing is where it came from. So
+   * nothing is hidden and one clause is added, and it is null -- silent -- only
+   * when the outcome was recorded in the very workspace the reader is standing
+   * in AND that workspace is known not to be a seeded example.
+   *
+   * `workspace_id` is on every learning row unconditionally (`listLearnings`
+   * returns it whether or not a `workspaceId` was passed, exactly so a caller
+   * can attribute rows without a second read), so this costs no query.
+   *
+   * WHAT THIS DELIBERATELY DOES NOT TOUCH: the CITATION body. That path is
+   * gated on `hasEnoughOutcomes`, which is workspace-attributed but not
+   * sample-attributed, so in a seeded workspace it can still assemble a
+   * precedent out of invented history. Qualifying an assembled string from
+   * `getPrecedentCitations` means writing launch copy for the station's most
+   * differentiated element, and that is a founder call rather than a side
+   * effect of this one. It is in the handoff.
+   */
+  const rescoreProvenance: string | null = (() => {
+    if (!activeRescore) return null;
+    const learningWs = activeLearning?.workspace_id ?? null;
+    // Either id missing means we cannot compare them, and an unattributed claim
+    // must say so rather than default to the flattering reading.
+    if (learningWs === null || activeWorkspaceId === null) {
+      return "Which workspace that outcome was recorded in is not known here yet.";
+    }
+    if (learningWs !== activeWorkspaceId) {
+      return "That outcome was recorded in another workspace, not the one you are standing in.";
+    }
+    // Same workspace, but `is_sample` lives on the workspaces row and that read
+    // resolves after the id is restored from localStorage. Until it lands the
+    // honest answer is the same one the subtitle gives: not yet known.
+    if (!workspaceKnown) {
+      return "Whether this workspace is the seeded example is not known here yet.";
+    }
+    return inExampleWorkspace
+      ? "That outcome was recorded in this example workspace, so it did not come from your product."
+      : null;
+  })();
 
   return (
     <Surface
@@ -1178,14 +1293,28 @@ function DecideSurface() {
        * from today, and what changes once an outcome lands.
        *
        * "FIRST, THEN" RATHER THAN A LIST, because the list would be wrong. The
-       * comparator in components/discover/ranking.ts:319-331 has five terms in
-       * strict order -- ICE, the verdict, brief alignment, recorded-outcome
-       * support, then corroboration -- and this names the three a reader can
-       * see and act on WITHOUT LEAVING THIS SCREEN: the ICE editor in the
-       * context column, the verdict badge above it, and the signal count under
-       * "What backs it". Naming three of five with an "and" would read as the
-       * whole chain and quietly misstate it; the complete per-bet answer is
-       * already one line away, under "Why it ranks here".
+       * comparator in components/discover/ranking.ts:319-331 runs NINE
+       * comparisons: five ranking terms in strict order -- ICE, the verdict,
+       * brief alignment, recorded-outcome support, then corroboration -- and
+       * then four tie-breaks that only separate bets those five have already
+       * tied (confidence, impact, oldest first, then id). An earlier version of
+       * this note said the range "has five terms in strict order", which is a
+       * fair summary of the first five and a wrong count of the block it points
+       * at; the range is what made the claim checkable, so the count is
+       * corrected rather than the range dropped.
+       *
+       * The sentence names the three a reader can see and act on WITHOUT
+       * LEAVING THIS SCREEN: the ICE editor in the context column, the verdict
+       * badge above it, and the signal count under "What backs it". Naming
+       * three of five with a plain "and" would read as the whole chain and
+       * quietly misstate it -- and the shipped sentence USED to do exactly
+       * that: "Ordered by ICE score first, then the verdict on each bet and the
+       * signals behind it" joins three with "then ... and ...", which puts
+       * corroboration, the FIFTH term, where a reader takes it for the third.
+       * It now stops after the two terms it can place correctly and says the
+       * signals count further down, which names all three and orders only what
+       * it can. The complete per-bet answer is one line away, under "Why it
+       * ranks here".
        *
        * "THE VERDICT ON EACH BET", NOT "THE CRITIC'S VERDICT". The second sort
        * term is `verdictRankOf(verdictFor(opp))`, and `verdictFor`
@@ -1223,7 +1352,7 @@ function DecideSurface() {
         title={headline}
         sub={
           rescoredAgo === null || !workspaceKnown ? (
-            "Ordered by ICE score first, then the verdict on each bet and the signals behind it. Record an outcome on Learn and it re-ranks off that too."
+            "Ordered by ICE score first, then the verdict on each bet. The signals behind it count too, further down the order. Record an outcome on Learn and it re-ranks off that too."
           ) : inExampleWorkspace ? (
             rescoredAgo === "now" ? (
               "Re-ranked just now, on its own, off an outcome recorded in this example workspace. That is the loop working, on a record that did not come from your product."
@@ -1465,6 +1594,13 @@ function DecideSurface() {
               through as a blank body on a recess that only rendered because
               the rescore was there. */}
           {activeCitation || "An outcome recorded on this bet moved its score."}
+          {/* AND WHOSE RECORD IT IS, when that is not the reader's own. Appended
+              rather than substituted: the claim above is true and stays whole,
+              and this says the one thing it left the reader to assume. Null on
+              the only path where the unqualified sentence is complete -- an
+              outcome recorded in this very workspace, known not to be the
+              seeded example. See `rescoreProvenance`. */}
+          {rescoreProvenance ? ` ${rescoreProvenance}` : null}
         </RecordRecess>
       ) : null}
 
@@ -1589,11 +1725,15 @@ function DecideSurface() {
                         two it is reading. `verdict`, not `summary`: the Gate one
                         screen up gates its Critic line on `critic_review?.summary`
                         because it PRINTS that prose, whereas what makes the word
-                        here the Critic's is the verdict field the ranking read. */}
+                        here the Critic's is the verdict field the ranking read.
+                        And it is `criticGaveTheVerdict`, not
+                        `Boolean(o.critic_review?.verdict)`, because the guard has
+                        to ask the same question `verdictFor` asks -- see that
+                        function's docblock. */}
                     {verdictSentence(
                       verdictFor(o),
                       challengerName,
-                      Boolean(o.critic_review?.verdict),
+                      criticGaveTheVerdict(o.critic_review),
                     )}
                     {o.status ? (
                       <>
