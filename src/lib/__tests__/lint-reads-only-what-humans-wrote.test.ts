@@ -1,0 +1,133 @@
+import { describe, it, expect } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * THE GATE COULD NOT GO GREEN, SO NOBODY USED IT.
+ *
+ * WHAT WAS MEASURED, 2026-08-06. `bun run lint` reported 9,930 errors and exited
+ * 1. Of those, 9,203 were inside `src/`, and 8,560 of THOSE came from one file:
+ * `src/integrations/supabase/types.ts`, ~10k lines of Supabase types written by
+ * Lovable's bot (`gpt-engineer-app[bot]`, regenerated wholesale -- see its git
+ * history) and never prettier-formatted. A further ~725 came from
+ * `test-results/`, Playwright's HTML report, whose minified vendor bundle
+ * prettier reformats line by line. Both are gitignored.
+ *
+ * So 93% of the repo's lint baseline was machine-written code no person will
+ * ever edit, and the documented gate could not pass on any machine that had run
+ * a browser test. `.github/workflows/ci.yml` excludes the full lint from CI
+ * citing "~4k legacy eslint findings in untouched files" -- a fair call against
+ * the number it had, but the number was mostly this.
+ *
+ * After the ignores: 9,930 -> 1,121 errors, all in code humans wrote, which is a
+ * figure someone can actually drive to zero.
+ *
+ * WHY THIS TEST EXISTS. The ignore list had not grown since it was written while
+ * `.gitignore` learned six more entries, and nothing noticed for months because
+ * the symptom (a red gate) was indistinguishable from the repo simply having
+ * legacy findings. If an entry is dropped again the number silently returns to
+ * five figures and the gate goes back to being ignored.
+ *
+ * NOTE FOR WHOEVER TOUCHES THIS: adding a path here is only legitimate when the
+ * path is GENERATED. Excluding hand-written code to make a number look better is
+ * the exact move `config-protection` exists to prevent, and this file is not a
+ * licence for it.
+ */
+
+const CONFIG = readFileSync(join(import.meta.dir, "..", "..", "..", "eslint.config.js"), "utf8");
+const GITIGNORE = readFileSync(join(import.meta.dir, "..", "..", "..", ".gitignore"), "utf8");
+
+/** The generated outputs that produced the five-figure baseline. */
+const MUST_IGNORE = [
+  "test-results", // Playwright HTML report: a minified vendor bundle
+  "playwright-report",
+  ".playwright-mcp",
+  "src/integrations/supabase/types.ts", // 8,560 of the 9,203 src errors
+  ".output",
+  ".wrangler",
+];
+
+describe("eslint does not read generated output", () => {
+  for (const path of MUST_IGNORE) {
+    it(`ignores ${path}`, () => {
+      expect({ path, ignored: CONFIG.includes(`"${path}"`) }).toEqual({ path, ignored: true });
+    });
+  }
+
+  it("every ignored path is one git also refuses to store", () => {
+    /**
+     * THE RULE, made checkable: if git will not store it, eslint should not read
+     * it. This is what separates "stop linting generated output" from "stop
+     * linting the file that keeps failing" -- the second cannot pass this test,
+     * because hand-written source is tracked.
+     *
+     * `dist` and `coverage` are conventional build outputs that this repo does
+     * not currently produce, so they are absent from .gitignore and exempt.
+     */
+    const exempt = new Set([
+      "dist",
+      "coverage",
+      ".vinxi",
+      ".nitro",
+      "playwright-cli",
+      /**
+       * THE ONE TRACKED PATH, AND THIS TEST CAUGHT ME OVERREACHING.
+       *
+       * `types.ts` IS committed -- TypeScript needs it at build time -- so the
+       * gitignore rule above does not cover it and I should not pretend it does.
+       * It qualifies on the other half of the reason: every change to it is
+       * authored by `gpt-engineer-app[bot]` (Lovable), regenerated wholesale from
+       * the Supabase schema. `git log -- src/integrations/supabase/types.ts`
+       * shows commits titled "Changes" at 94 insertions / 104 deletions.
+       *
+       * "Tracked" and "written by a person" are different questions, and only
+       * the second is the one that matters for whether a linter should read it.
+       */
+      "src/integrations/supabase/types.ts",
+    ]);
+    // SCOPED TO THE ignores ARRAY. Scanning the whole file for quoted strings on
+    // their own line also collects rule severities -- the first version of this
+    // asserted that `"error"` was gitignored.
+    const block = CONFIG.slice(
+      CONFIG.indexOf("ignores: ["),
+      CONFIG.indexOf("]", CONFIG.indexOf("ignores: [")),
+    );
+    const listed = [...block.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    expect(listed.length).toBeGreaterThan(5);
+    for (const path of listed) {
+      if (exempt.has(path)) continue;
+      const stem = path.replace(/\/$/, "");
+      const inGitignore =
+        GITIGNORE.includes(`${stem}\n`) ||
+        GITIGNORE.includes(`${stem}/\n`) ||
+        GITIGNORE.split("\n").some((l) => l.trim().replace(/\/$/, "") === stem);
+      expect({ path, gitignored: inGitignore }).toEqual({ path, gitignored: true });
+    }
+  });
+
+  it("no lint RULE was weakened to get the number down", () => {
+    // The ignores are about WHICH FILES are read. If a future pass also starts
+    // switching rules off, that is a different change wearing this one's
+    // clothes. These three carried real findings in hand-written code.
+    for (const rule of ["react-hooks", "react-refresh", "prettier"]) {
+      expect({ rule, present: CONFIG.includes(rule) }).toEqual({ rule, present: true });
+    }
+    expect(CONFIG).not.toMatch(/"prettier\/prettier":\s*"off"/);
+  });
+
+  it("records that no-unused-vars is off, which PREDATES this change", () => {
+    /**
+     * NOT MINE, AND WORTH SOMEONE'S ATTENTION. `@typescript-eslint/no-unused-vars`
+     * is set to "off" in this config and was before the ignores were touched. It
+     * is the rule that catches a variable you captured and never read -- exactly
+     * the defect shape found in `derive-tick.ts` on 2026-08-06, where a push
+     * error was assigned to a variable nothing reported. A human found that; the
+     * linter could not have.
+     *
+     * Asserted rather than fixed, because turning it back on is a separate change
+     * with its own blast radius across a repo this size, and it belongs to
+     * whoever owns the lint baseline. If someone turns it on, delete this test.
+     */
+    expect(CONFIG).toMatch(/"@typescript-eslint\/no-unused-vars":\s*"off"/);
+  });
+});
