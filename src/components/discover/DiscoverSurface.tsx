@@ -913,7 +913,6 @@ export function DiscoverSurface({
        */
       if (isModalOpen()) return;
 
-
       if (e.key === "Escape" && picking) {
         e.preventDefault();
         setPicking(false);
@@ -1286,6 +1285,22 @@ export function DiscoverSurface({
           question={focused.theme.title}
           lines={
             [
+              /* THE SAME SENTENCE DECIDE USES, and first for the same reason: a
+                 person reads the question, then the facts, then presses a key,
+                 so a disclaimer under the evidence arrives after the decision
+                 has already formed. Onboarding seeds twenty signals into the
+                 real workspace and they cluster like any others, so a theme
+                 here can be made entirely of them while looking exactly like
+                 one the user's own evidence built. */
+              ...(focused.theme.is_sample
+                ? [
+                    <span key="sample">
+                      <b>This is an example.</b> It came with your workspace so this station had
+                      something to show. It is not from your product, and nothing here has been
+                      learned from your record.
+                    </span>,
+                  ]
+                : []),
               /* WHICH ONE OF THEM THIS IS. The other half of keeping the
                  selected row in the list: the row says where you are in the
                  ranking, this says the Gate is showing that row. Without it the
@@ -1479,6 +1494,17 @@ export function DiscoverSurface({
                 lead={entry.theme.title}
                 sub={
                   <>
+                    {/* SAY IT ON THE ROW, not only in the Gate. The person scans
+                        the ranking to choose what to open; a label that appears
+                        only after they have opened it arrives too late to have
+                        saved them the trip. Same word as Decide uses on its own
+                        list rows, so one vocabulary covers both stations. */}
+                    {entry.theme.is_sample ? (
+                      <>
+                        <b>Example</b>
+                        {" · "}
+                      </>
+                    ) : null}
                     {entry.theme.frequency} signal{plural(entry.theme.frequency)} ·{" "}
                     <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--text-muted)" }}>
                       {sourceList}

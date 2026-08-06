@@ -99,6 +99,22 @@ export const getFocusNext = createServerFn({ method: "GET" })
       .select("id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status")
       .eq("workspace_id", workspaceId)
       .neq("status", "archived")
+      /**
+       * NEVER RECOMMEND A THEME MADE ONLY OF EXAMPLES.
+       *
+       * Onboarding seeds twenty signals into the user's REAL workspace and they
+       * cluster like any others, so on a new workspace the only themes that
+       * exist are the seeded ones. This function took the top-ranked theme,
+       * spent a model call on it, and the card above it on Today reads "Ranked
+       * against every outcome this workspace has already settled" -- the
+       * product's single most important claim, demonstrated with invented
+       * evidence, in the first place a stranger looks.
+       *
+       * Measured before the column existed: 16 of 257 themes built entirely
+       * from sample signals. A theme that has since attracted one real signal
+       * is not filtered, because it is about the user's own product now.
+       */
+      .eq("is_sample", false)
       .order("created_at", { ascending: false })
       .limit(60);
     const now = Date.now();

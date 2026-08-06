@@ -314,8 +314,23 @@ function DecideSurface() {
 
   // The call in front of you: the strongest bet, unless you picked another one
   // out of the queue below.
+  //
+  // AN EXAMPLE NEVER OPENS THE STATION OVER REAL WORK. `ranked[0]` alone put
+  // whatever scored highest in the Gate, and the seeded bets score well -- they
+  // were written to look like good bets. So a user with their own opportunities
+  // could arrive at Decide and be asked to rule on fiction, with their own work
+  // sitting further down a queue they had no reason to scroll.
+  //
+  // NOT a filter. On a fresh workspace the examples are all there is, and an
+  // empty station teaches nothing; the Gate labels them in its first line and
+  // that is what the label is for. This only settles what goes FIRST, and only
+  // when the person has not chosen for themselves.
   const active = React.useMemo(
-    () => ranked.find((r) => r.opp.id === selectedId) ?? ranked[0] ?? null,
+    () =>
+      ranked.find((r) => r.opp.id === selectedId) ??
+      ranked.find((r) => !r.opp.is_sample) ??
+      ranked[0] ??
+      null,
     [ranked, selectedId],
   );
   // THE SELECTED BET STAYS IN THE QUEUE (founder, 2026-08-01). Filtering it out

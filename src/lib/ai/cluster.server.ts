@@ -119,7 +119,7 @@ export async function clusterSignalsCore(
     .from("signals")
     // AMBIENT-SENSE: also read the deterministic tagger's output (tags + sentiment) so clustering
     // is informed by it. Before, the tagger wrote tags/sentiment that no consumer ever read.
-    .select("id,content,source,tags,sentiment,embedding")
+    .select("id,content,source,tags,sentiment,embedding,is_sample")
     .eq("user_id", userId)
     .is("theme_id", null);
   // A manual "cluster now" scoped to one product must still pick up
@@ -223,6 +223,25 @@ Return STRICT JSON only, no prose, no markdown fences.`;
         summary: (t.summary ?? "").slice(0, 400),
         severity: Math.min(5, Math.max(1, Math.round(t.severity ?? 3))),
         confidence: Math.min(1, Math.max(0, t.confidence ?? 0.5)),
+        // A THEME MADE ONLY OF EXAMPLES IS AN EXAMPLE.
+        //
+        // Onboarding seeds twenty signals into the user's real workspace and they
+        // arrive here like any others, so without this the themes they produce are
+        // indistinguishable from ones the user's own evidence built. `getFocusNext`
+        // then ranks them and presents the winner as judgment on a record the
+        // workspace does not have yet.
+        //
+        // `every`, not `some`: one real signal in the group makes the theme about
+        // the user's own product. Mislabelling real evidence as fiction is the
+        // worse of the two errors, so the bar for calling something an example is
+        // that nothing else is in it.
+        //
+        // Computed from the PROPOSED members, which the claim below may not all
+        // win. That can only under-mark: if every proposal was a sample then so is
+        // every one actually claimed, and a group with one real signal stays
+        // unmarked even if that signal is the one lost. The merge path clears the
+        // flag when real evidence later joins.
+        is_sample: members.every((n) => (sigs[n] as { is_sample?: boolean | null }).is_sample),
         // Zero, not members.length. The signals are stamped AFTER this insert and
         // the claim is conditional, so members.length is a promise about rows that
         // may not all land. The trigger raises this to the true count as each
@@ -397,6 +416,13 @@ Return STRICT JSON only, no prose, no markdown fences.`;
         .from("themes")
         .update({
           last_signal_at: nowIso,
+          // A seeded theme that attracts one REAL signal stops being an example.
+          // The clusterer merges into existing themes, so this is the ordinary way
+          // a workspace's own evidence lands on a theme onboarding created, and
+          // leaving the flag set would hide a genuine finding behind an "Example"
+          // label. Only ever cleared, never set: a sample signal joining a real
+          // theme changes nothing.
+          ...((sig as { is_sample?: boolean | null }).is_sample ? {} : { is_sample: false }),
           ...(reopening ? { status: "new", escalated_at: nowIso } : {}),
         })
         .eq("id", bestMatch.id);

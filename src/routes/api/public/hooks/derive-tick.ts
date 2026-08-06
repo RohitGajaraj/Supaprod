@@ -82,12 +82,29 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
               // its own hard cap (3 pushes/workspace/day) and zero AI spend; a
               // push failure never blocks the derive pass.
               let pushed = 0;
+              let pushError: string | undefined;
               try {
                 const p = await runInsightPush(supabaseAdmin, ws.owner_id, ws.id);
                 pushed = p.pushed;
                 totalPushed += p.pushed;
-              } catch {
-                // best-effort: the push channel is additive
+              } catch (e) {
+                // STILL BEST-EFFORT, NO LONGER SILENT. A push failure must not
+                // block the derive pass -- that part was right, and is unchanged.
+                // But an empty `catch {}` made "the push is working and has
+                // nothing to say" and "the push has thrown on every tick for a
+                // week" produce byte-identical output, so the difference was
+                // unknowable from outside.
+                //
+                // That mattered on 2026-08-06: the lane had been quiet for three
+                // days and answering "is this broken?" took a database session
+                // and a reading of the detector, when the tick itself could have
+                // said so. (It was honest quiet -- zero learnings and zero
+                // settled outcomes in the window, and the detectors key off
+                // settled outcomes.)
+                //
+                // Recorded per workspace rather than thrown: one workspace's bad
+                // data must not hide the other nineteen results.
+                pushError = e instanceof Error ? e.message : String(e);
               }
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const { data: todayRows } = await (supabaseAdmin as any)
@@ -102,7 +119,9 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                   workspace_id: ws.id,
                   insights: 0,
                   pushed,
-                  note: "daily cap reached",
+                  note: pushError
+                    ? `daily cap reached; push failed: ${pushError}`
+                    : "daily cap reached",
                 });
                 continue;
               }
@@ -113,7 +132,12 @@ export const Route = createFileRoute("/api/public/hooks/derive-tick")({
                 .eq("id", ws.id);
               const count = r?.length ?? 0;
               totalDerived += count;
-              results.push({ workspace_id: ws.id, insights: count, pushed });
+              results.push({
+                workspace_id: ws.id,
+                insights: count,
+                pushed,
+                ...(pushError ? { note: `push failed: ${pushError}` } : {}),
+              });
             } catch (e) {
               results.push({
                 workspace_id: ws.id,

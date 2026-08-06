@@ -7915,6 +7915,7 @@ export type Database = {
           escalated_at: string | null
           frequency: number
           id: string
+          is_sample: boolean
           last_signal_at: string | null
           novelty: number | null
           novelty_basis: Json | null
@@ -7937,6 +7938,7 @@ export type Database = {
           escalated_at?: string | null
           frequency?: number
           id?: string
+          is_sample?: boolean
           last_signal_at?: string | null
           novelty?: number | null
           novelty_basis?: Json | null
@@ -7959,6 +7961,7 @@ export type Database = {
           escalated_at?: string | null
           frequency?: number
           id?: string
+          is_sample?: boolean
           last_signal_at?: string | null
           novelty?: number | null
           novelty_basis?: Json | null
