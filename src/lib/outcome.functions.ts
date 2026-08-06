@@ -983,6 +983,73 @@ export type AgentSettledOutcome = {
  * Measured on production the day this changed, the union adds zero rows, which
  * is the honest state of the record and not a reason to leave the hole in.
  */
+/**
+ * DEFER AN OUTCOME INSTEAD OF JUDGING IT.
+ *
+ * The Learn gate offered three exits -- validated, missed, mixed -- and
+ * `learnings.verdict` is constrained to exactly those. So a person holding a bet
+ * that shipped last week had to write a permanent verdict or walk away. Those
+ * rows are the precedent pool the ranking reads, so a verdict given early does
+ * not sit still; it compounds into every later recommendation.
+ *
+ * WRITES ON `prds`, NOT `launch_plans`. The first version of this rode
+ * `launch_plans.check_by`, which already existed. It has a hole: launch plan
+ * rows are created by the user-triggered "generate launch plan" action, are not
+ * guaranteed at ship time, and `positioning` is NOT NULL and AI-generated, so a
+ * row cannot be created on the fly to defer against. `rearmOutcomeCheck` ends in
+ * `.single()`, which THROWS on zero rows -- so the button would have errored on
+ * exactly the case it exists for: a freshly shipped spec nobody has written a
+ * launch plan for. A spec row always exists for a shipped spec, by definition.
+ *
+ * The count is kept because it is SIGNAL. A bet deferred four times is a bet
+ * whose metric never moves, and that is worth surfacing rather than hiding.
+ */
+export const deferOutcomeCheck = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({ prdId: z.string().uuid(), days: z.number().int().min(1).max(365).default(14) })
+      .parse(d),
+  )
+  .handler(async ({ context, data }): Promise<{ checkBy: string; deferredCount: number }> => {
+    const { supabase } = context;
+    const now = new Date();
+    const checkBy = new Date(now.getTime() + data.days * 86_400_000).toISOString();
+
+    // Read the count first so the increment is honest. Two people deferring the
+    // same bet in the same second is not a case worth a transaction here: the
+    // worst outcome is a count one low on a field nothing gates on.
+    const { data: before } = await supabase
+      .from("prds")
+      .select("outcome_deferred_count")
+      .eq("id", data.prdId)
+      .maybeSingle();
+    const nextCount =
+      ((before as { outcome_deferred_count?: number | null } | null)?.outcome_deferred_count ?? 0) +
+      1;
+
+    /**
+     * CHECKED, BECAUSE supabase-js RESOLVES A REFUSED WRITE. An RLS refusal
+     * comes back as success with zero rows, so without `.select()` and an empty
+     * check this would report "you gave it more time" over a bet that is still
+     * sitting on the desk, due now, exactly as before.
+     */
+    const { data: rows, error } = await supabase
+      .from("prds")
+      .update({
+        outcome_check_by: checkBy,
+        outcome_deferred_at: now.toISOString(),
+        outcome_deferred_count: nextCount,
+      })
+      .eq("id", data.prdId)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!rows || rows.length === 0) {
+      throw new Error("The check date did not move. You may not have rights on this spec.");
+    }
+    return { checkBy, deferredCount: nextCount };
+  });
+
 export const listPendingOutcomes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<{ pending: PendingOutcome[] }> => {
@@ -1009,6 +1076,22 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
         .select(PRD_COLS)
         .is("outcome", null)
         .not("shipped_at", "is", null)
+        /**
+         * A BET SOMEBODY SAID WAS TOO EARLY IS NOT DUE YET.
+         *
+         * `outcome_check_by` in the future means a person looked at this and
+         * deferred it rather than judging it. Without this clause the deferral
+         * did nothing visible: the bet reappeared at the top of the desk on the
+         * next load, which teaches people the button is broken and pushes them
+         * back toward writing a verdict they do not believe.
+         *
+         * `or` rather than a plain `lte`, because NULL is the overwhelming
+         * majority -- every spec that has never been deferred -- and a bare
+         * comparison drops NULLs in SQL. That would have emptied the desk of
+         * everything except previously-deferred bets, which is the loudest
+         * possible way to get this wrong and still look like it works.
+         */
+        .or(`outcome_check_by.is.null,outcome_check_by.lte.${nowIso}`)
         .order("shipped_at", { ascending: false })
         .limit(12),
       db

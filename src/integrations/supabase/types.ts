@@ -5659,6 +5659,9 @@ export type Database = {
           model: string | null
           opportunity_id: string | null
           outcome: Json | null
+          outcome_check_by: string | null
+          outcome_deferred_at: string | null
+          outcome_deferred_count: number
           outcome_suggestion: Json | null
           product_id: string | null
           project_id: string | null
@@ -5687,6 +5690,9 @@ export type Database = {
           model?: string | null
           opportunity_id?: string | null
           outcome?: Json | null
+          outcome_check_by?: string | null
+          outcome_deferred_at?: string | null
+          outcome_deferred_count?: number
           outcome_suggestion?: Json | null
           product_id?: string | null
           project_id?: string | null
@@ -5715,6 +5721,9 @@ export type Database = {
           model?: string | null
           opportunity_id?: string | null
           outcome?: Json | null
+          outcome_check_by?: string | null
+          outcome_deferred_at?: string | null
+          outcome_deferred_count?: number
           outcome_suggestion?: Json | null
           product_id?: string | null
           project_id?: string | null

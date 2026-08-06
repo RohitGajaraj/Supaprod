@@ -61,6 +61,7 @@ import {
   listAgentSettledOutcomes,
   listPendingOutcomes,
   recordOutcome,
+  deferOutcomeCheck,
   type AgentSettledOutcome,
   type PendingOutcome,
 } from "@/lib/outcome.functions";
@@ -154,6 +155,7 @@ export function SettlePanel() {
   const fPending = useServerFn(listPendingOutcomes);
   const fSettled = useServerFn(listAgentSettledOutcomes);
   const fRecord = useServerFn(recordOutcome);
+  const fDefer = useServerFn(deferOutcomeCheck);
   const fDraft = useServerFn(draftOutcomeSuggestion);
 
   const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
@@ -236,6 +238,91 @@ export function SettlePanel() {
   /* ---- the commit ---- */
   const [receipts, setReceipts] = React.useState<Mark[]>([]);
   const addReceipt = React.useCallback((m: Mark) => setReceipts((r) => [m, ...r].slice(0, 4)), []);
+
+  /**
+   * THE HONEST "NOT YET", AND WHY LEARN NEEDED ONE TO FINISH ITS OWN JOB.
+   *
+   * Every exit from this gate wrote a PERMANENT verdict. `learnings.verdict` is
+   * constrained to exactly `validated | missed | mixed` -- three judgments and no
+   * fourth door -- so a person looking at a bet that shipped last week, or one
+   * whose metric has not moved yet because nothing could have moved it yet, had
+   * to pick one of three permanent answers or abandon the queue.
+   *
+   * That is not a cosmetic gap. These rows ARE the precedent pool: `getFocusNext`
+   * and the Decide ranking read settled outcomes to re-rank the next call. Typing
+   * "it did not work" about a bet that has not had time to work teaches the brain
+   * something untrue, and the product's whole claim is that it learns from this
+   * record. A wrong verdict here is worse than no verdict, because it compounds.
+   *
+   * NOT A FOURTH VERDICT. Adding `too_early` to the constraint would put a value
+   * in the pool that every consumer must then remember to filter -- the exact
+   * shape of the `is_sample` defect this repo paid for twice. The product already
+   * models "come back to this later": `listPendingOutcomes` reads the desk from
+   * shipped-and-unsettled specs UNION launch plans whose `check_by` has arrived,
+   * so a `check_by` in the future already means not yet due.
+   *
+   * IT WRITES ON `prds`, AND THE FIRST VERSION OF THIS DID NOT. I first mounted
+   * `rearmOutcomeCheck`, which already existed and rides `launch_plans.check_by`.
+   * That has a hole: launch plan rows come from the user-triggered "generate
+   * launch plan" action, are not guaranteed at ship time, and `positioning` is
+   * NOT NULL and AI-generated so one cannot be created on the fly to defer
+   * against. That function ends in `.single()`, which THROWS on zero rows -- so
+   * the button would have errored on precisely the case it exists for: a freshly
+   * shipped spec nobody has written a launch plan for. `deferOutcomeCheck` writes
+   * the spec itself, which always exists, and migration
+   * 20260806100000 carried the old dates across so nothing sprang back onto the
+   * desk.
+   *
+   * Fourteen days because that is the shortest window in which a shipped change
+   * usually has any signal at all; the exact number matters less than that the
+   * bet leaves the desk and comes BACK on its own rather than being dropped.
+   */
+  const defer = useMutation({
+    mutationFn: (v: { target: Target }) => fDefer({ data: { prdId: v.target.prdId, days: 14 } }),
+    onSuccess: (r, v) => {
+      addReceipt({
+        key: `${v.target.prdId}-${Date.now()}`,
+        verb: "You gave it more time",
+        consequence: (
+          <>
+            {v.target.title}. No verdict was written, so nothing was taught to the ranking. It comes
+            back to this desk on {new Date(r.checkBy).toLocaleDateString()}
+            {r.deferredCount > 1 ? (
+              <>
+                {" "}
+                This is the <Num>{r.deferredCount}</Num> time it has been put off, which is itself
+                worth a look.
+              </>
+            ) : (
+              "."
+            )}
+          </>
+        ),
+        at: clock(),
+        failed: false,
+      });
+      // Only the desk changes. Deliberately NOT invalidating the learning,
+      // ledger or opportunity queries: no outcome was recorded, so claiming
+      // those moved would be the same lie in a different place.
+      void qc.invalidateQueries({ queryKey: ["outcome-pending"] });
+      setPickedId(null);
+      seeded.current = null;
+    },
+    onError: (e: Error, v) => {
+      addReceipt({
+        key: `${v.target.prdId}-${Date.now()}`,
+        verb: "It stayed on your desk",
+        consequence: (
+          <>
+            {v.target.title}. The check date did not move, so this is still waiting on you.{" "}
+            {e.message}
+          </>
+        ),
+        at: clock(),
+        failed: true,
+      });
+    },
+  });
 
   const settle = useMutation({
     mutationFn: (v: { target: Target; verdict: Verdict; summary: string }) =>
@@ -566,6 +653,21 @@ export function SettlePanel() {
           ) : canRecord && !s ? (
             <Button disabled={drafting} onClick={() => draft.mutate(target.prdId)}>
               {drafting ? "Reading the outcome." : `Ask ${agentDisplayName(MEASURE_SLUG)}`}
+            </Button>
+          ) : null}
+          {/* THE THIRD ANSWER, and the station could not finish its job without
+              it. Offered only on a bet nobody has settled: once a verdict exists
+              the honest moves are to overturn it or leave it, and "not yet"
+              would be a third thing that quietly contradicts a written record.
+              See the `defer` mutation for why this is a check date and not a
+              fourth verdict. */}
+          {!settledByAgent ? (
+            <Button
+              disabled={defer.isPending}
+              onClick={() => defer.mutate({ target })}
+              title="No verdict is written. It returns to this desk in two weeks."
+            >
+              {defer.isPending ? "Giving it more time." : "Too early to tell"}
             </Button>
           ) : null}
         </Actions>
