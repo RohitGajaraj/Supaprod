@@ -768,13 +768,24 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  // OBS-10: the trigger-tick's own HITL gate — a mission an ambient trigger
-  // proposed but no human has promoted to 'queued' yet.
+  /* OBS-10: the trigger-tick's own HITL gate — a mission an ambient trigger
+   * proposed, or one left stranded at 'queued', that nobody has launched yet.
+   *
+   * THE COPY SAYS "launched" BECAUSE THE MUTATION NO LONGER QUEUES ANYTHING.
+   * promoteMission used to write status='queued' and return; it now flips the
+   * mission to 'running' and awaits a full orchestrator loop, so by the time
+   * this resolves the mission is running and already planned. Waiting for an
+   * agent to "pick it up" is what the old copy promised and what never happened:
+   * nothing consumed 'queued'. The awaited loop is also why this can take a
+   * while — the button's own disabled/"Launching…" state is the pending signal,
+   * the same one the Start button uses. */
   const promote = useMutation({
     mutationFn: () => fPromote({ data: { missionId } }),
     onSuccess: () => {
-      toast.success("Mission queued. The agent will pick it up shortly.");
+      toast.success("Mission launched · the orchestrator is planning it now.");
       qc.invalidateQueries({ queryKey: ["mission", missionId] });
+      // The plan exists as of this moment, so the step list is stale.
+      qc.invalidateQueries({ queryKey: ["mission-steps", missionId] });
       qc.invalidateQueries({ queryKey: ["studio-sessions"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -813,11 +824,27 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
   const hasPending = stepRows.some(
     (r) => r.status === "planned" || r.status === "dispatched" || r.status === "running",
   );
-  const missionRunning = data?.mission.status === "running" || data?.mission.status === "queued";
+  /* 'queued' is deliberately NOT counted as running any more, and that is a
+   * correction rather than a preference: a mission at 'queued' is stopped. No
+   * sweeper advanced it, no run existed for it, and the two labels this drives —
+   * "live · refreshing every 2s" and the trace's " · live" — told the reader an
+   * agent was working when nothing was. The page keeps polling on 'queued' (see
+   * refetchInterval above) precisely because it is NOT live: the resume-runs
+   * adoption pass moves it to 'running' within about a minute, and the poll is
+   * how the screen finds out. */
+  const missionRunning = data?.mission.status === "running";
   const canAdvance = hasPending && data?.mission.status === "running";
   const missionFailed = data?.mission.status === "failed" || data?.mission.status === "halted";
   // OBS-10: a proposed mission has no runs yet and needs launching, not cancelling.
   const missionProposed = data?.mission.status === "proposed";
+  /* The stranded state, and the reason this page grew a second door into Launch.
+   * 'queued' is a status nothing consumes: both writers of it (the trigger-tick
+   * auto-promote and the old promoteMission) have been changed to launch into
+   * 'running', and resume-runs adopts any leftover row — but until that sweep
+   * lands, a mission sitting here showed Cancel and nothing else. Cancel was the
+   * only way forward out of a state that had simply never started. */
+  const missionQueued = data?.mission.status === "queued";
+  const missionLaunchable = missionProposed || missionQueued;
   // D4: a mission can be cancelled while it is still active (not yet terminal).
   const missionActive =
     !!data &&
@@ -1009,7 +1036,14 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <StatusBadge status={badgeStatus(data.mission.status)} />
-            {missionProposed ? (
+            {/* Launch, for the two states that have not started: 'proposed' (a
+             * trigger raised it and is waiting on a person) and 'queued' (it was
+             * launched once into a status nothing consumed). Rendered ahead of
+             * the Cancel/Replay chain rather than inside it, so a stranded
+             * mission gains a forward door WITHOUT losing Cancel — it used to
+             * show Cancel alone, which meant the only way out of "never started"
+             * was to kill it. */}
+            {missionLaunchable ? (
               <button
                 onClick={() => promote.mutate()}
                 disabled={promote.isPending}
@@ -1026,12 +1060,21 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                   color: "var(--ember-text)",
                   opacity: promote.isPending ? 0.5 : 1,
                 }}
-                title="A trigger proposed this goal · nothing runs until you launch it"
+                title={
+                  missionQueued
+                    ? "This mission was enqueued but never started · launch it now"
+                    : "A trigger proposed this goal · nothing runs until you launch it"
+                }
               >
                 <Check style={{ width: 11, height: 11 }} />
-                {promote.isPending ? "Launching…" : "Review & launch"}
+                {promote.isPending
+                  ? "Launching…"
+                  : missionQueued
+                    ? "Never started · launch it"
+                    : "Review & launch"}
               </button>
-            ) : missionActive ? (
+            ) : null}
+            {missionActive ? (
               <button
                 onClick={async () => {
                   const ok = await confirm({
@@ -1060,9 +1103,13 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
                 <Ban style={{ width: 11, height: 11 }} />
                 {cancel.isPending ? "Cancelling…" : "Cancel mission"}
               </button>
-            ) : !missionFailed ? (
+            ) : !missionLaunchable && !missionFailed ? (
               // D4-REPLAY: re-run a finished mission with a chosen model.
               // (Failed/halted missions keep the contextual retry below.)
+              // The !missionLaunchable guard keeps this branch reaching exactly
+              // the missions it always did: splitting Launch out of this chain
+              // means a 'proposed' mission now falls through to here, and it must
+              // not be offered a replay of work that has not run once.
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <select
                   aria-label="Replay model"
@@ -1490,7 +1537,16 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               fontStyle: "italic",
             }}
           >
-            No hops yet. The mission is queued.
+            {/* This said "The mission is queued" for every mission with no hops
+             * yet, whatever its status — including the ones that were genuinely
+             * stuck at 'queued' and the ones that had already started. Each
+             * branch below now says the thing that is actually true of this
+             * mission, and none of them claims work is under way. */}
+            {missionLaunchable
+              ? "No hops yet. Nothing runs until this mission is launched."
+              : missionRunning
+                ? "No hops yet. Nothing has been dispatched on this mission yet."
+                : "No hops yet."}
           </div>
         ) : (
           hops.map((h, i) => (

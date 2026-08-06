@@ -83,9 +83,18 @@ const DISPATCH_LOST_MS = 3 * 60 * 1000;
  * the agent_runs lifecycle. Forgetting to add a genuinely in-flight status here
  * now costs one bounded retry and a step error that names the status. Forgetting
  * the other way is what this file did before: it had no branch at all for
- * `completed_with_failures` — the single most common terminal status in this
- * database (452 of 1135 runs) — so every mission whose step ran into one sat at
+ * `completed_with_failures` — so every mission whose step ran into one sat at
  * 'Running' for weeks, with no error and nothing to click.
+ *
+ * WHAT THAT STATUS ACTUALLY IS, measured 2026-08-06 over all 1135 agent_runs:
+ * `completed` 541, `completed_with_failures` 452, `failed` 126, `halted` 7,
+ * `waiting_approval` 7, `complete` 2. An earlier version of this comment called
+ * completed_with_failures "the single most common terminal status", which is
+ * wrong — `completed` is, by 541 to 452. The point the sentence was making
+ * survives the correction and is why the count is quoted at all: at 40% of every
+ * run ever recorded, and more than three times as many as `failed`, it is an
+ * ORDINARY outcome. A reflector with no branch for it was not missing an edge
+ * case; it was missing the second most common thing that happens.
  *
  * Why each member is in it:
  *  - `queued`           enqueued, not yet picked up by the loop. (Past the
@@ -103,6 +112,46 @@ const DISPATCH_LOST_MS = 3 * 60 * 1000;
  *                       work a person is still deciding on.
  */
 const RUN_IN_FLIGHT_STATUSES = new Set(["queued", "dispatched", "running", "waiting_approval"]);
+
+/**
+ * The child-run statuses that mean the run FINISHED CLEANLY. The other half of
+ * the closed world, and the half that is dangerous to under-fill: an in-flight
+ * status left out of the set above costs one bounded retry, but a SUCCESS status
+ * left out of this one is read as a failure — the defensive terminalizer at the
+ * end of the reflector marks the step 'failed' with "unrecognised status", records
+ * a playbook loss-shaped attempt, and skip-cascades every dependent. A delivered
+ * job is then filed as a break, which is the one reading this engine must never
+ * produce. So this is a named set rather than an inline `||` chain, for the same
+ * reason RUN_IN_FLIGHT_STATUSES is: it is a list a future writer must find.
+ *
+ * Why each member is in it:
+ *  - `completed` the agent loop's own clean finish (loop.server.ts:732, :1661).
+ *  - `complete`  the single-agent path's spelling of the same thing
+ *                (agents.functions.ts:210). crew.functions.ts normalizes it the
+ *                same way and for the same reason. No mission step's run is
+ *                written by that path today — both live 'complete' runs carry a
+ *                null mission_id and no mission_steps row points at either
+ *                (measured 2026-08-06) — so accepting it here is defence, and
+ *                required defence, for the same reason `done` is.
+ *  - `done`      written to agent_runs by the delegate fold on a SUCCESSFUL
+ *                external job (src/lib/delegate/poll.server.ts:130 + :153-156),
+ *                and documented as part of the agent_runs vocabulary in
+ *                src/components/runs/run-state.ts:22, where :41 maps it to the
+ *                same "done" reading as `completed`. This member was missing when
+ *                the branch was an inline `||` chain, which is exactly the failure
+ *                this doc block now exists to prevent.
+ *
+ * ON `done`'s LIVE EXPOSURE, so the next reader does not over- or under-read it:
+ * zero agent_runs carry 'done' today (measured 2026-08-06 over all 1135 rows) —
+ * the delegate path is dormant behind DELEGATE_OUTBOUND_ENABLED
+ * (delegate/openhands.server.ts:28-31). And when it is switched on, foldDelegateResult
+ * updates mission_steps to 'done' BEFORE it writes agent_runs, so the reflector
+ * usually never sees the step at all. But that step write checks only `error` and
+ * not whether it matched a row (poll.server.ts:139-151), so a fold that silently
+ * matched zero rows leaves a live step against a 'done' run and lands here. Narrow
+ * is not zero, and the cost of being wrong is a delivered job filed as a failure.
+ */
+const RUN_SUCCESS_STATUSES = new Set(["completed", "complete", "done"]);
 
 /** How long a child run must have carried a status this module does not
  *  recognise before the reflector treats it as terminal. Deliberately longer
@@ -368,13 +417,18 @@ export async function reflectStepStatusFromRuns(
     if (!run) continue;
     if (run.status === "running" && row.status !== "running") {
       await supabase.from("mission_steps").update({ status: "running" }).eq("id", row.id);
-    } else if (run.status === "completed" || run.status === "complete") {
-      // The singular "complete" is the single-agent path's spelling
-      // (agents.functions.ts:210) and means the same clean finish; crew.functions.ts
-      // normalizes it the same way and for the same reason. No mission step's run
-      // is written by that path today, so accepting it here is defensive — but it
-      // is REQUIRED defence, because without it the unknown-status branch at the
-      // end of this loop would read a clean finish as a failure.
+    } else if (RUN_SUCCESS_STATUSES.has(run.status)) {
+      // Every spelling of a clean finish, kept in ONE named set (see
+      // RUN_SUCCESS_STATUSES above for why each member is in it, and for the
+      // measured exposure of each). This used to be an inline
+      // `completed || complete` chain, and it was missing `done` — the status the
+      // delegate fold writes for a SUCCESSFUL external job — so a delivered job
+      // fell through to the defensive terminalizer at the end of this loop and was
+      // filed as a failure. The old comment here made exactly the right argument
+      // for admitting `complete` ("without it the unknown-status branch at the end
+      // of this loop would read a clean finish as a failure") and then left the
+      // identical case one status over. Whoever adds the next success spelling adds
+      // it to the set, not to a condition, which is the whole point of the move.
       // CAS on the pre-read status: this function is documented as callable
       // from both the admin-client sweeper and a user-client `advanceMission`,
       // so overlapping calls on the same mission are a designed-for scenario.
@@ -400,10 +454,14 @@ export async function reflectStepStatusFromRuns(
         await recordPlaybookAttempt(
           supabase,
           { user_id: row.user_id, workspace_id: row.workspace_id, playbook_id: row.playbook_id },
-          // Normalize the singular spelling before classifying: classifyRunOutcome
-          // only knows "completed", and letting "complete" fall to its default
-          // would record a clean delivery as no-evidence and under-report the win.
-          classifyRunOutcome(run.status === "complete" ? "completed" : run.status),
+          // Normalize EVERY success spelling to "completed" before classifying:
+          // classifyRunOutcome (playbooks/registry.ts:221-240) has a case for
+          // "completed" and nothing else that means success, so letting "complete"
+          // or "done" fall to its default records a clean delivery as no-evidence
+          // and under-reports the win. Reaching this line already proves the status
+          // is in RUN_SUCCESS_STATUSES, so normalizing the whole set is exact, not
+          // a guess — and it cannot go stale when a fourth spelling is added.
+          classifyRunOutcome("completed"),
         );
       }
     } else if (
@@ -411,36 +469,66 @@ export async function reflectStepStatusFromRuns(
       run.status === "failed" ||
       run.status === "completed_with_failures"
     ) {
+      // WHY THESE THREE ARE TERMINAL, and why only two of them get the retry.
+      //
+      // 'failed' is a durable failure of the work this method guided (bounded
+      // retries are spent by the time the step terminalizes) => a loss.
+      // 'halted' is a governance stop or the stuck-run sweeper killing a run
+      // that stopped checkpointing => the attempt was interrupted, never
+      // judged, so it earns no verdict.
+      // 'completed_with_failures' is the loop's own verdict on a run that
+      // reached an answer with at least one tool step failed
+      // (anyToolStepFailed, loop.server.ts:238-242, applied at :730 and :1659).
+      // It is terminal everywhere else in this repo (run-state.ts,
+      // ask-blocks.server.ts, credit-policy.ts, build-status.ts) and it belongs
+      // on this side of the line rather than with 'completed', matching
+      // maybeCompleteMission, which reads a single failed STEP as a mission that
+      // completed_with_failures.
+      //
+      // THE RETRY IS WITHHELD FROM 'completed_with_failures' ONLY, and this is a
+      // decision taken deliberately rather than a default. An earlier version of
+      // this code gave all three the bounded retry and this comment said so,
+      // naming the switch to reverse it ("pass `false` for retryCols on THIS
+      // branch only"). That switch is now taken. What it buys, measured through
+      // the Lovable MCP on 2026-08-06:
+      //   - 10 mission_steps sit in flight under a running/in_progress mission.
+      //     ALL TEN are attempts=1 / max_attempts=2 and ALL TEN are against a
+      //     completed_with_failures run, dispatched between 2026-07-09 and
+      //     2026-08-04. With the retry on, the first sweep after this deploys
+      //     re-dispatches ten agents whose predecessors already reached an answer
+      //     and committed real side effects (specs written, PRs opened), a month
+      //     of context out of date, and then fails those steps anyway. With it
+      //     off, all ten terminalize on the first reflection, their dependents
+      //     skip-cascade, and their missions finalize as completed_with_failures
+      //     — which is what actually happened to them.
+      //   - Steady state, not just deploy day: at 452 of 1135 runs this is the
+      //     second most common status in the database, so the retry it was being
+      //     given was not an edge-case retry. And a retry cannot fix it. The run
+      //     did not crash mid-flight (that is 'failed'); it finished, having hit
+      //     a tool error the model saw and chose to finalize around. Re-running
+      //     the same sub_goal with the same agent re-does the work it already
+      //     did — the tools here are inserts, not upserts — and usually meets the
+      //     same deterministic tool failure, ending in the same status. Double
+      //     spend, duplicated artifacts, identical outcome.
+      // 'failed' and 'halted' keep the retry: a run that threw is often transient
+      // and its side effects are partial, which is the case retrying is for.
+      //
+      // WHAT THIS IS NOT: it does not change whether a partly-failed step poisons
+      // its dependents. The skip-cascade still runs, so one such step still ends
+      // the wave below it. Whether a 40%-base-rate status should poison a DAG at
+      // all is a product call above this function and it is NOT closed here.
+      //
+      // On the verdict: classifyRunOutcome does not know this status, so it
+      // classifies 'interrupted' and the attempt is recorded with a NULL
+      // verdict — volume, neither a win nor a loss. That is deliberately
+      // conservative and NOT a claim that the method was judged; a decisive
+      // reading of a partly-failed run belongs in classifyRunOutcome
+      // (src/lib/playbooks/registry.ts), which this change does not own.
       await failOrRequeueStep(
         supabase,
         row,
         run.halted_reason ?? run.output ?? `child run ${run.status}`,
-        retryCols,
-        // 'failed' is a durable failure of the work this method guided (bounded
-        // retries are spent by the time the step terminalizes) => a loss.
-        // 'halted' is a governance stop or the stuck-run sweeper killing a run
-        // that stopped checkpointing => the attempt was interrupted, never
-        // judged, so it earns no verdict.
-        // 'completed_with_failures' is the loop's own verdict on a run that
-        // reached an answer with at least one tool step failed. It is terminal
-        // everywhere else in this repo (run-state.ts, ask-blocks.server.ts,
-        // credit-policy.ts, build-status.ts) and it belongs on this side of the
-        // line rather than with 'completed', matching maybeCompleteMission, which
-        // reads a single failed STEP as a mission that completed_with_failures.
-        // KNOW WHAT THIS COSTS, because it is the ORDINARY outcome (452 of 1135
-        // runs), not the rare one: routing it here also gives it the bounded
-        // retry, so a partly-failed step is re-dispatched ONCE (attempts ceiling
-        // 2) before it terminalizes, and its dependents are then skip-cascaded.
-        // That is deliberate — it is exactly how a 'failed' step is treated, and
-        // finishing honestly beats finishing cleanly. If the duplicate attempt
-        // proves too expensive in practice, pass `false` for retryCols on THIS
-        // branch only; the step then terminalizes on the first reflection.
-        // On the verdict: classifyRunOutcome does not know this status, so it
-        // classifies 'interrupted' and the attempt is recorded with a NULL
-        // verdict — volume, neither a win nor a loss. That is deliberately
-        // conservative and NOT a claim that the method was judged; a decisive
-        // reading of a partly-failed run belongs in classifyRunOutcome
-        // (src/lib/playbooks/registry.ts), which this change does not own.
+        retryCols && run.status !== "completed_with_failures",
         classifyRunOutcome(run.status),
       );
     } else if (isLostQueuedRun(run, lostCutoff)) {
@@ -485,11 +573,31 @@ export async function reflectStepStatusFromRuns(
       // terminal outcome.
       //
       // Bounded on time as well as attempts: we wait UNKNOWN_STATUS_LOST_MS from
-      // the run's creation (falling back to the step's dispatch time) so a status
-      // that turns out to be a new IN-FLIGHT state is not stolen the instant it
-      // appears. If it really is in-flight, add it to RUN_IN_FLIGHT_STATUSES —
-      // the step error below names the status precisely so whoever reads it knows
-      // what to add.
+      // the RUN'S CREATION (falling back to the step's dispatch time), so a young
+      // run that moves into a new in-flight status is not stolen the instant that
+      // status appears.
+      //
+      // BE PRECISE ABOUT WHAT THAT DOES AND DOES NOT PROTECT, because the earlier
+      // wording here claimed the whole thing. The clock is the run's AGE, not the
+      // age of the status. A run created more than fifteen minutes ago that moves
+      // into an unregistered in-flight status is already past the cutoff, so it is
+      // terminalized on the very next tick with no grace at all — and a long agent
+      // loop is routinely older than fifteen minutes by the time it changes state.
+      // The window is therefore real cover for a status that appears EARLY in a
+      // run and none for one that appears LATE. It is measured this way because
+      // there is nothing better to measure: agent_runs has no updated_at and no
+      // status_changed_at column (verified against the live schema 2026-08-06;
+      // `last_checkpoint_at` is a liveness heartbeat the loop writes, not a record
+      // of when the status was set), so the moment a status was set is not a fact
+      // this table stores. Closing the gap properly needs that column, not a
+      // different constant here.
+      //
+      // The real protection is not the clock, it is the two closed sets. If the
+      // status means the run is still working, add it to RUN_IN_FLIGHT_STATUSES;
+      // if it means the run finished cleanly, add it to RUN_SUCCESS_STATUSES —
+      // adding a success status to the in-flight set would hang the step forever
+      // instead. The step error below names the status precisely so whoever reads
+      // it knows what to add and where.
       const sinceIso = run.created_at ?? row.dispatched_at;
       const unknownCutoff = new Date(Date.now() - UNKNOWN_STATUS_LOST_MS).toISOString();
       if (sinceIso && sinceIso < unknownCutoff) {
@@ -499,7 +607,10 @@ export async function reflectStepStatusFromRuns(
           `child run reported the unrecognised status '${run.status}', which this ` +
             `mission reflector has no branch for; treated as terminal so the mission ` +
             `can finish. If that status means the run is still working, add it to ` +
-            `RUN_IN_FLIGHT_STATUSES in src/lib/ai/mission-advance.server.ts.`,
+            `RUN_IN_FLIGHT_STATUSES in src/lib/ai/mission-advance.server.ts; if it ` +
+            `means the run finished cleanly, add it to RUN_SUCCESS_STATUSES in the ` +
+            `same file instead — putting a success status in the in-flight set ` +
+            `would pin this step forever rather than fix it.`,
           retryCols,
           // A status we cannot read is no evidence about the method. This is what
           // classifyRunOutcome's documented default ("a terminal status this code
@@ -571,6 +682,27 @@ export async function dispatchReadySteps(
     const attemptNo = (step.attempts ?? 0) + 1;
     // CAS claim: only the caller that flips planned→dispatched proceeds to
     // enqueue. The loser matches zero rows and skips — no double dispatch.
+    //
+    // KNOWN, UNFIXED, AND DELIBERATELY LEFT: between this claim and the run_id
+    // write further down, a RE-DISPATCHED step sits at 'dispatched' still holding
+    // the PREVIOUS attempt's run_id (nothing clears it on the requeue path, and
+    // nothing clears it here). An overlapping tick's reflector reads steps in
+    // ('dispatched','running'), finds that stale terminal run, and can terminalize
+    // the step against it while its new child run is being created. The window is
+    // the enqueue latency, a few hundred milliseconds, and it exists only for a
+    // step on its second attempt — a first dispatch has run_id null and the
+    // reflector skips it.
+    // Why it is not fixed in this change: it is pre-existing, and this change makes
+    // it RARER rather than more likely. Routing 'completed_with_failures' away from
+    // the retry (see the reflector's terminal branch) means the only steps that ever
+    // reach a second attempt are the ones behind 'failed' and 'halted' runs — 133 of
+    // 1135 runs measured 2026-08-06, versus the 585 it would have been with that
+    // status retried too. The two candidate fixes both cost more than the bug during
+    // launch week: adding `run_id: null` to this claim closes the window but drops a
+    // failed retry's pointer to the attempt before it, and skipping runs created
+    // before `dispatched_at` closes it too but hangs the step permanently under any
+    // clock skew between the Worker and Postgres — a hang being the exact failure
+    // this module exists to end. `run_id: null` here is the one to take afterwards.
     const claim: Record<string, unknown> = {
       status: "dispatched",
       dispatched_at: new Date().toISOString(),

@@ -27,31 +27,58 @@ import { cleanTitle } from "@/components/plan/format";
 export type ChainLinkKey =
   "signal" | "decision" | "contract" | "design" | "build" | "test" | "merge" | "deploy" | "outcome";
 
-/**
- * THE PRODUCT'S ONE WORD FOR A DELIBERATELY SKIPPED STATION, and the reason it
- * is a constant rather than three string literals.
+/* ---------------------------------------------------------------------------
+ * THE DESIGN-SKIP VOCABULARY LIVES HERE. Two states, two constants, one home.
  *
- * The founder has ruled twice that the seven stations are the FULL path and not
- * the ONLY path: a code-level change needs no design station, because design for
- * it lives outside the product as prototypes, mockups and wireframes, so the
- * work goes plan -> build directly. A product that supports that skip and then
- * reports it as unfinished has not supported it.
+ * Anything that has to name either state IMPORTS from this block. Nothing
+ * retypes the string. Three phrasings for one state is how the defect regrows,
+ * and it has regrown twice already: `DESIGN_SKIPPED_ON_PURPOSE` was written by
+ * hand on two surfaces before it was a constant, and the nothing-drawn sentence
+ * below existed in two different wordings on two proof surfaces on the same day
+ * (the chain link said "no design gate to clear", the release document said
+ * "no human approval is on the record", about the same spec).
  *
- * Two surfaces already said it in these words - `/design`'s row subtitle
- * (src/routes/_authenticated.design.tsx, "Design skipped on purpose · <date>")
- * and the spec page's chosen-route line (src/routes/_authenticated.plan.spec.$id.tsx,
- * "Design was skipped on purpose") - so this is the existing vocabulary written
- * down, not a new one invented. Three phrasings for one state is how the defect
- * regrows, so anything that has to name this state imports the phrase:
- * src/components/ship/WhatShipped.tsx does.
+ * WHY THE WORDS MATTER. The founder has ruled twice that the seven stations are
+ * the FULL path and not the ONLY path: a code-level change needs no design
+ * station, because design for it lives outside the product as prototypes,
+ * mockups and wireframes, so the work goes plan -> build directly. A product
+ * that supports that skip and then reports it as unfinished has not supported
+ * it.
  *
- * NOT YET SAID ON /plan's spec list. `listSpecs` returns neither the drawing
- * count nor the newest route stage event, so that row cannot tell a deliberate
- * skip from a gate nobody has touched; rather than guess, it now says nothing at
- * all about an undecided gate. See the note at the suffix in
- * src/routes/_authenticated.plan.index.tsx.
- */
+ * ADOPTED - imports the constant, so it cannot drift:
+ *   src/components/ship/WhatShipped.tsx:105        DESIGN_SKIPPED_ON_PURPOSE
+ *   src/routes/_authenticated.plan.index.tsx       DESIGN_SKIPPED_ON_PURPOSE
+ *
+ * NOT YET ADOPTED - each of these still hard-codes the phrase by hand, and they
+ * agree with the constant today only because somebody matched them by eye:
+ *   src/routes/_authenticated.design.tsx:222       "Design skipped on purpose · <date>"
+ *   src/routes/_authenticated.plan.spec.$id.tsx:1359  "Design was skipped on purpose"
+ *   src/components/ship/WhatShipped.tsx (the gap line) owes DESIGN_NOTHING_DRAWN
+ * All three files are owned by other workflows this week, so the exact import
+ * each one needs is carried in this wave's `needsOtherFiles` instead of being
+ * edited here. If you are editing one of them, adopt the constant and delete
+ * its line from this list.
+ * ------------------------------------------------------------------------- */
+
+/** A PERSON OR A NAMED AGENT CHOSE STRAIGHT TO BUILD, and the `design_skipped`
+ *  stage event is the receipt. Rendered as `Design ${DESIGN_SKIPPED_ON_PURPOSE}`.
+ *  Never reach for this because a spec has no drawing: an absent drawing is not
+ *  a decision, and it has its own sentence directly below. */
 export const DESIGN_SKIPPED_ON_PURPOSE = "skipped on purpose";
+
+/** NOTHING WAS DRAWN AND NOBODY CHOSE A ROUTE - the whole sentence, not a
+ *  fragment, because it is the ONE answer every proof surface owes for this
+ *  state and a fragment is exactly how two of them drifted apart.
+ *
+ *  It names no actor and no time because there is neither. It is read off a
+ *  zero `prd_scaffolds` count plus the absence of any `design_skipped` /
+ *  `design_requested` stage event - a read of what the database does not
+ *  contain, never a judgement anybody made. That is the state of 77 of the 81
+ *  live specs (re-measured through the Lovable MCP, 2026-08-06), so it is the
+ *  sentence a stranger reads first, and it must not be mistaken for the one
+ *  above it. */
+export const DESIGN_NOTHING_DRAWN =
+  "Nothing was drawn for this spec and no route was recorded, so no design gate was ever owed.";
 
 /** The two `stage_events.to_stage` words the /plan route picker writes
  *  (`ROUTE_STAGE`, src/lib/design-scaffold.functions.ts). Repeated as literals
@@ -62,10 +89,16 @@ const ROUTE_STAGE_REQUESTED = "design_requested";
 
 /**
  * - present: a real backing row exists.
- * - skipped: not owed on this mission, and the record says who decided that -
- *   either the workspace never turned the design stage on (`designOff`), or this
- *   spec was routed straight to Build on purpose (`designSkip`). Honest, not a
- *   hole.
+ * - skipped: not owed on this mission. THREE DIFFERENT FACTS LAND HERE and only
+ *   one of them is a decision, so the detail line always says which:
+ *     `designSkip`    - a `design_skipped` stage event for this spec: somebody
+ *                       chose Straight to Build, and the row names who and when.
+ *                       The only one of the three that reports a decision.
+ *     `designNotOwed` - nothing was ever drawn and no route was recorded. Read
+ *                       off an absence; no actor, no time, and it claims none.
+ *     `designOff`     - the workspace never turned the design stage on. A
+ *                       configuration, not a per-spec call.
+ *   Honest in all three cases, and not a hole in any of them.
  * - missing: a GAP - this link is absent but a LATER link is present, so a
  *   receipt that should exist does not. This is the broken-chain signal.
  * - pending: not yet reached (the mission has not progressed this far). Not a
@@ -123,10 +156,20 @@ const LINK_LABEL: Record<ChainLinkKey, string> = {
 };
 
 /** The evidence the pure assembler classifies - one optional backing row per
- * link (already resolved by the server fn). `designOff` marks the design
- * station configured off for the whole workspace; `designSkip` marks THIS spec
- * routed straight to Build on purpose, which is a per-spec human decision and a
- * different fact. */
+ * link (already resolved by the server fn).
+ *
+ * THE THREE DESIGN FIELDS ARE THREE DIFFERENT FACTS AND ONLY ONE IS A DECISION.
+ * They were one field until 2026-08-06, which is how the type came to document
+ * a recorded human choice while the server fn populated it, on 77 of 81 live
+ * specs, from a row count of zero. Kept apart now so that cannot recur:
+ *   `designOff`     - workspaces.design_stage_enabled is false. The whole
+ *                     workspace never turned the station on. Configuration.
+ *   `designSkip`    - a recorded `design_skipped` stage event for THIS spec.
+ *                     A decision, with an actor and a timestamp of its own.
+ *   `designNotOwed` - no drawing and no route event. An absence, read from the
+ *                     database; nobody decided it and the field gives it
+ *                     nowhere to put an actor or a time.
+ * All three render `skipped`, because none of them is a hole. */
 export type ChainEvidence = Partial<
   Record<
     ChainLinkKey,
@@ -140,18 +183,30 @@ export type ChainEvidence = Partial<
   >
 > & {
   designOff?: boolean;
-  /** The newest `design_skipped` stage event for this spec, already worded.
-   *  Null / absent means nobody chose to skip - NOT "straight to build". */
+  /** A RECORDED DECISION: the newest `design_skipped` stage event for this spec,
+   *  already worded, carrying that row's own actor and timestamp. Null / absent
+   *  means no such event exists - which is NOT "straight to build", and is NOT
+   *  "nothing was drawn" either. The second of those is `designNotOwed`. */
   designSkip?: { at: string | null; detail: string } | null;
+  /** AN ABSENCE, NOT A DECISION: nothing was ever drawn for this spec and no
+   *  route stage event was recorded. Derived from a zero `prd_scaffolds` count,
+   *  so it names nobody and there is deliberately no `at` field to fill - a
+   *  timestamp here would be a claim that something happened at a moment, and
+   *  nothing happened. Rendered `skipped` (not owed, so not a gap) with a
+   *  different SENTENCE from `designSkip`, never a different status. */
+  designNotOwed?: { detail: string } | null;
 };
 
 /**
  * PURE. Classify each of the nine links into present / skipped / missing /
  * pending from the resolved evidence. A link is:
  *   present  when evidence[key] is set;
- *   skipped  for `design` when designSkip (this spec was routed straight to
- *            Build on purpose) or designOff (the workspace never turned the
- *            stage on), and there is no design evidence;
+ *   skipped  for `design` when there is no design evidence and any one of the
+ *            three design facts holds - designSkip (somebody recorded Straight
+ *            to Build for this spec), designNotOwed (nothing was drawn and
+ *            nobody chose a route) or designOff (the workspace never turned the
+ *            stage on). Only designSkip reports a decision, and only designSkip
+ *            fills `occurredAt`;
  *   missing  when absent AND a later link is present (a real gap);
  *   pending  when absent AND no later link is present (not yet reached).
  * Unit-tested in trust-chain.test.ts.
@@ -167,11 +222,15 @@ export function assembleChain(
 
   const steps: ChainStep[] = LINK_ORDER.map((key, i) => {
     const row = evidence[key] ?? null;
-    // A per-spec skip is a decision somebody made and is checked BEFORE the
-    // workspace-wide toggle, because "a person sent this one straight to Build"
-    // is a stronger and more specific statement than "this workspace does not
-    // run a design station".
+    // ORDER OF EVIDENCE, STRONGEST FACT FIRST, and the order is the whole point.
+    // A recorded stage event is a decision somebody made, so it is read before
+    // "nothing was drawn" (an absence, which nobody decided) and before the
+    // workspace-wide toggle (a configuration): "a person sent THIS one straight
+    // to Build" is a stronger and more specific statement than either. The
+    // three produce the same STATUS and three different SENTENCES, so a reader
+    // can always tell which of them they are looking at.
     const skip = key === "design" ? (evidence.designSkip ?? null) : null;
+    const notOwed = key === "design" ? (evidence.designNotOwed ?? null) : null;
     let status: ChainLinkStatus;
     let detail: string;
     if (row) {
@@ -180,6 +239,9 @@ export function assembleChain(
     } else if (skip) {
       status = "skipped";
       detail = skip.detail;
+    } else if (notOwed) {
+      status = "skipped";
+      detail = notOwed.detail;
     } else if (key === "design" && evidence.designOff) {
       status = "skipped";
       detail = "Design stage is off for this workspace.";
@@ -195,8 +257,10 @@ export function assembleChain(
       label: LINK_LABEL[key],
       status,
       detail,
-      // A skip has a real timestamp of its own - the stage event - so the row
-      // carries WHEN the decision was made, exactly as a present link does.
+      // A RECORDED skip has a real timestamp of its own - the stage event - so
+      // the row carries WHEN the decision was made, exactly as a present link
+      // does. `designNotOwed` contributes nothing here on purpose: it has no
+      // time because nothing happened, and the type gives it no `at` to read.
       occurredAt: row?.at ?? skip?.at ?? null,
       backingId: row?.id ?? null,
       agentName: row?.agentName ?? null,
@@ -459,14 +523,28 @@ export const getMissionChain = createServerFn({ method: "GET" })
     //      workspace-wide toggle, so the per-spec decision - the founder's own
     //      path - had no way to reach the chain. It does now.
     //
+    //   3. ADDED 2026-08-06 IN THE SAME DAY'S REVIEW, because fixing 2 grew a
+    //      third defect of exactly the kind this file exists to refuse. The
+    //      nothing-ever-drawn case was first written into `designSkip`, the
+    //      field whose own documentation called it a recorded human decision -
+    //      so on 77 of the 81 live specs the type promised a decision and the
+    //      code supplied a zero row count. It now has its own field,
+    //      `designNotOwed`, with no place to put an actor or a time. Re-measured
+    //      through the Lovable MCP on 2026-08-06: 81 specs, 4 with any
+    //      `prd_scaffolds` row, and 0 `stage_events` of either route kind
+    //      anywhere in the database - so the nothing-drawn branch is the one
+    //      that fires on essentially every live chain, and it is the one whose
+    //      wording had to be exactly right.
+    //
     // FIVE STATES, NOT TWO, and the order below is the order of the evidence:
-    // a decided gate (present) beats a recorded skip (skipped, with an actor and
-    // a time) beats nothing ever drawn (skipped, with neither, and it says so).
-    // A drawing that exists with the gate undecided, and a spec routed
-    // `design_requested` with nothing drawn, both fall through to missing or
-    // pending, because those two ARE holes.
+    // a decided gate (present) beats a RECORDED skip (skipped, with an actor and
+    // a time, `designSkip`) beats nothing ever drawn (skipped, with neither, and
+    // it says so, `designNotOwed`). A drawing that exists with the gate
+    // undecided, and a spec routed `design_requested` with nothing drawn, both
+    // fall through to missing or pending, because those two ARE holes.
     let designEvidence: { id: string; at: string | null; detail: string } | null = null;
     let designSkip: { at: string | null; detail: string } | null = null;
+    let designNotOwed: { detail: string } | null = null;
     let designOff = true;
     if (prdRow) {
       const prdDesign = must(
@@ -546,14 +624,19 @@ export const getMissionChain = createServerFn({ method: "GET" })
         // and stops short of the sentence above it, which reports a decision.
         // The route picker is what turns this into that.
         //
+        // IT IS A DIFFERENT FIELD, not a second use of `designSkip`. Reaching
+        // the branch means `newestRoute` is null (a `design_skipped` row took
+        // the branch above; a `design_requested` row is excluded by the test on
+        // this line), so "no route was recorded" in the sentence is a fact this
+        // function established, not a guess. `DESIGN_NOTHING_DRAWN` is the ONE
+        // wording for it: /ship's release document owes the same sentence for
+        // the same state and today prints its own (see the constant's block).
+        //
         // The two cases this must NOT swallow, both of which fall through to
         // missing/pending: a drawing that exists with the gate undecided (a call
         // a human genuinely owes), and a spec routed `design_requested` with
         // nothing drawn yet (design was asked for and has not arrived).
-        designSkip = {
-          at: null,
-          detail: "Nothing was drawn for this spec, so there was no design gate to clear.",
-        };
+        designNotOwed = { detail: DESIGN_NOTHING_DRAWN };
       }
     }
 
@@ -601,6 +684,7 @@ export const getMissionChain = createServerFn({ method: "GET" })
       design: designEvidence,
       designOff,
       designSkip,
+      designNotOwed,
       build: buildChangeset
         ? {
             id: buildChangeset.id,

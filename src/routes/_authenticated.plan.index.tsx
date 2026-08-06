@@ -90,6 +90,8 @@ import type { FleetAgentState } from "@/lib/agent-fleet";
 import { commitRoadmapItem, getRoadmap } from "@/lib/roadmap.functions";
 import { isCommitmentGoverned } from "@/lib/roadmap-governance";
 import { listSpecs } from "@/lib/discovery.functions";
+import { listDesignWork, type DesignWorkRow } from "@/lib/design-scaffold.functions";
+import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
 import { stripAutoPrefix } from "@/components/plan/format";
 import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
@@ -225,6 +227,7 @@ function PlanPage() {
   const [receipt, setReceipt] = React.useState<{ title: string; outcome: string } | null>(null);
   const fFleet = useServerFn(getAgentFleet);
   const fSpecs = useServerFn(listSpecs);
+  const fDesignWork = useServerFn(listDesignWork);
 
   // Same query key as RoadmapColumns, so the head and the gate read the board's
   // cache rather than fetching it a second time.
@@ -237,6 +240,32 @@ function PlanPage() {
   // The same key the retired SpecList held, so every existing writer that
   // invalidates ["prds"] still refreshes this list.
   const specs = useQuery({ queryKey: ["prds"], queryFn: () => fSpecs() });
+  /**
+   * WHAT THE SPEC ROWS CANNOT ASK `listSpecs` FOR, read from the design
+   * station's own list instead.
+   *
+   * A spec row's design suffix has to distinguish three states that
+   * `prds.design_gate_status` alone cannot: a verdict a human wrote, a drawing
+   * sitting on a call nobody has made, and a spec somebody deliberately sent
+   * straight to Build. Only the first is in `listSpecs`
+   * (src/lib/discovery.functions.ts), which selects a fixed column list and
+   * returns neither a `prd_scaffolds` count nor the newest route stage event.
+   *
+   * `listDesignWork` already returns both, per spec, and this is the SAME
+   * `["design-work"]` key /design uses and the spec page already invalidates
+   * (src/routes/_authenticated.plan.spec.$id.tsx:651), so the two surfaces read
+   * one cache and cannot disagree about a spec's drawing.
+   *
+   * TWO LIMITS, BOTH STATED BECAUSE BOTH ARE INVISIBLE TO THE READER. It is
+   * capped at WORK_LIMIT = 40 specs by `updated_at`, and it is pinned to the
+   * caller's default workspace, whereas `listSpecs` takes 300 and is RLS-wide.
+   * A spec outside that window gets no design suffix - the same silence it has
+   * today, never a wrong word. Measured through the Lovable MCP on 2026-08-06,
+   * the busiest workspace in this database holds 8 specs, so the cap is a
+   * factor of five away from biting; the row-level fix that removes both limits
+   * is the `listSpecs` change carried in this wave's needsOtherFiles.
+   */
+  const designWork = useQuery({ queryKey: ["design-work"], queryFn: () => fDesignWork() });
 
   // The bet keeps whichever bucket it is already in. `commitRoadmapItem` also
   // powers the commit-to-Now path, so passing the current bucket is what stops
@@ -266,6 +295,18 @@ function PlanPage() {
   );
 
   const specList = React.useMemo(() => specs.data?.prds ?? [], [specs.data]);
+  // Keyed by spec id. Absent means "the design station's list does not cover
+  // this spec", which is not the same as "nothing is drawn" and never renders
+  // as though it were.
+  const designByPrd = React.useMemo(() => {
+    const m = new Map<string, DesignWorkRow>();
+    for (const r of designWork.data?.items ?? []) m.set(r.prdId, r);
+    return m;
+  }, [designWork.data]);
+  // `workspaces.design_stage_enabled`. With the station off for the workspace,
+  // an undecided gate is not a call anybody owes, so the pending reminder below
+  // is not owed either.
+  const designStageOn = designWork.data?.stageEnabled ?? false;
   const betTitleById = React.useMemo(
     () => new Map(items.map((i) => [i.id, stripAutoPrefix(i.title)])),
     [items],
@@ -508,46 +549,68 @@ function PlanPage() {
                 const bet = spec.opportunity_id ? betTitleById.get(spec.opportunity_id) : null;
                 const settled = spec.status === "approved" || spec.status === "shipped";
                 /**
-                 * THE DESIGN SUFFIX SAYS A VERDICT OR IT SAYS NOTHING.
+                 * THE DESIGN SUFFIX REPORTS A ROW OR IT SAYS NOTHING.
                  *
-                 * It used to read `· design pending` on every unsettled spec,
-                 * because the condition was only "design_gate_status is truthy"
-                 * and `prds.design_gate_status` is `not null default 'pending'`
-                 * (supabase/migrations/20260708170000_sw4_design_station.sql:16).
-                 * So the column was never empty and the suffix never absent.
-                 * Measured live on 2026-08-06: 26 unsettled specs carried the
-                 * label and 2 of them had anything drawn, so 24 of 26 announced
-                 * a design step that was not owed - including bug fixes the
-                 * reader had deliberately routed straight to Build one click
-                 * earlier, on this very surface's own spec page.
+                 * WHAT WAS WRONG. It used to read `· design pending` on every
+                 * unsettled spec, because the condition was only
+                 * "design_gate_status is truthy" and `prds.design_gate_status`
+                 * is `not null default 'pending'`
+                 * (supabase/migrations/20260708170000_sw4_design_station.sql:16),
+                 * so the column was never empty and the suffix never absent.
+                 * Re-measured through the Lovable MCP on 2026-08-06: 81 specs,
+                 * 26 of them unsettled, and all 26 carried a label. Exactly 2 of
+                 * the 26 have anything drawn, so 24 of 26 announced a design
+                 * step that nothing had ever been drawn for.
+                 *
+                 * WHAT THOSE 24 ARE NOT. They are not specs anybody routed past
+                 * Design. The route picker has never been used in this database:
+                 * `stage_events where entity_type = 'spec' and to_stage in
+                 * ('design_skipped','design_requested')` returns 0 rows, on the
+                 * same 2026-08-06 read. The label was announcing a column
+                 * default, which is the whole defect - and the deliberate skip
+                 * the picker records, the case this row now CAN name, has no
+                 * live instance yet to name.
                  *
                  * src/lib/build/design-gate.ts already ruled on this exact
                  * default for dispatch: an unmade drawing does not block. This
-                 * list is that ruling applied to what the list SAYS. 'approved'
-                 * and 'rejected' are only ever written by a human settling the
-                 * gate (`decideDesignGate`), so they are facts. 'pending' is the
-                 * value nobody wrote, so it is not a fact and gets no words.
+                 * list is that ruling applied to what the list SAYS. Every word
+                 * below rests on a row that exists:
+                 *   'approved' / 'rejected'  a human settled the gate
+                 *                            (`decideDesignGate`).
+                 *   skipped on purpose       a `design_skipped` stage event,
+                 *                            written by the route picker.
+                 *   pending                  a `prd_scaffolds` row exists and no
+                 *                            verdict has been written, so the
+                 *                            call is genuinely outstanding.
+                 * 'pending' with nothing drawn is the value nobody wrote. It is
+                 * not a fact and it still gets no words.
                  *
-                 * WHAT THIS ROW STILL CANNOT SAY, and it is the half that needs
-                 * a server change. The product's word for a spec deliberately
-                 * sent past Design is "skipped on purpose"
-                 * (DESIGN_SKIPPED_ON_PURPOSE in src/lib/trust-chain.functions.ts,
-                 * and already on screen at /design and on the spec page). This
-                 * row cannot use it, because `listSpecs`
-                 * (src/lib/discovery.functions.ts) returns neither a
-                 * `prd_scaffolds` count nor the newest `design_skipped` /
-                 * `design_requested` stage event, so a deliberate skip and an
-                 * untouched default arrive here identical. Silence is the honest
-                 * reading of the two until `listSpecs` carries them; a guess
-                 * would only be wrong in a new way.
+                 * THE ORDER IS THE ORDER OF THE EVIDENCE: a written verdict
+                 * beats a recorded skip beats a drawing waiting on a call.
+                 * Those first two ranks are the two the chain of custody
+                 * applies as well (`assembleChain`,
+                 * src/lib/trust-chain.functions.ts), so a spec cannot get one
+                 * answer here and a different one there. The chain has a fourth
+                 * rank this row does not: it SAYS "nothing was drawn" where this
+                 * row stays silent, because a chain link owes an account of
+                 * every station and a one-line list row does not.
                  *
-                 * THE PRICE, STATED. One live spec does have a drawing sitting
-                 * on an undecided gate, and it loses its suffix along with the
-                 * 24 false ones, because this row cannot tell it apart from
-                 * them. That call genuinely IS owed and it is still shown where
-                 * it is made - /design lists it, and the spec page's route
-                 * picker names it. What is lost here is a reminder; what was
-                 * removed is a false claim on 24 other rows.
+                 * THE RESTORED CASE. Spec 60000000-0001-4000-8000-000000000021
+                 * ("Comet: a focus timer that plans your day") is draft, its
+                 * gate is untouched, and it has one drawing - the single live
+                 * spec that genuinely owes a design call. The first pass at this
+                 * fix dropped its reminder along with the 24 false ones, because
+                 * `listSpecs` could not tell it apart from them. Reading
+                 * `listDesignWork` above tells them apart, so the reminder is
+                 * back on the one row where it was always true.
+                 *
+                 * WHEN IT SAYS NOTHING, AND WHY THAT IS SAFE. Every new word
+                 * needs a row the design read actually returned. While that
+                 * query is loading, if it fails, or for a spec outside its
+                 * window (40 by `updated_at`, default workspace only - see the
+                 * query), the row falls back to exactly today's behaviour: the
+                 * verdict from `listSpecs` if there is one, otherwise silence.
+                 * An absent design row is never read as "nothing was drawn".
                  */
                 const designGateStatus = (spec as { design_gate_status?: string | null })
                   .design_gate_status;
@@ -561,7 +624,22 @@ function PlanPage() {
                     : designGateStatus === "rejected"
                       ? "rejected"
                       : null;
-                const withDesignStatus = !settled && designWord ? ` · design ${designWord}` : "";
+                const designRow = designByPrd.get(spec.id) ?? null;
+                // `gateStatus` is re-checked from the design read rather than
+                // trusted from `designWord` alone: the two queries resolve at
+                // different moments, and a reminder for a call somebody just
+                // made would be the old defect in miniature.
+                const designOwed =
+                  designStageOn && !!designRow?.drawing && designRow.gateStatus === "pending";
+                const withDesignStatus = settled
+                  ? ""
+                  : designWord
+                    ? ` · design ${designWord}`
+                    : designRow?.route?.route === "direct"
+                      ? ` · design ${DESIGN_SKIPPED_ON_PURPOSE}`
+                      : designOwed
+                        ? " · design pending"
+                        : "";
                 return (
                   <Row
                     key={spec.id}
@@ -571,8 +649,8 @@ function PlanPage() {
                     marks={<AgentMark slug="prd-writer" state={settled ? "quiet" : "idle"} />}
                     lead={stripAutoPrefix(spec.title)}
                     // One line, one different fact: where the spec has got to,
-                    // which bet it is, and - only when a human actually settled
-                    // it - the design gate's verdict.
+                    // which bet it is, and - only when some row says so - what
+                    // happened at the design gate.
                     sub={
                       bet
                         ? `${specState(spec.status)} · serves ${bet}${withDesignStatus}`

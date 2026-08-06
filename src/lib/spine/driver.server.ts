@@ -37,6 +37,7 @@ import {
   decideDrive,
   holdLine,
   HOLD_LINE,
+  newestSpecId,
   stationCrew,
   stationGoal,
   type HoldReason,
@@ -310,13 +311,16 @@ async function reportLinkFailure(
 }
 
 /**
- * Is the prd -> mission edge on the record?
+ * Is this exact prd -> mission "dispatched" edge on the record?
  *
  * `true` yes, `false` definitely not, `null` nobody could tell. The three-way
- * answer is the point: this is read once BEFORE the write to skip redundant
- * work and once AFTER it to confirm the write landed, and an unreadable table
- * must not be reported as a missing edge. A false alarm on the one signal that
- * says "the grading chain is severed" would make the signal worth ignoring.
+ * answer is the point: an unreadable table must not be reported as a missing
+ * edge. A false alarm on the one signal that says "the grading chain is
+ * severed" would make the signal worth ignoring.
+ *
+ * USED ONLY AS THE READ-BACK AFTER THE WRITE. What decides whether to write at
+ * all is `missionHasSpecParent` below, which asks a deliberately wider question;
+ * the two are not interchangeable and the reason is on that function.
  */
 async function dispatchEdgeExists(
   supabase: SupabaseClient,
@@ -332,6 +336,40 @@ async function dispatchEdgeExists(
       .eq("child_kind", "mission")
       .eq("child_id", missionId)
       .eq("relation", "dispatched")
+      .limit(1)
+      .maybeSingle();
+    if (error) return null;
+    return Boolean((data as { id?: string } | null)?.id);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Does this mission ALREADY have a spec behind it, from any door?
+ *
+ * NO RELATION FILTER AND NO PRD FILTER, and that is the whole point of having a
+ * second function rather than reusing the one above. It asks the same question
+ * the READER asks. `resolvePrdForMission` (src/lib/ai/tools/registry.server.ts)
+ * is what stamps `studio_changesets.prd_id`, and it takes the OLDEST
+ * `prd -> mission` edge for the mission ordered `created_at` ascending, with no
+ * relation filter at all. So "this mission has a spec" is a fact about the whole
+ * edge set, not about the one row this driver would write.
+ *
+ * `true` yes, `false` definitely not, `null` nobody could tell — same contract
+ * as `dispatchEdgeExists`, for the same reason.
+ */
+async function missionHasSpecParent(
+  supabase: SupabaseClient,
+  missionId: string,
+): Promise<boolean | null> {
+  try {
+    const { data, error } = await supabase
+      .from("artifact_lineage")
+      .select("id")
+      .eq("parent_kind", "prd")
+      .eq("child_kind", "mission")
+      .eq("child_id", missionId)
       .limit(1)
       .maybeSingle();
     if (error) return null;
@@ -366,9 +404,17 @@ async function dispatchEdgeExists(
  * IT RUNS ON THE REUSE PATH TOO, not only at creation. The mission is made once
  * and then looked up on every later Build tick; if the edge were written only
  * beside `createMission`, a transient refusal would be permanent, because the
- * next tick takes the early return and never looks again. `recordLineage` is
- * idempotent on its unique index, so re-writing costs nothing and a tick that
- * failed yesterday repairs itself today.
+ * next tick takes the early return and never looks again. Running it every tick
+ * is what lets a tick that failed yesterday repair itself today.
+ *
+ * IT WRITES AT MOST ONE EDGE PER MISSION, though, and that bound is deliberate
+ * rather than incidental. `recordLineage` is idempotent on the UNIQUE KEY only:
+ * on conflict it still updates `rationale`, `created_by_agent` and
+ * `ai_event_id`, so a repeat is a restamp, not a no-op. The guard inside is
+ * therefore "does this mission have a spec parent at all", which both keeps the
+ * driver from contradicting an edge a human wrote and keeps the mission to one
+ * spec parent — the only shape `resolvePrdForMission`'s oldest-first read can
+ * answer unambiguously.
  *
  * WHAT IT DOES NOT DO. The human paths also write a spec-level `stage_events`
  * row (entity "spec", to "build"). This does not; the driver records its own
@@ -406,16 +452,50 @@ async function linkSpecToMissionOrThrow(
   missionId: string,
   agentSlug: string,
 ): Promise<void> {
-  const { data: spec } = await supabase
+  const { data: spec, error: specErr } = await supabase
     .from("spine_track_members")
     .select("artifact_id")
     .eq("track_id", row.id)
     .eq("artifact_kind", "prd")
-    // Newest, because a track sent back to Define for a rewrite files a second
-    // spec and the mission is being built from the one that came back.
+    // NEWEST, and this ordering is only safe because of the `missionHasSpecParent`
+    // guard below. On its own it does NOT do what it used to claim.
+    //
+    // The claim was: "a track sent back to Define for a rewrite files a second
+    // spec and the mission is being built from the one that came back." The
+    // reader inverts that. `resolvePrdForMission` takes the OLDEST prd -> mission
+    // edge, ignoring relation, so once an edge for spec A exists, writing a
+    // second one for spec B changes nothing about what the changeset is stamped
+    // with — it only gives the mission two parents and two stories.
+    //
+    // So the write is now once-per-mission: newest spec AT THE MOMENT THE MISSION
+    // FIRST GETS ONE, and never contradicted afterwards. That makes this pick and
+    // the reader's pick the same row, which is the only property that matters
+    // here. What it costs is stated plainly: a rewrite AFTER the edge exists
+    // leaves the mission pointed at the superseded spec. Nothing in this file can
+    // fix that, because the reader's oldest-first rule is in another module and
+    // an edge cannot be given an earlier timestamp than one already written.
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // A READ THAT FAILED IS NOT A SPEC THAT IS MISSING, and conflating the two is
+  // how this repo has shipped three bugs this week. Destructuring only `data`
+  // here would turn a transport blip or a PostgREST error into `prdId ===
+  // undefined`, drop into the branch below, and file an error event asserting as
+  // fact that the Define station filed nothing — a definite claim about a table
+  // nobody read. It is reported under its own kind so the two are never confused
+  // in `error_events`, and the write is skipped rather than guessed at; the reuse
+  // path re-runs on every Build tick, so a readable table repairs this.
+  if (specErr) {
+    await reportLinkFailure(
+      row,
+      "prd->mission:dispatched:spec-read-failed",
+      `Track ${row.id}: could not read the track's spec members, so mission ${missionId} ` +
+        `was left unlinked this tick and it is NOT known whether a spec was filed: ${specErr.message}`,
+    );
+    return;
+  }
+
   const prdId = (spec as { artifact_id?: string } | null)?.artifact_id;
 
   if (!prdId) {
@@ -432,8 +512,22 @@ async function linkSpecToMissionOrThrow(
     // station that owes a spec did not file one, and Build is about to produce a
     // changeset Ship cannot stamp and Learn cannot grade. It is recorded, so the
     // hole is findable in `error_events` rather than inferred weeks later from an
-    // empty Learn desk. Live on 2026-08-06 this is the state of BOTH tracks that
-    // own a mission, and `prd.draft` refusing a track with no opportunity is why.
+    // empty Learn desk.
+    //
+    // HOW OFTEN IT FIRES TODAY: on nothing, re-measured live on 2026-08-06. An
+    // earlier version of this comment said "this is the state of BOTH tracks that
+    // own a mission", which overstated it. Two tracks own a mission member;
+    // 3fbf73c9 is `status='done'` and the tick selects `status='open'` only
+    // (src/routes/api/public/hooks/track-tick.ts), and ef50b26a is open but sits
+    // at `define`, while this function is only reached when the station is
+    // `build`. Zero open tracks are at Build. It becomes real as the 42 open
+    // tracks that carry `define` on their path arrive there, at roughly one event
+    // per ten-minute tick per track.
+    //
+    // The cause named here has also moved on: `prd.draft` no longer refuses a
+    // track with no opportunity — it takes `opportunity_id` OR `brief` — so a
+    // Define station that files nothing is now a station that did not file, not a
+    // tool that could not be called.
     //
     // The mission is returned either way by the caller. Refusing to build
     // because the grading link is missing would trade a broken record for no
@@ -449,10 +543,37 @@ async function linkSpecToMissionOrThrow(
     return;
   }
 
-  // Skip the redundant write once the edge is on the record. Only a definite
-  // yes short-circuits; an unreadable table falls through to the write, which is
-  // idempotent and therefore safe to repeat.
-  if ((await dispatchEdgeExists(supabase, prdId, missionId)) === true) return;
+  // WRITE ONCE PER MISSION, AND ONLY WHEN WE COULD READ. Two separate reasons,
+  // both of which the previous version of this guard got wrong.
+  //
+  // (1) It asked whether THIS prd's dispatched edge existed. A rewrite therefore
+  // added a second parent that the reader ignores — `resolvePrdForMission` takes
+  // the oldest edge regardless of relation — so the driver reported linking spec
+  // B while the changeset went on being stamped with spec A. Asking whether the
+  // mission has ANY spec parent makes the write agree with the read: the mission
+  // ends with one spec parent and one story. It also means the driver defers to
+  // an edge a human already wrote (build.functions.ts writes the same relation)
+  // rather than restamping it, which is the right way round.
+  //
+  // (2) An unreadable table no longer falls through to the write. `recordLineage`
+  // is NOT idempotent, which is what the old comment claimed: its upsert
+  // (src/lib/lineage.functions.ts) lists `rationale`, `created_by_agent` and
+  // `ai_event_id` in the row, so a conflict UPDATES them. Writing blind on a
+  // failed read could therefore overwrite a human-authored edge's provenance with
+  // "Dispatched by the autonomous driver" and this agent's slug — and lineage
+  // surfaces in this product show `created_by_agent`. Skipping costs one tick;
+  // the reuse path runs again on the next one.
+  const already = await missionHasSpecParent(supabase, missionId);
+  if (already === true) return;
+  if (already === null) {
+    await reportLinkFailure(
+      row,
+      "prd->mission:dispatched:edge-read-failed",
+      `Track ${row.id}: could not read the lineage edges for mission ${missionId}, so the ` +
+        `link to spec ${prdId} was not written this tick rather than written over whatever is there.`,
+    );
+    return;
+  }
 
   await recordLineage(supabase, row.user_id, {
     parent_kind: "prd",
@@ -557,6 +678,24 @@ async function missionForTrack(
   }
 }
 
+/**
+ * The row's route, as the route module understands it.
+ *
+ * THE EMPTY-PATH DEFAULT IS THE SCHEMA'S OWN, not a guess this function makes,
+ * and that is worth stating because `linkSpecToMission` now reads it to decide
+ * whether to assert "Define was on this track's route and filed nothing".
+ * Checked live on 2026-08-06: `spine_tracks.path` is `jsonb NOT NULL DEFAULT
+ * '["sense","decide","define","design","build","ship","learn"]'`, so a track
+ * whose route was never chosen IS a full-path track by the database's own rule,
+ * and falling back to `AGENT_STATION_ORDER` reproduces that rule rather than
+ * inventing one. Zero of the 43 live tracks have an empty or absent path.
+ *
+ * The only row this could misread is one written with an explicit `[]`, which
+ * `validateRoute` rejects as `empty-path` and which nothing in the product
+ * writes. If such a row ever appears, the fallback reads it as full-path and the
+ * spec report above will fire on it; that is the known edge and it is cheaper to
+ * name here than to guard against a state the schema forbids.
+ */
 function routeOf(row: DriveRow): SpineRoute {
   const path = (Array.isArray(row.path) ? row.path : []) as AgentStation[];
   return {
@@ -984,6 +1123,14 @@ export async function driveTrackOnce(
     // driver opens one for it. Every other station is dispatched exactly as
     // before, because a mission they never use would be a noun with no referent
     // cluttering the record.
+    //
+    // ONE CONSEQUENCE IS LOAD-BEARING AT LEARN, and it is named here because a
+    // reader arriving at this line is the one who needs it: `missionId` is null
+    // at Learn, so `learning.record`'s mission -> decision -> spec recovery
+    // cannot fire on this route. Hoisting the mission out of this ternary is NOT
+    // the fix — it revives the first hop and the second stays dead, because
+    // `decisions.prd_id` is null by construction at Decide. The fix is `specId`
+    // in the loop below.
     const missionId =
       station === "build" ? await missionForTrack(supabase, row, decision.agentSlug) : null;
 
@@ -1007,9 +1154,34 @@ export async function driveTrackOnce(
         break;
       }
 
+      // THE SPEC LEARN GRADES AGAINST, named in the brief because nothing else
+      // can supply it on this route.
+      //
+      // `learning.record` resolves a missing `prd_id` through
+      // mission -> decision -> spec. That recovery is unreachable here and
+      // hoisting the mission out of the Build ternary above would not revive it:
+      // it would revive the first hop only, because `decision.record` at Decide
+      // has no spec to name and `decisions.prd_id` is null by construction on
+      // this route. So the durable fix is the one below — hand the analyst the
+      // id and tell it, in `stationGoal`, to pass it. Live: the one track that
+      // completed the loop autonomously recorded two verdicts with prd_id,
+      // opportunity_id and mission_id all null.
+      //
+      // Read off `brief`, not with a query. It is the same list the agent is
+      // being shown, so the brief can never name a spec the agent was not given,
+      // and it grows as the crew files.
+      const specId = newestSpecId(brief);
+
       const result = await runAgentLoop(supabase, row.user_id, {
         agentSlug: seat.slug,
-        goal: stationGoal(station, { title: row.title, origin: row.origin }, brief, seat, backNote),
+        goal: stationGoal(
+          station,
+          { title: row.title, origin: row.origin },
+          brief,
+          seat,
+          backNote,
+          specId,
+        ),
         workspaceId: row.workspace_id,
         missionId,
         // So every run is attributable to the work it was doing. This is what

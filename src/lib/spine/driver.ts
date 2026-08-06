@@ -119,7 +119,16 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   // 03 Plan
   "prd-writer": {
     job: "Write the spec: the outcome it moves, and how anyone would know it worked. That is what the outcome gets graded against later.",
-    file: "Call prd.draft with the spec body. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
+    // NAME THE ARGUMENTS THE TOOL ACTUALLY HAS. This read "call prd.draft with
+    // the spec body" and `prd.draft` has never accepted a body: its schema is
+    // {opportunity_id?, brief?, title?, audience?} and it writes the body itself
+    // from its own model call. Live agent_runs showed prd-writer composing a
+    // full {opportunity_id, body, problem, goals} payload and hitting the step
+    // limit before the call landed — the founder billed for a spec body the tool
+    // discards, and `spine_track_members` holding zero rows of kind 'prd' across
+    // all 43 tracks. A brief that instructs an impossible call is worse than no
+    // brief, because the agent obeys it.
+    file: "Call prd.draft with `opportunity_id`, the bet this work belongs to. If Decide was waived and no bet exists, pass `brief` instead — what the work is and why it exists, in your own words. It writes the spec body itself, so do not compose one to pass in. A spec that is only in your answer is not on the record and Design and Build cannot read it.",
   },
   "sprint-planner": {
     job: "Break the spec above into the work it actually implies. Do not invent scope the spec does not ask for.",
@@ -155,7 +164,16 @@ const CREW_ROLE: Record<string, { job: string; file: string }> = {
   // 07 Learn
   "data-analyst": {
     job: "Grade the outcome against what the spec above said it was for. Record the verdict even when it is a miss; a miss recorded honestly is worth more than a win claimed loosely.",
-    file: "Call learning.record with the verdict. A grade that is only in your answer never reaches the next piece of work.",
+    // `prd_id` IS NAMED HERE BECAUSE NOTHING ELSE CAN SUPPLY IT ON THIS ROUTE.
+    // learning.record falls back to mission -> decision -> spec when the agent
+    // omits prd_id, and that fallback cannot fire for a driver-run track: the
+    // driver attaches a mission only at Build, so `missionId` is null at Learn.
+    // The second hop is dead there too, because decision.record at Decide has no
+    // spec to name and `decisions.prd_id` is null by construction. So the
+    // agent's own argument is the ONLY link that can exist, and a verdict
+    // recorded without it attaches to nothing and re-ranks nothing.
+    // `stationGoal` names the exact id when the track has filed one.
+    file: "Call learning.record with the verdict, and pass `prd_id` — the spec this work was graded against. Without it the grade attaches to no spec, so it can never move the bet behind it. A grade that is only in your answer never reaches the next piece of work.",
   },
   "insight-keeper": {
     job: "Say what this outcome means for the NEXT piece of work. Generalise beyond this one bet without overclaiming from a single result.",
@@ -350,6 +368,10 @@ export function describeUpstream(upstream: UpstreamArtifact[]): string {
  * writing one into its final answer, where nothing reads it and nothing can be
  * handed forward; that is exactly what Plan did on 2026-08-01. A station's
  * output is the row it wrote, so the brief says so.
+ *
+ * AND, AT LEARN ONLY, WITH THE ARGUMENT ITSELF. The filing instruction names the
+ * tool; `specId` names the one value the Learn agent cannot derive on this route
+ * and that decides whether its verdict attaches to anything. See `newestSpecId`.
  */
 export function stationGoal(
   station: AgentStation,
@@ -369,6 +391,18 @@ export function stationGoal(
    * it is an instruction about what to file.
    */
   correction: string | null = null,
+  /**
+   * The spec this track filed, named so Learn can attach its verdict to it.
+   *
+   * ONLY LEARN USES IT, because `prd_id` is an argument of `learning.record` and
+   * of nothing else in the filing instructions. Every other station either wrote
+   * the spec itself or reads it out of the handoff above.
+   *
+   * It is passed rather than derived here so this function stays a total
+   * function of its arguments — `newestSpecId` is the deriver and the driver
+   * calls it — and so a caller that knows better can name a different spec.
+   */
+  specId: string | null = null,
 ): string {
   const why = track.origin ? ` It exists because: ${track.origin}` : "";
   const subject = `"${track.title}".${why}`;
@@ -383,7 +417,17 @@ export function stationGoal(
   const file = seat?.file ?? FILE_IT[station];
   const back = correction?.trim() ? `\n\n${correction.trim()}` : "";
 
-  return `${stationJob(station, subject)}${mine}${prior}${back}\n\n${file}`;
+  // THE ID ITSELF, not a description of where to find it. The filing
+  // instructions already tell Learn to pass `prd_id`; an agent told to pass an
+  // argument it has to go and find is an agent that spends steps finding it, and
+  // the Define station's own budget burn is what that costs. Sits immediately
+  // after the filing instruction because it is part of the same instruction.
+  const named =
+    station === "learn" && specId
+      ? `\n\nThe spec this work was written against is ${specId}. Pass exactly that as \`prd_id\`.`
+      : "";
+
+  return `${stationJob(station, subject)}${mine}${prior}${back}\n\n${file}${named}`;
 }
 
 const FILE_IT: Record<AgentStation, string> = {
@@ -391,16 +435,45 @@ const FILE_IT: Record<AgentStation, string> = {
     "Finish by filing what you found: call signals.log for each piece of evidence, and research.synthesize or cluster.trigger to group them. A finding that is only in your answer is not on the record and the next station cannot read it.",
   decide:
     "Finish by calling decision.record with the alternatives you weighed. A decision that is only in your answer is not on the record and the next station cannot read it.",
+  // Same correction as the `prd-writer` seat above, and it has to be made in
+  // both places: this is the fallback used when a station has no crew entry, and
+  // a fallback that names an argument the tool does not have is the same defect
+  // wearing a different key.
   define:
-    "Finish by calling prd.draft with the spec body, then tasks.create for the work it implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
+    "Finish by calling prd.draft with `opportunity_id`, the bet this work belongs to — or with `brief`, what the work is and why it exists, when Decide was waived and no bet was ever filed. It writes the spec body itself. Then call tasks.create for the work the spec implies. A spec that is only in your answer is not on the record and the next station cannot read it.",
   design:
     "Finish by calling design.draft with the surface you designed. A design that is only in your answer is not on the record and the next station cannot read it.",
   build:
     "Finish by calling studio.stage with the change you made. Work that is only in your answer is not on the record and cannot be shipped.",
   ship: "Finish by calling release.publish so the release can be pointed at. A release that is only in your answer did not happen.",
   learn:
-    "Finish by calling learning.record with the verdict. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
+    "Finish by calling learning.record with the verdict, and pass `prd_id` — the spec this work was graded against — so the grade attaches to it. A grade that is only in your answer is not on the record and never reaches the next piece of work.",
 };
+
+/**
+ * The newest spec on this track's record, or null.
+ *
+ * THE ARGUMENT THE LEARN STATION CANNOT DERIVE FOR ITSELF. `learning.record`
+ * takes an optional `prd_id` and recovers it from mission -> decision -> spec
+ * when the agent omits it; on the autonomous route that recovery is unreachable,
+ * because the driver attaches a mission at Build only, so `missionId` is null at
+ * Learn. Naming the id in the brief is what closes that, and it is why
+ * `stationGoal` takes it.
+ *
+ * Read off the handoff rather than from a second query, deliberately. The
+ * upstream list is already loaded, is already ordered oldest first, and — unlike
+ * a raw `spine_track_members` read — has already dropped any member whose
+ * artifact row is gone. So this can only ever name a spec the analyst can
+ * actually open. That is the opposite requirement from the spec lookup in
+ * `linkSpecToMission`, which must name the id even when the row behind it cannot
+ * be read, because a lineage edge is a pointer and not a reading.
+ */
+export function newestSpecId(upstream: UpstreamArtifact[]): string | null {
+  for (let i = upstream.length - 1; i >= 0; i -= 1) {
+    if (upstream[i].kind === "prd") return upstream[i].id;
+  }
+  return null;
+}
 
 /** The outcome half of the brief, without the filing instruction. */
 function stationJob(station: AgentStation, subject: string): string {

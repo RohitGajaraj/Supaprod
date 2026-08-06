@@ -32,24 +32,46 @@
  *      checklist ticked on Monday cannot reopen itself on Thursday.
  *
  * SO STATIONS ARE NOT SKIPPED, THEY ARE WAIVED. Every waiver carries a reason
- * and a `reopensWhen` condition, and a human may waive or reopen by hand at any
- * time — that is honoured exactly (`by: "human"`, `reopensWhen: "never"`), so
- * the founder's literal ask survives as a manual override.
+ * and a `reopensWhen` condition. The MODEL honours the founder's literal ask —
+ * a human waiver is recorded as exactly that (`by: "human"`,
+ * `reopensWhen: "never"`) rather than being flattened into a policy rule — but
+ * only the waive half of that override has a working door. See the next
+ * paragraph before relying on the other half.
  *
- * HALF OF THAT IS BUILT AND HALF IS NOT, corrected 2026-08-06 because the
- * paragraph above used to read "a waiver CAN EXPIRE ... a condition that brings
- * the station back" and nothing in the product brings one back.
+ * HALF OF THAT IS BUILT AND HALF IS NOT, and this paragraph has now been wrong
+ * twice. It first read "a waiver CAN EXPIRE ... a condition that brings the
+ * station back", and nothing brought one back. The 2026-08-06 correction then
+ * asserted that `setStationWaiver` "lets a PERSON reopen a station whenever they
+ * decide the waiver stopped being true", and that is not true either. What
+ * follows was checked symbol by symbol on 2026-08-06 and is what the code does:
  *
- *   BUILT: the reason and the condition are recorded on every waiver, the
- *   route is honoured end to end by `nextStation`, and `setStationWaiver`
- *   (./track.functions.ts) lets a PERSON reopen a station whenever they decide
- *   the waiver stopped being true.
+ *   BUILT: the reason and the condition are recorded on every waiver; `waive`
+ *   and `reopen` below are total pure functions with unit tests
+ *   (./route.test.ts); and the route is honoured end to end by `nextStation`.
  *
- *   NOT BUILT: nothing evaluates `reopensWhen`. `applyTrigger` below is the
- *   function that would, and it has no production caller — the loop never
- *   derives a trigger from what a station filed, so a waiver granted at track
- *   start stands until a human reopens it. Today the condition is a stated
- *   intention a reader can audit, not a rule the system enforces.
+ *   NOT BUILT: NOTHING BRINGS A WAIVED STATION BACK — not on a trigger, and not
+ *   by hand either. Two independent gaps, both verified rather than assumed:
+ *
+ *     - NO EVALUATOR. Nothing reads `reopensWhen`. `applyTrigger` below is the
+ *       function that would, and it has no production caller: the loop never
+ *       derives a trigger from what a station filed.
+ *
+ *     - NO DOOR FOR A PERSON. `setStationWaiver` (./track.functions.ts:427) is
+ *       the only server function that would un-waive a station, and a repo-wide
+ *       grep finds no caller of it whatsoever: no UI, no route, no test. (The
+ *       control grep is `attachToTrack`, which this repo already documents as
+ *       caller-less; it returns the same shape, so the zero is real and not a
+ *       search that missed.) And a caller alone would not be enough: that
+ *       handler hard-codes `reopensWhen: "never"` on every human waiver it
+ *       writes (:463) and then calls `reopen` with NO `force` on its un-waive
+ *       branch (:465), which `reopen` refuses at :364 below. It would go on to
+ *       write the unchanged path and waived list and return `problems: []` —
+ *       a no-op reported as a success.
+ *
+ *   So a waiver is a one-way door today, and `reopensWhen` is a stated intention
+ *   a reader can audit rather than a rule the system enforces. Closing it takes
+ *   two changes, neither of them in this file: `{ force: true }` on
+ *   setStationWaiver's un-waive branch, and a surface that calls it.
  *
  * The ambition stands and the reason for it is unchanged: a route that corrects
  * itself is an operating system and a checklist is a workflow tool, and the
@@ -77,11 +99,16 @@ export type WaiverSource = "policy" | "human" | "agent";
  * What would bring a waived station back onto the path.
  *
  * A closed vocabulary rather than free text, because these are meant to be
- * evaluated by machine — `applyTrigger` is the evaluator and it has no caller
- * yet, so today every reopen is a person's (corrected 2026-08-06). `never` is
- * the manual override and is the one value that stays true under a future
- * wiring: a person said no and meant it, and `reopen` refuses it without
- * `force`.
+ * evaluated by machine — `applyTrigger` is the evaluator and it has no caller.
+ * That does NOT leave a manual path standing in its place: the person's door,
+ * `setStationWaiver`, is itself uncalled and passes no `force`, so no reopen
+ * happens by any route today. The module header has the verification.
+ * (Corrected twice: this first implied the evaluation happened, then said every
+ * reopen was a person's.)
+ *
+ * `never` is the value a human waiver is written with, and it is the one value
+ * that stays true under a future wiring: a person said no and meant it, and
+ * `reopen` refuses it without `force`.
  */
 export type ReopenTrigger =
   | "touches-interface" // the work turns out to change something a user sees
@@ -207,10 +234,16 @@ const SHAPES: Record<WorkShape, ShapeSpec> = {
   // sees this" is a claim about the work, and the claim is often wrong.
   //
   // The condition below SAYS it reopens when the work touches an interface. It
-  // does not do so on its own: nothing evaluates `reopensWhen` today, so this
-  // records the intention and a person reopens Design through setStationWaiver
-  // when Build turns out to have touched a screen. See `applyTrigger`.
-  // (Corrected 2026-08-06; this comment previously asserted the reopen happened.)
+  // does not, and nothing else does it either. Nothing evaluates `reopensWhen`
+  // (`applyTrigger` has no caller), and there is no manual fallback to lean on:
+  // `setStationWaiver` is the only function that could put Design back on this
+  // route and it has no caller and passes no `force`. See the module header.
+  //
+  // So on today's code, a track that waives Design and then turns out to change
+  // a screen builds that screen with no design station and no way to add one.
+  // This records the intention; that is the whole of what it does.
+  // (Corrected twice: this first asserted the reopen happened, then asserted a
+  // person could do it by hand.)
   "under-the-hood": {
     entry: "define",
     waive: [
@@ -313,6 +346,13 @@ export function waive(
  *
  * A `never` waiver is the one thing it will not override on its own; that takes
  * an explicit human reopen, which is what `force` is for.
+ *
+ * THE PURE HALF OF A DOOR NOBODY OPENS, stated here so a reader does not infer
+ * a working feature from a working function. Its only non-test callers are
+ * `applyTrigger` below, which has no caller, and `setStationWaiver`
+ * (./track.functions.ts:465), which has no caller either and passes no `force`
+ * — so `force` is exercised by ./route.test.ts:135 and by nothing in
+ * production. This function is ready; the route back is not built.
  */
 export function reopen(
   route: SpineRoute,
@@ -335,10 +375,16 @@ export function reopen(
  * NOT WIRED. NOTHING CALLS THIS IN PRODUCTION — corrected 2026-08-06, when the
  * text here still read "the agent calls this when it learns something about the
  * work ... reopening is automatic". No agent calls it and nothing is automatic:
- * `driveTrackOnce` never derives a `ReopenTrigger` from what a station filed, so
- * the only reopen that ever happens is the human one through
- * `setStationWaiver`. The function itself is correct and unit-tested
- * (./route.test.ts); it has no door.
+ * `driveTrackOnce` never derives a `ReopenTrigger` from what a station filed.
+ *
+ * AND THERE IS NO HUMAN REOPEN TO FALL BACK ON, which the first correction to
+ * this block got wrong. It said "the only reopen that ever happens is the human
+ * one through `setStationWaiver`"; `setStationWaiver` has no caller anywhere in
+ * the repo and its un-waive branch passes no `force`, so on today's code NO
+ * reopen happens by any route at all. The module header carries the checks.
+ *
+ * The function itself is correct and unit-tested (./route.test.ts); it has no
+ * door.
  *
  * WHY IT WAS LEFT UNWIRED RATHER THAN CONNECTED, decided 2026-08-06. The
  * mechanism it needs does not exist yet, and connecting it would trade a missing

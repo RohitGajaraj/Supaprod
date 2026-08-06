@@ -12,6 +12,7 @@ import {
 } from "@/lib/sensing/trigger";
 import { withJobRun } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { runAgentLoop } from "@/lib/ai/loop.server";
 
 /**
  * AMBIENT-TRIGGER (v11 #4) + SF-AUTOTRIGGER (Phase 3) trigger-tick.
@@ -21,27 +22,49 @@ import { recordStageEvent } from "@/lib/stage-events.server";
  * TIER 1 — HITL proposals (always on when auto_trigger_enabled=true):
  *   For every opted-in workspace, evaluates accumulated state (clusters, missed
  *   outcomes, signal volumes) and self-originates missions with status='proposed'.
- *   A proposed mission costs ZERO AI spend; the resume-runs executor ignores it
- *   until a human promotes it to 'queued'/'running'.
+ *   A proposed mission costs ZERO AI spend; nothing drives it until somebody
+ *   launches it — a person through promoteMission (src/lib/missions.functions.ts)
+ *   or Tier 2 below.
  *
- * TIER 2 — Auto-promotion (SF-AUTOTRIGGER, activated by BRAIN_AUTO_TRIGGER=1):
+ * TIER 2 — Auto-LAUNCH (SF-AUTOTRIGGER, activated by BRAIN_AUTO_TRIGGER=1):
  *   After creating a proposed mission, if all four conditions hold, it is
- *   immediately promoted to 'queued' so the resume-runs sweeper picks it up:
+ *   launched on the spot — flipped to 'running' and handed to the orchestrator:
  *     1. BRAIN_AUTO_TRIGGER=1  — founder's circuit breaker (default OFF)
  *     2. proposal.reversible   — only analysis missions (Watch/Listen), not write ops
  *     3. ambient arc           — no missions currently running/in_progress in workspace
  *     4. daily cap             — fewer than AUTO_TRIGGER_DAILY_CAP auto-runs today
- *   The promotion is recorded via auto_trigger_source='auto' on the mission row
- *   and annotated on the Trust-Ledger decision receipt for full auditability.
- *   loop.server.ts is NOT touched — promotion is a DB status write here.
+ *   The launch is recorded via auto_trigger_source='auto' on the mission row and
+ *   annotated on the Trust-Ledger decision receipt for full auditability.
  *
- * Bounded: ≤5 workspaces per tick, ≤5 proposals per workspace, idempotent on title.
+ *   THIS TIER USED TO WRITE status='queued' AND STOP THERE, and that is why it is
+ *   worded as a launch now. Nothing in this product consumes a mission at
+ *   'queued': resume-runs advances running/in_progress, maybeCompleteMission
+ *   finalizes running/in_progress, and the mission page read 'queued' as
+ *   already-live. It was a terminal state wearing a non-terminal label, and this
+ *   line wrote 6 of the 8 missions found stranded there on 2026-08-06 (the other
+ *   2 came from the human button, fixed in the same wave). Tier 2 now makes the
+ *   same two moves the human path makes, in the same order, rather than a second
+ *   launch mechanism: guarded flip to 'running', then one orchestrator run to
+ *   plan and dispatch wave 0. The deterministic engine carries it from there.
+ *
+ * Bounded: ≤5 workspaces per tick, ≤5 proposals per workspace, idempotent on
+ * title, and — since a launched mission fills its own workspace's ambient arc —
+ * at most ONE auto-launch per workspace per tick.
  */
 
 /** Set BRAIN_AUTO_TRIGGER=1 in Lovable project settings to activate auto-promotion. */
 const BRAIN_AUTO_TRIGGER = process.env.BRAIN_AUTO_TRIGGER === "1";
 
 const MAX_WORKSPACES = 5;
+/* Open = this workspace already has this work in hand, so do not re-propose it.
+ *
+ * 'queued' is KEPT here and is now legacy-only: nothing writes it any more (this
+ * file was the last writer, see Tier 2 below), but 8 rows were left at it and a
+ * restored backup could hold more. They must keep suppressing their own
+ * re-proposal while they exist — and note the suppression is only temporary now
+ * that resume-runs adopts a 'queued' mission into 'running': it lifts by itself
+ * when the mission reaches a terminal status, which is exactly what could never
+ * happen while the row sat at 'queued' with nothing able to move it. */
 const OPEN_MISSION_STATUSES = ["proposed", "queued", "running", "in_progress", "waiting_approval"];
 
 export const Route = createFileRoute("/api/public/hooks/trigger-tick")({
@@ -223,8 +246,11 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         .from("missions")
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", workspaceId)
-        // queued = scheduled (starts imminently); blocked = stalled mid-sprint on a gate.
-        // Both are active mid-sprint states, same as running/in_progress/waiting_approval.
+        // blocked = stalled mid-sprint on a gate, an active state like
+        // running/in_progress/waiting_approval. 'queued' is legacy-only (see
+        // OPEN_MISSION_STATUSES above): nothing writes it now, and a leftover row
+        // is counted here so a workspace holding one is not treated as idle
+        // before resume-runs adopts it.
         .in("status", ["running", "in_progress", "waiting_approval", "queued", "blocked"]),
       // Daily cap: count auto-promoted missions created today (created_at is immutable;
       // updated_at can drift as a mission runs/completes, which would falsely inflate the cap).
@@ -328,9 +354,9 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
     }
     written++;
 
-    // 3. SF-AUTOTRIGGER: auto-promote proposed→queued when all four conditions hold.
-    //    Increment autoTodayCount immediately so the cap is enforced within this tick
-    //    (prevents two proposals in the same tick both seeing count < cap).
+    // 3. SF-AUTOTRIGGER: auto-LAUNCH this proposal when all four conditions hold.
+    //    Both in-tick counters move the moment the flip lands, so the cap and the
+    //    ambient arc are enforced within this tick and not just across ticks.
     if (
       shouldAutoPromote({
         flagEnabled: BRAIN_AUTO_TRIGGER,
@@ -339,41 +365,68 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         autoTodayCount,
       })
     ) {
-      const capNote = `[auto-promoted: ambient + reversible + cap ${autoTodayCount + 1}/${AUTO_TRIGGER_DAILY_CAP}]`;
+      const capNote = `[auto-launched: ambient + reversible + cap ${autoTodayCount + 1}/${AUTO_TRIGGER_DAILY_CAP}]`;
       // NOTE(MEDIUM-1): ambient + cap counts are read once per tick with no DB-level lock.
       // Two concurrent ticks could both pass the cap check (worst-case: 2x cap promotions).
       // Acceptable for v1 (feature behind BRAIN_AUTO_TRIGGER flag, default OFF).
       // TODO: use pg_advisory_lock or a DB function for atomic check-and-promote.
-      const [mRes, dRes] = await Promise.all([
-        supabaseAdmin
-          .from("missions")
-          .update({ status: "queued", auto_trigger_source: "auto" } as never)
-          .eq("id", missionId),
-        supabaseAdmin
-          .from("decisions")
-          .update({ status: "approved", rationale: p.rationale + " " + capNote } as never)
-          .eq("mission_id", missionId),
-      ]);
-      if (mRes.error) {
-        console.error("[SF-AUTOTRIGGER] mission status flip failed", {
+
+      /* THE FLIP IS TO 'running', NOT 'queued', AND IT IS READ BACK.
+       *
+       * Why 'running': see Tier 2 in the file docblock. 'queued' is a label no
+       * consumer in this product acts on, and this line is where 6 of the 8
+       * stranded missions were written.
+       *
+       * Why .select("id"): supabase-js RESOLVES a refused write, so an RLS
+       * refusal or a lost race against another tick returns error null and an
+       * EMPTY row set. Without reading the rows back, that is indistinguishable
+       * from a successful launch, and we would go on to spend an orchestrator
+       * run on a mission whose status never moved. The .eq("status","proposed")
+       * guard is the CAS: this row was inserted as 'proposed' a few lines up,
+       * and if anything else has touched it since, this tick is not the launcher. */
+      const { data: launched, error: flipErr } = await supabaseAdmin
+        .from("missions")
+        .update({
+          status: "running",
+          auto_trigger_source: "auto",
+          updated_at: new Date().toISOString(),
+        } as never)
+        .eq("id", missionId)
+        .eq("status", "proposed")
+        .select("id");
+      if (flipErr || !launched || launched.length === 0) {
+        console.error("[SF-AUTOTRIGGER] mission launch flip failed", {
           missionId,
-          err: mRes.error.message,
+          err: flipErr?.message ?? "write refused or status already moved (no row updated)",
         });
       } else {
-        autoTodayCount++; // mission IS queued; count even if decision receipt update failed
+        autoTodayCount++; // mission IS launched; count even if the receipt update fails below
+        /* The workspace is no longer idle, so condition 3 (ambient arc) is now
+         * false for the rest of this tick. That is the rule's own meaning, and it
+         * also bounds this cron to one orchestrator run per workspace per tick —
+         * which matters because the launch below is a full model loop inside a
+         * Worker invocation, not a status write. */
+        ambientCount++;
         await recordStageEvent(supabaseAdmin, {
           entityType: "mission",
           entityId: missionId,
           from: "proposed",
-          to: "queued",
+          to: "running",
           actor: p.agentSlug ?? "strategist",
           workspaceId,
           userId: ownerId,
         });
-        if (dRes.error) {
+
+        // The receipt is updated BEFORE the loop runs, so the audit record is
+        // complete even if the Worker is evicted mid-launch.
+        const { error: dErr } = await supabaseAdmin
+          .from("decisions")
+          .update({ status: "approved", rationale: p.rationale + " " + capNote } as never)
+          .eq("mission_id", missionId);
+        if (dErr) {
           console.error("[SF-AUTOTRIGGER] decision receipt update failed, audit gap", {
             missionId,
-            err: dRes.error.message,
+            err: dErr.message,
           });
         } else if (decisionId) {
           await recordStageEvent(supabaseAdmin, {
@@ -385,6 +438,65 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
             workspaceId,
             userId: ownerId,
           });
+        }
+
+        /* START THE WORK. Everything here mirrors promoteMission's launch step
+         * (src/lib/missions.functions.ts), which mirrors startOrchestratedMission
+         * — one launch mechanism, three doors into it. */
+        try {
+          // Self-healing, as both of those paths do before their own runAgentLoop:
+          // seed_default_agents seeds 'orchestrator' at signup, but an account
+          // restored from an older backup would otherwise fail here forever with
+          // "Unknown agent: orchestrator". Idempotent; cheap.
+          const { error: seedErr } = await supabaseAdmin.rpc("seed_orchestrator_agent", {
+            p_user_id: ownerId,
+          });
+          if (seedErr) throw new Error(`seed orchestrator failed: ${seedErr.message}`);
+          await runAgentLoop(supabaseAdmin, ownerId, {
+            agentSlug: "orchestrator",
+            goal: p.goal,
+            missionId,
+            workspaceId,
+          });
+        } catch (e) {
+          /* A launch that threw must not leave the mission at 'running' with no
+           * run and no plan. resume-runs would eventually re-plan it, but the
+           * cause is known HERE and nowhere else, so halt it here.
+           *
+           * The halt-mark is itself a write and gets both checks: a refused halt
+           * that went unread would leave the row at 'running' while the stage
+           * event below asserted running→halted, which is a worse record than no
+           * record. The stage event is only written when a row actually moved. */
+          const { data: haltedRows, error: haltErr } = await supabaseAdmin
+            .from("missions")
+            .update({ status: "halted", updated_at: new Date().toISOString() })
+            .eq("id", missionId)
+            .eq("status", "running")
+            .select("id");
+          if (haltErr || !haltedRows || haltedRows.length === 0) {
+            console.error("[SF-AUTOTRIGGER] launch failed AND the halt-mark did not land", {
+              missionId,
+              launchErr: e instanceof Error ? e.message : String(e),
+              haltErr: haltErr?.message ?? "write refused or status already moved",
+            });
+          } else {
+            console.error("[SF-AUTOTRIGGER] launch failed, mission halted", {
+              missionId,
+              err: e instanceof Error ? e.message : String(e),
+            });
+            await recordStageEvent(supabaseAdmin, {
+              entityType: "mission",
+              entityId: missionId,
+              from: "running",
+              to: "halted",
+              actor: "system",
+              workspaceId,
+              userId: ownerId,
+            });
+          }
+          // Deliberately not rethrown: one workspace's failed launch must not
+          // abort the remaining proposals in this tick. The caller's per-workspace
+          // try/catch is for unexpected faults, not for a handled one.
         }
       }
     }

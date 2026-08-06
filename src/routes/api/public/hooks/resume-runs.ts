@@ -14,7 +14,14 @@ import { DEFAULT_STUCK_MS, isRunStuck, stuckReason } from "@/lib/reliability/stu
 const admin = supabaseAdmin as unknown as SupabaseClient;
 
 /**
- * Resume-runs sweeper — picks up missions that need to advance:
+ * Resume-runs sweeper.
+ *
+ * THE STATUSES BELOW ARE agent_runs STATUSES, NOT MISSION STATUSES, and the two
+ * vocabularies share their words. Reading this list as missions is what let a
+ * mission stranded at missions.status='queued' look swept: the first bullet is
+ * `agent_runs.status='queued'` (see the select on agent_runs further down) and
+ * nothing here selected a mission by that status at all until the adoption pass
+ * added below. The runs this picks up to resume:
  *   - status='queued' (backpressure-enqueued + Studio async dispatch)
  *   - status='running' with a stale last_checkpoint_at (worker eviction)
  *   - status='running' with NO last_checkpoint_at and a stale created_at
@@ -25,7 +32,9 @@ const admin = supabaseAdmin as unknown as SupabaseClient;
  *   - status='running' with 0 mission_steps and 0 active agent_runs
  *     (KI-17: chat.ts fires runAgentLoop fire-and-forget; Worker may
  *     terminate before orchestrator planning completes — re-plan here)
- * Plus BLD-GATE-SYNC mission-status reconciliation (deterministic, no AI):
+ * Plus, on MISSIONS: adoption of missions.status='queued' into 'running' (the
+ * dead-label pass below), and BLD-GATE-SYNC status reconciliation
+ * (deterministic, no AI):
  *   - un-block missions whose human gate is now decided (status 'blocked'
  *     → 'running'), BEFORE the resume pass so a resuming/completing run sees
  *     a 'running' mission (maybeCompleteMission only finalizes running ones)
@@ -45,8 +54,9 @@ const MISSION_BATCH = Math.max(1, Number(process.env.MISSION_ADVANCE_BATCH) || 5
 // Cap on unplanned mission re-planning per tick. Each call triggers an
 // orchestrator AI loop (expensive); 2 is intentionally conservative.
 const REPLAN_BATCH = 2;
-// Starvation guard: an unplanned mission (no steps, no active run) older than
-// this has failed to plan on every re-plan retry for too long. It is marked
+// Starvation guard: an unplanned mission (no steps, no active run) that has been
+// LAUNCHED for longer than this — measured from updated_at, see the give-up test
+// below — has failed to plan on every re-plan retry for too long. It is marked
 // 'halted' so it can never permanently monopolize the fixed REPLAN_BATCH slots
 // and starve fresh dispatches behind it. Env-tunable; 20 minutes by default.
 const ABANDON_MS = Math.max(60_000, Number(process.env.REPLAN_ABANDON_MS) || 20 * 60 * 1000);
@@ -239,6 +249,91 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
               }
             }
 
+            /* ---- MISSIONS WEARING THE DEAD 'queued' LABEL ----
+             *
+             * A mission at status='queued' is stopped, permanently, and looks
+             * live while it is: the advance pass below selects running/in_progress,
+             * maybeCompleteMission finalizes running/in_progress, and the mission
+             * page read 'queued' as already-running. Eight rows sat there — six
+             * written by the trigger-tick's auto-promote, two by the old human
+             * launch button, the oldest from 2026-07-05. Both writers now launch
+             * into 'running' instead, so this pass is the safety net rather than
+             * the fix: it exists so that a 'queued' mission from a restored backup,
+             * or from a writer added later, is moved within a minute instead of
+             * disappearing.
+             *
+             * ADOPTION, NOT A SECOND EXECUTION PATH. It only relabels the mission
+             * to the one status the whole engine keys on. The existing passes then
+             * treat it exactly like any other running mission: advance dispatches
+             * its ready steps, and the KI-17 re-plan below plans it if it never
+             * got a DAG.
+             *
+             * WHY NOT SIMPLY ADD 'queued' TO THE RE-PLAN SELECT BELOW, which is
+             * the narrower change: re-planning a mission that is still labelled
+             * 'queued' plans it and dispatches wave 0, and then nothing advances it
+             * to wave 1 (the advance pass would still not select it) and nothing
+             * can ever complete it. That trades a visible dead end for a quieter
+             * one, which is the worse bug.
+             *
+             * PAIRED WITH THE STALENESS TEST at the re-plan pass below, and the two
+             * must stay paired. This write stamps updated_at, and the give-up test
+             * there now measures from updated_at rather than created_at — so an
+             * adopted mission gets the full ABANDON_MS to be planned. Measured
+             * against created_at, every one of those eight (weeks old) would have
+             * been halted on the same tick that rescued it. */
+            const adopted: string[] = [];
+            const { data: strandedQueued, error: strandedErr } = await admin
+              .from("missions")
+              .select("id,workspace_id,user_id")
+              .eq("status", "queued")
+              .order("updated_at", { ascending: true })
+              .limit(MISSION_BATCH);
+            if (strandedErr) {
+              // An unread error is not evidence of absence: say the read failed
+              // rather than let an empty list read as "nothing was stranded".
+              console.error(
+                "[resume-runs] queued-mission read failed, adoption skipped this tick:",
+                strandedErr.message,
+              );
+            }
+            for (const qm of (strandedQueued ?? []) as {
+              id: string;
+              workspace_id: string | null;
+              user_id: string | null;
+            }[]) {
+              // Guarded on the status we read, and read back: supabase-js resolves
+              // a refused write, so error null + zero rows is the refusal case and
+              // must not be counted as an adoption.
+              const { data: upd, error: adoptErr } = await admin
+                .from("missions")
+                .update({ status: "running", updated_at: new Date().toISOString() })
+                .eq("id", qm.id)
+                .eq("status", "queued")
+                .select("id");
+              if (adoptErr) {
+                console.error(
+                  `[resume-runs] adopting queued mission ${qm.id} failed:`,
+                  adoptErr.message,
+                );
+                continue;
+              }
+              if (!upd || upd.length === 0) continue; // something else moved it first
+              adopted.push(qm.id);
+              // Best-effort, and it can legitimately be refused: stage_events
+              // .workspace_id is a foreign key, so a mission whose workspace has
+              // since been deleted gets no trail row. recordStageEvent logs that
+              // and never throws, and the mission is still adopted either way.
+              await recordStageEvent(admin, {
+                entityType: "mission",
+                entityId: qm.id,
+                from: "queued",
+                to: "running",
+                actor: "system",
+                workspaceId: qm.workspace_id,
+                userId: qm.user_id,
+              });
+            }
+
             const { data: queued } = await supabaseAdmin
               .from("agent_runs")
               .select("id")
@@ -334,13 +429,18 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             // monopolized the two re-plan slots forever:
             //  (1) order NEWEST-FIRST, so a fresh dispatch is re-planned on the
             //      very next tick instead of waiting behind ancient stuck ones;
-            //  (2) any unplanned mission older than ABANDON_MS is marked 'halted'
-            //      (planning has failed every retry for too long), so it leaves
-            //      the running set and can never clog the queue again.
+            //  (2) any unplanned mission that has been launched longer than
+            //      ABANDON_MS is marked 'halted' (planning has failed every retry
+            //      for too long), so it leaves the running set and can never clog
+            //      the queue again. "Launched" is updated_at, not created_at —
+            //      see the test itself for why the difference matters.
             const abandonCutoff = new Date(Date.now() - ABANDON_MS).toISOString();
             const { data: unplannedCandidates } = await admin
               .from("missions")
-              .select("id,user_id,workspace_id,goal,status,created_at")
+              // updated_at is selected for the give-up test below, which measures
+              // how long this mission has been LAUNCHED and unplanned, not how
+              // long ago it was first proposed.
+              .select("id,user_id,workspace_id,goal,status,created_at,updated_at")
               .in("status", ["running", "in_progress"])
               .lt("created_at", cutoff)
               .order("created_at", { ascending: false })
@@ -373,14 +473,30 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             const toAbandon: string[] = [];
             for (const m of (unplannedCandidates ?? []) as (MissionLite & {
               created_at: string;
+              updated_at: string | null;
             })[]) {
               const stepCount = stepCountByMission.get(m.id) ?? 0;
               if (stepCount > 0) continue;
               const activeRuns = activeRunCountByMission.get(m.id) ?? 0;
               if (activeRuns > 0) continue;
-              // Genuinely unplanned. Abandon it if it has been stuck past the
-              // threshold; otherwise re-plan it (newest first, up to the cap).
-              if (m.created_at < abandonCutoff) {
+              /* Genuinely unplanned. Abandon it if it has been stuck past the
+               * threshold; otherwise re-plan it (newest first, up to the cap).
+               *
+               * MEASURED FROM updated_at, WHICH IS WHEN IT WAS LAUNCHED, not from
+               * created_at, which is when it was first proposed. Those are the same
+               * instant only for a mission created straight into 'running'. For
+               * every other door they are far apart, and created_at silently gave
+               * up on work that had just started:
+               *   - a proposal that sat for days before a person pressed launch
+               *     (promoteMission) was already past the cutoff at the moment of
+               *     the click, so its first sweep halted it;
+               *   - the same for a mission the adoption pass above just rescued —
+               *     all eight were weeks old, so this test would have halted every
+               *     one of them on the tick that adopted it.
+               * Falls back to created_at when updated_at is null, so a row written
+               * before that column was populated behaves exactly as it does today. */
+              const launchedAt = m.updated_at ?? m.created_at;
+              if (launchedAt < abandonCutoff) {
                 toAbandon.push(m.id);
               } else if (toReplan.length < REPLAN_BATCH) {
                 toReplan.push(m);
@@ -469,7 +585,16 @@ export const Route = createFileRoute("/api/public/hooks/resume-runs")({
             }
 
             return new Response(
-              JSON.stringify({ ok: true, resumed, failed, advanced, planned, unblocked, blocked }),
+              JSON.stringify({
+                ok: true,
+                resumed,
+                failed,
+                advanced,
+                planned,
+                unblocked,
+                blocked,
+                adopted,
+              }),
               {
                 headers: { "Content-Type": "application/json" },
               },

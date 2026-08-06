@@ -3085,9 +3085,24 @@ const researchSynthesize = def({
  * asks for, was briefed to call a tool it structurally could not satisfy. Live
  * consequence, measured: prd-writer had 34 `completed_with_failures` runs
  * against tracks and `spine_track_members` held ZERO rows of artifact_kind
- * 'prd' across all 43 tracks. Plan burned its step budget and filed nothing —
- * and when the model eventually guessed a real uuid, the spec bound to an
- * unrelated bet and learning.record moved THAT bet's confidence.
+ * 'prd' across all 43 tracks. Plan burned its step budget and filed nothing.
+ *
+ * WHAT IT DID INSTEAD — re-measured 2026-08-06, because the first draft of this
+ * paragraph asserted under a "measured" heading an outcome the database does not
+ * contain. Those 34 runs span 2026-08-04 to 2026-08-05 and the newest `prds` row
+ * is 2026-07-30, so not one spec was written in the window. The model invented
+ * uuids to satisfy the required argument — three distinct ones across the 34 runs
+ * (ae60bdef…, fa95b9b2…, 81d5aa2d…) — and not one of them matches any row in
+ * `opportunities`, `spine_tracks`, `missions`, `themes` or `prds`. All 21
+ * `tool_calls` rows for `prd.draft` are seed rows and none carries an
+ * `opportunity_id` argument, so no invented id ever reached the read below —
+ * and that absence really is evidence here, because a REFUSED tool call still
+ * writes its row, with its args and `ok:false` (src/lib/ai/loop.server.ts:1336).
+ * The runs died on the step limit before the call went out at all. A
+ * guess that HAD landed on a live bet would have bound the spec to an unrelated
+ * one and let `learning.record` move that bet's confidence — that is the hazard a
+ * required argument with no door creates, and it is written here as a hazard
+ * because it is not in the data.
  *
  * The brief path mirrors `generatePrd` (src/lib/discovery.functions.ts:2449-2557),
  * which has taken `opportunity_id` OR `brief` for as long as it has existed and
@@ -3127,7 +3142,7 @@ const researchSynthesize = def({
 const prdDraft = def({
   name: "prd.draft",
   description:
-    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed — say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one and never pass an id of another kind in its place. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks.",
+    "Draft a spec, from an opportunity or from a brief. Pass opportunity_id when a bet already exists: it reads the opportunity, its theme, and supporting signals. Pass brief instead when this work entered mid-lifecycle and no bet was ever filed — say what the work is and why it exists, in the words of the job you were given. At least one of the two is required, and if you pass both the opportunity is used and the brief is ignored. Nothing in this toolset creates an opportunity, so do not stall waiting for one, never pass an id of another kind in its place, and never invent a uuid to fill the field — pass brief instead. Writes a draft spec with problem, goals, non-goals, user stories, success metrics, and risks.",
   category: "write",
   /**
    * Both fields are optional here and the either/or is enforced in `run`, which
@@ -3175,7 +3190,17 @@ const prdDraft = def({
         .eq("user_id", userId)
         .maybeSingle();
       if (oErr) throw new Error(oErr.message);
-      if (!data) throw new Error("opportunity not found");
+      /* WRITTEN FOR THE READER IT ACTUALLY HAS, which is a model, not a person.
+       * "opportunity not found" told the agent nothing it could act on, and the
+       * measured failure above is precisely this: three invented uuids across 34
+       * runs, matching no row of any kind. So name the likely mistake and name the
+       * door, because the door now exists — retrying with another guessed id is the
+       * one response that cannot work, and nothing in this registry can create the
+       * bet the agent is looking for. */
+      if (!data)
+        throw new Error(
+          `No opportunity ${a.opportunity_id} exists for this user. Do not retry with a different id: if you were not handed a real bet id, you cannot invent one and nothing in this toolset creates one. Call prd.draft again with \`brief\` instead — what the work is and why it exists — and leave opportunity_id out.`,
+        );
       opp = data;
     }
 
@@ -3260,17 +3285,54 @@ const prdDraft = def({
       ? `Spec: ${opp.title}`
       : (brief.split(/[\n.!?]/)[0] ?? "").trim().slice(0, 120) || "Untitled spec";
 
-    /** `prds.workspace_id` is NOT NULL with default `current_user_default_workspace()`,
-     *  so an explicit null would be REFUSED where an omitted key is filled. The
-     *  bet's workspace when there is a bet, the run's when there is not, and the
-     *  key dropped entirely when neither is known — which is exactly what
-     *  generatePrd's brief path relies on (discovery.functions.ts:2742-2753). */
+    /** STAMP THE TENANT OR REFUSE BY NAME. DO NOT MAKE THIS KEY CONDITIONAL AGAIN,
+     *  and do not "simplify" it to a plain null either — here is why both fail.
+     *
+     *  Verified in the live schema 2026-08-06: `prds.workspace_id` is NOT NULL with
+     *  default `current_user_default_workspace()`. That default is
+     *  `SELECT ensure_user_default_workspace(auth.uid())`, and
+     *  `ensure_user_default_workspace` opens with `IF _user_id IS NULL THEN RETURN
+     *  NULL`. So the default only fills for a request that carries a JWT. An
+     *  explicit null is refused always; an OMITTED key is refused too whenever
+     *  `auth.uid()` is absent.
+     *
+     *  THE EARLIER COMMENT HERE GOT THE RULE RIGHT AND THE CALLER WRONG. `generatePrd`
+     *  really does omit the key and really is filled by the default
+     *  (discovery.functions.ts:2742-2753) — it is a `createServerFn` behind
+     *  requireSupabaseAuth, so a browser is on the other end. `prd.draft` is an AGENT
+     *  tool: the spine driver runs it from src/routes/api/public/hooks/track-tick.ts
+     *  on `supabaseAdmin`, the service role, where `auth.uid()` is null. On that path
+     *  omitting the key buys a NOT NULL rejection, not a fill. That is what
+     *  tenancy-stamp.test.ts in this directory exists to say, after the 2026-08-03
+     *  outage where two agent tools were left leaning on this same default.
+     *
+     *  The omit branch could not even have been the lucky one. When the caller passes
+     *  no workspace, `ctx.workspaceId` is itself the result of
+     *  `current_user_default_workspace()` (src/lib/ai/loop.server.ts:505-508) — so a
+     *  null reaching here means that RPC already returned null, which means
+     *  `auth.uid()` was null, which means the column default is about to return null
+     *  as well. There is no state in which dropping the key succeeds.
+     *
+     *  Hence a named refusal, the same move `studio.stage` makes at :1627
+     *  ("studio.stage requires a workspace"), and hence an UNCONDITIONAL stamp: a
+     *  conditional spread still satisfies tenancy-stamp.test.ts's
+     *  `/\bworkspace_id\s*:/` scan, so the guard would keep reading green over a
+     *  weaker guarantee than the one it was written to hold.
+     *
+     *  Near-unreachable today and kept anyway: `opportunities.workspace_id` is NOT
+     *  NULL so the bet path always carries one, and 0 of 1136 `agent_runs` have a
+     *  null workspace. */
     const specWorkspaceId = opp?.workspace_id ?? workspaceId ?? null;
+    if (!specWorkspaceId) {
+      throw new Error(
+        "prd.draft requires a workspace: neither the bet nor this run carried one. `prds.workspace_id` is NOT NULL and its default only fills for a signed-in browser request, so the insert would be refused with a constraint error nobody can act on. Dispatch this run with a workspace.",
+      );
+    }
     const { data: prd, error: pErr } = await supabase
       .from("prds")
       .insert({
         user_id: userId,
-        ...(specWorkspaceId ? { workspace_id: specWorkspaceId } : {}),
+        workspace_id: specWorkspaceId,
         product_id: opp?.product_id ?? null,
         opportunity_id: opp?.id ?? null,
         title: (a.title ?? derived).slice(0, 280),
@@ -3278,7 +3340,13 @@ const prdDraft = def({
         status: "draft",
         model: DRAFT_MODEL,
       })
-      .select("id,title,status")
+      // `workspace_id` is read back rather than assumed: the stage event below has
+      // to describe the row Postgres actually wrote. stage_events is read with a
+      // workspace filter on at least three surfaces (today-lanes, loop-state,
+      // briefing) and recordStageEvent swallows its own errors, so a mis-stamped
+      // SEAM-1 row is both invisible and silent — a spec in one workspace whose
+      // creation event is in another, or in none.
+      .select("id,title,status,workspace_id")
       .single();
     if (pErr) throw new Error(pErr.message);
     // SEAM-1: spec (PRD) creation event, attributed to the acting agent.
@@ -3287,7 +3355,7 @@ const prdDraft = def({
       entityId: prd.id,
       to: "draft",
       actor: agentSlug ?? "system",
-      workspaceId: specWorkspaceId,
+      workspaceId: prd.workspace_id ?? specWorkspaceId,
       userId,
     });
     // `opportunity_id` is null on the brief path, and that null is the signal:
@@ -3710,13 +3778,18 @@ const learningRecord = def({
     // AND THE RECOVERY ABOVE DOES NOT REACH THE PATH THAT NEEDS IT MOST. It is
     // guarded on `missionId`, which arrives from the run context, and the
     // autonomous driver attaches a mission only at Build:
-    // `station === "build" ? await missionForTrack(...) : null`
-    // (src/lib/spine/driver.server.ts:783). At Learn, `missionId` is null on
-    // every driver-run track, so the two-hop fallback described above is
-    // unreachable there and the agent's own `prd_id` argument is the only link
-    // that can exist. The second hop is dead on that route too: `decision.record`
-    // writes `prd_id` only when the agent passes one (:3384 below), and at Decide
-    // the spec does not exist yet, so `decisions.prd_id` is null by construction.
+    // `station === "build" ? await missionForTrack(...) : null` — the sole call
+    // site of `missionForTrack` in src/lib/spine/driver.server.ts, :988 at
+    // a6dc2c69. Follow the symbol, not the number: that file is being edited by
+    // another workflow and this pointer already drifted once, from :783. At Learn,
+    // `missionId` is null on every driver-run track, so the two-hop fallback
+    // described above is unreachable there and the agent's own `prd_id` argument
+    // is the only link that can exist. The second hop is dead on that route too:
+    // `decision.record` writes `prd_id` only when the agent passes one
+    // (`prd_id: a.prd_id ?? null`, :3571 ABOVE — the earlier text here said
+    // ":3384 below" and was wrong in the number and in the direction), and at
+    // Decide the spec does not exist yet, so `decisions.prd_id` is null by
+    // construction.
     // Live: the one track that completed the loop autonomously recorded two
     // verdicts, both with prd_id, opportunity_id and mission_id all NULL.
     //
@@ -3806,10 +3879,9 @@ const learningRecord = def({
      *
      * This tested `a.prd_id`, the RAW argument, while the learning row above is
      * written with `resolvedPrdId` (the `prd_id:` field of the learnings insert,
-     * :3786), the mission
-     * resolved id added precisely so an agent that names no prd still files its
-     * learning against the right one. So the exact case that fix exists for
-     * wrote the learning and then skipped the memory.
+     * :3859) — the mission-resolved id, added precisely so an agent that names no
+     * prd still files its learning against the right one. So the exact case that
+     * fix exists for wrote the learning and then skipped the memory.
      *
      * The consequence is the whole product claim. `agent_memory` has 846
      * reflections, 28 precedents, 26 notes, 8 corrections and ZERO rows of kind

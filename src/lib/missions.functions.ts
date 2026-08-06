@@ -699,6 +699,13 @@ export const renameMission = createServerFn({ method: "POST" })
  *     unreachable from the UI until that component learns the difference. Every
  *     other status is rejected, so a running / completed / cancelled mission can
  *     never be relaunched.
+ *   - The account has at least one enabled specialist agent, checked BEFORE the
+ *     status flip so a roster-less launch leaves the mission 'proposed' and
+ *     relaunchable rather than halted. This is the pre-flight
+ *     startOrchestratedMission runs (orchestrator.functions.ts:70-81); an earlier
+ *     version of this function skipped it, which bought a paid orchestrator plan
+ *     whose every dispatch then failed on a missing agent. See the check itself
+ *     for the one place it deliberately diverges from the path it mirrors.
  */
 export const promoteMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -720,6 +727,46 @@ export const promoteMission = createServerFn({ method: "POST" })
       );
     }
 
+    // PRE-FLIGHT THE ROSTER BEFORE THE FLIP. startOrchestratedMission refuses to
+    // start when the account has no enabled specialist
+    // (orchestrator.functions.ts:70-81) and this path did not, which mattered more
+    // than it looks: without the check the orchestrator model is paid for, plans a
+    // DAG, and then every dispatch in it throws "Target agent 'X' is disabled or
+    // not in the roster" (mission-advance.server.ts:722), each step terminalizes,
+    // the skip-cascade takes the rest, and the mission lands
+    // 'completed_with_failures' with nothing to show. Ordering is the whole value
+    // here: refusing BEFORE the status flip leaves the mission at 'proposed' and
+    // relaunchable once a specialist is enabled, where refusing after would leave
+    // it halted.
+    //
+    // The filter is user-scoped with no workspace clause on purpose — it is the
+    // same lookup dispatchReadySteps will actually perform (user_id + enabled,
+    // mission-advance.server.ts:672-676), so this predicts that lookup rather than
+    // approximating it.
+    //
+    // ONE DELIBERATE DIVERGENCE from the path it mirrors: the error is checked.
+    // supabase-js resolves a refused or failed read, leaving `count` null, and
+    // `(count ?? 0) === 0` would then report an empty roster as a fact when the
+    // roster was never read. It fails closed either way, so the cost is only a
+    // wrong reason — but a wrong reason is what sends someone to create agents
+    // they already have.
+    const { count: specialists, error: rosterErr } = await supabase
+      .from("agents")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("enabled", true)
+      .neq("slug", "orchestrator");
+    if (rosterErr) {
+      throw new Error(
+        `Could not read your agent roster, so this mission was not launched: ${rosterErr.message}`,
+      );
+    }
+    if ((specialists ?? 0) === 0) {
+      throw new Error(
+        "No specialist agents enabled. Create at least one specialist (e.g. discovery, strategist, builder) before launching this mission.",
+      );
+    }
+
     // 'running' is the live state the whole engine keys on, so the flip IS the
     // hand-off to the sweeper. Guarded on the status we read, so two clicks
     // cannot both launch. supabase-js RESOLVES a refused write, so an empty row
@@ -736,7 +783,13 @@ export const promoteMission = createServerFn({ method: "POST" })
       .maybeSingle();
     if (updateErr) throw new Error(updateErr.message);
     if (!updated) {
-      throw new Error("This mission changed status while you were launching it. Reload and retry.");
+      // Two causes reach here and the comment above names both, so the message
+      // does too. Saying only "changed status" tells a workspace member who can
+      // READ this mission but not update it (RLS refuses the write, resolves it,
+      // and returns no rows) to reload — which will never help them.
+      throw new Error(
+        "This mission was not launched: either it changed status while you were launching it, or your account cannot update it. Reload; if it still says it has not started, ask its owner to launch it.",
+      );
     }
 
     // SEAM-1: the operator promoted (launched) this proposed mission.
@@ -773,25 +826,50 @@ export const promoteMission = createServerFn({ method: "POST" })
       // and no plan: the UI's retry affordance is gated on failed/halted, and the
       // sweeper's re-plan path gives up on an unplanned mission older than
       // ABANDON_MS measured from missions.created_at — which, for a proposal that
-      // sat for days before anyone pressed launch, is already in the past. So mark
-      // it halted here, where the cause is known, rather than let it be swept.
-      // The missions table has no halted_reason column, so status + updated_at is
-      // the whole record, matching startOrchestratedMission's own halt-mark.
+      // sat for days before anyone pressed launch, is already in the past. So TRY
+      // to mark it halted here, where the cause is known, rather than let it be
+      // swept. The missions table has no halted_reason column, so status +
+      // updated_at is the whole record, matching startOrchestratedMission's own
+      // halt-mark.
+      //
+      // "TRY" IS THE ACCURATE WORD and the earlier version of this comment used
+      // "So mark it halted here", which claimed a guarantee the code does not
+      // have. supabase-js RESOLVES a refused write, so an RLS denial and a
+      // successful halt are the same value here, and the CAS on 'running' matches
+      // zero rows if anything else moved the row first. Both are checked below,
+      // and the stage event is now written ONLY on the branch where a row really
+      // changed — before, it fired unconditionally, so a refused halt produced a
+      // stage_events row asserting running->halted for a mission still sitting at
+      // 'running'. The proof surfaces read stage_events; a halt that only exists
+      // there is worse than no record at all. When the mark does not land the
+      // mission stays 'running' and resume-runs converges it; that is a slower
+      // recovery, not a lost one, so this logs rather than throws — the launch
+      // error below is the one the caller needs to see.
       try {
-        await supabase
+        const { data: haltedRows, error: haltErr } = await supabase
           .from("missions")
           .update({ status: "halted", updated_at: new Date().toISOString() })
           .eq("id", data.missionId)
-          .eq("status", "running");
-        await recordStageEvent(supabase, {
-          entityType: "mission",
-          entityId: data.missionId,
-          from: "running",
-          to: "halted",
-          actor: "system",
-          workspaceId: mission.workspace_id,
-          userId,
-        });
+          .eq("status", "running")
+          .select("id");
+        if (haltErr) {
+          console.error("[promoteMission] mission halt-mark refused (launch):", haltErr.message);
+        } else if (!haltedRows?.length) {
+          console.error(
+            "[promoteMission] mission halt-mark matched no row (launch): the mission is no longer at 'running', so it was left as whoever moved it wrote it",
+          );
+        } else {
+          // SEAM-1: recorded only now that the halt is known to have landed.
+          await recordStageEvent(supabase, {
+            entityType: "mission",
+            entityId: data.missionId,
+            from: "running",
+            to: "halted",
+            actor: "system",
+            workspaceId: mission.workspace_id,
+            userId,
+          });
+        }
       } catch (markErr) {
         console.error("[promoteMission] mission halt-mark failed (launch):", markErr);
       }
