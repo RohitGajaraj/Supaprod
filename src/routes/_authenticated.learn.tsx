@@ -36,6 +36,21 @@
  *          before, recorded after.
  *    ADD   the receipt. A settled outcome renders what it caused; a failed one
  *          says so and says nothing was written (anti-slop.md section 5).
+ *    ADD   (2026-08-06) "The last verdict on the record", and it closes a hole
+ *          the receipt could not. The receipt stack lives in React state and
+ *          dies on reload, and the paid-off list below can never carry a
+ *          freshly settled outcome: `computeImpactLedger` builds it from
+ *          VALIDATED learnings only, ranks them by ICE shift, sorts a null
+ *          shift last (-Infinity) and keeps three. A bet with no linked
+ *          opportunity gets prior_ice and new_ice null by construction
+ *          (`applyOutcome` rescores nothing when `prd.opportunity_id` is null),
+ *          so its shift is null, so it is last forever behind whatever already
+ *          moved a score. Both bets on the desk today are exactly that. The
+ *          result: you settle a verdict, reload, and the only trace is a
+ *          waiting count one lower. This row is read from `listLearnings`,
+ *          which is ordered by when it was written rather than by a number an
+ *          unlinked bet can never have. The ranking itself is in pm-impact.ts,
+ *          which belongs to no station and is not touched here.
  *    ADD   (2026-08-02) the agent as the DEFAULT settler, and this surface as
  *          the exception desk. The hourly sweep now puts the verdict on the
  *          record itself whenever the evidence supports it, so the headline
@@ -99,9 +114,26 @@
  *      worked", "mixed", "it did not", the same three words the run screen's
  *      stage 07 panel uses.
  *
+ * ONE WORKSPACE, AND IT IS THE ONE THE BET IN FOCUS LIVES IN.
+ *
+ * The desk (`listPendingOutcomes`) applies no workspace filter, deliberately:
+ * it is every bet anywhere the reader can see that needs a call. The record
+ * (`getImpactLedger`) is one workspace, and with no argument it resolves
+ * `current_user_default_workspace()`, which is the EARLIEST workspace_members
+ * row and has nothing to do with where the work is. Measured live: both bets on
+ * the desk are in one workspace and the default is a different one, so settling
+ * a bet wrote a learning into the bet's workspace and left every number on this
+ * page untouched. So the panel reports which workspace the bet in focus lives
+ * in, and the ledger and the last-verdict row are both pointed at it. Scoping
+ * the DESK to the default workspace instead would have been one line and is the
+ * wrong half to change: it empties the desk and takes the work away.
+ *
  * VOICE: never greet, always report. The first line is a count that is true or
- * it is not drawn at all. Query keys ["outcome"] and ["impact-ledger"] are
- * unchanged, so the cache stays shared with Ship and Brain.
+ * it is not drawn at all. ["outcome"], ["outcome-pending"] and
+ * ["outcome-agent-settled"] are unchanged. ["impact-ledger"] and ["learnings"]
+ * now carry the workspace as a second key segment, because the same key holding
+ * two workspaces' answers is the cache serving one workspace's record to
+ * another. Both still match SettlePanel's invalidations, which are by prefix.
  */
 
 import * as React from "react";
@@ -112,10 +144,12 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getOutcomeData,
   listAgentSettledOutcomes,
+  listLearnings,
   listPendingOutcomes,
 } from "@/lib/outcome.functions";
 import { getImpactLedger } from "@/lib/pm-impact.functions";
 import { SettlePanel } from "@/components/learn/SettlePanel";
+import { VERDICT_SAYS } from "@/components/learn/verdict-words";
 import {
   Actions,
   Block,
@@ -167,6 +201,17 @@ function signed(n: number): string {
   return `${n >= 0 ? "+" : ""}${n}`;
 }
 
+/** How far a learning moved the bet it was written against, or null when it
+ *  moved nothing. `numeric` columns arrive as strings over PostgREST, so both
+ *  ends are coerced before the subtraction; a learning with no linked
+ *  opportunity carries neither end and yields null rather than a zero. */
+function iceShiftOf(prior: number | string | null, next: number | string | null): number | null {
+  const a = prior === null ? NaN : Number(prior);
+  const b = next === null ? NaN : Number(next);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  return Math.round((b - a) * 10) / 10;
+}
+
 function Learn() {
   // The spine, lit on this station. One shared query across all seven
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
@@ -189,22 +234,77 @@ function Learn() {
   const fLedger = useServerFn(getImpactLedger);
   const fPending = useServerFn(listPendingOutcomes);
   const fSettled = useServerFn(listAgentSettledOutcomes);
+  const fLearnings = useServerFn(listLearnings);
 
-  // Same query keys the retired panels used, so the cache stays shared with
-  // Ship and Brain rather than fetching the same rows twice.
   const outcome = useQuery({ queryKey: ["outcome"], queryFn: () => fOutcome() });
+  // The same keys SettlePanel reads, so the counts in the headline and the
+  // queues below it are one fetch each and can never disagree. Read BEFORE the
+  // record, because the record is scoped by what these return.
+  const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
+  const settledQ = useQuery({ queryKey: ["outcome-agent-settled"], queryFn: () => fSettled() });
+
+  /**
+   * WHICH WORKSPACE THE RECORD ON THIS PAGE IS DRAWN FROM.
+   *
+   * Told by the panel, which owns which bet is in focus, and falling back to
+   * the desk's own lead row before its first report so the first paint is
+   * already right rather than briefly showing another workspace's numbers. The
+   * agent-settled list is the second fallback: with nothing waiting, the bets
+   * Measure settled are still the work this page is about.
+   *
+   * Null means the page has never been told and the desk has nothing to read
+   * it off, and then this stays out of the way and lets the server resolve its
+   * default. That is the one case where the page cannot name its own
+   * workspace.
+   *
+   * A REPORT OF null IS NOT A REPORT OF ANOTHER WORKSPACE, which is why the
+   * last answer is kept rather than cleared. The panel reports null the moment
+   * it has no bet in focus, and the commonest way to get there is settling the
+   * LAST bet on the desk. Taking that literally would swing the ledger back to
+   * the server's default workspace at the exact moment the reader has just
+   * written into a different one: every count on this page would change under
+   * the same headline for a reason nothing on screen explains, and the
+   * last-verdict row below, which is gated on knowing the workspace, would
+   * disappear on the one write it exists to show. So the last workspace
+   * actually NAMED wins, and only another name replaces it.
+   */
+  const [focusWorkspaceId, setFocusWorkspaceId] = React.useState<string | null>(null);
+  // Stable identity on purpose: the panel lists this in an effect's
+  // dependencies, so a fresh function every render would fire it every render.
+  const rememberDeskWorkspace = React.useCallback((workspaceId: string | null) => {
+    if (workspaceId) setFocusWorkspaceId(workspaceId);
+  }, []);
+  const recordWorkspaceId =
+    focusWorkspaceId ??
+    pendingQ.data?.pending[0]?.workspaceId ??
+    settledQ.data?.settled[0]?.workspaceId ??
+    null;
+
   // The name is NOT sent to the server. It only ever set the document's H1, and
   // the key here has never carried it, so typing a name refetched nothing and
   // the field silently did nothing at all. Titling the document on the client
-  // makes the field work and keeps the key stable enough to share.
+  // makes the field work and keeps the key stable.
   const ledgerQ = useQuery({
-    queryKey: ["impact-ledger"],
-    queryFn: () => fLedger({ data: {} }),
+    queryKey: ["impact-ledger", recordWorkspaceId],
+    queryFn: () => fLedger({ data: recordWorkspaceId ? { workspaceId: recordWorkspaceId } : {} }),
   });
-  // The same keys SettlePanel reads, so the counts in the headline and the
-  // queues below it are one fetch each and can never disagree.
-  const pendingQ = useQuery({ queryKey: ["outcome-pending"], queryFn: () => fPending() });
-  const settledQ = useQuery({ queryKey: ["outcome-agent-settled"], queryFn: () => fSettled() });
+
+  /**
+   * WHAT WAS SETTLED LAST, in the order it was settled.
+   *
+   * Gated on knowing the workspace, and that gate is the point rather than
+   * caution: unfiltered, `listLearnings` returns the union across every
+   * workspace the reader belongs to, and a row from one workspace sitting
+   * beside a ledger from another is the exact defect this pass is closing. With
+   * no bet on the desk and none settled by an agent there is nothing to have
+   * just settled, so nothing is lost by staying quiet.
+   */
+  const lastQ = useQuery({
+    queryKey: ["learnings", recordWorkspaceId],
+    queryFn: () => fLearnings({ data: { workspaceId: recordWorkspaceId } }),
+    enabled: !!recordWorkspaceId,
+  });
+  const lastSettled = lastQ.data?.learnings[0] ?? null;
 
   const ledger = ledgerQ.data?.ledger ?? null;
   const markdown = ledgerQ.data?.markdown ?? "";
@@ -376,8 +476,65 @@ function Learn() {
       <PageHead title={headline} sub={sub} />
 
       {/* The write this stage exists for. It owns its own reads, its own
-          receipts and the queue it drains. */}
-      <SettlePanel />
+          receipts and the queue it drains. It reports which workspace the bet
+          in focus lives in, and everything below is drawn from that workspace;
+          see the header. */}
+      <SettlePanel onDeskWorkspace={rememberDeskWorkspace} />
+
+      {/* WHAT SURVIVES A RELOAD. The panel's receipt stack is React state and
+          is gone the moment the page reloads, and the paid-off block below
+          cannot carry a fresh verdict at all: it is validated-only, ranked by
+          score movement, and a bet with no linked opportunity never has any.
+          So without this row the honest answer to "what did I just settle?"
+          was a waiting count one lower. Ordered by when it was written, which
+          is a fact every learning has. */}
+      {lastSettled ? (
+        <Block
+          title="The last verdict on the record"
+          // A different fact from the row, not a restatement of it (hard ban
+          // 10): the row is one verdict, this is how much record it landed on
+          // top of. Exact, because both numbers are now the same workspace.
+          sub={
+            outcomes && outcomes.total > 1 ? (
+              <>
+                <Num>{outcomes.total - 1}</Num> settled before it
+              </>
+            ) : null
+          }
+        >
+          <Row
+            tight
+            lead={
+              lastSettled.summary.trim() ||
+              lastSettled.opportunity_title ||
+              "Settled with nothing written up"
+            }
+            sub={
+              <>
+                {VERDICT_SAYS[lastSettled.verdict]}
+                {lastSettled.metric_label && lastSettled.metric_value ? (
+                  <>
+                    {" · "}
+                    {lastSettled.metric_label}: <Num>{lastSettled.metric_value}</Num>
+                  </>
+                ) : null}
+                {(() => {
+                  const shift = iceShiftOf(lastSettled.prior_ice, lastSettled.new_ice);
+                  // Silent when nothing moved, rather than printing a zero over
+                  // a bet that never had a score to move.
+                  return shift === null || shift === 0 ? null : (
+                    <>
+                      {" · priority "}
+                      <Num>{signed(shift)}</Num>
+                    </>
+                  );
+                })()}
+              </>
+            }
+            time={day(lastSettled.created_at)}
+          />
+        </Block>
+      ) : null}
 
       {/* The sub carries different information from the title, not a
           restatement: the ledger only ever writes up wins, so without this line

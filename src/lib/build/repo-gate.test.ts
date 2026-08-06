@@ -82,7 +82,11 @@ describe("gateDispatch", () => {
   it("dispatches when the pre-check says resolvable", async () => {
     const calls: string[] = [];
     await gateDispatch({
-      check: async () => ({ repoResolvable: true, resolution: "connected" as const, repo: "acme/notes" }),
+      check: async () => ({
+        repoResolvable: true,
+        resolution: "connected" as const,
+        repo: "acme/notes",
+      }),
       dispatch: () => calls.push("dispatch"),
       openGate: () => calls.push("gate"),
     });

@@ -54,6 +54,16 @@ const stripComments = (src: string) =>
 const PANEL = stripComments(read(join("components", "learn", "SettlePanel.tsx")));
 const LAUNCH = read(join("lib", "launch-plan.functions.ts"));
 const OUTCOME = read(join("lib", "outcome.functions.ts"));
+/** `listPendingOutcomes`, code only and bounded at the next export, for the
+ *  assertions that COUNT occurrences. Counting on raw source counts the prose
+ *  that explains the pattern as well as the pattern, which is the same trap the
+ *  stripComments note above was written for. */
+const QUEUE_CODE = (() => {
+  const code = stripComments(OUTCOME);
+  const from = code.indexOf("export const listPendingOutcomes");
+  const to = code.indexOf("export const listAgentSettledOutcomes");
+  return code.slice(from, to > from ? to : undefined);
+})();
 
 describe("Learn can dispose of a bet without judging it", () => {
   it("offers the third answer on the gate", () => {
@@ -159,5 +169,29 @@ describe("the mechanism it rides is the one the desk already reads", () => {
     // the desk of everything EXCEPT previously deferred bets.
     const q = OUTCOME.slice(OUTCOME.indexOf("export const listPendingOutcomes"));
     expect(q.slice(0, 3000)).toMatch(/outcome_check_by\.is\.null/);
+  });
+
+  it("honours it in EVERY population, not just the one it was written for", () => {
+    /**
+     * THE HALF THAT DID NOT LAND, and the two tests above passed straight over
+     * it because a single match anywhere satisfied them.
+     *
+     * The desk is a union of two populations: specs that shipped and carry no
+     * outcome, and specs whose `launch_plans.check_by` has passed. Only the
+     * first read the deferral date. So a spec in both populations was excluded
+     * by the first query and put straight back by the second, on the very next
+     * refetch, while the receipt said "It comes back to this desk on
+     * <date+14>". Not reachable on today's data (all 7 launch_plans carry the
+     * same `check_by` and all 7 sit on already-settled specs), which is exactly
+     * why a data-blind structural test is the one that catches it.
+     *
+     * Asserted as a RATIO rather than a count of two, so a third population
+     * added later inherits the rule instead of quietly escaping it.
+     */
+    const q = QUEUE_CODE;
+    const reads = (q.match(/\.select\(PRD_COLS\)/g) ?? []).length;
+    const clauses = (q.match(/outcome_check_by\.is\.null,outcome_check_by\.lte\./g) ?? []).length;
+    expect({ reads, clauses }).toEqual({ reads, clauses: reads });
+    expect(reads).toBeGreaterThanOrEqual(2);
   });
 });

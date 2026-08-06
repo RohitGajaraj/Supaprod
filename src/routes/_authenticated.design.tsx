@@ -45,6 +45,14 @@
  *         somebody deliberately sent past reads "Design skipped on purpose"
  *         rather than "nothing drawn yet", which are opposite facts. `?focus=`
  *         lands a handoff from Plan on the right spec instead of on the list.
+ *    ADD  (2026-08-06) the ROUTE AS A WRITE, not only as a reading. This surface
+ *         could DISPLAY "Design skipped on purpose" and could not record it: the
+ *         only per-spec caller of `chooseDesignRoute` was the spec page, and the
+ *         only escape here was the owner-only workspace switch, which is every
+ *         spec or none. A spec with nothing drawn now carries "Record that this
+ *         needs no screen" in its Actions. The stations are the full path, not
+ *         the only path, and a station that cannot record its own skip is a
+ *         station insisting it is mandatory.
  *
  * 4. WHAT IS ONE CLICK AWAY. The brand ledger with its import, paste and
  *    defaults machinery stays in Settings. Every prototype ever made stays on
@@ -109,6 +117,7 @@ import {
 } from "@/lib/design-memory.functions";
 import {
   DESIGN_FIDELITIES,
+  chooseDesignRoute,
   decideDesignGate,
   getDesignWorkItem,
   getScaffoldProvenance,
@@ -297,7 +306,14 @@ function Grounding({ prdId }: { prdId: string }) {
 
   // Silence beats a wrong sentence here. An unread provenance is not the same
   // fact as an ungrounded drawing, so a failed read says nothing at all.
-  if (q.isLoading || q.isError || !q.data) return null;
+  //
+  // `read: false` IS THAT SAME FAILURE, arriving as a resolved answer instead of
+  // a rejected promise. supabase-js resolves a refused read, so the three reads
+  // behind this panel used to come back looking exactly like "no rules bound
+  // in", and the strong negative below -- every choice in this drawing is the
+  // model's own -- was printed at a teammate whose read was simply scoped out.
+  // The server now names that case; this is the one condition that honours it.
+  if (q.isLoading || q.isError || !q.data || !q.data.read) return null;
 
   const { groundedIn, ungrounded, staleCount } = q.data;
 
@@ -346,6 +362,7 @@ function Design() {
   const recordTaste = useServerFn(recordDesignScaffoldFeedback);
   const askCritic = useServerFn(runScaffoldDesignCritic);
   const flipStage = useServerFn(toggleDesignStage);
+  const chooseRoute = useServerFn(chooseDesignRoute);
   const publish = useServerFn(publishPrototypeFromPrd);
   const share = useServerFn(togglePrototypeShare);
 
@@ -380,6 +397,19 @@ function Design() {
   // detail view of something that is gone.
   const inList = (id: string | null) => Boolean(id && items.some((i) => i.prdId === id));
   const focusId = (inList(picked) ? picked : inList(sent) ? sent : items[0]?.prdId) ?? null;
+  /**
+   * A HANDOFF THAT LANDED SOMEWHERE ELSE SAYS SO.
+   *
+   * The fallback above is right -- a stale id must not open a detail view of
+   * nothing -- but it was silent, so "Hand it to Design" on a spec this list
+   * does not carry opened whatever happened to be first and looked exactly like
+   * a handoff that worked. The reader then judges a drawing believing it belongs
+   * to the spec they were sent to.
+   *
+   * Only while nothing has been clicked: once a person picks a row they have
+   * chosen what they are looking at, and the notice has done its work.
+   */
+  const handoffMissed = Boolean(sent && !inList(sent) && !picked && work.isSuccess);
 
   const item = useQuery({
     queryKey: ["design-work-item", focusId],
@@ -682,6 +712,11 @@ function Design() {
         "focus",
         ctx?.prdId ?? null,
         res.status === "approved" ? "You approved the design" : "You sent the design back",
+        // BOTH SENTENCES NAME A DRAWING, and both are now only reachable from a
+        // spec that has one: the verdict pair below is drawn under
+        // `focus.drawing` rather than under the stage flag. While it was the
+        // stage flag, "It needs another drawing" was a receipt about a spec that
+        // never had a first one.
         res.status === "approved"
           ? "This spec can reach Build."
           : "The gate stays shut. It needs another drawing.",
@@ -693,6 +728,49 @@ function Design() {
     },
     onError: (e: Error, _decision, ctx) =>
       note("focus", ctx?.prdId ?? null, "The verdict did not save", e.message, true),
+  });
+
+  /**
+   * THE STATION RECORDS ITS OWN SKIP. It could not, and that was the gap under
+   * everything else on this bar.
+   *
+   * The seven stations are the full path, not the only path: a code-level change
+   * needs no screen, design often lives outside the product as prototypes and
+   * wireframes, and plan straight to build is a real route. This surface already
+   * DISPLAYED that answer in two places -- "Design skipped on purpose" on the
+   * row and "This spec was sent past Design" in focus -- while having no way to
+   * write it. The only escape here was the owner-only workspace switch, which is
+   * every spec or none, so a person who wanted to say "not this one" had to
+   * change the policy for all of them or leave the row sitting in a queue
+   * forever.
+   *
+   * IT INHERITS THE ONE RULE THAT MATTERS RATHER THAN RESTATING IT.
+   * `chooseDesignRoute` refuses "direct" when a drawing exists and its gate is
+   * unapproved, using the same imported `designGateBlocksDispatch` both dispatch
+   * paths enforce. So this surface offers no second opinion about when a skip is
+   * allowed: the button is drawn only for a spec with nothing drawn, and if the
+   * server disagrees its refusal is the receipt.
+   */
+  const skipDesign = useMutation({
+    mutationFn: () => {
+      if (!focus) throw new Error("Nothing is in focus.");
+      return chooseRoute({ data: { prdId: focus.prdId, route: "direct" } });
+    },
+    onMutate: actedOn,
+    onSuccess: (_res, _v, ctx) => {
+      note(
+        "focus",
+        ctx?.prdId ?? null,
+        "You recorded that this spec needs no screen",
+        "The skip is on this spec's record and Build reads the spec as it stands. Drawing one later puts it back in front of the gate.",
+      );
+      // The spec page reads the same decision under its own key, so it must not
+      // keep showing "nobody has chosen" after this one lands.
+      void qc.invalidateQueries({ queryKey: ["spec-design-route"] });
+      refreshWork();
+    },
+    onError: (e: Error, _v, ctx) =>
+      note("focus", ctx?.prdId ?? null, "The skip was not recorded", e.message, true),
   });
 
   /** The gate off means there is no gate to move, so the verdict has nowhere to
@@ -903,12 +981,22 @@ function Design() {
     taste.isPending ||
     critic.isPending ||
     hand.isPending ||
+    skipDesign.isPending ||
     makeRule.isPending;
 
   // The headline says what needs YOU, and it tells the truth about which queue
   // is asking. Standing counts are standing facts and live in the context column.
+  //
+  // A FAILED READ FALLS BACK TO THE STATION'S NAME, and it is the half of the
+  // throw that the list alone does not cover. `listDesignWork` now throws
+  // rather than returning its empty shape, which puts `Failed` and its Try
+  // again in the list below; but both queues here are counted off `?? []`, so
+  // an errored read still counted zero and this line still finished at
+  // "Nothing needs you." -- the exact sentence the throw exists to stop. Zero
+  // from a read that did not land is not zero, so the headline says only what
+  // it can stand behind and the reason sits under it.
   const headline =
-    rules.isLoading || work.isLoading
+    rules.isLoading || work.isLoading || rules.isError || work.isError
       ? "Design"
       : waiting.length > 0
         ? waiting.length === 1
@@ -1156,6 +1244,23 @@ function Design() {
             />
           ))
         )}
+
+        {/* Named, not shrugged at. The door is the same one the focus Block
+            carries, pointed at the spec that could not be opened here.
+
+            TWO SENTENCES BECAUSE THERE ARE TWO CASES. With an empty list there
+            is no focus Block below at all, and the notice would otherwise send
+            the reader to compare against something that is not on the page. */}
+        {handoffMissed ? (
+          <Failed
+            onRetry={() => void navigate({ to: "/plan/spec/$id", params: { id: sent as string } })}
+            retryLabel="Open the spec"
+          >
+            {focusId
+              ? "The spec you were handed is not in this list, so what is open below is a different one."
+              : "The spec you were handed is not in this list, and nothing else is either."}
+          </Failed>
+        ) : null}
       </Block>
 
       {focusId ? (
@@ -1249,9 +1354,14 @@ function Design() {
               ) : null}
 
               {/* Drawn or not. With nothing drawn, "what it replaces" drops out
-                  but "what it holds up" is the most important fact on the page:
-                  an undecided gate blocks this spec's dispatch whether or not
-                  anyone has drawn the screen it is waiting on. */}
+                  and "what it holds up" answers with the fact that used to be
+                  stated backwards here: an undecided gate holds up NOTHING while
+                  no screen is drawn. A gate judges a drawing and does not gate
+                  the absence of one (src/lib/build/design-gate.ts), and the
+                  claim this comment used to make -- that the gate blocks whether
+                  or not anyone has drawn the screen -- is the reading that made
+                  every spec in every workspace look blocked by two column
+                  defaults meeting. */}
               <Consequence
                 consequence={focus.consequence}
                 redrawn={focus.drawing?.redrawn ?? false}
@@ -1329,29 +1439,56 @@ function Design() {
                   ) : undefined
                 }
               >
-                {focus.stageEnabled ? (
-                  <>
-                    <Button
-                      variant="primary"
-                      disabled={busy || focus.gateStatus === "approved"}
-                      onClick={() => verdict.mutate("approve")}
-                    >
-                      {focus.gateStatus === "approved" ? "Approved" : "Approve the design"}
-                    </Button>
-                    <Button disabled={busy} onClick={() => verdict.mutate("reject")}>
-                      Send it back
-                    </Button>
-                  </>
-                ) : focus.drawing ? (
-                  <>
-                    <Button variant="primary" disabled={busy} onClick={() => taste.mutate(true)}>
-                      Good fit
-                    </Button>
-                    <Button disabled={busy} onClick={() => taste.mutate(false)}>
-                      Not a fit
-                    </Button>
-                  </>
-                ) : null}
+                {/* THE VERDICT PAIR NEEDS A DRAWING, AND IT USED TO NEED ONLY
+                    THE STAGE. Gated on `focus.stageEnabled` alone, "Approve the
+                    design" and "Send it back" rendered for a spec with nothing
+                    drawn, and both wrote a taste learning: the extractor was
+                    handed "The human APPROVED the resulting mockup as a good fit
+                    for this workspace" with only the spec text behind it, and
+                    the send-back receipt read "It needs another drawing" about a
+                    spec that never had one. `design_stage_enabled` is NOT NULL
+                    DEFAULT true and the panel opens on the first row, so in a
+                    workspace of specs and no drawings that pair was the DEFAULT
+                    state of this bar. The taste loop's whole subject is a
+                    mockup, so no mockup means no verdict to record.
+
+                    WHAT REPLACES IT is the decision that spec actually faces:
+                    whether it needs a screen at all. That is a stronger control
+                    than the one it replaces, because it writes a fact instead of
+                    inventing one. */}
+                {focus.drawing ? (
+                  focus.stageEnabled ? (
+                    <>
+                      <Button
+                        variant="primary"
+                        disabled={busy || focus.gateStatus === "approved"}
+                        onClick={() => verdict.mutate("approve")}
+                      >
+                        {focus.gateStatus === "approved" ? "Approved" : "Approve the design"}
+                      </Button>
+                      <Button disabled={busy} onClick={() => verdict.mutate("reject")}>
+                        Send it back
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="primary" disabled={busy} onClick={() => taste.mutate(true)}>
+                        Good fit
+                      </Button>
+                      <Button disabled={busy} onClick={() => taste.mutate(false)}>
+                        Not a fit
+                      </Button>
+                    </>
+                  )
+                ) : focus.route?.route === "direct" ? null : (
+                  /* Already recorded direct renders nothing rather than a second
+                     button: the skip is on the record, the Line above says so
+                     and says how to undo it, and re-pressing would be a click
+                     the trail cannot tell from a decision. */
+                  <Button disabled={busy} onClick={() => skipDesign.mutate()}>
+                    Record that this needs no screen
+                  </Button>
+                )}
                 {focus.drawing ? (
                   <Button disabled={busy} onClick={() => critic.mutate()}>
                     {critic.isPending ? "The Critic is reading" : "Ask the Critic"}
@@ -1450,7 +1587,27 @@ function Design() {
       ) : null}
 
       {focus && focus.consequence.shares.length > 0 ? (
-        <Block title="Links to this drawing">
+        /* THE TITLE USED TO BE THE CLAIM, AND THE CLAIM WAS FALSE AFTER ONE
+           REDRAW. "Links to this drawing" filed every link under the screen
+           above it, while a link is a SNAPSHOT: its markup is written once, into
+           `prototype_files`, and a redraw overwrites `prd_scaffolds.html` and
+           touches nothing else. So the person who redrew was shown a live door
+           labelled "Open what a visitor sees" onto the drawing they had just
+           replaced.
+
+           WHAT IS FIXED HERE IS THE LABEL, NOT THE STALENESS. The server now
+           stamps each link's stored markup against the drawing on screen and
+           this says, per link, which of the two it is. What is still missing is
+           the refresh: no path in this repo updates `prototype_files`, so the
+           person who redrew cannot update an address they already handed out.
+           "Make a link" inserts a SECOND link rather than refreshing the first,
+           and delete lives on /artifacts. That write belongs to
+           src/lib/prototypes.functions.ts, beside the insert that created the
+           row. */
+        <Block
+          title="Links made from this spec"
+          sub="A link is a snapshot of the markup at the moment it was made. Redrawing the screen does not change what a link already handed out shows."
+        >
           {focus.consequence.shares.map((s) => (
             <Line
               key={s.id}
@@ -1467,16 +1624,33 @@ function Design() {
                  that works, and drawing a door onto a page that would refuse
                  the visitor is the promise this pass exists to stop making. */
               sub={
-                s.isPublic ? (
-                  <Door
-                    title="Open what a visitor sees"
-                    onClick={() => window.open(shareUrl(s.slug), "_blank", "noopener,noreferrer")}
-                  >
-                    {shareUrl(s.slug)}
-                  </Door>
-                ) : (
-                  "Nobody outside can open it"
-                )
+                <>
+                  {s.isPublic ? (
+                    <Door
+                      title="Open what a visitor sees"
+                      onClick={() => window.open(shareUrl(s.slug), "_blank", "noopener,noreferrer")}
+                    >
+                      {shareUrl(s.slug)}
+                    </Door>
+                  ) : (
+                    "Nobody outside can open it"
+                  )}
+                  {/* Read from the markup itself, never from a timestamp: both
+                      `prototypes.updated_at` and `prd_scaffolds.updated_at` move
+                      for reasons that have nothing to do with what is served.
+                      Silent when there is no drawing above to compare against,
+                      because there is then no question to answer. */}
+                  {!focus.drawing ? null : s.matchesDrawing === true ? (
+                    " · This is the drawing above"
+                  ) : s.matchesDrawing === false ? (
+                    <>
+                      {" · "}
+                      <Value tone="warn">Serves an earlier drawing, not the one above</Value>
+                    </>
+                  ) : (
+                    " · Could not read which drawing it serves"
+                  )}
+                </>
               }
             >
               {s.isPublic ? (

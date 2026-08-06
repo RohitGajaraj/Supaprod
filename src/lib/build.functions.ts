@@ -7,13 +7,20 @@
  *
  * TWO CLAIMS IN THIS HEADER WERE FALSE AND ARE CORRECTED RATHER THAN DELETED.
  *
- * It said this "feeds the /build page". It does not: `listBuilderRuns`,
- * `listBuilderClaims` and `releaseBuilderClaim` have no caller anywhere in
- * `src/` — /build imports `listBuildWork` and `canDispatchToRepo` instead
- * (routes/_authenticated.build.index.tsx). They are written, exported and
- * unmounted, and the file-claim error message in the tool registry still tells
- * people to "release the claim from /build", a control that page does not have.
- * Not fixed here: mounting them is a /build change and /build is not this file.
+ * It said this "feeds the /build page". It did not: `listBuilderRuns`,
+ * `listBuilderClaims` and `releaseBuilderClaim` had no caller anywhere in
+ * `src/`: /build imported `listBuildWork` and `canDispatchToRepo` instead. The
+ * file-claim error message in the tool registry told people to "release the
+ * claim from /build", a control that page did not have, so the one recovery
+ * instruction the product gives for a claim conflict was a dead end.
+ *
+ * TWO OF THE THREE NOW HAVE THEIR DOOR, 2026-08-06. `listBuilderClaims` and
+ * `releaseBuilderClaim` are mounted by `components/build/HeldClaims.tsx` on
+ * /build, which renders only while a claim is held, so the registry's sentence
+ * points at something real. `listBuilderRuns` is still unmounted and its
+ * github.pr.open join is still dead (see the next paragraph); it is not
+ * connected here because connecting a read that cannot find what it looks for
+ * would be a worse defect than an unmounted one.
  *
  * And the github.pr.open join is now doubly dead. As of 2026-08-06 the work
  * order this file dispatches names studio.stage → studio.commit →
@@ -29,8 +36,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runAgentLoop } from "@/lib/ai/loop.server";
-import { createMission } from "@/lib/ai/handoff.server";
 import { buildArdDocument, parseArdDocument, type ArdDesignSection } from "@/lib/ard-schema";
 import {
   designGateBlocksDispatch,
@@ -42,6 +47,7 @@ import { recordLineage } from "@/lib/lineage.functions";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { formatArdWorkOrderBlock, standingClauseTexts } from "@/lib/build/ard-block";
 import { nativeBuildDriver } from "@/lib/build/native.server";
+import { refuseDispatch } from "@/lib/build/dispatch-refusal";
 import { resolveGitHub } from "@/lib/connectors/providers/github.server";
 /**
  * ONE DESIGN FOLD, NOT TWO. `formatDesignDispatchSections` is the Studio
@@ -443,6 +449,30 @@ export function assembleBuilderGoal(input: {
  * row for the product to read the PR back out of. Both tools remain in the
  * registry and neither allow-list moved; what changed is which one this
  * dispatch asks for. The reasoning is on `assembleBuilderGoal` above.
+ *
+ * AND IT STOPPED HOLDING THE BROWSER OPEN, 2026-08-06. This handler used to
+ * `await runAgentLoop(...)`, so the station's only dispatch ran an entire
+ * builder session inside one Cloudflare Worker request: "Build this" sat on
+ * "Starting" for the length of a real build, the run the station exists to let
+ * you watch was unreachable until it had finished, and every failure mode of a
+ * long request (a gateway timeout, a dropped connection, an evicted worker)
+ * landed on a caller that had been told nothing was dispatched.
+ *
+ * The sibling path had already solved it. `dispatchStudioSession` calls
+ * `nativeBuildDriver.dispatch`, which creates the mission, inserts a QUEUED
+ * `agent_runs` row and returns; the resume-runs sweeper (pg_cron, every minute)
+ * promotes it and runs the loop with a worker's full budget rather than a
+ * request's. This dispatch now does the same, returns `{mission_id, run_id}`
+ * immediately, and the caller navigates onto a run page that has a real run on
+ * it from the first frame.
+ *
+ * WHAT THAT MOVED, AND WHAT HAD TO MOVE WITH IT. `runAgentLoop` stamped
+ * `mission_spend_cap_usd` on the run row it inserted, and that column is what
+ * `checkMissionCaps` reads before every model call. The seam did not stamp it,
+ * so switching without touching it would have silently removed the spend
+ * ceiling from every Build Console dispatch while /build's own "boundary" line
+ * kept promising one. `nativeBuildDriver.dispatch` now resolves the ceiling
+ * itself, which fixes the Studio path in the same edit.
  */
 export const dispatchBuilderMission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -460,6 +490,20 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+
+    /**
+     * EVERY THROW IN THIS HANDLER IS MARKED, AND ONLY THE PRE-DURABLE ONES ARE
+     * REACHABLE AS THROWS.
+     *
+     * `refuseDispatch` prefixes the message with the mark defined in
+     * build/dispatch-refusal.ts, and ReadyToBuild's `onError` says "Nothing was
+     * dispatched, so the spec is still waiting" only for a message carrying it.
+     * Anything else that reaches `onError` (a gateway timeout, an edge 5xx, a
+     * dropped connection) is a failure whose OUTCOME IS UNKNOWN to the client,
+     * and it gets the cautious sentence instead. The mark stops after the
+     * GitHub issue is opened: from that line on there is something durable in
+     * the world, and this handler reports rather than throws.
+     */
 
     // Resolve PRD context if provided.
     type PrdCtx = {
@@ -480,14 +524,14 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         .select("id,title,body_md,github_issue_url,workspace_id,product_id,contract")
         .eq("id", data.prdId)
         .single();
-      if (error) throw new Error(`PRD lookup failed: ${error.message}`);
+      if (error) throw refuseDispatch(`PRD lookup failed: ${error.message}`);
       prd = row as unknown as PrdCtx;
     }
 
     // SW-4 / mission 3.4: the design station gates dispatch here exactly as
     // it does on the Studio path; fail-open pre-migration.
     const designGate = await loadDesignGateState(supabase as unknown as SupabaseClient, prd);
-    if (designGateBlocksDispatch(designGate)) throw new Error(DESIGN_GATE_BLOCK_MESSAGE);
+    if (designGateBlocksDispatch(designGate)) throw refuseDispatch(DESIGN_GATE_BLOCK_MESSAGE);
 
     // Mission 3.3 dispatch parity: the payload dispatched to Build IS the
     // ARD. Fold the linked spec's compiled contract once; it rides every
@@ -559,7 +603,17 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
     }
 
     if (!issueNumber && data.autoCreateIssue) {
-      const gh = await resolveGitHub({
+      /**
+       * MARKED, AND THE MARK MUST NOT SWALLOW THE WORDS THE GATE MATCHES ON.
+       *
+       * `resolveGitHub` throws NOT_CONNECTED_ERROR, and both /runs and
+       * ReadyToBuild's own repo gate classify it with `isRepoNotConnectedError`,
+       * a case-insensitive test for "github is not connected" ANYWHERE in the
+       * message. Prefixing leaves that substring intact, so the gate still
+       * opens on it; it is re-thrown rather than wrapped in new prose for
+       * exactly that reason.
+       */
+      const ghArgs = {
         userId,
         workspaceId,
         /**
@@ -585,7 +639,13 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
          */
         productId: prd?.product_id ?? null,
         userClient: supabase as unknown as SupabaseClient,
-      });
+      };
+      let gh: Awaited<ReturnType<typeof resolveGitHub>>;
+      try {
+        gh = await resolveGitHub(ghArgs);
+      } catch (e) {
+        throw refuseDispatch(e instanceof Error ? e.message : String(e));
+      }
 
       const titleSrc = data.missionTitle?.trim() || data.goal.split(/\r?\n/)[0].slice(0, 120);
       const bodyParts: string[] = [data.goal.slice(0, 40_000)];
@@ -632,7 +692,9 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
       });
       if (!res.ok) {
         const txt = await res.text();
-        throw new Error(`GitHub ${res.status}: ${txt.slice(0, 400)}`);
+        // Still pre-durable: GitHub refused, so no issue exists and nothing
+        // else has been written. The last throw in this handler that may say so.
+        throw refuseDispatch(`GitHub ${res.status}: ${txt.slice(0, 400)}`);
       }
       const json = (await res.json()) as { number: number; html_url: string };
       issueNumber = json.number;
@@ -677,7 +739,9 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
     }
 
     if (!issueNumber) {
-      throw new Error(
+      // Reachable only when auto-create was off and no issue resolved, so
+      // nothing was created above and the refusal mark is honest.
+      throw refuseDispatch(
         "Need a GitHub issue: link a PRD with one, enter an issue number, or enable Auto-create.",
       );
     }
@@ -694,7 +758,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
     });
 
     /**
-     * Resolve builder agent, create mission, then run.
+     * Resolve builder agent, then hand the work to the build seam.
      *
      * A ROSTER READ THAT FAILED IS NOT AN EMPTY ROSTER, and this read used to
      * discard its `error` and let `agent === null` stand for both. The two are
@@ -707,171 +771,278 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
      * absence-as-evidence pattern this repo keeps paying for.
      *
      * The read's outcome is unchanged on purpose — a failed read must not
-     * fabricate an agent, so mission creation is still skipped — but the reason
-     * now travels on `roster_error` and the caller says which of the two
-     * happened. Nothing is thrown: by this line the GitHub issue is already
-     * open, so "nothing was dispatched" would be false.
+     * fabricate an agent, so no mission is created, but the reason travels on
+     * `roster_error` and the caller says which of the two happened. Nothing is
+     * thrown: by this line the GitHub issue may already be open, so "nothing
+     * was dispatched" would be false.
+     *
+     * `name` IS SELECTED NOW BECAUSE THE SEAM NEEDS IT. `nativeBuildDriver`
+     * stamps `agent_runs.agent_name`, which is what every run list shows as the
+     * actor; `runAgentLoop` used to resolve the roster row a second time and
+     * fill it in, and the seam does not. `enabled` is deliberately NOT filtered
+     * on: a disabled builder still passes this read, the queued run is created,
+     * and `resumeAgentLoop` refuses it on the next sweep with the disabled
+     * agent's own error on the run page. Filtering here would be a different
+     * behaviour (no mission at all) than the one this handler has always had.
      */
     const { data: agent, error: agentError } = await supabase
       .from("agents")
-      .select("id")
+      .select("id,name")
       .eq("user_id", userId)
       .eq("slug", "builder")
       .maybeSingle();
     const rosterError = agentError ? agentError.message : null;
 
     /**
-     * EVERYTHING FROM HERE IS DURABLE, SO A FAILURE FROM HERE IS NOT "NOTHING
-     * HAPPENED".
+     * NOTHING BELOW THIS LINE THROWS, AND THAT IS THE CONTRACT.
      *
-     * This handler awaits the ENTIRE inline agent turn, and by the time it does
-     * it has already opened the GitHub issue, written `prds.github_issue_url`,
-     * created the mission, written the prd->mission lineage edge and recorded
-     * the stage event. Any failure inside `runAgentLoop` -- a spend cap, a model
-     * error, a later GitHub call, or the request simply timing out on a long
-     * build -- used to be thrown, and the Build Console's error row appends
-     * "Nothing was dispatched, so the spec is still waiting." to whatever it
-     * catches. That is the opposite of what happened, and the natural response
-     * to it is to press again: the second press finds `github_issue_url` set,
-     * skips issue creation, and mints a SECOND mission, a second lineage edge
-     * and a second billed builder run against the same issue.
+     * By here the GitHub issue may be open and `prds.github_issue_url` written,
+     * so "nothing was dispatched" would be false, and the caller's error row
+     * says exactly that sentence. So every failure from here is REPORTED on
+     * `run_error` with whatever the caller needs to reach what does exist. Only
+     * the marked pre-durable throws above may reach `onError`.
      *
-     * So a failure that lands after the mission exists is REPORTED, not thrown:
-     * the caller gets the mission id it needs to open the run alongside
-     * `run_error`. Only a failure with no mission and no called loop behind it
-     * still throws, because for that one the caller's sentence is true.
+     * `run_started` MEANS A QUEUED RUN ROW EXISTS, and since 2026-08-06 that is
+     * a different claim than it used to be. It was "`runAgentLoop` came back
+     * holding an `agent_runs` id", after a full inline build. It is now "the
+     * seam inserted the queued `agent_runs` row the resume-runs sweeper
+     * promotes". Both mean the same thing to the caller, which is the only
+     * thing the caller does with it: /runs/<mission> has a real run on it and
+     * navigating there shows work rather than an empty page. What changed is
+     * WHEN it is true, which is now within a second of the press rather than at
+     * the end of the build.
      *
-     * `run_started` IS THE THIRD CASE, AND THE LOOP IS WHAT ANSWERS IT. A caller
-     * holding only `{mission_id, run_error}` cannot tell "a run exists and its
-     * page carries the whole story" from "the mission row exists and nothing was
-     * ever started on it", where /runs/<id> is an empty page. That second state
-     * is reachable when `recordLineage` throws a transport error a few lines
-     * below (`recordStageEvent` cannot throw; stage-events.server.ts swallows its
-     * own). So the field reports the `agent_runs` row `runAgentLoop` says it
-     * inserted — `result.run_id` — and nothing else.
-     *
-     * IT USED TO BE `loopEntered`, ASSIGNED BEFORE THE AWAIT, so it meant "we
-     * called the loop" while every reader took it for "a run exists". Those come
-     * apart on anything that throws before that insert lands, and `runAgentLoop`
-     * has three such sites: `Unknown agent`, `Agent is disabled` (the roster read
-     * above selects `id` alone, so a disabled builder passes it, the mission is
-     * created, and the loop refuses it after), and the `agent_runs insert failed`
-     * guard on the insert itself. Each returned `run_started: true` with no
-     * run behind it, and ReadyToBuild navigates on that field — the exact empty
-     * page it was added to prevent. Latent as of 2026-08-06 (16 of 16 builder
-     * agents enabled) and one RLS refusal on `agent_runs` away.
-     *
-     * ON THE FAILURE PATH THE LOOP'S ANSWER IS GONE WITH THE THROW, so the field
-     * is false there and the caller states the reason in place with a door onto
-     * the mission instead of navigating. That is never worse: the run page is one
-     * click away either way, and the reason is on screen rather than discarded.
-     * What it must NOT do is claim no run exists — a throw from inside the step
-     * loop leaves a real `agent_runs` row behind — so the caller's sentence for
-     * this case says the dispatch got no run id back, which is true of all of
-     * them.
-     *
-     * `loopCalled` keeps the other half of the old variable's job, and only that
-     * half: whether anything is behind this failure at all, which is what decides
-     * between rethrowing and reporting.
+     * THE ONE STATE THE SEAM CAN LEAVE THAT THIS CANNOT SEE. `dispatch` creates
+     * the mission and then inserts the run; if the insert is refused it throws
+     * with the mission already written, and the mission id went with the throw.
+     * That is reported as `mission_id: null` plus a `run_error`, and the
+     * caller's copy for it says a mission may exist rather than that none does.
+     * Closing it properly is a change to the seam's return contract (a partial
+     * session), and the seam is shared with the Studio dispatch.
      */
     let missionId: string | null = null;
-    let loopCalled = false;
-    try {
-      if (workspaceId && agent) {
-        const m = await createMission(supabase, userId, workspaceId, {
-          title: (
-            data.missionTitle?.trim() || `Build · #${issueNumber} ${data.goal.slice(0, 60)}`
-          ).slice(0, 200),
-          goal: fullGoal,
-          starting_agent_id: (agent as { id: string }).id,
-          // BD-1: this dispatch runs the in-house loop below, so the mission is
-          // stamped with the engine that actually builds it.
-          build_driver: nativeBuildDriver.id,
-        });
-        missionId = m.id;
-        // Mission 3.4: the spec's dispatch is a stage transition like any
-        // other; the ledger chain walks design -> build on real rows.
-        if (prd) {
-          /**
-           * THE EDGE THAT CARRIES THE SPEC INTO THE RECORD.
-           *
-           * Found 2026-08-05: this is the SECOND path that dispatches a Build
-           * mission from a spec, and it was the only one not writing this edge.
-           * dispatchStudioSession (studio.functions.ts) writes it; this one wrote
-           * the stage event and stopped. Nothing downstream could tell the two
-           * dispatches apart, because a mission carries no prd column — the edge
-           * IS the link.
-           *
-           * What that cost, four hops down: the changeset an agent opens resolves
-           * its spec through this edge, so a mission dispatched here produced a
-           * changeset with a null prd_id; decideStudioMergeShipStamp then refused
-           * every such merge with "this change has no spec behind it"; no spec was
-           * stamped shipped; the settle sweep had nothing to grade; and the
-           * outcome memory pool — the moat — stayed empty. 21 of 23 live
-           * changesets came through here, which is the whole gap.
-           *
-           * Same shape and relation as the Studio dispatch deliberately, so the
-           * two paths write ONE kind of edge and every reader stays single-path.
-           */
-          await recordLineage(supabase, userId, {
-            parent_kind: "prd",
-            parent_id: prd.id,
-            child_kind: "mission",
-            child_id: m.id,
-            relation: "dispatched",
-            rationale: "Sent to Build",
-            created_by_agent: "builder",
-          });
-          await recordStageEvent(supabase, {
-            entityType: "spec",
-            entityId: prd.id,
-            from: null,
-            to: "build",
-            actor: "human",
-            workspaceId,
-            userId,
-          });
-        }
-      }
+    let runId: string | null = null;
+    let runError: string | null = null;
 
-      loopCalled = true;
-      const result = await runAgentLoop(supabase, userId, {
-        agentSlug: "builder",
-        goal: fullGoal,
-        missionId,
-      });
+    const missionTitle = (
+      data.missionTitle?.trim() || `Build · #${issueNumber} ${data.goal.slice(0, 60)}`
+    ).slice(0, 200);
 
+    if (!workspaceId || !agent) {
+      // No mission is created without both, exactly as before. The caller has
+      // three distinct sentences for the three reasons, so this reports which.
+      const why = rosterError
+        ? `Your agent roster could not be read (${rosterError}), so no builder agent resolved and no mission was created.`
+        : !workspaceId
+          ? "No workspace resolved for this spec, so there was nowhere to put the mission."
+          : "No builder agent is in your roster, so no mission was created.";
       return {
-        ...result,
         mission_id: missionId,
+        run_id: runId,
         issue_number: issueNumber,
         issue_url: issueUrl,
         issue_link_error: issueLinkError,
         roster_error: rosterError,
-        run_error: null as string | null,
-        // The loop's own answer, not this function's control flow. `run_id` is
-        // null when the `agent_runs` insert came back empty without erroring,
-        // and a caller sent to that mission's run page would find nothing on it.
-        run_started: (result.run_id ?? null) !== null,
-      };
-    } catch (e) {
-      // Nothing durable to point the caller at: the mission was never created
-      // and the loop was never called. "Nothing was dispatched" is true here, so
-      // let it throw and let the caller say it.
-      if (!missionId && !loopCalled) throw e;
-      return {
-        mission_id: missionId,
-        issue_number: issueNumber,
-        issue_url: issueUrl,
-        issue_link_error: issueLinkError,
-        roster_error: rosterError,
-        run_error: e instanceof Error ? e.message : String(e),
-        // The throw took the loop's answer with it. False means "no run id came
-        // back", never "no run exists" — see the paragraph above.
+        run_error: why,
         run_started: false,
       };
     }
+
+    try {
+      /**
+       * THE SEAM, NOT AN INLINE LOOP. `nativeBuildDriver.dispatch` performs
+       * exactly what this handler used to do by hand (createMission stamped
+       * `build_driver`), and then inserts a QUEUED `agent_runs` row instead of
+       * running the build inside this request. See the header for what that
+       * cost and why the ceiling had to move with it.
+       *
+       * The spec passes `goal` alone. `assembleBuilderGoal` has already folded
+       * the acceptance criteria into the work-order text, so passing them again
+       * as `acceptanceCriteria` would print the same bar twice in the mission
+       * goal the agent reads.
+       */
+      const session = await nativeBuildDriver.dispatch(
+        {
+          supabase: supabase as unknown as SupabaseClient,
+          userId,
+          workspaceId,
+          agent: {
+            id: (agent as { id: string }).id,
+            slug: "builder",
+            name: (agent as { name?: string | null }).name ?? "Engineer",
+          },
+          missionTitle,
+        },
+        { goal: fullGoal },
+      );
+      missionId = session.missionId;
+      runId = session.runId ?? null;
+    } catch (e) {
+      runError = e instanceof Error ? e.message : String(e);
+    }
+
+    // Mission 3.4: the spec's dispatch is a stage transition like any other;
+    // the ledger chain walks design -> build on real rows.
+    if (missionId && prd) {
+      /**
+       * THE EDGE THAT CARRIES THE SPEC INTO THE RECORD.
+       *
+       * Found 2026-08-05: this is the SECOND path that dispatches a Build
+       * mission from a spec, and it was the only one not writing this edge.
+       * dispatchStudioSession (studio.functions.ts) writes it; this one wrote
+       * the stage event and stopped. Nothing downstream could tell the two
+       * dispatches apart, because a mission carries no prd column: the edge
+       * IS the link.
+       *
+       * What that cost, four hops down: the changeset an agent opens resolves
+       * its spec through this edge, so a mission dispatched here produced a
+       * changeset with a null prd_id; decideStudioMergeShipStamp then refused
+       * every such merge with "this change has no spec behind it"; no spec was
+       * stamped shipped; the settle sweep had nothing to grade; and the
+       * outcome memory pool (the moat) stayed empty. 21 of 23 live
+       * changesets came through here, which is the whole gap.
+       *
+       * Same shape and relation as the Studio dispatch deliberately, so the
+       * two paths write ONE kind of edge and every reader stays single-path.
+       *
+       * AND IT IS THE EDGE `listSpecDispatches` READS BACK, which is what
+       * retires "Build this" on the Build Console once a spec has a run. A
+       * transport failure here therefore costs a visible fact as well as a
+       * provenance one, so the reason is reported rather than swallowed: the
+       * run is real either way and the caller is told the link is not.
+       */
+      try {
+        await recordLineage(supabase, userId, {
+          parent_kind: "prd",
+          parent_id: prd.id,
+          child_kind: "mission",
+          child_id: missionId,
+          relation: "dispatched",
+          rationale: "Sent to Build",
+          created_by_agent: "builder",
+        });
+        await recordStageEvent(supabase, {
+          entityType: "spec",
+          entityId: prd.id,
+          from: null,
+          to: "build",
+          actor: "human",
+          workspaceId,
+          userId,
+        });
+      } catch (e) {
+        const why = e instanceof Error ? e.message : String(e);
+        runError = runError
+          ? `${runError} The spec was also not linked to its run (${why}).`
+          : `The build was dispatched, but the spec was not linked to its run (${why}), so this station cannot tell that this spec already has a build.`;
+      }
+    }
+
+    return {
+      mission_id: missionId,
+      run_id: runId,
+      issue_number: issueNumber,
+      issue_url: issueUrl,
+      issue_link_error: issueLinkError,
+      roster_error: rosterError,
+      run_error: runError,
+      // The seam's own answer, not this function's control flow: the queued
+      // `agent_runs` row it says it inserted. Null when the insert came back
+      // empty without erroring, and a caller sent to that mission's run page
+      // would find nothing on it.
+      run_started: runId !== null,
+    };
   });
+
+/** One Build mission a spec has already been dispatched to. */
+export type SpecDispatch = {
+  /** The spec the edge starts at. */
+  prdId: string;
+  missionId: string;
+  missionTitle: string | null;
+  /** `missions.status` exactly as stored, or null when the mission row was
+   *  not readable (the edge survives a deleted or refused mission row). */
+  status: string | null;
+  /** When the edge was written, which is when the dispatch happened. */
+  dispatchedAt: string;
+};
+
+/**
+ * WHICH OF THESE SPECS ALREADY HAS A BUILD, so the station can stop offering to
+ * start a second one by accident.
+ *
+ * THE DEFECT. Nothing in `dispatchBuilderMission` moves `prds.status` (only the
+ * ship stamp does), so a spec dispatched an hour ago, or halted three days ago,
+ * is still 'approved' and still carried a live primary "Build this" on the
+ * Build Console. The only trace was a sub-line reading "Approved, with a GitHub
+ * issue already open", which reads as reassurance rather than as a warning that
+ * the next press mints a second mission and a second billed run against the
+ * same work.
+ *
+ * THE EDGE IS THE EVIDENCE AND IT WAS ALREADY BEING WRITTEN. Every dispatch
+ * from either path records `prd -> mission` with relation 'dispatched', so the
+ * ids this returns are the runs a person can actually open. A mission column on
+ * `prds` would be a second source of the same truth and would go stale the
+ * first time someone dispatched twice.
+ *
+ * `unread` IS NOT DECORATION. An empty list from a REFUSED read looks exactly
+ * like a spec that was never dispatched, and the surface's response to those
+ * two differs by one billed builder run. The caller keeps its button either
+ * way, and says which it is.
+ */
+export const listSpecDispatches = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) =>
+    z.object({ prdIds: z.array(z.string().uuid()).min(1).max(24) }).parse(i),
+  )
+  .handler(
+    async ({ context, data }): Promise<{ dispatches: SpecDispatch[]; unread: string | null }> => {
+      const { supabase } = context;
+      const { data: edgeRows, error: edgeErr } = await supabase
+        .from("artifact_lineage")
+        .select("parent_id,child_id,created_at")
+        .eq("parent_kind", "prd")
+        .eq("child_kind", "mission")
+        .eq("relation", "dispatched")
+        .in("parent_id", data.prdIds)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (edgeErr) return { dispatches: [], unread: edgeErr.message };
+
+      const edges = (edgeRows ?? []) as Array<{
+        parent_id: string;
+        child_id: string;
+        created_at: string;
+      }>;
+      if (!edges.length) return { dispatches: [], unread: null };
+
+      const missionIds = [...new Set(edges.map((e) => e.child_id))];
+      const { data: missionRows, error: missionErr } = await supabase
+        .from("missions")
+        .select("id,title,status")
+        .in("id", missionIds);
+      // THE EDGES STILL STAND. A failed mission read costs the title and the
+      // status, not the fact that a dispatch happened, so the list is returned
+      // with nulls and the failure is named rather than the whole answer
+      // discarded, which would put the second billed run back on the table.
+      const byId = new Map(
+        ((missionRows ?? []) as Array<{ id: string; title: string; status: string }>).map((m) => [
+          m.id,
+          m,
+        ]),
+      );
+      return {
+        dispatches: edges.map((e) => ({
+          prdId: e.parent_id,
+          missionId: e.child_id,
+          missionTitle: byId.get(e.child_id)?.title ?? null,
+          status: byId.get(e.child_id)?.status ?? null,
+          dispatchedAt: e.created_at,
+        })),
+        unread: missionErr ? missionErr.message : null,
+      };
+    },
+  );
 
 /**
  * One blocked row, and the only two facts a surface needs to name the reason

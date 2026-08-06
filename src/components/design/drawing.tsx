@@ -88,6 +88,14 @@ export function Consequence({
         </Line>
       ) : null}
 
+      {/* THE LAST BRANCH IS THE ONE THAT MATTERS, and it used to be the bare
+          word "Nothing" because it was unreachable: `blocksDispatch` was
+          computed as stage-on AND not-approved, so an undrawn spec with the
+          stage on fell into the warn line above and was told it could not reach
+          Build. It can. `designGateBlocksDispatch` does not gate the absence of
+          a drawing, so with nothing drawn the gate holds nothing up, and the
+          sentence says why rather than leaving a one-word answer under the most
+          consequential question on the panel. */}
       <Line label="What it holds up">
         <Value tone={blocksDispatch ? "warn" : "quiet"}>
           {blocksDispatch
@@ -96,7 +104,9 @@ export function Consequence({
               ? "Nothing. The design stage is off"
               : gateStatus === "approved"
                 ? "Nothing. It can reach Build"
-                : "Nothing"}
+                : !hasDrawing
+                  ? "Nothing. No screen is drawn, so the gate has nothing to hold"
+                  : "Nothing"}
         </Value>
       </Line>
 

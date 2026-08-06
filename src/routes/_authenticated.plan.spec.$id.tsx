@@ -259,11 +259,44 @@
  * blocker, and neither can fire once the gate reads approved. Whoever adds that
  * action owns naming the event it writes.
  *
- * AND THE SENDS ARE NOW GATED THE SAME WAY, because they are one dispatch: the
- * GitHub-issue precondition follows `routeSendsToBuild` rather than the radio,
- * and the missing-issue blocker finally has the door the gate-holds one always
- * had, running the same `createIssue` mutation as the action row so there is
- * one writer and two ways to reach it.
+ * AND THE SENDS ARE NOW GATED THE SAME WAY, because they are one dispatch: what
+ * the surface asks of a send follows `routeSendsToBuild` rather than the radio,
+ * so handing a spec TO Design, which dispatches nothing, is asked for nothing.
+ * (This paragraph used to call the GitHub issue a "precondition" and say the
+ * blocker for it had "finally" got a door. Corrected below: it was never a
+ * precondition of anything, and the door is now attached to a note rather than
+ * to a refusal.)
+ *
+ * ----------------------------------------------------------------------------
+ * 2026-08-06, THE AUDIT PASS: FOUR THINGS THIS PAGE SAID THAT WERE NOT TRUE.
+ *
+ * The station audit returned "not-self-sufficient" on Plan. Four of its findings
+ * were about this file and all four are the same shape, which is a surface
+ * making a claim its own code does not keep.
+ *
+ *   1. APPROVING CHANGED NOTHING ON THE PAGE THAT APPROVED IT. `approve` wrote
+ *      the row and invalidated ["prds"], the list on /plan, while this page
+ *      reads ["prd", id]. Those keys do not partial-match, so the subtitle kept
+ *      saying "draft" under a receipt saying "You approved the spec". See
+ *      `approve`. `save` had the same gap and got the same line.
+ *   2. THE DIRECT ROUTE WAS DISABLED BEHIND AN INVENTED PRECONDITION.
+ *      `routeBlocker` refused to dispatch a spec with no GitHub issue.
+ *      `dispatchStudioSession` has never wanted one. Under the founder's
+ *      non-linear ruling plan to build is a first-class route, and this made it
+ *      a two-step for 41 of the 42 approved specs on the live database. The
+ *      clause is gone and its message survives as `sendsWithoutIssue`, a note
+ *      with the same door.
+ *   3. THE ISSUE DOOR DEAD-ENDED WHEN GITHUB WAS NOT CONNECTED. `createIssue`
+ *      wrote a failed receipt for a refusal this page has offered two real
+ *      paths out of since W5b. It opens the repo gate now, and the gate learned
+ *      which of the two acts to retry. See `repoGate`.
+ *   4. A RECEIPT CLAIMED THE SEND BEFORE THE SEND WAS ATTEMPTED. Written inside
+ *      `chooseRoute.onSuccess`, which only means the route was recorded, and
+ *      followed by a dispatch that stops at the repo gate on any workspace with
+ *      no repo. It reports the record now, and the dispatch reports itself.
+ *
+ * What is NOT fixed here and does not live in this file: `listSpecs` still
+ * returns no design row per spec, so /plan reads `listDesignWork` beside it.
  */
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -687,9 +720,21 @@ function SpecEditorPage() {
     onError: (e: Error) => commit("Nothing was broken down", e.message, true),
   });
 
-  // W5b: the dispatch repo gate. Set when Send to Build cannot resolve a
-  // repo; the dialog offers /sync or provision-a-starter-repo + auto retry.
-  const [repoGate, setRepoGate] = useState<{ reason: string | null } | null>(null);
+  /**
+   * W5b: the repo gate. Set when an act on this page cannot resolve a repo; the
+   * dialog offers /sync or provision-a-starter-repo plus an automatic retry.
+   *
+   * `retry` NAMES WHAT THE GATE INTERRUPTED, because two different acts on this
+   * page hit the same refusal and the dialog retries exactly one of them. The
+   * dispatch has always been able to open it; `createIssue` now can too, and
+   * both go through `resolveGitHub`. Without this field the dialog's provision
+   * path would have re-run the dispatch whichever act opened the gate, so
+   * provisioning a repo from the issue door would have started a build.
+   */
+  const [repoGate, setRepoGate] = useState<{
+    reason: string | null;
+    retry: "dispatch" | "issue";
+  } | null>(null);
 
   const sendToStudio = useMutation({
     mutationFn: () => mDispatchStudio({ data: { prdId: id } }),
@@ -699,7 +744,7 @@ function SpecEditorPage() {
     onSuccess: (r) => navigate({ to: "/build/$missionId", params: { missionId: r.missionId } }),
     onError: (e: Error) => {
       // The raw not-connected refusal becomes the gate with the real paths.
-      if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message });
+      if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message, retry: "dispatch" });
       else commit("Nothing was sent", e.message, true);
     },
   });
@@ -726,7 +771,7 @@ function SpecEditorPage() {
       await gateDispatch({
         check: () => fCanDispatch({ data: { prdId: id } }),
         dispatch: () => sendToStudio.mutate(),
-        openGate: (reason) => setRepoGate({ reason }),
+        openGate: (reason) => setRepoGate({ reason, retry: "dispatch" }),
       });
     } finally {
       setCheckingRepo(false);
@@ -812,15 +857,33 @@ function SpecEditorPage() {
         void navigate({ to: "/design", search: { focus: id } as never });
         return;
       }
-      // THE THIRD PLACE THIS SENTENCE WAS WRITTEN, and the only one that lands
-      // after the write. "No screen gets drawn" is not true of a spec that has
-      // one drawn and approved, so on that spec the receipt says what the click
-      // actually put on the record instead of repeating the default.
+      /**
+       * THE THIRD PLACE THIS SENTENCE WAS WRITTEN, and the only one that lands
+       * after a write. "No screen gets drawn" is not true of a spec that has one
+       * drawn and approved, so on that spec the receipt says what the click
+       * actually put on the record instead of repeating the default.
+       *
+       * AND ITS VERB NO LONGER CLAIMS THE SEND. It read "You sent it straight to
+       * Build", written here, inside `chooseRoute.onSuccess`, which means one
+       * thing only: the route event was recorded. The send is the NEXT line.
+       * `sendToBuild` runs `gateDispatch`, and when the repo pre-check comes
+       * back `not_connected` it calls `openGate` and never dispatches
+       * (src/lib/build/repo-gate.ts). So on a workspace with no repo connected,
+       * which is the normal fresh-workspace case, this page said "You sent it
+       * straight to Build" and then opened a modal explaining that there is
+       * nowhere to build it.
+       *
+       * SPLIT ALONG WHAT ACTUALLY HAPPENED AT THIS MOMENT. This receipt covers
+       * the record, which is written and true. The dispatch speaks for itself
+       * either way: success navigates to the run, and failure is already
+       * covered by "Nothing was sent" in `sendToStudio.onError` or by the repo
+       * gate. Nothing is lost, because the two halves were never one event.
+       */
       commit(
-        "You sent it straight to Build",
+        "You recorded the skip",
         designIsDoneAndApproved
-          ? "A skip is on this spec's record and Design shows it was sent past, on a spec whose screen was already drawn and approved."
-          : "No screen gets drawn. The skip is on this spec's record and Design shows it was sent past.",
+          ? "A skip is on this spec's record and Design shows it was sent past, on a spec whose screen was already drawn and approved. Build is being asked for it now."
+          : "No screen gets drawn. The skip is on this spec's record and Design shows it was sent past. Build is being asked for it now.",
       );
       void sendToBuild();
     },
@@ -936,28 +999,86 @@ function SpecEditorPage() {
    *  same `sendToBuild` the direct route runs, and one dispatch cannot have two
    *  different preconditions on one page depending on which radio is lit.
    *  Handing a spec TO Design still blocks on nothing, because nothing
-   *  dispatches. Neither of the two specs this can fire on today is affected:
-   *  both carry an issue url (measured 2026-08-06). */
+   *  dispatches.
+   *
+   *  IT RETURNS ONE SENTENCE NOW, AND THE ONE IT LOST WAS INVENTED HERE. The
+   *  second clause read "Build works from a GitHub issue. Open one and this
+   *  runs." and hard-disabled the primary on it. `dispatchStudioSession`, the
+   *  function this gate protects, never asks for an issue: it selects
+   *  `github_issue_url` only to add an optional "Closes #N" line to the work
+   *  order (src/lib/studio.functions.ts, the `3-way issue resolution` block),
+   *  and it throws for a missing agent, a missing workspace and a held design
+   *  gate, never for a missing issue. So the surface was refusing a dispatch
+   *  the server would have accepted.
+   *
+   *  WHAT IT COST, and it is the founder's non-linear ruling in miniature: plan
+   *  to build is a first-class route, and ReadyToBuild's own measurement, taken
+   *  2026-08-06, is 42 approved specs with exactly ONE issue url
+   *  (src/components/build/ReadyToBuild.tsx). This clause turned the route into
+   *  a two-step with an external dependency for the other 41. Build itself
+   *  never solved it this way: `startBuild` takes `autoCreateIssue` rather than
+   *  greying its own button out.
+   *
+   *  THE MESSAGE IS NOT REMOVED, IT IS DEMOTED. `sendsWithoutIssue` below says
+   *  the same fact as a standing note with the same `createIssue` door beside
+   *  it, and says what the issue actually buys instead of claiming the send
+   *  needs one. The gate that IS real, a drawn screen nobody has judged, still
+   *  blocks: the server refuses that one too. */
   const routeBlocker = (): string | null => {
     if (!routeInfo) return null;
     if (!routeSendsToBuild) return null;
     if (routeInfo.gateHolds) return "The drawn screen has to be settled at Design first.";
-    if (!prdQ.data?.prd?.github_issue_url) {
-      return "Build works from a GitHub issue. Open one and this runs.";
-    }
     return null;
   };
 
+  /** True when the send would run with no issue on the spec. A FACT, never a
+   *  refusal: what an issue buys is the "Closes #N" line in the pull request
+   *  Build opens, so the note below states that and offers the door, and the
+   *  primary stays live either way. Read off `routeSendsToBuild` for the same
+   *  reason the blocker is: handing a spec to Design dispatches nothing, so
+   *  there is nothing for an issue to close. */
+  const sendsWithoutIssue = (): boolean =>
+    routeSendsToBuild && !routeInfo?.gateHolds && !prdQ.data?.prd?.github_issue_url;
+
+  /**
+   * OPEN THE ISSUE, AND THE ONE REFUSAL IT HAS ALREADY HAS A DOOR ON THIS PAGE.
+   *
+   * `createGithubIssueForPrd` calls `resolveGitHub`
+   * (src/lib/discovery.functions.ts), which throws the "GitHub is not
+   * connected" refusal on a workspace with no binding. That landed here as a
+   * failed receipt and nothing else: no /sync link, no provision path, no way
+   * forward from a surface that had just recommended pressing this.
+   *
+   * The neighbouring dispatch has handled the identical error shape since W5b,
+   * and this file already imports `isRepoNotConnectedError` and mounts
+   * `RepoGateDialog` for it. Same refusal, same gate, so the answer is the two
+   * real paths (connect one on /sync, or provision a private starter repo)
+   * rather than a dead sentence. Every other failure is still a receipt,
+   * because the gate offers nothing that would help with those.
+   *
+   * `retry: "issue"` IS THE SECOND HALF, and leaving it out would have made
+   * this worse rather than better. The dialog's provision path calls `onRetry`
+   * after the repo exists, and `onRetry` was hardwired to `sendToStudio`, so
+   * provisioning from a gate this mutation opened would have dispatched a build
+   * nobody asked for and still left the issue unopened. The gate now carries
+   * which act it interrupted and re-runs that one.
+   */
   const createIssue = useMutation({
     mutationFn: () => mCreateIssue({ data: { id } }),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ["prd", id] });
       commit(
         r.cached ? "It was already open" : "You opened the issue",
-        `#${r.number} is on the repo. Send to Build can run now.`,
+        // NOT "Send to Build can run now": the send could always run, and
+        // saying otherwise was the invented precondition speaking one more
+        // time. What changed is what the pull request will carry.
+        `#${r.number} is on the repo, and the pull request Build opens will close it.`,
       );
     },
-    onError: (e: Error) => commit("No issue was opened", e.message, true),
+    onError: (e: Error) => {
+      if (isRepoNotConnectedError(e.message)) setRepoGate({ reason: e.message, retry: "issue" });
+      else commit("No issue was opened", e.message, true);
+    },
   });
 
   const captureDecision = useMutation({
@@ -1008,6 +1129,14 @@ function SpecEditorPage() {
     // never wear the shape of one that did.
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["prds"] });
+      // BOTH KEYS, and they do not partial-match. ["prds"] is the list on
+      // /plan; ["prd", id] is THIS page's own read, and react-query compares
+      // key elements in order, so "prds" never matches "prd". Without the
+      // second line the row that survives a save is `prd`, the server copy the
+      // panels below are handed: SpecProjectionsPanel gets `prd.title`, the
+      // dispatch indicator falls back to it, and both kept printing the title
+      // as it was before this save until something else refetched.
+      qc.invalidateQueries({ queryKey: ["prd", id] });
       setSavedAt(stamp());
     },
     onError: (e: Error) => commit("Your edits are not saved", e.message, true),
@@ -1038,11 +1167,24 @@ function SpecEditorPage() {
    * IT SAVES THE EDITS IN THE SAME WRITE. Approving a spec while the body on
    * screen differs from the body on the record would approve a version nobody
    * read. One call, one row, one transition.
+   *
+   * AND IT REFETCHES THE ROW IT JUST CHANGED, which the first version of this
+   * control did not. It invalidated ["prds"], the LIST on /plan, and this page
+   * reads ["prd", id]. Those two keys do not partial-match: react-query
+   * compares key elements in order and "prds" is not "prd", so the spec's own
+   * read was never refetched and nothing on the page that just approved the
+   * spec moved. The subtitle still read "draft", the primary still offered
+   * "Approve the spec", Save was still the secondary, and a receipt directly
+   * above all three said "You approved the spec". Three statements about one
+   * spec, two of them wrong, on the act this station exists to perform. Every
+   * other writer in this file already carried ["prd", id]: `createIssue`,
+   * `CriticBadge`'s invalidateKey and `OutcomeContractPanel`'s.
    */
   const approve = useMutation({
     mutationFn: () => mSave({ data: { id, title, body_md: body, status: "approved" } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["prds"] });
+      qc.invalidateQueries({ queryKey: ["prd", id] });
       setSavedAt(stamp());
       commit(
         "You approved the spec",
@@ -1380,7 +1522,10 @@ function SpecEditorPage() {
             <Button
               disabled={createIssue.isPending}
               onClick={() => createIssue.mutate()}
-              title="Build works from a GitHub issue. Creating it opens the route below."
+              // It never opened the route: the route was never shut. The hint
+              // says what the issue is actually for, which is the pull request
+              // Build opens closing it when the work lands.
+              title="Open a GitHub issue for this spec, so the pull request Build opens can close it"
             >
               {createIssue.isPending ? "Creating" : "Create GitHub issue"}
             </Button>
@@ -1685,35 +1830,43 @@ function SpecEditorPage() {
                   attribute a keyboard user never sees, and it names who acts
                   next.
 
-                  AND NOW BOTH REASONS HAVE A DOOR. `routeBlocker` returns
-                  exactly two sentences and only the first one had one; the
-                  second said "create the issue above", which on a surface this
-                  long means scrolling back past the whole document to the
-                  action row and then back down to press send. The button here
-                  is the same `createIssue` mutation that row runs, so there is
-                  one writer and two ways to reach it. The branches mirror
-                  `routeBlocker`'s in order, so a third reason added there needs
-                  a third door here. */}
+                  ONE BLOCKER AND ONE NOTE, WHERE THERE WERE TWO BLOCKERS.
+                  `routeBlocker` used to return two sentences and the second was
+                  invented by this surface: the dispatch has never needed a
+                  GitHub issue (see `routeBlocker` and `sendsWithoutIssue`). Its
+                  door is not lost, it is moved into the note below, which says
+                  the same fact without disabling the send and runs the same
+                  `createIssue` mutation the action row runs. So there is still
+                  one writer and two ways to reach it.
+
+                  THE BRANCHES MIRROR THE TWO PREDICATES IN ORDER, and the
+                  blocker outranks the note: a spec whose drawing is unjudged
+                  cannot dispatch at all, so telling it about an issue would be
+                  answering a question nobody can act on yet. A third reason
+                  added to `routeBlocker` needs a third door here. */}
               {routeBlocker() ? (
                 <Empty
                   action={
-                    routeInfo?.gateHolds ? (
-                      <Button
-                        onClick={() =>
-                          void navigate({ to: "/design", search: { focus: id } as never })
-                        }
-                      >
-                        Open it on Design
-                      </Button>
-                    ) : (
-                      <Button disabled={createIssue.isPending} onClick={() => createIssue.mutate()}>
-                        {createIssue.isPending ? "Creating" : "Create GitHub issue"}
-                      </Button>
-                    )
+                    <Button
+                      onClick={() =>
+                        void navigate({ to: "/design", search: { focus: id } as never })
+                      }
+                    >
+                      Open it on Design
+                    </Button>
                   }
                 >
                   {routeBlocker()}
                 </Empty>
+              ) : sendsWithoutIssue() ? (
+                <Line
+                  label="No GitHub issue is open for this spec"
+                  sub="The send runs without one: Build works from the spec itself. What an issue buys is the Closes line in the pull request, which is what makes the issue close itself when the work lands."
+                >
+                  <Button disabled={createIssue.isPending} onClick={() => createIssue.mutate()}>
+                    {createIssue.isPending ? "Creating" : "Create GitHub issue"}
+                  </Button>
+                </Line>
               ) : null}
             </>
           )}
@@ -2132,7 +2285,23 @@ function SpecEditorPage() {
         onOpenChange={(o) => {
           if (!o) setRepoGate(null);
         }}
-        onRetry={() => sendToStudio.mutate()}
+        // Re-run the act the gate interrupted, not a fixed one. `onRetry` fires
+        // after the provision path creates the repo, so a gate opened by the
+        // issue door must open the issue and a gate opened by the send must
+        // send. See `repoGate`.
+        onRetry={() => {
+          if (repoGate?.retry === "issue") createIssue.mutate();
+          else sendToStudio.mutate();
+        }}
+        // AND THE DIALOG HAS TO SAY THE SAME THING `onRetry` DOES. Branching
+        // the retry alone left every sentence inside the gate written about the
+        // dispatch: it was titled "No repo to build in", it promised "the
+        // dispatch retries automatically", and its provision toast read "Build
+        // dispatched on the fresh repo" on a path that opens an issue and
+        // dispatches nothing. That is the same shape as the finding that put
+        // the door here. This field and the branch above read the same value,
+        // so they cannot drift apart.
+        act={repoGate?.retry ?? "dispatch"}
       />
     </>
   );

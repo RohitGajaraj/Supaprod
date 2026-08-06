@@ -134,6 +134,35 @@
  *    row's own click, which was already taken twice over: a contributor's click
  *    starts an announcement draft, and everyone else's opens the production URL.
  *    Stealing either would have traded one capability for another.
+ *
+ * 8. A MERGE WITH NO RELEASE NOTES HAD NO ROW, so the capture door was
+ *    unreachable in the exact case it was written for (fixed 2026-08-06).
+ *
+ *    THE LOOP. Every list here is derived from `releaseStates`, which walks
+ *    changelog entries; an entry exists only for a merged changeset with
+ *    non-empty release notes; and for a repo Supaprod does not host, the only
+ *    writer of those notes is ci-poll-tick, AFTER a capture succeeds. The cron
+ *    stops asking 60 minutes after the merge. So a slower pipeline is never
+ *    captured, never written up, never listed, and never gets the button whose
+ *    own doc says it "is the only way to ask after the cron has stopped
+ *    asking". This surface used to state the hole in a comment and leave it:
+ *    "Reaching them from HERE would need a read this surface does not have."
+ *
+ *    THE READ IT NOW HAS. `listAppliedChanges` returns every merged changeset in
+ *    the workspace and was ALREADY being fetched on this page by the release
+ *    document, which used one row of it. Same query key, so it is still one
+ *    request. `unlistedMerges` subtracts the changelog from it, and each
+ *    remainder gets a row carrying two doors that were already imported here:
+ *    `generateReleaseNotes`, which writes the column the changelog trigger fires
+ *    on, and `captureDeployments`, which asks the provider again.
+ *
+ *    AND TWO SENTENCES THAT WERE ASSERTING ABSENCE FROM READS THAT ANSWERED.
+ *    "No deploy is on the record yet" was drawn from `states.length === 0`,
+ *    which is the CHANGELOG being empty, over deploy rows this surface was
+ *    holding in `deployRows`. "Nothing has merged yet" was the same mistake one
+ *    level up: a claim about changesets made from a read of changelog entries.
+ *    Both now branch on the read that can actually answer them, and both keep
+ *    their old wording word for word in the case where it was always true.
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -146,6 +175,18 @@ import { useServerFn } from "@tanstack/react-start";
 // rule about a different thing entirely, so the rollback comes in on its own.
 import { generateLaunchKit } from "@/lib/studio.functions";
 import { rollbackRelease } from "@/lib/studio.functions";
+// THE READ THIS SURFACE USED TO SAY IT DID NOT HAVE, plus the door that repairs
+// what it finds. `listAppliedChanges` is every MERGED changeset in the
+// workspace, which is the only thing that can see a merge the changelog cannot,
+// and `generateReleaseNotes` is what gives such a merge a release at all. On
+// its own line for the same reason the launch kit is: ship-has-an-agent.test.ts
+// pins that statement character for character, so a name added to it breaks a
+// rule about a different thing entirely.
+import {
+  generateReleaseNotes,
+  listAppliedChanges,
+  type AppliedChange,
+} from "@/lib/studio.functions";
 import { listDeployments, promoteToProduction } from "@/lib/deployments.functions";
 // The capture door comes in on its own line for the same reason the launch kit
 // does. ship-can-ship.test.ts asserts the statement above character for
@@ -688,6 +729,46 @@ export function releaseStates(
 }
 
 /**
+ * MERGED, AND NOWHERE ON THIS STATION. The merges the changelog cannot see.
+ *
+ * WHY THEY ARE INVISIBLE, and why the invisibility is circular. Every list on
+ * this surface is derived from `releaseStates`, which walks changelog entries;
+ * an entry is materialized only by `trg_studio_changeset_to_changelog`, on a
+ * merged changeset whose `release_notes` are non-empty. For a repo Supaprod
+ * hosts, promote writes those notes. For a repo it does not host, the ONLY
+ * writer is ci-poll-tick, and it writes them only after a capture succeeded
+ * (`captured.captured > 0 && !(cs.release_notes ?? "").trim()`,
+ * api/public/hooks/ci-poll-tick.ts). The cron stops asking 60 minutes after the
+ * merge (DEPLOY_CAPTURE_WINDOW_MS), so a pipeline slower than that never gets
+ * captured, never gets notes, never gets an entry, never gets a row, and never
+ * gets the button that would have asked again. That is exactly the account
+ * `captureDeployments` says it exists for: "with no door here Ship reads
+ * 'Nothing has merged yet, so there is nothing to promote' for the life of the
+ * account while every merge ships somewhere else" (deployments.functions.ts).
+ *
+ * WHAT THIS FUNCTION IS AND IS NOT. It is the diff and nothing more: merged
+ * changesets with no changelog entry pointing at them. It is NOT evidence about
+ * deploys, and it cannot be: `listAppliedChanges` returns a bounded page of the
+ * newest merges (40), so a non-empty answer proves those merges are unlisted
+ * and an empty one proves only that none of the newest are. Callers say so.
+ *
+ * BOTH LISTS MUST HAVE ANSWERED before this is worth drawing. Given an empty
+ * `notes` because the changelog read failed, every merge in hand looks unlisted
+ * and this would invent a repair list out of a broken read. The caller holds
+ * that gate (`mergesKnown`), because only the caller can see the query state.
+ */
+export function unlistedMerges(
+  notes: readonly ChangelogEntry[],
+  applied: readonly AppliedChange[],
+): AppliedChange[] {
+  const listed = new Set<string>();
+  for (const e of notes) if (e.changeset_id) listed.add(e.changeset_id);
+  // `listAppliedChanges` already orders newest merge first, so the order the
+  // rows are drawn in is the server's and not this function's invention.
+  return applied.filter((c) => !listed.has(c.id));
+}
+
+/**
  * Can a person move this one to production right now?
  *
  * The four conditions are the server's own, restated so the button is only
@@ -911,20 +992,43 @@ export function promoteAbsence(args: {
   return { kind: "no-preview", count: notLive, captured };
 }
 
-/** The sentence for an absence, or null where another element already says it
- *  (the Gate, the Loading, the Failed). Never two things saying one thing. */
-export function absenceSentence(a: PromoteAbsence): string | null {
+/**
+ * The sentence for an absence, or null where another element already says it
+ * (the Gate, the Loading, the Failed). Never two things saying one thing.
+ *
+ * `unlisted` IS THE FACT THE CHANGELOG CANNOT HOLD, and it only ever changes
+ * the `no-releases` sentence. An empty changelog was being read as "nothing has
+ * merged", which is a claim about `studio_changesets` made from a read of
+ * `changelog_entries`: a merge whose release notes nobody wrote leaves the
+ * changelog empty and has merged all the same. Three values, three sentences:
+ * a count above zero names the repair, zero keeps the old sentence word for
+ * word because in that case it was always true, and null is "the merges have
+ * not been read" and says so rather than guessing either way.
+ */
+export function absenceSentence(a: PromoteAbsence, unlisted: number | null = null): string | null {
   switch (a.kind) {
     case "ready":
     case "reading":
     case "failed":
       return null;
-    case "no-releases":
-      // NOTHING HAS MERGED, SO THERE IS NO RECORD TO READ, and with no record
-      // the honest form of "a preview lands on its own" is the conditional one.
+    case "no-releases": {
+      // THE CONDITIONAL PROMISE, KEPT WORD FOR WORD. With no record at all the
+      // honest form of "a preview lands on its own" is the conditional one.
       // Stated unconditionally it was the same promise the split below exists
-      // to stop making, said to the reader with the least evidence of all.
-      return "Nothing has merged yet, so there is nothing to promote. For a repo Supaprod hosts, a merged change deploys a preview on its own in about two minutes, and promoting that preview is what puts it in front of customers; for a repo it does not host, Supaprod records the previews your own pipeline publishes and you promote those where they were built.";
+      // to stop making, said to the reader with the least evidence of all. It
+      // is shared by all three branches because it is true in all three.
+      const hosting =
+        "For a repo Supaprod hosts, a merged change deploys a preview on its own in about two minutes, and promoting that preview is what puts it in front of customers; for a repo it does not host, Supaprod records the previews your own pipeline publishes and you promote those where they were built.";
+      if (unlisted === null) {
+        return `No release is on the record, so there is nothing to promote. A release is drawn from a merged change that carries release notes, and whether any merge is waiting on notes has not been read. ${hosting}`;
+      }
+      if (unlisted > 0) {
+        return unlisted === 1
+          ? `One change has merged with no release notes, so it has no release on the record and there is nothing here to promote yet. Writing its notes is what puts it here, with its deploy record and its promote, and it has a row of its own below with that door on it. ${hosting}`
+          : `${unlisted} changes have merged with no release notes, so none of them has a release on the record and there is nothing here to promote yet. Writing the notes is what puts one here, with its deploy record and its promote, and each has a row of its own below with that door on it. ${hosting}`;
+      }
+      return `Nothing has merged yet, so there is nothing to promote. ${hosting}`;
+    }
     case "all-live":
       return a.count === 1
         ? "The one release on the record is already in production."
@@ -1015,6 +1119,8 @@ function Ship() {
   const fRollback = useServerFn(rollbackRelease);
   const fCapture = useServerFn(captureDeployments);
   const fRepublish = useServerFn(publishChangelogEntry);
+  const fApplied = useServerFn(listAppliedChanges);
+  const fNotes = useServerFn(generateReleaseNotes);
 
   /**
    * THE WORKSPACE ID WAS DROPPED ON THE FLOOR HERE, and the read still
@@ -1071,6 +1177,29 @@ function Ship() {
     refetchInterval: 30_000,
   });
 
+  /**
+   * EVERY MERGE, NOT ONLY THE ONES THAT GOT WRITTEN UP.
+   *
+   * THE HOLE THIS CLOSES, and this surface admitted it in prose before it
+   * closed it: "Reaching them from HERE would need a read this surface does not
+   * have: merged changesets with no changelog entry." It has it now. See
+   * `unlistedMerges` for why a merge can be invisible for ever and why the
+   * capture door was unreachable in the exact case it was written for.
+   *
+   * THE SAME KEY AND THE SAME CALL AS `WhatShipped`, deliberately, so this costs
+   * no extra request. The release document already reads `listAppliedChanges`
+   * on this page (`["what-shipped-applied", workspaceId ?? null]`), and it was
+   * fetching every merged changeset in the workspace and then using exactly one
+   * of them. Two observers on one key is one fetch; a key or an argument that
+   * differed by a character would be two reads of one table on one screen, and
+   * two answers that could disagree.
+   */
+  const applied = useQuery({
+    queryKey: ["what-shipped-applied", wid || null],
+    queryFn: () => fApplied({ data: wid ? { workspaceId: wid } : {} }),
+    enabled: !!wid,
+  });
+
   const notes = changelog.data?.entries ?? [];
   const announcements = posts.data?.announcements ?? [];
   // The deployments table is not in the generated Supabase types yet, so the
@@ -1091,6 +1220,7 @@ function Ship() {
   const [allPosts, setAllPosts] = React.useState(false);
   const [allAddresses, setAllAddresses] = React.useState(false);
   const [allReleases, setAllReleases] = React.useState(false);
+  const [allUnlisted, setAllUnlisted] = React.useState(false);
   /** Which release the document below is about. Null means "the newest", so the
    *  section is never empty while something has shipped and nobody has chosen. */
   const [docId, setDocId] = React.useState<string | null>(null);
@@ -1181,6 +1311,21 @@ function Ship() {
   const ready = states.filter(isReadyToPromote);
   const live = states.filter(isLive);
 
+  /**
+   * THE MERGES WITH NO RELEASE, AND WHETHER THAT ANSWER IS WORTH ANYTHING.
+   *
+   * `mergesKnown` IS BOTH READS OR NEITHER. The diff subtracts the changelog
+   * from the merge list, so a changelog that has not answered (or answered by
+   * failing, where react-query leaves `data` undefined) makes `notes` empty and
+   * turns every merge in hand into a phantom repair. Held to `data` rather than
+   * to `isSuccess` for the same reason the release blocks are: a failed refresh
+   * with the last good rows still in hand is stale, not lost, and the rows stay
+   * on screen with the failure said beside them.
+   */
+  const mergesKnown = !!changelog.data && !!applied.data;
+  const appliedRows: AppliedChange[] = applied.data?.changes ?? [];
+  const unlisted = mergesKnown ? unlistedMerges(notes, appliedRows) : [];
+
   // A release read is TWO reads, and either one failing makes the join a guess:
   // deployments alone cannot say which changeset merged, and the changelog
   // alone cannot say what is serving. So both halves gate together rather than
@@ -1229,6 +1374,11 @@ function Ship() {
   const retryRelease = () => {
     void changelog.refetch();
     void deployments.refetch();
+    // THE THIRD READ RETRIES WITH THEM. The sentence under "Where it is live"
+    // is now built from the merge list as well, so a retry that refreshed only
+    // two of the three reads would leave the sharpest half of that sentence
+    // permanently hedged behind a button the reader had already pressed.
+    void applied.refetch();
   };
 
   const promote = useMutation({
@@ -1367,6 +1517,62 @@ function Ship() {
   });
 
   /**
+   * WRITE THE NOTES FOR A MERGE THAT HAS NONE, which is the act that gives it a
+   * release at all.
+   *
+   * IT IS THE OTHER HALF OF THE CAPTURE DOOR, and neither half works alone for
+   * the account this was written for. `captureDeployments` files the deploy rows
+   * the cron gave up on, and files nothing into the changelog; the changelog is
+   * what every list on this station is spined on. So a BYO merge that missed the
+   * capture window stays invisible after a successful check, and the reader is
+   * left pressing a button that reports a number they cannot see anywhere. This
+   * writes `studio_changesets.release_notes`, which is one of the two columns
+   * `trg_studio_changeset_to_changelog` fires on, and the entry is materialized
+   * by the database rather than by this client.
+   *
+   * IT IS THE SAME DOOR STUDIO ALREADY CARRIES ("Write them", ChangesPanel),
+   * calling the same server function, and that is two doors onto one act rather
+   * than a second path: Studio is where you are standing when you have just
+   * finished a change, this station is where you are standing when you are
+   * asking why a merge never reached customers. `publishChangelogEntry`, which
+   * this surface also holds, cannot stand in for it: it refuses with
+   * 'no-release-notes' precisely here, because there are none to publish.
+   *
+   * NOT A SILENT AGENT. `generateReleaseNotesCore` is a real model pass over the
+   * changeset's files and commits, so the block below draws AgentPulse while it
+   * runs rather than only changing a label.
+   *
+   * THE RECEIPT PROMISES THE WRITE AND NOT THE ROW. The trigger is the database's
+   * to fire, so this says the notes landed and that the release record is being
+   * read again; whether the release appears is then said by the lists
+   * themselves, which is where a reader can check it.
+   */
+  const writeNotes = useMutation({
+    mutationFn: (v: { changesetId: string; title: string }) =>
+      fNotes({ data: { changesetId: v.changesetId } }),
+    onSuccess: (_res, v) => {
+      setReceipt({
+        verb: "You wrote the release notes",
+        consequence: (
+          <>
+            {v.title} carries release notes now, and a merged change that carries them is what a
+            release on this station is drawn from. The release record is being read again: once the
+            release is there, the change leaves the merged-but-unlisted list and joins the lists
+            that carry its deploy record and its promote.
+          </>
+        ),
+      });
+      void qc.invalidateQueries({ queryKey: ["changelog", wid] });
+    },
+    onError: (e: Error) =>
+      setReceipt({
+        verb: "The release notes were not written",
+        consequence: e.message,
+        failed: true,
+      }),
+  });
+
+  /**
    * BRING A RELEASE'S ENTRY BACK IN LINE WITH THE CHANGE BEHIND IT.
    *
    * WHAT DRIFTS, AND WHY NOTHING FIXES IT ON ITS OWN.
@@ -1381,13 +1587,17 @@ function Ship() {
    * request URL drift the same way.
    *
    * WHAT IT CANNOT DO, said plainly because the temptation is to expect it. It
-   * cannot make a MISSING release appear here: this surface is spined on the
-   * changelog, so a merge with no entry has no row to press. Live on 2026-08-06,
+   * cannot make a MISSING release appear here: this control hangs off a changelog
+   * entry, so a merge with no entry has no entry to refresh. Live on 2026-08-06,
    * eight of the nine merges in the dogfood workspace are in exactly that state,
-   * and all eight are missing for one reason -- nobody wrote release notes. Their
-   * repair is Studio's "Write them", which fires the trigger, and the Changes tab
-   * carries both that control and this one. Reaching them from HERE would need a
-   * read this surface does not have: merged changesets with no changelog entry.
+   * and all eight are missing for one reason -- nobody wrote release notes.
+   *
+   * THAT IS NO LONGER SOMEWHERE ELSE'S JOB. Their repair is the write that fires
+   * the trigger, and this station now holds it: `applied` reads every merged
+   * changeset, `unlistedMerges` subtracts the ones the changelog already knows,
+   * and each remainder gets a row with `writeNotes` on it. Studio's "Write them"
+   * is unchanged and calls the same server function; two doors onto one act is
+   * correct here for the same reason the promote has two.
    *
    * `published: false` IS NOT A FAILURE and is not painted as one; a genuine
    * refusal throws and is.
@@ -1500,6 +1710,64 @@ function Ship() {
    * it now waits on this flag too.
    */
   const postsReading = stillWaiting(posts);
+
+  /**
+   * THE ROLE READ HAD NO WAIT, NO ERROR BRANCH AND NO SENTENCE, so a role that
+   * did not load rendered as "you are not allowed to announce".
+   *
+   * `members` was read at exactly one line (`members.data?.selfRole ?? null`)
+   * and neither `isPending` nor `isError` appeared anywhere in this file. Every
+   * announcement control hangs off `canContribute` / `canPublish`, including the
+   * sole entry point, so a failed `listWorkspaceMembers` drew the biggest
+   * element on the station as a Gate asking "Write the first announcement?" with
+   * nothing underneath it: no button, no reason and no retry. That is the same
+   * hole `promoteAbsence` was built to close on the release half of this
+   * surface, left open on this half.
+   *
+   * THREE STATES, THREE ANSWERS, and the third is not a failure. The RPC can
+   * come back fine and still carry no row for the caller
+   * (`selfRole = members.find(m => m.isSelf)?.role ?? null`,
+   * workspaces.functions.ts), which is a read that ANSWERED and answered
+   * "unknown". Painting that as a refusal tells a person they lack a permission
+   * nobody has checked, so it gets its own sentence rather than borrowing the
+   * error's.
+   *
+   * `stillWaiting`, NOT `isLoading`, for the reason this file gives twice above:
+   * `members` is `enabled: !!wid`, and a disabled query is pending WITHOUT
+   * fetching.
+   */
+  const membersReading = stillWaiting(members);
+  /** The read landed and still could not name a role. Never true while it is in
+   *  flight or after it failed: those are different facts with their own arms. */
+  const roleUnknown = !membersReading && !members.isError && role === null;
+
+  /**
+   * WHY DEPLOY ROWS ARE ON FILE AND NO RELEASE IS, said only in the arm where
+   * that is what the record actually holds.
+   *
+   * Each branch is a different read state and none of them may borrow another's
+   * confidence: a merge list that failed cannot say "nothing is waiting", and a
+   * merge list still in flight cannot either. The zero case says what it can
+   * prove and no more: `listAppliedChanges` returns a bounded page of the newest
+   * merges, so it can prove that some merges are unlisted and never that none
+   * is.
+   */
+  function whyNoneListed(): React.ReactNode {
+    if (applied.isError) {
+      return "Whether a merged change is waiting on those notes did not load, so this cannot say how many; the list below says so and offers the retry.";
+    }
+    if (!mergesKnown) return "Which merges are waiting on those notes is still being read.";
+    if (unlisted.length === 0) {
+      return "No merge on the newest page of merges is waiting on those notes, so what is on file was deployed for a change that has not landed.";
+    }
+    return (
+      <>
+        <Num>{unlisted.length}</Num>{" "}
+        {unlisted.length === 1 ? "merged change is" : "merged changes are"} waiting on those notes,
+        and each has a row of its own below with the door that writes them.
+      </>
+    );
+  }
 
   // The one thing only this surface can see: what shipped against what was
   // said. Assembled from real rows, and drawn only when both reads succeeded.
@@ -1667,6 +1935,38 @@ function Ship() {
     return lines;
   };
 
+  /**
+   * WHY THE CONTROLS UNDER THIS GATE ARE MISSING, when the reason is the role
+   * read and not the reader's rights.
+   *
+   * EMPTY IN THE ORDINARY CASE, which is the whole shape of it: a role that
+   * loaded and says "member" draws exactly what it drew before, and a role that
+   * loaded and says nothing gets a sentence instead of a silent absence. The
+   * two hedged cases are kept apart because they want different next moves: a
+   * failed read has a retry sitting above the Gate, and a read that ANSWERED
+   * with no membership row for the caller has no retry to offer, only a person
+   * to ask.
+   */
+  function roleLines(): React.ReactNode[] {
+    if (members.isError) {
+      return [
+        <span key="role">
+          Your role in this workspace did not load, so the controls that depend on it are not drawn.
+          Reading it again is the retry above.
+        </span>,
+      ];
+    }
+    if (roleUnknown) {
+      return [
+        <span key="role">
+          Supaprod could not confirm your role in this workspace, so it is not drawing the controls
+          that depend on one. An owner or an admin can check you are still a member.
+        </span>,
+      ];
+    }
+    return [];
+  }
+
   return (
     <Surface
       context={
@@ -1766,6 +2066,23 @@ function Ship() {
         </Gate>
       ) : null}
 
+      {/* THE ROLE READ SAYING IT FAILED, above the gate whose controls it
+          decides and NOT in place of it. Every announcement control on this
+          station hangs off `selfRole`, and a `listWorkspaceMembers` failure
+          used to render as an ordinary absence of buttons: a question with
+          nothing under it, no explanation and no retry, indistinguishable from
+          being told you may not act. Drawn here rather than inside the branch
+          below so nothing is taken away to make room for it: the gate, the
+          composer and the announcement in focus all stay exactly as they were,
+          and this adds the reason and the way back. */}
+      {members.isError ? (
+        <Failed onRetry={() => void members.refetch()}>
+          Your role in this workspace did not load, so Supaprod cannot say which of these you are
+          allowed to do, and it is not guessing. Nothing here has changed.{" "}
+          {(members.error as Error | null)?.message?.slice(0, 160)}
+        </Failed>
+      ) : null}
+
       {composing ? (
         <Block title={mode.kind === "new" ? "A new announcement" : "Editing the announcement"}>
           <Field label="What changed">
@@ -1830,16 +2147,38 @@ function Ship() {
         </Actions>
       ) : postsReading ? (
         <Loading>Reading what is ready to announce.</Loading>
+      ) : membersReading ? (
+        // THE SECOND READ THE GATE DEPENDS ON, and it had no wait at all. Its
+        // own sentence rather than the one above, because "reading what is
+        // ready to announce" is about the posts and this is about the reader.
+        <Loading>Reading what you are allowed to do here.</Loading>
       ) : call ? (
         <Gate
+          /* THE QUESTION IS THE FIRST THING READ, so it must not borrow the
+             failed read's confidence either. "waiting on an owner or an admin"
+             is `canPublish === false` said as a fact about the READER, and
+             `canPublish` is false in all three of: you are a member who may not
+             publish, your role did not load, and the read answered with no
+             membership row for you. Saying it to an owner whose
+             `listWorkspaceMembers` timed out tells them they lack a permission
+             they hold. The middle sentence states the status and nothing about
+             the reader; `roleLines()` beneath it says why the controls are
+             gone. Word for word as before whenever the role read answered with
+             a role, which is every ordinary session. */
           question={
             call.status === "pending"
               ? canPublish
                 ? `Send "${call.title}" to customers?`
-                : `"${call.title}" is waiting on an owner or an admin.`
+                : members.isError || roleUnknown
+                  ? `"${call.title}" is waiting to be published.`
+                  : `"${call.title}" is waiting on an owner or an admin.`
               : `"${call.title}" is still a draft.`
           }
-          lines={gateLines(call)}
+          // The announcement's own evidence FIRST, then the reason its controls
+          // are missing when they are. `roleLines` is empty in the ordinary
+          // case, so this is exactly `gateLines(call)` whenever the role read
+          // answered with a role.
+          lines={[...gateLines(call), ...roleLines()]}
         >
           {call.status === "pending" && canPublish ? (
             <Button variant="primary" disabled={busy} onClick={() => publish.mutate(call.id)}>
@@ -1863,7 +2202,11 @@ function Ship() {
           ) : null}
         </Gate>
       ) : (
-        <Gate question="Write the first announcement?">
+        // THE QUESTION WITH NOTHING UNDER IT, which is what a lost role read
+        // used to draw here. The Gate stays (a reader with no write rights has
+        // always seen the question and should keep seeing it), and the reason
+        // the button is absent is now said on the line beneath it.
+        <Gate question="Write the first announcement?" lines={roleLines()}>
           {canContribute ? (
             <Button variant="primary" disabled={busy} onClick={startNew}>
               Write an announcement
@@ -1910,7 +2253,12 @@ function Ship() {
           surface in the first place. */}
       <Block
         title="Where it is live"
-        sub={absenceSentence(absence)}
+        /* THE MERGE COUNT IS PASSED, AND `null` WHEN IT IS NOT KNOWN. Without
+           it this sentence read "Nothing has merged yet" off an empty
+           changelog, which is a claim about changesets made from a read of
+           changelog entries. `mergesKnown` is false while the merge list is in
+           flight or lost, and the sentence hedges instead of picking a side. */
+        sub={absenceSentence(absence, mergesKnown ? unlisted.length : null)}
         more={
           states.length > VISIBLE
             ? allAddresses
@@ -1946,12 +2294,34 @@ function Ship() {
         ) : releaseReading ? (
           <Loading>Reading where each release is serving.</Loading>
         ) : states.length === 0 ? (
-          <Empty>
-            No deploy is on the record yet. For a repo Supaprod hosts, a merged change deploys a
-            preview on its own and one promote moves that same commit to the production address; for
-            a repo it does not host, Supaprod records the deploys your own pipeline publishes and
-            none appears here on its own.
-          </Empty>
+          /* "NO DEPLOY IS ON THE RECORD YET" WAS PRINTED OVER DEPLOY ROWS THIS
+             SURFACE WAS HOLDING, and `states.length === 0` is not the read that
+             could say otherwise: it means the CHANGELOG is empty. `deployRows`
+             comes from `listDeployments`, separately and independently, and it
+             can hold rows for merged changesets whose notes were never written,
+             because ci-poll-tick writes the preview row FIRST and only then
+             attempts the notes, best effort. So the old sentence asserted the
+             absence of deploys from a read that had answered, and its second
+             clause told a BYO customer their own pipeline's deploys are not
+             recorded while their rows sat in this very list.
+
+             THE OLD COPY SURVIVES WORD FOR WORD in the arm where it is true:
+             nothing on the deploy record at all. */
+          deployRows.length > 0 ? (
+            <Empty>
+              <Num>{deployRows.length}</Num> {deployRows.length === 1 ? "deploy is" : "deploys are"}{" "}
+              on the deploy record for this workspace, and none of them is listed here. This list is
+              one row per RELEASE, and a release is drawn from a merged change that carries release
+              notes, so a deploy whose change has none has nothing to sit under. {whyNoneListed()}
+            </Empty>
+          ) : (
+            <Empty>
+              No deploy is on the record yet. For a repo Supaprod hosts, a merged change deploys a
+              preview on its own and one promote moves that same commit to the production address;
+              for a repo it does not host, Supaprod records the deploys your own pipeline publishes
+              and none appears here on its own.
+            </Empty>
+          )
         ) : (
           (allAddresses ? states : states.slice(0, VISIBLE)).map((s) => {
             const at = whereItIs(s);
@@ -2024,6 +2394,141 @@ function Ship() {
           })
         )}
       </Block>
+
+      {/* THE MERGES NO LIST ABOVE CAN REACH, which is the hole this station's
+          own prose used to describe and leave open.
+
+          THE DEFECT, IN ONE LINE: every act on this surface hangs off
+          `releaseStates`, `releaseStates` walks changelog entries, and a merged
+          change with no release notes has no entry. The capture door was
+          therefore unreachable in exactly the case it was written for, because
+          the only way onto a row is to already have the notes that the capture
+          is what eventually produces. See `unlistedMerges` for the full loop.
+
+          IT RENDERS WHEN THERE IS SOMETHING TO SAY AND NOT OTHERWISE. Rows when
+          merges are waiting; the failure and its retry when the merge list did
+          not load, because silence there would be read as "nothing is missing"
+          off a read that never answered. A merge list that answered with
+          nothing missing draws no block at all: a permanent panel reporting a
+          non-event is the clutter this surface's own rebuild notes killed four
+          other panels for. */}
+      {applied.isError || (mergesKnown && unlisted.length > 0) ? (
+        <Block
+          title="Merged, not listed yet"
+          sub={
+            mergesKnown && unlisted.length > 0
+              ? "A release is drawn from a merged change that carries release notes. These merged and never got any, so nothing above can reach them."
+              : undefined
+          }
+          more={
+            unlisted.length > VISIBLE
+              ? allUnlisted
+                ? "Show fewer"
+                : `All ${unlisted.length}`
+              : undefined
+          }
+          onMore={() => setAllUnlisted((v) => !v)}
+        >
+          {/* THE SAME TWO SENTENCES THE RELEASE BLOCKS USE, for the same
+              reason: rows in hand plus a failed refresh is stale, not lost, so
+              the rows stay and the failure is said beside them. With nothing in
+              hand there is nothing true to draw, and the failure is all there
+              is. */}
+          {applied.isError ? (
+            <Failed onRetry={() => void applied.refetch()} retryLabel="Read it again">
+              {mergesKnown
+                ? "These are the merges as they last loaded; the refresh just now did not land, so one written up since may still be listed here."
+                : "Which changes have merged did not load, so this station cannot say whether anything is missing from the lists above."}{" "}
+              {(applied.error as Error | null)?.message?.slice(0, 160)}
+            </Failed>
+          ) : null}
+          {/* A GENUINELY DISPATCHED AGENT, so it gets the pulse.
+              `generateReleaseNotesCore` is a model pass over the changeset's
+              files and commits, which is the same bar the launch-kit draft in
+              the composer clears; the capture beside it is a plain provider
+              read and correctly has no pulse. */}
+          {writeNotes.isPending ? (
+            <div style={{ marginBottom: "var(--sp-space-2)" }}>
+              <AgentPulse
+                label="The crew is writing the release notes"
+                seed="ship-release-notes"
+                detail="Reading the files and the commits, then saying what changed"
+              />
+            </div>
+          ) : null}
+          {mergesKnown
+            ? (allUnlisted ? unlisted : unlisted.slice(0, VISIBLE)).map((c) => {
+                const writingThis =
+                  writeNotes.isPending && writeNotes.variables?.changesetId === c.id;
+                const checkingThis = check.isPending && check.variables?.changesetId === c.id;
+                // SAID ONLY WHERE THERE ARE SOME. `listDeployments` returns a
+                // bounded page, so a count of zero here proves nothing and "no
+                // deploy on file" would be absence claimed from a read that can
+                // only ever prove presence. A count above zero is a fact, and
+                // it is the fact that tells a reader whether the capture door
+                // beside it has already found something.
+                const onFile = deployRows.filter((d) => d.changeset_id === c.id).length;
+                const sub =
+                  [
+                    c.mission_title ? `in ${c.mission_title}` : c.repo || null,
+                    onFile > 0 ? `${onFile} deploy${onFile === 1 ? "" : "s"} on file` : null,
+                  ]
+                    .filter((x): x is string => !!x)
+                    .join(" · ") || null;
+                return (
+                  <Row
+                    key={c.id}
+                    tight
+                    lead={c.title}
+                    sub={sub}
+                    time={ago(c.merged_at)}
+                    action={
+                      <>
+                        {c.pr_url ? (
+                          <Addr href={c.pr_url}>
+                            {c.pr_number ? (
+                              <>
+                                PR <Num>{c.pr_number}</Num>
+                              </>
+                            ) : (
+                              "The PR"
+                            )}
+                          </Addr>
+                        ) : null}
+                        {/* THE DOOR THAT CLOSES THE LOOP, and it leads. Writing
+                            the notes is what materializes the release, so it is
+                            the act that moves this row onto the station; the
+                            capture beside it files deploy rows and, on its own,
+                            still leaves the change invisible here. */}
+                        <button
+                          type="button"
+                          className={QUIET}
+                          disabled={writeNotes.isPending}
+                          onClick={() => writeNotes.mutate({ changesetId: c.id, title: c.title })}
+                        >
+                          {writingThis ? "Writing the notes" : "Write the notes"}
+                        </button>
+                        {/* THE SAME CAPTURE THE ROWS ABOVE CARRY, reachable at
+                            last for the merge the cron gave up on. Worth
+                            pressing before the notes as well as after: it is
+                            the only way to ask a provider that published its
+                            deploy after DEPLOY_CAPTURE_WINDOW_MS ran out. */}
+                        <button
+                          type="button"
+                          className={QUIET}
+                          disabled={check.isPending}
+                          onClick={() => check.mutate({ changesetId: c.id, title: c.title })}
+                        >
+                          {checkingThis ? "Checking" : "Check for deploys"}
+                        </button>
+                      </>
+                    }
+                  />
+                );
+              })
+            : null}
+        </Block>
+      ) : null}
 
       {/* THE RELEASES THAT REACHED CUSTOMERS, each carrying the one act that
           takes it back. Rollback lived only inside the Changes tab of the run
@@ -2344,9 +2849,19 @@ function Ship() {
         <Block title="Announcements">
           <Empty>
             Nothing has gone out yet.{" "}
+            {/* THE SECOND CLAUSE IS ABOUT THE READER, so it cannot be drawn
+                from a role read that did not answer. `canContribute` is false
+                for a member who may not write AND for an owner whose role
+                failed to load, and "An owner or an admin writes the first one."
+                said to the second one is a permission they hold, denied on
+                their behalf. The failure and its retry are named once above,
+                by the `Failed` over the composer; this only stops asserting
+                the opposite. */}
             {canContribute
               ? "Write one and it waits here until an owner publishes it."
-              : "An owner or an admin writes the first one."}
+              : members.isError || roleUnknown
+                ? "Supaprod could not confirm your role here, so whether you can write one is not known."
+                : "An owner or an admin writes the first one."}
           </Empty>
         </Block>
       ) : rest.length > 0 ? (

@@ -71,6 +71,29 @@
  *    tell whether the surface wanted them to commit, to write, to schedule or
  *    to report.
  *
+ * ----------------------------------------------------------------------------
+ * 2026-08-06, THE AUDIT PASS: THE MOMENT GETS A DOOR, AND THE GATE GETS A NO.
+ *
+ * The station audit returned "not-self-sufficient" on Plan. Two of its findings
+ * were about this file.
+ *
+ *   1. THE STATION THAT EXISTS TO PRODUCE A SPEC HAD NO WAY TO START ONE, and
+ *      its one instruction about starting one was false. The Empty said
+ *      "Commit a bet and Scribe drafts the first one", and committing a bet
+ *      writes no spec: `commitRoadmapItem` sets the lane, the outcome and the
+ *      measure and stops, and nothing reacts to it. The coverage line beside it
+ *      ("N of the M bets in Now have a spec written") was a scoreboard with no
+ *      door. Both are closed: the Empty names Decide's "Keep it", the real
+ *      writer, and the coverage line now names the first uncovered bet in Now
+ *      and drafts it here, through `generatePrd`. See `draftSpec`.
+ *   2. THE GATE'S DECLARE WRITE HAD NO FAILURE PATH AT ALL. No `onError`, and
+ *      `CommitCeremony` renders no error of its own, so a refused promise left
+ *      the dialog sitting there with nothing said. It reports now, keeps the
+ *      typed words, and offers the retry. See `refused`.
+ *
+ * Point 5 above still holds, with one word added: the moment is the coverage
+ * line, and the coverage line is now a place you can act rather than only read.
+ *
  * URL CONTRACT. `?view=` still validates all five legacy values, so /roadmap,
  * /prds and /stakeholder never 404. `roadmap` and `specs` still scroll their
  * section into view and move focus to it. `stakeholders`, `goals` and `loops`
@@ -90,7 +113,10 @@ import { getAgentFleet } from "@/lib/agent-fleet.functions";
 import type { FleetAgentState } from "@/lib/agent-fleet";
 import { commitRoadmapItem, getRoadmap } from "@/lib/roadmap.functions";
 import { isCommitmentGoverned } from "@/lib/roadmap-governance";
-import { listSpecs } from "@/lib/discovery.functions";
+// `generatePrd` is the ONLY writer of a spec from a bet in the product, and
+// until this pass it was imported by exactly two files, neither of them the
+// station whose stated product is a spec. See `draftSpec`.
+import { generatePrd, listSpecs } from "@/lib/discovery.functions";
 import { listDesignWork, type DesignWorkRow } from "@/lib/design-scaffold.functions";
 import { DESIGN_SKIPPED_ON_PURPOSE } from "@/lib/trust-chain.functions";
 import { stripAutoPrefix } from "@/components/plan/format";
@@ -98,6 +124,7 @@ import { RoadmapColumns } from "@/components/plan/RoadmapColumns";
 import { TrackStart } from "@/components/spine/TrackStart";
 import { CommitCeremony, type CommitCeremonyBet } from "@/components/plan/CommitCeremony";
 import {
+  Actions,
   AgentMark,
   Block,
   Button,
@@ -105,6 +132,7 @@ import {
   CtxRow,
   Empty,
   Failed,
+  Line,
   Loading,
   Gate,
   Num,
@@ -116,6 +144,7 @@ import {
 } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
+import { AgentPulse } from "@/components/shell/AgentPulse";
 
 /** The deep-linkable values. The union is a contract with the legacy redirects
  *  (/prds, /roadmap, /stakeholder), so it never shrinks even when a section
@@ -226,6 +255,30 @@ function PlanPage() {
    */
   const [declaring, setDeclaring] = React.useState<CommitCeremonyBet | null>(null);
   const [receipt, setReceipt] = React.useState<{ title: string; outcome: string } | null>(null);
+  /**
+   * THE REFUSAL, WHICH THE STATION'S ONE GATE HAD NO WAY TO SHOW.
+   *
+   * `commitRoadmapItem` throws on three reachable paths: `validateCommitment`'s
+   * typed refusals, "Opportunity not found" when the RLS-scoped update comes
+   * back with no row (src/lib/roadmap.functions.ts), and any transport error.
+   * `declare` carried no `onError` at all, and `CommitCeremony` renders no error
+   * of its own: its whole prop surface is bet/onConfirm/onCancel/pending. So a
+   * refused promise stopped the spinner and left the dialog sitting there with
+   * nothing said and nothing to press but "Not yet", on the primary action of
+   * this station's only Gate. The three sibling mutations in RoadmapColumns
+   * that call the SAME server function all report their error.
+   *
+   * IT HOLDS THE TYPED WORDS, and that is why this is a state rather than a
+   * string. The dialog has to come down for the reason to be readable at all,
+   * and closing it would otherwise throw away what the person wrote: the values
+   * only exist inside the ceremony's own inputs. Keeping the attempted bet here
+   * means "Try it again" re-opens the ceremony already carrying them, because
+   * `CommitCeremony` seeds its inputs from `bet.outcome` and `bet.measure`.
+   */
+  const [refused, setRefused] = React.useState<{
+    bet: CommitCeremonyBet;
+    reason: string;
+  } | null>(null);
   const fFleet = useServerFn(getAgentFleet);
   const fSpecs = useServerFn(listSpecs);
   const fDesignWork = useServerFn(listDesignWork);
@@ -280,9 +333,82 @@ function PlanPage() {
     }) => fCommit({ data: v }),
     onSuccess: (_r, v) => {
       setDeclaring(null);
+      setRefused(null);
       setReceipt({ title: declaring?.title ?? "The bet", outcome: v.outcome });
       void qc.invalidateQueries({ queryKey: ["roadmap"] });
     },
+    onError: (e: Error, v) => {
+      // The ceremony comes down so the reason is readable, and the words the
+      // person typed ride out with it. The success receipt is cleared in the
+      // same beat: two receipts about one bet, one of them stale, is the
+      // contradiction this station keeps being repaired for.
+      setRefused({
+        bet: {
+          id: v.id,
+          title: declaring?.title ?? "The bet",
+          outcome: v.outcome,
+          measure: v.measure,
+        },
+        reason: e.message,
+      });
+      setDeclaring(null);
+      setReceipt(null);
+    },
+  });
+
+  /**
+   * THE STATION WHOSE PRODUCT IS A SPEC COULD NOT START ONE.
+   *
+   * THE GAP, and it is this repo's signature defect with the sentence pointing
+   * the wrong way. The Empty below told a first-time reader "Commit a bet and
+   * Scribe drafts the first one, cited, in about five minutes", which sends
+   * them to press a button on THIS page and wait for something that never
+   * arrives. Both commit paths here call `commitRoadmapItem`, whose handler
+   * writes roadmap_bucket / roadmap_outcome / roadmap_measure and calls
+   * `recordRoadmapDecision`, and nothing else. No reactor picks it up either:
+   * nothing anywhere handles an opportunity-committed event. And the name was
+   * wrong in passing: `agentDisplayName("prd-writer")` is "Draft", which is what
+   * the context rail on this same page prints.
+   *
+   * `generatePrd` is the only writer of a spec from a bet in the product, and
+   * before this it was imported by exactly two files: /decide and
+   * DiscoverSurface. So the one station that exists to produce a spec was the
+   * one place you could not ask for one.
+   *
+   * IT TAKES A BET AND NOTHING ELSE, which is why this is one mutation rather
+   * than a feature. `{ opportunity_id }` is the whole argument, and the handler
+   * carries its own duplicate guard: a bet that already has a spec returns that
+   * spec with `existing: true` rather than paying for a second one. So the
+   * worst case for a bet whose spec sits outside `listSpecs`' 300-row cap is a
+   * navigate to the spec it already had, never a duplicate.
+   */
+  const fDraftSpec = useServerFn(generatePrd);
+  const [draftRefused, setDraftRefused] = React.useState<{
+    title: string;
+    reason: string;
+  } | null>(null);
+  const draftSpec = useMutation({
+    // The title rides along so the indicator and the failure line can name the
+    // bet without a second lookup, and can still name it after the list moves.
+    mutationFn: (v: { id: string; title: string }) =>
+      fDraftSpec({ data: { opportunity_id: v.id } }),
+    onSuccess: (r) => {
+      setDraftRefused(null);
+      void qc.invalidateQueries({ queryKey: ["prds"] });
+      // `generatePrd`'s placement step touches `roadmap_bucket`, and it declines
+      // only for a bet that already carries a lane, which is every bet this door
+      // is offered for. The board is re-read rather than assumed either way.
+      void qc.invalidateQueries({ queryKey: ["roadmap"] });
+      // No success receipt: this navigates to the spec it just wrote, and
+      // arriving at the artifact is a stronger receipt than a line about it.
+      // The same rule /decide's "Keep it" follows, to the same destination.
+      void navigate({
+        to: "/plan/spec/$id",
+        params: { id: r.prd.id },
+        search: { tab: "contract" },
+      });
+    },
+    onError: (e: Error, v) => setDraftRefused({ title: v.title, reason: e.message }),
   });
 
   const items = React.useMemo(() => roadmap.data?.items ?? [], [roadmap.data]);
@@ -312,18 +438,34 @@ function PlanPage() {
     () => new Map(items.map((i) => [i.id, stripAutoPrefix(i.title)])),
     [items],
   );
-  // The coverage fact: of the bets the team is building right now, how many
-  // have had their promise written down. Derived from two reads the page
-  // already makes, so it costs nothing and answers what a planner would
-  // otherwise open eight specs to find out.
-  const nowWithSpec = React.useMemo(() => {
-    const nowIds = new Set(committed.filter((i) => i.bucket === "now").map((i) => i.id));
-    const covered = new Set<string>();
-    for (const s of specList) {
-      if (s.opportunity_id && nowIds.has(s.opportunity_id)) covered.add(s.opportunity_id);
-    }
-    return covered.size;
+  /**
+   * THE COVERAGE FACT, AND THE BETS IT IS SHORT BY.
+   *
+   * Of the bets the team is building right now, how many have a spec written
+   * for them. Derived from two reads the page already makes, so it costs
+   * nothing and answers what a planner would otherwise open eight specs to
+   * find out.
+   *
+   * IT USED TO RETURN THE COUNT ALONE, which is the half a person can read and
+   * not the half they can act on: it said "3 of 7 bets in Now have a spec
+   * written" and this surface offered nothing at all to do about the other
+   * four. `uncovered` is those bets, and the first of them is what the door
+   * inside the block acts on.
+   */
+  const nowCoverage = React.useMemo(() => {
+    const specced = new Set<string>();
+    for (const s of specList) if (s.opportunity_id) specced.add(s.opportunity_id);
+    const nowBets = committed.filter((i) => i.bucket === "now");
+    const uncovered = nowBets.filter((b) => !specced.has(b.id));
+    return { withSpec: nowBets.length - uncovered.length, uncovered };
   }, [committed, specList]);
+  const nowWithSpec = nowCoverage.withSpec;
+  /** The bet the draft door acts on: the FIRST bet in Now that no spec serves.
+   *  No ranking is claimed for it in the copy, because `getRoadmap` orders by
+   *  `ice_score` descending and Postgres puts NULLS FIRST on a DESC order, so
+   *  "the highest-ranked one" would stop being true the day a bet carries no
+   *  score. It is named instead, which is the fact this page can prove. */
+  const uncoveredNowBet = nowCoverage.uncovered[0] ?? null;
 
   const crew = (fleet.data?.fleet.agents ?? []).filter((a) => PLAN_AGENTS.includes(a.slug));
 
@@ -563,6 +705,42 @@ function PlanPage() {
         />
       ) : null}
 
+      {/* AND THE OTHER HALF OF THE SAME WRITE, in the same place and the same
+        shape, because a write that did not happen must never be silent on the
+        surface where a write that did happen speaks. The reason is the
+        server's own words. The door beside it re-opens the ceremony holding
+        what was typed, so a refusal costs a press rather than the sentence.
+        See `refused`. */}
+      {refused ? (
+        <>
+          <Receipt
+            failed
+            verb="The promise was not written"
+            // "Unchanged" rather than "still carries no outcome and no
+            // measure": `isCommitmentGoverned` is false when EITHER half is
+            // blank, so a bet reaching the Gate can already have one of the
+            // two, and naming both would be wrong for that bet. What is true
+            // of every refusal is that the row did not move.
+            consequence={
+              <>
+                {refused.bet.title} is unchanged on the board, and it still carries no declared
+                promise. {refused.reason}
+              </>
+            }
+          />
+          <Actions>
+            <Button
+              onClick={() => {
+                setDeclaring(refused.bet);
+                setRefused(null);
+              }}
+            >
+              Try it again
+            </Button>
+          </Actions>
+        </>
+      ) : null}
+
       {declaring ? (
         <CommitCeremony
           bet={declaring}
@@ -641,7 +819,28 @@ function PlanPage() {
             title="Specs"
             // A different fact from the title, and the one a planner came for.
             sub={
-              nowCount > 0 && !specs.isError ? (
+              draftSpec.isPending ? (
+                // A GREYED BUTTON IS NOT A SIGN OF LIFE, and this is the
+                // longest-running act on the station: `generatePrd` is three
+                // chokepoint calls (a title, the body, then the outcome
+                // contract) with a retrieval pass between them. The detail is
+                // the bet, a noun this surface already read, never a guess at a
+                // step.
+                //
+                // IT NAMES THE WORK AND NOT THE WORKER, which is the same
+                // choice /decide's copy of this indicator makes for the same
+                // call. `generatePrd` goes through `callModel` and writes no
+                // `agent_runs` row, and the context rail beside this reads
+                // exactly that table: a label saying "Draft is writing the
+                // spec" would sit one column away from "Draft has not run here
+                // yet" and one of them would be wrong.
+                <AgentPulse
+                  label="Drafting the spec"
+                  seed="prd-writer"
+                  compact
+                  detail={draftSpec.variables?.title}
+                />
+              ) : nowCount > 0 && !specs.isError ? (
                 <>
                   <Num>{nowWithSpec}</Num> of the <Num>{nowCount}</Num> bets in Now have a spec
                   written.
@@ -657,14 +856,74 @@ function PlanPage() {
             }
             onMore={() => setShowAllSpecs((v) => !v)}
           >
+            {/* THE DOOR THE COVERAGE LINE NEVER HAD. The sub above counts the
+              bets in Now that HAVE a spec, against the bets in Now; this names
+              one of the ones left over and writes it. Without this the fact was
+              a scoreboard on the one station whose stated product is the thing
+              being counted.
+
+              `!specs.isError` IS THE GUARD AND IT IS LOAD-BEARING. On a failed
+              spec read `specList` is [] and every bet in Now looks uncovered,
+              so this would offer to draft a spec for work that already has one.
+              A read whose error is discarded is never evidence of absence. The
+              wait is handled above, by the branch that keeps this whole block
+              off screen until the specs answer. */}
+            {uncoveredNowBet && !specs.isError ? (
+              <Line
+                label={stripAutoPrefix(uncoveredNowBet.title)}
+                sub="In Now with no spec. Draft reads the bet, writes the spec against what the record already holds, cites it, and this lands you on it."
+              >
+                <Button
+                  disabled={draftSpec.isPending}
+                  onClick={() =>
+                    draftSpec.mutate({
+                      id: uncoveredNowBet.id,
+                      title: stripAutoPrefix(uncoveredNowBet.title),
+                    })
+                  }
+                >
+                  {draftSpec.isPending ? "Drafting" : "Draft the spec"}
+                </Button>
+              </Line>
+            ) : null}
+
+            {/* A draft that did not happen never wears the shape of one that
+              did. Success navigates to the spec, so only the failure speaks
+              here. */}
+            {draftRefused ? (
+              <Receipt
+                failed
+                verb="No spec was written"
+                consequence={
+                  <>
+                    {draftRefused.title} still has none. {draftRefused.reason}
+                  </>
+                }
+              />
+            ) : null}
+
             {specs.isError ? (
               <Failed onRetry={() => void specs.refetch()}>
                 {(specs.error as Error)?.message ?? "The specs did not load."}
               </Failed>
             ) : specList.length === 0 ? (
-              <Empty>
-                No specs yet. Commit a bet and Scribe drafts the first one, cited, in about five
-                minutes.
+              // THE SENTENCE THAT SENT PEOPLE NOWHERE. It read "Commit a bet and
+              // Scribe drafts the first one, cited, in about five minutes", and
+              // committing a bet writes no spec: `commitRoadmapItem` sets the
+              // lane, the outcome and the measure and stops. The agent's name is
+              // Draft, not Scribe, which is what the context rail on this same
+              // page prints. Both halves are corrected, and the door is named
+              // rather than described. See `draftSpec`.
+              <Empty
+                action={
+                  <Button onClick={() => void navigate({ to: "/decide" })}>Open Decide</Button>
+                }
+              >
+                No specs yet, and committing a bet here does not write one: a commit sets the lane,
+                the outcome and the measure, and stops. A spec is written when you keep a bet on
+                Decide, where "Keep it" runs Draft and lands you on what it wrote. Any bet already
+                sitting in Now can be drafted from the line above, and the crew will draft one on
+                request.
               </Empty>
             ) : (
               shownSpecs.map((spec) => {

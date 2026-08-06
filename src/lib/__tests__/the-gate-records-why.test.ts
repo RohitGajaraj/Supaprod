@@ -123,8 +123,16 @@ describe("the write is wired the way this repo has learned to wire writes", () =
     // And it must not fall through into the lineage write on a refusal, which is
     // the actual defect this test exists to prevent: an orphan decision edge
     // pointing at a row that was never inserted.
+    //
+    // THE PATTERN ASSERTS THAT IT RETURNS, NOT WHAT IT RETURNS, which is the same
+    // correction the paragraph above made once already. This read `/return;/` and
+    // went red on 2026-08-06 when the guard began returning `{ recorded: false }`
+    // -- `recordJudgment` hands its outcome back now, so /decide's drop receipt
+    // can stop asserting "and so does the call" on a press whose insert was
+    // thrown away. A bare `return` was never the requirement; leaving the whole
+    // path unreturned is.
     const afterGuard = guard.slice(guard.indexOf("if (error || !decision)"));
-    expect(afterGuard.slice(0, 400)).toMatch(/return;/);
+    expect(afterGuard.slice(0, 400)).toMatch(/return(;| \{)/);
   });
 
   it("writes the lineage edge, or Learn can never walk back to the call", () => {

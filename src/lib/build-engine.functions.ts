@@ -18,7 +18,14 @@
  * inside one open run.
  *
  * WHAT IT ANSWERS, and it is one question: what is the crew writing, across
- * every run, and which of it is waiting on me.
+ * every run, and which of it is waiting on me. "Waiting on me" has two halves,
+ * and this file only had one of them until 2026-08-06: an approval somebody has
+ * to answer, and a build that STOPPED and will not restart itself. See
+ * `stopped` on BuildWorkItem for why the second half was the larger one.
+ *
+ * AND IT REPORTS WHAT IT COULD NOT READ. Four side reads feed the headline, and
+ * a refused read used to produce the same empty set as a genuinely empty
+ * workspace. See BuildWorkUnread.
  *
  * WHY THERE IS NO LINE-LEVEL DIFFSTAT IN THIS LIST. `studio_changes` carries
  * `base_content` and `new_content`, so a real added/removed count is
@@ -61,6 +68,46 @@ export type BuildWorkItem = {
   live: boolean;
   /** Something on this mission is waiting on a human. */
   gated: boolean;
+  /**
+   * THE STATE THAT DOMINATES PRODUCTION AND HAD NO NAME HERE.
+   *
+   * `live` asks only about running/queued and `gated` only about a pending
+   * approval, so a mission that HALTED mapped to neither: the row fell through
+   * to `statusPhrase`, which read the changeset's own column and said "staged,
+   * not committed", a sentence about work in flight, over a build that stopped
+   * days ago and that nothing will pick back up. Measured on the live database
+   * 2026-08-06: 67 halted missions, 19 completed_with_failures, 0 running. The
+   * dominant state on the station was the one it could not say.
+   *
+   * True when the MISSION reached a stopped status, or when a run on it did,
+   * none is in flight, and the mission did not itself finish (see
+   * MISSION_DONE: a completed mission usually carries the failed run its retry
+   * survived). Never true at the same time as `live`: something running now
+   * outranks something that stopped before it.
+   */
+  stopped: boolean;
+};
+
+/**
+ * WHICH OF THE FOUR SIDE READS CAME BACK, so the surface can say "we could not
+ * read what is running" instead of "nothing is running".
+ *
+ * Each field is the read's own error message, or null when the read answered.
+ * Not one of these four destructured `error` before: a refused `agent_runs`
+ * read yielded an empty set and the page stated "Nothing is being written", a
+ * refused `agent_approvals` read stated "Nothing needs you", and a refused
+ * `studio_changes` read zeroed every file count in silence. That is
+ * absence-as-evidence sitting directly under a headline asserted as fact.
+ */
+export type BuildWorkUnread = {
+  /** Per-changeset file counts. Every count on the surface reads 0 without it. */
+  files: string | null;
+  /** Mission titles. Rows lose the run they belong to, nothing else. */
+  missions: string | null;
+  /** What is in flight and what stopped. Both halves of the headline. */
+  runs: string | null;
+  /** What is waiting on a human. The "needs you" half of the headline. */
+  gates: string | null;
 };
 
 export type BuildWork = {
@@ -70,10 +117,58 @@ export type BuildWork = {
    * swallowed: a list that silently truncates reads as "this is everything".
    */
   more: number;
+  /** Which of the four side reads failed. See {@link BuildWorkUnread}. */
+  unread: BuildWorkUnread;
 };
 
 /** The window. Generous for a real workspace, bounded so one query stays one query. */
 const WINDOW = 60;
+
+/** Nothing failed. The shape the happy path returns, written once. */
+const ALL_READ: BuildWorkUnread = { files: null, missions: null, runs: null, gates: null };
+
+/**
+ * A run that is being written RIGHT NOW. Unchanged from the first version of
+ * this list on purpose: `dispatched` and `waiting_approval` are also in flight
+ * by `native.server.ts`'s reckoning, but `waiting_approval` is what `gated`
+ * already says and widening `live` here would move rows between two blocks for
+ * a reason no finding asked for.
+ */
+const RUN_LIVE = ["running", "queued"];
+
+/**
+ * A run that STOPPED. The `agent_runs` half of the vocabulary that
+ * `components/runs/run-state.ts` calls STOPPED; kept as its own copy because
+ * that module is a client mapping over `listStudioSessions` rows and this is a
+ * server query, and importing it here would drag the studio types into a file
+ * that reads four tables and nothing else. If one list grows a word, so does
+ * the other.
+ */
+const RUN_STOPPED = ["failed", "halted", "cancelled"];
+
+/** The `missions` half of the same vocabulary. */
+const MISSION_STOPPED = new Set(["halted", "failed", "cancelled", "completed_with_failures"]);
+
+/**
+ * A MISSION THAT FINISHED, AND WHY THIS SET HAS TO EXIST NEXT TO THE OTHER TWO.
+ *
+ * The run half of `stopped` is derived from EVERY run on the mission, not from
+ * the latest one, and a mission commonly carries a dead run it already survived:
+ * `mission-advance.server.ts` gives a 'failed' run a bounded retry (:531), and
+ * `isLostQueuedRun` CASes a stranded 'queued' run to 'failed' before retrying
+ * the step. When the retry succeeds and the DAG finalizes, the mission reaches
+ * 'completed' with a 'failed' run row still on it, and without this set that
+ * row read as "stopped, and nothing is picking it back up", counted in the
+ * headline's needs-you half, and wore a red mark, over work that finished.
+ * `components/runs/run-state.ts` does not have this problem because it reads
+ * ONE session's current status; this query aggregates a mission's history, so
+ * it has to say which history is over.
+ *
+ * The mission's own terminal word wins over an old run's, and only that word:
+ * a mission still 'running' with every run on it failed is stopped, which is
+ * the case the run half was added for.
+ */
+const MISSION_DONE = new Set(["completed", "done"]);
 
 export const listBuildWork = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -109,34 +204,64 @@ export const listBuildWork = createServerFn({ method: "GET" })
     // a second count query.
     const rows = all.slice(0, WINDOW);
     const more = Math.max(0, all.length - WINDOW);
-    if (!rows.length) return { items: [], more: 0 };
+    if (!rows.length) return { items: [], more: 0, unread: ALL_READ };
 
     const ids = rows.map((r) => r.id);
     const missionIds = [...new Set(rows.map((r) => r.mission_id).filter((m): m is string => !!m))];
 
-    const [{ data: changeRows }, { data: missionRows }, { data: liveRuns }, { data: gates }] =
-      await Promise.all([
-        // path is not read; `op` is, and selecting the key + op keeps this off
-        // the content columns entirely.
-        db.from("studio_changes").select("changeset_id,op").in("changeset_id", ids),
-        missionIds.length
-          ? db.from("missions").select("id,title").in("id", missionIds)
-          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
-        missionIds.length
-          ? db
-              .from("agent_runs")
-              .select("mission_id")
-              .in("mission_id", missionIds)
-              .in("status", ["running", "queued"])
-          : Promise.resolve({ data: [] as { mission_id: string | null }[] }),
-        missionIds.length
-          ? db
-              .from("agent_approvals")
-              .select("mission_id")
-              .in("mission_id", missionIds)
-              .eq("status", "pending")
-          : Promise.resolve({ data: [] as { mission_id: string | null }[] }),
-      ]);
+    /**
+     * EVERY ONE OF THESE FOUR KEEPS ITS `error`, and that is the whole of
+     * finding 5. supabase-js RESOLVES a refused read, so `{ data }` alone
+     * cannot tell "there are none" from "we were not allowed to look", and
+     * every consumer below turns the second into the first.
+     *
+     * A skipped read (no missions in the window) is NOT a failed one: it
+     * answers `{ data: [], error: null }` and the surface may say "nothing" on
+     * it, because there was genuinely nothing to ask about.
+     */
+    const [
+      { data: changeRows, error: changeErr },
+      { data: missionRows, error: missionErr },
+      { data: runRows, error: runErr },
+      { data: gates, error: gateErr },
+    ] = await Promise.all([
+      // path is not read; `op` is, and selecting the key + op keeps this off
+      // the content columns entirely.
+      db.from("studio_changes").select("changeset_id,op").in("changeset_id", ids),
+      missionIds.length
+        ? db.from("missions").select("id,title,status").in("id", missionIds)
+        : Promise.resolve({
+            data: [] as { id: string; title: string; status: string }[],
+            error: null,
+          }),
+      // ONE READ FOR BOTH HALVES. In flight and stopped come off the same
+      // column, so asking twice would double the round trips and open a window
+      // where a run is both (promoted between the two reads).
+      missionIds.length
+        ? db
+            .from("agent_runs")
+            .select("mission_id,status")
+            .in("mission_id", missionIds)
+            .in("status", [...RUN_LIVE, ...RUN_STOPPED])
+        : Promise.resolve({
+            data: [] as { mission_id: string | null; status: string }[],
+            error: null,
+          }),
+      missionIds.length
+        ? db
+            .from("agent_approvals")
+            .select("mission_id")
+            .in("mission_id", missionIds)
+            .eq("status", "pending")
+        : Promise.resolve({ data: [] as { mission_id: string | null }[], error: null }),
+    ]);
+
+    const unread: BuildWorkUnread = {
+      files: changeErr ? changeErr.message : null,
+      missions: missionErr ? missionErr.message : null,
+      runs: runErr ? runErr.message : null,
+      gates: gateErr ? gateErr.message : null,
+    };
 
     const files = new Map<string, { total: number; added: number; deleted: number }>();
     for (const c of (changeRows ?? []) as { changeset_id: string; op: string }[]) {
@@ -149,14 +274,25 @@ export const listBuildWork = createServerFn({ method: "GET" })
       if (c.op === "delete") f.deleted += 1;
       files.set(c.changeset_id, f);
     }
-    const title = new Map(
-      ((missionRows ?? []) as { id: string; title: string }[]).map((m) => [m.id, cleanTitle(m.title)]),
-    );
-    const liveSet = new Set(
-      ((liveRuns ?? []) as { mission_id: string | null }[])
-        .map((r) => r.mission_id)
-        .filter((m): m is string => !!m),
-    );
+    const missions = (missionRows ?? []) as { id: string; title: string; status: string }[];
+    const title = new Map(missions.map((m) => [m.id, cleanTitle(m.title)]));
+    const liveSet = new Set<string>();
+    const stoppedSet = new Set<string>();
+    /** Missions that reached a successful terminal status. See MISSION_DONE. */
+    const doneSet = new Set<string>();
+    for (const m of missions) {
+      if (MISSION_STOPPED.has(m.status)) stoppedSet.add(m.id);
+      else if (MISSION_DONE.has(m.status)) doneSet.add(m.id);
+    }
+    for (const r of (runRows ?? []) as { mission_id: string | null; status: string }[]) {
+      if (!r.mission_id) continue;
+      if (RUN_LIVE.includes(r.status)) liveSet.add(r.mission_id);
+      // A dead run on a mission that FINISHED is history, not a call to act.
+      // Only positive knowledge suppresses it: when the missions read failed,
+      // `doneSet` is empty and the run's own word still stands, which keeps the
+      // fail direction on the side of saying something rather than nothing.
+      else if (!doneSet.has(r.mission_id)) stoppedSet.add(r.mission_id);
+    }
     const gateSet = new Set(
       ((gates ?? []) as { mission_id: string | null }[])
         .map((r) => r.mission_id)
@@ -182,8 +318,13 @@ export const listBuildWork = createServerFn({ method: "GET" })
           updatedAt: r.updated_at,
           live: !!r.mission_id && liveSet.has(r.mission_id),
           gated: !!r.mission_id && gateSet.has(r.mission_id),
+          // A run in flight outranks one that stopped: a mission that halted
+          // and was then resumed is being written, and saying otherwise would
+          // put a working build under "Stopped".
+          stopped: !!r.mission_id && stoppedSet.has(r.mission_id) && !liveSet.has(r.mission_id),
         };
       }),
       more,
+      unread,
     };
   });

@@ -86,8 +86,7 @@ describe("Build can start the work it exists to do", () => {
      * That is the failure mode of every source-text test in this repo, and it
      * is why the ones that work strip comments before asserting.
      */
-    const strip = (t: string) =>
-      t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const strip = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
     const code = strip(LANE);
     const start = code.indexOf("mutationFn:");
     const payload = code.slice(start, code.indexOf("onSuccess:", start));
@@ -105,8 +104,17 @@ describe("Build can start the work it exists to do", () => {
   it("the handler still refuses a payload with none of the three", () => {
     // If this throw is ever removed the guard above stops meaning anything, so
     // it is pinned: the test protects the requirement, not just the caller.
+    //
+    // IT ACCEPTS `refuseDispatch` NOW, AND THAT IS THE REQUIREMENT UNCHANGED.
+    // The pin read `throw new Error(` and went red on 2026-08-06 when every
+    // pre-durable throw in the handler was MARKED: `refuseDispatch` returns an
+    // Error carrying the prefix the panel keys "Nothing was dispatched" on
+    // (lib/build/dispatch-refusal.ts), so this site still throws and still
+    // throws before anything exists. The requirement is "no issue, no
+    // dispatch"; the spelling of the constructor was never the requirement, and
+    // this is the fourth formatting-brittle grep this repo has paid for.
     const fn = BUILD_FNS.slice(BUILD_FNS.indexOf("export const dispatchBuilderMission"));
-    expect(fn).toMatch(/if \(!issueNumber\) \{[\s\S]{0,200}throw new Error\(/);
+    expect(fn).toMatch(/if \(!issueNumber\) \{[\s\S]{0,300}throw (new Error|refuseDispatch)\(/);
   });
 
   it("reports pending on the row that is starting, not on all of them", () => {

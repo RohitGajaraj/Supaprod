@@ -778,6 +778,14 @@ export type ScaffoldProvenance = {
   ungrounded: boolean;
   /** Rules that shaped this drawing and have since been replaced or retired. */
   staleCount: number;
+  /**
+   * False when one of the reads behind this answer did not land. `ungrounded`
+   * with this false means WE DO NOT KNOW, which is a different fact from "none
+   * of your rules shaped it" -- exactly the distinction `lineageRead` draws on
+   * the consequence panel, and the reason the strong negative sentence on the
+   * surface is only allowed for a read that came back.
+   */
+  read: boolean;
 };
 
 /**
@@ -794,7 +802,9 @@ export type ScaffoldProvenance = {
  *     comparing them against the currently active set rather than by guessing
  *     from timestamps;
  *   - that a drawing with no edges was made without the design language at all,
- *     which is the honest reading of "all of this is invented".
+ *     which is the honest reading of "all of this is invented", AND ONLY WHEN
+ *     THE READS THAT FOUND NO EDGES ACTUALLY LANDED. A refusal comes back as
+ *     `read: false` and the surface draws nothing rather than making the claim.
  *
  * WHAT IT REFUSES TO CLAIM, and the refusal is the important part. It does not
  * say a given element on screen came from a given rule. The model was handed
@@ -810,31 +820,59 @@ export const getScaffoldProvenance = createServerFn({ method: "GET" })
   .inputValidator((d: { prdId: string }) => z.object({ prdId: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }): Promise<ScaffoldProvenance> => {
     const { supabase } = context;
-    const none: ScaffoldProvenance = { groundedIn: [], ungrounded: true, staleCount: 0 };
+    const none: ScaffoldProvenance = {
+      groundedIn: [],
+      ungrounded: true,
+      staleCount: 0,
+      read: true,
+    };
+    /**
+     * WE COULD NOT FIND OUT. Not one of the three reads below used to bind
+     * `error`, and supabase-js RESOLVES a refused read, so every refusal came
+     * back as the shape of an empty answer and the surface printed the strongest
+     * claim this function can make: "Drawn without your design language. No
+     * standing rule was in force when this was made, so every choice in it is
+     * the model's own." A refused read is not evidence that nothing bound in.
+     */
+    const unread: ScaffoldProvenance = {
+      groundedIn: [],
+      ungrounded: true,
+      staleCount: 0,
+      read: false,
+    };
 
-    const { data: scaffold } = await supabase
+    const { data: scaffold, error: scaffoldErr } = await supabase
       .from("prd_scaffolds")
       .select("id")
       .eq("prd_id", data.prdId)
       .maybeSingle();
+    if (scaffoldErr) return unread;
     if (!scaffold) return none;
 
-    const { data: edges } = await supabase
+    const { data: edges, error: edgeErr } = await supabase
       .from("artifact_lineage")
       .select("parent_id")
       .eq("child_kind", "prd_scaffold")
       .eq("child_id", (scaffold as { id: string }).id)
       .eq("parent_kind", "design_memory")
       .eq("relation", "grounded-in");
+    if (edgeErr) return unread;
 
     const memoryIds = ((edges ?? []) as Array<{ parent_id: string }>).map((e) => e.parent_id);
     if (memoryIds.length === 0) return none;
 
-    const { data: rules } = await supabase
+    const { data: rules, error: ruleErr } = await supabase
       .from("design_memory")
       .select("id,title,category")
       .in("id", memoryIds);
-    if (!rules || rules.length === 0) return none;
+    if (ruleErr) return unread;
+    // EDGES BUT NO RULES IS NOT "NO RULES". The edges above name the rules that
+    // were in front of the model, so coming back with none of them means the
+    // rules themselves could not be read (RLS, or a rule since deleted out from
+    // under a lineage row that outlived it), never that the drawing was made
+    // without a design language. Saying "we could not find out" is the only
+    // answer this branch has evidence for.
+    if (!rules || rules.length === 0) return unread;
 
     // Retirement is read from the live active set, not inferred. A rule the
     // workspace has since replaced is the single most useful thing to say about
@@ -865,6 +903,7 @@ export const getScaffoldProvenance = createServerFn({ method: "GET" })
       groundedIn,
       ungrounded: false,
       staleCount: groundedIn.filter((g) => g.retired).length,
+      read: true,
     };
   });
 
@@ -1543,11 +1582,32 @@ export const listDesignWork = createServerFn({ method: "GET" })
       items: [],
     };
 
-    const { data: ws } = await supabase.rpc("current_user_default_workspace");
+    /**
+     * EVERY READ IN THIS HANDLER BINDS ITS ERROR AND THROWS, and that is the
+     * whole difference between this list and a lie.
+     *
+     * supabase-js RESOLVES a refused read: no throw, `data` null, the error only
+     * on the `error` key nothing here used to bind. So a workspace whose reads
+     * were refused came back as `empty` -- and `empty` is not silence, it is
+     * three positive claims. The headline reads "Nothing needs you.", the list
+     * reads "Nothing to look at...", and `stageEnabled: false` makes the context
+     * column state the workspace's policy ("Specs reach Build without passing
+     * through here") off a read that never happened.
+     *
+     * Throwing hands the failure to the one branch built for it: `work.isError`
+     * on /design draws `Failed` with its Try again button, and /plan/index falls
+     * back to the silence it already keeps for a spec outside this window.
+     */
+    const { data: ws, error: wsIdErr } = await supabase.rpc("current_user_default_workspace");
+    if (wsIdErr) throw new Error(wsIdErr.message);
     const workspaceId = (ws as string | null) ?? null;
     if (!workspaceId) return empty;
 
-    const [{ data: wsRow }, { data: prdRows }, { data: scaffoldRows }] = await Promise.all([
+    const [
+      { data: wsRow, error: wsErr },
+      { data: prdRows, error: prdErr },
+      { data: scaffoldRows, error: scaffoldErr },
+    ] = await Promise.all([
       supabase
         .from("workspaces")
         .select("design_stage_enabled,owner_id")
@@ -1573,6 +1633,9 @@ export const listDesignWork = createServerFn({ method: "GET" })
         .order("updated_at", { ascending: false })
         .limit(WORK_LIMIT),
     ]);
+    if (wsErr) throw new Error(wsErr.message);
+    if (prdErr) throw new Error(prdErr.message);
+    if (scaffoldErr) throw new Error(scaffoldErr.message);
 
     const w = wsRow as { design_stage_enabled?: boolean | null; owner_id?: string | null } | null;
     const stageEnabled = Boolean(w?.design_stage_enabled);
@@ -1603,7 +1666,39 @@ export const listDesignWork = createServerFn({ method: "GET" })
       });
     }
 
-    const prds = ((prdRows ?? []) as Array<Record<string, unknown>>).map((r) => ({
+    /**
+     * THE TWO SETS ARE UNIONED, NOT INTERSECTED, and the intersection is what
+     * used to hide drawings from the station that exists to judge them.
+     *
+     * `items` was built from `prds` alone, so a `prd_scaffolds` row whose spec
+     * fell outside the newest forty was dropped even though the scaffold query
+     * above had already fetched it. That window closes on its own: a redraw
+     * writes `prd_scaffolds` and never `prds.updated_at`, so a drawing made
+     * against a spec nobody has edited since sinks below the cut as other specs
+     * are touched. Production carries 81 specs against WORK_LIMIT = 40, so this
+     * is live rather than theoretical, and the handoff `?focus=<id>` from Plan
+     * landed on a different spec entirely when it bit.
+     *
+     * One extra read, and only when the scaffolds found a spec the window did
+     * not. The remaining cap is honest and stated: `scaffoldRows` is itself
+     * limited to WORK_LIMIT, so a workspace past forty DRAWINGS still shows the
+     * forty most recently written ones.
+     */
+    const windowRows = (prdRows ?? []) as Array<Record<string, unknown>>;
+    const inWindow = new Set(windowRows.map((r) => r.id as string));
+    const drawnOutside = [...drawings.keys()].filter((id) => !inWindow.has(id));
+    let extraRows: Array<Record<string, unknown>> = [];
+    if (drawnOutside.length > 0) {
+      const { data: outsideRows, error: outsideErr } = await supabase
+        .from("prds")
+        .select("id,title,design_gate_status,design_decided_at,updated_at")
+        .eq("workspace_id", workspaceId)
+        .in("id", drawnOutside);
+      if (outsideErr) throw new Error(outsideErr.message);
+      extraRows = (outsideRows ?? []) as Array<Record<string, unknown>>;
+    }
+
+    const prds = [...windowRows, ...extraRows].map((r) => ({
       id: r.id as string,
       title: (r.title as string) ?? "Untitled spec",
       gateStatus: gateWord(r.design_gate_status as string | null),
@@ -1618,16 +1713,24 @@ export const listDesignWork = createServerFn({ method: "GET" })
     const routes = new Map<string, RecordedRoute>();
     const ids = prds.map((p) => p.id);
     if (ids.length > 0) {
-      const [{ data: protoRows }, { data: routeRows }] = await Promise.all([
-        supabase.from("prototypes").select("id,prd_id").in("prd_id", ids),
-        supabase
-          .from("stage_events")
-          .select("entity_id,to_stage,at,actor")
-          .eq("entity_type", "spec")
-          .in("entity_id", ids)
-          .in("to_stage", ROUTE_STAGES)
-          .order("at", { ascending: true }),
-      ]);
+      const [{ data: protoRows, error: protoErr }, { data: routeRows, error: routeErr }] =
+        await Promise.all([
+          supabase.from("prototypes").select("id,prd_id").in("prd_id", ids),
+          supabase
+            .from("stage_events")
+            .select("entity_id,to_stage,at,actor")
+            .eq("entity_type", "spec")
+            .in("entity_id", ids)
+            .in("to_stage", ROUTE_STAGES)
+            .order("at", { ascending: true }),
+        ]);
+      // The same rule as the reads above, and the route read is the one where it
+      // bites hardest: a refused read leaves `route` null on every row, and the
+      // row then says "Nothing drawn yet" about a spec somebody DELIBERATELY
+      // sent past Design. Those are opposite facts, and the surface would print
+      // the wrong one with no way to tell.
+      if (protoErr) throw new Error(protoErr.message);
+      if (routeErr) throw new Error(routeErr.message);
       for (const p of (protoRows ?? []) as Array<Record<string, unknown>>) {
         const key = p.prd_id as string | null;
         if (key) shareCounts.set(key, (shareCounts.get(key) ?? 0) + 1);
@@ -1692,6 +1795,24 @@ export type DesignShare = {
   slug: string;
   isPublic: boolean;
   createdAt: string;
+  /**
+   * WHETHER THIS LINK STILL SERVES THE DRAWING ON SCREEN.
+   *
+   * A link is a SNAPSHOT. `publishPrototypeFromPrd` writes `prototype_files`
+   * once, at publish, and no path in this repo ever updates that row; a redraw
+   * overwrites `prd_scaffolds.html` and touches nothing else. So after one
+   * redraw the visitor at /p/<slug> is looking at the drawing that was
+   * replaced, while the station filed the link under the drawing it no longer
+   * shows.
+   *
+   * True means the stored markup stamps identical to the drawing on the row.
+   * False means it does not, so the link is a previous drawing. Null means the
+   * question has no answer to give: nothing is drawn to compare against, or the
+   * link's own file could not be read. Never guessed from a timestamp: both
+   * `prototypes.updated_at` and `prd_scaffolds.updated_at` move for reasons that
+   * have nothing to do with the markup (see `drawingStamp`).
+   */
+  matchesDrawing: boolean | null;
 };
 
 export type BoundRule = {
@@ -1797,30 +1918,31 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       contract: unknown;
     };
 
-    const [{ data: wsRow }, { data: scaffoldRow }, { data: protoRows }, route] = await Promise.all([
-      prd.workspace_id
-        ? supabase
-            .from("workspaces")
-            .select("design_stage_enabled,owner_id")
-            .eq("id", prd.workspace_id)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      // `select("*")` AND NOT A COLUMN LIST, on purpose, and the reason has
-      // outlived the migration rather than been retired by it. Naming a column
-      // PostgREST does not know about fails the WHOLE query, taking the drawing
-      // itself off /design; naming one the GENERATED TYPES do not know about
-      // fails the build, and they still do not carry `critic_review` here. A
-      // star select returns whatever the table actually has, so a missing column
-      // reads as "no ruling on file" and the drawing renders either way.
-      supabase.from("prd_scaffolds").select("*").eq("prd_id", data.prdId).maybeSingle(),
-      supabase
-        .from("prototypes")
-        .select("id,name,share_slug,is_public,created_at")
-        .eq("prd_id", data.prdId)
-        .order("created_at", { ascending: false })
-        .limit(20),
-      readRecordedRoute(supabase, data.prdId),
-    ]);
+    const [{ data: wsRow }, { data: scaffoldRow, error: scaffoldErr }, { data: protoRows }, route] =
+      await Promise.all([
+        prd.workspace_id
+          ? supabase
+              .from("workspaces")
+              .select("design_stage_enabled,owner_id")
+              .eq("id", prd.workspace_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        // `select("*")` AND NOT A COLUMN LIST, on purpose, and the reason has
+        // outlived the migration rather than been retired by it. Naming a column
+        // PostgREST does not know about fails the WHOLE query, taking the drawing
+        // itself off /design; naming one the GENERATED TYPES do not know about
+        // fails the build, and they still do not carry `critic_review` here. A
+        // star select returns whatever the table actually has, so a missing column
+        // reads as "no ruling on file" and the drawing renders either way.
+        supabase.from("prd_scaffolds").select("*").eq("prd_id", data.prdId).maybeSingle(),
+        supabase
+          .from("prototypes")
+          .select("id,name,share_slug,is_public,created_at")
+          .eq("prd_id", data.prdId)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        readRecordedRoute(supabase, data.prdId),
+      ]);
 
     const w = wsRow as { design_stage_enabled?: boolean | null; owner_id?: string | null } | null;
     const stageEnabled = Boolean(w?.design_stage_enabled);
@@ -1898,15 +2020,52 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       lineageRead = false;
     }
 
-    const shares: DesignShare[] = ((protoRows ?? []) as Array<Record<string, unknown>>).map(
-      (p) => ({
+    const shareRows = (protoRows ?? []) as Array<Record<string, unknown>>;
+
+    /**
+     * WHAT EACH LINK ACTUALLY SERVES, read rather than assumed.
+     *
+     * `/p/$slug` renders `prototype_files`, so that row is the only evidence of
+     * what a visitor sees, and it is written once at publish. Comparing its
+     * stamp against the drawing's is the whole check: a link whose markup is the
+     * markup on the row is this drawing, and one whose markup differs is a
+     * previous one. Absent from the map means the read did not return it, which
+     * stays null rather than reading as "does not match".
+     *
+     * The cost is the one thing worth stating: this reads the stored markup of
+     * up to 20 links (the cap on the select above) to return up to 20 booleans.
+     * Nothing of the content leaves the server, and the reason it is read at all
+     * is that a hash cannot be asked for over PostgREST.
+     */
+    const fileStamps = new Map<string, string>();
+    if (shareRows.length > 0) {
+      const { data: fileRows, error: fileErr } = await supabase
+        .from("prototype_files")
+        .select("prototype_id,content")
+        .in(
+          "prototype_id",
+          shareRows.map((p) => p.id as string),
+        )
+        .eq("path", "index.html");
+      if (!fileErr) {
+        for (const f of (fileRows ?? []) as Array<Record<string, unknown>>) {
+          fileStamps.set(f.prototype_id as string, drawingStamp((f.content as string) ?? ""));
+        }
+      }
+    }
+    const liveStamp = drawing ? drawingStamp(drawing.html) : null;
+
+    const shares: DesignShare[] = shareRows.map((p) => {
+      const stored = fileStamps.get(p.id as string);
+      return {
         id: p.id as string,
         name: (p.name as string) ?? "Untitled",
         slug: p.share_slug as string,
         isPublic: Boolean(p.is_public),
         createdAt: p.created_at as string,
-      }),
-    );
+        matchesDrawing: liveStamp === null || stored === undefined ? null : stored === liveStamp,
+      };
+    });
 
     // A ruling about markup that is no longer on the row is not a ruling about
     // what is on screen. `prd_scaffolds` holds one row per spec and a redraw
@@ -1932,9 +2091,31 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
         ? { verdict: storedReview.verdict, findings: storedReview.findings }
         : null,
       consequence: {
-        // The identical rule designGateBlocksDispatch enforces at both dispatch
-        // paths. Restated as a boolean, not re-derived with different words.
-        blocksDispatch: stageEnabled && gateStatus !== "approved",
+        // THE RULE ITSELF, CALLED, not a second copy of it written from memory.
+        // This line used to read `stageEnabled && gateStatus !== "approved"`,
+        // which drops the middle clause of designGateBlocksDispatch: an unmade
+        // drawing does not block. `design_gate_status` is NOT NULL DEFAULT
+        // 'pending' and `design_stage_enabled` is NOT NULL DEFAULT true, so the
+        // omission made the panel tell the reader "This spec cannot reach Build"
+        // about every undrawn spec in a default workspace -- the exact reading
+        // design-gate.ts was corrected to stop making, because A GATE JUDGES A
+        // DRAWING and does not gate the absence of one. Calling the function is
+        // what makes the surrounding claim of identity true.
+        //
+        // AN UNREADABLE ROW IS NOT AN ABSENT ONE, and this is where that would
+        // have bitten hardest: the `prd_scaffolds` read above bound no error, so
+        // a refused read left `drawing` null, `hasDrawing` false, and the panel
+        // answered "Nothing. No screen is drawn, so the gate has nothing to
+        // hold" about a spec whose drawing may be sitting on a call. Undefined
+        // is the word for what we do not know, and `designGateBlocksDispatch`
+        // already reads it as "assume there is one" so the gate stays shut
+        // rather than opening on an error. The same reading `getSpecDesignRoute`
+        // and `loadDesignGateState` make of the same question.
+        blocksDispatch: designGateBlocksDispatch({
+          stageEnabled,
+          status: gateStatus,
+          hasDrawing: scaffoldErr ? undefined : !!drawing,
+        }),
         touches,
         cameFrom,
         lineageRead,

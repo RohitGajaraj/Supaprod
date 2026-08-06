@@ -154,6 +154,16 @@ export interface BuildDriverContext {
   missionTitle?: string;
   /** Native adapter: model override riding on the queued run row. */
   model?: string | null;
+  /**
+   * Native adapter: the dollars this mission may spend, stamped on the queued
+   * run row where `checkMissionCaps` reads it.
+   *
+   * THREE VALUES, NOT TWO, and the distinction is `resolveMissionSpendCap`'s
+   * own: `undefined` is "nobody said" and inherits the workspace ceiling,
+   * `null` is "somebody said none", and a number is that number. Omit it and
+   * the workspace's ceiling applies, which is what every caller wants.
+   */
+  missionSpendCapUsd?: number | null;
 }
 
 /**

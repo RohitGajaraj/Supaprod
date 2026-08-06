@@ -1022,6 +1022,12 @@ function planMetricOf(raw: string | null | undefined): string | null {
 export type PendingOutcome = {
   prdId: string;
   title: string;
+  /** Which workspace this bet lives in. The desk is the RLS union across every
+   *  workspace the caller belongs to; the record beside it (`getImpactLedger`,
+   *  `listLearnings`) is one workspace at a time. A surface that shows both has
+   *  to point the second at the first, or settling a bet moves numbers the
+   *  reader cannot see. Null only if the row somehow carries none. */
+  workspaceId: string | null;
   shippedAt: string | null;
   /** What this spec promised to move, from its own Outcome Contract. Empty when
    *  the spec never carried one — which the desk says out loud rather than
@@ -1066,6 +1072,12 @@ export type PendingOutcome = {
 export type AgentSettledOutcome = {
   prdId: string;
   title: string;
+  /** Which workspace this bet lives in, for the same reason
+   *  `PendingOutcome.workspaceId` carries one: a person reconsidering an
+   *  agent's verdict is looking at a bet that may not live in the workspace the
+   *  record on the page is drawn from, and an overturn writes into the bet's
+   *  workspace, not the page's. */
+  workspaceId: string | null;
   settledAt: string | null;
   /** What the spec promised to move, same source and same rule as
    *  `PendingOutcome.promised`. Overturning an agent's verdict writes the same
@@ -1197,8 +1209,24 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       opportunity_id: string | null;
       outcome_suggestion: OutcomeSuggestion | null;
       contract: unknown;
+      workspace_id: string | null;
     };
-    const PRD_COLS = "id,title,shipped_at,opportunity_id,outcome_suggestion,contract";
+    /**
+     * `workspace_id` RIDES ALONG BECAUSE THE DESK IS A UNION AND THE RECORD IS
+     * NOT.
+     *
+     * This query applies no workspace filter at all, deliberately: RLS admits
+     * every workspace the caller belongs to, so the desk is "every bet anywhere
+     * that needs your call". The Learn page beside it reads `getImpactLedger`,
+     * which is ONE workspace and defaults to `current_user_default_workspace()`
+     * (the earliest `workspace_members` row). Those two are routinely different
+     * workspaces, and when they are, settling a bet writes
+     * `learnings.workspace_id = prds.workspace_id` and changes nothing the page
+     * shows. Carrying the column here is what lets the surface point the record
+     * at the same workspace as the bet in focus. Nothing new is queried; it is
+     * one more column on a row already being read.
+     */
+    const PRD_COLS = "id,title,shipped_at,opportunity_id,outcome_suggestion,contract,workspace_id";
     const nowIso = new Date().toISOString();
 
     // The same two reads the sweep makes, run together. `check_by` is the
@@ -1257,6 +1285,24 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
         .select(PRD_COLS)
         .is("outcome", null)
         .in("id", duePrdIds)
+        /**
+         * THE SAME DEFERRAL CLAUSE AS THE SHIPPED HALF, AND IT WAS MISSING HERE.
+         *
+         * `deferOutcomeCheck` writes `prds.outcome_check_by`, and only the
+         * shipped query above read it. So a spec that ALSO carried a passed
+         * `launch_plans.check_by` was excluded by the first query and put
+         * straight back by this one, on the very next refetch. The receipt says
+         * "It comes back to this desk on <date+14>" and it came back
+         * immediately, which is the button promising something the code did not
+         * do. Migration 20260806100000 backfilled `prds.outcome_check_by` from
+         * `launch_plans.check_by` precisely because these two are meant to be
+         * one date; reading it in one place and not the other split them again.
+         *
+         * `or` and not a bare `lte`, for the same reason as above: NULL is the
+         * overwhelming majority and a comparison drops NULLs in SQL, which
+         * would silently narrow this population to previously-deferred specs.
+         */
+        .or(`outcome_check_by.is.null,outcome_check_by.lte.${nowIso}`)
         .limit(12);
       for (const p of (dueRows ?? []) as PrdRow[]) {
         if (!byId.has(p.id)) byId.set(p.id, p);
@@ -1438,6 +1484,7 @@ export const listPendingOutcomes = createServerFn({ method: "GET" })
       return {
         prdId: p.id,
         title: (p.title ?? "").trim() || "Untitled spec",
+        workspaceId: p.workspace_id ?? null,
         shippedAt: p.shipped_at,
         // Both were already in hand: `contract` is on the row this map is
         // reading, and the launch plan's metric is in `planByPrd`, fetched
@@ -1501,13 +1548,16 @@ export const listAgentSettledOutcomes = createServerFn({ method: "GET" })
       opportunity_id: string | null;
       outcome: unknown;
       contract: unknown;
+      workspace_id: string | null;
     };
     const { data: prdRows, error } = await db
       .from("prds")
       // `contract` rides along for the same reason the pending queue carries
       // it: a person disagreeing with an agent's verdict is writing precedent,
       // and has to be able to read what the spec promised while doing it.
-      .select("id,title,opportunity_id,outcome,contract")
+      // `workspace_id` rides along so the surface can point the record it draws
+      // beside this list at the same workspace as the bet being reconsidered.
+      .select("id,title,opportunity_id,outcome,contract,workspace_id")
       // Repo jsonb-filter convention (see rememberOutcome): `col->>key`.
       .filter("outcome->>settled_by", "eq", "agent")
       .order("updated_at", { ascending: false })
@@ -1551,6 +1601,7 @@ export const listAgentSettledOutcomes = createServerFn({ method: "GET" })
       settled.push({
         prdId: p.id,
         title: (p.title ?? "").trim() || "Untitled spec",
+        workspaceId: p.workspace_id ?? null,
         settledAt: typeof o?.checked_at === "string" ? o.checked_at : null,
         promised: standingPromises(p.contract),
         verdict: prior.verdict,

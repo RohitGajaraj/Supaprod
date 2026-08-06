@@ -138,13 +138,53 @@
  *    ADDED a door on the precedent Record, to the prior bet's own chain in the
  *          graph, and on the weaker prior-cluster claim, which moves the focus.
  *
- * KNOWN NEXT STEP, recorded rather than pretended. Sentry's archive is
- * CONDITIONAL ("until it escalates / until N users are affected") and ours is
- * not, because a dismissed cluster here can never grow: clusterSignalsCore only
- * ever reads signals with a null theme_id and creates NEW themes, so nothing
- * joins an existing one and `last_signal_at` is frozen at creation. Conditional
- * decline is the right design and it is blocked on re-clustering into existing
- * themes, not on this surface.
+ * 8. THE CLOSING PASS, 2026-08-06. Five of the six things this file fixed were
+ *    the surface disagreeing with its own record.
+ *
+ *    FIXED the paragraph that used to stand here. It read "a dismissed cluster
+ *          here can never grow: clusterSignalsCore only ever reads signals with
+ *          a null theme_id and creates NEW themes, so nothing joins an existing
+ *          one and `last_signal_at` is frozen at creation", and filed
+ *          conditional decline as a KNOWN NEXT STEP blocked elsewhere. Every
+ *          clause of it has been false since migration
+ *          20260802170000_theme_growth_and_conditional_decline.sql.
+ *          `clusterSignalsCore` attaches leftover unclustered signals to
+ *          EXISTING themes by embedding similarity, writes `last_signal_at` on
+ *          each attach, and re-opens a declined cluster through
+ *          `shouldEscalate(dismissed_at_frequency, newFrequency)`. Conditional
+ *          decline is live. Sentry's archive-until-it-escalates is the thing we
+ *          have, and the bar is stricter than Sentry's: a declined cluster has
+ *          to clear BOTH a multiple and an absolute step over the count it was
+ *          declined at (ESCALATION_MULTIPLE and ESCALATION_ABSOLUTE, both
+ *          imported below rather than retyped).
+ *    FIXED the second half of that, which is the half a person can see. The
+ *          decline receipt said only "Its evidence is still on the record, and
+ *          the call is too", so the fact that makes declining SAFE, that it
+ *          returns on its own if it grows, was known to the clusterer and to
+ *          nobody standing here. It says it now, in the escalation rule's own
+ *          numbers, imported rather than retyped.
+ *    FIXED `?focus=`, which missed for every SETTLED cluster, which is every
+ *          cluster a spec or a lineage node can name. It resolved the id
+ *          against `ranked`, and `ranked` drops dismissed, merged and promoted,
+ *          so the link from a spec's "Why this spec exists" resolved to null and
+ *          the surface silently opened on the top of the ranking instead. That
+ *          is verbatim the defect the route file claims to have repaired. The id
+ *          resolves against the whole theme set now, and a settled cluster gets
+ *          a line above the Gate saying which way it went, with the door to its
+ *          own chain.
+ *    ADDED the un-decline, which the server has always accepted (`setThemeStatus`
+ *          takes "new" and clears `dismissed_at_frequency` and `escalated_at` on
+ *          the way back) and which no surface in the product could reach. A
+ *          mis-pressed `d` was terminal. The Settled block below the ranking
+ *          lists what was declined and merged and puts each one back, which is
+ *          also the record holding the noes rather than a highlight reel.
+ *    FIXED the merge picker, which could only reach twelve bets, ranked by ICE
+ *          across every workspace, with no way to search. It filters, it
+ *          expands, and it offers only bets in the cluster's OWN workspace,
+ *          because `attachThemeToOpportunity` now refuses the rest.
+ *    FIXED the ranking row, which printed `pull_connector` at a person and
+ *          invented a confidence bucket for clusters that carry no confidence.
+ *          See the note on the row itself.
  *
  * VOICE: never greet, always report. The first line is a count that came out of
  * the record, or an honest statement that there is nothing in it yet.
@@ -160,6 +200,11 @@ import { useWorkspace } from "@/hooks/use-workspace";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { isModalOpen } from "@/lib/overlay";
 import { scoreTheme } from "@/lib/brain/score";
+// The escalation bar, imported rather than retyped. theme-growth.ts is the pure
+// decision layer the clusterer runs, and it says so itself: "the number in the
+// copy can never drift from the number in the decision". A surface that hard
+// coded "twice as many" would be a second copy of a rule it does not own.
+import { ESCALATION_ABSOLUTE, ESCALATION_MULTIPLE } from "@/lib/ai/theme-growth";
 import {
   MAX_BODY_CHARS,
   READABLE_EXTENSIONS,
@@ -236,6 +281,30 @@ const SOURCES_IN_CONTEXT = 5;
  *  screen beside the gate; past that the surface becomes a scroll, which is the
  *  complaint this cap exists to answer. */
 const VISIBLE_CLUSTERS = 6;
+
+/** How many bets the merge picker draws before it asks. Twelve is what the
+ *  picker already showed; the difference is that it is no longer the CEILING.
+ *  It was a bare `.slice(0, 12)` on a list ordered by ICE across every
+ *  workspace, so the thirteenth bet was unreachable from this station by any
+ *  means, including knowing its name. */
+const BETS_IN_PICKER = 12;
+
+/** How many settled clusters the record shows before it asks. Settled work is
+ *  reference material rather than a queue, so it opens short. */
+const SETTLED_VISIBLE = 5;
+
+/** The three ways a cluster leaves the ranking. Kept beside `ranked`'s filter,
+ *  which is the other half of the same fact: what this set holds is exactly
+ *  what that filter drops. */
+const SETTLED_STATUSES = new Set(["dismissed", "merged", "promoted"]);
+
+/** What a settled cluster's status means in the person's own words, and what
+ *  it means for whether it can be re-opened. */
+function settledWord(status: string): string {
+  if (status === "promoted") return "It became a bet";
+  if (status === "merged") return "It was merged into a bet you already had";
+  return "You said it was not a pattern";
+}
 
 /** Plain-words relative time, whole phrase, so it never reads "now ago". */
 function since(iso: string | null | undefined): string | null {
@@ -354,8 +423,37 @@ export function DiscoverSurface({
    *  bans the slide-over and says a lane that wanted one built its detail view
    *  in place instead, "and that is the better surface". */
   const [picking, setPicking] = React.useState(false);
+  /** What the person typed to find the bet they mean. Kept out of the URL: it
+   *  is a way of looking at the list, not a place in the product. */
+  const [betFilter, setBetFilter] = React.useState("");
+  /** Whether the whole set of candidate bets is on screen, or the first twelve. */
+  const [showAllBets, setShowAllBets] = React.useState(false);
   /** Whether the whole ranking is on screen, or the first six of it. */
   const [showAllClusters, setShowAllClusters] = React.useState(false);
+  /** Whether the settled clusters are listed, or only counted. Opened
+   *  automatically the moment a decline puts something in there, so the undo is
+   *  in front of the person who just pressed the key rather than behind a
+   *  control they have to find. */
+  const [showSettled, setShowSettled] = React.useState(false);
+  /** And whether that list is the first few or all of it. Two levels because a
+   *  workspace that has triaged for a month has more settled clusters than live
+   *  ones, and a wall of them under the ranking is the scatter complaint the
+   *  ranking's own cap exists to answer. */
+  const [showAllSettled, setShowAllSettled] = React.useState(false);
+  /** The settled cluster a `?focus=` link named, dismissed by the person. The
+   *  notice is not a toast and does not time out; this is the only thing that
+   *  takes it off screen, and pressing it is a decision, not a wait.
+   *
+   *  KEYED TO THE LINK, NOT TO THE MOUNT. Dismissing answers ONE link, and
+   *  /discover does not remount between them: the lineage drawer and Today's
+   *  next-step both navigate within the route, so `focus` changes underneath a
+   *  living component. Without the reset below, dismissing the notice for
+   *  cluster A silently swallowed it for cluster B, which is the same "landed
+   *  somewhere else with nothing saying why" this notice was added to end. */
+  const [linkNoticeClosed, setLinkNoticeClosed] = React.useState(false);
+  React.useEffect(() => {
+    setLinkNoticeClosed(false);
+  }, [focus]);
   /** What the last judgment caused. Replaces the success toast the surface used
    *  to fire, per anti-slop.md §5: a toast confirms the click registered, a
    *  Receipt renders what the click DID. */
@@ -501,27 +599,54 @@ export function DiscoverSurface({
   const signalsEmpty = !loading && !loadError && rows.length === 0;
 
   /**
-   * WHICH CLUSTER THE LINK MEANT, resolved rather than assumed.
+   * WHICH CLUSTER THE LINK MEANT, resolved against the RECORD rather than
+   * against the queue.
    *
    * Two shapes arrive at `?focus=`: a signal id (the spec page sends one per
-   * row) and, for anything that later links a cluster directly, a theme id.
-   * Both are resolved here and both are checked against the RANKING, never
-   * against the raw table, because a cluster that has been declined or merged
-   * is not in front of anybody and focusing it would put the Gate on a call
-   * that is already settled.
+   * row) and, for anything that links a cluster directly, a theme id. Both
+   * resolve here.
    *
-   * `null` when the id names nothing focusable, which is the honest outcome for
-   * a signal that was never clustered, a cluster since judged, or a stale link.
-   * The surface then opens on the top of the ranking exactly as before.
+   * THIS USED TO CHECK `ranked`, AND THAT MADE IT MISS EVERY LINK WORTH
+   * FOLLOWING. `ranked` drops dismissed, merged and promoted clusters, and
+   * since 2026-08-06 promotion writes `status: "promoted"`
+   * (discovery.functions.ts). A spec exists BECAUSE its bet exists, so the
+   * cluster behind any spec is promoted by definition, and every one of the
+   * three callers points at exactly that: /plan/spec/$id sends a signal id from
+   * "Why this spec exists", LineageDrawer sends a signal or theme id, and
+   * Today's FocusNext sends a theme id. The resolver returned null for all of
+   * them, the effect below fell through to `ranked[0]`, and the person landed
+   * on an unrelated cluster with nothing on screen naming the miss. That is
+   * word for word the defect _authenticated.discover.tsx says it repaired:
+   * "Clicking a signal on a spec landed you on whichever cluster happened to
+   * rank first, with nothing saying why."
+   *
+   * So the id is resolved against the whole theme set, and being SETTLED is
+   * reported rather than treated as not-found. `null` is now reserved for an id
+   * that names nothing at all: a signal that was never clustered, a cluster in
+   * another product's scope, or a stale link.
    */
-  const focusTarget = React.useMemo(() => {
+  const focusResolved = React.useMemo(() => {
     if (!focus) return null;
-    const inRanking = (id: string | null | undefined) =>
-      Boolean(id) && ranked.some((r) => r.theme.id === id);
-    if (inRanking(focus)) return focus;
+    const all = themes.data?.themes ?? [];
+    const byId = (id: string | null | undefined) =>
+      id ? (all.find((t) => t.id === id) ?? null) : null;
+    const direct = byId(focus);
+    if (direct) return direct;
     const signal = rows.find((s) => s.id === focus);
-    return inRanking(signal?.theme_id) ? (signal!.theme_id as string) : null;
-  }, [focus, rows, ranked]);
+    return byId(signal?.theme_id);
+  }, [focus, rows, themes.data]);
+
+  /** The link named a cluster that has already been judged. Not an error and
+   *  not a miss: the honest answer is which way it went, and the door to the
+   *  chain that came out of it. */
+  const focusSettled =
+    focusResolved && SETTLED_STATUSES.has((focusResolved.status ?? "new") as string)
+      ? focusResolved
+      : null;
+
+  /** The cluster the link named AND that is still a live call. Only this one
+   *  moves the Gate. */
+  const focusTarget = focusResolved && !focusSettled ? focusResolved.id : null;
 
   /** Honoured ONCE. The deep link decides where you land; the moment you press
    *  a row, you have decided instead, and a link that kept reasserting itself
@@ -585,6 +710,93 @@ export function DiscoverSurface({
     enabled: picking,
   });
 
+  /**
+   * WHAT THIS CLUSTER'S EVIDENCE IS ALLOWED TO BACK.
+   *
+   * The picker used to offer the first twelve rows of `listOpportunities`,
+   * which applies no product filter and no workspace filter at all: it is every
+   * bet row-level security admits, which for anyone in more than one workspace
+   * is the union across all of them, ordered by ICE. Two things were wrong at
+   * once. A bet in another workspace was OFFERED, and merging into it moved
+   * evidence across a tenant boundary (`attachThemeToOpportunity` refuses that
+   * outright now, so leaving it in the list would be a door onto a refusal).
+   * And the thirteenth bet was unreachable from this station by any means,
+   * including knowing its name, which is what the filter below fixes.
+   *
+   * PRODUCT SCOPE IS THE SOFTER CLAUSE, deliberately. A theme carrying a
+   * `project_id` prefers its own product's bets, but bets with no product of
+   * their own stay offered, which is the same reading `listSignals` and
+   * `listThemes` already take of a product-scoped view: workspace-level rows
+   * are not hidden, they are simply not filed under a product.
+   */
+  const betCandidates = React.useMemo(() => {
+    const all = opportunities.data?.opportunities ?? [];
+    const open = all.filter((o) => o.status !== "shipped" && o.status !== "dropped");
+    if (!focused) return { open, inWorkspace: open, inScope: open };
+    const themeWorkspace = focused.theme.workspace_id;
+    const themeProject = focused.theme.project_id;
+    // The two clauses are kept apart because they empty the list for different
+    // reasons, and the empty state has to say which one it was. "There are no
+    // bets" when there are twenty in the next product along is the surface
+    // hiding its own filter.
+    const inWorkspace = open.filter(
+      (o) => !themeWorkspace || !o.workspace_id || o.workspace_id === themeWorkspace,
+    );
+    const inScope = inWorkspace.filter(
+      (o) => !themeProject || !o.project_id || o.project_id === themeProject,
+    );
+    return { open, inWorkspace, inScope };
+  }, [opportunities.data, focused]);
+
+  /** The picker opens clean. A filter left over from the last merge would hide
+   *  a list the person has not looked at yet, which is the twelve-row ceiling
+   *  wearing different clothes. Keyed on close rather than on open so it covers
+   *  every exit: Never mind, Escape from the surface, Escape from the field,
+   *  and a merge that went through. */
+  React.useEffect(() => {
+    if (!picking) {
+      setBetFilter("");
+      setShowAllBets(false);
+    }
+  }, [picking]);
+
+  /** What the person typed, matched against the one thing they can see. */
+  const betMatches = React.useMemo(() => {
+    const q = betFilter.trim().toLowerCase();
+    if (!q) return betCandidates.inScope;
+    return betCandidates.inScope.filter((o) => (o.title ?? "").toLowerCase().includes(q));
+  }, [betCandidates, betFilter]);
+
+  /**
+   * THE NOES, WHICH THE RECORD IS SUPPOSED TO HOLD AS WELL AS THE YESES.
+   *
+   * `ranked` drops these three statuses and nothing else on the station showed
+   * them, so a person could decline twenty clusters and have no way to see what
+   * they had decided. The three are listed together because they are one fact
+   * from the reader's side, "already judged", and the row says which way each
+   * went. Newest judgment first is not available (nothing stamps a settled-at
+   * time on the row), so this keeps the read's own order, which is newest
+   * cluster first.
+   */
+  const settledClusters = React.useMemo(() => {
+    return (themes.data?.themes ?? []).filter((t) =>
+      SETTLED_STATUSES.has((t.status ?? "new") as string),
+    );
+  }, [themes.data]);
+
+  /**
+   * HOW MUCH OF THE RECORD THIS PAGE IS.
+   *
+   * Both numbers come from the read rather than from a constant here, which is
+   * the point: this file already carries a note explaining why it refuses to
+   * restate `listSignals`' `.limit(200)` as a literal, because "a second copy
+   * of `200` in this file is a number that goes stale the day the server's
+   * changes". `listThemes` returns its own total now, so the surface can state
+   * the shortfall without knowing the cap.
+   */
+  const themeWindow = themes.data?.themes.length ?? 0;
+  const themeTotal = themes.data?.total ?? themeWindow;
+
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["signals"] });
     void qc.invalidateQueries({ queryKey: ["themes"] });
@@ -636,37 +848,141 @@ export function DiscoverSurface({
       setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
   });
 
+  /**
+   * DECLINE IS ONE KEYSTROKE, SO IT HAS TO SAY WHAT IT IS AND WHAT UNDOES IT.
+   *
+   * The consequence used to end at "Its evidence is still on the record, and
+   * the call is too", which is true and is not the thing that makes declining
+   * safe. Two facts were missing and both are the surface's to tell:
+   *
+   *   1. IT COMES BACK ON ITS OWN. `setThemeStatus` stores
+   *      `dismissed_at_frequency`, and the clusterer re-opens the cluster when
+   *      `shouldEscalate` passes, which needs it to have BOTH doubled and grown
+   *      by at least three. Both numbers are imported from the rule itself, so
+   *      this sentence cannot drift from the behaviour it describes.
+   *   2. YOU CAN PUT IT BACK YOURSELF, immediately. The Settled block below is
+   *      opened here rather than waiting to be found, because the person who
+   *      needs it most is the one who just pressed `d` by mistake.
+   */
   const decline = useMutation({
     mutationFn: (themeId: string) =>
       fSetStatus({ data: { theme_id: themeId, status: "dismissed" } }),
     onSuccess: (_r, themeId) => {
-      const title = ranked.find((r) => r.theme.id === themeId)?.theme.title ?? "the cluster";
+      const entry = ranked.find((r) => r.theme.id === themeId);
+      const title = entry?.theme.title ?? "the cluster";
+      const at = entry?.theme.frequency ?? 0;
       setReceipt({
         verb: "You said it is not a pattern",
         consequence: (
-          <>{title} left the ranking. Its evidence is still on the record, and the call is too.</>
+          <>
+            {title} left the ranking. Its evidence is still on the record, and the call is too. You
+            declined it at <Num>{at}</Num> signal{plural(at)}, so it comes back on its own once it
+            reaches <Num>{Math.max(at * ESCALATION_MULTIPLE, at + ESCALATION_ABSOLUTE)}</Num>. It is
+            under Settled below until then, and you can put it back yourself.
+          </>
         ),
       });
+      setShowSettled(true);
       invalidate();
     },
     onError: (e: Error) =>
       setReceipt({ verb: "It did not go through", consequence: e.message, failed: true }),
   });
 
+  /**
+   * THE UN-DECLINE, WHICH THE SERVER HAS ALWAYS ACCEPTED AND NOTHING COULD
+   * REACH.
+   *
+   * `setThemeStatus` takes `"new"` as well as `"dismissed"` and clears
+   * `dismissed_at_frequency` and `escalated_at` on the way back, so a second
+   * decline is measured from where the cluster actually stands rather than from
+   * a stale reading. A grep across src/ found exactly one caller of that
+   * function, this file, and it only ever sent `"dismissed"`. So the way back
+   * was a working server function with no door in the product, which is this
+   * repo's signature defect, and a mis-pressed `d` was terminal.
+   *
+   * It sends `"new"` for a MERGED cluster too, which is the only value the
+   * validator accepts and is the right one: back in the ranking as an open
+   * call. The evidence edges the merge wrote are left alone on purpose, because
+   * they are true statements about what backs that bet whether or not the
+   * cluster is still settled, and the receipt says so rather than implying the
+   * merge was undone as well.
+   */
+  const undecline = useMutation({
+    mutationFn: (v: { themeId: string; title: string; from: string }) =>
+      fSetStatus({ data: { theme_id: v.themeId, status: "new" } }),
+    onSuccess: (_r, v) => {
+      setReceipt({
+        verb: "You put it back",
+        consequence:
+          v.from === "merged" ? (
+            <>
+              {v.title} is an open call again. The evidence it already lent to that bet stays lent:
+              putting the cluster back does not take it away.
+            </>
+          ) : (
+            <>
+              {v.title} is an open call again, and the count it was declined at has been cleared, so
+              it is measured from where it stands now.
+            </>
+          ),
+      });
+      invalidate();
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "It did not go back", consequence: e.message, failed: true }),
+  });
+
+  /**
+   * MERGE REPORTS THE HALF THAT LANDED, NOT THE VERB IT SET OUT TO DO.
+   *
+   * `attachThemeToOpportunity` writes two things in sequence: the evidence
+   * edges onto the bet, then the cluster's own `merged` status. The second one
+   * used to be an unchecked `await`, so a write refused by row-level security
+   * resolved silently (supabase-js resolves a refusal rather than throwing) and
+   * this receipt printed "You merged it" over a cluster that was still in the
+   * ranking and still mergeable into a second bet.
+   *
+   * The server tells the truth about both halves now, and so does this. The
+   * partial outcome is real and worth naming: the bet DID gain the evidence,
+   * the cluster did NOT leave the queue, and the person needs to know the
+   * second part or they will press `m` again and duplicate the edges under a
+   * different parent. It wears the failed treatment, because a disposition that
+   * did not dispose is trouble rather than a variation.
+   */
   const attach = useMutation({
     mutationFn: (v: { themeId: string; oppId: string }) =>
       fAttach({ data: { theme_id: v.themeId, opportunity_id: v.oppId } }),
     onSuccess: (res) => {
-      const r = res as { opportunity: { id: string; title: string }; evidence: number };
+      const r = res as {
+        opportunity: { id: string; title: string };
+        evidence: number;
+        settled: boolean;
+        unsettledReason: string | null;
+      };
       setPicking(false);
-      setReceipt({
-        verb: "You merged it",
-        consequence: (
-          <>
-            <Num>{r.evidence}</Num> signal{plural(r.evidence)} now back {r.opportunity.title}.
-          </>
-        ),
-      });
+      setReceipt(
+        r.settled
+          ? {
+              verb: "You merged it",
+              consequence: (
+                <>
+                  <Num>{r.evidence}</Num> signal{plural(r.evidence)} now back {r.opportunity.title}.
+                </>
+              ),
+            }
+          : {
+              verb: "Half of it went through",
+              consequence: (
+                <>
+                  <Num>{r.evidence}</Num> signal{plural(r.evidence)} now back {r.opportunity.title},
+                  and the cluster did not close, so it is still in the ranking below.{" "}
+                  {r.unsettledReason ?? ""} Merging it again would back the same bet twice.
+                </>
+              ),
+              failed: true,
+            },
+      );
       invalidate();
     },
     onError: (e: Error) =>
@@ -894,7 +1210,7 @@ export function DiscoverSurface({
 
   const captureReady = draft.trim().length >= 2;
   const bodyReady = bodyText.trim().length >= 2;
-  const busy = promote.isPending || decline.isPending || attach.isPending;
+  const busy = promote.isPending || decline.isPending || attach.isPending || undecline.isPending;
 
   /**
    * The triage keyboard. Digits dispose, arrows move, Escape backs out.
@@ -1332,6 +1648,50 @@ export function DiscoverSurface({
         It renders nothing when the stage is quiet. */}
       <AgentRelay variant="station" station="sense" workspaceId={activeWorkspaceId} />
 
+      {/* THE LINK LANDED, AND THE CLUSTER IT NAMED IS ALREADY JUDGED.
+
+        This sits ABOVE the Gate because it is about the thing the person
+        clicked, and the Gate is now showing something else. Without it the
+        surface silently swapped their question for the top of the ranking,
+        which is the exact complaint the route file records against the old
+        behaviour: "landed you on whichever cluster happened to rank first,
+        with nothing saying why".
+
+        THE DOOR IS THE GRAPH, NOT THE QUEUE, for the same reason the precedent
+        Record below sends people there. A promoted cluster's bet may since have
+        shipped or been dropped, so it is not on /decide, and sending someone to
+        a list that does not contain the thing they clicked is a worse dead end
+        than no link at all. `theme` is a declared graph kind, and what the
+        graph draws is the cluster with everything that led to it and everything
+        that came out of it, which for a promoted cluster IS the bet. */}
+      {focusSettled && !linkNoticeClosed && !loadError && !loading ? (
+        <Block title="That cluster has already been judged">
+          <Empty
+            action={
+              <>
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    navigate({
+                      to: "/brain",
+                      search: { tab: "graph", focusKind: "theme", focusId: focusSettled.id },
+                    })
+                  }
+                >
+                  Open its chain
+                </Button>
+                <Button variant="ghost" onClick={() => setLinkNoticeClosed(true)}>
+                  Dismiss
+                </Button>
+              </>
+            }
+          >
+            {focusSettled.title}. {settledWord((focusSettled.status ?? "new") as string)}, so it is
+            not in the ranking and the call below is a different one.
+          </Empty>
+        </Block>
+      ) : null}
+
       {loadError ? (
         <Failed
           onRetry={() => {
@@ -1526,30 +1886,96 @@ export function DiscoverSurface({
       ) : null}
 
       {/* The bets a cluster can be merged into. Rendered only in picker mode,
-        so the surface still shows one question at a time. */}
+        so the surface still shows one question at a time.
+
+        IT COULD REACH TWELVE OF THEM, AND THAT WAS THE WHOLE DISPOSITION. The
+        list was `listOpportunities` sliced at twelve, ordered by ICE across
+        every workspace the caller belongs to, with no search. The bet a person
+        came here to merge into was reachable only if it happened to score in
+        the top twelve, and a workspace of any age has more than twelve open
+        bets. Merge is the disposition this file names as the MOST common real
+        outcome of triage, so the commonest outcome had the weakest control on
+        the station.
+
+        Three things fixed together, because any one alone still fails: it is
+        scoped to what the cluster may actually back (see `betCandidates`), it
+        is searchable, and the cap is a fold rather than a ceiling. */}
       {picking && focused ? (
-        <Block title="Open bets">
+        <Block
+          title="Open bets"
+          sub="Its evidence joins the one you pick. Only bets this cluster is allowed to back are listed."
+          more={
+            betMatches.length > BETS_IN_PICKER
+              ? showAllBets
+                ? "Show fewer"
+                : `Show all ${betMatches.length}`
+              : undefined
+          }
+          onMore={() => setShowAllBets((v) => !v)}
+        >
+          <Field label="Find the bet" htmlFor="merge-bet-filter">
+            <Input
+              id="merge-bet-filter"
+              value={betFilter}
+              onChange={(e) => setBetFilter(e.target.value)}
+              placeholder="Type any part of its name"
+              autoFocus
+              /* Escape closes the picker from INSIDE the field too. The global
+                 handler stands down over any INPUT, which is correct for the
+                 disposition keys and would otherwise have trapped a person who
+                 had just typed into the only control here. */
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  setPicking(false);
+                }
+              }}
+            />
+          </Field>
           {opportunities.isLoading ? (
             <Loading>Reading the queue.</Loading>
-          ) : (opportunities.data?.opportunities ?? []).length === 0 ? (
+          ) : betCandidates.open.length === 0 ? (
             <Empty>
               There are no bets yet, so there is nothing to merge into. Keeping it makes the first
               one.
             </Empty>
+          ) : betCandidates.inWorkspace.length === 0 ? (
+            /* THE HONEST VERSION OF AN EMPTY LIST, and it names WHICH filter
+               emptied it. There are bets; none of them is one this cluster's
+               evidence may back. Saying "no bets" would send the person looking
+               for a list they can already see on /decide. */
+            <Empty>
+              <Num>{betCandidates.open.length}</Num> open bet
+              {plural(betCandidates.open.length)}, and none belongs to this cluster&rsquo;s
+              workspace, so none of them can take its evidence. Keeping it makes a bet here instead.
+            </Empty>
+          ) : betCandidates.inScope.length === 0 ? (
+            <Empty>
+              <Num>{betCandidates.inWorkspace.length}</Num> open bet
+              {plural(betCandidates.inWorkspace.length)} in this workspace, and none is filed under
+              the same product as this cluster. Keeping it makes a bet under that product instead.
+            </Empty>
+          ) : betMatches.length === 0 ? (
+            <Empty>
+              Nothing among the <Num>{betCandidates.inScope.length}</Num> open bet
+              {plural(betCandidates.inScope.length)} matches that.
+            </Empty>
           ) : (
-            (opportunities.data?.opportunities ?? [])
-              .filter((o) => o.status !== "shipped" && o.status !== "dropped")
-              .slice(0, 12)
-              .map((o) => (
-                <Row
-                  key={o.id}
-                  tight
-                  lead={o.title}
-                  sub={o.status ?? "backlog"}
-                  onClick={() => attach.mutate({ themeId: focused.theme.id, oppId: o.id })}
-                />
-              ))
+            (showAllBets ? betMatches : betMatches.slice(0, BETS_IN_PICKER)).map((o) => (
+              <Row
+                key={o.id}
+                tight
+                lead={o.title}
+                sub={o.status ?? "backlog"}
+                onClick={() => attach.mutate({ themeId: focused.theme.id, oppId: o.id })}
+              />
+            ))
           )}
+          {!showAllBets && betMatches.length > BETS_IN_PICKER ? (
+            <CtxBody>
+              <Num>{betMatches.length - BETS_IN_PICKER}</Num> more match, below the fold.
+            </CtxBody>
+          ) : null}
         </Block>
       ) : null}
 
@@ -1590,26 +2016,63 @@ export function DiscoverSurface({
           onMore={() => setShowAllClusters((v) => !v)}
         >
           {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
-            // Build evidence summary: break down signals by source
-            const sourceBreakdown = new Map<string, number>();
+            /**
+             * WHERE ITS EVIDENCE CAME FROM, IN WORDS, and this row printed our
+             * column values at a person: `${count} from ${source}` rendered "3
+             * from pull_connector, 1 from transcript_action". `sourceLabel` was
+             * already imported into this file for exactly that and is called
+             * four lines away inside the Gate, so the row was the one place the
+             * translation was skipped.
+             *
+             * GROUPED BY THE LABEL, not by the raw token, because the label is
+             * what is on screen: `source_kind: "manual"` with a null `source`
+             * and `source: "note"` are one phrase to a reader, and two lines
+             * saying "A note you wrote" would be the surface exposing its own
+             * storage a second way.
+             */
+            const byLabel = new Map<string, number>();
             entry.members.forEach((m) => {
-              const s = m.source ?? "manual";
-              sourceBreakdown.set(s, (sourceBreakdown.get(s) ?? 0) + 1);
+              const label = sourceLabel(m.source, m.source_kind);
+              byLabel.set(label, (byLabel.get(label) ?? 0) + 1);
             });
-            const sourceList = Array.from(sourceBreakdown.entries())
-              .map(([source, count]) => `${count} from ${source}`)
+            const sourceList = Array.from(byLabel.entries())
+              .map(([label, count]) => `${label} (${count})`)
               .join(", ");
 
-            // Determine confidence level based on score, severity, novelty, frequency
-            const confidence = entry.theme.confidence ?? 0.5;
-            const confidenceLevel =
-              confidence >= 0.7 ? "high" : confidence >= 0.4 ? "medium" : "low";
-            const confidenceColor =
-              confidenceLevel === "high"
-                ? "var(--sp-pass)"
-                : confidenceLevel === "medium"
-                  ? "var(--sp-warn)"
-                  : "var(--sp-fail)";
+            /**
+             * NOVELTY AS A CLAIM, WHERE AN INVENTED CONFIDENCE USED TO BE.
+             *
+             * WHAT WAS HERE. `entry.theme.confidence ?? 0.5` bucketed into
+             * high / medium / low and painted green, amber or red inline. Four
+             * separate defects in one expression, and the file's own header
+             * names three of them:
+             *   - This surface's REFERENCE section says outright that no
+             *     comparable product puts a numeric confidence on an
+             *     auto-generated cluster and that "`themes.confidence` stays
+             *     off this surface". The row printed it anyway, one bucket
+             *     removed from a percentage, which invites exactly the argument
+             *     the header refuses to have.
+             *   - The `?? 0.5` printed "medium confidence" for a cluster
+             *     carrying no confidence at all. That is not a rounding, it is
+             *     the surface stating a fact the record does not hold.
+             *   - `fontSize`, `fontWeight` and a literal `--sp-pass` /
+             *     `--sp-warn` / `--sp-fail` on a span break primitives.tsx on
+             *     two counts: "Nothing here carries a literal colour or size"
+             *     and "State is never a hue".
+             *   - And the comment above it claimed the level was "based on
+             *     score, severity, novelty, frequency" when it read one column.
+             *
+             * WHAT REPLACES IT, because a row losing a fact is a row that got
+             * weaker. `noveltyClaim` is this file's sanctioned way of speaking
+             * about the brain's number: a sentence rather than an arithmetic,
+             * derived from `themes.novelty`, which is real and is one of the
+             * three terms `scoreTheme` actually ranks on. It returns null when
+             * the column is null, so a cluster with no novelty stored says
+             * nothing instead of guessing, and the Gate has shown this same
+             * claim for the cluster in focus since 2026-08-01. Saying it on the
+             * row is what lets a person choose what to open before opening it.
+             */
+            const rowClaim = noveltyClaim(entry.theme.novelty);
 
             return (
               <Row
@@ -1631,20 +2094,9 @@ export function DiscoverSurface({
                         {" · "}
                       </>
                     ) : null}
-                    {entry.theme.frequency} signal{plural(entry.theme.frequency)} ·{" "}
-                    <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--text-muted)" }}>
-                      {sourceList}
-                    </span>
-                    {" · "}
-                    <span
-                      style={{
-                        fontSize: "var(--sp-text-meta)",
-                        color: confidenceColor,
-                        fontWeight: "500",
-                      }}
-                    >
-                      {confidenceLevel} confidence
-                    </span>
+                    {entry.theme.frequency} signal{plural(entry.theme.frequency)}
+                    {sourceList ? ` · ${sourceList}` : ""}
+                    {rowClaim ? ` · ${rowClaim}` : ""}
                   </>
                 }
                 time={since(entry.lastAt)}
@@ -1656,6 +2108,120 @@ export function DiscoverSurface({
             <CtxBody>
               <Num>{ranked.length - VISIBLE_CLUSTERS}</Num> more below the fold.
             </CtxBody>
+          ) : null}
+          {/* THE READ IS A PAGE, AND IT SAYS SO. `listThemes` returns the newest
+            page of clusters plus the exact total behind it, so this is the one
+            honest place to admit that the ranking is not the whole record. It
+            was silent before, and worse than silent: the window used to be
+            selected by `frequency`, so the clusters dropped by the read were
+            the least corroborated ones, which is the axis the ranking exists to
+            argue against. Recency-bounded now, and counted.
+
+            THREE NUMBERS, NOT TWO, because the page and the ranking are not the
+            same set. `themeWindow` is how many clusters the READ returned;
+            `ranked` is that page minus the dismissed, merged and promoted ones.
+            Saying "this ranks the newest 300" beside a "Show all 212" control
+            six pixels up is the surface disagreeing with itself, which is the
+            defect the rest of this pass exists to close. */}
+          {themeTotal > themeWindow ? (
+            <CtxBody>
+              The record holds <Num>{themeTotal}</Num> clusters. This reads the newest{" "}
+              <Num>{themeWindow}</Num> of them and ranks the <Num>{ranked.length}</Num> still open.
+            </CtxBody>
+          ) : null}
+        </Block>
+      ) : null}
+
+      {/* WHAT YOU ALREADY DECIDED, which the station could not show at all.
+
+        "A record that only holds the yeses is a highlight reel" is section 2 of
+        this file's own header, and until now the surface kept none of the noes
+        where a person could see them: `ranked` drops dismissed, merged and
+        promoted, and nothing else listed them. Twenty declines left no trace on
+        the station that made them.
+
+        IT IS ALSO THE DOOR THE UN-DECLINE NEVER HAD. `setThemeStatus` has
+        accepted "new" since it was written and no surface in the product ever
+        sent it, so a mis-pressed `d` was terminal. Each row carries the way
+        back, and Row's `action` slot is exactly the right shape for it: a
+        control belonging to THIS row, outside the clickable region, so it is
+        never a button inside a button.
+
+        A PROMOTED CLUSTER GETS NO UNDO, and that is not an omission. Its bet
+        exists, with a Critic run and lineage behind it; putting the cluster
+        back in the ranking would invite a second bet from the same evidence,
+        which is the exact duplication `promoted` was added to stop. The door it
+        gets is its chain. */}
+      {!picking && !loading && !loadError && settledClusters.length > 0 ? (
+        <Block
+          title="Settled"
+          sub="Judged and out of the ranking. Their evidence is untouched, and a declined cluster comes back on its own if it grows enough."
+          more={
+            showSettled
+              ? "Hide them"
+              : settledClusters.length === 1
+                ? "Show the one"
+                : `Show the ${settledClusters.length}`
+          }
+          onMore={() => setShowSettled((v) => !v)}
+        >
+          {showSettled ? (
+            <>
+              {(showAllSettled ? settledClusters : settledClusters.slice(0, SETTLED_VISIBLE)).map(
+                (t) => {
+                  const status = (t.status ?? "new") as string;
+                  // LAST HEARD IS SAID IN WORDS, NOT PUT IN THE TIME SLOT. On
+                  // every other row on this station the trailing time is when
+                  // the cluster last grew; on a settled row a bare "3d ago"
+                  // beside "You said it was not a pattern" reads as when the
+                  // judgment was made, which is a fact no column on `themes`
+                  // holds. Naming it removes the ambiguity, and for a declined
+                  // cluster it is the number that says whether it is on its way
+                  // back.
+                  const heard = since(t.last_signal_at ?? t.created_at);
+                  return (
+                    <Row
+                      key={t.id}
+                      tight
+                      lead={t.title}
+                      sub={
+                        <>
+                          {settledWord(status)} · {t.frequency} signal{plural(t.frequency)}
+                          {heard ? ` · last heard ${heard}` : ""}
+                        </>
+                      }
+                      onClick={() =>
+                        navigate({
+                          to: "/brain",
+                          search: { tab: "graph", focusKind: "theme", focusId: t.id },
+                        })
+                      }
+                      action={
+                        status === "promoted" ? undefined : (
+                          <Button
+                            disabled={busy}
+                            onClick={() =>
+                              undecline.mutate({ themeId: t.id, title: t.title, from: status })
+                            }
+                          >
+                            Put it back
+                          </Button>
+                        )
+                      }
+                    />
+                  );
+                },
+              )}
+              {settledClusters.length > SETTLED_VISIBLE ? (
+                <Actions>
+                  <Button variant="ghost" onClick={() => setShowAllSettled((v) => !v)}>
+                    {showAllSettled
+                      ? "Show fewer"
+                      : `Show all ${settledClusters.length} settled clusters`}
+                  </Button>
+                </Actions>
+              ) : null}
+            </>
           ) : null}
         </Block>
       ) : null}

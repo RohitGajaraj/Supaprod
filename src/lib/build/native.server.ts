@@ -19,6 +19,18 @@ import type {
   BuildStatus,
 } from "./driver";
 import { createMission } from "@/lib/ai/handoff.server";
+/**
+ * THE CEILING TRAVELS WITH THE RUN ROW OR IT DOES NOT EXIST.
+ *
+ * `checkMissionCaps` (runtime.server.ts) is fail-closed before every model
+ * call, and what it reads is `agent_runs.mission_spend_cap_usd` through the
+ * `mission_cap_state` RPC. `runAgentLoop` resolves that value on both of its
+ * inserts. This adapter did not, so every mission dispatched through the seam
+ * queued a run with a NULL ceiling and ran unbounded, while /build's own
+ * "boundary" line told the owner their runs halt at a number. That is the worst
+ * shape a spend control can take: visible, moved, and enforcing nothing.
+ */
+import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
 
 /**
  * PURE. Fold the structured `BuildSpec` into the single work-order text the
@@ -153,6 +165,15 @@ export const nativeBuildDriver: BuildDriver = {
         status: "queued",
         workspace_id: ctx.workspaceId,
         mission_id: mission.id,
+        // The workspace's ceiling, resolved the way every other writer resolves
+        // it. `undefined` from the caller means "nobody said" and picks up the
+        // workspace default; an explicit null means a human cleared the ceiling
+        // and is obeyed. See the import note above for what a NULL here costs.
+        mission_spend_cap_usd: await resolveMissionSpendCap(
+          ctx.supabase,
+          ctx.workspaceId,
+          ctx.missionSpendCapUsd,
+        ),
         model: ctx.model ?? null,
       })
       .select("id")

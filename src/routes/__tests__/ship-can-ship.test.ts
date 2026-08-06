@@ -2,12 +2,14 @@ import { describe, it, expect } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ChangelogEntry } from "@/lib/changelog.functions";
+import type { AppliedChange } from "@/lib/studio.functions";
 import {
   absenceSentence,
   isLive,
   isReadyToPromote,
   promoteAbsence,
   releaseStates,
+  unlistedMerges,
   whereItIs,
   type ShipDeployment,
 } from "../_authenticated.ship";
@@ -332,6 +334,157 @@ describe("promoteAbsence explains a missing button instead of greying one out", 
       kind: "ready",
       count: 2,
     });
+  });
+});
+
+/**
+ * A MERGE WITH NO RELEASE NOTES MUST STILL HAVE A ROW, or the capture door is
+ * unreachable in the one case it was written for.
+ *
+ * THE LOOP, which is why this is a launch blocker and not a polish item. Every
+ * act on this station hangs off `releaseStates`, which walks CHANGELOG entries.
+ * An entry is materialized only from a merged changeset whose `release_notes`
+ * are non-empty, and for a repo Supaprod does not host the only writer of those
+ * notes is ci-poll-tick, and only AFTER a capture succeeds. The cron gives up 60
+ * minutes after the merge. A slower pipeline is therefore never captured, never
+ * written up, never listed, and never offered the button whose own doc calls
+ * itself "the only way to ask after the cron has stopped asking".
+ */
+function merged(over: Partial<AppliedChange> & { id: string }): AppliedChange {
+  return {
+    product_id: null,
+    mission_id: null,
+    mission_title: null,
+    title: "A merged change",
+    repo: "acme/app",
+    branch: null,
+    pr_url: null,
+    pr_number: null,
+    file_count: 1,
+    merged_at: "2026-08-01T00:00:00.000Z",
+    ...over,
+  };
+}
+
+describe("a merge the changelog cannot see still reaches the station", () => {
+  it("returns the merges with no release entry, and only those", () => {
+    const out = unlistedMerges(
+      [note({ changeset_id: "written-up" })],
+      [merged({ id: "written-up" }), merged({ id: "silent" })],
+    );
+    expect(out.map((c) => c.id)).toEqual(["silent"]);
+  });
+
+  it("keeps the server's newest-first order rather than inventing one", () => {
+    const out = unlistedMerges([], [merged({ id: "a" }), merged({ id: "b" }), merged({ id: "c" })]);
+    expect(out.map((c) => c.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("never counts an entry that carries no changeset as covering a merge", () => {
+    // changelog_entries.changeset_id is NULLABLE, so an entry written by
+    // anything other than the trigger cannot be spent as proof that some merge
+    // is listed.
+    const out = unlistedMerges([note({ changeset_id: "" })], [merged({ id: "silent" })]);
+    expect(out.map((c) => c.id)).toEqual(["silent"]);
+  });
+
+  it("carries both doors on the row, because neither one alone lists the merge", () => {
+    // `captureDeployments` files deploy rows and writes nothing to the
+    // changelog; `generateReleaseNotes` writes the column the changelog trigger
+    // fires on. A row with only the capture on it leaves the change invisible
+    // here after a successful press.
+    const flat = shipSrc.replace(/\s+/g, " ");
+    expect(flat).toMatch(/useServerFn\(listAppliedChanges\)/);
+    expect(flat).toMatch(/useServerFn\(generateReleaseNotes\)/);
+    expect(flat).toMatch(/writeNotes\.mutate\(\{ changesetId: c\.id, title: c\.title \}\)/);
+    expect(flat).toMatch(/check\.mutate\(\{ changesetId: c\.id, title: c\.title \}\)/);
+  });
+
+  it("spends no second request on a read the release document already makes", () => {
+    // WhatShipped reads listAppliedChanges under ["what-shipped-applied",
+    // workspaceId ?? null] and uses exactly one row of it. A key or an argument
+    // that differed by a character would be two reads of one table on one
+    // screen, and two answers that could disagree.
+    const flat = shipSrc.replace(/\s+/g, " ");
+    expect(flat).toMatch(/queryKey: \["what-shipped-applied", wid \|\| null\]/);
+    expect(flat).toMatch(
+      /queryFn: \(\) => fApplied\(\{ data: wid \? \{ workspaceId: wid \} : \{\} \}\)/,
+    );
+  });
+});
+
+describe("no sentence on this station asserts absence from a read that answered", () => {
+  it("stops saying nothing has merged when merges are waiting on their notes", () => {
+    // The changelog being empty is not the read that can answer "has anything
+    // merged": that is a claim about studio_changesets made from a read of
+    // changelog_entries.
+    const none = promoteAbsence({ reading: false, failed: false, states: [] });
+    expect(absenceSentence(none, 0)).toMatch(/^Nothing has merged yet/);
+    expect(absenceSentence(none, 2)).toMatch(/2 changes have merged with no release notes/);
+    expect(absenceSentence(none, 1)).toMatch(/^One change has merged with no release notes/);
+  });
+
+  it("hedges rather than picking a side while the merge list is unread", () => {
+    const none = promoteAbsence({ reading: false, failed: false, states: [] });
+    const hedged = absenceSentence(none, null) as string;
+    expect(hedged).not.toMatch(/Nothing has merged yet/);
+    expect(hedged).toMatch(/has not been read/);
+  });
+
+  it("keeps the conditional hosting promise in every one of those sentences", () => {
+    // Kept word for word rather than deleted: it is true whichever branch the
+    // reader lands in, and it is the only thing that tells a BYO customer no
+    // preview is coming.
+    const none = promoteAbsence({ reading: false, failed: false, states: [] });
+    for (const unlisted of [null, 0, 3]) {
+      expect(absenceSentence(none, unlisted)).toContain("For a repo Supaprod hosts");
+    }
+  });
+
+  it("branches the deploy-record empty state on the deploy rows it is holding", () => {
+    // "No deploy is on the record yet" was drawn from states.length === 0,
+    // which means the CHANGELOG is empty, over rows sitting in deployRows.
+    const flat = shipSrc.replace(/\s+/g, " ");
+    expect(flat).toMatch(/states\.length === 0 \? \( deployRows\.length > 0 \?/);
+    expect(flat).toContain("No deploy is on the record yet.");
+  });
+});
+
+describe("the role behind the announcement controls is a read like any other", () => {
+  it("waits for it, retries it, and never draws its absence as a refusal", () => {
+    // Every announcement control hangs off selfRole. The read had no wait, no
+    // error branch and no sentence, so a failed listWorkspaceMembers rendered
+    // as "you are not allowed to announce": a question with nothing under it.
+    const flat = shipSrc.replace(/\s+/g, " ");
+    expect(flat).toMatch(/const membersReading = stillWaiting\(members\)/);
+    expect(flat).toMatch(
+      /members\.isError \? \( <Failed onRetry=\{\(\) => void members\.refetch\(\)\}/,
+    );
+    // A read that ANSWERED with no membership row is not a failure and gets its
+    // own sentence.
+    expect(flat).toMatch(
+      /const roleUnknown = !membersReading && !members\.isError && role === null/,
+    );
+    expect(flat).toMatch(/lines=\{roleLines\(\)\}/);
+  });
+
+  it("never states who the reader is waiting on from a role read that did not answer", () => {
+    // The two SENTENCES that read `canContribute` / `canPublish` as facts about
+    // the reader. Both flags are false in three different situations -- you may
+    // not, your role did not load, and the read answered with no membership row
+    // -- so both sentences told an owner whose `listWorkspaceMembers` timed out
+    // that they lack a permission they hold. A hedge is not a retry: the retry
+    // is the `Failed` above the gate, and this is only the assertion stopping.
+    const flat = shipSrc.replace(/\s+/g, " ");
+    expect(flat).toMatch(
+      /: members\.isError \|\| roleUnknown \? `"\$\{call\.title\}" is waiting to be published\.`/,
+    );
+    expect(flat).toMatch(
+      /: members\.isError \|\| roleUnknown \? "Supaprod could not confirm your role here/,
+    );
+    // The ordinary sentences survive word for word, for a role that answered.
+    expect(flat).toContain("is waiting on an owner or an admin.`");
+    expect(flat).toContain('"An owner or an admin writes the first one."');
   });
 });
 

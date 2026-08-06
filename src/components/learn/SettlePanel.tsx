@@ -68,6 +68,9 @@ import {
   type PromisedMetric,
 } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+// The three words the whole station speaks in, lifted out of this file so the
+// route can read a settled verdict back in the same words the Gate asks for it.
+import { VERDICT_SAYS, type Verdict } from "@/components/learn/verdict-words";
 import {
   Actions,
   AgentMark,
@@ -86,17 +89,8 @@ import {
   Textarea,
 } from "@/components/shell/primitives";
 
-type Verdict = "validated" | "mixed" | "missed";
 /** Choices needs a value; "none" is never drawn as an option. */
 type VerdictPick = Verdict | "none";
-
-/** The product's words for a verdict, the same three the run screen's stage 07
- *  panel uses, so /learn and /runs never call the same thing two things. */
-const VERDICT_SAYS: Record<Verdict, string> = {
-  validated: "it worked",
-  missed: "it did not work",
-  mixed: "the signal was mixed",
-};
 
 const VERDICT_OPTIONS: { id: Verdict; label: string; title: string }[] = [
   { id: "validated", label: "It worked", title: "The bet paid off" },
@@ -146,6 +140,9 @@ type Mark = {
 type Target = {
   prdId: string;
   title: string;
+  /** The workspace the bet in focus lives in. Reported upward so the record the
+   *  page draws beside this panel is the record for THIS bet's workspace. */
+  workspaceId: string | null;
   opportunity: PendingOutcome["opportunity"];
   /** What the spec promised to move, from its own Outcome Contract. Present on
    *  both halves of the desk, because an overturn writes the same permanent
@@ -215,7 +212,27 @@ function seedMetricLabel(promised: PromisedMetric[], planMetric: string | null):
   return "";
 }
 
-export function SettlePanel() {
+export function SettlePanel({
+  onDeskWorkspace,
+}: {
+  /**
+   * WHICH WORKSPACE THE BET IN FOCUS LIVES IN, reported up as it changes.
+   *
+   * The desk this panel drains is the RLS union across every workspace the
+   * reader belongs to (`listPendingOutcomes` applies no workspace filter, on
+   * purpose). The record the Learn page draws around it is one workspace at a
+   * time. Left unconnected those are routinely different workspaces, and
+   * settling a bet then changes nothing the reader can see: the learning lands
+   * in the bet's workspace and every count on the page is drawn from another.
+   *
+   * The panel owns which bet is in focus -- the queue row you clicked, the
+   * agent verdict you are reconsidering -- so it is the only thing that can
+   * answer this, and it tells the page rather than the page guessing. Pass a
+   * stable callback (a `useState` setter is one); it fires only when the
+   * workspace actually changes, never on every render.
+   */
+  onDeskWorkspace?: (workspaceId: string | null) => void;
+} = {}) {
   const qc = useQueryClient();
   const fPending = useServerFn(listPendingOutcomes);
   const fSettled = useServerFn(listAgentSettledOutcomes);
@@ -243,6 +260,7 @@ export function SettlePanel() {
     ? {
         prdId: reconsidering.prdId,
         title: reconsidering.title,
+        workspaceId: reconsidering.workspaceId,
         opportunity: reconsidering.opportunity,
         promised: reconsidering.promised,
         planMetric: null,
@@ -253,6 +271,7 @@ export function SettlePanel() {
       ? {
           prdId: pendingFocus.prdId,
           title: pendingFocus.title,
+          workspaceId: pendingFocus.workspaceId,
           opportunity: pendingFocus.opportunity,
           promised: pendingFocus.promised,
           planMetric: pendingFocus.planMetric,
@@ -261,6 +280,14 @@ export function SettlePanel() {
         }
       : null;
   const targetId = target?.prdId ?? null;
+
+  // Told, not guessed. Keyed on the workspace and not on `target`, which is a
+  // fresh object every render, so the page is notified when the answer changes
+  // and at no other time.
+  const targetWorkspaceId = target?.workspaceId ?? null;
+  React.useEffect(() => {
+    onDeskWorkspace?.(targetWorkspaceId);
+  }, [targetWorkspaceId, onDeskWorkspace]);
 
   /* ---- the form, seeded from whatever verdict is already on the table ---- */
   const [verdict, setVerdict] = React.useState<Verdict | null>(null);

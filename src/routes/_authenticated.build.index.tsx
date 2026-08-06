@@ -86,6 +86,7 @@ import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { ago } from "@/components/runs/run-state";
 import { ReadyToBuild } from "@/components/build/ReadyToBuild";
+import { HeldClaims } from "@/components/build/HeldClaims";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import {
   AgentMark,
@@ -121,6 +122,31 @@ function statusPhrase(item: BuildWorkItem): string {
   // a phrase, so "being written now" would be unreachable here and a second,
   // silently-dead way of saying the same thing. One vocabulary per fact.
   if (item.gated) return "waiting on you";
+  /**
+   * THE STOPPED PHRASE OUTRANKS THE CHANGESET'S OWN COLUMN, and that ordering
+   * is the whole of the fix.
+   *
+   * `studio_changesets.status` describes the CHANGE ("staged, not committed").
+   * `stopped` describes the RUN that was writing it. When the run has halted,
+   * the change's own word is the more misleading of the two: "staged, not
+   * committed" reads as work in flight, and on 2026-08-06 that sentence was
+   * printed over 67 halted missions while the headline said nothing needed
+   * anybody. So the run's state is said first.
+   *
+   * It is NOT said INSTEAD for a change that landed. A merged change is not
+   * un-merged by its run stopping afterwards, and dropping "merged" to say
+   * "stopped" would be the same class of error in the other direction.
+   */
+  if (item.stopped) {
+    switch (item.status) {
+      case "merged":
+        return "merged, and the run behind it stopped";
+      case "pr_open":
+        return "pull request open, and the run behind it stopped";
+      default:
+        return "stopped, and nothing is picking it back up";
+    }
+  }
   switch (item.status) {
     case "merged":
       return "merged";
@@ -148,20 +174,77 @@ function BuildEngine() {
   const fSpend = useServerFn(getWorkspaceSpendPolicy);
   const fSetSpend = useServerFn(setWorkspaceSpendPolicy);
 
-  /** The ceiling on what one run may spend. Owner-only; the query reports
-   *  `is_owner: false` for everyone else and the line is not drawn. */
-  const spend = useQuery({ queryKey: ["spend-policy"], queryFn: () => fSpend() });
+  // The active product, because a repo can be bound to a PRODUCT and the check
+  // is blind to that binding without it. See canDispatchToRepo. And the active
+  // WORKSPACE, because the ceiling below binds a workspace and the server
+  // cannot guess which one this screen is showing.
+  const { activeProductId, activeWorkspaceId } = useWorkspace();
+
+  /**
+   * The ceiling on what one run may spend. Owner-only; the query reports
+   * `is_owner: false` for everyone else and the line is not drawn.
+   *
+   * THE WORKSPACE IS SENT, AND WITHOUT IT THIS LINE MOVED THE WRONG CEILING.
+   * `setWorkspaceSpendPolicy`'s own input doc says a screen that knows its
+   * active workspace MUST send it: with no id, `resolveGovernedWorkspace` falls
+   * back to `current_user_default_workspace`, while enforcement reads the
+   * ceiling off the workspace the MISSION carries, and this station's dispatch
+   * puts the mission in the spec's workspace, not the user's default. A user
+   * who owns more than one workspace (the product creates the second one
+   * itself) therefore read and moved a number that did not bind the run they
+   * were watching. The id is in the query key for the same reason: switching
+   * workspace must not show the previous workspace's ceiling.
+   */
+  const spend = useQuery({
+    queryKey: ["spend-policy", activeWorkspaceId],
+    queryFn: () => fSpend({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
   const [capReceipt, setCapReceipt] = React.useState<{ cap: number | null } | null>(null);
+  /** A ceiling write the server refused, in its own words. Rendered next to the
+   *  control, because the input keeps the typed number on screen and a person
+   *  who sees their number sitting there believes it took. */
+  const [capError, setCapError] = React.useState<string | null>(null);
+  /**
+   * Bumped on every refusal, and it is the `key` on the ceiling input.
+   *
+   * The input is uncontrolled on purpose (`defaultValue`, so typing does not
+   * re-render the block), which means the refused number stays in the box after
+   * a failed write unless something puts it back. Remounting through the key is
+   * how an uncontrolled control is reset to its default: no ref, no imperative
+   * write, and the default is read from `spend.data` so it is always the number
+   * the SERVER last confirmed rather than the one this page hoped for.
+   */
+  const [capReset, setCapReset] = React.useState(0);
   const setCap = useMutation({
-    mutationFn: (cap_usd: number | null) => fSetSpend({ data: { cap_usd } }),
+    mutationFn: (cap_usd: number | null) =>
+      fSetSpend({ data: { cap_usd, workspaceId: activeWorkspaceId ?? undefined } }),
     onSuccess: (_r, cap) => {
+      setCapError(null);
       setCapReceipt({ cap });
       void qc.invalidateQueries({ queryKey: ["spend-policy"] });
     },
+    /**
+     * A REFUSED CEILING SHOWED NOTHING AT ALL, and the server went to real
+     * trouble to make that impossible.
+     *
+     * `setWorkspaceSpendPolicy` throws on a role refusal, and throws
+     * `unconfirmedWrite("that the ceiling moved")` when the update matched no
+     * rows, which is what row-level security looks like from a client, because
+     * supabase-js RESOLVES a refused write. There was no `onError` here and
+     * nothing rendered `setCap.isError`, so the number stayed in the box, the
+     * old receipt stayed on screen, and the person believed their spend was
+     * bounded at a number nothing enforces. That is the exact sentence the
+     * server's own comment says it exists to prevent.
+     *
+     * The stale receipt goes with it: a receipt is what your click CAUSED, and
+     * this click caused nothing.
+     */
+    onError: (e: Error) => {
+      setCapReceipt(null);
+      setCapError(e.message);
+      setCapReset((n) => n + 1);
+    },
   });
-  // The active product, because a repo can be bound to a PRODUCT and the check
-  // is blind to that binding without it. See canDispatchToRepo.
-  const { activeProductId } = useWorkspace();
 
   // The spine, lit on Build. Same hook and same cache the other six use, so
   // seven surfaces cost one query rather than seven.
@@ -181,25 +264,58 @@ function BuildEngine() {
   const items = React.useMemo(() => work.data?.items ?? [], [work.data]);
   const live = React.useMemo(() => items.filter((i) => i.live), [items]);
   const gated = React.useMemo(() => items.filter((i) => i.gated && !i.live), [items]);
+  /**
+   * A BUILD THAT STOPPED IS A THING THAT NEEDS YOU, and it was invisible here.
+   *
+   * `live` asks about running/queued and `gated` about a pending approval, so
+   * the state that dominates the live database (67 halted, 19
+   * completed_with_failures, 0 running on 2026-08-06) mapped to neither. Those
+   * rows appeared only in "Every change", wearing their changeset's own word,
+   * under a headline that said nothing needed anybody.
+   *
+   * Gated wins where both are true: an approval is a thing a person can answer
+   * in one click, and a halted mission with a gate on it is usually halted
+   * BECAUSE of the gate.
+   */
+  const stopped = React.useMemo(
+    () => items.filter((i) => i.stopped && !i.live && !i.gated),
+    [items],
+  );
   const loading = stillWaiting(work);
+  /** What the four side reads could not answer. See BuildWorkUnread: a refused
+   *  read used to reach this headline as a confident "nothing". */
+  const unread = work.data?.unread;
 
   /** Assembled from counts this surface actually read, never from an estimate. */
+  const needsYou = gated.length + stopped.length;
   const headline = loading
     ? "Reading the record."
     : work.isError
       ? "The build record did not load."
       : `${
           live.length === 0
-            ? "Nothing is being written"
+            ? unread?.runs
+              ? "We could not read what is being written"
+              : "Nothing is being written"
             : live.length === 1
               ? "One change is being written"
               : `${live.length} changes are being written`
         }. ${
-          gated.length === 0
-            ? "Nothing needs you."
-            : gated.length === 1
-              ? "One needs you."
-              : `${gated.length} need you.`
+          needsYou === 0
+            ? // "Nothing needs you" is a claim, and both halves of it come off
+              // reads that can fail. Either failing turns it into a question.
+              unread?.gates || unread?.runs
+              ? "We could not read what is waiting on you."
+              : "Nothing needs you."
+            : stopped.length === 0
+              ? needsYou === 1
+                ? "One needs you."
+                : `${needsYou} need you.`
+              : gated.length === 0
+                ? stopped.length === 1
+                  ? "One has stopped and nothing is picking it back up."
+                  : `${stopped.length} have stopped and nothing is picking them back up.`
+                : `${needsYou} need you, ${stopped.length} of them stopped.`
         }`;
 
   const rowFor = (item: BuildWorkItem, keyPrefix: string) => {
@@ -286,7 +402,18 @@ function BuildEngine() {
         marks={
           <AgentMark
             slug={BUILDER}
-            state={item.live ? "running" : item.gated ? "waiting" : "quiet"}
+            state={
+              item.live
+                ? "running"
+                : item.gated
+                  ? "waiting"
+                  : // The mark carries the state and owns the colour, so a
+                    // stopped run reads as stopped at a glance rather than as
+                    // one more quiet row in a long list.
+                    item.stopped
+                    ? "failed"
+                    : "quiet"
+            }
             name={item.missionTitle ?? item.title}
           />
         }
@@ -387,6 +514,20 @@ function BuildEngine() {
         <Block title="Waiting on you">{gated.map((i) => rowFor(i, "gate"))}</Block>
       ) : null}
 
+      {/* STOPPED GETS ITS OWN BLOCK for the same reason "Waiting on you" does:
+        it is a call to act, and a call to act buried in a 60-row history is not
+        one. The row's door is the run page, which already carries the retry for
+        a failed mission, so this block adds a way to SEE the state rather than
+        a second place to change it. */}
+      {stopped.length > 0 ? (
+        <Block
+          title="Stopped"
+          sub="Nothing is picking these back up on its own. Open one to see why it stopped and to start it again."
+        >
+          {stopped.map((i) => rowFor(i, "stop"))}
+        </Block>
+      ) : null}
+
       <Block
         title="Every change"
         sub={
@@ -413,7 +554,45 @@ function BuildEngine() {
         ) : (
           items.map((i) => rowFor(i, "all"))
         )}
+        {/* THE READS THAT DID NOT ANSWER, NAMED UNDER THE ROWS THEY WOULD HAVE
+          FILLED. The changeset list itself succeeded (this branch is past
+          `work.isError`), so the rows are real; what may be wrong is what is
+          written ON them. Every count reading zero because a read was refused
+          is a false statement about a real row, and it is the quietest of the
+          four failures. */}
+        {!loading && !work.isError && unread ? (
+          <>
+            {unread.files ? (
+              <Failed onRetry={() => void work.refetch()}>
+                The file counts did not load, so every count on these rows reads zero whether or not
+                the change touched anything.
+              </Failed>
+            ) : null}
+            {unread.runs ? (
+              <Failed onRetry={() => void work.refetch()}>
+                We could not read which of these are running and which have stopped, so no row here
+                claims either.
+              </Failed>
+            ) : null}
+            {unread.gates ? (
+              <Failed onRetry={() => void work.refetch()}>
+                We could not read what is waiting on a person, so nothing here is marked as waiting
+                on you.
+              </Failed>
+            ) : null}
+            {unread.missions ? (
+              <Failed onRetry={() => void work.refetch()}>
+                We could not read the runs these changes belong to, so rows show the change&apos;s
+                own title rather than the work it is for.
+              </Failed>
+            ) : null}
+          </>
+        ) : null}
       </Block>
+
+      {/* THE CONTROL A BLOCKED BUILD IS SENT HERE TO USE. Renders nothing while
+        no file claim is held, which is the ordinary state. See HeldClaims. */}
+      <HeldClaims />
 
       {/* THE CEILING, on the station where the money is actually spent.
         `resolveMissionSpendCap` has resolved this on every dispatch since the
@@ -454,6 +633,9 @@ function BuildEngine() {
             }
           >
             <Input
+              // Remount on a refusal, so the box goes back to the confirmed
+              // number. See `capReset`.
+              key={`cap-${spend.data.cap_usd ?? "none"}-${capReset}`}
               type="number"
               min={1}
               step={1}
@@ -470,6 +652,16 @@ function BuildEngine() {
               }}
             />
           </Line>
+          {/* THE REFUSAL, WHERE THE CONTROL IS. Not a toast: the number the
+            person typed has been put back to the one the server last
+            confirmed, and the sentence has to be next to the box that changed
+            under them or the change reads as a glitch. */}
+          {capError ? (
+            <Failed onRetry={() => void spend.refetch()} retryLabel="Re-read the ceiling">
+              The ceiling did not move. {capError} The box has been put back to the number the
+              server last confirmed, which is the one that binds a run right now.
+            </Failed>
+          ) : null}
           {capReceipt ? (
             <Receipt
               verb="You moved the ceiling"

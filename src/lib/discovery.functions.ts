@@ -436,6 +436,35 @@ export const deleteSignal = createServerFn({ method: "POST" })
 
 // ---------- THEMES ----------
 
+/**
+ * THE WINDOW IS BOUNDED BY RECENCY, NOT BY VOLUME, and it was the other way
+ * round for the whole life of the read.
+ *
+ * This ordered by `frequency` descending and kept the first 300. Discover then
+ * re-sorted the survivors with `scoreTheme`, whose entire argument is that
+ * volume is the WRONG axis: "brain/score.ts is a pure, tested severity x
+ * recency x novelty function. The surface sorted on raw `frequency`, which is
+ * the one dimension that says nothing about whether a thing is new or urgent"
+ * (DiscoverSurface.tsx). Selecting the window by the axis the ranking rejects
+ * means a brand new, severe, high-novelty cluster with two signals is thrown
+ * away by the READ before the score ever sees it, and nothing on the surface
+ * could say so. Ordering by `created_at` puts the window on the same axis the
+ * ranking cares most about, so the newest call can never be the one dropped.
+ *
+ * WHAT THE NEW ORDER LOSES INSTEAD, said plainly rather than left for the next
+ * reader to discover: past the cap it is now the OLDEST clusters that fall out
+ * of the page, where before it was the least corroborated. /decide reads this
+ * same function to build `themeById` for its corroboration tie-break, so at the
+ * ceiling that map now misses long-lived themes rather than quiet ones. Neither
+ * failure is live: 257 themes in the entire database on 2026-08-06, against a
+ * cap of 300.
+ *
+ * AND THE CALLER IS TOLD, which is the half that makes either bound honest.
+ * `total` is the exact count of everything the read matched, so a surface can
+ * say it is not showing all of it instead of presenting a page as the whole
+ * record. `count: "exact"` is computed by Postgres over the same filters and is
+ * unaffected by `.limit()`.
+ */
 export const listThemes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
@@ -444,16 +473,20 @@ export const listThemes = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     let query = context.supabase
       .from("themes")
-      .select("*")
-      .order("frequency", { ascending: false })
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
       .limit(300);
     // Same fix as listSignals: a theme clustered by the cron path (projectId
     // null - it clusters a whole workspace, not one product) must still show
     // inside a product-scoped view, not just the unreachable all-products one.
     if (data.productId) query = query.or(`project_id.eq.${data.productId},project_id.is.null`);
-    const { data: rows, error } = await query;
+    const { data: rows, error, count } = await query;
     if (error) throw new Error(error.message);
-    return { themes: rows ?? [] };
+    const themes = rows ?? [];
+    // `count` is null only when the server declines to compute it; falling back
+    // to the page length then understates rather than inventing a bigger number,
+    // and a surface comparing the two simply says nothing.
+    return { themes, total: count ?? themes.length };
   });
 
 /** AI cluster: read unclustered signals, ask Gemini Pro for themes JSON, persist. */
@@ -626,10 +659,40 @@ export const attachThemeToOpportunity = createServerFn({ method: "POST" })
         .select("id,title,status,workspace_id")
         .eq("id", data.theme_id)
         .maybeSingle(),
-      supabase.from("opportunities").select("id,title").eq("id", data.opportunity_id).maybeSingle(),
+      supabase
+        .from("opportunities")
+        .select("id,title,workspace_id")
+        .eq("id", data.opportunity_id)
+        .maybeSingle(),
     ]);
     if (!theme) throw new Error("Theme not found");
     if (!opp) throw new Error("That bet no longer exists");
+
+    /**
+     * THE MERGE PATH NEVER GOT THE GUARD THE PROMOTE PATH WAS GIVEN.
+     *
+     * `promoteThemeToOpportunity` carries `workspace_id: theme.workspace_id`
+     * onto the new bet precisely so a cluster cannot produce an opportunity in
+     * a tenant it does not belong to, and the comment there records two live
+     * rows that landed wrong before it existed. This function loaded the
+     * theme's `workspace_id` for the stage event and never compared it to
+     * anything, so a cluster sensed in workspace B could be merged into a bet
+     * in workspace A: the bet's evidence count grows by signals nobody in that
+     * workspace ever saw, and `artifact_lineage` gains a set of cross-tenant
+     * edges that the graph then walks.
+     *
+     * RLS lets both reads through because the caller legitimately belongs to
+     * both workspaces; the two rows being visible to one person is exactly what
+     * makes this reachable rather than theoretical. Refused here, before any
+     * edge is written, so a refusal costs nothing and leaves no partial state.
+     */
+    const themeWorkspace = (theme.workspace_id as string | null) ?? null;
+    const oppWorkspace = (opp.workspace_id as string | null) ?? null;
+    if (themeWorkspace && oppWorkspace && themeWorkspace !== oppWorkspace) {
+      throw new Error(
+        "That bet lives in a different workspace, so this cluster's evidence cannot back it.",
+      );
+    }
 
     const { data: memberRows } = await supabase
       .from("signals")
@@ -668,21 +731,65 @@ export const attachThemeToOpportunity = createServerFn({ method: "POST" })
       }
     }
 
-    await supabase.from("themes").update({ status: "merged" }).eq("id", data.theme_id);
-    await recordStageEvent(supabase, {
-      entityType: "theme",
-      entityId: theme.id as string,
-      from: (theme.status as string | null) ?? null,
-      to: "merged",
-      actor: "human",
-      workspaceId: (theme.workspace_id as string | null) ?? null,
-      userId,
-    });
+    /**
+     * THE WRITE THAT SETTLES THE CLUSTER IS CHECKED, AND IT WAS NOT.
+     *
+     * This was a bare `await` with the result thrown away, on the one write
+     * that takes the cluster out of the ranking. The failure mode is the class
+     * this file already documents on `deleteSignal`: "`.delete()` with no
+     * `.select()` returns `{ error: null }` when row-level security refuses it,
+     * because supabase-js RESOLVES a refusal rather than throwing." An update
+     * behaves identically, so a refused write and a successful one were the
+     * same value here, and the function reported `ok: true` for both.
+     *
+     * WHAT THAT COST DOWNSTREAM. The surface printed "You merged it", a
+     * `stage_events` row recorded a transition to `merged` that never happened,
+     * and the cluster stayed in the ranking still focusable, so it could be
+     * merged into a SECOND bet and duplicate its whole set of `artifact_lineage`
+     * edges under a different parent.
+     *
+     * `.select("id")` is what makes the answer readable: the error AND the row
+     * set both have to be checked, because a refusal returns neither an error
+     * nor a row. The evidence edges above are deliberately NOT rolled back on a
+     * failure here: they are true statements about what backs the bet whether
+     * or not the cluster ever leaves the queue, and the same upsert is
+     * idempotent on a retry. What the caller gets instead is the truth, so it
+     * can say the evidence landed and the cluster did not settle.
+     */
+    const { data: settledRows, error: settleErr } = await supabase
+      .from("themes")
+      .update({ status: "merged" })
+      .eq("id", data.theme_id)
+      .select("id");
+    const settled = !settleErr && (settledRows?.length ?? 0) > 0;
 
+    // Only a transition that HAPPENED goes in the history. A stage event for a
+    // refused write is the record asserting something the database disagrees
+    // with, which is worse than a gap in the trail.
+    if (settled) {
+      await recordStageEvent(supabase, {
+        entityType: "theme",
+        entityId: theme.id as string,
+        from: (theme.status as string | null) ?? null,
+        to: "merged",
+        actor: "human",
+        workspaceId: (theme.workspace_id as string | null) ?? null,
+        userId,
+      });
+    }
+
+    // ONE SHAPE, BOTH OUTCOMES, so no caller has to narrow a union to find out
+    // whether it may say the cluster is gone. `unsettledReason` is null exactly
+    // when `settled` is true.
     return {
-      ok: true,
+      ok: settled,
+      settled,
       opportunity: { id: opp.id as string, title: opp.title as string },
       evidence: memberIds.length,
+      unsettledReason: settled
+        ? null
+        : (settleErr?.message ??
+          "The record refused to close the cluster, so it is still in the ranking."),
     };
   });
 
@@ -1118,6 +1225,24 @@ export const updateOpportunity = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
+    /**
+     * WHETHER THE CALL REACHED THE RECORD, HANDED TO THE CALLER.
+     *
+     * /decide's drop receipt says "Its evidence stays on the record, and so does
+     * the call", and nothing on either side had checked: `recordJudgment`
+     * returns on failure and logs, and this handler used to hand back
+     * `{ opportunity: row }` alone. That is not a hypothetical -- the insert was
+     * refused by `decisions_source_kind_check` for the entire life of the
+     * product and the receipt asserted it on every single press. The constraint
+     * is widened now, so the sentence is usually true, which is exactly what
+     * makes an unchecked assertion worth closing rather than trusting.
+     *
+     * `null` on every non-status update and on a lane change that is only
+     * scheduling, so a caller cannot read "no judgment was owed" as a failure.
+     * ADDITIVE: the `opportunity` key is untouched, and every existing caller
+     * that ignores this field keeps compiling and behaving as it did.
+     */
+    let judgment: GateJudgment | null = null;
     if (rest.status) {
       await recordStageEvent(context.supabase, {
         entityType: "opportunity",
@@ -1128,7 +1253,7 @@ export const updateOpportunity = createServerFn({ method: "POST" })
         workspaceId: prior?.workspace_id ?? null,
         userId: prior?.user_id ?? context.userId,
       });
-      await recordJudgment(context.supabase, context.userId, {
+      judgment = await recordJudgment(context.supabase, context.userId, {
         id,
         row: row as Record<string, unknown> | null,
         from: prior?.status ?? null,
@@ -1136,7 +1261,7 @@ export const updateOpportunity = createServerFn({ method: "POST" })
         workspaceId: prior?.workspace_id ?? null,
       });
     }
-    return { opportunity: row };
+    return { opportunity: row, judgment };
   });
 
 /**
@@ -1294,6 +1419,16 @@ export function judgmentFor(input: {
   return { verdict, title, rationale };
 }
 
+/**
+ * WHAT HAPPENED TO THE CALL, HANDED BACK. `null` means the move was scheduling
+ * and no decision was owed; `recorded` carries the id a surface can open;
+ * `refused` means a judgment was owed and the record did not take it. The
+ * distinction is what lets /decide's drop receipt stop asserting "and so does
+ * the call" on a press whose insert was thrown away, which it did for the entire
+ * life of `decisions_source_kind_check`.
+ */
+export type GateJudgment = { recorded: true; decisionId: string } | { recorded: false };
+
 async function recordJudgment(
   supabase: SupabaseClient,
   userId: string,
@@ -1304,9 +1439,9 @@ async function recordJudgment(
     to: string;
     workspaceId: string | null;
   },
-): Promise<void> {
+): Promise<GateJudgment | null> {
   const judged = judgmentFor({ row: input.row, from: input.from, to: input.to });
-  if (!judged) return;
+  if (!judged) return null;
   const { verdict, title, rationale } = judged;
   const r = input.row ?? {};
 
@@ -1355,8 +1490,9 @@ async function recordJudgment(
           error?.message ?? "the insert was refused and returned no row"
         }`,
       );
-      return;
+      return { recorded: false };
     }
+    const decisionId = (decision as { id: string }).id;
 
     // The edge is what lets Learn walk back from a graded outcome to the call
     // that caused it. Without it the decision row exists and is an orphan.
@@ -1364,13 +1500,18 @@ async function recordJudgment(
       parent_kind: "opportunity",
       parent_id: input.id,
       child_kind: "decision",
-      child_id: (decision as { id: string }).id,
+      child_id: decisionId,
       relation: "decided",
       rationale: "Settled at the judgment gate",
       created_by_agent: null,
     });
+    // The row exists whether or not the edge did: `recordLineageSafe` swallows a
+    // thrown transport error, and a decision a reader can open is still a
+    // decision. Reporting it as refused would understate what landed.
+    return { recorded: true, decisionId };
   } catch {
     // Never block the settle. See the header.
+    return { recorded: false };
   }
 }
 
@@ -2655,11 +2796,46 @@ export function fitToSentence(text: string, max: number): string {
  * `next`, not `now`. Keeping a bet means the call is made, not that anyone has
  * started; claiming `now` would put work in flight that nobody scheduled.
  *
- * NEVER OVERWRITES. The `.is("roadmap_bucket", null)` filter is the guard: a
- * human who already placed this bet has said something more specific than a
- * default can, and a draft must not move work behind their back. The seeded
- * promise is held to the same rule -- it is written only when BOTH columns are
- * blank, so an agent's sentence can never displace a person's.
+ * IT WRITES BOTH COLUMNS, AND UNTIL 2026-08-06 IT WROTE ONE. The patch was
+ * `{ roadmap_bucket: "next" }` alone, and every place /decide shows a placement
+ * reads `status`: the lane control's own value (`activeOpp.status`), the queue
+ * row's `StatusPill`, and `verdictFor` in components/discover/format.ts. So the
+ * station's PRIMARY answer left no mark on the station. A person pressed "Keep
+ * it", came back, and found the bet still ranked #1 with its pill reading
+ * Backlog, its verdict reading "not reviewed yet" and its primary button still
+ * reading "Keep it" -- while the stage event and the judgment written three
+ * lines below both said the lane had moved to `next`. The two columns are the
+ * same defect `laneBucketFor` (src/routes/_authenticated.decide.tsx) was written
+ * for, from the other side: that one wrote `status` and not the bucket, this one
+ * wrote the bucket and not `status`.
+ *
+ * NEVER OVERWRITES, AND THAT NOW HAS TWO HALVES. The `.is("roadmap_bucket",
+ * null)` filter is the guard on the bucket: a human who already placed this bet
+ * has said something more specific than a default can, and a draft must not move
+ * work behind their back. `status` is guarded in JS rather than by a filter,
+ * because a filter that missed would report the whole write as refused when the
+ * bucket half had in fact landed:
+ *   - `shipped` returns before anything is written. A bet that has already
+ *     shipped is not waiting on a lane, and `getRoadmap` excludes it by status
+ *     anyway, so a bucket on it would be invisible and a status on it would be
+ *     a lie. The spec is still written; only the lane is left alone.
+ *   - `now` is kept, and the BUCKET is reconciled onto it rather than the
+ *     default overwriting it. Writing `next` beside a `now` status would put
+ *     the two columns in disagreement one press after a change made to end
+ *     exactly that.
+ *   - everything else (`backlog`, `later`, `dropped`, `next`, or no status at
+ *     all) takes `next`, which is what keeping a bet means.
+ * The seeded promise is held to the same rule -- it is written only when BOTH
+ * columns are blank, so an agent's sentence can never displace a person's.
+ *
+ * THE STAGE EVENT AND THE JUDGMENT NAME THE MOVE THAT HAPPENED. `from` used to
+ * be hard-coded `null`, which read as "this bet had no prior lane" on every
+ * keep; it is the row's own prior status now. And both are skipped when the lane
+ * did not actually move, which is `recordStageEvent`'s existing rule
+ * (`if (ev.from != null && ev.from === ev.to) return;`) applied to the judgment
+ * as well: `judgmentFor` has no no-op guard of its own, so an unguarded call on
+ * an already-`next` bet would file an approval reading "Kept at the gate, from
+ * next to next" for a call nobody made.
  *
  * THE ERROR IS READ NOW. supabase-js RESOLVES a refused write rather than
  * throwing, so the old `const { data: placed }` reported success having changed
@@ -2683,20 +2859,23 @@ export function fitToSentence(text: string, max: number): string {
  * this function with a null seed -- behaviour `generatePrd`'s placement block
  * predicts in as many words, and this is its first live instance.
  *
- * PARTIAL, AND THIS SENTENCE IS THE HONEST PART: the report travels back on the
- * handler's result, and no surface renders it yet. /decide's `draftSpec`
- * mutation -- src/routes/_authenticated.decide.tsx, `const draftSpec =
- * useMutation(` at :708 today, cite the SYMBOL rather than the line because that
- * file is under concurrent edit and the old citation here (:473-490) had already
- * gone stale -- reads `r.prd.id` in `onSuccess`, navigates to the spec, and
- * drops every other field. So a refused lane is findable in the Worker log and
- * in the returned object, not on the screen.
+ * THE REPORT IS READ NOW, and this paragraph used to say it was not. Verbatim,
+ * what stood here: "PARTIAL, AND THIS SENTENCE IS THE HONEST PART: the report
+ * travels back on the handler's result, and no surface renders it yet.
+ * /decide's `draftSpec` mutation ... reads `r.prd.id` in `onSuccess`, navigates
+ * to the spec, and drops every other field." That was true and is not: the same
+ * mutation reads `r.placement` and `r.existing` before it navigates and says
+ * which of the three happened, so a refused lane reaches the person who pressed
+ * the key rather than only the Worker log. Cite the SYMBOL rather than a line
+ * for that mutation: that file is under concurrent edit and the citation here
+ * has gone stale twice (:473-490, then :708).
  */
 async function placeKeptBetInNext(
   supabase: SupabaseClient,
   userId: string,
   opp: {
     id: string;
+    status: string | null;
     roadmap_bucket: string | null;
     roadmap_outcome: string | null;
     roadmap_measure: string | null;
@@ -2709,12 +2888,22 @@ async function placeKeptBetInNext(
       note: `This bet was already in the ${opp.roadmap_bucket} lane, so the lane was left as it was.`,
     };
   }
+  const stated = typeof opp.status === "string" && opp.status ? opp.status : null;
+  if (stated === "shipped") {
+    return {
+      moved: false,
+      note: "This bet has already shipped, so its lane was left as it was. The spec was written and is safe.",
+    };
+  }
   const refused = {
     moved: false,
     note: "The lane did not move, so this bet is not on the Plan board yet. The spec was written and is safe.",
   };
 
-  const patch: Record<string, unknown> = { roadmap_bucket: "next" };
+  /** The one lane both columns land on. See "NEVER OVERWRITES" above. */
+  const lane = stated === "now" ? "now" : "next";
+  const patch: Record<string, unknown> = { roadmap_bucket: lane };
+  if (stated !== lane) patch.status = lane;
   if (seed && !opp.roadmap_outcome?.trim() && !opp.roadmap_measure?.trim()) {
     patch.roadmap_outcome = seed.outcome;
     patch.roadmap_measure = seed.measure;
@@ -2728,7 +2917,7 @@ async function placeKeptBetInNext(
       .is("roadmap_bucket", null)
       .select("id,workspace_id,title,impact,confidence,ease,project_id,product_id");
     if (placeErr) {
-      console.error(`[keep] opportunity ${opp.id} did not reach Next: ${placeErr.message}`);
+      console.error(`[keep] opportunity ${opp.id} did not reach ${lane}: ${placeErr.message}`);
       return refused;
     }
     const row = placed?.[0] as
@@ -2738,15 +2927,26 @@ async function placeKeptBetInNext(
     // this handler had already fetched.
     if (!row) return refused;
 
-    await recordStageEvent(supabase, {
-      entityType: "opportunity",
-      entityId: opp.id,
-      from: null,
-      to: "next",
-      actor: "human",
-      workspaceId: row.workspace_id,
-      userId,
-    });
+    // The lane genuinely moved only when the status column moved with it. When
+    // it did not -- an already-`next` bet whose bucket was repaired, or a `now`
+    // bet whose bucket was reconciled onto its own word -- there is no
+    // transition to file, and filing one would put a call nobody made into the
+    // two tables Learn grades against. `recordStageEvent` would drop the event
+    // itself (`from === to`); the judgment has no such guard, so both are held
+    // behind the same condition here.
+    const laneMoved = stated !== lane;
+
+    if (laneMoved) {
+      await recordStageEvent(supabase, {
+        entityType: "opportunity",
+        entityId: opp.id,
+        from: stated,
+        to: lane,
+        actor: "human",
+        workspaceId: row.workspace_id,
+        userId,
+      });
+    }
 
     /**
      * THE PRIMARY ANSWER AT THE GATE NOW WRITES A JUDGMENT, AND AS OF TODAY IT
@@ -2795,19 +2995,27 @@ async function placeKeptBetInNext(
      * Learn has a call to grade an outcome against. The guard in `recordJudgment`
      * still logs each refusal to the Worker rather than returning in silence,
      * which is what should catch the next constraint nobody knew about.
+     *
+     * THAT ROW'S SENTENCE IS A HISTORICAL QUOTE AND NO LONGER THE SHAPE THIS
+     * CALL PRODUCES. "set to next" is what `judgmentFor` assembles from a null
+     * `from`, which is what this call passed until the lane write became two
+     * columns; it passes the bet's prior status now, so the next one reads
+     * "from backlog to next".
      */
-    await recordJudgment(supabase, userId, {
-      id: opp.id,
-      row: row as Record<string, unknown>,
-      from: null,
-      to: "next",
-      workspaceId: row.workspace_id,
-    });
+    if (laneMoved) {
+      await recordJudgment(supabase, userId, {
+        id: opp.id,
+        row: row as Record<string, unknown>,
+        from: stated,
+        to: lane,
+        workspaceId: row.workspace_id,
+      });
+    }
 
     return { moved: true, note: null };
   } catch (e) {
     console.error(
-      `[keep] opportunity ${opp.id} did not reach Next: ${e instanceof Error ? e.message : String(e)}`,
+      `[keep] opportunity ${opp.id} did not reach ${lane}: ${e instanceof Error ? e.message : String(e)}`,
     );
     return refused;
   }
@@ -2840,6 +3048,11 @@ export const generatePrd = createServerFn({ method: "POST" })
     let bet: {
       id: string;
       is_sample: boolean;
+      /** The lifecycle lane the bet reads as BEFORE the keep. `placeKeptBetInNext`
+       *  needs it to decide which lane both columns land on, and to name the
+       *  transition it files; without it that function wrote `roadmap_bucket`
+       *  alone and /decide showed no trace of its own primary answer. */
+      status: string | null;
       roadmap_bucket: string | null;
       roadmap_outcome: string | null;
       roadmap_measure: string | null;
@@ -2863,6 +3076,7 @@ export const generatePrd = createServerFn({ method: "POST" })
       bet = {
         id: opp.id,
         is_sample: opp.is_sample === true,
+        status: typeof opp.status === "string" ? opp.status : null,
         roadmap_bucket: opp.roadmap_bucket ?? null,
         roadmap_outcome: opp.roadmap_outcome ?? null,
         roadmap_measure: opp.roadmap_measure ?? null,

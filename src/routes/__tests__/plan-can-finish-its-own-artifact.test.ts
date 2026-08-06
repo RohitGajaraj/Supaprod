@@ -39,6 +39,10 @@ const REACTOR = readFileSync(
   join(import.meta.dir, "..", "..", "lib", "reactor.functions.ts"),
   "utf8",
 );
+const GATE_DIALOG = readFileSync(
+  join(import.meta.dir, "..", "..", "components", "studio", "RepoGateDialog.tsx"),
+  "utf8",
+);
 
 describe("Plan can approve the artifact it exists to produce", () => {
   it("has a control that sets the status, not merely a save", () => {
@@ -68,6 +72,63 @@ describe("Plan can approve the artifact it exists to produce", () => {
 
   it("reports a failure rather than wearing the shape of a success", () => {
     expect(SPEC).toMatch(/The spec is not approved/);
+  });
+});
+
+/**
+ * 2026-08-06, THE SELF-SUFFICIENCY PASS. Four claims this surface used to make
+ * that its own code did not keep. None of them broke a type and none of them
+ * failed a test, which is why they are pinned here: every one is a sentence or
+ * a disabled attribute, and the only trace a regression would leave is a person
+ * being told something untrue.
+ */
+describe("the spec page does not say what its code will not do", () => {
+  it("refetches the row it just changed, on both writers", () => {
+    // ["prds"] is the LIST on /plan; this page reads ["prd", id], and the two
+    // do not partial-match. Invalidating only the list left the page that
+    // approved the spec printing "draft" under a receipt saying it approved it.
+    // Both writers of the prds row on this page carry both keys.
+    const both = SPEC.match(/queryKey: \["prd", id\]/g) ?? [];
+    expect(both.length).toBeGreaterThanOrEqual(3);
+    expect(SPEC).toMatch(/status: "approved"[\s\S]{0,400}?queryKey: \["prd", id\]/);
+  });
+
+  it("does not disable the send on a missing GitHub issue", () => {
+    // `dispatchStudioSession` reads github_issue_url only to add an optional
+    // "Closes #N" line. Refusing the dispatch for want of one made plan to
+    // build a two-step, against the founder's non-linear ruling.
+    //
+    // Scoped to the function BODY on purpose: the docblock above it quotes the
+    // sentence it removed, which is the record of why, and a test that
+    // forbade the words would forbid explaining them.
+    const body = SPEC.match(
+      /const routeBlocker = \(\): string \| null => \{[\s\S]*?\n {2}\};/,
+    )?.[0];
+    expect(typeof body).toBe("string");
+    expect(body).not.toMatch(/github_issue_url/);
+    // The gate that IS real, and is refused by the server too, still blocks.
+    expect(body).toMatch(/routeInfo\.gateHolds/);
+    // The message survives as a note with the same door, not as a refusal.
+    expect(SPEC).toMatch(/const sendsWithoutIssue = \(\): boolean =>/);
+  });
+
+  it("sends the issue door's not-connected refusal to the same gate the send uses", () => {
+    // Two acts, one resolveGitHub, one refusal. The issue door used to write a
+    // dead receipt where the dispatch offered /sync and a starter repo.
+    expect(SPEC).toMatch(
+      /isRepoNotConnectedError\(e\.message\)\) setRepoGate\(\{ reason: e\.message, retry: "issue" \}\)/,
+    );
+  });
+
+  it("tells the gate which act it interrupted, and tells the dialog the same thing", () => {
+    // `onRetry` was hardwired to the dispatch, so provisioning a repo from the
+    // issue door would have started a build nobody asked for. Branching the
+    // retry is only half of it: every sentence inside the dialog was written
+    // about the dispatch too, down to a toast reading "Build dispatched".
+    expect(SPEC).toMatch(/retry: "dispatch" \| "issue"/);
+    expect(SPEC).toMatch(/act=\{repoGate\?\.retry \?\? "dispatch"\}/);
+    expect(GATE_DIALOG).toMatch(/act\?: RepoGateAct/);
+    expect(GATE_DIALOG).toMatch(/The issue is being opened on the fresh repo/);
   });
 });
 

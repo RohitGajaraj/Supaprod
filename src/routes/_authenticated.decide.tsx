@@ -131,6 +131,39 @@
  *
  * What did NOT change: the comparator, the server functions, the k/c/x keys,
  * the Gate's one primary answer, and the recess sitting directly under it.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-06, third pass. THE STATION COULD BE ANSWERED AND SHOWED NO SIGN OF
+ * IT. Every one of these is written out in full at its own site; this is the
+ * index.
+ *
+ * 1. "KEEP IT" LEFT NO MARK ON THE STATION. `placeKeptBetInNext` wrote
+ *    `roadmap_bucket` and not `status`, and every place this surface shows a
+ *    placement reads `status`; this handler then invalidated nothing at all. So
+ *    a person kept a bet, came back, and found it ranked #1 with its pill
+ *    reading Backlog and its primary button still reading "Keep it". Both
+ *    columns are written now, and both caches are dropped. See `draftSpec`.
+ * 2. THE GATE KEPT ASKING THE QUESTION IT HAD JUST ANSWERED. Nothing removes a
+ *    settled bet from the ranking and the comparator cannot: ICE is its first
+ *    term and dropping a bet does not change ICE. A skip list, and the receipt
+ *    names the bet the question moved to. See `settledRef`.
+ * 3. "CHALLENGE IT" SENT THE READER TO TODAY FOR A TEARDOWN TODAY CANNOT SHOW.
+ *    It lands on the bet's own row and opens in the column beside the call.
+ * 4. THE LANE CONTROL FILED A JUDGMENT PER ARROW KEY. `Choices` fires on every
+ *    arrow and on a click of the lane already set, and each one reached
+ *    `recordJudgment`. See `LanePicker`.
+ * 5. THE DROP RECEIPT ASSERTED THE CALL REACHED THE RECORD AND NOTHING CHECKED.
+ *    `updateOpportunity` reports the judgment now, the receipt says which of the
+ *    two happened, and a Door opens the decision it wrote.
+ * 6. THE HANDOFF REPORTED WHETHER THE BET REACHED PLAN AND THIS SURFACE THREW
+ *    THE REPORT AWAY. `r.placement` and `r.existing` are read before the
+ *    navigation.
+ * 7. NO DOOR TO NAME A BET AT THE STATION THAT RULES ON BETS. `runWedgeTeardown`
+ *    did the whole thing in one call and onboarding was its only caller. See
+ *    `NameABet`.
+ *
+ * What did NOT change: the comparator, the query keys, the a/c/d keys, the
+ * Gate's one primary answer, and the recess sitting directly under it.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -150,6 +183,7 @@ import {
   listOpportunities,
   listThemes,
   runCriticReview,
+  runWedgeTeardown,
   updateOpportunity,
 } from "@/lib/discovery.functions";
 import { listLearnings } from "@/lib/outcome.functions";
@@ -185,8 +219,11 @@ import {
   CtxBody,
   CtxHead,
   CtxRow,
+  Door,
   Empty,
   Failed,
+  Field,
+  Input,
   Loading,
   Gate,
   Line,
@@ -362,6 +399,188 @@ function criticGaveTheVerdict(review: { verdict?: string | null } | null | undef
   return typeof v === "string" && CRITIC_VERDICT_WORDS.includes(v);
 }
 
+/** Long enough to collect a burst of arrow presses into one write, short enough
+ *  that nobody sits waiting on a timer. Blur and unmount beat it anyway. The
+ *  same number `IceEditor` settled on (ICE_COMMIT_MS), for the same reason. */
+const LANE_COMMIT_MS = 400;
+
+/**
+ * THE LANE COMMITS ON SETTLE, NOT ON EVERY KEY THE ARROWS PASS THROUGH.
+ *
+ * `Choices` fires `onPick` on a click of the option that is ALREADY on, and on
+ * EVERY arrow (primitives.tsx, `onKeyDown` calls `onPick(next.id)` before it
+ * moves focus). This control used to hand each of those straight to
+ * `setStatus.mutate`, and `updateOpportunity` records a judgment for every
+ * status it is handed. `judgmentFor` has no no-op guard -- `recordStageEvent`
+ * does (`if (ev.from != null && ev.from === ev.to) return;`) and the judgment
+ * beside it does not.
+ *
+ * So: focus Backlog, press ArrowRight three times to reach Later, and the
+ * decision ledger gained an approval reading "Kept at the gate, from backlog to
+ * now" and a second reading "Kept at the gate, from now to next" -- two lanes
+ * the person only arrowed PAST, filed as calls they made. Clicking the lane a
+ * bet is already in filed "Kept at the gate, from next to next". The gate has
+ * produced ONE judgment in the product's history; this is the path that would
+ * have filled that table with calls nobody made, on the one table Learn grades
+ * outcomes against.
+ *
+ * TWO GUARDS, AND THEY CLOSE DIFFERENT HOLES. The debounce collects a burst of
+ * arrows into the lane the person stopped on; the equality check kills the
+ * click-the-selected-lane duplicate outright, which no amount of waiting would
+ * catch. Mirroring the stage-event guard inside `judgmentFor` is worth doing too
+ * and does NOT cover the arrow-transit case, where each write names a different
+ * lane and is a perfectly well-formed transition.
+ *
+ * THE KEYBOARD STAYS LIVE, which is the constraint the comment at the mount site
+ * protects: a radio group that disables itself mid-decision throws focus to the
+ * body and loses the arrow keys.
+ *
+ * THE STORED LANE WINS whenever nothing of ours is pending, so a refused write
+ * reverts rather than leaving a lane on screen the record refused, and a lane
+ * set from the open record lands here. `pending` is in the dependency list for
+ * exactly the refusal case: `stored` does not change when a write fails, so an
+ * effect keyed on it alone would never run and the failed lane would stay lit.
+ */
+function LanePicker({
+  opportunity,
+  pending,
+  onCommit,
+}: {
+  opportunity: OpportunityDetailRecord;
+  /** A write on THIS bet is in flight. */
+  pending: boolean;
+  onCommit: (status: OpportunityStatus) => void;
+}) {
+  const stored = opportunity.status as OpportunityStatus;
+  const [draft, setDraft] = React.useState<OpportunityStatus>(stored);
+  const timer = React.useRef<number | null>(null);
+  // Read by the blur and unmount flushes, which run once and therefore cannot
+  // close over the render that scheduled the pending write.
+  const latest = React.useRef({ stored, draft, onCommit });
+  React.useEffect(() => {
+    latest.current = { stored, draft, onCommit };
+  });
+
+  React.useEffect(() => {
+    if (timer.current === null && !pending) setDraft(stored);
+  }, [stored, pending]);
+
+  const commit = React.useCallback((next: OpportunityStatus) => {
+    if (timer.current !== null) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+    if (next === latest.current.stored) return;
+    latest.current.onCommit(next);
+  }, []);
+
+  // An arrowed lane still inside the debounce must not be lost because the Gate
+  // moved on to the next bet and took this control with it.
+  React.useEffect(
+    () => () => {
+      if (timer.current === null) return;
+      window.clearTimeout(timer.current);
+      timer.current = null;
+      commit(latest.current.draft);
+    },
+    [commit],
+  );
+
+  return (
+    // `display: contents`, so the wrapper carries the focusout listener and
+    // changes no layout: `.sp-line-control` is a flex row and `Choices` stays
+    // its direct child. focusout bubbles, which is what makes this work at all;
+    // React's onBlur is that event, not the non-bubbling `blur`.
+    <span
+      style={{ display: "contents" }}
+      onBlur={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+        commit(latest.current.draft);
+      }}
+    >
+      <Choices
+        label="Where this bet sits"
+        value={draft}
+        options={LANES}
+        onPick={(status) => {
+          setDraft(status);
+          if (timer.current !== null) window.clearTimeout(timer.current);
+          timer.current = window.setTimeout(() => {
+            timer.current = null;
+            commit(status);
+          }, LANE_COMMIT_MS);
+        }}
+      />
+    </span>
+  );
+}
+
+/**
+ * NAMING A BET, AT THE STATION THAT RULES ON BETS.
+ *
+ * THE HOLE. The only route into this station was Discover: capture a signal,
+ * cluster it, promote the cluster. That is the right path for a bet the record
+ * produced, and it is a three-step detour for the person who arrives with the
+ * bet already in their head -- the mid-chain entry the founder's non-linear
+ * ruling describes, and the commonest way a product lead actually turns up.
+ * The empty state named Discover and offered nothing else, so on a fresh
+ * workspace this station could only be watched, never used.
+ *
+ * A WORKING SERVER FUNCTION NO SURFACE COULD REACH is this repo's named
+ * signature defect, and `runWedgeTeardown` was one: it records a stated idea
+ * verbatim as an opportunity with neutral ICE and red-teams it in the same round
+ * trip, and its only caller in the entire product was onboarding
+ * (ObsidianOnboarding.tsx). One press does what the three-step detour does, and
+ * lands the new bet under the Gate with a teardown already attached, which is
+ * the strongest version of this station's own claim.
+ *
+ * NEUTRAL ICE IS NOT A SCORE, and the copy says so rather than letting the queue
+ * imply one. `runWedgeTeardown` writes impact, confidence and ease all at 5
+ * because the person has not scored the bet; the ICE editor in the context
+ * column is where that gets settled, and the Critic's `missing_evidence` is most
+ * of what a first-run bet is worth.
+ *
+ * THE VERDICT MAY BE NULL. `runWedgeTeardown` returns `review: null` when the AI
+ * gateway is unavailable, and the idea is still saved. The receipt says which of
+ * the two happened rather than promising a teardown that is not there.
+ */
+function NameABet({ pending, onName }: { pending: boolean; onName: (idea: string) => void }) {
+  const [idea, setIdea] = React.useState("");
+  const id = "decide-name-a-bet";
+  // The server takes 3 to 200 characters and rejects the rest; a button that
+  // fires a refusal is worse than one that waits.
+  const ready = idea.trim().length >= 3 && idea.trim().length <= 200;
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!ready || pending) return;
+        onName(idea.trim());
+        setIdea("");
+      }}
+    >
+      <Field label="The bet, in your words" htmlFor={id}>
+        <Input
+          id={id}
+          value={idea}
+          maxLength={200}
+          disabled={pending}
+          placeholder="Skip the address re-confirm when nothing changed"
+          onChange={(e) => setIdea(e.target.value)}
+        />
+      </Field>
+      <Actions>
+        {/* `type="submit"`, so Enter in the field is the same press as the
+            button. `Button` defaults to type="button" and spreads its rest
+            props after it, so this overrides rather than fights it. */}
+        <Button variant="primary" type="submit" disabled={!ready || pending}>
+          Name it and tear it down
+        </Button>
+      </Actions>
+    </form>
+  );
+}
+
 function DecideSurface() {
   // The spine, lit on this station. One shared query across all seven
   // (use-spine-strip.ts), so an always-on strip costs one request, not seven.
@@ -426,6 +645,9 @@ function DecideSurface() {
   // carry a declared outcome AND measure) and would throw on every press of a
   // lane here, where nothing asks for either.
   const fRoadmapMove = useServerFn(updateRoadmapItem);
+  // The one-call entry: record a stated bet verbatim and red-team it in the same
+  // round trip. See `NameABet`.
+  const fWedge = useServerFn(runWedgeTeardown);
   const fDelete = useServerFn(deleteOpportunity);
   const fThemePrecedent = useServerFn(getThemePrecedent);
   const fProvenance = useServerFn(getProvenance);
@@ -461,9 +683,17 @@ function DecideSurface() {
    * because `["themes", <product>]` is Discover's cache entry and the two
    * queries must not overwrite each other's answer.
    *
-   * WHAT IS STILL NOT RIGHT, and it is one file away. `listThemes` orders by
-   * frequency descending and caps at 300 (src/lib/discovery.functions.ts:445-449),
-   * so past that ceiling the map silently loses its LEAST-corroborated themes.
+   * WHAT IS STILL NOT RIGHT, and it is one file away. `listThemes` caps at 300,
+   * so past that ceiling the map silently loses whichever themes fall outside
+   * the window. WHICH ones changed under this note on 2026-08-06 and the note
+   * did not: that read ordered by `frequency` descending, so the ceiling cost
+   * the LEAST-corroborated themes; it orders by `created_at` descending now, so
+   * it costs the OLDEST ones instead. For this map that is a straight trade of
+   * one wrong count for another -- quiet themes are admitted and long-lived ones
+   * are dropped -- and `listThemes`' own docblock says so from the other side.
+   * Cite the SYMBOL rather than a line: the old citation here (:445-449) went
+   * stale the moment that docblock was written.
+   *
    * An earlier version of this note said "a workspace past 300 themes", and
    * that is narrower than the real trigger: `listThemes` carries no workspace
    * clause at all, so the 300 is applied to the caller's whole RLS-visible
@@ -474,10 +704,9 @@ function DecideSurface() {
    * it is worth paying, because a wrong count today beats a missing count at a
    * ceiling nobody is near. Re-measured on 2026-08-06: 257 themes in the entire
    * database, so no caller is within 43 rows of it. The durable fix is a
-   * `theme_frequency` join on `listOpportunities`
-   * (src/lib/discovery.functions.ts:841-898, which already does exactly this
-   * shape of two-hop JS join for `decided_by_agent_slug`), after which this
-   * query and `themeById` both go away.
+   * `theme_frequency` join on `listOpportunities` (same file, which already does
+   * exactly this shape of two-hop JS join for `decided_by_agent_slug`), after
+   * which this query and `themeById` both go away.
    */
   const themes = useQuery({
     queryKey: ["themes", "all-products"],
@@ -662,13 +891,44 @@ function DecideSurface() {
   // empty station teaches nothing; the Gate labels them in its first line and
   // that is what the label is for. This only settles what goes FIRST, and only
   // when the person has not chosen for themselves.
+  //
+  // AND A BET THIS SESSION HAS ALREADY SETTLED NEVER OPENS THE GATE AGAIN.
+  // Nothing removes a settled bet from the ranking (`const others = ranked`),
+  // and the comparator cannot: ICE is its FIRST term and dropping a bet does not
+  // change ICE, so the highest-scoring bet stayed at rank #1 after you killed
+  // it. Press `d`, read the receipt, and the identical Gate was in front of you
+  // asking "Keep it / Challenge it / Drop it" about the bet you had just
+  // dropped. The Receipt primitive's own docblock describes moving on as the
+  // norm across this product -- "the queue dropped it, the Gate's question
+  // silently became the next call" -- and Decide was the station behind.
+  //
+  // A SKIP LIST, NOT A FILTER, for the same reason the example rule is one: the
+  // settled bet stays in the ranking where the person can see what they did and
+  // press "Decide it" to bring it back, and once EVERY bet has been settled the
+  // last two fallbacks put the queue back exactly as it was rather than emptying
+  // the station.
+  //
+  // IT LIVES FOR AS LONG AS THIS MOUNT DOES, which is what "this session" means
+  // here and is all it claims: navigating to a spec and back remounts the route
+  // and the set starts empty again. That is the honest scope for a fact nothing
+  // is written to the record.
+  //
+  // THE REF IS THE SOURCE OF TRUTH AND THE STATE IS ITS SHADOW. Two settles
+  // inside one render pass would both read a `settledIds` that React has not
+  // committed yet, and the second would forget the first; a ref is read and
+  // written in the same tick. The state exists only so the memo above re-runs,
+  // and it is always handed the very set the ref now holds.
+  const settledRef = React.useRef<Set<string>>(new Set());
+  const [settledIds, setSettledIds] = React.useState<ReadonlySet<string>>(() => settledRef.current);
   const active = React.useMemo(
     () =>
       ranked.find((r) => r.opp.id === selectedId) ??
+      ranked.find((r) => !settledIds.has(r.opp.id) && !r.opp.is_sample) ??
+      ranked.find((r) => !settledIds.has(r.opp.id)) ??
       ranked.find((r) => !r.opp.is_sample) ??
       ranked[0] ??
       null,
-    [ranked, selectedId],
+    [ranked, selectedId, settledIds],
   );
   // THE SELECTED BET STAYS IN THE QUEUE (founder, 2026-08-01). Filtering it out
   // meant the Gate changed under you with nothing on screen connecting it to
@@ -760,12 +1020,93 @@ function DecideSurface() {
 
   const challengerName = agentDisplayName(CHALLENGER);
 
+  /**
+   * THE RANKING AND THE BET IN FOCUS, READ FROM INSIDE A MUTATION CALLBACK.
+   *
+   * A settle resolves one round trip after the press, and the handler has to
+   * answer two questions about the state as it is THEN: which bet the Gate
+   * should move to, and whether the bet that was acted on is the one under the
+   * question. A ref rather than the closed-over values, because "the options
+   * object is refreshed on every render" is a property of react-query rather
+   * than of this file, and a stale ranking here would advance the Gate to a bet
+   * that is no longer in the queue.
+   */
+  const latest = React.useRef({ ranked, activeId: active?.opp.id ?? null });
+  React.useEffect(() => {
+    latest.current = { ranked, activeId: active?.opp.id ?? null };
+  });
+
+  /**
+   * MOVE THE GATE ON, AND SAY WHERE IT WENT.
+   *
+   * Called by every path that SETTLES a bet: keep, drop, delete. Not by the lane
+   * control, because a placement is not a settle -- it answers when, and the
+   * question stays the same one. Not by a challenge either: a teardown is
+   * evidence FOR the call, and moving the Gate off the bet the moment its
+   * evidence arrives would be the opposite of the point.
+   *
+   * `selectedId` is cleared rather than pointed at the next bet, so the default
+   * rule in `active` picks it -- one place decides what the Gate shows, and the
+   * skip list, the example rule and the fallbacks all keep applying. Pointing
+   * `selectedId` at a computed id would be a second, quieter copy of that rule.
+   *
+   * Returns the title of the bet the Gate lands on, or null when this was the
+   * last unsettled one, so the receipt can name it instead of leaving the person
+   * to notice the question changed underneath them.
+   */
+  const settleAndAdvance = React.useCallback((id: string): string | null => {
+    const seen = new Set(settledRef.current);
+    seen.add(id);
+    settledRef.current = seen;
+    setSettledIds(seen);
+    setSelectedId(null);
+    const list = latest.current.ranked;
+    const next =
+      list.find((r) => !seen.has(r.opp.id) && !r.opp.is_sample) ??
+      list.find((r) => !seen.has(r.opp.id)) ??
+      null;
+    return next?.opp.title ?? null;
+  }, []);
+
+  /** " Next: <title>." for a receipt, or the empty string when the queue is
+   *  settled out. Written once because three receipts end the same way. */
+  const nextLine = (title: string | null) =>
+    title ? ` Next: ${title}.` : " That was the last unsettled bet in the queue.";
+
   const challenge = useMutation({
     mutationFn: (id: string) =>
       fCritic({ data: { target_kind: "opportunity" as const, target_id: id } }),
     onMutate: (id) => setBusy(id, true),
-    onSuccess: () => {
-      toast(`${challengerName} is red-teaming it. The teardown lands on Today, receipts attached.`);
+    /**
+     * IT NEVER LANDED ON TODAY, AND THIS LINE SENT PEOPLE THERE. Verbatim, what
+     * stood here: "<Critic> is red-teaming it. The teardown lands on Today,
+     * receipts attached." `runCritic` makes exactly one write and it is to the
+     * bet's own row (`critic_review`, src/lib/ai/critic.server.ts). Nothing on
+     * Today reads an opportunity's `critic_review` -- the only critic content
+     * that surface renders is the onboarding one-shot out of sessionStorage, and
+     * today.tsx says so in as many words: "Today cannot see that write". So the
+     * copy walked the reader off the one surface that had the answer.
+     *
+     * IT LANDS HERE. This handler invalidates ["opportunities"], and
+     * `CriticBadge` is mounted in this page's context column on the opportunity
+     * branch, where it opens the risks, the kill criteria and the missing
+     * evidence in place.
+     *
+     * A RECEIPT, NOT A TOAST, and past tense. `onSuccess` fires after the run has
+     * finished, so "is red-teaming it" described a thing that had already
+     * happened; and a toast confirms a click while a receipt renders what the
+     * click caused, which is the difference this product is built on. It also
+     * stays on screen next to the teardown it is pointing at.
+     */
+    onSuccess: (_r, id) => {
+      const title = rows.find((o) => o.id === id)?.title ?? "The bet";
+      const underTheGate = id === latest.current.activeId;
+      setReceipt({
+        verb: "You challenged it",
+        consequence: underTheGate
+          ? `${challengerName} tore ${title} down. Its risks, kill criteria and missing evidence are on the record, open in the column beside the question.`
+          : `${challengerName} tore ${title} down. Its risks, kill criteria and missing evidence are on the record. Press "Decide it" on its row to open them beside the question.`,
+      });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -778,10 +1119,52 @@ function DecideSurface() {
       setBusy(id, true);
       toast("Drafting the spec. It lands in Plan when it is ready.");
     },
-    onSuccess: (r) => {
-      // No success toast: this navigates straight to the spec it just wrote, and
-      // arriving at the artifact is a stronger receipt than a word about it.
-      // The rule's narrow exception, where the changed surface IS the receipt.
+    onSuccess: (r, id) => {
+      /**
+       * THE KEEP LEFT NO MARK ON THE STATION, AND THIS HANDLER IS HALF OF WHY.
+       * It invalidated nothing at all, so the queue behind it kept serving the
+       * pre-keep row: a person who kept a bet and came back found it still
+       * ranked #1, its pill reading Backlog and its primary button still reading
+       * "Keep it". `placeKeptBetInNext` writes `status` as well as
+       * `roadmap_bucket` now (src/lib/discovery.functions.ts), and both keys have
+       * to be dropped for either column to show. ["roadmap"] is the board on
+       * /plan, which reads the bucket this keep just wrote.
+       */
+      void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      void qc.invalidateQueries({ queryKey: ["roadmap"] });
+      settleAndAdvance(id);
+      /**
+       * AND THE OTHER HALF: THE HANDLER REPORTS AND THIS READ ONLY `r.prd.id`.
+       * `generatePrd` returns `{ prd, existing, placement }`, and `placement`
+       * carries a written sentence for the case where the lane write was
+       * REFUSED: "The lane did not move, so this bet is not on the Plan board
+       * yet. The spec was written and is safe." The Gate one screen up promises
+       * the opposite ("Keeping it drafts the spec and moves it into Plan"), so a
+       * refused lane navigated the person to a spec, told them the roadmap had
+       * moved, and left the board empty.
+       *
+       * THIS IS NOT THE ONLY CALLER THAT PASSES AN `opportunity_id`, which an
+       * earlier draft of this note claimed. /plan's coverage door passes one too
+       * (`draftSpec` in _authenticated.plan.index.tsx) and it discards
+       * `placement` exactly as this handler used to. It is not the same defect
+       * there and does not need the same fix: that door is only ever offered for
+       * a bet already sitting in Now, so `placeKeptBetInNext` returns before it
+       * writes anything and there is no lane for it to have refused. /decide is
+       * the only caller that can reach a bet with no lane, so it is the only one
+       * whose promise the report can contradict. DiscoverSurface passes a
+       * `brief` and no bet at all, so its `placement` is null.
+       *
+       * A TOAST RATHER THAN THE RECEIPT, and it is the one place on this surface
+       * where that is the right instrument: this handler navigates away, so a
+       * Receipt set here unmounts in the same tick and is never read. The toast
+       * survives the route change and arrives on the spec, which is where the
+       * person now is.
+       */
+      const note = r.placement && !r.placement.moved ? r.placement.note : null;
+      if (note) toast(note);
+      else if (r.existing) {
+        toast("This bet already had a spec. This is the one the first press wrote, not a second.");
+      }
       void navigate({
         to: "/plan/spec/$id",
         params: { id: r.prd.id },
@@ -837,9 +1220,30 @@ function DecideSurface() {
       return result;
     },
     onMutate: ({ id }) => setBusy(id, true),
-    onSuccess: (_r, { id, status }) => {
+    onSuccess: (r, { id, status }) => {
       const title = rows.find((o) => o.id === id)?.title ?? "The bet";
       const bucket = laneBucketFor(status);
+      // A DROP IS A SETTLE AND A PLACEMENT IS NOT. Dropping answers the Gate's
+      // question, so the Gate moves on; picking a lane answers WHEN, and the
+      // question it was asked under stays the same one.
+      const nextTitle = status === "dropped" ? settleAndAdvance(id) : null;
+      /**
+       * WHETHER THE CALL ACTUALLY REACHED THE RECORD, ASKED RATHER THAN ASSUMED.
+       *
+       * "and so does the call" was asserted on every drop and nothing on either
+       * side had checked. `recordJudgment` returns on failure and logs, and
+       * `updateOpportunity` used to hand the caller nothing about it. That is not
+       * a hypothetical: the insert was refused by `decisions_source_kind_check`
+       * for the entire life of the product, and this receipt said "and so does
+       * the call" on every single press. The constraint is widened now, so the
+       * sentence is usually true, which is exactly what makes an unchecked
+       * assertion worth closing rather than trusting.
+       *
+       * The settle is NEVER blocked on it, per the existing contract: the
+       * person's judgment is the fact and the record of it is a consequence, so
+       * a refusal changes what the receipt SAYS and nothing else.
+       */
+      const decisionId = r.judgment && r.judgment.recorded ? r.judgment.decisionId : null;
       setReceipt({
         verb: status === "dropped" ? "You dropped it" : "You placed it",
         consequence:
@@ -852,18 +1256,46 @@ function DecideSurface() {
           // A placement now names the board it reached, because it reaches one:
           // the old line stopped at "sits in Now" and the person who then opened
           // Plan found that sentence contradicted by an empty lane.
-          status === "dropped"
-            ? `${title} is dropped. Its evidence stays on the record, and so does the call.`
-            : bucket === undefined
-              ? `${title} sits in ${STATUS_META[status].label}.`
-              : bucket === null
-                ? // "holding no lane on the board" was too soft: `RoadmapColumns`
-                  // draws Now, Next and Later and nothing else, so a bucket-null
-                  // bet is not lane-less on that board, it is absent from it. A
-                  // reader who opened Plan hunting for a Backlog column found
-                  // neither the column nor the bet.
-                  `${title} sits in Backlog, which the board in Plan does not draw: it shows Now, Next and Later only.`
-                : `${title} sits in ${STATUS_META[status].label}, and it is in that lane on the board in Plan.`,
+          status === "dropped" ? (
+            <>
+              {decisionId
+                ? `${title} is dropped. Its evidence stays on the record, and so does the call.`
+                : `${title} is dropped and its evidence stays on the record. The reason did not reach the decision log, so there is nothing to open: the drop itself stands.`}
+              {nextLine(nextTitle)}
+              {/* THE STATION'S JOB IS STATED AS "with a reason that lands on the
+                  record", and until this door there was no way to go and see the
+                  reason it wrote. `/brain?tab=decisions&decision=<id>` is a route
+                  the brain surface's own `validateSearch` already accepts and
+                  renders as `DecisionDetail`. */}
+              {decisionId ? (
+                <>
+                  {" "}
+                  <Door
+                    title="Opens the decision this drop wrote, on the brain"
+                    onClick={() =>
+                      void navigate({
+                        to: "/brain",
+                        search: { tab: "decisions", decision: decisionId },
+                      })
+                    }
+                  >
+                    Read the call
+                  </Door>
+                </>
+              ) : null}
+            </>
+          ) : bucket === undefined ? (
+            `${title} sits in ${STATUS_META[status].label}.`
+          ) : bucket === null ? (
+            // "holding no lane on the board" was too soft: `RoadmapColumns`
+            // draws Now, Next and Later and nothing else, so a bucket-null
+            // bet is not lane-less on that board, it is absent from it. A
+            // reader who opened Plan hunting for a Backlog column found
+            // neither the column nor the bet.
+            `${title} sits in Backlog, which the board in Plan does not draw: it shows Now, Next and Later only.`
+          ) : (
+            `${title} sits in ${STATUS_META[status].label}, and it is in that lane on the board in Plan.`
+          ),
       });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
       // The board on /plan reads its own key off `getRoadmap`; without this it
@@ -904,9 +1336,13 @@ function DecideSurface() {
     onMutate: (id) => setBusy(id, true),
     onSuccess: (_r, id) => {
       const title = rows.find((o) => o.id === id)?.title ?? "The bet";
+      // A delete is a settle too: the row is gone the moment the refetch lands,
+      // and until it does the ranking still holds it. Advancing here means the
+      // Gate never spends a frame asking about a bet that no longer exists.
+      const nextTitle = settleAndAdvance(id);
       setReceipt({
         verb: "You deleted it",
-        consequence: `${title} is gone from the queue. The signals behind it are untouched.`,
+        consequence: `${title} is gone from the queue. The signals behind it are untouched.${nextLine(nextTitle)}`,
       });
       void qc.invalidateQueries({ queryKey: ["opportunities"] });
     },
@@ -915,8 +1351,63 @@ function DecideSurface() {
     onSettled: (_d, _e, id) => setBusy(id, false),
   });
 
+  /**
+   * A BET NAMED HERE, NOT FETCHED FROM DISCOVER. See `NameABet` above for why
+   * this door exists at all.
+   *
+   * It lands UNDER THE GATE rather than in the queue: the person just said what
+   * the bet is, so the call is the next thing, and `setSelectedId` is the one
+   * control this surface already has for choosing what the Gate asks about.
+   */
+  const nameBet = useMutation({
+    mutationFn: (idea: string) => fWedge({ data: { idea } }),
+    onSuccess: (r) => {
+      void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      setSelectedId(r.opportunity.id);
+      const verdict = r.review?.verdict ?? null;
+      setReceipt({
+        verb: "You named a bet",
+        // NEUTRAL, NOT UNSCORED, and the difference matters on a station that
+        // orders by ICE: `runWedgeTeardown` writes 5/5/5 because nobody has
+        // scored it, so the bet enters the ranking mid-table rather than at the
+        // top, and the ICE editor beside the Gate is where that gets settled.
+        consequence: verdict
+          ? `${r.opportunity.title} is on the record, scored neutrally at 5/5/5, and ${challengerName} says ${verdict}. It is the question above, with the teardown in the column beside it.`
+          : `${r.opportunity.title} is on the record, scored neutrally at 5/5/5. ${challengerName} could not be reached, so it carries no teardown: challenge it when you want one.`,
+      });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const activeOpp = active?.opp ?? null;
   const busy = activeOpp ? busyIds.has(activeOpp.id) : false;
+
+  /**
+   * DROPPING A BET THAT IS ALREADY DROPPED WRITES A SECOND REJECTION.
+   *
+   * `updateOpportunity` records a judgment for every status it is handed and
+   * `judgmentFor` has no no-op guard, so pressing `d` twice filed two rejections
+   * for one call. Reachable in one press before the Gate learned to move on, and
+   * still reachable now by pressing "Decide it" on a dropped row.
+   *
+   * IT REFUSES WITH A RECEIPT RATHER THAN GOING QUIET OR GOING DARK. A disabled
+   * "Drop it" would take an affordance away and a silent no-op teaches the
+   * person their keypress does nothing; this says what is already true and where
+   * the way back is.
+   */
+  const dropBet = React.useCallback(
+    (opp: OpportunityDetailRecord) => {
+      if (opp.status === "dropped") {
+        setReceipt({
+          verb: "It was already dropped",
+          consequence: `${opp.title} was dropped before this press, so nothing was written twice. Picking a lane below brings it back into the ranking.`,
+        });
+        return;
+      }
+      setStatus.mutate({ id: opp.id, status: "dropped" });
+    },
+    [setStatus],
+  );
 
   /* THE RECORD OPENS ON THE BET YOU PRESSED, NOT ON THE ONE UNDER THE GATE.
      Until now the sheet read `activeOpp` whatever row had been pressed, so it
@@ -999,13 +1490,16 @@ function DecideSurface() {
        */
       if (e.key === "a") draftSpec.mutate(id);
       else if (e.key === "c") challenge.mutate(id);
-      else if (e.key === "d") setStatus.mutate({ id, status: "dropped" });
+      // Through `dropBet`, not straight to the mutation: a second `d` on a bet
+      // that is already dropped must not file a second rejection. See its
+      // docblock.
+      else if (e.key === "d") dropBet(activeOpp);
       else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeOpp, busy, openId, lineageId, draftSpec, challenge, setStatus]);
+  }, [activeOpp, busy, openId, lineageId, draftSpec, challenge, dropBet]);
 
   const loading = stillWaiting(opps);
 
@@ -1484,11 +1978,7 @@ function DecideSurface() {
           <Button shortcut="c" disabled={busy} onClick={() => challenge.mutate(activeOpp.id)}>
             Challenge it
           </Button>
-          <Button
-            shortcut="d"
-            disabled={busy}
-            onClick={() => setStatus.mutate({ id: activeOpp.id, status: "dropped" })}
-          >
+          <Button shortcut="d" disabled={busy} onClick={() => dropBet(activeOpp)}>
             Drop it
           </Button>
           <Button variant="ghost" disabled={busy} onClick={() => setOpenId(activeOpp.id)}>
@@ -1521,11 +2011,27 @@ function DecideSurface() {
         </Gate>
       ) : (
         /* Day one. The headline already says nothing is ranked, so this says
-           the next different thing: who acts, and where. */
+           the next different thing: who acts, and where.
+
+           TWO ROUTES IN, NOT ONE. This block used to offer Discover and nothing
+           else, which is the right path for a bet the record produced and a
+           three-step detour for the person who arrives with the bet already in
+           their head. Discover keeps the ghost button because it is still the
+           stronger route when there IS evidence; naming a bet is the primary
+           here because on a station with nothing ranked, the reader has none. */
         <>
           <Empty>
-            Promote a signal on Discover and it lands here, scored and ranked against the record.
+            Promote a signal on Discover and it lands here, scored and ranked against the record. Or
+            name the bet you already have in mind and rule on it now.
           </Empty>
+          <NameABet pending={nameBet.isPending} onName={(idea) => nameBet.mutate(idea)} />
+          {nameBet.isPending ? (
+            <AgentPulse
+              label={`${challengerName} is tearing it down`}
+              seed={CHALLENGER}
+              detail={<>the bet you just named, against what the record already settled</>}
+            />
+          ) : null}
           <Actions>
             <Button variant="ghost" onClick={() => void navigate({ to: "/discover" })}>
               Go to the signals
@@ -1645,12 +2151,21 @@ function DecideSurface() {
               wins", and that stopped being true the moment the lane became two
               writes: arrows fire one pair per keypress and they can interleave.
               The sequence token in `setStatus.mutationFn` is what makes the last
-              press win now, so this control can stay live. */}
-          <Choices
-            label="Where this bet sits"
-            value={activeOpp.status as OpportunityStatus}
-            options={LANES}
-            onPick={(status) => setStatus.mutate({ id: activeOpp.id, status })}
+              press win now, so this control can stay live.
+
+              AND IT NO LONGER WRITES ONE PER KEYSTROKE. `Choices` used to hand
+              every arrow and every click of the already-selected lane straight
+              to this mutation, and each of those reached `recordJudgment`.
+              `LanePicker` holds the arrowed value and commits on settle; the
+              sequence token above stays, because a debounce narrows the window
+              for interleaving pairs and does not close it. Keyed on the bet, so
+              the Gate moving on resets the draft rather than carrying one bet's
+              half-made choice onto the next. */}
+          <LanePicker
+            key={activeOpp.id}
+            opportunity={activeOpp}
+            pending={busy}
+            onCommit={(status) => setStatus.mutate({ id: activeOpp.id, status })}
           />
         </Line>
       ) : null}
@@ -1785,6 +2300,31 @@ function DecideSurface() {
               />
             );
           })}
+        </Block>
+      ) : null}
+
+      {/* AND THE SAME DOOR WHEN THERE IS A QUEUE, because the mid-chain entry
+          is not a day-one problem. A person who arrives with a bet in their head
+          has it whether or not the ranking is empty, and putting the composer
+          only on the empty state would mean the station stops accepting new bets
+          the moment it has one. Below the ranking rather than above it: the call
+          in front of you outranks the next one you might make.
+
+          Not rendered on the empty branch, which mounts its own copy inside the
+          empty state where the sentence explaining it already lives. */}
+      {activeOpp ? (
+        <Block
+          title="Name a bet"
+          sub="Records it verbatim, scores it neutrally, and red-teams it in the same press. No trip through Discover."
+        >
+          <NameABet pending={nameBet.isPending} onName={(idea) => nameBet.mutate(idea)} />
+          {nameBet.isPending ? (
+            <AgentPulse
+              label={`${challengerName} is tearing it down`}
+              seed={CHALLENGER}
+              detail={<>the bet you just named, against what the record already settled</>}
+            />
+          ) : null}
         </Block>
       ) : null}
 

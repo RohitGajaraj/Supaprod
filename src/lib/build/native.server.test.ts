@@ -179,6 +179,42 @@ describe("nativeBuildDriver.dispatch carries the acceptance bar into the record"
   });
 });
 
+/**
+ * A CEILING THAT DOES NOT REACH THE RUN ROW IS NOT A CEILING.
+ *
+ * `checkMissionCaps` (runtime.server.ts) is fail-closed before every model call
+ * and what it reads is `agent_runs.mission_spend_cap_usd`, through the
+ * `mission_cap_state` RPC. `runAgentLoop` resolves that value on both of its
+ * inserts; this adapter did not, so every mission dispatched through the seam
+ * queued a run with a NULL ceiling and ran unbounded, while /build's own
+ * "boundary" line told the accountable owner their runs halt at a number.
+ *
+ * It became load-bearing on 2026-08-06, when `dispatchBuilderMission` stopped
+ * running its build inline and started dispatching through this adapter. That
+ * move would have silently removed the ceiling from the Build Console too, and
+ * the reason it did not is asserted here.
+ */
+describe("the queued run carries the spend ceiling", () => {
+  test("dispatch stamps mission_spend_cap_usd on the agent_runs row", async () => {
+    const db = fakeDb();
+    await nativeBuildDriver.dispatch(ctxFor(db.client), SPEC);
+    // The fake client answers nothing for the workspaces read, and
+    // `resolveMissionSpendCap` returns the built-in default rather than null on
+    // a read it could not make. That IS the fail direction under test: a
+    // database hiccup must never read as "no ceiling".
+    expect(rowFor(db.inserts, "agent_runs").mission_spend_cap_usd).toBe(10);
+  });
+
+  test("an explicit null still means a human cleared the ceiling", async () => {
+    // `undefined` is "nobody said" and inherits the workspace number; `null` is
+    // "somebody said none" and is obeyed. Collapsing the two would either
+    // ignore a deliberate decision or invent a ceiling nobody set.
+    const db = fakeDb();
+    await nativeBuildDriver.dispatch(ctxFor(db.client, { missionSpendCapUsd: null }), SPEC);
+    expect(rowFor(db.inserts, "agent_runs").mission_spend_cap_usd).toBeNull();
+  });
+});
+
 describe("the two drivers state the bar identically", () => {
   /**
    * A criterion must read the same to whichever engine is dispatched, otherwise
