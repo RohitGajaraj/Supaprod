@@ -618,14 +618,50 @@
 .sp-btn:active {
   transform: translateY(1px);
 }
+/* THE PRIMARY BUTTON WAS A RAW INK INVERSION, AND ON THIS THEME THAT IS A WHITE
+ * SLAB. It read `background: var(--sp-ink); color: var(--sp-bg)`, which is a
+ * dark button on paper and a near-white one (#f4f4f7) on the dark canvas the
+ * system calls its design target. Seen on /today 2026-08-06: "Take it to
+ * Discover" and two "Open the decision" controls sat as solid white blocks on
+ * #0b0b0d, brighter than the headline above them and belonging to no palette in
+ * the product. Nothing else in Supaprod is white.
+ *
+ * WHY NOT AN EMBER FILL, WHICH IS THE OBVIOUS SUBSTITUTION. Ember is declared
+ * as the mark that "marks the human, and nothing else" (ink.css:236), and every
+ * existing use of it is a COLOUR or an EDGE -- `color: var(--sp-gate)` and the
+ * inset rings on `.sp-you[data-mine="true"]` and `.sp-field:focus`. There is no
+ * ember fill anywhere in the system. Introducing one here would make the
+ * loudest object on a station a colour the product has reserved for a quiet
+ * signal, and it would fight the Gate, which is the surface that genuinely owns
+ * the moment a person acts.
+ *
+ * SO IT BORROWS THE GATE'S OWN GRAMMAR: a raised control that carries the ember
+ * edge. Same formula as `.sp-you[data-mine="true"]` at :221-225 -- an inset 1px
+ * at partial ember and a soft halo -- because that element means exactly this,
+ * "this one is yours". The button now says the same thing in the same language
+ * instead of shouting in a different one.
+ *
+ * Every value is a token, so paper gets its own darker ember (#c2500f) with no
+ * second rule. `border-color` goes transparent rather than the border being
+ * removed: the 1px still occupies its box, so nothing reflows, and the ember
+ * ring draws in the space the old border held.
+ *
+ * The halo stays at 2px. `.sp-acts` sets the gap between controls, and a wider
+ * ring would touch the neighbour before the gap did. */
 .sp-btn[data-variant="primary"] {
-  background: var(--sp-ink);
-  color: var(--sp-bg);
-  border-color: var(--sp-ink);
+  background: var(--sp-lift);
+  color: var(--sp-ink);
+  border-color: transparent;
   font-weight: var(--sp-weight-strong);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 60%, transparent),
+    0 0 0 2px color-mix(in oklab, var(--sp-gate) 10%, transparent);
 }
 .sp-btn[data-variant="primary"]:hover {
-  filter: brightness(0.93);
+  background: var(--sp-float);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--sp-gate) 85%, transparent),
+    0 0 0 3px color-mix(in oklab, var(--sp-gate) 16%, transparent);
 }
 .sp-btn[data-variant="ghost"] {
   border-color: transparent;
