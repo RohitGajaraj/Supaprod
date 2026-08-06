@@ -18,11 +18,18 @@
  * Runaway is bounded by the COUNT cap (planFanout) and the DEPTH cap: each child is
  * stamped `context._fanout_depth = parent_depth + 1`, and `agent.spawn` refuses when
  * the calling run's depth is already >= FANOUT_MAX_DEPTH, so a spawned worker cannot
- * itself spawn. Do NOT lean on a mission budget cap for this: the runtime enforces
- * caps per-run, not as a mission-wide aggregate, and live runs carry null caps today.
+ * itself spawn. The DEPTH cap, not the budget, is what makes the chain length
+ * bounded: the runtime enforces a spend cap per-run, not as a mission-wide
+ * aggregate, so a cap alone would never bound how MANY runs exist.
+ *
+ * The budget is nonetheless a real second belt here, because this path resolves it
+ * the way every other writer does (`resolveMissionSpendCap`) before splitting it.
+ * See the note on {@link enqueueFanout} for why that resolution has to happen HERE
+ * rather than being left to `enqueueHandoff`.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueueHandoff, resolveAgent, type HandoffPayload } from "./handoff.server";
+import { resolveMissionSpendCap } from "./mission-caps.server";
 import { planFanout, type FanoutItem } from "./fanout";
 
 /** Capability flag. New surface, so OFF means the tool errors (never silently no-ops). */
@@ -38,7 +45,21 @@ export function fanoutEnabled(): boolean {
  * trivial direct self-spawn (A -> A). The REAL recursion bound is the depth cap, NOT
  * this guard: each child's payload is stamped `context._fanout_depth = parent_depth + 1`
  * so a spawned worker's own `agent.spawn` is refused once depth >= FANOUT_MAX_DEPTH.
- * Each child also carries its per-child budget hint from the plan.
+ * Each child also carries its share of the resolved budget.
+ *
+ * WHY THE CAP IS RESOLVED HERE AND NOT LEFT TO `enqueueHandoff`. Every other writer
+ * (`loop.server.ts` twice, `handoff.server.ts` once) passes its OPTIONAL cap
+ * straight through to `resolveMissionSpendCap`, so an absent cap arrives as
+ * `undefined` ("nobody said") and inherits the workspace ceiling. Fan-out cannot do
+ * that, because the value has to be a number BEFORE `planFanout` can divide it. If
+ * we passed the absent cap along unresolved we would have to hand `planFanout` a
+ * `null`, and a `null` reaching `enqueueHandoff` means "somebody said no ceiling",
+ * which is the one answer this path must never give: it is the only writer that
+ * creates N runs from one call, so an uncapped fan-out is N uncapped runs.
+ * Resolving first also makes the split honest: the children divide a REAL remaining
+ * budget, so their per-run ceilings sum to the parent's rather than to nothing.
+ * A resolved `null` still reaches the children uncapped, and should: that is a
+ * workspace that cleared its own ceiling on the record, which the resolver obeys.
  */
 export async function enqueueFanout(
   supabase: SupabaseClient,
@@ -62,8 +83,12 @@ export async function enqueueFanout(
     throw new Error("agent.spawn: cannot fan out to yourself");
   }
 
+  // Resolve BEFORE splitting, so an absent cap inherits the workspace ceiling
+  // instead of reading downstream as a deliberate "no ceiling". See the note above.
+  const spendCapUsd = await resolveMissionSpendCap(supabase, args.workspace_id, args.spend_cap_usd);
+
   const plan = planFanout(args.items, {
-    spendCapUsd: args.spend_cap_usd ?? null,
+    spendCapUsd,
     tokenCap: args.token_cap ?? null,
   });
 

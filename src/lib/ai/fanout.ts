@@ -9,10 +9,9 @@
  * so a spawned child is just another mission run the existing self-driving engine
  * already carries, reflects, and completes. No new orchestration-engine surface.
  *
- * What actually BOUNDS a fan-out (do not rely on a mission budget cap for this:
- * the runtime chokepoint enforces caps PER-RUN, not as a mission-wide aggregate,
- * and live mission runs are created with null caps today, so the per-child budget
- * split is only a hint):
+ * What actually BOUNDS the NUMBER of children (a budget cannot: the runtime
+ * chokepoint enforces a cap PER-RUN, not as a mission-wide aggregate, so a cap
+ * halts each child in turn but never limits how many children exist):
  *   1. TIER cap: the entitlements model specifies maxParallelAgents per tier
  *      (Free 1, Pro 3, Max 5, Business 8, Enterprise unlimited/null).
  *      Planning layer applies this as maxChildren; planning validates up-front.
@@ -26,8 +25,10 @@
  *
  * This module is the pure, offline-verifiable heart: it caps the child count,
  * dedupes blank/duplicate subtasks, splits the supplied (remaining) budget evenly
- * across the kept children as a per-child hint, and exposes the depth helpers. No
- * db, no network, no AI.
+ * across the kept children, and exposes the depth helpers. No db, no network, no
+ * AI. It takes the budget as given and never decides what an ABSENT budget means:
+ * `enqueueFanout` resolves that through `resolveMissionSpendCap` before calling
+ * here, so a null arriving at this function is already a settled "no ceiling".
  */
 
 /** Global emergency ceiling on parallel sub-agents (failsafe, never exceeded). */
@@ -77,9 +78,9 @@ export type FanoutItem = { task: string; context?: Record<string, unknown> };
 export type PlannedChild = {
   task: string;
   context?: Record<string, unknown>;
-  /** Per-child spend hint = supplied cap / kept-child-count (null when no cap supplied). */
+  /** Per-child spend ceiling = supplied cap / kept-child-count (null when no cap supplied). */
   spendCapUsd: number | null;
-  /** Per-child token hint = floor(supplied cap / kept-child-count) (null when no cap supplied). */
+  /** Per-child token ceiling = floor(supplied cap / kept-child-count) (null when no cap supplied). */
   tokenCap: number | null;
 };
 
@@ -115,14 +116,23 @@ export function planFanout(
   const dropped = valid.length - kept.length;
   const n = kept.length;
 
-  const spend =
-    n > 0 && typeof opts.spendCapUsd === "number" && opts.spendCapUsd > 0
-      ? opts.spendCapUsd / n
+  // A supplied cap of ZERO is a real ceiling, not an absent one. `agent.spawn`
+  // hands us `max(0, cap - already_spent)`, so zero is precisely the parent that
+  // has burnt its whole budget, and that is the moment a null (which every
+  // downstream reader takes to mean "no ceiling") would be most expensive: N
+  // children, none of them stoppable. Only an ABSENT cap yields null here.
+  // Negatives are clamped rather than dropped for the same fail-closed reason.
+  const suppliedSpend =
+    typeof opts.spendCapUsd === "number" && Number.isFinite(opts.spendCapUsd)
+      ? Math.max(0, opts.spendCapUsd)
       : null;
-  const tokens =
-    n > 0 && typeof opts.tokenCap === "number" && opts.tokenCap > 0
-      ? Math.floor(opts.tokenCap / n)
+  const suppliedTokens =
+    typeof opts.tokenCap === "number" && Number.isFinite(opts.tokenCap)
+      ? Math.max(0, opts.tokenCap)
       : null;
+
+  const spend = n > 0 && suppliedSpend !== null ? suppliedSpend / n : null;
+  const tokens = n > 0 && suppliedTokens !== null ? Math.floor(suppliedTokens / n) : null;
 
   return {
     children: kept.map((it) => ({

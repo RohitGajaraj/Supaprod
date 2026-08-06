@@ -58,8 +58,36 @@ describe("planFanout (ephemeral sub-agent fan-out)", () => {
     }
   });
 
-  it("leaves per-child caps null when no budget is supplied (mission cap enforces the aggregate)", () => {
+  it("leaves per-child caps null when no budget is supplied (the server half resolves what absent means)", () => {
+    // Still null, and deliberately so: this function does not decide what an
+    // absent budget means. `enqueueFanout` puts the cap through
+    // `resolveMissionSpendCap` BEFORE calling here, so by the time a null
+    // reaches a child it is a settled "no ceiling", never an unanswered one.
     const plan = planFanout([{ task: "a" }]);
+    expect(plan.children[0].spendCapUsd).toBeNull();
+    expect(plan.children[0].tokenCap).toBeNull();
+  });
+
+  it("treats a supplied ZERO budget as a real ceiling, never as an absent one", () => {
+    // `agent.spawn` passes max(0, cap - already_spent), so zero is the parent
+    // that has spent everything. Handing its children null would uncap them at
+    // exactly the wrong moment; a zero ceiling halts each on its first check.
+    const plan = planFanout([{ task: "a" }, { task: "b" }], { spendCapUsd: 0, tokenCap: 0 });
+    expect(plan.children).toHaveLength(2);
+    for (const c of plan.children) {
+      expect(c.spendCapUsd).toBe(0);
+      expect(c.tokenCap).toBe(0);
+    }
+  });
+
+  it("clamps a nonsense negative budget to zero rather than dropping the ceiling", () => {
+    const plan = planFanout([{ task: "a" }], { spendCapUsd: -5, tokenCap: -100 });
+    expect(plan.children[0].spendCapUsd).toBe(0);
+    expect(plan.children[0].tokenCap).toBe(0);
+  });
+
+  it("ignores a non-finite budget (NaN/Infinity are not a ceiling anyone set)", () => {
+    const plan = planFanout([{ task: "a" }], { spendCapUsd: NaN, tokenCap: Infinity });
     expect(plan.children[0].spendCapUsd).toBeNull();
     expect(plan.children[0].tokenCap).toBeNull();
   });

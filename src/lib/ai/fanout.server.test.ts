@@ -3,20 +3,39 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueueFanout, fanoutEnabled } from "./fanout.server";
 import { FANOUT_MAX_CHILDREN, type FanoutItem } from "./fanout";
 
-// A spy Supabase client: resolves the target agent, and counts the agent_messages
-// / agent_runs inserts each child handoff makes. memory_refs path is stubbed but
-// unused (children carry only task + context).
-function fanoutSpy(agent = { id: "qa-id", slug: "qa", name: "QA" }) {
+// A spy Supabase client: resolves the target agent, serves the workspace ceiling
+// `resolveMissionSpendCap` reads, and counts the agent_messages / agent_runs
+// inserts each child handoff makes. memory_refs path is stubbed but unused
+// (children carry only task + context).
+//
+// `workspaceCap` is what `workspaces.default_mission_spend_cap_usd` returns. The
+// default of 8 is chosen so the split arithmetic in the assertions is exact.
+function fanoutSpy(
+  agent = { id: "qa-id", slug: "qa", name: "QA" },
+  workspaceCap: number | null = 8,
+) {
   const inserts: Record<string, number> = { agent_messages: 0, agent_runs: 0 };
   const rows: Record<string, unknown[]> = { agent_messages: [], agent_runs: [] };
+  const reads: Record<string, number> = { workspaces: 0 };
   const agentChain = {
     eq: () => agentChain,
     limit: () => agentChain,
     maybeSingle: async () => ({ data: agent, error: null }),
   };
+  const workspaceChain = {
+    eq: () => workspaceChain,
+    maybeSingle: async () => ({
+      data: { default_mission_spend_cap_usd: workspaceCap },
+      error: null,
+    }),
+  };
   const client = {
     from(table: string) {
       if (table === "agents") return { select: () => agentChain };
+      if (table === "workspaces") {
+        reads.workspaces += 1;
+        return { select: () => workspaceChain };
+      }
       return {
         insert: (row: unknown) => {
           inserts[table] = (inserts[table] ?? 0) + 1;
@@ -31,7 +50,14 @@ function fanoutSpy(agent = { id: "qa-id", slug: "qa", name: "QA" }) {
       };
     },
   } as unknown as SupabaseClient;
-  return { client, inserts, rows };
+  return { client, inserts, rows, reads };
+}
+
+/** The per-run spend ceilings written onto the child agent_runs rows. */
+function childSpendCaps(rows: Record<string, unknown[]>): (number | null)[] {
+  return (rows.agent_runs as { mission_spend_cap_usd: number | null }[]).map(
+    (r) => r.mission_spend_cap_usd,
+  );
 }
 
 const args = (items: FanoutItem[], parent_depth = 0) => ({
@@ -116,5 +142,63 @@ describe("enqueueFanout (spawn N bounded children)", () => {
     };
     expect(msg.payload.context?._fanout_depth).toBe(2);
     expect(msg.payload.context?.keep).toBe(true); // original context preserved
+  });
+});
+
+/**
+ * THE MONEY BELT. Fan-out is the only writer that turns one call into N runs, so
+ * it is the one place where "no ceiling" costs N times what it costs anywhere
+ * else. These pin that an absent cap resolves the way every other writer resolves
+ * it (`resolveMissionSpendCap`), and never reaches a child as a bare null.
+ */
+describe("enqueueFanout budget resolution (an absent cap is not a no-ceiling)", () => {
+  it("splits the WORKSPACE ceiling across children when the caller supplied no cap", async () => {
+    // The regression this exists for: the caller passed nothing, the path wrote
+    // `?? null`, and null downstream means "somebody chose no ceiling". Four
+    // children then ran with no spend limit at all.
+    const { client, rows } = fanoutSpy(undefined, 8);
+    await enqueueFanout(
+      client,
+      "u1",
+      args([{ task: "a" }, { task: "b" }, { task: "c" }, { task: "d" }]),
+    );
+    expect(childSpendCaps(rows)).toEqual([2, 2, 2, 2]); // 8 / 4, and never null
+  });
+
+  it("reads the workspace ceiling ONCE per fan-out, not once per child", async () => {
+    // The children carry a resolved number, so each child's own resolve
+    // short-circuits before its query. N children must not mean N+1 reads.
+    const { client, reads } = fanoutSpy(undefined, 8);
+    await enqueueFanout(client, "u1", args([{ task: "a" }, { task: "b" }, { task: "c" }]));
+    expect(reads.workspaces).toBe(1);
+  });
+
+  it("splits an explicitly supplied remaining budget instead of the workspace ceiling", async () => {
+    const { client, rows } = fanoutSpy(undefined, 8);
+    await enqueueFanout(client, "u1", {
+      ...args([{ task: "a" }, { task: "b" }]),
+      spend_cap_usd: 1,
+    });
+    expect(childSpendCaps(rows)).toEqual([0.5, 0.5]);
+  });
+
+  it("gives an exhausted parent's children a zero ceiling, never an absent one", async () => {
+    // agent.spawn passes max(0, cap - spent). Zero must halt each child on its
+    // first check; it must not read as "no limit was set".
+    const { client, rows } = fanoutSpy(undefined, 8);
+    await enqueueFanout(client, "u1", {
+      ...args([{ task: "a" }, { task: "b" }]),
+      spend_cap_usd: 0,
+    });
+    expect(childSpendCaps(rows)).toEqual([0, 0]);
+  });
+
+  it("obeys a workspace that cleared its own ceiling (the one legitimate uncapped child)", async () => {
+    // A null default_mission_spend_cap_usd is a human decision on the record,
+    // which resolveMissionSpendCap obeys everywhere else. Fan-out obeys it too:
+    // this is the ONLY route by which a child may be uncapped.
+    const { client, rows } = fanoutSpy(undefined, null);
+    await enqueueFanout(client, "u1", args([{ task: "a" }, { task: "b" }]));
+    expect(childSpendCaps(rows)).toEqual([null, null]);
   });
 });

@@ -4453,15 +4453,18 @@ const agentSpawn = def({
 
     // Bound nested fan-out: a spawned worker (depth >= FANOUT_MAX_DEPTH) may not itself
     // spawn, so a chain can never explode. This, plus the per-spawn count cap, is the
-    // real runaway guard (NOT the per-run budget, which is null on live runs today).
+    // guard on HOW MANY runs exist; the budget below is the guard on what they may
+    // spend, and neither substitutes for the other.
     if (!canSpawnAtDepth(myDepth)) {
       throw new Error(
         "agent.spawn: a spawned sub-agent cannot itself fan out (nested fan-out is bounded to prevent runaway).",
       );
     }
 
-    // Split the REMAINING budget (cap minus what this run already used) as per-child
-    // hints; null caps leave children uncapped per-run (same as any handoff child).
+    // Split the REMAINING budget (cap minus what this run already used) across the
+    // children. A null here means THIS run carries no cap, which is "nobody said",
+    // not "no ceiling": `enqueueFanout` puts it through `resolveMissionSpendCap` so
+    // the children inherit the workspace ceiling rather than running uncapped.
     const remainingSpend = typeof spendCap === "number" ? Math.max(0, spendCap - spendUsed) : null;
     const remainingTokens = typeof tokenCap === "number" ? Math.max(0, tokenCap - tokenUsed) : null;
 
