@@ -81,6 +81,44 @@ data chain (live column → `select("*")` → `ranked` → the row), each link c
 individually — **but no human or agent has looked at it on screen.** That is the
 first thing worth doing on waking, and it is about ten seconds of work.
 
+## Correcting my own gate claim, and a cheap win hiding behind it
+
+I wrote "lint clean" in commit `b21e7fde` and above. **That is true of the files I
+touched and NOT true of `bun run lint`,** which exits 1. The distinction matters
+because the two readings differ by nine thousand errors, so here are the measured
+numbers:
+
+| scope | errors |
+|---|---|
+| `bun run lint` (whole repo) | 9,928 |
+| `src/` | 9,203 |
+| of which `src/integrations/supabase/types.ts` | **8,560** |
+| the genuine legacy baseline, rest of `src/` | ~643 |
+| the seven hand-written files in this pass | **0** |
+
+**93% of the repo's lint baseline is one generated file.** `types.ts` is Supabase's
+generated output, ~10k lines that were never prettier-formatted, and it has been
+counted as "legacy findings in untouched files" ever since. `.github/workflows/ci.yml`
+excludes the full lint from CI on exactly that reasoning ("~4k legacy eslint
+findings"), which was a fair call against the number it had — but the number is
+mostly an artifact of linting generated code.
+
+`test-results/` adds a further ~725 from a minified Playwright bundle, and it is
+gitignored, so `bun run lint` cannot pass on any machine that has run a browser
+test.
+
+**The fix is about six lines and I did not make it.** Adding the generated paths to
+the `ignores` list in `eslint.config.js` would take the baseline from ~9,200 to
+~640 and make `bun run lint` a gate that can actually go green. I stopped because
+the `config-protection` hook blocks edits to that file, correctly — its whole
+purpose is to stop an agent weakening lint config to dodge errors. This is the
+opposite case, but that is a judgment about your tooling policy and the hook says
+it needs a human to disable it. **It is yours to make, and it is the cheapest
+quality win on the board.**
+
+Nothing here blocks launch: the true gates (`tsc --noEmit`, `bun test`) are green
+and CI runs those.
+
 ---
 
 # Previous: session close 2026-08-06 ~05:00 IST — autonomous overnight run, 18 commits
