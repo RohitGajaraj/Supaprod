@@ -340,9 +340,42 @@ export function ChangesPanel({
     environment: string;
     status: string;
     deploy_url: string | null;
+    /**
+     * WHO WROTE THE ROW, and it decides whether promote can do anything with
+     * it. `listDeployments` has always selected this column
+     * (deployments.functions.ts, the select list) and it is NOT NULL in the
+     * table; this cast simply never declared it, so the panel could not tell a
+     * preview Supaprod served from one it merely read off the customer's repo.
+     * 'deno' is our own hosting; anything else is a captured row.
+     */
+    provider: string | null;
   }>;
+  /**
+   * Did Supaprod's own hosting publish this deploy? The server asks exactly
+   * this (`provider === "deno"` on the preview it promotes), so the button and
+   * the act behind it cannot disagree. A row with NO provider cannot come from
+   * `listDeployments`, so the absent case is a constructed object and is read
+   * as ours rather than withheld on a guess.
+   */
+  const isHostedDep = (d: { provider: string | null }) => (d.provider ?? "deno") === "deno";
+  /**
+   * THE TWO PREVIEW READS ARE DIFFERENT QUESTIONS, and collapsing them is what
+   * drew a Promote button over a click that could only fail.
+   *
+   * `previewDep` is the newest successful preview carrying an address, whoever
+   * built it: a real door a person can open, so it is shown. `hostedPreviewDep`
+   * is the one promote can actually move, because
+   * `promoteChangesetToProductionCore` takes the preview's commit and redeploys
+   * that repo's files to Deno hosting -- the right act only for a preview Deno
+   * served in the first place. Promoting a captured Vercel or Netlify preview
+   * would push an unbuilt copy of someone's repo to a Deno app and call it
+   * production, so the server refuses it outright.
+   */
   const previewDep = deploymentRows.find(
     (d) => d.environment === "preview" && d.status === "success" && d.deploy_url,
+  );
+  const hostedPreviewDep = deploymentRows.find(
+    (d) => d.environment === "preview" && d.status === "success" && d.deploy_url && isHostedDep(d),
   );
   const productionDep = deploymentRows.find(
     (d) => d.environment === "production" && d.status === "success" && d.deploy_url,
@@ -350,8 +383,24 @@ export function ChangesPanel({
   const fPromote = useServerFn(promoteToProduction);
   const promoteMut = useMutation({
     mutationFn: () => fPromote({ data: { changesetId: changeset!.id } }),
+    /**
+     * THE HALF-RECORDED PROMOTE REACHES THIS DOOR TOO.
+     *
+     * `promoteChangesetToProductionCore` ships the code first and then closes
+     * the loop behind it: the Trust Ledger receipt, the spec's shipped stamp,
+     * the 30-day outcome window. Any of those writes can be refused while the
+     * deploy itself is perfectly live, so the server returns `warnings` -- one
+     * sentence per thing that did not get recorded. Dropping them here made a
+     * promote that recorded nothing look byte-identical to a clean one.
+     *
+     * WARN, NOT ERROR. The deploy did reach production, so the success still
+     * says so first and the warnings follow it, each already carrying its own
+     * next move. /ship's Receipt says the same thing in the same order.
+     */
     onSuccess: (res) => {
+      const warnings = res.warnings ?? [];
       toast.success(`Live in production: ${res.productionUrl}`);
+      warnings.forEach((w) => toast.warning(w));
       qc.invalidateQueries({ queryKey: ["changeset-deployments", changeset?.id] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Promote failed."),
@@ -769,54 +818,99 @@ export function ChangesPanel({
       {/* SEAM-2 SHIP: the preview, the one human promote, and the live URL. */}
       {changeset.status === "merged" ? (
         <Block title="Where it is live">
-          <Line
-            label="Preview"
-            sub={
-              previewDep ? (
-                <a
-                  className={QUIET}
-                  style={{ textDecoration: "none" }}
-                  href={previewDep.deploy_url!}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Num>{previewDep.deploy_url}</Num>
-                </a>
-              ) : (
-                "It deploys on its own after a merge, in about two minutes."
-              )
-            }
-          />
-          <Line
-            label="Production"
-            sub={
-              productionDep ? (
-                <a
-                  className={QUIET}
-                  style={{ textDecoration: "none" }}
-                  href={productionDep.deploy_url!}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Num>{productionDep.deploy_url}</Num>
-                </a>
-              ) : previewDep ? (
-                "Nobody has moved it yet. This is the one call that reaches customers."
-              ) : (
-                "Nothing to promote until the preview is up."
-              )
-            }
-          >
-            {!productionDep && previewDep ? (
-              <Button
-                variant="primary"
-                disabled={promoteMut.isPending}
-                onClick={() => promoteMut.mutate()}
+          {/* A READ THAT DID NOT HAPPEN IS NOT AN EMPTY DEPLOY RECORD. Without
+              these two branches a failed or in-flight `deploymentsQ` collapsed
+              to [], and this block answered "Nothing to promote until the
+              preview is up." with the Promote button hidden -- a confident
+              wrong answer, and a permanent one on error, since nothing retried
+              and nothing said so. The empty-state sentence is still below,
+              where it is now only said when the read genuinely returned no
+              deploy. Same shape /ship uses for the same question. */}
+          {deploymentsQ.isError ? (
+            <Failed onRetry={() => void deploymentsQ.refetch()}>
+              Where this change is serving did not load, so anything said here would be a guess.{" "}
+              {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
+            </Failed>
+          ) : deploymentsQ.isLoading ? (
+            <Loading>Reading where this change is serving.</Loading>
+          ) : (
+            <>
+              <Line
+                label="Preview"
+                sub={
+                  previewDep ? (
+                    <>
+                      <a
+                        className={QUIET}
+                        style={{ textDecoration: "none" }}
+                        href={previewDep.deploy_url!}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <Num>{previewDep.deploy_url}</Num>
+                      </a>
+                      {!hostedPreviewDep ? (
+                        <span style={{ display: "block" }}>
+                          Your own pipeline published this one, not Supaprod. Supaprod read it from
+                          your repository&rsquo;s deployment record.
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    // NOT "it deploys on its own after a merge". That is true
+                    // only where Supaprod does the deploying; said to a
+                    // customer whose repo Supaprod does not host, it is a
+                    // promise about an event that never arrives, and they read
+                    // it every time they look.
+                    "Supaprod deploys the preview itself for a repo it hosts, usually within about two minutes of the merge. For a repo it does not host, it records the preview your own pipeline publishes, once that pipeline reports it."
+                  )
+                }
+              />
+              <Line
+                label="Production"
+                sub={
+                  productionDep ? (
+                    <a
+                      className={QUIET}
+                      style={{ textDecoration: "none" }}
+                      href={productionDep.deploy_url!}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Num>{productionDep.deploy_url}</Num>
+                    </a>
+                  ) : hostedPreviewDep ? (
+                    "Nobody has moved it yet. This is the one call that reaches customers."
+                  ) : previewDep ? (
+                    // THE SAME ANSWER THE SERVER GIVES when it refuses this
+                    // promote, so the two doors onto the act cannot tell a
+                    // person two different stories. It names no provider: the
+                    // only provider on a captured row is the repo host, which
+                    // capture stamps "github", so naming it would tell a
+                    // Netlify customer their preview came from github. The
+                    // address above is the thing that does point at the builder.
+                    "This preview was published by your own pipeline, not by Supaprod, so there is nothing here to move to production. Promote it where it was built; Supaprod records the production deploy once your provider reports it."
+                  ) : (
+                    "Nothing to promote until the preview is up."
+                  )
+                }
               >
-                {promoteMut.isPending ? "Promoting" : "Promote to production"}
-              </Button>
-            ) : null}
-          </Line>
+                {/* GATED ON THE HOSTED PREVIEW, not on any preview. Drawn over
+                    a captured row, this button could only land on the server's
+                    refusal -- a control promising an act it cannot perform,
+                    which is the exact defect this surface exists to prevent. */}
+                {!productionDep && hostedPreviewDep ? (
+                  <Button
+                    variant="primary"
+                    disabled={promoteMut.isPending}
+                    onClick={() => promoteMut.mutate()}
+                  >
+                    {promoteMut.isPending ? "Promoting" : "Promote to production"}
+                  </Button>
+                ) : null}
+              </Line>
+            </>
+          )}
         </Block>
       ) : null}
 

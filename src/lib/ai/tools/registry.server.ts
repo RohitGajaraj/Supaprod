@@ -3777,6 +3777,14 @@ const releasePublish = def({
       deployment_id: res.deploymentId,
       url: res.productionUrl,
       changeset_id: a.changeset_id,
+      // The agent that ran the promote learns the same thing the person at
+      // /ship does: everything after the deploy — the Trust Ledger receipt, the
+      // spec's shipped stamp, the 30-day outcome window — is best-effort,
+      // because production has already happened and no bookkeeping failure can
+      // undo it. Dropping these told the agent its ship was clean when the
+      // record behind it had been refused, and nothing downstream would ever
+      // ask. Same argument as `outcome_memory_error` above.
+      warnings: res.warnings,
     };
   },
 });

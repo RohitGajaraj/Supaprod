@@ -369,10 +369,21 @@ export type ReleaseState = {
    */
   hostedPreviewUrl: string | null;
   /**
-   * The provider that published the newest successful preview when it was not
-   * Supaprod, and null when there is no such preview. It names the pipeline in
-   * the sentence that explains the missing button, rather than leaving a person
-   * to guess why the promote they can see elsewhere is absent here.
+   * The `provider` column of the newest successful preview Supaprod did NOT
+   * serve, and null when there is no such preview. Read as a flag -- one of
+   * those previews exists -- so the sentence explaining the missing button can
+   * be shown at all, rather than leaving a person to guess why the promote they
+   * can see elsewhere is absent here.
+   *
+   * IT IS THE REPO HOST, AND IT NEVER NAMES THE PIPELINE. `captureDeployments`
+   * stamps every captured row with the literal "github"
+   * (deployments.functions.ts, `provider: "github"` in the capture) because
+   * `DeploymentEntry` (lib/connectors/repo-provider.ts) carries no publisher of
+   * its own, so this field can only ever read "github" -- never "vercel" or
+   * "netlify". Printing it told a Netlify customer their preview came from
+   * github, which is exactly the falsehood the server stopped telling in the
+   * same refusal it mirrors. So it is tested here and never interpolated;
+   * `previewUrl` is the only thing on the row that points at whoever built it.
    */
   observedPreviewProvider: string | null;
   /** Newest SUCCESSFUL production deploy that recorded an address. */
@@ -573,14 +584,21 @@ export function whereItIs(s: ReleaseState): { address: string | null; state: str
     return { address: s.previewUrl, state: "The last production deploy ended in an unknown state" };
   }
   if (s.previewUrl) {
-    // WHY THE ROW SAYS WHO BUILT IT. "Preview only, nobody has promoted it"
-    // reads as an invitation, and next to it there is no Promote button when
-    // the preview came from the reader's own pipeline. Naming the pipeline is
-    // what turns a control that is merely absent into an absence with a reason.
+    // WHY THE ROW SAYS THIS ONE IS NOT OURS. "Preview only, nobody has
+    // promoted it" reads as an invitation, and next to it there is no Promote
+    // button when the preview came from the reader's own pipeline. Saying whose
+    // it is turns a control that is merely absent into an absence with a
+    // reason.
+    //
+    // IT DOES NOT NAME THE PIPELINE, and interpolating `observedPreviewProvider`
+    // here is how it did: that column is the REPO host, stamped "github" by
+    // capture, so a Netlify customer read "published by github". The address
+    // beside this sentence is `previewUrl`, which does point at whoever built
+    // it, and that is the whole of what this row can honestly say.
     if (!s.hostedPreviewUrl) {
       return {
         address: s.previewUrl,
-        state: `Preview only, published by ${s.observedPreviewProvider ?? "your own pipeline"} rather than Supaprod`,
+        state: "Preview only, published by your own pipeline rather than Supaprod",
       };
     }
     return { address: s.previewUrl, state: "Preview only, nobody has promoted it" };
@@ -609,8 +627,20 @@ export type PromoteAbsence =
    * the releases in the same block that are genuinely still waiting on a
    * preview, so the one sentence can answer both instead of the surface picking
    * a winner and going silent about the rest.
+   *
+   * `previewUrl` is the address of the one such preview when there is exactly
+   * one, which is the only field on the record that points at whoever built it.
+   * `provider` is the repo host off that same row -- always "github", since
+   * that is the literal capture stamps -- so it is carried as evidence and is
+   * NEVER put in the sentence: it named the wrong publisher when it was.
    */
-  | { kind: "published-elsewhere"; count: number; provider: string | null; waiting: number };
+  | {
+      kind: "published-elsewhere";
+      count: number;
+      provider: string | null;
+      previewUrl: string | null;
+      waiting: number;
+    };
 
 export function promoteAbsence(args: {
   reading: boolean;
@@ -640,6 +670,9 @@ export function promoteAbsence(args: {
       kind: "published-elsewhere",
       count: elsewhere.length,
       provider: elsewhere[0].observedPreviewProvider,
+      // Only when there is exactly one, because quoting one address over a
+      // sentence that counts several would attach it to the wrong release.
+      previewUrl: elsewhere.length === 1 ? elsewhere[0].previewUrl : null,
       waiting: notLive - elsewhere.length,
     };
   }
@@ -666,12 +699,18 @@ export function absenceSentence(a: PromoteAbsence): string | null {
         : `${a.count} releases have merged and none has a successful preview yet. The preview lands on its own after a merge, in about two minutes.`;
     case "published-elsewhere": {
       // THE SAME ANSWER THE SERVER GIVES, so the two doors onto this act cannot
-      // tell a person two different stories about the same release.
-      const who = a.provider ?? "your own pipeline";
+      // tell a person two different stories about the same release. The server
+      // names NO provider and quotes the deploy URL instead
+      // (deployments.functions.ts, the refusal on an observed preview), because
+      // the only provider on a captured row is the repo host -- the literal
+      // "github" -- and interpolating it told a Vercel customer their preview
+      // came from github. This sentence follows it exactly: no provider, and
+      // the address wherever one release owns it unambiguously.
+      const at = a.previewUrl ? ` It is serving at ${a.previewUrl}.` : "";
       const head =
         a.count === 1
-          ? `One release's preview was published by your own pipeline (recorded here from ${who}), not by Supaprod, so there is nothing here to move to production. Promote it where it was built; Supaprod records the production deploy once your provider reports it.`
-          : `${a.count} releases have previews your own pipeline published (recorded here from ${who}), not Supaprod, so there is nothing here to move to production. Promote them where they were built; Supaprod records each production deploy once your provider reports it.`;
+          ? `One release's preview was published by your own pipeline, not by Supaprod, so there is nothing here to move to production.${at} Promote it where it was built; Supaprod records the production deploy once your provider reports it.`
+          : `${a.count} releases have previews your own pipeline published, not Supaprod, so there is nothing here to move to production. Promote them where they were built; Supaprod records each production deploy once your provider reports it.`;
       if (a.waiting <= 0) return head;
       return a.waiting === 1
         ? `${head} One other release has merged and has no successful preview yet.`

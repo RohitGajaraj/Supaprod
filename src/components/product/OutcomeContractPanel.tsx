@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useIsFetching, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useIsFetching, useIsMutating, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Beaker,
   CheckSquare,
@@ -36,6 +36,30 @@ type Props = {
   contract: OutcomeContract | null | undefined;
   invalidateKey: readonly unknown[];
 };
+
+/**
+ * The shared identity of "a write that lands in this spec's contract column".
+ * Every mutation in this file that saves a contract carries it, so one control
+ * can ask react-query whether another already has a write on the wire.
+ *
+ * That question cannot be answered with component state, because the controls
+ * that need to ask are siblings with no shared parent state: ContractBody
+ * mounts a ClauseList for success_metrics and one for non_goals at the same
+ * time, each ClauseList mounts its own AddClauseControl with its own `open`,
+ * and every standing clause mounts a ClauseRow with its own supersede. It
+ * matters because the add path composes a WHOLE contract from the `contract`
+ * prop it was rendered with: while any other contract write is in flight that
+ * prop predates it, so sending it would overwrite what the other control is
+ * doing. `useIsMutating` against this key is what makes that visible.
+ *
+ * Keyed by prdId so two specs open in two tabs never block each other. A
+ * ClauseRow rendered in the draft-review pass has no prdId and falls back to a
+ * constant; its supersede can never fire there anyway (the pencil is only
+ * rendered when prdId exists), so nothing is ever counted under it.
+ */
+function contractWriteKey(prdId: string | undefined): readonly unknown[] {
+  return ["outcome-contract-write", prdId ?? "no-prd"];
+}
 
 /** CNV-03: download the current contract as a portable ARD JSON file. */
 function downloadArd(prdId: string, specTitle: string, contract: OutcomeContract) {
@@ -77,6 +101,7 @@ function ArdImportControl({
   const [error, setError] = useState<string | null>(null);
 
   const importMut = useMutation({
+    mutationKey: contractWriteKey(prdId),
     mutationFn: (c: OutcomeContract) => fSave({ data: { id: prdId, contract: c } }),
     onSuccess: () => {
       setOpen(false);
@@ -248,6 +273,7 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
   });
 
   const applyMut = useMutation({
+    mutationKey: contractWriteKey(prdId),
     mutationFn: (c: OutcomeContract) => fSave({ data: { id: prdId, contract: c } }),
     onSuccess: () => {
       setDraft(null);
@@ -260,6 +286,12 @@ export function OutcomeContractPanel({ prdId, specTitle, bodyMd, contract, inval
   // CNV-02: compile every unclassified success-metric clause into a real
   // oracle (eval case, CI label, UAT checklist, or a watched assumption).
   const compileMut = useMutation({
+    // Tagged as a contract write because it is one: compileContractOraclesCore
+    // stamps oracle_kind/oracle_ref onto the standing metrics and writes the
+    // whole column back. It is also the slowest of them (an AI round trip), so
+    // it is the widest window in which an Add composed from a stale prop would
+    // throw the classifications away.
+    mutationKey: contractWriteKey(prdId),
     mutationFn: () => fCompile({ data: { id: prdId } }),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: invalidateKey });
@@ -466,12 +498,21 @@ function ContractBody({
  * Under the pinned zod (^3.25.76) that check is a plain hex-and-dashes regex
  * with no version or variant class, so 16 bytes of any randomness in the right
  * shape passes today; no rejection has been observed here. The two nibble lines
- * below are set anyway, for two reasons that outlive this version. Every other
- * clause id in the column comes from the server's `draftedClause`, which is
+ * below are set anyway, for two reasons that outlive this version. Every clause
+ * id Supaprod itself mints comes from the server's `draftedClause`, which is
  * `crypto.randomUUID`, so a hand-added clause reads as the same kind of id as a
  * drafted one. And zod 4 tightens `.uuid()` to read exactly those nibbles, so
- * emitting a real v4 now is what carries this through that upgrade instead of
- * turning it into a validation toast the owner cannot act on.
+ * emitting a real v4 here is what carries THIS id through that upgrade instead
+ * of turning it into a validation toast the owner cannot act on.
+ *
+ * Not every id in the column is minted, though, so neither reason generalises
+ * past the ids this function and draftedClause produce: ArdImportControl above
+ * hands a pasted contract to savePrd, parseArdDocument validates it against the
+ * same OutcomeContractSchema but passes clause ids through untouched, and
+ * savePrd writes them as given rather than re-minting. Under the lax zod-3
+ * regex an imported ARD can therefore seed ids that are not v4 at all, and
+ * nothing this function does covers them — after a zod-4 upgrade such a
+ * document would be refused at the import gate instead.
  *
  * crypto.randomUUID is the first choice and is what draftedClause uses; it
  * needs a secure context and is simply absent on plain http, which is exactly
@@ -582,8 +623,19 @@ function contractWithClause(
  * owner adding twice in a row: add a metric, reopen, add a second before the
  * invalidated query has refetched, and the second write carries the pre-first
  * contract, dropping the first clause while the toast still says it was added.
- * The guard below is the fix that stays on the client — while the panel's own
- * query is in flight the prop is known stale, so Add waits rather than sending.
+ *
+ * The same loss is reachable across controls, not only through this one twice,
+ * because the whole panel is mounted at once: an Add in Success metrics while
+ * the Non-goals Add, a clause's supersede, a UAT tick or a compile is still on
+ * the wire sends the contract from before that write and undoes it.
+ *
+ * The guard below is the fix that stays on the client, and it has to watch both
+ * windows. `useIsFetching` on the panel's own query covers the second half —
+ * after a write lands and its invalidation is refetching. `useIsMutating` on the
+ * shared contractWriteKey covers the first half, which a fetch count cannot see:
+ * the write has been sent, nothing is fetching yet, and the prop is already
+ * behind. In either window the prop is known stale, so Add says Syncing and
+ * waits rather than sending.
  */
 /**
  * A query key nothing in the app registers under, so `useIsFetching` against it
@@ -609,14 +661,25 @@ function AddClauseControl({
   const [text, setText] = useState("");
   const isMetric = section === "success_metrics";
 
-  // True while the panel's own query is refetching, which is exactly the window
-  // in which `contract` is a stale copy and composing a whole contract from it
-  // would drop whatever landed in between. A hook cannot be called
+  // True while the panel's own query is refetching, which is one of the two
+  // windows in which `contract` is a stale copy and composing a whole contract
+  // from it would drop whatever landed in between. A hook cannot be called
   // conditionally, so with no invalidateKey to watch this matches a key nothing
   // registers under and stays at 0, leaving the button as it was.
-  const contractIsStale = useIsFetching({ queryKey: invalidateKey ?? NO_PANEL_QUERY_KEY }) > 0;
+  const panelIsRefetching = useIsFetching({ queryKey: invalidateKey ?? NO_PANEL_QUERY_KEY }) > 0;
+
+  // The other window, and the one no fetch count can see: a contract write that
+  // has been sent and not yet answered. Until it resolves and the refetch it
+  // triggers begins, no query is fetching, yet `contract` already predates it.
+  // Counted across the whole panel, so a sibling's supersede, UAT tick, compile
+  // or the other section's Add all register here. This control's own add counts
+  // itself too; `addMut.isPending` is what distinguishes that below.
+  const contractWriteInFlight = useIsMutating({ mutationKey: contractWriteKey(prdId) }) > 0;
+
+  const contractIsStale = panelIsRefetching || contractWriteInFlight;
 
   const addMut = useMutation({
+    mutationKey: contractWriteKey(prdId),
     mutationFn: (t: string) =>
       fSave({ data: { id: prdId, contract: contractWithClause(contract, section, t) } }),
     onSuccess: () => {
@@ -659,9 +722,15 @@ function AddClauseControl({
           disabled={addMut.isPending || contractIsStale || !text.trim()}
           className="btn-pill px-2 py-1 text-[11px] disabled:opacity-50"
           title={
-            contractIsStale
-              ? "Reloading the saved contract. Adding now would send the version from before your last change."
-              : undefined
+            // Own add first, so the button never explains someone else's write
+            // while it is busy with yours; the label already reads "Adding…".
+            addMut.isPending
+              ? undefined
+              : panelIsRefetching
+                ? "Reloading the saved contract. Adding now would send the version from before your last change."
+                : contractWriteInFlight
+                  ? "Another change to this contract is still saving. Adding now would send the version from before it."
+                  : undefined
           }
         >
           {addMut.isPending ? "Adding…" : contractIsStale ? "Syncing…" : "Add"}
@@ -800,6 +869,7 @@ function ClauseRow({
   const [text, setText] = useState(clause.text);
 
   const supersede = useMutation({
+    mutationKey: contractWriteKey(prdId),
     mutationFn: () =>
       fSupersede({
         data: { id: prdId as string, section, clause_id: clause.id, new_text: text },
@@ -813,6 +883,10 @@ function ClauseRow({
   });
 
   const toggleUat = useMutation({
+    // Also a whole-column write: toggleUatChecklistItem re-reads the row, sets
+    // uat_checked/uat_checked_at on one clause and updates `contract`. An Add
+    // sent from a prop read before the tick would silently untick it.
+    mutationKey: contractWriteKey(prdId),
     mutationFn: (checked: boolean) =>
       fToggleUat({ data: { id: prdId as string, clause_id: clause.id, checked } }),
     onSuccess: () => {

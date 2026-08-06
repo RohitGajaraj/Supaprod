@@ -454,11 +454,20 @@ function Design() {
   /**
    * A DRAFT TAKES DOWN THE MARK IT PUT UP, NOT WHATEVER IS PENDING NOW.
    *
-   * Tagging the mark by spec is what made a second draft reachable: the button
-   * is disabled by `pendingIssue`, and `pendingIssue` is null on every spec but
-   * the one the draft was started from. So draft a rule on one spec, click
-   * another, review it, draft there, and two are in flight at once. Clearing
-   * unconditionally means whichever answers first blanks the other's
+   * Tagging the mark by spec is what made a second draft reachable, and the
+   * order that reaches it is the opposite of the obvious one. Drafting first
+   * and reviewing second is blocked: `busy` counts `makeRule.isPending` and
+   * "Ask the Critic" is `disabled={busy}`, so no second spec can be reviewed
+   * while a draft is out, and with no review there `findings` is null and no
+   * "Make it a rule" button is drawn at all. Reviewing first is what gets
+   * through, on an asymmetry: `Findings` (src/components/design/drawing.tsx)
+   * gates its buttons on `pendingIssue` alone and never on `busy`, so a review
+   * running on another spec does not disable them. With a review already in
+   * hand for one spec, start the Critic on a second, click back to the first
+   * while that review is still out and draft there; when the second's review
+   * lands, click it and draft there too, because the mark is tagged to the
+   * first and `pendingIssue` is null on the second. Two are in flight at once.
+   * Clearing unconditionally means whichever answers first blanks the other's
    * "Drafting", re-enabling its button while its request is still out, and a
    * second click inserts the same pending brand rule twice.
    *

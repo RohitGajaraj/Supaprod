@@ -285,7 +285,14 @@ export async function promoteChangesetToProductionCore(
       status: string;
       provider: string | null;
     };
-    const { data: denoRows } = await db
+    // A FAILED READ IS NOT AN ANSWER ABOUT THE CUSTOMER'S PIPELINE. Both reads
+    // below check `error` and rethrow it, because promote is the one
+    // irreversible path here: swallowing a transient PostgREST or network
+    // failure makes it indistinguishable from "no rows", and the refusals
+    // downstream would then tell someone their release is unpromotable, or that
+    // their own pipeline built the preview, on the strength of a query that
+    // never ran. Surfacing the read failure keeps the refusals about the data.
+    const { data: denoRows, error: denoErr } = await db
       .from("deployments")
       .select("id,commit_sha,deploy_url,status,provider")
       .eq("changeset_id", cs.id as string)
@@ -294,6 +301,7 @@ export async function promoteChangesetToProductionCore(
       .eq("provider", "deno")
       .order("created_at", { ascending: false })
       .limit(1);
+    if (denoErr) throw new Error(denoErr.message);
     const preview = ((denoRows ?? []) as PreviewRow[])[0] ?? null;
     if (!preview) {
       // Only asked for when there is no Deno preview to promote, because its
@@ -301,7 +309,7 @@ export async function promoteChangesetToProductionCore(
       // the table, so the null arm is belt and braces — it keeps a row with a
       // missing provider on the "someone else built this" side, where the old
       // `p.provider !== "deno"` scan put it.
-      const { data: observedRows } = await db
+      const { data: observedRows, error: observedErr } = await db
         .from("deployments")
         .select("id,commit_sha,deploy_url,status,provider")
         .eq("changeset_id", cs.id as string)
@@ -310,6 +318,7 @@ export async function promoteChangesetToProductionCore(
         .or("provider.is.null,provider.neq.deno")
         .order("created_at", { ascending: false })
         .limit(1);
+      if (observedErr) throw new Error(observedErr.message);
       const observed = ((observedRows ?? []) as PreviewRow[])[0] ?? null;
       // THE COPY IS SPLIT BECAUSE ONE SENTENCE WAS COVERING TWO OPPOSITE
       // FACTS. "The preview lands automatically after merge; try again
