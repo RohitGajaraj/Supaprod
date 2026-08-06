@@ -929,6 +929,28 @@ function DecideSurface() {
                 // be able to say which one a bet is already in.
                 sub={
                   <>
+                    {/* SAID ON EVERY ROW, not only on the one in focus.
+                        The gate above already tells you when the bet it is
+                        ASKING about is an example. The list did not, and the
+                        list is where a person forms their impression of what
+                        is in their workspace: four invented bets sitting
+                        unmarked among their own, each with a rank and a lane
+                        and a verdict, read as four things their product
+                        actually needs. Measured on the live database while
+                        wiring this: 20 sample opportunities across 5
+                        workspaces, and `select("*")` has been carrying the
+                        flag to the client the whole time.
+
+                        First in the line, for the same reason it is the gate's
+                        first line: a person scanning stops at the rank, and a
+                        caveat after the verdict arrives once the impression is
+                        already formed. */}
+                    {o.is_sample ? (
+                      <>
+                        <b>Example</b>
+                        {" · "}
+                      </>
+                    ) : null}
                     <Num>#{r.rank}</Num>
                     {" · "}
                     {r.isBestBet ? (

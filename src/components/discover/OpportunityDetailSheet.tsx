@@ -1160,6 +1160,25 @@ export function OpportunityDetailSheet({
               </P>
             </Block>
 
+            {/* AN EXAMPLE SAYS SO BEFORE THE BET IT IS PRETENDING TO BE.
+                This sheet declared `is_sample` on its own interface and
+                rendered it nowhere -- the column existed, the read carries it
+                through `select("*")`, and the one surface a person opens to
+                STUDY a bet before acting on it stayed silent. Above "The bet"
+                deliberately: this is the surface someone reads in full, so the
+                caveat has to arrive before the problem statement rather than
+                after it. Undefined reads as not-a-sample, per the field's own
+                note: mislabelling a real bet as fiction is worse than leaving
+                one example unmarked. */}
+            {opportunity.is_sample ? (
+              <Block title="This is an example">
+                <P>
+                  It came with your workspace so this station had something to show. It is not from
+                  your product, and nothing here has been learned from your record.
+                </P>
+              </Block>
+            ) : null}
+
             {/* The bet itself: real fields, blanks skipped. */}
             {opportunity.problem ||
             opportunity.hypothesis ||
