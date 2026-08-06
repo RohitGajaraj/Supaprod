@@ -1,6 +1,6 @@
 # Source of truth
 
-> _Created: 2026-06-18 · Last updated: 2026-08-04_
+> _Created: 2026-06-18 · Last updated: 2026-08-06_
 
 **This is the ONE file for where we are and what is next.** It merged the old `SOURCE-OF-TRUTH.md` on 2026-08-04, because two files were answering the same question and their overlap had gone stale in both directions.
 
@@ -10,11 +10,30 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 ## Now
 
-**Documentation and repo cleanup, 2026-08-03 to 08-04.** Root went from 22 markdown files to 4. Fifteen doc buckets, each indexed. The dashboard merged into this file. ~254 MB of dead worktrees removed. Gates green throughout: tsc 0, 7,159 tests, build ok.
+**SOFT LAUNCH IS THIS WEEK, on Product Hunt and X, by the founder's direction on 2026-08-06.** That supersedes the "mid-September 2026" date this section carried until today. Everything below is read against that deadline.
 
-**Product state, stated honestly.** The engine is deep and independently audited. Market contact is near zero: 8 users, all founder or internal, no revenue, billing built and deliberately dormant. The loop runs end to end after the 2026-08-02 fixes. **Public launch: mid-September 2026.**
+**2026-08-06: four read-only audits, then eleven commits closing what they found.** The audits were the whole point and their findings are the record, so they are saved rather than summarised away, in `~/.claude/projects/-Users-rohitgajaraj-.../carry-forward/`:
 
-**Next, by the founder's direction:** finish the repo tidy, then the open UX backlog from the 2026-08-01 brief (live agent status everywhere, the Build diff terminal, status colour, space and scroll discipline) which is the largest block of open work below.
+| Audit | Scope | Found |
+| --- | --- | --- |
+| Reviewer findings | 21 open findings across seven file groups | 15 confirmed fixed, 3 partial, 2 justified skips, 1 not-a-defect, and 10 further problems |
+| Linear seams | the seven station-to-station handoffs | 31 breaks: 7 blockers, 19 serious, 5 minor |
+| Non-linear paths | skips, external design, mid-chain entry, backward moves, fan-out | 22 breaks: 5 blockers |
+| Design and agency | eight lenses against the founder's launch brief | 19 findings: 10 launch blockers |
+
+Every claim in those audits was checked against live production data through the Lovable MCP, and each synthesis re-read the code and DROPPED what did not survive, so the counts are net of false positives.
+
+**The design audit's verdict on the founder's own question** ("does this create real value, or wrap LLMs while making users do the work?"): _real value_ — 851 lineage rows, 267 decisions, 119 learnings of which 38 were settled by an agent rather than a human click — **but the product consistently under-renders its own work.** That sentence is the shape of most of what shipped today.
+
+**Three things this session established that are worth more than any single fix:**
+
+1. **The precedent pool has never held a row.** `agent_memory` holds zero rows of `kind='outcome'` against 119 learnings, and the cause is not a bug in the write path: all seven specs carrying an outcome are seed rows with `settled_by` null and no `settled_memory_error`, so **`applyOutcome` has never completed in this database.** It is unexercised, not broken. Separately, a `BEFORE INSERT` trigger would have filed the first real outcome in the author's earliest workspace, where the retrieval tenancy filter cannot reach it — that is now a checked write whose failure travels.
+2. **The founder's non-linear ruling holds in the machinery and failed in the reporting.** plan → build skipping design is allowed, first-class and fully traceable; design contributes no foreign key, so skipping it costs the brain nothing. But three surfaces read `design_gate_status`'s `NOT NULL DEFAULT 'pending'` as evidence and called a deliberate skip unfinished. All three now say the same words: _skipped on purpose_.
+3. **Two documented "in-app doors" would have thrown or lied the moment anyone opened them** — `publishChangelogEntry` on a partial unique index PostgREST cannot express, and `captureDeployments` filing the previous release's URL under this changeset. Neither had a caller, which is exactly how they decayed unnoticed.
+
+**Gate as of 2026-08-06:** tsc 0 · 8,086 pass · 0 fail, run on a quiescent tree. Three migrations applied to production and recorded (`prds.outcome_check_by`, the Learn desk seed, `prds.is_sample`); the schema history had drifted from the repo and is back in sync.
+
+**Next, by the founder's direction:** close the remaining reviewer residuals, then the design audit's fix-this-week tier. **What no program can close is in [`../operations/session-handoff.md`](../operations/session-handoff.md) and needs a person:** settle one real outcome on a non-sample workspace and confirm the brain receives it.
 
 ---
 
