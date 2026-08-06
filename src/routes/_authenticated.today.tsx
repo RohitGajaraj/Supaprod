@@ -35,6 +35,7 @@ import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { openAsk } from "@/lib/ask-open";
+import { AskComposer } from "@/components/today/AskComposer";
 import { FocusNext } from "@/components/today/FocusNext";
 import { PushedInsights } from "@/components/today/PushedInsights";
 import { stripAutoPrefix, cleanTitle } from "@/components/plan/format";
@@ -882,60 +883,39 @@ function Today() {
               `data-page-composer` is how the global dock knows to stand down.
               See shell.css: two identical prompts on one screen, 500px apart,
               is the friction this marker removes. */}
-          <div
-            data-page-composer
-            style={{
-              background: "var(--sp-float)",
-              border: "1px solid var(--sp-line)",
-              /* THE PRIMARY INTERFACE WAS THE ONE SQUARE OBJECT ON THE PAGE.
-                 `--sp-radius-lg` is defined nowhere, so this resolved to 0 --
-                 and it has a visible 1px border, which makes hard corners
-                 unmissable next to 10 and 12px everywhere else. `--sp-radius-card`
-                 is commented, in ink.css, "agent card, ask composer". This IS
-                 the ask composer; the token was always there. */
-              borderRadius: "var(--sp-radius-card)",
-              padding: "20px",
-              marginBottom: "20px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-            }}
-          >
-            <div
-              style={{ fontSize: "var(--sp-text-label)", color: "var(--sp-mute)", fontWeight: 500 }}
-            >
-              What should we build?
-            </div>
-            <Button
-              variant="primary"
-              onClick={() => openAsk()}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                fontSize: "var(--sp-text-body)",
-                textAlign: "left",
-                justifyContent: "space-between",
-                display: "flex",
-              }}
-            >
-              <span>Tell Supaprod what to build...</span>
-              <span
-                style={{
-                  fontFamily: "var(--sp-font-mono)",
-                  fontSize: "var(--sp-text-kbd)",
-                  marginLeft: "12px",
-                  flexShrink: 0,
-                }}
-              >
-                ⌘K
-              </span>
-            </Button>
-            <div
-              style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)", lineHeight: 1.5 }}
-            >
-              Describe a feature, ask a question, or submit an idea. AI agents will analyze it,
-              suggest next steps, and build what you approve.
-            </div>
+          {/* IT WAS A CARD AROUND A BUTTON PRETENDING TO BE A FIELD, AND IT
+              OUTRANKED THE BRAIN.
+
+              Three things were wrong and they compounded. The control was a
+              `<Button variant="primary">` shaped like a text input, so its
+              appearance promised typing and its click moved you elsewhere --
+              against this repo's own rule that a control's label is a promise
+              about the click (AppFrame.tsx:505), broken here by the louder
+              signal of shape. `variant="primary"` was a raw ink inversion, so
+              on the dark canvas it rendered as a white slab, the brightest
+              object on the page and a colour the product uses nowhere else.
+              And the whole assembly -- label, fake field, and a paragraph
+              explaining what to type into it -- ran about 180px ABOVE the
+              comment twenty lines below this one, which says "THE BRAIN LEADS
+              ... A director that speaks only after you have cleared your inbox
+              is not directing." The first thing on the front door was an empty
+              box asking the user to think.
+
+              Now: one row, a real field, and Enter opens Ask carrying what you
+              typed. The paragraph is gone because it existed to explain a
+              control that could not be understood by looking at it, and a field
+              with a placeholder can be. The white is gone because a field is
+              not a button. The height is gone because a composer that is
+              available does not need to be loud, and everything under it is
+              what the product has to say.
+
+              `data-page-composer` stays HERE rather than moving into the
+              component: shell.css yields the global dock via
+              `body:has([data-page-composer])` and one-prompt-per-screen.test.ts
+              asserts this route file carries the marker. The surface owns the
+              claim that it has a composer; the component owns what it does. */}
+          <div data-page-composer style={{ marginBottom: "24px" }}>
+            <AskComposer />
           </div>
         </>
       )}
