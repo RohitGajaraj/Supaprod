@@ -58,6 +58,7 @@ import {
   Surface,
   Who,
 } from "@/components/shell/primitives";
+import { stillWaiting } from "@/lib/query-state";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: Today,
@@ -365,7 +366,7 @@ function Today() {
    * opens Today for is the call that needs them, and it was being held back by
    * a list of finished runs it does not depend on.
    */
-  const loading = queue.isLoading || missions.isLoading;
+  const loading = stillWaiting(queue, missions);
 
   /* ONBOARDING'S HANDOFF, READ ONCE. The verdict screen sets
    * `supaprod.onboarding.justLanded` and navigates here. It was written and
@@ -761,7 +762,7 @@ function Today() {
             Snooze
           </Button>
         </Gate>
-      ) : queue.isLoading ? (
+      ) : stillWaiting(queue) ? (
         /* THE THIRD FACT, and the front door was the one surface missing it.
          *
          * `loading ? null` drew nothing where the biggest element on the screen
@@ -854,7 +855,7 @@ function Today() {
         more={rows.length ? `All ${rows.length} runs` : undefined}
         onMore={() => navigate({ to: "/runs" })}
       >
-        {missions.isLoading ? (
+        {stillWaiting(missions) ? (
           // The block head already renders its title, so this fills the body
           // rather than leaving a heading standing over a void. It is deliberately
           // the same subject as the Failed line just below: "Reading what the crew
@@ -1030,7 +1031,7 @@ function Today() {
         )}
       </Block>
 
-      {learnings.isLoading ? (
+      {stillWaiting(learnings) ? (
         /* NO BLOCK AROUND THIS ONE, and that is the whole point of writing it
          * out. The block's title is "It learned one thing", which is a CLAIM:
          * printing it before the read lands asserts a learning exists when

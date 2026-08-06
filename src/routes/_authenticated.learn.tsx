@@ -135,6 +135,7 @@ import {
 } from "@/components/shell/primitives";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
+import { stillWaiting } from "@/lib/query-state";
 
 export const Route = createFileRoute("/_authenticated/learn")({
   component: Learn,
@@ -216,7 +217,7 @@ function Learn() {
   const focusIdx = highlights.length > 0 ? Math.min(focus, highlights.length - 1) : 0;
   const lead = highlights[focusIdx] ?? null;
 
-  const loading = ledgerQ.isLoading || outcome.isLoading;
+  const loading = stillWaiting(ledgerQ, outcome);
 
   // A fact, assembled from real counts. Never a number we do not have. What is
   // WAITING leads, because settling it is the job; what came back so far is a

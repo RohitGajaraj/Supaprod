@@ -146,6 +146,7 @@ import {
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
+import { stillWaiting } from "@/lib/query-state";
 
 /** The agent that red-teams a call, named from the one catalog so this page
  *  never hard-codes a display name that the catalog can rename. */
@@ -559,7 +560,7 @@ function DecideSurface() {
     return () => window.removeEventListener("keydown", onKey);
   }, [activeOpp, busy, openId, lineageId, draftSpec, challenge, setStatus]);
 
-  const loading = opps.isLoading;
+  const loading = stillWaiting(opps);
 
   // A fact assembled from real counts. It never claims a number it does not
   // have, and it stays silent while the counts are still loading.

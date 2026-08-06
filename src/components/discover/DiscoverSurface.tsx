@@ -217,6 +217,7 @@ import {
 } from "@/components/shell/primitives";
 import { capturedByHand, signalPreview, sourceLabel, withTimeout } from "./format";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
+import { stillWaiting } from "@/lib/query-state";
 
 /** The crew that reads for this desk, most relevant first. The fleet already
  * comes back attention-first, so the first one present is the one worth
@@ -411,7 +412,14 @@ export function DiscoverSurface({
   const rows = React.useMemo(() => signals.data?.signals ?? [], [signals.data]);
   type SignalRow = (typeof rows)[number];
   const loadError = (signals.error ?? themes.error) as Error | null;
-  const loading = signals.isLoading || themes.isLoading;
+  // An answer that has not arrived is not the answer "none". This surface is
+  // where that was found on production: a workspace with 97 signals, 41 themes
+  // and 34 opportunities rendered the first-run "Connect a source" screen for a
+  // beat. The reasoning, and the two other stations it also hit, are in
+  // `@/lib/query-state`. BOTH queries belong here: the headline counts signals
+  // and the ranking counts themes, so waiting on only one still lets the other
+  // read as empty.
+  const loading = stillWaiting(signals, themes);
 
   /** Member signals per cluster, grouped from data already in hand. Newest
    *  first, because listSignals returns newest first. */

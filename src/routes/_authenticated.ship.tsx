@@ -191,6 +191,7 @@ import { CrewWorking } from "@/components/shell/CrewWorking";
 // of them rather than a child of one: a Block inside a Block is the second
 // nested container the standard caps at one.
 import { NoReleaseYet, WhatShipped } from "@/components/ship/WhatShipped";
+import { stillWaiting } from "@/lib/query-state";
 
 /** Anti-scroll: each list opens short and expands on demand. */
 const VISIBLE = 6;
@@ -860,7 +861,7 @@ function Ship() {
   // The post in focus is never drawn twice: the list below is the rest.
   const rest = announcements.filter((a) => a.id !== call?.id);
   const waitingCount = announcements.filter((a) => a.status === "pending").length;
-  const loading = posts.isLoading || changelog.isLoading;
+  const loading = stillWaiting(posts, changelog);
 
   // The one thing only this surface can see: what shipped against what was
   // said. Assembled from real rows, and drawn only when both reads succeeded.

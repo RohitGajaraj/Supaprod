@@ -112,7 +112,11 @@ describe("Today renders something for every read in flight", () => {
 
   it("each read renders the third fact while it is still running", () => {
     for (const read of READS) {
-      const waiting = new RegExp(`${read}\\.isLoading\\s*\\?\\s*\\(?\\s*<Loading>`).test(jsx);
+      // `stillWaiting(read)`, not `read.isLoading`. Both mean "no answer yet";
+      // only the second is wrong when a query is pending-but-not-fetching or has
+      // resolved empty before auth attached, which is how a populated workspace
+      // rendered its first-run screen on production (see @/lib/query-state).
+      const waiting = new RegExp(`stillWaiting\\(${read}\\)\\s*\\?\\s*\\(?\\s*<Loading>`).test(jsx);
       expect({ read, waiting }).toEqual({ read, waiting: true });
     }
     expect(waits.length).toBe(READS.length);
@@ -132,7 +136,10 @@ describe("Today renders something for every read in flight", () => {
 describe("Today's regions do not wait on each other", () => {
   it("the union belongs to the headline and never to a region", () => {
     expect(
-      offenders(src, /const loading = queue\.isLoading \|\| missions\.isLoading;/),
+      // The FORM changed, the rule did not: still exactly one union, still
+      // absent from the JSX below. `stillWaiting` replaced the `||` because
+      // `isLoading` is false for a query that is pending but not fetching.
+      offenders(src, /const loading = stillWaiting\(queue, missions\);/),
     ).toHaveLength(1);
     expect(offenders(jsx, /\bloading\b/)).toEqual([]);
   });

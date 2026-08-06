@@ -104,6 +104,7 @@ import {
   Row,
   Surface,
 } from "@/components/shell/primitives";
+import { stillWaiting } from "@/lib/query-state";
 
 /** The agent that writes code. Its mark is the one on every row here. */
 const BUILDER = "builder";
@@ -180,7 +181,7 @@ function BuildEngine() {
   const items = React.useMemo(() => work.data?.items ?? [], [work.data]);
   const live = React.useMemo(() => items.filter((i) => i.live), [items]);
   const gated = React.useMemo(() => items.filter((i) => i.gated && !i.live), [items]);
-  const loading = work.isLoading;
+  const loading = stillWaiting(work);
 
   /** Assembled from counts this surface actually read, never from an estimate. */
   const headline = loading
