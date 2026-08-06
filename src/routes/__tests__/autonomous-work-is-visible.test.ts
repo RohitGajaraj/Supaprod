@@ -126,3 +126,63 @@ describe("the indicator is bound to the run, not to the reader's click", () => {
     expect(comp).not.toMatch(/Loading|Please wait/i);
   });
 });
+
+/**
+ * WHAT THE AGENT IS DOING HAS TO SURVIVE THE TRIP, AND NOTHING HELD IT.
+ *
+ * `mission_steps.sub_goal` is `text NOT NULL` and populated on every row, and
+ * `listMissions` was already reading that table for the step dots, so the
+ * sentence was one column away from the surface for as long as the surface has
+ * existed. The carry is four hops -- select, row type, hook, component -- and a
+ * quiet edit at any one of them puts the strip back to saying "native is
+ * working" with nothing failing. These assertions are the far half nobody wrote
+ * when the carry landed.
+ */
+describe("the sentence survives every hop from the row to the surface", () => {
+  const server = strip(read("lib/missions.functions.ts"));
+  const hook = strip(read("hooks/use-live-agents.ts"));
+  const crew = strip(read("components/shell/CrewWorking.tsx"));
+  const dock = strip(read("components/ask/AskDock.tsx"));
+
+  it("selects the column on the read the step dots already make", () => {
+    // Named together on one line, because the point is that this costs no
+    // extra query. Splitting the select would pass this test and add a round
+    // trip to a hot list endpoint.
+    expect(server).toMatch(/\.select\("mission_id,idx,status,sub_goal"\)/);
+  });
+
+  it("carries it through the row type and the hook", () => {
+    expect(server).toMatch(/current_sub_goal/);
+    expect(hook).toMatch(/subGoal: m\.current_sub_goal/);
+  });
+
+  it("never shortens the sentence in JavaScript", () => {
+    // THE DEFECT THIS EXISTS TO STOP. A first pass sliced the string and
+    // appended an ellipsis. On a product whose claim is the record, a
+    // truncated quote of what an agent said is a fabrication -- the tail did
+    // not exist anywhere, so it could not be selected, copied or read out. The
+    // clamp is CSS, so the DOM keeps the sentence whole.
+    expect(crew).not.toMatch(/\.slice\(|\.substring\(|\.substr\(/);
+    expect(crew).toMatch(/WebkitLineClamp/);
+  });
+
+  it("keeps the sentence out of the mono nowrap slot", () => {
+    // `.sp-pulse-detail` is mono, nowrap and ellipsised, and AgentPulse's own
+    // contract says `detail` takes a NOUN this surface already read. A 110-char
+    // imperative sentence there clips to a fragment beside a second verb, which
+    // is worse than the title it would displace.
+    expect(crew).not.toMatch(/detail=\{[^}]*subGoal/);
+  });
+
+  it("gives the dock the title, and lets only the title truncate", () => {
+    // The dock is on every authenticated route, so this is the most-seen
+    // instance of the line. It takes the TITLE, not the sentence: one row
+    // beside a prompt and a shortcut has no space for prose.
+    expect(dock).toMatch(/sp-dock-live-work/);
+    expect(dock).toMatch(/lead\.title/);
+    // The state leads and the count trails, both outside the truncating span,
+    // so a long title can eat neither.
+    expect(dock).toMatch(/is working[\s\S]{0,400}sp-dock-live-work/);
+    expect(dock).toMatch(/sp-dock-live-work[\s\S]{0,400}more/);
+  });
+});

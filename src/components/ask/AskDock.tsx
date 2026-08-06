@@ -89,9 +89,35 @@ export function AskDock({ pane: Pane = AskPane }: { pane?: React.ComponentType }
             <SupaprodMark size={17} />
           </span>
           <span className="sp-dock-prompt">What should we build?</span>
+          {/* THE MOST-SEEN LIVE-AGENT LINE IN THE PRODUCT SAID THE LEAST.
+              The dock renders on every authenticated route, so this string is
+              on screen more than any other agent indicator, and it read
+              "native is working" -- a name and a state. `lead.title` was
+              already on the same object, unused, and `lead.subGoal` joined it
+              this session. A capability with no door does not exist.
+
+              THE TITLE, NOT THE SENTENCE. `subGoal` is a model-written
+              imperative sentence with a median of 110 characters; this row is
+              one line beside a prompt and a shortcut, and a sentence here
+              would either wrap the dock or be clipped to a fragment. The
+              sentence has its own two-line home in `CrewWorking`. What belongs
+              on one line is the noun: what is being worked on.
+
+              THE VERB IS FRONT-LOADED ON PURPOSE. Only the title truncates, so
+              the line degrades to "native is working on Implement the health
+              en..." -- still a true sentence about a running agent. Had the
+              title come first it would degrade to a fragment with no state in
+              it at all. The "N more" count sits outside the truncating span so
+              a long title can never eat it. */}
           {lead ? (
             <span className="sp-dock-live">
               {lead.name} is working
+              {lead.title ? (
+                <>
+                  {" on "}
+                  <span className="sp-dock-live-work">{lead.title}</span>
+                </>
+              ) : null}
               {others > 0 ? ` · ${others} more` : ""}
             </span>
           ) : null}

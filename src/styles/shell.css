@@ -1812,12 +1812,33 @@ button.sp-me {
 /* A real running agent, in the machine voice, never a spinner and never a
  * fabricated step. Empty when nothing is running. */
 .sp-dock-live {
-  flex: none;
+  /* WAS `flex: none`, WHICH WAS SAFE ONLY BECAUSE THE STRING WAS FIXED. It
+   * said "native is working" and could not grow. Now it carries the mission
+   * title, whose length nobody controls, so an unshrinkable nowrap span would
+   * push the row past the dock on a mid-width window. It yields instead: the
+   * prompt beside it has `flex: 1` on a zero basis and therefore absorbs no
+   * shrinkage, so all of it lands here, which is the right order. The
+   * invitation is the point of the row; the status is the addition. */
+  flex: 0 1 auto;
+  min-width: 0;
   font-family: var(--sp-font-mono);
   font-size: var(--sp-text-data-sm);
   letter-spacing: 0.04em;
   color: var(--sp-mute);
   white-space: nowrap;
+}
+/* Only the TITLE truncates. The state before it and the "N more" after it are
+ * outside this span, so neither can be eaten by a long mission name: the line
+ * always still says who is working and how many others are. 34ch because this
+ * is mono at --sp-text-data-sm, where 34 characters is a readable phrase and
+ * the row still leaves the prompt its full width on a 1100px window. */
+.sp-dock-live-work {
+  display: inline-block;
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 .sp-dock-key {
   flex: none;
