@@ -312,6 +312,25 @@ export type RecordedOutcome = {
    */
   settled_memory_id?: string | null;
   settled_memory_error?: string | null;
+  /**
+   * A THIRD STATE, because "the memory was written" and "the memory can be
+   * recalled from here" are not the same fact.
+   *
+   * `agent_memory` has a BEFORE INSERT trigger that fills a null `workspace_id`
+   * with the author's earliest workspace, so `rememberOutcome` follows its
+   * insert with an UPDATE that moves the row to the workspace that settled the
+   * spec. That UPDATE's result used to be discarded, and supabase-js resolves
+   * an RLS refusal as a success with zero rows, so a memory stranded in the
+   * wrong workspace read as a clean success here. This carries the reason when
+   * the move did not land: the lesson exists, and `match_agent_memory` may not
+   * reach it from the workspace that earned it.
+   *
+   * Set INDEPENDENTLY of the two above. A row can be written (`settled_memory_id`
+   * set, `settled_memory_error` null) and still be in the wrong workspace.
+   * Findable with `select id from prds where
+   * outcome->>'settled_memory_workspace_error' is not null`.
+   */
+  settled_memory_workspace_error?: string | null;
   overturns?: OutcomeOverturn[];
 };
 
@@ -654,6 +673,17 @@ export async function applyOutcome(
     if (memory.error) {
       console.error("applyOutcome rememberOutcome wrote nothing:", memory.error);
     }
+    // A memory that exists but sits in the wrong workspace is a different
+    // failure from one that was never written, and it used to be no failure at
+    // all because nobody read the move's result. It reaches `prds.outcome`
+    // below on its own key rather than being folded into `settled_memory_error`,
+    // which must keep meaning exactly one thing: no row was written.
+    if (memory.workspaceError) {
+      console.error(
+        "applyOutcome outcome memory not pinned to its workspace:",
+        memory.workspaceError,
+      );
+    }
 
     const recorded: RecordedOutcome = {
       verdict: data.verdict,
@@ -667,10 +697,13 @@ export async function applyOutcome(
       settled_reason: data.by.kind === "agent" ? data.by.decision.reason : null,
       settled_evidence: data.by.kind === "agent" ? data.by.decision.because : null,
       settled_learning_id: learningId,
-      // The two fields that make a swallowed memory write findable. Exactly one
-      // of them is set on every settled outcome from here on.
+      // The fields that make a swallowed memory write findable. Exactly one of
+      // the first two is set on every settled outcome from here on; the third
+      // is independent of both and answers a different question — the row was
+      // written, but can it be recalled from the workspace that earned it.
       settled_memory_id: memory.id,
       settled_memory_error: memory.error,
+      settled_memory_workspace_error: memory.workspaceError,
       overturns: overturned ? [...(prior?.overturns ?? []), overturned] : (prior?.overturns ?? []),
     };
     const { error: outErr } = await db

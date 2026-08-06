@@ -81,7 +81,19 @@ describe("assembleBuilderGoal (the Build Console dispatch payload IS the ARD)", 
       ard: ardDispatchBlock(PRD),
       referenceLinks: ["https://example.com/spec"],
     });
-    expect(goal).toContain('idempotency_key="issue-42"');
+    // THE TOOL CHAIN CHANGED ON 2026-08-06 AND THIS ASSERTION FOLLOWED IT.
+    // This used to require `idempotency_key="issue-42"`, which named the
+    // `github.pr.open` path. The work order now tells the builder to stage,
+    // commit and open the PR through Studio -- studio.stage, studio.commit,
+    // studio.pr.open -- and to put "Closes #N" in the PR body so the merge
+    // closes the issue. `build.functions.ts`'s own header records why: a Build
+    // Console run no longer produces a github.pr.open tool_call at all, and
+    // `studio_changesets` keyed on mission_id is what every mounted reader
+    // already uses. What this test still guarantees is the thing that matters --
+    // the work order names the issue it is closing and the chain it must use.
+    expect(goal).toContain(`issue #42`);
+    expect(goal).toMatch(/studio\.stage[\s\S]*studio\.commit[\s\S]*studio\.pr\.open/);
+    expect(goal).toContain('Closes #42');
     expect(goal).toContain("User intent:\nAdd a rate limiter");
     expect(goal).toContain(`Linked spec: "${PRD.title}" (id ${PRD.id})`);
     // The machine-readable contract rides the work order, after the prose.

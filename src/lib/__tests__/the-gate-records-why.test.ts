@@ -110,8 +110,21 @@ describe("the write is wired the way this repo has learned to wire writes", () =
     // supabase-js does not throw on an RLS refusal. An unchecked insert reports
     // success having changed nothing, which is how this repo lost the
     // prd-to-mission edge for weeks.
-    expect(fn.slice(0, 4000)).toMatch(/if \(error \|\| !decision\) return;/);
+    //
+    // ASSERTS THE CHECK, NOT ITS BODY. This pinned `if (error || !decision) return;`
+    // and went red on 2026-08-06 when the branch grew a `console.error` naming
+    // WHICH failure happened -- a refusal that returns no row reads differently
+    // from a driver error, and silently returning told the next reader neither.
+    // The guard is what matters; a bare `return` was never the requirement, and
+    // pinning it would keep punishing every improvement to it.
+    const guard = fn.slice(0, 4000).replace(/\s+/g, " ");
+    expect(guard).toMatch(/if \(error \|\| !decision\)/);
     expect(fn.slice(0, 4000)).toContain('.select("id")');
+    // And it must not fall through into the lineage write on a refusal, which is
+    // the actual defect this test exists to prevent: an orphan decision edge
+    // pointing at a row that was never inserted.
+    const afterGuard = guard.slice(guard.indexOf("if (error || !decision)"));
+    expect(afterGuard.slice(0, 400)).toMatch(/return;/);
   });
 
   it("writes the lineage edge, or Learn can never walk back to the call", () => {

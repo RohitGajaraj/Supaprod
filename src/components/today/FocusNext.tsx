@@ -9,7 +9,7 @@ import { Block, Button, Num, Row } from "@/components/shell/primitives";
 /**
  * THE COMPANY BRAIN, ON THE FRONT DOOR, FOR THE FIRST TIME.
  *
- * WHAT WAS FOUND. `getFocusNext` ranks every theme in the workspace by severity
+ * WHAT WAS FOUND. `getFocusNext` ranks the workspace's live themes by severity
  * times recency times novelty-against-what-the-brain-already-knows, writes one
  * recommendation with its evidence and a recommended action, and caches it for
  * thirty minutes. It has existed and worked for weeks. It had ZERO React
@@ -17,6 +17,14 @@ import { Block, Button, Num, Row } from "@/components/shell/primitives";
  * only reference to any of them anywhere in `src/` was a comment saying Today
  * reads them back, in a directory that was deleted in 2d0f6262 and never
  * rebuilt.
+ *
+ * "LIVE THEMES", NOT "EVERY THEME", WHICH IS WHAT THIS PARAGRAPH USED TO SAY.
+ * It was true when it was written and has not been since: `getFocusNext` reads
+ * the default workspace only, drops themes in a settled status, drops
+ * `is_sample` themes (added so the front door could not demonstrate the moat
+ * claim with seeded evidence), and takes the newest 60 before ranking. The
+ * shape of the ranking below is unaffected; the scope of the input is not the
+ * whole table.
  *
  * WHY THAT IS THE MOST EXPENSIVE THING IN THE PRODUCT. README and CLAUDE.md
  * both name layer 03, the company brain, as the ONLY layer defensible alone:
@@ -93,12 +101,16 @@ export function FocusNext() {
        * ONE PRECISION THE SENTENCE DOES NOT CARRY, so it is written here
        * instead of being implied. `novelty` IS scored against `agent_memory`,
        * which is the layer-03 term and the reason it is named here at all --
-       * but it is stamped once at cluster time (cluster.server.ts:252) and no
-       * sweep recomputes it, so it is what the brain held when the cluster
-       * formed rather than a live read. Making the original sentence TRUE is a
-       * different piece of work, and it is one of two changes: `getFocusNext`
-       * grows a settled-outcome term, or an outcome memory landing
-       * re-derives `themes.novelty`. Neither happens today.
+       * but it is stamped once at cluster time (src/lib/ai/cluster.server.ts:252
+       * -- the PATH matters and this used to be written bare as
+       * `cluster.server.ts:252`, which sends a reader to `src/lib/brain/`, the
+       * directory the very next paragraph cites for `score.ts`. There is no
+       * cluster.server.ts there) and no sweep recomputes it, so it is what the
+       * brain held when the cluster formed rather than a live read.
+       * Making the original sentence TRUE is a different piece of work, and it
+       * is one of two changes: `getFocusNext` grows a settled-outcome term, or
+       * an outcome memory landing re-derives `themes.novelty`. Neither happens
+       * today.
        *
        * THE SENTENCE NAMES THREE TERMS AND THE SCORE HAS FOUR. Written down
        * rather than left for the next reader to find, and it under-claims by
@@ -112,11 +124,15 @@ export function FocusNext() {
        * the percentage"), and naming an axis whose value the reader is never
        * shown is that same trade run backwards. The three that ARE named are
        * exactly the three the row below prints. Corroboration is unnamed for a
-       * different reason: `getFocusNext` selects no `frequency` and passes
-       * none (insights.functions.ts:124-133), so `t.frequency ?? 1` makes that
-       * term an identical constant for every theme and it reorders nothing --
-       * which is itself worth someone's attention, since that term exists
-       * precisely to stop a one-signal item topping a queue.
+       * different reason: `getFocusNext` neither names `frequency` in its
+       * `themes` select nor passes it into `scoreTheme` (both inside
+       * `getFocusNext` in src/lib/brain/insights.functions.ts -- cited by
+       * symbol, not line, because that file is under concurrent edit and a
+       * stale line number here would be the very defect this paragraph is
+       * correcting), so `t.frequency ?? 1` pins that term at exactly 0.45 +
+       * 0.55 * log1p(1)/log1p(10) = 0.609 for every theme and it reorders
+       * nothing -- which is itself worth someone's attention, since that term
+       * exists precisely to stop a one-signal item topping a queue.
        */
       sub="Ranked on severity, how recently it was heard, and how new it is against what the brain already holds."
     >

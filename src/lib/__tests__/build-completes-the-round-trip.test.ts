@@ -77,13 +77,43 @@ describe("the dispatch's answer is actually read", () => {
   it("the server still returns that exact key", () => {
     // If the server ever renames it, this test says so even though tsc would
     // too -- the point is that BOTH sides are pinned to one name.
-    expect(SERVER).toMatch(/return \{ \.\.\.result, mission_id: missionId/);
+    //
+    // ASSERTS THE KEY, NOT THE LINE. This was
+    // `/return \{ \.\.\.result, mission_id: missionId/` and it went red on
+    // 2026-08-06 when the dispatch grew a SECOND return site so that a failure
+    // after the agent started reports differently from one before it -- the
+    // shape changed, the contract did not. That is the third formatting-brittle
+    // grep test this repo has paid for (see `derive-tick.test.ts`, which pinned
+    // a single-line ternary that `eslint --fix` then wrapped). Whitespace is
+    // collapsed and every return site is required to carry the key, which is
+    // strictly stronger than pinning one of them.
+    // SCOPED TO THE DISPATCH, and that scoping is not incidental. A first
+    // version of this swept the whole file and went red on `listBuilderRuns`,
+    // which returns `mission_id: r.mission_id` and is entirely correct to do so
+    // -- the read maps a row, the dispatch reports the mission it just made.
+    // Two different contracts, one column name. `the-gate-records-why` slices to
+    // `recordJudgment` for the same reason.
+    const dispatch = SERVER.slice(SERVER.indexOf("export const dispatchBuilderMission")).replace(
+      /\s+/g,
+      " ",
+    );
+    const returns = dispatch.match(/return \{[^}]*mission_id:[^}]*\}/g) ?? [];
+    expect(returns.length).toBeGreaterThan(0);
+    for (const r of returns) expect(r).toMatch(/mission_id: missionId/);
   });
 
   it("still only navigates when there is somewhere to go", () => {
     // A dispatch that produced no mission (no workspace, or no builder agent)
     // must not navigate to /runs/undefined.
-    expect(PANEL).toMatch(/if \(missionId\) void navigate\(/);
+    //
+    // The guard was `if (missionId)` and is now `if (missionId && r?.run_started)`,
+    // which is STRICTER: a mission can exist while the agent loop never entered,
+    // and /runs/<id> for a mission with no run is an empty page. So this asserts
+    // the invariant -- every navigate to the run page is gated on missionId --
+    // rather than one spelling of it, and a future tightening will not go red.
+    const navs = PANEL.replace(/\s+/g, " ").match(/if \([^)]*\) \{? ?void navigate\(\{ to: "\/runs\/\$missionId"/g) ?? [];
+    expect(navs.length).toBeGreaterThan(0);
+    for (const n of navs) expect(n).toMatch(/missionId/);
   });
 });
 

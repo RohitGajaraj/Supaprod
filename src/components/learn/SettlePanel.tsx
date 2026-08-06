@@ -161,17 +161,56 @@ type Target = {
 
 /** The seed for "What you measured", when the agent's draft carries none.
  *
- *  Longest-truth-that-fits rather than a truncation: `recordOutcome` validates
- *  `metricLabel` at 200 characters, so seeding a longer clause would fail the
- *  write, and slicing one would put half a sentence in a field the person is
- *  about to record as fact. A clause too long to be a label is left out of the
- *  field and stays fully readable on the Gate line above it, which is where the
- *  promise is stated anyway. */
+ *  WHY 200 IS THE CUT, SAID CORRECTLY. The comment that used to be here said
+ *  "`recordOutcome` validates `metricLabel` at 200 characters, so seeding a
+ *  longer clause would fail the write." It does not. `recordOutcome`'s
+ *  validator is `metricLabel: z.string().optional()` (outcome.functions.ts:864)
+ *  with no `.max()`, `applyOutcome` passes it through untouched, and
+ *  `learnings.metric_label` is `text` with no length limit — checked live on
+ *  2026-08-06: `character_maximum_length` is null and the only CHECK on the
+ *  table is `learnings_verdict_check`. A longer value would have been written,
+ *  not refused. The real 200s are the form field's own `maxLength={200}` below,
+ *  which constrains TYPING and does not reject a programmatically seeded value,
+ *  and `suggestOutcomeVerdict`, which genuinely caps at 200
+ *  (outcome.functions.ts:1677) on a different call. The cut is kept because a
+ *  label longer than that is not a label; it is just no longer justified by a
+ *  write that would fail.
+ *
+ *  AND A PROMISE IS NOT A MEASUREMENT LABEL. This field is "What you measured"
+ *  and its placeholder names metrics ("Weekly active users, support tickets");
+ *  what it records is `learnings.metric_label`, permanently. A contract clause
+ *  is a target sentence, and pasting one here fills a label field with an
+ *  assertion the person has not made yet. Measured: all 7 `success_metrics`
+ *  clauses in the database are sentences of 62–164 characters, e.g. "Increase
+ *  activation rate (…) by 15% within one quarter" — every one of them would
+ *  have been seeded verbatim by the old rule. So a clause contributes only the
+ *  metric NAME its author wrote before the colon ("Checkout completion: 10
+ *  percent increase…" -> "Checkout completion"), and a clause carrying no such
+ *  name seeds nothing rather than something wrong. Nothing is lost from the
+ *  screen either way: `promiseLine` states every clause in full on the Gate
+ *  line above, which is where a promise belongs. `planMetric` is tried first
+ *  and is exempt from all of this — a launch plan's `success_metric` already IS
+ *  a metric name. */
 const METRIC_LABEL_MAX = 200;
+/** The metric NAME inside a contract clause, or null when it carries none.
+ *  Pure and deliberately unclever: the colon prefix is a name its author typed,
+ *  not a guess at one. Anything longer than a label is not a label. The
+ *  balanced-parenthesis test is the one way this can cut mid-thought — a clause
+ *  reading "Activation (definition: linked accounts) rises 10%" would otherwise
+ *  yield the fragment "Activation (definition" — so an unbalanced head yields
+ *  nothing instead. */
+function labelWithinClause(text: string): string | null {
+  const whole = text.trim();
+  const head = whole.split(":")[0]?.trim() ?? "";
+  if (!head || head.length === whole.length) return null;
+  if (head.split("(").length !== head.split(")").length) return null;
+  return head.length <= METRIC_LABEL_MAX ? head : null;
+}
 function seedMetricLabel(promised: PromisedMetric[], planMetric: string | null): string {
-  const candidates = [planMetric, ...promised.map((p) => p.text)];
-  for (const c of candidates) {
-    if (c && c.length <= METRIC_LABEL_MAX) return c;
+  if (planMetric && planMetric.length <= METRIC_LABEL_MAX) return planMetric;
+  for (const p of promised) {
+    const label = labelWithinClause(p.text);
+    if (label) return label;
   }
   return "";
 }
@@ -261,13 +300,22 @@ export function SettlePanel() {
     const s = t.pending?.suggestion ?? null;
     setVerdict(s?.verdict ?? null);
     setSummary(s?.summary ?? "");
-    // THE PROMISE BEATS THE DEFAULT. `s.metric_label` is hard-coded to
-    // "Distinct users (30d)" by the suggestion drafter whenever any analytics
-    // rows exist (outcome-suggestion.server.ts), which is a generic counter and
-    // not the thing this spec said it would move. So the contract's own clause
-    // is used when the draft carries nothing, and the Gate line above states
-    // the promise either way, so a generic draft label can no longer be the
-    // only metric on the screen.
+    // THE PROMISE FILLS THE GAP; IT DOES NOT YET BEAT THE DEFAULT, and the
+    // heading on this comment used to claim it did. `s.metric_label` is
+    // hard-coded to "Distinct users (30d)" by the suggestion drafter whenever
+    // any analytics rows exist (outcome-suggestion.server.ts), which is a
+    // generic counter and not the thing this spec said it would move — and it
+    // is on the LEFT of the `||`, so it still wins. What changed is only the
+    // empty case: a draft carrying no label seeds from the spec's own promise
+    // instead of leaving the field blank. Displacing the hard-coded default
+    // has to happen in the drafter, where the label is invented; until it
+    // does, the Gate line above is what keeps the real promise on screen.
+    //
+    // `||` and not `??`, deliberately: an empty-string label from the drafter
+    // is a missing label, not a chosen one. On the reconsider path (:296) that
+    // means the field can differ from what the agent recorded while `dirty` is
+    // still false, and the button correctly still says "Change the verdict to
+    // overturn it".
     setMetricLabel(s?.metric_label || seedMetricLabel(t.promised, t.planMetric));
     setMetricValue(s?.metric_value ?? "");
   }, [targetId]);

@@ -502,6 +502,17 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
      * spec's flow, and the mockup in its OWN fenced html block -- and they now
      * ride whether or not a contract compiled, which is the only way the
      * approved mockup reaches a Build Console dispatch today.
+     *
+     * NOTHING RIDES WHEN THERE IS NOTHING TO SEND, which is the ordinary case
+     * and was worth checking rather than assuming. `formatDesignMemoryContext`,
+     * `formatFlowContext` and `formatScaffoldHtmlBlock` each return "" for an
+     * empty input and `formatDesignDispatchSections` pushes only non-empty
+     * strings, so a spec with no brand rules, no flow and no drawing -- 39 of the
+     * 41 approved specs on 2026-08-06 -- yields `[]` and `assembleBuilderGoal`'s
+     * length guard adds no heading at all. That distinction matters: an empty
+     * labelled section is not silence, it is the design station stating it had
+     * nothing to say, and a builder told that builds past a drawing it should
+     * have gone looking for.
      */
     const designSections = formatDesignDispatchSections(designCtx);
 
@@ -655,6 +666,16 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
      * is visible in full) alongside `run_error`. Only a failure with no mission
      * and no started loop behind it still throws, because for that one the
      * caller's sentence is true.
+     *
+     * `run_started` IS THE THIRD CASE, AND IT WAS MISSING. A caller holding only
+     * `{mission_id, run_error}` cannot tell "the agent ran and then failed" —
+     * where the run page carries the whole story and navigating there is right —
+     * from "the mission row exists and no agent was ever started", which is
+     * reachable when `recordLineage` throws a transport error a few lines below
+     * (`recordStageEvent` cannot throw; stage-events.server.ts swallows its own).
+     * In that second case the mission has no run at all, so a caller that
+     * navigated to it showed an empty page and dropped the reason on the floor.
+     * It mirrors `loopEntered` exactly and is true on every success.
      */
     let missionId: string | null = null;
     let loopEntered = false;
@@ -729,6 +750,7 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         issue_number: issueNumber,
         issue_url: issueUrl,
         run_error: null as string | null,
+        run_started: true as boolean,
       };
     } catch (e) {
       // Nothing durable to point the caller at: the mission was never created
@@ -740,9 +762,31 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
         issue_number: issueNumber,
         issue_url: issueUrl,
         run_error: e instanceof Error ? e.message : String(e),
+        run_started: loopEntered,
       };
     }
   });
+
+/**
+ * One blocked row, and the only two facts a surface needs to name the reason
+ * without guessing at it.
+ */
+export type DispatchDesignGate = {
+  id: string;
+  /**
+   * `prds.design_gate_status` exactly as stored, or null pre-migration. It is
+   * never "approved": a spec whose gate is approved is not in this list, because
+   * `designGateBlocksDispatch` blocks precisely when the status is not.
+   */
+  status: string | null;
+  /**
+   * TRUE ONLY WHEN A DRAWING IS KNOWN TO EXIST. `loadDesignGateState` reports
+   * `hasDrawing: undefined` when the `prd_scaffolds` count read FAILED, and the
+   * gate stays shut on unknown by design. A blocked row with this false must not
+   * tell anyone a mockup is waiting for them — nobody knows whether one is.
+   */
+  drawingConfirmed: boolean;
+};
 
 /**
  * THE GATE, READ FOR A LIST — so a surface can say which rows this dispatch
@@ -761,29 +805,62 @@ export const dispatchBuilderMission = createServerFn({ method: "POST" })
  * query count: the gate rule is subtle (an unmade drawing must NOT block, an
  * unreadable drawing count must), and a surface that guessed at it would go
  * wrong in the direction of telling 39 people their spec is stuck when it is
- * not. Returns only the blocked ids, so the caller cannot re-derive the rule.
+ * not.
+ *
+ * IT USED TO RETURN BARE IDS, "so the caller cannot re-derive the rule", AND
+ * THAT DENIED THE CALLER THE FACT IT NEEDED TO SPEAK ACCURATELY. Holding only
+ * `string[]`, the Build Console had one sentence for every blocked row and it
+ * chose the common one: "a mockup is drawn and nobody has approved or rejected
+ * it". `designGateBlocksDispatch` blocks on `status !== "approved"`, which
+ * includes `rejected` — a status `decideDesignGate` really writes
+ * (design-scaffold.functions.ts:1029) — and it also blocks when the drawing
+ * count could not be read at all (design-gate.server.ts:34 keeps the gate shut
+ * on unknown, deliberately). For those two the row asserted the opposite of the
+ * truth. So the shape now carries the two facts a true sentence needs and
+ * NOTHING MORE: it still does not carry `stageEnabled`, so the rule itself
+ * remains underivable here and stays in the one predicate both dispatch paths
+ * call.
+ *
+ * `unresolved` closes the other half. An id absent from the `prds` select is
+ * absence of evidence, not evidence of an open gate; treating it as not-blocked
+ * is the discarded-read pattern this repo keeps paying for. It should be empty
+ * in practice — the caller's ids come from `listSpecs`, read under the same
+ * RLS — and if it ever is not, the surface can say so instead of promising a
+ * build that the dispatch will refuse.
  */
 export const listDispatchDesignGates = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
     z.object({ prdIds: z.array(z.string().uuid()).min(1).max(24) }).parse(i),
   )
-  .handler(async ({ context, data }): Promise<{ blocked: string[] }> => {
-    const { supabase } = context;
-    const { data: rows, error } = await supabase
-      .from("prds")
-      .select("id,workspace_id")
-      .in("id", data.prdIds);
-    if (error) throw new Error(error.message);
-    const prds = (rows ?? []) as Array<{ id: string; workspace_id: string | null }>;
-    const states = await Promise.all(
-      prds.map(async (p) => ({
-        id: p.id,
-        state: await loadDesignGateState(supabase as unknown as SupabaseClient, p),
-      })),
-    );
-    return { blocked: states.filter((s) => designGateBlocksDispatch(s.state)).map((s) => s.id) };
-  });
+  .handler(
+    async ({ context, data }): Promise<{ blocked: DispatchDesignGate[]; unresolved: string[] }> => {
+      const { supabase } = context;
+      const { data: rows, error } = await supabase
+        .from("prds")
+        .select("id,workspace_id")
+        .in("id", data.prdIds);
+      if (error) throw new Error(error.message);
+      const prds = (rows ?? []) as Array<{ id: string; workspace_id: string | null }>;
+      const states = await Promise.all(
+        prds.map(async (p) => ({
+          id: p.id,
+          state: await loadDesignGateState(supabase as unknown as SupabaseClient, p),
+        })),
+      );
+      const resolved = new Set(prds.map((p) => p.id));
+      return {
+        blocked: states
+          .filter((s) => designGateBlocksDispatch(s.state))
+          .map((s) => ({
+            id: s.id,
+            status: s.state.status,
+            drawingConfirmed: s.state.hasDrawing === true,
+          })),
+        unresolved: data.prdIds.filter((id) => !resolved.has(id)),
+      };
+    },
+  );
 
 // ─── K1-deploy: Supaprod-triggered deploy gate ────────────────────────────────
 

@@ -195,8 +195,9 @@
  *      only the root signals, so the block jumped from the spec to raw customer
  *      sentences with the decision that authorised the work missing from the
  *      middle. That block now names the bet first -- its problem, its ICE, its
- *      state at Decide, and the Example tag when the bet is a seeded one -- and
- *      then the quotes underneath it, unchanged.
+ *      state on Decide in the same words Decide's own StatusPill prints, and
+ *      the Example tag when the bet is a seeded one -- and then the quotes
+ *      underneath it, unchanged.
  *   2. DESIGN READINESS SCORED THE PROSE AND CALLED IT THE SPEC. The scan is a
  *      keyword pass and it was handed `body_md` alone, so non-goals and
  *      criteria written in the Outcome Contract counted as unwritten. It now
@@ -230,6 +231,12 @@ import { getProvenance } from "@/lib/lineage.functions";
 // detail sheet enters this bundle. Never a second hand-written bet type: that
 // interface's own rule is that every field maps to an `opportunities` column.
 import type { OpportunityDetailRecord } from "@/components/discover/OpportunityDetailSheet";
+// The product's ONE renderer for `opportunities.status`. Its own docstring is
+// that a status must read the same wherever it appears, so this page borrows it
+// rather than writing a second spelling of "Backlog". It is the same function
+// behind the StatusPill /decide draws on every queue row, including that pill's
+// pass-through of a value STATUS_META does not know.
+import { statusLabel } from "@/components/discover/OpportunityRow";
 // PostgREST serializes the `numeric` ice_score column as a STRING, so the
 // generated Supabase type lies about it. One coercion, shared with moat-vis
 // and decision-judgment, rather than a third `Number()` written here.
@@ -537,6 +544,22 @@ function SpecEditorPage() {
    * the common path -- arriving here from Decide, whose data is already in
    * cache -- costs a cache read rather than a request, and every existing
    * `["opportunities"]` invalidation keeps this current for free.
+   *
+   * WHAT SCOPES IT, since a 500-row unfiltered read on a page about ONE spec is
+   * the thing a reviewer should challenge. `listOpportunities` takes no
+   * arguments and applies no workspace, product or status clause; its only
+   * scoping is RLS, exactly like every other read on this page (`getPrd` and
+   * `getProvenance` are by id, `listTasks` is likewise unfiltered and narrowed
+   * client-side to `t.prd_id === id`). That is safe HERE for a reason narrower
+   * than RLS: the row is selected by matching the foreign key exactly, so a bet
+   * from another of the caller's workspaces can never be shown against this
+   * spec — the id either matches or nothing renders. `["opportunities"]` is not
+   * a global query-key root either (`workspace-query-scope.ts`), so a workspace
+   * switch clears this cache entry rather than carrying one workspace's bets
+   * into the next. What is genuinely paid is bandwidth, not correctness: a COLD
+   * load of this page (deep link, refresh, a row click on /plan) fetches up to
+   * 500 bets to render one. The fix for that is a by-id server read, which
+   * lives in a file this page does not own; see the seam report.
    *
    * Gated on the foreign key, so a spec written by hand never pays for it.
    */
@@ -1247,10 +1270,24 @@ function SpecEditorPage() {
                 ))}
               </Actions>
               {/* Advice about the words while you are writing them, so it stays
-                  with the state that can act on it. It goes quiet on a blank
-                  spec, so it draws nothing of its own. It reads the contract
+                  with the state that can act on it. It reads the contract
                   alongside the body (see `readinessText`), so a dimension
-                  stated as a contract clause counts as stated. */}
+                  stated as a contract clause counts as stated.
+
+                  IT GOES QUIET WHEN NEITHER THE BODY NOR THE CONTRACT SAYS 40
+                  CHARACTERS' WORTH, which is narrower than the "quiet on a blank
+                  spec" this note used to claim. `analyzeDesignReadiness`
+                  computes `empty = normalize(text).length < 40` and the panel
+                  returns null on it, and what it is handed is now
+                  `readinessText`, not `body`. So a spec with an empty `body_md`
+                  and a contract carrying 40 characters draws the panel where it
+                  previously drew nothing. That is the correct behaviour — there
+                  IS something to assess — but it is a behaviour change and the
+                  sentence a skimmer reads has to say so. Its other visible
+                  effect: scores RISE for specs whose contract states dimensions
+                  the body does not, so a spec that read "Early" before this pass
+                  can read "Developing" today with nothing on screen explaining
+                  the jump. */}
               <DesignReadinessPanel body={readinessText} />
             </>
           ) : (
@@ -1589,11 +1626,27 @@ function SpecEditorPage() {
               <>
                 {/* "came from" rather than "was kept": a bet can be killed or
                     dropped after its spec was written, and the line below
-                    prints whichever state it is actually in. */}
+                    prints whichever state it is actually in.
+
+                    THE STEP COUNT'S SUBJECT IS THE SPEC, NOT THE BET, and the
+                    first draft of this sentence moved it onto the bet and made
+                    the number wrong. `getProvenance` is called with
+                    `kind: "prd"` and returns `node_count: seen.size - 1`, which
+                    is EVERY distinct ancestor of this spec: the bet node itself
+                    counts as one step in its own trace, and the walk also picks
+                    up ancestors that never sat under the bet. Measured live on
+                    2026-08-06, `artifact_lineage` carries 28 prd->learning and
+                    21 prd->decision edges beside the 13 prd->opportunity ones,
+                    and 14 of the 20 specs that have lineage rows at all have
+                    more than one parent kind — so on most of the specs that
+                    render this sentence, an inflated number was being pinned on
+                    the bet. The subject is back on the spec, where the count is
+                    exactly what the number means. */}
                 It was not invented here. It serves a bet that came from Decide
                 {signalCount > 0 ? (
                   <>
-                    , and that bet traces back through <Num>{provQ.data!.node_count}</Num>{" "}
+                    , and the chain behind this spec runs through{" "}
+                    <Num>{provQ.data!.node_count}</Num>{" "}
                     {provQ.data!.node_count === 1 ? "step" : "steps"} to <Num>{signalCount}</Num>{" "}
                     {signalCount === 1 ? "thing" : "things"} people actually said
                     {provQ.data!.truncated ? ", and the chain continues past these" : ""}
@@ -1613,16 +1666,18 @@ function SpecEditorPage() {
         >
           {/* THE BET, read off the `opportunity_id` foreign key this page never
               touched. A spec with no bet behind it renders nothing here and the
-              signals below read exactly as they always did. */}
+              signals below read exactly as they always did.
+
+              THE BET OUTRANKS THE ERROR, and the first draft had that backwards.
+              The order was isLoading -> isError -> sourceBet -> Empty, and in
+              react-query v5 `data` survives a failed background refetch while
+              `status` flips to error. So a spec whose bet was already in the
+              shared ["opportunities"] cache would replace the rendered bet with
+              "the bet did not come back" on any later refetch failure — a false
+              sentence about a record this page is holding in its hand. All four
+              states survive; only their precedence changed. */}
           {specOpportunityId ? (
-            oppsQ.isLoading ? (
-              <Loading>Reading the bet this spec was written for.</Loading>
-            ) : oppsQ.isError ? (
-              <Failed onRetry={() => void oppsQ.refetch()}>
-                This spec names a bet and the bet did not come back.{" "}
-                {(oppsQ.error as Error).message}
-              </Failed>
-            ) : sourceBet ? (
+            sourceBet ? (
               <Line
                 label={sourceBet.title}
                 sub={
@@ -1648,7 +1703,46 @@ function SpecEditorPage() {
                         <Num>{betIce.toFixed(1)}</Num>, the score the Decide queue is ordered by
                       </>
                     ) : null}
-                    {sourceBet.status ? <> · its state on Decide is {sourceBet.status}</> : null}
+                    {/* THE STATUS WORD, THROUGH THE ONE RENDERER THAT OWNS IT.
+                        This printed `sourceBet.status` raw, so the same bet read
+                        "Backlog" on Discover and "backlog" here. `statusLabel` /
+                        STATUS_META (components/discover/OpportunityRow) is the
+                        product's single renderer for this column, and its own
+                        docstring is that a status must read the same wherever it
+                        appears.
+
+                        WHAT THIS DELIBERATELY DOES NOT DO, because checking it
+                        turned the reasoning around. A reviewer asked for the
+                        off-lane values to be re-phrased ("its STATUS is
+                        committed") on the grounds that `committed` and
+                        `discovery` name "a state Decide neither displays nor
+                        offers". Half of that is right and half is wrong, and the
+                        wrong half is the load-bearing one: /decide's queue row
+                        renders `<StatusPill status={o.status} />` on EVERY row,
+                        and StatusPill falls back to `label: status` for a value
+                        STATUS_META does not know — the identical fallback
+                        `statusLabel` takes. So Decide displays "committed", in
+                        exactly the characters this line now prints, and "its
+                        state on Decide is committed" is true. Splitting the
+                        sentence on lane membership would have introduced a NEW
+                        false one: `shipped` and `dropped` ARE in STATUS_META but
+                        are not lanes (`LANES` offers Now/Next/Later/Backlog, and
+                        `laneBucketFor` returns no bucket for either), so any
+                        branch calling a STATUS_META value "its lane" would lie
+                        about those two.
+
+                        The residual, true and left in the comment rather than the
+                        copy: three stored values (`committed` 36, `discovery` 21,
+                        `killed` 15, measured live 2026-08-06) are DISPLAYED by
+                        Decide but not OFFERED by its four-lane menu, so a reader
+                        who follows the Door to change one will not find that word
+                        among the choices. That is Decide's vocabulary gap, not a
+                        false sentence on this page. Of the 42 specs carrying a
+                        bet, 34 point at a `committed` one and 4 at a `discovery`
+                        one, so it is the majority rendering. */}
+                    {sourceBet.status ? (
+                      <> · its state on Decide is {statusLabel(sourceBet.status)}</>
+                    ) : null}
                   </>
                 }
               >
@@ -1665,12 +1759,36 @@ function SpecEditorPage() {
                   Open the ranking
                 </Door>
               </Line>
+            ) : oppsQ.isLoading ? (
+              <Loading>Reading the bet this spec was written for.</Loading>
+            ) : oppsQ.isError ? (
+              <Failed onRetry={() => void oppsQ.refetch()}>
+                This spec names a bet and the bet did not come back.{" "}
+                {/* Optional chain and a fallback, the convention this file
+                    already uses on the spec read two hundred lines up: a
+                    rejection that is not an Error has no `.message`, and
+                    reading it off `undefined` would crash the region that
+                    exists to report the failure. */}
+                {(oppsQ.error as Error)?.message ?? "No reason was reported."}
+              </Failed>
             ) : (
               // NAMES ALL THREE REASONS, including the one the read itself
               // causes: `listOpportunities` returns the 500 highest-scoring
               // bets, so a very large workspace can hold a real bet this read
               // never sees. Saying only "deleted" would blame the record for a
               // limit in the query.
+              //
+              // "HIGHEST-SCORING" IS EXACT TODAY AND IS NOT A PROMISE FOREVER,
+              // recorded here so the next reader does not re-litigate it.
+              // `listOpportunities` orders `ice_score` DESC without naming
+              // `nullsFirst`, and Postgres puts NULLS FIRST on a DESC order, so
+              // a null-scored bet would LEAD this read rather than fall off the
+              // end of it and the word "highest-scoring" would stop describing
+              // what the cap drops. Measured live 2026-08-06: 0 of 289
+              // opportunities carry a null `ice_score` and 289 is well inside
+              // the 500 cap, so neither half is reachable and the sentence is
+              // true as written. If nulls ever appear, this sentence is what
+              // needs changing, not the read.
               <Empty>
                 This spec names a bet the ranking did not return. It was deleted, it belongs to a
                 workspace you are not in, or it falls outside the 500 highest-scoring bets this read

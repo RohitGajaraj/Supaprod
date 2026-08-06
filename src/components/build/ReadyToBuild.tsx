@@ -4,7 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
 
 import { listSpecs } from "@/lib/discovery.functions";
-import { dispatchBuilderMission, listDispatchDesignGates } from "@/lib/build.functions";
+import {
+  dispatchBuilderMission,
+  listDispatchDesignGates,
+  type DispatchDesignGate,
+} from "@/lib/build.functions";
 import { Block, Button, Door, Row } from "@/components/shell/primitives";
 
 /**
@@ -49,8 +53,17 @@ export function ReadyToBuild() {
    * is true of a failure before the mission exists and false of one after it,
    * and the dispatch reaches both. Holding lead and sub together is what lets
    * each outcome say its own true sentence.
+   *
+   * `missionId` is here for the one outcome that has somewhere to go and is not
+   * a success: the mission row exists, the agent never started, so the person is
+   * told why AND handed the door, instead of being navigated onto a run page
+   * with no run on it. Absent for every failure with no mission behind it.
    */
-  const [failed, setFailed] = React.useState<{ lead: string; sub: string } | null>(null);
+  const [failed, setFailed] = React.useState<{
+    lead: string;
+    sub: string;
+    missionId?: string;
+  } | null>(null);
 
   const specs = useQuery({
     queryKey: ["specs"],
@@ -74,13 +87,29 @@ export function ReadyToBuild() {
    * server fn that reuses the dispatch's own predicate keeps one rule in one
    * place. No `staleTime`: a gate approved in another tab should stop blocking
    * this list the next time it mounts.
+   *
+   * AN UNANSWERED GATE READ IS NOT AN OPEN GATE, and this list used to treat it
+   * as one. On `isError` the map is empty and on the first render it is not
+   * filled yet, so every row fell back to "Approved. Build opens the issue as it
+   * starts." — a promise about a press that `dispatchBuilderMission` may be
+   * about to refuse. `unresolved` is the same mistake in its quieter form: an id
+   * the server's own `prds` select did not return is unknown, not unblocked. All
+   * three now say what is known, and none of them takes the button away: the
+   * dispatch enforces the gate itself and its refusal message is accurate.
    */
   const gates = useQuery({
     queryKey: ["build-design-gates", visibleIds],
     queryFn: () => fGates({ data: { prdIds: visibleIds } }),
     enabled: visibleIds.length > 0,
   });
-  const blocked = new Set(gates.data?.blocked ?? []);
+  const blocked = new Map<string, DispatchDesignGate>(
+    (gates.data?.blocked ?? []).map((g) => [g.id, g]),
+  );
+  const unresolved = new Set(gates.data?.unresolved ?? []);
+  // `enabled` is true whenever a row renders (this component returns null on an
+  // empty list), so `isLoading` is a real in-flight read here and never the
+  // forever-pending state a disabled query holds under react-query v5.
+  const gateUnread = gates.isError || gates.isLoading;
 
   const start = useMutation({
     mutationFn: (v: { id: string; title: string }) =>
@@ -96,10 +125,14 @@ export function ReadyToBuild() {
            * WITHOUT THIS, EVERY PRESS THREW. `dispatchBuilderMission` needs an
            * issue from one of three sources -- a linked PRD that already has
            * one, an issue number typed in, or this flag -- and got none, so it
-           * hit the throw at build.functions.ts:478 on every call. Measured on
-           * the live database: 55 approved specs, ZERO with a
-           * `github_issue_url`. The control was wrong 100% of the time from the
-           * moment it shipped.
+           * hit the "Need a GitHub issue" throw on every call. (That was cited
+           * here as build.functions.ts:478; six commits have landed in it since
+           * and the line now sits inside the PRD lookup, so the throw is named by
+           * its message instead. A line number in a comment rots in days.)
+           * Measured on the live database: 55 approved specs, ZERO with a
+           * `github_issue_url` -- re-measured 2026-08-06 and it is now 41
+           * approved specs, still ZERO. The control was wrong 100% of the time
+           * from the moment it shipped.
            *
            * And the row already promised this: "Approved. Build opens the issue
            * as it starts." The copy described the behaviour the flag turns on
@@ -135,8 +168,32 @@ export function ReadyToBuild() {
        * server-side and this line goes red.
        */
       const missionId = r?.mission_id;
-      if (missionId) {
+      /**
+       * NAVIGATE ONLY WHERE THE REASON SURVIVES THE NAVIGATION.
+       *
+       * This read `if (missionId)` and returned, so a `run_error` the server had
+       * gone to the trouble of reporting was shown nowhere at all. For a
+       * `runAgentLoop` failure that is fine — the agent ran, and the run page it
+       * lands on carries the failure in full. It is not fine for the window the
+       * server explicitly opened: a mission created and the loop never entered,
+       * which `recordLineage` throwing a transport error reaches. There the run
+       * page has no run on it, so navigating there showed an empty page, no
+       * message, and a build that genuinely did not start.
+       *
+       * `run_started` is the server's own `loopEntered`, so this branch asks the
+       * question the server already answered rather than inferring it from the
+       * presence of an error string.
+       */
+      if (missionId && r?.run_started) {
         void navigate({ to: "/runs/$missionId", params: { missionId } });
+        return;
+      }
+      if (missionId) {
+        setFailed({
+          lead: "The build stopped before the agent started",
+          sub: `${r?.run_error ?? "No reason was reported."} The GitHub issue is open at #${r?.issue_number} and the mission was created, but no agent run was started for it, so nothing is building yet.`,
+          missionId,
+        });
         return;
       }
       /**
@@ -179,12 +236,40 @@ export function ReadyToBuild() {
   if (specs.isLoading || specs.isError) return null;
   if (ready.length === 0) return null;
 
+  // Hoisted out of the JSX so the door below needs no cast: narrowing a
+  // PROPERTY does not survive into a callback, narrowing a const local does,
+  // and this file's own comment about `as { missionId?: string }` is the reason
+  // not to reach for the assertion instead.
+  const failedMissionId = failed && failed.missionId ? failed.missionId : null;
+
   return (
     <Block
       title="Approved and waiting to be built"
       sub="Plan has finished with these. Starting one here opens its run."
     >
-      {failed ? <Row lead={failed.lead} sub={failed.sub} /> : null}
+      {failed ? (
+        <Row
+          lead={failed.lead}
+          sub={failed.sub}
+          /* The mission is real even though its run is not, so the record of
+             the attempt is reachable rather than only described. */
+          action={
+            failedMissionId ? (
+              <Door
+                title="Open the mission this dispatch created"
+                onClick={() =>
+                  void navigate({
+                    to: "/runs/$missionId",
+                    params: { missionId: failedMissionId },
+                  })
+                }
+              >
+                Open the mission
+              </Door>
+            ) : undefined
+          }
+        />
+      ) : null}
       {visible.map((row) => {
         /**
          * "APPROVED" WAS A CLAIM ABOUT THE WRONG GATE.
@@ -201,18 +286,42 @@ export function ReadyToBuild() {
          * The row is not dropped and the person is not left holding a control
          * that cannot work: the sub-line says which gate is holding it and the
          * action becomes the door to the gate.
+         *
+         * WHICH SENTENCE, THOUGH — THE FIRST VERSION OF THIS ROW HAD ONE FOR
+         * THREE DIFFERENT STATES. It said "a mockup is drawn and nobody has
+         * approved or rejected it" for every blocked row, and the gate blocks on
+         * `status !== "approved"`: a REJECTED design is blocked, and so is a spec
+         * whose drawing count could not be read (the gate stays shut on unknown,
+         * design-gate.server.ts:34). For those two the row asserted the opposite
+         * of the truth — this repo's signature defect, written inside the fix for
+         * it. Live today the honest branch is unexercised: of 81 specs not one
+         * carries `design_gate_status = 'rejected'`, and the two approved specs
+         * the gate does block are both drawn-and-pending (all 21 workspaces have
+         * the design stage on). Latent, not broken, and worth stating anyway,
+         * because `decideDesignGate` writes 'rejected' the first time a person
+         * uses the button the door below points at.
          */
-        const gated = blocked.has(row.id);
+        const gate = blocked.get(row.id) ?? null;
+        const gated = gate !== null;
+        // Only meaningful when the row is NOT blocked: a row we know is blocked
+        // is blocked whatever else went unread.
+        const unread = !gated && (gateUnread || unresolved.has(row.id));
         return (
           <Row
             key={row.id}
             lead={row.title}
             sub={
-              gated
-                ? "Waiting on the design gate: a mockup is drawn and nobody has approved or rejected it, so a build started here would be refused."
-                : row.github_issue_url
-                  ? "Approved, with a GitHub issue already open."
-                  : "Approved. Build opens the issue as it starts."
+              gate
+                ? gate.status === "rejected"
+                  ? "Waiting on the design gate: this spec's design was rejected and nothing approved has replaced it, so a build started here would be refused."
+                  : !gate.drawingConfirmed
+                    ? "Waiting on the design gate: whether a mockup exists could not be read, and the gate stays shut while that is unknown, so a build started here would be refused."
+                    : "Waiting on the design gate: a mockup is drawn and nobody has approved it yet, so a build started here would be refused."
+                : unread
+                  ? "Approved. The design gate has not been read for this spec yet, so a build started here may still be refused."
+                  : row.github_issue_url
+                    ? "Approved, with a GitHub issue already open."
+                    : "Approved. Build opens the issue as it starts."
             }
             /* PER ROW, not per mutation. One shared `isPending` drove all six
                buttons, so starting ONE build reported that six were starting
@@ -221,9 +330,32 @@ export function ReadyToBuild() {
                for; fifteen sibling files already use this shape. */
             action={
               gated ? (
+                /**
+                 * THE DOOR OPENS THE SPEC IT NAMES, WHICH `/design?focus=` COULD
+                 * NOT PROMISE. That route resolves `focus` against the list
+                 * `listDesignWork` returns, which is scoped to
+                 * `current_user_default_workspace` and capped at WORK_LIMIT; a
+                 * spec outside either falls back to `items[0]`
+                 * (_authenticated.design.tsx:381) and the person judges a
+                 * DIFFERENT spec's drawing believing it is this one. This list is
+                 * fed by `listSpecs`, which is not workspace-scoped at all, so the
+                 * two disagree by construction. `/plan/spec/$id?tab=flow` takes
+                 * the id in the path, cannot fall back to anything, and mounts
+                 * `DesignScaffoldPanel` — the same approve / request-changes pair
+                 * that writes the gate — which is also where
+                 * DESIGN_GATE_BLOCK_MESSAGE has always sent people ("the spec
+                 * page"). The design station keeps its own handoff; it just is not
+                 * the one a named row can rely on.
+                 */
                 <Door
-                  title="Open this spec's drawing at the design gate"
-                  onClick={() => void navigate({ to: "/design", search: { focus: row.id } })}
+                  title="Open this spec's design gate on its spec page"
+                  onClick={() =>
+                    void navigate({
+                      to: "/plan/spec/$id",
+                      params: { id: row.id },
+                      search: { tab: "flow" },
+                    })
+                  }
                 >
                   Judge the design
                 </Door>

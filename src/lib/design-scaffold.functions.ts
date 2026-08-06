@@ -51,12 +51,29 @@
  * AND THE CRITIC'S RULING SURVIVES THE PAGE. `runScaffoldDesignCritic` used to
  * return its findings and persist nothing, so a paid-for review died on the
  * next click and the gate verdict recorded beside it carried no trace of what
- * the Critic said. `prd_scaffolds` has no column for a review (checked against
- * the live schema: id, workspace_id, prd_id, html, source, generated_by,
- * created_at, updated_at), so the ruling lands on `prds.critic_review` under
- * its own `scaffold_design` key -- the same jsonb column and the same idiom
- * `runCritic` (critic.server.ts) already writes. See the persist site below
- * for the one thing that arrangement cannot survive.
+ * the Critic said. It now lands on `prd_scaffolds.critic_review`, a column of
+ * its own, added by the migration dated 20260806170000 ("a drawings review
+ * belongs to the drawing") under `supabase/migrations/`.
+ *
+ * IT USED TO LAND ON `prds.critic_review` UNDER A `scaffold_design` KEY, and
+ * that was a launch blocker rather than a clever way to skip a migration. That
+ * column is the SPEC red-team's, and five surfaces read it as one: `CriticBadge`
+ * (governance/CriticBadge.tsx) treats any truthy value as "the Critic has ruled"
+ * -- it drops the "Ask the Critic" button and then reads `review.risks.length`,
+ * which is a TypeError on an object that only ever held a drawing's findings.
+ * /ask renders "The Critic says {verdict}. {summary}" off the same column, and
+ * the approvals queue builds its evidence line from it. Measured 2026-08-06:
+ * 77 of 81 specs have `critic_review IS NULL`, and all 4 specs that have a
+ * drawing are among them -- so the FIRST "Ask the Critic" on /design would have
+ * broken that spec's own page. A review about the markup is a fact about the
+ * drawing, so it is filed against the drawing.
+ *
+ * THE WRITE IS TOLERANT OF THE COLUMN NOT BEING THERE YET. Until the migration
+ * is applied the update fails, `persisted` comes back false, and /design already
+ * says "It could not be saved, so it goes when you leave this page" -- the
+ * review is still returned and still rendered. The read is `select("*")` for the
+ * same reason: naming a column that does not exist would fail the whole query
+ * and take THE DRAWING off the page with it.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -231,10 +248,39 @@ export function readContractBrief(contract: unknown): SpecContractBrief | null {
 }
 
 /**
+ * The ceiling on the contract block.
+ *
+ * `ContractClauseSchema` (discovery.functions.ts) caps one clause at 2000
+ * characters and caps the COUNT at nothing, so without this a spec with fifty
+ * clauses would quietly push the spec body out of the model's attention. The two
+ * live contracts carry nine clauses between them, so nothing today reaches this.
+ *
+ * 4000 because the blocks it rides beside are 8000 (`specBody`, sliced in the
+ * same user message; `ARD_BLOCK_MAX_CHARS`, the same idea at Build) and 20000
+ * (the mockup HTML, in the same Critic subject). Half, because this one is
+ * ALONGSIDE them rather than instead of them, and a contract is a short list of
+ * criteria or it is not a contract.
+ *
+ * NOT EVERY BLOCK IN THIS MESSAGE IS BOUNDED, and it would be easy to write here
+ * that they are. `formatDesignMemoryContext` (design-memory.functions.ts:143)
+ * has no cap at all and rides in this same `userMsg`, so a workspace with a
+ * hundred standing rules is still an unbounded prompt. That is a real gap and it
+ * is not this constant's to close: those rules are the whole reason DSN-01
+ * exists, and truncating them is a judgement about which of a person's own
+ * design decisions to drop.
+ */
+const CONTRACT_BLOCK_MAX_CHARS = 4000;
+
+/**
  * PURE. The contract block that rides into the drawing prompt and into the
  * Critic's subject. "" for a spec with no standing contract, so the message
  * those specs compose is byte-identical to the one this module sent before the
  * contract travelled at all.
+ *
+ * A block over the ceiling is cut AND SAYS SO, in the block itself. A silent
+ * slice would hand the model a contract that looks complete and is not, and the
+ * whole point of the CONTRACT clause in the system prompt is that the model
+ * treats every criterion under MUST BE TRUE as one it has to draw a path for.
  */
 export function formatContractContext(brief: SpecContractBrief | null): string {
   if (!brief) return "";
@@ -250,7 +296,10 @@ export function formatContractContext(brief: SpecContractBrief | null): string {
       `OUT OF SCOPE, do not draw these:\n${brief.nonGoals.map((t) => `  - ${t}`).join("\n")}`,
     );
   }
-  return parts.join("\n");
+  const block = parts.join("\n");
+  if (block.length <= CONTRACT_BLOCK_MAX_CHARS) return block;
+  return `${block.slice(0, CONTRACT_BLOCK_MAX_CHARS)}
+[CUT AT ${CONTRACT_BLOCK_MAX_CHARS} CHARACTERS. This spec's contract is longer than the block that fits in this message, so criteria after this line did not reach you. Treat the list above as incomplete.]`;
 }
 
 export function buildSystemPrompt(
@@ -854,41 +903,46 @@ export type ScaffoldDesignCriticResult = {
 };
 
 /**
- * WHERE A SCAFFOLD REVIEW IS KEPT, and the one thing this arrangement cannot
- * survive.
+ * WHERE A SCAFFOLD REVIEW IS KEPT.
  *
- * `prd_scaffolds` has no column for a review, so the ruling lands under its own
- * key on `prds.critic_review` -- the jsonb column `runCritic` already owns. The
- * merge below preserves every other key, so a scaffold review never costs a
- * spec its red-team verdict or its persona board.
+ * `prd_scaffolds.critic_review`, one jsonb column beside the `html` it is a
+ * review OF, holding the ruling FLAT -- no wrapper key, because the column is
+ * the drawing's alone and has nobody to share it with. The migration that adds
+ * it also lifts any `scaffold_design` key an earlier build wrote into
+ * `prds.critic_review` back out, so no ruling is stranded and no spec is left
+ * carrying a drawing's findings where its own red-team verdict should be.
  *
- * PARTIAL, AND HERE IS EXACTLY HOW. `runCritic` (src/lib/ai/critic.server.ts:394)
- * writes the WHOLE column with `.update({ critic_review: review })`, so a later
- * full Critic run on the same spec drops this key with everything else it did
- * not author. The result is that the drawing's ruling disappears and /design
- * offers the Critic again; it is never a stale ruling shown as current. Making
- * that impossible means either a merge on the other side of critic.server.ts or
- * a `prd_scaffolds.critic_review` column, and neither is this file's to do.
+ * ONE ROW PER SPEC, overwritten by a redraw, which is what makes `reviewed_at`
+ * checkable against `updated_at` on the same row (see getDesignWorkItem).
+ *
+ * WHAT THIS IS NOT. It is deliberately NOT `prds.critic_review`. That column
+ * belongs to the spec red-team and five surfaces read it whole; putting a
+ * drawing's findings in it broke `CriticBadge` on /plan/spec/$id outright. See
+ * the module header for the measurement.
+ *
+ * WHAT IS STORED IN IT is the type below. `reviewed_at` is what makes a
+ * rehydrated ruling checkable against the drawing it claims to be about.
  */
-const SCAFFOLD_REVIEW_KEY = "scaffold_design";
-
-/** What is stored under that key. `reviewedAt` is what makes a rehydrated
- *  ruling checkable against the drawing it claims to be about. */
 type StoredScaffoldReview = {
   verdict: DesignCriticReview["verdict"];
   findings: DesignCriticReview["findings"];
   reviewed_at: string;
 };
 
-/** PURE. The stored ruling, bounded by the same parser the live call uses, or
- *  null when the column holds nothing this key can be read out of. */
+/**
+ * PURE. The stored ruling, bounded by the same parser the live call uses, or
+ * null when the column holds nothing a ruling can be read out of.
+ *
+ * Null is the answer for every row written before the column existed, and for
+ * every row read while the migration is still unapplied (`select("*")` simply
+ * does not return the key). Both are "no ruling on file", which is true.
+ */
 export function readStoredScaffoldReview(
   criticReview: unknown,
 ): (DesignCriticReview & { reviewedAt: string }) | null {
   if (!criticReview || typeof criticReview !== "object" || Array.isArray(criticReview)) return null;
-  const raw = (criticReview as Record<string, unknown>)[SCAFFOLD_REVIEW_KEY];
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const reviewedAt = (raw as Record<string, unknown>).reviewed_at;
+  const raw = criticReview as Record<string, unknown>;
+  const reviewedAt = raw.reviewed_at;
   if (typeof reviewedAt !== "string" || !reviewedAt) return null;
   return { ...parseDesignCriticReview(raw), reviewedAt };
 }
@@ -918,15 +972,26 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
     // The contract is read HERE rather than accepted from the browser: the
     // client already ships 60,000 characters of markup, and the standard a
     // review is held to is not a thing a client should be able to choose.
-    const { data: prdRow } = await supabase
+    //
+    // FAIL-SOFT, AND THE `error` IS CAUGHT RATHER THAN DISCARDED so this comment
+    // is not the only thing that knows it. An unreadable row reviews the markup
+    // with no criteria in front of the model, exactly as every review did before
+    // the contract travelled at all -- a thinner review, never a wrong one, and
+    // never a write built on a read that did not land. It is logged because a
+    // silently criteria-less review looks identical to a spec that has no
+    // contract, and those are opposite facts.
+    const { data: prdRow, error: prdErr } = await supabase
       .from("prds")
-      .select("contract,critic_review")
+      .select("contract")
       .eq("id", data.prdId)
       .maybeSingle();
-    const prd = prdRow as { contract?: unknown; critic_review?: unknown } | null;
+    if (prdErr) {
+      console.error("runScaffoldDesignCritic: contract read failed, reviewing without it:", prdErr);
+    }
+    const prd = prdRow as { contract?: unknown } | null;
     const contractBlock = formatContractContext(readContractBrief(prd?.contract));
 
-    // The contract goes FIRST. DESIGN_CRITIC_SYSTEM (critic.server.ts:34-44)
+    // The contract goes FIRST. DESIGN_CRITIC_SYSTEM (critic.server.ts:35-42)
     // ends with "Judge only what is actually shown or described - never invent
     // requirements", so with nothing described the Critic was structurally
     // unable to report "this screen has no path that satisfies metric 2" -- the
@@ -949,23 +1014,27 @@ export const runScaffoldDesignCritic = createServerFn({ method: "POST" })
     // A refused write RESOLVES under RLS, so `error` alone is not the test: the
     // row set coming back empty is the refusal. Either way the review is still
     // returned -- the person paid for it -- with `persisted` telling the truth.
+    //
+    // THREE WAYS THIS COMES BACK FALSE AND ALL THREE ARE HONEST: RLS refused it
+    // (empty row set), no drawing has been persisted for this spec yet (no row
+    // to attach the ruling to), or the migration that adds the column has not
+    // been applied (`error`, code 42703). The column is written whole because it
+    // holds one thing; there is no other key here to preserve, which is the
+    // point of giving the drawing its own column.
     const stored: StoredScaffoldReview = {
       verdict: review.verdict,
       findings: review.findings,
       reviewed_at: new Date().toISOString(),
     };
-    const existing =
-      prd?.critic_review &&
-      typeof prd.critic_review === "object" &&
-      !Array.isArray(prd.critic_review)
-        ? (prd.critic_review as Record<string, unknown>)
-        : {};
     const { data: saved, error } = await supabase
-      .from("prds")
-      .update({ critic_review: { ...existing, [SCAFFOLD_REVIEW_KEY]: stored } } as never)
-      .eq("id", data.prdId)
+      .from("prd_scaffolds")
+      .update({ critic_review: stored } as never)
+      .eq("prd_id", data.prdId)
       .select("id")
       .maybeSingle();
+    if (error) {
+      console.error("runScaffoldDesignCritic: the ruling was not filed:", error);
+    }
 
     return { review, persisted: !error && !!saved };
   });
@@ -1454,9 +1523,7 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
 
     const { data: prdRow } = await supabase
       .from("prds")
-      .select(
-        "id,title,body_md,design_gate_status,design_decided_at,workspace_id,contract,critic_review",
-      )
+      .select("id,title,body_md,design_gate_status,design_decided_at,workspace_id,contract")
       .eq("id", data.prdId)
       .maybeSingle();
     if (!prdRow) return null;
@@ -1468,7 +1535,6 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
       design_decided_at: string | null;
       workspace_id: string | null;
       contract: unknown;
-      critic_review: unknown;
     };
 
     const [{ data: wsRow }, { data: scaffoldRow }, { data: protoRows }, route] = await Promise.all([
@@ -1479,11 +1545,13 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
             .eq("id", prd.workspace_id)
             .maybeSingle()
         : Promise.resolve({ data: null }),
-      supabase
-        .from("prd_scaffolds")
-        .select("html,source,created_at,updated_at")
-        .eq("prd_id", data.prdId)
-        .maybeSingle(),
+      // `select("*")` AND NOT A COLUMN LIST, on purpose. The ruling lives in
+      // `critic_review` on this row, and naming a column PostgREST does not know
+      // about fails the WHOLE query -- which would take the drawing itself off
+      // /design for as long as the migration sat unapplied. A star select
+      // returns whatever the table actually has, so a missing column reads as
+      // "no ruling on file" and the drawing renders either way.
+      supabase.from("prd_scaffolds").select("*").eq("prd_id", data.prdId).maybeSingle(),
       supabase
         .from("prototypes")
         .select("id,name,share_slug,is_public,created_at")
@@ -1576,8 +1644,11 @@ export const getDesignWorkItem = createServerFn({ method: "GET" })
     // screen. `prd_scaffolds` holds one row per spec and a redraw overwrites it
     // in place, moving `updated_at`, so this comparison is read from the record
     // rather than inferred -- and it is why the persisted review needs no
-    // clearing write on the redraw path.
-    const storedReview = readStoredScaffoldReview(prd.critic_review);
+    // clearing write on the redraw path. Both halves now come off the SAME ROW,
+    // which is what makes the comparison a fact rather than a join.
+    const storedReview = readStoredScaffoldReview(
+      (scaffoldRow as { critic_review?: unknown } | null)?.critic_review,
+    );
     const reviewIsAboutThisDrawing =
       !!storedReview &&
       !!drawing &&

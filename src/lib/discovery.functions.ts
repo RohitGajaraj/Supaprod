@@ -1132,10 +1132,30 @@ export const updateOpportunity = createServerFn({ method: "POST" })
  *
  * WHAT WAS MISSING. Decide is the highest-stakes human act in the product: keep
  * this bet or kill it. Settling one wrote a status enum on `opportunities` and a
- * `stage_events` row, and nothing else. Measured on the live database: 267
- * `decisions` rows exist and every one of them carries a rationale -- from
- * missions, specs, the roadmap, the Critic, retrospectives, meetings -- and NOT
- * ONE comes from the gate. `createDecision` has call sites; /decide is not one.
+ * `stage_events` row, and nothing else. Re-measured on the live database on
+ * 2026-08-06: 267 `decisions` rows exist -- mission 183, roadmap 28, prd 28,
+ * manual 10, critic 8, retrospective 8, meeting 2 -- and NOT ONE comes from the
+ * gate.
+ *
+ * AND THE FIRST DIAGNOSIS OF THAT ZERO WAS WRONG, WHICH IS WHY IT SURVIVED A
+ * FIX. It read as "the gate has no caller". It had one -- `updateOpportunity`,
+ * below, on the "Drop it" path -- and that caller was refused by the database
+ * on every single press. `decisions_source_kind_check` admitted seven tokens
+ * (plus NULL) and 'opportunity' was not among them, so every insert this
+ * function attempts resolves as an error, hits the guard below, and returns.
+ * Widening the check
+ * is supabase/migrations/20260806164500_the_gate_wrote_its_judgment_and_a_
+ * check_threw_it_away.sql; UNTIL THAT MIGRATION IS APPLIED nothing this
+ * function writes reaches the table, and the keep path added at
+ * `placeKeptBetInNext` is correct and inert.
+ *
+ * RE-CHECKED against production on 2026-08-06 at 83dd694e, because a claim this
+ * load-bearing should not be inherited: `pg_get_constraintdef` still returns the
+ * same seven tokens plus NULL, `decisions` still holds 0 rows with source_kind
+ * 'opportunity' against 267 total, and that migration file is still untracked
+ * and unapplied. So this paragraph describes the database as it is right now,
+ * not as it was when the sentence was written. When the migration lands, the
+ * only thing that should change here is the tense.
  *
  * WHY THAT BREAKS THE MOAT RATHER THAN A REPORT. Layer 03 is the only layer
  * defensible alone: a settled outcome re-ranks the next call. Learn grades a
@@ -1152,10 +1172,22 @@ export const updateOpportunity = createServerFn({ method: "POST" })
  * interaction that must stay a single keystroke, and would collect prose that
  * is worse evidence than the numbers already are.
  *
- * IT NEVER BLOCKS THE CALL. A decision that cannot be recorded must not stop a
- * bet being settled: the person's judgment is the fact, and the record of it is
- * a consequence. Failures report themselves through `recordLineageSafe`'s own
- * channel rather than surfacing as a failed settle.
+ * IT NEVER BLOCKS THE CALL, AND THAT IS STILL RIGHT. A decision that cannot be
+ * recorded must not stop a bet being settled: the person's judgment is the
+ * fact, and the record of it is a consequence.
+ *
+ * BUT IT NO LONGER FAILS WITHOUT SAYING SO, and the sentence that used to stand
+ * here is why this went unnoticed for as long as it did. It read: "Failures
+ * report themselves through `recordLineageSafe`'s own channel rather than
+ * surfacing as a failed settle." Both halves were false. The insert guard below
+ * returns BEFORE `recordLineageSafe` is ever called, so a refused insert never
+ * reaches that channel; and `recordLineageSafe` (lineage.functions.ts:130-140)
+ * is a bare try/catch with no log, so it is not a channel -- it reports to
+ * nobody. A silent failure plus a comment asserting it is audible is how a
+ * constraint violation ran on every press of "Drop it" and left no trace
+ * anywhere. The insert guard below now logs to the Worker: still non-fatal,
+ * now findable. `recordLineageSafe` still reports nothing and still lives in
+ * another file, so an orphaned decision remains as quiet as it was.
  */
 /**
  * PURE. The verdict a lane change amounts to, and the sentence that records it.
@@ -1252,7 +1284,19 @@ async function recordJudgment(
       .single();
     // supabase-js RESOLVES a refused write rather than throwing, so an
     // unchecked insert reports success having changed nothing. The house rule.
-    if (error || !decision) return;
+    //
+    // CHECKED AND NOW ANNOUNCED. Returning quietly here is what hid a CHECK
+    // violation on every press of "Drop it": the guard was correct and the
+    // silence after it was the defect. A log costs nothing on the happy path
+    // and is the only thing that would have surfaced this before an audit.
+    if (error || !decision) {
+      console.error(
+        `[judgment] opportunity ${input.id} settled as "${verdict}" but no decision row was written: ${
+          error?.message ?? "the insert was refused and returned no row"
+        }`,
+      );
+      return;
+    }
 
     // The edge is what lets Learn walk back from a graded outcome to the call
     // that caused it. Without it the decision row exists and is an orphan.
@@ -1281,12 +1325,48 @@ export const deleteOpportunity = createServerFn({ method: "POST" })
 
 // ---------- PRDs ----------
 
+/**
+ * `is_sample` TRAVELS OUT OF BOTH SPEC READS NOW, because a list is where a
+ * person forms their impression of what is in their workspace.
+ *
+ * /decide is meticulous about the mark in both directions -- the gate's first
+ * line and every queue row -- and one keypress later that care was gone.
+ * `generatePrd` now STORES the flag on a spec descended from a seeded bet (the
+ * write-up is at that insert), and until this line nothing read it back, so
+ * /plan listed an invented spec beside real ones with nothing to tell them
+ * apart. A column nothing reads is as dead as a column nothing writes.
+ *
+ * MARKED, NOT FILTERED, and the distinction is the whole design. The seeded
+ * specs are what a day-one workspace is there to show; dropping them from the
+ * list would delete the thing a new signup came to look at. The surfaces that
+ * must MARK them -- /plan's spec row, the roadmap card -- live in other files,
+ * and this is the read they were waiting on. The reads that should genuinely
+ * EXCLUDE a sample are the ones that form a JUDGEMENT, RAG retrieval above all,
+ * where a seeded spec becomes cited evidence inside the next real one. None of
+ * those are in this file; see the handoff note at the insert.
+ *
+ * AND THE REASON THIS WAS DEFERRED WAS NOT TRUE, which is worth naming so that
+ * nobody defers it a second time. A previous pass wrote that selecting the
+ * column here "is a typecheck failure" until src/integrations/supabase/types.ts
+ * is regenerated. It is not, and the types are indeed still stale (`prds` in
+ * `Database` carries no `is_sample`). Measured both ways on 2026-08-06:
+ * `bunx tsc` accepts `is_sample` here, AND it accepts a deliberately invented
+ * column name in the same string -- which proves the check does not exist
+ * rather than that it passed. `requireSupabaseAuth` is exported
+ * `as unknown as AnyFunctionMiddleware` (src/integrations/supabase/
+ * auth-middleware.ts), so `context` arrives untyped and no select string in any
+ * of these handlers is checked; `const n: number = context.userId` compiles.
+ * The real gate is PostgREST, and it is OPEN: GET
+ * /rest/v1/prds?select=id,is_sample answers 200 while the invented column
+ * answers 400 / 42703. Regenerating the types is still worth doing -- it is the
+ * thing that WOULD have caught a bad column -- but it never blocked this read.
+ */
 export const listPrds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("prds")
-      .select("id,title,status,updated_at,opportunity_id,github_issue_url")
+      .select("id,title,status,updated_at,opportunity_id,github_issue_url,is_sample")
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return { prds: data ?? [] };
@@ -1297,6 +1377,10 @@ export const listPrds = createServerFn({ method: "GET" })
  * Critic verdict and citation payload the reference's State/Critic/Cites
  * columns render. Additive — `listPrds` keeps its narrow select for existing
  * consumers (roadmap, pickers).
+ *
+ * `is_sample` rides both reads. See the paragraph above `listPrds`: this is the
+ * one /plan's spec row needs to print the Example tag /decide already prints on
+ * the same bet, and it marks rather than filters on purpose.
  */
 export const listSpecs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -1304,7 +1388,7 @@ export const listSpecs = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("prds")
       .select(
-        "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id,design_gate_status",
+        "id,title,status,updated_at,opportunity_id,github_issue_url,critic_review,citations,project_id,design_gate_status,is_sample",
       )
       .order("updated_at", { ascending: false })
       .limit(300);
@@ -2319,10 +2403,73 @@ export function commitmentFromContract(input: {
     .map((c) => c.text.trim())
     .filter((t) => t.length > 0);
   if (!intent || metrics.length === 0) return null;
-  return {
-    outcome: intent.slice(0, ROADMAP_TEXT_MAX),
-    measure: metrics.slice(0, 2).join("; ").slice(0, ROADMAP_TEXT_MAX),
-  };
+
+  /**
+   * MEASURE: DROP A WHOLE METRIC BEFORE CUTTING ONE IN HALF. Two metrics that
+   * do not fit become one whole metric, not one and a fragment. A half-stated
+   * falsifiable criterion is not a weaker measure, it is an unfalsifiable one.
+   */
+  const two = metrics.slice(0, 2).join("; ");
+  const measure =
+    two.length <= ROADMAP_TEXT_MAX ? two : fitToSentence(metrics[0], ROADMAP_TEXT_MAX);
+
+  return { outcome: fitToSentence(intent, ROADMAP_TEXT_MAX), measure };
+}
+
+/**
+ * PURE. Fit text to a hard column limit without cutting mid-sentence.
+ *
+ * WHY THIS EXISTS AND IS NOT PEDANTRY. CONTRACT_DRAFT_SYSTEM asks the model for
+ * intent as "one tight paragraph", and both columns this feeds are read by a
+ * person verbatim. `roadmap_outcome` is rendered inline as "You are promising:
+ * {outcome}. Measured by {measure}." (CommitCeremony.tsx:64) and is also the
+ * pre-filled value of BetCard's inline outcome input (BetCard.tsx:194, itself
+ * capped at 500). `roadmap_measure` is the one of the two that shows as a card
+ * line on /plan, through `MeasureLine` (BetCard.tsx:186). So the previous
+ * `slice(0, 500)` could show a person a promise that stops mid-word, on the
+ * screen where they are asked to accept it as theirs. A promise that trails off
+ * reads as a system that lost the thread.
+ *
+ * THE ORDER OF PREFERENCE. A whole sentence beats a whole word beats the hard
+ * slice, and the ellipsis is written ONLY on the word-boundary path, where the
+ * text genuinely was cut short. A sentence ending in its own full stop must not
+ * wear one: that would claim a truncation that did not happen.
+ *
+ * The 60% floor stops the fallback becoming its own defect. Without it a
+ * paragraph whose first sentence ends at character 12 would be trimmed to
+ * twelve characters, which loses far more than a mid-word cut ever would.
+ */
+export function fitToSentence(text: string, max: number): string {
+  const t = text.trim();
+  if (t.length <= max) return t;
+  const head = t.slice(0, max);
+  const floor = Math.floor(max * 0.6);
+
+  /**
+   * THE SENTENCE SCAN LOOKS ONE CHARACTER PAST THE LIMIT, because a boundary is
+   * only a boundary once you can see what FOLLOWS it. The first version of this
+   * scanned `head` with `/[.!?](?=\s|$)/`, and that `$` let the cut manufacture
+   * its own evidence: in "a 12.5% lift", a limit landing between the "." and the
+   * "5" ends `head` on a full stop, `$` calls it a sentence, and the promise on
+   * screen becomes "a 12." -- a complete, false sentence where a visibly
+   * truncated one would have been honest. Judging every candidate against the
+   * real next character removes that case, and the early return above
+   * guarantees `t[max]` exists. `scanWindow` is one character longer than the
+   * limit, so a match can sit at `max - 1` at the furthest and `end` never
+   * exceeds `max`. (It is not called `window`, which would shadow the global.)
+   *
+   * The word fallback deliberately still searches `head`, not the window: the
+   * ellipsis it appends has to fit inside `max` too.
+   */
+  const scanWindow = t.slice(0, max + 1);
+  const sentence = /[.!?](?=\s)/g;
+  let end = -1;
+  for (let m = sentence.exec(scanWindow); m; m = sentence.exec(scanWindow)) end = m.index + 1;
+  if (end >= floor) return t.slice(0, end).trim();
+
+  const word = head.lastIndexOf(" ");
+  if (word >= floor) return `${head.slice(0, word).trim()}…`;
+  return head.trim();
 }
 
 /**
@@ -2351,9 +2498,12 @@ export function commitmentFromContract(input: {
  *
  * PARTIAL, AND THIS SENTENCE IS THE HONEST PART: the report travels back on the
  * handler's result, and no surface renders it yet. /decide's `draftSpec`
- * mutation (src/routes/_authenticated.decide.tsx:473-490) navigates to the spec
- * on success and drops every other field, so a refused lane is currently
- * findable in the Worker log and in the returned object, not on the screen.
+ * mutation -- src/routes/_authenticated.decide.tsx, `const draftSpec =
+ * useMutation(` at :708 today, cite the SYMBOL rather than the line because that
+ * file is under concurrent edit and the old citation here (:473-490) had already
+ * gone stale -- reads `r.prd.id` in `onSuccess`, navigates to the spec, and
+ * drops every other field. So a refused lane is findable in the Worker log and
+ * in the returned object, not on the screen.
  */
 async function placeKeptBetInNext(
   supabase: SupabaseClient,
@@ -2412,21 +2562,40 @@ async function placeKeptBetInNext(
     });
 
     /**
-     * THE PRIMARY ANSWER AT THE GATE NOW WRITES A JUDGMENT.
+     * THE PRIMARY ANSWER AT THE GATE NOW CALLS FOR A JUDGMENT, AND THE WRITE
+     * LANDS ONLY ONCE ONE MIGRATION IS APPLIED. Read that sentence literally.
      *
-     * `recordJudgment` had exactly one caller -- `updateOpportunity`, and only
-     * when `status` is in the patch -- so "Drop it" wrote a decision and "Keep
-     * it" wrote none. Live 2026-08-06: `decisions` carries mission, prd,
-     * roadmap, retrospective, critic, manual and meeting rows, and ZERO with
-     * source_kind 'opportunity'. The Critic loads precedent out of that table,
-     * so "the record has been here before" could only ever cite rejections, and
-     * Learn had no approval to grade an outcome against.
-     *
-     * Nobody is asked to type anything: `judgmentFor` already classifies `next`
+     * THE CALLER. `recordJudgment` had exactly one caller -- `updateOpportunity`,
+     * and only when `status` is in the patch -- so "Drop it" asked for a
+     * decision and "Keep it" asked for none. This is the second caller, and
+     * nobody is asked to type anything: `judgmentFor` already classifies `next`
      * as an approval and assembles the sentence from the row's own columns,
      * which is why the row is re-selected with title and the ICE numbers on it.
-     * It never blocks the keep -- `recordJudgment` swallows its own failures by
+     * It never blocks the keep -- `recordJudgment` returns early on failure by
      * design, for the reason its header gives.
+     *
+     * THE PART A PREVIOUS PASS OF THIS FILE GOT WRONG, and it matters more than
+     * the caller did. This comment used to open "THE PRIMARY ANSWER AT THE GATE
+     * NOW WRITES A JUDGMENT." It did not, and neither did the "Drop it" path it
+     * cited as the working precedent. `recordJudgment` inserts `source_kind:
+     * 'opportunity'` and `decisions_source_kind_check` admitted only
+     * meeting | mission | prd | manual | roadmap | retrospective | critic
+     * (read live with pg_get_constraintdef, 2026-08-06). Every insert from this
+     * function is refused by the database and returns at the guard.
+     *
+     * So the live datum both passes leaned on -- ZERO decisions rows with
+     * source_kind 'opportunity', against 267 rows total -- was never evidence
+     * of a missing caller. It is the constraint, and it has been discarding
+     * "Drop it" since that path was written.
+     *
+     * WHAT MAKES IT TRUE: supabase/migrations/20260806164500_the_gate_wrote_
+     * its_judgment_and_a_check_threw_it_away.sql, which widens the check by one
+     * token. Until it is applied to production this call is correct and inert,
+     * and the guard in `recordJudgment` now logs each refusal to the Worker
+     * rather than returning in silence. After it is applied, the Critic can
+     * cite approvals for the first time and Learn has a call to grade an
+     * outcome against; before it, "the record has been here before" can cite
+     * nothing that happened at the gate, in either direction.
      */
     await recordJudgment(supabase, userId, {
       id: opp.id,
@@ -2514,7 +2683,12 @@ ICE — Impact:${opp.impact} Confidence:${opp.confidence} Ease:${opp.ease}`;
        * specs, so a kept bet still sits in the ranking on Friday looking
        * undecided. Pressing `a` again cost three model calls plus a Critic run
        * and put two competing specs on /plan, both reading "serves <same bet>".
-       * Live: two real bets carry two specs each, written a week apart.
+       * RE-MEASURED live 2026-08-06, and the shape is wider than the first pass
+       * said ("two real bets, written a week apart"): NINE bets carry two specs
+       * each. Six of the nine sit in a workspace not marked as a sample. Seven
+       * of the nine carry patterned fixture ids; the two with random ids -- the
+       * pair a person plausibly made by pressing the key twice -- are 7 days
+       * and 1 day apart, and both are in seeded workspaces.
        *
        * The identical shape was already fixed one station upstream -- the
        * write-up is at :1037 -- and this is the same answer: the second press
@@ -2724,20 +2898,69 @@ The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet
      *
      * The column is added by supabase/migrations/20260806120000_a_spec_drawn_
      * from_an_example_is_an_example.sql, which follows the theme migration's
-     * rule: a child is a sample only if it descends from one.
+     * rule: a child is a sample only if it descends from one. THAT MIGRATION IS
+     * APPLIED. Verified against production on 2026-08-06: `prds.is_sample`
+     * exists, `prds_live_not_sample_idx` exists, and the FK-anchored backfill
+     * marked 0 of 81 specs because none descends from a sample bet yet. The
+     * deploy-ordering hazard the paragraph below was written under is spent.
      *
-     * WRITTEN ONLY WHEN TRUE. The column defaults to false, so naming it on
-     * every real spec would be redundant -- and it would make the ONE write
-     * this whole flow depends on fail for everybody if the migration has not
-     * reached PostgREST's schema cache yet. A seeded bet is exactly the case
-     * the column exists for, and it is the only case that names it.
+     * WRITTEN ONLY WHEN TRUE, and it is genuinely written -- a column nothing
+     * writes is worse than no column, because the next reader trusts it. The
+     * column defaults to false, so naming it on every real spec would be
+     * redundant; a seeded bet is the case the column exists for and is the only
+     * case that names it.
      *
-     * PARTIAL, and this is the true half of the sentence: the flag now travels
-     * and is stored. NO SURFACE READS IT YET -- `listSpecs` (:1301) does not
-     * select it, `RoadmapItem` (src/lib/roadmap.functions.ts:62) has no such
-     * field, and /plan renders no Example tag. Those live in other files. The
-     * select cannot be widened here either until the generated Database types
-     * carry the column, or the query stops typechecking.
+     * BUT THE SPREAD BELOW IS ONE OF FOUR PLACES A SPEC IS INSERTED, AND IT IS
+     * THE ONLY ONE THAT SETS THE FLAG. A reader who trusts `is_sample = false`
+     * today is still wrong on two of the other three, so do not read this block
+     * as closing the seam:
+     *   - `draftContractFromIntent` (this file) is CORRECT to leave it false:
+     *     no parent bet, and by the migration's own rule a spec written from a
+     *     freeform brief is the user's own words by construction.
+     *   - `prd.draft` (src/lib/ai/tools/registry.server.ts, the agent tool)
+     *     resolves a parent bet and writes `opportunity_id: opp?.id`, and does
+     *     NOT carry `opp.is_sample` across. Same defect as this one, still open,
+     *     on the path where an agent rather than a person keeps the bet.
+     *   - `_performSeed` (src/lib/onboarding/seed-workspace.server.ts) inserts
+     *     the sample specs themselves, with neither `opportunity_id` nor
+     *     `is_sample`. These are the most invented rows in the database and
+     *     they read as real. The migration's FK-anchored backfill structurally
+     *     cannot reach them -- there is no parent to ask. RE-MEASURED live
+     *     2026-08-06, and stated more carefully than the first pass did: 81
+     *     specs, 33 of them in sample workspaces, and 7 OF THOSE 33 carry no
+     *     parent bet at all -- those seven are the backfill's blind spot. (39
+     *     of the 81 carry no parent overall; the other 32 are real specs
+     *     written from a brief, for which false is the right answer.) 0 specs
+     *     anywhere carry the flag today.
+     *
+     * THE READ HALF IS NO LONGER MISSING IN THIS FILE, and the sentence that
+     * stood here was wrong about why it ever was. It read: "`listSpecs` and
+     * `listPrds` are in THIS file and are still blocked ... naming it in a
+     * select or an `.eq()` is a typecheck failure." It is not a typecheck
+     * failure, because there is no typecheck: `context` reaches these handlers
+     * untyped, so an INVENTED column name compiles just as happily (measured
+     * both ways, 2026-08-06). `listPrds` and `listSpecs` now select the column
+     * and the reasoning is written out above `listPrds`, including the
+     * PostgREST probe that shows the schema cache serves it.
+     *
+     * The generated types ARE still stale -- `prds` carries no `is_sample` in
+     * `Database` -- which is why the spread below keeps its explicit
+     * `& { is_sample?: boolean }` widening. Regenerating
+     * src/integrations/supabase/types.ts remains worth doing: it is the thing
+     * that would catch a bad column name, which nothing does today.
+     *
+     * STILL PARTIAL, AND THIS IS THE HONEST HALF. Storing it and reading it out
+     * are not the same as SHOWING it. `RoadmapItem`
+     * (src/lib/roadmap.functions.ts:62) still has no such field and /plan still
+     * renders no Example tag on a spec row or a roadmap card, so a person on
+     * /plan cannot yet tell a seeded spec from one they earned. Those two live
+     * in other files. So does the read that matters most: a sample spec must
+     * not enter RAG retrieval, or seeded fiction is cited as evidence inside the
+     * next real spec -- `rag_chunks` files a spec as source_kind 'prd' with the
+     * prd id as source_id (src/lib/rag/indexer.server.ts:135, inside
+     * `indexUserCorpus`, whose prds read at :131-137 selects id, title and
+     * body_md and filters on nothing else), and `retrieve` never learns which
+     * chunk came from an invented spec.
      */
     const prdRow: Database["public"]["Tables"]["prds"]["Insert"] & { is_sample?: boolean } = {
       user_id: userId,
@@ -2799,6 +3022,18 @@ The user message contains a PRIOR REVIEW block: the Critic's teardown of the bet
       // comfortable lie was ours, not Plan's. `commitmentFromContract` carries
       // it across; the Gate still fires for a bet whose contract drafted
       // nothing, which is the case where the promise genuinely is still owed.
+      //
+      // ONE PATH STILL LANDS UNDECLARED ON PURPOSE, AND THE PARAGRAPH ABOVE
+      // MUST NOT BE READ AS COVERING IT. The duplicate guard, further up, calls
+      // `placeKeptBetInNext` with a null seed. So a bet whose FIRST press wrote
+      // the spec but had its lane refused is placed on the second press with no
+      // outcome and no measure -- exactly the undeclared commitment this block
+      // says no longer happens on the generation path. That is deliberate: the
+      // only intent in hand there is one already stored on the old contract,
+      // and it cannot be told apart from the assembled "Title: ... Problem: ..."
+      // fallback `contractIntent` writes when the model returns nothing. Filing
+      // that as a promise would be worse than letting Plan's Gate ask. The
+      // repair a person has is the Gate itself, which is on the next screen.
       //
       // Never overwrites. A human who already placed this bet has said
       // something more specific than a default can, and a draft must not move

@@ -113,7 +113,11 @@
  *    the timestamp came from whichever workspace had the newest row -- usually
  *    the seeded Explore one. It is read from a workspace-scoped,
  *    moved-a-score-only query now, and the no-outcomes-yet branch says what the
- *    order IS built from rather than hedging the claim it cannot make.
+ *    order IS built from rather than hedging the claim it cannot make. Scoping
+ *    was only half of it: the workspace a re-rank is scoped TO can itself be the
+ *    seeded example, so there is a third true sentence for that case, and the
+ *    claim is withheld entirely until the flag that decides between them can be
+ *    read. See `workspaceKnown` and `inExampleWorkspace`.
  * 2. "ENOUGH HISTORY TO CITE HONESTLY" COUNTED OTHER PEOPLE'S WORKSPACES. Same
  *    read, same defect, one screen further down: it decided whether to spend an
  *    embedding per visible bet.
@@ -276,9 +280,30 @@ function ago(iso: string | null | undefined): string | null {
   return `${Math.floor(hours / 24)}d`;
 }
 
-/** What the reviewer concluded, in a sentence rather than a chip. */
-function verdictSentence(verdict: VerdictWord, name: string): string {
-  return verdict === "PENDING" ? "not reviewed yet" : `${name} says ${verdict.toLowerCase()}`;
+/**
+ * What the reviewer concluded, in a sentence rather than a chip -- AND ONLY
+ * WHEN THERE IS A REVIEWER.
+ *
+ * `verdictFor` (components/discover/format.ts:175-184) consults
+ * `critic_review.verdict` FIRST and, absent one, falls through to the lane:
+ * `now`/`shipped` reads SHIP, `dropped` reads KILL, `next`/`later` reads WATCH.
+ * Every one of those was rendered here as "<Critic> says ship" -- a judgement
+ * attributed by name to an agent that had never opened the bet, on the row a
+ * person scans to choose which bet to open. Only the `PENDING` tail was
+ * handled, and PENDING is reached solely when there is neither a review NOR a
+ * status this mapping names (a `backlog` bet, or one carrying no status at
+ * all), so the whole middle of the fall-through spoke in the Critic's voice.
+ *
+ * THE VERDICT WORD IS NOT DROPPED. It is the comparator's second term
+ * (components/discover/ranking.ts:321) whichever way it was derived, so hiding
+ * it would make the order less explicable rather than more honest. The sentence
+ * names its source instead, and `reviewed` is passed in rather than re-derived
+ * so this function stays pure over the same input `verdictFor` read.
+ */
+function verdictSentence(verdict: VerdictWord, name: string, reviewed: boolean): string {
+  if (verdict === "PENDING") return "not reviewed yet";
+  if (!reviewed) return `not reviewed yet, and its lane reads ${verdict.toLowerCase()}`;
+  return `${name} says ${verdict.toLowerCase()}`;
 }
 
 function DecideSurface() {
@@ -290,7 +315,47 @@ function DecideSurface() {
   const confirm = useConfirm();
   // No `activeProductId`. The bets on this station are read unscoped, so the
   // themes beside them are too — see the themes query below.
-  const { activeWorkspaceId } = useWorkspace();
+  //
+  // `activeWorkspace` is read for ONE question, which turns out to have two
+  // halves: whether the workspace the reader is standing in is the seeded
+  // example, and whether that is knowable yet at all. The page subtitle makes
+  // the product's strongest claim about this workspace's own history; that claim
+  // reads differently when the history was shipped with the account, and it must
+  // not be made at all while we cannot tell the two apart. See
+  // `inExampleWorkspace` and `workspaceKnown` immediately below.
+  const { activeWorkspaceId, activeWorkspace } = useWorkspace();
+  /**
+   * TRUTHINESS, NEVER `!== false`. `Workspace.is_sample` is `boolean | null |
+   * undefined` because the workspaces query selects `*`, so an older read
+   * schema simply has no such key. Treating an unknown flag as "example" would
+   * caveat a real workspace's real record, which is the worse of the two
+   * errors and is the same rule the bet rows follow (`o.is_sample ?`).
+   */
+  const inExampleWorkspace = activeWorkspace?.is_sample === true;
+  /**
+   * AND WHETHER THE FLAG CAN BE READ AT ALL YET, WHICH IS A THIRD STATE THE
+   * BOOLEAN ABOVE CANNOT HOLD.
+   *
+   * `activeWorkspaceId` is restored from localStorage on mount, BEFORE the
+   * workspaces query resolves (use-workspace.tsx:114-118), and `activeWorkspace`
+   * is `workspaces.find(...) || null` off that same unresolved list. So on every
+   * cold load there is a window in which the workspace-scoped `rescores` read
+   * below can answer while the row carrying `is_sample` has not arrived, and
+   * `activeWorkspace?.is_sample === true` is false because the ROW is missing
+   * rather than because the workspace is real. In that window the subtitle would
+   * print the unqualified re-rank sentence about a seeded record -- the exact
+   * claim the block at the PageHead exists to stop, and reachable for the 3 of
+   * 16 users whose alphabetically-first workspace is a seeded one (re-measured
+   * 2026-08-06).
+   *
+   * So the claim is withheld until the row is in hand. A FAILED workspaces read
+   * holds it withheld forever, and that is the correct direction rather than an
+   * oversight: it under-claims a re-rank that did happen and can never assert
+   * one that did not, which is the same trade the `rescores` query's own note
+   * argues for one screen down. The sentence that shows instead is true in every
+   * state, so nothing on screen is waiting on this.
+   */
+  const workspaceKnown = activeWorkspace !== null;
 
   const fOpps = useServerFn(listOpportunities);
   const fThemes = useServerFn(listThemes);
@@ -321,12 +386,18 @@ function DecideSurface() {
    * at all. So `themeById` was missing every theme belonging to another
    * product, and both of its readers -- the ranking's corroboration tie-break
    * and `activeSignals`, the "N signals in the record" line in the context
-   * column -- resolved silently to 0 for those bets. Measured live: 9
-   * theme-linked bets split across two products, so roughly half were zeroed
-   * whichever product the picker had auto-selected, and switching the picker
-   * reordered the queue with nothing on screen saying why. The screen could
-   * print four things a customer actually said and, one heading down, no count
-   * at all.
+   * column -- resolved silently to 0 for those bets. An earlier version of this
+   * note measured that as "9 theme-linked bets split across two products, so
+   * roughly half were zeroed", and re-measuring it through the Lovable MCP on
+   * 2026-08-06 makes it both too small and too kind: 83 bets carry a theme_id
+   * that still resolves to a live theme, spread across 16 products, and 118 of
+   * the 257 themes carry a non-null `project_id` while the scoped read admitted
+   * only the picked product plus the nulls. For the largest single caller -- 15
+   * theme-linked bets across 3 products -- 9, 10 or 11 of the 15 lost their
+   * count, the figure depending entirely on which product the picker had
+   * auto-selected. Switching the picker reordered the queue with nothing on
+   * screen saying why, and the screen could print four things a customer
+   * actually said and, one heading down, no count at all.
    *
    * Two lists disagreeing about scope is the defect; matching them is the fix.
    * The unscoped read is a strict SUPERSET of the scoped one, so no bet loses a
@@ -334,11 +405,21 @@ function DecideSurface() {
    * because `["themes", <product>]` is Discover's cache entry and the two
    * queries must not overwrite each other's answer.
    *
-   * WHAT IS STILL NOT RIGHT, and it is one file away: `listThemes` caps at 300
-   * rows ordered by frequency, so a workspace past 300 themes would drop its
-   * least-corroborated ones from this map (257 live today, so unreachable
-   * now). The durable fix is a `theme_frequency` join on `listOpportunities`
-   * (src/lib/discovery.functions.ts:839-898, which already does exactly this
+   * WHAT IS STILL NOT RIGHT, and it is one file away. `listThemes` orders by
+   * frequency descending and caps at 300 (src/lib/discovery.functions.ts:445-449),
+   * so past that ceiling the map silently loses its LEAST-corroborated themes.
+   * An earlier version of this note said "a workspace past 300 themes", and
+   * that is narrower than the real trigger: `listThemes` carries no workspace
+   * clause at all, so the 300 is applied to the caller's whole RLS-visible
+   * theme set -- the union across every workspace they belong to, seeded ones
+   * included. And dropping the product clause makes the ceiling MORE reachable,
+   * not less: the scoped read filtered on `project_id` BEFORE the limit, so it
+   * spent its 300 rows on one product. That is the price of the fix above and
+   * it is worth paying, because a wrong count today beats a missing count at a
+   * ceiling nobody is near. Re-measured on 2026-08-06: 257 themes in the entire
+   * database, so no caller is within 43 rows of it. The durable fix is a
+   * `theme_frequency` join on `listOpportunities`
+   * (src/lib/discovery.functions.ts:841-898, which already does exactly this
    * shape of two-hop JS join for `decided_by_agent_slug`), after which this
    * query and `themeById` both go away.
    */
@@ -370,8 +451,10 @@ function DecideSurface() {
    * `learnings` RLS policy admits every workspace the caller belongs to and
    * every account is handed a seeded Explore workspace at signup, so the
    * timestamp was routinely lifted out of a workspace the reader was not
-   * standing in: 70 of 103 workspace-attached learnings live in `is_sample`
-   * workspaces. And a learning that moved no score still set it, though only
+   * standing in: 70 of the 103 learnings whose workspace still exists live in
+   * an `is_sample` workspace (a further 16 point at a workspace row that has
+   * since been deleted, which an earlier version of this note folded into the
+   * same count). And a learning that moved no score still set it, though only
    * 49 of 119 carry a `new_ice` at all. Queried per user, `max(created_at)
    * where not is_sample and new_ice is not null` was NULL for every user in
    * the database while the unfiltered max was non-null for at least eight of
@@ -381,8 +464,32 @@ function DecideSurface() {
    * Both narrowings are applied SERVER-SIDE, before `order(created_at desc)
    * limit(50)`, so this returns the newest 50 OF THE FILTERED SET and its max
    * is the real max rather than the max of whatever survived a client filter.
-   * `workspaceId: null` (no workspace picked yet) is the same as omitting it,
-   * so this stays disabled until there is a workspace to be truthful about.
+   * `workspaceId: null` (no workspace picked yet) is the same as omitting it
+   * server-side (`if (data.workspaceId)`, outcome.functions.ts:1713), which is
+   * exactly why this must ALSO be `enabled`-gated: an ungated call with a null
+   * id would fall back to the cross-workspace read this whole query exists to
+   * stop being believed.
+   *
+   * A REFUSED READ RENDERS AS "NOTHING HAS RE-RANKED", AND THAT IS THE SAFE
+   * DIRECTION, not an oversight. `lastRescoreAt` reads
+   * `rescores.data?.learnings ?? []`, so a thrown read, a timeout (the
+   * `withTimeout` wrapper rejects) and a genuinely empty workspace are
+   * indistinguishable here and all three land on the subtitle branch that makes
+   * no claim. The house rule this repo keeps -- a discarded error is never
+   * evidence of absence -- bites when absence is used to ASSERT something; here
+   * absence only withholds the assertion, so the failure mode is under-claiming
+   * a re-rank that happened, never claiming one that did not. The same
+   * reasoning is written out under "A REFUSED READ IS NOT AN EMPTY WORKSPACE"
+   * in `getFocusNext` (src/lib/brain/insights.functions.ts), for the Today
+   * card's calm gate. What is NOT covered: nothing on screen says the read
+   * failed, so a reader whose queue really was re-ranked sees the fresh-workspace
+   * sentence instead. Surfacing `rescores.error` in the subtitle would need a
+   * fourth branch and a copy call nobody has made.
+   *
+   * WHAT THIS FILTER STILL DOES NOT SEPARATE: whether the workspace itself is a
+   * seeded example. That is handled in the subtitle rather than here, because
+   * the honest answer is a different sentence and not a smaller number of rows
+   * -- see `inExampleWorkspace` at the PageHead below.
    */
   const rescores = useQuery({
     queryKey: ["learnings", "moved-score", activeWorkspaceId],
@@ -527,8 +634,17 @@ function DecideSurface() {
    * all workspaces, so a caller whose seeded rows outnumber that window would
    * count 0 of their own and the citations would stay unfetched. It
    * under-claims, never over-claims, and it is unreachable on today's data
-   * (119 learnings in the entire database). If it ever bites, this wants its
-   * own `fLearnings({ data: { workspaceId } })` read.
+   * (119 learnings in the entire database, re-counted 2026-08-06). If it ever
+   * bites, this wants its own `fLearnings({ data: { workspaceId } })` read.
+   *
+   * A REFUSED `learnings` READ ALSO LANDS HERE AS ZERO, and that is deliberate
+   * rather than an unchecked error. `learnings.data?.learnings ?? []` makes a
+   * thrown read, a timeout and a genuinely empty workspace indistinguishable,
+   * so all three decline to spend an embedding per visible bet. The repo's rule
+   * -- a discarded error is never evidence of absence -- bites when absence is
+   * used to ASSERT something; here absence only withholds. The same read backs
+   * `latestLearningByOpp`, so on a failed read `activeRescore` is null too and
+   * the record recess below goes silent rather than making a claim off nothing.
    */
   const hasEnoughOutcomes =
     activeWorkspaceId !== null &&
@@ -1010,32 +1126,114 @@ function DecideSurface() {
        * workspace-scoped, moved-a-score-only read, so this branch is reached
        * only when an outcome recorded HERE genuinely moved a score.
        *
-       * THE OTHER BRANCH IS NOT A HEDGE, AND IT IS NOT AN APOLOGY. The honest
+       * AND "HERE" IS NOT ALWAYS THE READER'S OWN RECORD, WHICH IS THE HALF
+       * THAT WAS FIXED SECOND. The audit's filter was `not is_sample AND
+       * new_ice is not null`; what landed first was the workspace scope alone,
+       * and the missing half was neither done nor written down. Nothing in
+       * src/components/shell/ reads `is_sample` -- the only marks anywhere in
+       * the product are per-row ("This is an example" on the Gate, "Example" on
+       * each queue row) -- so a PAGE-level claim about this workspace's history
+       * stood with nothing qualifying it.
+       *
+       * Re-measured 2026-08-06 through the Lovable MCP, because "reachable"
+       * deserved a number rather than an argument:
+       *   - 49 learnings in the database carry a `new_ice`. 48 sit in an
+       *     `is_sample` workspace (Sample workspace 24, Sample sandbox 12,
+       *     Explore workspace 12); the 49th points at a workspace row that has
+       *     since been deleted, so no live session can select it. ZERO sit in a
+       *     real workspace. Today the only way to reach a re-rank sentence AT
+       *     ALL is to be standing in an example.
+       *   - `use-workspace.tsx` sorts workspaces by name ascending and falls
+       *     back to `workspaces[0]`, so a cold load with no stored id opens
+       *     whichever sorts first. Of the 16 users who belong to any workspace,
+       *     3 land in a sample one that way, and for ONE of those three it is
+       *     "Explore workspace" -- which holds 12 moved-score learnings. That
+       *     user is the reason this branch exists: until it did, they were shown
+       *     the unqualified sentence. Present tense here would now be the false
+       *     kind of comment, because the branch below is what they read.
+       * (Every figure in this block was re-derived on 2026-08-06 rather than
+       * restated: 119 learnings, 49 with a `new_ice`, 48 of those in a sample
+       * workspace -- Sample workspace 24, Sample sandbox 12, Explore workspace
+       * 12 -- one pointing at a deleted workspace row, ZERO in a real one, and
+       * 3 of 16 users cold-loading into a sample workspace.)
+       * (`seedSampleWorkspace` would make this the norm rather than the
+       * exception, but it is still gated behind SAMPLE_WORKSPACE_ENABLED=1 and
+       * returns null otherwise, so today's six sample workspaces arrived by
+       * other routes. It is a reason to fix this before the flag flips, not a
+       * reason the defect is hypothetical.)
+       *
+       * THE ANSWER IS A THIRD TRUE SENTENCE, NOT A SUPPRESSED SECOND ONE. The
+       * re-rank did happen and saying so is not the error; implying it was
+       * learned from the reader's own product is. So the example branch keeps
+       * the fact and the elapsed time and adds what the unqualified version
+       * left the reader to assume. The repo's own precedent runs the same way:
+       * `getFocusNext` filters `is_sample` themes out rather than softening the
+       * card's wording, because there the claim has no honest version -- here
+       * it does.
+       *
+       * THE FIRST BRANCH IS NOT A HEDGE, AND IT IS NOT AN APOLOGY. The honest
        * version of "we re-ranked your queue" is never "we may have re-ranked
        * your queue" -- a weaker claim about the same thing teaches nothing.
        * It is a different, true sentence: what the order is actually built
        * from today, and what changes once an outcome lands.
        *
        * "FIRST, THEN" RATHER THAN A LIST, because the list would be wrong. The
-       * comparator in components/discover/ranking.ts has five terms in strict
-       * order -- ICE, the Critic's verdict, brief alignment, recorded-outcome
+       * comparator in components/discover/ranking.ts:319-331 has five terms in
+       * strict order -- ICE, the verdict, brief alignment, recorded-outcome
        * support, then corroboration -- and this names the three a reader can
        * see and act on WITHOUT LEAVING THIS SCREEN: the ICE editor in the
-       * context column, the Critic badge above it, and the signal count under
+       * context column, the verdict badge above it, and the signal count under
        * "What backs it". Naming three of five with an "and" would read as the
        * whole chain and quietly misstate it; the complete per-bet answer is
        * already one line away, under "Why it ranks here".
        *
+       * "THE VERDICT ON EACH BET", NOT "THE CRITIC'S VERDICT". The second sort
+       * term is `verdictRankOf(verdictFor(opp))`, and `verdictFor`
+       * (components/discover/format.ts:175-184) only consults
+       * `critic_review.verdict` FIRST -- absent one it falls through to the
+       * lane, so `now`/`shipped` reads SHIP, `dropped` reads KILL and
+       * `next`/`later` reads WATCH. A bet the Critic has never opened can be
+       * ranked up that tier by its placement alone. Naming the Critic in the
+       * page's headline claim asserted a review that may not exist; naming the
+       * verdict names exactly what the comparator reads and exactly what the
+       * badge on each row shows.
+       *
+       * "ICE SCORE", NOT "YOUR ICE SCORES". On the workspace this station opens
+       * in by default every bet in the queue is seeded and its ICE was written
+       * by the seeder, so the possessive is the same size of over-claim the
+       * rest of this block exists to remove. The code does order by ICE and the
+       * editor for it is in the context column; whose it is, is not something
+       * this sentence can know.
+       *
        * It also stops being said the moment the reader settles an outcome on
-       * Learn, at which point the branch above replaces it and names the day.
-       * And it stays true while the read is still in flight, which the flat
-       * assertion "nothing has been re-ranked yet" would not be.
+       * Learn, at which point one of the branches above replaces it and names
+       * the day. And it stays true while the read is still in flight -- or has
+       * failed, see the query's own note -- which the flat assertion "nothing
+       * has been re-ranked yet" would not be.
+       *
+       * IT IS ALSO WHAT SHOWS WHILE WE DO NOT YET KNOW WHOSE RECORD THIS IS.
+       * `!workspaceKnown` shares this branch, which is why the condition reads
+       * as a disjunction rather than a nested third case: the choice between the
+       * two re-rank sentences below turns entirely on `is_sample`, and until the
+       * workspaces row carrying it lands there is no honest way to make that
+       * choice. Making it early would default to the unqualified version, which
+       * is precisely the sentence this pass removed. See `workspaceKnown`.
        */}
       <PageHead
         title={headline}
         sub={
-          rescoredAgo === null ? (
-            "Ordered by your ICE scores first, then the Critic's verdict and the signals behind each bet. Record an outcome on Learn and it re-ranks off that too."
+          rescoredAgo === null || !workspaceKnown ? (
+            "Ordered by ICE score first, then the verdict on each bet and the signals behind it. Record an outcome on Learn and it re-ranks off that too."
+          ) : inExampleWorkspace ? (
+            rescoredAgo === "now" ? (
+              "Re-ranked just now, on its own, off an outcome recorded in this example workspace. That is the loop working, on a record that did not come from your product."
+            ) : (
+              <>
+                Re-ranked <Num>{rescoredAgo}</Num> ago, on its own, off an outcome recorded in this
+                example workspace. That is the loop working, on a record that did not come from your
+                product.
+              </>
+            )
           ) : rescoredAgo === "now" ? (
             "Re-ranked just now, on its own, off an outcome recorded in this workspace."
           ) : (
@@ -1386,7 +1584,17 @@ function DecideSurface() {
                       <DesignationTag designation={r.designation} />
                     )}
                     {(r.isBestBet || r.designation) && " · "}
-                    {verdictSentence(verdictFor(o), challengerName)}
+                    {/* The third argument is the honesty guard: `verdictFor`
+                        falls back to the lane, so the row must say which of the
+                        two it is reading. `verdict`, not `summary`: the Gate one
+                        screen up gates its Critic line on `critic_review?.summary`
+                        because it PRINTS that prose, whereas what makes the word
+                        here the Critic's is the verdict field the ranking read. */}
+                    {verdictSentence(
+                      verdictFor(o),
+                      challengerName,
+                      Boolean(o.critic_review?.verdict),
+                    )}
                     {o.status ? (
                       <>
                         {" · "}

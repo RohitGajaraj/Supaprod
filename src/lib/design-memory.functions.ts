@@ -341,9 +341,18 @@ async function insertDesignMemoryItems(
   // The back-edge. Non-fatal by the same rule the forward grounding uses: a
   // lost provenance record must never cost a person the rule itself, which is
   // already inserted and counted above.
+  //
+  // THE `error` IS READ, AND THE catch ALONE WAS NOT ENOUGH TO CLAIM THAT. A
+  // write supabase-js could not make RESOLVES with `error` set rather than
+  // throwing -- an RLS refusal is the likeliest way this edge fails and the
+  // likeliest thing to reach neither branch -- so the catch below covered only
+  // the rarest case while the log line implied it covered the failure. Still
+  // non-fatal: nothing is rolled back and no caller is told, because the rule
+  // itself landed. It is logged so a workspace whose lineage graph is silently
+  // empty has somewhere to look.
   if (sourceRef && rows.length > 0) {
     try {
-      await supabase.from("artifact_lineage").upsert(
+      const { error: edgeError } = await supabase.from("artifact_lineage").upsert(
         rows.map((row) => ({
           user_id: userId,
           parent_kind: sourceRef.kind,
@@ -355,6 +364,9 @@ async function insertDesignMemoryItems(
         })),
         { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
       );
+      if (edgeError) {
+        console.error("insertDesignMemoryItems: source lineage refused (non-fatal):", edgeError);
+      }
     } catch (e) {
       console.error("insertDesignMemoryItems: source lineage failed (non-fatal):", e);
     }

@@ -220,10 +220,24 @@ export type RememberOutcomeResult = {
   /** The agent_memory row written. Null when nothing was written. */
   id: string | null;
   /** Prior outcome memories for this PRD that this one supersedes. They are
-   *  MARKED, never deleted, so the record accumulates. */
+   *  MARKED, never deleted, so the record accumulates. Always empty when the
+   *  verdict named no spec: see the supersede scan for why there is no correct
+   *  key to group spec-less verdicts by. */
   supersedes: string[];
   /** One line saying why nothing was written. Null when a row was written. */
   error: string | null;
+  /**
+   * One line saying the row is NOT pinned to the workspace that earned it.
+   * Null is the only reading that means "recallable from where it was settled".
+   *
+   * IT IS SEPARATE FROM `error` ON PURPOSE. A memory in the wrong workspace
+   * exists and holds its lesson; a memory that was never written does not, and
+   * only the second should ever make `id` null. Folding them would also make
+   * `prds.outcome.settled_memory_error` mean two different things, and would
+   * break the invariant every reader here relies on — that exactly one of `id`
+   * and `error` is set.
+   */
+  workspaceError: string | null;
 };
 
 /**
@@ -290,17 +304,63 @@ export function selectSupersedable(rows: PriorOutcomeMemory[]): PriorOutcomeMemo
  * settling an outcome silently destroyed the agent's memory of it, and an agent
  * recording twice in one mission kept only its last word. Nothing that compounds
  * can be built on a store whose row count per subject is capped at one. Prior
- * rows are now marked superseded and kept.
+ * rows are now marked superseded and kept — for verdicts that named a spec.
+ * A verdict with no spec has no key to chain on; see below.
  *
  * Never throws: a memory write must not break outcome recording. But it no
  * longer swallows either, see RememberOutcomeResult.
+ *
+ * `prdId` IS NULLABLE, AND THAT IS THE WHOLE MOAT ON THE AGENT PATH.
+ *
+ * It used to be `string`, so the agent's `learning.record` could only reach the
+ * pool when it could resolve a spec, and `registry.server.ts` wrapped this call
+ * in `if (resolvedPrdId)`. Measured live on 2026-08-06: 84 of 119 learnings
+ * carry no `prd_id`, and all three non-seed learnings this database has ever
+ * held (2026-08-01, data-analyst and insight-keeper) carry `prd_id` null AND
+ * `opportunity_id` null. So on the only settle path that has ever run in
+ * production the memory write was skipped before it started — no insert, no
+ * error, nothing that could land in `settled_memory_error`. `agent_memory`
+ * holds 879 reflection / 28 precedent / 26 note / 8 correction rows and ZERO of
+ * kind 'outcome'. The pool the Critic's red team and `loadDecisionPrecedent`
+ * read has never held a row, and this parameter is one of the reasons.
+ *
+ * A VERDICT WITH NO SPEC IS WORTH STORING. This was judged, not assumed:
+ *   · Retrieval never looks at `prd_id`. `match_agent_memory` ranks on the
+ *     embedding of `content` and filters on user, workspace-or-account, agent
+ *     slug or global scope, and expiry; the only metadata it touches is
+ *     `verdict`, as a small ranking nudge. `loadDecisionPrecedent` filters to
+ *     kind='outcome' client-side and fetches the metadata afterwards, for
+ *     citation. The lesson text is the payload; a spec id is not what makes it
+ *     findable.
+ *   · The read side already models a spec-less precedent as first class:
+ *     `PrecedentMatch.prdId` is `string | null`, `rankPrecedent` falls back
+ *     `prd_title || opp_title || null`, and `getPrecedentCitations` filters
+ *     nulls out of its prd lookup (decision-precedent.server.ts:29/:69,
+ *     decision-judgment.functions.ts:245). Nothing downstream requires one.
+ *   · It is spec-LESS, not anchor-less. `learningId` is non-null at that call
+ *     site by construction (the `learnings` insert throws on error above it),
+ *     so every such row names the audit row it came from, which carries the
+ *     verdict, the summary, the metric, the agent slug and the time.
+ * WHAT IT COSTS, because storing it is not free:
+ *   · NO SUPERSESSION. The chain is keyed on `prd_id` and there is no correct
+ *     substitute — `opportunity_id` would supersede a sibling spec's verdict,
+ *     and "every prior memory with no spec" is not a supersede set. Two
+ *     spec-less verdicts about the same subject therefore both stay current,
+ *     and an agent recalling both reads two independent data points. That is
+ *     precisely what `supersededContent` exists to prevent, and it is not
+ *     prevented here.
+ *   · The Critic's precedent block renders a null title as "an untitled spec"
+ *     (outcome-memory.ts, `formatDecisionPrecedent`), which names a spec that
+ *     does not exist. Reachable the moment a spec-less verdict is recalled.
  */
 export async function rememberOutcome(
   supabase: SupabaseClient,
   args: {
     userId: string;
     workspaceId: string | null;
-    prdId: string;
+    /** The spec this verdict was given on, or null when none could be resolved.
+     *  Null is a real, supported case — see the docblock. */
+    prdId: string | null;
     opportunityId: string | null;
     learningId: string | null;
     content: string;
@@ -312,7 +372,14 @@ export async function rememberOutcome(
     oppTitle: string | null;
   },
 ): Promise<RememberOutcomeResult> {
-  const nothing = (error: string): RememberOutcomeResult => ({ id: null, supersedes: [], error });
+  const nothing = (error: string): RememberOutcomeResult => ({
+    id: null,
+    supersedes: [],
+    error,
+    // Nothing was written, so there is no row whose tenancy could be wrong.
+    // Reporting a workspace problem here would invent one.
+    workspaceError: null,
+  });
   try {
     // A memory the loop can't recall is worse than none: match_agent_memory
     // hard-filters `embedding IS NOT NULL` and there is no re-embed sweep. So if
@@ -340,17 +407,29 @@ export async function rememberOutcome(
     // row supersedes them, it does not replace them. (Repo jsonb-filter
     // convention: `.filter("col->>key")`.) A failed read is non-fatal and simply
     // supersedes nothing, because losing the chain is better than losing the write.
+    //
+    // SKIPPED ENTIRELY WHEN THERE IS NO SPEC, and skipped rather than widened.
+    // `.filter("metadata->>prd_id", "eq", null)` is a malformed PostgREST
+    // filter, and the set it would stand for — every prior outcome memory this
+    // user wrote that named no spec — is not a supersede set: those verdicts
+    // are about different subjects and none of them replaced the others. The
+    // consequence is written into `RememberOutcomeResult.supersedes` and into
+    // the docblock rather than hidden: a spec-less verdict never supersedes and
+    // is never superseded, so the accumulation guarantee this function was
+    // rewritten to provide holds only for verdicts that named a spec.
     let priors: PriorOutcomeMemory[] = [];
-    try {
-      const { data: priorRows } = await supabase
-        .from("agent_memory")
-        .select("id,content,metadata")
-        .eq("user_id", args.userId)
-        .filter("metadata->>source", "eq", "outcome")
-        .filter("metadata->>prd_id", "eq", args.prdId);
-      priors = selectSupersedable((priorRows ?? []) as PriorOutcomeMemory[]);
-    } catch (e) {
-      console.error("rememberOutcome prior-memory read failed (non-fatal):", e);
+    if (args.prdId) {
+      try {
+        const { data: priorRows } = await supabase
+          .from("agent_memory")
+          .select("id,content,metadata")
+          .eq("user_id", args.userId)
+          .filter("metadata->>source", "eq", "outcome")
+          .filter("metadata->>prd_id", "eq", args.prdId);
+        priors = selectSupersedable((priorRows ?? []) as PriorOutcomeMemory[]);
+      } catch (e) {
+        console.error("rememberOutcome prior-memory read failed (non-fatal):", e);
+      }
     }
     const supersedes = priors.map((p) => p.id);
 
@@ -397,38 +476,88 @@ export async function rememberOutcome(
     // carries a BEFORE INSERT trigger, `trg_set_agent_memory_workspace` ->
     // `set_row_workspace_from_user()`, which fills a null workspace_id with
     // `ensure_user_default_workspace(NEW.user_id)`. So the insert above never
-    // leaves it null. It lands the row in the AUTHOR'S DEFAULT workspace, which
-    // for a multi-workspace user is usually the seeded Explore one they were
-    // given at signup, and match_agent_memory's tenancy filter
-    // (`m.workspace_id = for_workspace or m.workspace_id is null`) then cannot
-    // reach it from the workspace that actually settled the outcome. The state
-    // the old comment called safe is unreachable; the state that does occur is
-    // worse than the one it described.
+    // leaves it null. It lands the row in the workspace that function picks:
+    // the user's EARLIEST `workspace_members` row by `created_at`, which for a
+    // signup seeded into an example workspace is that example workspace. The
+    // state the old comment called safe is unreachable; the state that does
+    // occur is worse than the one it described.
+    //
+    // MEASURED, so the size of it is not guessed: of 16 users with a workspace
+    // membership, 11 belong to exactly one, and for those the trigger's pick is
+    // necessarily the right one and nothing is stranded. Five belong to more
+    // than one; of the three with exactly two, all three have a SAMPLE
+    // workspace as their earliest membership. So the exposure is real, it is
+    // small today, and it grows with every user who gets a second workspace.
+    //
+    // WHERE A STRANDED ROW CAN AND CANNOT BE REACHED. The previous version of
+    // this comment quoted `match_agent_memory`'s tenancy filter as
+    // `m.workspace_id = for_workspace or m.workspace_id is null` and concluded
+    // it "cannot reach it". That is only the `for_account is null` branch. The
+    // live function also carries `for_account is not null and (m.workspace_id
+    // is null or m.workspace_id in (select w.id from workspaces w where
+    // w.account_id = for_account))`, and recall passes `for_account` for paid
+    // accounts (see resolvePoolAccountId above). So on a POOLED account a
+    // stranded row IS still reachable, provided the workspace it was stranded
+    // in belongs to the same account. On a free / single-workspace account it
+    // is not reachable. The unqualified "cannot reach it" overstated it for the
+    // paid tier, which is the tier the pooling exists to serve.
     //
     // So this update is not a nicety, it is a MOVE, and it is what makes the
-    // outcome recallable where it was earned. It stays a separate statement for
-    // pre-migration tolerance (before the column exists it simply no-ops), and
-    // it stays best-effort because a memory in the wrong workspace still beats
-    // no memory.
+    // outcome recallable where it was earned on every tier. It stays a separate
+    // statement for pre-migration tolerance (before the column exists it simply
+    // no-ops), and it stays best-effort because a memory in the wrong workspace
+    // still beats no memory.
     //
-    // WHAT IS NOT FIXED HERE. The update's result is still not read, and
-    // supabase-js resolves an RLS refusal as success with zero rows, so a
-    // refused move is invisible and the row would stay in the default
-    // workspace with `settled_memory_id` reading as a clean success. That is
-    // unreachable from `applyOutcome` — `prds.workspace_id` is NOT NULL, and a
-    // settler who can read the spec is a member of its workspace, so both
-    // halves of the UPDATE policy hold — but it IS reachable from any caller
-    // that passes a null workspaceId, and the agent path
-    // (`registry.server.ts` -> `resolvedWorkspace`) can.
+    // AND ITS RESULT IS NOW READ, which it was not. supabase-js resolves an RLS
+    // refusal as a success with zero rows, so without `.select("id")` a refused
+    // move was invisible and the row stayed put while `settled_memory_id` read
+    // as a clean success. Verified live, `agent_memory`'s UPDATE policy is
+    // USING and WITH CHECK `auth.uid() = user_id AND is_workspace_member(
+    // workspace_id)` — USING against the row's CURRENT workspace (the trigger's
+    // pick) and WITH CHECK against the target — so a silent refusal needs a
+    // caller who is not a member of one of the two. It is unreachable from
+    // `applyOutcome`: `prds.workspace_id` is NOT NULL (verified) and a settler
+    // who can read the spec is a member of its workspace.
+    //
+    // A NULL `workspaceId` FAILS DIFFERENTLY AND MORE QUIETLY, and the previous
+    // comment attributed the swallowed refusal to it, which was wrong: the
+    // guard below skips the statement entirely, so there is no result to
+    // swallow. Nothing is refused; the row simply keeps the tenancy the trigger
+    // chose and nobody asked whether that was the right one. The agent path
+    // (`registry.server.ts` -> `resolvedWorkspace`) can pass null, so that case
+    // reports too — as what it is, an unverified tenancy rather than a refusal.
+    let workspaceError: string | null = null;
     if (args.workspaceId) {
       try {
-        await supabase
+        const moved = await supabase
           .from("agent_memory")
           .update({ workspace_id: args.workspaceId })
-          .eq("id", insertedId);
-      } catch {
-        /* column not present yet (pre-migration) — non-fatal */
+          .eq("id", insertedId)
+          .select("id");
+        // 42703 / PGRST204 are "no such column": the pre-migration window this
+        // statement was split out for. Named rather than reported as a refusal,
+        // because calling a missing column an RLS refusal would be a false
+        // claim in the other direction — but not silent either, since the
+        // column exists in this database today and its absence would mean the
+        // schema regressed.
+        const code = (moved.error as { code?: string } | null)?.code ?? null;
+        if (code === "42703" || code === "PGRST204") {
+          workspaceError = `agent_memory.workspace_id does not exist in the schema cache (${code}), so the memory kept the tenancy the insert trigger chose`;
+        } else if (moved.error) {
+          workspaceError = `pinning the outcome memory to workspace ${args.workspaceId} failed: ${moved.error.message}`;
+        } else if (!(moved.data ?? []).length) {
+          // The row was inserted moments ago and its id came back from the
+          // insert, so "no rows matched" cannot mean "no such row". Under RLS
+          // it means the UPDATE policy refused, which supabase-js reports as a
+          // success. This is the branch the house rule exists for.
+          workspaceError = `pinning the outcome memory to workspace ${args.workspaceId} was refused (no rows updated), so it stays in the workspace the insert trigger chose and cannot be recalled from the one that settled it`;
+        }
+      } catch (e) {
+        workspaceError = `pinning the outcome memory to workspace ${args.workspaceId} threw: ${e instanceof Error ? e.message : String(e)}`;
       }
+    } else {
+      workspaceError =
+        "no workspace was supplied, so the memory kept the tenancy the insert trigger chose (the author's earliest workspace), which is not known to be the one that earned it";
     }
 
     // Mark the priors, AFTER the new row exists. Order is the whole safety
@@ -463,7 +592,7 @@ export async function rememberOutcome(
       }
     }
 
-    return { id: insertedId, supersedes, error: null };
+    return { id: insertedId, supersedes, error: null, workspaceError };
   } catch (e) {
     console.error("rememberOutcome failed:", e);
     return nothing(e instanceof Error ? e.message : String(e));

@@ -27,13 +27,15 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  * what it is holding.
  *
  * THIS IS A PARTIAL REPAIR, and the part it does not reach is this drawer's
- * commonest case. DiscoverSurface resolves `?focus=` against the RANKING
- * (DiscoverSurface.tsx:516-523), and the ranking drops every cluster whose
- * status is dismissed, merged or `promoted` (:452-463). This drawer's only
- * mount is /decide (_authenticated.decide.tsx:1252), over an opportunity — and
- * an opportunity normally exists BECAUSE its theme was promoted. So from there
- * the parent theme, and every source signal underneath it, still resolves to
- * null and the surface still opens on the top of the ranking.
+ * commonest case. DiscoverSurface resolves `?focus=` in `focusTarget` against
+ * the RANKING, and the ranking drops every cluster whose status is dismissed,
+ * merged or `promoted`. This drawer's only mount is _authenticated.decide.tsx
+ * with `kind="opportunity"` — and an opportunity normally exists BECAUSE its
+ * theme was promoted. So from there the parent theme, and every source signal
+ * underneath it, still resolves to null and the surface still opens on the top
+ * of the ranking. (Cited by symbol, not by line: the earlier version of this
+ * note pinned the mount at decide.tsx:1252 and that number was 177 lines stale
+ * one commit later. Symbols move less than line numbers do.)
  *
  * What changes here is that the link now NAMES the signal or cluster instead of
  * discarding it: the URL is correct and shareable, it lands correctly today for
@@ -41,11 +43,86 @@ import { getLineage, getProvenance, type ArtifactKind } from "@/lib/lineage.func
  * lives in this file. Landing a SETTLED cluster needs DiscoverSurface to resolve
  * one, which is not this component's to change.
  *
- * STILL ZERO-ARG, and honestly so: `opportunity`, `task`, `roadmap_item` and
+ * ----------------------------------------------------------------------------
+ * 2026-08-06, THE ZERO-ARG SWEEP. The paragraph that used to sit here read
+ * "STILL ZERO-ARG, and honestly so: `opportunity`, `task`, `roadmap_item` and
  * `decision`. Their destinations (/decide, /tasks, /roadmap, /meetings) declare
- * no `validateSearch` at all, so there is no param to pass an id through and
- * inventing one here would be discarded by the router. These land on the
- * surface, not on the row. Fixing them is a route change, not a map change.
+ * no `validateSearch` at all". Held against the map below, it was false at both
+ * ends for the first of the four: `opportunity` went to /discover, not /decide,
+ * and /discover is the one route in that list that DOES declare a parser. It is
+ * replaced rather than deleted, and two of the four are now closed:
+ *
+ * `decision` CARRIES ITS ID NOW, and it is the loudest of them. It was
+ * `() => ({ to: "/meetings" })`, and /meetings is a redirect stub whose
+ * beforeLoad throws `redirect({ to: "/brain", search: { tab: "calendar" } })`,
+ * so a Decision node landed on Brain's CALENDAR with its id discarded twice
+ * over — once by a map entry that took no argument, once by a redirect that
+ * hard-codes its own search. /brain's `validateSearch` has always kept
+ * `?decision=`, and its `tab === "decisions"` branch renders
+ * `<DecisionDetail id={decision} />`, so the door existed and nothing pointed
+ * at it. Measured 2026-08-06 against production: `decision` is the most common
+ * node in this drawer's only mount — 40 of an opportunity's descendants and 19
+ * of its ancestors are decisions, against 37 theme ancestors — so this was the
+ * drawer's most-travelled wrong link, not a corner case.
+ *
+ * WHAT THIS LINK STILL CANNOT REACH, measured per CALLER rather than per
+ * workspace, which is the mistake the first draft of this note made.
+ * `listDecisions` reads the newest 100 rows RLS admits, and RLS admits the union
+ * of every workspace the caller belongs to — not one workspace's newest 100.
+ * Nine of the ten accounts that can see a lineage-linked decision are well
+ * inside 100 and every one of their links resolves (7 to 18 linked decisions
+ * each, 0 outside). For the tenth — three workspaces, 115 decisions, the
+ * heaviest account in the database — 13 of its 18 fall past row 100, and
+ * DecisionDetail then draws "That call is not on the record. It may have been
+ * removed since the link was made." — which is false, because it is on the
+ * record and merely outside a window. THAT IS NOT A REASON TO DROP THE ID: those
+ * same 13 are unreachable through Brain's decisions tab by any path today, since
+ * DecisionsPanel is fed by the identical 100-row read, so the window is the
+ * defect and this link only makes it visible. The fix is one filter in another
+ * file — `listDecisions` accepting an `id`, or DecisionDetail reading by id when
+ * the list misses — and it is written up in the seam report, not papered over
+ * here.
+ *
+ * `opportunity` NOW POINTS AT /decide, AND IS STILL ZERO-ARG. It pointed at
+ * /discover, which stopped being the opportunity surface on 2026-07-13 — that
+ * route's own beforeLoad redirects `?tab=queue` to /decide — so an Opportunity
+ * node sent you to the signals desk, a different station from the one holding
+ * the row. /decide lists every opportunity (`listOpportunities` applies no
+ * status filter and `rankOpportunities` adds none), and it declares no
+ * `validateSearch`, so the id still cannot travel. This trades the wrong
+ * STATION for the right station and a row you have to find: strictly better
+ * than before, and honestly short of a door. The other half is a `?focus=`
+ * parser on /decide, which is not this file's to write.
+ *
+ * AND SAY THE AWKWARD PART, because this drawer's only mount is /decide: from
+ * there the link now points at the page you are already on, so pressing it
+ * moves nothing and reads as dead. That is still the better of the two
+ * failures — the bet it names is in the queue behind the drawer rather than on
+ * a station you would have to navigate back from — but it is a failure, and it
+ * is why this is written down as half a fix rather than a fix. It becomes a
+ * real navigation the moment either /decide accepts `?focus=` or this drawer is
+ * mounted anywhere else. Only 7 of an opportunity's ancestors and 7 of its
+ * descendants are themselves opportunities (measured 2026-08-06), so the awkward
+ * case is also the rare one.
+ *
+ * STILL ZERO-ARG, and now honestly so: `task` and `roadmap_item`. /tasks and
+ * /roadmap are redirect stubs as well (to /today, and to /plan with
+ * `search: { view: "roadmap" }`), and neither /today's route nor /plan's
+ * `validateSearch` accepts an id, so a param invented here would not survive
+ * the redirect that discards it. `roadmap_item` is dead vocabulary besides:
+ * there is no `roadmap_items` table (`@/lib/artifact-tables` documents why),
+ * nothing writes an edge of that kind, and live `artifact_lineage` holds zero
+ * rows of it on either side, so the entry has never once rendered.
+ *
+ * NINE KINDS HAVE NO ENTRY AT ALL — house_rule, design_memory, prototype,
+ * capability_change, learning, deployment, changeset, prd_scaffold, prd_flow —
+ * and PeerLink draws them as an unlinked label. That is deliberate and stays:
+ * an unlinked label beats a link to the wrong place, which is the whole lesson
+ * of the two paragraphs above. `learning` is the one worth revisiting later —
+ * 11 of an opportunity's ancestors are learnings and
+ * `/brain?tab=learnings&learning=<id>` is a real door — but adding it is a NEW
+ * affordance rather than the repair of a broken one, so it is recorded here
+ * rather than taken in a pass about wrong destinations.
  */
 const ROUTES: Partial<
   Record<
@@ -57,14 +134,21 @@ const ROUTES: Partial<
     }
   >
 > = {
-  opportunity: () => ({ to: "/discover" }),
+  // Right station, no row: /decide is where opportunities are ranked. Zero-arg
+  // until /decide declares a `?focus=` parser. See the sweep note above.
+  opportunity: () => ({ to: "/decide" }),
   prd: (id) => ({ to: "/plan/spec/$id", params: { id } }),
   task: () => ({ to: "/tasks" }),
   signal: (id) => ({ to: "/discover", search: { focus: id } }),
   theme: (id) => ({ to: "/discover", search: { focus: id } }),
   meeting: (id) => ({ to: "/meetings/$id", params: { id } }),
   roadmap_item: () => ({ to: "/roadmap" }),
-  decision: () => ({ to: "/meetings" }),
+  // Lands on the record itself, and it is the only kind here that gets there
+  // through a SEARCH param instead of a route param: /brain's validateSearch
+  // keeps `decision`, and its decisions tab renders DecisionDetail for that id.
+  // `signal` and `theme` also carry a search param, but theirs asks a surface to
+  // focus something, which it can decline; this one selects the record.
+  decision: (id) => ({ to: "/brain", search: { tab: "decisions", decision: id } }),
   mission: (id) => ({ to: "/build/$missionId", params: { missionId: id } }),
 };
 

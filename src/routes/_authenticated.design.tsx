@@ -444,25 +444,45 @@ function Design() {
    *
    * The other spec's review is kept rather than dropped, so clicking back shows
    * the review you already paid a model call for.
+   *
+   * ONE SLOT PER SPEC, NOT ONE SLOT. A single `{prdId, findings}` slot made the
+   * sentence above true only for a READ: it could not render the wrong spec's
+   * findings, but any write evicted whatever spec was in the slot, so redrawing
+   * spec A threw away a live review being held for spec B -- the very loss this
+   * comment claims to prevent, reintroduced by the redraw path's own emptying
+   * write. A map keyed by spec cannot have that shape of bug: a write about one
+   * spec touches one key.
+   *
+   * THREE STATES PER KEY, and the difference between two of them is the whole
+   * reason this is a map and not a list. ABSENT means this session has no
+   * opinion, so the ruling on the record shows. NULL means this session EMPTIED
+   * it -- the drawing was redrawn, so the ruling the record still holds is about
+   * markup that no longer exists, and this suppresses the rehydrated one until
+   * the refetch lands. An array is a live review from this session, and it wins,
+   * because it is newer than the read.
    */
-  const [review, setReview] = React.useState<{
-    prdId: string;
-    /** Null is a real value here and means THIS SESSION emptied it: the drawing
-     *  was redrawn, so the ruling the record still holds is about markup that no
-     *  longer exists. It suppresses the rehydrated one below until the refetch
-     *  lands, which is the window where the server would still return it. */
-    findings: DesignCriticFinding[] | null;
-  } | null>(null);
+  const [reviews, setReviews] = React.useState<Record<string, DesignCriticFinding[] | null>>({});
   /**
-   * THE RULING SURVIVES THE PAGE NOW, so this session's state is no longer the
+   * THE RULING CAN SURVIVE THE PAGE, so this session's state is no longer the
    * only place findings live. `runScaffoldDesignCritic` writes them to the
    * record and `getDesignWorkItem` hands back the ones that are about the
    * drawing currently on screen, so clicking a second spec and clicking back
    * shows the review you already paid for instead of an empty panel and a
    * second bill. A live review still wins: it is newer than the read.
+   *
+   * "CAN", AND NOT "DOES", UNTIL ONE MIGRATION IS APPLIED. The ruling is filed
+   * on `prd_scaffolds.critic_review`, added by the migration dated
+   * 20260806170000. Until that runs the write fails, `persisted` comes back
+   * false, and the receipt below says so in the person's own words -- so this
+   * map is the only place the findings live and the panel below still shows
+   * them. Nothing here needs to change when the column arrives.
    */
-  const localReview = review && review.prdId === focusId ? review : null;
-  const findings = localReview ? localReview.findings : (focus?.criticReview?.findings ?? null);
+  // `in`, not truthiness: null is a value here and means "emptied", which is a
+  // different answer from "this session never said anything about this spec".
+  const localFindings: DesignCriticFinding[] | null | undefined =
+    focusId !== null && focusId in reviews ? reviews[focusId] : undefined;
+  const findings =
+    localFindings !== undefined ? localFindings : (focus?.criticReview?.findings ?? null);
 
   /** Same rule, same reason: which finding is mid-draft is a fact about ONE
    *  spec's review, and it disables every "Make it a rule" button while it is
@@ -602,14 +622,17 @@ function Design() {
       // The drawing the Critic read has just been replaced, so its findings go
       // with it -- but only for the spec that was redrawn. A redraw of one spec
       // never said anything about what the Critic found in another, and the
-      // blanket clear this replaces threw away a review you had paid for.
+      // blanket clear this replaces threw away a review you had paid for. It is
+      // ONE KEY that changes here, which is what makes that sentence true: while
+      // the state was a single slot this write still evicted whatever other
+      // spec's live review was sitting in it.
       //
       // EMPTIED, not cleared, and that is now the difference between the two.
       // The record still holds the old ruling for the moment it takes the
       // refetch to land (the server drops it by comparing the review's time
       // against the drawing's), and a plain clear would fall through to it and
       // render the previous drawing's findings under the new drawing.
-      if (prdId) setReview({ prdId, findings: null });
+      if (prdId) setReviews((prev) => ({ ...prev, [prdId]: null }));
       note(
         "focus",
         prdId,
@@ -713,8 +736,15 @@ function Design() {
         // A review that produced nothing clears only its OWN spec's live
         // findings, and drops back to whatever the record holds rather than
         // emptying it: a failed call is not evidence against a ruling already
-        // filed about this same drawing.
-        setReview((prev) => (prev && prev.prdId === prdId ? null : prev));
+        // filed about this same drawing. DELETING the key is what drops back --
+        // setting it to null would be this session claiming the drawing has no
+        // ruling, which is the opposite thing to say after a call that failed.
+        setReviews((prev) => {
+          if (!prdId || !(prdId in prev)) return prev;
+          const next = { ...prev };
+          delete next[prdId];
+          return next;
+        });
         note(
           "focus",
           prdId,
@@ -724,7 +754,10 @@ function Design() {
         );
         return;
       }
-      if (prdId) setReview({ prdId, findings: res.review.findings });
+      if (prdId) {
+        const landed = res.review.findings;
+        setReviews((prev) => ({ ...prev, [prdId]: landed }));
+      }
       // WHETHER IT WAS FILED IS PART OF WHAT HAPPENED. A review that could not
       // reach the record is still a real review, and a person who is about to
       // click away is the one who most needs to know it will not be there when
