@@ -380,8 +380,8 @@ export function RoadmapColumns() {
           Re-measured through the Lovable MCP on 2026-08-06 and unchanged: 13
           workspaces hold unplaced committed bets, 12 of them hold more than one,
           and the counts run 7,5,5,5,3,3,3,3,3,3,3,2,1. The seven seeded demo
-          workspaces are the seven 3s, so in those — the ones a visitor is most
-          likely to open — the first press leaves two behind.
+          workspaces are the seven 3s, so in those (the ones a visitor is most
+          likely to open) the first press leaves two behind.
 
           THAT IS AS FAR AS THE MEASUREMENT REACHES, and the sentence here used
           to reach further. Across all 13 the first press leaves anywhere from
@@ -391,8 +391,8 @@ export function RoadmapColumns() {
           place the rest, and that is the whole reason this line exists.
 
           Deliberately NOT variant="primary". Here the columns are not empty, so
-          plan.index's Gate can fire — it reads `undeclared` out of the BUCKETED
-          bets — and that Gate owns the one primary act on this station; Actions'
+          plan.index's Gate can fire, because it reads `undeclared` out of the BUCKETED
+          bets, and that Gate owns the one primary act on this station; Actions'
           own contract is one primary among them and only one. To be exact about
           which bets can make it fire, because the looser version of this
           sentence read as though this button could: never one placed from HERE.

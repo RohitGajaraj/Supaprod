@@ -755,7 +755,7 @@ function Today() {
 
                 The `.some(...)` guard below is unaffected and stays. It is
                 correct whichever way the data falls, and it is the reason a
-                heading can never print over an empty line — which is a property
+                heading can never print over an empty line, which is a property
                 of the code, not of today's row counts. */}
             {(criticResult.missing_evidence ?? []).some((m) => m.trim().length > 0) ? (
               <div>
@@ -1055,7 +1055,7 @@ function Today() {
                 anyone who skipped onboarding, or whose Critic call degraded,
                 was told on the front door that "Your idea got an AI review"
                 when none had run. It also duplicated the honest card above
-                (:591 — "340 lines above" when that sentence was written; the
+                (:591, "340 lines above" when that sentence was written; the
                 comment work since has pushed the two further apart, so the line
                 is cited instead of a distance), which renders from the same
                 stored result and says the same thing when there IS one. One
