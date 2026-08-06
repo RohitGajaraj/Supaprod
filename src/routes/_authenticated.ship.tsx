@@ -344,6 +344,29 @@ export type ShipDeployment = {
   created_at?: string | null;
 };
 
+/**
+ * What the deploy record says about WHO deploys this release, which is the one
+ * question that decides whether "the preview lands on its own after a merge" is
+ * a fact or a promise about an event that is never coming.
+ *
+ * "none"     -- no deploy row of any kind. Nothing has been attempted and the
+ *               record cannot say who would attempt it.
+ * "supaprod" -- at least one row Supaprod's own hosting served (provider
+ *               'deno'). Supaprod deploys for this repo.
+ * "captured" -- rows exist and NOT ONE of them is ours. Every deploy on this
+ *               release came from the customer's own pipeline and Supaprod only
+ *               read it from the repository's deployment record.
+ *
+ * IT IS THE CLIENT'S BEST AVAILABLE ANSWER, NOT THE SERVER'S. The server splits
+ * the same refusal on `denoDeployConfigured()` (deployments.functions.ts), which
+ * reads DENO_DEPLOY_TOKEN out of the process environment and is unreachable from
+ * a browser. So "none" is genuinely unknown here -- an install with no hosting
+ * configured looks exactly like a repo whose first preview has not landed yet --
+ * and the sentence written for it hedges the way the server's own configured
+ * branch hedges, rather than promising.
+ */
+export type DeployOrigin = "none" | "supaprod" | "captured";
+
 /** One merged release, with everywhere it is currently serving. */
 export type ReleaseState = {
   changesetId: string;
@@ -386,6 +409,27 @@ export type ReleaseState = {
    * `previewUrl` is the only thing on the row that points at whoever built it.
    */
   observedPreviewProvider: string | null;
+  /**
+   * Status of the newest PREVIEW deploy of any outcome, or null when none has
+   * ever been attempted. The preview half of `lastProductionStatus`, and it
+   * exists for the same reason.
+   *
+   * `previewUrl`, `hostedPreviewUrl` and `observedPreviewProvider` are all
+   * success-only reads, so a release whose only preview FAILED arrived with all
+   * three null and `whereItIs` reported it as "No deploy is on the record" --
+   * an attempted deploy read back as an absent one, over a `deployments` row
+   * that says failure.
+   *
+   * IT CAN DISAGREE WITH `previewUrl`, on purpose. A success at 10:00 and a
+   * failed redeploy at 11:00 leaves an address that still answers AND a newest
+   * status of "failure". `whereItIs` prefers the address, because a door a
+   * person can open is the more useful fact; this field is what it falls back
+   * to when there is no door.
+   */
+  previewStatus: string | null;
+  /** Who deploys this release, as far as its own rows can say. See
+   *  `DeployOrigin`: it decides whether a preview is coming on its own. */
+  deployRecord: DeployOrigin;
   /** Newest SUCCESSFUL production deploy that recorded an address. */
   productionUrl: string | null;
   /** When that production deploy landed. Null until one has. */
@@ -496,10 +540,22 @@ export function releaseStates(
       false,
       (d) => d.status === "success" && !isSupaprodHosted(d),
     );
+    // The newest preview of ANY outcome, which is the only row that can say a
+    // preview was attempted and did not land. The three reads above are all
+    // success-only, so without this a failed preview is indistinguishable from
+    // no preview at all.
+    const previewAny = newestDeployment(rows, "preview", false);
     const prodOk = newestDeployment(rows, "production", true);
     const prodAny = newestDeployment(rows, "production", false);
     const fromChangelog = (e.production_url ?? "").trim() || null;
     const productionUrl = prodOk?.deploy_url ?? fromChangelog;
+    // WHO DEPLOYS THIS ONE. Any environment, any outcome: a captured PRODUCTION
+    // row is as good evidence that the customer's pipeline does the deploying
+    // as a captured preview is, and a FAILED deploy of ours still proves we
+    // deploy here. `isSupaprodHosted` reads a missing provider as ours, so a
+    // hand-built object never lands on the "captured" side by accident.
+    const deployRecord: DeployOrigin =
+      rows.length === 0 ? "none" : rows.some(isSupaprodHosted) ? "supaprod" : "captured";
     states.push({
       changesetId: e.changeset_id,
       title: e.title,
@@ -510,6 +566,8 @@ export function releaseStates(
       previewUrl: preview?.deploy_url ?? null,
       hostedPreviewUrl: hosted?.deploy_url ?? null,
       observedPreviewProvider: observed?.provider ?? null,
+      previewStatus: previewAny?.status ?? null,
+      deployRecord,
       productionUrl,
       productionAt: prodOk?.deployed_at ?? prodOk?.created_at ?? null,
       // A resolved address IS a successful production deploy: listChangelog
@@ -563,11 +621,26 @@ export function isLive(s: ReleaseState): boolean {
  * The address a release is currently answering on, and the plain-words state
  * behind it.
  *
- * EVERY `DeployStatus` HAS A SENTENCE (deployments.ts normalizes provider vocab
- * to success | failure | pending | in_progress | unknown). A status this
- * function did not name would fall through to "no deploy on the record", which
- * reports an attempted deploy as an absent one -- the product claiming less
- * than it did, which is the same defect as claiming more.
+ * EVERY `DeployStatus` HAS A SENTENCE, IN BOTH ENVIRONMENTS (deployments.ts
+ * normalizes provider vocab to success | failure | pending | in_progress |
+ * unknown). A status this function did not name would fall through to "no
+ * deploy on the record", which reports an attempted deploy as an absent one --
+ * the product claiming less than it did, which is the same defect as claiming
+ * more.
+ *
+ * THE COMMENT ABOVE USED TO SAY THAT AND THE CODE DID NOT DO IT. Every branch
+ * read `lastProductionStatus` and nothing read a preview status at all, while
+ * `releaseStates` keeps a preview row only when it is `success` WITH an
+ * address. So a release whose sole deploy was a FAILED preview arrived with
+ * every preview field null and fell to "No deploy is on the record", over a
+ * `deployments` row that said failure. `previewStatus` is carried for exactly
+ * that, and the five preview branches below close it.
+ *
+ * THE ORDER IS ADDRESSES FIRST, THEN STATUSES. Production outranks preview
+ * because production is the question this surface is asked; an address outranks
+ * the status beside it because a door a person can open is worth more than a
+ * word about it. The preview statuses are last, where there is no door left to
+ * offer.
  */
 export function whereItIs(s: ReleaseState): { address: string | null; state: string } {
   if (s.productionUrl) return { address: s.productionUrl, state: "In production" };
@@ -603,6 +676,21 @@ export function whereItIs(s: ReleaseState): { address: string | null; state: str
     }
     return { address: s.previewUrl, state: "Preview only, nobody has promoted it" };
   }
+  // NO ADDRESS ANYWHERE, WHICH IS NOT THE SAME AS NO DEPLOY. Reached when the
+  // preview left a row and no openable URL: it failed, it is still running, it
+  // ended in a state the provider would not name, or it succeeded without
+  // recording an address (the preview twin of the production case above).
+  const pv = s.previewStatus;
+  if (pv === "failure") return { address: null, state: "The preview deploy failed" };
+  if (pv === "pending" || pv === "in_progress") {
+    return { address: null, state: "A preview deploy is running" };
+  }
+  if (pv === "unknown") {
+    return { address: null, state: "The preview deploy ended in an unknown state" };
+  }
+  if (pv === "success") {
+    return { address: null, state: "Preview deployed, and recorded no address" };
+  }
   return { address: null, state: "No deploy is on the record" };
 }
 
@@ -621,7 +709,29 @@ export type PromoteAbsence =
   | { kind: "failed" }
   | { kind: "no-releases" }
   | { kind: "all-live"; count: number }
-  | { kind: "no-preview"; count: number }
+  /**
+   * Merged, and nothing successful to promote. `captured` is the subset whose
+   * deploy record shows the customer's own pipeline doing the deploying, and it
+   * exists because ONE SENTENCE WAS COVERING TWO OPPOSITE FACTS.
+   *
+   * "The preview lands on its own after a merge, in about two minutes" is true
+   * only where Supaprod does the deploying. Said to a customer whose repo
+   * Supaprod does not host it is a promise about an event that is never coming,
+   * and they read it every time they look. That is the same split
+   * `promoteChangesetToProductionCore` makes in its own refusal
+   * (deployments.functions.ts), and until now only the server made it.
+   *
+   * WHAT THE CLIENT CANNOT SEE. The server splits on `denoDeployConfigured()`,
+   * which reads the process environment; the browser has no such read, so this
+   * splits on the evidence the rows themselves carry (`DeployOrigin`). That
+   * catches the case the server's boolean was written for -- a BYO release
+   * whose captured deploy is in_progress or failure, which reaches /ship for the
+   * first time now that ci-poll-tick generates release notes on any captured
+   * deploy -- and it does NOT catch an install with no hosting configured and no
+   * deploy rows at all. Those land in `count - captured`, whose sentence
+   * therefore hedges instead of promising.
+   */
+  | { kind: "no-preview"; count: number; captured: number }
   /**
    * The previews exist and this product did not build them. `waiting` carries
    * the releases in the same block that are genuinely still waiting on a
@@ -630,14 +740,24 @@ export type PromoteAbsence =
    *
    * `previewUrl` is the address of the one such preview when there is exactly
    * one, which is the only field on the record that points at whoever built it.
-   * `provider` is the repo host off that same row -- always "github", since
-   * that is the literal capture stamps -- so it is carried as evidence and is
-   * NEVER put in the sentence: it named the wrong publisher when it was.
+   *
+   * THERE IS NO `provider` HERE ANY MORE, and that is a decision rather than a
+   * tidy-up. It carried `observedPreviewProvider` off the first such release,
+   * which is the REPO host and is always the literal "github" that capture
+   * stamps. Once the sentence stopped interpolating it -- it had been telling a
+   * Netlify customer their preview came from github -- nothing wrote to it,
+   * nothing read it, and no test named it: a field whose own doc said it was
+   * "carried as evidence and is NEVER put in the sentence", which is evidence
+   * with no door, and the next reader to find it would have tried to print it
+   * again. It has no honest reader available: the one value it can hold is the
+   * one value that is wrong to show. So it folds into the boolean the code
+   * actually uses -- `count`, which is exactly "how many releases satisfied
+   * `!!observedPreviewProvider`". NOTHING A PERSON COULD SEE IS LOST: the
+   * sentence below never named the provider, and it still does not.
    */
   | {
       kind: "published-elsewhere";
       count: number;
-      provider: string | null;
       previewUrl: string | null;
       waiting: number;
     };
@@ -669,14 +789,20 @@ export function promoteAbsence(args: {
     return {
       kind: "published-elsewhere",
       count: elsewhere.length,
-      provider: elsewhere[0].observedPreviewProvider,
       // Only when there is exactly one, because quoting one address over a
       // sentence that counts several would attach it to the wrong release.
       previewUrl: elsewhere.length === 1 ? elsewhere[0].previewUrl : null,
       waiting: notLive - elsewhere.length,
     };
   }
-  return { kind: "no-preview", count: notLive };
+  // THE SAME SPLIT AGAIN, ONE STEP FURTHER DOWN. The block above took every
+  // release with a preview somebody ELSE published; what is left is a release
+  // whose rows can still say who deploys for it, and one whose deploys all came
+  // from the customer's pipeline is never getting a preview from us.
+  // A "captured" record has no Supaprod row at all, so it can carry no
+  // `hostedPreviewUrl` either; `isLive` is the only other thing to exclude.
+  const captured = args.states.filter((s) => !isLive(s) && s.deployRecord === "captured").length;
+  return { kind: "no-preview", count: notLive, captured };
 }
 
 /** The sentence for an absence, or null where another element already says it
@@ -688,15 +814,56 @@ export function absenceSentence(a: PromoteAbsence): string | null {
     case "failed":
       return null;
     case "no-releases":
-      return "Nothing has merged yet, so there is nothing to promote. A merged change deploys a preview on its own, and promoting that preview is what puts it in front of customers.";
+      // NOTHING HAS MERGED, SO THERE IS NO RECORD TO READ, and with no record
+      // the honest form of "a preview lands on its own" is the conditional one.
+      // Stated unconditionally it was the same promise the split below exists
+      // to stop making, said to the reader with the least evidence of all.
+      return "Nothing has merged yet, so there is nothing to promote. For a repo Supaprod hosts, a merged change deploys a preview on its own in about two minutes, and promoting that preview is what puts it in front of customers; for a repo it does not host, Supaprod records the previews your own pipeline publishes and you promote those where they were built.";
     case "all-live":
       return a.count === 1
         ? "The one release on the record is already in production."
         : `All ${a.count} releases on the record are already in production.`;
-    case "no-preview":
-      return a.count === 1
-        ? "One release has merged and has no successful preview yet. The preview lands on its own after a merge, in about two minutes."
-        : `${a.count} releases have merged and none has a successful preview yet. The preview lands on its own after a merge, in about two minutes.`;
+    case "no-preview": {
+      /*
+       * TWO SENTENCES, BECAUSE THE TWO GROUPS WANT OPPOSITE NEXT MOVES. The
+       * captured ones are waiting on a person, in another tool; the rest may
+       * genuinely be waiting on a clock. Naming only the larger group and going
+       * silent about the other is the failure the `published-elsewhere` block
+       * above already refuses.
+       *
+       * THE PROMISE SURVIVES, CONDITIONED. "The preview lands on its own after
+       * a merge, in about two minutes" is kept word for word where it can be
+       * true and prefixed with the condition that makes it true, rather than
+       * deleted -- and the second clause says what happens when the condition
+       * does not hold, which is what the server's own configured-branch refusal
+       * says (deployments.functions.ts).
+       *
+       * WHAT THIS STILL DOES NOT SPLIT, both of them older than this fix and
+       * both answered by the row directly beneath this line rather than by it:
+       *
+       *   A release Supaprod hosts whose preview has ALREADY failed reads the
+       *   conditional sentence, because at this altitude it is the same case --
+       *   Supaprod does deploy for that repo. `whereItIs` says "The preview
+       *   deploy failed" on its own row.
+       *
+       *   `count` is every release not in production, so it also counts one
+       *   holding a good Supaprod preview whose PRODUCTION deploy is mid-flight
+       *   (not ready, not live). "none has a successful preview yet" is wrong
+       *   about that one; its row says "A production deploy is running".
+       */
+      const waiting = a.count - a.captured;
+      const theirs =
+        a.captured === 1
+          ? "One release's deploys all came from your own pipeline, so Supaprod will not build a preview for it; promote it where it was built, and Supaprod records the production deploy once your provider reports it."
+          : `${a.captured} releases have deploys that all came from your own pipeline, so Supaprod will not build previews for them; promote them where they were built, and Supaprod records each production deploy once your provider reports it.`;
+      const ours =
+        waiting === 1
+          ? "One release has merged and has no successful preview yet. For a repo Supaprod hosts, the preview lands on its own after a merge, in about two minutes; for a repo it does not host, Supaprod never builds one and none will appear."
+          : `${waiting} releases have merged and none has a successful preview yet. For a repo Supaprod hosts, the preview lands on its own after a merge, in about two minutes; for a repo it does not host, Supaprod never builds one and none will appear.`;
+      if (a.captured <= 0) return ours;
+      if (waiting <= 0) return theirs;
+      return `${theirs} ${ours}`;
+    }
     case "published-elsewhere": {
       // THE SAME ANSWER THE SERVER GIVES, so the two doors onto this act cannot
       // tell a person two different stories about the same release. The server
@@ -911,10 +1078,34 @@ function Ship() {
   // alone cannot say what is serving. So both halves gate together rather than
   // letting one render a confident half-answer.
   const releaseReading = changelog.isLoading || deployments.isLoading;
-  const releaseFailed = changelog.isError || deployments.isError;
+  /**
+   * A FAILED REFRESH IS NOT A LOST READ, and react-query v5 keeps `data`
+   * through one. Same shape ChangesPanel uses over its own deploy query
+   * (`deploymentsUnread` / `deploymentsStale`), widened to two queries; its
+   * comment asks for exactly that, and two doors onto one act must not tell a
+   * person two different stories about the same blip.
+   *
+   * `deployments` polls every 30 seconds, so one network hiccup sets `isError`
+   * while every row of the last good read is still in hand. Gating on
+   * `isError` alone took the addresses, the Promote buttons and the rollbacks
+   * off a screen that had been showing all three a second earlier -- an
+   * affordance removed rather than replaced, over rows we still had.
+   *
+   * BOTH HALVES, because the join is a guess without either: `releaseHeld` asks
+   * whether the changelog AND the deploy page have each answered at least once.
+   * With both in hand a failure is said ALONGSIDE the rows and everything
+   * stays; with either missing there is nothing true to draw, so only the
+   * failure and its retry are drawn -- and `promoteAbsence` is told `failed`
+   * only in that second case, or its sentence would report a blip as an empty
+   * record.
+   */
+  const releaseErrored = changelog.isError || deployments.isError;
+  const releaseHeld = !!changelog.data && !!deployments.data;
+  const releaseUnread = releaseErrored && !releaseHeld;
+  const releaseStale = releaseErrored && releaseHeld;
   const absence = promoteAbsence({
     reading: releaseReading,
-    failed: releaseFailed,
+    failed: releaseUnread,
     states,
   });
   const retryRelease = () => {
@@ -1447,7 +1638,19 @@ function Ship() {
         }
         onMore={() => setAllAddresses((v) => !v)}
       >
-        {releaseFailed ? (
+        {/* THE STALE NOTE SITS ABOVE THE BRANCH, not inside one arm of it,
+            because a read that failed with rows in hand is worth saying over
+            whatever those rows turn out to be -- a list, or an Empty that is
+            the last thing we genuinely read. `releaseUnread` and `releaseStale`
+            cannot both be true, so this never stacks with the Failed below. */}
+        {releaseStale ? (
+          <Failed onRetry={retryRelease} retryLabel="Read it again">
+            These are the last release rows that loaded; the refresh just now did not land, so this
+            may have moved since.{" "}
+            {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
+          </Failed>
+        ) : null}
+        {releaseUnread ? (
           <Failed onRetry={retryRelease}>
             Where each release is serving did not load, so this list would be a guess.{" "}
             {((changelog.error ?? deployments.error) as Error | null)?.message?.slice(0, 160)}
@@ -1456,8 +1659,10 @@ function Ship() {
           <Loading>Reading where each release is serving.</Loading>
         ) : states.length === 0 ? (
           <Empty>
-            No deploy is on the record yet. A merged change deploys a preview on its own, and one
-            promote moves that same commit to the production address.
+            No deploy is on the record yet. For a repo Supaprod hosts, a merged change deploys a
+            preview on its own and one promote moves that same commit to the production address; for
+            a repo it does not host, Supaprod records the deploys your own pipeline publishes and
+            none appears here on its own.
           </Empty>
         ) : (
           (allAddresses ? states : states.slice(0, VISIBLE)).map((s) => {
@@ -1510,7 +1715,18 @@ function Ship() {
         }
         onMore={() => setAllReleases((v) => !v)}
       >
-        {releaseFailed ? (
+        {/* Same two questions as the block above, and the rollback is the
+            reason they have to be asked separately here too: gating on
+            `isError` alone took every "Roll back" door off the screen on a
+            blip, which is the one control a person reaches for when something
+            is going wrong and the read is most likely to be flaky. */}
+        {releaseStale ? (
+          <Failed onRetry={retryRelease} retryLabel="Read it again">
+            These are the last releases that loaded; the refresh just now did not land, so this may
+            have moved since.
+          </Failed>
+        ) : null}
+        {releaseUnread ? (
           <Failed onRetry={retryRelease}>What is in production did not load.</Failed>
         ) : releaseReading ? (
           <Loading>Reading what is in production.</Loading>

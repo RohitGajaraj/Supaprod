@@ -226,9 +226,9 @@ export const listDeployments = createServerFn({ method: "GET" })
  * be invisible to the record.
  *
  * `warnings` CARRIES THE HALF-SHIPPED CASES. Everything after the deploy — the
- * ledger receipt, the spec's shipped stamp, the outcome window — is best-effort
- * by design, because the production deploy has already happened and cannot be
- * undone by a bookkeeping failure. Best-effort was being read as "silent",
+ * release notes, the ledger receipt, the spec's shipped stamp, the outcome
+ * window — is best-effort by design, because the production deploy has already
+ * happened and cannot be undone by a bookkeeping failure. Best-effort was being read as "silent",
  * though: each of those writes sat in a try/catch with no `.select()`, and
  * supabase-js RESOLVES a write the database refused, so the catch never fired,
  * console.error never printed, and a promote that stamped nothing returned the
@@ -420,11 +420,36 @@ export async function promoteChangesetToProductionCore(
     // and skip-if-present - a human may already have written/edited one, and
     // a generation failure (nothing staged to describe, a model hiccup) must
     // never fail the promote itself, which has already gone live.
+    //
+    // IT IS ALSO THE BEST-EFFORT WRITE WITH THE LARGEST VISIBLE CONSEQUENCE, and
+    // it was the only one in this function that told nobody: the receipt, the
+    // ship stamp, the outcome window and the close-out catch all push a warning,
+    // this one only reached console.error on a server. /ship is spined on the
+    // CHANGELOG, and a changelog row is materialized only by
+    // trg_studio_changeset_to_changelog, which fires on a merged changeset whose
+    // release_notes are non-empty. So notes that never got written mean /ship
+    // shows NO row for this release at all: it goes on reading "Nothing has
+    // merged yet, so there is nothing to promote" underneath a production URL
+    // that is already serving, while the toast says "Live in production". And
+    // empty notes at this point is precisely the state left behind when on-merge
+    // generation already failed once, so this is the second miss on the same
+    // changeset, not a rare one. The warning names the door that exists.
+    //
+    // PARTIAL, and it says so: this reports a generation that THROWS. A
+    // release-notes update the database silently refuses does not throw --
+    // generateReleaseNotesCore's final update checks only `error` and has no
+    // `.select()` (src/lib/studio.functions.ts), and supabase-js resolves a
+    // refused write, so that case still returns as though it wrote and passes
+    // here unremarked.
     if (!cs.release_notes) {
       try {
         await generateReleaseNotesCore(db, userId, cs.id as string);
       } catch (e) {
-        console.error("auto release-notes on promote failed (non-fatal):", e);
+        const reason = e instanceof Error ? e.message : String(e);
+        console.error("auto release-notes on promote failed (non-fatal):", reason);
+        warnings.push(
+          `The deploy is live, but no release notes were written for it (${reason}). Ship lists a release only once its notes exist, so this one will not appear there yet. Open this change in Studio and press "Write them" under Release notes; Ship picks it up as soon as they are saved.`,
+        );
       }
     }
 

@@ -48,8 +48,12 @@ import {
  *      guarantees the gate actually appears.
  *   3.5. pending / neutral -> no-op.
  *   4. MERGED changesets on Supaprod-managed repos (supaprod.json) auto-deploy
- *      ONCE to a Deno Deploy preview revision (mission 3.7: merge is not the
- *      end; a live URL is); the promote gate moves production.
+ *      to a Deno Deploy preview revision (mission 3.7: merge is not the end; a
+ *      live URL is); the promote gate moves production. ONCE SUCCESSFULLY, not
+ *      once: a preview that FAILS is retried on the bounded schedule described
+ *      at HOSTED_PREVIEW_RETRY_BACKOFF_MS below, because nothing else in the
+ *      product can redeploy it and promote refuses without a successful preview
+ *      row. A preview that succeeds is never redeployed by this tick.
  *   4b. MERGED changesets on every OTHER repo — the ones Supaprod does not host
  *      — have their own provider's deployments CAPTURED instead (the customer's
  *      Vercel/Netlify/Actions deploy, read through RepoProvider.readDeployments).
@@ -96,6 +100,38 @@ const BRANCH_SYNC_BUDGET = Math.max(1, Number(process.env.BRANCH_SYNC_BUDGET ?? 
  */
 const DEPLOY_CAPTURE_WINDOW_MS =
   Math.max(5, Number(process.env.DEPLOY_CAPTURE_WINDOW_MIN ?? 60) || 60) * 60_000;
+/**
+ * RETRY POLICY FOR A FAILED SUPAPROD PREVIEW. Stated here because the code
+ * below implements exactly this and nothing more.
+ *
+ * A preview deploy that RECORDED a failure row is retried at most once per
+ * HOSTED_PREVIEW_RETRY_BACKOFF_MS, and only while the merge itself is younger
+ * than HOSTED_PREVIEW_RETRY_WINDOW_MS. With the defaults (10 minutes apart, 60
+ * minutes from the merge) that is the first attempt plus about five retries,
+ * after which Supaprod stops trying on its own. Until this existed a recorded
+ * failure was read as "already previewed" and the changeset was never deployed
+ * again by anything: the only two callers of deployChangesetApp are that branch
+ * and promote, and promote refuses without a SUCCESSFUL preview row, so one 5xx
+ * from the Deno API stranded a release permanently while /ship told the customer
+ * it was two minutes away.
+ *
+ * BOUNDED BY TIME, NOT BY A COUNTER, because the deployments upsert conflicts on
+ * (changeset_id, environment, commit_sha) and these attempts all carry the same
+ * default-branch head: repeated tries overwrite ONE row, so counting rows would
+ * count one attempt however many times it ran.
+ *
+ * NOT COVERED, deliberately: an attempt that throws BEFORE any row is written
+ * (collectRepoFiles refusing an oversized repo, a missing main.ts entrypoint, a
+ * repo-tree read failure) records nothing, so it is retried every sweep for as
+ * long as the changeset stays in the 7-day window, exactly as it was before this
+ * change. Bounding that needs durable per-changeset attempt state, which is a
+ * column studio_changesets does not have; narrowing it here instead would take
+ * away the retry an install that only just received DENO_DEPLOY_TOKEN depends on.
+ */
+const HOSTED_PREVIEW_RETRY_BACKOFF_MS =
+  Math.max(1, Number(process.env.HOSTED_PREVIEW_RETRY_BACKOFF_MIN ?? 10) || 10) * 60_000;
+const HOSTED_PREVIEW_RETRY_WINDOW_MS =
+  Math.max(5, Number(process.env.HOSTED_PREVIEW_RETRY_WINDOW_MIN ?? 60) || 60) * 60_000;
 const NON_TERMINAL_RUN = ["queued", "running", "in_progress", "waiting_approval"];
 
 type ChangesetLite = {
@@ -177,22 +213,40 @@ export async function runCiPollTick() {
           // One DB read decides what, if anything, this changeset still needs,
           // BEFORE any GitHub call is spent. Rows we deployed ourselves carry
           // provider 'deno'; rows captured from the customer's pipeline carry
-          // the repo provider. The hosted deploy is once-only, and capture stops
-          // as soon as a live production deploy is on the record, which is the
-          // fact /ship needs; a preview alone is not a reason to stop asking,
-          // since production is usually the deploy that follows it.
+          // the repo provider. The hosted deploy runs until one SUCCEEDS (a
+          // failed one is retried on the bounded schedule below, never a
+          // successful one), and capture stops as soon as a live production
+          // deploy is on the record, which is the fact /ship needs; a preview
+          // alone is not a reason to stop asking, since production is usually
+          // the deploy that follows it.
           const { data: recordedRows } = await supabaseAdmin
             .from("deployments")
-            .select("provider,environment,status")
+            .select("provider,environment,status,deployed_at")
             .eq("changeset_id", cs.id)
             .limit(50);
           const recorded = (recordedRows ?? []) as Array<{
             provider: string | null;
             environment: string | null;
             status: string | null;
+            deployed_at: string | null;
           }>;
-          const hostedPreviewDone = recorded.some(
-            (d) => d.provider === "deno" && d.environment === "preview",
+          // "ALREADY PREVIEWED" MEANS ONE SUCCEEDED. This used to ask only for a
+          // deno preview row of ANY status, but the upsert below writes that row
+          // with status 'failure' too (`result.ok ? "success" : "failure"`), so a
+          // single failed attempt read as done for good: canHost went false,
+          // shouldCapture went false, and every later sweep hit the `continue`
+          // below with no retry path and no redeploy button anywhere in the
+          // product. The failure row and its `failures` entry both stay exactly
+          // as they were; only the question narrows to the fact /ship and
+          // promote can actually use, which is a preview that served.
+          const hostedPreviewSucceeded = recorded.some(
+            (d) => d.provider === "deno" && d.environment === "preview" && d.status === "success",
+          );
+          // Any deno preview row that is not a success, status null included: an
+          // attempt whose outcome we cannot read counts as retriable, which is
+          // the safe direction now that retrying is bounded.
+          const hostedPreviewFailures = recorded.filter(
+            (d) => d.provider === "deno" && d.environment === "preview" && d.status !== "success",
           );
           const productionRecorded = recorded.some(
             (d) =>
@@ -203,13 +257,38 @@ export async function runCiPollTick() {
           // status write is the last thing to touch the row, and capture never
           // writes to studio_changesets, so this does not drift.
           const mergedAtMs = Date.parse(cs.updated_at ?? "");
+          const nowMs = Date.now();
           const withinCaptureWindow =
-            Number.isFinite(mergedAtMs) && Date.now() - mergedAtMs < DEPLOY_CAPTURE_WINDOW_MS;
-          const canHost = denoDeployConfigured() && !hostedPreviewDone;
-          // A repo Supaprod already previewed is a repo Supaprod hosts, so
-          // there is nothing of the customer's own to capture for it.
+            Number.isFinite(mergedAtMs) && nowMs - mergedAtMs < DEPLOY_CAPTURE_WINDOW_MS;
+          // THE RETRY POLICY DOCUMENTED AT THE TOP OF THIS FILE, IMPLEMENTED.
+          // With no failure row at all this is `true` and nothing changes: every
+          // sweep attempts the deploy, which is what a changeset whose deploy
+          // threw before recording anything still rides on. With one, the next
+          // attempt waits out the backoff and stops once the merge leaves the
+          // retry window. A failure row with an unreadable deployed_at falls back
+          // to the merge stamp, so it waits out the same backoff instead of
+          // retrying on every tick.
+          const lastHostedFailureMs = hostedPreviewFailures.reduce(
+            (newest, d) => {
+              const t = Date.parse(d.deployed_at ?? "");
+              return Number.isFinite(t) && t > newest ? t : newest;
+            },
+            Number.isFinite(mergedAtMs) ? mergedAtMs : 0,
+          );
+          const hostedRetryDue =
+            hostedPreviewFailures.length === 0 ||
+            (Number.isFinite(mergedAtMs) &&
+              nowMs - mergedAtMs < HOSTED_PREVIEW_RETRY_WINDOW_MS &&
+              nowMs - lastHostedFailureMs >= HOSTED_PREVIEW_RETRY_BACKOFF_MS);
+          const canHost = denoDeployConfigured() && !hostedPreviewSucceeded && hostedRetryDue;
+          // A repo Supaprod already previewed SUCCESSFULLY is a repo Supaprod
+          // hosts, so there is nothing of the customer's own to capture for it.
+          // A repo whose Supaprod preview FAILED is not that repo: gating capture
+          // on the old any-status flag stopped reading the customer's own
+          // pipeline over a deploy of ours that never served, which is the
+          // opposite of what this comment says and was never intended.
           const shouldCapture =
-            !hostedPreviewDone && !productionRecorded && withinCaptureWindow && !!cs.pr_number;
+            !hostedPreviewSucceeded && !productionRecorded && withinCaptureWindow && !!cs.pr_number;
           if (!canHost && !shouldCapture) continue;
 
           const gh = await resolveGitHub({

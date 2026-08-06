@@ -380,6 +380,24 @@ export function ChangesPanel({
   const productionDep = deploymentRows.find(
     (d) => d.environment === "production" && d.status === "success" && d.deploy_url,
   );
+  /**
+   * A FAILED REFRESH IS NOT A LOST READ, and react-query v5 keeps `data`
+   * through one.
+   *
+   * This query polls every 30 seconds (`refetchInterval` above), so one network
+   * blip sets `isError` while every row from the last good read is still in
+   * hand. Gating the whole block on `isError` alone took the preview address
+   * and the Promote button off a screen that had been showing both a second
+   * earlier -- an affordance taken away over a blip, on rows we still had.
+   *
+   * So the two cases are asked separately. `deploymentsUnread` is the read that
+   * never landed: there is nothing true to draw, so only the failure and its
+   * retry are drawn. `deploymentsStale` still has rows, so the rows and the
+   * promote stay and the failure is said ALONGSIDE them, retry included.
+   */
+  const deploymentsUnread = deploymentsQ.isError && !deploymentsQ.data;
+  const deploymentsStale = deploymentsQ.isError && !!deploymentsQ.data;
+  const retryDeployments = () => void deploymentsQ.refetch();
   const fPromote = useServerFn(promoteToProduction);
   const promoteMut = useMutation({
     mutationFn: () => fPromote({ data: { changesetId: changeset!.id } }),
@@ -825,9 +843,18 @@ export function ChangesPanel({
               wrong answer, and a permanent one on error, since nothing retried
               and nothing said so. The empty-state sentence is still below,
               where it is now only said when the read genuinely returned no
-              deploy. Same shape /ship uses for the same question. */}
-          {deploymentsQ.isError ? (
-            <Failed onRetry={() => void deploymentsQ.refetch()}>
+              deploy.
+
+              AND A FAILED REFRESH IS NOT A READ THAT DID NOT HAPPEN. The
+              Failed branch is gated on `deploymentsUnread` (error AND no data),
+              never on `isError` alone, so a blip in the 30-second poll cannot
+              take the address and the Promote button off the screen. With rows
+              in hand the failure becomes a note above them and they stay: see
+              `deploymentsStale` below. /ship answers this same question over
+              its own two queries in `_authenticated.ship.tsx`; keep the two
+              shapes the same. */}
+          {deploymentsUnread ? (
+            <Failed onRetry={retryDeployments}>
               Where this change is serving did not load, so anything said here would be a guess.{" "}
               {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
             </Failed>
@@ -835,6 +862,19 @@ export function ChangesPanel({
             <Loading>Reading where this change is serving.</Loading>
           ) : (
             <>
+              {/* THE ROWS STAY AND THIS SAYS WHAT THEY ARE: the last read that
+                  landed, not what is serving right now. A stale address is
+                  still a door a person can open, and Promote acts on the
+                  server's own read of the preview row rather than on this one
+                  (`promoteChangesetToProductionCore` selects the deploy itself
+                  and refuses what it cannot move), so keeping the button here
+                  cannot promote something this panel misread. */}
+              {deploymentsStale ? (
+                <Failed onRetry={retryDeployments} retryLabel="Read it again">
+                  These are the last deploy rows that loaded; the refresh just now did not land, so
+                  this may have moved since. {(deploymentsQ.error as Error)?.message?.slice(0, 160)}
+                </Failed>
+              ) : null}
               <Line
                 label="Preview"
                 sub={
