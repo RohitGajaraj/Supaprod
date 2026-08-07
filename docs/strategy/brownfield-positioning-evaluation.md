@@ -1,6 +1,6 @@
 # Brownfield positioning: is serving existing products a shift?
 
-> _Created: 2026-08-07 · Evaluates the founder's question about expanding positioning to companies with existing products, three days before the 2026-08-10 soft launch._
+> _Created: 2026-08-07 · Evaluates the founder's question about expanding positioning to companies with existing products, ahead of the mid-September 2026 public launch (date ruled 2026-08-07, reversing a one-day 2026-08-06 direction that had moved it to the same week)._
 
 **The question, verbatim:** "I'm also considering expanding our positioning. Instead of serving only new product teams, the platform could also help companies with existing products. They could connect their existing data sources and workflows, allowing our platform to collect signals, analyze opportunities, decide priorities, plan, design, build, shape outcomes, and continuously learn from results. Evaluate whether this requires a strategic positioning shift or changes to our go-to-market strategy."
 
@@ -158,7 +158,7 @@ Blunt list, since the brief asked for it.
 
 ## 5. GTM implications: does launch week messaging change?
 
-**No, and changing it now would be actively harmful.** Launch is 2026-08-10, three days out. The critical path runs 2026-08-07 to 2026-08-12 ([`LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md) L7).
+**No, and changing it now would still be wrong, though for a different reason than when this was written.** This paragraph originally argued from urgency: launch was three days out, so there was no time to re-message. The date has since been ruled to **mid-September 2026**, which removes that argument entirely and leaves the real one standing on its own. Brownfield is not a message to change to, because it is already the shipped message: the homepage, the onboarding seeds, the demo story and the investor deck all describe it. The extra weeks are better spent making the connector story true than making the positioning new.
 
 Four reasons to hold.
 

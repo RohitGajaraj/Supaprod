@@ -820,7 +820,23 @@
     line-height: 1.4;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--ink-subtle);
+    /* --text-subtle, NOT --ink-subtle. Corrected 2026-08-07 after an
+     * accessibility audit of the public routes.
+     *
+     * Measured on #0a0a0a:  --ink-subtle #71717a = 4.10:1
+     *                       --text-subtle #7d786f = 4.51:1
+     *
+     * WCAG AA needs 4.5:1 for text this size, and .mono-label is 10px, so the
+     * old token failed on every instance. It is not a rare class: it is the
+     * canonical eyebrow and metadata style used across /proof, /demo, /pricing,
+     * the auth scaffold on /login and /signup, and it is the ONLY visible label
+     * on /p/teardown's form, which is the zero-signup demo wedge the homepage
+     * funnels traffic into.
+     *
+     * --text-subtle was already defined and already compliant. This class had
+     * simply been left pointing at the legacy token, so one line fixes every
+     * instance at once. */
+    color: var(--text-subtle, #7d786f);
     white-space: nowrap;
   }
 

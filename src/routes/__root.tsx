@@ -231,17 +231,58 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
        * sheet: it is still declared in styles.css and used by public surfaces,
        * and Geist Pixel remains the brand face. It simply is not what the
        * authenticated product renders in, so it is not what gets preloaded.
+       *
+       * ===================================================================
+       * REVISED 2026-08-07. THE REASONING ABOVE IS SOUND AND WAS SCOPED TO
+       * THE WRONG HALF OF THE SITE.
+       *
+       * Everything above was measured on /decide, an AUTHENTICATED route, and
+       * it is correct there. This root is shared by marketing and authenticated
+       * routes alike, so one preload list cannot serve both, and the list was
+       * tuned for the half that launch traffic never sees.
+       *
+       * Measured on the public routes:
+       *
+       *   `.sp-*` classes, the ONLY consumers of --sp-font-sans (Mona Sans) and
+       *   --sp-font-mono (IBM Plex Mono), appear ZERO times in
+       *   src/components/landing/. So 35,648 bytes were preloaded on every
+       *   marketing pageview and never used.
+       *
+       *   Meanwhile Geist Pixel Square paints the H1 on `/` (Hero.tsx), the
+       *   largest text block on a page with no raster images, which makes it
+       *   the likely LCP element. It was NOT preloaded, so it was discovered
+       *   only after a 46,638-byte stylesheet downloaded and parsed, competing
+       *   with 33 modulepreloaded JS chunks.
+       *
+       *   Geist Sans is the Tailwind preflight default, so it paints ordinary
+       *   body copy on every public page.
+       *
+       *   styles.css:14 explicitly bans IBM Plex Mono as belonging to "the
+       *   retired Ember Editorial system", which the block above independently
+       *   arrived at from the other direction.
+       *
+       * WHY MARKETING WINS THE PRELOAD BUDGET rather than splitting it. A
+       * marketing visitor is cold: first request, empty cache, and the one
+       * chance the company gets at a first impression. An authenticated user
+       * has the shell fonts cached from their first session and is a repeat
+       * visitor by definition. Spending the critical path on the cold case is
+       * the right trade, and preloading all four faces would spend it on
+       * neither.
+       *
+       * The authenticated shell still gets its fonts, just discovered normally
+       * rather than preloaded. Nothing is dropped from the sheet.
+       * ===================================================================
        */
       {
         rel: "preload",
-        href: "/fonts/mona/MonaSans-400.woff2",
+        href: "/fonts/geist/GeistPixel-Square.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
       },
       {
         rel: "preload",
-        href: "/fonts/plex/IBMPlexMono-Regular.woff2",
+        href: "/fonts/geist/Geist-Variable.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",

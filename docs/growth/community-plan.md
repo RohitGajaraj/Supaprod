@@ -26,7 +26,7 @@ Every community worth entering gates on account history, and none of that histor
 
 **So the launch-week rule for most of this page is: do not post.** That is the plan, not a gap in it. A launch-day post from a fresh account is removed by a bot, and the account carries the removal afterwards. The one thing launch week can do for community is **start the clocks**, so that day 30 has somewhere to land.
 
-> **Open founder decision, and it changes the dates below.** [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md) works to a launch day of 2026-08-10. [`../../README.md`](../../README.md) canon says **mid-September 2026 on every external surface**, and [`01`](./01-channel-playbooks.md) sequences Show HN and Product Hunt for week 2 to 3 behind hard gates. This file therefore uses **relative days (D0 is launch day)** and never a fixed date, so it holds under either reading. **Resolve which is true before anything here is scheduled.** If launch is mid-September, every seasoning clock below fits comfortably and the plan gets easier, not harder.
+> **RESOLVED 2026-08-07: launch is mid-September 2026.** This file was written in relative days (D0 is launch day) while two dates were live in two files, and it still is, because relative days survive the exact day moving. **The mid-September reading is the generous one**: every seasoning clock below, the Reddit karma runway, the Hacker News account age and the Product Hunt 72-hour maker-profile rule all fit comfortably rather than being raced. Nothing here needs shortening.
 
 ---
 

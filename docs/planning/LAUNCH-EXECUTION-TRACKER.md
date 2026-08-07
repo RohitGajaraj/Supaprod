@@ -12,7 +12,7 @@
 
 | Item | Owner | Status | Risk | Next action |
 | --- | --- | --- | --- | --- |
-| **Launch date conflict** | Founder | ⛔ | **Three independent audits hit this today.** `docs/planning/SOURCE-OF-TRUTH.md` works to **2026-08-10**. `README.md` says **mid-September 2026** on every external surface. Everything written this session is deliberately date-agnostic because of it, which cost real work. | Pick one. It sets the Show HN gap, the email send dates, the community cadence and the PH schedule. Nothing below can be scheduled until it exists. |
+| **Launch date** | Founder | ✅ **RULED 2026-08-07: mid-September 2026** | Resolved. It had been live as two different dates in two files, and three separate audits stopped on it before they could schedule anything. The 2026-08-06 direction moving launch to "this week" is reversed and recorded as such in `SOURCE-OF-TRUTH.md`. | **Remaining: pick the exact day.** Product Hunt needs one, Tuesday to Thursday is strongest, and Show HN goes D+7 at the earliest because HN vote-ring detection shadowbans the domain rather than the post. |
 
 ---
 
@@ -159,7 +159,7 @@ Every domain the founder named, with its verified state, and scored so the order
 
 | # | Domain | Verified state, 2026-08-07 | Impact | Effort | Depends on | Order |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | **Release plan / launch date** | ⛔ `SOURCE-OF-TRUTH` says 2026-08-10, README says mid-September | **Critical** | 2 min | nothing | **1** |
+| 1 | **Release plan / launch date** | ✅ **mid-September 2026**, ruled 2026-08-07. Exact day still to pick | **Critical** | done | — | — |
 | 2 | **Success criteria** | ⛔ undefined | **Critical** | 15 min | nothing | **2** |
 | 3 | **Security** | ❓ five zero-vuln audits on record, but a "Security, 4 issues" badge in the Lovable panel was never opened | **Critical** | 30 min | nothing | **3** |
 | 4 | **Onboarding** | ✅ rebuilt; audit dropped all 15 prior blockers. First sixty seconds are sound | Low | done | — | — |

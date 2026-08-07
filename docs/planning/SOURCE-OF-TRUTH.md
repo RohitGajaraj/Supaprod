@@ -10,7 +10,13 @@ If you are starting a session: read this, then [`../operations/session-handoff.m
 
 ## Now
 
-**SOFT LAUNCH IS THIS WEEK, on Product Hunt and X, by the founder's direction on 2026-08-06.** That supersedes the "mid-September 2026" date this section carried until today. Everything below is read against that deadline.
+**PUBLIC LAUNCH IS MID-SEPTEMBER 2026. Founder ruling 2026-08-07, and it REVERSES the 2026-08-06 direction.**
+
+That earlier direction moved the launch to "this week, on Product Hunt and X" and explicitly superseded the mid-September date. It held for one day. The reversal is recorded rather than overwritten because the two dates had been live in different files simultaneously, and three separate audits on 2026-08-07 stopped on the contradiction before they could schedule anything.
+
+**Mid-September is now the single date, matching [`../../README.md`](../../README.md) lines 254 and 271, which never moved.** Everything is read against that.
+
+**One thing this ruling does not yet settle: the exact day.** Product Hunt needs a specific date, and the strongest days are Tuesday to Thursday. Show HN goes **D+7 at the earliest, never the same day**, because HN's vote-ring detection shadowbans the *domain* rather than the post, so a same-day spike risks losing the channel permanently rather than losing one submission.
 
 **2026-08-06: four read-only audits, then eleven commits closing what they found.** The audits were the whole point and their findings are the record, so they are saved rather than summarised away, in `~/.claude/projects/-Users-rohitgajaraj-.../carry-forward/`:
 
