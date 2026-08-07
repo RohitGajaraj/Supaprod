@@ -55,13 +55,15 @@ BEGIN
   IF coalesce(auth.role(), '') = 'service_role' AND NEW.expires_at IS NOT NULL THEN
     RETURN NEW;
   END IF;
-  -- Paid if the memory's owner is a MEMBER (owner or invited) of any pro/team
-  -- workspace, not only the workspace owner, so team members keep their memory.
+  -- Paid if the memory's owner is a MEMBER (owner or invited) of any paid-tier
+  -- workspace (pro/team/enterprise/max), not only the workspace owner, so team members
+  -- keep their memory. Four-tier model: free, pro, team (Business), enterprise.
+  -- `max` kept for backward compat but not public. Any non-free tier = paid.
   SELECT EXISTS (
     SELECT 1
     FROM public.workspace_members wm
     JOIN public.workspaces w ON w.id = wm.workspace_id
-    WHERE wm.user_id = NEW.user_id AND w.plan_tier IN ('pro', 'team')
+    WHERE wm.user_id = NEW.user_id AND w.plan_tier IN ('pro', 'team', 'enterprise', 'max')
   ) INTO v_paid;
   IF v_paid THEN
     NEW.expires_at := NULL;  -- paid: never expires (overrides any client value)
