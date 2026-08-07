@@ -27,7 +27,11 @@
 // below encodes measured exclusion zones rather than a shared centred grid. See
 // the ZONES block before each function.
 
+import { statSync } from "node:fs";
 import { join } from "node:path";
+
+/** The app's public/ directory, four levels up from this kit. */
+const REPO_PUBLIC = join(import.meta.dir, "..", "..", "..", "public");
 import sharp from "sharp";
 import { P, machine, markEl, GRAIN, page, render, OUT, setGround } from "./orrery.ts";
 import type { Orr } from "./orrery.ts";
@@ -965,6 +969,24 @@ const SPECS: {
   fn: (id: string) => string;
   /** Also emit a JPEG twin. See the LinkedIn note below for why it is not decorative. */
   jpeg?: boolean;
+  /**
+   * Also write this asset into the app's `public/` directory, under the given
+   * filename, on the DARK ground only.
+   *
+   * THIS EXISTS TO CLOSE THE HOUSE HAZARD. Nothing in this repo regenerated
+   * `public/` from the brand kit, so every founder ruling had to be carried
+   * across by hand and routinely was not. That failure shipped four times in a
+   * single day on 2026-08-07: the OG card still said "Cadence" weeks after the
+   * rename, the icon set was violet three weeks after the colour was banned,
+   * the FAQ's JSON-LD drifted from its copy, and the LinkedIn JPEG kept serving
+   * a layout the PNG had already replaced.
+   *
+   * `public/og-supaprod.png` was verified pixel-identical to
+   * `social/og-dark-1200x630.png` on 2026-08-07, which is to say it was a hand
+   * copy that happened to still be current. Now it is generated, so it cannot
+   * quietly stop being current.
+   */
+  publicAs?: string;
 }[] = [
   // Both variants ship for every avatar-overlay platform. `-safe` survives the
   // ~13% mobile side-crop and the nav-button band; the plain one is the wider
@@ -1070,7 +1092,7 @@ const SPECS: {
   },
   { base: "linkedin-cover-legacy", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
   { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
-  { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i) },
+  { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i), publicAs: "og-supaprod.png" },
   { base: "github-social-preview", w: 1280, h: 640, fn: (i) => card(1280, 640, i) },
   { base: "producthunt-gallery", w: 1270, h: 760, fn: (i) => card(1270, 760, i) },
   { base: "discord-banner", w: 960, h: 540, fn: (i) => card(960, 540, i) },
@@ -1092,6 +1114,7 @@ const GROUND = process.env.GROUND;
 
 console.log(`ORRERY — full platform set, both grounds, 3x supersample\n`);
 let jpegs = 0;
+let publics = 0;
 for (const g of ["light", "dark"] as const) {
   if (GROUND && g !== GROUND) continue;
   setGround(g);
@@ -1105,6 +1128,27 @@ for (const g of ["light", "dark"] as const) {
     // Quality 92 puts 4200x700 at roughly 400KB, an order under LinkedIn's 3MB
     // cap, and LinkedIn re-encodes anyway so there is nothing to gain by going
     // lower and detail to lose.
+    // Ship into public/ so the live site cannot drift from the kit.
+    //
+    // Palette-quantised to 128 colours: 264KB becomes 45KB, an 83% cut. That
+    // number is only safe because it was CHECKED rather than assumed. Palette
+    // reduction is exactly what bands a dark gradient, so the darkest region of
+    // the card was cropped and magnified against the original before this was
+    // adopted; type stayed crisp, the gradient stayed smooth and the orbit
+    // hairlines survived. Do not raise the colour count "to be safe" without
+    // re-running that comparison, and do not lower it without one either.
+    //
+    // Size matters here more than on a banner: an OG card is refetched by every
+    // unfurl on X, Product Hunt, Slack and LinkedIn, so it is paid for once per
+    // share rather than once per visitor.
+    if (s.publicAs && g === "dark") {
+      const dest = join(REPO_PUBLIC, s.publicAs);
+      await sharp(png).png({ palette: true, colours: 128, compressionLevel: 9 }).toFile(dest);
+      const kb = Math.round(statSync(dest).size / 1024);
+      publics++;
+      console.log(`    └─ public/${s.publicAs}  ${kb}KB`);
+    }
+
     if (s.jpeg) {
       const jpg = png.replace(/\.png$/, ".jpg");
       await sharp(png).jpeg({ quality: 92, chromaSubsampling: "4:4:4" }).toFile(jpg);
@@ -1113,4 +1157,4 @@ for (const g of ["light", "dark"] as const) {
     }
   }
 }
-console.log(`\n${SPECS.length * 2} assets + ${jpegs} JPEG twins → ${OUT}`);
+console.log(`\n${SPECS.length * 2} assets + ${jpegs} JPEG twins + ${publics} public/ → ${OUT}`);
