@@ -215,12 +215,24 @@ function ProofPage() {
         supersessions={supersessionsCaughtTotal}
       />
 
-      <div
+      {/* <h2>, not <div>. Same accessibility correction as /pricing, 2026-08-07:
+       * this page had one <h1> and no headings under it, so the one section
+       * boundary on the page was invisible to assistive technology.
+       *
+       * The colour also moves off --ink-faint, which measures 2.56:1 on #0a0a0a
+       * and fails even the 3:1 large-text floor, let alone the 4.5:1 this 9px
+       * text needs. --text-subtle is 4.51:1 and was already defined. */}
+      <h2
         className="mono-label"
-        style={{ fontSize: 9, color: "var(--ink-faint, #8a8377)", margin: "0 0 12px" }}
+        style={{
+          fontSize: 9,
+          color: "var(--text-subtle, #7d786f)",
+          margin: "0 0 12px",
+          fontWeight: 500,
+        }}
       >
         Recent public decisions
-      </div>
+      </h2>
 
       {decisions.length === 0 ? (
         <div className="bento" style={{ padding: 24, textAlign: "center" }}>

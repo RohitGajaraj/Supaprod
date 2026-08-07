@@ -397,13 +397,30 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
         )}
       </div>
 
-      {/* Plan name */}
-      <span
+      {/* Plan name.
+       *
+       * <h2>, not <span>. Corrected 2026-08-07 after an accessibility audit
+       * found this page carried exactly one <h1> and zero headings below it.
+       * The four plan names are the page's actual structure, and rendering them
+       * as spans meant a screen-reader user could not jump between the four
+       * things this page exists to let them compare. WCAG 2.2 SC 1.3.1 and
+       * 2.4.6.
+       *
+       * All visual properties are set here explicitly, so promoting the tag
+       * changes the semantics and nothing about the rendering. */}
+      <h2
         className="font-display"
-        style={{ fontSize: 20, fontWeight: 460, marginBottom: 6, display: "block" }}
+        style={{
+          fontSize: 20,
+          fontWeight: 460,
+          marginBottom: 6,
+          display: "block",
+          margin: "0 0 6px",
+          letterSpacing: "inherit",
+        }}
       >
         {p.name}
-      </span>
+      </h2>
 
       {/* Who it's for */}
       <p
