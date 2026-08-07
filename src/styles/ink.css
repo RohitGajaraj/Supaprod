@@ -430,11 +430,37 @@
   --ink-raised: #18181b;
   --ink-overlay: rgba(0, 0, 0, 0.8);
 
-  /* Text ramp (zinc) */
+  /* Text ramp (zinc).
+   *
+   * RE-PITCHED 2026-08-07 so every tier passes WCAG AA. Measured on the #0a0a0a
+   * ground this ramp is always used against:
+   *
+   *            was            is            AA needs 4.5:1
+   *   body     #a1a1aa 7.72   #a1a1aa 7.72  passed already
+   *   subtle   #71717a 4.10   #8b8b93 5.86  FAILED
+   *   faint    #52525b 2.56   #7a7a82 4.65  FAILED, and badly: 2.56 misses
+   *                                          even the 3:1 large-text floor
+   *
+   * This is not a cosmetic ramp. `--ink-faint` alone appears about a hundred
+   * times and roughly ninety of those are `color:`, so it is a TEXT token in
+   * practice whatever its name suggests. It sets the footer column headings,
+   * every capability tag across /product, the copy in the waitlist form that
+   * explains what joining actually gets you, and the inactive label of the
+   * machine-view toggle in the footer of every public page.
+   *
+   * THE RANGE HAD TO COMPRESS, and that is the real trade. On a near-black
+   * ground you cannot have three descending tiers where the lowest still clears
+   * 4.5:1 and the gaps stay as wide as they were. So subtle moves UP to make
+   * room rather than faint moving up alone, which keeps three perceptibly
+   * distinct steps instead of collapsing two into one.
+   *
+   * Do not restore the old values to "recover the hierarchy". The old hierarchy
+   * was three steps of which two were unreadable, which is one step and two
+   * decorations. */
   --ink-text: #f4f4f5;
   --ink-body: #a1a1aa;
-  --ink-subtle: #71717a;
-  --ink-faint: #52525b;
+  --ink-subtle: #8b8b93;
+  --ink-faint: #7a7a82;
 
   /* Structure */
   --ink-hairline: rgba(255, 255, 255, 0.09);

@@ -26,6 +26,13 @@ export function LandingFooter() {
     {
       heading: "product",
       links: [
+        // "How it works" first, and it is the reason this line exists.
+        // /product carried sitemap priority 0.9 and ZERO inbound internal links
+        // anywhere in the app, verified 2026-08-07. A sitemap states intent; an
+        // internal link is the only thing that actually passes authority, so an
+        // orphaned page ranks poorly no matter what priority it claims. This is
+        // now the site's one inbound path to it.
+        { label: "How it works", href: "/product" },
         { label: "Demo", href: "/demo" },
         { label: "Pricing", href: "/pricing" },
         { label: "Updates", href: "/updates" },
