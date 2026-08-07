@@ -8,6 +8,17 @@
 
 ---
 
+## 0a. THE ACCESS MODEL CHANGED, 2026-08-07 evening
+
+| Item | Owner | Status | Evidence | Next action |
+| --- | --- | --- | --- | --- |
+| **Signup is now GATED. Private beta, invite code only.** | Founder | ✅ `3ab2f3e8` | Was wide open with auto-confirm, which made the waitlist theatre: a queue for a product anyone could simply join. Founder reasons: scarcity, and "N requested access" reads differently in a deck than "N signed up free". **Counter-evidence recorded rather than argued away:** when the waitlist was the hero CTA, 1,294 visits produced ZERO rows. Gating costs top of funnel and he chose it knowingly. | **Founder: test the no-code screen and an `?invite=` link before any traffic is pointed at it.** This flow is live for every visitor now. |
+| **YC and investor code** | Founder | ✅ seeded | `YC-COMPOUND-K7QR4V`. Unlimited, no expiry, case-insensitive. Link: `/signup?invite=YC-COMPOUND-K7QR4V`. Revocable at `/admin/invites`, and the redemption count survives revocation. | **Put it in the YC application, which currently says "sign up with your credentials" and would send a partner into a wall.** Recorded on the YC Notion page. |
+| Seventeen marketing surfaces moved with the gate | Agent | ✅ `3ab2f3e8` | Hero, nav, pricing (including JSON-LD `InStock` to `LimitedAvailability`), demo, product, checkout, login, TrustClose, PreSignupCTA. A locked door under a page still shouting "Start free" is the same contradiction pointing the other way. | None. |
+| **Launch date stays PUBLICLY WITHHELD** | Founder | ✅ ruled | Mid-September held internally; the founder wants the suspense. `LAUNCH_DATE` stays unset and A1 promises an invite code rather than a date. A test fails the build if a month name leaks while it is unset. | None. The exact day is still needed for Product Hunt scheduling, privately. |
+
+---
+
 ## 0. THE ONE DECISION THAT GATES SCHEDULING
 
 | Item | Owner | Status | Risk | Next action |
@@ -39,12 +50,15 @@ Ranked by launch-day cost.
 | --- | --- | --- | --- | --- | --- |
 | P1 | **`applyOutcome` has never completed in production** | Founder | ⛔ | `agent_memory where kind='outcome'` is **0** against 957 memories. The compounding claim, which is the only defensible layer, rests on a write path that has never once run. | Settle one spec through `/learn` on `helio-labs-harbor`, spec `60000000-0001-4000-8000-000000000031`. One action: exercises the path, gives `/proof` a real number, produces the only frame where compounding comes from the running system. |
 | P2 | **Six product screenshots do not exist** | Founder | ⛔ | The guard hides the gap; it does not fill it. `/product` now shows six empty frames. | Capture and commit to `public/images/`. Note `docs/screenshots/` is gitignored, so they cannot be moved from there. |
-| P3 | **Two contrast tokens fail AA site-wide** | Agent | ⬜ | `--ink-subtle #71717a` = **4.10:1** powers every `.mono-label`, including the only visible label on `/p/teardown`'s form. `--ink-faint #52525b` = **2.56:1**, fails even large-text, used across the footer, `/product` tags and the waitlist explainer. | Repoint `.mono-label` at `--text-subtle #7d786f` (4.52:1). Retire `--ink-faint` as a text colour on dark. |
-| P4 | **Font preload targets a retired stack** | Agent | ⬜ | Mona Sans + IBM Plex Mono (35,648 B) preloaded on every route, used only by `.sp-*`, which appears **zero times** in `src/components/landing/`. Geist Pixel Square, which paints the H1 and is the likely LCP element, is **not** preloaded. `styles.css:14` explicitly bans IBM Plex Mono as retired. | Swap the two preloads in `__root.tsx`. |
+| P3 | ~~Two contrast tokens fail AA site-wide~~ | Agent | ✅ `1df1ed26` | Verified fixed 2026-08-07. `--ink-faint` is `#7a8089` on the landing theme (4.97:1) and `#7a7a82` globally (4.65:1); `--text-subtle` is `#8b8b93` (5.86:1). The landing override in `inkTheme.ts` was the trap: fixing `ink.css` alone would have left the marketing site failing. | None. Both files carry a comment warning against restoring the old ramp "to recover the hierarchy", since that hierarchy was three steps of which two were unreadable. |
+| P4 | ~~Font preload targets a retired stack~~ | Agent | ✅ `1df1ed26` | Verified fixed 2026-08-07. Preloads now name the faces the page actually paints with. | None. |
 | P5 | **Missing H2s / landmarks** | Agent | ⬜ | `/pricing` and `/proof` have one H1 and zero H2. `/investors` and `/brief` have **zero headings and zero landmarks** in the parent document; `brief.html` has 16 flat H1s. | Promote plan names to `<h2>`; give `/investors` an `<h1>` and `<main>`. |
 | P6 | **`authorization_servers: []`** | Founder | ⛔ | A discovering MCP client is told there is nowhere to authenticate, so it stops. | **Founder question:** does the MCP server delegate to Supabase or issue its own tokens? There is no `authorize`/`token` route to settle it. Not guessed at deliberately. |
 | P7 | **Site-wide soft-404** | Agent | ⏳ | Every unknown path returns 200 with the SPA shell. `/.well-known/*` is fixed; the rest is not. | Needs the router to signal notFound. Larger change. |
 | P8 | **App-shell JS on marketing routes** | Agent | ⬜ | 249.6 KB gzip across 34 preloaded files. `__root.tsx` ships QueryClientProvider, Radix AlertDialog and a Supabase auth listener to pages that render none of them. | Split the root: lightweight shell for public routes. |
+| P9 | **Workspace invitations are broken by the gate** | Agent | ⛔ **REGRESSION, opened 2026-08-07** | `/join/$token` sends an invitee to `/signup`, where they now hit the invite-code wall, even though the token already proves an existing member asked for them by name. That is precisely the vetted cohort the gate was meant to admit. An honest warning ships on that page rather than a bypass or a dead button. | Server-side token check before the account is created. Honouring `?next=/join/<token>` would mean trusting a URL parameter anyone can type, which is a bypass, not a fix. |
+| P10 | **The gate is not server-authoritative** | Founder | ❓ **decision, not a bug** | `supabase.auth.signUp` is called by the BROWSER with the publishable key, so anyone skipping our form still gets an account. Every door the product shows is locked and every account created through one is counted, but the wall has a window. | **Founder question:** is "every visible door is locked" enough for a private beta, or does this need a Supabase auth hook on `auth.users` reading the code from `raw_user_meta_data`? The hook is higher blast radius and would block Google signup entirely. Not decided unilaterally. |
+| P11 | **`/product` claims "Join 100+ design partners"** | Agent | ⬜ | Nothing behind the number. It sits three lines above a CTA, on the page a partner or an investor is most likely to be sent to, in a product whose entire argument is receipts rather than claims. A single visitor who asks "which hundred" ends the credibility of every other number on the site. | Delete the claim or replace it with a figure that can be pulled live, the same rule `/proof` and the landing counters already follow. |
 
 ---
 
