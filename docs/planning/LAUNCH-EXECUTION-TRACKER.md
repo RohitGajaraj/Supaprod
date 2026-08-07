@@ -82,9 +82,9 @@ Verified against the live accounts, not the ledger. **The ledger was wrong in bo
 | # | Item | Owner | Status | Risk | Next action |
 | --- | --- | --- | --- | --- | --- |
 | A1 | Rate brake | Agent | ✅ | Was global 20/min, would have rejected the 21st genuine signup in any minute | Raised to 300/min |
-| A2 | **No ESP key, sending domain unverified** | Founder | ⛔ | **Nobody who signs up can be emailed.** Gates A3, A4 and every sequence in §4. | Resend key + verify `supaprod.ai` |
-| A3 | No confirmation email | Agent | ⛔ A2 | A waitlist that never acknowledges reads as broken | After A2 |
-| C1 | **Nothing reads the funnel** | Agent | ⬜ | `landing_events` writes correctly and is read by no code. Launch day is measurable but not readable; you would be running SQL by hand while traffic arrives. | One admin page grouping by referrer hostname and day |
+| A2 | ~~No ESP key, sending domain unverified~~ | Founder | ✅ 2026-08-07 | Was: nobody who signs up can be emailed. `supaprod.ai` verified on the apex; `RESEND_API_KEY` in Lovable secrets. Cloudflare Email Routing survived intact (apex MX and SPF untouched, Resend confined to `send.` and `resend._domainkey`), so inbound still works. | Nothing. **Not yet proven end to end**: the domain has never sent a single message. |
+| A3 | ~~No confirmation email~~ | Agent | ✅ `a5e79f76` | A1 fires from `joinWaitlist` on a genuine first signup. Guarded on `!alreadyJoined` so a repeat submission cannot earn a duplicate-send spam complaint, and it cannot throw, so a dead vendor cannot cost us the row. | **Two founder blockers before the four nurture emails behind it may send**: no postal address (CAN-SPAM, no entity incorporated) and unsubscribe is mailto-only, not RFC 8058 one-click. |
+| C1 | ~~Nothing reads the funnel~~ | Agent | ✅ `3ec6b932` | `/admin/launch`: four funnel counts, signups per day, referrer breakdown, waitlist source. Admin-gated. The referrer was already being captured in `props.ref` and had simply never been displayed. | Nothing. C2 still open. |
 | C2 | **Success criteria undefined** | Founder | ⛔ | Without numbers set beforehand, every result gets rationalised afterwards | Pick figures you would be disappointed by: signups, `/demo` sessions, PH rank at 24h |
 
 ---
@@ -109,7 +109,7 @@ Verified against the live accounts, not the ledger. **The ledger was wrong in bo
 | Product Hunt | Founder | 🔵 | D0 | Copy ready. Create page **unlisted** first. Maker account must be >72h old or PH shadow-filters it. |
 | Show HN | Founder | 🔵 | **D+7, not D0** | Copy ready. Same-day risks vote-ring detection, which shadowbans the **domain**, not the post. |
 | Indie Hackers, Reddit, Bluesky, Mastodon | Founder | 🔵 | D0–D+3 | Copy ready. Reddit needs a personal aged account; the brand handle must never be the poster. |
-| Waitlist email | Agent | ⛔ A2 | D0 | Blocked on ESP |
+| Waitlist email | Agent | ✅ | D0 | A1 wired and sending. The launch-day announcement behind it is still blocked: postal address and one-click unsubscribe. |
 
 ---
 
@@ -132,8 +132,9 @@ These gate the remaining social accounts.
 | Launch date never decided, work stays unschedulable | **High** | **Critical** | §0. One decision. |
 | Compounding claim demoed but never executed | **High** | **Critical** | P1. One settle, three unblocks. |
 | GitHub org lost with a personal account | Low | **Critical** | §8 recovery codes |
-| Nobody can be emailed after signing up | **Certain today** | High | A2 |
-| Launch day unmeasurable in real time | High | High | C1 + C2 |
+| ~~Nobody can be emailed after signing up~~ | Retired 2026-08-07 | High | A2 + A3 both closed. Replaced by the row below. |
+| **First send from a cold domain is the launch announcement** | High if unmanaged | High | `supaprod.ai` has never sent a message. The nurture sequence at low volume IS the warm-up; do not let the largest send be the first. |
+| ~~Launch day unmeasurable in real time~~ | Retired 2026-08-07 | High | C1 closed (`/admin/launch`). C2 still open. |
 | Stub connector named as available in public copy | Medium | High | Nine real / eleven stub split now recorded in `README.md` and every listing follows it |
 
 ---

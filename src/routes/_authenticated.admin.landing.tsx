@@ -181,10 +181,10 @@ function AdminLanding() {
       >
         {!anyEvent ? (
           <Empty>
-            No landing event has been recorded in the last {f.windowDays} days. This table is written
-            by the landing page itself, so it stays empty until somebody opens it. If the page is
-            live and busy, an empty block here is the capture being broken rather than the launch
-            being quiet.
+            No landing event has been recorded in the last {f.windowDays} days. This table is
+            written by the landing page itself, so it stays empty until somebody opens it. If the
+            page is live and busy, an empty block here is the capture being broken rather than the
+            launch being quiet.
           </Empty>
         ) : (
           STEPS.map((s) => {
@@ -217,8 +217,9 @@ function AdminLanding() {
         title={dayVerdict}
         sub={
           <>
-            Days are UTC, newest first, and a day with nothing on it is left out rather than drawn as
-            a row of zeroes. {f.signupsAllTime} people have joined the waitlist in total, all time.
+            Days are UTC, newest first, and a day with nothing on it is left out rather than drawn
+            as a row of zeroes. {f.signupsAllTime} people have joined the waitlist in total, all
+            time.
             {f.signupsTruncated
               ? " More signups landed in this window than the row cap, so the per-day split below is partial; the totals are exact."
               : null}
