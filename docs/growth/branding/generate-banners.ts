@@ -626,6 +626,44 @@ const WEIGHT_BLOCK = (D: number) => `
       line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
       white-space:nowrap">Agents that know what to ${hi("build")},<br>${hi("ship")} it, and ${hi("learn")} what worked.</div>`;
 
+/**
+ * VARIANT E, two weight tiers. Founder 2026-08-07: "D is good, just that the
+ * Agents word also needs to be highlighted... the highlighted word should be of
+ * more weight, something similar to that. I'll leave that to you, you take a
+ * call."
+ *
+ * THE CALL, and the reasoning, because he asked for judgement rather than
+ * obedience: bolding "Agents" AND all three verbs is four lifted words out of
+ * twelve, and the x-header he is admiring reads premium precisely because the
+ * lift is SCARCE, one word at 700 out of six. Four bold words in one sentence
+ * is not that look, it is a busy one.
+ *
+ * So the lift is split into two tiers instead of flattened into one:
+ *
+ *   750  Agents          the subject, who does the work. Strongest, once.
+ *   600  build ship learn  the three loop stages. Peers with each other,
+ *                          clearly lifted, deliberately below the subject.
+ *   500  everything else   the ratified base, at full brightness.
+ *
+ * This keeps the founder's earlier and still-standing requirement that the
+ * three verbs carry EQUAL importance: they are equal to one another. Being
+ * below the subject is a different axis and does not rank them against
+ * each other.
+ *
+ * Intermediate weights are honest here. Geist ships as a variable face at
+ * 100-900 (see FONTS_CSS in orrery.ts), so 600 and 750 are real instances and
+ * not the synthetic smear that ruled font-weight out for the Pixel verbs in
+ * variant C.
+ */
+const SUBJECT_BLOCK = (D: number) => {
+  const lift = (t: string, w: number) => `<span style="font-weight:${w}">${t}</span>`;
+  return `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${lift("Agents", 750)} that know what to ${lift("build", 600)},<br>${lift("ship", 600)} it, and ${lift("learn", 600)} what worked.</div>`;
+};
+
 const PIXEL_BLOCK = (D: number) => `
   <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
   <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
@@ -841,6 +879,13 @@ const SPECS: {
     w: 4200,
     h: 700,
     fn: (i) => linkedinCover(4200, 700, i, WEIGHT_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover-subject",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, SUBJECT_BLOCK),
     jpeg: true,
   },
   {
