@@ -148,3 +148,55 @@ The previous version of this file carried rows that were wrong in both direction
 - [`../growth/brand-ops/social-accounts.md`](../growth/brand-ops/social-accounts.md) — per-platform claim walkthroughs
 - [`../growth/launch-listings.md`](../growth/launch-listings.md) — paste-ready listing copy
 - [`../strategy/brownfield-positioning-evaluation.md`](../strategy/brownfield-positioning-evaluation.md) — the positioning answer
+
+---
+
+# THE FULL DOMAIN CHECKLIST
+
+Every domain the founder named, with its verified state, and scored so the order is derived rather than asserted.
+
+**How to read the scores.** `Impact` is what it costs the launch if it stays as it is. `Effort` is hours, not difficulty. `Order` is the sequence to execute in, and it is a function of dependencies rather than of impact: a high-impact item that is blocked ranks below a low-impact item that unblocks it.
+
+| # | Domain | Verified state, 2026-08-07 | Impact | Effort | Depends on | Order |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | **Release plan / launch date** | ⛔ `SOURCE-OF-TRUTH` says 2026-08-10, README says mid-September | **Critical** | 2 min | nothing | **1** |
+| 2 | **Success criteria** | ⛔ undefined | **Critical** | 15 min | nothing | **2** |
+| 3 | **Security** | ❓ five zero-vuln audits on record, but a "Security, 4 issues" badge in the Lovable panel was never opened | **Critical** | 30 min | nothing | **3** |
+| 4 | **Onboarding** | ✅ rebuilt; audit dropped all 15 prior blockers. First sixty seconds are sound | Low | done | — | — |
+| 5 | **Waitlist automation** | 🔵 capture verified end to end; brake raised 20→300/min | High | done | — | — |
+| 6 | **Email sequences** | ⛔ written, unsendable. No ESP key, sending domain unverified | **Critical** | 20 min | nothing | **4** |
+| 7 | **Analytics** | ⬜ `landing_events` writes correctly and is read by no code. Launch day measurable, not readable | High | 3 h | 2 | **5** |
+| 8 | **Accessibility** | 🔵 audited. CTA contrast fixed. Two systemic tokens and missing H2s remain | High | 3 h | nothing | **6** |
+| 9 | **Performance** | 🔵 audited and measured. Cache headers shipped. Font preload targets a retired stack | High | 2 h | nothing | **7** |
+| 10 | **Website** | 🔵 SSR verified on all marketing routes; `/product` images guarded | High | — | 24 | **8** |
+| 11 | **Pricing** | ✅ four tiers live, structured data added, Free-tier connector bug fixed | High | done | — | — |
+| 12 | **Branding** | ✅ kit complete, 5 cover variants, square logo, all assets regenerate from source | Medium | done | — | — |
+| 13 | **Legal pages** | ✅ `/privacy` `/terms` `/security` `/subprocessors` all real and linked | **Critical** | done | — | — |
+| 14 | **Privacy** | ✅ cookies and localStorage disclosed | High | done | — | — |
+| 15 | **Terms** | ✅ plain-language, all required sections | Medium | done | — | — |
+| 16 | **Cookie consent** | ⬜ no consent surface. Sidebar cookie is functional and needs none; the analytics `session-id` is the exposure | Medium | 4 h | nothing | **12** |
+| 17 | **Demos** | ✅ `/demo` and `/p/teardown` both real, both no-signup | High | done | — | — |
+| 18 | **FAQs** | ✅ `/faq`, ten question-shaped answers, FAQPage schema | Medium | done | — | — |
+| 19 | **Documentation** | 🔵 `/faq` covers launch week. No developer docs site | Low | — | post-launch | — |
+| 20 | **Help center** | ⬜ deferred deliberately | Low | — | post-launch | — |
+| 21 | **Customer support** | 🔵 `hello@supaprod.ai` in footer. No in-product path | Medium | 1 h | nothing | **13** |
+| 22 | **Feedback loops** | ⬜ no in-product feedback path | Medium | 2 h | 21 | **14** |
+| 23 | **SEO / GEO** | 🔵 canonicals, FAQ schema, llms.txt, robots, pricing schema, MCP manifest, cache headers all shipped. Site-wide soft-404 and OG size remain | High | 3 h | nothing | **9** |
+| 24 | **Product screenshots** | ⛔ six do not exist; `/product` shows empty frames | High | 1 h | nothing | **10** |
+| 25 | **Press kit** | ✅ written, 53 asset paths verified. Needs founder photo | Medium | done | — | — |
+| 26 | **Founder story** | 🔵 written at three lengths. 2 `[FOUNDER TO FILL]` block shipping | High | 30 min | founder | **11** |
+| 27 | **Community building** | ✅ plan written, 10 rooms ranked, 30-day cadence | Medium | done | 1 | — |
+| 28 | **Launch metrics** | ⛔ = domain 2 and 7 | **Critical** | — | 2, 7 | — |
+| 29 | **Post-launch monitoring** | ⬜ no uptime check, no error alerting verified, on-call recorded but not tooled | High | 3 h | 1 | **15** |
+| 30 | **Bug triage** | ⬜ no written rule for stop-the-launch versus fix-next-week | Medium | 20 min | 1 | **16** |
+| 31 | **Customer interviews** | ⬜ zero real users to interview | Low | — | launch | **17** |
+
+## What the ordering says
+
+**Positions 1 to 4 are all founder actions and total under an hour.** They are first not because they are large but because six other rows are waiting on them. Nothing an agent can do moves the launch until the date exists, the numbers are set, the security badge is opened and email can send.
+
+**Positions 5 to 10 are agent work with no founder dependency**, and can run in parallel with each other the moment 1 to 4 are done.
+
+**Everything from 12 down is genuinely deferrable.** Cookie consent, feedback widgets, a help centre and customer interviews are real work that does not decide whether launch week succeeds.
+
+**The single highest-leverage item is not on this list**, because it is a product action rather than a launch domain: settling one outcome, P1 in section 2. It converts the compounding claim from an argument into a demonstration, gives `/proof` a real number, and unblocks the teaser video's closing frame. One action, three unblocks.
