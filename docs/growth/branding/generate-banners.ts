@@ -599,6 +599,33 @@ const pixelWord = (t: string, D: number) => {
  */
 const agentsWord = `<span style="color:#FFFFFF;font-weight:700">Agents</span>`;
 
+/**
+ * VARIANT D, weight only. Founder request 2026-08-07, pointing at the shipped
+ * x-header: "you see how the weighted text looks, it looks so premium, just
+ * white and grey contrast, and the weight of the font without even putting an
+ * effort. Should we try that for LinkedIn instead of the ember colour or the
+ * Geist Pixel font?"
+ *
+ * He is describing the system this file already ratified at the top: body at
+ * full bone weight 500, the hero lifted to 700, and nothing else touched. The
+ * x-header reads premium because it spends exactly one device.
+ *
+ * So this variant drops BOTH of the devices variant C added. No ember, no
+ * typeface switch. The three verbs go to 700 and stay bone, which keeps them
+ * peers with each other while lifting all three off the line.
+ *
+ * The base is NOT greyed to make room for them. That is the correction recorded
+ * in the TYPOGRAPHY block at the top of this file: dimming the field does not
+ * spotlight the hero, it dulls the whole room. Contrast is made by lifting one
+ * thing above a bright field. The x-header only dims "output" because output is
+ * the thing the company is NOT, and there is no such word in this sentence.
+ */
+const WEIGHT_BLOCK = (D: number) => `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">Agents that know what to ${hi("build")},<br>${hi("ship")} it, and ${hi("learn")} what worked.</div>`;
+
 const PIXEL_BLOCK = (D: number) => `
   <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
   <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
@@ -807,6 +834,13 @@ const SPECS: {
     w: 4200,
     h: 700,
     fn: (i) => linkedinCover(4200, 700, i, SPINE_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover-weight",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, WEIGHT_BLOCK),
     jpeg: true,
   },
   {
