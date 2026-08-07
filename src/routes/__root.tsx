@@ -143,21 +143,58 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Branded social image (public/og-supaprod.png). Absolute URL required by crawlers.
       { property: "og:image", content: "https://supaprod.ai/og-supaprod.png" },
       { name: "twitter:image", content: "https://supaprod.ai/og-supaprod.png" },
+      // Paints the mobile browser's own chrome (the strip above the page on
+      // Android Chrome, and the status bar area on iOS Safari) to the app
+      // ground, so the surface does not end in a white band above a black page.
+      // One value, not a light/dark pair, because <html> ships class="dark"
+      // unconditionally: this site has one ground and it is #0A0A0A.
+      { name: "theme-color", content: "#0A0A0A" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      // Branded favicon — the Supaprod mark (seven-petal spiral + ember/gold
-      // core), transparent with NO box, theme-aware: the SVG switches black
-      // (light tabs) / silver (dark tabs) via prefers-color-scheme so it is
-      // always visible. The transparent PNG + .ico are legacy fallbacks; the
-      // apple-touch icon is the same mark (iOS takes no SVG).
+      // Branded favicon: the Supaprod mark, a WHITE seven-petal spiral with an
+      // ember core and a gold bead. There is no second brand colour; if you are
+      // looking at blue or violet you are looking at a pre-2026-08-05 artifact,
+      // see the retired-"grad" note in docs/growth/branding/generate-social.ts.
+      //
+      // EVERY ICON HERE CARRIES ITS OWN DARK GROUND. That is a 2026-08-07
+      // reversal and it is worth understanding before anyone reverts it.
+      //
+      // What shipped before was the ADAPTIVE mark: transparent, no box, with
+      // `@media (prefers-color-scheme)` inside the SVG swapping the stroke to
+      // #111111 on light and #FFFFFF on dark. It is a clever file and it failed
+      // in the tab, for two independent reasons the founder hit at once:
+      //
+      //   1. SUB-PIXEL. faviconMark strokes 4.6 units on a 100 viewBox. At a 16px
+      //      tab that is 0.74px, which antialiases to nothing, while the r=7 core
+      //      survives at 2.2px. The mark did not render faintly; it rendered as a
+      //      lone orange dot. The kit's own README predicted this ("seven petals
+      //      plus seven gaps plus a core do not fit") and shipped a tuned
+      //      favicon-16.png, which nothing referenced. It is referenced now.
+      //
+      //   2. prefers-color-scheme CANNOT SEE THE TAB. It reports the OS theme. A
+      //      Chrome profile tint, a custom theme, or a light strip under a dark
+      //      OS all defeat it, and the founder's strip is profile-green. No media
+      //      query can read that, so adaptivity was solving for a signal that is
+      //      not the background the icon actually sits on.
+      //
+      // A grounded icon is correct against every one of those cases without
+      // needing to know which it is in. Vercel, Linear and Raycast all ship a
+      // solid ground for the same reason. favicon-adaptive.svg is kept beside it
+      // as the revert path, unreferenced.
+      //
+      // iOS takes no SVG, so apple-touch-icon is the grounded PNG by necessity,
+      // downscaled from the 1024 master rather than rendered small.
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16.png" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
       { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
       { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
       // Agent discovery breadcrumbs: an agent that fetches any page cold (no
       // prior knowledge of Supaprod's specific llms.txt/agents.txt convention)
       // finds the machine-readable interfaces from the HTML <head> itself,
