@@ -125,6 +125,30 @@ function JoinPage() {
               Log in or sign up with the email it was sent to. You will land right back here to
               join.
             </p>
+            {/* ⚠️ A WORKSPACE INVITATION IS NOT AN INVITE CODE, and after
+                2026-08-07 that is a wall rather than a footnote.
+                Signup went invite only that day. This token proves an existing
+                member asked for you by name, which is exactly the cohort control
+                the founder closed the door to get, but the gate on /signup
+                cannot see it: it validates codes in invite_codes, and honouring
+                a `next=/join/<token>` instead would be trusting a URL parameter
+                anybody can type, which is a bypass and not a fix.
+                Closing it properly means a server-side check of the token before
+                the account is created, which is a founder call about who the
+                beta admits and not a decision to make inside a copy change. Said
+                here, in front of the person it affects, rather than left as a
+                dead button they discover on the next screen. */}
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--text-subtle)",
+                marginBottom: 18,
+                lineHeight: 1.55,
+              }}
+            >
+              If you do not have a Supaprod account yet, you will need a beta invite code as well.
+              Ask whoever sent you this link for one; your invitation waits here until you have it.
+            </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
               <Link
                 to="/login"

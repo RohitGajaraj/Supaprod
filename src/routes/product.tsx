@@ -238,11 +238,16 @@ function ProductPage() {
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#FF6B2C";
             }}
+            // Was "Start free" at "/?signup=true", and neither half held up.
+            // Signup is invite only from 2026-08-07, and nothing in the app
+            // reads a `signup` query parameter, so the promise was already
+            // landing on the marketing page and doing nothing when it got
+            // there. It goes to the one waitlist form the site has.
             onClick={() => {
-              window.location.href = "/?signup=true";
+              window.location.href = "/#join";
             }}
           >
-            Start free
+            Request access
           </button>
         </section>
       </div>

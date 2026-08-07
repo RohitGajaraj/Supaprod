@@ -110,8 +110,14 @@ export function TrustClose({ waitlistCount }: { waitlistCount: number | null }) 
             and the footer just reaching the bottom edge, so no empty run below
             the form is exposed. */}
         <div id="join" className="scroll-mt-40">
+          {/* Read "the beta is open" until 2026-08-07, standing directly above
+              the form that collected addresses for it. Both halves cannot be
+              true at once: a queue is only a queue if there is something to
+              queue for. The founder closed signup that morning, which makes this
+              line the honest one it was pretending to be, and makes the form
+              under it a real request rather than a courtesy. */}
           <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mb-5">
-            the beta is open
+            the beta is invite only
           </p>
           <h2
             className="text-4xl md:text-5xl font-semibold mb-5 text-white leading-[1.06]"

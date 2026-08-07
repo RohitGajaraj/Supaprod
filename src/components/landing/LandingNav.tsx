@@ -45,14 +45,20 @@ export function LandingNav() {
         <a href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">
           Sign in
         </a>
-        {/* Points at the open door, matching the hero and /pricing. The
-            waitlist stays reachable at #join from the closing section; it is
-            simply no longer the only thing a visitor can do. */}
+        {/* THIS SAID "Start free" AND POINTED AT /signup, which was true while
+            the door was open and became a promise the next screen breaks when
+            the founder closed signup on 2026-08-07 (private beta, entry by
+            invite code).
+            The nav CTA has to match the hero's primary or the page argues with
+            itself in the visitor's first two seconds, which is the exact defect
+            the 2026-08-05 landing ruling was written to remove. The hero now
+            asks for access, so this asks for access, and it scrolls to the one
+            waitlist form the page has ever had rather than opening a second. */}
         <a
-          href="/signup"
+          href="/#join"
           className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
         >
-          Start free
+          Request access
         </a>
         {/*
          * THIS BUTTON WAS DEAD, on the page strangers land on.

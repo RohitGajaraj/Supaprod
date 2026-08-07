@@ -78,6 +78,13 @@ export const SURFACE_REGISTRY = {
     opensFrom: "admin-nav",
     status: "live",
   },
+  // The invite door (signup closed 2026-08-07, private beta). This domain has
+  // TWO callers and only one of them can be the registered home: the public
+  // check-and-redeem pair on /signup, which no admin nav reaches, and the mint
+  // and revoke console. The console is what this registry is for, because it is
+  // the surface that would be an orphan if nobody linked it. The public half
+  // has a door the whole internet can find.
+  invites: { kind: "admin", home: "admin/invites", opensFrom: "admin-nav", status: "live" },
   activation: { kind: "admin", home: "admin/proof", opensFrom: "admin-nav", status: "live" },
   incidents: { kind: "admin", home: "admin/observability", opensFrom: "admin-nav", status: "live" },
   // Feature liveness shares the Health surface with observability: same

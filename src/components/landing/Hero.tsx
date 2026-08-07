@@ -252,28 +252,51 @@ export function Hero() {
               className="hero-rise flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-7"
               style={{ animationDelay: "180ms" }}
             >
-              {/* THIS POINTED AT A DOOR THAT DID NOT NEED TO EXIST.
+              {/* 2026-08-05, AND WHY IT IS BEING PARTLY UNDONE ON 2026-08-07.
                *
-               * It sent every visitor to #join, the email waitlist. Measured on
-               * 2026-08-05: 1,294 landing_visit events and ZERO rows in
-               * waitlist_signups. Not a poor rate. Zero.
+               * THE ORIGINAL RULING, KEPT IN FULL BECAUSE IT WAS RIGHT AT THE
+               * TIME. This button used to send every visitor to #join, the email
+               * waitlist. Measured on 2026-08-05: 1,294 landing_visit events and
+               * ZERO rows in waitlist_signups. Not a poor rate. Zero. Signup was
+               * fully open with auto-confirm and the product said so on two
+               * other surfaces (/pricing offered "Start free" straight to
+               * /signup, /demo said "the beta is open for sign-ups"), so the
+               * home page was the ONLY surface pretending the product was gated,
+               * on the page a Product Hunt listing sends its entire spike to. A
+               * visitor's question at second eight is "can I try this"; the nav
+               * answered "Sign in", implying accounts exist, and this button
+               * answered "wait". That ambiguity at the primary CTA was the whole
+               * loss, and pointing the button at the open door removed it.
                *
-               * Signup is fully open with auto-confirm, and the product says so
-               * on two other surfaces: /pricing offers "Start free" straight to
-               * /signup, and /demo says "the beta is open for sign-ups". The
-               * home page was the only surface pretending the product was
-               * gated, and it is the page a Product Hunt listing sends its
-               * entire spike to.
+               * WHAT CHANGED. The founder closed signup on 2026-08-07: private
+               * beta, entry by invite code. So the premise the ruling stood on
+               * is simply gone. "Start free" now leads to a form that asks for a
+               * code the visitor does not have, which is a worse version of the
+               * same ambiguity, not a fix for it: the loudest control on the page
+               * would promise a thing the next screen refuses.
                *
-               * A visitor's question at second eight is "can I try this". The
-               * nav answered "Sign in", implying accounts exist, and this
-               * button answered "wait". That ambiguity at the primary CTA is
-               * the whole loss.
+               * WHAT THE ZERO DOES AND DOES NOT PROVE, because it is the reason
+               * to be careful here. That measurement was taken while a free
+               * account sat one click away in the nav and on /pricing. It shows
+               * the waitlist LOSING TO AN OPEN DOOR, which is unsurprising and no
+               * longer the choice on offer. It is not evidence that people will
+               * not ask for access when asking is the way in. Those are different
+               * claims and only the first one was measured.
                *
-               * Nothing is removed: the waitlist form is untouched and still
-               * reachable at #join from the closing section. */}
+               * THE TRADE, ACCEPTED KNOWINGLY. This will convert worse than an
+               * open signup did, and that is the point rather than a cost: a real
+               * count of people who asked for access is the number the founder
+               * wants, and it cannot be collected from a door that lets everyone
+               * through. What must NOT come back is the ambiguity, so there is
+               * still exactly one loud control and it now says the true thing.
+               * The invite door keeps a quiet text link below, which is the
+               * mirror image of the arrangement this replaces.
+               *
+               * The Critic offer under this button did not move and is now doing
+               * more work than ever: it is the only thing a stranger can still do
+               * with no account at all. */}
               <a
-                href="/signup"
+                href="#join"
                 // text-[var(--cta-ink)], not text-white. White on ember #FF6B2C
                 // computes to 2.84:1, which fails WCAG AA for body text (4.5:1)
                 // and fails even the 3:1 large-text floor. This is the primary
@@ -285,7 +308,7 @@ export function Hero() {
                 className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-[var(--cta-ink)]"
               >
                 <span className="flex items-center gap-2">
-                  Start free
+                  Request access
                   <span className="hero-arrow inline-block" aria-hidden>
                     &rarr;
                   </span>
@@ -334,32 +357,29 @@ export function Hero() {
               about twenty seconds.
             </p>
 
-            {/* A WAY TO THE WAITLIST FROM THE TOP, and deliberately a quiet one.
+            {/* THE INVITE DOOR, AND IT IS QUIET FOR THE SAME REASON THE WAITLIST
+             * LINK USED TO BE.
              *
-             * Founder 2026-08-07: "join beta should be on top also. Why is it
-             * only at the bottom?" The word that decides the shape of this is
-             * ALSO. It is not a request to undo the 2026-08-05 ruling a few
-             * lines above, which moved the primary CTA off #join after 1,294
-             * visits produced ZERO waitlist rows, and that ruling still holds:
-             * making this a second button would rebuild the exact ambiguity it
-             * removed, where the page's loudest control says "start" and the one
-             * beside it says "wait".
+             * This slot held "Not ready for an account? Join the beta list",
+             * added 2026-08-07 on the founder's note that "join beta should be on
+             * top also. Why is it only at the bottom?" That link is not deleted,
+             * it was PROMOTED: the waitlist is the loud button above now, so
+             * repeating it here would be the page asking twice for one thing.
              *
-             * So the top of the page now offers the waitlist at the weight it
-             * has earned, which is a text link under the offer, for the visitor
-             * who has decided they are not creating an account today and would
-             * otherwise simply leave. It cannot outrank "Start free" and it is
-             * not trying to.
-             *
-             * It scrolls rather than navigates, to #join on the close beat,
-             * which already carries scroll-mt-40 for exactly this. One waitlist
-             * form on the page, two ways to reach it. */}
+             * What takes its place is the smaller audience: somebody who already
+             * holds a code, arriving at the home page rather than through the
+             * link we emailed them. They need one door and they need it to exist,
+             * but they are a handful of invited people against every stranger who
+             * reaches this page, so they get the text link and not the button.
+             * The shape of the argument is unchanged from the note above: exactly
+             * one control may be loud, and it belongs to the thing most visitors
+             * can actually do. */}
             <p
               className="hero-rise mt-4 text-[13px] text-zinc-500 md:text-sm"
               style={{ animationDelay: "260ms" }}
             >
-              <a href="#join" className="underline underline-offset-4 hover:text-zinc-300">
-                Not ready for an account? Join the beta list
+              <a href="/signup" className="underline underline-offset-4 hover:text-zinc-300">
+                Already have an invite code? Open your account
               </a>
             </p>
           </div>

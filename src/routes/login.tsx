@@ -181,6 +181,12 @@ function LoginPage() {
       }
       footer={
         <>
+          {/* Said "New here? Create an account", which promised something the
+              door stopped granting on 2026-08-07. The destination is UNCHANGED
+              and that is deliberate: /signup now leads with the invite-only
+              explanation and puts the waitlist under the reader's thumb, so it
+              is the right landing for somebody with a code AND for somebody
+              without one. Only the promise needed correcting. */}
           New here?{" "}
           <Link
             to="/signup"
@@ -190,7 +196,7 @@ function LoginPage() {
               textUnderlineOffset: 3,
             }}
           >
-            Create an account
+            Create an account with an invite code
           </Link>{" "}
           ·{" "}
           <Link

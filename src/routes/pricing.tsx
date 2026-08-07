@@ -149,6 +149,21 @@ const SITE = "https://supaprod.ai";
  * move in the same commit as the cards, or the engines keep answering with the
  * placeholder long after the site stopped showing it.
  */
+/**
+ * ⚠️ AVAILABILITY IS A CLAIM, AND IT IS THE ONE A MACHINE READS.
+ *
+ * Every offer below said `InStock` and the Free one pointed at `${SITE}/signup`,
+ * which was accurate while signup was open and became a false statement the
+ * moment the founder closed it on 2026-08-07. This block is the version of the
+ * page that search engines and AI answer surfaces quote, so leaving it saying
+ * "in stock, sign up here" while the visible page says "invite only" would have
+ * put the contradiction somewhere nobody on the team ever looks. schema.org's
+ * `LimitedAvailability` is the honest term for a private beta, and the Free
+ * offer now points at the request-access anchor, which is where a reader
+ * following that URL can actually get somewhere.
+ */
+const BETA_AVAILABILITY = "https://schema.org/LimitedAvailability";
+
 const PRICING_LD = {
   "@context": "https://schema.org",
   "@type": "Product",
@@ -163,9 +178,9 @@ const PRICING_LD = {
       price: "0",
       priceCurrency: "USD",
       description:
-        "One seat, three read-only connectors, and the full loop on your own data. No card.",
-      url: `${SITE}/signup`,
-      availability: "https://schema.org/InStock",
+        "One seat, three read-only connectors, and the full loop on your own data. No card. Private beta: entry is by invite code.",
+      url: `${SITE}/#join`,
+      availability: BETA_AVAILABILITY,
     },
     {
       "@type": "Offer",
@@ -174,7 +189,7 @@ const PRICING_LD = {
       priceCurrency: "USD",
       description: "Unlimited connectors, still read-only. Nothing is ever written back.",
       url: `${SITE}/pricing`,
-      availability: "https://schema.org/InStock",
+      availability: BETA_AVAILABILITY,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: "20",
@@ -189,7 +204,7 @@ const PRICING_LD = {
       priceCurrency: "USD",
       description: "Everything in Pro, plus write-back through your approval gates.",
       url: `${SITE}/pricing`,
-      availability: "https://schema.org/InStock",
+      availability: BETA_AVAILABILITY,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: "50",
@@ -204,7 +219,7 @@ const PRICING_LD = {
       description:
         "Committed credits, unlimited seats, connectors built for systems nobody publishes an API story for.",
       url: `${SITE}/pricing`,
-      availability: "https://schema.org/InStock",
+      availability: BETA_AVAILABILITY,
     },
   ],
 };
@@ -582,10 +597,24 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
         <a
           href={
             isFree
-              ? "/signup?from=pricing"
+              ? // WAS "/signup?from=pricing", and the label below it said "Start
+                // free". Both were true until 2026-08-07, when the founder closed
+                // signup: private beta, entry by invite code. A free tier whose
+                // button opens a form demanding a code the visitor does not have
+                // is the contradiction this pass exists to remove, so the free
+                // card now asks for access. The PRICE has not changed and the
+                // card still says nothing but the truth about it.
+                "/#join"
               : // Paid plans go to CHECKOUT, not signup. A visitor who has decided to pay
                 // should not have to create an account first and then hunt for billing:
                 // decide, price it, pay, and the account is provisioned after payment.
+                //
+                // Untouched by the invite gate on purpose. Checkout provisions the
+                // account after payment and never routes through /signup, so it
+                // was never behind this door. Whether a paid customer should be
+                // able to buy their way into a private beta is a founder call
+                // about the cohort, not a contradiction in the copy, and it is
+                // named here rather than silently decided by an agent.
                 `/checkout?plan=${tier}&billing=${annual ? "annual" : "monthly"}`
           }
           style={{
@@ -604,7 +633,7 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
             marginBottom: 20,
           }}
         >
-          {isFree ? "Start free" : isBusiness ? "Get Business" : "Get Pro"}
+          {isFree ? "Request access" : isBusiness ? "Get Business" : "Get Pro"}
         </a>
       )}
 
@@ -791,7 +820,11 @@ function PricingPage() {
                   letterSpacing: 0,
                 }}
               >
-                Start free. Pick the capacity that fits how hard you run it.
+                {/* "Start free." was an instruction the product could no longer
+                    carry out from 2026-08-07. The free tier is still free and
+                    still the entry point; what changed is that entering needs a
+                    code, and a page headline is the wrong place to hide that. */}
+                Free to start, once you are in. Pick the capacity that fits how hard you run it.
               </h1>
               <p
                 style={{
@@ -803,7 +836,8 @@ function PricingPage() {
                 }}
               >
                 Supaprod runs your product loop for free. Paid plans add capacity, and every plan
-                can hand a decision to someone else with a link.
+                can hand a decision to someone else with a link. Supaprod is in private beta, so
+                every plan starts with an invite code.
               </p>
 
               {/* Global billing toggle */}
@@ -865,11 +899,11 @@ function PricingPage() {
                 lineHeight: 1.5,
               }}
             >
-              Every plan starts free. No credit card needed until you upgrade. Change or cancel
-              anytime from Settings. Each plan includes a set number of credits a month, and every
-              action spends them. Need more capacity without changing plan? Add credits any time, up
-              to twice your monthly allowance. You move up a tier for people and capability, not for
-              volume.
+              Every plan starts free once your invite code is in. No credit card needed until you
+              upgrade. Change or cancel anytime from Settings. Each plan includes a set number of
+              credits a month, and every action spends them. Need more capacity without changing
+              plan? Add credits any time, up to twice your monthly allowance. You move up a tier for
+              people and capability, not for volume.
             </p>
           </div>
         </main>
@@ -889,10 +923,10 @@ function PricingPage() {
             Made with Supaprod
           </span>
           <a
-            href="/signup?from=pricing"
+            href="/#join"
             style={{ fontSize: 11, color: "var(--ink-subtle, #6b6457)", textDecoration: "none" }}
           >
-            Start free -&gt;
+            Request access -&gt;
           </a>
         </footer>
       </div>

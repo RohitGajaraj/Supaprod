@@ -431,12 +431,17 @@ function DemoPage() {
           <span className="hidden sm:block text-[10px] font-mono uppercase tracking-widest text-zinc-500">
             read-only demo &middot; live seeded data
           </span>
+          {/* Pointed at /signup while signup was open. It is invite only from
+              2026-08-07, and a demo visitor is by definition somebody who has
+              not been invited yet: sending them to a form that asks for a code
+              would end the best sales page we have on a locked door. The
+              waitlist anchor on the landing page is where the ask now lands. */}
           <a
-            href="/signup"
+            href="/#join"
             onClick={onSignupClick}
             className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
           >
-            Join the beta
+            Request access
           </a>
         </div>
       </header>
@@ -469,17 +474,30 @@ function DemoPage() {
         {/* The close: this page's single ember object */}
         <section className="px-6 pb-20">
           <div className="max-w-5xl mx-auto">
+            {/* The ask kept its shape and changed its promise. "Tear down your
+                own pet feature" required an account, and accounts are invite
+                only from 2026-08-07, so the button now offers the thing a
+                visitor can genuinely have this minute: the public Critic, which
+                needs no account at all and is the same teardown they have just
+                spent a page reading. The waitlist is the line under it, not the
+                button, because asking somebody to wait is a worse close than
+                handing them the product. */}
             <a
-              href="/signup"
-              onClick={onSignupClick}
+              href="/p/teardown"
               // text-[var(--cta-ink)]: white on ember is 2.84:1 and fails WCAG
               // AA. See the note on Hero.tsx's CTA.
               className="inline-block px-8 py-3 rounded-full bg-[#FF6B2C] text-[var(--cta-ink)] font-medium hover:bg-[#ff8344] active:scale-[0.98] transition-all duration-200 no-underline"
             >
               Tear down your own pet feature
             </a>
+            {/* Said "the beta is open for sign-ups", which was true and is the
+                exact sentence the Hero comment cited as proof the product was
+                NOT gated. It is gated now. */}
             <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 mt-4 mb-0">
-              the beta is open for sign-ups
+              no account needed &middot;{" "}
+              <a href="/#join" onClick={onSignupClick} className="underline underline-offset-4">
+                the beta is invite only, ask for a code
+              </a>
             </p>
           </div>
         </section>

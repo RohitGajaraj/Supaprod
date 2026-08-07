@@ -72,6 +72,12 @@ const TABS = [
   // reachable: the admin nav is the only door this console has, so a sub-page
   // absent from this list is a sub-page nobody finds.
   { id: "/admin/landing", label: "Launch" },
+  // Invites arrived with the door. Signup closed on 2026-08-07 (private beta,
+  // entry by code), and a closed door whose keys can only be cut at a psql
+  // prompt is not a private beta, it is an outage with a story. Same reason
+  // Launch is on this list: the admin nav is this console's only door, so a
+  // sub-page missing from here is a sub-page nobody finds.
+  { id: "/admin/invites", label: "Invites" },
 ] as const;
 
 function activeTabId(pathname: string): (typeof TABS)[number]["id"] {

@@ -8,6 +8,7 @@ import { authErrorMessage } from "@/lib/auth-errors";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
 import { claimLandingSession } from "@/lib/landing.functions";
+import { checkInviteCode, redeemInviteCode, normalizeInviteCode } from "@/lib/invites.functions";
 import { clearLandingSessionKey, peekLandingSessionKey } from "@/lib/landing-session";
 import {
   planPresentation,
@@ -59,7 +60,17 @@ type SignupSearch = {
   plan?: PurchasableTier;
   credits?: CreditTier;
   billing?: "monthly" | "annual";
+  /** The invite code, carried in the URL so an emailed link is one click. */
+  invite?: string;
 };
+
+/**
+ * Where the waitlist actually lives. It is an anchor on the marketing page's
+ * close beat, not a route of its own (TrustClose.tsx owns `#join`), so anyone
+ * turned away here is sent to a form and not to a page that has to be scrolled
+ * before it offers anything.
+ */
+const REQUEST_ACCESS_HREF = "/#join" as const;
 
 // The /pricing → /signup purchase intent (D-03): the params were previously
 // dropped on the floor. Validate each strictly; anything malformed reads as
@@ -78,6 +89,11 @@ export const Route = createFileRoute("/signup")({
   validateSearch: (search: Record<string, unknown>): SignupSearch => ({
     ...(typeof search.next === "string" ? { next: search.next } : {}),
     ...(typeof search.from === "string" ? { from: search.from } : {}),
+    // Normalised the same way the server normalises it, so a code that survived
+    // an email client's soft wrap arrives in the field looking like the one on
+    // the card. This is presentation only: the server re-normalises and is the
+    // only thing that decides.
+    ...(typeof search.invite === "string" ? { invite: normalizeInviteCode(search.invite) } : {}),
     ...parsePlanIntent(search),
   }),
   beforeLoad: async ({ search }) => {
@@ -125,7 +141,7 @@ export const Route = createFileRoute("/signup")({
 function SignupPage() {
   // No useNavigate here on purpose: every post-signup destination is a full
   // browser navigation, so the gate chain runs on a fresh document.
-  const { next, from, plan, credits, billing } = Route.useSearch();
+  const { next, from, plan, credits, billing, invite } = Route.useSearch();
   const dest = safeNextPath(next);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -133,6 +149,19 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  // Seeded from ?invite= and then owned by the field. Prefilled and VISIBLE, not
+  // carried invisibly in the URL: somebody who mistypes their own address and
+  // comes back to the form has to be able to see the code is still there, and a
+  // hidden input that silently gates the button is the shape that produces "it
+  // just does nothing when I press it".
+  const [inviteCode, setInviteCode] = useState(invite ?? "");
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  // Which of the two screens this is. Derived rather than stored so pasting a
+  // code swaps the explainer for the confirmation the instant it lands, and
+  // clearing the field brings the explanation straight back. It says NOTHING
+  // about whether the code is good; that verdict is the server's and arrives
+  // later.
+  const hasCode = inviteCode.trim().length > 0;
   const busy = loading || loadingGoogle;
 
   // PLG continuity: when the user arrives from a public funnel surface
@@ -161,15 +190,51 @@ function SignupPage() {
         .join(" · ")
     : null;
 
+  /**
+   * The gate, and it is a SERVER round trip every time.
+   *
+   * Nothing in this file knows what makes a code good. It cannot: the rules live
+   * in the database (revoked, expired, exhausted) and the only thing that
+   * crosses back is a verdict. That is deliberate rather than tidy. A gate the
+   * browser can evaluate is a gate the browser can be edited past, and this one
+   * is the difference between a chosen cohort and whoever wandered in.
+   *
+   * Returns true when the caller may go on and create an account.
+   */
+  async function passesGate(setBusyFalse: () => void): Promise<boolean> {
+    const verdict = await checkInviteCode({ data: { code: inviteCode } }).catch(() => null);
+    // A round trip that never landed is not a bad code and must not be dressed
+    // as one. The person is told to try again, never told their code is wrong.
+    if (!verdict) {
+      setBusyFalse();
+      const msg = "We could not check that code just now. Try again in a moment.";
+      setInviteError(msg);
+      toast.error(msg);
+      return false;
+    }
+    if (!verdict.ok) {
+      setBusyFalse();
+      setInviteError(verdict.message);
+      toast.error(verdict.message);
+      return false;
+    }
+    return true;
+  }
+
   async function signup(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
     setFormError(null);
+    setInviteError(null);
     if (password.length < 6) {
       setFormError("Password must be at least 6 characters");
       return toast.error("Password must be at least 6 characters");
     }
     setLoading(true);
+    // Before signUp, never after. A code that is not ours must not leave an
+    // account behind it, and the only way to guarantee that is to refuse before
+    // the account exists rather than to clean up after it.
+    if (!(await passesGate(() => setLoading(false)))) return;
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -212,6 +277,27 @@ function SignupPage() {
       setFormError(msg);
       return toast.error(msg);
     }
+    // THE USE IS SPENT HERE, and here is after the account exists.
+    //
+    // Ordering is the whole point. A signup that fails on a taken address, a
+    // weak password or a network drop must not cost somebody a slot in a beta
+    // that has a fixed number of them, and the only way to be sure is to spend
+    // the use once there is an account to spend it on.
+    //
+    // AWAITED, not fired and forgotten. Two lines below this function navigates
+    // the whole document, which cancels any request still in flight, and a
+    // redemption lost that way is a code that quietly never runs out.
+    //
+    // A REFUSAL HERE IS NOT A FAILED SIGNUP. The account is already real. The
+    // only way to reach a refusal at this point is that the last use went to
+    // somebody else between the check above and this line, and telling a person
+    // who has just created an account that they cannot have it would be the
+    // unrecoverable half of the trade the whole gate is set up to avoid. They
+    // get in, `uses` reads one short, and the founder can see the cohort against
+    // the account list on /admin/invites.
+    await redeemInviteCode({ data: { code: inviteCode } }).catch((redeemError: unknown) => {
+      console.error("invite redemption after signup failed", redeemError);
+    });
     // Auto-confirm is on; session should be present. Mark the account
     // un-onboarded so the _authenticated gate routes it through /onboarding,
     // where the first step now captures name + role (the single identity-capture
@@ -300,7 +386,30 @@ function SignupPage() {
   async function signupGoogle() {
     if (busy) return;
     setFormError(null);
+    setInviteError(null);
     setLoadingGoogle(true);
+    // Google is a door too, and gating only the email form would have left the
+    // louder of the two buttons open. Same server verdict, same refusal copy.
+    if (!(await passesGate(() => setLoadingGoogle(false)))) return;
+    // SPENT HERE, BEFORE THE HANDOFF, WHICH IS THE OPPOSITE OF THE EMAIL PATH,
+    // and the difference is forced rather than chosen.
+    //
+    // The email path waits for the account because it can SEE the account
+    // appear. This one cannot see anything: the SDK sets window.location to its
+    // broker and the round trip returns at window.location.origin, a route this
+    // file does not own and never runs again (see the redirect_uri note below).
+    // There is no line after the account exists for a redemption to sit on.
+    //
+    // So the choice is spend now or never spend at all, and never spending
+    // would mean a limited code with a Google user behind it never running out,
+    // which is the failure the founder closed the door to prevent. Spending now
+    // costs a use when somebody abandons the Google screen. That is why the
+    // migration says `uses` counts REDEMPTIONS and not accounts: this is a
+    // redemption, truthfully recorded, and when it costs a real person a slot
+    // the fix is one edit to max_uses on /admin/invites.
+    await redeemInviteCode({ data: { code: inviteCode } }).catch((redeemError: unknown) => {
+      console.error("invite redemption before Google handoff failed", redeemError);
+    });
     const result = await lovable.auth.signInWithOAuth("google", {
       // THE LAST PATH STILL PAYING THE TWO-LOAD DETOUR, AND IT IS LEFT THAT WAY
       // ON PURPOSE. The code half of this fix cannot ship without a dashboard
@@ -357,6 +466,14 @@ function SignupPage() {
       intro={contextLine}
       subhead={
         <>
+          {/* This said "Free to start, no card required" while the door behind
+              it was open, and both halves were true. Only one of them still is.
+              The price has not changed and the availability has.
+              The access fact is NOT restated here, though, because the panel at
+              the top of the card carries it in full and a header that says the
+              same thing is the label-sublabel-helper triplet this system bans.
+              What is left is the half that is still true and that the panel does
+              not say: what happens once you are in, and that it costs nothing. */}
           <p
             style={{
               fontSize: 12,
@@ -366,8 +483,8 @@ function SignupPage() {
               maxWidth: 290,
             }}
           >
-            Free to start, no card required. Supaprod pressure-tests your calls and lets every
-            outcome guide the next.
+            No card, now or at setup. Supaprod pressure-tests your calls and lets every outcome
+            guide the next.
           </p>
           {planPickLine ? (
             <p
@@ -401,6 +518,169 @@ function SignupPage() {
         </>
       }
     >
+      {/* THE NO-CODE SCREEN IS THE PRIMARY DESIGN, NOT THE ERROR PATH.
+       *
+       * Founder, 2026-08-07 20:41: "it cannot be just blank... currently, it is
+       * only invite through, will notify you, don't worry, join the waitlist."
+       *
+       * Arithmetic backs the instruction. Every stranger who follows a link from
+       * Product Hunt, an ad, a search result or the nav lands here holding
+       * nothing, and only the handful of people we have personally emailed
+       * arrive with a code. So the empty state is the MODAL state of this screen,
+       * and building it as a red message that appears after a failed submit would
+       * mean the version most visitors see is the one nobody designed.
+       *
+       * THE TONE IS THE REQUIREMENT, not a nicety. Three things have to land
+       * before anything else on the page: access is invite only, that is
+       * temporary and about our capacity rather than about them, and here is the
+       * exact next thing to do. It has to read as "you are early" and never as
+       * "you are not welcome", which is why it says what we are doing and why,
+       * and puts the waitlist under the reader's thumb instead of in a footnote.
+       *
+       * TWO PRIMARY-WEIGHT BUTTONS END UP ON THIS SCREEN, and that breaks the
+       * usual one-ember-object rule on purpose. The founder asked for the
+       * waitlist to be "the obvious next action on the screen, not a footnote",
+       * and for the visitor this panel is written for it IS the only action that
+       * can succeed. The panel's border keeps the two from reading as a pair.
+       *
+       * NOTHING IS DISABLED. A greyed-out Create account would be the cheaper
+       * way to make the waitlist the only live control and it would be the wrong
+       * one: somebody with a code sitting on their clipboard has to be able to
+       * paste it and go, and a disabled button with no explanation is how a
+       * gated product reads as a broken one. */}
+      {hasCode ? (
+        <div
+          style={{
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            background: "var(--raised)",
+            padding: "10px 12px",
+            marginBottom: 14,
+            fontSize: 12,
+            lineHeight: 1.5,
+            color: "var(--text-body)",
+          }}
+        >
+          {/* Confirms the LINK WORKED and claims nothing beyond that. It has not
+              been checked yet, so it does not get to say "valid": that verdict
+              belongs to the server and arrives when the account is created. */}
+          Your invite code is in the field below. We check it the moment you create the account.
+        </div>
+      ) : (
+        <div
+          style={{
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-card)",
+            background: "var(--raised)",
+            padding: "14px 14px 12px",
+            marginBottom: 16,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 13.5,
+              color: "var(--text-primary)",
+              margin: "0 0 6px",
+              lineHeight: 1.45,
+            }}
+          >
+            Supaprod is invite only right now
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--text-body)",
+              margin: "0 0 12px",
+              lineHeight: 1.55,
+            }}
+          >
+            We are letting people in a few at a time so the first ones through get properly looked
+            after. It is not a no, it is a not yet. Put your name down and we will send you a code
+            the moment a place opens up.
+          </p>
+          <a
+            href={REQUEST_ACCESS_HREF}
+            className="btn btn-primary"
+            style={{ width: "100%", justifyContent: "center", textDecoration: "none" }}
+          >
+            Join the waitlist
+          </a>
+          <p
+            style={{
+              fontSize: 11.5,
+              color: "var(--text-subtle)",
+              margin: "10px 0 0",
+              lineHeight: 1.5,
+            }}
+          >
+            Already have one? Paste it below. The whole invite link works too.
+          </p>
+        </div>
+      )}
+
+      {/* ABOVE BOTH BUTTONS, not inside the email form, because it gates both.
+          Put in the form it would sit BELOW "Continue with Google", and the
+          person who pressed Google first would be told to fill in a field they
+          had not scrolled to yet. A gate has to be visible before the thing it
+          gates. */}
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor="signup-invite" className="mono-label" style={fieldLabelStyle}>
+          Invite code
+        </label>
+        <input
+          id="signup-invite"
+          className="input"
+          type="text"
+          required
+          // A code is not a word: no autocorrect, no capitalisation guess, no
+          // browser offering last month's email address for it.
+          autoComplete="off"
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="paste your code or invite link"
+          value={inviteCode}
+          onChange={(e) => {
+            // Normalised on the way IN, which is what makes a pasted invite URL
+            // work: the field shows the code it pulled out of the link rather
+            // than leaving a URL sitting in a box labelled "code" for the person
+            // to tidy up themselves. Same function the server runs, so what is on
+            // screen is what will be checked.
+            setInviteCode(normalizeInviteCode(e.target.value));
+            setInviteError(null);
+          }}
+          aria-invalid={inviteError ? true : undefined}
+          aria-describedby={inviteError ? "signup-invite-error" : "signup-invite-help"}
+          style={{ width: "100%", marginBottom: 8 }}
+        />
+        {inviteError ? (
+          <p id="signup-invite-error" role="alert" style={fieldErrorStyle}>
+            {inviteError}{" "}
+            <a
+              href={REQUEST_ACCESS_HREF}
+              style={{
+                color: "var(--text-body)",
+                textDecoration: "underline",
+                textUnderlineOffset: 3,
+              }}
+            >
+              Join the waitlist
+            </a>
+          </p>
+        ) : (
+          // NOT A DEAD END, in either state. Somebody who reaches this page
+          // without a working code wanted the product enough to find the signup
+          // form, which is the strongest signal the waitlist can collect, and
+          // "invite only" with nothing after it throws that away at the exact
+          // moment it is worth the most.
+          <p
+            id="signup-invite-help"
+            style={{ fontSize: 11.5, color: "var(--text-subtle)", margin: 0, lineHeight: 1.5 }}
+          >
+            Codes are not case sensitive, and pasting the whole invite link is fine.
+          </p>
+        )}
+      </div>
       <button
         type="button"
         className="btn btn-ghost"

@@ -362,16 +362,22 @@ function TeardownPage() {
                   it was promising storage. The visitor has just watched the Critic judge
                   their idea; what earns the signup is that the NEXT judgement is sharper
                   because of this one, not that this one is filed somewhere. */}
-              Keep this teardown and your decision history. Create a free workspace and every call
-              you make sharpens the next one.
+              Keep this teardown and your decision history. A workspace is free, and every call you
+              make sharpens the next one. Supaprod is in private beta, so ask for a code and we will
+              send you one.
             </p>
-            <Link
-              to="/signup"
+            {/* Was a Link to /signup labelled "Create a free workspace", which
+                was the truth until the founder closed signup on 2026-08-07. A
+                visitor here reached this page through a shared link and has no
+                code, so the ask is for access. A plain anchor because the
+                waitlist is a fragment on the landing page and not a route. */}
+            <a
+              href="/#join"
               className="btn btn-primary"
               style={{ display: "inline-flex", justifyContent: "center" }}
             >
-              Create a free workspace <ArrowRight size={14} />
-            </Link>
+              Request access <ArrowRight size={14} />
+            </a>
           </div>
         ) : null}
 

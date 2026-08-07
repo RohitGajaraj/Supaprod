@@ -50,9 +50,28 @@ export function PreSignupCTA({ sourceType }: { sourceType: "teardown" | "decisio
         and learns from every outcome. Free to start; Pro keeps what it learned guiding every call
         you make after.
       </p>
+      {/* Access, said before the button rather than discovered at it. This
+          footer sits on pages a stranger reached through a shared link, so
+          nobody arriving here has a code, and the old "Start free →" straight
+          into /signup would have handed every one of them a locked door with no
+          warning. Signup closed 2026-08-07: private beta, entry by invite. */}
+      <p
+        style={{
+          lineHeight: 1.6,
+          color: "var(--ink-faint, #8a8377)",
+          margin: "0 auto 16px",
+          maxWidth: 430,
+        }}
+      >
+        It is invite only while the beta is small. Ask for a code and we will send you one.
+      </p>
       <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-        <a href={`/signup?from=${sourceType}`} className="btn btn-primary">
-          Start free →
+        {/* The `from` context is gone with the destination and it is not a loss
+            worth chasing: it fed a welcome line on /signup for a person who
+            cannot reach /signup yet. The waitlist form is the anchor on the
+            landing page, which is the one place that form has ever lived. */}
+        <a href="/#join" className="btn btn-primary">
+          Request access →
         </a>
         <a href="/pricing" className="btn btn-ghost">
           See plans

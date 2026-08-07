@@ -354,13 +354,18 @@ function CheckoutPage() {
             does: you pay ${total} a month, your workspace is created with{" "}
             {includedCredits.toLocaleString()} credits
             {isBusiness ? ` and ${seats} seats` : ""}, and you sign in and invite your team.
+            {/* "Start free in the meantime" sent a visitor to a signup form
+                that has been invite only since 2026-08-07, so the consolation
+                prize for a card reader that is not ready yet would have been a
+                second locked door. The waitlist is the thing they can actually
+                do in the meantime. */}
             <div style={{ marginTop: 12 }}>
-              <Link
-                to="/signup"
+              <a
+                href="/#join"
                 style={{ color: "var(--brand, #ff6b2c)", textDecoration: "none", fontWeight: 500 }}
               >
-                Start free in the meantime →
-              </Link>
+                Ask for a beta invite in the meantime →
+              </a>
             </div>
           </div>
         )}
