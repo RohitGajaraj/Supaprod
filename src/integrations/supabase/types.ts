@@ -5596,6 +5596,7 @@ export type Database = {
       prd_scaffolds: {
         Row: {
           created_at: string
+          critic_review: Json | null
           generated_by: string | null
           html: string
           id: string
@@ -5606,6 +5607,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          critic_review?: Json | null
           generated_by?: string | null
           html: string
           id?: string
@@ -5616,6 +5618,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          critic_review?: Json | null
           generated_by?: string | null
           html?: string
           id?: string
@@ -5656,6 +5659,7 @@ export type Database = {
           embedding_model: string | null
           github_issue_url: string | null
           id: string
+          is_sample: boolean
           model: string | null
           opportunity_id: string | null
           outcome: Json | null
@@ -5687,6 +5691,7 @@ export type Database = {
           embedding_model?: string | null
           github_issue_url?: string | null
           id?: string
+          is_sample?: boolean
           model?: string | null
           opportunity_id?: string | null
           outcome?: Json | null
@@ -5718,6 +5723,7 @@ export type Database = {
           embedding_model?: string | null
           github_issue_url?: string | null
           id?: string
+          is_sample?: boolean
           model?: string | null
           opportunity_id?: string | null
           outcome?: Json | null
