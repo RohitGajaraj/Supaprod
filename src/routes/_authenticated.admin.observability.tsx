@@ -110,6 +110,7 @@ import {
   adminSetObservabilityEnabled,
 } from "@/lib/observability.functions";
 import { getLivenessReport } from "@/lib/liveness.functions";
+import { getEmailHealth, sendTestEmail } from "@/lib/email-health.functions";
 import type { CapabilityReport, IntegrityReport, VocabularyReport } from "@/lib/liveness/report";
 import {
   Block,
@@ -133,6 +134,7 @@ export const Route = createFileRoute("/_authenticated/admin/observability")({
 function AdminObservability() {
   return (
     <>
+      <EmailHealth />
       <FeatureLiveness />
       <MachineHealth />
     </>
@@ -663,5 +665,116 @@ function MachineHealth() {
         ))}
       </Block>
     </>
+  );
+}
+
+/**
+ * Can this product send an email, and if not, at which layer.
+ *
+ * FIRST ON THE PAGE on purpose. A send path that is silently dead outranks a
+ * late background job: the waitlist welcome is the only message a stranger ever
+ * gets from us, and on 2026-08-07 it failed to arrive with nothing anywhere able
+ * to say why. The four candidate causes sat at four layers and only two of them
+ * were visible from outside the running worker.
+ *
+ * The two questions this answers, which nothing else could:
+ *   is RESEND_API_KEY present IN THE DEPLOYED RUNTIME (not in a secret store,
+ *   not in a local .env, but in the process actually serving requests), and
+ *   what exactly does the vendor say when we try.
+ */
+function EmailHealth() {
+  const fHealth = useServerFn(getEmailHealth);
+  const fTest = useServerFn(sendTestEmail);
+  const [to, setTo] = useState("");
+
+  const health = useQuery({
+    queryKey: ["admin-email-health"],
+    queryFn: () => fHealth(),
+    staleTime: 30_000,
+  });
+
+  const test = useMutation({
+    mutationFn: (addr: string) => fTest({ data: { to: addr } }),
+    onSuccess: (r) => {
+      if (r && "error" in r) return toast.error(r.error);
+      // The vendor's own words, not a summary of them. "Resend 403: domain is
+      // not verified" and "RESEND_API_KEY absent" need different fixes, and
+      // collapsing both into "could not send" is what made this undebuggable.
+      if (r?.sent) toast.success(`Sent to ${r.to}. Check the inbox and the spam folder.`);
+      else toast.error(r?.reason ?? "Send failed.");
+    },
+    onError: () => toast.error("The test send did not complete."),
+  });
+
+  if (health.isLoading) return <Loading>Checking whether email can send.</Loading>;
+  if (!health.data || "error" in health.data) {
+    return (
+      <Failed onRetry={() => void health.refetch()}>
+        Could not read the email configuration, so nothing here can be trusted either way.
+      </Failed>
+    );
+  }
+
+  const h = health.data;
+
+  return (
+    <Block
+      title={h.configured ? "Email can send" : "Email cannot send: no API key in this runtime"}
+      sub={
+        h.configured ? (
+          <>
+            A key is present and mail will leave as <Value>{h.from}</Value>. That does not prove
+            delivery, which is what the test send below is for.
+          </>
+        ) : (
+          <>
+            <Value>{h.envVar}</Value> is not set in the deployed runtime, so every send is a silent
+            no-op and always has been. A key in a secret store is not the same as a key in the
+            process serving requests: it has to reach the Cloudflare Worker, and it only takes
+            effect on a deploy that happens after it was added.
+          </>
+        )
+      }
+    >
+      <Row
+        tight
+        lead={
+          <>
+            API key in this runtime <Value>{h.configured ? "present" : "absent"}</Value>
+          </>
+        }
+      />
+      <Row
+        tight
+        lead={
+          <>
+            From address <Value>{h.from}</Value>
+          </>
+        }
+      />
+      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+        <input
+          type="email"
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+          placeholder="you+test1@gmail.com"
+          aria-label="Send a test email to"
+          className="input"
+          style={{ flex: "1 1 240px", minWidth: 0 }}
+        />
+        <button
+          className="btn btn-secondary btn-sm"
+          disabled={test.isPending || !to.trim()}
+          onClick={() => test.mutate(to.trim())}
+        >
+          {test.isPending ? "Sending" : "Send test"}
+        </button>
+      </div>
+      <p style={{ fontSize: 11, color: "var(--text-subtle)", margin: "8px 0 0", lineHeight: 1.5 }}>
+        A real send, not a validation call: only a message arriving in an inbox answers the
+        question. Gmail plus-addressing gives you unlimited distinct test addresses that all land in
+        one inbox, so <Value>you+test1@</Value> and <Value>you+test2@</Value> both work.
+      </p>
+    </Block>
   );
 }

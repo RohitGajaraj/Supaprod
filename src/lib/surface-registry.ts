@@ -85,6 +85,14 @@ export const SURFACE_REGISTRY = {
   // the surface that would be an orphan if nobody linked it. The public half
   // has a door the whole internet can find.
   invites: { kind: "admin", home: "admin/invites", opensFrom: "admin-nav", status: "live" },
+  // Lives on the observability page rather than owning a route: "is email
+  // working" is a health question and belongs beside the other health answers.
+  "email-health": {
+    kind: "admin",
+    home: "admin/observability",
+    opensFrom: "admin-nav",
+    status: "live",
+  },
   activation: { kind: "admin", home: "admin/proof", opensFrom: "admin-nav", status: "live" },
   incidents: { kind: "admin", home: "admin/observability", opensFrom: "admin-nav", status: "live" },
   // Feature liveness shares the Health surface with observability: same
