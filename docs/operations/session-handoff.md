@@ -1,83 +1,87 @@
-# Resume here
+# Pick up here
 
-Written 2026-08-07 ~15:45 IST. Soft launch is THIS WEEK (Product Hunt + X).
+> _Written 2026-08-07, 22:05 IST. Tree CLEAN and PUSHED. tsc 0, 8289 tests pass, 0 fail, docs-doctor clean._
 
-**Everything is committed and pushed. The tree is clean.** Gates at push: `bunx tsc --noEmit` exit 0 · `bun run docs:check` clean of hard rot · the blue guard 3 pass.
-
-**The founder is running this one item at a time and asked explicitly for that pacing.** He said: *"You are giving one after the other, but I'm not able to close one."* Do not open a new workstream while one is open with him. Finish, confirm, then offer the next.
+**Everything below is verified against the running system or the source, on the date shown. Where something was not verified, it says so.** The single board is [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md); this file is the narrow "what happened last, what is loaded in the chamber" note.
 
 ---
 
-## 1. Start here
+## The one thing that outranks everything else
 
-**Nothing today is live.** Every fix below is pushed to `main` but Lovable has to redeploy before any of it reaches `supaprod.ai`. The founder is still seeing the old share card and the old favicon. **Confirm the deploy first**, then re-check `supaprod.ai/og-supaprod.png` and `/favicon.svg` against the repo copies.
+**P1. `applyOutcome` has never once completed in production.** Zero outcome memories against 957 total. The compounding claim is the only defensible layer of the three, and it rests on a write path that has never run.
 
-**Then the one action with the highest leverage in the whole project:** settle one outcome through `/learn` on `helio-labs-harbor`. Two shipped specs have `outcome` null:
+Settling ONE outcome does four things at once: exercises the path, gives `/proof` a real number, produces the only frame where the compounding claim comes from the running system rather than a slide, and unblocks the teaser video's closing shot. **Founder action, minutes.** Spec `60000000-0001-4000-8000-000000000031` on `helio-labs-harbor` via `/learn`.
 
-- `60000000-0001-4000-8000-000000000031` — "Add SSO to the billing site"
-- `60000000-0001-4000-8000-000000000002` — "Job handoff checklist for the homeowner"
+An agent must NOT author the verdict word. The record's entire value is that nothing in it is invented.
 
-`applyOutcome` **has never once completed in this database**: zero `agent_memory` rows of `kind='outcome'` against 957 memories, and none of the 7 prds carrying an outcome has the `settled_memory_id` that function always writes. One settle exercises it, gives `/proof` a real number instead of an honest zero, and produces the only frame in the product where the compounding claim comes from the running system rather than seed data. Three blockers, one action.
+---
 
-## 2. Seven commits from audit agents went up unreviewed
+## What changed tonight, in one pass
 
-A parallel audit was dispatched with full tool access rather than read-only, and its agents wrote and committed code. They are authored as the founder because agents inherit git config. He chose "review each, keep the good ones", **and that review never happened** before he asked for everything to be pushed.
+Signup was **open with auto-confirm**; it is now **private beta, invite code only**. That single decision moved seventeen surfaces and broke two things that had to be chased down. If you are reading unfamiliar copy anywhere, this is why.
 
-```
-1435dc35  Launch readiness: fix 3 SEO blockers + add execution tracker
-ea899590  Fix: memory_expiry_enabled() paid tier list missing enterprise
-3e248767  Launch prep: founder decision framework
-1c0edc30  SEO: add canonical tags to all public routes
-3285a559  SEO/GEO: add FAQ page with question-shaped headings and FAQPage schema
-21d0b512  SEO/GEO: fix llms.txt alignment and remove 404 references
-65c925b7  SEO/GEO: create llms-full.txt for AI crawlers
-```
-
-**`ea899590` is the one to look at.** It edits a historical migration (`20260616210000_mc_memory_expiry.sql`) instead of adding a new one. The content is right — it adds `enterprise` and `max` to the paid-tier list, defusing the memory-expiry loaded gun — but **editing an applied migration does nothing to the live database.** The fix is inert and the gun is still loaded. Redo it as a new migration with `CREATE OR REPLACE FUNCTION`.
-
-They also ran a broad `git add` and swept unrelated uncommitted work into their commits, so no commit is cleanly one author's intent. **When dispatching audit agents, constrain them to read-only tools.** One verifier caught a sibling committing with a false commit message.
-
-## 3. What shipped today
-
-| | |
+| Area | State |
 | --- | --- |
-| **The share card said "Cadence"** | `public/og-supaprod.png` was dated Jul 1 and used the banned word "remembers", on the card every share renders. The corrected ORRERY card had been in the kit since Aug 6. |
-| **The icons were violet** | Every file in `branding/icons/` predated the founder's 2026-08-05 ruling by three weeks. A comment in `generate-social.ts` actively defended the blue as "already right", which is what sent an agent to the wrong folder. Retired. |
-| **The favicon was one orange dot** | `faviconMark` strokes 0.74px at 16px. New `faviconIcon()` uses a **circular** ground at 96% fill, stroke 10. The circle is the founder's call and it is right: a round mark in a round frame wastes no corners. |
-| **Four false FAQ claims** | Linear, Jira, Notion and Google Docs were named as integrations; all four are `stubAdapter`. Also a false CSV claim and a misleading "your own Postgres database". Rewritten, and the JSON-LD is now derived from one array instead of hand-synced. |
-| **`/proof` was 100% seed data** | All 28 scored insights in the database come from Helio workspaces. Six clones excluded by id. |
-| **The waitlist would have rejected the launch** | Global brake at 20/min. Raised to 300. |
-| **No human channel on the site** | `hello@supaprod.ai` in the footer; the X link was a 404. |
-| **`check-handles.sh` lied about domains** | Mapped a rate-limited empty body to AVAILABLE. Reported `supaprod.ai` free, a domain owned since July. |
+| Invite gate | Live. Migration, atomic redeem, admin mint/revoke at `/admin/invites`, six seeded codes. |
+| Codes to hand out | [`../growth/invite-codes.md`](../growth/invite-codes.md). YC/investor code is `YC-COMPOUND-K7QR4V`. |
+| Transactional email | **Working, verified by a real send at 21:58 IST.** Landed in the main inbox, not spam. |
+| Waitlist welcome (A1) | Wired, sends on a genuine first signup, branded, in the founder's ruled voice. |
+| Email sequences | All eleven rewritten. `docs/growth/email-sequences.md`. |
+| Launch funnel | Readable at `/admin/launch`. Was write-only since July. |
+| Email health | `/admin/observability`, first block. Reports whether the key is in the RUNTIME, and does a real test send. |
 
-## 4. Where the ledger lives now
+### Tonight's email outage, so it is not re-debugged
 
-**Founder ruling: the account ledger is in Notion, and the repo links to it.** [`Supaprod · Brand & Social Accounts`](https://app.notion.com/p/3b33f54c86c281b1968fdcedb5e7785d) is the record; `social-accounts.md` §8 now points there and keeps its table only as history.
+Root cause was **one value in the wrong variable**: the Resend API key went into `RESEND_FROM_EMAIL` while `RESEND_API_KEY` was empty, so every send was a correct silent no-op. Both variables were undocumented in `.env.example`, which is why it was guessable at all. Now documented, with the secret/not-secret distinction stated first.
 
-The reason the direction reversed: the repo declared itself canonical and was wrong in three places Notion had right. **An account gets claimed on a phone, in the same minute as a decision, and a markdown file behind a git commit is not reachable at that moment.** Check the live account before trusting either.
+**The key was rendered on the admin page** before that was fixed, because a From header was classified as non-secret and printed on the strength of the variable's NAME. It has been rotated. `looksLikeSecret` now masks anything token-shaped in that panel. **Lesson worth keeping: a misconfiguration panel runs precisely when names and contents have come apart, so no environment value may be echoed because of what it is called.**
 
-**LinkedIn is nearly closed.** Page live at `linkedin.com/company/supaprod`, vanity slug held, logo, tagline, and **the About text is in as of 15:41 IST**. Remaining: Founded `2026` on the `Details` tab, Location `Remote` on the `Locations` tab.
+---
 
-Two LinkedIn items are deliberately parked. The **cover image** is a composition fault, not an upload fault — the orrery runs off the right edge and LinkedIn crops ~4% more per side, cutting ellipses mid-arc. Re-uploading the same file will not help. And **adding the founder as an employee is deferred on his own reasoning**: it requires a position on his personal profile while he is employed elsewhere, and the real exposure is IP-assignment and moonlighting clauses, not perception.
+## Founder actions, blocking real things
 
-## 5. Two rules this session paid for, and they are in memory
+1. **Settle one outcome.** P1 above. Highest value action available.
+2. **Put `YC-COMPOUND-K7QR4V` in the YC application.** The exact find-and-replace is written out in [`../pitch/yc/fall-2026-application.md`](../pitch/yc/fall-2026-application.md) under the 🚨 block. Seven words in the Login credentials field, Surface 1. **The filed login still works**: the gate blocks account creation, not sign-in, so this is about the "or sign up with any email" clause only.
+3. **Six product screenshots** into `public/images/`. `/product` shows six guarded empty frames. `docs/screenshots/` is gitignored, so they cannot be moved from there.
+4. **Exact launch day**, privately. Product Hunt needs a date to schedule. Tue to Thu strongest. Show HN at D+7 minimum: HN vote-ring detection shadowbans the **domain**, not the post. The date stays publicly withheld by his ruling, and `LAUNCH_DATE` stays unset.
+5. **P10, a real decision not a bug.** The gate is not server-authoritative: `supabase.auth.signUp` is called by the browser with the publishable key, so someone bypassing our form still gets an account. Every door the product SHOWS is locked and every account made through one is counted against a code. Closing it fully needs a Supabase auth hook on `auth.users`, which would block Google signup entirely. Not decided unilaterally.
+6. **Postal address**, when the nurture emails go. CAN-SPAM applies to commercial mail; A1 is transactional and exempt. A2 to A5 and the launch announcement are not. A virtual mailbox is same-day and does not need incorporation.
+7. **P6, `authorization_servers: []`.** Does the MCP server delegate to Supabase or issue its own tokens? No `authorize`/`token` route exists to settle it. Deliberately not guessed.
 
-- **Push back when the doctrine is wrong.** The favicon README had *diagnosed* the 16px problem and then shipped a favicon that failed at 16px. Quoting the diagnosis made the failure sound intentional. A document describing a constraint is not permission to ship the consequence. The founder asked for this to persist: *"If it is coming from my own ruling or a document, you just push back and do the right things."*
-- **Corrected source, stale artifact.** Three times in one day: the OG card, the icons, the FAQ schema. **Nothing regenerates `public/` from the brand kit**, so every ruling has to be carried by hand. That build step is the real fix and it is still open.
+---
 
-Also: **upload the 1024 avatar everywhere and walk down the ladder only if rejected.** The asset map named display sizes as if they were upload ceilings, and the founder found it by uploading 1024 where the doc said 400 and seeing it render sharper.
+## Agent work, ready to start, nothing blocking
 
-## 6. Open, in order
+Ordered by launch cost.
 
-1. **Deploy** and verify the assets are live.
-2. **Settle one outcome** (§1).
-3. **Redo `ea899590`** as a new migration.
-4. **Finish LinkedIn**: Founded, Location.
-5. **Open the "Security — 4 issues" badge** in the Lovable panel. Visible in a screenshot on 2026-08-07 and never examined. It is the one "not assessed" row worth closing before launch.
-6. **Product Hunt account.** Does not exist. PH bans brand accounts from posting, so it must be a personal maker profile.
-7. **Homepage Receipts**: label as examples per the founder's ruling.
-8. **LinkedIn cover** regeneration.
+1. **P5, `/brief` and `/investors` are invisible to crawlers.** Both render `BriefDeck`, which is a full-viewport iframe over `public/brief.html`. Google does not attribute iframe content to the parent, so the investor page is empty to search AND to AI answer engines, which the founder asked for by name. Also zero headings and zero landmarks in the parent, and `brief.html` reportedly carries 15 flat `<h1>`s. **Two agents were dispatched at this and both died on the monthly spend limit before writing anything. Nothing is half-done; the tree is clean.** Do NOT ship off-screen keyword text: that is cloaking.
+2. **Launch-day operations runbook.** Bug triage severity a tired person can apply at 2am, what to watch and the number that means act, where feedback physically arrives, first-week rhythm, and which lever turns off what. **Same two agents died on this one too.** Ground every instruction in something that exists; the most valuable output is naming what the runbook needs and does not have.
+3. **P11 is closed but the lesson is open.** "Join 100+ design partners" was removed from `/product` tonight; nothing was behind the number. A sweep of every public route found no other unsourced count. Keep sweeping when copy lands.
+4. **P7 site-wide soft-404.** Unknown paths return 200 with the SPA shell. `/.well-known/*` is fixed, the rest is not. Needs the router to signal `notFound`.
+5. **P8 app-shell JS on marketing routes.** 249.6 KB gzip, 34 preloads. `__root.tsx` ships QueryClientProvider, Radix AlertDialog and a Supabase auth listener to pages that render none of them.
+6. **Teaser video.** Tool choice, flows and USP order can all be drafted now. Only the closing frame is blocked, and it is blocked on P1.
+7. **Brownfield positioning.** `docs/strategy/brownfield-positioning-evaluation.md` exists and needs the founder's read, not more agent writing.
+8. **P9 is closed.** Workspace invitations were broken by the gate for about an hour and are fixed: a workspace invitation is now its own proof of admission, CHECKED server-side rather than trusted. Do not "simplify" that into honouring `?next=` directly; that is a bypass.
 
-Full board: [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md), which now covers every checklist domain and marks the unexamined ones **"not assessed"** rather than green. Video plan: [`../pitch/teaser-video-plan.md`](../pitch/teaser-video-plan.md).
+---
 
-**The positioning question is answered and needs no more work.** Brownfield is not an expansion to announce; it is already the shipped position. The gap runs the other way: the site promises connectors that are stubs.
+## Rules that cost real money to relearn
+
+- **Size type to the render, not the file.** LinkedIn draws a 4200px cover into an 804px box. The favicon was stroked for a 16px tab and served to a 48px mail avatar. Both shipped wrong for the same reason.
+- **`public/` is generated, or it rots.** Five hand-maintained files were found there in one day: the OG card, the icon set, the FAQ schema, a LinkedIn JPEG no code ever wrote, and `favicon.svg`, whose generator had **zero callers**. Check an asset's date against the ruling that governs it.
+- **Never edit a historical migration.** `ea899590` did, and the fix was inert against every database that had already run it.
+- **Constrain audit agents to read-only tools.** Seven agent commits once went up unreviewed, authored as the founder.
+- **Commit file-by-file while agents are running.** A `git add -A` swept one agent's privacy fixes into an unrelated commit tonight; the message does not describe its own contents.
+- **Verify a board row before spending an agent on it.** Two rows tonight said not-started for work that had shipped hours earlier.
+- **Claims law.** If a number cannot be pulled live, it does not render. Two false-claim clusters were found today: `/privacy` described a tracking cookie, four localStorage keys and an analytics vendor that do not exist, and `/product` claimed a hundred design partners. Both were placeholder text nobody revisited, and both claimed MORE than the product does.
+- **Never say the product "remembers", "stores" or "logs".** All three claim less than it delivers. It learns, then guides.
+- **No em or en dashes.** A pre-commit hook enforces it.
+
+---
+
+## Related
+
+- [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md), the single board, section 0a for the access model.
+- [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 0, the live cursor.
+- [`../growth/invite-codes.md`](../growth/invite-codes.md), the six links and how to revoke one.
+- [`../growth/email-sequences.md`](../growth/email-sequences.md), all eleven emails and the two blockers on the nine that cannot send.
