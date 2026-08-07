@@ -31,7 +31,23 @@ export function readEmailConfig(): EmailConfig {
   };
 }
 
-export type SendEmailInput = { to: string; subject: string; text: string; html?: string };
+export type SendEmailInput = {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+  /** Override the default sender. Lifecycle mail signs as a person; the product's
+   *  own notifications stay on the neutral `notifications@` identity. */
+  from?: string;
+  /** Where a human reply lands. Worth setting whenever the copy asks for one,
+   *  because the default From is a mailbox nobody is watching for conversation. */
+  replyTo?: string;
+  /** Extra RFC headers, notably `List-Unsubscribe` and `List-Unsubscribe-Post`.
+   *  Gmail and Yahoo require one-click unsubscribe (RFC 8058) from bulk senders
+   *  and the volume threshold is lower than people assume, so anything that goes
+   *  to a list rather than to one person should set these. */
+  headers?: Record<string, string>;
+};
 export type SendEmailResult = { sent: boolean; reason: string };
 
 /** Fire-and-report, never throws. No-ops honestly when RESEND_API_KEY is absent. */
@@ -45,11 +61,13 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       method: "POST",
       headers: { Authorization: `Bearer ${cfg.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: cfg.from,
+        from: input.from ?? cfg.from,
         to: [input.to],
         subject: input.subject,
         text: input.text,
         html: input.html ?? undefined,
+        reply_to: input.replyTo ?? undefined,
+        headers: input.headers ?? undefined,
       }),
     });
     if (!res.ok) {

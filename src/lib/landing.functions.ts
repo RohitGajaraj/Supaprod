@@ -15,12 +15,17 @@
  * claimLandingSession: the seam that makes the funnel a funnel. Every event
  * above carries the browser's anonymous session key (src/lib/landing-session.ts);
  * this records, once, that a named account came out of one of those sessions.
+ *
+ * getLandingFunnel: the read side of all of the above, admin-gated. Everything
+ * here was write-only until it existed, which meant the one table built to make
+ * launch day verifiable could only be verified by someone with a psql prompt.
  */
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { LANDING_SESSION_KEY_RE } from "@/lib/landing-session";
+import { sendWaitlistWelcome } from "@/lib/waitlist-email.server";
 import { track, type TrackEvent } from "@/lib/observability";
 
 // waitlist_signups / landing_events postdate the generated types; same relaxed
@@ -318,6 +323,21 @@ export const joinWaitlist = createServerFn({ method: "POST" })
           hasBet: Boolean(data.betText),
           referred: Boolean(data.referredBy),
         });
+
+        // A1, the welcome. Until 2026-08-07 this branch sent NOTHING: the row
+        // was captured correctly and the person heard silence, which reads as a
+        // broken form even when the data is safe. Copy and constraints live in
+        // src/lib/waitlist-email.server.ts.
+        //
+        // Guarded by !alreadyJoined on purpose. A repeat submission of the same
+        // address is common (people forget, or hit the button twice) and must
+        // not re-send: a duplicate welcome is the cheapest possible way to earn
+        // a spam complaint on a domain with no sending history to absorb it.
+        //
+        // NOT awaited into the response path's success condition, and it cannot
+        // throw. If Resend is down the signup still succeeds, because losing a
+        // real signup is unrecoverable and a missing welcome is not.
+        await sendWaitlistWelcome(data.email);
       }
 
       return { ok: true, position, total: rows.length, referralCode, alreadyJoined };
@@ -387,4 +407,223 @@ export const claimLandingSession = createServerFn({ method: "POST" })
       // A claim that cannot be written is a missing join, never a failed signup.
     }
     return { ok: true };
+  });
+
+/* ------------------------------------------------------------------ *
+ * The read side: getLandingFunnel
+ * ------------------------------------------------------------------ */
+
+/**
+ * WHY THIS EXISTS. `landing_events` was written by recordLandingEvent above and
+ * read by NOTHING. The whole argument for a first-party events table is that
+ * launch day stays verifiable with no vendor key, and that argument is void if
+ * the only way to see the funnel is to open a psql prompt at the exact hour the
+ * founder is doing eight other things. This is that table's reader.
+ *
+ * ADMIN-GATED, deliberately the same gate as getObservabilityStatus and
+ * getMoatMetrics: `requireSupabaseAuth`, then a user_roles lookup on the
+ * CALLER'S OWN client. user_roles RLS restricts rows to auth.uid(), so a hit
+ * means this user really is an admin and the check cannot be spoofed by input.
+ * The reads themselves then run on the service-role client because both tables
+ * have RLS on with no policies at all (see the 20260715 migration): authenticated
+ * gets nothing directly, by design. This is funnel data over an identified
+ * table, so leaving it open would leak signup volume and referrer sources to
+ * anyone with an account.
+ *
+ * AGGREGATION, AND WHERE IT HONESTLY HAPPENS. The per-event totals are exact
+ * because they are four `count: exact, head: true` reads that hit
+ * `landing_events_event_created_idx` (event, created_at) dead on — no rows cross
+ * the wire for those. Everything else needs GROUP BY over a day expression and a
+ * jsonb key, which PostgREST cannot express without an RPC or a view, and this
+ * lane is not adding a migration. So the day series, the referrer breakdown and
+ * the source breakdown are computed in JS over a CAPPED row pull, and the cap is
+ * reported rather than hidden: `eventsTruncated` / `signupsTruncated` tell the
+ * surface that a breakdown is partial so it can say so instead of quietly
+ * understating. The exact totals stay right either way, which is the number that
+ * matters most on the day.
+ */
+const FUNNEL_ROW_CAP = 20_000;
+
+/** Default window. Two weeks covers a launch and the tail that follows it. */
+const FUNNEL_DEFAULT_DAYS = 14;
+const FUNNEL_MAX_DAYS = 90;
+
+export type LandingFunnelDay = {
+  /** UTC calendar day, YYYY-MM-DD. Buckets are UTC, not the reader's zone. */
+  day: string;
+  events: Record<LandingEventName, number>;
+  signups: number;
+};
+
+/**
+ * `host` distinguishes two facts a single "unknown" bucket would destroy:
+ * `""` means the browser sent no referrer (direct, a bookmark, or a link whose
+ * referrer policy stripped it), while `null` means the visit row carries no
+ * referrer field AT ALL, which is a row written before the capture existed or a
+ * client that failed before it ran. One is a visitor behaviour and the other is
+ * a gap in our own data, and they are read differently.
+ */
+export type LandingReferrer = { host: string | null; count: number };
+
+export type LandingSource = { source: string | null; count: number };
+
+export type LandingFunnel = {
+  windowDays: number;
+  /** Inclusive lower bound of the window, ISO. */
+  since: string;
+  pulledAt: string;
+  /** Exact, from indexed head counts. Never truncated by the row cap. */
+  totals: Record<LandingEventName, number>;
+  /** Newest first, and ONLY days that actually carried something. A day with
+   *  nothing in it is omitted rather than rendered as a zero row: a fabricated
+   *  fourteen-row series of zeroes is the placeholder the claims law bans. */
+  days: LandingFunnelDay[];
+  /** Exact head counts, both of them. */
+  signupsInWindow: number;
+  signupsAllTime: number;
+  /** Referrer hostnames from landing_visit props, commonest first. */
+  referrers: LandingReferrer[];
+  /** waitlist_signups.source over the window, commonest first. */
+  sources: LandingSource[];
+  /** True when the row cap bit, so the breakdowns above cover only the most
+   *  recent FUNNEL_ROW_CAP rows of the window and the surface must say so. */
+  eventsTruncated: boolean;
+  signupsTruncated: boolean;
+};
+
+/** Empty per-event tally. Written out so a new event name is a type error here
+ *  rather than a silently missing column on the surface. */
+function zeroEventCounts(): Record<LandingEventName, number> {
+  return { landing_visit: 0, waitlist_join: 0, referral_share: 0, demo_click: 0 };
+}
+
+export const getLandingFunnel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown): { days: number } => {
+    const o = (i ?? {}) as Record<string, unknown>;
+    const raw = Number(o.days);
+    const days = Number.isFinite(raw) ? Math.floor(raw) : FUNNEL_DEFAULT_DAYS;
+    return { days: Math.min(Math.max(days, 1), FUNNEL_MAX_DAYS) };
+  })
+  .handler(async ({ context, data }): Promise<LandingFunnel | { error: string }> => {
+    // Admin gate, mirroring getObservabilityStatus: user_roles RLS restricts
+    // rows to auth.uid(), so a hit here means this caller is an admin.
+    const { data: adminRole } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!adminRole) return { error: "Forbidden" };
+
+    const since = new Date(Date.now() - data.days * 86400_000).toISOString();
+
+    // Four indexed head counts (no rows cross the wire) plus two capped pulls
+    // and two signup counts. Fired together: they are independent reads and
+    // serialising them would put eight round trips in the founder's way.
+    const [eventCounts, eventRows, signupRows, signupsWindow, signupsAll] = await Promise.all([
+      Promise.all(
+        LANDING_EVENTS.map((event) =>
+          db
+            .from("landing_events")
+            .select("id", { count: "exact", head: true })
+            .eq("event", event)
+            .gte("created_at", since),
+        ),
+      ),
+      db
+        .from("landing_events")
+        .select("event, created_at, props")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(FUNNEL_ROW_CAP),
+      db
+        .from("waitlist_signups")
+        .select("created_at, source")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(FUNNEL_ROW_CAP),
+      db
+        .from("waitlist_signups")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      db.from("waitlist_signups").select("id", { count: "exact", head: true }),
+    ]);
+
+    // A read that did not complete is not an empty funnel. Everything on this
+    // page is a claim about launch day, and "nothing happened" must never be
+    // returned when the truth is "we could not find out".
+    const failed =
+      eventCounts.find((c) => c.error)?.error ??
+      eventRows.error ??
+      signupRows.error ??
+      signupsWindow.error ??
+      signupsAll.error;
+    if (failed) return { error: failed.message };
+
+    const totals = zeroEventCounts();
+    LANDING_EVENTS.forEach((event, i) => {
+      totals[event] = eventCounts[i]?.count ?? 0;
+    });
+
+    const events = (eventRows.data ?? []) as Array<{
+      event: string;
+      created_at: string;
+      props: Record<string, unknown> | null;
+    }>;
+    const signups = (signupRows.data ?? []) as Array<{
+      created_at: string;
+      source: string | null;
+    }>;
+
+    const byDay = new Map<string, LandingFunnelDay>();
+    const dayOf = (iso: string): LandingFunnelDay => {
+      const day = iso.slice(0, 10);
+      const found = byDay.get(day);
+      if (found) return found;
+      const fresh: LandingFunnelDay = { day, events: zeroEventCounts(), signups: 0 };
+      byDay.set(day, fresh);
+      return fresh;
+    };
+
+    // Referrer lives in props.ref, set by the landing_visit effect in
+    // src/routes/index.tsx, which stores the HOSTNAME only — never the path and
+    // never the query string (the privacy rule this file already follows for
+    // session keys). It is read from landing_visit alone because no other event
+    // carries it, and counting a missing key on demo_click as "direct" would
+    // invent a fact about three quarters of the table.
+    const referrers = new Map<string | null, number>();
+    for (const r of events) {
+      const name = LANDING_EVENTS.find((e) => e === r.event);
+      if (!name) continue;
+      dayOf(r.created_at).events[name] += 1;
+      if (name !== "landing_visit") continue;
+      const raw = r.props?.ref;
+      const host = typeof raw === "string" ? raw.slice(0, 200) : raw === undefined ? null : "";
+      referrers.set(host, (referrers.get(host) ?? 0) + 1);
+    }
+
+    const sources = new Map<string | null, number>();
+    for (const s of signups) {
+      dayOf(s.created_at).signups += 1;
+      const key = typeof s.source === "string" && s.source ? s.source : null;
+      sources.set(key, (sources.get(key) ?? 0) + 1);
+    }
+
+    return {
+      windowDays: data.days,
+      since,
+      pulledAt: new Date().toISOString(),
+      totals,
+      days: [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day)),
+      signupsInWindow: signupsWindow.count ?? 0,
+      signupsAllTime: signupsAll.count ?? 0,
+      referrers: [...referrers.entries()]
+        .map(([host, count]) => ({ host, count }))
+        .sort((a, b) => b.count - a.count),
+      sources: [...sources.entries()]
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count),
+      eventsTruncated: events.length >= FUNNEL_ROW_CAP,
+      signupsTruncated: signups.length >= FUNNEL_ROW_CAP,
+    };
   });

@@ -121,6 +121,7 @@ import { Route as AuthenticatedAdminPricingRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminPlatformRouteImport } from './routes/_authenticated.admin.platform'
 import { Route as AuthenticatedAdminPeopleRouteImport } from './routes/_authenticated.admin.people'
 import { Route as AuthenticatedAdminObservabilityRouteImport } from './routes/_authenticated.admin.observability'
+import { Route as AuthenticatedAdminLandingRouteImport } from './routes/_authenticated.admin.landing'
 import { Route as AuthenticatedAdminAiCostsRouteImport } from './routes/_authenticated.admin.ai-costs'
 import { Route as AuthenticatedWorkspaceSlugProductSlugRouteImport } from './routes/_authenticated.$workspaceSlug.$productSlug'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -768,6 +769,12 @@ const AuthenticatedAdminObservabilityRoute =
     path: '/observability',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminLandingRoute =
+  AuthenticatedAdminLandingRouteImport.update({
+    id: '/landing',
+    path: '/landing',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAiCostsRoute =
   AuthenticatedAdminAiCostsRouteImport.update({
     id: '/ai-costs',
@@ -1246,6 +1253,7 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
+  '/admin/landing': typeof AuthenticatedAdminLandingRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
   '/admin/platform': typeof AuthenticatedAdminPlatformRoute
@@ -1424,6 +1432,7 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
+  '/admin/landing': typeof AuthenticatedAdminLandingRoute
   '/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/admin/people': typeof AuthenticatedAdminPeopleRoute
   '/admin/platform': typeof AuthenticatedAdminPlatformRoute
@@ -1606,6 +1615,7 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/$workspaceSlug/$productSlug': typeof AuthenticatedWorkspaceSlugProductSlugRoute
   '/_authenticated/admin/ai-costs': typeof AuthenticatedAdminAiCostsRoute
+  '/_authenticated/admin/landing': typeof AuthenticatedAdminLandingRoute
   '/_authenticated/admin/observability': typeof AuthenticatedAdminObservabilityRoute
   '/_authenticated/admin/people': typeof AuthenticatedAdminPeopleRoute
   '/_authenticated/admin/platform': typeof AuthenticatedAdminPlatformRoute
@@ -1788,6 +1798,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/$workspaceSlug/$productSlug'
     | '/admin/ai-costs'
+    | '/admin/landing'
     | '/admin/observability'
     | '/admin/people'
     | '/admin/platform'
@@ -1966,6 +1977,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/$workspaceSlug/$productSlug'
     | '/admin/ai-costs'
+    | '/admin/landing'
     | '/admin/observability'
     | '/admin/people'
     | '/admin/platform'
@@ -2147,6 +2159,7 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/$workspaceSlug/$productSlug'
     | '/_authenticated/admin/ai-costs'
+    | '/_authenticated/admin/landing'
     | '/_authenticated/admin/observability'
     | '/_authenticated/admin/people'
     | '/_authenticated/admin/platform'
@@ -3127,6 +3140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminObservabilityRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/landing': {
+      id: '/_authenticated/admin/landing'
+      path: '/landing'
+      fullPath: '/admin/landing'
+      preLoaderRoute: typeof AuthenticatedAdminLandingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/ai-costs': {
       id: '/_authenticated/admin/ai-costs'
       path: '/ai-costs'
@@ -3601,6 +3621,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAiCostsRoute: typeof AuthenticatedAdminAiCostsRoute
+  AuthenticatedAdminLandingRoute: typeof AuthenticatedAdminLandingRoute
   AuthenticatedAdminObservabilityRoute: typeof AuthenticatedAdminObservabilityRoute
   AuthenticatedAdminPeopleRoute: typeof AuthenticatedAdminPeopleRoute
   AuthenticatedAdminPlatformRoute: typeof AuthenticatedAdminPlatformRoute
@@ -3613,6 +3634,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAiCostsRoute: AuthenticatedAdminAiCostsRoute,
+  AuthenticatedAdminLandingRoute: AuthenticatedAdminLandingRoute,
   AuthenticatedAdminObservabilityRoute: AuthenticatedAdminObservabilityRoute,
   AuthenticatedAdminPeopleRoute: AuthenticatedAdminPeopleRoute,
   AuthenticatedAdminPlatformRoute: AuthenticatedAdminPlatformRoute,

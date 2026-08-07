@@ -104,7 +104,7 @@ When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebui
 
 ## Agent interfaces
 - A2A agent card: /.well-known/agent.json
-- MCP server: POST /api/mcp (JSON-RPC 2.0)
+- MCP server: POST /mcp (JSON-RPC 2.0)
 - Machine-readable site: /llms.txt | Access policy: /agents.txt
 
 ## Get started

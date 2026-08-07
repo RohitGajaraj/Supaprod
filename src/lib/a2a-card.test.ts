@@ -31,7 +31,12 @@ describe("buildAgentCard", () => {
       expect(url.startsWith(origin)).toBe(true);
     }
     expect(endpoints.message_send).toBe(`${origin}/api/public/a2a/message/send`);
-    expect(endpoints.mcp).toBe(`${origin}/api/mcp`);
+    // `/mcp`, NOT `/api/mcp`. src/routes/mcp.ts declares createFileRoute("/mcp")
+    // and there has never been a route at /api/mcp, so the card was advertising
+    // an address that answers with the SPA shell: an agent following it got HTML
+    // where it expected JSON-RPC. Fixed in the source at 8893c4dc; this
+    // assertion was left behind still encoding the wrong path.
+    expect(endpoints.mcp).toBe(`${origin}/mcp`);
   });
 
   it("exposes the write tool with its required scope, and only that scope", () => {
@@ -65,7 +70,7 @@ describe("buildAgentCard", () => {
   it("handles an empty origin without throwing (endpoints degrade to root-relative paths)", () => {
     expect(() => buildAgentCard("")).not.toThrow();
     const endpoints = buildAgentCard("").endpoints as Record<string, string>;
-    expect(endpoints.mcp).toBe("/api/mcp");
+    expect(endpoints.mcp).toBe("/mcp");
   });
 });
 

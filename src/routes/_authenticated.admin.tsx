@@ -11,7 +11,7 @@
  *    changes your own work, and this one changes someone else's.
  *
  * 3. KEEP / MOVE / KILL.
- *    KEEP  the nine sub-pages and the role gate. Each answers a different
+ *    KEEP  the ten sub-pages and the role gate. Each answers a different
  *          question an operator arrives with, and none is answerable elsewhere.
  *    KEEP  the bootstrap claim path. A workspace with zero admins is
  *          unadministrable, and this is the only way out of it.
@@ -66,6 +66,11 @@ const TABS = [
   { id: "/admin/observability", label: "Health" },
   { id: "/admin/ai-costs", label: "Spend" },
   { id: "/admin/proof", label: "Proof" },
+  // Launch reads landing_events and waitlist_signups, which were written by the
+  // public page and read by no surface at all. A tab is the whole reason it is
+  // reachable: the admin nav is the only door this console has, so a sub-page
+  // absent from this list is a sub-page nobody finds.
+  { id: "/admin/landing", label: "Launch" },
 ] as const;
 
 function activeTabId(pathname: string): (typeof TABS)[number]["id"] {
