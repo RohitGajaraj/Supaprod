@@ -285,10 +285,44 @@ export type EmailResult = { sent: boolean; link: string };
  * no-op without a key, or a delivery failure, must never block creating the invitation).
  */
 export async function sendInviteEmail(args: InviteEmail): Promise<EmailResult> {
+  // WAS TWO LINES OF PLAIN TEXT, and it is the email that admits somebody to a
+  // private beta. Signup is invite only as of 2026-08-07, so this link is the
+  // only door most recipients will ever be offered, and it arrived looking like
+  // a password reset from 2009.
+  //
+  // THE ONE FACT IT HAS TO CARRY, and it did not: this link works ON ITS OWN.
+  // The recipient does not need a beta code, because a workspace invitation is
+  // its own proof of admission (see checkWorkspaceInviteToken in
+  // invites.functions.ts). Without that sentence, somebody who has heard the
+  // beta is gated reads "invited" and assumes they are joining a queue.
+  const where = args.workspaceName ? args.workspaceName : "a workspace";
   const subject = args.workspaceName
-    ? `You are invited to join ${args.workspaceName} on Supaprod`
-    : "You are invited to join a workspace on Supaprod";
-  const text = `You have been invited to join a Supaprod workspace.\n\nJoin here: ${args.inviteLink}`;
-  const { sent } = await sendEmail({ to: args.to, subject, text });
+    ? `${args.workspaceName} added you on Supaprod`
+    : "You have been added to a workspace on Supaprod";
+
+  const text = [
+    `Someone on ${where} added you to it on Supaprod.`,
+    ``,
+    `Supaprod is invite only right now. This link is your way in, so you do not need a code:`,
+    args.inviteLink,
+    ``,
+    `It expires in seven days. If it has gone stale, ask whoever invited you to send another.`,
+  ].join("\n");
+
+  const p = (t: string) =>
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1f1b16;">${t}</p>`;
+  const html = emailShell(
+    [
+      p(`Someone on <strong>${where}</strong> added you to it on Supaprod.`),
+      p(
+        `Supaprod is invite only right now. This link is your way in, so you do not need a code.`,
+      ),
+      emailButton(args.inviteLink, "Accept the invitation"),
+      `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">The link expires in seven days. If it has gone stale, ask whoever invited you to send another.</p>`,
+    ].join(""),
+    { kicker: "You have been added", headline: `Join ${where} on Supaprod.` },
+  );
+
+  const { sent } = await sendEmail({ to: args.to, subject, text, html });
   return { sent, link: args.inviteLink };
 }
