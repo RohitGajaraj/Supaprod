@@ -8,23 +8,40 @@
  * and it is the only email in docs/growth/email-sequences.md whose trigger
  * already existed in the code path.
  *
- * THE COPY IS NOT MINE. Every sentence below is lifted from
- * docs/growth/email-sequences.md section 3, A1, which is ratified. Changing a
- * claim here without changing it there forks the message, and that file is
- * downstream of brand-ops/social-accounts.md section 3, which is the claims
- * source for the whole company. If a line needs to change, change it there
- * first.
+ * THE VOICE, founder ruling 2026-08-07, and it replaced the first draft of this
+ * file. The instruction was that our email should feel "live, fresh", like
+ * "something new is coming up", with room for humour, and short. Explicitly NOT
+ * the formal register a person already gets forty of a day and reads none of.
+ * The line that had to go was "Here is the short version of what you signed up
+ * for", which is not a sentence one person writes to another.
  *
- * THE ONE DEVIATION, and it needs founder sign-off. The ratified body reads
- * "We open on {{launch_date}}". That token is deliberately unresolvable: the
- * canon disagrees with itself (README says mid-September, SOURCE-OF-TRUTH
- * section 0 records a soft launch this week) and the sequence file states
- * plainly that neither an agent nor that file may pick between them. So rather
- * than invent a date or refuse to send at all, the date sentence has two
- * forms. With LAUNCH_DATE set it is the ratified sentence. Without it, the
- * email says we will write on the day we open, which is true, in voice, and
- * promises nothing we have not decided. Set LAUNCH_DATE and the stronger
- * sentence appears with no code change.
+ * THE BOUNDARY THAT DID NOT MOVE. Tone got loose. Claims did not. A joke is
+ * free; an invented number, a promised date we have not set, or a capability we
+ * cannot demonstrate is not, and the claims law applies to this file exactly as
+ * it applies to the landing page. Note in particular that the description of
+ * what the product does still refuses the words "remembers", "stores" and
+ * "logs", per the standing doctrine that those claim LESS than the product
+ * delivers. "Learns from it and tells you what to do next time" is the sanctioned
+ * phrasing and it is what this email says.
+ *
+ * KEEP THIS IN SYNC WITH docs/growth/email-sequences.md section 3, A1. That file
+ * is the source and is downstream of brand-ops/social-accounts.md section 3,
+ * which is the claims source for the whole company. Changing a claim here
+ * without changing it there forks the message.
+ *
+ * THE DATE STAYS HIDDEN, and that is now a deliberate position rather than a
+ * gap. The founder holds mid-September internally and wants the public date
+ * withheld to keep the suspense (2026-08-07). LAUNCH_DATE is therefore expected
+ * to be UNSET in production, and the no-date branch is the one that ships. A
+ * test fails the build if any month name leaks into this email while it is
+ * unset, so the date cannot escape through a later edit.
+ *
+ * WHAT THE EMAIL PROMISES CHANGED WITH THE ACCESS MODEL. Signup was open and
+ * auto-confirming when this file was written, which made a waitlist theatre and
+ * left A1 with nothing concrete to offer. The founder closed the door on
+ * 2026-08-07: private beta, entry by invite code. So the promise is now a real
+ * object, an invite code, arriving in one email. That is a better sentence than
+ * the one it replaced precisely because it is a thing rather than a date.
  *
  * WHAT THIS EMAIL STILL CANNOT DO, both founder-blocked:
  *   - NO POSTAL ADDRESS in the footer. CAN-SPAM requires one on commercial
@@ -56,7 +73,7 @@ const UNSUB = "hello@supaprod.ai";
 
 /** The ratified subject. Two alternates exist in the sequence file if this one
  *  underperforms; they are alternates, not a rotation, so pick deliberately. */
-export const A1_SUBJECT = "You are on the list for Supaprod";
+export const A1_SUBJECT = "You are in. Well, in line.";
 
 /**
  * The launch-date sentence, in its two legitimate forms.
@@ -69,8 +86,8 @@ export const A1_SUBJECT = "You are on the list for Supaprod";
 function launchSentence(): string {
   const when = process.env.LAUNCH_DATE?.trim();
   return when
-    ? `We open on ${when} and you will get one email that day with your way in.`
-    : `We will email you on the day we open, with your way in. One email, not a countdown.`;
+    ? `We open ${when}. You get an invite code that morning. One email, not a countdown.`
+    : `The moment a slot opens, you get an invite code. One email. No countdown, no drip, no "just checking in".`;
 }
 
 /** Greeting that survives an empty name. We only ever collect an email address
@@ -87,21 +104,20 @@ export function a1Text(firstName?: string): string {
   return [
     greeting(firstName),
     ``,
-    `You are on the list. It is Supaprod, said with an A: SOO-pa-prod.`,
+    `You are on the list. It is Supaprod, said with an A. SOO-pa-prod. Not supper.`,
     ``,
-    `Here is the short version of what you signed up for. Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds and ships it, then learns what actually worked, so the next call arrives with evidence rather than a blank page. Agents do the product work end to end. You make the calls. Nothing irreversible happens without you.`,
+    `What you just put your name down for: a product team made of agents. They work out what to build, build it, ship it, and then go back and find out whether it actually worked. That last part is the whole point. Most tools forget the moment you ship. Ours learns from it and tells you what to do next time.`,
     ``,
     launchSentence(),
     ``,
-    `You do not have to wait for the interesting part. Point the Critic at a bet you believe in and it will red-team it, with the evidence it used. No account, no card, nothing to install.`,
+    `In the meantime, do not just sit there. Throw a product bet at our Critic and watch it get taken apart, politely, with its evidence shown. No account, no card, about twenty seconds.`,
     ``,
     `Red-team one of your bets:`,
     teardown,
     ``,
-    `If it finds nothing useful, reply and tell me. That is a more useful email for me than a good one.`,
+    `If it comes back useless, hit reply and tell me exactly how. Honestly more useful to me than a nice one.`,
     ``,
     `Rohit`,
-    `Founder, Supaprod`,
     ``,
     `--`,
     `You are receiving this because you joined the Supaprod waitlist at supaprod.ai.`,
@@ -119,19 +135,19 @@ export function a1Html(firstName?: string): string {
   return [
     `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">`,
     p(greeting(firstName)),
-    p(`You are on the list. It is Supaprod, said with an A: SOO-pa-prod.`),
+    p(`You are on the list. It is Supaprod, said with an A. SOO-pa-prod. Not supper.`),
     p(
-      `Here is the short version of what you signed up for. Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds and ships it, then learns what actually worked, so the next call arrives with evidence rather than a blank page. Agents do the product work end to end. You make the calls. Nothing irreversible happens without you.`,
+      `What you just put your name down for: a product team made of agents. They work out what to build, build it, ship it, and then go back and find out whether it actually worked. That last part is the whole point. Most tools forget the moment you ship. Ours learns from it and tells you what to do next time.`,
     ),
     p(launchSentence()),
     p(
-      `You do not have to wait for the interesting part. Point the Critic at a bet you believe in and it will red-team it, with the evidence it used. No account, no card, nothing to install.`,
+      `In the meantime, do not just sit there. Throw a product bet at our Critic and watch it get taken apart, politely, with its evidence shown. No account, no card, about twenty seconds.`,
     ),
     p(`<a href="${teardown}" style="color:#C24E1E;font-weight:600;">Red-team one of your bets</a>`),
     p(
-      `If it finds nothing useful, reply and tell me. That is a more useful email for me than a good one.`,
+      `If it comes back useless, hit reply and tell me exactly how. Honestly more useful to me than a nice one.`,
     ),
-    p(`Rohit<br>Founder, Supaprod`),
+    p(`Rohit`),
     `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,
     `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">You are receiving this because you joined the Supaprod waitlist at supaprod.ai. To come off the list, reply with "unsubscribe" or write to <a href="mailto:${UNSUB}" style="color:#6b6457;">${UNSUB}</a>.</p>`,
     `</div>`,

@@ -36,8 +36,8 @@ describe("A1 waitlist welcome", () => {
     // sentence has a second form that promises nothing undecided.
     delete process.env.LAUNCH_DATE;
     const body = a1Text();
-    expect(body).toContain("on the day we open");
-    expect(body).not.toContain("We open on");
+    expect(body).toContain("The moment a slot opens, you get an invite code");
+    expect(body).not.toContain("We open ");
     // No month name may leak in from anywhere.
     expect(body).not.toMatch(
       /January|February|March|April|May|June|July|August|September|October|November|December/,
@@ -47,8 +47,8 @@ describe("A1 waitlist welcome", () => {
   test("uses the ratified sentence once a date is set, with no code change", () => {
     process.env.LAUNCH_DATE = "16 September";
     const body = a1Text();
-    expect(body).toContain("We open on 16 September and you will get one email that day");
-    expect(body).not.toContain("on the day we open");
+    expect(body).toContain("We open 16 September. You get an invite code that morning");
+    expect(body).not.toContain("The moment a slot opens");
   });
 
   test("greets correctly with no name, which is the only case we actually have", () => {
@@ -66,7 +66,7 @@ describe("A1 waitlist welcome", () => {
   });
 
   test("subject matches the ratified line", () => {
-    expect(A1_SUBJECT).toBe("You are on the list for Supaprod");
+    expect(A1_SUBJECT).toBe("You are in. Well, in line.");
   });
 
   test("never throws, so a dead vendor cannot cost us a signup", async () => {
