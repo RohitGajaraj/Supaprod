@@ -26,7 +26,20 @@ The Cloudflare catch-all already routes that address, so it works today. **Creat
 
 The reason is not that iCloud Keychain is insecure. It is that it is *personal*: it cannot be handed to a first hire, cannot be audited, and dies with the Apple ID. These are company assets.
 
-Why Proton over Bitwarden, which is the better general manager: **Bitwarden moved integrated TOTP behind Premium ($19.80/yr) in January 2026.** Every account below needs 2FA, so free plus TOTP now points at Proton Pass. It also gives 10 hide-my-email aliases, which are useful for signups. Free sharing is limited to one other person, so a second hire is the upgrade trigger.
+> **⚠️ Corrected 2026-08-07. The original reason given here was wrong.** This section used to say Proton won because "Bitwarden moved integrated TOTP behind Premium in January 2026, so free plus TOTP now points at Proton Pass." Checked against [Proton's own pricing page](https://proton.me/pass/pricing): **Proton Pass Free does not generate TOTP codes either.** Integrated 2FA is marked a paid feature there too, and Free is listed as **0 vaults**, meaning you get the one default vault and cannot create more. Both managers gate the same thing, so that comparison never distinguished them.
+>
+> **The choice still stands, on a different and better reason.** Proton ships [Proton Authenticator](https://proton.me/authenticator) as a separate free, open-source app for macOS, iOS, Windows, Linux and Android, and **it exports TOTP seeds**. Authy and Microsoft Authenticator do not, which is how people end up unable to leave an authenticator. So the working setup is two free apps, not one paid plan:
+>
+> | Holds | Tool |
+> | --- | --- |
+> | Passwords, notes, **2FA recovery codes** | Proton Pass Free |
+> | TOTP seeds and the rotating codes | Proton Authenticator, free and exportable |
+>
+> **Free gives one vault, so use naming instead of folders.** Prefix every company secret `Supaprod — `, and put what the entry controls in its own title. `Supaprod — GitHub (personal login, OWNS the supaprod org)` tells a future reader that the entry is load-bearing; `GitHub` does not.
+
+Proton also gives 10 hide-my-email aliases, useful for signups. Free sharing is limited to one other person, so a second hire is the upgrade trigger.
+
+⚠️ **The Proton recovery phrase goes on paper, never in the vault.** Proton shows it once at signup. It is the one secret that cannot live inside the thing it recovers: lose the Proton account and an in-vault copy is gone with it. Treat it like a passport, not like a password.
 
 Keep Apple Passwords as the autofill convenience layer if you like it. The Proton vault is the system of record.
 

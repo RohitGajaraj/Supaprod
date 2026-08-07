@@ -6,6 +6,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "Security · Supaprod";
 // NOT "every AI action" -- the body twelve lines down states the true, narrower
 // claim and this summary promised more than it. The Critic runs unattended
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/security")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/security` }],
   }),
   component: SecurityPage,
 });

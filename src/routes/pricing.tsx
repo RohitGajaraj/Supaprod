@@ -7,11 +7,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Zap, User, Users, Building2, Star } from "lucide-react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { LandingBackdrop } from "@/components/landing/LandingBackdrop";
-import {
-  planPresentation,
-  type PlanTier,
-  includedCreditsFor,
-} from "@/lib/entitlements";
+import { planPresentation, type PlanTier, includedCreditsFor } from "@/lib/entitlements";
 import { priceForCredits } from "@/lib/billing-tier";
 
 // Connector logo chips — inline SVG paths from SimpleIcons (MIT-licensed).
@@ -124,6 +120,8 @@ const TITLE = "Pricing · Supaprod";
 const DESC =
   "Supaprod runs your product loop for free. Paid plans add capacity, and every plan can hand a decision to someone else with a link.";
 
+const SITE = "https://supaprod.ai";
+
 export const Route = createFileRoute("/pricing")({
   ssr: true,
   head: () => ({
@@ -134,6 +132,7 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/pricing` }],
   }),
   component: PricingPage,
 });
@@ -479,10 +478,10 @@ function PricingCard({ tier, annual }: { tier: PlanTier; annual: boolean }) {
           href={
             isFree
               ? "/signup?from=pricing"
-              // Paid plans go to CHECKOUT, not signup. A visitor who has decided to pay
-              // should not have to create an account first and then hunt for billing:
-              // decide, price it, pay, and the account is provisioned after payment.
-              : `/checkout?plan=${tier}&billing=${annual ? "annual" : "monthly"}`
+              : // Paid plans go to CHECKOUT, not signup. A visitor who has decided to pay
+                // should not have to create an account first and then hunt for billing:
+                // decide, price it, pay, and the account is provisioned after payment.
+                `/checkout?plan=${tier}&billing=${annual ? "annual" : "monthly"}`
           }
           style={{
             display: "block",
@@ -744,11 +743,11 @@ function PricingPage() {
                 marginRight: "auto",
               }}
             >
-              Free and Pro are single seat. More power for one person is more credits on
-              Pro, not a different product, so nothing about your record is held back for a higher
-              plan. You can hand any decision to a colleague with a link on every plan, including
-              Free. Business starts at two seats, because two people is where a team starts
-              re-deciding what it already decided.
+              Free and Pro are single seat. More power for one person is more credits on Pro, not a
+              different product, so nothing about your record is held back for a higher plan. You
+              can hand any decision to a colleague with a link on every plan, including Free.
+              Business starts at two seats, because two people is where a team starts re-deciding
+              what it already decided.
             </p>
 
             {/* Footer note */}
@@ -762,9 +761,10 @@ function PricingPage() {
               }}
             >
               Every plan starts free. No credit card needed until you upgrade. Change or cancel
-              anytime from Settings. Each plan includes a set number of credits a month, and every action spends them.
-              Need more capacity without changing plan? Add credits any time, up to twice your
-              monthly allowance. You move up a tier for people and capability, not for volume.
+              anytime from Settings. Each plan includes a set number of credits a month, and every
+              action spends them. Need more capacity without changing plan? Add credits any time, up
+              to twice your monthly allowance. You move up a tier for people and capability, not for
+              volume.
             </p>
           </div>
         </main>

@@ -27,6 +27,8 @@ const MAX = 8000;
 const EXAMPLE_BET =
   "We should ship a weekly AI digest so PMs stop missing customer signals. Success = 40% of teams open it twice a week.";
 
+const SITE = "https://supaprod.ai";
+
 export const Route = createFileRoute("/p/teardown")({
   ssr: true,
   component: TeardownPage,
@@ -39,6 +41,7 @@ export const Route = createFileRoute("/p/teardown")({
           "Paste a PRD or a product bet and get a sharp, honest, receipted teardown from Supaprod's Critic. No signup, no setup.",
       },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/p/teardown` }],
   }),
 });
 

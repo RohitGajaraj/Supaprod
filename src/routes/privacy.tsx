@@ -5,6 +5,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "Privacy policy · Supaprod";
 const DESC =
   "What Supaprod reads, what it never touches, how to revoke access, and where your data lives.";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/privacy` }],
   }),
   component: PrivacyPage,
 });
@@ -74,12 +76,12 @@ function PrivacyPage() {
 
       <LegalSection title="Cookies and local storage">
         <p>
-          Supaprod stores one first-party cookie, <code>session-id</code>, which groups page views into a
-          single visit for product analytics. It expires after 30 minutes of inactivity. We also store
-          usage data in your browser's local storage (keys:{" "}
-          <code>user_id</code>, <code>workspace_id</code>, <code>auth_token</code>, <code>preferences</code>)
-          to remember your settings and authentication state across sessions. You can delete both at any
-          time via your browser's settings. Supaprod's analytics provider is Flock Analytics (see{" "}
+          Supaprod stores one first-party cookie, <code>session-id</code>, which groups page views
+          into a single visit for product analytics. It expires after 30 minutes of inactivity. We
+          also store usage data in your browser's local storage (keys: <code>user_id</code>,{" "}
+          <code>workspace_id</code>, <code>auth_token</code>, <code>preferences</code>) to remember
+          your settings and authentication state across sessions. You can delete both at any time
+          via your browser's settings. Supaprod's analytics provider is Flock Analytics (see{" "}
           <a href="/subprocessors" style={{ color: "#ff9542" }}>
             subprocessors
           </a>

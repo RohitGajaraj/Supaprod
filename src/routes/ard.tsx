@@ -8,6 +8,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
 import { ARD_SCHEMA_PATH, ARD_SCHEMA_VERSION } from "@/lib/ard-schema";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "ARD · Agent Requirements Document · Supaprod";
 const DESC =
   "The ARD is Supaprod's published, versioned wire format for a spec's Outcome Contract: intent, success metrics with their proof oracle, non-goals, and a budget. The same contract a dispatched coding agent receives instead of re-parsed prose.";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/ard")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/ard` }],
   }),
   component: ArdPage,
 });

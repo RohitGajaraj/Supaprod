@@ -31,6 +31,7 @@ import {
 } from "@/lib/demo.functions";
 import { trackActivation } from "@/lib/activation.functions";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "Try Supaprod, no signup - a real demo workspace";
 const DESC =
   "Walk through a real teardown, a real decision ledger, and a real mission trace. No account needed.";
@@ -102,6 +103,7 @@ export const Route = createFileRoute("/demo")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/demo` }],
   }),
   component: DemoPage,
 });

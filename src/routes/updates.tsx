@@ -5,6 +5,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell } from "@/components/supaprod/LegalPageShell";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "Changelog · Supaprod";
 const DESC = "What shipped, in plain language, dated.";
 
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/updates")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/updates` }],
   }),
   component: UpdatesPage,
 });

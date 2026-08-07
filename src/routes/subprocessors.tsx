@@ -14,6 +14,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { allSubprocessors, type SubProcessor } from "@/lib/compliance/subprocessors";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "Sub-processors · Supaprod";
 const DESC =
   "Every third party that touches Supaprod data, what it does, and the region it runs in.";
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/subprocessors")({
       { property: "og:title", content: TITLE },
       { property: "og:description", content: DESC },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/subprocessors` }],
   }),
 });
 

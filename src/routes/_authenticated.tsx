@@ -26,9 +26,7 @@ export const Route = createFileRoute("/_authenticated")({
    * Authenticated routes are not indexable. Children inherit this meta tag.
    */
   head: () => ({
-    meta: [
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ name: "robots", content: "noindex, nofollow" }],
   }),
 
   /**

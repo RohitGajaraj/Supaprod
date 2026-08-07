@@ -15,7 +15,8 @@ import { SupaprodWordmark } from "@/components/supaprod/SupaprodWordmark";
 import { PreSignupCTA } from "@/components/plg/PreSignupCTA";
 import { stripAutoPrefix } from "@/components/plan/format";
 
-const OG_IMAGE = "https://supaprod.ai/og-supaprod.png";
+const SITE = "https://supaprod.ai";
+const OG_IMAGE = `${SITE}/og-supaprod.png`;
 
 export const Route = createFileRoute("/proof")({
   ssr: true,
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/proof")({
       { name: "twitter:title", content: "The Ledger · Supaprod" },
       { name: "twitter:image", content: OG_IMAGE },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/proof` }],
   }),
   component: ProofPage,
 });

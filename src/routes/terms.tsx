@@ -3,6 +3,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
+const SITE = "https://supaprod.ai";
 const TITLE = "Terms of service · Supaprod";
 const DESC = "The plain-language terms for using Supaprod.";
 
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/terms")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: `${SITE}/terms` }],
   }),
   component: TermsPage,
 });
@@ -24,9 +26,8 @@ function TermsPage() {
   return (
     <LegalPageShell eyebrow="Legal" title="Terms of service" updated="July 10, 2026">
       <p>
-        By creating a Supaprod account or using supaprod.ai, you agree to these
-        terms. Supaprod is in beta. Features change quickly, and we will tell you when something
-        material changes.
+        By creating a Supaprod account or using supaprod.ai, you agree to these terms. Supaprod is
+        in beta. Features change quickly, and we will tell you when something material changes.
       </p>
 
       <LegalSection title="What Supaprod does">
