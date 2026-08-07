@@ -46,6 +46,7 @@ export function LandingFooter() {
         { label: "Security", href: "/security" },
         { label: "Privacy", href: "/privacy" },
         { label: "Terms", href: "/terms" },
+        { label: "FAQ", href: "/faq" },
       ],
     },
     {

@@ -24,6 +24,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InvestorsRouteImport } from './routes/investors'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BriefRouteImport } from './routes/brief'
@@ -261,6 +262,11 @@ const InvestorsRoute = InvestorsRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -1157,6 +1163,7 @@ export interface FileRoutesByFullPath {
   '/brief': typeof BriefRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
@@ -1336,6 +1343,7 @@ export interface FileRoutesByTo {
   '/brief': typeof BriefRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
@@ -1515,6 +1523,7 @@ export interface FileRoutesById {
   '/brief': typeof BriefRoute
   '/checkout': typeof CheckoutRouteWithChildren
   '/demo': typeof DemoRoute
+  '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/investors': typeof InvestorsRoute
   '/login': typeof LoginRoute
@@ -1696,6 +1705,7 @@ export interface FileRouteTypes {
     | '/brief'
     | '/checkout'
     | '/demo'
+    | '/faq'
     | '/forgot-password'
     | '/investors'
     | '/login'
@@ -1875,6 +1885,7 @@ export interface FileRouteTypes {
     | '/brief'
     | '/checkout'
     | '/demo'
+    | '/faq'
     | '/forgot-password'
     | '/investors'
     | '/login'
@@ -2053,6 +2064,7 @@ export interface FileRouteTypes {
     | '/brief'
     | '/checkout'
     | '/demo'
+    | '/faq'
     | '/forgot-password'
     | '/investors'
     | '/login'
@@ -2234,6 +2246,7 @@ export interface RootRouteChildren {
   BriefRoute: typeof BriefRoute
   CheckoutRoute: typeof CheckoutRouteWithChildren
   DemoRoute: typeof DemoRoute
+  FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InvestorsRoute: typeof InvestorsRoute
   LoginRoute: typeof LoginRoute
@@ -2433,6 +2446,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -3805,6 +3825,7 @@ const rootRouteChildren: RootRouteChildren = {
   BriefRoute: BriefRoute,
   CheckoutRoute: CheckoutRouteWithChildren,
   DemoRoute: DemoRoute,
+  FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InvestorsRoute: InvestorsRoute,
   LoginRoute: LoginRoute,
