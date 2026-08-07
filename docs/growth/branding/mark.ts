@@ -221,7 +221,21 @@ export function faviconMark(stroke: string | "adaptive"): string {
  * @param sw   stroke width in markInner's 100-unit space. 7 is crisp at 32px;
  *             8.5 is bolder and wins at 16px, where fine gaps are lost anyway.
  */
-export function faviconIcon(fill = 0.96, sw = 10): string {
+// DEFAULTS RE-PITCHED 2026-08-07 from (0.96, 10) to (0.88, 7), which is the
+// range this very doc comment declares safe and the old defaults violated on
+// both axes. The founder read the mark at ~48px in a mail-client sender avatar
+// and called it "thickened"; at that size the petal loops of (0.96, 10) have
+// closed into solid blobs and no structure survives.
+//
+// DO NOT PUSH THESE BACK UP to fix a 16px tab icon. That is what happened last
+// time and it traded every large render away for the smallest one. The floor to
+// respect is 0.74px of stroke, the width at which the older `faviconMark`
+// disappeared into "one orange dot"; (0.88, 7) puts 0.98px at 16px, a third
+// clear of it, while (0.88, 6) would sit at 0.84px and is too near. The 16px
+// and 32px slots also have their own dedicated PNGs, which are deliberately
+// left bold and are NOT regenerated from this function.
+// Ladder and contact sheet: ./generate-favicon-variants.ts.
+export function faviconIcon(fill = 0.88, sw = 7): string {
   const pad = Math.round((512 * (1 - fill)) / 2);
   const scale = ((512 - pad * 2) / 100).toFixed(3);
   const inner = markInner({ spiral: SILVER, glow: null, sw, coreGlow: true });
