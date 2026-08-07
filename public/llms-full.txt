@@ -1,0 +1,153 @@
+# Supaprod
+
+Supaprod is the operating system for product teams: agents that discover what to build, decide on bets, design and build specs, ship with safety, and learn from real-world outcomes. Every decision is recorded. Every outcome grades the advice. The moat is not storage. It is learning.
+
+You remain in control: no irreversible action happens without your approval.
+
+---
+
+## What is Supaprod?
+
+Supaprod is an AI product team for product managers, product leads, and founders. It helps you:
+
+- **Discover** what to build: monitor signals (support patterns, analytics, competitor moves) and surface what warrants attention
+- **Decide** on bets: capture evidence, approval chains, and real-world outcomes for every decision
+- **Design and build** specs: agents draft requirements documents and code against them with human gates
+- **Ship with safety**: the merge gate stays human-controlled; irreversible actions require explicit approval
+- **Learn from outcomes**: every decision is graded against what actually happened; next call is guided by what proved true
+
+## How is Supaprod different from product management software?
+
+Supaprod doesn't just store decisions. It learns from outcomes and grades its own advice, so each decision benefits from everything you have learned before. The core moat is not storage, but learning: a compounding record where every shipped decision's real-world outcome feeds back into the next call.
+
+## Do I need to be technical?
+
+No. Supaprod is designed for non-technical product people. If you can describe what you want to build, Supaprod helps you clarify it, test it, and ship it. Agents handle the technical work.
+
+## What does Supaprod integrate with?
+
+Supaprod reads from: GitHub, Linear, Slack, Notion, Google Docs, Jira, and custom sources via API.
+
+Supaprod writes back to: GitHub (PRs, commits, issues), Linear (issues, cycles).
+
+## Can my team use it together?
+
+Yes. On paid plans, invite team members with roles (owner, admin, member, viewer). Every decision is shared. Approval gates are role-based.
+
+## What happens to my data?
+
+Your data stays in your workspace's own Postgres database, isolated from other workspaces by row-level security. You own every decision, spec, and outcome you create. You can export or delete your data at any time. We never train shared models on your data.
+
+---
+
+## Pricing
+
+| Plan | Cost | What's included |
+|------|------|-----------------|
+| Free | $0 | Unlimited decisions for one author. Discover, decide, design, build, ship, learn. Memory persists 14 days. |
+| Pro | $29/month | One additional author. All features. Memory persists forever. |
+| Business | $149/month | Up to 10 team members. Custom approval rules. Audit log export. Memory persists forever. |
+| Enterprise | Custom | Unlimited team members. SSO, advanced security, SLA support. |
+
+Every plan can hand a decision to someone else with a link, even if they are not a team member.
+
+---
+
+## Technical details
+
+- **Deployment**: Cloudflare Workers (edge compute) + Supabase (PostgreSQL, row-level security)
+- **Auth**: Supabase Auth + OAuth 2.1 (GitHub, Lovable)
+- **AI governance**: Single chokepoint (`src/lib/ai/runtime.server.ts`); all flows metered and logged
+- **Agent-to-Agent (A2A)**: POST /api/mcp supports JSON-RPC 2.0; read tools: search_signals, search_decisions, search_prds, get_prd, get_ard, export_skillpack, get_governing_decision; write tools: ingest_signal (requires write:signal scope)
+- **ARD (Agent Requirements Document)**: Published at /ard; JSON Schema at /api/public/ard/schema; machine-readable spec wire format for coding agents
+- **Machine interfaces**: ?view=machine on any URL for structured markdown; /.well-known/agent.json for A2A card; /llms.txt (this file) for LLM context; /agents.txt for agent policy
+
+---
+
+## Machine-readable interfaces
+
+Supaprod is designed for the agentic era. Every page supports structured agent consumption:
+
+- **Machine View**: append `?view=machine` to any URL for clean markdown output (zero visual chrome)
+- **A2A Agent Card**: `/.well-known/agent.json` lists tools, endpoints, auth requirements
+- **llms.txt**: this file at `/llms.txt` (short summary for LLM crawlers)
+- **llms-full.txt**: `/llms-full.txt` (expanded context, FAQ, pricing, technical details)
+- **agents.txt**: `/agents.txt` (agent access policy: allowed paths, rate limits, write scopes)
+- **ARD (Agent Requirements Document)**: `/ard` (published wire format for spec Outcome Contracts)
+- **MCP Server**: `POST /api/mcp` (JSON-RPC 2.0 with read/write tools; bearer token required; issue in Settings > Interop > API tokens)
+
+---
+
+## Core authenticated surfaces (behind login)
+
+| Route | Purpose |
+|-------|---------|
+| `/today` | Live dashboard: active missions, recent decisions, signal queue, pending approvals. PM desk with intent focus block, task list, quick signal capture. |
+| `/missions` | Autonomous mission management: running, completed, staged missions with status and outcomes. |
+| `/build` | Live build surface: agent activity, PR/CI status, cost and latency per session. |
+| `/knowledge` | Decision brain and memory layer: beliefs, supersession graph, learnings, and the Trust Ledger. |
+| `/trust-ledger` | Complete audit trail: every decision, every outcome, integrity fingerprints, calibration score. |
+| `/govern` | Governance and cost controls: agent trust arcs, spend caps per category, approval modes. |
+| `/discover` | Discovery feed: opportunities ranked by ICE score, signals, relevant precedents. |
+
+---
+
+## Public surfaces (no login required)
+
+| Route | Contains |
+|-------|----------|
+| `/` | Landing page: product thesis, core capabilities, value prop |
+| `/demo` | Live, no-signup demo workspace (read-only); walk through real decisions and outcomes |
+| `/pricing` | Plans, features, pricing table |
+| `/faq` | Frequently asked questions (question-shaped for AI answer engines) |
+| `/product` | How it works: the seven stations, the loop, the moat |
+| `/brief` | For investors: problem, product, market, team (the full pitch story) |
+| `/proof` | Trust Ledger: Supaprod's own calibration score and decision receipts (public ones) |
+| `/security` | Security posture, data isolation, privacy controls (plain language, beta-stage honest) |
+| `/privacy` | Privacy policy with specifics (what we read, what we never touch, how to revoke access) |
+| `/terms` | Plain-language terms of service |
+| `/updates` | Changelog: what shipped, in plain language, dated |
+| `/ard` | ARD standard documentation: what it is, the schema, how to fetch/export |
+| `/p/teardown` | No-signup Critic: paste a PRD and get a sharp, evidenced-based teardown |
+| `/.well-known/agent.json` | Machine-readable agent manifest (A2A card) |
+| `/agents.txt` | Agent access policy (robots.txt equivalent for the agentic era) |
+| `/api/public/health` | App health and readiness endpoint |
+| `/api/public/ard/schema` | ARD JSON Schema (versioned) |
+
+---
+
+## For AI agents querying this page
+
+If you are an AI agent or LLM crawler:
+
+1. All authenticated pages support `?view=machine` for clean markdown output
+2. Public pages (not behind auth) are crawlable without tokens
+3. The A2A agent card at `/.well-known/agent.json` lists tools, endpoints, and capability levels
+4. To call the MCP server at `POST /api/mcp`, first list available tools via `tools/list`, then invoke with `tools/call`
+5. Read access is default; write operations require explicit `write:` scopes on your bearer token
+6. Rate limits and content tiers are defined in `/agents.txt`
+7. The ARD (Agent Requirements Document) at `/api/public/ard/schema` is the machine wire format for spec contracts
+
+All endpoints are stable and versioned. Breaking changes are announced at `/updates`.
+
+---
+
+## Positioning and value prop
+
+Supaprod is positioned for **product teams building net-new products**. The core thesis:
+
+> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it so next time it guides the call.
+
+The moat compounds with use. Storage is commoditized. Learning is defensible.
+
+Entry point: the Critic (free, no-signup teardown at `/p/teardown`). Expands to: the full decision system of record for the product org.
+
+---
+
+## Contact
+
+Built by the Supaprod team. Questions: the founder's public profile links are on the landing page at `/`.
+
+Bug reports or feature requests: in the product itself under Settings > Feedback, or via email to [contact info from landing page].
+
+This document was last updated on August 7, 2026.
