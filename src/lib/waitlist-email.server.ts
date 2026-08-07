@@ -8,12 +8,27 @@
  * and it is the only email in docs/growth/email-sequences.md whose trigger
  * already existed in the code path.
  *
- * THE VOICE, founder ruling 2026-08-07, and it replaced the first draft of this
- * file. The instruction was that our email should feel "live, fresh", like
- * "something new is coming up", with room for humour, and short. Explicitly NOT
- * the formal register a person already gets forty of a day and reads none of.
- * The line that had to go was "Here is the short version of what you signed up
- * for", which is not a sentence one person writes to another.
+ * THE VOICE, founder ruling 2026-08-07 and then corrected the same evening. The
+ * first instruction was "live, fresh", the reader should feel "something new is
+ * coming up", with room for humour, and short. Explicitly NOT the formal
+ * register a person gets forty of a day and reads none of. The line that had to
+ * go was "Here is the short version of what you signed up for", which is not a
+ * sentence one person writes to another.
+ *
+ * THE CORRECTION MATTERS MORE THAN THE ORIGINAL, because the first pass
+ * overshot. Humour is now "as minimal as positive", used only where it earns
+ * its place, and the audience is named: mostly B2B ENTERPRISE, so "little
+ * having formal side would help, but I don't want it complete formal". A draft
+ * of this email ended a line with "Not supper" and that is precisely the joke
+ * that was cut: funny once, and worth nothing to a product leader deciding
+ * whether to spend attention on us.
+ *
+ * WHAT CARRIES THE ENERGY INSTEAD is an industry observation the reader already
+ * feels, which the founder asked for by name: engineering got real agents this
+ * year and product management got a summarize button. That is substance, it is
+ * current, it is defensible, and it does the job the joke was failing to do.
+ * The only remaining aside is "politely", which stays because it is working:
+ * it tells the reader the critique is constructive before they click.
  *
  * THE BOUNDARY THAT DID NOT MOVE. Tone got loose. Claims did not. A joke is
  * free; an invented number, a promised date we have not set, or a capability we
@@ -73,7 +88,7 @@ const UNSUB = "hello@supaprod.ai";
 
 /** The ratified subject. Two alternates exist in the sequence file if this one
  *  underperforms; they are alternates, not a rotation, so pick deliberately. */
-export const A1_SUBJECT = "You are in. Well, in line.";
+export const A1_SUBJECT = "You are on the list. Now the useful part.";
 
 /**
  * The launch-date sentence, in its two legitimate forms.
@@ -86,8 +101,8 @@ export const A1_SUBJECT = "You are in. Well, in line.";
 function launchSentence(): string {
   const when = process.env.LAUNCH_DATE?.trim();
   return when
-    ? `We open ${when}. You get an invite code that morning. One email, not a countdown.`
-    : `The moment a slot opens, you get an invite code. One email. No countdown, no drip, no "just checking in".`;
+    ? `We open ${when}. You get an invite code that morning. One email, no countdown.`
+    : `The moment a slot opens, you get an invite code. One email, no countdown.`;
 }
 
 /** Greeting that survives an empty name. We only ever collect an email address
@@ -104,18 +119,20 @@ export function a1Text(firstName?: string): string {
   return [
     greeting(firstName),
     ``,
-    `You are on the list. It is Supaprod, said with an A. SOO-pa-prod. Not supper.`,
+    `You are on the list. Supaprod, said with an A: SOO-pa-prod.`,
     ``,
-    `What you just put your name down for: a product team made of agents. They work out what to build, build it, ship it, and then go back and find out whether it actually worked. That last part is the whole point. Most tools forget the moment you ship. Ours learns from it and tells you what to do next time.`,
+    `Here is the bet behind it. Engineering got real agents this year, ones that write, test and ship. Product management got a summarize button. That gap is why this exists.`,
+    ``,
+    `Supaprod is a product team of agents. They work out what to build, build it, ship it, then go back and find out whether it actually worked. That last part is the whole point: it is what makes the next call arrive with evidence instead of a blank page.`,
     ``,
     launchSentence(),
     ``,
-    `In the meantime, do not just sit there. Throw a product bet at our Critic and watch it get taken apart, politely, with its evidence shown. No account, no card, about twenty seconds.`,
+    `You do not have to wait to see it work. Give the Critic a product bet you believe in and it will red-team it, politely, and show you the evidence it used. No account, about twenty seconds.`,
     ``,
     `Red-team one of your bets:`,
     teardown,
     ``,
-    `If it comes back useless, hit reply and tell me exactly how. Honestly more useful to me than a nice one.`,
+    `If it comes back useless, reply and tell me exactly how. That is more useful to me than a good result.`,
     ``,
     `Rohit`,
     ``,
@@ -135,17 +152,20 @@ export function a1Html(firstName?: string): string {
   return [
     `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">`,
     p(greeting(firstName)),
-    p(`You are on the list. It is Supaprod, said with an A. SOO-pa-prod. Not supper.`),
+    p(`You are on the list. Supaprod, said with an A: SOO-pa-prod.`),
     p(
-      `What you just put your name down for: a product team made of agents. They work out what to build, build it, ship it, and then go back and find out whether it actually worked. That last part is the whole point. Most tools forget the moment you ship. Ours learns from it and tells you what to do next time.`,
+      `Here is the bet behind it. Engineering got real agents this year, ones that write, test and ship. Product management got a summarize button. That gap is why this exists.`,
+    ),
+    p(
+      `Supaprod is a product team of agents. They work out what to build, build it, ship it, then go back and find out whether it actually worked. That last part is the whole point: it is what makes the next call arrive with evidence instead of a blank page.`,
     ),
     p(launchSentence()),
     p(
-      `In the meantime, do not just sit there. Throw a product bet at our Critic and watch it get taken apart, politely, with its evidence shown. No account, no card, about twenty seconds.`,
+      `You do not have to wait to see it work. Give the Critic a product bet you believe in and it will red-team it, politely, and show you the evidence it used. No account, about twenty seconds.`,
     ),
     p(`<a href="${teardown}" style="color:#C24E1E;font-weight:600;">Red-team one of your bets</a>`),
     p(
-      `If it comes back useless, hit reply and tell me exactly how. Honestly more useful to me than a nice one.`,
+      `If it comes back useless, reply and tell me exactly how. That is more useful to me than a good result.`,
     ),
     p(`Rohit`),
     `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,

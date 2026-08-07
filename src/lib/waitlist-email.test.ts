@@ -66,7 +66,7 @@ describe("A1 waitlist welcome", () => {
   });
 
   test("subject matches the ratified line", () => {
-    expect(A1_SUBJECT).toBe("You are in. Well, in line.");
+    expect(A1_SUBJECT).toBe("You are on the list. Now the useful part.");
   });
 
   test("never throws, so a dead vendor cannot cost us a signup", async () => {
