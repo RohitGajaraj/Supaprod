@@ -30,6 +30,21 @@
  * The only remaining aside is "politely", which stays because it is working:
  * it tells the reader the critique is constructive before they click.
  *
+ * NO PRONUNCIATION GLOSS, and it is deliberate. "Supaprod, said with an A:
+ * SOO-pa-prod" sat here as the SECOND sentence, before the reader had been told
+ * what we do, and the founder called it out across every message on 2026-08-07.
+ * He is right, and the reason is stronger than "unnecessary": the spelling
+ * already carries it. "Superprod" would genuinely need the gloss; "Supa" can be
+ * read only one way, so the A IS the pronunciation guide and the sentence
+ * explains a problem the name already solved. It also fails the same test that
+ * cut the jokes, which is whether a line helps the reader decide anything.
+ *
+ * It survives in exactly two places and both are REFERENCE fields rather than
+ * lines anyone reads in sequence: press-kit.md, where a journalist may have to
+ * say it on air, and trademark-brief-supaprod.md, where phonetic similarity is
+ * the legal test for confusion and the field is not optional. Do not reintroduce
+ * it to anything a person reads front to back.
+ *
  * THE BOUNDARY THAT DID NOT MOVE. Tone got loose. Claims did not. A joke is
  * free; an invented number, a promised date we have not set, or a capability we
  * cannot demonstrate is not, and the claims law applies to this file exactly as
@@ -88,7 +103,7 @@ const UNSUB = "hello@supaprod.ai";
 
 /** The ratified subject. Two alternates exist in the sequence file if this one
  *  underperforms; they are alternates, not a rotation, so pick deliberately. */
-export const A1_SUBJECT = "You are on the list. Now the useful part.";
+export const A1_SUBJECT = "You are on the list";
 
 /**
  * The launch-date sentence, in its two legitimate forms.
@@ -111,7 +126,7 @@ function launchSentence(): string {
  *  sequences do have a name to use. */
 function greeting(firstName?: string): string {
   const n = firstName?.trim();
-  return n ? `Hi ${n},` : "Hi,";
+  return n ? `Hey ${n},` : "Hey,";
 }
 
 export function a1Text(firstName?: string): string {
@@ -119,20 +134,17 @@ export function a1Text(firstName?: string): string {
   return [
     greeting(firstName),
     ``,
-    `You are on the list. Supaprod, said with an A: SOO-pa-prod.`,
+    `Engineering got real agents this year. Product management got a summarize button.`,
     ``,
-    `Here is the bet behind it. Engineering got real agents this year, ones that write, test and ship. Product management got a summarize button. That gap is why this exists.`,
-    ``,
-    `Supaprod is a product team of agents. They work out what to build, build it, ship it, then go back and find out whether it actually worked. That last part is the whole point: it is what makes the next call arrive with evidence instead of a blank page.`,
+    `That gap is what you just joined the list for. Supaprod is a product team of agents: they work out what to build, build it, ship it, then check whether it actually worked. The next call arrives already knowing what went wrong last time, so you do not pay for the same mistake twice.`,
     ``,
     launchSentence(),
     ``,
-    `You do not have to wait to see it work. Give the Critic a product bet you believe in and it will red-team it, politely, and show you the evidence it used. No account, about twenty seconds.`,
+    `Meanwhile, give the Critic a bet you actually believe in. It red-teams it in about twenty seconds and shows its evidence. No account.`,
     ``,
-    `Red-team one of your bets:`,
     teardown,
     ``,
-    `If it comes back useless, reply and tell me exactly how. That is more useful to me than a good result.`,
+    `If it comes back useless, tell me. That is the more useful reply.`,
     ``,
     `Rohit`,
     ``,
@@ -152,21 +164,16 @@ export function a1Html(firstName?: string): string {
   return [
     `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">`,
     p(greeting(firstName)),
-    p(`You are on the list. Supaprod, said with an A: SOO-pa-prod.`),
+    p(`Engineering got real agents this year. Product management got a summarize button.`),
     p(
-      `Here is the bet behind it. Engineering got real agents this year, ones that write, test and ship. Product management got a summarize button. That gap is why this exists.`,
-    ),
-    p(
-      `Supaprod is a product team of agents. They work out what to build, build it, ship it, then go back and find out whether it actually worked. That last part is the whole point: it is what makes the next call arrive with evidence instead of a blank page.`,
+      `That gap is what you just joined the list for. Supaprod is a product team of agents: they work out what to build, build it, ship it, then check whether it actually worked. The next call arrives already knowing what went wrong last time, so you do not pay for the same mistake twice.`,
     ),
     p(launchSentence()),
     p(
-      `You do not have to wait to see it work. Give the Critic a product bet you believe in and it will red-team it, politely, and show you the evidence it used. No account, about twenty seconds.`,
+      `Meanwhile, give the Critic a bet you actually believe in. It red-teams it in about twenty seconds and shows its evidence. No account.`,
     ),
     p(`<a href="${teardown}" style="color:#C24E1E;font-weight:600;">Red-team one of your bets</a>`),
-    p(
-      `If it comes back useless, reply and tell me exactly how. That is more useful to me than a good result.`,
-    ),
+    p(`If it comes back useless, tell me. That is the more useful reply.`),
     p(`Rohit`),
     `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,
     `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">You are receiving this because you joined the Supaprod waitlist at supaprod.ai. To come off the list, reply with "unsubscribe" or write to <a href="mailto:${UNSUB}" style="color:#6b6457;">${UNSUB}</a>.</p>`,

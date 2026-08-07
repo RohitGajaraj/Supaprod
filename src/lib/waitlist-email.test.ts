@@ -55,8 +55,8 @@ describe("A1 waitlist welcome", () => {
     // The waitlist form collects an email address and nothing else, so the
     // token is always empty in production. "Hi ," would be the tell that nobody
     // read the rendered output.
-    expect(a1Text()).toStartWith("Hi,\n");
-    expect(a1Text("Rohit")).toStartWith("Hi Rohit,\n");
+    expect(a1Text()).toStartWith("Hey,\n");
+    expect(a1Text("Rohit")).toStartWith("Hey Rohit,\n");
   });
 
   test("reads completely with images off", () => {
@@ -66,7 +66,7 @@ describe("A1 waitlist welcome", () => {
   });
 
   test("subject matches the ratified line", () => {
-    expect(A1_SUBJECT).toBe("You are on the list. Now the useful part.");
+    expect(A1_SUBJECT).toBe("You are on the list");
   });
 
   test("never throws, so a dead vendor cannot cost us a signup", async () => {
