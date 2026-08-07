@@ -179,8 +179,8 @@ function CalibrationHero({
               margin: 0,
             }}
           >
-            This page updates automatically as calibrated outcomes land. We would rather show you
-            an honest zero than a number that isn't real yet.
+            This page updates automatically as calibrated outcomes land. We would rather show you an
+            honest zero than a number that isn't real yet.
           </p>
         </>
       )}

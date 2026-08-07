@@ -99,7 +99,6 @@ async function computeBabysittingTax(): Promise<BabysittingTax> {
   return { weeklyGated: buckets, trend: trendOf(recent, prior), tableReady: true };
 }
 
-
 /**
  * The workspaces whose rows must never reach a PUBLIC counter.
  *
@@ -119,14 +118,42 @@ async function computeBabysittingTax(): Promise<BabysittingTax> {
  * shipped with is_sample false for months, which is exactly why 14 rows leaked
  * past a filter that existed and looked correct. Belt and braces on a public
  * number is cheap; a wrong number on this page is not.
+ *
+ * ⚠️ A THIRD LEAK, closed 2026-08-07. Neither arm above catches the six seeded
+ * Helio Labs clones: they carry is_sample = false and all six are named plainly
+ * "Helio Labs", so the flag misses them and the name list misses them. Verified
+ * against production the same day, every one of the 28 scored insights in the
+ * entire database came from a Helio workspace, so the public score of "12 of the
+ * last 24 calls right" was 100% seed data, printed directly beneath the sentence
+ * "never seeded or staged". The page was not merely inflated; it was
+ * contradicting its own promise inside one viewport.
+ *
+ * They are listed by ID rather than by name on purpose. A workspace name is
+ * editable in-product by anyone with access, so matching on "Helio Labs" would
+ * reopen the leak the moment someone renamed one. These ids are fixed by the
+ * seed migration and cannot drift.
  */
+const SEEDED_CLONE_IDS = [
+  "20000000-0000-4000-8000-000000000000", // helio-labs-voyage
+  "30000000-0000-4000-8000-000000000000", // helio-labs-compass
+  "40000000-0000-4000-8000-000000000000", // helio-labs-meridian
+  "50000000-0000-4000-8000-000000000000", // helio-labs-lantern
+  "60000000-0000-4000-8000-000000000000", // helio-labs-harbor
+  "70000000-0000-4000-8000-000000000000", // helio-labs-explore
+] as const;
+
 async function sampleWorkspaceIds(): Promise<string[]> {
   const { data } = await supabaseAdmin
     .from("workspaces")
     .select("id")
     .or('is_sample.eq.true,name.in.("Sample workspace","Demo workspace","Sample sandbox")')
     .limit(1000);
-  return (data ?? []).map((w) => (w as { id: string }).id);
+  const matched = (data ?? []).map((w) => (w as { id: string }).id);
+  // Union, not replace. The query above still catches anything correctly
+  // flagged; this only adds the six that carry neither the flag nor a matching
+  // name. A Set because a clone that later gets is_sample set would otherwise
+  // appear twice and be excluded twice, which is harmless but reads as a bug.
+  return [...new Set([...matched, ...SEEDED_CLONE_IDS])];
 }
 
 /** Exported: reused by proof-share.functions.ts for the PUBLIC redacted scorecard (RPT-30). */
