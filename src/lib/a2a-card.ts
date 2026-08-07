@@ -16,14 +16,24 @@ export function buildAgentCard(origin: string): Record<string, unknown> {
     provider: { organization: "Supaprod", url: origin },
     documentation_url: `${origin}/integrations`,
     discovery_url: `${origin}/.well-known/agent.json`,
+    // `/mcp`, NOT `/api/mcp`. Corrected 2026-08-07 after measuring both live:
+    //
+    //   /mcp       401  application/json   <- the real server, src/routes/mcp.ts
+    //   /api/mcp   200  text/html          <- no such route, soft-404 SPA shell
+    //
+    // There is no /api/mcp route file anywhere in src/routes/. So an agent that
+    // did exactly what this discovery document told it to do landed on a
+    // webpage, with a success status, and had no way to tell it had failed.
+    // This card is the one artifact whose entire job is being followed by a
+    // machine, which made the wrong path here more expensive than it looked.
     endpoints: {
       message_send: `${origin}/api/public/a2a/message/send`,
       message_stream: `${origin}/api/public/a2a/message/stream`,
       tasks: `${origin}/api/public/a2a/tasks`,
-      mcp: `${origin}/api/mcp`,
+      mcp: `${origin}/mcp`,
     },
     mcp: {
-      endpoint: `${origin}/api/mcp`,
+      endpoint: `${origin}/mcp`,
       protocol_versions: ["2025-06-18", "2025-03-26", "2024-11-05"],
       transport: "http+json-rpc-2.0",
       authentication: "bearer",

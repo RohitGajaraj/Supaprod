@@ -1,5 +1,49 @@
 import { describe, expect, test } from "bun:test";
-import { AGENT_DISCOVERY_LINK_HEADER, withAgentDiscoveryLink, withSecurityHeaders } from "./server";
+import {
+  AGENT_DISCOVERY_LINK_HEADER,
+  withAgentDiscoveryLink,
+  withMarketingCacheHeaders,
+  withSecurityHeaders,
+} from "./server";
+
+describe("withMarketingCacheHeaders", () => {
+  test("caches a public marketing route at the edge", () => {
+    const result = withMarketingCacheHeaders(new Response("<html></html>", { status: 200 }), "/");
+    expect(result.headers.get("Cache-Control")).toBe(
+      "public, s-maxage=300, stale-while-revalidate=86400",
+    );
+  });
+
+  test("leaves authenticated and unknown routes alone", () => {
+    // The whole safety argument for edge caching is that these routes render
+    // the same bytes for every anonymous visitor. Anything per-user must never
+    // be held at a shared cache, so the allow-list is the security boundary
+    // and not merely an optimisation.
+    for (const path of ["/today", "/settings", "/admin", "/inbox", "/api/healthz"]) {
+      const result = withMarketingCacheHeaders(new Response("x", { status: 200 }), path);
+      expect(result.headers.get("Cache-Control")).toBeNull();
+    }
+  });
+
+  test("never caches a non-200, even on an allow-listed route", () => {
+    // A 404, a redirect or a 500 pinned at the edge for five minutes would
+    // serve the failure to everyone who followed.
+    for (const status of [301, 404, 500]) {
+      const result = withMarketingCacheHeaders(new Response("x", { status }), "/pricing");
+      expect(result.headers.get("Cache-Control")).toBeNull();
+    }
+  });
+
+  test("preserves the body and other headers it does not own", () => {
+    const response = new Response("hello", {
+      status: 200,
+      headers: { "content-type": "text/html", Link: "</llms.txt>; rel=\"llms-txt\"" },
+    });
+    const result = withMarketingCacheHeaders(response, "/faq");
+    expect(result.headers.get("content-type")).toBe("text/html");
+    expect(result.headers.get("Link")).toBe('</llms.txt>; rel="llms-txt"');
+  });
+});
 
 describe("withAgentDiscoveryLink", () => {
   test("adds the agent-discovery Link header to a response missing one", () => {

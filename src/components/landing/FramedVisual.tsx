@@ -97,13 +97,7 @@ export function FramedVisual({
        * in public/images/. Note docs/screenshots/ is gitignored, so they cannot
        * simply be moved from there; they have to be committed to public/. */}
       {!failed && (
-        <img
-          src={src}
-          alt={alt}
-          style={imgStyle}
-          loading="lazy"
-          onError={() => setFailed(true)}
-        />
+        <img src={src} alt={alt} style={imgStyle} loading="lazy" onError={() => setFailed(true)} />
       )}
 
       {/* Pre-rendered edge-light glow, toggled via opacity */}

@@ -88,6 +88,56 @@ function brandedErrorResponse(): Response {
 export const AGENT_DISCOVERY_LINK_HEADER =
   '</llms.txt>; rel="llms-txt", </agents.txt>; rel="agent-policy"';
 
+/**
+ * Public marketing routes, which may be cached at the edge.
+ *
+ * MEASURED 2026-08-07 against the live site, three runs each: TTFB on these
+ * routes ranges 0.76s to 1.9s, and connect plus TLS accounts for only 20 to
+ * 150ms of it. So 85 to 95 percent is server-side SSR compute, repeated in full
+ * for every visitor, because every response carries
+ * `cache-control: no-cache, must-revalidate, max-age=0`.
+ *
+ * These routes render the same bytes for every anonymous visitor. There is no
+ * per-user content on any of them, which is what makes edge caching safe here
+ * and unsafe on anything under _authenticated.
+ *
+ * `s-maxage` caches at the Cloudflare edge, not in the visitor's browser, so a
+ * deploy is picked up on the next revalidation rather than being pinned in
+ * somebody's cache for a day. `stale-while-revalidate` means the first visitor
+ * after expiry still gets an instant response while the edge refreshes behind
+ * them, which is the case that would otherwise reintroduce the 1.9s.
+ */
+const CACHEABLE_MARKETING_ROUTES = new Set([
+  "/",
+  "/pricing",
+  "/product",
+  "/demo",
+  "/faq",
+  "/security",
+  "/privacy",
+  "/terms",
+  "/subprocessors",
+  "/updates",
+  "/proof",
+  "/investors",
+  "/brief",
+  "/p/teardown",
+]);
+
+export function withMarketingCacheHeaders(response: Response, pathname: string): Response {
+  if (!CACHEABLE_MARKETING_ROUTES.has(pathname)) return response;
+  // Only cache a clean success. A 404, a redirect or an error must never be
+  // held at the edge for five minutes.
+  if (response.status !== 200) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export function withAgentDiscoveryLink(response: Response): Response {
   if (response.headers.has("Link")) return response;
   const headers = new Headers(response.headers);
@@ -259,6 +309,83 @@ export default {
       });
     }
 
+    // MCP DISCOVERY MANIFEST. Added 2026-08-07 because the surface existed and
+    // could not be found.
+    //
+    // Measured live before writing this: /mcp and /.mcp/list-tools both return
+    // 401 with application/json, so the server is real. But
+    // /.well-known/mcp.json returned 200 with text/html, the SPA shell, because
+    // unknown paths soft-404 into the app. A client asking the standard
+    // discovery question got a webpage AND a success status, so it could not
+    // even detect the failure.
+    //
+    // The launch tracker calls this "the strongest unclaimed asset the company
+    // owns" and "the most credible AI-native proof". It was undiscoverable.
+    if (url.pathname === "/.well-known/mcp.json") {
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          },
+        });
+      }
+      return new Response(
+        JSON.stringify(
+          {
+            name: "Supaprod",
+            description:
+              "The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked.",
+            // /mcp, NOT /api/mcp. The agent card advertised /api/mcp, which
+            // serves the SPA shell; /mcp is the endpoint that actually answers.
+            // Both are fixed, and this is the reason they disagreed.
+            endpoint: `${url.origin}/mcp`,
+            transport: "http+json-rpc-2.0",
+            protocol_versions: ["2025-06-18", "2025-03-26", "2024-11-05"],
+            authentication: {
+              type: "oauth2",
+              scheme: "bearer",
+              protected_resource_metadata: `${url.origin}/.well-known/oauth-protected-resource`,
+              token_issuance: `${url.origin}/settings?section=interop`,
+            },
+            tools_url: `${url.origin}/.mcp/list-tools`,
+            documentation_url: `${url.origin}/integrations`,
+            agent_card: `${url.origin}/.well-known/agent.json`,
+            provider: { organization: "Supaprod", url: url.origin },
+          },
+          null,
+          2,
+        ),
+        { status: 200, headers: AGENT_CARD_CORS_HEADERS },
+      );
+    }
+
+    // ANY OTHER /.well-known/* PATH IS A 404, AND SAYS SO IN JSON.
+    //
+    // This is the narrow half of the soft-404 fix (tracker row F11). Every
+    // unknown path currently returns 200 with the SPA shell, which dilutes
+    // crawl budget and trips Google's soft-404 detection. Fixing that
+    // site-wide needs the router to signal notFound and is a larger change.
+    //
+    // But /.well-known/ is where MACHINES look, and a machine cannot recover
+    // from HTML-with-a-200 the way a person glancing at a page can. Verified
+    // live: /.well-known/oauth-authorization-server returned 200 text/html.
+    // A client reading that has no way to know it asked for something absent.
+    if (url.pathname.startsWith("/.well-known/")) {
+      return new Response(
+        JSON.stringify({ error: "not_found", resource: url.pathname }, null, 2),
+        {
+          status: 404,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        },
+      );
+    }
+
     if (url.pathname === "/api/healthz" && request.method === "GET") {
       return new Response(JSON.stringify({ ok: true }), {
         status: 200,
@@ -298,7 +425,10 @@ export default {
       const securedResponse = withSecurityHeaders(
         await normalizeCatastrophicSsrResponse(response, request, ctx),
       );
-      return withAgentDiscoveryLink(securedResponse);
+      // Cache headers go on LAST so the marketing Cache-Control is not
+      // overwritten by anything upstream, and only ever on a 200 for a route
+      // in the allow-list.
+      return withMarketingCacheHeaders(withAgentDiscoveryLink(securedResponse), url.pathname);
     } catch (error) {
       console.error(error);
       persistServerError(error, request, ctx, "worker");
