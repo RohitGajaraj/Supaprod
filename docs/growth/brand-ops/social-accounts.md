@@ -293,22 +293,40 @@ The `-safe` files fix that by designing inside the centre 74%. **The founder tri
 
 **Do not "fix" this by swapping in the safe file.** If someone revisits it, the right attempt keeps the type at full size and moves only the horizontal anchor, rather than scaling anything down. The `-safe` files stay in the repo as a starting point for that, not as an upload.
 
-**Avatars: bigger than the platform asks is correct.** The founder uploaded an 800px avatar where this file said 400 and it rendered sharper. Platforms downscale for display but store the original, so the larger file survives retina. Ship the largest square the platform accepts.
+### ⚠️ The avatar column used to name a size per platform. That was wrong, and it cost quality on live accounts.
+
+> **Corrected 2026-08-07, founder-reported.** This table used to send you to `avatar-dark-400.png` for Mastodon, `-240` for Product Hunt, `-200` for TikTok, `-512` for GitHub and `-800` for X. Those numbers are the size each platform *displays at*, and the founder found the mistake the direct way: told to upload 400 or 500 to GitHub and X, he uploaded **1024** instead and it rendered sharper on both.
+>
+> He is right, and the reasoning is not a matter of taste. **Platforms downscale for display but store what you gave them**, then re-derive every size they need, including the retina and future ones this table cannot know about. Handing a platform a 200px file caps it forever at 200px of real detail. Handing it 1024 costs nothing and lets it stay sharp on hardware that does not exist yet. A downscale is always sharper than an upscale, so the only way to lose is to send too little.
+>
+> **THE RULE, and it replaces every per-platform avatar number: try `avatars/avatar-dark-1024.png` first, everywhere.** It is 70KB, under every byte cap on this list, so there is no platform where the large file is knowably the wrong answer.
+>
+> **The smaller sizes are KEPT, deliberately, as the fallback ladder.** Nothing was deleted when this rule changed. A signup form can reject an upload for reasons this table cannot predict: an undocumented pixel ceiling, a stricter cap than the help page admits, a resizer that times out. When that happens, walk **down** the ladder until one is accepted, and note in §8 which size the platform actually took so the next person does not repeat the climb.
+>
+> `1024 → 800 → 512 → 500 → 400 → 320 → 240 → 200 → 128 → 64`
+>
+> All ten live in `avatars/` and all ten are generated from the same master, so any rung is correct brand, just less of it. **The only wrong move is starting low.** You can always fall back; you cannot recover detail you never uploaded.
+>
+> This is the same principle as upload rule 1 above, applied to avatars instead of banners. The two rules disagreed for a month and the avatar one lost.
 
 | Platform | Avatar | Banner or cover |
 | --- | --- | --- |
-| X | `avatars/avatar-dark-800.png` | `social/x-header-dark-1500x500@2x.png` (WIDE, deliberate; see rule 3) |
+| X | `avatars/avatar-dark-1024.png` | `social/x-header-dark-1500x500@2x.png` (WIDE, deliberate; see rule 3) |
 | LinkedIn | `avatars/avatar-dark-1024.png` | **`social/linkedin-cover-dark-4200x700.jpg`** — 4200x700, NOT 1128x191 |
-| YouTube | `avatars/avatar-dark-800.png` | `social/youtube-banner-dark-2560x1440.png` (1x IS the spec size) |
-| GitHub org | `avatars/avatar-dark-512.png` | no banner exists; see the org profile README note above |
-| Instagram · Threads | `avatars/avatar-dark-320.png` | none |
-| TikTok | `avatars/avatar-dark-200.png` | none |
+| YouTube | `avatars/avatar-dark-1024.png` | `social/youtube-banner-dark-2560x1440.png` (1x IS the spec size) |
+| GitHub org | `avatars/avatar-dark-1024.png` | no banner exists; see the org profile README note above |
+| Instagram · Threads | `avatars/avatar-dark-1024.png` | none |
+| TikTok | `avatars/avatar-dark-1024.png` | none |
 | Bluesky | `avatars/avatar-dark-1024.png` | `social/bluesky-banner-dark-3000x1000.png` — **1x only**, 1MB cap |
-| Mastodon | `avatars/avatar-dark-400.png` | `social/mastodon-header-dark-1500x500@2x.png` |
-| Discord | `avatars/avatar-dark-512.png` | `social/discord-banner-dark-960x540@2x.png` |
-| Product Hunt | `avatars/avatar-dark-240.png` | `social/producthunt-gallery-dark-1270x760@2x.png` |
-| Crunchbase | `avatars/avatar-dark-400.png` | none |
+| Mastodon | `avatars/avatar-dark-1024.png` | `social/mastodon-header-dark-1500x500@2x.png` |
+| Discord | `avatars/avatar-dark-1024.png` | `social/discord-banner-dark-960x540@2x.png` |
+| Product Hunt | `avatars/avatar-dark-1024.png` | `social/producthunt-gallery-dark-1270x760@2x.png` |
+| Crunchbase | `avatars/avatar-dark-1024.png` | none |
 | Any link preview (OG) | — | `social/og-dark-1200x630@2x.png` |
+
+**The one place a byte cap still overrides this:** Bluesky's and GitHub's *banner* uploads cap at 1MB, which is upload rule 2 above and applies to banners, not avatars. `avatar-dark-1024.png` is 70KB and clears every cap on this page.
+
+> **⛔ Never upload an icon from `docs/growth/branding/icons/` without checking its date.** That folder was generated on 2026-07-15, three weeks BEFORE the founder's 2026-08-05 ruling that removed the ember-to-blue gradient, so every file in it carried a violet spiral until 2026-08-07. It has been rebuilt from `avatars/`, but the lesson is the general one: **`avatars/` is derived from the live `mark.ts` by `generate-social.ts` and is therefore the master.** A blue or violet mark anywhere means you are holding a pre-ruling artifact. `src/styles/__tests__/there-is-no-second-brand-colour.test.ts` now fails the build if that colour re-enters the source.
 
 **Use the dark avatar everywhere.** It carries its own rounded ground, so it reads identically against a light platform interface and a dark one. The light variant exists for surfaces we control, not for profile pictures.
 
@@ -553,17 +571,29 @@ Both should return only rows inside the "never" table in §4.
 
 ---
 
-## 8. The ledger
+## 8. The ledger — MOVED TO NOTION 2026-08-07
 
-The live state of every account. **No secret ever appears in this table.** Mirrored into Notion; this file is canonical.
+> **The live state of every account now lives in [`Supaprod · Brand & Social Accounts`](https://app.notion.com/p/3b33f54c86c281b1968fdcedb5e7785d), and this file no longer keeps a second copy.**
+>
+> **Why the direction reversed.** This section used to say "mirrored into Notion; this file is canonical." On 2026-08-07 that was true of the intent and false of the content: Notion knew LinkedIn was claimed while this file still said `Not started`, knew X's 2FA had been *declined* rather than being pending, and knew a GitHub defect was already fixed. Three facts, all wrong here, all right there.
+>
+> That is not bad luck, it is the shape of the work. **An account gets claimed on a phone, at speed, in the same minute as a decision.** The nearest writable surface at that moment is Notion; a markdown file behind a git commit is not reachable. So the mirror got the fresh fact and the "canonical" file rotted, which is the exact inversion of what canonical is supposed to buy you.
+>
+> One source per fact. **Status lives where status is written.** This file keeps what it is actually good at and what changes rarely: the claim order, the copy pack, the asset map, and the reasoning behind each. Those belong in git, where they can be reviewed and diffed.
+>
+> **No secret ever appears in either place.** Passwords, TOTP seeds and recovery codes live only in a password manager. See §0.2, and note that the vault itself is still an open debt.
+>
+> **And check the account before trusting either.** Both are claims about the world. A `curl` against a public profile settles most rows in seconds and is cheaper than acting on a wrong one.
+
+The table below is kept **only as the historical record of what this file asserted before the move**. Do not update it. Do not read it for current state.
 
 | Platform | Handle | URL | Status | Owner email | 2FA | Vault entry | Claimed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| GitHub org | `Supaprod` | https://github.com/Supaprod | **Verified** — avatar, description, URL, email and banner all live | `social@supaprod.ai` (org contact); login is the founder's personal GitHub account | ✅ authenticator on the personal account; org enforces 2FA for all members | ⚠️ recovery codes not yet saved, see §0.2 | 2026-08-05 |
-| X | `@supaprodhq` | https://x.com/supaprodhq | **Claimed** | `social@supaprod.ai` | pending | ⚠️ none yet, see §0.2 | 2026-08-05 |
+| GitHub org | `Supaprod` | https://github.com/Supaprod | **Verified** — avatar, description, URL, email and banner all live | `social@supaprod.ai` (org contact); login is the founder's personal GitHub account | ✅ authenticator on the personal account; org enforces 2FA for all members | ⚠️ recovery codes generated 2026-08-07, not yet in a vault, see §0.2 | 2026-08-05 |
+| X | `@supaprodhq` | https://x.com/supaprodhq | **Profile complete** — banner, avatar, bio and link all live | `social@supaprod.ai` | ⚠️ **declined by the founder**, not merely pending | ⚠️ none yet, see §0.2 | 2026-08-05 |
 | YouTube | `@supaprodhq` | | Not started | `social@supaprod.ai` | | | |
 | Instagram | `@supaprodhq` | | Not started | `social@supaprod.ai` | | | |
-| LinkedIn | `company/supaprod` | | Not started | `social@supaprod.ai` | | | |
+| LinkedIn | `company/supaprod` | https://www.linkedin.com/company/supaprod | **Claimed** — page live, vanity slug held. Name, website, industry, size, type, logo and tagline set. Missing: cover image, About text, location, founded year, and the founder as an employee | `social@supaprod.ai`; admin is the founder's personal LinkedIn | n/a, governed by the personal login | ⚠️ none yet, see §0.2 | 2026-08-05 |
 | Bluesky | `supaprod` | | Not started | `social@supaprod.ai` | | | |
 | Product Hunt | `supaprod` | | Not started | `social@supaprod.ai` | | | |
 | TikTok | `@supaprodhq` | | Not started | `social@supaprod.ai` | | | |
@@ -581,9 +611,25 @@ Status values: `Not started` → `Claimed` (handle held, profile empty) → `Pro
 
 ---
 
+## 8a. Reconciliation 2026-08-07 — this file was the stale one
+
+> **The header of §8 says "Mirrored into Notion; this file is canonical." On 2026-08-07 that was true of the intent and false of the content.** The Notion page `Supaprod · Brand & Social Accounts` held three facts this file did not, all confirmed live before being copied back:
+>
+> | What | This file said | What was actually true |
+> | --- | --- | --- |
+> | LinkedIn | `Not started` | **Claimed.** `linkedin.com/company/supaprod` returns 200 with title `Supaprod \| LinkedIn`, and the numeric `company/139433985` 302s to it, so the vanity slug is held. Half the profile is filled in. |
+> | X 2FA | `pending` | **Declined by the founder.** Not the same thing. "Pending" reads as a chore nobody got to; "declined" is a standing decision that will not resolve itself. |
+> | GitHub org description | "Fix now", still `agent-first` | **Already fixed.** The live API returns the corrected `agentic-first` line. |
+>
+> **Why it drifted, and the rule that follows.** Accounts get claimed on a phone, at speed, in the same sitting as a founder decision. The nearest writable surface at that moment is Notion, not a markdown file behind a git commit. So the mirror gets the fresh fact and the canonical file goes stale, which is the exact inversion of what "canonical" is supposed to guarantee.
+>
+> Declaring a file canonical does not make it current. **Before trusting any row in §8, check the account itself.** A `curl` against the public profile settles most rows in seconds and is cheaper than acting on a wrong one. Ledger rows are claims about the world, and the world is the authority.
+
 ## 8b. Live-account defects found on inspection, 2026-08-05
 
 Checked against the live GitHub API this session, not against this document.
+
+> **Status 2026-08-07: the description defect below is CLOSED.** `api.github.com/orgs/supaprod` now returns "The agentic-first operating system for product teams. Tells you what to build, builds and ships it, then learns what actually worked." The `location` field is still empty, which remains minor.
 
 | Where | What is live | What it should be | Severity |
 | --- | --- | --- | --- |

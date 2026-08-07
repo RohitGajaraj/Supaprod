@@ -46,6 +46,7 @@ Open one only when you are building that thing. Each carries per-ID specs: conte
 
 | File | What it holds |
 | --- | --- |
+| [`LAUNCH-EXECUTION-TRACKER.md`](./LAUNCH-EXECUTION-TRACKER.md) | **The single execution tracker for launch week.** Every workstream with an owner, a status, a deadline, its evidence, its next action and its risk. Two rival trackers were folded into it on 2026-08-07 and moved to `archive/`; if you are about to start a third, read its header first. |
 | [`launch-audit/GAP-CLOSURE-REGISTER.md`](./launch-audit/GAP-CLOSURE-REGISTER.md) | The register of gaps found by the pre-launch audits and whether each is closed. Read it beside [`SOURCE-OF-TRUTH.md`](./SOURCE-OF-TRUTH.md) section 0, which owns status; this owns the audit's own list. |
 | [`3-gaps-implementation-plan.md`](./3-gaps-implementation-plan.md) | The plan for three named gaps carried into launch week. Subject to the rule below: it moves to `archive/` the moment its work is done. |
 

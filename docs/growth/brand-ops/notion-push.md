@@ -2,7 +2,13 @@
 
 > _Created: 2026-08-05 · Last updated: 2026-08-05_
 
-**Status: NOT YET PUSHED. This is a work order, not a record of something done.**
+**Status 2026-08-07: PARTLY PUSHED, and the push overtook this file.**
+
+The page exists: [`Supaprod · Brand & Social Accounts`](https://app.notion.com/p/3b33f54c86c281b1968fdcedb5e7785d), created 2026-08-05, last written 2026-08-06 01:06 IST. It carries the brand world, the messaging ladder, typography, colour, the asset inventory and an account ledger.
+
+What it does **not** have is the `Brand Accounts` **database** specified in §2 below. The ledger there is a static table, so the two views in §2 (`By pass`, `Outstanding`) do not exist and the rows cannot be filtered or sorted. That part of this work order is still open.
+
+⚠️ **It also drifted ahead of the repo rather than mirroring it.** By 2026-08-07 the Notion page held three facts `social-accounts.md` did not, including a claimed LinkedIn page the repo still listed as `Not started`. See [`social-accounts.md`](./social-accounts.md) §8a for the reconciliation and the rule it produced. Treat the direction of sync as bidirectional in practice, whatever §1 asserts, and check the live account before trusting either side.
 
 ## Why this file exists
 

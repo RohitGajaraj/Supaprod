@@ -92,6 +92,7 @@ Most work here is an accelerator, incubator, residency or grant application. The
 | File | Open it when |
 | --- | --- |
 | [`launch-assets.md`](./launch-assets.md) | Prepping the listing: Show HN, Product Hunt, share-link copy. |
+| [`teaser-video-plan.md`](./teaser-video-plan.md) | **The teaser: one 90-second master, and Product Hunt, the site hero and the YC cut as derivations of it.** Beat sheet on named live routes, the two things that must be true before the camera rolls, what would be misrepresentation and must not appear, and a ~$34 tooling list. |
 | [`design-partner-kit.md`](./design-partner-kit.md) | Recruiting beta partners. 25 sourced targets, receipts-first templates. |
 | [`trust-ledger-launch-plan.md`](./trust-ledger-launch-plan.md) | Building the public Trust Ledger as launch material. |
 | [`hyperagent-runbook.md`](./hyperagent-runbook.md) | Deploying the arm's-length GTM rig. Note the never-touch boundary: Airtable ships a direct competitor. |

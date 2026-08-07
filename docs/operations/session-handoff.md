@@ -1,125 +1,83 @@
-# Session handoff
+# Resume here
 
-> _Created: 2026-07-02 · Last updated: 2026-08-06_
+Written 2026-08-07 ~15:45 IST. Soft launch is THIS WEEK (Product Hunt + X).
 
-**Written 2026-08-06, ~21:45 IST. Soft launch is THIS WEEK on Product Hunt and X.**
+**Everything is committed and pushed. The tree is clean.** Gates at push: `bunx tsc --noEmit` exit 0 · `bun run docs:check` clean of hard rot · the blue guard 3 pass.
 
-State at handoff: **`tsc` exit 0 · 8,232 pass · 0 fail** on a quiescent tree.
-Everything is committed and pushed to `main` at `104b80ea`. The app is
-**published** at <https://supaprod.lovable.app>, and the deployed commit SHA
-matches what was pushed, so nothing is stranded between git and production.
-
-Migrations: **81 of 81 for August applied**, zero drift between disk and the
-live database.
+**The founder is running this one item at a time and asked explicitly for that pacing.** He said: *"You are giving one after the other, but I'm not able to close one."* Do not open a new workstream while one is open with him. Finish, confirm, then offer the next.
 
 ---
 
-## 1. Needs a person. Nothing below can be done by an agent.
+## 1. Start here
 
-**a. Settle one outcome through `/learn`.** This is the last unknown on the
-moat's own path and the only item here that is a product risk rather than an
-account chore.
+**Nothing today is live.** Every fix below is pushed to `main` but Lovable has to redeploy before any of it reaches `supaprod.ai`. The founder is still seeing the old share card and the old favicon. **Confirm the deploy first**, then re-check `supaprod.ai/og-supaprod.png` and `/favicon.svg` against the repo copies.
 
-`applyOutcome` has still never completed: 957 memories, 119 learnings, **zero of
-`kind='outcome'`**. What changed today is that this is no longer a guess. Every
-write it makes was executed against production inside a rolled-back transaction
-and all three were accepted (`learnings` insert, `agent_memory` insert,
-`prds.outcome` update), the baseline was re-checked unchanged afterwards, and no
-constraint blocks it. So **if it fails now, it fails in the TypeScript, not in
-the database.**
+**Then the one action with the highest leverage in the whole project:** settle one outcome through `/learn` on `helio-labs-harbor`. Two shipped specs have `outcome` null:
 
-Do this: open `/learn` on a workspace with a shipped spec, settle one, then run
+- `60000000-0001-4000-8000-000000000031` — "Add SSO to the billing site"
+- `60000000-0001-4000-8000-000000000002` — "Job handoff checklist for the homeowner"
 
-```sql
-select count(*) from agent_memory where kind = 'outcome';
+`applyOutcome` **has never once completed in this database**: zero `agent_memory` rows of `kind='outcome'` against 957 memories, and none of the 7 prds carrying an outcome has the `settled_memory_id` that function always writes. One settle exercises it, gives `/proof` a real number instead of an honest zero, and produces the only frame in the product where the compounding claim comes from the running system rather than seed data. Three blockers, one action.
+
+## 2. Seven commits from audit agents went up unreviewed
+
+A parallel audit was dispatched with full tool access rather than read-only, and its agents wrote and committed code. They are authored as the founder because agents inherit git config. He chose "review each, keep the good ones", **and that review never happened** before he asked for everything to be pushed.
+
+```
+1435dc35  Launch readiness: fix 3 SEO blockers + add execution tracker
+ea899590  Fix: memory_expiry_enabled() paid tier list missing enterprise
+3e248767  Launch prep: founder decision framework
+1c0edc30  SEO: add canonical tags to all public routes
+3285a559  SEO/GEO: add FAQ page with question-shaped headings and FAQPage schema
+21d0b512  SEO/GEO: fix llms.txt alignment and remove 404 references
+65c925b7  SEO/GEO: create llms-full.txt for AI crawlers
 ```
 
-It must return 1, and that row's `workspace_id` must equal the settled spec's
-workspace, not your default one. That second check matters: `agent_memory` has a
-`BEFORE INSERT` trigger that files a null `workspace_id` into your *earliest*
-membership, reproduced today filing a Helio Labs spec into an unrelated
-workspace. A follow-up pin corrects it and is now locked by a test.
+**`ea899590` is the one to look at.** It edits a historical migration (`20260616210000_mc_memory_expiry.sql`) instead of adding a new one. The content is right — it adds `enterprise` and `max` to the paid-tier list, defusing the memory-expiry loaded gun — but **editing an applied migration does nothing to the live database.** The fix is inert and the gun is still loaded. Redo it as a new migration with `CREATE OR REPLACE FUNCTION`.
 
-**b. Rule on the white button on the public landing page.** The nav's
-"Start free" pill is white. Tonight's sweep deliberately did not touch public
-marketing surfaces (`/`, `/d`, `/proof`, `/t`), on the reasoning that restyling
-signup CTAs is a funnel change rather than a cleanup, and `.btn-primary` is
-correct there. But the standing ruling is "nothing white in our platform," and
-this is the first thing a Product Hunt visitor sees. One small isolated change
-if you want it in line.
+They also ran a broad `git add` and swept unrelated uncommitted work into their commits, so no commit is cleanly one author's intent. **When dispatching audit agents, constrain them to read-only tools.** One verifier caught a sibling committing with a false commit message.
 
-**c. The four-tier pricing ruling was never implemented.** You locked Free / Pro
-/ Business / Enterprise on 2026-07-13 and retired the thematic names. The code
-and database still ship **five** tiers on the old slugs (`free`, `pro`, `max`,
-`team`, `enterprise`) and `'business'` appears **zero times** in the billing
-code, re-verified today. It touches money, so it was flagged rather than
-migrated. See §2 for why it is now coupled to something else.
+## 3. What shipped today
 
-**d. Standing founder-gated list** (unchanged, verify before acting): live
-Stripe keys and the credits go-live flip, merchant-of-record pick,
-`RESEND_API_KEY`, Figma OAuth registration, `FIRECRAWL_API_KEY` (not blocking),
-and deleting five merged branches.
-
----
-
-## 2. One loaded gun, deliberately not fired
-
-`set_agent_memory_expiry` sets `expires_at` to **30 days** for any user not on a
-paid tier. It is **inert today**: `memory_expiry_enabled()` reads `false` and
-zero rows carry an expiry.
-
-Two reasons it is written down rather than left to be discovered:
-
-- Its paid list is `('pro','max','team','enterprise')`, so **`'business'` is
-  absent.** Land the §1c pricing ruling first, flip this switch later, and
-  Business customers' outcome memories start expiring.
-- What it deletes is the moat, on a product whose claim is that the record
-  *compounds*.
-
-Flipping it is a founder decision, so it was recorded in the SSOT and left
-exactly as found.
-
----
-
-## 3. What landed today, after 17:00
-
-Seven commits, each gated on a quiescent tree before pushing.
-
-| Commit | What |
+| | |
 | --- | --- |
-| `119138b2` | The primary button: a solid face on the neutral ladder. 21 ember controls retired from the authenticated app. Composer spacing on `/today`. |
-| `279496d0` | The dock, on every authenticated route, says what the agent is working on instead of "native is working". |
-| `c445cfd0` | Seeded workspaces were born with no provenance. Fixed at the table with a trigger; the self-healing backfill caught 7 signals the 2026-08-03 pass missed. |
-| `8d28c572` | Fan-out turned "nobody said" into "no ceiling". Two uncapped spend paths closed. |
-| `ed712c24` | **Task #8, seven stations.** 58 findings, 15 launch blockers. Build and Plan came back *not self-sufficient*. |
-| `0972f79d` | The last two surfaces calling an unanswered read an empty workspace. The `.isLoading` budget is now **0**. |
-| `104b80ea` | The outcome write path, proven against production and rolled back. |
+| **The share card said "Cadence"** | `public/og-supaprod.png` was dated Jul 1 and used the banned word "remembers", on the card every share renders. The corrected ORRERY card had been in the kit since Aug 6. |
+| **The icons were violet** | Every file in `branding/icons/` predated the founder's 2026-08-05 ruling by three weeks. A comment in `generate-social.ts` actively defended the blue as "already right", which is what sent an agent to the wrong folder. Retired. |
+| **The favicon was one orange dot** | `faviconMark` strokes 0.74px at 16px. New `faviconIcon()` uses a **circular** ground at 96% fill, stroke 10. The circle is the founder's call and it is right: a round mark in a round frame wastes no corners. |
+| **Four false FAQ claims** | Linear, Jira, Notion and Google Docs were named as integrations; all four are `stubAdapter`. Also a false CSV claim and a misleading "your own Postgres database". Rewritten, and the JSON-LD is now derived from one array instead of hand-synced. |
+| **`/proof` was 100% seed data** | All 28 scored insights in the database come from Helio workspaces. Six clones excluded by id. |
+| **The waitlist would have rejected the launch** | Global brake at 20/min. Raised to 300. |
+| **No human channel on the site** | `hello@supaprod.ai` in the footer; the X link was a 404. |
+| **`check-handles.sh` lied about domains** | Mapped a rate-limited empty body to AVAILABLE. Reported `supaprod.ai` free, a domain owned since July. |
 
-**Nothing from tonight's lanes is left open.** Every LEFT UNDONE item the agents
-reported was closed in a later commit, including the two they could not reach
-themselves.
+## 4. Where the ledger lives now
 
----
+**Founder ruling: the account ledger is in Notion, and the repo links to it.** [`Supaprod · Brand & Social Accounts`](https://app.notion.com/p/3b33f54c86c281b1968fdcedb5e7785d) is the record; `social-accounts.md` §8 now points there and keeps its table only as history.
 
-## 4. Two operating rules this session paid for
+The reason the direction reversed: the repo declared itself canonical and was wrong in three places Notion had right. **An account gets claimed on a phone, in the same minute as a decision, and a markdown file behind a git commit is not reachable at that moment.** Check the live account before trusting either.
 
-**Verify a finding is still open before dispatching an agent at it.** Four
-agents came back REFUSED today because the work was already done, and the
-`artifact_lineage` board entry was not merely stale but **wrong in both halves**
-— its prescribed fix would have produced a demo with *less* provenance than
-existed. One grep or one query kills most stale findings before they cost
-anything. The SSOT says this about its own tables; believe it.
+**LinkedIn is nearly closed.** Page live at `linkedin.com/company/supaprod`, vanity slug held, logo, tagline, and **the About text is in as of 15:41 IST**. Remaining: Founded `2026` on the `Details` tab, Location `Remote` on the `Locations` tab.
 
-**A slow agent and a dead one are indistinguishable in a workflow journal.** A
-`started` line with no result, and a 300KB transcript ending at its first
-sentence, describe both. Check `git status`, not the journal. Reading it wrong
-today cost a duplicated workflow and real file collisions.
+Two LinkedIn items are deliberately parked. The **cover image** is a composition fault, not an upload fault — the orrery runs off the right edge and LinkedIn crops ~4% more per side, cutting ellipses mid-arc. Re-uploading the same file will not help. And **adding the founder as an employee is deferred on his own reasoning**: it requires a position on his personal profile while he is employed elsewhere, and the real exposure is IP-assignment and moonlighting clauses, not perception.
 
----
+## 5. Two rules this session paid for, and they are in memory
 
-## 5. Where the detail lives
+- **Push back when the doctrine is wrong.** The favicon README had *diagnosed* the 16px problem and then shipped a favicon that failed at 16px. Quoting the diagnosis made the failure sound intentional. A document describing a constraint is not permission to ship the consequence. The founder asked for this to persist: *"If it is coming from my own ruling or a document, you just push back and do the right things."*
+- **Corrected source, stale artifact.** Three times in one day: the OG card, the icons, the FAQ schema. **Nothing regenerates `public/` from the brand kit**, so every ruling has to be carried by hand. That build step is the real fix and it is still open.
 
-- Board, open work and open findings: [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md)
-- The button rulings, both rejected designs and why: [`../design/DESIGN-SYSTEM.md`](../design/DESIGN-SYSTEM.md)
-- The four audits, saved rather than summarised, plus 141 task outputs and every
-  workflow script: `~/.claude/projects/-Users-rohitgajaraj-.../carry-forward/`
+Also: **upload the 1024 avatar everywhere and walk down the ladder only if rejected.** The asset map named display sizes as if they were upload ceilings, and the founder found it by uploading 1024 where the doc said 400 and seeing it render sharper.
+
+## 6. Open, in order
+
+1. **Deploy** and verify the assets are live.
+2. **Settle one outcome** (§1).
+3. **Redo `ea899590`** as a new migration.
+4. **Finish LinkedIn**: Founded, Location.
+5. **Open the "Security — 4 issues" badge** in the Lovable panel. Visible in a screenshot on 2026-08-07 and never examined. It is the one "not assessed" row worth closing before launch.
+6. **Product Hunt account.** Does not exist. PH bans brand accounts from posting, so it must be a personal maker profile.
+7. **Homepage Receipts**: label as examples per the founder's ruling.
+8. **LinkedIn cover** regeneration.
+
+Full board: [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md), which now covers every checklist domain and marks the unexamined ones **"not assessed"** rather than green. Video plan: [`../pitch/teaser-video-plan.md`](../pitch/teaser-video-plan.md).
+
+**The positioning question is answered and needs no more work.** Brownfield is not an expansion to announce; it is already the shipped position. The gap runs the other way: the site promises connectors that are stubs.
