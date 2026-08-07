@@ -458,7 +458,63 @@ function strip(w: number, h: number, id: string) {
 // weird again, it's not good". Shrinking was the wrong lever there and it is
 // the wrong lever here. The anchor moves; the type does not.
 // =============================================================================
-function linkedinCover(w: number, h: number, id: string) {
+/**
+ * The two headline blocks the LinkedIn cover can carry. BOTH SHIP, per founder
+ * ruling 2026-08-07 ("leave this current version, don't delete it, create a copy
+ * and work with the new version") -- the same rule the x-header and x-header-safe
+ * pair already follow. The uploader picks; neither replaces the other.
+ *
+ * HOOK is the ratified variant-H claim. It is the sharper sentence and it owns
+ * the output/outcome pair that this file calls the moat.
+ *
+ * SPINE is `TAGLINE` from src/routes/index.tsx:44, verbatim, which is the live
+ * homepage hero. It names the three layers in order -- knows what to build (the
+ * director), ships it (the operating system), guides the next call (the company
+ * brain) -- so a stranger learns what the product DOES rather than only what it
+ * claims. On LinkedIn specifically that matters, because the Tagline field
+ * directly under the company name already carries the category, and a cold
+ * visitor who reads category plus claim still does not know what gets built.
+ *
+ * The lifted word is `guide the next call` and not an arbitrary one: per
+ * CLAUDE.md the company brain is the only layer defensible on its own, and it is
+ * the beat the instrument's lit return path from 07 LEARN actually draws.
+ */
+const HOOK_BLOCK = (D: number) => `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(21 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${HOOK}</div>`;
+
+// ⚠️ NEW COPY, NOT YET RATIFIED. Everything else in this file traces to a
+// founder-approved string; this one does not, and it should not be treated as
+// canon until he signs it off.
+//
+// It is a COMPRESSION of TAGLINE, not a replacement for it. The verbatim line
+// runs 65 characters, and the founder's note was "this is very too long text,
+// how crisp can you deliver this message". A hero paragraph and a banner are
+// different surfaces: the hero is read, the banner is glanced at.
+//
+// The subject is dropped on purpose. LinkedIn prints "Supaprod" directly beneath
+// the cover, so the page supplies the subject and the banner does not have to.
+// That buys back the seven characters that "Agents that" was spending and lets
+// the sentence go verb-first, which is also punchier.
+//
+// Three beats, 49 characters, and both ends of the loop survive: knows what to
+// build is the director, ships it is the operating system, learns what worked is
+// the company brain. `Learns what worked` takes the weight because it is the
+// only one of the three a competitor cannot also claim.
+const SPINE_BLOCK = (D: number) => `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">Knows what to build. Ships it.<br>${hi("Learns what worked")}.</div>`;
+
+function linkedinCover(
+  w: number,
+  h: number,
+  id: string,
+  headline: (D: number) => string = HOOK_BLOCK,
+) {
   // ---------------------------------------------------------------------------
   // TYPE IS SIZED TO THE RENDERED COVER, NOT TO THE FILE. This is the whole
   // reason this function exists in its current shape.
@@ -557,20 +613,32 @@ function linkedinCover(w: number, h: number, id: string) {
          across the whole frame while only the instrument fades. -->
     ${starsAtDisplayScale(w, h, id + "sky", D, { x0: 900, x1: 3400, y0: 150, y1: 550 })}
     ${GRAIN(P.grain)}
-    <!-- HIERARCHY INVERTED 2026-08-07, founder call, and this is the real fix.
-         "The agentic-first operating system for product teams -- that's the main
-          message. You can give agents own outcome, not output as a subline."
-         It had been the other way round: the sentence saying what the company IS
-         was set at a fifth the size of the one saying how it feels. A reader who
-         takes one glance should leave knowing the category, not the slogan.
+    <!-- THE BANNER CARRIES THE HOOK, NOT THE CATEGORY. Founder call 2026-08-07,
+         and it reverses the inversion made earlier the same day. Both calls were
+         right; the second one has information the first did not.
+
+         Read the live page top to bottom and the category line appeared TWICE
+         inside about 100 vertical pixels: once across the cover, and again in
+         LinkedIn's own Tagline field directly under the company name. "Don't you
+         feel that would be a concern, the repetitive of the content."
+
+         The division that resolves it is not arbitrary. LinkedIn INDEXES the
+         tagline field -- it is what surfaces the page in search -- so the
+         keyword-bearing category sentence belongs there on its own merits. That
+         leaves the cover free for the line the tagline cannot carry: the claim
+         that separates this company from every other one that could describe
+         itself as an operating system for product teams.
+
+         So the tagline does the searchable work and the banner does the
+         persuasive work, and neither repeats the other.
+
+         Two lines, not flat, with the weight contrast from the ratified copy
+         block at the top of this file: body at 500, "outcomes" at 700, and
+         exactly one word dimmed. LEAD 1.08 locks the pair into one object.
          No lockup here -- see the note on the mark above.
          x=1000 clears LinkedIn's logo plate, which ends at x=794. -->
     <div style="position:absolute;left:1000px;top:50%;transform:translateY(-50%);width:2460px">
-      <div style="width:${(30 * D).toFixed(0)}px;height:${(2.4 * D).toFixed(1)}px;background:${P.ember}"></div>
-      <div style="margin-top:${(13 * D).toFixed(0)}px;font-size:${(16.2 * D).toFixed(0)}px;
-          line-height:1.14;font-weight:500;letter-spacing:-.035em;color:${P.bone}">The agentic-first operating system for ${hi("product teams")}</div>
-      <div style="margin-top:${(10 * D).toFixed(0)}px;font-size:${(11.5 * D).toFixed(0)}px;
-          line-height:1.2;font-weight:500;letter-spacing:-.02em;color:#9DA0A7">${HOOK_FLAT}</div>
+      ${headline(D)}
     </div>
   `,
   );
@@ -626,7 +694,25 @@ const SPECS: {
   // now bitten the OG card, the icon set, the FAQ schema and this file. A
   // comment asserting an output exists is not an output; only code that writes
   // it is.
-  { base: "linkedin-cover", w: 4200, h: 700, fn: (i) => linkedinCover(4200, 700, i), jpeg: true },
+  // BOTH HEADLINE VARIANTS SHIP. Founder ruling 2026-08-07: "leave this current
+  // version, don't delete it, create a copy and work with the new version." Same
+  // pattern as x-header / x-header-safe -- the uploader picks, neither replaces
+  // the other, and the rejected one stays available rather than being lost to a
+  // git history nobody will dig through.
+  {
+    base: "linkedin-cover-hook",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, HOOK_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, SPINE_BLOCK),
+    jpeg: true,
+  },
   { base: "linkedin-cover-legacy", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
   { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
   { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i) },
