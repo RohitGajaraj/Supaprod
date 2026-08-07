@@ -310,9 +310,8 @@ export const checkWorkspaceInviteToken = createServerFn({ method: "POST" })
     const t = (i as { token?: unknown } | null)?.token;
     return { token: typeof t === "string" ? t.trim().slice(0, 200) : "" };
   })
-  .handler(
-    ({ data }): Promise<WorkspaceInviteVerdict> =>
-      checkWorkspaceInviteTokenImpl(db, data.token),
+  .handler(({ data }): Promise<WorkspaceInviteVerdict> =>
+    checkWorkspaceInviteTokenImpl(db, data.token),
   );
 
 /* ------------------------------------------------------------------ *

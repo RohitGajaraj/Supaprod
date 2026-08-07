@@ -220,7 +220,29 @@ function ProductPage() {
               color: "#a1a1aa",
             }}
           >
-            Join 100+ design partners building the next generation of product teams.
+            {/* "Join 100+ design partners" WAS NOT TRUE, and it sat one line above
+                the CTA on the page a partner or an investor is most likely to be
+                sent to. There are no hundred design partners. There is no source
+                for the number anywhere in the codebase, no query behind it, and
+                nothing that would make it true tomorrow.
+
+                It is the same defect the /privacy page carried until 2026-08-07,
+                when it was found to be describing a tracking cookie, four
+                localStorage keys and an analytics vendor that do not exist. Both
+                were written as placeholder text and neither was ever revisited.
+
+                Why it mattered more than most: this product's whole argument is
+                receipts rather than claims. /proof publishes a calibration score
+                including the misses, the landing counters refuse to render when
+                they cannot be pulled live, and the waitlist confirmation was
+                changed the same evening to stop publishing a queue size it could
+                not stand behind. One visitor asking "which hundred" would have
+                cost every other number on the site its credibility.
+
+                The replacement states the access model, which is true, checkable
+                in one click, and the thing a reader at this exact point actually
+                needs to know before pressing the button under it. */}
+            The beta is invite only. Leave your name and your code arrives the moment a place opens.
           </p>
 
           <button
