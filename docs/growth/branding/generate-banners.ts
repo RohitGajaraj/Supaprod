@@ -189,13 +189,13 @@ const SAFE_L = 0.17;
  */
 function banner(w: number, h: number, id: string) {
   const s = h / 500;
-  // cx moved from w-336 to w-320 on 2026-08-07. The category line grew (see the
-  // note on its size below) and at 27px it runs to x=839, which was inside the
-  // old leftmost station label at x=906. Sixteen pixels of instrument buys the
-  // sentence its gutter back. The rightmost label still lands at ~1478, inside
-  // the 1500 edge, so nothing new is clipped.
+  // cx STAYS at w-336. It was briefly moved to w-320 on 2026-08-07 to give the
+  // enlarged category line more room, and that was unnecessary and harmful: the
+  // category ends at x=797 and the leftmost station label starts at x=906, so
+  // the gutter was already 109px. Moving the instrument right pushed "03 PLAN"
+  // off the 1500 edge. Measure before you move things.
   const o: Orr = {
-    cx: w - 320 * s,
+    cx: w - 336 * s,
     cy: h * 0.5,
     k: 0.38,
     shells: [124 * s, 218 * s, 336 * s, 452 * s, 580 * s],
@@ -227,9 +227,15 @@ function banner(w: number, h: number, id: string) {
 
            Mobile stays a known compromise. X mobile crops ~13% per side and
            renders near 390px, so nothing survives at full size there; that is
-           what the `-safe` variants were for and the founder rejected them
+           what the "-safe" variants were for and the founder rejected them
            2026-08-06 for shrinking the type. Desktop is the surface being fixed
-           here, deliberately. -->
+           here, deliberately.
+
+           NOTE TO WHOEVER EDITS THIS COMMENT NEXT: no backticks in here. This
+           block lives inside a template literal, so a backtick opens a nested
+           expression and the whole function stops parsing. It happened twice on
+           2026-08-07, once here and once in linkedinCover, and the second one
+           got committed before a full render caught it. -->
       ${lockup(38 * s, 28 * s, id + "lk")}
       <div style="margin-top:${30 * s}px;font-size:${54 * s}px;line-height:${LEAD};
           font-weight:500;letter-spacing:-.042em;color:${P.bone};white-space:nowrap">${HOOK}</div>
@@ -509,6 +515,94 @@ const SPINE_BLOCK = (D: number) => `
       line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
       white-space:nowrap">Knows what to build. Ships it.<br>${hi("Learns what worked")}.</div>`;
 
+/**
+ * VARIANT C. Founder direction 2026-08-07, after seeing B:
+ * "use the word Agents, and for the keywords try the Geist Pixel font to
+ *  highlight those 3 areas, build, ship and learns. All 3 need equal importance
+ *  and white is good."
+ *
+ * Three departures from the house rules, all deliberate and all his call:
+ *
+ *   SUBJECT RETURNS. B dropped "Agents" because LinkedIn supplies the subject
+ *   beneath the cover. He wants it back, and it does buy the sentence its
+ *   agentic-first framing rather than leaving it a list of verbs.
+ *
+ *   PIXEL AS EMPHASIS. The lockup docblock says Pixel "appears HERE and nowhere
+ *   else: one Pixel word per asset". This asset carries no lockup, so nothing
+ *   competes, but three Pixel words is still a departure from that rule and is
+ *   recorded as one rather than quietly done.
+ *
+ *   EQUAL WEIGHT, NO DIM. The ratified system is one hero word at 700 and one
+ *   word dimmed. Here all three verbs are peers, because they are three stages
+ *   of one loop and ranking them would misrepresent the product. Emphasis comes
+ *   from the typeface switch alone, not from weight or colour.
+ *
+ * Pixel runs slightly smaller than Geist Sans at the same nominal size because
+ * its square terminals fill more of the em box, so the spans are set at 0.94 to
+ * keep the baseline rhythm even.
+ */
+/**
+ * THICKENED WITH A STROKE, NOT WITH font-weight. Founder call 2026-08-07 after
+ * seeing the first pass: "it's not coming out highlighted, increase the weight
+ * of the font and change the colour to ember."
+ *
+ * He is right that the typeface switch alone did not read as emphasis. Geist
+ * Pixel is narrower and lighter in stroke than Geist Sans, so at render size the
+ * verbs sat QUIETER than the text around them, which is the opposite of a
+ * highlight.
+ *
+ * font-weight cannot fix it. The kit ships exactly one Pixel face,
+ * GeistPixel-Square.woff2, with no bold, so `font-weight:700` would trigger
+ * SYNTHETIC bold. A browser fakes that by smearing the glyph horizontally, and
+ * on a squared-terminal pixel face that reads as a rendering fault rather than
+ * as weight, which is precisely the failure mode the lockup docblock warns
+ * about.
+ *
+ * -webkit-text-stroke adds real, even thickness on every edge instead. Sized at
+ * 0.02em, which is OPTICAL PARITY and not emphasis: the Pixel stem is about
+ * 0.02em thinner than Geist Sans at 500, so this closes the deficit and stops
+ * there. It was briefly 0.045em, and the founder was right to call that too
+ * much -- at double the deficit it stacked a third emphasis lever on words that
+ * already had colour and a typeface change. Ember does the highlighting; the
+ * stroke only stops the face reading thin.
+ *
+ * Ember is the accent the brand already owns, and it is what the tick above the
+ * headline is drawn in, so the three verbs now rhyme with it. Note this is EMBER
+ * and not gold: the file rule is that gold is the mark's core bead and a caution
+ * accent, never a type colour.
+ */
+const pixelWord = (t: string, D: number) => {
+  const size = 21.5 * D;
+  return (
+    `<span class="pixel" style="font-size:${size.toFixed(0)}px;color:${P.ember};` +
+    `font-weight:400;letter-spacing:.005em;` +
+    `-webkit-text-stroke:${(size * 0.02).toFixed(1)}px ${P.ember}">${t}</span>`
+  );
+};
+
+/**
+ * "Agents" carries a little weight of its own. Founder call 2026-08-07:
+ * "highlight Agents not with colour, but just a little more whitish and
+ *  thickening, only the Agents word, and the font stays the same."
+ *
+ * That is the right instinct and it keeps the hierarchy legible: ember marks the
+ * three stages of the loop, and a brightness lift marks WHO does them. Two
+ * different jobs, so two different devices, and neither borrows the other's.
+ * Using colour here as well would have flattened them into one undifferentiated
+ * band of emphasis.
+ *
+ * The lift is small on purpose. P.bone is #F5F4F2, so pure white is only a few
+ * points brighter; combined with 700 against the surrounding 500 it reads as
+ * a subject being named rather than as a second highlight competing with ember.
+ */
+const agentsWord = `<span style="color:#FFFFFF;font-weight:700">Agents</span>`;
+
+const PIXEL_BLOCK = (D: number) => `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${agentsWord} that know what to ${pixelWord("build", D)},<br>${pixelWord("ship", D)} it, and ${pixelWord("learn", D)} what worked.</div>`;
+
 function linkedinCover(
   w: number,
   h: number,
@@ -707,10 +801,17 @@ const SPECS: {
     jpeg: true,
   },
   {
-    base: "linkedin-cover",
+    base: "linkedin-cover-spine",
     w: 4200,
     h: 700,
     fn: (i) => linkedinCover(4200, 700, i, SPINE_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, PIXEL_BLOCK),
     jpeg: true,
   },
   { base: "linkedin-cover-legacy", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
