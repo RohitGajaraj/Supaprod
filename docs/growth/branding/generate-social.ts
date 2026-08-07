@@ -257,7 +257,16 @@ type Spec = {
   name: string;
   w: number;
   h: number;
-  layout: "banner" | "strip" | "card" | "safe" | "avatar" | "mark" | "lockup" | "titleframe";
+  layout:
+    | "banner"
+    | "strip"
+    | "card"
+    | "safe"
+    | "avatar"
+    | "logosquare"
+    | "mark"
+    | "lockup"
+    | "titleframe";
   ground?: Ground;
   hero?: string; // the Pixel word
   line?: string; // the supporting line
@@ -435,6 +444,38 @@ function build(s: Spec): string {
       );
     }
 
+    // SQUARE LOGO — for containers that do NOT round the image themselves.
+    //
+    // The avatar block above rests on an assumption written into this file:
+    // "platforms crop to a circle or a squircle themselves, so the source
+    // carries its own rounded ground". LinkedIn is the counter-example, found
+    // on the live page 2026-08-07. Its COMPANY LOGO slot is a hard square on a
+    // WHITE card, and it crops nothing. Feeding it the rounded avatar put white
+    // into all four corners, so the mark read as a sticker floating on a card
+    // rather than as the company's logo. The founder's words were "it looks
+    // odd, that's not perfectly sitting", and he was reading the corners.
+    //
+    // The art is identical to `avatar`. The only difference is that the page
+    // keeps its ground instead of going transparent, so appIcon's rounded rect
+    // sits on the same colour and the corners fill. Same builder, same stroke
+    // ladder, no second source of truth for the mark.
+    case "logosquare": {
+      const icon = appIcon(
+        bg(g),
+        g === "dark" ? SILVER : GRAPHITE,
+        null,
+        strokeFor(s.w),
+      ).replace('width="512" height="512"', `width="${s.w}" height="${s.h}"`);
+      return page(
+        `display:flex;align-items:center;justify-content:center`,
+        icon,
+        s.w,
+        s.h,
+        g,
+        `svg{display:block}`,
+      );
+    }
+
     // Bare mark on transparent. This is what the png/ set has always been: the
     // spiral alone, no ground, for placing on someone else's surface. Rendering
     // it on the avatar's rounded square would have been a silent regression.
@@ -545,6 +586,20 @@ for (const px of [1024, 512, 400]) {
     ground: "light",
     out: OUT_AVATAR,
     transparent: true,
+  });
+}
+
+// Square logos, for containers that render a hard square and crop nothing.
+// LinkedIn's company logo slot is the one this was built for; see the
+// `logosquare` case above for what went wrong without it. NOT transparent, on
+// purpose -- transparency is the whole defect being fixed.
+for (const px of [1024, 512, 400, 300]) {
+  SPECS.push({
+    name: `logo-square-dark-${px}`,
+    w: px,
+    h: px,
+    layout: "logosquare",
+    out: OUT_AVATAR,
   });
 }
 

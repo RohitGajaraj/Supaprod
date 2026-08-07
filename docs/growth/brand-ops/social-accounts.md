@@ -309,10 +309,28 @@ The `-safe` files fix that by designing inside the centre 74%. **The founder tri
 >
 > This is the same principle as upload rule 1 above, applied to avatars instead of banners. The two rules disagreed for a month and the avatar one lost.
 
+### ⚠️ The LinkedIn cover was RECOMPOSED 2026-08-07, and the old JPEG was a trap
+
+> **Founder-reported on upload: "it was not at all aligned good, and it was outside the preferred area."** He was right, and it was a composition fault rather than an upload fault. Re-uploading the same file would not have helped.
+>
+> **Measured against the live page** (signed in as page admin, `View as member`), not inferred: the cover container renders at **804x132 = 6.09:1**, so the 4200x700 file is the correct ratio and desktop applies no meaningful crop. **LinkedIn's square logo plate occupies x 3.0%–18.9% of the cover width**, which is x 126–794 on the master. The old layout started the wordmark at x=887 — **an 8px visible gap from the logo plate.** That is the whole defect, and it is why it read as misaligned.
+>
+> Three faults, all now closed:
+>
+> | Fault | Was | Now |
+> | --- | --- | --- |
+> | Logo collision | wordmark at x=887, 93px from the plate edge | type anchored at **x=1000**, 206px clear |
+> | Instrument sliced | orrery centre pushed off-canvas to cx=4273 with a 1246px outer shell, so the right edge cut the ellipses mid-arc | **contained**, cx=3200, outer ring ends at x≈3948 — nothing is cut at any edge |
+> | Dead void | left ~20% was empty black the logo plate does not fill | the left band is now deliberately sized to the plate, and the type begins where the plate ends |
+>
+> **The type was NOT shrunk to achieve this**, per the 2026-08-06 ruling that killed the x-header `-safe` variant. The lever was the horizontal anchor. The layout is now `linkedinCover()` in `generate-banners.ts`, replacing a 191px `strip()` design that was being stretched 3.7x.
+>
+> **⛔ The `.jpg` was a stale artifact and the code comment lied about it.** `generate-banners.ts` carried a comment saying the JPEG "is emitted alongside". **No code in the kit ever wrote a `.jpg`** — the shipped file was made by hand on 2026-08-06 and then never moved again. So the PNG regenerated with the new composition and **the JPEG kept serving the old broken layout, while the row below points the uploader at the JPEG by name.** That is the house hazard exactly: corrected source, stale artifact, now on its fourth appearance after the OG card, the icon set and the FAQ schema. `jpeg: true` on the spec now writes it from the PNG that was just rendered, so the two cannot disagree again. **A comment asserting an output exists is not an output.**
+
 | Platform | Avatar | Banner or cover |
 | --- | --- | --- |
 | X | `avatars/avatar-dark-1024.png` | `social/x-header-dark-1500x500@2x.png` (WIDE, deliberate; see rule 3) |
-| LinkedIn | `avatars/avatar-dark-1024.png` | **`social/linkedin-cover-dark-4200x700.jpg`** — 4200x700, NOT 1128x191 |
+| LinkedIn | `avatars/avatar-dark-1024.png` | **`social/linkedin-cover-dark-4200x700.jpg`** — 4200x700, NOT 1128x191. Recomposed 2026-08-07, 150KB. |
 | YouTube | `avatars/avatar-dark-1024.png` | `social/youtube-banner-dark-2560x1440.png` (1x IS the spec size) |
 | GitHub org | `avatars/avatar-dark-1024.png` | no banner exists; see the org profile README note above |
 | Instagram · Threads | `avatars/avatar-dark-1024.png` | none |

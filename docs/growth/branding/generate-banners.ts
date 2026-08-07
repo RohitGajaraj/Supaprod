@@ -28,6 +28,7 @@
 // the ZONES block before each function.
 
 import { join } from "node:path";
+import sharp from "sharp";
 import { P, machine, markEl, GRAIN, page, render, OUT, setGround } from "./orrery.ts";
 import type { Orr } from "./orrery.ts";
 
@@ -84,6 +85,64 @@ function lockup(markPx: number, textPx: number, id: string) {
   </div>`;
 }
 
+/**
+ * A star field sized in DISPLAYED pixels, for canvases that get downscaled hard.
+ *
+ * The shared `starfield()` in orrery.ts draws stars at 0.28..1.53px and that is
+ * correct for a 1500px banner shown at 600. It is not correct for the LinkedIn
+ * cover, which is 4200px shown at 804: there the brightest star lands at 0.29px
+ * displayed and the entire field disappears. The founder asked for "more
+ * starfield so it looks like a starry thing" and the honest reading is not
+ * "more stars", it is "stars that survive the downscale".
+ *
+ * So every radius here is a displayed size multiplied by D, same discipline as
+ * the type. Density is thinned across the type block, because a star behind a
+ * letterform is noise rather than depth.
+ */
+function starsAtDisplayScale(
+  w: number,
+  h: number,
+  seed: string,
+  D: number,
+  quiet: { x0: number; x1: number; y0: number; y1: number },
+) {
+  if (P.markTone !== "dark") return "";
+  let s = 0;
+  for (const ch of seed) s = (s * 31 + ch.charCodeAt(0)) >>> 0;
+  const rnd = () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+
+  // TUNED DOWN after the first pass read as falling snow rather than as a sky.
+  // Two faults, and the glints were the bigger one: at a 1-in-14 rate with a
+  // 6px displayed radius they stopped being highlights and became the dominant
+  // texture. A star field is mostly almost-nothing with a handful of exceptions.
+  const out: string[] = [];
+  for (let i = 0; i < 250; i++) {
+    const sx = rnd() * w;
+    const sy = rnd() * h;
+    const inQuiet = sx > quiet.x0 && sx < quiet.x1 && sy > quiet.y0 && sy < quiet.y1;
+    if (inQuiet && rnd() < 0.86) continue;
+
+    const mag = rnd();
+    // 0.26..1.06 DISPLAYED px. The square curve keeps most of them near the
+    // floor and a few genuinely bright, which is what stops a field reading
+    // as noise.
+    const r = ((0.26 + mag * mag * 0.8) * D).toFixed(1);
+    const a = (0.07 + mag * mag * 0.3).toFixed(3);
+    out.push(`<circle cx="${sx.toFixed(0)}" cy="${sy.toFixed(0)}" r="${r}" fill="#fff" opacity="${a}"/>`);
+
+    // 1 in 40, not 1 in 14, and half the radius.
+    if (mag > 0.975) {
+      const g = (1.9 + rnd() * 1.3) * D;
+      out.push(
+        `<circle cx="${sx.toFixed(0)}" cy="${sy.toFixed(0)}" r="${g.toFixed(0)}" fill="url(#glint${seed})"/>`,
+      );
+    }
+  }
+  return `<svg class="layer" viewBox="0 0 ${w} ${h}"><defs>
+    <radialGradient id="glint${seed}"><stop offset="0" stop-color="#fff" stop-opacity=".16"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>${out.join("")}</svg>`;
+}
+
 /** Category line with its ember tick. */
 function categoryLine(size: number, gap: number, center = false) {
   return `<div style="display:flex;align-items:center;gap:${gap}px;
@@ -130,8 +189,13 @@ const SAFE_L = 0.17;
  */
 function banner(w: number, h: number, id: string) {
   const s = h / 500;
+  // cx moved from w-336 to w-320 on 2026-08-07. The category line grew (see the
+  // note on its size below) and at 27px it runs to x=839, which was inside the
+  // old leftmost station label at x=906. Sixteen pixels of instrument buys the
+  // sentence its gutter back. The rightmost label still lands at ~1478, inside
+  // the 1500 edge, so nothing new is clipped.
   const o: Orr = {
-    cx: w - 336 * s,
+    cx: w - 320 * s,
     cy: h * 0.5,
     k: 0.38,
     shells: [124 * s, 218 * s, 336 * s, 452 * s, 580 * s],
@@ -149,10 +213,27 @@ function banner(w: number, h: number, id: string) {
     ${GRAIN(P.grain)}
     <div style="position:absolute;left:${96 * s}px;top:${(h * 0.35).toFixed(0)}px;
         transform:translateY(-50%);width:${704 * s}px">
-      ${lockup(30 * s, 22 * s, id + "lk")}
+      <!-- SIZES RAISED 2026-08-07, founder call, and for the same reason as the
+           LinkedIn cover: these were sized to the FILE, not to the render.
+           X draws a 1500px banner at roughly 600px on desktop, a 2.5x downscale,
+           so the category line at 17px was landing at 6.8px on screen. It has
+           never been readable there; it simply was never measured. At 27px it
+           lands at 10.8px, and the wordmark goes 22 -> 28 so the lockup does not
+           end up outweighed by the line beneath it.
+
+           The headline is UNCHANGED at 54px (21.6px displayed). It was already
+           the one element sized correctly, and the hierarchy still holds:
+           headline 21.6 > category 10.8.
+
+           Mobile stays a known compromise. X mobile crops ~13% per side and
+           renders near 390px, so nothing survives at full size there; that is
+           what the `-safe` variants were for and the founder rejected them
+           2026-08-06 for shrinking the type. Desktop is the surface being fixed
+           here, deliberately. -->
+      ${lockup(38 * s, 28 * s, id + "lk")}
       <div style="margin-top:${30 * s}px;font-size:${54 * s}px;line-height:${LEAD};
           font-weight:500;letter-spacing:-.042em;color:${P.bone};white-space:nowrap">${HOOK}</div>
-      <div style="margin-top:${26 * s}px">${categoryLine(17 * s, 13 * s)}</div>
+      <div style="margin-top:${26 * s}px">${categoryLine(27 * s, 14 * s)}</div>
     </div>
   `,
   );
@@ -348,6 +429,154 @@ function strip(w: number, h: number, id: string) {
 }
 
 // =============================================================================
+// LINKEDIN COVER — 4200x700. Replaces the scaled-up `strip()` layout.
+//
+// `strip()` is a 191px design and at 4200x700 it was being stretched 3.7x. The
+// founder rejected the upload on sight -- "not at all aligned good, and it was
+// outside the preferred area" -- and he was right on all three counts:
+//
+//   LOGO       LinkedIn overlays a SQUARE company logo plate on the bottom
+//              left, covering roughly x 0..800 at this width. The strip put its
+//              wordmark at x=843, which is 43px of clearance. Once LinkedIn
+//              applied its own side crop the plate landed ON the wordmark. That
+//              is the "outside the preferred area" fault exactly.
+//   INSTRUMENT the strip pushed the orrery centre OFF-canvas to cx=4273 with a
+//              1246px outer shell, so only bare arcs entered the frame and the
+//              right edge sliced them mid-curve. It reads as a render accident,
+//              not as a deliberate bleed.
+//   VOID       everything sat centre-right, leaving the left ~20% of a 6:1
+//              canvas as dead black -- and the logo plate does not fill it.
+//
+// SO: the instrument is CONTAINED rather than bled, at banner() proportions
+// scaled 0.92, and the type block is anchored at x=1000 -- 200px clear of the
+// logo plate and far clear of a 4%-per-side crop. Nothing is cut at any edge,
+// which is what makes this survive a crop the exact geometry of which we do not
+// control and cannot measure without logging in.
+//
+// THE TYPE IS NOT SHRUNK, deliberately. Founder ruling 2026-08-06, from the
+// rejected x-header `-safe` variant: shrinking type to survive a crop "looks
+// weird again, it's not good". Shrinking was the wrong lever there and it is
+// the wrong lever here. The anchor moves; the type does not.
+// =============================================================================
+function linkedinCover(w: number, h: number, id: string) {
+  // ---------------------------------------------------------------------------
+  // TYPE IS SIZED TO THE RENDERED COVER, NOT TO THE FILE. This is the whole
+  // reason this function exists in its current shape.
+  //
+  // Measured on the live page 2026-08-07, signed in, `View as member` at a
+  // 1440px viewport: LinkedIn draws this 4200x700 file into an 804x132 box.
+  // That is a 5.22x DOWNSCALE. So a size written here is divided by five before
+  // anybody reads it, and the only sizes that matter are display sizes.
+  //
+  // The first attempt at this layout borrowed banner()'s scale (s = h/500 = 1.4)
+  // and set the category line at 17*s = 24px. On screen that is 4.6px. The
+  // founder caught it immediately -- "it looks too small, would that be
+  // readable" -- and he was right; it is not a preference, it is illegible.
+  //
+  // The ORIGINAL strip() sizes were correct all along, because s = h/191 = 3.67
+  // happened to land the category at 64px master = 12.2px displayed. Its fault
+  // was alignment, never type size. So this layout keeps strip()'s sizes and
+  // fixes only what was actually broken.
+  //
+  // D below is the file-to-display ratio. Every type size is written as
+  // (target displayed px) * D, so the intent survives anyone rescaling the file.
+  // ---------------------------------------------------------------------------
+  const D = w / 804;
+
+  // BIG AND HALF-CUT, not small and complete. Founder call 2026-08-07: a small
+  // whole instrument "is so small it cannot even be read -- what is the whole
+  // purpose of it", and he is right. At 410px across it was decorative dust.
+  //
+  // So the centre now sits at x=4250, PAST the right edge, and the frame shows
+  // the left half of a large orrery sweeping in. The ellipses are bisected at
+  // their widest point, which reads as a deliberate section. That is the whole
+  // difference from the ORIGINAL fault: the old layout was also cut, but cut
+  // mid-arc at a random radius, which reads as an accident. Cut a circle at its
+  // diameter and it looks intended; cut it anywhere else and it looks broken.
+  //
+  // Vertically it stays CONTAINED -- k is down to 0.32 so the outer ring spans
+  // y 78..622 on a 700px canvas. One edge is cut, on purpose, and no other.
+  //
+  // THE MARK IS NOT DRAWN (markPx 0). The orrery's core is off-canvas, and that
+  // is the second half of the founder's note: LinkedIn already stamps the mark
+  // on the logo plate bottom-left AND prints "Supaprod" directly beneath the
+  // cover, so drawing the lockup here was the word's third appearance in one
+  // glance. "Again we are showing Supaprod. It's not good."
+  // THE INSTRUMENT IS LARGE AND ITS CORE IS IN FRAME. Founder reference
+  // 2026-08-07 (the x-header render): rings spreading wide and losing contrast
+  // as they go, the outermost ones drifting over the type without harming it.
+  //
+  // Two earlier passes got this wrong in opposite directions. The first made it
+  // small and complete, which he called decorative dust. The second pushed the
+  // core off-canvas and faded the RIGHT edge, which dimmed the dense, legible
+  // part and left only the faint outer arcs -- backwards. The falloff is RADIAL,
+  // not horizontal: bright at the core, dissolving outward. See `falloff`.
+  //
+  // Once the outer rings dissolve, they cost nothing, so the outermost shell can
+  // run to 1421 and sweep the full width. That is what "stretched towards left
+  // so that we show more portion" actually needs.
+  const outer = 1421;
+  const o: Orr = {
+    cx: 3980,
+    cy: h * 0.5,
+    k: 0.34,
+    shells: [304, 534, 823, 1107, outer],
+    stationR: 534,
+    nodeR: 11.8,
+    id,
+  };
+  // RADIAL CONTRAST FALLOFF. This is the correction that made the composition
+  // work, and it took two wrong attempts to find.
+  //
+  // The founder's words were "the spiral rings can be a little more subtly less
+  // contrast", and I read that as a left-right gradient twice. His reference
+  // image settled it: "take a look at how it slowly loses contrast while it
+  // spreads out and overlapping on the text". The axis is RADIAL. Rings are
+  // bright at the core and dissolve as they spread, which is both how an
+  // engraving of an orbital system actually behaves and the reason the faint
+  // outermost arcs are free to cross the type -- at 10% opacity they are
+  // atmosphere, not collision.
+  //
+  // The ellipse is sized to the instrument (rx to the outer shell, ry by k), so
+  // the fade follows the geometry rather than cutting across it.
+  const rx = Math.round(outer * 1.05);
+  const ry = Math.round(outer * 1.05 * o.k);
+  const falloff =
+    `radial-gradient(${rx}px ${ry}px at ${o.cx}px ${o.cy}px, ` +
+    `#000 0%, #000 26%, rgba(0,0,0,.60) 50%, rgba(0,0,0,.22) 72%, rgba(0,0,0,.05) 100%)`;
+  return page(
+    w,
+    h,
+    `
+    <div style="position:absolute;inset:0;background:
+      radial-gradient(80% 160% at 26% 0%, ${P.lift} 0%, transparent 62%)"></div>
+    <div style="position:absolute;inset:0;-webkit-mask-image:${falloff};mask-image:${falloff}">
+      ${machine(w, h, o, 245, 44, { r: 620, size: 44 })}
+    </div>
+    <!-- Star field ON TOP of the falloff, not inside it, so the sky stays even
+         across the whole frame while only the instrument fades. -->
+    ${starsAtDisplayScale(w, h, id + "sky", D, { x0: 900, x1: 3400, y0: 150, y1: 550 })}
+    ${GRAIN(P.grain)}
+    <!-- HIERARCHY INVERTED 2026-08-07, founder call, and this is the real fix.
+         "The agentic-first operating system for product teams -- that's the main
+          message. You can give agents own outcome, not output as a subline."
+         It had been the other way round: the sentence saying what the company IS
+         was set at a fifth the size of the one saying how it feels. A reader who
+         takes one glance should leave knowing the category, not the slogan.
+         No lockup here -- see the note on the mark above.
+         x=1000 clears LinkedIn's logo plate, which ends at x=794. -->
+    <div style="position:absolute;left:1000px;top:50%;transform:translateY(-50%);width:2460px">
+      <div style="width:${(30 * D).toFixed(0)}px;height:${(2.4 * D).toFixed(1)}px;background:${P.ember}"></div>
+      <div style="margin-top:${(13 * D).toFixed(0)}px;font-size:${(16.2 * D).toFixed(0)}px;
+          line-height:1.14;font-weight:500;letter-spacing:-.035em;color:${P.bone}">The agentic-first operating system for ${hi("product teams")}</div>
+      <div style="margin-top:${(10 * D).toFixed(0)}px;font-size:${(11.5 * D).toFixed(0)}px;
+          line-height:1.2;font-weight:500;letter-spacing:-.02em;color:#9DA0A7">${HOOK_FLAT}</div>
+    </div>
+  `,
+  );
+}
+
+// =============================================================================
 // The spec table. `base` carries NO ground and NO dimensions: both are appended,
 // so a file is always `<base>-<ground>-<W>x<H>.png` plus an `@2x` twin.
 //
@@ -355,7 +584,14 @@ function strip(w: number, h: number, id: string) {
 // against them and refuses to write a file whose pixels disagree with its own
 // name. That invariant exists because this kit once shipped a file called
 // og-dark-1200x630.png that was actually 600x315.
-const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[] = [
+const SPECS: {
+  base: string;
+  w: number;
+  h: number;
+  fn: (id: string) => string;
+  /** Also emit a JPEG twin. See the LinkedIn note below for why it is not decorative. */
+  jpeg?: boolean;
+}[] = [
   // Both variants ship for every avatar-overlay platform. `-safe` survives the
   // ~13% mobile side-crop and the nav-button band; the plain one is the wider
   // desktop composition. Neither replaces the other.
@@ -374,10 +610,23 @@ const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[
   // the quality loss before the number was checked.
   //
   // Cap is 3MB, and LinkedIn's own guidance prefers JPEG over PNG here because
-  // their pipeline re-encodes; `linkedin-cover-*.jpg` is emitted alongside for
-  // that reason. The old size is kept only as a fallback for any surface still
-  // asking for it.
-  { base: "linkedin-cover", w: 4200, h: 700, fn: (i) => strip(4200, 700, i) },
+  // their pipeline re-encodes. The old size is kept only as a fallback for any
+  // surface still asking for it.
+  //
+  // ⚠️ `jpeg: true` IS LOAD-BEARING AND IT WAS MISSING UNTIL 2026-08-07.
+  //
+  // This comment used to claim the JPEG "is emitted alongside". It was not. No
+  // code in this file or in orrery.ts ever wrote a .jpg -- the shipped
+  // linkedin-cover-dark-4200x700.jpg was made by hand on 2026-08-06 and then
+  // never moved again. So when the composition below was rewritten, the PNG
+  // updated and the JPEG kept serving the OLD broken layout, while §5 of
+  // social-accounts.md points the uploader at the JPEG by name.
+  //
+  // That is the house hazard verbatim: corrected source, stale artifact. It has
+  // now bitten the OG card, the icon set, the FAQ schema and this file. A
+  // comment asserting an output exists is not an output; only code that writes
+  // it is.
+  { base: "linkedin-cover", w: 4200, h: 700, fn: (i) => linkedinCover(4200, 700, i), jpeg: true },
   { base: "linkedin-cover-legacy", w: 1128, h: 191, fn: (i) => strip(1128, 191, i) },
   { base: "youtube-banner", w: 2560, h: 1440, fn: () => youtube() },
   { base: "og", w: 1200, h: 630, fn: (i) => card(1200, 630, i) },
@@ -387,13 +636,40 @@ const SPECS: { base: string; w: number; h: number; fn: (id: string) => string }[
   { base: "square", w: 1200, h: 1200, fn: (i) => card(1200, 1200, i) },
 ];
 
+// Iteration filters. A full run is 28 assets at 3x supersample and the 8400x1400
+// LinkedIn @2x alone takes minutes, which is long enough that you stop checking
+// your work. `ONLY` substring-matches the base, `GROUND` picks one ground:
+//
+//   ONLY=linkedin-cover GROUND=dark bun run generate-banners.ts
+//
+// Filters affect WHICH files are written, never HOW any of them is drawn, so a
+// filtered run and a full run produce byte-identical output for the assets both
+// of them touch. Verified 2026-08-07: after the LinkedIn recomposition a full
+// run left the other 26 assets untouched in git.
+const ONLY = process.env.ONLY;
+const GROUND = process.env.GROUND;
+
 console.log(`ORRERY — full platform set, both grounds, 3x supersample\n`);
+let jpegs = 0;
 for (const g of ["light", "dark"] as const) {
+  if (GROUND && g !== GROUND) continue;
   setGround(g);
   console.log(`  ${g.toUpperCase()}`);
   for (const s of SPECS) {
+    if (ONLY && !s.base.includes(ONLY)) continue;
     const id = `${s.base}-${g}`.replace(/[^a-z0-9]/g, "");
-    await render(s.fn(id), s.w, s.h, join(OUT, `${s.base}-${g}-${s.w}x${s.h}.png`));
+    const png = join(OUT, `${s.base}-${g}-${s.w}x${s.h}.png`);
+    await render(s.fn(id), s.w, s.h, png);
+    // Emitted FROM the PNG that was just written, so the two can never disagree.
+    // Quality 92 puts 4200x700 at roughly 400KB, an order under LinkedIn's 3MB
+    // cap, and LinkedIn re-encodes anyway so there is nothing to gain by going
+    // lower and detail to lose.
+    if (s.jpeg) {
+      const jpg = png.replace(/\.png$/, ".jpg");
+      await sharp(png).jpeg({ quality: 92, chromaSubsampling: "4:4:4" }).toFile(jpg);
+      jpegs++;
+      console.log(`    └─ ${jpg.split("/").pop()}`);
+    }
   }
 }
-console.log(`\n${SPECS.length * 2} assets → ${OUT}`);
+console.log(`\n${SPECS.length * 2} assets + ${jpegs} JPEG twins → ${OUT}`);
