@@ -612,7 +612,7 @@ function SignupPage() {
               lineHeight: 1.45,
             }}
           >
-            Supaprod is invite only right now
+            Invite only, for now
           </p>
           <p
             style={{
@@ -622,9 +622,14 @@ function SignupPage() {
               lineHeight: 1.55,
             }}
           >
-            We are letting people in a few at a time so the first ones through get properly looked
-            after. It is not a no, it is a not yet. Put your name down and we will send you a code
-            the moment a place opens up.
+            {/* 45 words down to 21, founder 2026-08-07: "it looks like a paragraph".
+                He was right, and the tell was that the one line worth keeping was
+                buried in the middle of it. "Not a no, a not yet" does the entire
+                emotional job in five words: it tells a stranger they have not been
+                rejected, which is the only thing this panel has to achieve. The
+                sentence about looking after the first ones through was us
+                explaining our reasoning to someone who did not ask for it. */}
+            Not a no, a not yet. Leave your name and your code arrives the moment a place opens.
           </p>
           <a
             href={REQUEST_ACCESS_HREF}
