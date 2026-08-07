@@ -9,6 +9,10 @@
 > so the kit can never drift from the app.
 
 
+## Email design
+
+**[`email-design.md`](./email-design.md) is the contract for how any email looks.** Read it before changing an email's appearance. It carries the decided treatment (an ember band, not an ember email, and why the full ground was pushed back on), the three contrast measurements that constrain it, which mark to use on which ground, and the BIMI requirements and cost that block the grey sender avatar. Assets come from [`generate-email-marks.ts`](./generate-email-marks.ts).
+
 ## The GitHub repo social preview
 
 **Asset:** [`social/github-social-preview-1280x640.png`](./social/github-social-preview-1280x640.png), plus the [`.svg`](./social/github-social-preview.svg) source. It is emitted by `generate-social.ts` like everything else; the hand-cropping recipe below is kept only as a record of why the obvious tools were rejected.

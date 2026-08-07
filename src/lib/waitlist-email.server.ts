@@ -91,7 +91,7 @@
  *     as machine output.
  *   - The email reads completely with images off, because it contains none.
  */
-import { sendEmail, absoluteUrl, emailShell } from "@/lib/email.server";
+import { sendEmail, absoluteUrl, emailShell, emailButton } from "@/lib/email.server";
 
 /** Lifecycle mail signs as a person. `rohit@supaprod.ai` is not an explicit
  *  Cloudflare route, but the domain's catch-all is active, so replies land in
@@ -115,9 +115,11 @@ export const A1_SUBJECT = "You are on the list";
  */
 function launchSentence(): string {
   const when = process.env.LAUNCH_DATE?.trim();
-  return when
-    ? `We open ${when}. You get an invite code that morning. One email, no countdown.`
-    : `The moment a slot opens, you get an invite code. One email, no countdown.`;
+  // EMPTY WHEN THERE IS NO DATE, which is the production case. The opening line
+  // already says a code is coming, so a second paragraph repeating it was the
+  // email telling the reader the same fact twice. When a date IS set it earns its
+  // own line, because a date is new information rather than a restatement.
+  return when ? `We open ${when}, and your code arrives that morning.` : ``;
 }
 
 /** Greeting that survives an empty name. We only ever collect an email address
@@ -134,17 +136,12 @@ export function a1Text(firstName?: string): string {
   return [
     greeting(firstName),
     ``,
-    `Engineering got real agents this year. Product management got a summarize button.`,
+    `You are in early. We are opening a few places at a time, so your code comes with your name on it rather than in a link that went to everyone.`,
     ``,
-    `That gap is what you just joined the list for. Supaprod is a product team of agents: they work out what to build, build it, ship it, then check whether it actually worked. The next call arrives already knowing what went wrong last time, so you do not pay for the same mistake twice.`,
-    ``,
-    launchSentence(),
-    ``,
-    `Meanwhile, give the Critic a bet you actually believe in. It red-teams it in about twenty seconds and shows its evidence. No account.`,
+    ...(launchSentence() ? [launchSentence(), ``] : []),
+    `One thing you can do now, no account needed: hand the Critic a bet you are genuinely unsure about. Twenty seconds, and it shows the evidence it used.`,
     ``,
     teardown,
-    ``,
-    `If it comes back useless, tell me. That is the more useful reply.`,
     ``,
     `Rohit`,
     ``,
@@ -156,28 +153,27 @@ export function a1Text(firstName?: string): string {
 
 export function a1Html(firstName?: string): string {
   const teardown = absoluteUrl("/p/teardown");
-  // Deliberately plain HTML: a table-based, image-heavy template from a domain
-  // with no sending history is a worse bet than something that looks like a
-  // person wrote it. System font stack, one link, no images, no tracking pixel.
-  const p = (s: string) =>
-    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1f1b16;">${s}</p>`;
+  const p = (t: string) =>
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1f1b16;">${t}</p>`;
   return emailShell(
     [
-    p(greeting(firstName)),
-    p(`Engineering got real agents this year. Product management got a summarize button.`),
-    p(
-      `That gap is what you just joined the list for. Supaprod is a product team of agents: they work out what to build, build it, ship it, then check whether it actually worked. The next call arrives already knowing what went wrong last time, so you do not pay for the same mistake twice.`,
-    ),
-    p(launchSentence()),
-    p(
-      `Meanwhile, give the Critic a bet you actually believe in. It red-teams it in about twenty seconds and shows its evidence. No account.`,
-    ),
-    p(`<a href="${teardown}" style="color:#C24E1E;font-weight:600;">Red-team one of your bets</a>`),
-    p(`If it comes back useless, tell me. That is the more useful reply.`),
-    p(`Rohit`),
-    `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,
-    `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">You are receiving this because you joined the Supaprod waitlist at supaprod.ai. To come off the list, reply with "unsubscribe" or write to <a href="mailto:${UNSUB}" style="color:#6b6457;">${UNSUB}</a>.</p>`,
+      p(greeting(firstName)),
+      p(
+        `You are in early. We are opening a few places at a time, so your code comes with your name on it rather than in a link that went to everyone.`,
+      ),
+      launchSentence() ? p(launchSentence()) : "",
+      p(
+        `One thing you can do now, no account needed: hand the Critic a bet you are genuinely unsure about. Twenty seconds, and it shows the evidence it used.`,
+      ),
+      emailButton(teardown, "Try the Critic"),
+      p(`Rohit`),
+      `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,
+      `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">You are receiving this because you joined the Supaprod waitlist at supaprod.ai. To come off the list, reply with "unsubscribe" or write to <a href="mailto:${UNSUB}" style="color:#6b6457;">${UNSUB}</a>.</p>`,
     ].join(""),
+    {
+      kicker: "You are on the list",
+      headline: "You are early, and that is the point.",
+    },
   );
 }
 

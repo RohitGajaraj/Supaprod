@@ -402,6 +402,9 @@ This is the email most companies do not send, and it is the reason the rest of t
 
 ## 7. Plain-text variant note, for deliverability
 
+> **Appearance is a separate contract.** How these emails LOOK (the ember band, the mark that answers to its ground, why white on the bright ember is banned, and what blocks the sender avatar) lives in [`branding/email-design.md`](./branding/email-design.md). This section covers deliverability only. Do not restyle an email without reading that file: two of its constraints are measurements that have each been violated once already.
+
+
 Every email above sends as `multipart/alternative` with a real plain-text part. This matters more than usual because the domain still has no sending history: `supaprod.ai` is verified and has never delivered a message to a stranger.
 
 - **The text part is written, not generated.** HTML with the tags stripped leaves orphaned link text and collapsed spacing, and filters read that as machine output. Write the text version by hand from the same copy, with the URL on its own line under the sentence that earns it. **A1 already does this**, and its HTML part is deliberately plain: system fonts, one link, no images, no tracking pixel, because a table-heavy template from a domain with no history is a worse bet than something that looks like a person wrote it.
