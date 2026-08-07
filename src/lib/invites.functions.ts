@@ -230,6 +230,92 @@ export const redeemInviteCode = createServerFn({ method: "POST" })
   .handler(({ data }): Promise<InviteVerdict> => redeemInviteCodeImpl(db, data.code));
 
 /* ------------------------------------------------------------------ *
+ * The second door: a workspace invitation is its own proof of admission
+ * ------------------------------------------------------------------ */
+
+/**
+ * THE REGRESSION THIS CLOSES, opened and shut on 2026-08-07.
+ *
+ * Gating signup broke `/join/$token`. Somebody an existing member had invited
+ * BY NAME was walked into the invite-code wall, which is precisely backwards:
+ * that person is the most vetted arrival the product has, more vetted than
+ * anyone holding a code we handed out, because a member staked their own
+ * workspace on them. The gate was built to admit exactly this cohort and was
+ * turning it away.
+ *
+ * WHY NOT JUST HONOUR `?next=/join/<token>`. Because that trusts a string
+ * anybody can type into the address bar, which is not a fix, it is the bypass
+ * with better manners. The parameter is a claim; this function is the check.
+ * Nothing here reads the URL, and a caller who invents a token gets the same
+ * refusal as a caller who sends none.
+ *
+ * WHY THE SERVICE ROLE. `workspace_invitations` has RLS that deliberately gives
+ * the invitee NO read: they are not a member yet, and a pending invitation must
+ * never leak workspace data to a non-member. So the invitee genuinely cannot
+ * check their own token, and the check has to happen here.
+ *
+ * WHAT THIS DISCLOSES, deliberately kept to one bit. Valid or not, and nothing
+ * else. No workspace name, no inviter, no email, no role. The token is a random
+ * uuid with no structure to guess at, so an attacker learns only that a value
+ * they already possessed is or is not live, which is what they would learn by
+ * following the link anyway.
+ */
+export type WorkspaceInviteVerdict = { valid: boolean };
+
+export async function checkWorkspaceInviteTokenImpl(
+  client: SupabaseClient,
+  token: string,
+): Promise<WorkspaceInviteVerdict> {
+  // An empty token can match a null column on some drivers, so refuse it before
+  // it ever reaches the query rather than relying on the filter to be strict.
+  if (!token) return { valid: false };
+  try {
+    const { data, error } = await client
+      .from("workspace_invitations")
+      .select("id")
+      .eq("token", token)
+      .eq("status", "pending")
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+    // Fail CLOSED. A read that did not complete is not evidence of a valid
+    // invitation, and the cost of being wrong here is an open door.
+    if (error) return { valid: false };
+    return { valid: Boolean(data) };
+  } catch {
+    return { valid: false };
+  }
+}
+
+/** Extract the token from a `next` path of the form `/join/<token>`.
+ *
+ *  Exported for testing, and written to be boring: anything that is not
+ *  exactly that shape returns null and the caller falls back to the code gate.
+ *  It does no validation of its own, because deciding whether a token is real
+ *  is the server's job and this only decides whether a string looks like one. */
+export function tokenFromNextPath(next: unknown): string | null {
+  if (typeof next !== "string") return null;
+  const m = /^\/join\/([^/?#]+)$/.exec(next.trim());
+  if (!m) return null;
+  const raw = m[1];
+  try {
+    return decodeURIComponent(raw) || null;
+  } catch {
+    // A malformed escape is not a token.
+    return null;
+  }
+}
+
+export const checkWorkspaceInviteToken = createServerFn({ method: "POST" })
+  .inputValidator((i: unknown): { token: string } => {
+    const t = (i as { token?: unknown } | null)?.token;
+    return { token: typeof t === "string" ? t.trim().slice(0, 200) : "" };
+  })
+  .handler(
+    ({ data }): Promise<WorkspaceInviteVerdict> =>
+      checkWorkspaceInviteTokenImpl(db, data.token),
+  );
+
+/* ------------------------------------------------------------------ *
  * The admin side: list, mint, revoke
  * ------------------------------------------------------------------ */
 

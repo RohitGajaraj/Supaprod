@@ -8,7 +8,13 @@ import { authErrorMessage } from "@/lib/auth-errors";
 import { AuthScaffold, fieldLabelStyle, fieldErrorStyle } from "@/components/supaprod/AuthScaffold";
 import { recordAuthEvent } from "@/lib/observability/auth.functions";
 import { claimLandingSession } from "@/lib/landing.functions";
-import { checkInviteCode, redeemInviteCode, normalizeInviteCode } from "@/lib/invites.functions";
+import {
+  checkInviteCode,
+  redeemInviteCode,
+  normalizeInviteCode,
+  checkWorkspaceInviteToken,
+  tokenFromNextPath,
+} from "@/lib/invites.functions";
 import { clearLandingSessionKey, peekLandingSessionKey } from "@/lib/landing-session";
 import {
   planPresentation,
@@ -202,6 +208,28 @@ function SignupPage() {
    * Returns true when the caller may go on and create an account.
    */
   async function passesGate(setBusyFalse: () => void): Promise<boolean> {
+    // THE SECOND DOOR. A workspace invitation is its own proof of admission, and
+    // for one evening it was not: gating signup walked somebody an existing
+    // member had invited BY NAME straight into the code wall. That person is the
+    // most vetted arrival the product gets, more so than anyone holding a code we
+    // handed out, because a member staked their own workspace on them.
+    //
+    // The token is CHECKED, never trusted. `next` is a string anyone can type,
+    // so it is treated as a claim and the server decides; an invented token
+    // takes the same path as no token at all and falls through to the code gate
+    // below. See checkWorkspaceInviteToken for why this cannot be read from the
+    // browser (the invitee has no RLS read on their own invitation, on purpose)
+    // and for the single bit it is allowed to disclose.
+    const joinToken = tokenFromNextPath(next);
+    if (joinToken) {
+      const ws = await checkWorkspaceInviteToken({ data: { token: joinToken } }).catch(() => null);
+      if (ws?.valid) return true;
+      // Not valid, and deliberately silent about it. The invitation may simply
+      // have expired, and this person still has a legitimate way in if they were
+      // also given a code. Announcing "your invitation is dead" here would strand
+      // them on a screen whose actual subject is a different credential.
+    }
+
     const verdict = await checkInviteCode({ data: { code: inviteCode } }).catch(() => null);
     // A round trip that never landed is not a bad code and must not be dressed
     // as one. The person is told to try again, never told their code is wrong.

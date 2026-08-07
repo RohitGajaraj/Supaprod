@@ -26,6 +26,8 @@ import {
   redeemInviteCodeImpl,
   normalizeInviteCode,
   INVITE_ATTEMPT_CEILING,
+  checkWorkspaceInviteTokenImpl,
+  tokenFromNextPath,
 } from "./invites.functions";
 
 type FakeCode = {
@@ -332,5 +334,82 @@ describe("the migration keeps the guard inside the increment", () => {
     // null max_uses and null expires_at are what make it usable in the one
     // moment nobody has time to mint a replacement.
     expect(insert).toMatch(/null,\s*\n?\s*null,\s*\n?\s*false/);
+  });
+});
+
+describe("workspace invitation as the second door", () => {
+  // The regression this guards: gating signup walked an invitee who an existing
+  // member had named straight into the code wall. The fix must admit that person
+  // WITHOUT admitting anyone who can type a URL, so these tests are really about
+  // the boundary between a claim and a check.
+
+  it("lifts the token out of a well-formed next path", () => {
+    expect(tokenFromNextPath("/join/abc-123")).toBe("abc-123");
+    expect(tokenFromNextPath("  /join/abc-123  ")).toBe("abc-123");
+    expect(tokenFromNextPath("/join/" + encodeURIComponent("a b"))).toBe("a b");
+  });
+
+  it("refuses anything that is not exactly that shape", () => {
+    // Each of these was a real way to smuggle something past a looser parser.
+    expect(tokenFromNextPath("/join/")).toBeNull();
+    expect(tokenFromNextPath("/join/tok/extra")).toBeNull();
+    expect(tokenFromNextPath("/join/tok?x=1")).toBeNull();
+    expect(tokenFromNextPath("/join/tok#frag")).toBeNull();
+    expect(tokenFromNextPath("//evil.com/join/tok")).toBeNull();
+    expect(tokenFromNextPath("https://evil.com/join/tok")).toBeNull();
+    expect(tokenFromNextPath("/today")).toBeNull();
+    expect(tokenFromNextPath(undefined)).toBeNull();
+    expect(tokenFromNextPath(null)).toBeNull();
+    expect(tokenFromNextPath(42)).toBeNull();
+  });
+
+  it("a malformed percent escape is not a token", () => {
+    expect(tokenFromNextPath("/join/%E0%A4%A")).toBeNull();
+  });
+
+  it("an empty token never reaches the query", async () => {
+    let queried = false;
+    const spy = {
+      from() {
+        queried = true;
+        throw new Error("must not query");
+      },
+    } as unknown as Parameters<typeof checkWorkspaceInviteTokenImpl>[0];
+    expect(await checkWorkspaceInviteTokenImpl(spy, "")).toEqual({ valid: false });
+    expect(queried).toBe(false);
+  });
+
+  it("fails CLOSED when the read errors, because the cost of being wrong is an open door", async () => {
+    const failing = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              gt: () => ({
+                maybeSingle: async () => ({ data: null, error: { message: "boom" } }),
+              }),
+            }),
+          }),
+        }),
+      }),
+    } as unknown as Parameters<typeof checkWorkspaceInviteTokenImpl>[0];
+    expect(await checkWorkspaceInviteTokenImpl(failing, "tok")).toEqual({ valid: false });
+  });
+
+  it("valid only when a pending, unexpired row comes back", async () => {
+    const make = (row: unknown) =>
+      ({
+        from: () => ({
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                gt: () => ({ maybeSingle: async () => ({ data: row, error: null }) }),
+              }),
+            }),
+          }),
+        }),
+      }) as unknown as Parameters<typeof checkWorkspaceInviteTokenImpl>[0];
+    expect(await checkWorkspaceInviteTokenImpl(make({ id: "x" }), "tok")).toEqual({ valid: true });
+    expect(await checkWorkspaceInviteTokenImpl(make(null), "tok")).toEqual({ valid: false });
   });
 });
