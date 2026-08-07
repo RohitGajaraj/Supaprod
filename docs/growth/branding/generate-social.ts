@@ -173,9 +173,27 @@ const bg = (g: Ground) => (g === "dark" ? C.bgDark : C.bgLight);
  *           decorate". One point of light in the whole frame is the premium
  *           signal; a full ember-to-blue spiral on a marketing card is decoration.
  *
- *   "grad"  the ember-to-blue expression. Reserved for the app icon and the
- *           avatars derived from it, which already shipped that way. Changing
- *           them would be a ratchet regression on an asset that is already right.
+ *   "grad"  RETIRED. This used to read "the ember-to-blue expression, reserved
+ *           for the app icon and the avatars derived from it, which already
+ *           shipped that way; changing them would be a ratchet regression on an
+ *           asset that is already right."
+ *
+ *           Every clause of that was false by the time it was read. The founder
+ *           had already banned the ember-to-blue gradient on 2026-08-05 (the
+ *           ruling is recorded in full in mark.ts, above the markInner builder),
+ *           the code below has passed SILVER for dark avatars ever since, and
+ *           the asset it called "already right" was the one being rejected.
+ *
+ *           This comment survived the ruling and became the most dangerous line
+ *           in the kit: on 2026-08-07 it was the stated reason for reaching back
+ *           to the pre-ruling PNGs in icons/ and shipping a violet app icon to
+ *           public/. The founder caught it on sight, again.
+ *
+ *           THERE IS NO SECOND BRAND COLOUR. The mark is a WHITE spiral, an
+ *           ember core and a gold bead. If you are about to add blue, you are
+ *           re-litigating a closed ruling. Spiral still carries a "grad" kind in
+ *           mark.ts because the type is general; nothing constructs one, and
+ *           nothing should.
  */
 function markSVG(px: number, ground: Ground, id: string): string {
   const sw = strokeFor(px);

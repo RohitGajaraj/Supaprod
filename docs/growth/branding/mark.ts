@@ -199,9 +199,43 @@ export function faviconMark(stroke: string | "adaptive"): string {
   );
 }
 
+/**
+ * FAVICONS. A grounded mark tuned to survive a browser tab, which appIcon is not.
+ *
+ * The README used to say "sixteen pixels is a geometry problem, not a tuning
+ * problem: seven petals plus seven gaps plus a core do not fit." **That was
+ * measured on appIcon and it is wrong as a general claim.** appIcon spends 36%
+ * of its frame on clear space, because a home-screen icon sits beside other
+ * icons and needs room. A favicon has no neighbours and sixteen pixels total, so
+ * that padding is the most expensive thing in the file: it shrinks the mark to
+ * 64% and drops the stroke to 4.6/100 x 16 = 0.74px, which antialiases away and
+ * leaves only the ember core. That is the "one orange dot" the founder reported
+ * on 2026-08-07, and it read as half-built.
+ *
+ * Rendered at 16 and 32 and compared side by side, the petals resolve fine once
+ * the padding goes and the stroke scales with the mark. The constraint was never
+ * the geometry. Do not reinstate the old claim.
+ *
+ * @param fill fraction of the frame the mark occupies. 0.88 keeps the rounded
+ *             corner readable; past ~0.92 the petals fatten and the gaps close.
+ * @param sw   stroke width in markInner's 100-unit space. 7 is crisp at 32px;
+ *             8.5 is bolder and wins at 16px, where fine gaps are lost anyway.
+ */
+export function faviconIcon(fill = 0.96, sw = 10): string {
+  const pad = Math.round((512 * (1 - fill)) / 2);
+  const scale = ((512 - pad * 2) / 100).toFixed(3);
+  const inner = markInner({ spiral: SILVER, glow: null, sw, coreGlow: true });
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">` +
+    `<circle cx="256" cy="256" r="256" fill="${C.bgDark}"/>` +
+    `<g transform="translate(${pad},${pad}) scale(${scale})">${inner}</g></svg>\n`
+  );
+}
+
 // App icons: rounded square + centered mark (scaled to ~64% for clear space).
 // This is the social avatar source: it carries its own ground, so it reads
-// identically against a light platform UI and a dark one.
+// identically against a light platform UI and a dark one. The clear space is
+// correct HERE and wrong for a favicon; see faviconIcon above.
 export function appIcon(bg: string, spiral: Spiral, glow: string | null, sw?: number): string {
   // coreGlow stays on regardless: the ember centre is the one lit thing.
   const inner = markInner({ spiral, glow, sw, coreGlow: true });
