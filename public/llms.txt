@@ -1,15 +1,15 @@
 # Supaprod
 
-> Supaprod tells product teams what to build, then runs a loop to shipped code and grades the outcome. Every outcome sharpens the next. You approve the gates.
+Supaprod is the operating system for product teams: agents that discover what to build, decide on bets, design and build specs, ship with safety, and learn from real-world outcomes. Every decision is recorded. Every outcome grades the advice. The moat is not storage. It is learning.
 
-Supaprod senses what is happening, decides what is worth building, runs the work autonomously, and keeps a trustworthy record of every decision and whether it was right. It is an AI product team: agents that discover, decide, build, and ship, governed by one human who gets the receipts.
+You remain in control: no irreversible action happens without your approval.
 
 ## What Supaprod does
 
-- **Sense**: monitors live signals (analytics spikes, support patterns, competitor moves) and surfaces what warrants attention — without waiting for a human to open a tab
+- **Discover**: monitors live signals (analytics spikes, support patterns, competitor moves) and surfaces what warrants attention — without waiting for a human to open a tab
 - **Decide**: a governed decision brain captures every call, the evidence behind it, who approved it, and whether it was later proven right or superseded by a better decision
-- **Execute**: autonomous specialist agents run the full lifecycle (define, build, ship, learn) with human approval gates at the moments that matter
-- **Remember**: the Trust Ledger — a compounding, cryptographically-timestamped record of every decision and outcome; the moat that compounds with use
+- **Build**: autonomous specialist agents run the full lifecycle (design, code, test, ship) with human approval gates at the moments that matter
+- **Learn**: the Trust Ledger — a compounding, cryptographically-timestamped record of every decision and real-world outcome; graded and fed back into the next call
 
 ## Who Supaprod is for
 
@@ -36,7 +36,6 @@ Supaprod is designed for the agentic era. Every page supports structured agent c
 | `/knowledge` | Decision brain and memory layer: beliefs, supersession graph, learnings |
 | `/trust-ledger` | Audit trail: every decision, every outcome, integrity fingerprint |
 | `/govern` | Governance and cost controls: agent trust arcs, spend caps, approval modes |
-| `/products` | Product portfolio and opportunity register |
 | `/discover` | Discovery feed: opportunities ranked by ICE, signals, precedents |
 
 ## Public surfaces
