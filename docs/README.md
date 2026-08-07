@@ -87,6 +87,7 @@ Start at [`../README.md`](../README.md) if you want to know what the product is.
 | **A runbook, playbook, or ops procedure** | [`operations/`](./operations/README.md) | its README |
 | **Anything about testing** | [`operations/testing/`](./operations/testing/README.md) | its README |
 | **Anything about security or an audit** | [`operations/security/`](./operations/security/README.md) | its README |
+| **A privacy or data-handling disclosure that a public legal page is written from** | [`operations/security/`](./operations/security/README.md) | its README. The page states it in plain words; this states it with file and line, so the two can be checked against each other. [`operations/security/cookie-and-storage-policy.md`](./operations/security/cookie-and-storage-policy.md) is the worked example. |
 | **A founder mission brief, verbatim** | [`prompts/`](./prompts/README.md) | its README |
 | **What this session did and left open** | [`operations/session-handoff.md`](./operations/session-handoff.md) | already linked. Write it **before** you stop. |
 

@@ -2,6 +2,22 @@
 // for Google OAuth verification. Honest specifics over boilerplate: names the
 // actual stack (Supabase Postgres + RLS, connector OAuth scopes, BYO keys)
 // rather than generic legal filler.
+//
+// THE STORAGE SECTION IS DERIVED, NOT AUTHORED. Every claim in "Cookies and
+// local storage" comes from docs/operations/security/cookie-and-storage-policy.md,
+// which lists each key with the file and line that writes it. Change one and
+// change the other in the same commit; src/__tests__/client-storage-consent.test.ts
+// fails if the code grows a key the policy does not name.
+//
+// WHY THAT RULE EXISTS. Until 2026-08-07 this section described a `session-id`
+// cookie with a 30 minute lifetime, four localStorage keys named user_id /
+// workspace_id / auth_token / preferences, and "Flock Analytics" as the vendor,
+// linked to /subprocessors. None of it was true: this product sets no cookie at
+// all, none of those four key names exist, and no such vendor appears anywhere in
+// the repo or on the page it linked to. The copy was written against a /~flock.js
+// script that is not in this codebase. A policy is a factual claim about
+// behaviour, and claiming storage more invasive than what happens is the failure
+// direction that costs trust the moment a reviewer opens devtools and checks.
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPageShell, LegalSection } from "@/components/supaprod/LegalPageShell";
 
@@ -27,7 +43,7 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <LegalPageShell eyebrow="Legal" title="Privacy policy" updated="July 10, 2026">
+    <LegalPageShell eyebrow="Legal" title="Privacy policy" updated="August 7, 2026">
       <p>
         This is the plain-language version, followed by the specifics. We read what you connect, we
         never use your product's data to train a shared model, you can revoke any connection with
@@ -76,16 +92,30 @@ function PrivacyPage() {
 
       <LegalSection title="Cookies and local storage">
         <p>
-          Supaprod stores one first-party cookie, <code>session-id</code>, which groups page views
-          into a single visit for product analytics. It expires after 30 minutes of inactivity. We
-          also store usage data in your browser's local storage (keys: <code>user_id</code>,{" "}
-          <code>workspace_id</code>, <code>auth_token</code>, <code>preferences</code>) to remember
-          your settings and authentication state across sessions. You can delete both at any time
-          via your browser's settings. Supaprod's analytics provider is Flock Analytics (see{" "}
-          <a href="/subprocessors" style={{ color: "#ff9542" }}>
-            subprocessors
-          </a>
-          ).
+          <strong>Supaprod sets no cookies, and loads no third-party script.</strong> No advertising
+          network, no tag manager, no session recorder, no analytics SDK runs in your browser, so no
+          third party can store anything there or learn that you visited. That is also why you see
+          no consent banner: there is nothing here that consent law asks us to ask you about.
+        </p>
+        <p>
+          What we do store is kept in your browser and stays there. Your sign-in session (so you are
+          not signed out on every page), the workspace and product you last had open, and the
+          preferences you set yourself: theme, density, rail width, sound, and the notices you have
+          already dismissed. Those persist until you clear them. A second, shorter-lived group is
+          held only until you close the tab: where you got to in onboarding, a demo in progress, and
+          the palette's recent items.
+        </p>
+        <p>
+          One item is measurement rather than function. The first time you land on the marketing
+          site we generate a random 32-character value that lets us tell that one visit and one
+          signup were the same person, instead of two unrelated numbers. It contains nothing about
+          you, your device or your network, it is random and nothing else. It never leaves Supaprod,
+          it is destroyed when you close the tab, and it is deleted the moment an account claims it.
+        </p>
+        <p>
+          Clearing your browser storage for this site removes all of it, and nothing breaks except
+          that you sign in again. The full technical inventory, every key with the file that writes
+          it, is kept alongside the code so this page can be checked rather than trusted.
         </p>
       </LegalSection>
 

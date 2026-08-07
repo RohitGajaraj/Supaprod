@@ -21,6 +21,16 @@ import { getLandingSessionKey } from "@/lib/landing-session";
 // offer line does the work alone (founder ruling 2026-07-15).
 const WAITLIST_NUDGE_FLOOR = 2000;
 
+// The floor below which the CONFIRMATION does not state the queue's size.
+//
+// Deliberately far below WAITLIST_NUDGE_FLOOR, because the two numbers are
+// answering different questions. The nudge above has to read as a crowd to
+// persuade a stranger who has not yet decided. This one only has to not read as
+// EMPTY to somebody who has already committed, and that is a much lower bar: a
+// queue of a few hundred is respectable to the person standing in it, while a
+// queue of two tells them they are early in the way that means abandoned.
+const QUEUE_SIZE_FLOOR = 250;
+
 export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }) {
   const [email, setEmail] = useState("");
   const [bet, setBet] = useState("");
@@ -59,9 +69,27 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
           <p className="text-white text-lg font-medium mb-1">
             {result.alreadyJoined ? "You are already in line." : "You are in line."}
           </p>
+          {/* "Position #2 of 2" PUBLISHED THE LIST SIZE, and on launch day that
+              is the one number a visitor must not be handed. It told every early
+              signup that the queue they just joined has two people in it, which
+              reads as nobody wants this, and it did so at the single most
+              persuadable moment on the site. The founder caught it live on
+              2026-08-07 at exactly two rows.
+
+              The denominator is not deleted, it is FLOORED, which is the same
+              rule getLandingStats already applies to the social-proof counter on
+              the close beat. Below the floor the total is simply not stated;
+              above it the total is the thing worth saying and it appears. No
+              number here is ever inflated or invented, so the claims law holds
+              either way: we withhold a true number, we never publish a false one.
+
+              The position itself always shows. It is the thing the person asked
+              for, it is the thing the referral mechanic acts on, and it is
+              flattering rather than damaging when small. */}
           <p className="text-zinc-400 text-sm mb-5" style={{ fontVariantNumeric: "tabular-nums" }}>
-            Position <span className="text-white font-semibold">#{result.position}</span> of{" "}
-            {result.total}. Each signup through your link moves you up.
+            You are <span className="text-white font-semibold">#{result.position}</span>
+            {result.total >= QUEUE_SIZE_FLOOR ? ` of ${result.total}` : ""} in line. Each signup
+            through your link moves you up.
           </p>
           <div className="flex gap-2">
             <input
@@ -112,6 +140,25 @@ export function WaitlistForm({ waitlistCount }: { waitlistCount: number | null }
         });
       }}
     >
+      {/* THE REFERRAL LINK USED TO DO NOTHING VISIBLE. `?r=` was read into
+          state and posted correctly with the join, so the mechanic worked, but
+          the page it landed on was byte-identical to the cold one. That breaks
+          the loop at both ends: the person who shared has no evidence their link
+          did anything, and the person who arrived is given no reason to finish
+          rather than wander off. A queue-bump nobody can see is not a mechanic,
+          it is a database column.
+
+          Deliberately anonymous. We hold a referral CODE, never the referrer's
+          name, and inventing one ("Rohit invited you") would be a claim about a
+          person we cannot support. Saying what is true, that somebody's link
+          brought them here and finishing the form credits it, is both honest and
+          the part that actually motivates. */}
+      {referredBy ? (
+        <p className="text-zinc-400 text-sm mb-4">
+          Someone shared this with you. Joining here moves them up the queue.
+        </p>
+      ) : null}
+
       {/* One ember object in this viewport, and it is this button. */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <input

@@ -127,9 +127,7 @@ export function a1Html(firstName?: string): string {
     p(
       `You do not have to wait for the interesting part. Point the Critic at a bet you believe in and it will red-team it, with the evidence it used. No account, no card, nothing to install.`,
     ),
-    p(
-      `<a href="${teardown}" style="color:#C24E1E;font-weight:600;">Red-team one of your bets</a>`,
-    ),
+    p(`<a href="${teardown}" style="color:#C24E1E;font-weight:600;">Red-team one of your bets</a>`),
     p(
       `If it finds nothing useful, reply and tell me. That is a more useful email for me than a good one.`,
     ),
@@ -151,7 +149,7 @@ export function a1Html(firstName?: string): string {
  */
 export async function sendWaitlistWelcome(to: string, firstName?: string): Promise<void> {
   try {
-    await sendEmail({
+    const result = await sendEmail({
       to,
       subject: A1_SUBJECT,
       text: a1Text(firstName),
@@ -165,8 +163,27 @@ export async function sendWaitlistWelcome(to: string, firstName?: string): Promi
         "List-Unsubscribe": `<mailto:${UNSUB}?subject=unsubscribe>`,
       },
     });
-  } catch {
+    // SAY SO WHEN IT DOES NOT SEND. This result was being discarded, which made
+    // a failed welcome completely invisible: the row was written, the caller saw
+    // success, and the only symptom was an email that never arrived with no
+    // record anywhere of why. That is precisely the state the founder hit on
+    // 2026-08-07 while testing, and the answer turned out to be a deploy that
+    // predated this code, which a single line of output would have shown at
+    // once. sendEmail already returns a reason for every failure mode it has,
+    // including the honest no-op when RESEND_API_KEY is absent, so there is
+    // nothing to construct here beyond printing it.
+    //
+    // Still not thrown, and still not surfaced to the visitor. A logged failure
+    // is for us; the person is on the list either way and does not need to see
+    // our vendor's status.
+    if (!result.sent) {
+      console.warn(`[waitlist] welcome email not sent: ${result.reason}`);
+    }
+  } catch (e) {
     // Unreachable in practice, sendEmail already swallows. Belt and braces:
     // this is called from inside a signup handler and must not surface.
+    console.warn(
+      `[waitlist] welcome email threw: ${e instanceof Error ? e.message : "unknown error"}`,
+    );
   }
 }

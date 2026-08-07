@@ -333,6 +333,35 @@ export function Hero() {
               Paste one product bet and it comes back with the risks, the gaps and a verdict in
               about twenty seconds.
             </p>
+
+            {/* A WAY TO THE WAITLIST FROM THE TOP, and deliberately a quiet one.
+             *
+             * Founder 2026-08-07: "join beta should be on top also. Why is it
+             * only at the bottom?" The word that decides the shape of this is
+             * ALSO. It is not a request to undo the 2026-08-05 ruling a few
+             * lines above, which moved the primary CTA off #join after 1,294
+             * visits produced ZERO waitlist rows, and that ruling still holds:
+             * making this a second button would rebuild the exact ambiguity it
+             * removed, where the page's loudest control says "start" and the one
+             * beside it says "wait".
+             *
+             * So the top of the page now offers the waitlist at the weight it
+             * has earned, which is a text link under the offer, for the visitor
+             * who has decided they are not creating an account today and would
+             * otherwise simply leave. It cannot outrank "Start free" and it is
+             * not trying to.
+             *
+             * It scrolls rather than navigates, to #join on the close beat,
+             * which already carries scroll-mt-40 for exactly this. One waitlist
+             * form on the page, two ways to reach it. */}
+            <p
+              className="hero-rise mt-4 text-[13px] text-zinc-500 md:text-sm"
+              style={{ animationDelay: "260ms" }}
+            >
+              <a href="#join" className="underline underline-offset-4 hover:text-zinc-300">
+                Not ready for an account? Join the beta list
+              </a>
+            </p>
           </div>
 
           {/* Center: the mark, backlit like an eclipse (desktop) */}

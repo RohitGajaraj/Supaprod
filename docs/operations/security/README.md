@@ -14,6 +14,7 @@ Audit findings, remediation state, and the one implementation guide. For the arc
 | [`remediation-log.md`](./remediation-log.md) | What has been fixed, dated. |
 | [`xss-prevention-guide.md`](./xss-prevention-guide.md) | The implementation guide. Durable, not a snapshot. |
 | [`audit-remediation.md`](./audit-remediation.md) | The narrative report behind the roadmap. |
+| [`cookie-and-storage-policy.md`](./cookie-and-storage-policy.md) | Every key the app writes into a browser, with the file that writes it, and why no consent banner is required. **Read it before adding any storage write, analytics vendor or third-party script.** |
 
 ## The two live-browser audits, and why both are kept
 

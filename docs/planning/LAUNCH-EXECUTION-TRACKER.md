@@ -94,7 +94,7 @@ Verified against the live accounts, not the ledger. **The ledger was wrong in bo
 | Item | Owner | Status | Note |
 | --- | --- | --- | --- |
 | `/privacy`, `/terms`, `/security`, `/subprocessors` | — | ✅ | All real routes, linked from footer. **This is usually what sinks a launch and it is done.** |
-| Cookie consent | Founder | ⬜ | No consent surface. The only `document.cookie` write is the sidebar preference, a functional cookie needing no consent. If the analytics `session-id` is set without consent that is an EU exposure. |
+| Cookie consent | — | ✅ | **Closed 2026-08-07 by finding that none is required.** No cookie is set at all: the sidebar write is stock shadcn whose provider nothing imports. No third-party script loads and no browser analytics SDK is installed. The `session-id` feared here does not exist. Full inventory and the legal reading: [`operations/security/cookie-and-storage-policy.md`](../operations/security/cookie-and-storage-policy.md). |
 | Contact route | Agent | ✅ | `hello@supaprod.ai` in footer |
 | Help centre | — | 🔵 | `/faq` covers launch week. A real help centre is post-launch. |
 | Status page | — | ⬜ | Deferred deliberately: with no customers there is nobody to inform. |
@@ -173,9 +173,9 @@ Every domain the founder named, with its verified state, and scored so the order
 | 11 | **Pricing** | ✅ four tiers live, structured data added, Free-tier connector bug fixed | High | done | — | — |
 | 12 | **Branding** | ✅ kit complete, 5 cover variants, square logo, all assets regenerate from source | Medium | done | — | — |
 | 13 | **Legal pages** | ✅ `/privacy` `/terms` `/security` `/subprocessors` all real and linked | **Critical** | done | — | — |
-| 14 | **Privacy** | ✅ cookies and localStorage disclosed | High | done | — | — |
+| 14 | **Privacy** | ✅ storage section rewritten 2026-08-07. It previously described a `session-id` cookie, four key names this repo never used, and a vendor that does not exist | High | done | — | — |
 | 15 | **Terms** | ✅ plain-language, all required sections | Medium | done | — | — |
-| 16 | **Cookie consent** | ⬜ no consent surface. Sidebar cookie is functional and needs none; the analytics `session-id` is the exposure | Medium | 4 h | nothing | **12** |
+| 16 | **Cookie consent** | ✅ none required, and building one would have been a false claim about our own storage. Verdict and inventory in [`operations/security/cookie-and-storage-policy.md`](../operations/security/cookie-and-storage-policy.md), held by a guard test | Medium | done | — | — |
 | 17 | **Demos** | ✅ `/demo` and `/p/teardown` both real, both no-signup | High | done | — | — |
 | 18 | **FAQs** | ✅ `/faq`, ten question-shaped answers, FAQPage schema | Medium | done | — | — |
 | 19 | **Documentation** | 🔵 `/faq` covers launch week. No developer docs site | Low | — | post-launch | — |
@@ -198,6 +198,6 @@ Every domain the founder named, with its verified state, and scored so the order
 
 **Positions 5 to 10 are agent work with no founder dependency**, and can run in parallel with each other the moment 1 to 4 are done.
 
-**Everything from 12 down is genuinely deferrable.** Cookie consent, feedback widgets, a help centre and customer interviews are real work that does not decide whether launch week succeeds.
+**Everything from 12 down is genuinely deferrable.** Feedback widgets, a help centre and customer interviews are real work that does not decide whether launch week succeeds. Cookie consent left this list on 2026-08-07 without being built: the four hours were spent establishing that nothing we store requires consent, which is the cheaper answer and the true one.
 
 **The single highest-leverage item is not on this list**, because it is a product action rather than a launch domain: settling one outcome, P1 in section 2. It converts the compounding claim from an argument into a demonstration, gives `/proof` a real number, and unblocks the teaser video's closing frame. One action, three unblocks.

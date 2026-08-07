@@ -101,10 +101,7 @@ for (const [r, size] of SIZES.entries()) {
       .resize(size, size)
       .png()
       .toBuffer();
-    const shown = await sharp(png)
-      .resize(CELL, CELL, { kernel: "nearest" })
-      .png()
-      .toBuffer();
+    const shown = await sharp(png).resize(CELL, CELL, { kernel: "nearest" }).png().toBuffer();
     composites.push({
       input: shown,
       left: PAD + c * (CELL + PAD),
@@ -151,8 +148,12 @@ if (process.env.PROMOTE === "1") {
     copyFileSync(PUBLIC_SVG, join(OUT, "_previous-public-favicon.svg"));
   }
   writeFileSync(PUBLIC_SVG, svgFor(CHOSEN));
-  console.log(`\nPROMOTED variant ${CHOSEN.id} (fill ${CHOSEN.fill}, sw ${CHOSEN.sw}) -> public/favicon.svg`);
+  console.log(
+    `\nPROMOTED variant ${CHOSEN.id} (fill ${CHOSEN.fill}, sw ${CHOSEN.sw}) -> public/favicon.svg`,
+  );
   console.log(`previous kept at ${join(OUT, "_previous-public-favicon.svg")}`);
 } else {
-  console.log(`\nnothing promoted. re-run with PROMOTE=1 to write variant ${CHOSEN.id} to public/favicon.svg`);
+  console.log(
+    `\nnothing promoted. re-run with PROMOTE=1 to write variant ${CHOSEN.id} to public/favicon.svg`,
+  );
 }
