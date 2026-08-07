@@ -78,8 +78,27 @@ The RFS page has fully rotated to 13 Fall 2026 categories (The Primer, American 
 - **PASTE THIS:**
 
 ```
-explore@supaprod.ai / Supaprod!Explore2026 (seeded workspace: calls are waiting on your judgment, each opens to the evidence it was made on; or sign up with any email)
+explore@supaprod.ai / Supaprod!Explore2026 (seeded workspace: calls are waiting on your judgment, each opens to the evidence it was made on; or sign up with invite code YC-COMPOUND-K7QR4V)
 ```
+
+> ### 🚨 RE-PASTE THIS ONE LINE. 2026-08-07, and it is the only field the gate touched.
+>
+> **Change exactly seven words** at the end of the parenthetical:
+>
+> | | |
+> | --- | --- |
+> | **Find** | `or sign up with any email` |
+> | **Replace with** | `or sign up with invite code YC-COMPOUND-K7QR4V` |
+>
+> **Where:** YC portal → Update your application → **Surface 1, Progress Update** → Login credentials (single-line). It is one of the five surfaces still editable, so this is a real fix rather than a note for the interview.
+>
+> **THE LOGIN ITSELF IS FINE AND DOES NOT CHANGE.** Signup closed on 2026-08-07 (private beta, invite code only), and the gate stands in front of account CREATION, not sign-in. `explore@supaprod.ai` is an account that already exists, so a partner who uses the credentials as filed lands exactly where they always did. Nothing about the demo workspace, the approval queue or the password moved.
+>
+> **What broke is the alternative path we advertised.** "Or sign up with any email" was true when it was written and stopped being true that evening. A partner who ignored the credentials and tried to create their own account would have hit the wall, and would have read it as the product being broken rather than as a beta gate. That is the whole exposure: one clause, one audience, one fix.
+>
+> `YC-COMPOUND-K7QR4V` is unlimited, never expires, and is revocable in one click at `/admin/invites` if it ever leaks (the redemption count survives revocation, so we can see how far it travelled). Link form, if a link is ever more useful than a code: `https://supaprod.ai/signup?invite=YC-COMPOUND-K7QR4V`. Every other audience has its own code: [`../../growth/invite-codes.md`](../../growth/invite-codes.md).
+>
+> **Nothing else on this application needs touching for the gate.** The product link, the how-far-along field, the team update and both videos never mention self-serve signup. Verified by reading every field on 2026-08-07, not assumed.
 
 _(2026-07-28: the parenthetical is now count-free on purpose. The live form's short version, "(seeded workspace; or sign up with any email)", works but wastes the one line that can tell a partner what to do first; this version points at the approval queue without naming a number that can go stale. Health behind it: the seeded queues DECAY — each clone ships five pending approvals whose `expires_at` sits hours out, so by 2026-07-28 every demo workspace had rotted to 1 pending + 4 expired on its own. Re-armed 2026-07-28 across all seven Helio prefixes (undecided rows only, back to pending, 60-day runway; decision history untouched). Re-arm the same way before any interview window. explore@ stays the YC login: it is already filed, owns its own isolated clone, and its queue is live again; the four reserve logins stay untouched for other programmes. All future rehearsals and recordings happen on `harbor@`, never on `explore@`, because explore@ is now what YC holds.)_
 
