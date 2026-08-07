@@ -23,6 +23,15 @@ export const Route = createFileRoute("/_authenticated")({
   ssr: false,
 
   /**
+   * Authenticated routes are not indexable. Children inherit this meta tag.
+   */
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
+
+  /**
    * THE WAIT STOPS TEARING THE PRODUCT DOWN TO NAVIGATE INSIDE IT.
    *
    * `router.tsx` sets `defaultPendingComponent` to `<BrandWait />`, whose

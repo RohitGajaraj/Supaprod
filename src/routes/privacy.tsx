@@ -72,6 +72,21 @@ function PrivacyPage() {
         </p>
       </LegalSection>
 
+      <LegalSection title="Cookies and local storage">
+        <p>
+          Supaprod stores one first-party cookie, <code>session-id</code>, which groups page views into a
+          single visit for product analytics. It expires after 30 minutes of inactivity. We also store
+          usage data in your browser's local storage (keys:{" "}
+          <code>user_id</code>, <code>workspace_id</code>, <code>auth_token</code>, <code>preferences</code>)
+          to remember your settings and authentication state across sessions. You can delete both at any
+          time via your browser's settings. Supaprod's analytics provider is Flock Analytics (see{" "}
+          <a href="/subprocessors" style={{ color: "#ff9542" }}>
+            subprocessors
+          </a>
+          ).
+        </p>
+      </LegalSection>
+
       <LegalSection title="Bring your own AI keys">
         <p>
           If you prefer, you can run Supaprod against your own model provider key instead of ours.

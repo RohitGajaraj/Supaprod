@@ -85,20 +85,29 @@ check_walled "ProductHunt" "$EXACT" "https://www.producthunt.com/products/$EXACT
 echo
 bold "Domains"
 for d in supaprod.com supaprod.ai supaprodhq.com superprod.ai supaprod.io supaprod.dev; do
-  body=$(curl -sL --max-time 15 "https://rdap.org/domain/$d")
-  # An unregistered domain gives either an errorCode object or, at some
-  # registries, an empty body. Both mean available; only a real record with an
-  # ldhName means registered. Testing for the positive is the only safe way
-  # round: an earlier version of this check tested for the negative and
-  # reported two genuinely free domains as taken.
-  if [ -z "$body" ] || printf '%s' "$body" | grep -q '"errorCode"'; then
+  # Read the HTTP STATUS, never the body's emptiness. rdap.org rate-limits a
+  # tight loop like this one and answers 429 with a tiny body; an earlier
+  # version treated any empty body as AVAILABLE, so a throttled request read as
+  # "free, go buy it". It reported supaprod.ai available on 2026-08-07, a domain
+  # this company has owned since 2026-07-16. Only a 404 is the registry saying
+  # the name is free. Everything else that is not a record is UNKNOWN.
+  sleep 1
+  resp=$(curl -sL --max-time 20 -w '\n%{http_code}' "https://rdap.org/domain/$d")
+  code=${resp##*$'\n'}
+  body=${resp%$'\n'*}
+
+  if [ "$code" = "404" ]; then
     row "domain" "$d" "AVAILABLE"
-  elif printf '%s' "$body" | grep -q '"ldhName"'; then
-    exp=$(printf '%s' "$body" |
-      grep -o '"eventAction":"expiration","eventDate":"[^"]*' | cut -d'"' -f8 | cut -c1-10)
+  elif [ "$code" = "200" ] && printf '%s' "$body" | grep -q '"ldhName"'; then
+    # Registries differ on whitespace: .com answers minified, .ai answers
+    # pretty-printed across several lines. Flatten before matching so one
+    # expression reads both.
+    exp=$(printf '%s' "$body" | tr -d '\n ' |
+      grep -o '"eventAction":"expiration","eventDate":"[^"]*' |
+      sed 's/.*"eventDate":"//' | cut -c1-10)
     row "domain" "$d" "REGISTERED${exp:+ (expires $exp)}"
   else
-    row "domain" "$d" "UNKNOWN, check by hand"
+    row "domain" "$d" "UNKNOWN (http $code), check by hand"
   fi
 done
 echo

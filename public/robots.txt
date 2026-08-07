@@ -1,5 +1,22 @@
 User-agent: *
 Allow: /
+Disallow: /today
+Disallow: /missions
+Disallow: /build/
+Disallow: /knowledge
+Disallow: /trust-ledger
+Disallow: /discover
+Disallow: /settings
+Disallow: /admin/
+Disallow: /inbox
+Disallow: /approvals
+Disallow: /api/
+Disallow: /checkout
+Disallow: /join/
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /login
+Disallow: /signup
 
 # AI answer engines and crawler agents are explicitly welcome (GEO).
 User-agent: GPTBot

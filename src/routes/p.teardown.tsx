@@ -28,7 +28,7 @@ const EXAMPLE_BET =
   "We should ship a weekly AI digest so PMs stop missing customer signals. Success = 40% of teams open it twice a week.";
 
 export const Route = createFileRoute("/p/teardown")({
-  ssr: false,
+  ssr: true,
   component: TeardownPage,
   head: () => ({
     meta: [
@@ -77,7 +77,7 @@ const noticeBox: CSSProperties = {
 };
 
 function TeardownPage() {
-  useObsidianAuthSurface();
+  useObsidianAuthSurface(); // Safe: hook uses useEffect internally
   const [text, setText] = useState("");
   const [state, setState] = useState<UiState>({ kind: "idle" });
 
