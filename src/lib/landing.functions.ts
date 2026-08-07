@@ -223,14 +223,31 @@ export const joinWaitlist = createServerFn({ method: "POST" })
     }
 
     try {
-      // Global rate brake (no captcha, no IP storage): more than 20 signups in
-      // the last minute means a flood, not a launch spike worth losing data over.
+      // Global rate brake (no captcha, no IP storage).
+      //
+      // ⚠️ RAISED FROM 20 TO 300 ON 2026-08-07, and the old comment here read
+      // "more than 20 signups in the last minute means a flood, not a launch
+      // spike worth losing data over." That is backwards for the one event this
+      // brake was about to meet. This counter is GLOBAL, not per-IP, so at 20 a
+      // Product Hunt feature turns away the 21st genuine person of any minute
+      // and everyone after them, with "the queue is busy". A launch going well
+      // is indistinguishable from an attack to this check, and 20/min is a
+      // number a good launch clears in its first thirty seconds.
+      //
+      // The number matters less than the ASYMMETRY it has to respect. Turning
+      // away a real signup is unrecoverable: that person does not come back and
+      // we never learn we lost them. Accepting a spam row costs one DELETE we
+      // can run at leisure. So the brake must be set where only an automated
+      // flood reaches it, and never where a good day does.
+      //
+      // 300/min is 18,000/hour, which no organic launch produces and no human
+      // typing reaches. If this ever fires, it is a bot, which is what it is for.
       const minuteAgo = new Date(Date.now() - 60_000).toISOString();
       const recent = await db
         .from("waitlist_signups")
         .select("id", { count: "exact", head: true })
         .gte("created_at", minuteAgo);
-      if (!recent.error && (recent.count ?? 0) > 20) {
+      if (!recent.error && (recent.count ?? 0) > 300) {
         return { ok: false, error: "The queue is busy right now. Try again in a minute." };
       }
 

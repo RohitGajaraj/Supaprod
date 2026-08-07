@@ -58,7 +58,22 @@ export function LandingFooter() {
         // path costs no redirect hop, while /investors resolves for anyone who
         // types it (see routes/investors.tsx).
         { label: "Investors", href: "/brief" },
-        { label: "@RohitGajaraj", href: "https://x.com/RohitGajaraj", external: true },
+        // The company handle, not the founder's. `x.com/RohitGajaraj` sat here
+        // until 2026-08-07 and returned 404 live, on a launch that runs on X:
+        // the one outbound social link on the page was broken. `@supaprodhq`
+        // was claimed 2026-08-05 and returns 200.
+        { label: "@supaprodhq", href: "https://x.com/supaprodhq", external: true },
+        // A HUMAN CHANNEL, added 2026-08-07. Until today the only way to reach
+        // anyone from this site was an X handle, and that handle 404'd. A
+        // Product Hunt visitor with a question had nowhere to go, on the one
+        // day questions arrive in public and go unanswered in public.
+        //
+        // A mailto rather than a contact form on purpose: a form needs a
+        // handler, a store and a place someone reads, and every one of those is
+        // a thing that can silently not exist. `hello@supaprod.ai` already
+        // routes through Cloudflare to a live inbox, so this works the moment
+        // it ships and cannot rot into a black hole.
+        { label: "hello@supaprod.ai", href: "mailto:hello@supaprod.ai", external: true },
       ],
     },
   ];
