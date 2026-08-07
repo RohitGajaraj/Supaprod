@@ -37,7 +37,7 @@ describe("withMarketingCacheHeaders", () => {
   test("preserves the body and other headers it does not own", () => {
     const response = new Response("hello", {
       status: 200,
-      headers: { "content-type": "text/html", Link: "</llms.txt>; rel=\"llms-txt\"" },
+      headers: { "content-type": "text/html", Link: '</llms.txt>; rel="llms-txt"' },
     });
     const result = withMarketingCacheHeaders(response, "/faq");
     expect(result.headers.get("content-type")).toBe("text/html");

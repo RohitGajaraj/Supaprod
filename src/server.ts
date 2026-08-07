@@ -374,16 +374,13 @@ export default {
     // live: /.well-known/oauth-authorization-server returned 200 text/html.
     // A client reading that has no way to know it asked for something absent.
     if (url.pathname.startsWith("/.well-known/")) {
-      return new Response(
-        JSON.stringify({ error: "not_found", resource: url.pathname }, null, 2),
-        {
-          status: 404,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+      return new Response(JSON.stringify({ error: "not_found", resource: url.pathname }, null, 2), {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
-      );
+      });
     }
 
     if (url.pathname === "/api/healthz" && request.method === "GET") {

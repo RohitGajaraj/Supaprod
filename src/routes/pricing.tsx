@@ -122,6 +122,93 @@ const DESC =
 
 const SITE = "https://supaprod.ai";
 
+/**
+ * Offer nodes for the four public tiers.
+ *
+ * WHY THIS EXISTS. Structured data is what AI answer engines parse when
+ * somebody asks "what does Supaprod cost". Without it, an engine has to lift
+ * prices out of rendered markup and usually declines to, so the answer comes
+ * back vague or wrong. This page had zero `ld+json` while the homepage carried
+ * two blocks, so the one page in the site whose entire job is answering a
+ * factual question was the one with nothing machine-readable on it.
+ *
+ * The prices here are the FLAT per-tier figures the cards render. They are
+ * duplicated deliberately rather than derived from `priceForCredits`, because
+ * that function takes a credit band and a billing period and returns a computed
+ * number; feeding a schema block from it would let a UI experiment silently
+ * change what search engines are told the product costs. If the cards change,
+ * this changes with them, and the drift is visible in a diff.
+ *
+ * `max` is excluded because it is internal-only and not shown on this page.
+ *
+ * ⚠️ 20 and 50 are `TIER_BASE_MONTHLY_USD` in `src/lib/billing-tier.ts`, whose
+ * own docblock calls them "reference placeholders" pending the final numbers in
+ * the Stripe admin catalog. They match what the cards render today, which is
+ * the right invariant: schema must agree with the page. But search engines
+ * cache offer prices, so when the Stripe catalog is finalised this block has to
+ * move in the same commit as the cards, or the engines keep answering with the
+ * placeholder long after the site stopped showing it.
+ */
+const PRICING_LD = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: "Supaprod",
+  description: DESC,
+  url: `${SITE}/pricing`,
+  brand: { "@type": "Brand", name: "Supaprod" },
+  offers: [
+    {
+      "@type": "Offer",
+      name: "Free",
+      price: "0",
+      priceCurrency: "USD",
+      description:
+        "One seat, three read-only connectors, and the full loop on your own data. No card.",
+      url: `${SITE}/signup`,
+      availability: "https://schema.org/InStock",
+    },
+    {
+      "@type": "Offer",
+      name: "Pro",
+      price: "20",
+      priceCurrency: "USD",
+      description: "Unlimited connectors, still read-only. Nothing is ever written back.",
+      url: `${SITE}/pricing`,
+      availability: "https://schema.org/InStock",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "20",
+        priceCurrency: "USD",
+        unitText: "seat per month",
+      },
+    },
+    {
+      "@type": "Offer",
+      name: "Business",
+      price: "50",
+      priceCurrency: "USD",
+      description: "Everything in Pro, plus write-back through your approval gates.",
+      url: `${SITE}/pricing`,
+      availability: "https://schema.org/InStock",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "50",
+        priceCurrency: "USD",
+        unitText: "seat per month",
+      },
+    },
+    {
+      "@type": "Offer",
+      name: "Enterprise",
+      priceCurrency: "USD",
+      description:
+        "Committed credits, unlimited seats, connectors built for systems nobody publishes an API story for.",
+      url: `${SITE}/pricing`,
+      availability: "https://schema.org/InStock",
+    },
+  ],
+};
+
 export const Route = createFileRoute("/pricing")({
   ssr: true,
   head: () => ({
@@ -133,6 +220,7 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:type", content: "website" },
     ],
     links: [{ rel: "canonical", href: `${SITE}/pricing` }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(PRICING_LD) }],
   }),
   component: PricingPage,
 });
