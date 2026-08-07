@@ -128,7 +128,9 @@ function starsAtDisplayScale(
     // as noise.
     const r = ((0.26 + mag * mag * 0.8) * D).toFixed(1);
     const a = (0.07 + mag * mag * 0.3).toFixed(3);
-    out.push(`<circle cx="${sx.toFixed(0)}" cy="${sy.toFixed(0)}" r="${r}" fill="#fff" opacity="${a}"/>`);
+    out.push(
+      `<circle cx="${sx.toFixed(0)}" cy="${sy.toFixed(0)}" r="${r}" fill="#fff" opacity="${a}"/>`,
+    );
 
     // 1 in 40, not 1 in 14, and half the radius.
     if (mag > 0.975) {
@@ -217,8 +219,8 @@ function banner(w: number, h: number, id: string) {
            LinkedIn cover: these were sized to the FILE, not to the render.
            X draws a 1500px banner at roughly 600px on desktop, a 2.5x downscale,
            so the category line at 17px was landing at 6.8px on screen. It has
-           never been readable there; it simply was never measured. At 27px it
-           lands at 10.8px, and the wordmark goes 22 -> 28 so the lockup does not
+           never been readable there; it simply was never measured. At 24px it
+           lands at 9.6px, and the wordmark goes 22 -> 28 so the lockup does not
            end up outweighed by the line beneath it.
 
            The headline is UNCHANGED at 54px (21.6px displayed). It was already
@@ -239,7 +241,7 @@ function banner(w: number, h: number, id: string) {
       ${lockup(38 * s, 28 * s, id + "lk")}
       <div style="margin-top:${30 * s}px;font-size:${54 * s}px;line-height:${LEAD};
           font-weight:500;letter-spacing:-.042em;color:${P.bone};white-space:nowrap">${HOOK}</div>
-      <div style="margin-top:${26 * s}px">${categoryLine(27 * s, 14 * s)}</div>
+      <div style="margin-top:${26 * s}px">${categoryLine(24 * s, 14 * s)}</div>
     </div>
   `,
   );
