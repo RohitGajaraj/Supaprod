@@ -655,6 +655,141 @@ const WEIGHT_BLOCK = (D: number) => `
  * not the synthetic smear that ruled font-weight out for the Pixel verbs in
  * variant C.
  */
+/**
+ * VARIANT F, everything lifted to 700. Founder on variant E, 2026-08-07: "you
+ * have not highlighted the and learn, that also needs to be highlighted... as
+ * of now it doesn't feel highlighted, no spotlight on those words."
+ *
+ * He is right and the fault was mine. Variant E put the verbs at 600 against a
+ * 500 base, and at roughly 20px displayed that one step is below the threshold
+ * where a reader perceives a weight change at all. The two-tier idea was sound
+ * on paper and invisible on the page, which is the only test that counts.
+ *
+ * So this is his original instruction executed literally: Agents and all three
+ * verbs at 700 against the 500 base. Four lifted words rather than one, which
+ * is a real departure from the x-header's scarcity, and the honest trade is
+ * that every word he named is now unmistakably lifted.
+ */
+const LIFT_ALL_BLOCK = (D: number) => `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${hi("Agents")} that know what to ${hi("build")},<br>${hi("ship")} it, and ${hi("learn")} what worked.</div>`;
+
+/**
+ * VARIANT G, the founder's own alternative: "different font even if it is not
+ * highlighted, different fonts say Geist Pixel or something with the same white
+ * colour text."
+ *
+ * This is variant C's device minus the thing that made C too loud. C stacked
+ * three signals on the verbs: a typeface switch, ember, and a heavy stroke. G
+ * keeps only the typeface switch, in bone rather than ember, with the stroke at
+ * the 0.02em optical parity established when the thickening was audited down.
+ * Pixel is narrower and lighter than Geist Sans, so without that parity stroke
+ * the verbs read quieter than the words around them, which is the failure the
+ * first Pixel attempt hit.
+ *
+ * Agents keeps a plain weight lift here, because giving it Pixel too would make
+ * four of twelve words a different typeface and the line would stop being a
+ * sentence.
+ */
+const PIXEL_WHITE_BLOCK = (D: number) => {
+  const size = 21.5 * D;
+  const pw = (t: string) =>
+    `<span class="pixel" style="font-size:${size.toFixed(0)}px;color:${P.bone};font-weight:400;` +
+    `letter-spacing:.005em;-webkit-text-stroke:${(size * 0.02).toFixed(1)}px ${P.bone}">${t}</span>`;
+  return `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${hi("Agents")} that know what to ${pw("build")},<br>${pw("ship")} it, and ${pw("learn")} what worked.</div>`;
+};
+
+/**
+ * VARIANT H, the station-label register. This is my proposal rather than one of
+ * his, offered because he asked for it explicitly: "I just gave you the
+ * suggestion that might not be the right one, but the problem is real. See how
+ * we can address it, not just by going with my thoughts, if you have a better
+ * approach in design language you can opt that."
+ *
+ * THE DIAGNOSIS. Weight cannot spotlight four words in one sentence without the
+ * line going busy. That is why 600 was imperceptible and why 700 on all four
+ * will read heavy. The constraint is not how much lift is applied, it is that
+ * the verbs are BURIED IN PROSE. A reader scanning a sentence does not stop on
+ * a slightly bolder word in the middle of it.
+ *
+ * THE MOVE. Give the three verbs the register the instrument already uses for
+ * exactly these three things. The orrery on the right labels its stations
+ * 05 BUILD, 06 SHIP and 07 LEARN in Geist Mono, uppercase, tracked out. Putting
+ * the inline verbs in that same register does two things at once:
+ *
+ *   They stop reading as prose and start reading as TAGGED STAGES, which is
+ *   what they are. Caps plus mono plus tracking is a far stronger scan signal
+ *   than any weight step, and it is the signal this design system already
+ *   assigns to loop stages.
+ *
+ *   The type block and the instrument become ONE system. Right now they are two
+ *   unrelated things sharing a canvas: a sentence, and a diagram that happens to
+ *   name the same stages in a different voice.
+ *
+ * Agents keeps the plain weight lift, so the sentence still has a subject that
+ * outranks its verbs, and the headline keeps a single lift in its own register.
+ *
+ * Caps sit optically larger than lowercase at the same nominal size, so the
+ * mono spans run at 0.84 to keep the line rhythm even.
+ */
+const STATION_BLOCK = (D: number) => {
+  const st = (t: string) =>
+    `<span class="mono" style="font-size:${(20 * 0.84 * D).toFixed(0)}px;color:${P.bone};` +
+    `font-weight:500;letter-spacing:.09em">${t.toUpperCase()}</span>`;
+  return `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${(20 * D).toFixed(0)}px;
+      line-height:${LEAD};font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${hi("Agents")} that know what to ${st("build")},<br>${st("ship")} it, and ${st("learn")} what worked.</div>`;
+};
+
+/**
+ * VARIANT I, ember underline. Founder 2026-08-07: "should there be a pencil
+ * drawn underline sort of thing under the keywords like build, ship and learn,
+ * in ember colour? At least that would give a spotlight."
+ *
+ * This is the best answer of the several tried, and the reason is structural.
+ * Every previous attempt changed the WORDS themselves: heavier, a different
+ * face, a different colour. Each one traded away something. Weight at 700 on
+ * four words made the line busy. Pixel fragmented the sentence into code. Ember
+ * as a text colour stacked a second signal on words that already had one.
+ *
+ * An underline MARKS a word without altering it. The three verbs stay one
+ * typeface, one weight and one colour, so the line still reads as a sentence,
+ * and the rule underneath is an unambiguous look-here. It also rhymes with the
+ * ember tick already sitting above the headline, so it reads as this design
+ * system rather than as a new device bolted on.
+ *
+ * CLEAN RULE, NOT A HAND-DRAWN ONE, deliberately against the literal request. A
+ * pencil wobble is charming at full size and turns to mush at the 5.22x
+ * downscale this file is subject to, where the rule lands at about 2px. An
+ * irregular 2px stroke reads as a rendering artefact. A crisp one survives.
+ *
+ * Drawn with a background gradient rather than text-decoration or a border so
+ * it sits at a controlled offset below the baseline and never collides with
+ * descenders. There are none in build, ship or learn, but the next word chosen
+ * might have one.
+ */
+const UNDERLINE_BLOCK = (D: number) => {
+  const size = 20 * D;
+  const rule = Math.max(2, Math.round(size * 0.085));
+  const ul = (t: string) =>
+    `<span style="background-image:linear-gradient(${P.ember},${P.ember});` +
+    `background-size:100% ${rule}px;background-position:0 100%;background-repeat:no-repeat;` +
+    `padding-bottom:${Math.round(size * 0.1)}px">${t}</span>`;
+  return `
+  <div style="width:${(34 * D).toFixed(0)}px;height:${(2.6 * D).toFixed(1)}px;background:${P.ember}"></div>
+  <div style="margin-top:${(15 * D).toFixed(0)}px;font-size:${size.toFixed(0)}px;
+      line-height:1.34;font-weight:500;letter-spacing:-.042em;color:${P.bone};
+      white-space:nowrap">${hi("Agents")} that know what to ${ul("build")},<br>${ul("ship")} it, and ${ul("learn")} what worked.</div>`;
+};
+
 const SUBJECT_BLOCK = (D: number) => {
   const lift = (t: string, w: number) => `<span style="font-weight:${w}">${t}</span>`;
   return `
@@ -767,6 +902,16 @@ function linkedinCover(
     `
     <div style="position:absolute;inset:0;background:
       radial-gradient(80% 160% at 26% 0%, ${P.lift} 0%, transparent 62%)"></div>
+    <!-- THE INSTRUMENT IS NOT GLOBALLY DIMMED, and that was decided rather than
+         defaulted. It was briefly taken to opacity .78 on 2026-08-07 when the
+         founder asked "should we dullen it a bit", then reverted by him the same
+         hour on the reasoning that settles it: "I thought if you were doing it
+         centre aligned then the text would overlap, and dulling would make
+         sense. If you are not doing centre alignment then it is good as it is."
+         Correct. The dim was a remedy for a collision that the left-anchored
+         layout never creates. The radial falloff already shapes the
+         instrument's internal contrast, and nothing else is needed. Do not
+         reinstate a global opacity here without a collision to justify it. -->
     <div style="position:absolute;inset:0;-webkit-mask-image:${falloff};mask-image:${falloff}">
       ${machine(w, h, o, 245, 44, { r: 620, size: 44 })}
     </div>
@@ -886,6 +1031,34 @@ const SPECS: {
     w: 4200,
     h: 700,
     fn: (i) => linkedinCover(4200, 700, i, SUBJECT_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover-liftall",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, LIFT_ALL_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover-pixelwhite",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, PIXEL_WHITE_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover-station",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, STATION_BLOCK),
+    jpeg: true,
+  },
+  {
+    base: "linkedin-cover-underline",
+    w: 4200,
+    h: 700,
+    fn: (i) => linkedinCover(4200, 700, i, UNDERLINE_BLOCK),
     jpeg: true,
   },
   {
