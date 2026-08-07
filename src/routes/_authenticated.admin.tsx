@@ -22,7 +22,7 @@
  *          an h1's job without being one, so screen readers and the type scale
  *          both lost. It is a PageHead now.
  *
- * 4. ONE CLICK AWAY. The nine bodies. The layout answers "which question are
+ * 4. ONE CLICK AWAY. The ten bodies. The layout answers "which question are
  *    you here with" and nothing more; every number lives one tab in.
  *
  * 5. DELIGHT AND CONFUSION. What would confuse: an operator cannot tell a
@@ -38,9 +38,10 @@
  *    about human access would be decoration, and the agentic-first test asks
  *    whether the crew's presence PROVES something, not whether it is visible.
  *
- * The nine sub-page bodies keep their data and logic unchanged; only this
- * layout's chrome changes. Engine-Room Test on the labels: Observability ->
- * Health, AI Costs -> Spend.
+ * The sub-page bodies keep their data and logic unchanged; only this layout's
+ * chrome changes. Engine-Room Test on the labels: Observability -> Health, AI
+ * Costs -> Spend, and the landing funnel -> Launch, because nobody arrives here
+ * asking about "landing events".
  */
 import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";

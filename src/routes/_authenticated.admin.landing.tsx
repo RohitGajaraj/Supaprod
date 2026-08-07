@@ -182,8 +182,8 @@ function AdminLanding() {
         {!anyEvent ? (
           <Empty>
             No landing event has been recorded in the last {f.windowDays} days. This table is written
-            by the landing page itself, so it stays empty until somebody opens it — and if the page
-            is live and busy, an empty block here is the capture being broken rather than the launch
+            by the landing page itself, so it stays empty until somebody opens it. If the page is
+            live and busy, an empty block here is the capture being broken rather than the launch
             being quiet.
           </Empty>
         ) : (

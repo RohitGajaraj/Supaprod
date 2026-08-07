@@ -432,7 +432,7 @@ export const claimLandingSession = createServerFn({ method: "POST" })
  *
  * AGGREGATION, AND WHERE IT HONESTLY HAPPENS. The per-event totals are exact
  * because they are four `count: exact, head: true` reads that hit
- * `landing_events_event_created_idx` (event, created_at) dead on — no rows cross
+ * `landing_events_event_created_idx` (event, created_at) dead on, and no rows cross
  * the wire for those. Everything else needs GROUP BY over a day expression and a
  * jsonb key, which PostgREST cannot express without an RPC or a view, and this
  * lane is not adding a migration. So the day series, the referrer breakdown and
@@ -586,7 +586,7 @@ export const getLandingFunnel = createServerFn({ method: "GET" })
     };
 
     // Referrer lives in props.ref, set by the landing_visit effect in
-    // src/routes/index.tsx, which stores the HOSTNAME only — never the path and
+    // src/routes/index.tsx, which stores the HOSTNAME only, never the path and
     // never the query string (the privacy rule this file already follows for
     // session keys). It is read from landing_visit alone because no other event
     // carries it, and counting a missing key on demo_click as "direct" would
