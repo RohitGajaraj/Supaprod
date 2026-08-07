@@ -213,9 +213,13 @@ Full canon, the integrate/absorb/race/ignore reasoning per competitor, and the o
 
 **So the axis is direction, then breadth.** Free and Pro are **in only**; Business is **in and out**. Free caps how many sources, Pro removes the cap, Business changes what Supaprod is permitted to do with them.
 
-**This is enforced in code, not just priced.** `connectorTier` is a real entitlement (`"none" | "read" | "read_write" | "custom"` in `src/lib/entitlements.ts`) and the guard **throws** when a plan attempts an operation it does not permit. An agent on a read-only plan cannot write to your Linear board even if something asks it to.
+**This is enforced in code, not just priced.** `connectorTier` is a real entitlement (`"none" | "read" | "read_write" | "custom"` in `src/lib/entitlements.ts`) and the guard **throws** when a plan attempts an operation it does not permit. An agent on a read-only plan cannot write to a board it is only allowed to read.
 
-> **Two deltas between this table and the code** (founder ruling 2026-08-04, not yet implemented). Free is currently `connectorTier: "none"`, so it connects nothing; it needs to become `"read"`. And **no connector count limit exists at all**, so the three-connector cap on Free has nothing to enforce it; it needs a `connectorLimit` field following the existing `workspaceLimit` and `productLimit` pattern, set to 3 on Free and null elsewhere. Tracked in [`docs/planning/SOURCE-OF-TRUTH.md`](./docs/planning/SOURCE-OF-TRUTH.md).
+> **Both deltas are now closed, and a third one was found while checking** (2026-08-07). Free is `connectorTier: "read"` and `connectorLimit: 3` in `src/lib/entitlements.ts`, so the 2026-08-04 ruling is implemented rather than pending. This paragraph described the pre-ruling state for three days after it stopped being true.
+>
+> **The third delta was the one that mattered.** `src/lib/connectors/catalog.ts` derived `minTier` as `"pro"` for every read-only connector, so a Free workspace was entitled to three sources and was never offered one. An entitlement that exists and cannot be reached is worse than no entitlement, because the cap is enforced while the motion it was meant to enable cannot start. Corrected to `"free"`; outflow-capable connectors still require Business.
+
+Live status per provider is [`docs/operations/connectors/README.md`](./docs/operations/connectors/README.md). **Nine adapters are real** (GitHub, Intercom, Stripe, Slack, Zendesk, HubSpot, Salesforce, Canny, Productboard) and **eleven are `stubAdapter`** (Linear, Notion, Google Docs, Google Calendar, Google Tasks, Microsoft Outlook, Gmail, Microsoft Mail, Figma, Jira, Firecrawl), verified against `src/lib/connectors/providers/index.server.ts` on 2026-08-07. Do not name a stub as available in any outward-facing copy.
 
 Live status per provider, including the two registered but not yet confirmed against real data, is [`docs/operations/connectors/README.md`](./docs/operations/connectors/README.md).
 

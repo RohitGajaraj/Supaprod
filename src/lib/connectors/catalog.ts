@@ -144,8 +144,24 @@ function toEntry(spec: ProviderSpec): CatalogEntry {
   const category = PROVIDER_CATEGORY[spec.id];
   const connectMethod: ConnectMethod =
     spec.authMethods[0]?.kind === "github_app" ? "github_app" : "oauth";
-  // Outflow-capable connectors require Business (team); read-only require Pro.
-  const minTier: PlanTier = spec.capabilities.outflow ? "team" : "pro";
+  // Outflow-capable connectors require Business (team). READ-ONLY START AT FREE.
+  //
+  // This said "pro" until 2026-08-07 and it contradicted the enforcement layer,
+  // which is the authority. `entitlements.ts` gives Free `connectorTier: "read"`
+  // with `connectorLimit: 3`, implementing the founder ruling of 2026-08-04 whose
+  // stated reason is in that file: "a prospect who cannot connect their OWN data
+  // is evaluating a demo, and the one thing that makes this product obviously
+  // different is the loop closing on THEIR signals."
+  //
+  // So Free was entitled to three read-only sources while this line ensured the
+  // UI never offered it one. The entitlement was real and unreachable, which is
+  // the worst of both: the cap exists to be enforced and the motion it was meant
+  // to enable could not start.
+  //
+  // The count cap is NOT enforced here. `connectorLimit` is the entitlement that
+  // bounds how many a Free workspace may hold; this field only decides the
+  // lowest tier on which a connector is offered at all.
+  const minTier: PlanTier = spec.capabilities.outflow ? "team" : "free";
   return {
     id: spec.id,
     label: spec.label,
