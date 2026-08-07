@@ -9,7 +9,7 @@
  * <FramedVisual src="/images/screenshot.png" alt="The Decide surface" />
  */
 
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 
 interface FramedVisualProps {
   src: string;
@@ -26,6 +26,7 @@ export function FramedVisual({
   aspectRatio = "16 / 10",
   dimmed = false,
 }: FramedVisualProps) {
+  const [failed, setFailed] = useState(false);
   const containerStyle: CSSProperties = {
     position: "relative",
     borderRadius: "12px",
@@ -73,8 +74,37 @@ export function FramedVisual({
         if (glow) glow.style.opacity = "0";
       }}
     >
-      {/* Image */}
-      <img src={src} alt={alt} style={imgStyle} loading="lazy" />
+      {/* Image, DROPPED IF IT DOES NOT DECODE.
+       *
+       * Found live on 2026-08-07: all six /product screenshots
+       * (/images/{discover,decide,define,build,ship,learn}.png) return HTTP 200
+       * with content-type text/html and about 30KB of the SPA shell, because
+       * public/images/ does not exist in the repo and unknown paths soft-404
+       * into the app. So /product was shipping six broken images to every
+       * visitor, and paying roughly 180KB of transfer for HTML it then threw
+       * away.
+       *
+       * The 200 is what makes this worth guarding rather than ignoring: a real
+       * 404 would at least be visible in logs and to a crawler. A 200 of the
+       * wrong content type is invisible everywhere except the rendered page.
+       *
+       * onError fires when the decoder rejects the bytes, which is exactly this
+       * case, so the frame falls back to its own premium empty panel: the
+       * #0d0d0e ground and hairline border are already drawn by the container.
+       * An empty frame reads as deliberate. A broken-image glyph does not.
+       *
+       * THIS IS A GUARD, NOT THE FIX. The real fix is six product screenshots
+       * in public/images/. Note docs/screenshots/ is gitignored, so they cannot
+       * simply be moved from there; they have to be committed to public/. */}
+      {!failed && (
+        <img
+          src={src}
+          alt={alt}
+          style={imgStyle}
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      )}
 
       {/* Pre-rendered edge-light glow, toggled via opacity */}
       <div className="replay-frame-glow" style={glowStyle} aria-hidden="true" />
