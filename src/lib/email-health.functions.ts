@@ -25,7 +25,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { readEmailConfig, sendEmail } from "@/lib/email.server";
+import { readEmailConfig, sendEmail, emailShell } from "@/lib/email.server";
 
 /** Same shape as every other admin gate in this codebase: the caller's OWN
  *  client, so `user_roles` RLS does the deciding and a hit means admin. */
@@ -128,13 +128,49 @@ export const sendTestEmail = createServerFn({ method: "POST" })
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.to)) {
       return { sent: false, reason: "That does not look like an email address.", to: data.to };
     }
-    const stamp = new Date().toISOString();
+    // A HUMAN-READABLE STAMP, not an ISO string. The founder read the first one
+    // on a phone and it opened with "2026-08-07T16:28:07.434Z", which is a
+    // machine talking to itself in a medium a person reads. Still precise to the
+    // minute, which is all anyone needs to tie a message in a spam folder back to
+    // the test that produced it, and it names the zone so a founder in IST and a
+    // dashboard in UTC can be reconciled without arithmetic.
+    const now = new Date();
+    const stamp = `${now.toUTCString().replace(" GMT", "")} UTC`;
+
+    const lines = [
+      "This is a test from the Supaprod admin panel.",
+      "",
+      `Sent ${stamp}.`,
+      "",
+      "If it reached you, the whole path is good: the API key, the verified domain, the sending records and the From address. Anything missing after this is delivery or filtering, not configuration.",
+      "",
+      "Worth checking while you are here. Did this land in the main inbox rather than Promotions or Spam? On a domain with no sending history that is the number that matters, and it is the one thing a test cannot tell you from our side.",
+      "",
+      "Nobody else received this.",
+    ];
+
+    const p = (s: string) =>
+      `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1f1b16;">${s}</p>`;
+
     const result = await sendEmail({
       to: data.to,
-      subject: "Supaprod: transactional email is working",
-      // Carries the timestamp so a message found in a spam folder days later can
-      // still be tied to the exact test that produced it.
-      text: `This is a test send from Supaprod's admin panel at ${stamp}.\n\nIf you are reading this, the API key, the sending domain and the From address are all correct, and anything still missing is a delivery or filtering problem rather than a configuration one.`,
+      // Says what it is and that it needs no action. A subject beginning "Supaprod:"
+      // reads like a system alert, which is the wrong instinct for a message whose
+      // entire job is to look like the real thing.
+      subject: "Test email from Supaprod. Nothing to do.",
+      text: lines.join("\n"),
+      html: emailShell(
+        [
+          p("This is a test from the Supaprod admin panel."),
+          p(
+            `Sent ${stamp}. If it reached you, the whole path is good: the API key, the verified domain, the sending records and the From address. Anything missing after this is delivery or filtering, not configuration.`,
+          ),
+          p(
+            "Worth checking while you are here. Did this land in the main inbox rather than Promotions or Spam? On a domain with no sending history that is the number that matters, and it is the one thing a test cannot tell you from our side.",
+          ),
+          `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">Sent from Admin, Health. Nobody else received this.</p>`,
+        ].join(""),
+      ),
     });
     return { ...result, to: data.to };
   });

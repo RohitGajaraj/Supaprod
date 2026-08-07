@@ -91,7 +91,7 @@
  *     as machine output.
  *   - The email reads completely with images off, because it contains none.
  */
-import { sendEmail, absoluteUrl } from "@/lib/email.server";
+import { sendEmail, absoluteUrl, emailShell } from "@/lib/email.server";
 
 /** Lifecycle mail signs as a person. `rohit@supaprod.ai` is not an explicit
  *  Cloudflare route, but the domain's catch-all is active, so replies land in
@@ -161,8 +161,8 @@ export function a1Html(firstName?: string): string {
   // person wrote it. System font stack, one link, no images, no tracking pixel.
   const p = (s: string) =>
     `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1f1b16;">${s}</p>`;
-  return [
-    `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;">`,
+  return emailShell(
+    [
     p(greeting(firstName)),
     p(`Engineering got real agents this year. Product management got a summarize button.`),
     p(
@@ -177,8 +177,8 @@ export function a1Html(firstName?: string): string {
     p(`Rohit`),
     `<hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0 12px;">`,
     `<p style="margin:0;font-size:12px;line-height:1.5;color:#6b6457;">You are receiving this because you joined the Supaprod waitlist at supaprod.ai. To come off the list, reply with "unsubscribe" or write to <a href="mailto:${UNSUB}" style="color:#6b6457;">${UNSUB}</a>.</p>`,
-    `</div>`,
-  ].join("");
+    ].join(""),
+  );
 }
 
 /**

@@ -96,6 +96,50 @@ export function absoluteUrl(path: string): string {
   return `${appOrigin()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+/**
+ * One shell for every HTML email we send: a small branded header, the body, a
+ * hairline, and whatever footer the caller owns.
+ *
+ * WHY THIS EXISTS. The founder read the first real send on a phone and called it
+ * unprofessional, correctly: it was bare text with no mark anywhere, and the
+ * sender avatar beside it was Gmail's grey silhouette.
+ *
+ * WHAT THIS CANNOT FIX, said here so nobody goes looking for the bug. That grey
+ * avatar is BIMI, and BIMI needs DMARC at p=quarantine or p=reject (we publish
+ * p=none), plus a Verified Mark Certificate, which needs a REGISTERED TRADEMARK
+ * and costs four figures a year. No email HTML can reach it. See
+ * docs/growth/brand-ops/trademark-brief-supaprod.md; it becomes available after
+ * incorporation and a filing, and not before.
+ *
+ * THE LOGO MUST NOT BE LOAD-BEARING. A large share of recipients read with
+ * remote images blocked, and Gmail proxies what it does load. So the mark is
+ * decoration with a real `alt`, the layout does not depend on it, and every
+ * email still reads completely as text. That is the rule
+ * docs/growth/email-sequences.md section 7 already sets, and a logo is the most
+ * common way people break it.
+ *
+ * Inline styles only, no <style> block, no flexbox, no grid. Mail clients strip
+ * heads and Outlook renders through Word. A table would be the belt-and-braces
+ * choice; a single centred div is enough for one image over one column of text
+ * and degrades to plain blocks everywhere it is not understood.
+ */
+export function emailShell(bodyHtml: string): string {
+  // Absolute, because a relative path in a mail client resolves against the mail
+  // client. 192 is the smallest asset that stays crisp when a retina phone draws
+  // it at 36 CSS pixels.
+  const mark = absoluteUrl("/icon-192.png");
+  return [
+    `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px 24px 32px;">`,
+    `<div style="margin:0 0 22px;">`,
+    // Height and width both set: an unloaded image with no dimensions collapses
+    // and the text jumps when it arrives.
+    `<img src="${mark}" width="36" height="36" alt="Supaprod" style="display:block;border:0;border-radius:8px;" />`,
+    `</div>`,
+    bodyHtml,
+    `</div>`,
+  ].join("");
+}
+
 export type InviteEmail = {
   to: string;
   inviteLink: string;

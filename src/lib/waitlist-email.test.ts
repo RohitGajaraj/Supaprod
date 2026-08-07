@@ -61,8 +61,25 @@ describe("A1 waitlist welcome", () => {
 
   test("reads completely with images off", () => {
     // Section 7: "No image-only email and no image-only CTA." A large share of
-    // recipients see it this way and the CTA has to survive it.
-    expect(a1Html()).not.toContain("<img");
+    // recipients read with remote images blocked and Gmail proxies the rest.
+    //
+    // THIS USED TO ASSERT `not.toContain("<img")`, which was stricter than the
+    // rule it was defending and failed the moment a branded header landed. The
+    // invariant is not "no images", it is that nothing a reader NEEDS lives in
+    // one. So: every image must carry real alt text, and no image may be the
+    // clickable content of the CTA.
+    const html = a1Html();
+    const imgs = html.match(/<img[^>]*>/g) ?? [];
+    for (const img of imgs) {
+      expect(img).toMatch(/alt="[^"]+"/);
+    }
+    // The CTA is a text link, not a wrapped image.
+    const cta = /<a href="[^"]*\/p\/teardown"[^>]*>([\s\S]*?)<\/a>/.exec(html);
+    expect(cta).not.toBeNull();
+    expect(cta?.[1]).not.toContain("<img");
+    expect(cta?.[1].replace(/<[^>]*>/g, "").trim().length).toBeGreaterThan(0);
+    // The plain-text part can carry no image at all, by construction.
+    expect(a1Text()).not.toContain("<img");
   });
 
   test("subject matches the ratified line", () => {
