@@ -16,7 +16,8 @@ import { runPublicTeardown, TEARDOWN_MAX_INPUT_CHARS } from "@/lib/ai/public-tea
  *  1. Per-IP rate limit (anti-abuse / cost cap on a paid model call). Keyed by the
  *     client IP: cf-connecting-ip first (the edge sets it and a client cannot
  *     spoof it), x-forwarded-for / x-real-ip only as dev fallbacks. A tighter
- *     TEARDOWN_PER_IP_HOURLY cap is passed (a paid LLM call, not a cheap read).
+ *     TEARDOWN_PER_IP_DAILY cap is passed, over an explicit 24h window (a paid
+ *     LLM call, not a cheap read).
  *     This is a real, enforcing limiter: `checkPublicDecisionRateLimit` keys on a `client_ip text`
  *     column and mirrors KI-10. (The KI-10 ingest limiter was NOT used here even
  *     though it looks similar: its `token_id` is a `uuid` FK to `ingest_tokens`, so a
@@ -71,7 +72,32 @@ function clientIp(request: Request): string {
 // public-read default: a real human evaluating the demo does a handful of
 // teardowns, not dozens. This is the per-actor fairness bound; the DAILY_CAP
 // below is the absolute platform-wide spend ceiling.
-const TEARDOWN_PER_IP_HOURLY = 20;
+//
+// WAS 20 AN HOUR, WHICH IS 480 A DAY. Founder, 2026-08-07, and the objection is
+// correct: "there is real money burnt from my pocket". An hourly window on a
+// paid call quietly multiplies by twenty-four, and the daily figure is the one
+// that reaches an invoice. Nobody was ever going to notice the difference,
+// because nobody legitimate gets near either number.
+//
+// TEN A DAY, and the reasoning for the exact figure. A genuine evaluator runs
+// one to three: their own bet, maybe a second, maybe a retry after editing.
+// Ten leaves room for all of that twice over and still cuts the ceiling by
+// forty-eight times.
+//
+// WHY NOT FIVE, which was the tighter option. This limiter keys on IP, and an
+// IP is not a person. A NAT'd office, a university, a coworking floor and a
+// conference wifi all present as one address, so the cap is really "per
+// building" on exactly the days we most want to be seen. Five would lock out
+// the fourth colleague to click a launch-day link, and the asymmetry from the
+// waitlist brake holds here too: turning away a real evaluator is
+// unrecoverable, since they do not come back and we never learn we lost them,
+// while one extra model call costs a fraction of a cent. Ten is the number that
+// prices abuse out without paying for it in strangers.
+//
+// The window is now passed explicitly, because leaving it implicit is what made
+// "20" read as a daily cap when it was an hourly one.
+const TEARDOWN_PER_IP_DAILY = 10;
+const TEARDOWN_WINDOW_MS = 24 * 3600 * 1000;
 
 export const Route = createFileRoute("/api/public/teardown")({
   server: {
@@ -84,7 +110,8 @@ export const Route = createFileRoute("/api/public/teardown")({
           const rl = await checkPublicDecisionRateLimit(
             supabaseAdmin,
             `teardown:${ip}`,
-            TEARDOWN_PER_IP_HOURLY,
+            TEARDOWN_PER_IP_DAILY,
+            TEARDOWN_WINDOW_MS,
           );
           if (!rl.allowed) {
             return json(

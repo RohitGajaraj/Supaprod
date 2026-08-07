@@ -328,10 +328,21 @@ function TeardownPage() {
           {state.kind === "limited" ? (
             <div style={noticeBox} role="status">
               <Clock size={16} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: 1 }} />
+              {/* "Create a free workspace below" WAS TRUE UNTIL 2026-08-07 and
+                  stopped being true the evening signup went invite only. The
+                  limit notice was sending somebody to a door that now asks for a
+                  code, which turns a polite cap into a second dead end in a row.
+                  Caught by the founder asking a different question entirely, about
+                  cost, which is usually how this class of thing surfaces.
+
+                  It still converts, because the offer is real: the waitlist is
+                  the way in and the limit is exactly the moment somebody has
+                  proved they want one. What it must not do is promise an account
+                  they cannot open. */}
               <span>
-                You have hit the free limit for now. Please try again in about {state.minutes}{" "}
-                {state.minutes === 1 ? "minute" : "minutes"}. Want no limits? Create a free
-                workspace below.
+                You have hit the free limit for now. It resets in about {state.minutes}{" "}
+                {state.minutes === 1 ? "minute" : "minutes"}. The Critic runs without limits inside
+                Supaprod, which is invite only right now. Ask for a code below.
               </span>
             </div>
           ) : null}

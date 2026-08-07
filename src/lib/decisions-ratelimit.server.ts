@@ -54,10 +54,19 @@ export function decidePublicReadRateLimit(
  * { allowed: false, retryAfterSeconds } when the IP has exceeded the window.
  * Fails open on any error.
  */
+/**
+ * `windowMs` was decided internally and defaulted to an hour, which was right
+ * for the cheap public reads this was built for and wrong for the one caller
+ * that pays a model vendor per request. An hourly cap is really a cap times
+ * twenty-four: "20 an hour" is 480 a day, and the daily number is the one that
+ * shows up on an invoice. The teardown passes a day here so its ceiling means
+ * what it says. Every existing caller keeps the hour by default.
+ */
 export async function checkPublicDecisionRateLimit(
   db: SupabaseClient,
   clientIp: string,
   limit = LIMIT_PER_WINDOW,
+  windowMs = WINDOW_DURATION_MS,
 ): Promise<{ allowed: true } | { allowed: false; retryAfterSeconds: number }> {
   const nowMs = Date.now();
   const nowIso = new Date(nowMs).toISOString();
@@ -70,7 +79,12 @@ export async function checkPublicDecisionRateLimit(
       .maybeSingle();
     if (getError) throw new Error(getError.message);
 
-    const decision = decidePublicReadRateLimit((row as RateLimitRow | null) ?? null, nowMs, limit);
+    const decision = decidePublicReadRateLimit(
+      (row as RateLimitRow | null) ?? null,
+      nowMs,
+      limit,
+      windowMs,
+    );
 
     if (decision.kind === "block") {
       return { allowed: false, retryAfterSeconds: decision.retryAfterSeconds };
