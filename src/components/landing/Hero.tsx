@@ -274,7 +274,15 @@ export function Hero() {
                * reachable at #join from the closing section. */}
               <a
                 href="/signup"
-                className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-white"
+                // text-[var(--cta-ink)], not text-white. White on ember #FF6B2C
+                // computes to 2.84:1, which fails WCAG AA for body text (4.5:1)
+                // and fails even the 3:1 large-text floor. This is the primary
+                // conversion action on the highest-traffic page in the site.
+                // --cta-ink is #0a0a0b and exists for exactly this, commented
+                // "text on ember fill" at styles.css:2095; it computes to 6.97:1.
+                // .btn-primary already does this correctly via
+                // --primary-foreground. These landing CTAs bypassed the token.
+                className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-[var(--cta-ink)]"
               >
                 <span className="flex items-center gap-2">
                   Start free
