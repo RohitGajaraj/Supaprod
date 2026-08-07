@@ -752,6 +752,25 @@ function EmailHealth() {
           </>
         }
       />
+      {/* The misconfiguration that produced this panel, called out by name.
+          RESEND_FROM_EMAIL held the API key and RESEND_API_KEY held nothing,
+          which is why no send was ever attempted and why the key appeared on
+          this page. Saying "two variables are swapped" is the whole fix; a
+          masked field alone would just look like a bug in the panel. */}
+      {h.fromWithheld ? (
+        <Row
+          tight
+          lead={
+            <>
+              <Value>RESEND_FROM_EMAIL</Value> contains something shaped like a credential, and{" "}
+              <Value>RESEND_API_KEY</Value> is empty. That is one value in the wrong variable. Move
+              it, and treat the old key as compromised: it has been rendered in a browser. Deleting{" "}
+              <Value>RESEND_FROM_EMAIL</Value> entirely is safest, since the default sender is
+              already correct.
+            </>
+          }
+        />
+      ) : null}
       <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
         <input
           type="email"

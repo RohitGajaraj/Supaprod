@@ -34,11 +34,49 @@ async function requireAdmin(client: SupabaseClient): Promise<boolean> {
   return Boolean(data);
 }
 
+/**
+ * Does this value look like a credential rather than the thing it claims to be?
+ *
+ * THIS EXISTS BECAUSE THE PANEL LEAKED A KEY WITHIN MINUTES OF SHIPPING. The
+ * founder pasted his Resend API key into RESEND_FROM_EMAIL instead of
+ * RESEND_API_KEY, and this file rendered it verbatim, because a From header was
+ * classified as not-secret and printed without a second thought. That
+ * classification is only true while the variable contains what its name says.
+ * The whole point of a misconfiguration panel is that it runs in exactly the
+ * conditions where names and contents have come apart, so no environment value
+ * may be echoed on the strength of its name alone.
+ *
+ * Deliberately broader than "starts with re_". Anything that looks like a token
+ * gets masked, because the cost of masking a real From address is a moment of
+ * confusion and the cost of printing a real key is a rotation, a screenshot
+ * living somewhere forever, and a browser cache nobody can clear.
+ */
+export function looksLikeSecret(value: string): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  // A real From header always contains an @, and no vendor token does.
+  if (v.includes("@")) return false;
+  // Known prefixes first: Resend, Stripe, OpenAI, Anthropic, GitHub, Slack.
+  if (/^(re_|sk[-_]|pk[-_]|rk_|ghp_|gho_|xox[baprs]-|Bearer\s)/i.test(v)) return true;
+  // Then the generic shape: long, no spaces, and mixed enough to be entropy
+  // rather than prose.
+  return v.length >= 24 && !/\s/.test(v) && /[0-9]/.test(v) && /[A-Za-z]/.test(v);
+}
+
+/** What to show instead. Names the problem rather than just hiding the value,
+ *  because a masked field with no explanation reads as a bug in the panel. */
+export const SECRET_PLACEHOLDER =
+  "hidden: this value looks like an API key, not an address. Check which variable it is in.";
+
 export type EmailHealth = {
   /** Whether RESEND_API_KEY is present in this runtime. NEVER the key itself. */
   configured: boolean;
-  /** The From header outbound mail will carry. Not a secret; it is on every send. */
+  /** The From header outbound mail will carry, or a placeholder if the value in
+   *  that variable looks like a credential. See looksLikeSecret. */
   from: string;
+  /** True when `from` was withheld. Lets the UI say why in its own words and
+   *  raise the alarm rather than quietly showing something odd. */
+  fromWithheld: boolean;
   /** Which env var to set, named here so the fix does not require reading code. */
   envVar: "RESEND_API_KEY";
   checkedAt: string;
@@ -51,9 +89,11 @@ export const getEmailHealth = createServerFn({ method: "GET" })
       return { error: "Forbidden" };
     }
     const cfg = readEmailConfig();
+    const withheld = looksLikeSecret(cfg.from);
     return {
       configured: cfg.enabled,
-      from: cfg.from,
+      from: withheld ? SECRET_PLACEHOLDER : cfg.from,
+      fromWithheld: withheld,
       envVar: "RESEND_API_KEY",
       checkedAt: new Date().toISOString(),
     };
