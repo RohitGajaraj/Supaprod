@@ -67,7 +67,7 @@ export function AskComposer() {
   }
 
   return (
-    <form onSubmit={submit} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+    <form className="today-ask-form" onSubmit={submit}>
       <Input
         value={intent}
         onChange={(e) => setIntent(e.currentTarget.value)}
@@ -75,19 +75,13 @@ export function AskComposer() {
         // The accessible name is the invitation, matching AskDock's own choice:
         // a screen reader hears what the field is FOR, not what widget it is.
         aria-label="Tell Supaprod what to build"
-        style={{ flex: 1 }}
       />
       <kbd
         // Decoration for the mouse, noise for a screen reader: the shortcut is
         // bound globally in AskProvider and announcing it on a field that is
         // already focused would describe a way to reach where you already are.
         aria-hidden="true"
-        style={{
-          fontFamily: "var(--sp-font-mono)",
-          fontSize: "var(--sp-text-kbd)",
-          color: "var(--sp-mute)",
-          flexShrink: 0,
-        }}
+        className="today-ask-shortcut"
       >
         ⌘K
       </kbd>

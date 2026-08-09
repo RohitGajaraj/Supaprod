@@ -8,6 +8,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server"; // imported (called), never edited
 import { scoreTheme } from "@/lib/brain/score";
@@ -165,22 +166,25 @@ novelty: ${t.novelty ?? "unknown (treat as new)"}
 Write the one focus-next recommendation as JSON.`;
 }
 
+const FocusNextSchema = z.object({ workspaceId: z.string().uuid().optional() });
+
 export const getFocusNext = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<FocusInsight | null> => {
+  .inputValidator((input: unknown) => FocusNextSchema.parse(input ?? {}))
+  .handler(async ({ context, data }): Promise<FocusInsight | null> => {
     const { supabase, userId } = context as unknown as { supabase: SupabaseClient; userId: string };
 
     /**
-     * A REFUSED RPC IS NOT "THIS USER HAS NO WORKSPACE". On error `ws` is null,
-     * the early return below fires, and the themes read never runs -- so the
-     * log on THAT read cannot cover this path. It was the one failure mode in
-     * this function that was completely silent, and it is the house shape: a
-     * discarded read error standing in as evidence of absence. Behaviour is
-     * unchanged (returning null is still the safe answer); this only names it.
+     * The caller owns the active workspace. Older callers may omit it, in
+     * which case the user's default remains the safe fallback. A refused
+     * fallback lookup is logged rather than presented as a quiet workspace.
      */
-    const { data: ws, error: wsErr } = await supabase.rpc("current_user_default_workspace");
-    if (wsErr) console.error(`[focus-next] workspace lookup failed: ${wsErr.message}`);
-    const workspaceId = (ws as string | null) ?? null;
+    let workspaceId = data.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws, error: wsErr } = await supabase.rpc("current_user_default_workspace");
+      if (wsErr) console.error(`[focus-next] workspace lookup failed: ${wsErr.message}`);
+      workspaceId = (ws as string | null) ?? null;
+    }
     if (!workspaceId) return null;
 
     // Rank themes LIVE — no AI for ranking.

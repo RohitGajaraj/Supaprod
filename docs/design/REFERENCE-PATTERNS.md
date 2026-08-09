@@ -681,3 +681,26 @@ Known already from the codebase rather than from research:
   design critic.
 - The open question the research must answer is **"what it replaces"**: before/after against the
   existing screen, which we do not have.
+
+---
+
+# TODAY: the command brief
+
+Researched 2026-08-09 against official Stripe and Linear product documentation. **Reference model: Stripe Home's overview plus unresolved attention, combined with Linear's contextual action rows.** Today should tell a person what changed, put the first unresolved call beside its evidence and verbs, then let them drill into the underlying work without turning the front door into a configurable dashboard or a notification inbox.
+
+## The information model and verbs
+
+1. **A factual opening state.** Stripe Home begins with current business performance and important unresolved items. Supaprod's equivalent is the count that genuinely needs the person, followed immediately by the first call.
+2. **One contextual action row.** Linear keeps preview and action in the same reading flow. Evidence, consequence, and Approve / Decline / Snooze stay attached to the call instead of splitting provenance into a distant rail.
+3. **Compact changed-evidence rows.** Each volunteered insight carries its own action and dismissal. The user can act without opening a separate inbox, while the underlying decision or theme remains one click away.
+4. **Drill down, do not decorate.** Supporting counts open the queue, run, or outcome behind them. No metric exists only to make the page look busy.
+
+## Deliberately rejected
+
+- **Stripe's configurable widgets.** Today is a brief, not a dashboard the user must arrange.
+- **Linear's notification-inbox framing.** Supaprod guides the next call; it does not hand the user another queue to maintain.
+- **Hero metrics and card grids.** The dominant object is the real decision, not a decorative number.
+
+Sources: [Stripe Dashboard basics](https://docs.stripe.com/dashboard/basics) · [Linear contextual Inbox actions](https://linear.app/changelog/2020-03-11-issue-relations) · [Linear drillable dashboards](https://linear.app/changelog/2025-07-24-dashboards).
+
+Content was rephrased for compliance with licensing restrictions.

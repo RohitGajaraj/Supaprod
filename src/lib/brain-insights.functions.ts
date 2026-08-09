@@ -583,12 +583,18 @@ export type PushedInsight = {
   created_at: string;
 };
 
+const PushedInsightsSchema = z.object({ workspaceId: z.string().uuid().optional() });
+
 export const getPushedInsights = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ insights: PushedInsight[] }> => {
+  .inputValidator((input: unknown) => PushedInsightsSchema.parse(input ?? {}))
+  .handler(async ({ context, data: input }): Promise<{ insights: PushedInsight[] }> => {
     const supabase = context.supabase as SupabaseClient;
-    const { data: ws } = await supabase.rpc("current_user_default_workspace");
-    const workspaceId = (ws as string | null) ?? null;
+    let workspaceId = input.workspaceId ?? null;
+    if (!workspaceId) {
+      const { data: ws } = await supabase.rpc("current_user_default_workspace");
+      workspaceId = (ws as string | null) ?? null;
+    }
     if (!workspaceId) return { insights: [] };
 
     /**

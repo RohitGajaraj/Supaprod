@@ -1,101 +1,51 @@
 # Pick up here
 
-> _Written 2026-08-07, 22:05 IST. Tree CLEAN and PUSHED. tsc 0, 8289 tests pass, 0 fail, docs-doctor clean._
+> _Created: 2026-08-07 · Last updated: 2026-08-09_
 
-**Everything below is verified against the running system or the source, on the date shown. Where something was not verified, it says so.** The single board is [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md); this file is the narrow "what happened last, what is loaded in the chamber" note.
+**State at close:** the browser-first `/today` command brief is on `main` in the commit containing this handoff. The tree was verified clean after the explicit push to `origin/main`. App code is not live until the founder clicks **Publish** in Lovable.
 
----
+The canonical work order remains [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). This note records only what the last session changed and what must happen next.
 
-## The one thing that outranks everything else
+## What changed
 
-**P1. `applyOutcome` has never once completed in production.** Zero outcome memories against 957 total. The compounding claim is the only defensible layer of the three, and it rests on a write path that has never run.
+`/today` now opens as an evidence-led command brief instead of a dashboard or notification inbox:
 
-Settling ONE outcome does four things at once: exercises the path, gives `/proof` a real number, produces the only frame where the compounding claim comes from the running system rather than a slide, and unblocks the teaser video's closing shot. **Founder action, minutes.** Spec `60000000-0001-4000-8000-000000000031` on `helio-labs-harbor` via `/learn`.
+- The first real decision leads with attached evidence, provenance, queue depth, and one primary action: **Approve**.
+- The Director's recommendation sits beside the call with a secondary **See evidence** action that opens the exact Discover theme.
+- Ask is a quiet command field with the keyboard anatomy inside the input rather than a competing card.
+- Changed, challenged, and connected evidence use restrained, text-backed semantic roles that remain legible without color.
+- Activity, receipts, and the latest outcome learning follow active work rather than competing with it.
+- At browser widths below 1240px, the brief changes structure instead of squeezing the Director panel into a narrow column.
+- Mission, focus, and pushed-insight reads are scoped to the active workspace. Today also consumes the real `listLearnings` response shape.
 
-An agent must NOT author the verdict word. The record's entire value is that nothing in it is invented.
+The implementation preserves the existing modal keyboard guard, mounts the real pushed-insight source, restores the optimistic cache on failure, and navigates before pushed-insight settlement.
 
----
+## Verification
 
-## What changed tonight, in one pass
+Verified with live Helio data at **1440x1000** and **1100x900** in dark and light themes:
 
-Signup was **open with auto-confirm**; it is now **private beta, invite code only**. That single decision moved seventeen surfaces and broke two things that had to be chased down. If you are reading unfamiliar copy anywhere, this is why.
+- no horizontal overflow;
+- equal hero panels at the wide browser size and a readable stacked brief at the narrower size;
+- one visible primary action;
+- visible button and Ask-field focus states;
+- Ask accepts and clears text;
+- Director navigation opens the exact Discover evidence theme;
+- all current Today server-function requests returned HTTP 200;
+- evidence labels measured about 6.2:1 contrast, with other light-theme secondary text between 5.5:1 and 7.1:1.
 
-| Area | State |
-| --- | --- |
-| Invite gate | Live. Migration, atomic redeem, admin mint/revoke at `/admin/invites`, six seeded codes. |
-| Codes to hand out | [`../growth/invite-codes.md`](../growth/invite-codes.md). YC/investor code is `YC-COMPOUND-K7QR4V`. |
-| Transactional email | **Working, verified by a real send at 21:58 IST.** Landed in the main inbox, not spam. |
-| Waitlist welcome (A1) | Wired, sends on a genuine first signup, branded, in the founder's ruled voice. |
-| Email sequences | All eleven rewritten. `docs/growth/email-sequences.md`. |
-| Launch funnel | Readable at `/admin/launch`. Was write-only since July. |
-| Email health | `/admin/observability`, first block. Reports whether the key is in the RUNTIME, and does a real test send. |
-| Email appearance | Three of five formats branded (welcome, workspace invitation, admin test). Contract: [`../growth/branding/email-design.md`](../growth/branding/email-design.md). See them all: `bun docs/growth/branding/generate-email-preview.ts`. |
+Code gates completed before close:
 
-### Tonight's email outage, so it is not re-debugged
+- targeted Today contracts: **45 pass, 0 fail**;
+- `bunx tsc --noEmit`: passed;
+- `bun test`: **8,294 pass, 23 skip, 60 todo, 0 fail** across 483 files;
+- `bun run build`: passed with the existing Cloudflare Wrangler warning only.
 
-Root cause was **one value in the wrong variable**: the Resend API key went into `RESEND_FROM_EMAIL` while `RESEND_API_KEY` was empty, so every send was a correct silent no-op. Both variables were undocumented in `.env.example`, which is why it was guessable at all. Now documented, with the secret/not-secret distinction stated first.
+The requested independent semantic review was started but aborted by the user, so it returned no findings. The rendered interaction audit and all mandatory gates completed.
 
-**The key was rendered on the admin page** before that was fixed, because a From header was classified as non-secret and printed on the strength of the variable's NAME. It has been rotated. `looksLikeSecret` now masks anything token-shaped in that panel. **Lesson worth keeping: a misconfiguration panel runs precisely when names and contents have come apart, so no environment value may be echoed because of what it is called.**
+## Deployment and next action
 
----
-
-## Founder actions, blocking real things
-
-1. **Settle one outcome.** P1 above. Highest value action available.
-2. **Put `YC-COMPOUND-K7QR4V` in the YC application.** The exact find-and-replace is written out in [`../pitch/yc/fall-2026-application.md`](../pitch/yc/fall-2026-application.md) under the 🚨 block. Seven words in the Login credentials field, Surface 1. **The filed login still works**: the gate blocks account creation, not sign-in, so this is about the "or sign up with any email" clause only.
-3. **Six product screenshots** into `public/images/`. `/product` shows six guarded empty frames. `docs/screenshots/` is gitignored, so they cannot be moved from there.
-4. **Exact launch day**, privately. Product Hunt needs a date to schedule. Tue to Thu strongest. Show HN at D+7 minimum: HN vote-ring detection shadowbans the **domain**, not the post. The date stays publicly withheld by his ruling, and `LAUNCH_DATE` stays unset.
-5. **P10, a real decision not a bug.** The gate is not server-authoritative: `supabase.auth.signUp` is called by the browser with the publishable key, so someone bypassing our form still gets an account. Every door the product SHOWS is locked and every account made through one is counted against a code. Closing it fully needs a Supabase auth hook on `auth.users`, which would block Google signup entirely. Not decided unilaterally.
-6. **Postal address**, when the nurture emails go. CAN-SPAM applies to commercial mail; A1 is transactional and exempt. A2 to A5 and the launch announcement are not. A virtual mailbox is same-day and does not need incorporation.
-7. **P6, `authorization_servers: []`.** Does the MCP server delegate to Supabase or issue its own tokens? No `authorize`/`token` route exists to settle it. Deliberately not guessed.
-
----
-
-## Agent work, ready to start, nothing blocking
-
-Ordered by launch cost.
-
-1. **P5, `/brief` and `/investors` are invisible to crawlers.** Both render `BriefDeck`, which is a full-viewport iframe over `public/brief.html`. Google does not attribute iframe content to the parent, so the investor page is empty to search AND to AI answer engines, which the founder asked for by name. Also zero headings and zero landmarks in the parent, and `brief.html` reportedly carries 15 flat `<h1>`s. **Two agents were dispatched at this and both died on the monthly spend limit before writing anything. Nothing is half-done; the tree is clean.** Do NOT ship off-screen keyword text: that is cloaking.
-2. **Launch-day operations runbook.** Bug triage severity a tired person can apply at 2am, what to watch and the number that means act, where feedback physically arrives, first-week rhythm, and which lever turns off what. **Same two agents died on this one too.** Ground every instruction in something that exists; the most valuable output is naming what the runbook needs and does not have.
-3. **Email design is SETTLED. Do not reopen it without reading the contract.** [`../growth/branding/email-design.md`](../growth/branding/email-design.md) carries the decision, the contrast measurements and the costs.
-
-   **See every email at once:** `bun docs/growth/branding/generate-email-preview.ts` renders all five formats from the real code into `docs/growth/branding/email/_preview.html`, which is COMMITTED. Open that file rather than guessing. It cannot drift, because it imports the functions that actually send.
-
-   Settled: an ember band at `#C6501E` with a light body, white type, a tiled texture, and a white button label on the deep ember. A fully-ember email was proposed by the founder and pushed back on with reasons, which he accepted. A dark ground was proposed and set aside.
-
-   **Three numbers that are measurements, not taste.** White on `#FF6B2C` is 2.83:1 and FAILS AA, which is why the band uses `#C6501E` at 4.60:1. `#C6501E` is the LIGHTEST passing ground: the 11px kicker is small text needing 4.5:1, and `#CB5420` drops to 4.35. Going lighter means growing the kicker until it qualifies as large text.
-
-   **The grey sender avatar is BIMI and no HTML reaches it.** It needs DMARC at `p=quarantine` or `p=reject` (we publish `p=none`), a Verified Mark Certificate at roughly **$1,000 to $1,500 a year**, and a REGISTERED TRADEMARK to be issued one. Strictly ordered, post-incorporation, months. **Do not accept a ticket to "fix the email logo placeholder" without reading §4 of the design doc.**
-
-   Still open: two of five emails (the notification and the periodic digest) are plain text on purpose, and **nothing has been opened in Outlook or Apple Mail, in either mode.** That is the next real test and the one most likely to surface something ugly.
-
-4. **P11 is closed but the lesson is open.** "Join 100+ design partners" was removed from `/product` tonight; nothing was behind the number. A sweep of every public route found no other unsourced count. Keep sweeping when copy lands.
-5. **P7 site-wide soft-404.** Unknown paths return 200 with the SPA shell. `/.well-known/*` is fixed, the rest is not. Needs the router to signal `notFound`.
-6. **P8 app-shell JS on marketing routes.** 249.6 KB gzip, 34 preloads. `__root.tsx` ships QueryClientProvider, Radix AlertDialog and a Supabase auth listener to pages that render none of them.
-7. **Teaser video.** Tool choice, flows and USP order can all be drafted now. Only the closing frame is blocked, and it is blocked on P1.
-8. **Brownfield positioning.** `docs/strategy/brownfield-positioning-evaluation.md` exists and needs the founder's read, not more agent writing.
-9. **P9 is closed.** Workspace invitations were broken by the gate for about an hour and are fixed: a workspace invitation is now its own proof of admission, CHECKED server-side rather than trusted. Do not "simplify" that into honouring `?next=` directly; that is a bypass.
-
----
-
-## Rules that cost real money to relearn
-
-- **Size type to the render, not the file.** LinkedIn draws a 4200px cover into an 804px box. The favicon was stroked for a 16px tab and served to a 48px mail avatar. Both shipped wrong for the same reason.
-- **`.gitignore` has a blanket `*.png`, and it silently 404s assets in production.** Four files referenced by live HTML were never committed and returned 404 while sitting on one laptop: `icon-192`, `icon-512`, `favicon-16`, `favicon-32`. `site.webmanifest` pointed at two dead files and `__root.tsx` declared two more. It is also why a branded email shipped a broken image into an inbox, where it cannot be corrected. **`git add -f` every new asset, then `curl` it after the deploy. A file on disk is not a file on the origin; verify with `curl`, never with `ls public/`.**
-- **`public/` is generated, or it rots.** Five hand-maintained files were found there in one day: the OG card, the icon set, the FAQ schema, a LinkedIn JPEG no code ever wrote, and `favicon.svg`, whose generator had **zero callers**. Check an asset's date against the ruling that governs it.
-- **Never edit a historical migration.** `ea899590` did, and the fix was inert against every database that had already run it.
-- **Constrain audit agents to read-only tools.** Seven agent commits once went up unreviewed, authored as the founder.
-- **Commit file-by-file while agents are running.** A `git add -A` swept one agent's privacy fixes into an unrelated commit tonight; the message does not describe its own contents.
-- **Verify a board row before spending an agent on it.** Two rows tonight said not-started for work that had shipped hours earlier.
-- **Claims law.** If a number cannot be pulled live, it does not render. Two false-claim clusters were found today: `/privacy` described a tracking cookie, four localStorage keys and an analytics vendor that do not exist, and `/product` claimed a hundred design partners. Both were placeholder text nobody revisited, and both claimed MORE than the product does.
-- **Never say the product "remembers", "stores" or "logs".** All three claim less than it delivers. It learns, then guides.
-- **No em or en dashes.** A pre-commit hook enforces it.
-
----
-
-## Related
-
-- [`../planning/LAUNCH-EXECUTION-TRACKER.md`](../planning/LAUNCH-EXECUTION-TRACKER.md), the single board, section 0a for the access model.
-- [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) section 0, the live cursor.
-- [`../growth/invite-codes.md`](../growth/invite-codes.md), the six links and how to revoke one.
-- [`../growth/email-sequences.md`](../growth/email-sequences.md), all eleven emails and the two blockers on the nine that cannot send.
+1. **Founder:** click **Publish** in Lovable. Pushing `main` updates source but does not deploy app code.
+2. Mobile-specific polish is deliberately deferred. This pass targets the desktop browser experience only.
+3. No migration was added or applied, and no production database mutation was made during this work.
+4. The local `bun run dev` process used for review was stopped at session close.
+5. Production P1 and outcome-loop priorities remain governed by the SSOT. Do not copy or reinterpret them here.

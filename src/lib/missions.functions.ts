@@ -180,7 +180,10 @@ export const listMissions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
     z
-      .object({ productId: z.string().uuid().optional() })
+      .object({
+        productId: z.string().uuid().optional(),
+        workspaceId: z.string().uuid().optional(),
+      })
       .optional()
       .parse(i ?? {}),
   )
@@ -226,6 +229,7 @@ export const listMissions = createServerFn({ method: "GET" })
       )
       .order("updated_at", { ascending: false })
       .limit(50);
+    if (input?.workspaceId) query = query.eq("workspace_id", input.workspaceId);
     if (productMissionIds) query = query.in("id", productMissionIds);
     const { data, error } = await query;
     if (error) throw new Error(error.message);

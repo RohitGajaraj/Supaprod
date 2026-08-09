@@ -1,75 +1,48 @@
-import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 
+import { Button, Num } from "@/components/shell/primitives";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getPushedInsights,
   markInsightActioned,
   type PushedInsight,
 } from "@/lib/brain-insights.functions";
-import { Block, Button, Row } from "@/components/shell/primitives";
 
-/**
- * WHAT THE BRAIN NOTICED WHILE NOBODY WAS LOOKING.
- *
- * WHAT WAS FOUND. `runInsightPush` rides the two-hourly derive tick and writes
- * push rows into `insights`: a ground shift, a bet contradicted by new evidence,
- * a calibration miss. Each carries a one-click action. `getPushedInsights` reads
- * them back and `markInsightActioned` settles them. All three had ZERO React
- * callers, exactly like `getFocusNext` before tonight. The product was noticing
- * things every two hours and telling nobody.
- *
- * THIS IS THE UNPROMPTED HALF OF LAYER 01. `FocusNext` answers "what should I
- * work on next", which is a question. These are the things nobody asked about:
- * the product volunteering that something changed under a decision already
- * made. A director that only speaks when spoken to is a search box.
- *
- * IT CAN SETTLE, NOT ONLY SHOW. A lane that lists work without letting a person
- * finish it is a notification tray, and this product has a standing rule
- * against a capability with no door. Each card acts or is waved off, and either
- * way it leaves the lane, because `getPushedInsights` returns only open rows.
- *
- * IT IS SILENT WHEN THERE IS NOTHING. No pushes means no Block at all, rather
- * than an empty heading promising insight that never arrives. Same rule as the
- * gate above it, and the same reason: the product does not claim work it has
- * not done.
- */
 export function PushedInsights() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
-  const fPushed = useServerFn(getPushedInsights);
-  const fActioned = useServerFn(markInsightActioned);
+  const queryClient = useQueryClient();
+  const { activeWorkspace } = useWorkspace();
+  const workspaceId = activeWorkspace?.id ?? null;
+  const fetchPushed = useServerFn(getPushedInsights);
+  const markActioned = useServerFn(markInsightActioned);
+  const queryKey = ["brain", "pushed-insights"] as const;
 
   const pushed = useQuery({
-    queryKey: ["brain", "pushed-insights"],
-    queryFn: () => fPushed(),
-    // The write side rides a two-hourly tick, so anything shorter is asking a
-    // question that cannot have a new answer yet.
+    queryKey,
+    queryFn: () => fetchPushed({ data: { workspaceId: workspaceId ?? undefined } }),
+    enabled: Boolean(workspaceId),
     staleTime: 10 * 60 * 1000,
   });
 
   const settle = useMutation({
-    mutationFn: (v: { id: string; outcome: "acted" | "dismissed" }) => fActioned({ data: v }),
-    // OPTIMISTIC, because the card is the person's own press and waiting on a
-    // round trip to remove it makes a settled card look stuck. The refetch
-    // below is what makes it true.
+    mutationFn: (value: { id: string; outcome: "acted" | "dismissed" }) =>
+      markActioned({ data: value }),
     onMutate: async ({ id }) => {
-      await qc.cancelQueries({ queryKey: ["brain", "pushed-insights"] });
-      const before = qc.getQueryData<{ insights: PushedInsight[] }>(["brain", "pushed-insights"]);
-      qc.setQueryData<{ insights: PushedInsight[] }>(["brain", "pushed-insights"], (old) =>
-        old ? { insights: old.insights.filter((i) => i.id !== id) } : old,
+      await queryClient.cancelQueries({ queryKey });
+      const before = queryClient.getQueryData<{ insights: PushedInsight[] }>(queryKey);
+      queryClient.setQueryData<{ insights: PushedInsight[] } | undefined>(queryKey, (current) =>
+        current
+          ? { insights: current.insights.filter((insight) => insight.id !== id) }
+          : current,
       );
       return { before };
     },
-    // A refused write RESOLVES in supabase-js rather than throwing, so the
-    // rollback below is not the only guard: the refetch is what proves the row
-    // really left. Putting the card back on a genuine error is the half a
-    // person can see.
-    onError: (_e, _v, ctx) => {
-      if (ctx?.before) qc.setQueryData(["brain", "pushed-insights"], ctx.before);
+    onError: (_error, _value, ctx) => {
+      if (ctx?.before) queryClient.setQueryData(["brain", "pushed-insights"], ctx.before);
     },
-    onSettled: () => void qc.invalidateQueries({ queryKey: ["brain", "pushed-insights"] }),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey }),
   });
 
   if (pushed.isLoading || pushed.isError) return null;
@@ -77,76 +50,76 @@ export function PushedInsights() {
   if (insights.length === 0) return null;
 
   return (
-    <Block
-      title="The brain noticed this on its own"
-      sub="Nobody asked for these. They came out of the record while you were elsewhere."
-    >
-      {insights.map((i) => (
-        <Row
-          key={i.id}
-          lead={i.title}
-          sub={i.body}
-          action={
-            <>
-              {/* THE ACTION IS THE PUSH'S OWN LABEL, verbatim. The write side
-                  chose the verb when it noticed the thing, and re-deriving one
-                  here would let the button and the reasoning drift apart. */}
-              <Button
-                variant="primary"
-                disabled={settle.isPending}
-                /**
-                 * NAVIGATE FIRST, SETTLE SECOND. Settling first marked the card
-                 * `acted` and `getPushedInsights` returns only `open` rows, so
-                 * a person taken to the wrong place could not go back and try
-                 * again -- the card was gone. Combined with every kind falling
-                 * through to /brain, one click lost the insight permanently.
-                 * The order is the difference between a wrong destination and
-                 * an unrecoverable one.
-                 */
-                onClick={() => {
-                  void navigate({ to: targetRoute(i.action.kind) });
-                  settle.mutate({ id: i.id, outcome: "acted" });
-                }}
-              >
-                {i.action.label}
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={settle.isPending}
-                onClick={() => settle.mutate({ id: i.id, outcome: "dismissed" })}
-                title="Not worth acting on. It leaves the lane and the record keeps it."
-              >
-                Not this
-              </Button>
-            </>
-          }
-        />
-      ))}
-    </Block>
+    <section className="today-notices" aria-labelledby="today-notices-title">
+      <div className="today-notices-head">
+        <div>
+          <div className="today-kicker">New evidence</div>
+          <h2 id="today-notices-title">What changed while you were away</h2>
+        </div>
+        <span className="today-notices-count">
+          <Num>{insights.length}</Num> open
+        </span>
+      </div>
+      <p className="today-notices-sub">
+        New evidence changed a standing call or connected signals you had treated separately.
+      </p>
+      <div className="today-notice-list">
+        {insights.map((i) => {
+          const kind = insightKind(i.kind);
+          return (
+            <article className="today-notice" data-evidence-kind={kind.tone} key={i.id}>
+              <div className="today-notice-copy">
+                <span className="today-evidence-kind">{kind.label}</span>
+                <h3>{i.title}</h3>
+                <p>{i.body}</p>
+              </div>
+              <div className="today-notice-actions">
+                <Button
+                  disabled={settle.isPending}
+                  onClick={() => {
+                    navigate({ to: targetRoute(i.action.kind) });
+                    settle.mutate({ id: i.id, outcome: "acted" });
+                  }}
+                >
+                  {i.action.label}
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={settle.isPending}
+                  onClick={() => settle.mutate({ id: i.id, outcome: "dismissed" })}
+                  title="Dismiss this update. It remains part of the record."
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
-/**
- * Where a push's action kind lives.
- *
- * THE KINDS ARE THE ONES THE WRITER ACTUALLY EMITS, which the first version of
- * this map got completely wrong. It switched on `opportunity`, `theme`,
- * `decision`, `prd`, `mission` -- the artifact nouns -- while
- * `push_action->>'kind'` carries VERBS. Measured on the live database: 52 push
- * cards across seven kinds, `open_opportunity`, `open_decision`, `open_metric`,
- * `open_prd`, `open_theme`, `start_mission`, `rerank_bets`, and not one of them
- * matched. Every card in the lane went to /brain.
- *
- * The fallback was doing its job -- an unknown kind lands somewhere real rather
- * than nowhere -- which is exactly why nothing looked broken. A default that
- * catches everything is indistinguishable from a default that catches nothing.
- */
+type InsightTone = "changed" | "challenged" | "connected";
+
+function insightKind(kind: string): { label: string; tone: InsightTone } {
+  switch (kind) {
+    case "ground_shift":
+      return { label: "Decision changed", tone: "changed" };
+    case "bet_contradiction":
+      return { label: "Contradicting evidence", tone: "challenged" };
+    case "assumption_miss":
+      return { label: "Assumption missed", tone: "challenged" };
+    default:
+      return { label: "Connected evidence", tone: "connected" };
+  }
+}
+
 function targetRoute(kind: string): string {
   switch (kind) {
     case "open_opportunity":
     case "rerank_bets":
     case "open_decision":
-      // A bet and the call on it are both settled at the judgment gate.
       return "/decide";
     case "open_theme":
       return "/discover";
@@ -155,12 +128,8 @@ function targetRoute(kind: string): string {
     case "start_mission":
       return "/build";
     case "open_metric":
-      // A metric is an outcome read, and Learn is where outcomes are graded.
       return "/learn";
     default:
-      // Brain holds everything, so an unknown kind still lands somewhere real.
-      // The writer will grow kinds; this must stay a soft landing rather than
-      // a broken link.
       return "/brain";
   }
 }
