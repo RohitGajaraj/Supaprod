@@ -24,7 +24,46 @@ export const Route = createFileRoute("/updates")({
   component: UpdatesPage,
 });
 
+// Each entry is dated from the real build log, verified against git rather than
+// paraphrased from a commit subject (2026-08-09: the landing page links here as
+// "What shipped this week" while the newest row read 2026-07-10, a month back).
+//
+// The bar for a row: a stranger with an account would NOTICE it. Internal
+// refactors, audits, doc passes and design-system work do not qualify no matter
+// how much of the month they took. The connector fleet is deliberately absent
+// even though it is the biggest thing in this window's neighbourhood -- every
+// provider landed 2026-06-30 to 07-09, so it predates the row below it.
 const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean }[] = [
+  {
+    date: "2026-08-09",
+    title: "Today opens on the call, not the dashboard",
+    body: "Today now leads with the single call most worth making, the evidence standing behind it, and the follow-through attached to it, in one brief. It replaces a screen of panels that asked what you wanted to do with one that says what is worth doing.",
+  },
+  {
+    date: "2026-08-07",
+    title: "Invite only, on purpose, while the beta is small",
+    body: "Signing up now takes an invite code. It is a deliberate limit rather than a waiting list: a small beta means every early team gets real attention while the loop is still being tuned. Ask for a code and we will send you one.",
+  },
+  {
+    date: "2026-08-07",
+    title: "Our public scorecard now counts only real calls",
+    body: "The Ledger was computing its score partly from sample workspaces, which meant it was grading fixtures. It now counts real decisions in real workspaces only. That is why it currently shows an honest zero rather than a number, and it fills in as outcomes land.",
+  },
+  {
+    date: "2026-08-06",
+    title: "The record brings things to you",
+    body: "Insights no longer wait for you to go looking for them. When something already in your record should change a call you are about to make, it surfaces on Today with the evidence attached.",
+  },
+  {
+    date: "2026-08-01",
+    title: "A hard ceiling on what any run can spend",
+    body: "Every track of work carries its own spend cap now, and so does every mission. An agent stops at the ceiling and tells you, rather than continuing and telling you afterwards.",
+  },
+  {
+    date: "2026-07-12",
+    title: "The teardown, free, with no account",
+    body: "Paste a PRD and Supaprod tears it down with the evidence for and against it. No signup, no setup. It is the same critic that runs inside the product, pointed at your own document.",
+  },
   {
     date: "2026-07-10",
     title: "The first ten minutes now prove the value",
@@ -54,7 +93,7 @@ const ENTRIES: { date: string; title: string; body: string; fromPulse?: boolean 
 
 function UpdatesPage() {
   return (
-    <LegalPageShell eyebrow="Product" title="Changelog" updated="July 10, 2026">
+    <LegalPageShell eyebrow="Product" title="Changelog" updated="August 9, 2026">
       <p style={{ marginBottom: 8 }}>
         What shipped, in plain language. No marketing spin, dated against the real build log.
       </p>

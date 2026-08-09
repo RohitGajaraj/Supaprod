@@ -218,35 +218,27 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
       and holds the same rust hue.
    Sizes were the other half. The kicker is the slide's own label and was set
    at 10.5px with .3em tracking, which is what made it unreadable; 13px with
-   slightly tighter tracking fixes it without changing its voice. Table headers
-   9px and the caption 9.5px were below what anyone reads on a projector, so
-   both go to 11px.
-   The body cells are deliberately LEFT at 11.5px. Bumping them to 12.5 was
-   tried and reverted: they already cleared contrast, and the extra point
-   wrapped four of the four rows onto two lines each, which cost the ledger the
-   one-line-per-row crispness that makes it scannable. Fixing a real problem is
-   not worth creating a bigger one next to it.
+   slightly tighter tracking fixes it without changing its voice.
+   The table this audit spent half its length on is GONE as of 2026-08-09 (its
+   four rows were invented; see the note in the moat slide), so the caption and
+   table-header rules went with it. The contrast findings above are kept rather
+   than trimmed: --ink3 and the paper ember still carry the kicker, the pillars
+   and the next link, and the maths is why those two values are what they are.
    Scoped to .moat so no other slide moves. */
 .slide.paper.moat{--ink3:#736a5f}
 .slide.paper.moat .kicker{font-size:13px;letter-spacing:.24em;color:#b34e1b}
 .slide.paper.moat .kicker .ix{color:#b34e1b}
-.slide.paper.moat .ledger caption{font-size:11px;letter-spacing:.16em}
-.slide.paper.moat .ledger th{font-size:11px;letter-spacing:.14em}
 .slide.paper.moat .pillars{font-size:12px;letter-spacing:.14em}
 .slide.paper.moat .pillars b{color:#b34e1b!important}
 .slide.paper.moat .next{font-size:11px;color:#736a5f}
 @media print{.slide.paper.moat::before,.slide.paper.moat::after{display:none}}
 @media (max-width:900px){.slide.paper.moat::before,.slide.paper.moat::after{display:none}}
-.ledger{width:100%;max-width:1040px;border-collapse:collapse;margin:3.2vh 0 2.6vh;font-family:var(--mono)}
-.ledger th{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:0 14px 9px 0;border-bottom:1px solid rgba(41,37,32,.4);font-weight:500}
-.ledger td{font-size:11.5px;color:var(--ink2);padding:11px 14px 11px 0;border-bottom:1px solid var(--inkhl);vertical-align:top}
-.ledger td:first-child{white-space:nowrap}
+/* The .ledger table rules were removed 2026-08-09 with the table itself. They
+   styled four invented graded rows, including the RIGHT/WRONG verdict colours
+   (.vR/.vP/.vW) and the miss tint (tr.wrow). Left in place they would have made
+   re-adding a made-up table a one-line change, which is the opposite of what
+   the ruling was for. .pillars b stays: it was interleaved here and is live. */
 .pillars b{color:#c2571f!important}
-.ledger td.dec{color:var(--ink);font-weight:500}
-.ledger .vR{color:#1e7a38;font-weight:600;letter-spacing:.05em}
-.ledger .vP{color:var(--ink2);font-weight:600;letter-spacing:.05em}
-.ledger .vW{color:#b0402e;font-weight:600;letter-spacing:.05em}
-.ledger tr.wrow td{background:rgba(176,64,46,.055)}
 @keyframes pulseglow{0%{box-shadow:0 0 0 0 rgba(116,168,239,.5)}70%{box-shadow:0 0 0 7px rgba(116,168,239,0)}100%{box-shadow:0 0 0 0 rgba(116,168,239,0)}}
 .st1.pulse,.sdot.pulse{animation:pulseglow 1.6s infinite}
 .statusboard{max-width:880px;margin-top:3.4vh}
@@ -277,7 +269,9 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
 .smc{font-size:12.5px;color:var(--gray);line-height:1.5}
 .smx{font-family:var(--mono);font-size:11.5px;color:var(--silver);margin-top:4px}
 .smx b{color:var(--w);font-weight:600}
-.ledger caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);padding-bottom:12px}
+/* .ledger caption removed 2026-08-09: it styled the word "Illustrative" above
+   the invented table, and it was the entire disclosure. There are now no
+   <caption> elements and no .ledger elements left in this file. */
 .paper-pull{font-size:clamp(14px,1.3vw,17px);line-height:1.62;color:var(--ink);max-width:70ch}
 .paper-pull b{font-weight:640}
 .paper-pull.two{margin-top:1.5vh;color:var(--ink2)}
@@ -571,18 +565,18 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
   <div class="ghostn">06</div>
   <div class="kicker rv d1"><span class="ix">06</span>The moat · the company brain</div>
   <h1 class="ph rv d2"><span class="lit">It learns your taste,</span><span class="dim">not just your tasks.</span></h1>
-  <table class="ledger rv d3">
-    <caption>Illustrative · a product team's ledger, one quarter in</caption>
-    <thead><tr><th>Quarter</th><th>Decision</th><th>Evidence attached</th><th>Verdict, graded later</th></tr></thead>
-    <tbody>
-      <tr><td>Week 2</td><td class="dec">Kill the secondary product line</td><td>Usage and margin data, 2 quarters</td><td class="vR">RIGHT · a third of eng time recovered</td></tr>
-      <tr><td>Week 4</td><td class="dec">Say no to the top-voted feature request</td><td>Usage data contradicts the votes</td><td class="vR">RIGHT · no churn moved, quarter freed</td></tr>
-      <tr class="wrow"><td>Week 7</td><td class="dec">Chase the big logo ahead of the roadmap</td><td>Gut call, no evidence attached</td><td class="vW">WRONG · deal stalled, roadmap slipped. The gut is on file</td></tr>
-      <tr><td>Week 11</td><td class="dec">Reprice from seats to usage</td><td>Cohort revenue analysis</td><td class="vR">RIGHT · expansion revenue up inside the quarter</td></tr>
-    </tbody>
-  </table>
-  <div class="paper-pull rv d4">Verdicts take weeks, so the record accrues in calendar time. <b>It cannot be backfilled, bought, or bolted on.</b> A competitor starting next year starts at zero, next year.</div>
-  <div class="paper-pull rv d5" style="margin-top:1.8vh;font-family:var(--pixel);font-size:clamp(16px,1.7vw,21px);color:#b34e1b">Quarter two starts smarter than quarter one.</div>
+  <!-- The illustrative ledger table was removed 2026-08-09 (founder ruling).
+       Four invented graded calls (Week 2/4/7/11, one WRONG), disclosed only by
+       a 9.5px caption reading "Illustrative". The same table was removed from
+       the landing page in the same ruling; see the header of
+       src/components/landing/Receipts.tsx for the full reasoning. Short
+       version: on a brief whose argument is that the product does not make
+       things up, a made-up table is the one object that cannot be there, and a
+       caption is not a disclosure. The moat is a claim about calendar time and
+       the pull-quote below states it without needing a demonstration.
+       Do not re-add a worked example here to fill the slide. -->
+  <div class="paper-pull rv d3">Verdicts take weeks, so the record accrues in calendar time. <b>It cannot be backfilled, bought, or bolted on.</b> A competitor starting next year starts at zero, next year.</div>
+  <div class="paper-pull rv d4" style="margin-top:1.8vh;font-family:var(--pixel);font-size:clamp(16px,1.7vw,21px);color:#b34e1b">Quarter two starts smarter than quarter one.</div>
   <div class="pillars rv d5">Three pillars &nbsp;·&nbsp; <b>own the loop</b> &nbsp;·&nbsp; <b>sense continuously</b> &nbsp;·&nbsp; <b>keep the receipts</b></div>
 </section>
 
