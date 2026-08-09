@@ -41,8 +41,44 @@ export function LandingFooter() {
     {
       heading: "proof",
       links: [
+        // "Trust ledger" STAYS, and that is a considered call rather than an
+        // oversight. /proof currently renders three honest empty states, and the
+        // 2026-08-09 ruling pulled it out of the landing page's Receipts beat for
+        // exactly that reason. But a beat is persuasion and a footer is a
+        // directory, and the two fail differently: the beat was asserting
+        // evidence it did not have, while the footer only says the page exists,
+        // which is true. Removing it would also leave /proof with ZERO inbound
+        // internal links, the precise condition documented six lines above as
+        // what was crippling /product. An orphaned page is not indexed, and the
+        // page publishes our calibration number the moment one outcome settles.
         { label: "Trust ledger", href: "/proof" },
-        { label: "A decision record", href: "/d/acf1fa74a20840cda5759644c6f02c05" },
+        // REMOVED 2026-08-09: { label: "A decision record", href: "/d/acf1fa74..." }
+        //
+        // The slug is written truncated on purpose. no-seeded-slugs.test.ts
+        // fails on a full 32-hex literal ANYWHERE, comments included, because a
+        // comment carrying a working fixture slug is one copy-paste from being
+        // live again. Documentation should survive; the constant should not.
+        //
+        // That slug is a SEED FIXTURE. It belongs to workspace e375a61c
+        // ("Explore workspace") with is_sample = true, and it resolves live to
+        // "Supersede SQL-first with a natural-language question box", dated
+        // Jun 5 2026. It is the exact class of row listPublicDecisions() filters
+        // out of /proof so the ledger can never present fabricated content as
+        // real history.
+        //
+        // This is the SAME defect the 2026-08-05 fix wrote up at length in
+        // src/components/landing/Receipts.tsx, and it survived that fix because
+        // the fix swapped the constant in ONE file while the footer held its own
+        // copy. The guard written alongside it only read Receipts.tsx, so it
+        // could never have caught this. The site was refusing to show this row
+        // on the ledger and linking it from the footer under the heading
+        // "proof", labelled "A decision record".
+        //
+        // Nothing replaces it. There is no real public decision to point at yet:
+        // every public, slugged decision in the database sits in an is_sample
+        // workspace. When one exists, /proof lists it live, which is why /proof
+        // above is the honest destination for this idea. The guard in
+        // src/components/landing/no-seeded-slugs.test.ts now covers every file.
         { label: "A public teardown", href: "/p/teardown" },
         { label: "ARD spec", href: "/ard" },
       ],

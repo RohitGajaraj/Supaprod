@@ -230,23 +230,17 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
 .slide.paper.moat{--ink3:#736a5f}
 .slide.paper.moat .kicker{font-size:13px;letter-spacing:.24em;color:#b34e1b}
 .slide.paper.moat .kicker .ix{color:#b34e1b}
-.slide.paper.moat .ledger caption{font-size:11px;letter-spacing:.16em}
-.slide.paper.moat .ledger th{font-size:11px;letter-spacing:.14em}
 .slide.paper.moat .pillars{font-size:12px;letter-spacing:.14em}
 .slide.paper.moat .pillars b{color:#b34e1b!important}
 .slide.paper.moat .next{font-size:11px;color:#736a5f}
 @media print{.slide.paper.moat::before,.slide.paper.moat::after{display:none}}
 @media (max-width:900px){.slide.paper.moat::before,.slide.paper.moat::after{display:none}}
-.ledger{width:100%;max-width:1040px;border-collapse:collapse;margin:3.2vh 0 2.6vh;font-family:var(--mono)}
-.ledger th{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:0 14px 9px 0;border-bottom:1px solid rgba(41,37,32,.4);font-weight:500}
-.ledger td{font-size:11.5px;color:var(--ink2);padding:11px 14px 11px 0;border-bottom:1px solid var(--inkhl);vertical-align:top}
-.ledger td:first-child{white-space:nowrap}
+/* The .ledger table rules were removed 2026-08-09 with the table itself. They
+   styled four invented graded rows, including the RIGHT/WRONG verdict colours
+   (.vR/.vP/.vW) and the miss tint (tr.wrow). Left in place they would have made
+   re-adding a made-up table a one-line change, which is the opposite of what
+   the ruling was for. .pillars b stays: it was interleaved here and is live. */
 .pillars b{color:#c2571f!important}
-.ledger td.dec{color:var(--ink);font-weight:500}
-.ledger .vR{color:#1e7a38;font-weight:600;letter-spacing:.05em}
-.ledger .vP{color:var(--ink2);font-weight:600;letter-spacing:.05em}
-.ledger .vW{color:#b0402e;font-weight:600;letter-spacing:.05em}
-.ledger tr.wrow td{background:rgba(176,64,46,.055)}
 @keyframes pulseglow{0%{box-shadow:0 0 0 0 rgba(116,168,239,.5)}70%{box-shadow:0 0 0 7px rgba(116,168,239,0)}100%{box-shadow:0 0 0 0 rgba(116,168,239,0)}}
 .st1.pulse,.sdot.pulse{animation:pulseglow 1.6s infinite}
 .statusboard{max-width:880px;margin-top:3.4vh}
@@ -277,7 +271,6 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
 .smc{font-size:12.5px;color:var(--gray);line-height:1.5}
 .smx{font-family:var(--mono);font-size:11.5px;color:var(--silver);margin-top:4px}
 .smx b{color:var(--w);font-weight:600}
-.ledger caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);padding-bottom:12px}
 .paper-pull{font-size:clamp(14px,1.3vw,17px);line-height:1.62;color:var(--ink);max-width:70ch}
 .paper-pull b{font-weight:640}
 .paper-pull.two{margin-top:1.5vh;color:var(--ink2)}
@@ -442,7 +435,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
   <svg class="knotbig rv d1" viewBox="0 0 100 100"><g class="spin"><use href="#knot"/></g></svg>
   <div class="cat rv d2">The AI-native, agentic-first operating system for product teams</div>
   <h1 class="wordmark rv d3">Supaprod</h1>
-  <div class="sub rv d4"><span style="color:var(--w)">agents</span> that know <span class="you">what to build</span>,<br>ship it, and <span class="you">remember</span>.</div>
+  <div class="sub rv d4"><span style="color:var(--w)">agents</span> that know <span class="you">what to build</span>,<br>ship it, and <span class="you">guide the next call</span>.</div>
   <div class="meta rv d5">Pre-seed briefing<span class="sep">·</span>August 2026<span class="sep">·</span>Confidential</div>
   <div class="hint rv d6">Three minutes · press &rarr;</div>
 </section>
@@ -466,7 +459,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
       </div>
       <div class="claim rv d5">
         <div class="cn" style="color:var(--green)">03 · The company brain</div>
-        <div class="ct">It remembers, and it guides.</div>
+        <div class="ct">It learns, and it guides.</div>
         <div class="cd">Every decision recorded with its evidence, then graded against what happened. It compounds: next time it tells you what is right, and warns you before you repeat what was wrong.</div>
       </div>
     </div>
@@ -480,7 +473,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
         <text x="230" y="312" text-anchor="middle" font-size="8" fill="#5a5952">every pass writes to it</text>
       </svg>
       <div class="loopcap" style="color:var(--w);font-size:11px"><span style="color:var(--w)">the complete lifecycle</span> <span style="color:var(--faint)">·</span> <span style="color:var(--w)">run by agents</span> <span style="color:var(--faint)">·</span> <span style="color:var(--w)">gated by you</span></div>
-      <div class="staccato">it tells you what to build. builds it. ships it. checks the outcome. remembers. <span>the more it runs, the sharper it gets.</span></div>
+      <div class="staccato">it tells you what to build. builds it. ships it. checks the outcome. learns. <span>the more it runs, the sharper it gets.</span></div>
     </div>
   </div>
 </section>
@@ -547,7 +540,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
     <div class="rv d3">
       <div class="trow"><div class="tt">08:02</div><div class="tg" style="color:var(--marigold)">it notices</div><div class="td">your two largest accounts hit the same wall this week, and renewal season starts in six<span class="who">the director</span></div></div>
       <div class="trow"><div class="tt">09:14</div><div class="tg" style="color:var(--marigold)">it proposes</div><div class="td">fix the export flow first: here is the revenue at stake, and the two cheaper options it rejected<span class="who">the director</span></div></div>
-      <div class="trow"><div class="tt">09:14</div><div class="tg" style="color:var(--green)">it remembers</div><div class="td">the last time a big account hit friction and you waited, they churned. Here is the receipt<span class="who">the brain</span></div></div>
+      <div class="trow"><div class="tt">09:14</div><div class="tg" style="color:var(--green)">it learns</div><div class="td">the last time a big account hit friction and you waited, they churned. Here is the receipt<span class="who">the brain</span></div></div>
       <div class="trow gate"><div class="tt">09:16</div><div class="tg">you decide</div><div class="td">one click. The only human moment in the run</div></div>
       <div class="trow"><div class="tt">09:17</div><div class="tg" style="color:var(--blue)">agents ship</div><div class="td">design, code, tests. Live behind a safety flag the same day<span class="who">the operating system</span></div></div>
       <div class="trow"><div class="tt">09:17</div><div class="tg" style="color:var(--blue)">if it fails</div><div class="td">any failed check stops the run and returns it to your gate. Nothing ships without you<span class="who">the operating system</span></div></div>
@@ -563,7 +556,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
     </div>
   </div>
   <div class="trace-foot rv d5">Agents ran twelve steps in nineteen minutes. You made two calls. <b>Every one is on the record.</b></div>
-  <div class="trace-chips rv d6"><span class="chip" style="color:var(--ember-t);border-color:rgba(255,107,44,.35)">A full run costs cents, not sprints</span><span class="chip">Replayable, step by step, in the app</span><span class="chip legend"><i style="color:var(--marigold)">&#9679;</i> director proposes &nbsp;<i style="color:var(--blue)">&#9679;</i> OS ships &nbsp;<i style="color:var(--green)">&#9679;</i> brain remembers</span></div>
+  <div class="trace-chips rv d6"><span class="chip" style="color:var(--ember-t);border-color:rgba(255,107,44,.35)">A full run costs cents, not sprints</span><span class="chip">Replayable, step by step, in the app</span><span class="chip legend"><i style="color:var(--marigold)">&#9679;</i> director proposes &nbsp;<i style="color:var(--blue)">&#9679;</i> OS ships &nbsp;<i style="color:var(--green)">&#9679;</i> brain learns</span></div>
 </section>
 
 <!-- 7 · THE MOAT (paper) -->
@@ -571,18 +564,20 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
   <div class="ghostn">06</div>
   <div class="kicker rv d1"><span class="ix">06</span>The moat · the company brain</div>
   <h1 class="ph rv d2"><span class="lit">It learns your taste,</span><span class="dim">not just your tasks.</span></h1>
-  <table class="ledger rv d3">
-    <caption>Illustrative · a product team's ledger, one quarter in</caption>
-    <thead><tr><th>Quarter</th><th>Decision</th><th>Evidence attached</th><th>Verdict, graded later</th></tr></thead>
-    <tbody>
-      <tr><td>Week 2</td><td class="dec">Kill the secondary product line</td><td>Usage and margin data, 2 quarters</td><td class="vR">RIGHT · a third of eng time recovered</td></tr>
-      <tr><td>Week 4</td><td class="dec">Say no to the top-voted feature request</td><td>Usage data contradicts the votes</td><td class="vR">RIGHT · no churn moved, quarter freed</td></tr>
-      <tr class="wrow"><td>Week 7</td><td class="dec">Chase the big logo ahead of the roadmap</td><td>Gut call, no evidence attached</td><td class="vW">WRONG · deal stalled, roadmap slipped. The gut is on file</td></tr>
-      <tr><td>Week 11</td><td class="dec">Reprice from seats to usage</td><td>Cohort revenue analysis</td><td class="vR">RIGHT · expansion revenue up inside the quarter</td></tr>
-    </tbody>
-  </table>
-  <div class="paper-pull rv d4">Verdicts take weeks, so the record accrues in calendar time. <b>It cannot be backfilled, bought, or bolted on.</b> A competitor starting next year starts at zero, next year.</div>
-  <div class="paper-pull rv d5" style="margin-top:1.8vh;font-family:var(--pixel);font-size:clamp(16px,1.7vw,21px);color:#b34e1b">Quarter two starts smarter than quarter one.</div>
+  <!-- The illustrative ledger table was removed 2026-08-09 (founder ruling),
+       matching public/brief.html and the landing page in the same ruling. Four
+       invented graded calls (Week 2/4/7/11, one WRONG) under a 9.5px caption
+       reading "Illustrative".
+       An illustrative model is more defensible in a deck than on a marketing
+       page, and that was the argument for leaving it. It did not survive the
+       room it sits in: this deck's own thesis is that the product does not make
+       things up, and the slide immediately before it shows a real trace. A
+       fabricated quarter next to a real trace invites the one question you do
+       not want in a pitch, which is which of the two is which.
+       The moat is a claim about calendar time; the pull-quote states it without
+       needing a demonstration. Do not re-add a worked example here. -->
+  <div class="paper-pull rv d3">Verdicts take weeks, so the record accrues in calendar time. <b>It cannot be backfilled, bought, or bolted on.</b> A competitor starting next year starts at zero, next year.</div>
+  <div class="paper-pull rv d4" style="margin-top:1.8vh;font-family:var(--pixel);font-size:clamp(16px,1.7vw,21px);color:#b34e1b">Quarter two starts smarter than quarter one.</div>
   <div class="pillars rv d5">Three pillars &nbsp;·&nbsp; <b>own the loop</b> &nbsp;·&nbsp; <b>sense continuously</b> &nbsp;·&nbsp; <b>keep the receipts</b></div>
 </section>
 
@@ -751,7 +746,7 @@ body.paper-mode .navbtn{border-color:var(--inkhl);color:var(--ink2)}
   <div class="glow" style="background:radial-gradient(50% 44% at 50% 56%, rgba(255,107,44,.09), transparent 70%)"></div>
   <div class="pxl rv d1"><span class="dim2">Agents do the work.</span><br>You answer for it.</div>
   <div class="ans rv d2">Supaprod is how you answer.</div>
-  <div class="reprise rv d3"><span style="color:var(--marigold)">&#9679; tells you what to build</span><span class="rs">·</span><span style="color:var(--blue)">&#9679; runs the work</span><span class="rs">·</span><span style="color:var(--green)">&#9679; remembers, and guides the next call</span></div>
+  <div class="reprise rv d3"><span style="color:var(--marigold)">&#9679; tells you what to build</span><span class="rs">·</span><span style="color:var(--blue)">&#9679; runs the work</span><span class="rs">·</span><span style="color:var(--green)">&#9679; learns, and guides the next call</span></div>
   <div class="vision rv d3">Every product org is about to run on agents. The winners will know <b>what to build</b>, ship it without drag, and <b>get sharper with every call</b>. That is not a feature on a tracker. It is a new operating system for product. <b>We are building it.</b></div>
   <a class="invite rv d4" href="https://supaprod.ai" target="_blank" rel="noopener noreferrer">Sign up for the beta &rarr; supaprod.ai</a>
   <div class="invite2 rv d4" style="margin-top:22px">Investor relations<span class="sep">·</span><a href="mailto:investors@supaprod.ai">investors@supaprod.ai</a><span class="sep">·</span>launching September 2026</div>

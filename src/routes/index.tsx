@@ -89,16 +89,30 @@ const APP_LD = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Beta waitlist" },
 };
 
+// MACHINE_CONTENT is what answer engines and crawlers read, so every claim in it
+// is load-bearing in the one place we cannot issue a correction. Two were wrong
+// until 2026-08-09, and both are the same failure: a fix that edited one constant
+// and missed its twin in this block.
+//
+// 1. "You approve every gate" was corrected in DESC above on 2026-08-06 (see the
+//    note there: 38 of 119 `learnings` rows were written by an agent with no
+//    human click, which is the design). The false sentence survived HERE, in the
+//    copy specifically written to be quoted back by an LLM. It now carries the
+//    same true claim DESC does.
+// 2. "A public decision record: /d/acf1fa74..." was a SEED FIXTURE, listed under
+//    a heading reading "Live proof". Same slug, same defect, same root cause as
+//    the one removed from LandingFooter.tsx in this commit; see that file for the
+//    full write-up. Nothing replaces the line: there is no real public decision
+//    yet, and /proof lists them live the moment there is.
 const MACHINE_CONTENT = `## Supaprod
 
-For product managers. ${TAGLINE} You approve every gate.
+For product managers. ${TAGLINE} Nothing irreversible happens without you.
 
 Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. One governed engine.
 When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and ships green. The human gate stays in the middle the whole time.
 
 ## Live proof
-- Trust ledger: /proof
-- A public decision record: /d/acf1fa74a20840cda5759644c6f02c05
+- Trust ledger: /proof (publishes our calibration score live, including an honest zero until outcomes land)
 - Public teardown (no signup): /p/teardown
 - Shipping log: /updates
 
