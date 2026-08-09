@@ -1,0 +1,29 @@
+# Agent Autonomy and Memory
+
+> 5 nodes · cohesion 0.40
+
+## Key Concepts
+
+- **20260606143223_477bf551-ae04-41b6-b505-8716b3b71d58.sql** (2 connections) — `supabase/migrations/20260606143223_477bf551-ae04-41b6-b505-8716b3b71d58.sql`
+- **public.auto_advance_agent_arc()** (2 connections) — `supabase/migrations/20260606143223_477bf551-ae04-41b6-b505-8716b3b71d58.sql`
+- **public.recent_agent_reflections()** (2 connections) — `supabase/migrations/20260606143223_477bf551-ae04-41b6-b505-8716b3b71d58.sql`
+- **public.agent_autonomy** (1 connections)
+- **public.agent_memory** (1 connections)
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `supabase/migrations/20260606143223_477bf551-ae04-41b6-b505-8716b3b71d58.sql`
+
+## Audit Trail
+
+- EXTRACTED: 8 (100%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

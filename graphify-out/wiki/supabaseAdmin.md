@@ -1,8 +1,8 @@
 # supabaseAdmin
 
-> God node · 89 connections · `src/integrations/supabase/client.server.ts`
+> God node · 96 connections · `src/integrations/supabase/client.server.ts`
 
-**Community:** [Supabase Client & Observability](Supabase_Client_%26_Observability.md)
+**Community:** [Supabase Auth & Analytics](Supabase_Auth_%26_Analytics.md)
 
 ## Connections by Relation
 
@@ -11,25 +11,25 @@
 
 ### imports
 - runtime.server.ts `EXTRACTED`
+- chat.ts `EXTRACTED`
 - github.server.ts `EXTRACTED`
 - connections.functions.ts `EXTRACTED`
-- chat.ts `EXTRACTED`
+- workspace-claim.functions.ts `EXTRACTED`
 - resolve.server.ts `EXTRACTED`
 - -_auth.server.ts `EXTRACTED`
+- landing.functions.ts `EXTRACTED`
 - handoff.server.ts `EXTRACTED`
+- invites.functions.ts `EXTRACTED`
+- activation.functions.ts `EXTRACTED`
 - decisions-share.functions.ts `EXTRACTED`
+- ci-poll-tick.ts `EXTRACTED`
 - scout-tick.ts `EXTRACTED`
 - routing-console.functions.ts `EXTRACTED`
 - ingest.server.ts `EXTRACTED`
-- credits.functions.ts `EXTRACTED`
-- ci-poll-tick.ts `EXTRACTED`
-- retro-tick.ts `EXTRACTED`
-- product-binding.functions.ts `EXTRACTED`
-- opportunities-share.functions.ts `EXTRACTED`
 - sink.server.ts `EXTRACTED`
-- resume-runs.ts `EXTRACTED`
-- sense-tick.ts `EXTRACTED`
-- landing.functions.ts `EXTRACTED`
+- credits.functions.ts `EXTRACTED`
+- opportunities-share.functions.ts `EXTRACTED`
+- retro-tick.ts `EXTRACTED`
 
 ---
 

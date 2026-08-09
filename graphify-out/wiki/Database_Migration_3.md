@@ -1,0 +1,25 @@
+# Database Migration
+
+> 1 nodes · cohesion 1.00
+
+## Key Concepts
+
+- **20260521202814_c43130fa-93e2-4c5d-aaf1-e0d57c27325e.sql** (0 connections) — `supabase/migrations/20260521202814_c43130fa-93e2-4c5d-aaf1-e0d57c27325e.sql`
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `supabase/migrations/20260521202814_c43130fa-93e2-4c5d-aaf1-e0d57c27325e.sql`
+
+## Audit Trail
+
+- EXTRACTED: 0 (0%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

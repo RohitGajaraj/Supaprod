@@ -2,23 +2,23 @@
 
 > God node · 132 connections · `src/lib/utils.ts`
 
-**Community:** [shadcn UI Primitives](shadcn_UI_Primitives.md)
+**Community:** [Shadcn UI Components](Shadcn_UI_Components.md)
 
 ## Connections by Relation
 
 ### calls
 - Spine() `EXTRACTED`
 - ComposerSurface() `EXTRACTED`
-- RoomChromeShell() `EXTRACTED`
 - ReceiptLine() `EXTRACTED`
 - AgentChip() `EXTRACTED`
-- WarmSlot() `EXTRACTED`
 - AlertDialogHeader() `EXTRACTED`
 - AlertDialogFooter() `EXTRACTED`
 - Row() `EXTRACTED`
 - ApprovalsTray() `EXTRACTED`
+- RoomChromeShell() `EXTRACTED`
 - WorkingStrip() `EXTRACTED`
 - PulseLine() `EXTRACTED`
+- WarmSlot() `EXTRACTED`
 - DialogHeader() `EXTRACTED`
 - SheetHeader() `EXTRACTED`
 - ApprovalCard() `EXTRACTED`
@@ -37,10 +37,10 @@
 - RoomDetail.tsx `EXTRACTED`
 - Thread.tsx `EXTRACTED`
 - MissionShellView.tsx `EXTRACTED`
-- composer/Composer.tsx `EXTRACTED`
-- obsidian/primitives.tsx `EXTRACTED`
+- Composer.tsx `EXTRACTED`
 - AccountMenu.tsx `EXTRACTED`
 - Spine.tsx `EXTRACTED`
+- obsidian/primitives.tsx `EXTRACTED`
 - CanvasFace.tsx `EXTRACTED`
 - RoomChrome.tsx `EXTRACTED`
 - button.tsx `EXTRACTED`

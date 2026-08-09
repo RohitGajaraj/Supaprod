@@ -1,32 +1,32 @@
 # agentDisplayName()
 
-> God node · 110 connections · `src/lib/agent-vocabulary.ts`
+> God node · 123 connections · `src/lib/agent-vocabulary.ts`
 
-**Community:** [Agent Identity & Presence](Agent_Identity_%26_Presence.md)
+**Community:** [Receipts and Attribution](Receipts_and_Attribution.md)
 
 ## Connections by Relation
 
 ### calls
 - AgentMark() `EXTRACTED`
-- BuildRun() `EXTRACTED`
-- BuildPage() `EXTRACTED`
-- DecideSurface() `EXTRACTED`
 - DiscoverSurface() `EXTRACTED`
-- MissionOrchestratorDetail() `EXTRACTED`
-- ControlsPanel() `EXTRACTED`
-- ChangesPanel() `EXTRACTED`
-- PlanPage() `EXTRACTED`
-- DecisionFace() `EXTRACTED`
+- runOutcomeReviews() `EXTRACTED`
 - AppFrame() `EXTRACTED`
+- DecideSurface() `EXTRACTED`
+- BuildPage() `EXTRACTED`
+- Today() `EXTRACTED`
+- ControlsPanel() `EXTRACTED`
+- MissionOrchestratorDetail() `EXTRACTED`
+- PlanPage() `EXTRACTED`
 - ThreadsSurface() `EXTRACTED`
+- SettlePanel() `EXTRACTED`
+- DecisionFace() `EXTRACTED`
+- actorName() `EXTRACTED`
+- ChangesPanel() `EXTRACTED`
 - OpportunityDetailSheet() `EXTRACTED`
 - ApprovalsPanel() `EXTRACTED`
+- GraphRecordRegions() `EXTRACTED`
 - GrowthFace() `EXTRACTED`
-- StationActiveRun `EXTRACTED`
-- TraceDetail() `EXTRACTED`
-- ScorecardRow() `EXTRACTED`
-- Roster() `EXTRACTED`
-- Today() `EXTRACTED`
+- useLiveAgents() `EXTRACTED`
 
 ### contains
 - agent-vocabulary.ts `EXTRACTED`
@@ -35,22 +35,22 @@
 - shell/primitives.tsx `EXTRACTED`
 - _authenticated.settings.tsx `EXTRACTED`
 - faces.tsx `EXTRACTED`
-- _authenticated.runs.$missionId.tsx `EXTRACTED`
-- OpportunityDetailSheet.tsx `EXTRACTED`
-- _authenticated.runs.index.tsx `EXTRACTED`
-- _authenticated.crew.tsx `EXTRACTED`
-- DiscoverSurface.tsx `EXTRACTED`
-- MissionOrchestratorDetail.tsx `EXTRACTED`
 - _authenticated.decide.tsx `EXTRACTED`
-- ChangesPanel.tsx `EXTRACTED`
-- rooms/ReceiptsPanel.tsx `EXTRACTED`
+- OpportunityDetailSheet.tsx `EXTRACTED`
 - AppFrame.tsx `EXTRACTED`
+- outcome.functions.ts `EXTRACTED`
+- DiscoverSurface.tsx `EXTRACTED`
+- _authenticated.crew.tsx `EXTRACTED`
+- _authenticated.runs.index.tsx `EXTRACTED`
+- _authenticated.today.tsx `EXTRACTED`
+- MissionOrchestratorDetail.tsx `EXTRACTED`
+- ChangesPanel.tsx `EXTRACTED`
 - ControlsPanel.tsx `EXTRACTED`
-- StagePanel.tsx `EXTRACTED`
-- ApprovalsPanel.tsx `EXTRACTED`
-- ArtifactsView.tsx `EXTRACTED`
 - _authenticated.plan.index.tsx `EXTRACTED`
-- _authenticated.traces.$traceId.tsx `EXTRACTED`
+- rooms/ReceiptsPanel.tsx `EXTRACTED`
+- StagePanel.tsx `EXTRACTED`
+- SettlePanel.tsx `EXTRACTED`
+- ApprovalsPanel.tsx `EXTRACTED`
 - _authenticated.threads.tsx `EXTRACTED`
 
 ---

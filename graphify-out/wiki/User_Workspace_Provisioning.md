@@ -1,0 +1,29 @@
+# User Workspace Provisioning
+
+> 5 nodes · cohesion 0.40
+
+## Key Concepts
+
+- **20260604073742_232596ba-54c3-441b-b733-02dd49a22807.sql** (3 connections) — `supabase/migrations/20260604073742_232596ba-54c3-441b-b733-02dd49a22807.sql`
+- **public.ensure_user_default_workspace()** (2 connections) — `supabase/migrations/20260604073742_232596ba-54c3-441b-b733-02dd49a22807.sql`
+- **public.current_user_default_workspace()** (1 connections) — `supabase/migrations/20260604073742_232596ba-54c3-441b-b733-02dd49a22807.sql`
+- **public.handle_new_user()** (1 connections) — `supabase/migrations/20260604073742_232596ba-54c3-441b-b733-02dd49a22807.sql`
+- **public.workspace_members** (1 connections)
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `supabase/migrations/20260604073742_232596ba-54c3-441b-b733-02dd49a22807.sql`
+
+## Audit Trail
+
+- EXTRACTED: 8 (100%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

@@ -1,0 +1,50 @@
+# Core Agent Database Tables
+
+> 29 nodes · cohesion 0.11
+
+## Key Concepts
+
+- **20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql** (26 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **auth.users** (7 connections)
+- **public.projects** (6 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.prototypes** (5 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.conversations** (3 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.notes** (3 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.tasks** (3 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.copilot_messages** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.daily_briefs** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.match_signals()** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.meetings** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.messages** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.prds** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.profiles** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.prototype_files** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.prototype_messages** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.signals** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.set_updated_at** (2 connections)
+- **trg_prototype_files_updated** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **trg_prototypes_updated** (2 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.agent_runs** (1 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.agents** (1 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.decisions** (1 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.opportunities** (1 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- **public.prototype_attachments** (1 connections) — `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+- *... and 4 more nodes in this community*
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `supabase/migrations/20260602204826_d8375c3d-1965-4376-93dc-f2bb3db992ea.sql`
+
+## Audit Trail
+
+- EXTRACTED: 88 (100%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

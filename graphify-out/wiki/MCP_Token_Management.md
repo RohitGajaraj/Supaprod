@@ -1,0 +1,33 @@
+# MCP Token Management
+
+> 9 nodes · cohesion 0.28
+
+## Key Concepts
+
+- **20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql** (6 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **public.mcp_tokens** (4 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **public.api_calls** (3 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **public.workspaces** (2 connections)
+- **public.issue_mcp_token()** (1 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **public.log_api_call()** (1 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **public.revoke_mcp_token()** (1 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **public.seed_default_agent_tools()** (1 connections) — `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+- **auth.users** (1 connections)
+
+## Relationships
+
+- No strong cross-community connections detected
+
+## Source Files
+
+- `supabase/migrations/20260617191502_df719911-d2f6-4f4e-99f0-4ce9a5ab7e17.sql`
+
+## Audit Trail
+
+- EXTRACTED: 20 (100%)
+- INFERRED: 0 (0%)
+- AMBIGUOUS: 0 (0%)
+
+---
+
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*
