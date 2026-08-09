@@ -85,98 +85,207 @@ export function BriefDeck() {
   };
 
   return (
-    <div
+    <main
       style={{
-        position: "fixed",
-        inset: 0,
         background: "#0a0a0a",
-        isolation: "isolate",
-        overflow: "hidden",
+        color: "#f6f5f3",
+        minHeight: "100vh",
       }}
     >
-      <iframe
-        ref={frameRef}
-        src={DECK_SRC}
-        title="Supaprod Brief"
-        onLoad={focusDeck}
-        allow="fullscreen; clipboard-write"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-      />
-
-      {/* One-click way back to the site. Plain text pill - the brand mark was
-          overlapping slide content as the deck advanced, so text only. Sits in
-          the top-left gutter; a full page nav to "/" loads the landing cleanly
-          out of the deck's iframe. A touch more visible at rest than the tools,
-          since finding the way home shouldn't take a hunt. */}
-      <a
-        href="/"
-        aria-label="Back to the Supaprod home page"
-        title="Supaprod home"
+      <section
+        id="deck"
+        aria-label="Interactive Supaprod brief"
         style={{
-          ...pillStyle,
-          position: "absolute",
-          top: 14,
-          left: 16,
-          zIndex: 10,
-          textDecoration: "none",
-          opacity: 0.6,
-          transition: "opacity 0.2s ease",
+          position: "relative",
+          height: "100svh",
+          minHeight: 520,
+          background: "#0a0a0a",
+          isolation: "isolate",
+          overflow: "hidden",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
       >
-        Home
-      </a>
+        <iframe
+          ref={frameRef}
+          src={DECK_SRC}
+          title="Supaprod Brief"
+          onLoad={focusDeck}
+          allow="fullscreen; clipboard-write"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+        />
 
-      {/* Unobtrusive tools, top-right. Low opacity at rest so the deck reads
-          clean during a live walk-through; full on hover. Kept off the deck's
-          own bottom chrome (nav dots + counter) on purpose. */}
-      <div
-        style={{
-          position: "absolute",
-          top: 14,
-          right: 16,
-          display: "flex",
-          gap: 8,
-          zIndex: 10,
-          // The fallback field is the one thing here that must be readable at
-          // rest: it exists because the visitor already tried and failed to
-          // get this link, so hiding it behind a hover would be the second
-          // failure in a row.
-          opacity: manualCopyUrl ? 1 : 0.4,
-          transition: "opacity 0.2s ease",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = manualCopyUrl ? "1" : "0.4")}
-      >
-        {manualCopyUrl ? (
-          <input
-            ref={manualInputRef}
-            readOnly
-            value={manualCopyUrl}
-            aria-label="Shareable link, select and copy"
-            onFocus={(e) => e.currentTarget.select()}
-            // Escape dismisses, and so does clicking away. No explicit close
-            // control: the field IS the message, and one more pill next to it
-            // would be more chrome than the thing it is apologising for.
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setManualCopyUrl(null);
+        {/* One-click way back to the site. Plain text pill - the brand mark was
+            overlapping slide content as the deck advanced, so text only. Sits in
+            the top-left gutter; a full page nav to "/" loads the landing cleanly
+            out of the deck's iframe. A touch more visible at rest than the tools,
+            since finding the way home shouldn't take a hunt. */}
+        <a
+          href="/"
+          aria-label="Back to the Supaprod home page"
+          title="Supaprod home"
+          style={{
+            ...pillStyle,
+            position: "absolute",
+            top: 14,
+            left: 16,
+            zIndex: 10,
+            textDecoration: "none",
+            opacity: 0.6,
+            transition: "opacity 0.2s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
+        >
+          Home
+        </a>
+
+        <nav
+          aria-label="Brief controls"
+          style={{
+            position: "absolute",
+            top: 14,
+            right: 16,
+            display: "flex",
+            gap: 8,
+            zIndex: 10,
+            opacity: manualCopyUrl ? 1 : 0.4,
+            transition: "opacity 0.2s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = manualCopyUrl ? "1" : "0.4")}
+        >
+          {manualCopyUrl ? (
+            <input
+              ref={manualInputRef}
+              readOnly
+              value={manualCopyUrl}
+              aria-label="Shareable link, select and copy"
+              onFocus={(e) => e.currentTarget.select()}
+              // Escape dismisses, and so does clicking away. No explicit close
+              // control: the field IS the message, and one more pill next to it
+              // would be more chrome than the thing it is apologising for.
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setManualCopyUrl(null);
+              }}
+              onBlur={() => setManualCopyUrl(null)}
+              style={{ ...pillStyle, width: 260, cursor: "text" }}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={copyLink}
+              style={pillStyle}
+              aria-label="Copy shareable link"
+            >
+              {copied ? "Link copied" : "Share"}
+            </button>
+          )}
+        </nav>
+      </section>
+
+      {/* Engine-Room: the public brief names outcomes and keeps prompts, traces,
+          models and runtime wiring out of the visitor's path. */}
+      <article id="brief-summary" tabIndex={-1} style={briefStyle}>
+        <div style={{ width: "min(100%, 1080px)", margin: "0 auto" }}>
+          <header
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "end",
+              justifyContent: "space-between",
+              gap: "32px 72px",
+              paddingBottom: 56,
+              borderBottom: "1px solid rgba(41,37,32,0.2)",
             }}
-            onBlur={() => setManualCopyUrl(null)}
-            style={{ ...pillStyle, width: 260, cursor: "text" }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={copyLink}
-            style={pillStyle}
-            aria-label="Copy shareable link"
           >
-            {copied ? "Link copied" : "Share"}
-          </button>
-        )}
-      </div>
-    </div>
+            <div style={{ flex: "1 1 520px" }}>
+              <p style={briefLabelStyle}>Supaprod brief</p>
+              <h1 style={briefTitleStyle}>The agentic-first operating system for product teams.</h1>
+            </div>
+            <div style={{ flex: "1 1 280px", maxWidth: 440 }}>
+              <p style={{ ...briefBodyStyle, fontSize: "clamp(17px, 2vw, 21px)" }}>
+                Supaprod is built for the individual PM or founding PM carrying a product from
+                signal to outcome across too many tools. It starts by ranking what is worth
+                building, then gives agents one governed route to do the work and check what
+                happened.
+              </p>
+              <a href="#deck" onClick={focusDeck} style={briefLinkStyle}>
+                View the interactive deck
+              </a>
+            </div>
+          </header>
+
+          <section aria-labelledby="director-heading" style={briefSectionStyle}>
+            <p aria-hidden="true" style={briefNumberStyle}>01</p>
+            <div>
+              <h2 id="director-heading" style={briefHeadingStyle}>The director tells you what to build.</h2>
+              <p style={briefBodyStyle}>
+                Supaprod reads customer signals, product data, competitors, and the outcomes of
+                past calls. It ranks the opportunities worth attention and shows the evidence
+                behind them, so the first decision is what deserves to exist.
+              </p>
+            </div>
+          </section>
+
+          <section aria-labelledby="operating-system-heading" style={briefSectionStyle}>
+            <p aria-hidden="true" style={briefNumberStyle}>02</p>
+            <div>
+              <h2 id="operating-system-heading" style={briefHeadingStyle}>The operating system runs the whole lifecycle.</h2>
+              <p style={briefBodyStyle}>
+                Discover, Decide, Plan, Design, Build, Ship, and Learn run as one governed route.
+                Work enters where it needs to, skips what it does not, and runs inside boundaries
+                your team sets in advance. You meet the result and its receipt, not the prompts,
+                traces, or model wiring.
+              </p>
+            </div>
+          </section>
+
+          <section aria-labelledby="company-brain-heading" style={briefSectionStyle}>
+            <p aria-hidden="true" style={briefNumberStyle}>03</p>
+            <div>
+              <h2 id="company-brain-heading" style={briefHeadingStyle}>The company brain learns, then guides.</h2>
+              <p style={briefBodyStyle}>
+                Learn settles a shipped outcome with a verdict and writes it back against the
+                decision that caused it. That evidence re-ranks what Discover and Decide surface
+                next. Supaprod does not stop at recording work. It compounds on your outcomes,
+                labeled over time, and warns before you repeat what was wrong.
+              </p>
+            </div>
+          </section>
+
+          <footer
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "end",
+              justifyContent: "space-between",
+              gap: 32,
+              paddingTop: 56,
+              borderTop: "1px solid rgba(41,37,32,0.42)",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                maxWidth: 720,
+                fontFamily: "'Geist Pixel Square', 'Geist Mono', ui-monospace, monospace",
+                fontSize: "clamp(22px, 3.2vw, 38px)",
+                lineHeight: 1.25,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Building is no longer the bottleneck. Deciding what to build, and whether it was
+              right, is.
+            </p>
+            <div style={{ display: "grid", gap: 8 }}>
+              <span style={briefLabelStyle}>Public launch: mid-September 2026</span>
+              <a href="mailto:investors@supaprod.ai" style={briefLinkStyle}>
+                investors@supaprod.ai
+              </a>
+            </div>
+          </footer>
+        </div>
+      </article>
+    </main>
   );
 }
 
@@ -192,4 +301,79 @@ const pillStyle: React.CSSProperties = {
   cursor: "pointer",
   backdropFilter: "blur(6px)",
   WebkitBackdropFilter: "blur(6px)",
+};
+
+const briefStyle: React.CSSProperties = {
+  minHeight: "100svh",
+  padding: "clamp(72px, 10vw, 144px) clamp(24px, 7vw, 112px)",
+  background: "#f5f2ec",
+  color: "#292520",
+  fontFamily: "'Geist', ui-sans-serif, system-ui, sans-serif",
+  scrollMarginTop: 0,
+};
+
+const briefLabelStyle: React.CSSProperties = {
+  margin: 0,
+  fontFamily: "'Geist Mono', ui-monospace, monospace",
+  fontSize: 11,
+  lineHeight: 1.5,
+  letterSpacing: "0.18em",
+  textTransform: "uppercase",
+  color: "#736a5f",
+};
+
+const briefTitleStyle: React.CSSProperties = {
+  margin: "16px 0 0",
+  maxWidth: 760,
+  fontFamily: "'Geist Pixel Square', 'Geist Mono', ui-monospace, monospace",
+  fontSize: "clamp(38px, 6.5vw, 76px)",
+  fontWeight: 400,
+  lineHeight: 1.08,
+  letterSpacing: "-0.035em",
+};
+
+const briefSectionStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(44px, 0.18fr) minmax(0, 1fr)",
+  gap: "clamp(20px, 4vw, 64px)",
+  padding: "clamp(48px, 7vw, 88px) 0",
+  borderBottom: "1px solid rgba(41,37,32,0.2)",
+};
+
+const briefNumberStyle: React.CSSProperties = {
+  margin: 0,
+  fontFamily: "'Geist Mono', ui-monospace, monospace",
+  fontSize: 12,
+  lineHeight: 1.5,
+  letterSpacing: "0.14em",
+  color: "#b34e1b",
+};
+
+const briefHeadingStyle: React.CSSProperties = {
+  margin: 0,
+  maxWidth: 760,
+  fontFamily: "'Geist Pixel Square', 'Geist Mono', ui-monospace, monospace",
+  fontSize: "clamp(27px, 4vw, 48px)",
+  fontWeight: 400,
+  lineHeight: 1.16,
+  letterSpacing: "-0.025em",
+};
+
+const briefBodyStyle: React.CSSProperties = {
+  margin: "20px 0 0",
+  maxWidth: 760,
+  fontSize: "clamp(16px, 1.8vw, 19px)",
+  lineHeight: 1.68,
+  color: "#5a5349",
+};
+
+const briefLinkStyle: React.CSSProperties = {
+  display: "inline-block",
+  marginTop: 24,
+  fontFamily: "'Geist Mono', ui-monospace, monospace",
+  fontSize: 11,
+  lineHeight: 1.5,
+  letterSpacing: "0.08em",
+  color: "#292520",
+  textUnderlineOffset: 5,
 };

@@ -1,0 +1,59 @@
+import { describe, expect, it } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/**
+ * THE PUBLIC BRIEF HAS A BODY IN ITS PARENT DOCUMENT.
+ *
+ * The interactive deck is deliberately an iframe so its keyboard navigation,
+ * fonts and print layout remain isolated. Search and answer engines do not
+ * credit that child document to /brief or /investors, so the parent must carry
+ * the same narrative in semantic, user-visible HTML. Hidden keyword text would
+ * trade one launch defect for cloaking, which is worse.
+ */
+
+const ROOT = join(import.meta.dir, "..", "..");
+const DECK = readFileSync(join(ROOT, "components", "supaprod", "BriefDeck.tsx"), "utf8");
+const BRIEF = readFileSync(join(ROOT, "routes", "brief.tsx"), "utf8");
+const INVESTORS = readFileSync(join(ROOT, "routes", "investors.tsx"), "utf8");
+
+const summaryAt = DECK.indexOf('<article id="brief-summary"');
+const summary = DECK.slice(summaryAt);
+
+describe("the public brief parent is readable", () => {
+  it("keeps the interactive deck as the first full viewport", () => {
+    expect(DECK).toContain('export const DECK_SRC = "/brief.html"');
+    expect(DECK).toContain("<iframe");
+    expect(DECK).toContain('height: "100svh"');
+    expect(DECK.indexOf("<iframe")).toBeLessThan(summaryAt);
+  });
+
+  it("renders a semantic parent narrative", () => {
+    expect(DECK).toContain("<main");
+    expect(summaryAt).toBeGreaterThan(-1);
+    expect(summary).toContain("<h1");
+    expect(summary.match(/<h2/g)).toHaveLength(3);
+    expect(summary).toContain("The director tells you what to build.");
+    expect(summary).toContain("The operating system runs the whole lifecycle.");
+    expect(summary).toContain("The company brain learns, then guides.");
+  });
+
+  it("keeps the semantic summary visible instead of hiding SEO copy", () => {
+    expect(summary).not.toMatch(/display:\s*"none"|visibility:\s*"hidden"|opacity:\s*0/);
+    expect(DECK).not.toMatch(/navigator\.userAgent|Googlebot|GPTBot|ClaudeBot/);
+  });
+});
+
+describe("both public URLs serve the same indexable body", () => {
+  for (const [path, source] of [
+    ["/brief", BRIEF],
+    ["/investors", INVESTORS],
+  ] as const) {
+    it(`${path} renders BriefDeck and stays indexable`, () => {
+      expect(source).toContain(`createFileRoute("${path}")`);
+      expect(source).toContain("component: BriefDeck");
+      expect(source).toContain('{ name: "robots", content: "index, follow" }');
+      expect(source).toContain('links: [{ rel: "canonical", href: `${SITE}/brief` }]');
+    });
+  }
+});

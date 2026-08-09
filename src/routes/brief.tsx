@@ -16,9 +16,10 @@
 // Distribution + discoverability (founder 2026-07-24): PUBLIC and indexable, so
 // Google and answer engines can find and rank it. Shareable link is the primary
 // channel: one Share button copies the URL, no lead-capture gate in front of it
-// (a form would add friction with warm intros). The deck's rich narrative text
-// is crawlable at /brief.html (the iframe source); the primary SEO surface
-// remains the landing at "/".
+// (a form would add friction with warm intros). The parent route renders a
+// visible semantic brief below the full-viewport deck, so people and crawlers
+// receive the same narrative without relying on iframe attribution. The
+// primary SEO surface remains the landing at "/".
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BriefDeck } from "@/components/supaprod/BriefDeck";
