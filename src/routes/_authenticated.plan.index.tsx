@@ -715,20 +715,31 @@ function PlanPage() {
         </Line>
       ) : null}
 
+      {/* THE STAKE BELONGS ABOVE THE LIST, NOT INSIDE IT (2026-08-11).
+          The lines used to hold three bet titles AND a fourth entry explaining
+          what happens if they stay undeclared. Two different kinds of thing
+          wearing the same bullet: a reader scanning the list hits three names
+          and then a paragraph of consequence, and has to work out that the
+          last one is not a fourth bet.
+          Every shipped product doing this pattern separates them the same way.
+          Turo's "Next steps" puts "Complete the required steps to avoid
+          cancellation" under the title and keeps the list to steps; Whop,
+          Airtasker and Square all do the equivalent. The stake is said once,
+          above, and the list stays one kind of object.
+          The question also carries the count now, which the old lines only
+          revealed in their fourth entry, and which matters because the list is
+          capped at three. */}
       {undeclared.length > 0 ? (
         <Gate
-          question="What outcome do these bets promise?"
-          lines={[
-            ...undeclared
-              .slice(0, 3)
-              .map((b) => <span key={b.id}>{stripAutoPrefix(b.title)}</span>),
-            <span key="consequence">
-              <Num>{undeclared.length}</Num> committed{" "}
-              {undeclared.length === 1 ? "bet carries" : "bets carry"} no outcome and no measure.
-              Until one does, it is a task rather than a promise, and nothing can tell you later
-              whether it worked.
-            </span>,
-          ]}
+          question={
+            undeclared.length === 1
+              ? "What does success look like for this bet?"
+              : `What does success look like for these ${undeclared.length} bets?`
+          }
+          linesLabel="Committed, with no outcome and no measure. Until one is named, a bet is only a task, and nothing can tell you later whether it worked."
+          lines={undeclared
+            .slice(0, 3)
+            .map((b) => <span key={b.id}>{stripAutoPrefix(b.title)}</span>)}
         >
           <Button
             variant="primary"
