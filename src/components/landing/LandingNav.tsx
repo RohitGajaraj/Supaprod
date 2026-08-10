@@ -58,7 +58,11 @@ export function LandingNav() {
           href="/#join"
           className="px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 active:scale-[0.98] transition-all"
         >
-          Request access
+          {/* "Join the beta" since 2026-08-10, matching the hero button and
+              WaitlistForm's own submit label. See the note in Hero.tsx: the
+              gate is real and this word keeps it honest, but "request" made the
+              visitor petition before they knew enough to want to. */}
+          Join the beta
         </a>
         {/*
          * THIS BUTTON WAS DEAD, on the page strangers land on.

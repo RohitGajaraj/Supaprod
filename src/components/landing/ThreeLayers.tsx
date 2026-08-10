@@ -64,6 +64,21 @@ const LAYERS: Layer[] = [
   },
   {
     n: "02",
+    // STILL "the loop" after 2026-08-10, and that is not an oversight now that
+    // the hero says "the agentic-first operating system for product teams" one
+    // screen above. The two rulings are about different jobs and both hold.
+    //
+    // The hero's job is the CATEGORY: a first-time visitor has to be able to
+    // file what this is, and README opens with that exact sentence, so the site
+    // now uses its own words instead of avoiding them.
+    //
+    // This label's job is a LAYER INSIDE that category, under a headline that
+    // already reads "One system, three layers". Calling it the operating system
+    // here would make it the system inside the system, which is the tautology
+    // the original ruling caught. Naming it once, at the top, is what makes it
+    // land; naming it twice is what made it vague. The original reasoning,
+    // unchanged:
+    //
     // "the operating system" on the SITE only (founder ruling 2026-07-25).
     // The investor canon and the brief keep that name and are untouched; the
     // landing's own banned-words list rejects it as a vague category word, and

@@ -38,8 +38,10 @@ import { MarkGlint } from "./MarkGlint";
  *    that actually promise a click, which these do not send.
  *
  *    Extended the same day to the headline's loop line: "builds it. ships it.
- *    grades it. gets sharper." are four separate hover targets on the same
- *    terms. Same rule, same reason, same ban on lighting them as a group.
+ *    grades it. guides the next call." are four separate hover targets on the
+ *    same terms. Same rule, same reason, same ban on lighting them as a group.
+ *    Each target also carries white-space: nowrap, because a phrase that breaks
+ *    across lines splits the thing the pointer lights.
  * 10. One left rule for the whole page. The hero was max-w-6xl / px-6 while
  *    every section below it is max-w-5xl / px-4, so the eye entered at two
  *    different x positions. The hero now shares the page rule, and every
@@ -47,12 +49,14 @@ import { MarkGlint } from "./MarkGlint";
  *    from centre to left at lg).
  *
  * Craft pass 2026-07-25b (founder review, one ember not two):
- * A. ONE ember word above the fold, and it is "product managers". The hero
- *    used to tint three words ember (both nouns in the audience line, plus
- *    "Agents" opening the support paragraph) on top of the ember CTA fill.
- *    Four accents in one viewport is the everything-is-important failure: the
- *    eye ping-pongs and nothing lands. Colour now marks the NEW information,
- *    which is who this is for, the one thing the page never said before.
+ * A. ONE ember word above the fold. It was "product managers"; since
+ *    2026-08-10 it is "agentic-first", because the line it sits in changed job
+ *    from naming the audience to naming the category. The rule is unchanged and
+ *    is what matters: the hero used to tint three words ember on top of the
+ *    ember CTA fill, and four accents in one viewport is the
+ *    everything-is-important failure, where the eye ping-pongs and nothing
+ *    lands. Colour marks the NEW information, which is now what this product
+ *    IS, the one thing the page never said above the fold.
  *    "agents" is already carried by the headline's size and Pixel face, so it
  *    does not need hue as well; it steps down to zinc-400 and the support
  *    paragraph opens in plain body colour. No hashtag on the audience line:
@@ -88,7 +92,11 @@ export function Hero() {
           box-shadow: 0 0 0 2px #0a0a0a, 0 0 0 4px #FF6B2C;
         }
         .hero-spec-key { color: #d4d4d8; transition: color 0.2s ease; }
-        .hero-loop-verb { transition: color 0.2s ease; }
+        /* nowrap added 2026-08-10 with the longer fourth verb. Each of these is
+           a single hover target, so a line break inside one splits the thing the
+           pointer lights: the balanced wrap was putting "grades" and "it." on
+           different lines. The phrases are atomic; the line breaks BETWEEN them. */
+        .hero-loop-verb { transition: color 0.2s ease; white-space: nowrap; }
         @media (hover: hover) and (pointer: fine) {
           .hero-cta:hover { background-color: #ff8344; }
           .hero-quiet:hover { color: #ffffff; }
@@ -149,7 +157,7 @@ export function Hero() {
                 ember is the human, blue is the machine. The connectives stay
                 at zinc-600 so only the two nouns carry hue. */}
             <p
-              className="hero-rise mb-5 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
+              className="hero-rise mb-4 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
               style={{ animationDelay: "0ms", letterSpacing: "0.14em" }}
             >
               {/* "who ship with agents" CAME OUT 2026-08-10, and it was doing
@@ -180,12 +188,37 @@ export function Hero() {
                   the everything-is-important failure. "agents" had drifted
                   back to a second tinted noun in blue. The line is one accent
                   again, and it is the audience, which is the new information. */}
-              For <span className="font-medium text-[#FF6B2C]">product managers</span> who answer
-              for what ships
+              {/* THE CATEGORY LINE, added 2026-08-10 on the founder's ruling,
+                  and it REVERSES the landing banned-words entry for "operating
+                  system". The reasoning for that ban is in ThreeLayers.tsx and
+                  still holds WHERE IT WAS AIMED: under a headline reading "One
+                  system, three layers", naming layer 02 "the operating system"
+                  is the system inside the system, so layer 02 stays "the loop".
+
+                  This is a different job. Nothing above the fold told a first
+                  time visitor what Supaprod IS, only what it does for them.
+                  "Supaprod tells you what to build" is a promise without a
+                  category, and a reader who cannot file a product cannot
+                  recommend it either. This line is the one sentence that
+                  answers "what is this", and it is the sentence README opens
+                  with, so the site now agrees with the canon instead of
+                  avoiding its own words.
+
+                  It also carries the audience. The line it replaced named the
+                  reader ("product managers who answer for what ships"); this
+                  one names the reader as the team and the category in the same
+                  breath, which is the trade the founder asked for.
+
+                  EMBER MOVES TO "AGENTIC-FIRST" and the one-accent rule is
+                  intact. The accent still marks the new information; the new
+                  information is no longer who it is for but what it is, and
+                  the differentiating word is the one everything is about. */}
+              The <span className="font-medium text-[#FF6B2C]">agentic-first</span> operating system
+              for product teams
             </p>
 
             <h1
-              className="hero-rise mb-7 text-white"
+              className="hero-rise mb-10 text-white"
               style={{
                 animationDelay: "60ms",
                 fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
@@ -210,10 +243,21 @@ export function Hero() {
                   same per-item grammar as the spec column opposite (founder
                   2026-07-25). Four separate targets, never lit together. */}
               <span className="mt-3 block text-[21px] leading-[1.3] text-zinc-500 md:text-[28px] lg:text-[32px]">
+                {/* "gets sharper." until 2026-08-10. Same four-target grammar,
+                    same weight, same colour: only the words changed.
+
+                    README calls the last verb of this sentence "the whole
+                    product", and the canonical thesis ends "so next time it
+                    guides the call". "gets sharper" was the one beat that named
+                    no actor and no object: sharper at what, for whom? It also
+                    left the page's strongest claim implicit in the exact spot
+                    built to carry it. The <title>, the meta description,
+                    llms.txt and the agent card all end on "guides the next
+                    call"; the headline a human actually reads did not. */}
                 then <span className="hero-loop-verb">builds it.</span>{" "}
                 <span className="hero-loop-verb">ships it.</span>{" "}
                 <span className="hero-loop-verb">grades it.</span>{" "}
-                <span className="hero-loop-verb">gets sharper.</span>
+                <span className="hero-loop-verb">guides the next call.</span>
               </span>
             </h1>
 
@@ -247,7 +291,7 @@ export function Hero() {
                 here; below lg it is what keeps the sentence wrapping sanely on
                 a phone, where none of the rest of this applies. */}
             <p
-              className="hero-sub hero-rise mb-9 text-base leading-relaxed text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
+              className="hero-sub hero-rise mb-14 text-base leading-relaxed text-zinc-300 md:text-lg lg:whitespace-nowrap lg:text-[17px]"
               style={{ animationDelay: "120ms", maxWidth: "48ch" }}
             >
               {/*
@@ -333,8 +377,27 @@ export function Hero() {
                 // --primary-foreground. These landing CTAs bypassed the token.
                 className="hero-cta group rounded-full bg-[#FF6B2C] px-8 py-3 font-medium text-[var(--cta-ink)]"
               >
+                {/* "Request access" until 2026-08-10 (founder). It replaced
+                    "Start free" on 2026-08-07 when the gate went up, and that
+                    move was right: the door really is shut, and a button
+                    promising a free start would have been a lie by 2026-08-07.
+                    The word chosen to carry it was the problem.
+
+                    "Request" makes the visitor petition for something and
+                    invites the question "why do I have to ask?" before they
+                    know enough about the product to want to. It puts the cost
+                    of the gate on the reader at the exact moment we are asking
+                    them to commit.
+
+                    "Join the beta" keeps the gate honest, which is why it is
+                    the replacement rather than a return to "Start free": it
+                    promises membership in something that is deliberately small,
+                    not instant entry. It is also what the form's OWN button has
+                    said all along (WaitlistForm.tsx:181) and what
+                    MACHINE_CONTENT says. The loudest control on the page and
+                    the thing it opens now use one word instead of two. */}
                 <span className="flex items-center gap-2">
-                  Request access
+                  Join the beta
                   <span className="hero-arrow inline-block" aria-hidden>
                     &rarr;
                   </span>
@@ -360,54 +423,22 @@ export function Hero() {
               </a>
             </div>
 
-            {/* The offer sits under the action, not above it. It is a reason
-                to click, not a second headline, so it reads quiet. */}
-            <p
-              className="hero-rise mt-8 text-[13px] leading-relaxed text-zinc-500 md:text-sm"
-              style={{ animationDelay: "240ms", maxWidth: "46ch" }}
-            >
-              {/* "The first 100 get a free teardown" was manufactured scarcity on
-                  a thing that is already unlimited: /p/teardown gives anyone a
-                  Critic verdict with no signup, capped only at 20 per IP per
-                  hour, and this very page links to it. Inventing a queue for
-                  something free is the one move a page arguing "receipts, not
-                  claims" cannot afford. What replaces it is the true version,
-                  which is a better offer anyway: try it before you sign up. */}
-              <span className="text-zinc-300">
-                <a href="/p/teardown" className="underline underline-offset-4 hover:text-white">
-                  Try the Critic first
-                </a>
-                , no account needed.
-              </span>{" "}
-              Paste one product bet and it comes back with the risks, the gaps and a verdict in
-              about twenty seconds.
-            </p>
+            {/* REMOVED 2026-08-10 (founder): the Critic offer paragraph and the
+                "Already have an invite code? Open your account" link.
 
-            {/* THE INVITE DOOR, AND IT IS QUIET FOR THE SAME REASON THE WAITLIST
-             * LINK USED TO BE.
-             *
-             * This slot held "Not ready for an account? Join the beta list",
-             * added 2026-08-07 on the founder's note that "join beta should be on
-             * top also. Why is it only at the bottom?" That link is not deleted,
-             * it was PROMOTED: the waitlist is the loud button above now, so
-             * repeating it here would be the page asking twice for one thing.
-             *
-             * What takes its place is the smaller audience: somebody who already
-             * holds a code, arriving at the home page rather than through the
-             * link we emailed them. They need one door and they need it to exist,
-             * but they are a handful of invited people against every stranger who
-             * reaches this page, so they get the text link and not the button.
-             * The shape of the argument is unchanged from the note above: exactly
-             * one control may be loud, and it belongs to the thing most visitors
-             * can actually do. */}
-            <p
-              className="hero-rise mt-4 text-[13px] text-zinc-500 md:text-sm"
-              style={{ animationDelay: "260ms" }}
-            >
-              <a href="/signup" className="underline underline-offset-4 hover:text-zinc-300">
-                Already have an invite code? Open your account
-              </a>
-            </p>
+                Both were defensible on their own and wrong together. Under one
+                ember button the hero was offering three doors at once: request
+                access, try the Critic, sign in with a code. Three asks is the
+                same failure as four accents, and the two quiet ones were
+                carrying five lines of body copy directly beneath the CTA row,
+                which is the worst place on the page to spend a reader's
+                attention on a footnote.
+
+                Neither path is lost. The Critic is the first row of the
+                Receipts beat ("A public teardown, no signup") and it is in the
+                footer; the invite door is /signup, which is where an invited
+                person is sent by the email that invited them, and "Sign in" is
+                in the nav. The hero now asks for one thing. */}
           </div>
 
           {/* Center: the mark, backlit like an eclipse (desktop) */}
