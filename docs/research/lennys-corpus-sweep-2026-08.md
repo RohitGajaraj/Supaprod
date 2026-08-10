@@ -98,6 +98,51 @@ The convergence is not coincidence — it is independent derivation of the same 
 
 ---
 
+## 1C. The private community says what the public podcasts do not — and it corrects me
+
+**Community Wisdom** is the weekly digest of Lenny's members-only Slack (~30k PMs). It is paywalled and was the last gap in the sweep; retrieved via the founder's own authenticated browser. **It is the only unfiltered source in the corpus** — operators talking to each other, not guests performing for an audience. The register is completely different, and two findings change because of it.
+
+### T1 is confirmed in sharper words than we have ever written
+
+**Subir, Community Wisdom 189, 2026-06-14**, unprompted, in a thread about AI and product operating models:
+
+> *"Everyone's focused on the build side, but the real shift is on the decision side. **AI can accelerate delivery fast enough that the bottleneck moves.** The teams I've seen get into trouble post-AI aren't the ones with slow pipelines. They're the ones where **PMs got faster at shipping but didn't get better at defending why. The judgment gap got exposed.**"*
+
+That is our entire thesis, in a practitioner's own words, with a name for the pain we did not have: **the judgment gap**. He then asks the room the question our product answers: *"What's the decision that's actually gotten harder for your team now that you can build faster?"*
+
+Corroborated in the same thread by **ash maguire**: *"If the team doesn't have clarity on goals, priorities, decisions, and ownership, **AI basically accelerates confusion.**"* And he states the want directly: *"systems that maintain a shared organizational context rather than treating AI as a standalone assistant. The real value isn't generating artifacts faster imo, it's helping everyone operate from the same understanding of what's important and why."*
+
+### Someone is hand-building our product, and describing it in our vocabulary
+
+**Brian Kim**, same thread, describing what his team built:
+
+> *"we've set up an easy system that updates the current state of the project in as real time as possible from a variety of sources (latest blockers, changing requirements, meeting transcripts not everyone was a part of, latest PRs merged/tasks completed, certain Slack conversations)… operating our AI agents on top of **this shared brain of the project**… these shared project-knowledge-level brains are populated by sales/prod ops/customer success and then used by stakeholders like GTM/support… and **the audit trail as to why should be clear.**"*
+
+Signals ingested from every source, a shared brain, cross-functional read and write, and an audit trail of why. **That is our product, hand-rolled.**
+
+### ⚠️ The correction to §3: our vocabulary is absent in PUBLIC, not absent in PRIVATE
+
+§3 measured **zero** occurrences of "company brain", "audit trail" and similar across 5.9M words of podcasts and newsletters. That measurement stands — but it measured the **public register**. In the private community, a practitioner reaches for *"shared brain of the project"* and *"the audit trail as to why"* **naturally and unprompted**, because he is describing a real system to peers rather than performing for an audience.
+
+**The revised finding, and it is more useful than the original:** our vocabulary is not wrong, it is **wrong for the public register and right for the private one**. Marketing surfaces, landing pages and podcasts should use the operator-native words in §3. Anything read by a practitioner already inside the problem — in-product copy, docs, the Slack/community motion, sales conversations — may safely use "shared brain" and "audit trail", because that is what they call it when they are talking shop. **Do not sweep our vocabulary out of the product; sweep it out of the shop window.**
+
+### New vocabulary, all from the private register
+
+- **"the judgment gap"** (Subir) — the single best name for our pain found anywhere in 5.9M words.
+- **"AI accelerates confusion"** (ash maguire) — the risk line.
+- **"slop grenades"** (Jordan Hoeber's team) — overly verbose AI-generated docs. One designer *built an agent purely to parse PRDs* because they had become unreadable. A real, named, unserved pain.
+- **"Release Room"** (Mithun Gunalan, CW 195, borrowed from Anthropic) — a gate where PMs publish a feature only when it is GTM-ready, *"so marketing does not get handed anything half-baked."* Maintained by hand in **Slack and Notion**. That is our Ship station, hand-built, spreading by word of mouth.
+- **"full-stack PM"** (Cliffe) — hiring engineers who want to become PMs so one person decides and builds.
+
+### Two disconfirming findings, recorded with equal weight
+
+1. **Scaffolding decay, observed directly.** Shane J on the BMAD agent-orchestration method: *"We used BMAD before. Was no longer relevant for us as of Opus 4.6 and GPT-5.5 (or at least not worth the structure)."* A named method, abandoned because models improved. This is the Cherny thesis happening in the field, dated.
+2. **"PMs push code" is contested by the person running the adoption.** Jordan Hoeber: *"We actively **discourage** PMs from pushing production code. It's a bit of a waste of time. Engineers can move way faster."* His teams put PMs on prototyping, customer interviews, P&L alignment and GTM instead. That cuts against any positioning implying the PM should ship production changes.
+
+**And a third pain nobody is serving.** CW 195: a head of product ships faster than marketing can absorb, and a community member escalates it — *"even if you close the productivity gap on the marketing side, you may immediately create a new gap on the user side: their ability to absorb, adopt, and make use of everything you're releasing."* The answer the room converges on is Theory of Constraints, and the recommended move is **build less, better-chosen** — which is the decide problem restated by people who arrived at it from the opposite end.
+
+---
+
 ## 2. The three theses that must change
 
 ### T2 — "the outcome ledger cannot be backfilled" is our most falsifiable sentence
