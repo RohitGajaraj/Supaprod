@@ -8014,6 +8014,7 @@ export type Database = {
           scored_at: string | null
           severity: number
           status: string
+          status_reason: string | null
           summary: string
           title: string
           user_id: string
@@ -8037,6 +8038,7 @@ export type Database = {
           scored_at?: string | null
           severity?: number
           status?: string
+          status_reason?: string | null
           summary?: string
           title: string
           user_id: string
@@ -8060,6 +8062,7 @@ export type Database = {
           scored_at?: string | null
           severity?: number
           status?: string
+          status_reason?: string | null
           summary?: string
           title?: string
           user_id?: string
