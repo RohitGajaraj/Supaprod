@@ -1136,7 +1136,10 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
  *  separable: this function owns the write, and nothing here knows the
  *  flywheel exists. Never a new write path - every arm is the resolver that
  *  already owned that family. */
-async function routeDecision(db: SupabaseClient, data: z.infer<typeof DecideSchema>): Promise<void> {
+async function routeDecision(
+  db: SupabaseClient,
+  data: z.infer<typeof DecideSchema>,
+): Promise<void> {
   switch (data.kind) {
     case "tool_call": {
       await resolveApproval({

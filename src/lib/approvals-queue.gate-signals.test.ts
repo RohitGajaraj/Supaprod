@@ -128,7 +128,11 @@ describe("readGateAttribution: the two fields that decide whether a row is ever 
     const { db, calls } = stubDb({ workspace_id: "ws-9", source_kind: "mission" });
     const a = await readGateAttribution(db, "decision", "dec-1");
     expect(a.workspaceId).toBe("ws-9");
-    expect(calls[0]).toEqual({ table: "decisions", select: "workspace_id,source_kind", id: "dec-1" });
+    expect(calls[0]).toEqual({
+      table: "decisions",
+      select: "workspace_id,source_kind",
+      id: "dec-1",
+    });
   });
 
   test("never yields a null agent slug for a family with a station", async () => {

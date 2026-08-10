@@ -1413,8 +1413,9 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
    */
   const lastSaid = [...conv]
     .reverse()
-    .find((m) => m.role === "assistant" && typeof m.content === "string" && m.content.trim())
-    ?.content;
+    .find(
+      (m) => m.role === "assistant" && typeof m.content === "string" && m.content.trim(),
+    )?.content;
   const carried = typeof lastSaid === "string" ? lastSaid.trim().slice(0, 1200) : "";
   steps.push({ kind: "final", message: "Reached step limit without finalizing." });
   return s.finalize(

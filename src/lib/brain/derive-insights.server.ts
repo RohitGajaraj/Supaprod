@@ -121,7 +121,9 @@ async function fetchRankedThemes(
    */
   const { data: themes } = await supabase
     .from("themes")
-    .select("id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status,frequency")
+    .select(
+      "id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status,frequency",
+    )
     .eq("workspace_id", workspaceId)
     .not("status", "in", SETTLED_THEME_STATUSES)
     .eq("is_sample", false)

@@ -158,7 +158,9 @@ describe("the DERIVE TICK refuses too, and it is the path that actually runs", (
     // A hand-copy is how `promoted` came to be missing from two of the three
     // lists that already existed. A fourth copy would be the same defect.
     expect(DERIVE).toMatch(/import \{ INELIGIBLE_STATUSES \} from "@\/lib\/spine\/promote"/);
-    expect(DERIVE).toMatch(/const SETTLED_THEME_STATUSES = `\(\$\{INELIGIBLE_STATUSES\.join\(","\)\}\)`/);
+    expect(DERIVE).toMatch(
+      /const SETTLED_THEME_STATUSES = `\(\$\{INELIGIBLE_STATUSES\.join\(","\)\}\)`/,
+    );
   });
 
   it("the one-literal filter that excluded nothing is gone", () => {
