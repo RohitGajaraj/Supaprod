@@ -13,6 +13,8 @@ import {
 import { withJobRun } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { runAgentLoop } from "@/lib/ai/loop.server";
+import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gate";
+import { recordAutoApproval } from "@/lib/decision-gate.server";
 
 /**
  * AMBIENT-TRIGGER (v11 #4) + SF-AUTOTRIGGER (Phase 3) trigger-tick.
@@ -25,6 +27,13 @@ import { runAgentLoop } from "@/lib/ai/loop.server";
  *   A proposed mission costs ZERO AI spend; nothing drives it until somebody
  *   launches it — a person through promoteMission (src/lib/missions.functions.ts)
  *   or Tier 2 below.
+ *   THE HITL GATE IS THE MISSION, NOT ITS RECEIPT. The `decisions` row written
+ *   alongside it is a Trust-Ledger receipt, and `decideDecisionReview`
+ *   (src/lib/decision-gate.ts) decides its status rather than this file naming
+ *   one. Born 'pending' unconditionally, it had put 170 items in front of the
+ *   founder that no click of his could move; the mission's own "Review & launch"
+ *   is where the actual decision lives. Every auto-approval writes a
+ *   workspace_audit_log row carrying the gate's reasons.
  *
  * TIER 2 — Auto-LAUNCH (SF-AUTOTRIGGER, activated by BRAIN_AUTO_TRIGGER=1):
  *   After creating a proposed mission, if all four conditions hold, it is
@@ -309,6 +318,57 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       userId: ownerId,
     });
 
+    /* WILL THIS PROPOSAL SPEND MONEY IN A MOMENT? Decided HERE, before the
+     * receipt is written, because the receipt's own status depends on the
+     * answer and step 3 below is too late to ask.
+     *
+     * The four inputs are the same four step 3 reads and nothing mutates them
+     * in between — `ambientCount` and `autoTodayCount` only move inside the
+     * launch branch — so this is the same call, moved earlier, not a second
+     * policy. If you ever add a mutation between here and step 3, this constant
+     * is what goes stale, and it goes stale in the permissive direction. */
+    const launchesNow = shouldAutoPromote({
+      flagEnabled: BRAIN_AUTO_TRIGGER,
+      reversible: p.reversible,
+      ambientCount,
+      autoTodayCount,
+    });
+
+    /* THE 170 ROWS THIS DECIDES, and why they were never a question for a human.
+     *
+     * This receipt used to be born 'pending', unconditionally. On 2026-08-10
+     * that had produced 170 of the 172 decisions waiting on the founder. Not
+     * one of them was a gate: approving a decision flips `decisions.status` and
+     * writes a stage event, and that is the whole of it (`updateDecision`,
+     * `routeDecision`). The mission the receipt describes sits at 'proposed'
+     * behind its OWN gate — Studio fetches proposed missions separately for
+     * exactly that reason (studio.functions.ts) and offers "Review & launch".
+     * So the queue asked 170 times for a click that moved nothing, next to a
+     * real gate on another screen. That is the opposite of agentic-first.
+     *
+     * CONFIDENCE IS 'medium', WHICH IS THE HONEST WORD AND NOT A SHRUG.
+     * The tier answers "is the row I am writing true", and the row says the
+     * loop raised this proposal for this stated reason, which the tick has just
+     * done. confidence.ts is explicit that a writer with no strong signal says
+     * medium rather than fabricating high, and there is no cheap signal here
+     * that bears on the row's truth. NOT the proposal's merit: a thin cluster
+     * is a weak idea, not a false receipt, and gating the receipt on the merit
+     * of work nobody has agreed to do yet would put all 170 straight back. */
+    const gate = decideDecisionReview({
+      sourceKind: "mission",
+      agentSlug: p.agentSlug ?? "strategist",
+      confidence: "medium",
+      effect: DECISION_RECORD_EFFECT,
+      /* Both halves are real signals, and both refuse rather than assume.
+       * `launchesNow` is spend: a mission about to be handed to the orchestrator
+       * is money leaving, and the founder's bar says spend always asks even
+       * when the flag that allowed it is his own. `p.reversible` is the field
+       * TriggerProposal has carried since sensing shipped, documented there as
+       * existing so "an activation policy can always HITL-gate an irreversible
+       * one" — this is that policy, finally reading it. */
+      commitsBeyondTheRecord: launchesNow || !p.reversible,
+    });
+
     // 2. Record the trigger + rationale as a Trust-Ledger decision receipt.
     //    (id selected back so its stage events can reference it.)
     const { data: decisionRow } = await supabaseAdmin
@@ -318,7 +378,7 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
         workspace_id: workspaceId,
         title: p.title,
         rationale: p.rationale,
-        status: "pending",
+        status: gate.status,
         source_kind: "mission",
         mission_id: missionId,
         decided_by_agent_slug: p.agentSlug ?? "strategist",
@@ -346,25 +406,35 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
       await recordStageEvent(supabaseAdmin, {
         entityType: "decision",
         entityId: decisionId,
-        to: "pending",
+        to: gate.status,
         actor: p.agentSlug ?? "strategist",
         workspaceId,
         userId: ownerId,
       });
+      if (gate.action === "auto_approve") {
+        // The trail for a receipt the founder will never be shown. Written
+        // immediately, because "why was I not asked about this" is a question
+        // that only ever arrives after the fact.
+        await recordAutoApproval(supabaseAdmin, {
+          decisionId,
+          workspaceId,
+          userId: ownerId,
+          agentSlug: p.agentSlug ?? "strategist",
+          missionId,
+          sourceKind: "mission",
+          writtenBy: "runTriggers (routes/api/public/hooks/trigger-tick.ts)",
+          decision: gate,
+        });
+      }
     }
     written++;
 
     // 3. SF-AUTOTRIGGER: auto-LAUNCH this proposal when all four conditions hold.
     //    Both in-tick counters move the moment the flip lands, so the cap and the
     //    ambient arc are enforced within this tick and not just across ticks.
-    if (
-      shouldAutoPromote({
-        flagEnabled: BRAIN_AUTO_TRIGGER,
-        reversible: p.reversible,
-        ambientCount,
-        autoTodayCount,
-      })
-    ) {
+    //    `launchesNow` was decided above, before the receipt, because the
+    //    receipt's status depends on it — same call, same four inputs.
+    if (launchesNow) {
       const capNote = `[auto-launched: ambient + reversible + cap ${autoTodayCount + 1}/${AUTO_TRIGGER_DAILY_CAP}]`;
       // NOTE(MEDIUM-1): ambient + cap counts are read once per tick with no DB-level lock.
       // Two concurrent ticks could both pass the cap check (worst-case: 2x cap promotions).
@@ -417,26 +487,28 @@ async function runTriggers(ownerId: string, workspaceId: string): Promise<number
           userId: ownerId,
         });
 
-        // The receipt is updated BEFORE the loop runs, so the audit record is
-        // complete even if the Worker is evicted mid-launch.
+        /* The receipt is annotated BEFORE the loop runs, so the audit record is
+         * complete even if the Worker is evicted mid-launch.
+         *
+         * THE STATUS IS NO LONGER TOUCHED HERE, and that is the change worth
+         * reading. This line used to write `status: "approved"`: the loop
+         * launched a mission, committed real model spend to it, and closed its
+         * own receipt in the same breath, so the one event on this path a person
+         * would actually want to know about was the one they were never shown.
+         * The gate above already decided this receipt 'pending' for exactly that
+         * reason — `launchesNow` is spend, and the founder's bar is that spend
+         * always asks, whatever else is true and whoever set the flag that
+         * allowed it. Flipping it back here would make the gate a no-op on the
+         * only path in this file where money moves. The capNote still lands,
+         * because the annotation was never the problem. */
         const { error: dErr } = await supabaseAdmin
           .from("decisions")
-          .update({ status: "approved", rationale: p.rationale + " " + capNote } as never)
+          .update({ rationale: p.rationale + " " + capNote } as never)
           .eq("mission_id", missionId);
         if (dErr) {
           console.error("[SF-AUTOTRIGGER] decision receipt update failed, audit gap", {
             missionId,
             err: dErr.message,
-          });
-        } else if (decisionId) {
-          await recordStageEvent(supabaseAdmin, {
-            entityType: "decision",
-            entityId: decisionId,
-            from: "pending",
-            to: "approved",
-            actor: p.agentSlug ?? "strategist",
-            workspaceId,
-            userId: ownerId,
           });
         }
 
