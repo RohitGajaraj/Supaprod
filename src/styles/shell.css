@@ -1780,6 +1780,10 @@ button.sp-me {
   padding: 10px 14px;
   font: inherit;
   font-size: var(--sp-text-prose);
+  /* Row leading, not document leading. `font: inherit` above resets
+   * line-height to the inherited value, so this has to come after it.
+   * See the note on .sp-line in primitives.css. */
+  line-height: var(--sp-leading-row);
   text-align: left;
   color: var(--sp-mute);
   background: var(--sp-sheet);

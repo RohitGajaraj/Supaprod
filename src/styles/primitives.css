@@ -876,6 +876,8 @@ button.sp-record:focus-visible {
   gap: 10px;
   align-items: flex-start;
   padding: var(--sp-space-2) 0;
+  /* Row leading, not document leading. See the note on .sp-line. */
+  line-height: var(--sp-leading-row);
   /* Neutralised here rather than under a button selector, so the button and the
    * div render identically and a row does not shift when it gains a door. */
   width: 100%;
@@ -939,6 +941,8 @@ button.sp-ctx-row:focus-visible {
   gap: 10px;
   padding: 11px 0;
   font-size: var(--sp-text-prose);
+  /* Row leading, not document leading. See the note on .sp-line. */
+  line-height: var(--sp-leading-row);
   color: var(--sp-body);
   animation: sp-receipt-in var(--sp-dur-slow) var(--sp-ease);
 }
@@ -1083,13 +1087,33 @@ button.sp-ctx-row:focus-visible {
  * the single most-used shape on that surface and hand-rolled there, which is
  * how a system drifts. A boundary you set is a sentence with a switch at the
  * end of it, not a card. */
+/* LEADING IS GEOMETRY FOR A ROW, so the row declares it (2026-08-10).
+ *
+ * Every row primitive here used to inherit `--sp-leading-body` (1.55) from
+ * `.sp-app`, which is document leading: correct for a paragraph you read, wrong
+ * for a line you scan. Only three declarations in the whole stylesheet opted
+ * into the 1.4 row leading, so in practice the app set its lists at essay
+ * spacing and the chrome ended up TIGHTER than the data, which is backwards
+ * from every product this one is measured against.
+ *
+ * It is declared on the container rather than on each label so a row's height
+ * is deterministic from its own rules instead of depending on what it is
+ * nested inside, and so a new child element inherits the right value by
+ * default rather than being a fresh chance to forget.
+ *
+ * `.sp-line` is the most-used row in the app (42 call sites) and was the
+ * worst offender at 46.9px, landing inside the 45-55px band ink.css's own
+ * density research says appeared almost nowhere in shipped products. Leading
+ * alone takes it to 44.9; the padding step from 13px to 11px takes it to
+ * 40.9, which is in the scan band the research actually found. */
 .sp-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 13px 0;
+  padding: 11px 0;
   min-height: var(--sp-row-h);
+  line-height: var(--sp-leading-row);
 }
 .sp-line + .sp-line {
   border-top: 1px solid var(--sp-line-soft);
@@ -2111,6 +2135,8 @@ button.sp-ctx-row:focus-visible {
   gap: var(--sp-space-3);
   width: 100%;
   padding: 10px 12px;
+  /* Row leading, not document leading. See the note on .sp-line. */
+  line-height: var(--sp-leading-row);
   border: 0;
   border-radius: var(--sp-radius-card);
   background: var(--sp-cell-bg);
