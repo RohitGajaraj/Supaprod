@@ -44,7 +44,7 @@ https://supaprod.ai.
 Where it is now: it runs end to end. Signals come in from the tools a
 team already uses, it argues against the weak ideas before I see them,
 agents write the code and open pull requests, and nothing merges without
-me. 4,000 commits in seven weeks.
+me. 4,872 commits and 508 database migrations in eight weeks.
 
 The part I most wanted to work is working. It has recorded 119 lessons
 from things that actually shipped. For 38 of those it decided the verdict
@@ -58,13 +58,29 @@ most of it from Slack and call recordings. What you can't reconstruct is
 what someone expected to happen before it happened, because almost nobody
 writes that down. So I built that. It shipped this week.
 
-I'm my own first user. Supaprod's roadmap runs inside Supaprod.
+Everything above was decided, specced and built inside Supaprod itself.
+That is how I know it works end to end before I ask anyone else to trust
+it.
 
-[FOUNDER: one sentence with the real user count if any exist by paste day.
-It is the first thing a partner looks for. Never pad it.]
+[FOUNDER: the real user count goes here, in one sentence, if any exist by
+paste day. This is the number a partner looks for first, and nothing above
+substitutes for it. Never pad it.]
 
 Public launch in September. Full brief at https://supaprod.ai/brief.
 ```
+
+> ### 🔢 NUMBERS: re-run these the morning you paste. I got them wrong once already.
+>
+> The draft above inherited **4,000 commits / seven weeks** from the 2026-07-23 pass and I did not check it. Live count on 2026-08-10 was **4,872 commits and 508 migrations across eight weeks** — a 20% understatement of our own velocity, in the field where velocity is the point. **A stale number here is worse than a missing one**: it undersells the work and it signals the founder is not close to their own metrics.
+>
+> ```bash
+> git rev-list --count origin/main          # commits
+> ls supabase/migrations/*.sql | wc -l      # migrations
+> scripts/dashboard-tally.sh                # register: specced / shipped
+> ```
+> The product-side figures (**119 lessons, 38 self-decided, 36 decisions from an earlier lesson**) come from live queries, not the register — confirm them the same morning.
+>
+> **Why "I'm my own first user" is gone.** It was in the draft and it reads badly to a partner: *if you are the customer, who pays you?* The dogfooding fact is genuinely strong, but it is **proof the product functions, not proof anyone wants it** — so it now says what it actually proves and stops there. It cannot stand in for a user count, and the slot above says so explicitly.
 
 **Why it is written this way.** A partner reads hundreds of these and is pattern-matching for *is this a real problem, is this person unusually good, do people want it*. So: **no vocabulary a stranger would have to decode.** Not "the loop closes", not "evidence bar", not "the judgment gap" — every one of those is our word, not theirs. *"The thing gets less wrong the longer you use it"* says compounding without the term.
 
@@ -266,6 +282,10 @@ _(Updated 2026-07-25. `explore@supaprod.ai` now owns its OWN isolated workspace 
 
 #### "How far along are you?"
 
+> ### ⛔ SUPERSEDED 2026-08-10 — DO NOT PASTE THE BLOCK BELOW.
+>
+> **The current version is at the top of this file**, in the corrections section. The block below still says *"seven weeks, 4,000+ commits"* (true on 2026-07-23, now a 20% understatement — live count is **4,872 commits, 508 migrations, eight weeks**) and it contains *"I am user zero"*, which reads to a partner as *if you are the customer, who pays you?* Kept here as the record of what was on the form, not as paste material.
+
 - On the form now (stale): _"Early, and I will be honest about it. I started three weeks ago, solo, putting in about 35 to 40 hours a week… no users or revenue. Three weeks, alone, from idea to a working core taking shape."_
 - **PASTE THIS:**
 
@@ -331,12 +351,13 @@ loop.
 - **PASTE THIS:**
 
 ```
-Seven weeks on this build, seven days a week; the repo shows 4,000+
-commits over that stretch, and a month of nights and weekends on the
-prototype before that. Completely full-time: I am on a break from my
-product role, and leaving it for good is already decided, not contingent
-on this application. I am building this either way; what the batch adds
-is speed, the right network, mentorship, and honest course-correction.
+Eight weeks on this build, seven days a week; the repo shows 4,872
+commits and 508 database migrations over that stretch, and a month of
+nights and weekends on the prototype before that. Completely full-time: I
+am on a break from my product role, and leaving it for good is already
+decided, not contingent on this application. I am building this either
+way; what the batch adds is speed, the right network, mentorship, and
+honest course-correction.
 ```
 
 _(The employment line states whatever is literally true the day you paste — "on a break" / "on sabbatical" / "my notice is in; last day [date]" — pick the true one, keep it one clause, no gray area. Rehearse the same words for the interview.)_
