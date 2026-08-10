@@ -1,13 +1,22 @@
 /**
  * Entitlements: the pure plan-to-capability map (the Constellation tier ladder).
  *
- * No DB and no side effects, so it is unit-tested directly. The plan tier is a
- * canonical SLUG (free | pro | max | team | enterprise) that lives on the
- * account (workspaces.plan_tier is a transition-era compat shim, set only by
- * billing). This module turns a slug into the limits + capability booleans the
- * app gates on, and into the display presentation. Enforcement of each gate is
- * wired separately and incrementally (WM-M2..WM-M16); this module is the single
- * source of truth for what each tier is entitled to.
+ * TIER MODEL (G1.3, founder ruling 2026-08-04 + 2026-08-10):
+ * ┌─────────────────────────────────────────────────────────────┐
+ * │ Public name    │ DB slug   │ Paid? │ Public?  │ Display as  │
+ * ├─────────────────────────────────────────────────────────────┤
+ * │ Free           │ free      │  —    │   YES    │ Free        │
+ * │ Pro            │ pro       │ YES   │   YES    │ Pro         │
+ * │ Business       │ team      │ YES   │   YES    │ Business    │
+ * │ Enterprise     │ enterprise│ YES   │   YES    │ Enterprise  │
+ * │ (internal)     │ max       │ YES   │   NO     │ (unused)    │
+ * └─────────────────────────────────────────────────────────────┘
+ *
+ * The DB has 5 slugs for backward compat (max was historical); public marketing
+ * is 4 tiers. The `team` slug is presented as "Business" via planPresentation().
+ * All tier-checking code (memory expiry, gates, connectors) uses DB slugs, never
+ * display names. Any tier-checking code must include all PAID tiers:
+ * pro, team, enterprise, max.
  *
  * Naming is presentation-only: the database, Stripe, and RLS key on the slugs;
  * display names (Free / Pro / Business / Enterprise) live only in
