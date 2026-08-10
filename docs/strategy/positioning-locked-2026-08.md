@@ -107,6 +107,34 @@ Measured on production lineage, demo workspaces excluded: 36 real `learning → 
 
 **And one open structural question, flagged not decided.** An agent-led studio operator: *"You stop forecasting what's worth building and start **deciding what's worth keeping after you've watched it run**… Planning didn't disappear, it just **moved downstream of the evidence** instead of upstream of it." ***If build cost collapses, Learn stops being station 07 and becomes the front of the loop.*** The reconciliation that preserves §4: the forecast does not vanish, it shortens — from *"will this quarter's bet pay off"* to *"what do I expect this prototype to prove"*, which resolves in days instead of quarters and is therefore **easier** to capture. Recommended treatment: two legitimate entry points (Discover for new problems, Build/Learn for cheap-to-test ones). **This touches the station model and is the founder's call.**
 
+## 5C. The answer to the hardest objection arrived the same day (2026-08-10, late)
+
+**The objection**, from six PMs in the private community, and the one we had no answer to: *"lower-level tools are more AI-friendly"* — dumb tools win because agents drive them better, so why add a layer?
+
+**The answer, now true rather than aspirational.** Lane 1 reports the outward **agent write surface is live**: `record_decision`, `draft_spec`, `settle_outcome` beside `ingest_signal`, each scope-gated, with the write gate on — **nothing an agent writes lands finished.**
+
+So the counter is not *"our tool is better than your spreadsheet."* It is: **we are the agent-writable substrate that a spreadsheet cannot be.** An agent can write into a Notion page or a GitHub issue, but it cannot write a *decision with its evidence, its author, a verdict slot and a human gate* into either. **The low-level tools are agent-writable but not agent-governable.** That is the seam, and it is exactly what the Series E customer in §1C is staffing a PM to build by hand.
+
+**Use this framing wherever the DIY objection appears.** It concedes their premise (agents do prefer simple, manipulable surfaces) and then names what simple surfaces structurally cannot carry.
+
+## 5D. Instrument status — what is real today, stated honestly
+
+**The rework KPI is a real instrument, not a claim — four of five components, with the fifth named as absent.**
+
+| component | status |
+| --- | --- |
+| **first-pass acceptance** | ✅ **live per agent from 2026-08-10** (`human_gate_events` + `summarizeGateSignals`, approved/total, with rejection/edit/override counted as corrections) |
+| review burden | ✅ derivable from the same stream |
+| reopened items | ◐ partial — send-back returns a spec to draft and records the reason |
+| spec/design mismatches | ◐ queryable via `design_gate_status` vs spec state |
+| **clarification loops** | ❌ **unmeasured. Declare it, never draw a zero.** |
+
+**Binding:** capture began 2026-08-10, so **the metric has no history.** Any rework figure shown before real usage is a number about demo data. Same present-tense discipline as §4.
+
+**⚠️ Demo constraint — do not demo the full station walk on a real account.** Three lineage hops were never written by any code until 2026-08-10: `mission → changeset`, `changeset → deployment`, `prd → learning`. The ~35 production edges of those shapes are **demo seed stamped with plausible agent names**. All three now write, but they accrue only after deploy. **The Discover → Decide → Learn half is real and always has been** — demo that. A "watch it flow to shipped" walk traverses precisely the broken region.
+
+**And it strengthens §5B's station-order question:** measured on real throughput, **Decide's largest single inbound source is already Learn** — 36 real edges, 4× what opportunities contribute. Reordering the loop would be *describing what our own lineage already does*, which is a far easier change to defend than a repositioning.
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
