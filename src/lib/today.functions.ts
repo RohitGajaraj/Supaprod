@@ -942,6 +942,29 @@ export type CompoundingResult = {
   /** Newest-first, capped; each rescore carries its cause (verdict + summary). */
   rescores: Rescore[];
   summary: CompoundingSummary;
+  /**
+   * How many of these learnings came from a SEEDED bet rather than the user's
+   * own work, and the total they are counted against.
+   *
+   * Workspace scoping stops one workspace's outcomes appearing under another's
+   * heading, but it cannot help here: onboarding seeds artifacts into the
+   * user's REAL workspace, so a young real workspace legitimately contains
+   * sample-derived learnings. A compounding claim built on those is the
+   * `the-brain-does-not-rank-fiction` defect wearing a different hat.
+   *
+   * DERIVED, NOT STORED. `learnings` carries no `is_sample` column, but every
+   * learning points at an opportunity and `opportunities.is_sample` exists. So
+   * this is read through the link rather than invented, and a learning whose
+   * opportunity cannot be read counts as NOT sample, which is the conservative
+   * direction: it under-reports the warning rather than labelling a user's own
+   * outcome an example.
+   *
+   * `agent_memory` deliberately has no equivalent. It carries neither an
+   * `is_sample` column nor any artifact reference, so there is nothing to
+   * derive from and inventing one would be a guess presented as provenance.
+   */
+  sampleDerived: number;
+  total: number;
 };
 
 /**
@@ -978,7 +1001,7 @@ export const getCompounding = createServerFn({ method: "GET" })
     let q = db
       .from("learnings")
       .select(
-        "id, verdict, summary, prior_ice, new_ice, created_at, opportunity:opportunities(title)",
+        "id, verdict, summary, prior_ice, new_ice, created_at, opportunity:opportunities(title,is_sample)",
       )
       .order("created_at", { ascending: false })
       .limit(50);
@@ -995,11 +1018,19 @@ export const getCompounding = createServerFn({ method: "GET" })
       prior_ice: number | string | null;
       new_ice: number | string | null;
       created_at: string;
-      opportunity: { title: string | null } | { title: string | null }[] | null;
+      opportunity:
+        | { title: string | null; is_sample?: boolean | null }
+        | { title: string | null; is_sample?: boolean | null }[]
+        | null;
     };
+    let sampleDerived = 0;
     const learnings: CompoundingLearning[] = ((data ?? []) as Wire[]).map(
       ({ opportunity, ...rest }) => {
         const opp = Array.isArray(opportunity) ? opportunity[0] : opportunity;
+        // `=== true` on purpose: a null or unreadable opportunity counts as NOT
+        // a sample. That under-reports the warning rather than labelling a
+        // user's own outcome an example, which is the error worth avoiding.
+        if (opp?.is_sample === true) sampleDerived++;
         return { ...rest, opportunity_title: opp?.title ?? null };
       },
     );
@@ -1008,7 +1039,7 @@ export const getCompounding = createServerFn({ method: "GET" })
     // query is created_at desc, so rescoresOf preserves newest-first ordering.
     const rescores = rescoresOf(learnings);
     const summary = summarizeCompounding(learnings);
-    return { rescores, summary };
+    return { rescores, summary, sampleDerived, total: learnings.length };
   });
 
 // ─────────────────────────────────────────────────────────────────────────────
