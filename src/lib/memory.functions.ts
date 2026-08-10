@@ -40,7 +40,26 @@ const DEFAULT_LIMIT = 60;
 export const getAgentMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z.object({ limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT) }).parse(i ?? {}),
+    z
+      .object({
+        limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT),
+        /**
+         * The workspace to read memories for. OPTIONAL for back-compatibility,
+         * and every workspace-scoped surface must pass it.
+         *
+         * Without it this read is `.eq("user_id", userId)` alone, which spans
+         * every workspace the caller has ever written in. `agent_memory` is
+         * user-scoped by design (the record travels with the person), but the
+         * BRAIN surface that renders it is workspace-scoped, so an unscoped
+         * read puts one workspace's learned memories under another's heading.
+         * Measured 2026-08-10: 4 of the 5 multi-workspace users are members of
+         * a seeded demo workspace, so those counts were provably mixed.
+         *
+         * Zero rows carry a null workspace_id, so filtering hides nothing.
+         */
+        workspaceId: z.string().uuid().optional(),
+      })
+      .parse(i ?? {}),
   )
   .handler(async ({ context, data }): Promise<AgentMemoryView> => {
     const { supabase, userId } = context;
@@ -48,19 +67,26 @@ export const getAgentMemory = createServerFn({ method: "POST" })
     // Recency = most recently recalled, then most recently created. last_used_at
     // climbs each time the loop recalls a memory, so a frequently-recalled lesson
     // stays near the top; never-recalled rows (null) sort after recalled ones.
-    const [rowsRes, countRes] = await Promise.all([
-      supabase
-        .from("agent_memory")
-        .select("id,scope,kind,content,agent_slug,importance,last_used_at,created_at")
-        .eq("user_id", userId)
-        .order("last_used_at", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .limit(data.limit),
-      supabase
-        .from("agent_memory")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId),
-    ]);
+    // BOTH queries take the workspace filter. Scoping the rows and not the
+    // count would put one workspace's list under another workspace's total,
+    // which is the same two-scopes-one-paragraph defect in miniature and
+    // harder to spot because the list would look right.
+    let rowsQ = supabase
+      .from("agent_memory")
+      .select("id,scope,kind,content,agent_slug,importance,last_used_at,created_at")
+      .eq("user_id", userId)
+      .order("last_used_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    let countQ = supabase
+      .from("agent_memory")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    if (data.workspaceId) {
+      rowsQ = rowsQ.eq("workspace_id", data.workspaceId);
+      countQ = countQ.eq("workspace_id", data.workspaceId);
+    }
+    const [rowsRes, countRes] = await Promise.all([rowsQ, countQ]);
 
     if (rowsRes.error) {
       // Pre-migration (or table truly absent): degrade to the empty state rather

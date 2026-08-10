@@ -944,17 +944,46 @@ export type CompoundingResult = {
   summary: CompoundingSummary;
 };
 
+/**
+ * CROSS-WORKSPACE LEAK ON THE ONE SURFACE THAT CARRIES THE MOAT CLAIM.
+ *
+ * This read took no workspace argument at all. `learnings` RLS is
+ * `user_id = auth.uid() OR is_workspace_member(workspace_id)`, which is
+ * MEMBERSHIP and not the ACTIVE workspace, so it returned learnings from every
+ * workspace the caller belongs to and Brain's headline counted all of them.
+ *
+ * Measured 2026-08-10: 5 users belong to more than one workspace and 4 of
+ * those are members of a seeded Helio demo workspace. One real account sees 21
+ * learnings of which 5 are demo, so "Real outcomes have re-scored N calls" was
+ * inflated by roughly a quarter with fiction, rendered directly above a
+ * sub-line whose counts ARE workspace-scoped. Two scopes in one paragraph,
+ * with nothing marking which was which.
+ *
+ * That is worse than an empty state and worse than a wrong number: it is a
+ * specific, believable claim about compounding that the user cannot audit.
+ *
+ * `workspaceId` is OPTIONAL so the existing unscoped call keeps working, but
+ * every caller on a workspace-scoped surface must pass it. Zero rows in
+ * `learnings` carry a null workspace, so the filter hides nothing when given.
+ */
 export const getCompounding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<CompoundingResult> => {
+  .inputValidator((i: unknown) =>
+    z
+      .object({ workspaceId: z.string().uuid().optional() })
+      .parse(i ?? {}),
+  )
+  .handler(async ({ context, data: input }): Promise<CompoundingResult> => {
     const db = context.supabase as unknown as SupabaseClient;
-    const { data, error } = await db
+    let q = db
       .from("learnings")
       .select(
         "id, verdict, summary, prior_ice, new_ice, created_at, opportunity:opportunities(title)",
       )
       .order("created_at", { ascending: false })
       .limit(50);
+    if (input.workspaceId) q = q.eq("workspace_id", input.workspaceId);
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
 
     // Flatten the to-one opportunity embed (PostgREST may widen it to an array),
