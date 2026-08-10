@@ -2,6 +2,14 @@
 
 **State:** Analysis complete. Positioning locked. Gaps routed to Lanes 1 & 2. Three founder-level calls pending.
 
+**Read this first:** This document is interlinked with [`docs/planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md) (gaps 96–103, owners, priorities) and [`docs/operations/session-handoff.md`](../operations/session-handoff.md) (§Lane 0 Cycle 1, execution directives). **Findings → Gaps → Code paths → Execution.**
+
+| Finding | Key Gap | Priority | Owner | Code Path |
+|---------|---------|----------|-------|-----------|
+| Decision Memory + Receipts | [`G1.2` (wedge)](../planning/SOURCE-OF-TRUTH.md#row-97), [`G2.1` (hero)](../planning/SOURCE-OF-TRUTH.md#row-101) | P0 🔥 | Lane 1 + Lane 2 | `src/lib/brain/`, `src/components/receipts/` |
+| Governance via Capabilities | [`G1.5` (priority)](../planning/SOURCE-OF-TRUTH.md#row-99), [`G2.3` (vocab)](../planning/SOURCE-OF-TRUTH.md#row-103) | P1 | Lane 1 + Lane 2 | `WM-M15`, `src/lib/approval-gates/` |
+| Fleet-Manager ICP | ICP messaging in positioning | P1 | Founder | `docs/pitch/`, `README.md`, GTM |
+
 ---
 
 ## What Changed
@@ -20,21 +28,24 @@
 **What it means:** The pain isn't agent autonomy; it's the ledger. "Why did we decide this?" should resolve in seconds with full chain: decision → evidence → what shipped → outcome verdict.  
 **Market signal:** Aakash Gupta ($28K bakeoff winner), Fin ($0.99/resolution), Mercor ($400M run rate) all prize verification over capability.  
 **Action:** RPT-01 & RPT-12 (decision memory + outcome-fed trust) must be live and demo-tested BEFORE launch. Demo: "Why did we decide X?" → instant chain with proof.  
-**Owner:** Lane 1 (engineering) + Lane 2 (UX reframe from "agents run" to "decisions with receipts")
+**Owner:** Lane 1 (engineering) + Lane 2 (UX reframe from "agents run" to "decisions with receipts")  
+**Routing:** [`docs/planning/SOURCE-OF-TRUTH.md` row 97 (G1.2, P0 wedge)`](../planning/SOURCE-OF-TRUTH.md); [`row 101 (G2.1, hero reframe)`](../planning/SOURCE-OF-TRUTH.md); code path: `src/lib/brain/`, `src/components/receipts/`
 
 ### Finding 2: Governance Via Capabilities, Not Process Orchestration
 **Evidence:** Cherny (2026-02): *"Scaffolding not needed"* (TRUE for process) BUT Anthropic Cowork, OpenAI rules, Reganti/Badam patterns ALL require governance (approval floors, capability grants, receipts as evidence).  
 **What it means:** The shift is real: orchestration (meetings, bottlenecks) → governance (policies, rules, escalation lanes). Supaprod's calm front + engine room doctrine is correct; the language should shift.  
 **Market signal:** Teams pay for trust + receipts, not tool breadth. Graduated autonomy requires proof (receipts per capability, not assumed).  
 **Action:** WM-M15 (Captains + trust ladder) is HIGHER priority than mission breadth. Every agent capability starts at a trust tier and earns advancement only via receipts.  
-**Owner:** Lane 1 (prioritize governance over autonomy expansion) + Lane 2 (remove "orchestrates"; say "governs decisions")
+**Owner:** Lane 1 (prioritize governance over autonomy expansion) + Lane 2 (remove "orchestrates"; say "governs decisions")  
+**Routing:** [`docs/planning/SOURCE-OF-TRUTH.md` row 99 (G1.5, priority reorder)`](../planning/SOURCE-OF-TRUTH.md); [`row 103 (G2.3, vocabulary)`](../planning/SOURCE-OF-TRUTH.md); code path: `src/lib/approval-gates/`, `WM-M15` task in backlog
 
 ### Finding 3: Buyer Is The Fleet Manager (Amelia Seat)
 **Evidence:** Lemkin (SaaStr 2026-01-01): Amelia spends **20% time managing, orchestrating agents**. Coinbase: one-person teams (2026).  
 **What it means:** The TAM isn't "PMs using AI helpers." It's "one operator managing a fleet of agents." The buyer's title shifts from "Product Manager" to "Product Staff / Generalist."  
 **Market signal:** "Every 15 people, 5 products" → smaller teams need broader operators, not specialists. Supaprod is the multiplier that lets one person run multiple products + agent fleets.  
 **Action:** Refine ICP archetype from "individual PM" to **"operator (PM/founder/product generalist) managing an agent fleet (2-20 agents)"**. Lead GTM with Lemkin's Amelia seat.  
-**Owner:** Founder (positioning/messaging change) + Sales (GTM targeting)
+**Owner:** Founder (positioning/messaging change) + Sales (GTM targeting)  
+**Routing:** ICP change affects all surfaces: [`docs/pitch/repositioning-2026-07-22.md`](../pitch/repositioning-2026-07-22.md); [`README.md`](../../README.md) Layer 1 (the director); hero reframe in [`row 101 (G2.1)`](../planning/SOURCE-OF-TRUTH.md); GTM docs [`docs/growth/`](../growth/)
 
 ---
 
