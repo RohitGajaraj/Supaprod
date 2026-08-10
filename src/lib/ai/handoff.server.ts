@@ -22,6 +22,7 @@ import type { ConfidenceTier } from "@/lib/confidence";
 import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
 import { runAttemptColumnsPresent } from "@/lib/ai/run-attempt.server";
 import { callModel } from "@/lib/ai/runtime.server";
+import { recordDecisionOrigins } from "@/lib/lineage.functions";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type HandoffPayload = {
@@ -786,6 +787,35 @@ export async function maybeCompleteMission(
             actor,
             workspaceId: updated.workspace_id,
             userId: updated.user_id,
+          });
+          /**
+           * THE EDGE THE 84 AUTO-ORIGIN RECEIPTS NEVER LEFT.
+           *
+           * This branch is the single largest producer of decisions in the
+           * product: 84 of the 105 real `source_kind='mission'` rows measured
+           * on 2026-08-10 were written here, and not one of them put anything
+           * in `artifact_lineage`. The `mission_id` column above says which
+           * mission; the graph did not, so the chain audit read Decide as fed
+           * mostly by Learn when its real largest inbound was Build.
+           *
+           * It goes AFTER the insert rather than beside it because
+           * supabase-js RESOLVES a refused write with no error and no row:
+           * this whole block is already inside `if (decision)`, so the row is
+           * confirmed before its provenance is stamped. An edge pointing at a
+           * row that was refused is worse than a missing edge.
+           *
+           * `updated.workspace_id` is the MISSION'S workspace, read from the
+           * missions table above and already used for the decision insert — not
+           * the caller's default. This loop runs under whichever client the
+           * mission loop holds, so the default would be the wrong workspace
+           * more often here than anywhere else in the product.
+           */
+          await recordDecisionOrigins(supabase, updated.user_id, {
+            decisionId,
+            missionId: updated.id,
+            workspaceId: updated.workspace_id,
+            createdByAgent: lastRun?.agent_slug ?? null,
+            rationale: "The mission this completion receipt was filed against",
           });
           if (gate.action === "auto_approve") {
             /* supabaseAdmin rather than the caller's client on purpose:

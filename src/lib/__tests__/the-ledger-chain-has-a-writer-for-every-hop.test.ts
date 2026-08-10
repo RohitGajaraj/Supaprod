@@ -100,21 +100,77 @@ const REQUIRED_PAIRS: ReadonlyArray<{ parent: string; child: string; where: stri
   { parent: "mission", child: "changeset", where: "lib/ai/tools/registry.server.ts" },
   { parent: "changeset", child: "deployment", where: "lib/deployments.functions.ts" },
   { parent: "prd", child: "learning", where: "lib/outcome.functions.ts" },
+  // The two hops this guard's own blind spot was hiding. They are written by
+  // `recordDecisionOrigins` rather than inline, because FOUR doors create a
+  // decision carrying one of these ids and four copies of the workspace rule
+  // is four chances to get WM-F1 wrong. The call sites are asserted separately
+  // below, so "written in one place" cannot decay into "called from nowhere".
+  { parent: "mission", child: "decision", where: "lib/lineage.functions.ts" },
+  { parent: "prd", child: "decision", where: "lib/lineage.functions.ts" },
 ];
+
+/**
+ * Every door that inserts a decision carrying `mission_id` or `prd_id` must
+ * stamp its origin. Naming the files is the point: a hop written once and
+ * called from three of four doors is the same silent gap one level down, and
+ * that is exactly the shape the audit found.
+ */
+const DECISION_ORIGIN_CALLERS: readonly string[] = [
+  // The human and captured door: /decide's Capture, the spec page, ask-stream.
+  "lib/decisions.functions.ts",
+  // The 84 auto-origin "Mission completed" receipts, the largest producer.
+  "lib/ai/handoff.server.ts",
+  // The spec-approval receipt, the only prd-sourced decision in the product.
+  "lib/discovery.functions.ts",
+  // decision.record, the Decide station's agent-facing hand.
+  "lib/ai/tools/registry.server.ts",
+];
+
+describe("every door that files a decision against a parent stamps the edge", () => {
+  for (const where of DECISION_ORIGIN_CALLERS) {
+    it(`${where} calls recordDecisionOrigins`, () => {
+      const code = codeOf(readFileSync(join(SRC, ...where.split("/")), "utf8"));
+      expect(code, `${where} inserts a decision but never stamps its origin`).toContain(
+        "recordDecisionOrigins(",
+      );
+    });
+  }
+
+  it("the writer takes a workspace as a REQUIRED argument and forwards it", () => {
+    // `artifact_lineage.workspace_id` defaults to
+    // `current_user_default_workspace()`, the CALLER'S default and not the
+    // workspace the artifacts live in. An optional parameter can be omitted by
+    // a caller who simply did not think about it; a required one cannot, which
+    // is the only mechanical difference between this and the WM-F1 failure.
+    const lineage = codeOf(readFileSync(join(SRC, "lib", "lineage.functions.ts"), "utf8"));
+    expect(lineage).toMatch(/workspaceId: string \| null;/);
+    expect(lineage).not.toMatch(/workspaceId\?:/);
+    expect(lineage).toMatch(/workspace_id: input\.workspaceId/);
+  });
+});
 
 describe("the hops are asserted as PAIRS, not as child kinds", () => {
   for (const { parent, child, where } of REQUIRED_PAIRS) {
     it(`${parent} -> ${child} is written in ${where}`, () => {
       const code = codeOf(readFileSync(join(SRC, ...where.split("/")), "utf8"));
-      const at = code.indexOf(`child_kind: "${child}"`);
-      expect(at, `${where} does not write child_kind "${child}"`).toBeGreaterThan(-1);
+      const needle = `child_kind: "${child}"`;
+      // EVERY occurrence, not the first. A file that writes one child kind from
+      // two different parents -- which is exactly what closing the decision-
+      // origin gap needed -- would otherwise have its second hop judged against
+      // the window around its first, and fail for being in the wrong place
+      // rather than for being absent.
+      const spots: number[] = [];
+      for (let at = code.indexOf(needle); at !== -1; at = code.indexOf(needle, at + 1)) {
+        spots.push(at);
+      }
+      expect(spots.length, `${where} does not write child_kind "${child}"`).toBeGreaterThan(0);
       // The parent must be part of the SAME edge object, not merely present
       // somewhere in the file. 400 characters covers the largest of these
       // calls and stays well inside the next statement.
-      const edge = code.slice(Math.max(0, at - 400), at + 400);
-      expect(edge, `${where} writes "${child}" but not from parent "${parent}"`).toContain(
-        `parent_kind: "${parent}"`,
+      const paired = spots.some((at) =>
+        code.slice(Math.max(0, at - 400), at + 400).includes(`parent_kind: "${parent}"`),
       );
+      expect(paired, `${where} writes "${child}" but not from parent "${parent}"`).toBe(true);
     });
   }
 });

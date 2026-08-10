@@ -756,6 +756,22 @@ describe("relationPhrase - the same pair of artifacts, either spelling", () => {
     expect(relationPhrase("blessed", false, "source")).toBe("links to");
     expect(relationPhrase("blessed", false, "target")).toBe("is linked from");
   });
+
+  /**
+   * `decided` was written by the judgment gate from the day it shipped and was
+   * never declared here, so twelve real edges drew as "links to". Closing the
+   * `prd -> decision` and `mission -> decision` writer gap points every future
+   * decision receipt at this family — 105 of 154 real decisions are
+   * mission-sourced — so it would have become the largest population of edges
+   * in the graph with no sentence attached.
+   */
+  it("gives the decision-origin edge a sentence at both ends", () => {
+    expect(canonicalRelation("decided")).toEqual({ family: "decided", inverted: false });
+    expect(relationLabel("decided")).toBe("Decided");
+    // Standing at the mission or spec, then standing at the decision.
+    expect(relationPhrase("decided", false, "source")).toBe("was decided by");
+    expect(relationPhrase("decided", false, "target")).toBe("is the call on");
+  });
 });
 
 describe("revisesBelief and revisedEndpoint - which end actually ended", () => {

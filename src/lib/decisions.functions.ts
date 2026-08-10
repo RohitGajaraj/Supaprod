@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { track } from "@/lib/observability";
+import { recordDecisionOrigins } from "@/lib/lineage.functions";
 import { extractAssumptions } from "@/lib/ai/assumptions.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
 // Pure string helpers, zero imports of their own, so they are safe on the server.
@@ -173,6 +174,61 @@ export const createDecision = createServerFn({ method: "POST" })
         actor: data.decided_by_agent_slug ?? "human",
         workspaceId: row.workspace_id,
         userId: context.userId,
+      });
+    }
+
+    /**
+     * THE ORIGIN EDGE, at the door every hand-made and captured decision walks
+     * through.
+     *
+     * `mission_id` and `prd_id` are inputs to this handler and go straight into
+     * the row, and until now that was the ONLY record of what the call was made
+     * about: `listDecisions` resolves them into a `source_label`, and the graph
+     * saw nothing. The Capture press on a mission, the capture on a spec page
+     * and the ask-stream promote all arrive here, so one write covers all three.
+     *
+     * ORDER: `row` is what the insert returned, and the `error` above already
+     * threw. supabase-js RESOLVES a refused write, so `row?.id` — not the
+     * absence of a throw — is the thing that proves a decision exists to point
+     * at.
+     *
+     * WORKSPACE: the PARENT'S, read from the mission or spec itself. It is not
+     * taken from the decision row, because `createDecision` does not pass a
+     * workspace on the insert either — `decisions.workspace_id` resolves the
+     * same `current_user_default_workspace()` default the lineage column would,
+     * so copying it forward would launder the caller's default into an
+     * "explicit" value and assert a workspace nobody checked. The read is also
+     * the only confirmation available that the parent is visible to this caller
+     * at all. It falls back to the decision's own workspace only when the
+     * parent read comes back empty, and that fallback is named as what it is.
+     *
+     * ONE READ, NOT TWO, AND SAY SO RATHER THAN IMPLY OTHERWISE. The schema
+     * permits both ids on one decision; no caller of this handler sends both
+     * today. If one ever does, the mission's workspace is what both edges
+     * carry — an approximation, and a visible one, rather than a second round
+     * trip on every capture in the product for a case that does not occur.
+     */
+    if (row?.id && (data.mission_id || data.prd_id)) {
+      const { data: parent } = data.mission_id
+        ? await context.supabase
+            .from("missions")
+            .select("workspace_id")
+            .eq("id", data.mission_id)
+            .maybeSingle()
+        : await context.supabase
+            .from("prds")
+            .select("workspace_id")
+            .eq("id", data.prd_id as string)
+            .maybeSingle();
+      const parentWorkspaceId = (parent?.workspace_id as string | null | undefined) ?? null;
+      await recordDecisionOrigins(context.supabase, context.userId, {
+        decisionId: row.id as string,
+        missionId: data.mission_id ?? null,
+        prdId: data.prd_id ?? null,
+        workspaceId:
+          parentWorkspaceId ?? (row as { workspace_id?: string | null }).workspace_id ?? null,
+        createdByAgent: data.decided_by_agent_slug ?? null,
+        rationale: "The artifact this call was recorded against",
       });
     }
 

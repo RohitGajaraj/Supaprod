@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { recordLineage, recordLineageSafe } from "./lineage.functions";
+import {
+  DECISION_ORIGIN_RELATION,
+  recordDecisionOrigins,
+  recordLineage,
+  recordLineageSafe,
+} from "./lineage.functions";
 
 // SW-5 / mission 3.11 chain audit (data-gaps c2+c3): every promotion stamps its
 // artifact_lineage edge so the chain is walkable by EDGES. These tests pin the
@@ -130,6 +135,163 @@ describe("recordLineage does not swallow a refused write", () => {
     expect(seen[0].ctx.user_id).toBe("user-9");
     // The record says WHICH link is missing, not that something somewhere failed.
     expect(seen[0].ctx.failure_kind).toBe("prd->mission:dispatched");
+  });
+});
+
+/**
+ * THE TWO DIRECTIONS THE SCHEMA MODELS AND NOTHING WROTE.
+ *
+ * `decisions` carries `prd_id` and `mission_id`. Measured against production
+ * 2026-08-10: 105 of 154 real decisions carry `source_kind='mission'` and NOT
+ * ONE has a lineage edge naming which mission, so the graph could not see the
+ * largest source of decisions in the product and every reading of the station
+ * chain under-measured Decide's inbound.
+ *
+ * These pin the behaviour, not the source text. The chain guard
+ * (`the-ledger-chain-has-a-writer-for-every-hop`) asserts the writer EXISTS and
+ * is called from all four doors; this asserts what it actually sends.
+ */
+describe("recordDecisionOrigins - the decision's own foreign keys, on the graph", () => {
+  const decisionId = "33333333-3333-3333-3333-333333333333";
+  const missionId = "44444444-4444-4444-4444-444444444444";
+  const prdId = "55555555-5555-5555-5555-555555555555";
+  const workspaceId = "66666666-6666-6666-6666-666666666666";
+
+  test("writes mission -> decision when the call was filed against a mission", async () => {
+    const captured: CapturedUpsert[] = [];
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId,
+      missionId,
+      workspaceId,
+      createdByAgent: "builder",
+      rationale: "The mission this completion receipt was filed against",
+    });
+
+    expect(captured.length).toBe(1);
+    expect(captured[0].table).toBe("artifact_lineage");
+    expect(captured[0].row).toEqual({
+      user_id: "user-1",
+      parent_kind: "mission",
+      parent_id: missionId,
+      child_kind: "decision",
+      child_id: decisionId,
+      relation: "decided",
+      rationale: "The mission this completion receipt was filed against",
+      created_by_agent: "builder",
+      ai_event_id: null,
+      workspace_id: workspaceId,
+    });
+  });
+
+  test("writes prd -> decision when the call was filed against a spec", async () => {
+    const captured: CapturedUpsert[] = [];
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId,
+      prdId,
+      workspaceId,
+    });
+
+    expect(captured.length).toBe(1);
+    expect(captured[0].row.parent_kind).toBe("prd");
+    expect(captured[0].row.parent_id).toBe(prdId);
+    expect(captured[0].row.child_kind).toBe("decision");
+  });
+
+  /**
+   * `decision.record` files a mission-scoped call about a spec routinely, and
+   * both statements are true. The unique index keys on the pair PLUS the
+   * relation, so two edges out of one decision never collide.
+   */
+  test("writes BOTH edges when a decision carries both ids", async () => {
+    const captured: CapturedUpsert[] = [];
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId,
+      missionId,
+      prdId,
+      workspaceId,
+    });
+
+    expect(captured.length).toBe(2);
+    expect(captured.map((c) => c.row.parent_kind)).toEqual(["mission", "prd"]);
+    for (const c of captured) {
+      expect(c.row.child_id).toBe(decisionId);
+      expect(c.row.workspace_id).toBe(workspaceId);
+    }
+  });
+
+  test("writes nothing when the decision was filed against neither", async () => {
+    const captured: CapturedUpsert[] = [];
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId,
+      workspaceId,
+      missionId: null,
+      prdId: null,
+    });
+    expect(captured.length).toBe(0);
+  });
+
+  /**
+   * AN EDGE POINTING AT A ROW THAT WAS REFUSED IS WORSE THAN A MISSING EDGE.
+   * supabase-js resolves a refused insert with no error and no row, so every
+   * caller confirms the decision landed before calling this. The empty-id guard
+   * is the backstop for the one that forgets.
+   */
+  test("writes nothing when there is no confirmed decision to point at", async () => {
+    const captured: CapturedUpsert[] = [];
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId: "",
+      missionId,
+      workspaceId,
+    });
+    expect(captured.length).toBe(0);
+  });
+
+  /**
+   * WM-F1. `artifact_lineage.workspace_id` defaults to
+   * `current_user_default_workspace()` — the CALLER'S default, not the
+   * workspace the artifacts live in. An edge filed under the wrong one is read
+   * by the wrong reader forever after.
+   */
+  test("sends the workspace it was given rather than letting the default fire", async () => {
+    const captured: CapturedUpsert[] = [];
+    const artifactsWorkspace = "77777777-7777-7777-7777-777777777777";
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId,
+      missionId,
+      workspaceId: artifactsWorkspace,
+    });
+    expect(captured[0].row.workspace_id).toBe(artifactsWorkspace);
+  });
+
+  /**
+   * The one case where the column default is allowed to fire is when the caller
+   * says so with an explicit null. `recordLineage` OMITS the key rather than
+   * writing `workspace_id: null`, which would suppress the default and violate
+   * NOT NULL — turning a defaulted edge into a refused one.
+   */
+  test("omits the column entirely on an explicit null, never writes null", async () => {
+    const captured: CapturedUpsert[] = [];
+    await recordDecisionOrigins(mockSupabase(captured), "user-1", {
+      decisionId,
+      missionId,
+      workspaceId: null,
+    });
+    expect(captured[0].row).not.toHaveProperty("workspace_id");
+  });
+
+  test("a refused or dead transport never throws back into the write it describes", async () => {
+    const captured: CapturedUpsert[] = [];
+    const boom = mockSupabase(captured, new Error("network down"));
+    await expect(
+      recordDecisionOrigins(boom, "user-1", { decisionId, missionId, prdId, workspaceId }),
+    ).resolves.toBeUndefined();
+    expect(captured.length).toBe(0);
+  });
+
+  test("the relation is the one the judgment gate already writes", async () => {
+    // Reusing `decided` is what lets one query answer "what calls were recorded
+    // against this artifact" for a bet, a spec and a mission alike.
+    expect(DECISION_ORIGIN_RELATION).toBe("decided");
   });
 });
 

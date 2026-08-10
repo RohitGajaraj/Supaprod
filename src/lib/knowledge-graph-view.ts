@@ -180,6 +180,26 @@ export const RELATION_FAMILIES: Readonly<Record<string, RelationFamilySpec>> = {
     revises: true,
   },
   kills: { label: "Killed", fromSource: "killed", fromTarget: "was killed by", revises: true },
+  /**
+   * DECLARED 2026-08-11, when this relation stopped being rare.
+   *
+   * `decided` has been written since the judgment gate was built
+   * (`opportunity -> decision`) and was never listed here, so it fell through
+   * to the generic path and drew twelve real edges as "links to". Closing the
+   * `prd -> decision` and `mission -> decision` writer gap points every future
+   * decision receipt at this family — 105 of 154 real decisions are
+   * mission-sourced — so the largest population of edges in the graph would
+   * have been the one with no sentence.
+   *
+   * PARENT is the artifact the call was made about, CHILD is the decision, in
+   * all three shapes. Not inverted.
+   */
+  decided: {
+    label: "Decided",
+    fromSource: "was decided by",
+    fromTarget: "is the call on",
+    revises: false,
+  },
 };
 
 /**
@@ -223,6 +243,12 @@ const RELATION_ALIASES: Readonly<Record<string, { family: string; inverted: bool
   "contradicted-by": { family: "contradicts", inverted: true },
   kills: { family: "kills", inverted: false },
   "killed-by": { family: "kills", inverted: true },
+  // `decided` is written by every door that records a call against an artifact:
+  // the judgment gate (opportunity), the spec-approval capture (prd), and the
+  // mission completion receipt (mission). Listed rather than left to the
+  // fall-through so this table keeps its own claim — every spelling written
+  // anywhere in src/ appears here.
+  decided: { family: "decided", inverted: false },
 };
 
 /**
