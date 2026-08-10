@@ -250,6 +250,20 @@ Beat 2 is verbatim from an operator (Bal Sieber, 2026-06-27). Those three jobs *
 
 **Interview prep is already updated** — brutal question #13 in [`../pitch/yc/interview-prep.md`](../pitch/yc/interview-prep.md) covers the spliced claim if a partner quotes the locked text back.
 
+## 5I. Graduated autonomy is proven in production — at exactly one station (2026-08-10, late)
+
+**Measured by Lane 1 against production, demo workspaces excluded.** This is the best autonomy evidence we have and it must be scoped precisely or it becomes an overclaim.
+
+**What is true and strong: Learn already auto-settles 32% of outcomes.** 38 of 119 learnings carry `recorded_by_agent_slug` — settled by an agent through `decideSettlement`, an **evidence-and-stakes model measured against a per-workspace bar**. It is live, it works, and it has been doing a third of Learn's judgment quietly.
+
+**What is true and limiting: it is wired into exactly one station out of seven.** `autonomy-progression.ts` has **zero callers**. `trust-ladder.ts` is imported only by display components. `trust_graduation_proposals` has **never had one accepted**. So the graduated-autonomy pattern our positioning leans on is **proven in production and applied once.**
+
+**Why this is a better story than the one we were telling.** Every operator in the corpus says agents need human gates — Block at 60% first-pass, *"Copilot is a copilot, it is not a pilot"*, 74–75% naming reliability as the top blocker. Against that, *"we have graduated autonomy"* is a claim everyone makes. **"We ship the gate, and a measured path off it — one station is already 32% autonomous on an evidence-and-stakes model"* is a claim nobody else in 5.9M words can make.
+
+**Binding scope, and say it exactly this way:** *one station, 32%, on the evidence model that got it there.* **Do not claim it platform-wide until the generalization lands** — six of seven stations have no path off the gate today. The correction-rate corpus that would let it graduate further **began filling 2026-08-10 and has no history**, so §5D's present-tense discipline applies here too.
+
+**This also answers the founder's own objection** — why an agentic-first product hands a human 172 pending decisions and 50 tool gates. The honest answer is that the mechanism to reduce them exists, is proven, and is plumbed into one station. That is a roadmap item with evidence behind it, not a defect.
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.
