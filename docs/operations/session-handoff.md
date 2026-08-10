@@ -2,6 +2,37 @@
 
 > _Created: 2026-08-07 · Last updated: 2026-08-10_
 
+## ✅ LANE 0 SESSION CLOSED — 2026-08-11 00:15. Everything is on `main` at `6052dbcb`.
+
+**Nothing is in flight. No agent is running. The tree is clean and `origin/main`, `parallel/lane-0-fresh` and my HEAD are all the same commit.** `docs:check` 0, `tsc` 0.
+
+### What shipped this session, in one list
+
+| | |
+| --- | --- |
+| **The corpus** | All **679** archive documents read **in full** (5,935,025 words, 24 readers) · ***How I AI*** ~95 episodes, absent from the paid archive · **all ~15 Community Wisdom editions** via the founder's authenticated browser |
+| **Positioning** | [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) — category, ICP, the one job, the sharpest claim, the kill list, the messaging kit, the binding application rule |
+| **Four falsified claims** | swept from every document, the investor deck, `brief.html`, the machine surfaces, and **all four root docs**, each of which told the reader the compounding record was the moat |
+| **Quote integrity** | [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md) — 131 quotes checked, **9 mis-filed archive files**, 5 episodes quarantined |
+| **YC** | Paste-ready corrections for four fields + both videos, at the top of [`../pitch/yc/fall-2026-application.md`](../pitch/yc/fall-2026-application.md) |
+| **Applications** | 4 accelerator folders corrected; submitted ones annotated rather than rewritten; the shared answer bank and doctrine re-numbered |
+| **Landing** | Exact strings at [`../growth/landing-copy-2026-08.md`](../growth/landing-copy-2026-08.md), final, for the UI lane to apply verbatim |
+
+### The four things waiting on the founder
+
+1. **The YC application** — he updates the portal himself. **Re-derive the numbers** (they aged 14% in ten days and moved three times in one evening) and **fill the user-count slot or leave it empty**.
+2. **Build duration, eight weeks or nine.** Git cannot settle it — the history was rewritten, so every commit reads 2026-08-10. Understating duration **overstates velocity**, so this is an overclaim question, not rounding. Only he knows when he started.
+3. **Who is running in the `Supaprod` worktree.** A session commits there with `git add -A` and swept ~60 of the design lane's uncommitted files into its own commit. **It is not Lane 0.**
+4. **Outside users.** Every number we have proves the machine works. None proves anyone wants it. No rewrite closes that, and it is the real gap in every application.
+
+### The eighth wording, found last — and why it matters more than the other seven
+
+The retired moat claim also travels as ***"that record is the one thing a better model cannot generate for you afterward."*** Every banned word is absent — no *backfill*, no *copy*, no *accumulate* — **which is why six sweeps walked straight past it.** It was sitting in the Betaworks **thesis answer**, the field that file itself calls *"the question that decides the application."*
+
+**The rule that follows: read the sentence that says why a competitor cannot catch up, wherever it appears, and check the claim. A sweep that greps only the words a claim used last time will keep missing the claim.**
+
+---
+
 ## ⏰ OVERNIGHT STATUS — Lane 0, 2026-08-10 23:45. Read this before the section below it.
 
 **Founder is asleep with a standing mandate for all three lanes:** decide on the evidence, do not park work waiting for a ruling, and where a call is balanced take the **reversible** option. Constant communication between lanes; subagents and skills used freely to go faster.
