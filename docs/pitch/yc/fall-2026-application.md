@@ -18,33 +18,56 @@
 
 > _Grounded in a full read of the market — 679 documents / 5,935,025 words, plus the members-only PM community. Canon: [`../../strategy/positioning-locked-2026-08.md`](../../strategy/positioning-locked-2026-08.md). Four fields below carry claims that are now **falsified**, not merely dated. Ranked by damage if a partner tests them._
 
-### 🔴 1. Surface 1 — Progress Update (editable, highest leverage, and the only place current truth reaches a partner)
+### 🔴 1. Surface 1 → the "How far along are you?" sub-field
 
-**Paste this.** It is the five-beat structure and every claim in it survives being queried:
+> **⚠️ My first draft of this was wrong and is deleted. Recording the error because it is instructive.** I wrote a narrative "Progress Update" as though Surface 1 were one free-text field. **It is not.** It is three sub-fields — Product link, Login credentials, and *"How far along are you?"* — and only the last carries prose. Worse, my draft answered *"what did I learn this month"* rather than *"how far along is the product."* **A partner reading for under three minutes wants users, usage and velocity, not a research story.** Founder caught it; he was right.
+
+**What a partner actually scans this field for, in order:** users · usage · velocity · one non-obvious thing · what's next. Everything else is filler and costs you the read.
+
+**Audit of the version currently on the form** (see the full text further down this file):
+
+| Keep | Cut or fix |
+| --- | --- |
+| The rename line — it must stay first | **No user number anywhere.** This is the single biggest gap; it is the first thing a partner looks for |
+| "I am user zero" + roadmap-runs-inside-Supaprod | The decade/month/seven-weeks journey — that is backstory, and 9a already carries domain expertise |
+| 4,000+ commits (velocity proxy) | *"It is almost there, not finished"* — hedging that buys nothing and costs credibility |
+| September launch, brief link | *"feedback goes straight back in: design iterations, new roadmap items"* — vague. Name what changed, or cut it |
+| | **No product numbers at all** — and we now have three good ones |
+
+**PASTE THIS.** Numbers first, one honesty beat, no filler. Every figure is queryable in the product:
 
 ```
-Since applying I ran a full read of my market rather than guessing at it:
-679 operator interviews and a members-only community of 30,000 product
-managers. It falsified three of my own moat claims. I corrected them in
-public, in the repo, rather than defending them.
+Cadence is now Supaprod — renamed after submitting, and the form will not
+let me change it. Same company, live at https://supaprod.ai.
 
-The biggest one: I had been saying the decision record cannot be
-backfilled. It can. Vercel's COO reconstructed a lost deal's true cause
-from Slack, email and call recordings with an agent built in two days.
-What cannot be reconstructed is the forecast, what a team believed would
-happen before the outcome landed. That is not an artifact. It leaves no
-trace unless something captured it at the moment of the call. So the
-product now captures it, and the migration that does it shipped this week.
+What shipped since: the loop closes on real data. 119 learnings recorded,
+38 of them settled by an agent instead of a human, so a third of that
+stage now runs itself against an evidence bar and a human gate holds the
+rest. 36 decisions were made using what an earlier decision taught us,
+which makes learning the largest single input into deciding, ahead of new
+opportunities. 4,000+ commits in seven weeks.
 
-Practitioners name the pain better than I had: "PMs got faster at
-shipping but didn't get better at defending why. The judgment gap got
-exposed." Speed is solved. 82% of the market reports AI already makes
-them measurably more productive, while burnout rose from 44.7% to 55.7%
-and their top fear is being expected to do more for the same pay.
+I also killed my own headline claim this month. I had been saying a team's
+decision record cannot be rebuilt by a competitor. It can — you can
+reconstruct why a call was made from Slack and call recordings. What
+cannot be rebuilt is the forecast: what the team expected before the
+outcome landed. That leaves no trace unless something captures it at the
+moment of the decision. So the product now captures it. It shipped this
+week.
 
-The loop is wired and proven end to end, and empty by design until real
-usage accrues. First-pass acceptance began capturing this week.
+Beta is live and I am user zero: Supaprod's own roadmap runs inside
+Supaprod, and its agents open real pull requests behind a merge gate no
+agent can cross.
+
+[FOUNDER: if any real beta user exists by paste day, one sentence with the
+true count goes here. It is the first thing a partner looks for. Never pad it.]
+
+Next: public launch in September. Full brief: https://supaprod.ai/brief
 ```
+
+**Why these three numbers and not others.** *38 of 119 agent-settled* is a capability number, not a vanity one — it says the autonomy works and is measured. *36 learning→decision edges* proves the loop actually closes, which is the whole thesis. *4,000 commits in seven weeks* is velocity. **Do not say "outcomes recorded"** — `agent_memory` holds zero `kind='outcome'` rows and a partner who checks will find it. Learnings is the accurate noun.
+
+**Also update, same surface:** Product link → `https://supaprod.ai`, and the login line's last clause → `or sign up with invite code YC-COMPOUND-K7QR4V` (signup closed 2026-08-07; the old "any email" path now hits a wall). Both are detailed further down.
 
 ### 🔴 2. Field 7f — the closing paragraph states the falsified claim
 
@@ -106,6 +129,28 @@ Then a working PM named it better than I had, unprompted, in a private
 community: "PMs got faster at shipping but didn't get better at
 defending why. The judgment gap got exposed."
 ```
+
+### 🟡 5. Surface 3 — Team Update: one word
+
+The answer is strong and should stay. **One change:** it closes *"with receipts for everything they did."* **"Receipts" is retired vocabulary** — it appears 17 times in 5.7M words of this market's own writing, effectively zero. Replace with:
+
+```
+with a record of every action and who approved it.
+```
+
+### 🟡 6. Surface 4 — Founder Video (≤1:00)
+
+**Do not open with "the agentic-first operating system for product teams."** Platform words burn the first five seconds, which is the only part of a one-minute video that is guaranteed to be watched. **Open on the three beats** (§5G of the canon):
+
+> *"The half of the job that was doing the reps is going to agents. What doesn't compress is deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. Supaprod runs those three."*
+
+Then the rename, then user-zero, then the forecast line in one sentence. **Sixty seconds allows roughly 150 words — that is four sentences and a sign-off. Cut everything else.**
+
+### 🔴 7. Surface 5 — Demo Video (≤3:00): one hard constraint
+
+**Do not demo the full station walk.** Three lineage hops had no writer until 2026-08-10 — `mission → changeset`, `changeset → deployment`, `prd → learning` — so the ~35 production edges of those shapes are **demo seed**. A "watch it flow to shipped" walkthrough traverses exactly the region that is not real yet, and it is the single most testable thing in the application.
+
+**Demo the Discover → Decide → Learn half.** It is real, it has always been real, and it is where the 36 lineage edges live. That is also the strongest three minutes available: signal in, Critic red-teams it, human decides, outcome settles, and the next decision visibly uses it.
 
 ### ✅ Already handled elsewhere
 
