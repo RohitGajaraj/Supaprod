@@ -160,6 +160,22 @@ Make Build → Learn a **first-class selectable route now** (cheap, reversible).
 
 **Net effect: nothing of value is deferred.** The moat feature ships now; the capability ships now; only the *guess about what is normal* waits for data we will have in a month.
 
+## 5F. The wedge, sharpened by the full community sweep (2026-08-10, final)
+
+All ~15 Community Wisdom editions are read. **The tool-rejection pattern is the dominant one, not an outlier** — nine clusters across ten editions, all pointing the same way: operators feel the pain acutely, reach for a folder or a Markdown file, and **the search stops there.** A plain Obsidian folder beat four purpose-built tools for one operator. Every satisfied structured system was self-built. Evidence in [`../research/lennys-corpus-sweep-2026-08.md`](../research/lennys-corpus-sweep-2026-08.md) §1C.
+
+**But the same sweep contains our product specified as four unmet needs**, by an operator who tried Obsidian, abandoned it, built his own, and concluded *"it's very difficult to apply the kind of governance that makes it work"*: know who changed what · know what is trustworthy vs polluted · know why they changed it · prevent certain files from changing.
+
+**The reconciliation sets the GTM.** Every DIY *success* in the corpus is **single-operator, single-context**. Every DIY *failure* is **multi-person or multi-agent governance**.
+
+> ### The wedge is not "better than your folder." It is the point at which the folder stops working — the second person, or the first fleet of agents.
+
+Three independent routes reach this: the community sweep, *How I AI* (every workflow single-operator, dies with its author), and the pre-AI baseline (the write-back arrow absent from every named lifecycle). **Do not sell to the operator whose folder works. Sell at the transition.**
+
+**Two consequences for §2's ICP:** the individual-PM front door still acquires, but **the moment of willingness-to-pay is the team-under-agents transition**, not first use. And the strongest line the community produced is a candidate for §4 — Bal Sieber: *"What doesn't compress is deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. **Less operator, more director.**"* Three unautomatable jobs, which are stations 02, 03 and 07, and *director* maps to our layer 01.
+
+**And the trap to design against, from the same operator:** *"'building systems' becomes its own busywork fast. You end up with elaborate workflows that feel productive and move nothing."*
+
 ## 6. Routed to the lanes
 
 **Lane 1 (function/gaps):** forecast capture at decision time is the priority build — it is the only un-backfillable asset and it is one feature. Then confidence grades on outcome labels (30–40% of lift-showing experiments show no long-term lift; a p<0.05 result is wrong ~1 in 4). Intervention logging is wired but starved and begins accruing now.

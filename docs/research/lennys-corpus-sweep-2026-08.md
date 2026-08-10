@@ -217,6 +217,61 @@ Four things we should take verbatim:
 
 **Also worth tracking:** Google published **OKF (Open Knowledge Format)** in July 2026 — org knowledge as a folder of Markdown files with YAML front matter, linked into a navigable knowledge graph. Helen Wang is adopting it. **A standard is forming in exactly our layer**; being compatible with it is likely cheaper than competing with it.
 
+### 🔴 The full community sweep: pain confirmed, purchase refused — and where the wedge actually is
+
+All ~15 Community Wisdom editions in the window are now read (2026-05-02 → 2026-08-08). **The tool-rejection pattern in CW 194 was not an outlier. It is the dominant pattern, across nine distinct clusters in ten editions.**
+
+**The finding is not that operators lack the pain.** They feel it acutely and describe it precisely. **The finding is what they reach for.** Every time an operator with real context-loss pain reaches for a fix, they reach for **a folder, a Markdown file, a repo or a script — and it works well enough that the search stops.**
+
+- **Tolga (2026-05-02), the cleanest data point:** *"I have tried 3 or 4 LLM-powered mind map tools. Unfortunately, none of them worked well for me. Since then I have been using a decent Obsidian folder structure, and I don't experience that problem much anymore."* **A plain folder tree beat four purpose-built structured tools.**
+- **Jon Roemer (2026-06-06)** states the principle: *"Use the non-deterministic system to create a deterministic system… encode the exact Snowflake queries in the Markdown itself instead of burning cash by having an agent figure it out with the MCP endpoint."*
+- **Timo Laak (2026-06-20)**, in a large org, keeps MCP servers *"mainly disabled"* because they *"eat too much of the context."*
+- **Milko (2026-05-24)** dates the shift, and it is moving away from us: *"a year ago I would go with offloading it, but now it sounds pretty easy to keep it in our codebase and manage it with agents."*
+- **Every structured system anyone reports being satisfied with, they built themselves.** Tool-shaped solutions appear almost exclusively in the past tense.
+
+**Prior art, shipped and public:** Younes Abouelnagah (2026-06-20) released `fava-trails.org` — *"a memory life cycle starting from draft and is only promoted if it passes a quality gate,"* with lifecycle hooks to prune. **That is our promotion-gate mechanism, already in the world.**
+
+### The crux — and it is where the wedge is
+
+**Aaron Nichols (2026-06-20)** is the most valuable single artefact in the sweep. He tried Obsidian, abandoned it, and built his own context system. His four failure modes of shared file storage under agents:
+
+1. know **who changed what**
+2. know **what is trustworthy vs polluted**
+3. know **why** they changed it
+4. **prevent certain files from changing**
+
+His verdict: *"it's very difficult to apply the kind of governance that makes it work."*
+
+**That is the strongest confirming evidence in the entire corpus — our product, specified as four unmet needs — and he still built rather than bought.**
+
+**The pattern that reconciles confirmation and refusal, and it should set the GTM:** every DIY *success* in these ten editions is **single-operator, single-context**. Every DIY *failure* is **multi-person or multi-agent governance**. Tolga's folder works because it is his alone. Nichols hit a wall the moment the same files were touched by other people and by agents.
+
+> **Our wedge is not "better than your folder." It is the point at which the folder stops working — the second person, or the first fleet of agents.**
+
+This is the same shape as §1B (every *How I AI* workflow is single-operator and dies with its author) and §4 (the write-back arrow absent from every pre-AI lifecycle). **Three independent routes to the same conclusion: the individual is served; the team under agents is not.** Do not sell to the operator whose folder works. Sell at the transition.
+
+### The vocabulary result is uncomfortable and must not be smoothed over
+
+Across ten editions: **zero** occurrences of *decision log · decision record · ADR · decision intelligence · institutional memory · company brain · compounding.*
+
+Operators describe the problem **entirely in nouns of storage and correctness**: *context · source of truth · semantic layer · **drift** · **gate** · **invisible states** · **memory life cycle**.*
+
+**The uncomfortable part, stated plainly:** the register that lands is the one our own doctrine calls not-the-moat. **The resolution is not to abandon the doctrine but to separate problem-language from solution-language.** Operators name the *problem* in storage terms because that is how it presents — *I cannot find or trust my context.* What Nichols could not solve was **governance**. So: **meet them at the problem in their nouns — context, drift, source of truth, gate — and deliver governance.** Note that *gate*, *drift* and *memory life cycle* are already our mechanisms in their words; that is the bridge, and it is free.
+
+**Also binding:** this community **punishes deck language on sight** (*"'cracked' is VC BS"*, twice in one thread). No aspirational vocabulary survives contact with this audience.
+
+### The best compression of the shift, and the trap beside it
+
+**Bal Sieber (2026-06-27):** *"The half of the job that was doing the reps is the half going to agents… What doesn't compress is **deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong**. **Less operator, more director.**"*
+
+Three unautomatable jobs, named — and they are stations 02, 03 and 07. *"Less operator, more director"* maps directly onto our layer 01. **Strongest candidate line the community produced.**
+
+**And the trap, from the same person in the same post:** *"'building systems' becomes its own busywork fast. You end up with elaborate workflows that feel productive and move nothing."* That is Butterfield's *"hyper-realistic work-like activities"* independently rediscovered, and it is the failure mode our own product is most at risk of embodying.
+
+**One live demand signal**, from the 2026-05-09 thread on non-PMs shipping to production — asked whether he trusts it: *"No, I don't trust them at all, **unless you have a very good decision-making framework and rubric**"* — stated as a precondition the team does **not** have. New vocabulary from that thread: *quasi-PM · clickable PRDs · de-slopping · utility engineer.*
+
+**Two process notes for future cycles:** publisher edition numbering is unreliable (labels 185 and 194 each appear twice) — **cite these by date, never by number**. And Chrome browser display names are not stable across sessions; verify authenticated access empirically on the first page rather than by browser name.
+
 ### Two disconfirming findings, recorded with equal weight
 
 1. **Scaffolding decay, observed directly.** Shane J on the BMAD agent-orchestration method: *"We used BMAD before. Was no longer relevant for us as of Opus 4.6 and GPT-5.5 (or at least not worth the structure)."* A named method, abandoned because models improved. This is the Cherny thesis happening in the field, dated.
