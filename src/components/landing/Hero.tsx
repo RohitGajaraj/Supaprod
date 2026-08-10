@@ -152,10 +152,36 @@ export function Hero() {
               className="hero-rise mb-5 font-mono text-[11px] uppercase text-zinc-600 md:text-[12px]"
               style={{ animationDelay: "0ms", letterSpacing: "0.14em" }}
             >
-              For <span className="font-medium text-[#FF6B2C]">product managers</span> who ship with{" "}
-              <span className="font-medium" style={{ color: "#6cb0f5" }}>
-                agents
-              </span>
+              {/* "who ship with agents" CAME OUT 2026-08-10, and it was doing
+                  real damage for a qualifier nobody would defend on purpose.
+                  Two problems, one sentence.
+
+                  IT CONTRADICTED THE NEXT BEAT. TheGap.tsx:343-357, one screen
+                  down, is "Devs got agents that ship real code. Product is
+                  still waiting for its own." The hero addressed people who
+                  already ship with agents; the argument underneath it says
+                  product people do not have them yet. A visitor who agrees
+                  with beat two has just been told beat one was not for them.
+
+                  IT GATED OUT THE LARGER MOTION. The pitch corpus has led with
+                  "Motion 1 Transform: 650K existing teams" since 2026-07-22
+                  (docs/strategy/brownfield-positioning-evaluation.md). Those
+                  teams are defined by NOT having this yet. A door that admits
+                  only the already-agentic is the smaller room.
+
+                  What replaces it names the reader by what they are
+                  accountable for, which is true of every PM whether or not
+                  they have an agent today, and it sets up the page's own
+                  closing line: "Agents do the work. You answer for it."
+
+                  ONE EMBER WORD, restored. The rule at the top of this file
+                  says the audience line carries a single ember accent and
+                  "agents" steps down, because four accents in a viewport is
+                  the everything-is-important failure. "agents" had drifted
+                  back to a second tinted noun in blue. The line is one accent
+                  again, and it is the audience, which is the new information. */}
+              For <span className="font-medium text-[#FF6B2C]">product managers</span> who answer
+              for what ships
             </p>
 
             <h1

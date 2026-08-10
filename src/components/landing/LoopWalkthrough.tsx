@@ -32,7 +32,22 @@ import { LoopReplay, type ReplayTab } from "./replay/Replay";
  */
 const REPLAY_RECEIPTS = [
   { label: "Named agents", gloss: "Every step is signed by the agent that ran it." },
-  { label: "Human gates", gloss: "The merge waits for your approval." },
+  // WAS "Human gates / The merge waits for your approval", changed 2026-08-10.
+  //
+  // Not because it was wrong, but because the page says it eight times: layer
+  // 02 ("You make every call that matters"), the strip above ("you gate it"),
+  // two GATE rows inside the trace this chip sits under, the trace footer
+  // ("You made two calls"), the Receipts thesis ("You answer for it"), and
+  // TrustClose ("Merge is always human"). The trace directly above ALREADY
+  // shows "Merge held for you. Approved." This chip was captioning a thing the
+  // reader had just watched, which is the weakest thing a chip can do.
+  //
+  // What it says instead is the half of the governance claim the page never
+  // made: the limits are set IN ADVANCE. Every other mention is a per-run
+  // approval, which reads as twelve interruptions. README's own words for
+  // layer 02 are "inside boundaries a human sets in advance", and that idea
+  // was nowhere on this page. So a repetition became the missing argument.
+  { label: "Boundaries up front", gloss: "You set the limits once. Agents work inside them." },
   { label: "Precedent first", gloss: "Past calls surface before this one is made." },
   { label: "Outcome grading", gloss: "The result is scored, and it guides." },
 ] as const;

@@ -1132,9 +1132,17 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
               mission trace / replayed
             </span>
             <span style={{ fontFamily: MONO, color: R.faint }}>
+              {/* "memory sharpens it" until 2026-08-10. The three nouns here
+                  are the three layers in miniature, and the third one was the
+                  banned framing: a memory is a place things sit, and CLAUDE.md
+                  and README both hold that storage is the claim we do not make
+                  because any vendor can make it. The brain's verbs are LEARNS
+                  and GUIDES, and "guides the next" also says the compounding
+                  out loud, which "sharpens it" left implicit. Same length,
+                  same rhythm, same marigold. */}
               <span style={{ color: R.blue }}>agent</span> runs it &middot;{" "}
               <span style={{ color: R.ember }}>you</span> gate it &middot;{" "}
-              <span style={{ color: "#E8B44C" }}>memory</span> sharpens it
+              <span style={{ color: "#E8B44C" }}>the brain</span> guides the next
             </span>
           </div>
           <FlowList entries={cfg.log} shown={shown} active={active} />
