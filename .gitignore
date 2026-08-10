@@ -200,3 +200,12 @@ design-reference/Latest Design System - v3 /
 
 # Local tool state (AgentDB, retired vector store). Loose at root until 2026-08-04.
 .local/
+
+# Lenny's Data paid archive, cloned to root 2026-08-10 (679 files, 61 MB).
+# NEVER COMMIT. The paid licence forbids redistributing the raw files "in any
+# form" - a private repo counts. It carries its own .git, so `git add -A` would
+# record a broken submodule pointer rather than the files, but that protection
+# is incidental and would vanish if the .git were ever removed.
+# Other agents: do not re-upload it, clone your own from the pointer doc at
+# docs/research/lennys-data-archive.md. Read the licence before quoting.
+/lennys-newsletterpodcastdata-all/
