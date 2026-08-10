@@ -17,7 +17,12 @@
  */
 import { expect, test, describe } from "bun:test";
 import { recordDecision, draftSpec } from "./mcp.functions";
-import { WRITE_SCOPE_BY_TOOL, MCP_WRITE_TOOL_NAMES, isWriteTool } from "./mcp-protocol";
+import {
+  WRITE_SCOPE_BY_TOOL,
+  MCP_WRITE_TOOL_NAMES,
+  isWriteTool,
+  canCallWriteTool,
+} from "./mcp-protocol";
 
 const WS = "22222222-2222-2222-2222-222222222222";
 const USER = "11111111-1111-1111-1111-111111111111";
@@ -146,7 +151,9 @@ describe("input validation refuses rather than guessing", () => {
   test("a spec with a non-uuid opportunity_id is refused", async () => {
     // Coercing this to null would silently drop the link the caller asked for.
     const { db } = stubDb();
-    await expect(draftSpec(db, WS, USER, { title: "x", opportunity_id: "not-a-uuid" })).rejects.toThrow();
+    await expect(
+      draftSpec(db, WS, USER, { title: "x", opportunity_id: "not-a-uuid" }),
+    ).rejects.toThrow();
   });
 });
 
@@ -173,5 +180,67 @@ describe("each verb carries its own scope", () => {
     for (const name of MCP_WRITE_TOOL_NAMES) {
       expect(WRITE_SCOPE_BY_TOOL[name], `${name} has no required scope`).toBeTruthy();
     }
+  });
+});
+
+describe("the authorization chain, for the three new verbs", () => {
+  // This is the half of the end-to-end journey that can be proven without a
+  // deployed server. The HTTP half (bearer -> validateToken -> dispatch) needs
+  // SUPABASE_URL and a key in a local .env, which this environment does not
+  // hold, so it is blocked on a credential rather than on code. What follows
+  // is the security contract that HTTP path enforces, tested directly.
+
+  test("the gate alone is not enough: a scopeless token is still refused", () => {
+    // Turning the outward-write gate on grants nobody anything. Measured
+    // 2026-08-10 right after flipping it: gate on, zero live tokens, zero
+    // writes possible.
+    for (const name of MCP_WRITE_TOOL_NAMES) {
+      const authz = canCallWriteTool(name, [], true);
+      expect(authz.allowed, `${name} was allowed with no scopes`).toBe(false);
+    }
+  });
+
+  test("the scope alone is not enough: the gate still has to be open", () => {
+    // Both locks, independently. A token minted while the gate was open must
+    // stop working the moment the workspace closes it.
+    const authz = canCallWriteTool("record_decision", ["write:decision"], false);
+    expect(authz.allowed).toBe(false);
+    expect(authz.reason).toMatch(/disabled/i);
+  });
+
+  test("a scope for one verb does not unlock another", () => {
+    // The reason each verb carries its own scope. A token that may record a
+    // decision must not thereby be able to settle an outcome, which is the
+    // difference between proposing and closing the loop.
+    const canDecide = ["write:decision"];
+    expect(canCallWriteTool("record_decision", canDecide, true).allowed).toBe(true);
+    expect(canCallWriteTool("draft_spec", canDecide, true).allowed).toBe(false);
+    expect(canCallWriteTool("settle_outcome", canDecide, true).allowed).toBe(false);
+    expect(canCallWriteTool("ingest_signal", canDecide, true).allowed).toBe(false);
+  });
+
+  test("the exact grant used in the live probe behaves as designed", () => {
+    // A real token was issued against production on 2026-08-10 with exactly
+    // these two scopes and then revoked. It could write a decision and a spec
+    // and could NOT settle an outcome, which is what the grant said.
+    const probeScopes = ["write:decision", "write:spec"];
+    expect(canCallWriteTool("record_decision", probeScopes, true).allowed).toBe(true);
+    expect(canCallWriteTool("draft_spec", probeScopes, true).allowed).toBe(true);
+    expect(canCallWriteTool("settle_outcome", probeScopes, true).allowed).toBe(false);
+  });
+
+  test("a read tool is never gated by any of this", () => {
+    // Reads must keep working with a read-only token and a closed gate,
+    // otherwise turning the gate off would take the whole agent surface down.
+    expect(canCallWriteTool("search_decisions", [], false).allowed).toBe(true);
+    expect(canCallWriteTool("get_prd", [], false).allowed).toBe(true);
+  });
+
+  test("the refusal names the missing scope rather than saying no", () => {
+    // An agent that cannot tell WHICH grant it lacks cannot ask for it, and
+    // the operator on the other end cannot fix it.
+    const authz = canCallWriteTool("settle_outcome", ["write:decision"], true);
+    expect(authz.allowed).toBe(false);
+    expect(authz.reason).toContain("write:outcome");
   });
 });
