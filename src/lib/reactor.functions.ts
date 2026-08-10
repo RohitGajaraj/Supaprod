@@ -376,6 +376,13 @@ export async function dispatchEvent(
       goal,
       missionId: mission.id,
       workspaceId: evt.workspace_id,
+      // INSTRUMENT: this is the ONE production path where a retry both happens
+      // and flows through runAgentLoop — 10 event_queue rows have a non-zero
+      // attempt_count. `attempt_count` counts the attempts that ALREADY failed
+      // (the catch below writes it), so the dispatch starting now is the next
+      // one. Before this, every reactor retry created a run indistinguishable
+      // from a first attempt and the retry evidence stayed on the event row.
+      attempt: (evt.attempt_count ?? 0) + 1,
     });
     runId = result.run_id ?? null;
 

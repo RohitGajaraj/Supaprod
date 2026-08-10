@@ -55,7 +55,13 @@ STRICT="${STRICT:-0}"
 # Only the files that can carry user-visible text. .md and .sql are deliberately
 # absent; see SCOPE above. Passing a path explicitly still scans it whatever its
 # extension, which is the escape hatch for a public page authored as markdown.
-TEXT_EXT_RE='\.(ts|tsx)$'
+# WIDENED TO .html 2026-08-10. `public/brief.html` is the only pure
+# user-facing HTML file in the repo, and it could not be scanned at any
+# setting: a live `&mdash;` sat in it through two sign-offs. A text guard that
+# skips the only pure text file is not a conservative default, it is a broken
+# one. Blast radius is near zero because this hook is warn-only, so the worst
+# case is a warning line nobody saw before. Design lane's call, 2026-08-10.
+TEXT_EXT_RE='\.(ts|tsx|html)$'
 # Generated artifacts we commit but do not author. graphify builds graphify-out/wiki/*.md and
 # GRAPH_REPORT.md by quoting text extracted from the corpus, so any em-dash in them came from a
 # source file, not from us, and it reappears on every rebuild. Scanning them buried the real
@@ -86,7 +92,19 @@ GENERATED_RE='^graphify-out/'
 #   src/lib/ai/prompts, humanize   text sent to a model, and the sanitizer itself
 #
 # Tests are excluded even inside those directories.
-CONSUMER_RE='^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize)'
+# `public/` added 2026-08-10 WITH the .html extension above, and it is not a
+# separate widening: without it that change would be decorative. TEXT_EXT_RE
+# and CONSUMER_RE are ANDed, and public/brief.html fails the second, so
+# extending only the first would have produced a guard that LOOKS extended and
+# scans nothing new. That is the exact half-fix shape this repo has been
+# removing all day, and it is worse than not extending at all, because the next
+# reader sees `.html` in the pattern and believes it.
+#
+# Scoped to public/ rather than a general widening: everything under public/ is
+# served verbatim to a browser, which is the definition this filter already
+# uses. Widening CONSUMER_RE further is a separate call and is deliberately not
+# made here.
+CONSUMER_RE='^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize|public/)'
 # WIDENED 2026-08-05. This matched only a __tests__ directory at the ROOT of src,
 # so the colocated ones (src/components/discover/__tests__, and eight more) were
 # never excluded. It did not show while template literals were invisible; the
@@ -109,6 +127,20 @@ run_scanner() {
     my $hits = 0;
     # Banned set: em dash, en dash, then the invisible / look-alike chars.
     my $banned = qr/[\x{2014}\x{2013}\x{200B}\x{200C}\x{200D}\x{2060}\x{FEFF}\x{00A0}\x{202F}\x{00AD}\x{200E}\x{200F}\x{FFFD}]/;
+    # THE SAME DASH, WRITTEN SO THIS SCANNER COULD NOT SEE IT.
+    #
+    # Every sweep any lane ran on 2026-08-10 grepped the literal codepoint, and
+    # so did this scanner. HTML entities render as the identical character in a
+    # browser and matched nothing: two live instances sat in
+    # _authenticated.decide.tsx and one in public/brief.html while this hook
+    # returned clean on roughly 25 commits in a single day.
+    #
+    # A guard that has only ever passed is indistinguishable from one that
+    # cannot fail. That is the whole reason this line exists.
+    #
+    # Named, decimal and hex forms all count, and the trailing semicolon is
+    # optional because browsers accept &mdash without it.
+    my $banned_entity = qr/&(?:mdash|ndash|nbsp|zwnj|zwj|shy)\b;?|&\#(?:8212|8211|160|8203|8204|8205|8288|65279|173);?|&\#x(?:2014|2013|00a0|a0|200b|200c|200d|2060|feff|00ad|ad);?/i;
     while (my $rec = <STDIN>) {
       chomp $rec;
       my ($lineno, $content) = split(/\t/, $rec, 2);
@@ -163,13 +195,20 @@ run_scanner() {
       my $stripped = $content;
       $stripped =~ s/`[^`]*`//g if $file =~ /\.(md|markdown)$/i;
 
-      next unless $stripped =~ $banned;
+      next unless $stripped =~ $banned || $stripped =~ $banned_entity;
 
       my @names;
       push @names, "em-dash(U+2014)"  if $stripped =~ /\x{2014}/;
       push @names, "en-dash(U+2013)"  if $stripped =~ /\x{2013}/;
       push @names, "invisible-or-lookalike-char"
         if $stripped =~ /[\x{200B}\x{200C}\x{200D}\x{2060}\x{FEFF}\x{00A0}\x{202F}\x{00AD}\x{200E}\x{200F}\x{FFFD}]/;
+      # Reported separately from the literal so the fix is obvious: the author
+      # typed an entity, and the message should say so rather than sending them
+      # hunting for a character their editor will not show them.
+      if ($stripped =~ $banned_entity) {
+        my ($ent) = $stripped =~ /($banned_entity)/;
+        push @names, "html-entity-dash($ent)";
+      }
       printf "  %s:%s  %s\n", $file, (defined $lineno ? $lineno : "?"), join(", ", @names);
       $hits++;
     }

@@ -5,9 +5,26 @@
  * result, and station. This module is the pure half of answering that, so the
  * same rollup drives the server read, any surface, and the tests.
  *
- * FOUR OF THE FIVE ARE REAL. The fifth is named as absent rather than faked,
- * because a zero in a dashboard reads as "no retries happened", and the honest
- * statement is that nothing counts them.
+ * THE FIFTH IS NOW MEASURED WHERE A DISPATCHER COUNTED, AND ONLY THERE.
+ * `retriesNotMeasured` used to be a hardcoded `true` here, because `agent_runs`
+ * carried no attempt counter at all. It now carries `attempt`, and this rollup
+ * computes the flag from the data instead of asserting it: it is true exactly
+ * when no run in the window carried a countable attempt. That keeps the original
+ * protection — a surface must never draw a zero that means "nobody counted" —
+ * while letting a real retry, when one happens, be reported as one.
+ *
+ * WHY THE COVERAGE IS PARTIAL AND SAYS SO. Only a dispatcher that genuinely
+ * counts attempts writes the column: the reactor (`event_queue.attempt_count`,
+ * 10 rows retried on production) and an orchestrated hop
+ * (`mission_steps.attempts`). A person re-asking the same goal in chat produces
+ * a run that no one counted, and it stays NULL rather than being called attempt
+ * 1. So `retries` is always read against `runsWithKnownAttempt`, never alone.
+ *
+ * RESUMES ARE REPORTED SEPARATELY AND ARE NOT RETRIES. A resume continues the
+ * SAME run from its checkpoint; a retry is a new run at the same work. 1,117 of
+ * 1,232 runs have checkpoints, so resumption is the common path, and folding the
+ * sweeper's ordinary rescue work into a retry count would make the agents look
+ * like they fail constantly.
  *
  * WHY THIS EXISTS AT ALL. Before 2026-08-10 the underlying columns were
  * unusable: `duration_ms` was a hardcoded 0 in both finalize paths (441 of 471
@@ -26,6 +43,16 @@ export type RunRow = {
   duration_ms: number | null;
   failure_kind: string | null;
   halted_reason: string | null;
+  /**
+   * 1-based attempt ordinal, written only by a dispatcher that counts. OPTIONAL
+   * on this type rather than required, because the server read omits both new
+   * columns from its `select` until the migration applies — naming an absent
+   * column fails the whole query in PostgREST, and an analytics panel that
+   * vanishes tells a person "nothing happened".
+   */
+  attempt?: number | null;
+  /** Times a worker picked this run back up after it had already begun. */
+  resume_count?: number | null;
 };
 
 /**
@@ -78,20 +105,59 @@ export type StationStats = {
   topFailureKinds: Array<{ kind: string; count: number }>;
   /** Why runs were abandoned, most frequent first. */
   haltReasons: Array<{ reason: string; count: number }>;
+  /**
+   * Finished runs that were a SECOND or later attempt at the same work.
+   *
+   * MEANINGLESS WITHOUT `runsWithKnownAttempt` BESIDE IT. Zero here with a zero
+   * denominator means nobody counted; zero with a denominator of 300 means 300
+   * pieces of work each succeeded or failed on the first go. A surface that
+   * renders this number alone has reproduced the exact defect the hardcoded
+   * `retriesNotMeasured` flag was invented to prevent.
+   */
+  retries: number;
+  /** Finished runs carrying a countable attempt ordinal — the denominator for
+   *  `retries`, and the honest statement of how much of the traffic any retry
+   *  claim actually covers. */
+  runsWithKnownAttempt: number;
+  /**
+   * Total times work on these runs had to be picked back up mid-flight.
+   *
+   * NOT retries. See the module header. A resume is the sweeper rescuing a run
+   * whose worker died, or a run continuing past an approval it was waiting on.
+   */
+  resumes: number;
+  /** Finished runs carrying a resume count kept from the row's creation — the
+   *  denominator for `resumes`. A run instrumented at birth and never resumed
+   *  contributes 0 here and still counts toward this total, which is what makes
+   *  a zero above readable as "never resumed" rather than "never counted". */
+  runsWithKnownResumeCount: number;
 };
 
 export type RunAnalytics = {
   byStation: StationStats[];
   overall: StationStats;
   /**
-   * TRUE when the product cannot answer "how often does an agent retry".
+   * TRUE when nothing in this window can answer "how often does an agent retry".
    *
-   * Nothing in the schema counts retries: `agent_runs` carries no attempt
-   * column and no parent-run reference, so a re-run is indistinguishable from
-   * a first attempt. This flag exists so a surface says "not measured" instead
-   * of drawing a zero, which would read as "retries do not happen".
+   * COMPUTED NOW, NOT ASSERTED. It was a hardcoded `true` while `agent_runs`
+   * carried no attempt column at all; it is now `overall.runsWithKnownAttempt
+   * === 0`, so it goes false the moment a dispatcher that counts attempts
+   * contributes a run and true again for a window containing none. The contract
+   * a surface depends on is unchanged: while this is true, show "not measured"
+   * — a drawn zero reads as "retries do not happen".
+   *
+   * It will stay true for every run written before
+   * 20260810200000_a_rerun_was_indistinguishable_from_a_first_attempt.sql
+   * applies, which is all 1,232 rows live on 2026-08-10.
    */
-  retriesNotMeasured: true;
+  retriesNotMeasured: boolean;
+  /**
+   * TRUE when no run in this window carried a resume count kept from birth.
+   *
+   * Same guard, same reason, for the signal that a resume is: 0 resumes over 0
+   * counted runs is not "the sweeper never had to rescue anything".
+   */
+  resumesNotMeasured: boolean;
 };
 
 function emptyStats(station: StationStats["station"]): StationStats {
@@ -107,7 +173,39 @@ function emptyStats(station: StationStats["station"]): StationStats {
     runsMissingDuration: 0,
     topFailureKinds: [],
     haltReasons: [],
+    retries: 0,
+    runsWithKnownAttempt: 0,
+    resumes: 0,
+    runsWithKnownResumeCount: 0,
   };
+}
+
+/**
+ * A countable attempt ordinal, or null.
+ *
+ * Attempts are 1-BASED, so 0 and anything negative are not measurements — they
+ * are a column that was written by something that did not know what it was
+ * writing. Refused for the same reason `duration_ms: 0` is refused below: an
+ * out-of-range value silently admitted is how a placeholder becomes a statistic.
+ */
+function readAttempt(value: number | null | undefined): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 1) return null;
+  return value;
+}
+
+/**
+ * A countable resume count, or null.
+ *
+ * ZERO IS VALID HERE, and this is the one place in this module where that is
+ * true. `duration_ms: 0` means "not measured" because a hardcoded zero was the
+ * original defect; `resume_count: 0` means "created instrumented, never
+ * resumed", which is a real and common answer. A future reader pattern-matching
+ * the duration rule onto this one would throw away every never-resumed run and
+ * make resumption look universal.
+ */
+function readResumeCount(value: number | null | undefined): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null;
+  return value;
 }
 
 function median(values: number[]): number | null {
@@ -181,6 +279,27 @@ export function rollUpRuns(rows: readonly RunRow[]): RunAnalytics {
       overall.runsMissingDuration += 1;
     }
 
+    // INSTRUMENT: retries and resumes. Both are counted only where the row
+    // carries a real number, and both publish their denominator, so a zero on a
+    // surface can always be traced to "none happened" or "none were counted"
+    // without the reader having to know which paths write which column.
+    const attempt = readAttempt(r.attempt);
+    if (attempt !== null) {
+      stats.runsWithKnownAttempt += 1;
+      overall.runsWithKnownAttempt += 1;
+      if (attempt > 1) {
+        stats.retries += 1;
+        overall.retries += 1;
+      }
+    }
+    const resumeCount = readResumeCount(r.resume_count);
+    if (resumeCount !== null) {
+      stats.runsWithKnownResumeCount += 1;
+      overall.runsWithKnownResumeCount += 1;
+      stats.resumes += resumeCount;
+      overall.resumes += resumeCount;
+    }
+
     if (r.failure_kind) {
       const m = failures.get(key) ?? new Map<string, number>();
       m.set(r.failure_kind, (m.get(r.failure_kind) ?? 0) + 1);
@@ -211,6 +330,9 @@ export function rollUpRuns(rows: readonly RunRow[]): RunAnalytics {
   return {
     byStation: [...byStation.values()].sort((a, b) => b.runs - a.runs),
     overall,
-    retriesNotMeasured: true,
+    // Derived from the denominator, never from `retries === 0`. Those two are
+    // different sentences and only one of them is about measurement.
+    retriesNotMeasured: overall.runsWithKnownAttempt === 0,
+    resumesNotMeasured: overall.runsWithKnownResumeCount === 0,
   };
 }

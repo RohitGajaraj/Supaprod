@@ -28,6 +28,33 @@ async function checkHorizontalScroll(page: Page): Promise<boolean> {
   });
 }
 
+/**
+ * DEAD, AND IT COULD NOT HAVE WORKED IF IT WERE CALLED. Kept and marked rather
+ * than deleted, because the invariant it is named for is real and worth having.
+ *
+ * TWO INDEPENDENT FAULTS:
+ *
+ * 1. NOTHING CALLS IT. It is defined here and never referenced in the test body
+ *    below — so the one check this file is named for in the design-system docs
+ *    has never run, on top of the whole suite never running.
+ *
+ * 2. IT ASKS A QUESTION THE BROWSER CANNOT ANSWER. The test is
+ *    `!shadow.includes('var(') && shadow.includes('rgba')` against
+ *    `getComputedStyle(el).boxShadow`. A COMPUTED value has already had every
+ *    `var()` substituted and every colour serialised to `rgb()`/`rgba()` — that
+ *    is what "computed" means. So `includes('var(')` is false for every element
+ *    on every page, forever, and the surviving condition is "has an rgba
+ *    shadow", which every shadow does. Called as written, it would report the
+ *    first 10 shadowed elements on the page as violations regardless of whether
+ *    they came from a token.
+ *
+ * HOW TO REVIVE IT: token-vs-ad-hoc is not decidable from the computed value.
+ * Either compare each element's computed `box-shadow` against the computed
+ * values of the shadow tokens on `:root` (an element whose shadow does not
+ * equal any token's value is ad hoc), or check `el.style.boxShadow` — the
+ * INLINE value, which is not substituted — the way `09-elevation-tokens.spec.ts`
+ * does. The second is narrower but honest.
+ */
 async function checkNoAdHocShadows(page: Page): Promise<string[]> {
   return await page.evaluate(() => {
     const elements = document.querySelectorAll('*');
@@ -77,6 +104,14 @@ async function checkTokenResolution(page: Page): Promise<{ resolved: number; fal
   });
 }
 
+/**
+ * DEAD AND MISLEADING. Nothing calls it, and the shape is a trap: it returns
+ * the array SYNCHRONOUSLY at attach time, so a caller writing
+ * `const errors = await getConsoleErrors(page)` gets an empty array that fills
+ * later by reference. Reading it on the next line always shows zero errors.
+ * Each test below inlines the listener correctly instead. Marked, not deleted,
+ * so the next person does not re-add it as a "helper".
+ */
 async function getConsoleErrors(page: Page): Promise<string[]> {
   const errors: string[] = [];
   page.on('console', (msg) => {

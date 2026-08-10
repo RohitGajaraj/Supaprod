@@ -514,6 +514,16 @@ export const SURFACE_REGISTRY = {
     opensFrom: "spine-stage-07",
     status: "planned",
   },
+  // INSTRUMENT: rework — first-pass acceptance, review burden, reopens and
+  // spec/design divergence over a stated window, with clarification loops
+  // declared unmeasured rather than drawn as a zero. The read exists and is
+  // tested; no surface renders it yet, which is what `planned` means here.
+  rework: {
+    kind: "canvas-panel",
+    home: "canvas/07-growth",
+    opensFrom: "spine-stage-07",
+    status: "planned",
+  },
   drift: {
     kind: "canvas-panel",
     home: "canvas/07-growth",

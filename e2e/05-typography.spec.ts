@@ -186,13 +186,30 @@ test.describe('Typography Verification', () => {
 
     console.log('Heading weights:', headingWeights);
 
-    // Check headings are bold (600+)
+    // NAME PROMISES A CHECK THE BODY DOES NOT MAKE — flagged, not silently
+    // fixed. The test is called "heading weight compliance (600 expected)" and
+    // then only `console.warn`s, at a threshold of 500 rather than the 600 in
+    // its own name. It cannot fail. Turning it into a real assertion needs a
+    // ruling first: `styles.css` sets heading weights per type ramp rather than
+    // one global 600, and `/today` renders headings from several families, so
+    // the honest bar is not obviously "every h1-h4 is >= 600".
+    //
+    // The one thing that is unambiguous: a heading must not render at BODY
+    // weight, which is the regression that makes a page look unstyled.
     headingWeights.forEach((h) => {
       const weight = parseInt(h.weight);
       if (weight < 500) {
         console.warn(`Heading ${h.tag} has low weight: ${h.weight}`);
       }
     });
+
+    if (headingWeights.length > 0) {
+      const bodyWeight = headingWeights.filter((h) => parseInt(h.weight) < 500);
+      expect(
+        bodyWeight.map((h) => `${h.tag}@${h.weight}`),
+        'headings rendering below weight 500 read as body copy'
+      ).toEqual([]);
+    }
   });
 
   test('Geist Mono used for technical content', async ({ page }) => {

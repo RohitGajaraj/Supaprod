@@ -764,6 +764,12 @@ export async function dispatchReadySteps(
         payload,
         source_run_id: from.runId,
         source_trace_id: from.traceId,
+        // INSTRUMENT: the same number the payload above carries, persisted onto
+        // the child run so retries are a column to group by rather than JSON to
+        // parse. Gated on `retryCols` for the identical reason the payload field
+        // is: without the mission_steps retry columns, `attemptNo` is derived
+        // from a default rather than a counter, and a derived 1 is a guess.
+        attempt: retryCols ? attemptNo : undefined,
       });
 
       await supabase
