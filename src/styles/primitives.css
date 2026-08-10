@@ -1348,9 +1348,16 @@ button.sp-ctx-row:focus-visible {
   text-decoration-color: var(--sp-ink);
 }
 
+/* NO LEFT RULE (founder ruling 2026-08-10). A 2px bar down the edge of a
+ * quote, with muted text beside it, is the single most recognisable
+ * machine-written blockquote there is, and it is banned across this product.
+ * Quoted material sits on the same sunken ground the code block above uses,
+ * which is already this file's idiom for "this text came from somewhere
+ * else", so the treatment is borrowed rather than invented. */
 .sp-prose blockquote {
-  padding-left: var(--sp-space-3);
-  border-left: 2px solid var(--sp-line);
+  background: var(--sp-sink);
+  border-radius: var(--sp-radius-panel);
+  padding: var(--sp-space-3);
   color: var(--sp-mute);
 }
 .sp-prose hr {

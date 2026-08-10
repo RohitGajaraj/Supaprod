@@ -1796,7 +1796,13 @@
   --ds-gray-alpha-100: #0000000d;
   --ds-gray-alpha-200: #00000015;
   --ds-gray-alpha-300: #0000001a;
-  --ds-gray-alpha-400: #00000014;
+  /* Was #00000014 (7.8%), which sat BELOW alpha-300's #0000001a (10.2%) and
+     made the light ladder non-monotonic. Dark climbs 21 then 24 across the
+     same step, so the two themes put --hairline (alpha-400) and --card-border
+     (alpha-300) in OPPOSITE relative orders: a hairline read heavier than a
+     card edge in dark and lighter in light. 1d keeps the step small, matching
+     dark's shape, and stops the pair inverting between themes. */
+  --ds-gray-alpha-400: #0000001d;
   --ds-gray-alpha-500: #00000036;
   --ds-gray-alpha-600: #0000003d;
   --ds-gray-alpha-700: #00000070;
@@ -3466,7 +3472,13 @@ html[data-motion="off"] .ai-pulse-mark {
   --ds-gray-alpha-100: #0000000d;
   --ds-gray-alpha-200: #00000015;
   --ds-gray-alpha-300: #0000001a;
-  --ds-gray-alpha-400: #00000014;
+  /* Was #00000014 (7.8%), which sat BELOW alpha-300's #0000001a (10.2%) and
+     made the light ladder non-monotonic. Dark climbs 21 then 24 across the
+     same step, so the two themes put --hairline (alpha-400) and --card-border
+     (alpha-300) in OPPOSITE relative orders: a hairline read heavier than a
+     card edge in dark and lighter in light. 1d keeps the step small, matching
+     dark's shape, and stops the pair inverting between themes. */
+  --ds-gray-alpha-400: #0000001d;
   --ds-gray-alpha-500: #00000036;
   --ds-gray-alpha-600: #0000003d;
   --ds-gray-alpha-700: #00000070;
