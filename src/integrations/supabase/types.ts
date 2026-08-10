@@ -2662,6 +2662,11 @@ export type Database = {
           decided_by_agent_slug: string | null
           embedding: string | null
           embedding_model: string | null
+          forecast_claim: string | null
+          forecast_horizon_date: string | null
+          forecast_how_we_will_know: string | null
+          forecast_resolution: string | null
+          forecast_resolved_at: string | null
           id: string
           is_public: boolean
           meeting_id: string | null
@@ -2686,6 +2691,11 @@ export type Database = {
           decided_by_agent_slug?: string | null
           embedding?: string | null
           embedding_model?: string | null
+          forecast_claim?: string | null
+          forecast_horizon_date?: string | null
+          forecast_how_we_will_know?: string | null
+          forecast_resolution?: string | null
+          forecast_resolved_at?: string | null
           id?: string
           is_public?: boolean
           meeting_id?: string | null
@@ -2710,6 +2720,11 @@ export type Database = {
           decided_by_agent_slug?: string | null
           embedding?: string | null
           embedding_model?: string | null
+          forecast_claim?: string | null
+          forecast_horizon_date?: string | null
+          forecast_how_we_will_know?: string | null
+          forecast_resolution?: string | null
+          forecast_resolved_at?: string | null
           id?: string
           is_public?: boolean
           meeting_id?: string | null
