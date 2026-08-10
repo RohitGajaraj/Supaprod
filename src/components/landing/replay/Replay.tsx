@@ -12,6 +12,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { SupaprodMark } from "@/components/supaprod/SupaprodMark";
+import { stationProgress, type StationProgress } from "./station-progress";
 
 // Ink-and-metal palette, module-local.
 const R = {
@@ -513,49 +514,87 @@ function ReplayChip() {
   );
 }
 
-/** The six stations as a compact horizontal spine. Stations light as the
- * trace below reaches them; the one being worked right now is the machine
- * voice (blue), finished ones settle to silver. */
-export function StationSpine({ litThrough, active }: { litThrough: number; active?: number }) {
+/**
+ * The seven stations as a compact horizontal strip, driven by the trace below
+ * it. The station being worked reads in machine blue, stations behind the
+ * cursor settle to silver, and stations ahead of it stay faint.
+ *
+ * Two things changed here on 2026-08-10, both because the strip was
+ * contradicting the page it sits on.
+ *
+ * IT NOW FOLLOWS THE CURSOR, NOT A HIGH-WATER MARK. See station-progress.ts:
+ * the failure replay steps back from Build to Plan and walks forward again,
+ * and under the old `Math.max` nothing behind the cursor changed when it
+ * retreated. Reading from the current position means the stations a
+ * correction undid go dim again, which is what actually happened to them, and
+ * a station entered twice can say so.
+ *
+ * THE CONNECTOR RULES ARE GONE. They drew an edge between each pair of
+ * neighbours, which asserted that the run moves Discover to Decide to Plan and
+ * so on. The failure path's busiest move is Build straight back to Plan, an
+ * edge that was never drawn, so the diagram was describing a route the data
+ * does not take. Spacing alone still gives the labels a reading order without
+ * claiming those are the transitions. It also drops a drawn horizontal line
+ * that read as a fixed sequence at a glance, which is the thing the founder
+ * kept having to explain away.
+ */
+export function StationSpine({ progress, live }: { progress: StationProgress; live: boolean }) {
+  const { visits, at } = progress;
   return (
     <div
+      role="list"
+      aria-label="Seven stations, lit as the run reaches them"
       style={{
         display: "flex",
-        alignItems: "center",
-        gap: "var(--geist-space-2x)",
+        alignItems: "baseline",
+        gap: "clamp(14px, 2.4vw, 32px)",
         flexWrap: "wrap",
         marginBottom: 24,
       }}
     >
       {STATIONS.map((s, i) => {
-        const isActive = active != null && active === i;
+        const working = live && i === at;
+        // Behind the cursor and entered at least once: finished, for now. A
+        // later correction can put it back in front of the cursor and it
+        // returns to faint, because at that point it is unfinished again.
+        const behind = i < at && visits[i] > 0;
+        // At rest the cursor station has finished rather than stalled, so it
+        // settles to silver instead of holding the working blue forever.
+        const settled = !live && i === at && visits[i] > 0;
+        const done = behind || settled;
         return (
-          <span key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span
+            key={s}
+            role="listitem"
+            aria-current={working ? "step" : undefined}
+            style={{ display: "inline-flex", alignItems: "baseline", gap: 5 }}
+          >
             <span
               style={{
                 fontFamily: MONO,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: isActive ? R.blue : i <= litThrough ? R.text : R.faint,
+                color: working ? R.blue : done ? R.text : R.faint,
                 transition: "color 0.4s ease",
               }}
             >
               {s}
             </span>
-            {i < STATIONS.length - 1 && (
+            {/* The count appears only on a station the run came BACK to, so
+                on the happy path the strip is exactly as quiet as before and
+                this reads as a fact about that run rather than as chrome. */}
+            {visits[i] > 1 && (
               <span
-                aria-hidden
+                title={`Worked ${visits[i]} times. The run came back to this station.`}
                 style={{
-                  width: 18,
-                  height: 1,
-                  background:
-                    i < litThrough || (isActive && i <= litThrough)
-                      ? "rgba(255,255,255,0.28)"
-                      : R.divider,
-                  display: "inline-block",
-                  transition: "background 0.4s ease",
+                  fontFamily: MONO,
+                  fontSize: "0.74em",
+                  color: working ? R.blue : R.faint,
+                  transition: "color 0.4s ease",
                 }}
-              />
+              >
+                &times;{visits[i]}
+              </span>
             )}
           </span>
         );
@@ -1074,22 +1113,39 @@ function TiltFrame({ children }: { children: React.ReactNode }) {
 
 export type ReplayTab = "full" | "others" | "failure";
 
-const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; litThrough: number; caption: string }> = {
+// `litThrough` used to sit here as a per-tab constant and was never read: the
+// strip has always derived its state from the played log, and now derives it
+// from the cursor. Removed rather than left as a comment, since a config key
+// nothing reads is a claim about behaviour that no longer holds.
+const TAB_CONFIG: Record<ReplayTab, { log: LogEntry[]; caption: string }> = {
   full: {
     log: FULL_LOG,
-    litThrough: 6,
     caption:
       "Agents ran twelve steps in nineteen minutes. You made two calls. Every one is on the record.",
   },
   others: {
     log: OTHERS_LOG,
-    litThrough: 0,
     caption: "This is where every other tool stops.",
   },
   failure: {
     log: FAIL_LOG,
-    litThrough: 6,
-    caption: "It never stopped; it recovered. Your gate stayed in the middle the whole time.",
+    /* "YOUR GATE STAYED IN THE MIDDLE THE WHOLE TIME" WAS FALSE, corrected
+       2026-08-10. The same sentence was retired from the machine-readable copy
+       in src/routes/index.tsx earlier today, and the fix never reached this
+       caption, which is the version a PERSON reads under the "When it breaks"
+       tab. A correction that lands only where machines read it is not a
+       correction.
+       The gate is real but it does not sit in the middle. It sits at the EDGE
+       and at the CAP: nothing merges or takes an irreversible outward action
+       without a human, and MAX_TRACK_CORRECTIONS in spine/correction.ts is 2,
+       with verify-green.server.ts completing a mission as
+       'completed_with_failures' on the cap rather than looping quietly. The
+       loop is DESIGNED to run unattended; that is the product, and claiming a
+       human was watching throughout argues against it.
+       Two checkable facts beat one reassurance, which is also why this reads
+       better to anyone quoting the page back at us. */
+    caption:
+      "It never stopped; it recovered. Nothing merges without you, and it gives up after two corrections rather than looping.",
   },
 };
 
@@ -1098,18 +1154,22 @@ function TabReplay({ tab, on }: { tab: ReplayTab; on: boolean }) {
   const cfg = TAB_CONFIG[tab];
   const { shown, active } = useSequentialFlow(cfg.log.length, on);
 
-  // The spine follows the trace: lit through the furthest station the replay
-  // has reached; the station being worked right now reads in machine blue.
+  // The strip is a live readout of where the run IS, so it derives from the
+  // played path rather than from the furthest station reached. That is what
+  // lets a correction walking backwards dim the stations it undid. The
+  // sequencer keeps shown === active + 1 while running, so the last entry of
+  // `played` is the one being worked; at the end it sets active to -1 and
+  // leaves shown at the full length, which is why `live` is passed separately
+  // rather than inferred from the path.
   const played = cfg.log.slice(0, Math.max(shown, 0));
-  const litThrough = played.reduce(
-    (max, e) => (e.station != null && e.station > max ? e.station : max),
-    -1,
+  const progress = stationProgress(
+    played.map((e) => e.station),
+    STATIONS.length,
   );
-  const activeStation = active >= 0 ? cfg.log[active]?.station : undefined;
 
   return (
     <div>
-      <StationSpine litThrough={litThrough} active={activeStation} />
+      <StationSpine progress={progress} live={active >= 0} />
       <div className="grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
         <div>
           <div

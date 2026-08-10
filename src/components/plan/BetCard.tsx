@@ -1,9 +1,74 @@
-import { useState, memo } from "react";
-import { VerdictChip } from "@/components/obsidian";
+/**
+ * ONE BET, ON THE BOARD. The atom of station 3.
+ *
+ * ============================================================================
+ * 2026-08-10: REDRAWN ON THE INK TOKENS, AND IT WAS THE LAST RETIRED SURFACE
+ * ON THIS STATION.
+ * ============================================================================
+ *
+ * /plan was ported onto the `--sp-*` primitives in an earlier pass and this file
+ * was not: the head, the gate, the receipts and the spec rows all spoke ink
+ * while the CARDS, which are the only thing on the board a person actually
+ * looks at, were still drawn in `--card`, `--hairline`, `--ember-line`,
+ * `--shadow-elevated`, `--font-mono`, `--text-subtle` and `loom-press`, with a
+ * `VerdictChip` from the retired kit on top. Two design systems, forty pixels
+ * apart, on the surface the founder opens to see what the team committed to.
+ *
+ * FOUR THINGS CHANGED BEYOND THE PALETTE, and each is a rule this system holds:
+ *
+ *   1. THE PROMISE IS ON THE CARD. The station's whole claim is that "each bet
+ *      names the outcome it promises", and the card printed the MEASURE and not
+ *      the outcome. So a board of committed work showed a column of numbers with
+ *      the promises they measure nowhere on screen. The outcome leads now and
+ *      the measure sits under it in mono, which is the order the sentence is in.
+ *
+ *   2. AN UNDECLARED BET WEARS EMBER AS A RULE, NOT AS A CHIP. It used to carry
+ *      `<VerdictChip tone="REVISE">NEEDS OUTCOME</VerdictChip>`, an ember-filled
+ *      lozenge shouting in mono caps. Ember marks the human and nothing else,
+ *      and this is genuinely the one thing on the board waiting on a person, so
+ *      it keeps ember and loses the fill: a 2px left rule the height of the card
+ *      (`--sp-eviq-rule`, the invariant weight this system already owns) and a
+ *      sentence in words. The card is found by scanning the left margin, which
+ *      is cheaper than reading four chips, and it survives greyscale because the
+ *      rule is geometry.
+ *
+ *   3. NO MONO CAPS ANYWHERE. `NOW`, `NEXT`, `LATER`, `+ OUTCOME`,
+ *      `EDIT OUTCOME`, `REWIND`, `REWINDING…` and the relative time were all
+ *      letter-spaced uppercase mono. That is eight shouted words on a 120px card
+ *      and it was the loudest thing in the region. They are sentence-case quiet
+ *      actions now, wearing `.sp-block-more`, which is the system's existing
+ *      quiet action and already carries its own hover and focus states.
+ *
+ *   4. THE CHECKBOX IS THE REAL ONE. It was a raw `<input>` with an inline
+ *      `accentColor: var(--ember)`, which spent the human's colour on a value
+ *      that is not a gate. The `Checkbox` primitive is the instrument for a value
+ *      that sits there until something else acts on it, it is monochrome for
+ *      exactly that reason, and it is keyboard-native: Space toggles, Tab
+ *      reaches it, and shift-clicking one gives the board range-select through
+ *      `useSelection` without this file knowing anything about it.
+ *
+ * WHAT IS DELIBERATELY KEPT. `RoadmapHistory` ("why is this here") and
+ * `AuditTag` both draw in their own kit and both live outside this lane. They
+ * answer real questions and removing them to tidy the palette would be trading a
+ * capability for a colour, so they stay in the card's quiet tail until the lane
+ * that owns them ports them.
+ *
+ * THE KEYBOARD, AND WHY IT IS ARROWS AND NOT LETTERS. The board is a composite
+ * widget: every card is one stop, the arrows move between them, and the controls
+ * inside a focused card are reached with Tab. Bare LETTERS are not bound here on
+ * purpose. `src/lib/key-model.ts` is the product's one declaration of what every
+ * key does, `key-model.test.ts` fails the build in both directions against it,
+ * and that file is not this lane's to edit; binding `n` here would be exactly
+ * the invisible-shortcut defect that registry exists to end. Arrows, Home, End
+ * and Space are structural rather than shortcuts, which key-model's own comment
+ * says in as many words, so they need no entry and get one anyway in the sense
+ * that they behave the way every list in every operating system behaves.
+ */
+import { useState, memo, type KeyboardEvent } from "react";
 import type { RoadmapBucket } from "@/lib/roadmap.functions";
 import { RoadmapHistory } from "@/components/product/RoadmapHistory";
-import { relTimeCaps } from "@/components/discover/format";
 import { AuditTag } from "@/components/supaprod/AuditTag";
+import { Button, Input, Num } from "@/components/shell/primitives";
 import { decisionOptionLabel } from "./format";
 
 export interface BetCardProps {
@@ -16,7 +81,7 @@ export interface BetCardProps {
   hasOutcome: boolean;
   updatedAt: string | null;
   selected: boolean;
-  onToggleSelect: (selected: boolean) => void;
+  onToggleSelect: (selected: boolean, e: { shiftKey?: boolean }) => void;
   onMoveTo: (bucket: RoadmapBucket) => void;
   onEditOutcome: (values: { outcome: string; measure: string }) => void;
   editPending?: boolean;
@@ -24,74 +89,58 @@ export interface BetCardProps {
   canRewind?: boolean;
   onRewind?: () => void;
   rewindPending?: boolean;
-}
-
-// LOOM W2: v4 card treatment (DESIGN-LOOM §2) — every raised bet card
-// carries the top-light + ambient shadow; NOW keeps its ember border via the
-// layered --ember-line token (a line role, never a fill).
-const COLUMN_STYLE: Record<RoadmapBucket, { border: string; background: string; ink: string }> = {
-  now: {
-    border: "1px solid var(--ember-line)",
-    background: "var(--card)",
-    ink: "var(--text-primary)",
-  },
-  next: {
-    border: "1px solid var(--hairline)",
-    background: "var(--card)",
-    ink: "var(--text-primary)",
-  },
-  later: {
-    border: "1px solid var(--hairline-faint)",
-    background: "var(--surface-card-deep)",
-    ink: "var(--text-muted)",
-  },
-};
-
-const MOVE_TARGETS: { bucket: RoadmapBucket; label: string }[] = [
-  { bucket: "now", label: "NOW" },
-  { bucket: "next", label: "NEXT" },
-  { bucket: "later", label: "LATER" },
-];
-
-const QUIET_MONO_STYLE = {
-  fontFamily: "var(--font-mono)",
-  letterSpacing: "0.11em",
-  textTransform: "uppercase" as const,
-  background: "none",
-  border: "none",
-  padding: 0,
-  cursor: "pointer" as const,
-};
-
-/** Highlight number-like tokens in the mono measure line via contrast (not color. Tempo v5
- * glacier narrowing, 2026-07-11: this is decoration, not a status control); the rest stays faint. */
-function MeasureLine({ measure }: { measure: string }) {
-  const parts = measure.split(/(-?\d[\d.,%]*)/g).filter((p) => p.length > 0);
-  return (
-    <span>
-      {parts.map((part, i) => (
-        <span key={i} style={{ color: /^-?\d/.test(part) ? "var(--text-primary)" : undefined }}>
-          {part}
-        </span>
-      ))}
-    </span>
-  );
+  /** The roving tab stop. Exactly one card on the board carries 0. */
+  tabIndex?: number;
+  onCardKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
+  registerRef?: (el: HTMLDivElement | null) => void;
+  onFocusCard?: () => void;
 }
 
 /**
- * OBS-07 §7 "Bet card anatomy" + OBS-10 write parity: title + mono measure
- * line + Needs-outcome chip + move controls, plus a multi-select checkbox, an
- * inline outcome/measure editor for an already-committed bet (not just at
- * commit time), and the "why is this here" audit trail (RoadmapHistory,
- * reused unchanged).
+ * The three lanes, in ink. NOW no longer carries an ember edge: ember marks the
+ * human, and a column heading is not a person. What separates the lanes is
+ * VALUE, which is the quietest signal a design system has and the one that
+ * survives greyscale: Now and Next sit on the raised surface at full ink, Later
+ * sinks and its text steps back one stop on the ramp.
  */
+const LANE_STYLE: Record<RoadmapBucket, { background: string; border: string; ink: string }> = {
+  now: { background: "var(--sp-lift)", border: "var(--sp-line)", ink: "var(--sp-ink)" },
+  next: { background: "var(--sp-lift)", border: "var(--sp-line-soft)", ink: "var(--sp-ink)" },
+  later: { background: "var(--sp-sink)", border: "var(--sp-line-soft)", ink: "var(--sp-body)" },
+};
+
+const MOVE_TARGETS: { bucket: RoadmapBucket; label: string }[] = [
+  { bucket: "now", label: "Now" },
+  { bucket: "next", label: "Next" },
+  { bucket: "later", label: "Later" },
+];
+
+/**
+ * The numbers inside a measure, lifted by CONTRAST rather than by colour. A
+ * measure is "checkout drop-off under 12% by Aug 1", and the part a person scans
+ * for is the 12 and the date. Colour is reserved for status here, so the numbers
+ * step up the ink ramp and the words stay where they are.
+ */
+function MeasureLine({ measure }: { measure: string }) {
+  const parts = measure.split(/(-?\d[\d.,%]*)/g).filter((p) => p.length > 0);
+  return (
+    <>
+      {parts.map((part, i) => (
+        <span key={i} style={{ color: /^-?\d/.test(part) ? "var(--sp-ink)" : undefined }}>
+          {part}
+        </span>
+      ))}
+    </>
+  );
+}
+
 function BetCardComponent({
   id,
   title,
   measure,
   outcome,
   column,
-  iceScore: _iceScore,
+  iceScore,
   hasOutcome,
   updatedAt,
   selected,
@@ -102,9 +151,14 @@ function BetCardComponent({
   canRewind = false,
   onRewind,
   rewindPending = false,
+  tabIndex = -1,
+  onCardKeyDown,
+  registerRef,
+  onFocusCard,
 }: BetCardProps) {
-  const style = COLUMN_STYLE[column];
+  const lane = LANE_STYLE[column];
   const measureText = measure && measure.trim().length > 0 ? measure : null;
+  const outcomeText = outcome && outcome.trim().length > 0 ? outcome : null;
   const [editing, setEditing] = useState(false);
   const [outcomeVal, setOutcomeVal] = useState(outcome ?? "");
   const [measureVal, setMeasureVal] = useState(measure ?? "");
@@ -125,245 +179,220 @@ function BetCardComponent({
 
   return (
     <div
+      ref={registerRef}
+      tabIndex={tabIndex}
+      onKeyDown={onCardKeyDown}
+      onFocus={onFocusCard}
+      // The card is one stop in a composite widget, so it says what kind of
+      // thing it is rather than leaving a screen reader to infer a div.
+      role="group"
+      aria-label={decisionOptionLabel(title)}
       style={{
-        borderRadius: "var(--radius-card)",
-        padding: "16px 18px",
-        border: style.border,
-        background: style.background,
-        boxShadow: "var(--shadow-elevated)",
-        transitionProperty: "box-shadow",
-        transitionDuration: "var(--dur-press)",
+        borderRadius: "var(--sp-radius-card)",
+        padding: "var(--sp-space-4)",
+        background: lane.background,
+        border: `1px solid ${lane.border}`,
+        // THE ONE EMBER ON THE BOARD. A committed bet carrying no declared
+        // outcome is the only thing here genuinely waiting on a person, so it
+        // gets the human's colour, as the rule this system fixes at 2px and
+        // never as a fill.
+        borderLeft: hasOutcome
+          ? `1px solid ${lane.border}`
+          : `var(--sp-eviq-rule) solid var(--sp-gate)`,
         display: "flex",
         flexDirection: "column",
-        gap: 6,
-      }}
-      onMouseEnter={(e) => {
-        // Hover catches the light: the top-light brightens one step (§2).
-        e.currentTarget.style.boxShadow = "var(--top-light-hover), var(--shadow-ambient)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "var(--shadow-elevated)";
+        gap: "var(--sp-space-2)",
       }}
     >
-      {/* REVISE resolves to the ember hex (#FF6B2C) — the primitive's existing ember-tone
-          slot; reused here rather than inventing a new VerdictTone for one chip. */}
-      {!hasOutcome && <VerdictChip tone="REVISE">NEEDS OUTCOME</VerdictChip>}
-      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: "var(--sp-space-2)" }}>
+        {/* THE PRIMITIVE'S CLASS ON A RAW CONTROL, RATHER THAN A SECOND CONTROL,
+            and for one reason: `Checkbox`'s `onChange(next: boolean)` cannot
+            carry the shift key, and shift-click range-select is the whole point
+            of putting a checkbox on a board of twenty bets. `onClick` on the
+            input is the only handler that sees `shiftKey`, and it fires for a
+            keyboard Space too, because a checkbox dispatches a click either way.
+            `onChange` is present and empty so React still treats this as a
+            controlled input; the state it reflects lives in `useSelection`. */}
         <input
           type="checkbox"
-          aria-label={`Select ${title}`}
+          className="sp-check"
           checked={selected}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onToggleSelect(e.target.checked)}
-          style={{
-            flexShrink: 0,
-            width: 12,
-            height: 12,
-            cursor: "pointer",
-            accentColor: "var(--ember)",
+          aria-label={`Select ${decisionOptionLabel(title)}`}
+          onChange={() => {}}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect(!selected, { shiftKey: e.shiftKey });
           }}
         />
         <span
           style={{
             flex: 1,
-            fontWeight: 600,
-            color: style.ink,
+            minWidth: 0,
+            fontSize: "var(--sp-text-body)",
+            fontWeight: "var(--sp-weight-strong)",
+            color: lane.ink,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
+          title={title}
         >
           {decisionOptionLabel(title)}
         </span>
       </span>
-      {measureText && (
+
+      {/* THE PROMISE, WHICH THIS CARD USED NOT TO SHOW. Either the outcome this
+          bet names, or the sentence saying it names none. Never both, and never
+          silence. */}
+      {editing ? null : outcomeText ? (
         <span
           style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--text-subtle)",
+            fontSize: "var(--sp-text-meta)",
+            lineHeight: "var(--sp-leading-row)",
+            color: "var(--sp-body)",
+          }}
+        >
+          {outcomeText}
+        </span>
+      ) : (
+        <span style={{ fontSize: "var(--sp-text-meta)", color: "var(--sp-mute)" }}>
+          No outcome declared, so nothing can grade it later.
+        </span>
+      )}
+
+      {editing ? null : measureText ? (
+        <span
+          style={{
+            fontFamily: "var(--sp-font-mono)",
+            fontSize: "var(--sp-text-data)",
+            color: "var(--sp-mute)",
           }}
         >
           <MeasureLine measure={measureText} />
         </span>
-      )}
+      ) : null}
 
       {editing ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
-          <input
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-space-2)" }}>
+          <Input
             autoFocus
             value={outcomeVal}
             onChange={(e) => setOutcomeVal(e.target.value)}
             placeholder="Outcome: what changes"
+            aria-label="Outcome"
             maxLength={500}
-            style={{
-              padding: "5px 8px",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-control)",
-              background: "var(--surface-raised)",
-              color: "var(--text-primary)",
-            }}
           />
-          <input
+          <Input
             value={measureVal}
             onChange={(e) => setMeasureVal(e.target.value)}
-            placeholder="Measure: how you'll know"
+            placeholder="Measure: how you will know"
+            aria-label="Measure"
             maxLength={500}
-            style={{
-              padding: "5px 8px",
-              border: "1px solid var(--hairline)",
-              borderRadius: "var(--radius-control)",
-              background: "var(--surface-raised)",
-              color: "var(--text-primary)",
-            }}
           />
-          <span style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{ ...QUIET_MONO_STYLE, color: "var(--text-subtle)" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--text-body)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--text-subtle)";
-              }}
-            >
-              cancel
-            </button>
-            <button
-              type="button"
+          <span style={{ display: "flex", justifyContent: "flex-end", gap: "var(--sp-space-2)" }}>
+            <Button variant="ghost" onClick={() => setEditing(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
               disabled={saveDisabled}
-              // Disabled pairs with an explanation (Tempo component contract).
+              // Disabled pairs with an explanation.
               title={
                 saveDisabled && !editPending
                   ? "Both the outcome and the measure are required"
                   : undefined
               }
               onClick={saveEdit}
-              className="loom-press outline-none transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                ...QUIET_MONO_STYLE,
-                // Ordinary form action (save): the ember-on-forms ruling reserves ember for the
-                // view's one true primary CTA; this resolves to the neutral default via contrast.
-                color: "var(--text-primary)",
-                cursor: saveDisabled ? "not-allowed" : "pointer",
-                opacity: saveDisabled ? 0.5 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!saveDisabled) e.currentTarget.style.opacity = "0.75";
-              }}
-              onMouseLeave={(e) => {
-                if (!saveDisabled) e.currentTarget.style.opacity = "1";
-              }}
             >
-              save
-            </button>
+              {editPending ? "Saving" : "Save the promise"}
+            </Button>
           </span>
         </div>
       ) : (
         <span
-          style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--sp-space-3)",
+            marginTop: "var(--sp-space-1)",
+            flexWrap: "wrap",
+          }}
         >
-          {MOVE_TARGETS.map((t) => {
-            const isCurrent = t.bucket === column;
-            return (
-              <button
-                key={t.bucket}
-                type="button"
-                disabled={isCurrent}
-                // Disabled pairs with an explanation (Tempo component contract).
-                title={isCurrent ? "Already in this column" : undefined}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMoveTo(t.bucket);
-                }}
-                className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  letterSpacing: "0.11em",
-                  textTransform: "uppercase",
-                  color: isCurrent ? "var(--text-faint)" : "var(--text-subtle)",
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: isCurrent ? "default" : "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isCurrent) e.currentTarget.style.color = "var(--text-body)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isCurrent) e.currentTarget.style.color = "var(--text-subtle)";
-                }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={startEdit}
-            className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-            style={{ ...QUIET_MONO_STYLE, color: "var(--text-subtle)" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "var(--text-body)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "var(--text-subtle)";
-            }}
-          >
-            {hasOutcome ? "EDIT OUTCOME" : "+ OUTCOME"}
+          {MOVE_TARGETS.filter((t) => t.bucket !== column).map((t) => (
+            <button
+              key={t.bucket}
+              type="button"
+              className="sp-block-more"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveTo(t.bucket);
+              }}
+            >
+              {/* THE CURRENT LANE IS NOT DRAWN DISABLED, IT IS NOT DRAWN.
+                  Three controls of which one is always dead is a third of the
+                  card's controls spent saying where it already is, which the
+                  column heading above it already says. */}
+              {t.label}
+            </button>
+          ))}
+          <button type="button" className="sp-block-more" onClick={startEdit}>
+            {hasOutcome ? "Edit the promise" : "Declare the outcome"}
           </button>
           <RoadmapHistory opportunityId={id} />
           {canRewind && onRewind ? (
             <button
               type="button"
+              className="sp-block-more"
               disabled={rewindPending}
               onClick={(e) => {
                 e.stopPropagation();
                 onRewind();
               }}
-              className="loom-press outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:[outline-color:var(--focus-ring)]"
-              style={{
-                ...QUIET_MONO_STYLE,
-                color: "var(--text-subtle)",
-                cursor: rewindPending ? "not-allowed" : "pointer",
-                opacity: rewindPending ? 0.5 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!rewindPending) e.currentTarget.style.color = "var(--text-body)";
-              }}
-              onMouseLeave={(e) => {
-                if (!rewindPending) e.currentTarget.style.color = "var(--text-subtle)";
-              }}
             >
-              {rewindPending ? "REWINDING…" : "REWIND"}
+              {rewindPending ? "Rewinding" : "Rewind"}
             </button>
           ) : null}
         </span>
       )}
 
-      {/* Dim 17 trace-and-time tail: the bet is a first-class, auditable
-          object (it is an opportunity, prefix OPP). The time reads a touch more
-          present (--text-subtle) than the faint trace ref. */}
+      {/* The quiet tail: what ranks it, when it last moved, and its trace. The
+          ICE score was PASSED INTO THIS CARD AND DISCARDED (`iceScore: _iceScore`)
+          while the board sorted every column by it, so the one number that
+          explains the order a person is looking at was the one number they could
+          not see. */}
       <span
-        style={{ display: "flex", alignItems: "center", gap: "var(--geist-space-2x)", marginTop: 2, flexWrap: "wrap" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--sp-space-3)",
+          flexWrap: "wrap",
+          fontSize: "var(--sp-text-data-sm)",
+          color: "var(--sp-mute)",
+        }}
       >
-        {updatedAt ? (
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.06em",
-              color: "var(--text-subtle)",
-            }}
-          >
-            {relTimeCaps(updatedAt)}
+        {iceScore !== null ? (
+          <span>
+            ICE <Num>{iceScore.toFixed(1)}</Num>
           </span>
         ) : null}
+        {updatedAt ? <Num>{relDays(updatedAt)}</Num> : null}
         <AuditTag kind="opportunity" id={id} />
       </span>
     </div>
   );
+}
+
+/** Plain-words relative time. The board's own copy of the shell's `ago`, in the
+ *  same words, rather than the retired `relTimeCaps` which returned "3D AGO" in
+ *  letter-spaced uppercase. */
+function relDays(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return "now";
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return `${Math.max(mins, 1)}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
 }
 
 // Memoize BetCard so it doesn't re-render when sibling rows' selection state changes.

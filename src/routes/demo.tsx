@@ -32,7 +32,7 @@ import {
 import { trackActivation } from "@/lib/activation.functions";
 
 const SITE = "https://supaprod.ai";
-const TITLE = "Try Supaprod, no signup - a real demo workspace";
+const TITLE = "Try a real Supaprod demo workspace. No signup.";
 const DESC =
   "Walk through a real teardown, a real decision ledger, and a real mission trace. No account needed.";
 

@@ -1817,7 +1817,7 @@ function DecideSurface() {
     async (opp: OpportunityDetailRecord) => {
       const ok = await confirm({
         title: "Keep this bet?",
-        body: `Keeping "${opp.title}" writes its spec, its body and its outcome contract — three model runs — and moves it into the Next lane on the Plan board. Dropping it or challenging it costs a fraction of that, so this is the expensive answer.`,
+        body: `Keeping "${opp.title}" writes its spec, its body and its outcome contract (three model runs) and moves it into the Next lane on the Plan board. Dropping it or challenging it costs a fraction of that, so this is the expensive answer.`,
         confirmLabel: "Keep it and draft the spec",
       });
       if (ok) draftSpec.mutate(opp.id);

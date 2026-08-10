@@ -542,6 +542,48 @@ function BoundarySurface() {
   const chose = (f: AutonomyField) => autonomy.chosen.includes(f);
   const total = data ? data.alone.length + data.asks.length + data.never.length : 0;
 
+  /* THE STORED SETTING AND THE RUNNING SYSTEM DISAGREE, AND THIS SURFACE HAS TO
+   * REPORT THE RUNNING SYSTEM.
+   *
+   * `getBoundary` buckets purely on the stored mode: auto -> alone, off ->
+   * never, everything else -> asks. But the loop demotes a low-risk `confirm`
+   * tool with no floor to auto and runs it inline, so those tools were being
+   * listed under "What still comes to you" while nothing ever came.
+   *
+   * On any other screen that is a wrong label. On THIS one it is the whole
+   * product failing: the single question this page exists to answer is what
+   * runs without a person, and the headline count -- "your crew does N of M
+   * things without asking" -- was reading N off `alone` alone and therefore
+   * UNDER-reporting the crew's real reach. A person deciding whether to walk
+   * away from a running agent was being told a smaller number than the truth.
+   * An over-report would be merely alarming; an under-report is the direction
+   * that gets someone hurt.
+   *
+   * The predicate quotes the one branch of `resolveToolMode` that does this, and
+   * reads `risk` and `floor` off the boundary's own rows rather than recomputing
+   * either -- one client-side restatement of one server rule, in one place. The
+   * same predicate is used by the Settings pane, so the two surfaces cannot
+   * disagree about it.
+   *
+   * THE REAL FIX IS SERVER-SIDE, in getBoundary's bucketing loop
+   * (src/lib/governance.functions.ts:967-968), and it is logged for the
+   * engineering lane. This corrects the report in the meantime rather than
+   * leaving the most consequential number in the product quietly wrong. */
+  const runsAloneDespiteAsking = (t: BoundaryTool) =>
+    t.mode === "confirm" && t.risk === "low" && t.floor === null;
+  const demoted = React.useMemo(
+    () => (data?.asks ?? []).filter(runsAloneDespiteAsking),
+    [data?.asks],
+  );
+  const trulyAlone = React.useMemo(
+    () => [...(data?.alone ?? []), ...demoted],
+    [data?.alone, demoted],
+  );
+  const trulyAsks = React.useMemo(
+    () => (data?.asks ?? []).filter((t) => !runsAloneDespiteAsking(t)),
+    [data?.asks],
+  );
+
   // The two bars the platform crosses on its own. One mutation for all six
   // numbers: they are one policy, and six mutations would be six ways for the
   // surface and the record to disagree.
@@ -670,8 +712,8 @@ function BoundarySurface() {
             "No crew has been given anything to do yet."
           ) : (
             <>
-              Your crew does <Num>{data?.alone.length ?? 0}</Num> of <Num>{total}</Num> things
-              without asking.
+              Your crew does <Num>{trulyAlone.length}</Num> of <Num>{total}</Num> things without
+              asking.
             </>
           )
         }
@@ -715,8 +757,10 @@ function BoundarySurface() {
           {block(
             "alone",
             "What they do alone",
-            "No approval, no interruption. This is where the leverage is.",
-            data.alone,
+            demoted.length > 0
+              ? `No approval, no interruption. This is where the leverage is. ${demoted.length} of these ${demoted.length === 1 ? "is" : "are"} set to ask you first and will not, because the loop clears low-risk tools inline.`
+              : "No approval, no interruption. This is where the leverage is.",
+            trulyAlone,
             "Nothing runs without you yet. Every one of these is a person in the loop.",
           )}
 
@@ -724,7 +768,7 @@ function BoundarySurface() {
             "asks",
             "What still comes to you",
             "Each of these costs one interruption every time it happens.",
-            data.asks,
+            trulyAsks,
             "Nothing asks. Your crew runs the loop on its own.",
           )}
 

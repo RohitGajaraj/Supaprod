@@ -11,18 +11,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle } from "lucide-react";
 import { checkBackendHealth } from "@/lib/health.functions";
 
-export function BackendHealthBanner() {
-  const fCheck = useServerFn(checkBackendHealth);
-  const { data } = useQuery({
-    queryKey: ["backend-health"],
-    queryFn: () => fCheck(),
-    staleTime: 5 * 60_000,
-    refetchOnWindowFocus: false,
-    retry: false,
-  });
-
-  if (!data || data.ok) return null;
-
+/** Shared shell so the two states are the same object in two tones, rather
+ *  than two banners that happen to look alike. `tone` drives the accent only;
+ *  the text carries the meaning, so it still reads in greyscale. */
+function Banner({
+  tone,
+  children,
+  trailing,
+}: {
+  tone: "warn" | "unknown";
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+}) {
+  const accent = tone === "warn" ? "var(--amber)" : "var(--ink-faint)";
   return (
     <div
       role="alert"
@@ -34,20 +35,72 @@ export function BackendHealthBanner() {
         alignItems: "center",
         gap: 10,
         padding: "10px 16px",
-        background: "color-mix(in oklab, var(--amber) 14%, var(--canvas))",
-        borderBottom: "1px solid color-mix(in oklab, var(--amber) 40%, transparent)",
+        background:
+          tone === "warn"
+            ? "color-mix(in oklab, var(--amber) 14%, var(--canvas))"
+            : "var(--canvas)",
+        borderBottom:
+          tone === "warn"
+            ? "1px solid color-mix(in oklab, var(--amber) 40%, transparent)"
+            : "1px solid var(--line)",
         color: "var(--ink)",
         lineHeight: 1.45,
       }}
     >
-      <AlertTriangle size={16} style={{ color: "var(--amber)", flexShrink: 0 }} />
-      <span>
-        Backend update pending. Some actions (including onboarding setup) may fail until the
-        operator applies the latest migrations.
-      </span>
-      <span className="mono-label" style={{ marginLeft: "auto", color: "var(--ink-faint)" }}>
-        {data.pending.length} pending
-      </span>
+      <AlertTriangle size={16} style={{ color: accent, flexShrink: 0 }} />
+      <span>{children}</span>
+      {trailing != null && (
+        <span className="mono-label" style={{ marginLeft: "auto", color: "var(--ink-faint)" }}>
+          {trailing}
+        </span>
+      )}
     </div>
+  );
+}
+
+export function BackendHealthBanner() {
+  const fCheck = useServerFn(checkBackendHealth);
+  const { data, isError } = useQuery({
+    queryKey: ["backend-health"],
+    queryFn: () => fCheck(),
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    // Was `false`. One retry, because the failure this banner exists to catch
+    // is the same failure that stops the check itself from completing, and a
+    // single dropped request should not be enough to put a banner on every
+    // authenticated screen.
+    retry: 1,
+  });
+
+  /**
+   * A failed CHECK is not a healthy backend.
+   *
+   * The old guard was `if (!data || data.ok) return null`, and `!data` is
+   * exactly the state a backend outage produces. So the one component in the
+   * app whose entire job is announcing that the backend is unreachable went
+   * silent precisely when the backend was unreachable, and silence on this
+   * surface reads as "all clear" -- a claim we cannot make from a read that
+   * never completed. This is the Empty/Failed distinction the shell primitives
+   * enforce elsewhere, arriving late to the banner that needed it most.
+   *
+   * Deliberately quieter than the pending-migrations state: we are not
+   * asserting that anything is broken, only that we could not tell.
+   */
+  if (isError) {
+    return (
+      <Banner tone="unknown">
+        Could not check backend status. This is not a report that anything is wrong, only that the
+        check did not complete.
+      </Banner>
+    );
+  }
+
+  if (!data || data.ok) return null;
+
+  return (
+    <Banner tone="warn" trailing={`${data.pending.length} pending`}>
+      Backend update pending. Some actions (including onboarding setup) may fail until the operator
+      applies the latest migrations.
+    </Banner>
   );
 }

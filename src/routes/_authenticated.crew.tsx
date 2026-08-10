@@ -156,6 +156,15 @@ import { isModalOpen } from "@/lib/overlay";
 import { setAgentToolCap, listAgentReflections } from "@/lib/agents.functions";
 import { setAgentEnabled } from "@/lib/onboarding.functions";
 import { CrewMethods } from "@/components/crew/CrewMethods";
+import {
+  ARC_CHOICE,
+  ARC_ORDER,
+  MODE_CHOICE,
+  MODE_PHRASE,
+  REACH_CHOICE,
+  RISK_NOTE,
+  arcHeadline,
+} from "@/components/crew/crew-words";
 
 export const Route = createFileRoute("/_authenticated/crew")({
   // One agent open at a time, in the URL, so the browser's own back button
@@ -178,59 +187,13 @@ export const Route = createFileRoute("/_authenticated/crew")({
  * Vocabulary. Mechanism words (arc, mode, graduation) never reach the
  * screen; they are the correct technical whisper in the Engine Room and
  * nowhere else.
+ *
+ * IT MOVED OUT OF THIS FILE 2026-08-10, to components/crew/crew-words.ts.
+ * These labels were declared privately here, and Settings declared its own
+ * set privately over the SAME stored values - which is how one boundary ended
+ * up with two names. The words are shared now, so a second name for a
+ * boundary has to be written on purpose rather than by not looking.
  * ------------------------------------------------------------------ */
-
-const ARC_ORDER: CrewArc[] = ["observing", "proving", "trusted", "ambient"];
-
-/** What the dial means, said once, in the words a person would use. */
-const ARC_CHOICE: Record<CrewArc, string> = {
-  observing: "Everything waits for you",
-  proving: "Asks before it acts",
-  trusted: "Runs alone, except the risky calls",
-  ambient: "Runs alone, always",
-};
-
-/** The same fact as a headline about a named worker. */
-function arcHeadline(name: string, arc: CrewArc): string {
-  switch (arc) {
-    case "ambient":
-      return `${name} decides everything itself.`;
-    case "trusted":
-      return `${name} runs alone.`;
-    case "proving":
-      return `${name} asks before it acts.`;
-    default:
-      return `${name} waits for you on everything.`;
-  }
-}
-
-const MODE_CHOICE: Record<CrewToolMode, string> = {
-  auto: "On its own",
-  confirm: "Asks you first",
-  review: "Waits for your review",
-};
-
-/** The same fact inside a sentence. */
-const MODE_PHRASE: Record<CrewToolMode, string> = {
-  auto: "on its own",
-  confirm: "only after asking you",
-  review: "only after your review",
-};
-
-/** What a tool would touch. Second-line information, never a restatement of
- *  the mode the control beside it already shows. */
-const RISK_NOTE: Record<"low" | "medium" | "high", string> = {
-  low: "Stays in this workspace, and you can undo it.",
-  medium: "Reaches outside, and it can be walked back.",
-  high: "Hard to walk back.",
-};
-
-const REACH_CHOICE: { value: string; label: string }[] = [
-  { value: "", label: "Anything its tools allow" },
-  { value: "low", label: "Only what it can undo here" },
-  { value: "medium", label: "Nothing that leaves a mark outside" },
-  { value: "high", label: "Everything, including the one way doors" },
-];
 
 const NUMBER_WORD = [
   "None",
@@ -1040,10 +1003,39 @@ function Boundary({ member, onChanged }: { member: CrewMember; onChanged: () => 
   );
 }
 
-/* ---------------- the per tool policy --------------- */
+/* ---------------- the authority this one holds --------------- */
+
+/**
+ * THE TWO COLUMNS, AND WHY THE SECOND ONE IS THE PRODUCT.
+ *
+ * Until 2026-08-10 this was ONE block, "What it still asks about", and it
+ * listed only the gated half. The other half - everything this agent does with
+ * nobody watching - was a number in the subtitle and nothing else. That is the
+ * wrong half to summarise. Every product with a permission model can tell you
+ * what an actor MAY do; the question an autonomous system has to answer, and
+ * the one a security reviewer actually asks, is the pair:
+ *
+ *   what does this thing do with no human present, and
+ *   who catches it when it is wrong?
+ *
+ * So both halves are named, both are listed, and the second one names the
+ * person rather than leaving "approval" as an abstraction with no owner. A
+ * capability with no named catcher is the shape of every autonomy incident.
+ *
+ * TWO BLOCKS RATHER THAN TWO LITERAL COLUMNS. Blocks are this system's
+ * regions; a hand-rolled two-column grid inside one region would be a second
+ * layout grammar drawn on top of the first, and it would collapse to exactly
+ * these two stacked regions on the narrow width anyway. The pairing is carried
+ * by the titles and by them being adjacent, which is what a reader uses.
+ *
+ * How many rows before a list has a bottom. A tool list is read, not browsed,
+ * and forty rows in one block is a settings page again.
+ */
+const TOOLS_VISIBLE = 8;
 
 function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () => void }) {
   const fMode = useServerFn(setCrewToolMode);
+  const [showAll, setShowAll] = React.useState<Record<string, boolean>>({});
   const mode = useMutation({
     mutationFn: (v: { toolName: string; mode: CrewToolMode }) =>
       fMode({ data: { agentSlug: member.slug, ...v } }),
@@ -1052,9 +1044,10 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
 
   if (member.noToolsEnabled) {
     return (
-      <Block title="What it still asks about">
+      <Block title="What it may do without you">
         <Empty>
-          No tools are switched on for this account, so there is nothing for it to ask about yet.
+          No tools are switched on for this account, so there is nothing for it to do or to ask
+          about yet.
         </Empty>
       </Block>
     );
@@ -1062,7 +1055,7 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
 
   if (member.tools.length === 0) {
     return (
-      <Block title="What it still asks about">
+      <Block title="What it may do without you">
         <Empty>
           Its reach is set narrow enough that none of the switched-on tools are in its hands. Widen
           the reach above to give it some.
@@ -1078,39 +1071,97 @@ function ToolPolicy({ member, onChanged }: { member: CrewMember; onChanged: () =
   // rows that all say the same thing and cannot be changed. Say it once.
   const dialGatesAll = member.arc === "observing";
 
+  const column = (
+    key: string,
+    title: string,
+    sub: React.ReactNode,
+    tools: CrewToolPolicy[],
+    empty: React.ReactNode,
+  ) => {
+    const open = showAll[key] ?? false;
+    const shown = open ? tools : tools.slice(0, TOOLS_VISIBLE);
+    return (
+      <Block
+        title={title}
+        sub={sub}
+        more={
+          tools.length > TOOLS_VISIBLE ? (open ? "Show fewer" : `All ${tools.length}`) : undefined
+        }
+        onMore={() => setShowAll((s) => ({ ...s, [key]: !open }))}
+      >
+        {tools.length === 0 ? (
+          <Empty>{empty}</Empty>
+        ) : (
+          shown.map((t) => (
+            <ToolLine
+              key={t.toolName}
+              tool={t}
+              pending={mode.isPending}
+              onSet={(next) => mode.mutate({ toolName: t.toolName, mode: next })}
+            />
+          ))
+        )}
+      </Block>
+    );
+  };
+
+  // The whole dial has overridden every tool, so the two columns would be a
+  // lie in two parts. One statement instead.
+  if (dialGatesAll) {
+    return (
+      <Block
+        title="What it may do without you"
+        sub={
+          <>
+            Nothing. All <Num>{member.tools.length}</Num> of its tools come to you.
+          </>
+        }
+      >
+        <Empty>
+          While it waits for you on everything, every tool goes to review whatever each one is set
+          to. Give it more room above to set them one at a time.
+        </Empty>
+      </Block>
+    );
+  }
+
   return (
-    <Block
-      title="What it still asks about"
-      sub={
+    <>
+      {column(
+        "alone",
+        "What it does alone",
         <>
-          <Num>{alone.length}</Num> of <Num>{member.tools.length}</Num> tools run without coming
-          back to you.
-        </>
-      }
-    >
-      {dialGatesAll ? (
-        <Empty>
-          While it waits for you on everything, all <Num>{member.tools.length}</Num> tools go to
-          review whatever each one is set to. Give it more room above to set them one at a time.
-        </Empty>
-      ) : gated.length === 0 ? (
-        <Empty>
-          Nothing. Every tool in its hands runs without asking. The safety floors still hold: a one
-          way door would come back to you even here.
-        </Empty>
-      ) : (
-        gated.map((t) => (
-          <ToolLine
-            key={t.toolName}
-            tool={t}
-            pending={mode.isPending}
-            onSet={(next) => mode.mutate({ toolName: t.toolName, mode: next })}
-          />
-        ))
+          <Num>{alone.length}</Num> of <Num>{member.tools.length}</Num> tools, run with nobody
+          watching. This is the reach you are actually granting.
+        </>,
+        alone,
+        "Nothing runs on its own. Every tool in its hands comes back to a person first.",
       )}
 
-      {mode.error ? <Failed>{(mode.error as Error).message}</Failed> : null}
-    </Block>
+      {column(
+        "asks",
+        "What comes to you",
+        <>
+          {gated.length === 0 ? (
+            "Nothing stops for a person."
+          ) : (
+            <>
+              <Num>{gated.length}</Num>{" "}
+              {gated.length === 1 ? "tool stops and waits" : "tools stop and wait"} for a person
+              before anything happens. Today that person is you.
+            </>
+          )}
+        </>,
+        gated,
+        "Nothing. Every tool in its hands runs without asking. The safety floors still hold: a one way door would come back to you even here.",
+      )}
+
+      {mode.error ? (
+        <Block>
+          <Failed>{(mode.error as Error).message}</Failed>
+        </Block>
+      ) : null}
+    </>
   );
 }
 

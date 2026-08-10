@@ -54,26 +54,37 @@
  * arrive with.
  *
  * ------------------------------------------------------------------------
- * 3. WHAT LEADS, AND WHY IT IS NOT PROFILE
+ * 3. WHAT LEADS, AND WHY IT IS NOT AUTONOMY
  * ------------------------------------------------------------------------
  *
- * DEFAULT_SECTION is `autonomy`, not `profile`. `g s` and every bare
- * `navigate({ to: "/settings" })` now land on the boundary that governs the
- * crew.
+ * DEFAULT_SECTION is `profile`, reverted from `autonomy` on 2026-08-10.
  *
- * Profile is identity and appearance. It is filled once during onboarding and
- * then, by the rows, never touched again: of 16 profiles, ZERO have moved
- * working hours off the 9-18 default and ZERO have written a voice anchor
- * (checked against the live database, 2026-08-05). Landing every visit on the
- * one pane nobody returns to, while the pane they came for sat fourteen tab
- * stops away, is the "randomly designed" the founder named. Autonomy is the
- * opposite: it is the only pane whose entire content IS standing policy, and
- * "stop asking me before it does X" is the most common sentence in the head of
- * someone opening this surface.
+ * The 2026-08-06 argument for leading on Autonomy was about USEFULNESS, and it
+ * was right about the facts: of 16 profiles, ZERO have moved working hours off
+ * the 9-18 default and ZERO have written a voice anchor, while "stop asking me
+ * before it does X" is the most common sentence in the head of someone opening
+ * this surface. It was still the wrong ruling, for two reasons it did not
+ * weigh.
  *
- * Profile loses nothing. It is still a door, still `?section=profile`, still
- * where the account menu's Profile item lands, and now reachable from the nav in
- * one keypress instead of a crawl.
+ * FIRST, ARRIVING SOMEWHERE IS NOT CHOOSING IT. Autonomy is the pane a
+ * security reviewer is shown, and the one whose contents are the safety
+ * contract for unattended work. A person lands on `/settings` from the account
+ * menu, from `g s`, from a legacy redirect off `/notifications`, and from a
+ * palette entry that says only "Settings". None of those is a request to be
+ * shown the governance surface, and a surface that consequential should be
+ * somewhere you went on purpose. Every product that gets this right opens
+ * settings on the ordinary and personal, and keeps the governance scope one
+ * deliberate click away.
+ *
+ * SECOND, THE PANE STOPPED BEING AN EDITOR. Autonomy no longer sets a tool
+ * boundary at all: the founder ruled /boundary the one home, so what renders
+ * there now is a read plus a door. Landing every visitor on a read-only
+ * restatement of another surface is the worst of both - it is neither the
+ * thing they came for nor the place to change it.
+ *
+ * Autonomy loses nothing. It is still the FIRST door in the nav, so Home
+ * reaches it in one keypress from anywhere in the index, `?section=autonomy`
+ * still lands, and `?section=crew` still lands there too.
  *
  * ------------------------------------------------------------------------
  * 4. WHAT BELONGS ELSEWHERE, AND WHAT IS DEAD
@@ -234,8 +245,17 @@ export const NAV_DOOR_IDS: readonly SectionId[] = NAV_GROUPS.flatMap((g) =>
   g.sections.map((s) => s.id),
 );
 
-/** Where a bare `/settings` (no `?section=`) lands. Defended in header §3. */
-export const DEFAULT_SECTION: SectionId = "autonomy";
+/**
+ * Where a bare `/settings` (no `?section=`) lands.
+ *
+ * `profile` and NOT `autonomy`, and the reason is worth carrying beside the
+ * value rather than only in header §3: a bare `/settings` is an address people
+ * ARRIVE at rather than one they ask for, and Autonomy is the governance pane -
+ * the safety contract a security reviewer is walked through. Somewhere that
+ * consequential is a destination you choose. Autonomy keeps the first slot in
+ * the nav, so it is still one Home keypress away.
+ */
+export const DEFAULT_SECTION: SectionId = "profile";
 
 /**
  * Legacy and shorthand `?section=` values that must keep landing.

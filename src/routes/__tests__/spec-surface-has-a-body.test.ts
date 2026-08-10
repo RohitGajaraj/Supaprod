@@ -114,8 +114,16 @@ describe("the spec surface has one body, and it is the document", () => {
     expect(body).toContain('id: "write"');
     expect(body).toContain('id: "read"');
     // The document itself, both ways, inside that region.
+    //
+    // The read state named `<ReactMarkdown` until 2026-08-10, when the renderer
+    // moved to `<SpecProse>` so that the `[n]` citation markers this surface had
+    // always printed as literal characters could become real chips. The
+    // assertion's SUBJECT is unchanged: this region must contain the document in
+    // both of its states, and a route that renders the words through a component
+    // rather than inline is still rendering the words. What it must never do is
+    // put the document behind a reading.
     expect(body).toContain("<textarea");
-    expect(body).toContain("<ReactMarkdown");
+    expect(body).toContain("<SpecProse");
   });
 });
 

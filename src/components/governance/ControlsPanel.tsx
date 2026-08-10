@@ -32,8 +32,10 @@
  *
  * Every server function, query key, mutation and the exported signature are
  * untouched: setWorkspacePause with its audit reason and system-pause lock,
- * the reactor subscription CRUD, the tool-mode write, the usage table and the
- * confirm-mode dispatch queue all behave exactly as before.
+ * the reactor subscription CRUD, the usage table and the confirm-mode dispatch
+ * queue all behave exactly as before. (The tool-mode write was still here when
+ * that was written; the third pass below removed it, and it is the one thing on
+ * this list that is no longer true.)
  *
  * SECOND PASS, 2026-07-29. Two things the first port left behind:
  *
@@ -53,23 +55,49 @@
  *       Approvals idiom: the oldest waiting event is the Gate, the rest queue
  *       behind it as one-line rows, and the end of the queue is visible from
  *       the start.
+ *
+ * THIRD PASS, 2026-08-10. THE SECOND EDITOR IS GONE.
+ *
+ * This panel wrote `updateToolMode` - the same mutation /boundary writes, on
+ * the same stored value - through a Select offering "Auto / Ask first /
+ * Review", while /boundary offered "Let them do it alone / Come to me first /
+ * Nobody may do this". One value, two editors, two vocabularies, and nothing
+ * anywhere reconciled them: a person could tighten a tool here, open the
+ * boundary, and read a sentence that did not sound like the thing they had
+ * just done. Founder ruling: /boundary is the ONE home.
+ *
+ * So the block below STATES rather than sets. It reads `getBoundary` under the
+ * same query key /boundary uses, which means the two surfaces are not merely
+ * consistent, they are the same cached read - there is no arrangement of
+ * events in which they can disagree about a count. The information a VP came
+ * for is all still here (how much runs unattended, how much still costs an
+ * interruption, what is switched off outright); only the second set of levers
+ * is gone, replaced by one door.
+ *
+ * AND IT NO LONGER DISPLAYS A BOUNDARY THE RUNTIME WILL NOT HONOUR. See
+ * `demoted` below: the previous pass stapled a bolded warning onto the row's
+ * sub-line while the Select beside it still read "Ask first". A control that
+ * displays a value the system does not honour is worse than no control, and a
+ * warning under it does not repair the control, it just makes the screen argue
+ * with itself. The control is gone, the affected tools are counted where they
+ * actually land, and the disagreement with the stored value is named out loud
+ * instead of being footnoted.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Fragment, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { toast } from "@/lib/notify";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
+  getBoundary,
   getGovernanceOverview,
   setWorkspacePause,
   MISSION_CONCURRENCY_CAP,
 } from "@/lib/governance.functions";
-import { listTools, updateToolMode } from "@/lib/agent_loop.functions";
+import type { BoundaryTool } from "@/lib/governance.functions";
 import { humanWriteError } from "@/lib/roles.functions";
 import { useGovernedWrite } from "@/hooks/use-workspace-role";
-import { GovernedWriteNote } from "./GovernedWriteNote";
-import { HIGH_RISK_FORCE_REVIEW, HIGH_RISK_MIN_CONFIRM } from "@/lib/ai/trust-ramp";
-import { toolRisk } from "@/lib/tool-consequences";
 import {
   listEventSubscriptions,
   upsertEventSubscription,
@@ -91,6 +119,7 @@ import {
   Gate,
   Input,
   Line,
+  Loading,
   Num,
   Receipt,
   Row,
@@ -129,8 +158,6 @@ function eventWord(type: string): string {
   return EVENT_WORD[type] ?? type;
 }
 
-type OversightMode = "auto" | "confirm" | "review";
-
 /** What a decided write left behind. `handoff` is drawn only when something
  *  real picks the work up, which on this surface is a dispatched agent and
  *  nothing else. Never an arrow to nowhere. */
@@ -141,23 +168,29 @@ type Committed = {
   handoff?: { slug: string | null | undefined } | null;
 };
 
-/** The three stops, in plain words. The order is loosest to tightest, which is
- *  the order the trust ramp travels. */
-const OVERSIGHT_STOPS: Array<{ mode: OversightMode; label: string }> = [
-  { mode: "auto", label: "Auto" },
-  { mode: "confirm", label: "Ask first" },
-  { mode: "review", label: "Review" },
-];
-
-/** A group label inside a Block. Smaller than the Block title, so it reads as a
- *  fold within one region rather than as a second region. */
-const GROUP_LABEL = {
-  fontSize: "var(--sp-text-label)",
-  fontWeight: "var(--sp-weight-medium)" as const,
-  color: "var(--sp-mute)",
-  marginTop: "var(--sp-space-4)",
-  marginBottom: "var(--sp-space-1)",
-};
+/**
+ * THE ONE TOOL RULE THIS PANEL RESTATES, AND THE ONLY ONE.
+ *
+ * `resolveToolMode` (lib/ai/loop.server.ts) carries a branch quoted here
+ * verbatim rather than paraphrased:
+ *
+ *     } else if (mode === "confirm" && toolRisk(toolName) === "low") {
+ *       mode = "auto";
+ *
+ * So a reversible tool that never leaves this workspace does not hold at "come
+ * to me first" - the run executes it inline. `getBoundary` buckets on the
+ * STORED value, so these tools are listed there under what still comes to you
+ * while the loop runs them alone. This panel counts them where they actually
+ * land and says so; it does not silently renumber the boundary underneath the
+ * reader.
+ *
+ * It reads `floor` and `risk` off the boundary's own rows rather than
+ * recomputing either, so there is exactly one client-side restatement of one
+ * server rule, and it is this function.
+ */
+function runsAloneDespiteAsking(t: BoundaryTool): boolean {
+  return t.mode === "confirm" && t.risk === "low" && t.floor === null;
+}
 
 /** A quiet fact that hangs off a control rather than sitting on its own line. */
 const NOTE = {
@@ -192,24 +225,25 @@ function firedPhrase(iso: string): string {
 export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
   const { activeWorkspaceId } = useWorkspace();
   /**
-   * A tool override is platform policy, not a user row: `agent_tools` writes are
-   * owner or admin. The pause switch beside it is the same pair, and has been
-   * since before this file existed. Both are asked in the workspace this panel
-   * is actually showing, because a person can be an owner in one and a viewer
-   * in the next.
+   * The pause switch is platform policy, not a user row: `kill_switches` writes
+   * are owner or admin. It is asked in the workspace this panel is actually
+   * showing, because a person can be an owner in one and a viewer in the next.
+   *
+   * The `agent_tools` pair that used to sit beside it is gone with the editor
+   * it guarded. Nothing on this panel writes a tool boundary any more, so
+   * asking whether the reader may is asking about a control that is not here.
    */
-  const toolWrite = useGovernedWrite("agent_tools", activeWorkspaceId);
   const pauseWrite = useGovernedWrite("kill_switches", activeWorkspaceId);
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const overviewFn = useServerFn(getGovernanceOverview);
+  const boundaryFn = useServerFn(getBoundary);
   const pauseFn = useServerFn(setWorkspacePause);
   const listSubsFn = useServerFn(listEventSubscriptions);
   const upsertSubFn = useServerFn(upsertEventSubscription);
   const deleteSubFn = useServerFn(deleteEventSubscription);
   const listQueueFn = useServerFn(listEventQueue);
   const decideEvtFn = useServerFn(decideEventDispatch);
-  const listToolsFn = useServerFn(listTools);
-  const updateToolModeFn = useServerFn(updateToolMode);
 
   const overview = useQuery({
     queryKey: ["governance", "overview", activeWorkspaceId],
@@ -224,9 +258,17 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     queryFn: () => listQueueFn({ data: { workspaceId: activeWorkspaceId ?? null } }),
     refetchInterval: 5000,
   });
-  const toolsQ = useQuery({
-    queryKey: ["agent-tools", "oversight"],
-    queryFn: () => listToolsFn(),
+  /**
+   * THE SAME READ /boundary MAKES, UNDER THE SAME KEY.
+   *
+   * Not "a read that agrees with it" - the identical key and the identical
+   * server function, so TanStack hands both surfaces one cache entry. Two
+   * copies of a governance count that merely happen to match today is how the
+   * vocabulary drift this pass removed got in.
+   */
+  const boundaryQ = useQuery({
+    queryKey: ["boundary", activeWorkspaceId],
+    queryFn: () => boundaryFn(),
   });
 
   // THE COMMIT. Every write below leaves a Receipt carrying what it caused,
@@ -237,37 +279,6 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     consequence: string,
     handoff?: { slug: string | null | undefined } | null,
   ) => setCommitted((c) => [...c, { verb, consequence, at: new Date().toISOString(), handoff }]);
-
-  const toolModeMut = useMutation({
-    // Keyed by NAME, not by row id. Under the platform-defaults model a tool
-    // this account has never changed has no row at all, so there is no id to
-    // send; the server upserts one the moment a person first deviates.
-    mutationFn: (v: { toolName: string; mode: OversightMode; name: string }) =>
-      updateToolModeFn({
-        data: {
-          toolName: v.toolName,
-          mode: v.mode,
-          // See the boundary route: without the active workspace the override
-          // is filed under whichever workspace happens to be the default.
-          workspaceId: activeWorkspaceId ?? undefined,
-        },
-      }),
-    onSuccess: (_d, v) => {
-      commit(
-        v.mode === "auto" ? "You handed it back" : "You tightened it",
-        v.mode === "auto"
-          ? `${v.name} runs on its own again.`
-          : v.mode === "confirm"
-            ? `${v.name} asks you before every run from now on.`
-            : `${v.name} waits for your review before every run from now on.`,
-      );
-      qc.invalidateQueries({ queryKey: ["agent-tools"] });
-    },
-    onError: (e: Error) =>
-      toast.error(
-        humanWriteError(e, "That boundary did not move. The tool runs as it did before."),
-      ),
-  });
 
   const [reason, setReason] = useState("");
   const pauseMut = useMutation({
@@ -381,15 +392,19 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
   const live = waiting[0] ?? null;
   const deciding = (id: string) => decideEvtMut.isPending && decideEvtMut.variables?.eventId === id;
-  const tools = (toolsQ.data?.tools ?? []).filter(
-    (t) => t.enabled !== false && t.mode !== "off",
-  ) as Array<{
-    tool_name: string;
-    display_name: string | null;
-    description: string | null;
-    category: string | null;
-    mode: string;
-  }>;
+
+  // The boundary, in the boundary's own three buckets. `demoted` is the set the
+  // stored value and the runtime disagree about; see runsAloneDespiteAsking.
+  const bd = boundaryQ.data;
+  const demoted = (bd?.asks ?? []).filter(runsAloneDespiteAsking);
+  const alone = (bd?.alone.length ?? 0) + demoted.length;
+  const asks = (bd?.asks.length ?? 0) - demoted.length;
+  const never = bd?.never.length ?? 0;
+  // Consent classes are grouped over the tools an agent can actually reach,
+  // which is exactly the boundary's live-and-not-off set. Reading it from here
+  // rather than from a second listTools call is what keeps this block and the
+  // three counts above it describing one list.
+  const reachable = [...(bd?.alone ?? []), ...(bd?.asks ?? [])];
 
   if (overview.error) {
     return (
@@ -607,137 +622,96 @@ export function ControlsPanel({ onOpenQueue }: { onOpenQueue?: () => void }) {
         ) : null}
       </Block>
 
-      {/* The human end of the trust ramp. This is the ONLY place a person can
-          tighten a tool's stored mode; the ramp (reflection.server.ts) can then
-          propose loosening it back after TRUST_RAMP_CLEAN_N clean runs, which
-          arrives in the approvals queue. */}
-      <GovernedWriteNote reason={toolWrite.reason} />
-      <Block
-        title="Tool oversight"
-        sub="Tighten a tool and the agent asks before every run. After five clean runs in a row, Supaprod proposes handing it back, and you decide in the approvals queue."
-      >
-        {toolsQ.isLoading ? null : toolsQ.error ? (
-          <Failed onRetry={() => void toolsQ.refetch()}>
-            Tools did not load. {(toolsQ.error as Error).message}
-          </Failed>
-        ) : tools.length === 0 ? (
-          <Empty>No tools enabled yet. Turn one on and its oversight lands here.</Empty>
-        ) : (
-          <div>
-            {tools.map((t, i) => {
-              const pinned = HIGH_RISK_FORCE_REVIEW.has(t.tool_name);
-              const autoBlocked = HIGH_RISK_MIN_CONFIRM.has(t.tool_name);
-              const mode: OversightMode =
-                t.mode === "review" ? "review" : t.mode === "confirm" ? "confirm" : "auto";
-              const cat = t.category ?? "general";
-              const showCategory = i === 0 || cat !== (tools[i - 1].category ?? "general");
+      {/* ------------------------------------------------------------------ *
+        THE BOUNDARY, STATED. NOT A SECOND PLACE TO SET IT.
 
-              /**
-               * "Ask first" that will not actually ask (fixed 2026-08-01).
-               *
-               * This panel rendered the STORED mode and called it the boundary.
-               * It is not: `resolveToolMode` demotes a reversible internal tool
-               * from confirm to auto, and the arc dial does the same for any
-               * confirm tool once an agent is trusted, which is the default a
-               * new workspace arrives on. So three tools seeded at confirm sat
-               * here reading "Ask first" while every run executed them inline. A
-               * settings page that misstates the boundary is worse than one that
-               * does not exist, because a person reads it and stops worrying.
-               *
-               * IT IS SAID AS A CONDITION, NOT A VERDICT. The exact effective
-               * mode depends on the acting agent's arc, and the arc is per
-               * agent while this row is per tool, so there is no single answer
-               * this panel could compute without inventing one. What IS certain
-               * is the direction: a reversible internal tool never holds at
-               * confirm for an agent that has earned its arc. That is stated,
-               * and nothing more precise is claimed.
-               */
-              const askWontHold = mode === "confirm" && toolRisk(t.tool_name) === "low";
-              return (
-                <Fragment key={t.tool_name}>
-                  {showCategory ? <div style={GROUP_LABEL}>{cat}</div> : null}
-                  <Line
-                    label={t.display_name || t.tool_name}
-                    // A different fact, not the label again: the identifier the
-                    // loop actually calls, and what it does.
-                    sub={
-                      <>
-                        <Num>{t.tool_name}</Num>
-                        {t.description ? ` · ${t.description}` : ""}
-                        {askWontHold ? (
-                          <>
-                            {" · "}
-                            <strong>
-                              An agent that has earned its arc runs this without asking. It is
-                              reversible and stays inside your workspace. Set it to Review to stop
-                              that.
-                            </strong>
-                          </>
-                        ) : null}
-                      </>
+        This block used to be thirteen Selects writing `updateToolMode`, which
+        is the mutation /boundary writes, over the same stored value, in a
+        different vocabulary. It is a read now, and its counts come off the
+        same cached `getBoundary` /boundary renders, so a person standing in
+        Settings can still answer "what do these things do without me" without
+        being handed a second set of levers that disagree with the first.
+
+        The three headings are /boundary's own, word for word, so the door
+        below lands somewhere that sounds like the sentence that sent them.
+       * ------------------------------------------------------------------ */}
+      <Block
+        title="What your crew may do alone"
+        sub="Set once, on the boundary. Moving one never interrupts work that is already running."
+        more="Open the boundary"
+        onMore={() => void navigate({ to: "/boundary" })}
+      >
+        {boundaryQ.isLoading ? (
+          <Loading>Reading what your crew is allowed to do.</Loading>
+        ) : boundaryQ.isError ? (
+          <Failed onRetry={() => void boundaryQ.refetch()}>
+            The boundary did not load, so no count here would be the real one.
+          </Failed>
+        ) : alone + asks + never === 0 ? (
+          <Empty>
+            No tools are switched on for this account yet, so there is nothing to allow or refuse.
+          </Empty>
+        ) : (
+          <>
+            <Line
+              label="What they do alone"
+              sub="No approval, no interruption. This is where the leverage is."
+            >
+              <Num>{alone}</Num>
+            </Line>
+            <Line
+              label="What still comes to you"
+              sub="Each of these costs one interruption every time it happens."
+            >
+              <Num>{asks}</Num>
+            </Line>
+            <Line
+              label="What nobody may do"
+              sub="Off for agents and for people. Turning one back on is a decision on the record."
+            >
+              <Num>{never}</Num>
+            </Line>
+
+            {/* THE ONE PLACE WHAT YOU SET AND WHAT RUNS DISAGREE, and it is
+              said as its own row rather than footnoted under a control showing
+              the wrong value. Named tools, not a bare count: "three do not do
+              what you set" is only actionable if you know which three.
+
+              NO TONE ON THE COUNT. This is a policy fact, not an outcome, and
+              the number is not a status - the sentence carries the whole
+              meaning and survives greyscale on its own. */}
+            {demoted.length > 0 ? (
+              <Line
+                label="Set to come to you first, and they will not"
+                sub={
+                  <>
+                    {demoted
+                      .slice(0, 4)
+                      .map((t) => t.label)
+                      .join(", ")}
+                    {demoted.length > 4 ? ` and ${demoted.length - 4} more` : ""}
+                    {
+                      " never hold there: each one is reversible and stays inside this workspace, so a run executes it inline rather than stopping to ask. They are counted above as done alone, which is what happens. Switch one off on the boundary to actually stop it."
                     }
-                  >
-                    {pinned ? (
-                      <span style={CONTROL_WORD} title="This gate never loosens. Safety floor.">
-                        Review, pinned
-                      </span>
-                    ) : (
-                      <Select
-                        value={mode}
-                        style={{ width: 140 }}
-                        aria-label={`Oversight for ${t.display_name || t.tool_name}`}
-                        title={
-                          // The role outranks the floor in the tooltip: a person
-                          // who cannot set ANY of these does not need to be told
-                          // which one of them is pinned.
-                          toolWrite.reason ??
-                          (autoBlocked
-                            ? "This tool never runs unattended. Safety floor."
-                            : undefined)
-                        }
-                        disabled={
-                          !toolWrite.allowed ||
-                          (toolModeMut.isPending && toolModeMut.variables?.toolName === t.tool_name)
-                        }
-                        onChange={(e) =>
-                          toolModeMut.mutate({
-                            toolName: t.tool_name,
-                            mode: e.target.value as OversightMode,
-                            name: t.display_name || t.tool_name,
-                          })
-                        }
-                      >
-                        {OVERSIGHT_STOPS.map((s) => (
-                          <option
-                            key={s.mode}
-                            value={s.mode}
-                            // The floor is honest rather than decorative: a tool
-                            // that may never run unattended cannot be set to it.
-                            disabled={s.mode === "auto" && autoBlocked}
-                          >
-                            {s.label}
-                          </option>
-                        ))}
-                      </Select>
-                    )}
-                  </Line>
-                </Fragment>
-              );
-            })}
-          </div>
+                  </>
+                }
+              >
+                <Num>{demoted.length}</Num>
+              </Line>
+            ) : null}
+          </>
         )}
       </Block>
 
-      {/* A read-only view over the SAME enabled tools above, grouped by blast
-          radius with the trust-ladder default posture per class. Consent set
-          once per class, not tool by tool. The per-tool control above is where
-          a specific tool gets tightened; this states what the classes default
-          to. */}
+      {/* The SAME tools the three counts above are drawn from, grouped by blast
+          radius with the trust-ladder default posture per class. Consent is a
+          per-class idea, not a per-tool one; this states what each class
+          defaults to, and the boundary is where a specific tool moves. */}
       <Block title="Consent by consequence" sub={CONSENT_PHILOSOPHY}>
-        {tools.length === 0 ? (
+        {reachable.length === 0 ? (
           <Empty>No tools enabled yet, so no class has anything in it.</Empty>
         ) : (
-          groupToolsByConsequenceClass(tools, (t) => t.tool_name)
+          groupToolsByConsequenceClass(reachable, (t) => t.name)
             .filter((g) => g.tools.length > 0)
             .map((g) => (
               <Line key={g.id} label={g.label} sub={g.description}>
