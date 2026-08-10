@@ -1,19 +1,43 @@
 # Supaprod
 
-Supaprod is the operating system for product teams: agents that discover what to build, decide on bets, design and build specs, ship with safety, and learn from real-world outcomes. Every decision is recorded. Every outcome grades the advice. The moat is not storage. It is learning.
+Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.
+
+**The moat is the compounding, not the record.** Any vendor can store decisions, and a frontier model can absorb search over them next quarter. What compounds is the loop closing: a settled outcome is written back against the decision that caused it, and it re-ranks what you are shown next. That needs the one thing no model has, which is your outcomes, labelled, over time.
 
 You remain in control: no irreversible action happens without your approval.
 
-## What Supaprod does
+## The three layers
 
-- **Discover**: monitors live signals (analytics spikes, support patterns, competitor moves) and surfaces what warrants attention — without waiting for a human to open a tab
+One product, three layers, and each is the precondition for the next.
+
+1. **The director** — tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
+2. **The operating system** — runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance.
+3. **The company brain** — learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
+
+You cannot be the company brain without owning the loop that generates the outcomes, and you cannot run the loop without being the operating system. Ship any one alone and it is a feature, not a company.
+
+## The loop: one governed route, seven stations
+
+Discover, Decide, Plan, Design, Build, Ship, Learn. Not seven tools bolted together — one route that agents walk unattended, inside boundaries a human sets in advance.
+
+- **Discover**: monitors live signals (analytics spikes, support patterns, competitor moves) and surfaces what warrants attention, without waiting for a human to open a tab
 - **Decide**: a governed decision brain captures every call, the evidence behind it, who approved it, and whether it was later proven right or superseded by a better decision
-- **Build**: autonomous specialist agents run the full lifecycle (design, code, test, ship) with human approval gates at the moments that matter
-- **Learn**: the Trust Ledger — a compounding, cryptographically-timestamped record of every decision and real-world outcome; graded and fed back into the next call
+- **Plan and Design**: agents draft the spec and the screens against that decision, carrying an Outcome Contract that states in advance what success will have to prove
+- **Build and Ship**: specialist agents write the code and drive the checks back to green. The merge gate stays human: nothing merges, ships, or takes an irreversible outward action without an approval
+- **Learn**: the outcome is settled with a verdict, written back against the decision that caused it, and it re-ranks what Discover and Decide surface next
+
+**The loop does not end in a report. It ends by changing what you are shown.** That is the difference between an operating system and a dashboard.
 
 ## Who Supaprod is for
 
-Product managers and product teams who want governed autonomous execution, not just AI suggestions. Entry point: the individual PM (the Critic teardown — "see why your pet feature is wrong, with receipts"). Expands to the full product org as their decision system of record.
+Product managers, product leads and founders who want governed autonomous execution rather than AI suggestions they still have to carry. The segmentation is by **role**, not by product maturity: the front door is the individual PM or founding PM, expansion is the product team, and the buyer is the VP or Head of Product.
+
+Two motions, and the first is the larger:
+
+- **Transform** an existing product. Connect the sources you already have, and the loop starts from your real signals. Nothing to migrate and nothing to rip out.
+- **Create** a new one, agent-native from the first decision.
+
+Entry point: the Critic teardown at `/p/teardown`, free and with no signup — paste a spec and get it argued against, with receipts. Expands to the decision system of record for the whole product org.
 
 ## Machine-readable interfaces
 
@@ -40,10 +64,20 @@ Supaprod is designed for the agentic era. Every page supports structured agent c
 
 ## Public surfaces
 
+Everything here is crawlable without a token. The first four are the ones that
+show the claim rather than assert it.
+
 | Route | What it contains |
 |---|---|
-| `/` | Landing page: product thesis, core capabilities |
+| `/p/teardown` | The Critic, free and with no signup: paste a spec and get it argued against, with the evidence for and against attached |
+| `/proof` | Our own calibration score, published live, including the misses. It reads from the real record, so when there is nothing settled yet it shows an honest zero rather than a number |
+| `/product` | How it works: the seven stations, the loop, and the moat |
+| `/updates` | Changelog: what shipped, in plain language, dated against the build log |
+| `/` | Landing page: product thesis, the three layers, core capabilities |
+| `/demo` | Live, no-signup demo workspace (read-only) |
+| `/faq` | Frequently asked questions, question-shaped for answer engines |
 | `/pricing` | Pricing and plans |
+| `/brief` | For investors: problem, product, market, team |
 | `/security` | Security, trust, and privacy statement |
 | `/subprocessors` | Data sub-processor disclosure |
 | `/.well-known/agent.json` | Machine-readable agent manifest |

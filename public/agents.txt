@@ -2,6 +2,14 @@
 # https://supaprod.app/agents.txt
 # This file declares Supaprod's policy for autonomous AI agents interacting with
 # this platform. It is the robots.txt equivalent for the agentic era.
+#
+# Supaprod is the agentic-first operating system for product teams. It tells you
+# what to build, builds it, ships it, checks what actually happened, and learns
+# from it, so next time it guides the call. Seven stations that agents walk
+# unattended, inside boundaries a human sets in advance. A settled outcome is
+# written back against the decision that caused it and re-ranks what surfaces
+# next; that compounding is the moat, not the record underneath it.
+# Full context: /llms.txt and /llms-full.txt
 
 # ── Read access ──────────────────────────────────────────────────────────────
 
@@ -20,9 +28,16 @@ Allow: /api/mcp
 # Machine-readable views — append ?view=machine to any URL
 Allow: /*?view=machine
 
-# Public surfaces
+# Public surfaces — all crawlable without a token
 Allow: /
+Allow: /p/teardown
+Allow: /proof
+Allow: /product
+Allow: /updates
+Allow: /demo
+Allow: /faq
 Allow: /pricing
+Allow: /brief
 Allow: /security
 Allow: /subprocessors
 
@@ -36,7 +51,6 @@ Allow-authenticated: /build
 Allow-authenticated: /knowledge
 Allow-authenticated: /trust-ledger
 Allow-authenticated: /govern
-Allow-authenticated: /products
 Allow-authenticated: /discover
 
 # ── Write access ─────────────────────────────────────────────────────────────

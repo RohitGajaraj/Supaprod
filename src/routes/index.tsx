@@ -127,6 +127,16 @@ const MACHINE_CONTENT = `## Supaprod
 
 For product managers. ${TAGLINE} Nothing irreversible happens without you.
 
+## The three layers
+1. The director: tells you what to build. Ranks your signals, product data, competitors and past calls.
+2. The operating system: runs the whole lifecycle. Seven stations agents walk unattended, inside boundaries a human sets in advance.
+3. The company brain: learns, and then guides. Tells you what is right next time, and warns before you repeat what was wrong.
+
+Each layer is the precondition for the next. Ship any one alone and it is a feature, not a company.
+
+## The moat
+The compounding, not the record. Any vendor can store decisions. A settled outcome is written back against the decision that caused it and re-ranks what Discover and Decide surface next, which needs your outcomes labelled over time and no model ships with those. The loop does not end in a report; it ends by changing what you are shown.
+
 Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. One governed engine.
 When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and drives the checks back to green. That loop runs unattended and is bounded: two corrections per track, three verify cycles per mission, then it stops and hands one person the specific thing only they can supply. On a cap it reports the failure rather than a silent green. The fixed floor is the merge gate: nothing merges, ships, or takes an irreversible outward action without a human approval.
 
@@ -137,7 +147,7 @@ When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebui
 
 ## Agent interfaces
 - A2A agent card: /.well-known/agent.json
-- MCP server: POST /mcp (JSON-RPC 2.0)
+- MCP server: POST /api/mcp (JSON-RPC 2.0, bearer token, 10 read tools + ingest_signal)
 - Machine-readable site: /llms.txt | Access policy: /agents.txt
 
 ## Get started

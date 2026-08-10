@@ -1,24 +1,38 @@
 # Supaprod
 
-Supaprod is the operating system for product teams: agents that discover what to build, decide on bets, design and build specs, ship with safety, and learn from real-world outcomes. Every decision is recorded. Every outcome grades the advice. The moat is not storage. It is learning.
+Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.
 
 You remain in control: no irreversible action happens without your approval.
 
 ---
 
+## The three layers
+
+One product, three layers, and each is the precondition for the next.
+
+1. **The director** — tells you what to build. Reads your signals, your product data, your competitors and your own past calls, and ranks what is worth doing next.
+2. **The operating system** — runs the whole lifecycle. Seven stations that agents walk unattended, inside boundaries a human sets in advance.
+3. **The company brain** — learns, and then guides. It tells you what is right next time, and warns before you repeat what was wrong.
+
+You cannot be the company brain without owning the loop that generates the outcomes, and you cannot run the loop without being the operating system. Ship any one alone and it is a feature, not a company.
+
 ## What is Supaprod?
 
-Supaprod is an AI product team for product managers, product leads, and founders. It helps you:
+An agentic-first operating system for product managers, product leads and founders. Seven stations, one governed route:
 
 - **Discover** what to build: monitor signals (support patterns, analytics, competitor moves) and surface what warrants attention
-- **Decide** on bets: capture evidence, approval chains, and real-world outcomes for every decision
-- **Design and build** specs: agents draft requirements documents and code against them with human gates
-- **Ship with safety**: the merge gate stays human-controlled; irreversible actions require explicit approval
-- **Learn from outcomes**: every decision is graded against what actually happened; next call is guided by what proved true
+- **Decide** on bets: capture the evidence, the alternatives weighed against it, the approval chain, and whether the call was later proven right or superseded
+- **Plan and Design**: agents draft the spec and the screens against that decision, carrying an Outcome Contract that states in advance what success will have to prove
+- **Build and Ship**: agents write the code and drive the checks back to green. The merge gate stays human-controlled; irreversible actions require explicit approval
+- **Learn from outcomes**: the outcome is settled with a verdict, written back against the decision that caused it, and it re-ranks what Discover and Decide surface next
+
+The loop does not end in a report. It ends by changing what you are shown, which is the difference between an operating system and a dashboard.
 
 ## How is Supaprod different from product management software?
 
-Supaprod doesn't just store decisions. It learns from outcomes and grades its own advice, so each decision benefits from everything you have learned before. The core moat is not storage, but learning: a compounding record where every shipped decision's real-world outcome feeds back into the next call.
+Product management software holds what you decided. Supaprod changes what you are shown next because of it.
+
+The distinction is the whole product. Any vendor can store decisions, and a frontier model release can absorb search over them next quarter, so a filing cabinet is not defensible. What compounds is the loop closing: a settled outcome is written back against the decision that caused it and re-ranks the next bet. That needs the one input no model has, which is your outcomes, labelled, over time. **The moat is the compounding, not the record.**
 
 ## Do I need to be technical?
 
@@ -26,9 +40,11 @@ No. Supaprod is designed for non-technical product people. If you can describe w
 
 ## What does Supaprod integrate with?
 
-Supaprod reads from: GitHub, Linear, Slack, Notion, Google Docs, Jira, and custom sources via API.
+Connectors with a working adapter today: **GitHub, Slack, Intercom, Zendesk, HubSpot, Salesforce, Stripe, Canny, Productboard**, plus mail ingest for **Gmail and Outlook**. These are real implementations against the provider APIs, not shells.
 
-Supaprod writes back to: GitHub (PRs, commits, issues), Linear (issues, cycles).
+Supaprod writes back to **GitHub** (branches, commits, pull requests). Everything else is read-only, which is deliberate: connecting your sources should never be the risky step.
+
+Registered but not yet working end to end: Linear, Notion, Google Docs, Google Calendar, Jira, Figma. They appear in the catalogue and their adapters are not implemented, so treat them as roadmap rather than capability. We would rather say that here than have an agent recommend us on an integration that does not connect.
 
 ## Can my team use it together?
 
@@ -44,9 +60,9 @@ Your data stays in your workspace's own Postgres database, isolated from other w
 
 | Plan | Cost | What's included |
 |------|------|-----------------|
-| Free | $0 | Unlimited decisions for one author. Discover, decide, design, build, ship, learn. Memory persists 14 days. |
-| Pro | $29/month | One additional author. All features. Memory persists forever. |
-| Business | $149/month | Up to 10 team members. Custom approval rules. Audit log export. Memory persists forever. |
+| Free | $0 | Unlimited decisions for one author. All seven stations. Connect your existing sources, read-only. Past calls guide the next for 30 days, then fade. |
+| Pro | $29/month | One additional author. Unlimited connectors, still read-only, nothing ever written back. Past calls guide every call after, with no expiry. |
+| Business | $149/month | Up to 10 team members. Write-back connectors through your approval gates. Custom approval rules. Audit log export. |
 | Enterprise | Custom | Unlimited team members. SSO, advanced security, SLA support. |
 
 Every plan can hand a decision to someone else with a link, even if they are not a team member.
@@ -58,7 +74,7 @@ Every plan can hand a decision to someone else with a link, even if they are not
 - **Deployment**: Cloudflare Workers (edge compute) + Supabase (PostgreSQL, row-level security)
 - **Auth**: Supabase Auth + OAuth 2.1 (GitHub, Lovable)
 - **AI governance**: Single chokepoint (`src/lib/ai/runtime.server.ts`); all flows metered and logged
-- **Agent-to-Agent (A2A)**: POST /api/mcp supports JSON-RPC 2.0; read tools: search_signals, search_decisions, search_prds, get_prd, get_ard, export_skillpack, get_governing_decision; write tools: ingest_signal (requires write:signal scope)
+- **Agent-to-Agent (A2A)**: POST /api/mcp supports JSON-RPC 2.0; read tools: search_signals, search_opportunities, search_decisions, search_prds, get_prd, get_ard, get_roadmap, export_skillpack, get_governing_decision, get_contradiction_history; write tools: ingest_signal (requires write:signal scope)
 - **ARD (Agent Requirements Document)**: Published at /ard; JSON Schema at /api/public/ard/schema; machine-readable spec wire format for coding agents
 - **Machine interfaces**: ?view=machine on any URL for structured markdown; /.well-known/agent.json for A2A card; /llms.txt (this file) for LLM context; /agents.txt for agent policy
 
@@ -108,7 +124,7 @@ Supaprod is designed for the agentic era. Every page supports structured agent c
 | `/terms` | Plain-language terms of service |
 | `/updates` | Changelog: what shipped, in plain language, dated |
 | `/ard` | ARD standard documentation: what it is, the schema, how to fetch/export |
-| `/p/teardown` | No-signup Critic: paste a PRD and get a sharp, evidenced-based teardown |
+| `/p/teardown` | No-signup Critic: paste a PRD and get a sharp, evidence-based teardown |
 | `/.well-known/agent.json` | Machine-readable agent manifest (A2A card) |
 | `/agents.txt` | Agent access policy (robots.txt equivalent for the agentic era) |
 | `/api/public/health` | App health and readiness endpoint |
@@ -134,13 +150,22 @@ All endpoints are stable and versioned. Breaking changes are announced at `/upda
 
 ## Positioning and value prop
 
-Supaprod is positioned for **product teams building net-new products**. The core thesis:
+The core thesis:
 
-> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it so next time it guides the call.
+> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call.
 
-The moat compounds with use. Storage is commoditized. Learning is defensible.
+The segmentation is by **role**, not by product maturity: the front door is the individual PM or founding PM, expansion is the product team, and the buyer is the VP or Head of Product.
 
-Entry point: the Critic (free, no-signup teardown at `/p/teardown`). Expands to: the full decision system of record for the product org.
+Two motions, and the first is the larger of the two:
+
+- **Transform** an existing product. Connect the sources you already have and the loop starts from your real signals. The wedge is deliberately no-migration: it sits beside the tools you run today rather than replacing them.
+- **Create** a new one, agent-native from the first decision.
+
+The moat compounds with use, and the compounding is the claim rather than the record underneath it. Any vendor can hold your decisions; what is defensible is a settled outcome changing what you are shown next, because that needs your outcomes labelled over time and no model ships with those.
+
+Entry point: the Critic (free, no-signup teardown at `/p/teardown`). Expands to the decision system of record for the whole product org.
+
+**One limit worth stating plainly**, because an overstated claim here would be found within a week: the workspace record travels to whoever inherits it, and the compounded recall that pushes past outcomes into an agent's prompt is still scoped to the author who wrote it. The record travels today. The memory does not, yet.
 
 ---
 
@@ -150,4 +175,4 @@ Built by the Supaprod team. Questions: the founder's public profile links are on
 
 Bug reports or feature requests: in the product itself under Settings > Feedback, or via email to [contact info from landing page].
 
-This document was last updated on August 7, 2026.
+This document was last updated on August 10, 2026.
