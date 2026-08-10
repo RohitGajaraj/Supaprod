@@ -17,6 +17,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { rollUpRuns, type RunAnalytics, type RunRow } from "@/lib/run-analytics";
+import { runAttemptColumnsPresent } from "@/lib/ai/run-attempt.server";
 
 const Schema = z.object({
   workspaceId: z.string().uuid().optional(),
@@ -54,9 +55,19 @@ export const getRunAnalytics = createServerFn({ method: "GET" })
     const limit = data.limit ?? 2000;
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
+    // The retry/resume columns are asked for ONLY once the migration has landed.
+    // PostgREST rejects an entire select that names an absent column, and the
+    // error branch below answers with an empty rollup — so an ungated column
+    // here would blank the whole panel and report "no runs" for a workspace with
+    // 1,232 of them. The probe is cached per isolate; a false answer costs the
+    // two new signals and keeps the four that already work.
+    const columns = (await runAttemptColumnsPresent(supabase))
+      ? "agent_slug,status,duration_ms,failure_kind,halted_reason,attempt,resume_count"
+      : "agent_slug,status,duration_ms,failure_kind,halted_reason";
+
     let q = supabase
       .from("agent_runs")
-      .select("agent_slug,status,duration_ms,failure_kind,halted_reason")
+      .select(columns)
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(limit);

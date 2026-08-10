@@ -5,6 +5,11 @@
  * hardcoded zero dragging a median to nothing, an unmapped agent making the
  * station breakdown disagree with the run count beside it, and a "0 retries"
  * that means "nobody counts retries".
+ *
+ * The retry section below now guards BOTH directions of that last one: a zero
+ * that hides an uncounted window, and a "not measured" that hides a genuinely
+ * retry-free one. Those are different sentences and the flag has to pick the
+ * right one from the denominator, never from the count.
  */
 import { expect, test, describe } from "bun:test";
 import { rollUpRuns, classifyRunOutcome, type RunRow } from "./run-analytics";
@@ -136,12 +141,99 @@ describe("outcomes and their reasons", () => {
 });
 
 describe("retries are declared unmeasured rather than reported as zero", () => {
-  test("the flag is always present", () => {
-    // Nothing in the schema counts retries: agent_runs has no attempt column
-    // and no parent-run reference, so a re-run is indistinguishable from a
-    // first attempt. A surface must say "not measured", because a drawn zero
-    // reads as "retries do not happen".
+  test("a run nobody counted leaves the flag true", () => {
+    // Every row live on 2026-08-10 predates the attempt column, and a run
+    // dispatched from chat is never counted even after it. A surface must say
+    // "not measured", because a drawn zero reads as "retries do not happen".
     expect(rollUpRuns([]).retriesNotMeasured).toBe(true);
     expect(rollUpRuns([row({})]).retriesNotMeasured).toBe(true);
+    expect(rollUpRuns([row({ attempt: null })]).retriesNotMeasured).toBe(true);
+  });
+
+  test("one counted first attempt flips the flag while keeping retries at zero", () => {
+    // This is the pair the old hardcoded `true` could not express: retries were
+    // measured, and there were none. Zero with a denominator is a finding.
+    const a = rollUpRuns([row({ attempt: 1 })]);
+    expect(a.retriesNotMeasured).toBe(false);
+    expect(a.overall.retries).toBe(0);
+    expect(a.overall.runsWithKnownAttempt).toBe(1);
+  });
+
+  test("a second attempt is a retry, and only the second one counts", () => {
+    const a = rollUpRuns([row({ attempt: 1 }), row({ attempt: 2 }), row({ attempt: 3 })]);
+    expect(a.overall.retries).toBe(2);
+    expect(a.overall.runsWithKnownAttempt).toBe(3);
+  });
+
+  test("attempts are 1-based, so 0 and negatives are refused as measurements", () => {
+    // A zero attempt is not "the zeroth try"; it is a column written by
+    // something that did not know what it was writing. Admitting it would put a
+    // run in the denominator that nobody actually counted.
+    const a = rollUpRuns([row({ attempt: 0 }), row({ attempt: -1 })]);
+    expect(a.overall.runsWithKnownAttempt).toBe(0);
+    expect(a.retriesNotMeasured).toBe(true);
+  });
+
+  test("the flag follows the denominator, not the retry count", () => {
+    // The bug this guards: computing the flag from `retries === 0` would
+    // declare a genuinely retry-free window "unmeasured" and hide a real
+    // finding behind a "not measured" label.
+    const a = rollUpRuns([row({ attempt: 1 }), row({ attempt: 1 })]);
+    expect(a.overall.retries).toBe(0);
+    expect(a.retriesNotMeasured).toBe(false);
+  });
+
+  test("an in-flight run contributes no attempt, because it is not a result yet", () => {
+    const a = rollUpRuns([row({ status: "running", attempt: 4 })]);
+    expect(a.overall.runsWithKnownAttempt).toBe(0);
+    expect(a.retriesNotMeasured).toBe(true);
+  });
+
+  test("retries are attributed to the station that ran them", () => {
+    const a = rollUpRuns([
+      row({ agent_slug: "builder", attempt: 2 }),
+      row({ agent_slug: "builder", attempt: 1 }),
+      row({ agent_slug: "strategist", attempt: 1 }),
+    ]);
+    const builder = a.byStation.find((s) => s.runs === 2);
+    expect(builder?.retries).toBe(1);
+    expect(builder?.runsWithKnownAttempt).toBe(2);
+    const summed = a.byStation.reduce((n, s) => n + s.retries, 0);
+    expect(summed).toBe(a.overall.retries);
+  });
+});
+
+describe("resumes are counted separately from retries", () => {
+  test("zero resumes is a real answer when the run was counted from birth", () => {
+    // The distinction the whole column exists for: `resume_count: 0` means
+    // "instrumented and never resumed", unlike `duration_ms: 0` which means
+    // "nobody wrote it". Discarding it as missing would make every remaining
+    // run a resumed one and put resumption at 100%.
+    const a = rollUpRuns([row({ resume_count: 0 })]);
+    expect(a.overall.resumes).toBe(0);
+    expect(a.overall.runsWithKnownResumeCount).toBe(1);
+    expect(a.resumesNotMeasured).toBe(false);
+  });
+
+  test("a null resume count is absent, not zero", () => {
+    const a = rollUpRuns([row({ resume_count: null }), row({})]);
+    expect(a.overall.runsWithKnownResumeCount).toBe(0);
+    expect(a.resumesNotMeasured).toBe(true);
+  });
+
+  test("resumes sum across runs and stay out of the retry count", () => {
+    // A run picked up three times by the sweeper is one attempt at the work.
+    // Reporting it as three retries would make the agents look like they fail
+    // constantly when what actually happened was worker eviction.
+    const a = rollUpRuns([row({ resume_count: 3, attempt: 1 }), row({ resume_count: 1 })]);
+    expect(a.overall.resumes).toBe(4);
+    expect(a.overall.runsWithKnownResumeCount).toBe(2);
+    expect(a.overall.retries).toBe(0);
+  });
+
+  test("a negative resume count is refused", () => {
+    const a = rollUpRuns([row({ resume_count: -2 })]);
+    expect(a.overall.runsWithKnownResumeCount).toBe(0);
+    expect(a.overall.resumes).toBe(0);
   });
 });

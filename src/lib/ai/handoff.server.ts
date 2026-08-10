@@ -20,6 +20,7 @@ import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gat
 import { recordAutoApproval } from "@/lib/decision-gate.server";
 import type { ConfidenceTier } from "@/lib/confidence";
 import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
+import { runAttemptColumnsPresent } from "@/lib/ai/run-attempt.server";
 import { callModel } from "@/lib/ai/runtime.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -325,6 +326,18 @@ export async function enqueueHandoff(
     source_trace_id: string | null;
     mission_spend_cap_usd?: number | null;
     mission_token_cap?: number | null;
+    /**
+     * INSTRUMENT: which attempt at this hop the child run is, 1-based.
+     *
+     * `dispatchReadySteps` has computed this number since the P1 retry migration
+     * and has been putting it in `payload.context.attempt` — 75 of 99 handoff
+     * messages on production carry it. It reached the receiver's PROMPT and
+     * never its ROW, so "how often does a hop get retried" was answerable only
+     * by parsing JSON out of a message table. Passing it here puts the same
+     * number where analytics can group by it. Undefined leaves the column NULL,
+     * which reads as "not measured" rather than "first attempt".
+     */
+    attempt?: number | null;
   },
 ): Promise<{ message_id: string; queued_run_id: string }> {
   // A2A hardening (v6 Phase 2 / W3): drop phantom memory_refs before they reach
@@ -426,6 +439,15 @@ export async function enqueueHandoff(
         args.mission_spend_cap_usd,
       ),
       mission_token_cap: args.mission_token_cap ?? null,
+      // Gated: the migration adding these is not applied, and PostgREST fails
+      // the whole insert on an unknown column — which the throw below would turn
+      // into a dead hop. `resume_count: 0` is honest here for the same reason it
+      // is in runAgentLoop: the row is being created, so it has been resumed
+      // zero times, and every later resume continues a count that started at
+      // birth rather than a lower bound picked up mid-life.
+      ...((await runAttemptColumnsPresent(supabase))
+        ? { attempt: args.attempt ?? null, resume_count: 0 }
+        : {}),
     })
     .select("id")
     .single();
