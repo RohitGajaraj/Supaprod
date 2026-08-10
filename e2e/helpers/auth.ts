@@ -23,9 +23,57 @@ import { expect, type Page } from "@playwright/test";
 import * as path from "path";
 import * as fs from "fs";
 
-export const DEMO_EMAIL = "demo@redcadence.app";
-export const DEMO_PASSWORD = "Cadence!Demo2026";
-export const BASE_URL = "http://localhost:8080";
+export const DEMO_EMAIL = process.env.E2E_DEMO_EMAIL ?? "demo@redcadence.app";
+
+/**
+ * THE PASSWORD IS NOT IN THIS FILE, AND IT USED TO BE.
+ *
+ * `Cadence!Demo2026` sat here as a constant until 2026-08-11. Two things were
+ * wrong with that and only one of them is obvious.
+ *
+ * It was STALE. That account was rotated and suspended on 2026-07-25; the row
+ * still exists, is confirmed and unbanned, and its `last_sign_in_at` is
+ * 2026-07-23 -- two days before the rotation. So the suite could not have
+ * authenticated at any point since, and nobody noticed because the suite could
+ * not run at all: `@playwright/test` was never installed.
+ *
+ * It was also a LEAKED SECRET COMMITTED TO SOURCE. That exact pair appears in
+ * `docs/pitch/yc/founder-profile-answers.md` in a table of things exposed
+ * publicly, under "Live demo credentials in plain text ... v4 README". The
+ * rotation WAS the containment. Restoring the constant to make a test pass
+ * would have re-exposed a credential that was neutralised on purpose.
+ *
+ * And this trap has already been sprung twice. `docs/operations/demo-credentials.md`
+ * carries a warning saying an agent followed the documented password on
+ * 2026-08-03, failed twice, and burned a chunk of a session on it. A second
+ * agent hit the identical wall tonight. A fixture with no guard is an
+ * assumption with a filename.
+ *
+ * So the value comes from the environment and its ABSENCE FAILS LOUDLY AND BY
+ * NAME. The alternative -- defaulting to a placeholder -- reproduces the exact
+ * failure this replaces: 140 tests redirecting to /login with nothing saying
+ * why. A rotation now costs an env var, never an edit, and can never again put
+ * a live secret in git.
+ */
+export const DEMO_PASSWORD_ENV = "E2E_DEMO_PASSWORD";
+
+export function demoPassword(): string {
+  const value = process.env[DEMO_PASSWORD_ENV];
+  if (!value) {
+    throw new Error(
+      `${DEMO_PASSWORD_ENV} is not set, so the e2e suite cannot sign in.\n` +
+        `The password is deliberately NOT in the repo: the previous constant was a ` +
+        `credential that leaked publicly and was rotated on 2026-07-25.\n` +
+        `Ask the founder for the current demo password and export it:\n` +
+        `  export ${DEMO_PASSWORD_ENV}='...'\n` +
+        `See docs/operations/demo-credentials.md, which warns that its own ` +
+        `documented passwords are stale until a row is re-verified and re-dated.`,
+    );
+  }
+  return value;
+}
+
+export const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:8080";
 
 /**
  * REPO ROOT, DISCOVERED — never a path typed by hand.
@@ -97,6 +145,14 @@ export async function ensureScreenshotDir(subDir?: string) {
 }
 
 export async function login(page: Page): Promise<boolean> {
+  // RESOLVED BEFORE THE BROWSER OPENS A PAGE, deliberately.
+  //
+  // `demoPassword()` throws when `E2E_DEMO_PASSWORD` is unset. Calling it here
+  // means that throw lands with no page loaded, so Playwright has no DOM to
+  // snapshot and writes no failure artifact at all. Calling it at the fill site
+  // below would throw on a rendered /login page, which IS a capture point.
+  const password = demoPassword();
+
   await page.goto("/login", { waitUntil: "networkidle" });
 
   // Wait for the login form
@@ -109,17 +165,33 @@ export async function login(page: Page): Promise<boolean> {
 
   await emailInput.waitFor({ state: "visible", timeout: 10000 });
   await emailInput.fill(DEMO_EMAIL);
-  await passwordInput.fill(DEMO_PASSWORD);
+  await passwordInput.fill(password);
 
-  // Submit
+  // Submit. The click is INSIDE the try below rather than above it so that a
+  // missing or unclickable submit button — which fails on a page whose password
+  // field is already filled — reaches the same cleanup as a rejected login.
   const submitBtn = page.locator('button[type="submit"]').first();
-  await submitBtn.click();
 
   // Wait for redirect away from login
   try {
+    await submitBtn.click();
     await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 20000 });
     return true;
   } catch {
+    // AUTH FAILED, AND THE PASSWORD IS STILL SITTING IN THE DOM.
+    //
+    // Measured on 2026-08-11 rather than assumed: Playwright renders
+    // `<input type="password">` into an aria snapshot as
+    // `- textbox "Password": <the value, in plaintext>`, and that snapshot is
+    // the `error-context.md` it writes beside a failing test. The browser masks
+    // the field visually, so a SCREENSHOT of this same moment shows dots — which
+    // is the trap. The artifact everyone thinks to protect is the safe one.
+    //
+    // That capture happens when the TEST fails, which is after this returns, so
+    // emptying the field here empties it before the snapshot is taken. Nothing
+    // reads it any more: the submit has already fired and we are giving up.
+    // Best-effort — if the element detached, we have nothing to clear anyway.
+    await passwordInput.fill("").catch(() => {});
     return false;
   }
 }

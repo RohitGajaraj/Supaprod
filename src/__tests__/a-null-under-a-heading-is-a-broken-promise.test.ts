@@ -70,8 +70,7 @@ function codeOf(src: string): string {
 }
 
 /** The shape: a render that answers a pending read with nothing. */
-const SILENT_WHILE_LOADING =
-  /(?:isLoading|isPending)\s*(?:\?\s*null|\)\s*return null|&&\s*null)/g;
+const SILENT_WHILE_LOADING = /(?:isLoading|isPending)\s*(?:\?\s*null|\)\s*return null|&&\s*null)/g;
 
 /**
  * Files carrying the pattern as of 2026-08-11, each tolerated for now.

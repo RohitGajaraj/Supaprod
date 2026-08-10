@@ -12,9 +12,16 @@
 import { test, expect, Page } from "@playwright/test";
 import { waitForFocusToLand, waitForLayoutToSettle } from "./helpers/waits";
 
-const DEMO_EMAIL = "demo@redcadence.app";
-const DEMO_PASSWORD = "Cadence!Demo2026";
-const BASE_URL = "http://localhost:8080";
+// A SECOND COPY OF THE LEAKED CREDENTIAL LIVED HERE.
+//
+// This file kept its own `DEMO_PASSWORD = "Cadence!Demo2026"` rather than
+// importing the helper, so removing the constant from `helpers/auth.ts` alone
+// would have left the secret in the repo and this spec still trying a password
+// rotated on 2026-07-25. A duplicated credential is the reason a rotation
+// half-lands: whoever fixes the obvious copy reasonably believes they are done.
+//
+// Both now come from one place, and the absence of the env var throws by name.
+import { DEMO_EMAIL, demoPassword, BASE_URL } from "./helpers/auth";
 
 /**
  * The comment above this list said "All 14 authenticated surfaces" and the list
@@ -60,7 +67,7 @@ test.describe("Waves 1-2 QA: Design System Verification", () => {
     // Log in with demo credentials
     await page.goto(`${BASE_URL}/login`, { waitUntil: "networkidle" });
     await page.fill('input[type="email"]', DEMO_EMAIL);
-    await page.fill('input[type="password"]', DEMO_PASSWORD);
+    await page.fill('input[type="password"]', demoPassword());
     await page.click('button[type="submit"]');
 
     // Wait for redirect to authenticated route

@@ -31,7 +31,41 @@ export default defineConfig({
      * because that session is a localStorage entry and `context.cookies()`
      * cannot see one. `storageState` captures localStorage too.
      */
-    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+      /**
+       * THE ONE TEST THAT TYPES A PASSWORD RECORDS NOTHING.
+       *
+       * Every other project starts from `storageState`, so `auth.setup.ts` is
+       * the only place a credential ever reaches a page — which makes this the
+       * only project whose artifacts can contain one.
+       *
+       * Measured on 2026-08-11, not assumed. A trace of a login carries the
+       * password in TWO independent places:
+       *
+       *   "method":"fill","params":{...,"value":"<the password>"}
+       *   ["INPUT",{"__playwright_value_":"<the password>", "type":"password"…
+       *
+       * the recorded action, and the `__playwright_value_` attribute stamped
+       * into every DOM snapshot so the trace viewer can replay the form. Both
+       * survive clearing the field afterwards, because neither is the live DOM.
+       * `error-context.md` IS the live DOM — an aria snapshot, which renders a
+       * password field as `- textbox "Password": <plaintext>` — and that one is
+       * handled in `helpers/auth.ts` by emptying the field before we return.
+       *
+       * The trap worth naming: the browser masks the field visually, so a
+       * SCREENSHOT of the failing moment shows dots. The artifact everyone
+       * thinks to protect is the safe one.
+       *
+       * Nothing diagnostic is lost. This test's failure message already says
+       * exactly what went wrong and what to do about it; a trace of it adds a
+       * credential and no information. `test-results/` is gitignored so none of
+       * this could be committed, but it is precisely the directory somebody
+       * zips onto a bug report.
+       */
+      use: { trace: "off", screenshot: "off", video: "off" },
+    },
     {
       name: "chromium-desktop",
       dependencies: ["setup"],
