@@ -16,6 +16,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { track } from "@/lib/observability";
 import { recordStageEvent } from "@/lib/stage-events.server";
 import { extractRejectedAlternatives } from "@/lib/ai/decision-alternatives";
+import { decideDecisionReview, DECISION_RECORD_EFFECT } from "@/lib/decision-gate";
+import { recordAutoApproval } from "@/lib/decision-gate.server";
+import type { ConfidenceTier } from "@/lib/confidence";
 import { resolveMissionSpendCap } from "@/lib/ai/mission-caps.server";
 import { callModel } from "@/lib/ai/runtime.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -675,6 +678,48 @@ export async function maybeCompleteMission(
     // Idempotent: skip if a row already exists for this mission. A mission that
     // failed to plan (finalStatus 'failed') is not a decision — skip capture.
     if (finalStatus !== "failed") {
+      /* WHY THE STATUS IS NOW DECIDED RATHER THAN ASSERTED.
+       *
+       * This line used to read `status: "approved"` with no test of any kind:
+       * every mission receipt was auto-approved, unconditionally, and nothing
+       * anywhere recorded why. That is the failure mode the gate exists to
+       * remove — not "too many approvals" but an approval with no reason
+       * attached, which cannot be audited and cannot be overturned by anyone
+       * who does not already know it happened.
+       *
+       * THE CONFIDENCE SIGNAL IS `finalStatus`, and it is the only one this
+       * writer honestly has. confidence.ts's header says to map a signal we
+       * already hold onto the shared vocabulary rather than invent one, so:
+       *   completed                → medium. Every step reached a terminal
+       *                              state, none failed, and where an outcome
+       *                              contract exists the verifier agreed. Not
+       *                              "high": without a contract nothing checked
+       *                              the work, and the convention is explicit
+       *                              that a writer with no strong signal says
+       *                              medium rather than fabricating high.
+       *   completed_with_failures  → low. The row this writer is about to store
+       *                              is titled "Mission completed", and on a
+       *                              mission with failed steps that title is
+       *                              already generous. A record we half-believe
+       *                              is exactly the one a person should read,
+       *                              so it goes to the queue and stays there. */
+      const confidence: ConfidenceTier = finalStatus === "completed" ? "medium" : "low";
+      const gate = decideDecisionReview({
+        sourceKind: "mission",
+        agentSlug: lastRun?.agent_slug ?? null,
+        confidence,
+        // Landing this row records a decision and nothing else; the work it
+        // describes has already happened, under its own per-tool approvals.
+        effect: DECISION_RECORD_EFFECT,
+        /* False, and it is checkable rather than hopeful: `updateDecision`
+         * (decisions.functions.ts) and `routeDecision`
+         * (approvals-queue.functions.ts) are the only two paths that resolve a
+         * decision, and both do exactly one thing — flip `status` and write a
+         * stage event. The mission is already terminal by the time this runs.
+         * If a future change makes approving a decision DO something, this
+         * argument is the line that has to change with it. */
+        commitsBeyondTheRecord: false,
+      });
       const { count: existing } = await supabase
         .from("decisions")
         .select("id", { count: "exact", head: true })
@@ -695,23 +740,49 @@ export async function maybeCompleteMission(
             workspace_id: updated.workspace_id,
             title: `Mission completed: ${(updated.title ?? "Untitled").slice(0, 240)}`,
             rationale,
-            status: "approved",
+            status: gate.status,
             mission_id: updated.id,
             source_kind: "mission",
             decided_by_agent_slug: lastRun?.agent_slug ?? null,
+            /* The loop raised this, not a person. The column exists precisely so
+             * provenance stops living in the title (migration 20260805120000),
+             * and it is what makes an auto-approved receipt FINDABLE on the
+             * surface a human already reads — DecisionDetail prints "raised by
+             * the crew" off it. An auto-approval the human cannot find is the
+             * half of "attributable and reversible" that is easy to miss. */
+            auto_origin: true,
             ...(alternatives.length ? { alternatives_considered: alternatives } : {}),
           })
           .select("id")
           .maybeSingle();
         if (decision) {
+          const decisionId = (decision as { id: string }).id;
           await recordStageEvent(supabase, {
             entityType: "decision",
-            entityId: (decision as { id: string }).id,
-            to: "approved",
+            entityId: decisionId,
+            to: gate.status,
             actor,
             workspaceId: updated.workspace_id,
             userId: updated.user_id,
           });
+          if (gate.action === "auto_approve") {
+            /* supabaseAdmin rather than the caller's client on purpose:
+             * `workspace_audit_log` has a members-read policy and NO insert
+             * policy, so only the service role can append. This function is
+             * called with whichever client the loop holds, and a user-scoped one
+             * would have its write silently refused — an audit gap that looks
+             * exactly like success. */
+            await recordAutoApproval(supabaseAdmin, {
+              decisionId,
+              workspaceId: updated.workspace_id,
+              userId: updated.user_id,
+              agentSlug: lastRun?.agent_slug ?? null,
+              missionId: updated.id,
+              sourceKind: "mission",
+              writtenBy: "maybeCompleteMission (lib/ai/handoff.server.ts)",
+              decision: gate,
+            });
+          }
         }
       }
     }

@@ -47,6 +47,7 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 | [`ai-agent-trends-2026-gcp.md`](./ai-agent-trends-2026-gcp.md) | Google Cloud and DeepMind on agent trends, 2026. |
 | [`future-of-ai-startups-2025-gcp.md`](./future-of-ai-startups-2025-gcp.md) | Google Cloud on AI startups, 2025. |
 | [`new-age-product-development-research.md`](./new-age-product-development-research.md) | How frontier companies actually build. Feeds the six-month-forward doctrine. |
+| [`launch-blockers-status.md`](./launch-blockers-status.md) | Running status of the mid-September launch blockers. |
 
 ---
 
