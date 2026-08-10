@@ -4336,6 +4336,60 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_code_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          outcome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          outcome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          outcome?: string
+        }
+        Relationships: []
+      }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          note: string | null
+          revoked: boolean
+          uses: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          note?: string | null
+          revoked?: boolean
+          uses?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          note?: string | null
+          revoked?: boolean
+          uses?: number
+        }
+        Relationships: []
+      }
       job_runs: {
         Row: {
           duration_ms: number | null
@@ -9562,6 +9616,7 @@ export type Database = {
         Returns: boolean
       }
       interop_write_enabled: { Args: never; Returns: boolean }
+      invite_code_status: { Args: { _code: string }; Returns: string }
       is_account_member: { Args: { account: string }; Returns: boolean }
       is_account_owner: { Args: { account: string }; Returns: boolean }
       is_workspace_member: { Args: { ws: string }; Returns: boolean }
@@ -9856,6 +9911,7 @@ export type Database = {
         Args: { p_theme_id: string }
         Returns: undefined
       }
+      redeem_invite_code: { Args: { _code: string }; Returns: string }
       redeem_voucher: { Args: { _code: string }; Returns: Json }
       refresh_observability_mvs: { Args: never; Returns: undefined }
       refund_account_credits: {
