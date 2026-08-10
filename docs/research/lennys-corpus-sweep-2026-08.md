@@ -158,6 +158,20 @@ Teresa Torres published our exact doctrine in **2022**, four years early: *"they
 
 **One dissent, recorded fairly:** skip-freely is contested. Kazanjy: *"if you jump stages, you're hosed."* Torres supports route-not-conveyor; Ramp and Coda operate explicit skip rules. The founder's 2026-08-01 ruling survives, but it is not unanimous and the counter-case should be held.
 
+### And we already built the arrow — measured, on real data
+
+Lane 1 queried production lineage with demo workspaces excluded (`docs/planning/launch-audit/station-chain-audit.md`, commit `e5624805`). The result converts the corpus finding above from an opportunity into a position:
+
+**The Learn→Discover write-back arrow is our healthiest cross-station link.** 36 real `learning → decision` edges and 4 real `learning → opportunity` edges. **Decide's single largest inbound source is Learn — by four times over opportunities.**
+
+So the claim available to us is narrow, specific and verifiable: **the arrow that appears zero times in 679 documents and 5.9M words, we built, and it already carries more real traffic than the link it competes with.** That is a far stronger sentence than "we own the loop," and unlike "we own the loop" it survives a query.
+
+**Three constraints on how far it can be pushed — all binding:**
+
+1. **The arrow moves learnings, not outcomes.** 81 real learnings; `agent_memory` still holds zero `kind='outcome'` rows. The honest sentence is *"decisions here are informed by what we learned from earlier decisions."* The sentence the moat actually needs — *informed by measured outcomes* — **is not true yet.** Same present-tense discipline as §2.
+2. **The chain has two real breaks upstream, and they are worse than the Learn gap.** Discover forms **86 real themes and promotes three** — 83 dead-end. Build, the busiest station at **228 real missions, writes zero `mission → changeset` and zero `changeset → deployment` edges**, so no real work has traversed Build→Ship with lineage. **No copy may imply an unbroken signal→shipped→learned chain.** It is broken in two places.
+3. **By real throughput the stations are not seven equal things.** Busy: Discover, Decide, Build. Thin: Plan, Learn. **Off the real path entirely, zero real edges either side: Design and Ship.** This is independent confirmation, from our own database rather than from the market, of the recommendation not to greet a new user with a seven-station route diagram — the diagram would be describing a product our own lineage says we do not have.
+
 **And station 07 is an empty market.** Nobody built a Learn station. No operator described a working loop from an AI-assisted decision to a measured outcome. Chip Huyen: *"we don't have a good way of measuring productivity improvement."* GitHub's CPO on measuring Copilot: *"there are no right metrics. There is no one metric to rule them all."* That is either the moat or the trap, and it is the single largest unoccupied space found.
 
 **Two numbers that constrain how Learn must be built**, or it compounds error rather than judgment:
