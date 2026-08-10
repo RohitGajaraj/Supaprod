@@ -152,6 +152,39 @@ Asked by the design lane, answered by search rather than impression. The answer 
 
 **One counterweight:** Snowflake's product-review doc is deliberately long — exec summary, goals and non-goals, tenets, risks, FAQ — and exists *"not to 'sell' the leadership team… but to detail."* **Long is legitimate when the artifact exists to be interrogated in a room.** That is a different job from a run summary and should look different.
 
+### ⚠️ The strongest disconfirming evidence in the sweep — our ICP rejecting our category, in private
+
+**Community Wisdom 194, 2026-07-25.** A PM asks the exact question our product exists to answer: *"ClickUp is becoming a bottleneck… particularly across product discovery and prioritization. We're currently evaluating Linear, but it seems we may need a separate tool for product discovery. What do you pair it with?"*
+
+**Nobody recommended buying a discovery tool. The room talked him out of it.** Six respondents, converging:
+
+- *"I would **exhaustively recommend not switching**, since the marginal gain of switching these tools is one of the quintessential midrange low-juice priorities."* — R. Hunter Harris
+- *"I'm a big fan of using **simpler, lower-level tools**… The friction of having to copy/paste provides an affordance for more and better conversations. **Most organizations benefit from less 'product management activity'**… **Lower-level tools are more likely to be reliably and flexibly accessible to and manipulable by our AI tools.**"* — Joshua Herzig-Marx
+- *"+1 on less is more… **+1 especially on lower-level tools being more AI-friendly**"* — R. Hunter Harris
+- *"going Linear plus JPD means **running two systems of record, which usually creates more friction than it solves.** Keep discovery messy and flexible; keep Linear clean and just for committed work."* — Muhammad Usman
+- *"I never found much value in the systematized discovery add-ons from project management suites… **It's messy, so strict tools tend to break or hide the important stuff.**"* — Trevor Acy
+- *"keeping it as simple as possible — Notion + GitHub Projects."* — Arvin
+
+**Four distinct objections, and we currently answer none of them well:**
+1. **Switching cost beats marginal gain** — tool migration is "low-juice" by default.
+2. **Two systems of record create friction**, so an added layer is a cost before it is a benefit.
+3. **Structured tools destroy messy discovery** — strictness "hides the important stuff."
+4. **The most dangerous one: simpler tools are believed to be *more* AI-friendly.** This directly inverts our pitch. We argue an integrated agentic substrate wins; this room believes lower-level, dumber tools win *precisely because* agents manipulate them better.
+
+**And the belief underneath all four** — *"most organizations benefit from less product management activity"* — is an argument against buying any product-management system at all.
+
+**Fact vs inference.** Fact: six practitioners, dated, unprompted, in private, in our ICP. Inference: this is the objection our GTM will actually meet, and it is not "why not Atlassian" — it is *"why is this not a spreadsheet, and won't a simpler tool serve my agents better?"* **Our competitive answer must address low-level-tools-plus-agents, not incumbent suites.** Note it also compounds the DIY threat in §1B: the same room that prefers dumb tools is the room being taught weekly to build smart ones.
+
+### The rescue, from the same edition — and it is the best articulation of our thesis found anywhere
+
+Same issue, a different thread on the limits of AI automation. **Kira M Allen**, arguing that mandatory human accountability is a *durable* constraint rather than a fading one:
+
+> *"In the regulated systems I've worked in, the human sign-off **isn't friction waiting to be optimized away. It's what makes the output trustworthy enough to use at all.** When a clinician or attorney signs, they're not double-checking the AI. **They're accepting liability, and that acceptance is the product.** You can narrow review to exceptions, but you can't remove the named accountable human without removing the thing the customer is actually paying for. **Which raises the question: isn't the accountability the actual product, and the AI just the thing that makes it cheaper to produce?**"*
+
+**That is our governance layer's entire justification, written as a question by a practitioner who has never heard of us.** It answers "why not just run raw agents" better than anything in our canon, and it reframes the gates from a limitation into the thing being bought. Pair it with the §2 forecast claim: the forecast is what you are accountable *for*, and the gate is where you accept it.
+
+Also worth carrying, from the same edition's link roundup — *"AI makes the artifact cheaper, not the evidence. Once people can click through the flow, the discussion shifts from 'Should we build this?' to **'What would it take to ship what we already have?'**"* That is the judgment gap, observed at the prototype.
+
 ### Two disconfirming findings, recorded with equal weight
 
 1. **Scaffolding decay, observed directly.** Shane J on the BMAD agent-orchestration method: *"We used BMAD before. Was no longer relevant for us as of Opus 4.6 and GPT-5.5 (or at least not worth the structure)."* A named method, abandoned because models improved. This is the Cherny thesis happening in the field, dated.
