@@ -2,6 +2,48 @@
 
 > _Created: 2026-08-07 · Last updated: 2026-08-10_
 
+## ⏰ OVERNIGHT STATUS — Lane 0, 2026-08-10 23:45. Read this before the section below it.
+
+**Founder is asleep with a standing mandate for all three lanes:** decide on the evidence, do not park work waiting for a ruling, and where a call is balanced take the **reversible** option. Constant communication between lanes; subagents and skills used freely to go faster.
+
+### 🔔 THE ONE THING TO REMIND HIM
+
+**He asked to be reminded about the YC application.** He will update the portal himself; the paste-ready text is written and waiting at the **top of** [`../pitch/yc/fall-2026-application.md`](../pitch/yc/fall-2026-application.md).
+
+Four fields, ranked by damage if a partner tests them: the *"How far along are you?"* sub-field · 7f · 9b · one sentence added to 9a. Plus the founder video, the demo video, and one word in the Team Update.
+
+**Two things only he can do on paste day:**
+1. **Re-derive the numbers.** Live tonight: **4,872 commits, 508 migrations, eight weeks.** The old draft said 4,000 / seven weeks — a **20% understatement of our own velocity**, in the field where velocity is the argument.
+2. **Fill the user-count slot or leave it empty. Never pad it.** It is the first thing a partner looks for and nothing else in that field substitutes for it.
+
+### What closed since the section below was written
+
+- **The corpus sweep is COMPLETE** — all 679 archive documents read in full (5,935,025 words), plus ***How I AI*** (~95 episodes, absent from the paid archive) and **all ~15 Community Wisdom editions** (the private 30k-PM Slack, via the founder's authenticated browser).
+- **The Lemkin quote item below is CLOSED.** It was worse than a bad quote — the claim spliced Mosseri's engineering pod onto Lemkin's sales-team arithmetic into a sentence neither source states. Fixed in the one-pager and given a paste-ready replacement in the YC file. **Nine archive files are confirmed mis-filed**; five episodes quarantined. See [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md).
+- **Positioning is locked** — [`../strategy/positioning-locked-2026-08.md`](../strategy/positioning-locked-2026-08.md) carries category, ICP, the one job, the sharpest claim, the kill list, the messaging kit and the binding application rule.
+- **Four claims were falsified and swept from every surface**, including all four root docs which each told the reader the compounding record was the moat: *"cannot be backfilled"* → **the forecast** cannot be · *"90–95% agentic"* → graduated autonomy with gates · *"the labs decline this vertical"* → they could not build it **securely** across someone else's tools · *"single-suite incumbents cannot be neutral"* → the real competitor is **DIY, a folder of notes**.
+
+### The three findings that should change what gets built
+
+1. **A practitioner named our pain better than we ever had:** *"PMs got faster at shipping but didn't get better at defending why. **The judgment gap got exposed.**"*
+2. **The wedge is the transition, not the tool.** Every DIY success in the corpus is single-operator; every DIY failure is multi-person or multi-agent governance. **Sell at the second person, or the first fleet of agents** — never against someone's folder.
+3. **Learn already auto-settles 32% of outcomes** (38 of 119, agent-decided) — but wired into **one station of seven**. Say it exactly that way; it is a stronger claim than "we have graduated autonomy", which everyone makes.
+
+### Open overnight
+
+1. **Four accelerator applications** still carry retired claims (`betaworks-ai-camp`, `the-residency`, `ef-bridge-sf`, `south-park-commons`). A sweep was in flight; verify it landed.
+2. **The `Supaprod` worktree question — founder only.** A session is committing on `main` inside the design lane's checkout using `git add -A`; it swept ~60 of their uncommitted files into its own commit. **It is not Lane 0.** Only he can identify it. Mitigation adopted meanwhile: commit after every edit, never batch.
+3. **The landing page** — all five items approved by Lane 0 under the overnight mandate and handed to the UI lane.
+4. **Outside users.** Every number we have proves the machine works; none proves anyone wants it. No rewrite closes that.
+
+### Three working rules learned the hard way today
+
+- **Grep the claim, not the file.** One assertion travels as *backfilled · bolted on · bought · copied quickly · only accumulates with time · recovered after the fact · starts at zero*. It escaped **six** sweeps, twice inside one document.
+- **Never pipe a gate.** `docs:check | tail && push` reads `tail`'s exit code, so a failing gate ships. Main went out red because of it.
+- **Verify on the merged tree.** Three worktrees means every lane verifies "clean" against a tree missing the others' work. **Merge, do not rebase** — a rebase broke mid-flight here before.
+
+---
+
 🚨 **LANE 1 & LANE 2 — START HERE BEFORE ANYTHING ELSE (2026-08-10)**
 
 Lane 0 cycle 1 is complete. Eight actionable gaps are waiting on your prioritization. **Read in this order:**
