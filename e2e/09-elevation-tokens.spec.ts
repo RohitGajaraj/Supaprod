@@ -10,8 +10,8 @@
  * probing them for weeks and reporting 0/8 into a console.log. See
  * `checkElevationTokens` for the full note.
  */
-import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot } from './helpers/auth';
+import { test, expect, Page } from "@playwright/test";
+import { login, takeScreenshot } from "./helpers/auth";
 
 async function checkElevationTokens(page: Page) {
   return await page.evaluate(() => {
@@ -33,14 +33,14 @@ async function checkElevationTokens(page: Page) {
     // The real names (`styles.css` L3262-3278) are a t-shirt scale plus the
     // composed border variants.
     const SHADOW_TOKENS = [
-      '--ds-shadow-2xs',
-      '--ds-shadow-xs',
-      '--ds-shadow-small',
-      '--ds-shadow-medium',
-      '--ds-shadow-large',
-      '--ds-shadow-xl',
-      '--ds-shadow-2xl',
-      '--ds-shadow-border',
+      "--ds-shadow-2xs",
+      "--ds-shadow-xs",
+      "--ds-shadow-small",
+      "--ds-shadow-medium",
+      "--ds-shadow-large",
+      "--ds-shadow-xl",
+      "--ds-shadow-2xl",
+      "--ds-shadow-border",
     ];
     const elevationTokens: Record<string, string> = {};
     SHADOW_TOKENS.forEach((token) => {
@@ -49,10 +49,10 @@ async function checkElevationTokens(page: Page) {
 
     // Find elements with box-shadow
     const shadowed: { tag: string; class: string; shadow: string; usesVar: boolean }[] = [];
-    document.querySelectorAll('*').forEach((el) => {
+    document.querySelectorAll("*").forEach((el) => {
       const style = window.getComputedStyle(el);
       const shadow = style.boxShadow;
-      if (shadow && shadow !== 'none') {
+      if (shadow && shadow !== "none") {
         // Check if the computed value looks like a token-based shadow
         // Inline styles with hardcoded values are violations
         const inlineStyle = (el as HTMLElement).style.boxShadow;
@@ -60,7 +60,7 @@ async function checkElevationTokens(page: Page) {
 
         shadowed.push({
           tag: el.tagName,
-          class: (el.className || '').toString().split(' ')[0].substring(0, 40),
+          class: (el.className || "").toString().split(" ")[0].substring(0, 40),
           shadow: shadow.substring(0, 100),
           usesVar,
         });
@@ -75,7 +75,7 @@ async function checkElevationTokens(page: Page) {
   });
 }
 
-test.describe('Elevation & Shadow Token Compliance', () => {
+test.describe("Elevation & Shadow Token Compliance", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   let authCookies: any;
@@ -88,30 +88,37 @@ test.describe('Elevation & Shadow Token Compliance', () => {
   });
 
   const surfaces = [
-    { path: '/today', name: 'today' },
-    { path: '/agents', name: 'agents' },
-    { path: '/settings', name: 'settings' },
-    { path: '/engine-room', name: 'engine-room' },
+    { path: "/today", name: "today" },
+    { path: "/agents", name: "agents" },
+    { path: "/settings", name: "settings" },
+    { path: "/engine-room", name: "engine-room" },
   ];
 
   for (const surface of surfaces) {
     test(`elevation tokens on ${surface.path}`, async ({ page }) => {
       await page.context().addCookies(authCookies);
-      await page.goto(surface.path, { waitUntil: 'networkidle' });
+      await page.goto(surface.path, { waitUntil: "networkidle" });
 
-      if (page.url().includes('/login')) {
+      if (page.url().includes("/login")) {
         await login(page);
-        await page.goto(surface.path, { waitUntil: 'networkidle' });
+        await page.goto(surface.path, { waitUntil: "networkidle" });
       }
 
       const elevationAudit = await checkElevationTokens(page);
-      console.log(`Elevation audit (${surface.path}):`, JSON.stringify({
-        tokens: elevationAudit.elevationTokens,
-        adHocCount: elevationAudit.adHocShadowCount,
-        sampleShadows: elevationAudit.shadowedElements.slice(0, 5),
-      }, null, 2));
+      console.log(
+        `Elevation audit (${surface.path}):`,
+        JSON.stringify(
+          {
+            tokens: elevationAudit.elevationTokens,
+            adHocCount: elevationAudit.adHocShadowCount,
+            sampleShadows: elevationAudit.shadowedElements.slice(0, 5),
+          },
+          null,
+          2,
+        ),
+      );
 
-      await takeScreenshot(page, `elevation-${surface.name}`, 'elevation');
+      await takeScreenshot(page, `elevation-${surface.name}`, "elevation");
 
       // REVIVED ON 2026-08-10. This block used to compute `setTokens` and
       // `console.log` the count, asserting nothing — so the test passed with
@@ -121,24 +128,26 @@ test.describe('Elevation & Shadow Token Compliance', () => {
       // must resolve on every surface. An unresolved shadow token is a flat
       // surface where the design called for depth.
       const unresolved = Object.entries(elevationAudit.elevationTokens)
-        .filter(([, value]) => value === '')
+        .filter(([, value]) => value === "")
         .map(([token]) => token);
       expect(unresolved, `elevation tokens did not resolve on ${surface.path}`).toEqual([]);
     });
   }
 
-  test('glass panel material on sidebar rail', async ({ page }) => {
+  test("glass panel material on sidebar rail", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     // Check sidebar/rail for glass material
     const railGlass = await page.evaluate(() => {
-      const rail = document.querySelector('[class*="rail"], [class*="sidebar"], nav[class*="side"]');
+      const rail = document.querySelector(
+        '[class*="rail"], [class*="sidebar"], nav[class*="side"]',
+      );
       if (!rail) return null;
       const style = getComputedStyle(rail);
       return {
@@ -148,22 +157,22 @@ test.describe('Elevation & Shadow Token Compliance', () => {
       };
     });
 
-    console.log('Rail glass material:', railGlass);
-    await takeScreenshot(page, 'elevation-rail-glass', 'elevation');
+    console.log("Rail glass material:", railGlass);
+    await takeScreenshot(page, "elevation-rail-glass", "elevation");
   });
 
-  test('TopBar glass material', async ({ page }) => {
+  test("TopBar glass material", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const topBarGlass = await page.evaluate(() => {
       const topBar = document.querySelector(
-        '[class*="topbar"], [class*="TopBar"], [class*="top-bar"], header'
+        '[class*="topbar"], [class*="TopBar"], [class*="top-bar"], header',
       );
       if (!topBar) return null;
       const style = getComputedStyle(topBar);
@@ -175,7 +184,7 @@ test.describe('Elevation & Shadow Token Compliance', () => {
       };
     });
 
-    console.log('TopBar glass:', topBarGlass);
-    await takeScreenshot(page, 'elevation-topbar-glass', 'elevation');
+    console.log("TopBar glass:", topBarGlass);
+    await takeScreenshot(page, "elevation-topbar-glass", "elevation");
   });
 });

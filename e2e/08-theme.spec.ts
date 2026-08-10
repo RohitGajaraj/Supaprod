@@ -2,9 +2,9 @@
  * Phase 8: Dark/Light Theme Verification
  * Token resolution in both themes, contrast, no hardcoded colors
  */
-import { test, expect, Page } from '@playwright/test';
-import { login, takeScreenshot } from './helpers/auth';
-import { becomesVisible, readThemeMarker } from './helpers/waits';
+import { test, expect, Page } from "@playwright/test";
+import { login, takeScreenshot } from "./helpers/auth";
+import { becomesVisible, readThemeMarker } from "./helpers/waits";
 
 /**
  * THE THEME TOGGLE, LOCATED BY THE COPY IT ACTUALLY RENDERS.
@@ -29,7 +29,7 @@ import { becomesVisible, readThemeMarker } from './helpers/waits';
  * button, which is a `src/` change this lane cannot make. Keep the
  * `data-testid` arm first so it takes over the day someone adds it.
  */
-const THEME_LABELS = ['Switch to dark', 'Switch to light', 'Follow the system'] as const;
+const THEME_LABELS = ["Switch to dark", "Switch to light", "Follow the system"] as const;
 
 function themeToggle(page: Page) {
   return page
@@ -37,7 +37,7 @@ function themeToggle(page: Page) {
       [
         '[data-testid="theme-toggle"]',
         ...THEME_LABELS.map((label) => `button[aria-label="${label}"]`),
-      ].join(', ')
+      ].join(", "),
     )
     .first();
 }
@@ -46,22 +46,22 @@ async function getThemeTokenValues(page: Page) {
   return await page.evaluate(() => {
     const root = getComputedStyle(document.documentElement);
     const tokens = [
-      '--ds-background-100',
-      '--ds-background-200',
-      '--ds-gray-100',
-      '--ds-gray-200',
-      '--ds-gray-900',
-      '--ds-gray-1000',
-      '--ember',
-      '--ds-focus-color',
-      '--ds-focus-ring-outline',
-      '--ds-red-700',
-      '--ds-green-700',
+      "--ds-background-100",
+      "--ds-background-200",
+      "--ds-gray-100",
+      "--ds-gray-200",
+      "--ds-gray-900",
+      "--ds-gray-1000",
+      "--ember",
+      "--ds-focus-color",
+      "--ds-focus-ring-outline",
+      "--ds-red-700",
+      "--ds-green-700",
     ];
 
     const values: Record<string, string> = {};
     tokens.forEach((token) => {
-      values[token] = root.getPropertyValue(token).trim() || 'NOT_SET';
+      values[token] = root.getPropertyValue(token).trim() || "NOT_SET";
     });
 
     // THEME DETECTION, WHICH COULD NOT REPORT "light".
@@ -83,8 +83,9 @@ async function getThemeTokenValues(page: Page) {
     // the dark tokens; light is `data-theme="light"` with the class removed.
     // There is no `data-theme="dark"`.
     const htmlEl = document.documentElement;
-    const marker = htmlEl.getAttribute('data-theme');
-    const theme = marker === 'light' ? 'light' : htmlEl.classList.contains('dark') ? 'dark' : 'unknown';
+    const marker = htmlEl.getAttribute("data-theme");
+    const theme =
+      marker === "light" ? "light" : htmlEl.classList.contains("dark") ? "dark" : "unknown";
 
     return { theme, values };
   });
@@ -93,13 +94,15 @@ async function getThemeTokenValues(page: Page) {
 async function checkForHardcodedColors(page: Page) {
   return await page.evaluate(() => {
     // Look for common hardcoded color patterns in inline styles
-    const allEls = document.querySelectorAll('[style*="color:"], [style*="background:"], [style*="background-color:"]');
+    const allEls = document.querySelectorAll(
+      '[style*="color:"], [style*="background:"], [style*="background-color:"]',
+    );
     const hardcoded: string[] = [];
 
     allEls.forEach((el) => {
-      const style = el.getAttribute('style') || '';
+      const style = el.getAttribute("style") || "";
       // Check for hardcoded hex, rgb, etc. (not CSS variables)
-      if (style.match(/#[0-9a-fA-F]{3,6}|rgb\(|rgba\(/) && !style.includes('var(')) {
+      if (style.match(/#[0-9a-fA-F]{3,6}|rgb\(|rgba\(/) && !style.includes("var(")) {
         hardcoded.push(`${el.tagName}: style="${style.substring(0, 80)}"`);
       }
     });
@@ -131,26 +134,26 @@ async function switchToLightTheme(page: Page): Promise<boolean> {
   if (!(await becomesVisible(toggle))) return false;
 
   for (let hop = 0; hop < 3; hop++) {
-    if ((await readThemeMarker(page)) === 'light') return true;
+    if ((await readThemeMarker(page)) === "light") return true;
 
-    const labelBefore = await toggle.getAttribute('aria-label');
+    const labelBefore = await toggle.getAttribute("aria-label");
     await toggle.click();
     await page.waitForFunction(
       ({ labels, previous }) => {
-        const button = Array.from(document.querySelectorAll('button[aria-label]')).find((b) =>
-          labels.includes(b.getAttribute('aria-label') ?? '')
+        const button = Array.from(document.querySelectorAll("button[aria-label]")).find((b) =>
+          labels.includes(b.getAttribute("aria-label") ?? ""),
         );
-        return !!button && button.getAttribute('aria-label') !== previous;
+        return !!button && button.getAttribute("aria-label") !== previous;
       },
       { labels: [...THEME_LABELS] as string[], previous: labelBefore },
-      { timeout: 5_000 }
+      { timeout: 5_000 },
     );
   }
 
-  return (await readThemeMarker(page)) === 'light';
+  return (await readThemeMarker(page)) === "light";
 }
 
-test.describe('Theme Verification', () => {
+test.describe("Theme Verification", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
   let authCookies: any;
@@ -162,40 +165,40 @@ test.describe('Theme Verification', () => {
     await page.close();
   });
 
-  test('dark theme tokens resolve correctly on Today', async ({ page }) => {
+  test("dark theme tokens resolve correctly on Today", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const darkTokens = await getThemeTokenValues(page);
-    console.log('Dark theme tokens:', JSON.stringify(darkTokens, null, 2));
-    await takeScreenshot(page, 'theme-dark-today', 'themes');
+    console.log("Dark theme tokens:", JSON.stringify(darkTokens, null, 2));
+    await takeScreenshot(page, "theme-dark-today", "themes");
 
     // Critical tokens should resolve
-    const missingTokens = Object.entries(darkTokens.values).filter(([, v]) => v === 'NOT_SET');
+    const missingTokens = Object.entries(darkTokens.values).filter(([, v]) => v === "NOT_SET");
     if (missingTokens.length > 0) {
-      console.warn('Missing token values:', missingTokens);
+      console.warn("Missing token values:", missingTokens);
     }
     expect(missingTokens.length).toBeLessThan(3); // Allow up to 2 optional tokens missing
   });
 
-  test('light theme tokens resolve correctly', async ({ page }) => {
+  test("light theme tokens resolve correctly", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     // Read the dark values first, so "light actually swapped the tokens" is
     // checkable rather than assumed.
     const darkTokens = await getThemeTokenValues(page);
-    expect(darkTokens.theme, 'the app should boot dark by default').toBe('dark');
+    expect(darkTokens.theme, "the app should boot dark by default").toBe("dark");
 
     const switched = await switchToLightTheme(page);
 
@@ -205,17 +208,19 @@ test.describe('Theme Verification', () => {
     // ("Follow the system"), so this test logged a skip and asserted nothing on
     // every run it has ever had. With a selector that matches, the skip branch
     // is no longer a legitimate outcome — a missing theme control IS the defect.
-    expect(switched, 'the theme control must be reachable and must reach light theme').toBe(true);
+    expect(switched, "the theme control must be reachable and must reach light theme").toBe(true);
 
     const lightTokens = await getThemeTokenValues(page);
-    console.log('Light theme tokens:', JSON.stringify(lightTokens, null, 2));
-    await takeScreenshot(page, 'theme-light-today', 'themes');
+    console.log("Light theme tokens:", JSON.stringify(lightTokens, null, 2));
+    await takeScreenshot(page, "theme-light-today", "themes");
 
-    expect(lightTokens.theme).toBe('light');
+    expect(lightTokens.theme).toBe("light");
 
-    const missingTokens = Object.entries(lightTokens.values).filter(([, v]) => v === 'NOT_SET');
-    expect(missingTokens.map(([k]) => k), 'light theme must resolve the same tokens dark does')
-      .toHaveLength(0);
+    const missingTokens = Object.entries(lightTokens.values).filter(([, v]) => v === "NOT_SET");
+    expect(
+      missingTokens.map(([k]) => k),
+      "light theme must resolve the same tokens dark does",
+    ).toHaveLength(0);
 
     // The attribute flipping is not the same thing as the tokens flipping. On
     // 2026-08-09 a light-theme regression shipped where the theme applied but a
@@ -223,23 +228,23 @@ test.describe('Theme Verification', () => {
     // the opposite order from dark"). Backgrounds inverting is the cheapest
     // observable that the token layer, not just the attribute, changed.
     expect(
-      lightTokens.values['--ds-background-100'],
-      'light --ds-background-100 must differ from dark; equal values mean the ' +
-        'theme attribute flipped but the token block did not apply'
-    ).not.toBe(darkTokens.values['--ds-background-100']);
+      lightTokens.values["--ds-background-100"],
+      "light --ds-background-100 must differ from dark; equal values mean the " +
+        "theme attribute flipped but the token block did not apply",
+    ).not.toBe(darkTokens.values["--ds-background-100"]);
   });
 
-  test('no hardcoded color literals in inline styles', async ({ page }) => {
+  test("no hardcoded color literals in inline styles", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const hardcoded = await checkForHardcodedColors(page);
-    console.log('Hardcoded colors found:', hardcoded);
+    console.log("Hardcoded colors found:", hardcoded);
 
     if (hardcoded.length > 0) {
       console.warn(`${hardcoded.length} elements with hardcoded color values`);
@@ -247,55 +252,55 @@ test.describe('Theme Verification', () => {
     // This is informational; some dynamic inline colors may be acceptable
   });
 
-  test('dark theme applied to Engine Room', async ({ page }) => {
+  test("dark theme applied to Engine Room", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/engine-room', { waitUntil: 'networkidle' });
+    await page.goto("/engine-room", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/engine-room', { waitUntil: 'networkidle' });
+      await page.goto("/engine-room", { waitUntil: "networkidle" });
     }
 
     const tokens = await getThemeTokenValues(page);
-    console.log('Engine Room theme tokens:', tokens);
-    await takeScreenshot(page, 'theme-dark-engine-room', 'themes');
+    console.log("Engine Room theme tokens:", tokens);
+    await takeScreenshot(page, "theme-dark-engine-room", "themes");
   });
 
-  test('dark theme applied to Settings', async ({ page }) => {
+  test("dark theme applied to Settings", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/settings', { waitUntil: 'networkidle' });
+    await page.goto("/settings", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/settings', { waitUntil: 'networkidle' });
+      await page.goto("/settings", { waitUntil: "networkidle" });
     }
 
-    await takeScreenshot(page, 'theme-dark-settings', 'themes');
+    await takeScreenshot(page, "theme-dark-settings", "themes");
     const tokens = await getThemeTokenValues(page);
 
     const hardcoded = await checkForHardcodedColors(page);
     if (hardcoded.length > 0) {
-      console.warn('Hardcoded colors in Settings:', hardcoded.slice(0, 5));
+      console.warn("Hardcoded colors in Settings:", hardcoded.slice(0, 5));
     }
   });
 
-  test('background token resolves correctly (dark = #0a0a0a equivalent)', async ({ page }) => {
+  test("background token resolves correctly (dark = #0a0a0a equivalent)", async ({ page }) => {
     await page.context().addCookies(authCookies);
-    await page.goto('/today', { waitUntil: 'networkidle' });
+    await page.goto("/today", { waitUntil: "networkidle" });
 
-    if (page.url().includes('/login')) {
+    if (page.url().includes("/login")) {
       await login(page);
-      await page.goto('/today', { waitUntil: 'networkidle' });
+      await page.goto("/today", { waitUntil: "networkidle" });
     }
 
     const bgColor = await page.evaluate(() => {
       const root = getComputedStyle(document.documentElement);
-      const bg100 = root.getPropertyValue('--ds-background-100').trim();
+      const bg100 = root.getPropertyValue("--ds-background-100").trim();
       const bodyBg = getComputedStyle(document.body).backgroundColor;
       return { bg100, bodyBg };
     });
 
-    console.log('Background colors:', bgColor);
+    console.log("Background colors:", bgColor);
     // Dark background should be very dark
     expect(bgColor.bg100 || bgColor.bodyBg).toBeTruthy();
   });
