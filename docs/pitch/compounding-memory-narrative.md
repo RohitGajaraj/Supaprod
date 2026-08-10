@@ -18,7 +18,7 @@
 
 > The record is not something we store for you. It is produced by running the loop, so it is unique to you, it grows every time you use the product, and nobody can hand it to you.
 
-That distinction is the whole commercial argument. A product that stores your decisions is a database with opinions, and any well-funded entrant can ship one. A product that generates the record as a byproduct of doing the work owns an asset that did not exist before the customer started, cannot be bought, cannot be scraped, and cannot be backfilled by a better model. Section 5 argues it properly.
+That distinction is the whole commercial argument. A product that stores your decisions is a database with opinions, and any well-funded entrant can ship one. A product that generates the record as a byproduct of doing the work owns an asset that did not exist before the customer started, and **cannot be bought or scraped**. _(Corrected 2026-08-10: this previously also said "cannot be backfilled by a better model." The record can be — causes survive in chat logs, email and call recordings and have been reconstructed with an agent built in two days. **The part that cannot be backfilled is the forecast**: what the team believed would happen, recorded before the outcome landed. See [`../research/lennys-corpus-sweep-2026-08.md`](../research/lennys-corpus-sweep-2026-08.md) §2.)_ Section 5 argues it properly.
 
 **The two tier lines that carry the commercial argument:**
 
