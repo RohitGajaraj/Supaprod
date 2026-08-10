@@ -55,7 +55,13 @@ STRICT="${STRICT:-0}"
 # Only the files that can carry user-visible text. .md and .sql are deliberately
 # absent; see SCOPE above. Passing a path explicitly still scans it whatever its
 # extension, which is the escape hatch for a public page authored as markdown.
-TEXT_EXT_RE='\.(ts|tsx)$'
+# WIDENED TO .html 2026-08-10. `public/brief.html` is the only pure
+# user-facing HTML file in the repo, and it could not be scanned at any
+# setting: a live `&mdash;` sat in it through two sign-offs. A text guard that
+# skips the only pure text file is not a conservative default, it is a broken
+# one. Blast radius is near zero because this hook is warn-only, so the worst
+# case is a warning line nobody saw before. Design lane's call, 2026-08-10.
+TEXT_EXT_RE='\.(ts|tsx|html)$'
 # Generated artifacts we commit but do not author. graphify builds graphify-out/wiki/*.md and
 # GRAPH_REPORT.md by quoting text extracted from the corpus, so any em-dash in them came from a
 # source file, not from us, and it reappears on every rebuild. Scanning them buried the real
@@ -86,7 +92,19 @@ GENERATED_RE='^graphify-out/'
 #   src/lib/ai/prompts, humanize   text sent to a model, and the sanitizer itself
 #
 # Tests are excluded even inside those directories.
-CONSUMER_RE='^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize)'
+# `public/` added 2026-08-10 WITH the .html extension above, and it is not a
+# separate widening: without it that change would be decorative. TEXT_EXT_RE
+# and CONSUMER_RE are ANDed, and public/brief.html fails the second, so
+# extending only the first would have produced a guard that LOOKS extended and
+# scans nothing new. That is the exact half-fix shape this repo has been
+# removing all day, and it is worse than not extending at all, because the next
+# reader sees `.html` in the pattern and believes it.
+#
+# Scoped to public/ rather than a general widening: everything under public/ is
+# served verbatim to a browser, which is the definition this filter already
+# uses. Widening CONSUMER_RE further is a separate call and is deliberately not
+# made here.
+CONSUMER_RE='^(src/components/|src/routes/|src/lib/ai/prompts|src/lib/ai/humanize|public/)'
 # WIDENED 2026-08-05. This matched only a __tests__ directory at the ROOT of src,
 # so the colocated ones (src/components/discover/__tests__, and eight more) were
 # never excluded. It did not show while template literals were invisible; the
