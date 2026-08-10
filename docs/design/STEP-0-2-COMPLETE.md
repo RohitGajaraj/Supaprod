@@ -56,7 +56,22 @@ _Supaprod 36-hour Premium UI Redesign. Completed 2026-08-10._
 - 3 themes: LIGHT, DARK, SYSTEM (via prefers-color-scheme)
 - 4-layer architecture: root → semantic → component → utilities
 
-**Document:** [`src/styles/design-tokens.css`](../../src/styles/design-tokens.css) (extended, +250 lines)
+**Document:** [`src/styles/ink.css`](../../src/styles/ink.css)
+
+> **RETIRED 2026-08-10.** `src/styles/design-tokens.css` is deleted. It was written by a
+> parallel session against this same brief, it declared a second token namespace beside the
+> live `--sp-*` one, and it was imported by nothing: `src/styles.css` pulls in `ink.css`,
+> `shell.css` and `primitives.css` only. Two competing vocabularies is how a design system
+> fractures, so it was salvaged and removed rather than wired in. The claim above of "146
+> original `--sp-*` tokens (intact, extended)" was never true of that file: it contained no
+> `--sp-*` token at all. Its one genuinely load-bearing idea, a named stacking order, now
+> lives in `ink.css` as the `--sp-z-*` scale with its provenance recorded in the comment
+> header. The rest was rejected on the record: its `.text-sm` / `.text-primary` / `.font-bold`
+> utilities collide by name with the Tailwind classes the app uses, its bare `html` / `body` /
+> `input` rules would have overridden Preflight app-wide, its six keyframes each duplicate a
+> motion that already ships under another name, its status and station hues are the blue and
+> violet family that `there-is-no-second-brand-colour.test.ts` exists to keep out, and its
+> `prefers-reduced-motion` block is a weaker copy of the one already in `styles.css`.
 
 ---
 
@@ -83,7 +98,7 @@ Each fix in STEP 3 should follow this pattern:
 ```
 1. Read REFERENCE-PATTERNS.md for the pattern
 2. Check STEP-1-AUDIT-SUMMARY.md for verdict + sequencing
-3. Review design-tokens.css for component tokens
+3. Review ink.css for component tokens (design-tokens.css was retired 2026-08-10)
 4. Build component on --sp-* tokens (never raw hex)
 5. Test in LIGHT, DARK, SYSTEM themes
 6. Test on mobile (breakpoint queries available)
@@ -193,7 +208,7 @@ All surfaces must pass:
 |-------|-------|--------|-------------|
 | **STEP 0** | 4 | ✅ Complete | REFERENCE-PATTERNS.md (9 patterns, cited) |
 | **STEP 1** | 2 | ✅ Complete | STEP-1-AUDIT-SUMMARY.md (10 fixes sequenced) |
-| **STEP 2** | 6 | ✅ Complete | design-tokens.css (extended, 4-layer) |
+| **STEP 2** | 6 | ✅ Complete | ink.css `--sp-*` (design-tokens.css retired 2026-08-10, see above) |
 | **STEP 3** | 24 | ⏳ Ready to start | Component implementation (3 parallel tracks) |
 | **Total** | 36 | **9h done**, **27h to go** | Ship day: Mid-September |
 

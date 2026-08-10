@@ -2,7 +2,16 @@
 
 > _36-Hour Design Sprint · Audit Complete · 10 Highest-Impact Fixes Identified_
 
----
+> **Token destination corrected 2026-08-10.** Rows below originally named
+> `src/styles/design-tokens.css` as the file to edit. That file is deleted: it was a second
+> token namespace beside the live `--sp-*` one, imported by nothing, and keeping both is how a
+> design system fractures. Every token in this repo goes in [`src/styles/ink.css`](../../src/styles/ink.css).
+> Full record in [`STEP-0-2-COMPLETE.md`](./STEP-0-2-COMPLETE.md). Note also that several
+> recommendations here are already answered by `ink.css` and should be re-checked against it
+> before any work starts: it holds a researched row-height ladder (`--sp-row-scan` 38px,
+> `--sp-row-read` 52px, `--sp-row-act` 68px) that deliberately avoids the 40px middle band
+> item 6 asks for, and a three-stop elevation set (`--sp-shadow-menu` / `-pane` / `-sheet`)
+> that item 4 asks for.
 
 ## Audit Method
 
@@ -195,7 +204,7 @@ Ranked by: **User Impact** × **Visual Lift** / **Effort**
    - Tighten line-heights (1.3 for headers, 1.5 for body)
    - **Impact:** High (first thing users notice)
    - **Effort:** 3h (style updates across components)
-   - **Files:** src/styles/design-tokens.css, shell.css
+   - **Files:** src/styles/ink.css, shell.css
 
 3. **Button & Action States**
    - Standardize button height (44px primary, 36px secondary)
@@ -211,7 +220,7 @@ Ranked by: **User Impact** × **Visual Lift** / **Effort**
    - Consistent hover state (light background + lift)
    - **Impact:** Medium (affects every list/panel)
    - **Effort:** 3h (CSS + component updates)
-   - **Files:** shell.css, primitives.css, design-tokens.css
+   - **Files:** shell.css, primitives.css, ink.css
 
 5. **Modal Animations & Backdrop**
    - Add fade-in animation (200ms ease-out)
@@ -219,7 +228,7 @@ Ranked by: **User Impact** × **Visual Lift** / **Effort**
    - Modal max-width: 480px (narrower, more scannable)
    - **Impact:** High (premium feel)
    - **Effort:** 2h (CSS keyframes + JSX state)
-   - **Files:** src/styles/design-tokens.css, modal components
+   - **Files:** src/styles/ink.css, modal components
 
 ### 🟡 P1 (High value, next 24h)
 
@@ -229,7 +238,7 @@ Ranked by: **User Impact** × **Visual Lift** / **Effort**
    - Column header visual separation (underline or border-bottom)
    - **Impact:** Medium (density/readability trade-off)
    - **Effort:** 2h (CSS variable update)
-   - **Files:** design-tokens.css, table components
+   - **Files:** ink.css, table components
 
 7. **Sidebar Navigation States**
    - Active: bold + underline (not just underline)

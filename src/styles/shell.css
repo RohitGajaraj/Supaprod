@@ -960,7 +960,7 @@
   padding: 4px 10px;
   pointer-events: none;
   opacity: 0;
-  z-index: 50;
+  z-index: var(--sp-z-tip);
   transition: opacity var(--sp-dur-fast) var(--sp-ease);
 }
 .sp-app[data-rail="narrow"] .sp-navrow::after {
@@ -1282,7 +1282,7 @@ body:has([data-page-composer]) .sp-work {
 .sp-boardpanel {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: var(--sp-z-summon);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -1371,7 +1371,7 @@ body:has([data-page-composer]) .sp-work {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 70;
+  z-index: var(--sp-z-menu);
   min-width: 208px;
   padding: 6px;
   background: var(--sp-sheet);
@@ -1462,7 +1462,7 @@ button.sp-me {
   right: var(--sp-pane-inset);
   bottom: var(--sp-pane-inset);
   width: min(var(--sp-pane-ask-w), calc(100vw - var(--sp-pane-inset) * 2));
-  z-index: 62;
+  z-index: var(--sp-z-sheet);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1758,7 +1758,7 @@ button.sp-me {
   left: var(--sp-rail-w);
   right: 0;
   bottom: 0;
-  z-index: 30;
+  z-index: var(--sp-z-dock);
   /* 40px, because that is `.sp-inner`'s own gutter. MEASURED in a browser
    * rather than guessed: at 18px the dock row sat 22px inside the column above
    * it, and a front door that does not line up with the work reads as bolted
@@ -1886,7 +1886,11 @@ body:has(.sp-app[data-rail="narrow"]) .sp-dock {
 .sp-keys {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  /* Shares the menu's stop rather than the board's, which is a tie and is
+   * recorded as open question 3 in ink.css. Left at the value it shipped with:
+   * moving it decides which surface wins when both are open, and that is a
+   * product call. */
+  z-index: var(--sp-z-menu);
   display: flex;
   align-items: flex-start;
   justify-content: center;
