@@ -104,12 +104,31 @@ const APP_LD = {
 //    the one removed from LandingFooter.tsx in this commit; see that file for the
 //    full write-up. Nothing replaces the line: there is no real public decision
 //    yet, and /proof lists them live the moment there is.
+// 3. "The human gate stays in the middle the whole time" (2026-08-10). It sat one
+//    line under the sentence corrected in (1) and failed the same way, softly.
+//    The gate is not in the middle, and the code says so in as many words:
+//    MAX_TRACK_CORRECTIONS in spine/correction.ts is set to 2 with the rationale
+//    "a cap set too high spends money on a loop nobody is watching", and
+//    ai/verify-green.server.ts caps a mission at three corrective cycles and
+//    completes it as 'completed_with_failures' on the cap, "never a silent
+//    green". The loop is DESIGNED to run unattended; that is the product.
+//
+//    The gate is real, but it sits at the EDGE and at the CAP, not the middle:
+//    security.tsx's merge gate ("nothing merges, ships, or takes an irreversible
+//    outward action without a human approval... a fixed floor, not a setting that
+//    can be dialed away") and the escalation when the bound is spent. Saying so
+//    is also better copy for an answer engine, which can quote two numbers and a
+//    floor instead of a reassurance it cannot check.
+//
+//    "ships green" went with it. Nothing ships without the merge gate, so the
+//    verb contradicted the floor named in the same paragraph. The loop drives
+//    CHECKS green; a person still ships.
 const MACHINE_CONTENT = `## Supaprod
 
 For product managers. ${TAGLINE} Nothing irreversible happens without you.
 
 Seven stations: Discover, Decide, Plan, Design, Build, Ship, Learn. One governed engine.
-When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and ships green. The human gate stays in the middle the whole time.
+When a build breaks, Supaprod diagnoses the failure, revises its own spec, rebuilds, and drives the checks back to green. That loop runs unattended and is bounded: two corrections per track, three verify cycles per mission, then it stops and hands one person the specific thing only they can supply. On a cap it reports the failure rather than a silent green. The fixed floor is the merge gate: nothing merges, ships, or takes an irreversible outward action without a human approval.
 
 ## Live proof
 - Trust ledger: /proof (publishes our calibration score live, including an honest zero until outcomes land)
