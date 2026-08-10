@@ -135,7 +135,7 @@ Do not invent a date. *Launch is mid-September. I will not give you a revenue da
 ## 5. Moat and defensibility
 
 **"What happens when OpenAI or Anthropic ships this?"** (Posture B, you have a real answer)
-*They ship the reasoning; they cannot ship my customer's outcomes. The defensible asset is a record of what this team decided, what happened, and how that re-ranks the next decision. It is produced by running the loop, so it is unique per customer and cannot be backfilled by any model release. A frontier launch makes our engine better and our moat unchanged.*
+*They ship the reasoning; they cannot ship my customer's outcomes. The defensible asset is a record of what this team decided, what happened, and how that re-ranks the next decision. It is produced by running the loop, so it is unique per customer. And the part no model release reaches is the **forecast** — what we believed would happen, recorded before the outcome landed. Causes can be reconstructed afterwards from chat logs and recordings; a belief held beforehand leaves no trace unless something captured it at the moment of the call. A frontier launch makes our engine better and our moat unchanged.*
 
 **"What happens when Linear or Notion ships this?"** (the more dangerous question, and you should say so)
 *That is the threat I take more seriously than the labs, and Notion already shipped feedback-to-a-merged-PR copy in July. What they have is distribution. What they do not have is outcome verification: dispatching work is not the same as checking whether the bet paid and letting that change the next ranking. The uncontested claim is the closed loop, not the workflow.*

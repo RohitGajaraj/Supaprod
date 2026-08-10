@@ -24,7 +24,16 @@ For what the product is and where every other document lives, read [`README.md`]
 
 They are one product because each is the precondition for the next: you cannot be the brain without the loop that generates outcomes, and you cannot run the loop without being the OS. **Layer 03 is the only one defensible alone**, because it needs the customer's own outcomes labelled over time, which no model has. Ship any one alone and it is a feature.
 
-**The last verb is the product.** It **learns and guides**; it does not "remember". Remembering is storage, and storage is not defensible: anyone can hold your decisions, and one frontier release can absorb search over them. Learning compounds, because it needs your outcomes, labelled, over time, which no model has.
+**The last verb is the product.** It **learns and guides**; it does not "remember". Remembering is storage, and storage is not defensible: anyone can hold your decisions, and one frontier release can absorb search over them.
+
+**Corrected 2026-08-10 — learning-compounds is no longer the moat claim.** A full read of the market (679 documents, 5.9M words) falsified it: the *record* is backfillable, and was backfilled twice on the record — Vercel's COO reconstructed a lost deal's true cause from Slack, email and call recordings with an agent built in two days for about $1,000 a year. **Causes survive in artifacts. Forecasts do not.** So the moat is the **forecast captured at decision time** — what a team believed would happen, recorded *before* the outcome was known, which exists only if something wrote it down at the moment of the call. Everything else about a decision can be rebuilt afterwards.
+
+**Three rules that follow, binding on every surface:**
+1. **Never claim accumulated learning in the present tense.** Not *"we learn from your corrections."* The honest and stronger form is *the loop is wired and proven, and it begins accruing on first real use.*
+2. **Never imply an unbroken signal → shipped → learned chain.** It is broken in two places: Discover promotes 3 of 86 themes, and Build writes no changeset or deployment edges. Demo the Discover → Decide → Learn half, which is real.
+3. **Vocabulary is a register split, not a ban.** Public surfaces avoid *receipts · ledger · audit trail · company brain · unattended* (all at or near zero across 5.9M words). In-product surfaces use the operator's own words: *context governance · drift · gate · memory life cycle · audit trail*.
+
+Full canon and evidence: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md) · [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md).
 
 This is not only marketing language, it is a design constraint you apply while coding:
 

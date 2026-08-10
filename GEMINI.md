@@ -4,7 +4,9 @@
 
 **Read [`AGENTS.md`](./AGENTS.md). It is the build manual and it is canonical.** [`README.md`](./README.md) says what the product is and where every other document lives.
 
-> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. It learns and guides; it never "remembers", "stores", or "logs". That distinction is the moat, so it binds UI copy, docs and commit messages alike.
+> Supaprod tells you what to build, builds it, ships it, checks what actually happened, and **learns from it, so next time it guides the call**. It learns and guides; it never "remembers", "stores", or "logs" — those verbs stay banned everywhere, because they claim less than the product delivers.
+>
+> **Corrected 2026-08-10: that distinction is not the moat.** A full read of the market falsified the compounding-record claim — causes survive in Slack and call recordings and have been reconstructed twice on the record. **The moat is the forecast captured at decision time**: what a team believed would happen, recorded before the outcome was known. It is not an artifact and leaves no trace unless something captured it at the moment of the call. **Never claim accumulated learning in the present tense.** Canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md).
 
 > **Three layers, told door then body then brain:** 01 the director (tells you what to build) · 02 the operating system (runs the lifecycle, seven stations) · 03 the company brain (**learns then guides**, never "stores"). Each is the precondition for the next; 03 is the only one defensible alone. Full positioning: [`README.md`](./README.md).
 

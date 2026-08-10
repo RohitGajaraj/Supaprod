@@ -45,7 +45,7 @@ Every reviewer, at every program, is answering four questions in this order. Kno
 
 **D. The space looks crowded.** Notion Ship OS, Linear, Productboard Spark, Samepage, Brief all shipped in the last six months.
 
-> **The counter:** crowding is proof the seat exists, and every one of them validates the loop while missing the last step. Use asset E. Then the durability argument: no fast oracle, the ledger cannot be backfilled, the neutral seat, the engine is ours and models are interchangeable parts.
+> **The counter:** crowding is proof the seat exists, and every one of them validates the loop while missing the last step. Use asset E. Then the durability argument: no fast oracle, **the forecast cannot be backfilled** (the ledger can, and was, twice on the record — say forecast, never ledger), **the independent seat** (the labs could not build this securely across someone else's tools; an independent has no such restriction — never "suite vendors cannot be neutral", which is absent from 5.9M words), the engine is ours and models are interchangeable parts.
 
 **E. No legal entity yet.** Blocks India government grants outright, complicates several others.
 

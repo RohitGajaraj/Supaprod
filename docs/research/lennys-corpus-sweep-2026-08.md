@@ -54,7 +54,230 @@ The verbatims are the argument:
 
 **Segmentation, and it beats every demographic we use.** AI-identity stance predicts career optimism (β = +0.39) and field recommendation (β = +0.60) **more than role, seniority or company size combined** (effect size d ≈ 1.55, three times the founder effect). Four clusters: **Energized 41% · Conflicted 35% · Disoriented 12% · Resentful 12%.** Our ICP is the Energized and Conflicted 76%; the Resentful 12% will never buy, and "pressured to use AI" is their defining trait — so any copy that implies obligation actively repels them.
 
-**The white space, from the same window.** Colin Matthews' "How top PMs increase their leverage with AI" (2026-06-30) is the mainstream AI-for-PMs framework — its author has trained *over 30,000 PMs*. It has three ladders: Personal, Product, Systems. It contains **no rung for decision records, outcomes, memory, or context over time. None.** The most-read framework in our category has a hole exactly where our product is. That is simultaneously the confirmation of the vocabulary problem and the clearest white-space signal in the sweep. _(Its Systems ladder is paywalled — worth reading in full before we finalise positioning.)_
+**The white space, measured three ways in the same window — and all three agree.**
+
+1. **The mainstream framework has a hole exactly where we are.** Colin Matthews' "How top PMs increase their leverage with AI" (2026-06-30); its author has trained *over 30,000 PMs*. Three ladders — Personal, Product, Systems. It contains **no rung for decision records, outcomes, memory, or context over time. None.** _(Its Systems ladder is paywalled — worth reading in full before finalising positioning.)_
+2. **The most curated PM tool list in the market has nothing in our category.** Lenny's Product Pass, expanded 2026-07-28 to **34 products** at $200/yr (Annual) and $400/yr (Insider) — tools he personally vets and recommends to the largest PM audience there is. **Not one of the 34 does product-decision tracking, decision records, outcome measurement, agent orchestration, evals, or team memory/context management.** The nearest adjacents are a bug-reporter that captures *"all the context an engineer or AI agent needs"* (Jam) and an async-update recorder (Supercut). A curated 34-tool shelf for our exact buyer, with our exact shelf space empty.
+3. **The freshest confirmation of T1 is a newsletter that was outside the dump.** Joe Hudson (2026-06-23), who coaches OpenAI's research team: *"when knowledge and effort are nearly free, emotional clarity is scarce"* — and as AI absorbs routine decisions, *"the critical work left for humans is the higher-level deciding: what to build, what to leave behind, and when to change course."* Independent, dated, and post-cutoff.
+
+Read together: the pain is real and rising, the framework everyone reads omits it, and the tool shelf everyone shops has nothing on it. **That is as clean a white-space signal as this corpus can produce.**
+
+---
+
+## 1B. The show that was missing from the archive, and it is the most important one
+
+***How I AI*** (Claire Vo, Lenny's Podcast Network, weekly since 2025-04) is **entirely absent from the paid archive** — ~95 episodes. That absence is why the Vo-harness and Nystrom quotes in the older corpus doc had no official source. Retrieved by hand, outside the dump.
+
+**It matters more than any other single source because it is not opinion — it is operators live-demonstrating, on screen, how they build the thing we sell.** And it cuts both ways, hard.
+
+### The DIY threat, made concrete, repeatable, and weekly
+
+**2026-08-05 — Claire Vo, a three-time CPO, built our governance model in one Codex session and published the recipe.** "Merge Mommy": an agent that reads every PR after checks pass, **scores it across six risk dimensions — blast radius, reversibility, data security, ops impact, verification gap, change surface** — auto-approves the low-risk ones and escalates the rest to a human in Slack.
+
+Read that list against our own doctrine. **Reversibility-based gating — "act autonomously on reversible work, gate only at irreversible boundaries" — is our v11 North Star, and she derived it independently as one of six dimensions in an afternoon.** She also reports **Intercom 5×'d PR approval speed and reduced revert rates** by putting AI in the review loop, and states that auto-approved PRs are **SOC 2 compatible so long as the process is auditable, queryable, and in your risk policy** — which is our audit story, conceded to a DIY build.
+
+This is the sharpest form of the DIY threat in the entire sweep: **the show closest to our category systematically teaches our exact buyer to build pieces of our product, in 30 minutes, every week.** Any competitive slide naming Atlassian and not naming this is looking the wrong way.
+
+### And the same source is our strongest architectural validation
+
+The convergence is not coincidence — it is independent derivation of the same design by people with no knowledge of us:
+- **Risk-tiered auto-approve with human escalation** (Vo, 2026-08-05) — our approval modes.
+- **"How to design AI agent loops: schedules, goals, and subagents"** (2026-06-17) — our mission/step DAG.
+- **Braintrust: agents, evals and CI together** (Ankur Goyal, 2026-06-15) — our eval gates.
+- **Gusto shipped a new product line in ~10 weeks with Claude Code, "No Figma. No Jira. No docs."** (Eddie Kim, CTO, 2026-06-29) — stations being deleted in production at a real company.
+- **Coinbase scaled AI to 1,000+ engineers** (2026-03-02); **Vercel's v0 hit 3,200 PRs merged per day** with `skills.sh` at 34,000 community-submitted skills and 500 new submissions/hour (Rauch, 2026-02-04).
+- **Teresa Torres — the continuous-discovery authority — running Claude Code for PM research, writing and context libraries** (2026-01-19).
+- **Webflow's CPO built an AI chief of staff** for calendar, meeting prep and driving AI adoption (2025-12-29).
+
+**Inference, clearly labelled:** what nobody in ~95 episodes built is the part that persists across sessions and teams — the outcome-labelled record and the forecast. Every workflow above is single-operator, hand-assembled, and dies with its author. That is the same conclusion §4 reaches from the pre-AI baseline, now from the most AI-native source available.
+
+### Two vocabulary items, the freshest in the corpus
+
+- **"intent engineering"** — Grace Clarke, **2026-08-07** (two days before the archive's own cutoff), explicitly replacing "prompt engineering."
+- **"intelligence overhang"** — Claire Vo, 2026-07-24, for model benchmarks plateauing while applied capability lags. A named inflection worth tracking.
+
+---
+
+## 1C. The private community says what the public podcasts do not — and it corrects me
+
+**Community Wisdom** is the weekly digest of Lenny's members-only Slack (~30k PMs). It is paywalled and was the last gap in the sweep; retrieved via the founder's own authenticated browser. **It is the only unfiltered source in the corpus** — operators talking to each other, not guests performing for an audience. The register is completely different, and two findings change because of it.
+
+### T1 is confirmed in sharper words than we have ever written
+
+**Subir, Community Wisdom 189, 2026-06-14**, unprompted, in a thread about AI and product operating models:
+
+> *"Everyone's focused on the build side, but the real shift is on the decision side. **AI can accelerate delivery fast enough that the bottleneck moves.** The teams I've seen get into trouble post-AI aren't the ones with slow pipelines. They're the ones where **PMs got faster at shipping but didn't get better at defending why. The judgment gap got exposed.**"*
+
+That is our entire thesis, in a practitioner's own words, with a name for the pain we did not have: **the judgment gap**. He then asks the room the question our product answers: *"What's the decision that's actually gotten harder for your team now that you can build faster?"*
+
+Corroborated in the same thread by **ash maguire**: *"If the team doesn't have clarity on goals, priorities, decisions, and ownership, **AI basically accelerates confusion.**"* And he states the want directly: *"systems that maintain a shared organizational context rather than treating AI as a standalone assistant. The real value isn't generating artifacts faster imo, it's helping everyone operate from the same understanding of what's important and why."*
+
+### Someone is hand-building our product, and describing it in our vocabulary
+
+**Brian Kim**, same thread, describing what his team built:
+
+> *"we've set up an easy system that updates the current state of the project in as real time as possible from a variety of sources (latest blockers, changing requirements, meeting transcripts not everyone was a part of, latest PRs merged/tasks completed, certain Slack conversations)… operating our AI agents on top of **this shared brain of the project**… these shared project-knowledge-level brains are populated by sales/prod ops/customer success and then used by stakeholders like GTM/support… and **the audit trail as to why should be clear.**"*
+
+Signals ingested from every source, a shared brain, cross-functional read and write, and an audit trail of why. **That is our product, hand-rolled.**
+
+### ⚠️ The correction to §3: our vocabulary is absent in PUBLIC, not absent in PRIVATE
+
+§3 measured **zero** occurrences of "company brain", "audit trail" and similar across 5.9M words of podcasts and newsletters. That measurement stands — but it measured the **public register**. In the private community, a practitioner reaches for *"shared brain of the project"* and *"the audit trail as to why"* **naturally and unprompted**, because he is describing a real system to peers rather than performing for an audience.
+
+**The revised finding, and it is more useful than the original:** our vocabulary is not wrong, it is **wrong for the public register and right for the private one**. Marketing surfaces, landing pages and podcasts should use the operator-native words in §3. Anything read by a practitioner already inside the problem — in-product copy, docs, the Slack/community motion, sales conversations — may safely use "shared brain" and "audit trail", because that is what they call it when they are talking shop. **Do not sweep our vocabulary out of the product; sweep it out of the shop window.**
+
+### New vocabulary, all from the private register
+
+- **"the judgment gap"** (Subir) — the single best name for our pain found anywhere in 5.9M words.
+- **"AI accelerates confusion"** (ash maguire) — the risk line.
+- **"slop grenades"** (Jordan Hoeber's team) — overly verbose AI-generated docs. One designer *built an agent purely to parse PRDs* because they had become unreadable. A real, named, unserved pain.
+- **"Release Room"** (Mithun Gunalan, CW 195, borrowed from Anthropic) — a gate where PMs publish a feature only when it is GTM-ready, *"so marketing does not get handed anything half-baked."* Maintained by hand in **Slack and Notion**. That is our Ship station, hand-built, spreading by word of mouth.
+- **"full-stack PM"** (Cliffe) — hiring engineers who want to become PMs so one person decides and builds.
+
+### What operators actually do with a long AI-generated document
+
+Asked by the design lane, answered by search rather than impression. The answer is not "skim."
+
+**Async distribution fails outright.** Kevin Yien (Stripe, on a practice Square took from Amazon): *"When you are all so busy and someone's like, 'I wrote a doc,' you send it into the Slack ecosystem and everyone goes, 'Please give feedback.' You have so much going on… **You'll be lucky to maybe get a response.**"* Ian McAllister states the rule: *"**Anything longer simply won't get read, so all the effort writing it is wasted.**"* **Any surface whose implicit model is "we generated it, they'll read it later" is designing for a behaviour that does not occur.**
+
+**What replaces it is the forced silent read.** Jessica Fain: *"we do a lot of **silent read of docs**… in the meeting, and then coming back for conversation"* — and the exec preference verbatim: *"I want no upfront explanation. **I want 10 minutes of quiet reading time**, and then we can come back together."* Amazon's six-pager is the same mechanic. **So the long form's real constraint is readable-straight-through-in-ten-minutes with no narrator** — a harder bar than "well organised", and it argues for length limits over better navigation.
+
+**The first line decides.** Keith Rabois, on litigation briefs: *"the hardest part… was **the first paragraph**. If I could write that first paragraph really well, the chance I would win the case… would go through the roof."* He spent a week of three on it.
+
+**The failure mode is annotation sprawl, not length.** Fain: *"a leader will **smatter your doc with 100 comments** and you're like, 'Oh my gosh, what is actually [important]'"* — which is exactly what we reproduce if agent findings, human edits and gate notes render flat and inline.
+
+**The structure operators converge on** (Cindy Cohen): objective · status · accomplishments since last update · next 1–2 priorities · risks/dependencies/blockers · decisions needed. Her diagnosis governs our run summary: *"**The biggest mistake I see is reporting activity** ('met with X, researched Y') **instead of progress toward an outcome.**"*
+
+**And the real exam is verbal.** Shipper's slop test: *"the slop one is **it took them less time to make it than it takes me to read it**… if we talk about it and it's clear you have no idea what's in it, big no-no."* The artifact must help its owner *defend* it, not merely receive it.
+
+**One counterweight:** Snowflake's product-review doc is deliberately long — exec summary, goals and non-goals, tenets, risks, FAQ — and exists *"not to 'sell' the leadership team… but to detail."* **Long is legitimate when the artifact exists to be interrogated in a room.** That is a different job from a run summary and should look different.
+
+### ⚠️ The strongest disconfirming evidence in the sweep — our ICP rejecting our category, in private
+
+**Community Wisdom 194, 2026-07-25.** A PM asks the exact question our product exists to answer: *"ClickUp is becoming a bottleneck… particularly across product discovery and prioritization. We're currently evaluating Linear, but it seems we may need a separate tool for product discovery. What do you pair it with?"*
+
+**Nobody recommended buying a discovery tool. The room talked him out of it.** Six respondents, converging:
+
+- *"I would **exhaustively recommend not switching**, since the marginal gain of switching these tools is one of the quintessential midrange low-juice priorities."* — R. Hunter Harris
+- *"I'm a big fan of using **simpler, lower-level tools**… The friction of having to copy/paste provides an affordance for more and better conversations. **Most organizations benefit from less 'product management activity'**… **Lower-level tools are more likely to be reliably and flexibly accessible to and manipulable by our AI tools.**"* — Joshua Herzig-Marx
+- *"+1 on less is more… **+1 especially on lower-level tools being more AI-friendly**"* — R. Hunter Harris
+- *"going Linear plus JPD means **running two systems of record, which usually creates more friction than it solves.** Keep discovery messy and flexible; keep Linear clean and just for committed work."* — Muhammad Usman
+- *"I never found much value in the systematized discovery add-ons from project management suites… **It's messy, so strict tools tend to break or hide the important stuff.**"* — Trevor Acy
+- *"keeping it as simple as possible — Notion + GitHub Projects."* — Arvin
+
+**Four distinct objections, and we currently answer none of them well:**
+1. **Switching cost beats marginal gain** — tool migration is "low-juice" by default.
+2. **Two systems of record create friction**, so an added layer is a cost before it is a benefit.
+3. **Structured tools destroy messy discovery** — strictness "hides the important stuff."
+4. **The most dangerous one: simpler tools are believed to be *more* AI-friendly.** This directly inverts our pitch. We argue an integrated agentic substrate wins; this room believes lower-level, dumber tools win *precisely because* agents manipulate them better.
+
+**And the belief underneath all four** — *"most organizations benefit from less product management activity"* — is an argument against buying any product-management system at all.
+
+**Fact vs inference.** Fact: six practitioners, dated, unprompted, in private, in our ICP. Inference: this is the objection our GTM will actually meet, and it is not "why not Atlassian" — it is *"why is this not a spreadsheet, and won't a simpler tool serve my agents better?"* **Our competitive answer must address low-level-tools-plus-agents, not incumbent suites.** Note it also compounds the DIY threat in §1B: the same room that prefers dumb tools is the room being taught weekly to build smart ones.
+
+### The rescue, from the same edition — and it is the best articulation of our thesis found anywhere
+
+Same issue, a different thread on the limits of AI automation. **Kira M Allen**, arguing that mandatory human accountability is a *durable* constraint rather than a fading one:
+
+> *"In the regulated systems I've worked in, the human sign-off **isn't friction waiting to be optimized away. It's what makes the output trustworthy enough to use at all.** When a clinician or attorney signs, they're not double-checking the AI. **They're accepting liability, and that acceptance is the product.** You can narrow review to exceptions, but you can't remove the named accountable human without removing the thing the customer is actually paying for. **Which raises the question: isn't the accountability the actual product, and the AI just the thing that makes it cheaper to produce?**"*
+
+**That is our governance layer's entire justification, written as a question by a practitioner who has never heard of us.** It answers "why not just run raw agents" better than anything in our canon, and it reframes the gates from a limitation into the thing being bought. Pair it with the §2 forecast claim: the forecast is what you are accountable *for*, and the gate is where you accept it.
+
+Also worth carrying, from the same edition's link roundup — *"AI makes the artifact cheaper, not the evidence. Once people can click through the flow, the discussion shifts from 'Should we build this?' to **'What would it take to ship what we already have?'**"* That is the judgment gap, observed at the prototype.
+
+### The station ORDER is challenged — planning moves downstream of evidence
+
+**Community Wisdom 192, 2026-07-04**, thread titled *"Has AI killed the quarterly product planning cycle?"* **Bal Sieber**, who runs an agent-led studio:
+
+> *"The quarterly cycle was never really about deciding what to build. It was a **batching thing**. When shipping a feature cost you six weeks, you had to commit three months out because a wrong bet burned a quarter, so you front-loaded all the arguing into planning season.
+> **Drop the build cost to a day and that math breaks. You stop forecasting what's worth building and start deciding what's worth keeping after you've watched it run.**… What dies is **the roadmap-as-forecast**… **Planning didn't disappear, it just moved downstream of the evidence instead of upstream of it.**"*
+
+**This is the most serious structural challenge in the sweep, and it is not to whether we are right — it is to our ORDER.** Our loop runs Discover → Decide → Plan → Design → Build → Ship → **Learn**. He describes: build cheaply → watch it run → **then** decide what to keep. **If build cost collapses, Learn stops being station 07 and becomes the front of the loop.**
+
+It also cuts against the §2 forecast claim as stated — if the decision moves after the evidence, there is less to forecast. **The reconciliation, and it survives:** what he describes is still a decision with a verdict, and *"what's worth keeping"* is an outcome judgment that must be recorded against something. The forecast does not vanish; it shrinks in horizon, from *"will this quarter's bet pay off"* to *"what do I expect this prototype to prove."* **A forecast at prototype-launch is cheaper to capture and resolves in days rather than quarters — which makes the mechanism easier, not harder.**
+
+**Recommended reading, not yet a founder ruling:** treat the seven stations as a **cycle with two legitimate entry points** — one at Discover for genuinely new problems, one at Build/Learn for cheap-to-test ones — rather than a route that always begins upstream. Two operators in the same thread hold the line that strategy itself does not move (*"the planning is still critical… the critical opportunity to get the cross-functional alignment"*), and a third notes an enterprise constraint we should not ignore: *"the velocity of product changes isn't just about what you can ship — it's also about what your customers are willing to uptake."*
+
+### A 1,500-person org is building us internally — and its advisor wrote our spec
+
+Same edition, thread 6. **Helen Wang**, PM at a Series E company with 1,500+ employees, is standing up *"a spec-driven AI SDLC for our R&D org where PMs, designers, and engineers can leverage agents"* — inspired by BMAD, with a dedicated PM counterpart, org-wide adoption plan and KPIs. **That is our product, staffed and funded, inside one enterprise.**
+
+**Brandon Parker's reply is the most precise product specification found anywhere in the corpus:**
+
+> *"the prompt is rarely the hard part. **Context governance is.** Agents fall apart when they can't tell what's **current vs. stale, canonical vs. just-discussed, decided vs. still-needs-a-human.** Once that goes fuzzy, they produce impressive-looking work that quietly creates rework and trust problems.
+> So I'd spend as much time on the operating model as the agents. **Source-of-truth hierarchy, clean handoff packets, explicit decision records, acceptance criteria, verification gates.** Plus some separation between the agent that plans, the one that executes, and the agent or human that checks.
+> **The KPI I'd watch isn't speed. It's rework:** clarification loops, reopened tickets, spec/design mismatches, review burden, first-pass acceptance.
+> …adoption comes when teams trust the system to **stay oriented**. **'Here's what I used, what changed, what I think is true, and how to verify it'** beats a flashy demo."*
+
+Four things we should take verbatim:
+1. **"Context governance"** is the operator's name for what we sell. It outranks anything in §3's vocabulary table for the in-product register.
+2. **"Current vs. stale, canonical vs. just-discussed, decided vs. still-needs-a-human"** is a plain-English description of our bi-temporal supersession graph. That is our most differentiated built asset described as an unmet need.
+3. **The KPI is rework, not speed** — clarification loops, reopened tickets, first-pass acceptance. This is a better metric than anything in our canon, it is measurable from data we already hold, and it directly answers the survey's *"more for the same pay"* fear because rework is unpaid work.
+4. **"Here's what I used, what changed, what I think is true, and how to verify it"** is a four-part output contract for every agent artifact. Route to Lane 1 and Lane 2.
+
+**Also worth tracking:** Google published **OKF (Open Knowledge Format)** in July 2026 — org knowledge as a folder of Markdown files with YAML front matter, linked into a navigable knowledge graph. Helen Wang is adopting it. **A standard is forming in exactly our layer**; being compatible with it is likely cheaper than competing with it.
+
+### 🔴 The full community sweep: pain confirmed, purchase refused — and where the wedge actually is
+
+All ~15 Community Wisdom editions in the window are now read (2026-05-02 → 2026-08-08). **The tool-rejection pattern in CW 194 was not an outlier. It is the dominant pattern, across nine distinct clusters in ten editions.**
+
+**The finding is not that operators lack the pain.** They feel it acutely and describe it precisely. **The finding is what they reach for.** Every time an operator with real context-loss pain reaches for a fix, they reach for **a folder, a Markdown file, a repo or a script — and it works well enough that the search stops.**
+
+- **Tolga (2026-05-02), the cleanest data point:** *"I have tried 3 or 4 LLM-powered mind map tools. Unfortunately, none of them worked well for me. Since then I have been using a decent Obsidian folder structure, and I don't experience that problem much anymore."* **A plain folder tree beat four purpose-built structured tools.**
+- **Jon Roemer (2026-06-06)** states the principle: *"Use the non-deterministic system to create a deterministic system… encode the exact Snowflake queries in the Markdown itself instead of burning cash by having an agent figure it out with the MCP endpoint."*
+- **Timo Laak (2026-06-20)**, in a large org, keeps MCP servers *"mainly disabled"* because they *"eat too much of the context."*
+- **Milko (2026-05-24)** dates the shift, and it is moving away from us: *"a year ago I would go with offloading it, but now it sounds pretty easy to keep it in our codebase and manage it with agents."*
+- **Every structured system anyone reports being satisfied with, they built themselves.** Tool-shaped solutions appear almost exclusively in the past tense.
+
+**Prior art, shipped and public:** Younes Abouelnagah (2026-06-20) released `fava-trails.org` — *"a memory life cycle starting from draft and is only promoted if it passes a quality gate,"* with lifecycle hooks to prune. **That is our promotion-gate mechanism, already in the world.**
+
+### The crux — and it is where the wedge is
+
+**Aaron Nichols (2026-06-20)** is the most valuable single artefact in the sweep. He tried Obsidian, abandoned it, and built his own context system. His four failure modes of shared file storage under agents:
+
+1. know **who changed what**
+2. know **what is trustworthy vs polluted**
+3. know **why** they changed it
+4. **prevent certain files from changing**
+
+His verdict: *"it's very difficult to apply the kind of governance that makes it work."*
+
+**That is the strongest confirming evidence in the entire corpus — our product, specified as four unmet needs — and he still built rather than bought.**
+
+**The pattern that reconciles confirmation and refusal, and it should set the GTM:** every DIY *success* in these ten editions is **single-operator, single-context**. Every DIY *failure* is **multi-person or multi-agent governance**. Tolga's folder works because it is his alone. Nichols hit a wall the moment the same files were touched by other people and by agents.
+
+> **Our wedge is not "better than your folder." It is the point at which the folder stops working — the second person, or the first fleet of agents.**
+
+This is the same shape as §1B (every *How I AI* workflow is single-operator and dies with its author) and §4 (the write-back arrow absent from every pre-AI lifecycle). **Three independent routes to the same conclusion: the individual is served; the team under agents is not.** Do not sell to the operator whose folder works. Sell at the transition.
+
+### The vocabulary result is uncomfortable and must not be smoothed over
+
+Across ten editions: **zero** occurrences of *decision log · decision record · ADR · decision intelligence · institutional memory · company brain · compounding.*
+
+Operators describe the problem **entirely in nouns of storage and correctness**: *context · source of truth · semantic layer · **drift** · **gate** · **invisible states** · **memory life cycle**.*
+
+**The uncomfortable part, stated plainly:** the register that lands is the one our own doctrine calls not-the-moat. **The resolution is not to abandon the doctrine but to separate problem-language from solution-language.** Operators name the *problem* in storage terms because that is how it presents — *I cannot find or trust my context.* What Nichols could not solve was **governance**. So: **meet them at the problem in their nouns — context, drift, source of truth, gate — and deliver governance.** Note that *gate*, *drift* and *memory life cycle* are already our mechanisms in their words; that is the bridge, and it is free.
+
+**Also binding:** this community **punishes deck language on sight** (*"'cracked' is VC BS"*, twice in one thread). No aspirational vocabulary survives contact with this audience.
+
+### The best compression of the shift, and the trap beside it
+
+**Bal Sieber (2026-06-27):** *"The half of the job that was doing the reps is the half going to agents… What doesn't compress is **deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong**. **Less operator, more director.**"*
+
+Three unautomatable jobs, named — and they are stations 02, 03 and 07. *"Less operator, more director"* maps directly onto our layer 01. **Strongest candidate line the community produced.**
+
+**And the trap, from the same person in the same post:** *"'building systems' becomes its own busywork fast. You end up with elaborate workflows that feel productive and move nothing."* That is Butterfield's *"hyper-realistic work-like activities"* independently rediscovered, and it is the failure mode our own product is most at risk of embodying.
+
+**One live demand signal**, from the 2026-05-09 thread on non-PMs shipping to production — asked whether he trusts it: *"No, I don't trust them at all, **unless you have a very good decision-making framework and rubric**"* — stated as a precondition the team does **not** have. New vocabulary from that thread: *quasi-PM · clickable PRDs · de-slopping · utility engineer.*
+
+**Two process notes for future cycles:** publisher edition numbering is unreliable (labels 185 and 194 each appear twice) — **cite these by date, never by number**. And Chrome browser display names are not stable across sessions; verify authenticated access empirically on the first page rather than by browser name.
+
+### Two disconfirming findings, recorded with equal weight
+
+1. **Scaffolding decay, observed directly.** Shane J on the BMAD agent-orchestration method: *"We used BMAD before. Was no longer relevant for us as of Opus 4.6 and GPT-5.5 (or at least not worth the structure)."* A named method, abandoned because models improved. This is the Cherny thesis happening in the field, dated.
+2. **"PMs push code" is contested by the person running the adoption.** Jordan Hoeber: *"We actively **discourage** PMs from pushing production code. It's a bit of a waste of time. Engineers can move way faster."* His teams put PMs on prototyping, customer interviews, P&L alignment and GTM instead. That cuts against any positioning implying the PM should ship production changes.
+
+**And a third pain nobody is serving.** CW 195: a head of product ships faster than marketing can absorb, and a community member escalates it — *"even if you close the productivity gap on the marketing side, you may immediately create a new gap on the user side: their ability to absorb, adopt, and make use of everything you're releasing."* The answer the room converges on is Theory of Constraints, and the recommended move is **build less, better-chosen** — which is the decide problem restated by people who arrived at it from the opposite end.
 
 ---
 
@@ -126,6 +349,45 @@ Nobody in the market has ever described this pain in our words. What they say:
 | the loop / stations | "velocity of decision-making" (Miller) · "control handoffs" · "context rot" · "tribal knowledge" (Sherwin Wu) · "process knowledge… how do I get shit done around here" (Conley) |
 | governance | "the optics layer" (Nickels) · "hyper-realistic work-like activities" (Butterfield) · "we're not on the same page even though we literally never have been" (LaPointe) |
 
+### Measured, not asserted — frequency per million words across all 5.72M
+
+The qualitative reports said our vocabulary was absent. Counting settles which words to actually use, and **corrects one over-broad claim of my own**: "decision" is not absent. It is everywhere. What is dead is our **compound coinages**.
+
+| Our word | per M | Verdict | Operator-native replacement (per M) |
+| --- | --- | --- | --- |
+| decisions | **562.8** | ✅ **use freely** — my earlier "absent" claim was wrong | — |
+| review | 232.1 | ✅ use freely | — |
+| ready | 160.3 | ✅ use freely | — |
+| stuck | 95.8 | ✅ strong — beats "blocked" (11.7) by 8× | — |
+| judgment | 47.2 | ✅ fine (note: "judgement" with an 'e' is dead at 0.3) | — |
+| shipped | 36.2 | ✅ fine | — |
+| approve | 5.8 | ⚠️ weak | **review** (232.1) |
+| **receipt** | **3.0** | ❌ dead | **evidence** (50.9) · **history** (103.3) · record (39.5) |
+| **provenance** | **0.3** | ❌ dead | **history** (103.3) |
+| **ledger** | **0.2** | ❌ dead ("trust ledger" = **zero**) | **track record** (4.0) · **history** (103.3) |
+| **audit trail** | **0.2** | ❌ dead | **history** (103.3) |
+| **unattended** | **0.2** | ❌ dead | **overnight** (14.3) · **on its own** (12.4) · in the background (8.6) |
+| **first run** | **0.2** | ❌ dead | **get started** (42.1) · set up (100.3) |
+
+**Two nuances that matter.** `context` scores 243/M but is **unusable on the front** — in this corpus it overwhelmingly means the LLM context window, so it reads as jargon. And `memory` scores **40.7/M**, so it *is* market-native as a **noun**; the standing ban is on *remembers / stores / logs* as **verbs**, which claim less than the product delivers. That distinction is now evidenced rather than stylistic.
+
+### The empty-state answer, and the margin is not close
+
+| candidate | per M |
+| --- | --- |
+| **example** | **711.9** |
+| template | 63.3 |
+| opinionated | 19.2 |
+| starting point | 18.2 |
+| what good looks like | 6.8 |
+| blank page | 1.6 |
+
+**"Example" is the highest-frequency term measured anywhere in this corpus** — 4,073 occurrences. Operators reason in worked examples. **An empty state should therefore show a labelled worked example, not describe a feature and not apologise.**
+
+The mechanism is Linear's Nan Yu: buyers pay to **import an opinion** — *"you're not just adopting the actual software, you're adopting the idea that this is a practice you ought to be doing."* **An empty screen is the only moment where the product is pure opinion and zero data**, which makes it the moment the opinion *is* the product. That `opinionated` scores 19.2/M says the market rewards it.
+
+Note the tension with Widjaja's test — *"information that doesn't change what you do is entertainment"* — which argues **against empty counters**: a "0 decisions" tile changes nothing. Prefer the worked example over the zero-count.
+
 **The single best positioning line in the corpus is a complaint, not a pitch** — Tal Raviv, 2025-07-22, describing our product before it existed:
 
 > *"Today, I'm the human API between my copilot and everything else. I manually recount what happened… update my project knowledge when I remember to. It works, with a lot of work."*
@@ -157,6 +419,20 @@ Teresa Torres published our exact doctrine in **2022**, four years early: *"they
 **And here is the thing that is actually unclaimed.** Across 232,656 words of the pre-AI baseline, the **Learn→Discover write-back arrow appears zero times.** Every named lifecycle above was domain-scoped, hand-run, and had **no outcome write-back**. Stations are commodity; **the arrow is the unoccupied ground** — which is the same conclusion §4's 2026 evidence reaches from the opposite end of the corpus.
 
 **One dissent, recorded fairly:** skip-freely is contested. Kazanjy: *"if you jump stages, you're hosed."* Torres supports route-not-conveyor; Ramp and Coda operate explicit skip rules. The founder's 2026-08-01 ruling survives, but it is not unanimous and the counter-case should be held.
+
+### And we already built the arrow — measured, on real data
+
+Lane 1 queried production lineage with demo workspaces excluded (`docs/planning/launch-audit/station-chain-audit.md`, commit `e5624805`). The result converts the corpus finding above from an opportunity into a position:
+
+**The Learn→Discover write-back arrow is our healthiest cross-station link.** 36 real `learning → decision` edges and 4 real `learning → opportunity` edges. **Decide's single largest inbound source is Learn — by four times over opportunities.**
+
+So the claim available to us is narrow, specific and verifiable: **the arrow that appears zero times in 679 documents and 5.9M words, we built, and it already carries more real traffic than the link it competes with.** That is a far stronger sentence than "we own the loop," and unlike "we own the loop" it survives a query.
+
+**Three constraints on how far it can be pushed — all binding:**
+
+1. **The arrow moves learnings, not outcomes.** 81 real learnings; `agent_memory` still holds zero `kind='outcome'` rows. The honest sentence is *"decisions here are informed by what we learned from earlier decisions."* The sentence the moat actually needs — *informed by measured outcomes* — **is not true yet.** Same present-tense discipline as §2.
+2. **The chain has two real breaks upstream, and they are worse than the Learn gap.** Discover forms **86 real themes and promotes three** — 83 dead-end. Build, the busiest station at **228 real missions, writes zero `mission → changeset` and zero `changeset → deployment` edges**, so no real work has traversed Build→Ship with lineage. **No copy may imply an unbroken signal→shipped→learned chain.** It is broken in two places.
+3. **By real throughput the stations are not seven equal things.** Busy: Discover, Decide, Build. Thin: Plan, Learn. **Off the real path entirely, zero real edges either side: Design and Ship.** This is independent confirmation, from our own database rather than from the market, of the recommendation not to greet a new user with a seven-station route diagram — the diagram would be describing a product our own lineage says we do not have.
 
 **And station 07 is an empty market.** Nobody built a Learn station. No operator described a working loop from an AI-assisted decision to a measured outcome. Chip Huyen: *"we don't have a good way of measuring productivity improvement."* GitHub's CPO on measuring Copilot: *"there are no right metrics. There is no one metric to rule them all."* That is either the moat or the trap, and it is the single largest unoccupied space found.
 
@@ -200,7 +476,9 @@ Teresa Torres published our exact doctrine in **2022**, four years early: *"they
 - **The strongest untested positioning line the corpus offers** (Kazanjy, on sales motions): *"there is no GitHub for sales motions, and so it's in your brain, it's in your documents."* → **"There is no GitHub for product decisions."** Worth testing against our current category line.
 - **Cautionary artifact on the word "inevitable."** The most credentialed, most-endorsed post of its era (2022-02-15, Head of Product at a $10.2B company, endorsed by named people at Aave, OpenSea, Circle, Protocol Labs) told readers web3 was *"risky and inevitable"* and instructed them to buy tokens on FTX. FTX collapsed nine months later. This should change how hard we phrase **"agentic-first or legacy the day it ships."** Our defensible line is that we bet on a bottleneck documented in 2021 *with no AI present*, not on a platform shift.
 - **Conflict-of-interest check required on any Product Pass recommendation:** Lenny is an angel investor in 140+ companies and portfolio tool mentions are only sometimes disclosed.
-- **Newsletter gap closed by hand** for the two highest-value post-cutoff posts. Still unretrieved: Community Wisdom weeklies (the 30k-PM Slack community voice — subscriber-gated) and the **entire *How I AI* show, which is absent from the paid archive**. Both are real remaining gaps.
+- **Newsletter gap closed by hand.** All nine main-feed posts after the 2026-05-05 cutoff accounted for: four mined (the sentiment survey, Matthews, Hudson, Product Pass), five verified as carrying no strategic content (two book lists, a summit promo, a sabbatical piece confirmed to contain zero product/AI material, and a career-emergence essay with no AI content). **Podcasts had no gap** — the archive runs to 2026-08-09.
+- ***How I AI* gap closed by hand** — §1B. ~95 episodes, entirely absent from the paid archive, retrieved from public sources.
+- **One gap remains: Community Wisdom weeklies** (~14 editions), the 30k-PM Slack community voice. **Fully paywalled**; unauthenticated fetch returns only the subscription prompt. Reachable via the founder's own logged-in browser, which he has paid for and the licence permits reading.
 - **Quote integrity:** five archive files are confirmed mis-filed; see [`lennys-quote-verification.md`](./lennys-quote-verification.md). Nothing in this document cites them.
 - **Not yet ruled on by the founder:** category, ICP, and the station model. §2 and §4 make the case; the decision is his.
 

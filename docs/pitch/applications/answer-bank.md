@@ -363,9 +363,12 @@ The decision-and-outcome record. Four reasons it holds:
 No fast oracle. Product judgment cannot be compile-tested, so it does not
 commoditize the way code generation did.
 
-It cannot be backfilled. A competitor with every byte of your raw data still
-cannot reconstruct which calls you made, on what evidence, and whether they paid
-off. Time is an ingredient no model release shortcuts.
+The forecast cannot be backfilled. A competitor with every byte of your raw
+data can reconstruct what happened, because causes survive in Slack, email and
+call recordings. What no volume of data reconstructs is what your team believed
+would happen, recorded before the outcome was known. A forecast leaves no trace
+unless something captured it at the moment of the call. Time is an ingredient no
+model release shortcuts.
 
 The neutral seat. No frontier lab inside its own chat app, and no suite vendor
 like Atlassian or Notion, can be the honest judge across its competitors' tools,

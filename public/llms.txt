@@ -2,7 +2,7 @@
 
 Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.
 
-**The moat is the compounding, not the record.** Any vendor can store decisions, and a frontier model can absorb search over them next quarter. What compounds is the loop closing: a settled outcome is written back against the decision that caused it, and it re-ranks what you are shown next. That needs the one thing no model has, which is your outcomes, labelled, over time.
+**The moat is the forecast captured at decision time, not the record.** Any vendor can store decisions, and a frontier model can absorb search over them next quarter. Causes can also be reconstructed after the fact, because they survive in chat logs, email and call recordings. What cannot be reconstructed is what a team **believed would happen before the outcome landed** — a forecast is not an artifact and leaves no trace unless something captured it at the moment of the call. Supaprod captures it, then writes the settled outcome back against the decision that caused it, which re-ranks what surfaces next. The loop is wired and proven; it accrues from first real use rather than arriving pre-filled.
 
 You remain in control: no irreversible action happens without your approval.
 

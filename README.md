@@ -18,6 +18,14 @@
 
 **Supaprod is the agentic-first operating system for product teams. It tells you what to build, builds it, ships it, checks what actually happened, and learns from it, so next time it guides the call instead of waiting to be asked. Wired end to end, from signal to learning and back again.**
 
+> **How to say it to a human (2026-08-10, grounded in a full read of the market — canon: [`docs/strategy/positioning-locked-2026-08.md`](./docs/strategy/positioning-locked-2026-08.md)).** The sentence above is the internal definition. It is **not** the opening line for a landing page, a pitch or a cold conversation: "operating system" is a platform word that reads as meaningless to buyers, and across 5.9M words of the market's own writing **nobody names a lifecycle or an operating system.** Lead with the three beats instead, which are the operator's language, not ours:
+>
+> **1.** The half of the job that was doing the reps is going to agents.
+> **2.** What doesn't compress: **deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong.**
+> **3.** Supaprod runs those three — and keeps what you believed *before* you found out.
+>
+> Beat 2 is verbatim from an operator, and those three jobs are exactly stations **02 Decide, 03 Plan and 07 Learn**. The felt promise in one line, also his: **"Less operator, more director."** Category line under test: *"There is no GitHub for product decisions."*
+
 This file is the front door: what the product is, why it holds, and where every other document lives. It is the only navigation map in the repo. If you are here to **build**, read [`AGENTS.md`](./AGENTS.md) instead.
 
 ---
@@ -44,7 +52,13 @@ This maps onto YC's own three Requests for Startups, which is confirmation rathe
 
 The last verb in that sentence is the whole product, so it is worth being exact about it.
 
-**It learns, and then it guides.** A settled outcome changes what you are shown next: that is the claim, and it is the only part of this that compounds, because it needs something no model has — your outcomes, labelled, over time. **That compounding is the moat.**
+**It learns, and then it guides.** A settled outcome changes what you are shown next. That is the product's job, and it still is.
+
+**But the moat is narrower than that, and it was corrected on 2026-08-10** after a full read of the market — 679 documents, 5,935,025 words ([`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md)). The compounding *record* is backfillable, and has been backfilled twice on the record: Vercel's COO ran an agent over *"every Slack interaction, every email, every GONG call"* and reconstructed the true cause of a lost deal — overturning the account executive's own account — with a tool built in two days that runs for about $1,000 a year.
+
+**Causes survive in artifacts. Forecasts do not.**
+
+> **The moat is the forecast captured at decision time** — what a team believed would happen, recorded *before* the outcome was known. It is not an artifact. It leaves no trace unless something captured it at the moment of the call. Everything else about a decision can be rebuilt afterwards; that one thing cannot.
 
 **Why storage is not the claim.** Any vendor can store your decisions, and a frontier model release can absorb search over them next quarter. A filing cabinet is not defensible, so describing the brain as one gives away the argument and claims less than the product already delivers.
 
@@ -128,8 +142,8 @@ A skipped station is **a decision on the record with a reason**, never a silent 
 Five tests, all of which a design passes before it is built:
 
 1. **Assume the model layer commoditizes.** Anything one frontier release could absorb is not a moat. Build the loop, the gates and the ledger *around* the model, never the thin layer on top of it.
-2. **Assume a large vendor ships our vertical next quarter.** Name what we still have that they do not. The answer must be the compounding decision-and-outcome record and the closed loop. If it is "nothing", the design is wrong and gets redone.
-3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end under policy is legacy the day it ships.
+2. **Assume a large vendor ships our vertical next quarter.** Name what we still have that they do not. The answer is the **forecast captured at decision time** — what the team believed would happen, recorded before the outcome was known. Everything else about a decision can be reconstructed afterwards from Slack and call recordings; a forecast leaves no trace unless something wrote it down at the moment of the call. If the answer is "nothing", the design is wrong and gets redone. _(Corrected 2026-08-10: this previously read "the compounding decision-and-outcome record", which the full-corpus sweep falsified — [`docs/research/lennys-corpus-sweep-2026-08.md`](./docs/research/lennys-corpus-sweep-2026-08.md) §2.)_
+3. **Agentic-first, not agent-assisted.** A surface an autonomous agent cannot run end to end under policy is one we expect to replace, and we design the seam for it now. _(Softened 2026-08-10 from "legacy the day it ships". The bet we are making is on a bottleneck documented in 2021 with no AI present, not on a platform shift. The most credentialed post of its era called web3 "risky and inevitable" and told readers to buy tokens on FTX nine months before it collapsed; inevitability language is how that class of call goes wrong. Note also that "90–95% agentic" is retired — it is contradicted by everyone shipping agents, and graduated autonomy with gates is both what we built and the empirically winning pattern.)_
 4. **Solve backwards and forwards.** Close the past pain, serve today's job, leave the seam for the six-month job.
 5. **Delight is a requirement, not a finishing pass.**
 

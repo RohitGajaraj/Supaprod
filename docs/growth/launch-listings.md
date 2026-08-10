@@ -287,8 +287,11 @@ tracker knows the ticket closed. It does not know whether closing it was right,
 and it has no way to find out, because it never held the decision.
 
 Honest version of the threat: Notion shipped feedback-to-a-merged-PR copy in
-July 2026 and they have distribution I do not. What they do not have is a record
-that joins calls to outcomes over time, and that record cannot be backfilled.
+July 2026 and they have distribution I do not. What they do not have is the
+forecast — what a team believed would happen, captured before the outcome was
+known. Everything else about a decision can be reconstructed after the fact from
+Slack and call recordings. That one thing cannot, because it is not an artifact
+unless something wrote it down at the time.
 ```
 
 ---

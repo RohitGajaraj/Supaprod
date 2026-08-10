@@ -8,7 +8,10 @@
 # from it, so next time it guides the call. Seven stations that agents walk
 # unattended, inside boundaries a human sets in advance. A settled outcome is
 # written back against the decision that caused it and re-ranks what surfaces
-# next; that compounding is the moat, not the record underneath it.
+# next. The moat is the forecast captured at decision time, not the record
+# underneath it: causes survive in chat logs and recordings and can be
+# reconstructed later, but what a team believed before the outcome landed
+# leaves no trace unless something captured it at the moment of the call.
 # Full context: /llms.txt and /llms-full.txt
 
 # ── Read access ──────────────────────────────────────────────────────────────
