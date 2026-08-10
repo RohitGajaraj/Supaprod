@@ -605,13 +605,33 @@
   border-top: 1px solid var(--sp-line-soft);
 }
 
+/* THE MEASURE CAP BELONGS ON THE COLUMN, NOT ON THE CHILD (2026-08-10).
+ *
+ * This was `minmax(0, 1fr) auto` while `.today-notice-copy` carried
+ * `max-width: 72ch`. At 1440px that made the copy COLUMN 853px wide holding an
+ * element that could never exceed 619px, so 234px of every row was space no
+ * content could reach. Add the 24px gap and the actions landed roughly 290px
+ * from the end of the sentence they belong to, on the most-visited screen in
+ * the product. Nothing looked broken; it just read as stretched rather than
+ * composed, which is most of the difference between a tool and a template.
+ *
+ * Capping the ROW instead was tried and rejected: it shortens the row's own
+ * border-bottom, so the dividers stopped short of the section rule above them
+ * and the right edge went ragged. Capping the COLUMN keeps the row full width,
+ * so every rule still lines up, and `justify-content: start` puts the leftover
+ * space after the actions instead of inside the row.
+ *
+ * Leading is the row token, not the document token: these are lines you scan
+ * down, not paragraphs you read. See the note on .sp-line in primitives.css. */
 .today-notice {
   --today-evidence-hue: var(--sp-stage-discover);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 72ch) auto;
+  justify-content: start;
   gap: var(--sp-space-6);
   align-items: center;
   padding: var(--sp-space-5) 0;
+  line-height: var(--sp-leading-row);
   border-bottom: 1px solid var(--sp-line-soft);
 }
 
@@ -623,9 +643,11 @@
   --today-evidence-hue: var(--sp-warn);
 }
 
+/* The 72ch measure moved up to the grid column above. Two places enforcing one
+ * measure is what produced the dead column in the first place: the child got
+ * capped, the column did not, and the difference became a void. */
 .today-notice-copy {
   min-width: 0;
-  max-width: 72ch;
 }
 
 .today-evidence-kind {
@@ -651,7 +673,11 @@
 .today-notice p {
   margin: var(--sp-space-1) 0 0;
   font-size: var(--sp-text-meta);
-  line-height: var(--sp-leading-body);
+  /* The explanation under a notice is scanned inside a list, not read as
+   * prose, so it takes row leading. The SECTION description above the list
+   * (.today-notices-sub) keeps body leading, because that one genuinely is a
+   * paragraph. */
+  line-height: var(--sp-leading-row);
   text-wrap: pretty;
 }
 

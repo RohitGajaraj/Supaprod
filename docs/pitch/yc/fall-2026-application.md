@@ -18,33 +18,79 @@
 
 > _Grounded in a full read of the market — 679 documents / 5,935,025 words, plus the members-only PM community. Canon: [`../../strategy/positioning-locked-2026-08.md`](../../strategy/positioning-locked-2026-08.md). Four fields below carry claims that are now **falsified**, not merely dated. Ranked by damage if a partner tests them._
 
-### 🔴 1. Surface 1 — Progress Update (editable, highest leverage, and the only place current truth reaches a partner)
+### 🔴 1. Surface 1 → the "How far along are you?" sub-field
 
-**Paste this.** It is the five-beat structure and every claim in it survives being queried:
+> **⚠️ My first draft of this was wrong and is deleted. Recording the error because it is instructive.** I wrote a narrative "Progress Update" as though Surface 1 were one free-text field. **It is not.** It is three sub-fields — Product link, Login credentials, and *"How far along are you?"* — and only the last carries prose. Worse, my draft answered *"what did I learn this month"* rather than *"how far along is the product."* **A partner reading for under three minutes wants users, usage and velocity, not a research story.** Founder caught it; he was right.
+
+**What a partner actually scans this field for, in order:** users · usage · velocity · one non-obvious thing · what's next. Everything else is filler and costs you the read.
+
+**Audit of the version currently on the form** (see the full text further down this file):
+
+| Keep | Cut or fix |
+| --- | --- |
+| The rename line — it must stay first | **No user number anywhere.** This is the single biggest gap; it is the first thing a partner looks for |
+| "I am user zero" + roadmap-runs-inside-Supaprod | The decade/month/seven-weeks journey — that is backstory, and 9a already carries domain expertise |
+| 4,000+ commits (velocity proxy) | *"It is almost there, not finished"* — hedging that buys nothing and costs credibility |
+| September launch, brief link | *"feedback goes straight back in: design iterations, new roadmap items"* — vague. Name what changed, or cut it |
+| | **No product numbers at all** — and we now have three good ones |
+
+**PASTE THIS.** Plain words, real numbers, one thing admitted:
 
 ```
-Since applying I ran a full read of my market rather than guessing at it:
-679 operator interviews and a members-only community of 30,000 product
-managers. It falsified three of my own moat claims. I corrected them in
-public, in the repo, rather than defending them.
+Cadence is now Supaprod. I renamed it after applying and the form won't
+let me change the name. Same company, same person, live at
+https://supaprod.ai.
 
-The biggest one: I had been saying the decision record cannot be
-backfilled. It can. Vercel's COO reconstructed a lost deal's true cause
-from Slack, email and call recordings with an agent built in two days.
-What cannot be reconstructed is the forecast, what a team believed would
-happen before the outcome landed. That is not an artifact. It leaves no
-trace unless something captured it at the moment of the call. So the
-product now captures it, and the migration that does it shipped this week.
+Where it is now: it runs end to end. Signals come in from the tools a
+team already uses, it argues against the weak ideas before I see them,
+agents write the code and open pull requests, and nothing merges without
+me. 4,872 commits and 508 database migrations in eight weeks.
 
-Practitioners name the pain better than I had: "PMs got faster at
-shipping but didn't get better at defending why. The judgment gap got
-exposed." Speed is solved. 82% of the market reports AI already makes
-them measurably more productive, while burnout rose from 44.7% to 55.7%
-and their top fear is being expected to do more for the same pay.
+The part I most wanted to work is working. It has recorded 119 lessons
+from things that actually shipped. For 38 of those it decided the verdict
+itself instead of asking me. And 36 times, a new decision was made using
+a lesson from an older one. That last number is the whole point: the
+thing gets less wrong the longer you use it.
 
-The loop is wired and proven end to end, and empty by design until real
-usage accrues. First-pass acceptance began capturing this week.
+One thing I got wrong and fixed. I had been telling people a competitor
+can't rebuild your decision history. That isn't true. You can reconstruct
+most of it from Slack and call recordings. What you can't reconstruct is
+what someone expected to happen before it happened, because almost nobody
+writes that down. So I built that. It shipped this week.
+
+Everything above was decided, specced and built inside Supaprod itself.
+That is how I know it works end to end before I ask anyone else to trust
+it.
+
+[FOUNDER: the real user count goes here, in one sentence, if any exist by
+paste day. This is the number a partner looks for first, and nothing above
+substitutes for it. Never pad it.]
+
+Public launch in September. Full brief at https://supaprod.ai/brief.
 ```
+
+> ### 🔢 NUMBERS: re-run these the morning you paste. I got them wrong once already.
+>
+> The draft above inherited **4,000 commits / seven weeks** from the 2026-07-23 pass and I did not check it. Live count on 2026-08-10 was **4,872 commits and 508 migrations across eight weeks** — a 20% understatement of our own velocity, in the field where velocity is the point. **A stale number here is worse than a missing one**: it undersells the work and it signals the founder is not close to their own metrics.
+>
+> ```bash
+> git rev-list --count origin/main          # commits
+> ls supabase/migrations/*.sql | wc -l      # migrations
+> scripts/dashboard-tally.sh                # register: specced / shipped
+> ```
+> The product-side figures (**119 lessons, 38 self-decided, 36 decisions from an earlier lesson**) come from live queries, not the register — confirm them the same morning.
+>
+> **Why "I'm my own first user" is gone.** It was in the draft and it reads badly to a partner: *if you are the customer, who pays you?* The dogfooding fact is genuinely strong, but it is **proof the product functions, not proof anyone wants it** — so it now says what it actually proves and stops there. It cannot stand in for a user count, and the slot above says so explicitly.
+
+**Why it is written this way.** A partner reads hundreds of these and is pattern-matching for *is this a real problem, is this person unusually good, do people want it*. So: **no vocabulary a stranger would have to decode.** Not "the loop closes", not "evidence bar", not "the judgment gap" — every one of those is our word, not theirs. *"The thing gets less wrong the longer you use it"* says compounding without the term.
+
+**The three numbers, and why these.** *119 lessons, 38 self-decided* says the autonomy is real and measured, not aspirational. *36 decisions made from an older lesson* is the only number that proves the core idea works. *4,000 commits in seven weeks* is rate of progress, which YC weights heavily.
+
+**Two hard rules on the numbers.** Say **lessons, never outcomes** — `agent_memory` holds zero `kind='outcome'` rows and a partner who checks will find it. And **no user count unless one is true** — the empty slot is more honest than a padded number, and a padded one will not survive the interview.
+
+**The paragraph I would fight to keep is the admission.** It is the only part that cannot be written by someone who is not really building this, and YC weights *updating on evidence* more heavily than being right the first time. It is four plain sentences and it earns more trust than any claim in the field.
+
+**Also update, same surface:** Product link → `https://supaprod.ai`, and the login line's last clause → `or sign up with invite code YC-COMPOUND-K7QR4V` (signup closed 2026-08-07; the old "any email" path now hits a wall). Both are detailed further down.
 
 ### 🔴 2. Field 7f — the closing paragraph states the falsified claim
 
@@ -53,13 +99,13 @@ usage accrues. First-pass acceptance began capturing this week.
 **Two defects.** "Remembered" is banned vocabulary (it claims less than the product delivers), and **"that record becomes the brain" is the exact claim the sweep falsified** — the record is reconstructable. **Paste this instead:**
 
 ```
-What makes it defensible: every decision is recorded with its evidence
-and, the part nothing else does, what you expected before the outcome
-landed. Causes can be rebuilt later from Slack and call recordings. A
-forecast cannot. It leaves no trace unless something captured it when you
-decided. That is what turns a record into judgment: the system knows not
-just what happened, but what you thought would happen, and how often you
-were right.
+Here is the part I think nobody else has. Every decision is saved with
+the evidence behind it and with what you expected to happen. When the
+result comes in, it checks the two against each other. You can dig up why
+a call was made months later from Slack and old calls. You cannot dig up
+what people thought was going to happen, because almost nobody writes
+that down. So over time the system knows what happened, what you
+expected, and how often you are right.
 
 Agents do the work. You answer for it. Supaprod is how you answer.
 ```
@@ -71,30 +117,31 @@ Agents do the work. You answer for it. Supaprod is how you answer.
 **Both halves are weak now.** The corpus says **the real competitor is DIY — the folder** — and the time-accrual claim is the falsified one. This rewrite is also strictly more interesting to a partner, because it concedes the strongest objection and then answers it:
 
 ```
-Nobody runs the whole loop, but my real competitor is not another
-product. It is the folder.
+My real competitor isn't another product. It's a folder of notes.
 
-I checked this rather than assumed it. Last month, in a private thread,
-six product managers talked a buyer out of this entire category: don't
-switch tools, use simpler ones, two systems of record create more
-friction than they solve. One had tried four purpose-built tools and gone
-back to a plain Obsidian folder. Their sharpest argument was that
-lower-level tools are more AI-friendly, because agents drive them better.
+I went and checked instead of assuming. Last month six product managers
+in a private group talked someone out of buying anything in this
+category: don't switch tools, use simpler ones. One of them had tried
+four products built for exactly this and gone back to a plain folder of
+markdown files. Their strongest argument was that simple files work
+better with AI, because an agent can read and write them easily.
 
-They are right about the premise and wrong about the conclusion, and that
-is what I understand that they do not. An agent can write into a Notion
-page or a GitHub issue. It cannot write a decision carrying its evidence,
-its author, a verdict slot and a human gate into either. Low-level tools
-are agent-writable but not agent-governable. Another operator in that
-same community tried Obsidian, abandoned it, built his own and still
-failed: he could not tell who changed what, what was trustworthy versus
-polluted, why it changed, or stop certain files from changing.
+They're right about that, and it's still the wrong conclusion. An agent
+can write into a Notion page or a GitHub issue. It can't write a decision
+into one that carries the evidence behind it, who made it, a slot for the
+verdict, and a gate so a human signs off. Simple files are easy for an
+agent to write and impossible for an agent to govern. Someone else in
+that same group tried a folder, gave up, built his own system, and still
+couldn't solve it: he could not tell who changed what, which notes he
+could trust, why they changed, or stop the ones that shouldn't.
 
-That seam opens the moment a second person or a fleet of agents touches
-the work, and it is where I sell. Samepage, Brief, Productboard's Spark
-and Notion's Ship OS all stop one step short: they surface, draft,
-remember or dispatch. None checks the shipped outcome against the
-decision that caused it.
+That gap opens the moment a second person or a fleet of agents touches
+the work. That's where I sell.
+
+The startups here, Samepage and Brief and Productboard's Spark and
+Notion's Ship OS, all stop one step earlier. They collect, draft, or
+dispatch. None of them goes back and checks whether the thing you shipped
+did what you said it would.
 ```
 
 ### 🟡 4. Field 9a — strong already; one sentence makes it much stronger
@@ -106,6 +153,28 @@ Then a working PM named it better than I had, unprompted, in a private
 community: "PMs got faster at shipping but didn't get better at
 defending why. The judgment gap got exposed."
 ```
+
+### 🟡 5. Surface 3 — Team Update: one word
+
+The answer is strong and should stay. **One change:** it closes *"with receipts for everything they did."* **"Receipts" is retired vocabulary** — it appears 17 times in 5.7M words of this market's own writing, effectively zero. Replace with:
+
+```
+with a record of every action and who approved it.
+```
+
+### 🟡 6. Surface 4 — Founder Video (≤1:00)
+
+**Do not open with "the agentic-first operating system for product teams."** Platform words burn the first five seconds, which is the only part of a one-minute video that is guaranteed to be watched. **Open on the three beats** (§5G of the canon):
+
+> *"The half of the job that was doing the reps is going to agents. What doesn't compress is deciding what's worth doing, defining what good looks like, and catching when the system is confidently wrong. Supaprod runs those three."*
+
+Then the rename, then user-zero, then the forecast line in one sentence. **Sixty seconds allows roughly 150 words — that is four sentences and a sign-off. Cut everything else.**
+
+### 🔴 7. Surface 5 — Demo Video (≤3:00): one hard constraint
+
+**Do not demo the full station walk.** Three lineage hops had no writer until 2026-08-10 — `mission → changeset`, `changeset → deployment`, `prd → learning` — so the ~35 production edges of those shapes are **demo seed**. A "watch it flow to shipped" walkthrough traverses exactly the region that is not real yet, and it is the single most testable thing in the application.
+
+**Demo the Discover → Decide → Learn half.** It is real, it has always been real, and it is where the 36 lineage edges live. That is also the strongest three minutes available: signal in, Critic red-teams it, human decides, outcome settles, and the next decision visibly uses it.
 
 ### ✅ Already handled elsewhere
 
@@ -213,6 +282,10 @@ _(Updated 2026-07-25. `explore@supaprod.ai` now owns its OWN isolated workspace 
 
 #### "How far along are you?"
 
+> ### ⛔ SUPERSEDED 2026-08-10 — DO NOT PASTE THE BLOCK BELOW.
+>
+> **The current version is at the top of this file**, in the corrections section. The block below still says *"seven weeks, 4,000+ commits"* (true on 2026-07-23, now a 20% understatement — live count is **4,872 commits, 508 migrations, eight weeks**) and it contains *"I am user zero"*, which reads to a partner as *if you are the customer, who pays you?* Kept here as the record of what was on the form, not as paste material.
+
 - On the form now (stale): _"Early, and I will be honest about it. I started three weeks ago, solo, putting in about 35 to 40 hours a week… no users or revenue. Three weeks, alone, from idea to a working core taking shape."_
 - **PASTE THIS:**
 
@@ -278,12 +351,13 @@ loop.
 - **PASTE THIS:**
 
 ```
-Seven weeks on this build, seven days a week; the repo shows 4,000+
-commits over that stretch, and a month of nights and weekends on the
-prototype before that. Completely full-time: I am on a break from my
-product role, and leaving it for good is already decided, not contingent
-on this application. I am building this either way; what the batch adds
-is speed, the right network, mentorship, and honest course-correction.
+Eight weeks on this build, seven days a week; the repo shows 4,872
+commits and 508 database migrations over that stretch, and a month of
+nights and weekends on the prototype before that. Completely full-time: I
+am on a break from my product role, and leaving it for good is already
+decided, not contingent on this application. I am building this either
+way; what the batch adds is speed, the right network, mentorship, and
+honest course-correction.
 ```
 
 _(The employment line states whatever is literally true the day you paste — "on a break" / "on sabbatical" / "my notice is in; last day [date]" — pick the true one, keep it one clause, no gray area. Rehearse the same words for the interview.)_

@@ -19,7 +19,13 @@
 
 **Three hard prohibitions:** no present-tense accumulated-learning claim · no unbroken signal → shipped → learned chain (it is broken in two places) · no inevitability language.
 
-**Sweep by the CLAIM, not the phrase.** One assertion travels under at least five wordings — *backfilled · bolted on · bought · copied quickly · recovered after the fact*. Grep all of them. This rule was learned the hard way: the same claim escaped six separate sweeps today.
+**Sweep by the CLAIM, not the phrase.** One assertion travels under at least seven wordings. Grep all of them:
+
+`backfilled` · `bolted on` · `bought` · `copied quickly` · `recovered after the fact` · `only accumulates with time` · `starts at zero`
+
+This rule was learned the hard way — the same claim escaped six separate sweeps in one day.
+
+**Two of those phrases are on the list deliberately even though they are not banned.** *"Starts at zero"* is currently **live and correct** on the landing page (*"a competitor starting next year starts at zero, next year"*) because it is a claim about calendar accrual, which the evidence never touched. It stays on the grep list precisely so a sweep flags it and forces a re-read. **A phrase list containing only banned wording cannot tell you "we fixed this here" apart from "we never had it here"** — and that distinction is the whole point of the sweep. _(Both additions are the UI/UX lane's, 2026-08-10.)_
 
 **Files still carrying retired language as of this writing** (the shared [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) are corrected; these inherit from older copies and need a pass before submission): [`betaworks-ai-camp/`](./betaworks-ai-camp/), [`the-residency/`](./the-residency/). Check [`ef-bridge-sf/`](./ef-bridge-sf/) and [`south-park-commons/`](./south-park-commons/) before sending either.
 
