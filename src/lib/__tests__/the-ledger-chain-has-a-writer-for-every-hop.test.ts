@@ -77,6 +77,48 @@ const MUST_BE_WRITTEN: readonly string[] = [
   "task",
 ];
 
+/**
+ * THE BLIND SPOT THIS GUARD SHIPPED WITH, found 2026-08-11 by an
+ * investigation into a different hop.
+ *
+ * Everything below asserts that SOME code writes each child KIND. That is not
+ * the same question as "is this hop written", and the difference is not
+ * academic: `child_kind: "decision"` has three writers, whose parents are
+ * `learning`, `opportunity` and `capability_change`. So this guard was green
+ * while `prd -> decision` and `mission -> decision` had no writer at all --
+ * and 105 of 154 real decisions carry `source_kind='mission'` with nothing in
+ * the graph saying which mission.
+ *
+ * A guard that passes on a technicality is the same failure it was written to
+ * catch. So the specific PAIRS the ledger actually walks are asserted here, by
+ * parent and child together.
+ *
+ * Each entry names the file that must contain the writer, because a pair
+ * satisfied from an unrelated module is the same technicality one level down.
+ */
+const REQUIRED_PAIRS: ReadonlyArray<{ parent: string; child: string; where: string }> = [
+  { parent: "mission", child: "changeset", where: "lib/ai/tools/registry.server.ts" },
+  { parent: "changeset", child: "deployment", where: "lib/deployments.functions.ts" },
+  { parent: "prd", child: "learning", where: "lib/outcome.functions.ts" },
+];
+
+describe("the hops are asserted as PAIRS, not as child kinds", () => {
+  for (const { parent, child, where } of REQUIRED_PAIRS) {
+    it(`${parent} -> ${child} is written in ${where}`, () => {
+      const code = codeOf(readFileSync(join(SRC, ...where.split("/")), "utf8"));
+      const at = code.indexOf(`child_kind: "${child}"`);
+      expect(at, `${where} does not write child_kind "${child}"`).toBeGreaterThan(-1);
+      // The parent must be part of the SAME edge object, not merely present
+      // somewhere in the file. 400 characters covers the largest of these
+      // calls and stays well inside the next statement.
+      const edge = code.slice(Math.max(0, at - 400), at + 400);
+      expect(edge, `${where} writes "${child}" but not from parent "${parent}"`).toContain(
+        `parent_kind: "${parent}"`,
+      );
+    });
+  }
+});
+
 describe("every ledger hop the product claims has code that writes it", () => {
   for (const kind of MUST_BE_WRITTEN) {
     it(`something in src/ writes child_kind: "${kind}"`, () => {
