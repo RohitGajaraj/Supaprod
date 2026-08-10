@@ -112,6 +112,7 @@ import {
   Block,
   Button,
   Failed,
+  Loading,
   Num,
   PageHead,
   Row,
@@ -443,7 +444,13 @@ function SourcesLine({ onSync }: { onSync: (conflictId?: string) => void }) {
   const bindingsQ = useQuery({ queryKey: ["workspace-bindings"], queryFn: () => fBindings() });
   const syncQ = useQuery({ queryKey: ["sync-mappings"], queryFn: () => fMappings() });
 
-  if (bindingsQ.isLoading) return null;
+  /* The parent has already printed the "Reading from" heading by the time this
+     renders, so returning null leaves a section title standing over nothing,
+     which reads as a broken page rather than a slow one. The error arm below
+     was written carefully and the loading arm was not, which is the usual
+     shape: failure gets designed because someone imagines it, and waiting gets
+     skipped because the developer's own machine is fast. */
+  if (bindingsQ.isLoading) return <Loading>Reading the connections.</Loading>;
   if (bindingsQ.isError) {
     return (
       <Failed onRetry={() => void bindingsQ.refetch()} retryLabel="Read it again">
