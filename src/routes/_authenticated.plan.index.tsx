@@ -737,9 +737,9 @@ function PlanPage() {
               : `What does success look like for these ${undeclared.length} bets?`
           }
           linesLabel="Committed, with no outcome and no measure. Until one is named, a bet is only a task, and nothing can tell you later whether it worked."
-          lines={undeclared
-            .slice(0, 3)
-            .map((b) => <span key={b.id}>{stripAutoPrefix(b.title)}</span>)}
+          lines={undeclared.slice(0, 3).map((b) => (
+            <span key={b.id}>{stripAutoPrefix(b.title)}</span>
+          ))}
         >
           <Button
             variant="primary"
