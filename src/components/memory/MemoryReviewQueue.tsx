@@ -56,6 +56,7 @@ import {
   Failed,
   Field,
   Gate,
+  Loading,
   Receipt,
   Row,
   Textarea,
@@ -208,7 +209,15 @@ export function MemoryReviewQueue() {
         </Button>
       </Actions>
 
-      {queue.isLoading ? null : queue.isError ? (
+      {/* A READ IN FLIGHT IS NOT AN EMPTY QUEUE, and this rendered `null` for
+          both. The composer above stays on screen while the read runs, so the
+          reader saw a working panel with nothing under it and no way to tell
+          whether they had an empty queue or a slow one -- and the difference
+          matters here, because an empty queue means they are done and a slow
+          one means they are not. Loading is the third fact and it says so. */}
+      {queue.isLoading ? (
+        <Loading>Reading what is waiting on you.</Loading>
+      ) : queue.isError ? (
         <Failed onRetry={() => void queue.refetch()}>{(queue.error as Error).message}</Failed>
       ) : focused ? (
         <Gate

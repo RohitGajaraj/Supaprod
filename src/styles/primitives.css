@@ -2664,3 +2664,151 @@ button.sp-cell:disabled {
   white-space: nowrap;
   border: 0;
 }
+
+/* ------------------------------------------------------------------ *
+ * Selection bar. Sits in a list's own header slot, never floating.
+ *
+ * The reasoning for inline-over-floating is recorded above `useSelection` in
+ * primitives.tsx: every queue in this product carries a paginator or a
+ * "Show all N" beneath it, and a floating bar lands on exactly the control a
+ * person needs to leave the list.
+ *
+ * Height is --sp-row-scan so the bar occupies one scan row and the list below
+ * it does not shift when a selection begins. Colour is the ordinary raised
+ * surface: a selection is a state, not a status, and spending a status hue on
+ * it would break the rule that colour carries status only.
+ * ------------------------------------------------------------------ */
+.sp-selbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-4);
+  min-height: var(--sp-row-scan);
+  padding: 0 var(--sp-space-4);
+  background: var(--sp-lift);
+  border-radius: var(--sp-radius-row);
+  font-size: var(--sp-text-meta);
+  color: var(--sp-body);
+}
+
+.sp-selbar-count {
+  color: var(--sp-ink);
+  font-weight: var(--sp-weight-medium);
+  white-space: nowrap;
+}
+
+/* The verbs push to the trailing edge, so the count and the escapes stay
+   together on the left where the eye lands first. */
+.sp-selbar-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-3);
+  margin-left: auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * Send back. The note is the screen.
+ *
+ * Sized as a WRITING surface rather than a confirmation. Consequence-heavy
+ * dialogs in the products studied sit at 580-640px, and this takes the top of
+ * that band because the note is prose that an agent will act on, not a value
+ * to fill in. The field gets a genuine block of height for the same reason: a
+ * one-line input tells a person to write one line, and the one thing this
+ * surface must not do is make a considered explanation feel unwelcome.
+ *
+ * No new colour. A send-back is not a status.
+ * ------------------------------------------------------------------ */
+.sp-sendback {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-space-6);
+}
+
+.sp-sendback-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--sp-scrim);
+  cursor: default;
+}
+
+.sp-sendback-panel {
+  position: relative;
+  width: min(640px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-space-4);
+  padding: var(--sp-space-6);
+  background: var(--sp-sheet);
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-pane);
+  box-shadow: var(--sp-shadow-sheet);
+}
+
+.sp-sendback-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sp-sendback-title {
+  font-size: var(--sp-text-gate);
+  line-height: var(--sp-leading-gate);
+  letter-spacing: var(--sp-track-gate);
+  font-weight: var(--sp-weight-strong);
+  color: var(--sp-ink);
+}
+
+.sp-sendback-label {
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-medium);
+  color: var(--sp-body);
+}
+
+/* The dominant element. min-height is deliberate, not a placeholder value:
+   roughly six lines, which is enough that a person writing three does not feel
+   they have over-answered. */
+.sp-sendback-note {
+  width: 100%;
+  min-height: 148px;
+  resize: vertical;
+  padding: var(--sp-space-4);
+  background: var(--sp-sink);
+  color: var(--sp-ink);
+  border: 1px solid var(--sp-field-edge);
+  border-radius: var(--sp-radius-ctl);
+  font-family: var(--sp-font-sans);
+  font-size: var(--sp-text-body);
+  line-height: var(--sp-leading-body);
+}
+
+.sp-sendback-note::placeholder {
+  color: var(--sp-mute);
+}
+
+.sp-sendback-note:focus-visible {
+  outline: none;
+  border-color: var(--sp-field-edge-focus);
+}
+
+.sp-sendback-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-4);
+  flex-wrap: wrap;
+}
+
+.sp-sendback-hint {
+  font-size: var(--sp-text-meta);
+  color: var(--sp-mute);
+}
+
+.sp-sendback-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-3);
+  margin-left: auto;
+}

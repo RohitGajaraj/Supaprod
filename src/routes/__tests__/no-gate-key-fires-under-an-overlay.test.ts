@@ -30,9 +30,16 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dir, "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
-/** Every surface that binds a bare key to something that commits. */
+/** Every surface that binds a bare key to something that commits.
+ *
+ *  NAMED BY THE FILE THAT HOLDS THE LISTENER, not by the route. Today's
+ *  decisions moved into `DecisionQueue` so the keycaps and the keys they
+ *  promise sit together — `key-model.ts` declares the same file for the same
+ *  reason — and Discover has always been listed as its component. If a
+ *  surface's keyboard moves, this path moves with it, or the guard quietly
+ *  starts checking a file that binds nothing and passes on an unguarded one. */
 const GATES = [
-  ["Today", "routes/_authenticated.today.tsx"],
+  ["Today", "components/today/DecisionQueue.tsx"],
   ["Approvals", "routes/_authenticated.approvals.tsx"],
   ["Decide", "routes/_authenticated.decide.tsx"],
   ["Design", "routes/_authenticated.design.tsx"],

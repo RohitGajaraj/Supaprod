@@ -401,9 +401,20 @@ function ApprovalsSurface() {
               </>
             ) : null}
             <div className="sp-ctx-head">Moving through</div>
+            {/* SAID `r` UNTIL 2026-08-10, AND `r` DOES NOTHING. The decline key
+                was migrated r -> d (see the note above the key handler in this
+                file); the handler, the button's own drawn keycap and
+                lib/key-model.ts all moved together, and this sentence did not.
+                So the one place on the surface that TEACHES the shortcut taught
+                a key bound to nothing, while the working key sat unmentioned two
+                inches away on the button.
+                It survived because no test asserts this string. The derivation
+                law the rail uses -- draw the keycap from the same source that
+                binds it, so the two cannot drift -- is exactly what this prose
+                sentence opted out of by hand-writing the letter. */}
             <div className="sp-ctx-body">
               <Num>j</Num> and <Num>k</Num> walk the queue. <Num>a</Num> approves the one in front
-              of you, <Num>r</Num> declines it.
+              of you, <Num>d</Num> declines it.
             </div>
           </>
         ) : null

@@ -723,3 +723,220 @@ export async function ingestSignal(
     ? { status: "flagged", created: 1, quarantined: 0 }
     : { status: "stored", created: 1, quarantined: 0 };
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// THE REST OF THE LOOP, for an agent (founder ruling 2026-08-10).
+//
+// The agent surface read eleven things and wrote ONE, into station 01. An
+// agent could hand us a signal and could not do any of the work, while the
+// product's own agents run on a 36-tool registry. These three close that gap:
+// record a decision, draft a spec, settle an outcome.
+//
+// EVERY ONE OF THEM REUSES A VERIFIED-LIVE PATH, because the last write tool
+// this endpoint shipped did not. `append_decision` was advertised in
+// tools/list, was callable, and targeted a `decision_queue` table and columns
+// absent from the schema, so it could never succeed. It was removed
+// 2026-06-24. `settle_outcome` therefore calls `applyOutcome`, the same
+// function the human path calls, rather than inserting into `learnings`
+// itself.
+//
+// THREE PROPERTIES HOLD ACROSS ALL THREE, and each is deliberate:
+//
+//   TENANCY IS NEVER CALLER-SUPPLIED. workspace_id and user_id come from the
+//   token. zod strips extra args, so a caller cannot name a workspace it does
+//   not hold.
+//
+//   FREE TEXT IS SCREENED. Everything an agent writes lands in a human's
+//   reading pane and in later agent context, so all of it goes through
+//   `screenIngestText`: a structural injection is REJECTED and never stored, a
+//   borderline one is stored flagged.
+//
+//   NOTHING LANDS FINISHED. A decision arrives 'pending' and a spec arrives
+//   'draft'. An agent proposes; a human disposes. That is the graduated-
+//   autonomy posture the product already takes at every other gate, and an
+//   agent surface that could land an approved decision would be a hole in it.
+// ───────────────────────────────────────────────────────────────────────────
+
+const recordDecisionSchema = z.object({
+  title: z.string().min(1).max(300),
+  rationale: z.string().max(4000).optional(),
+  agent_slug: z.string().max(80).optional(),
+});
+
+export type RecordDecisionResult = {
+  status: "stored" | "flagged" | "quarantined";
+  id: string | null;
+};
+
+export async function recordDecision(
+  supabaseClient: any,
+  workspace_id: string,
+  user_id: string,
+  args: unknown,
+): Promise<RecordDecisionResult> {
+  const parsed = recordDecisionSchema.safeParse(args);
+  if (!parsed.success) {
+    throw new Error("expected { title: string, rationale?: string, agent_slug?: string }");
+  }
+  const { title, rationale, agent_slug } = parsed.data;
+
+  const decision = screenIngestText(`${title} ${rationale ?? ""}`);
+  if (decision === "quarantine") return { status: "quarantined", id: null };
+
+  const { data, error } = await supabaseClient
+    .from("decisions")
+    .insert({
+      user_id,
+      workspace_id,
+      title,
+      rationale: rationale?.trim() || null,
+      // Pending, always. See the header: an agent proposes.
+      status: "pending",
+      // 'mcp' is a real allowed value as of migration 20260810160000. Writing
+      // 'manual' here would have been the tempting shortcut and it asserts a
+      // HUMAN authored it, which `isAgentDrafted` reads as "do not score this
+      // as an agent correction" -- making an agent's own decisions invisible
+      // to the flywheel that ranks agents.
+      source_kind: "mcp",
+      decided_by_agent_slug: agent_slug?.trim() || null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  return { status: decision === "flag" ? "flagged" : "stored", id: (data?.id as string) ?? null };
+}
+
+const draftSpecSchema = z.object({
+  title: z.string().min(1).max(300),
+  body_md: z.string().max(20000).optional(),
+  opportunity_id: z.string().uuid().optional(),
+});
+
+export type DraftSpecResult = {
+  status: "stored" | "flagged" | "quarantined";
+  id: string | null;
+};
+
+export async function draftSpec(
+  supabaseClient: any,
+  workspace_id: string,
+  user_id: string,
+  args: unknown,
+): Promise<DraftSpecResult> {
+  const parsed = draftSpecSchema.safeParse(args);
+  if (!parsed.success) {
+    throw new Error("expected { title: string, body_md?: string, opportunity_id?: uuid }");
+  }
+  const { title, body_md, opportunity_id } = parsed.data;
+
+  const decision = screenIngestText(`${title} ${body_md ?? ""}`);
+  if (decision === "quarantine") return { status: "quarantined", id: null };
+
+  const { data, error } = await supabaseClient
+    .from("prds")
+    .insert({
+      user_id,
+      workspace_id,
+      title,
+      body_md: body_md?.trim() || null,
+      // Draft, always. 'approved' and 'shipped' are human states, and
+      // `assertSpecStatusWrite` exists precisely to stop a status write
+      // contradicting a record already on the books.
+      status: "draft",
+      opportunity_id: opportunity_id ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  return { status: decision === "flag" ? "flagged" : "stored", id: (data?.id as string) ?? null };
+}
+
+const settleOutcomeSchema = z.object({
+  prd_id: z.string().uuid(),
+  verdict: z.enum(["validated", "missed", "mixed"]),
+  summary: z.string().min(1).max(2000),
+  metric_label: z.string().max(200).optional(),
+  metric_value: z.string().max(200).optional(),
+  agent_slug: z.string().max(80).optional(),
+});
+
+export type SettleOutcomeResult = {
+  status: "stored" | "quarantined";
+  learningId: string | null;
+};
+
+export async function settleOutcome(
+  supabaseClient: any,
+  _workspace_id: string,
+  user_id: string,
+  args: unknown,
+): Promise<SettleOutcomeResult> {
+  const parsed = settleOutcomeSchema.safeParse(args);
+  if (!parsed.success) {
+    throw new Error(
+      "expected { prd_id: uuid, verdict: validated|missed|mixed, summary: string, metric_label?: string, metric_value?: string }",
+    );
+  }
+  const p = parsed.data;
+
+  const screened = screenIngestText(`${p.summary} ${p.metric_label ?? ""} ${p.metric_value ?? ""}`);
+  if (screened === "quarantine") return { status: "quarantined", learningId: null };
+
+  // THE SAME FUNCTION THE HUMAN PATH CALLS. `recordOutcome` is a thin wrapper
+  // over `applyOutcome`, so this is not a parallel implementation of the moat
+  // path -- it is the moat path, entered from a different door. Dynamic import
+  // keeps outcome.functions.ts out of this module's import-time graph.
+  //
+  // `by.kind: "agent"` is load-bearing rather than decorative: applyOutcome
+  // REFUSES to overwrite a verdict already on the record when the caller is an
+  // agent. An agent had its chance before the row was settled; disagreeing
+  // afterwards is a person's move, not an API call's.
+  //
+  // `_workspace_id` is unused on purpose: applyOutcome resolves the workspace
+  // from the spec itself, which is stricter than trusting the token's. A spec
+  // in another workspace is refused by RLS on its own read.
+  const { applyOutcome } = await import("@/lib/outcome.functions");
+  const res = await applyOutcome(supabaseClient, user_id, {
+    prdId: p.prd_id,
+    verdict: p.verdict,
+    summary: p.summary,
+    metricLabel: p.metric_label ?? null,
+    metricValue: p.metric_value ?? null,
+    by: {
+      kind: "agent",
+      slug: p.agent_slug?.trim() || "mcp-agent",
+      // THE DECISION RECORD SAYS WHAT ACTUALLY HAPPENED, and refuses to
+      // fabricate the one thing it does not know.
+      //
+      // `SettlementDecision` is the shape the autonomous sweep produces after
+      // running `decideSettlement` over evidence, stakes and impact. An
+      // external agent calling this tool has NOT run that classifier: it was
+      // granted the write:outcome scope by a person and it is exercising it.
+      // Filling `evidence` and `stakes` with plausible numbers would put
+      // invented scores on the permanent record, in the exact fields a human
+      // reads before deciding whether to overturn.
+      //
+      // So the scores are ZERO, which is the truthful reading of "no evidence
+      // model was run", and `because` says so in words rather than leaving a
+      // reader to infer it from three zeroes.
+      decision: {
+        action: "settle",
+        evidence: 0,
+        stakes: 0,
+        required: 0,
+        reason: `Settled through the agent API by ${p.agent_slug?.trim() || "mcp-agent"} under an explicit write:outcome grant.`,
+        because: [
+          "Recorded through POST /api/mcp with a scoped token, not by the autonomous settle-or-ask sweep.",
+          "No evidence or stakes model was run for this write, so those scores are zero rather than estimated.",
+          "The workspace owner granted the write:outcome scope that permitted it.",
+        ],
+      },
+    },
+  });
+  return {
+    status: "stored",
+    learningId: (res as { learningId?: string | null })?.learningId ?? null,
+  };
+}

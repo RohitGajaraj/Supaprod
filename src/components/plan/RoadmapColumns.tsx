@@ -111,7 +111,13 @@ export function RoadmapColumns() {
     mutationFn: (v: { opportunity_id: string }) => fRewind({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["roadmap"] });
-      toast.success("Reverted to the previous placement. The change is on the Trust Ledger.");
+      // Narrowed to what actually happens on every path. The comment four lines
+      // up already says this button fires for a human move as well as an agent
+      // one, and revertRoadmapItemToPrevious only writes the agent_approvals row
+      // when roadmap_last_agent_slug is set — which a human move never sets and
+      // the first rewind clears. The re-captured snapshot, on the other hand, is
+      // unconditional, so that is what the toast now claims.
+      toast.success("Reverted to the previous placement. You can rewind back.");
     },
     onError: (e: Error) => toast.error(e.message),
   });

@@ -186,6 +186,43 @@
  *          invented a confidence bucket for clusters that carry no confidence.
  *          See the note on the row itself.
  *
+ * 9. THE INSTRUMENT PASS, 2026-08-10. The station was honest and it was not
+ *    legible: every fact on it was a sentence, so the ranking could only be
+ *    read one row at a time, and one of those sentences was stronger than the
+ *    column behind it.
+ *
+ *    FIXED the novelty claim, which asserted a prior it could not produce. The
+ *          bottom bucket read "the record has seen this before" -- naming a
+ *          thing -- off one float, with no count, no name and no door, while
+ *          the Record recess below it can be empty at the same instant.
+ *          `noveltyRead` says how much a cluster RESEMBLES the record and never
+ *          which thing; when `getThemePrecedent` has actually named something,
+ *          the recess says so and opens it, and the Gate line now points at it.
+ *    ADDED a batch header. A ranked list with no distribution over it invites
+ *          the reader to trust rank 1 without asking what rank 12 looks like.
+ *          Four counts, all off rows already in hand, and a bucket at zero is
+ *          not drawn.
+ *    ADDED status as SHAPE. The row's leading slot held the rank as a bare
+ *          digit, which restated the reader's own position in an ordered list.
+ *          It carries the novelty ring now -- the only encoding in ~200 shipped
+ *          products that survives greyscale untouched -- and the rank moved into
+ *          the line below, where restating it is free.
+ *    ADDED the score the order is actually made of. This list has sorted on
+ *          `scoreTheme` since 2026-08-01 and showed none of it, so the ranking
+ *          asked to be taken on trust. A numeral out of 100 and a 2px bar on one
+ *          shared scale. NO movement arrow: `themes` stores no previous score
+ *          and inventing one would be the surface asserting a history it does
+ *          not hold. Decide can show a delta because `learnings` keeps
+ *          `prior_ice`; this station has no equivalent column.
+ *    ADDED bulk decline. Every queue in this product was one-at-a-time, and a
+ *          night of connector traffic makes a ranking whose bottom half is
+ *          noise. Decline only: keeping spends a Critic run per cluster and
+ *          merging needs a target bet per cluster, so neither may be one press.
+ *    ADDED a worked example on the empty desk, which is the majority view. The
+ *          first-run screen said connect a source and gave no idea what the
+ *          thing being filled would look like when full. It is a drawing, it
+ *          carries no id, it cannot be acted on, and it says so three times.
+ *
  * VOICE: never greet, always report. The first line is a count that came out of
  * the record, or an honest statement that there is nothing in it yet.
  */
@@ -255,11 +292,20 @@ import {
   Receipt,
   Record,
   Row,
+  SelectionBar,
   Surface,
   Switch,
   Textarea,
   type MarkState,
 } from "@/components/shell/primitives";
+import { useSelection } from "@/components/shell/use-selection";
+import {
+  BatchHeader,
+  ScoreMeter,
+  SelectBox,
+  StatusRing,
+  type RingFill,
+} from "@/components/decisions/queue-instruments";
 import { capturedByHand, signalPreview, sourceLabel, withTimeout } from "./format";
 import { CrewWorking } from "@/components/shell/CrewWorking";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
@@ -330,18 +376,67 @@ function markState(state: string): MarkState {
 const plural = (n: number) => (n === 1 ? "" : "s");
 
 /**
- * Novelty as a CLAIM, never as a percentage.
+ * Novelty as a CLAIM, never as a percentage -- AND NEVER AS A CLAIM THE COLUMN
+ * CANNOT BACK.
  *
  * `themes.novelty` is a 0..1 remap of cosine similarity against decision memory
- * and prior themes, computed at cluster time. Printing "0.34" would be printing
- * our own arithmetic at someone; the useful reading is the sentence it implies,
- * and the receipt behind it is the Record below the Gate.
+ * and prior themes, computed once at cluster time. Printing "0.34" would be
+ * printing our own arithmetic at someone; the useful reading is the sentence it
+ * implies.
+ *
+ * WHAT THE BOTTOM BUCKET USED TO SAY, AND WHY IT WAS TOO STRONG. It read "the
+ * record has seen this before", which asserts a PRIOR: a specific earlier
+ * cluster or decision, of which the row named none, counted none and opened
+ * none. The Record recess under the Gate can be empty at the same moment the
+ * row makes the claim -- `getThemePrecedent` is a separate read, fired only for
+ * the cluster in focus, and it returns nothing for most clusters. So on a
+ * scanning row the surface was stating a fact from one float that the surface
+ * could not then show.
+ *
+ * The three sentences below are what a similarity number on its own supports:
+ * how much this RESEMBLES what is already on the record, and nothing about
+ * which thing. When there genuinely is a named prior, the Record recess says so
+ * in its own words and opens it, one screen down. That division -- the number
+ * makes the weak claim, the read makes the strong one -- is the same one this
+ * file already applies to `themes.confidence`, which it refuses to render at
+ * all.
+ *
+ * The `fill` is the row's status ring. It is an ordinal on ONE axis, novelty,
+ * and it is the shape rather than a hue for the reason queue-instruments.tsx
+ * sets out: it has to survive greyscale.
  */
-function noveltyClaim(novelty: number | null | undefined): string | null {
+type NoveltyRead = {
+  /** The claim, in the weakest form the number supports. */
+  claim: string;
+  fill: RingFill;
+  /** Where the number came from, said in full on hover, so the claim is
+   *  checkable rather than oracular. */
+  basis: string;
+};
+
+const NOVELTY_BASIS =
+  "Scored when this cluster was built, against your settled decisions and every earlier cluster. Open it to see what it resembles.";
+
+function noveltyRead(novelty: number | null | undefined): NoveltyRead | null {
   if (typeof novelty !== "number") return null;
-  if (novelty >= 0.75) return "new to this workspace";
-  if (novelty >= 0.4) return "close to something on the record";
-  return "the record has seen this before";
+  if (novelty >= 0.75)
+    return { claim: "unlike anything on the record", fill: "full", basis: NOVELTY_BASIS };
+  if (novelty >= 0.4)
+    return { claim: "partly resembles the record", fill: "part", basis: NOVELTY_BASIS };
+  return { claim: "closely resembles the record", fill: "empty", basis: NOVELTY_BASIS };
+}
+
+/** How much of the ranking a batch header can honestly bucket. Kept beside
+ *  `noveltyRead` because it is the same three buckets counted rather than
+ *  named, and a fourth for the clusters that carry no novelty at all -- which
+ *  is a real state the header must not fold into "closely resembles". */
+function noveltyBucket(
+  novelty: number | null | undefined,
+): "new" | "partial" | "seen" | "unscored" {
+  if (typeof novelty !== "number") return "unscored";
+  if (novelty >= 0.75) return "new";
+  if (novelty >= 0.4) return "partial";
+  return "seen";
 }
 
 type ReceiptState = {
@@ -797,6 +892,43 @@ export function DiscoverSurface({
   const themeWindow = themes.data?.themes.length ?? 0;
   const themeTotal = themes.data?.total ?? themeWindow;
 
+  /**
+   * WHAT THE WHOLE RANKING LOOKS LIKE, counted before it is listed.
+   *
+   * A ranked list with no distribution over it asks the reader to trust rank 1
+   * without ever asking what rank 12 looks like. Every count here comes off
+   * rows already in hand -- no extra read, no derived guess -- and the
+   * `unscored` bucket is the one that has to exist: a cluster carrying no
+   * `novelty` is a different fact from one that resembles the record, and
+   * folding the two would make the other three counts lies.
+   */
+  const spread = React.useMemo(() => {
+    let fresh = 0;
+    let partial = 0;
+    let seen = 0;
+    let unscored = 0;
+    for (const r of ranked) {
+      const bucket = noveltyBucket(r.theme.novelty);
+      if (bucket === "new") fresh += 1;
+      else if (bucket === "partial") partial += 1;
+      else if (bucket === "seen") seen += 1;
+      else unscored += 1;
+    }
+    return { fresh, partial, seen, unscored };
+  }, [ranked]);
+
+  /**
+   * BULK TRIAGE, over the ranking's own order.
+   *
+   * The ids are `ranked`'s and not the visible slice's, so a shift-range means
+   * what a person expects across a "Show all" and a selection survives the fold
+   * closing again. `useSelection` intersects with these on every read, so a
+   * cluster that gets promoted by the autonomous sweep while it is ticked
+   * simply leaves the selection rather than being acted on after it has gone.
+   */
+  const rankedIds = React.useMemo(() => ranked.map((r) => r.theme.id), [ranked]);
+  const picked = useSelection(rankedIds);
+
   const invalidate = () => {
     void qc.invalidateQueries({ queryKey: ["signals"] });
     void qc.invalidateQueries({ queryKey: ["themes"] });
@@ -931,6 +1063,75 @@ export function DiscoverSurface({
     },
     onError: (e: Error) =>
       setReceipt({ verb: "It did not go back", consequence: e.message, failed: true }),
+  });
+
+  /**
+   * DECLINING TWENTY AT ONCE, WHICH USED TO BE TWENTY KEYPRESSES.
+   *
+   * A sweep of every queue in this product found not one multi-select anywhere,
+   * and this station is where that costs most: a night of connector traffic
+   * produces a ranking whose bottom half is noise, and the only path through it
+   * was `j` `d` `j` `d`. `useSelection` and `SelectionBar` exist for exactly
+   * this and had no caller here.
+   *
+   * DECLINE IS THE ONLY VERB OFFERED IN BULK, and that is a considered limit
+   * rather than a first slice.
+   *   - Keeping spends a Critic run per cluster and creates a bet per cluster.
+   *     Twenty of those from one press is a bill and a queue nobody asked for;
+   *     the whole point of the friction rule on the other station is that a
+   *     model call should cost more than a click, and this would invert it
+   *     twenty-fold.
+   *   - Merging needs a target bet PER cluster. One bet for twenty clusters is
+   *     a different act with a different meaning, and offering it here would
+   *     quietly perform it.
+   * Declining is cheap, it is one column write each, and it is the one
+   * disposition this surface can already undo from the Settled block below.
+   *
+   * IT REPORTS WHAT LANDED, NOT WHAT IT SET OUT TO DO. `Promise.allSettled`,
+   * because a row-level-security refusal on one cluster must not throw away the
+   * nineteen that went through, and a person who ticked twenty needs to know
+   * the number rather than a verb.
+   */
+  const declineMany = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const results = await Promise.allSettled(
+        ids.map((id) => fSetStatus({ data: { theme_id: id, status: "dismissed" } })),
+      );
+      const done = results.filter((r) => r.status === "fulfilled").length;
+      const firstRefusal = results.find((r) => r.status === "rejected");
+      return {
+        done,
+        failed: ids.length - done,
+        why:
+          firstRefusal && firstRefusal.status === "rejected"
+            ? ((firstRefusal.reason as Error)?.message ?? "The record refused the write.")
+            : null,
+      };
+    },
+    onSuccess: (r, ids) => {
+      picked.clear();
+      setReceipt({
+        verb: r.failed === 0 ? "You said they are not patterns" : "Most of them went through",
+        consequence:
+          r.failed === 0 ? (
+            <>
+              <Num>{r.done}</Num> cluster{plural(r.done)} left the ranking. Their evidence is still
+              on the record and so are the calls. Each one comes back on its own if it grows, and
+              they are under Settled below until then.
+            </>
+          ) : (
+            <>
+              <Num>{r.done}</Num> of <Num>{ids.length}</Num> left the ranking. <Num>{r.failed}</Num>{" "}
+              did not: {r.why} Those are still in the list below.
+            </>
+          ),
+        failed: r.failed > 0,
+      });
+      setShowSettled(true);
+      invalidate();
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "None of them moved", consequence: e.message, failed: true }),
   });
 
   /**
@@ -1210,7 +1411,14 @@ export function DiscoverSurface({
 
   const captureReady = draft.trim().length >= 2;
   const bodyReady = bodyText.trim().length >= 2;
-  const busy = promote.isPending || decline.isPending || attach.isPending || undecline.isPending;
+  const busy =
+    promote.isPending ||
+    decline.isPending ||
+    attach.isPending ||
+    undecline.isPending ||
+    // A bulk decline can settle the cluster under the Gate, so the single-item
+    // verbs stand down for the same reason they do during a single decline.
+    declineMany.isPending;
 
   /**
    * The triage keyboard. Digits dispose, arrows move, Escape backs out.
@@ -1393,60 +1601,102 @@ export function DiscoverSurface({
   );
 
   const cov = coverage.data;
-  const claim = noveltyClaim(focused?.theme.novelty);
+  const claim = noveltyRead(focused?.theme.novelty);
   const seenBefore = precedent.data?.precedent ?? [];
   const priorTheme = precedent.data?.priorTheme ?? null;
+  /** Whether the precedent read has actually NAMED something. The Gate's
+   *  novelty clause is allowed to be stronger when it has, because the recess
+   *  directly below it then carries the name and the door. */
+  const precedentNamed = seenBefore.length > 0 || Boolean(priorTheme);
+
+  /* WHETHER THE CONTEXT COLUMN HAS ANYTHING TO SAY, decided here rather than
+     left to the prop.
+     `context={<>...</>}` was a lie to `Surface`: a JSX fragment is an object
+     and an object is truthy, so the `{context ? <aside className="sp-ctx"> :
+     null}` test in primitives.tsx passed on EVERY render, including the ones
+     where all four sections below evaluate to null. The result was a 316px
+     bordered aside holding a starfield gradient and nothing else -- on a
+     workspace with no sources, on the first paint of every visit before the
+     reads land, and permanently on a failed fleet read.
+     /decide computes the same answer before the prop (`context={activeOpp ?
+     ... : null}`); this does it the same way, with one flag per section so the
+     condition here can never drift from what the section actually renders. */
+  const fleetFailed = fleet.isError;
+  const hasCoverage = !!cov && cov.sources.length > 0;
+  const hasEvidence = !!focused && focusedMembers.length > 0;
+  const hasContext = !!watcher || fleetFailed || hasCoverage || hasEvidence;
 
   return (
     <Surface
       context={
-        <>
-          {watcher ? (
-            <>
-              <CtxHead>Reading for you</CtxHead>
-              <CtxRow
-                mark={
-                  <AgentMark
-                    slug={watcher.slug}
-                    name={watcher.name}
-                    state={markState(watcher.state)}
-                  />
-                }
-                name={agentDisplayName(watcher.slug, watcher.name)}
-                sub={
-                  since(watcher.lastActiveAt) ? (
-                    <>
-                      last read <Num>{since(watcher.lastActiveAt)}</Num>
-                    </>
-                  ) : (
-                    "has not read anything yet"
-                  )
-                }
-              />
-            </>
-          ) : null}
+        hasContext ? (
+          <>
+            {watcher ? (
+              <>
+                <CtxHead>Reading for you</CtxHead>
+                <CtxRow
+                  mark={
+                    <AgentMark
+                      slug={watcher.slug}
+                      name={watcher.name}
+                      state={markState(watcher.state)}
+                    />
+                  }
+                  name={agentDisplayName(watcher.slug, watcher.name)}
+                  sub={
+                    since(watcher.lastActiveAt) ? (
+                      <>
+                        last read <Num>{since(watcher.lastActiveAt)}</Num>
+                      </>
+                    ) : (
+                      "has not read anything yet"
+                    )
+                  }
+                />
+              </>
+            ) : fleetFailed ? (
+              /* THE FLEET READ FAILED, AND THAT IS NOT "no agent is reading".
+               This branch did not exist: `watcher` is derived from
+               `fleet.data`, so an errored read left it null and the section
+               rendered nothing, which said the same thing a workspace with no
+               Sense agent says. Two different facts, and a person acts
+               differently on each -- the primitives file makes that binding.
+               It also kept the rail alive for the retry, which was the other
+               half of the defect: with no branch here a failed read produced
+               an empty rail with no way to ask again. */
+              <>
+                <CtxHead>Reading for you</CtxHead>
+                <Failed onRetry={() => void fleet.refetch()}>
+                  Who is reading for you did not load.
+                </Failed>
+              </>
+            ) : null}
 
-          {/* WHAT IS FEEDING THIS DESK. The agent has had `sources.status`
+            {/* WHAT IS FEEDING THIS DESK. The agent has had `sources.status`
             since 2026-06-30 and the person reading its output had nothing.
             A ranking is only as trustworthy as the intake behind it, and a
-            source that has gone quiet is invisible unless something says so. */}
-          {cov && cov.sources.length > 0 ? (
-            <>
-              <CtxHead>What is feeding this</CtxHead>
-              {cov.sources.slice(0, SOURCES_IN_CONTEXT).map((s) => (
-                <CtxRow
-                  key={s.source}
-                  /* The readable name, not the column value. `getSenseCoverage`
+            source that has gone quiet is invisible unless something says so.
+
+            Reads `hasCoverage` rather than restating the test, so the flag that
+            decides whether the aside is drawn at all and the test that decides
+            whether this section renders are the same expression. */}
+            {hasCoverage && cov ? (
+              <>
+                <CtxHead>What is feeding this</CtxHead>
+                {cov.sources.slice(0, SOURCES_IN_CONTEXT).map((s) => (
+                  <CtxRow
+                    key={s.source}
+                    /* The readable name, not the column value. `getSenseCoverage`
                      groups on `source_kind || source`, so this list used to read
                      "pull_connector" and "manual" at a person, which are our
                      words for our lanes and nobody else's words for anything. */
-                  name={sourceLabel(s.source)}
-                  title={
-                    capturedByHand(s.source)
-                      ? s.source
-                      : "Open this source in Settings, Connections"
-                  }
-                  /* THE DOOR TO THE CONNECTOR. A row here says a source has gone
+                    name={sourceLabel(s.source)}
+                    title={
+                      capturedByHand(s.source)
+                        ? s.source
+                        : "Open this source in Settings, Connections"
+                    }
+                    /* THE DOOR TO THE CONNECTOR. A row here says a source has gone
                      quiet, which is the most actionable fact in the column, and
                      it led nowhere: the only way to act on it was to remember
                      that connectors live three clicks away in Settings.
@@ -1464,76 +1714,81 @@ export function DiscoverSurface({
                      Its way in is the capture box on this same page, and
                      pointing it at Connections would be a promise the
                      destination cannot keep. */
-                  onClick={
-                    capturedByHand(s.source)
-                      ? undefined
-                      : () =>
-                          navigate({
-                            to: "/settings",
-                            search: { section: "connections", connector: s.source },
-                          })
-                  }
-                  sub={
-                    s.quiet ? (
-                      <>
-                        quiet for <Num>7d</Num>, sent <Num>{s.prior}</Num> before that
-                      </>
-                    ) : (
-                      <>
-                        <Num>{s.recent}</Num> in <Num>7d</Num>
-                        {s.lastAt ? (
-                          <>
-                            , last <Num>{since(s.lastAt)}</Num>
-                          </>
-                        ) : null}
-                      </>
-                    )
-                  }
-                />
-              ))}
-              {cov.sources.length > SOURCES_IN_CONTEXT ? (
-                <CtxBody>
-                  <Num>{cov.sources.length - SOURCES_IN_CONTEXT}</Num> more source
-                  {plural(cov.sources.length - SOURCES_IN_CONTEXT)}.
-                </CtxBody>
-              ) : null}
-              {/* THE MOST ACTIONABLE LINE ON THE PAGE, and it was a paragraph.
+                    onClick={
+                      capturedByHand(s.source)
+                        ? undefined
+                        : () =>
+                            navigate({
+                              to: "/settings",
+                              search: { section: "connections", connector: s.source },
+                            })
+                    }
+                    sub={
+                      s.quiet ? (
+                        <>
+                          quiet for <Num>7d</Num>, sent <Num>{s.prior}</Num> before that
+                        </>
+                      ) : (
+                        <>
+                          <Num>{s.recent}</Num> in <Num>7d</Num>
+                          {s.lastAt ? (
+                            <>
+                              , last <Num>{since(s.lastAt)}</Num>
+                            </>
+                          ) : null}
+                        </>
+                      )
+                    }
+                  />
+                ))}
+                {cov.sources.length > SOURCES_IN_CONTEXT ? (
+                  <CtxBody>
+                    <Num>{cov.sources.length - SOURCES_IN_CONTEXT}</Num> more source
+                    {plural(cov.sources.length - SOURCES_IN_CONTEXT)}.
+                  </CtxBody>
+                ) : null}
+                {/* THE MOST ACTIONABLE LINE ON THE PAGE, and it was a paragraph.
                 A source that used to deliver and has stopped is the one fact
                 here that says DO SOMETHING, and it said it with no way to do
                 anything. It names which sources went quiet on its second line,
                 because "3 sources" and "GitHub, Intercom, Zendesk" are
                 different facts and only the second one tells you whether to
                 care. */}
-              {cov.quietCount > 0 ? (
-                <CtxRow
-                  name={
-                    <>
-                      <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver and
-                      has not this week
-                    </>
-                  }
-                  sub={cov.sources
-                    .filter((s) => s.quiet)
-                    .map((s) => sourceLabel(s.source))
-                    .join(", ")}
-                  title="Open Connections in Settings"
-                  onClick={() => navigate({ to: "/settings", search: { section: "connections" } })}
-                />
-              ) : null}
-            </>
-          ) : null}
+                {cov.quietCount > 0 ? (
+                  <CtxRow
+                    name={
+                      <>
+                        <Num>{cov.quietCount}</Num> source{plural(cov.quietCount)} used to deliver
+                        and has not this week
+                      </>
+                    }
+                    sub={cov.sources
+                      .filter((s) => s.quiet)
+                      .map((s) => sourceLabel(s.source))
+                      .join(", ")}
+                    title="Open Connections in Settings"
+                    onClick={() =>
+                      navigate({ to: "/settings", search: { section: "connections" } })
+                    }
+                  />
+                ) : null}
+              </>
+            ) : null}
 
-          {/* The evidence, and it belongs to the ONE cluster in focus. This
+            {/* The evidence, and it belongs to the ONE cluster in focus. This
             is what the whole signal feed panel was for; here it is doing
-            the job it was actually needed for, verbatim and attributed. */}
-          {focused && focusedMembers.length > 0 ? (
-            <>
-              <CtxHead>What backs this</CtxHead>
-              {focusedMembers.slice(0, QUOTES_IN_FOCUS).map((s) => (
-                <CtxRow
-                  key={s.id}
-                  name={signalPreview(s.content, 96)}
-                  /* THE QUOTE OPENS THE THING IT CAME FROM. `signals.url` has
+            the job it was actually needed for, verbatim and attributed.
+
+            Reads `hasEvidence` for the reason the section above reads
+            `hasCoverage`: one expression, used twice. */}
+            {hasEvidence && focused ? (
+              <>
+                <CtxHead>What backs this</CtxHead>
+                {focusedMembers.slice(0, QUOTES_IN_FOCUS).map((s) => (
+                  <CtxRow
+                    key={s.id}
+                    name={signalPreview(s.content, 96)}
+                    /* THE QUOTE OPENS THE THING IT CAME FROM. `signals.url` has
                      held the ticket, the thread or the review this sentence was
                      lifted out of since the table was created, and no surface
                      ever rendered it, so the evidence under a call was a wall of
@@ -1545,13 +1800,13 @@ export function DiscoverSurface({
                      captured ones: there is nowhere to send you, and a row that
                      lights up and does nothing is the defect this whole pass is
                      about. */
-                  title={s.url ? `Open the source: ${s.url}` : undefined}
-                  onClick={
-                    s.url
-                      ? () => window.open(s.url as string, "_blank", "noopener,noreferrer")
-                      : undefined
-                  }
-                  /* WHERE THIS ONE CAME FROM, in words. A quote a colleague
+                    title={s.url ? `Open the source: ${s.url}` : undefined}
+                    onClick={
+                      s.url
+                        ? () => window.open(s.url as string, "_blank", "noopener,noreferrer")
+                        : undefined
+                    }
+                    /* WHERE THIS ONE CAME FROM, in words. A quote a colleague
                      typed by hand and a quote a connector pulled at 4am are the
                      same shape on screen and are not the same level of
                      evidence, and the raw token ("note", "pull_connector") was
@@ -1588,30 +1843,31 @@ export function DiscoverSurface({
                      The channel stays: it is what the seed says it is imitating,
                      and the mark in front of it qualifies the whole line.
                      `listSignals` selects `*`, so the column is already here. */
-                  sub={
-                    <>
-                      {s.is_sample ? (
-                        <>
-                          <b>Example</b>
-                          {" · "}
-                        </>
-                      ) : null}
-                      {sourceLabel(s.source, s.source_kind)}
-                      {s.is_sample || capturedByHand(s.source, s.source_kind)
-                        ? ""
-                        : ", sensed"}, <Num>{since(s.created_at)}</Num>
-                    </>
-                  }
-                />
-              ))}
-              {focusedMembers.length > QUOTES_IN_FOCUS ? (
-                <CtxBody>
-                  <Num>{focusedMembers.length - QUOTES_IN_FOCUS}</Num> more say the same thing.
-                </CtxBody>
-              ) : null}
-            </>
-          ) : null}
-        </>
+                    sub={
+                      <>
+                        {s.is_sample ? (
+                          <>
+                            <b>Example</b>
+                            {" · "}
+                          </>
+                        ) : null}
+                        {sourceLabel(s.source, s.source_kind)}
+                        {s.is_sample || capturedByHand(s.source, s.source_kind)
+                          ? ""
+                          : ", sensed"}, <Num>{since(s.created_at)}</Num>
+                      </>
+                    }
+                  />
+                ))}
+                {focusedMembers.length > QUOTES_IN_FOCUS ? (
+                  <CtxBody>
+                    <Num>{focusedMembers.length - QUOTES_IN_FOCUS}</Num> more say the same thing.
+                  </CtxBody>
+                ) : null}
+              </>
+            ) : null}
+          </>
+        ) : null
       }
     >
       {/* THE AUTONOMOUS PATH, VISIBLE, ON STATION 01. Renders nothing unless a
@@ -1817,7 +2073,15 @@ export function DiscoverSurface({
               <span key="when">
                 First heard <Num>{since(focused.theme.created_at)}</Num>, most recently{" "}
                 <Num>{since(focused.lastAt)}</Num>
-                {claim ? `, and it is ${claim}` : ""}.
+                {/* THE CLAIM STOPS WHERE THE EVIDENCE STOPS. `noveltyRead` is a
+                    similarity number turned into the weakest sentence it
+                    supports, so on its own it says how much this RESEMBLES the
+                    record and never which thing. When the precedent read has
+                    actually named something, the recess below carries the name
+                    and the door, and this line says so instead of leaving the
+                    reader to notice a second block further down. */}
+                {claim ? `, and it is ${claim}` : ""}
+                {claim && precedentNamed ? ", named below" : ""}.
               </span>,
               focused.theme.summary ? <span key="sum">{focused.theme.summary}</span> : null,
             ].filter(Boolean) as React.ReactNode[]
@@ -1883,6 +2147,55 @@ export function DiscoverSurface({
           handoff={receipt.handoff}
           failed={receipt.failed}
         />
+      ) : null}
+
+      {/* EMPTY IS THE MAJORITY VIEW, AND IT WAS ANSWERED WITH INSTRUCTIONS.
+        A workspace with no signals got a Gate saying connect a source, a
+        capture box, and no idea at all what the thing it was being asked to
+        fill would look like when it was full. That is the shape of the
+        station's most common first impression.
+
+        A WORKED EXAMPLE, NOT MORE COPY, and that is measured rather than
+        preferred: "example" is the single highest-frequency term across 5.72M
+        words of operator conversation. Operators reason in examples. Two
+        sentences describing a ranking row teach less than one drawn row.
+
+        IT IS NOT DATA AND IT NEVER TOUCHES THE RECORD. Nothing here is read,
+        written, counted or ranked: it is a drawing of a row, it carries no id,
+        it is not clickable, it has no tick, and it renders only while the
+        workspace genuinely holds nothing. The one thing this product must never
+        do is put invented rows where real ones go, so the block says what it is
+        in its title, in its subtitle, and on the row itself. */}
+      {signalsEmpty && !picking ? (
+        <Block
+          title="What the ranking will show"
+          sub="A drawing, not a row. Nothing here is in your record, and nothing here can be acted on."
+        >
+          <Row
+            tight
+            marks={
+              <StatusRing small fill="full" label="Illustration: unlike anything on the record" />
+            }
+            lead="Address re-confirm loses people at checkout"
+            sub={
+              <>
+                <b>Illustration</b>
+                {" · "}
+                <Num>#1</Num>
+                {" · "}
+                <ScoreMeter value={72} ceiling={100} what="Severity, recency and novelty" />
+                {" · "}7 signals · Support inbox (4), Sales call (3) · unlike anything on the record
+              </>
+            }
+            time="2h ago"
+          />
+          <CtxBody>
+            The ring is how much of it the record has met before: filled is new, half is a partial
+            match, empty means it closely resembles something already settled. The number is
+            severity, recency and novelty folded together, out of 100, and the bar is the same scale
+            on every row. Your own rows will carry the same three facts, from your own sources.
+          </CtxBody>
+        </Block>
       ) : null}
 
       {/* The bets a cluster can be merged into. Rendered only in picker mode,
@@ -2031,7 +2344,7 @@ export function DiscoverSurface({
              could only find these by reading the source. The list they move
              through is the one place the hint belongs, and it is the same
              pair /approvals uses for the same job. */
-          sub="j and k move the focus. The one in focus is the one the keys act on."
+          sub="j and k move the focus. The one in focus is the one the keys act on. Tick rows to decline a batch of them at once."
           more={
             ranked.length > VISIBLE_CLUSTERS
               ? showAllClusters
@@ -2041,6 +2354,68 @@ export function DiscoverSurface({
           }
           onMore={() => setShowAllClusters((v) => !v)}
         >
+          {/* WHAT THE READER IS ABOUT TO SCAN, before they scan it. The counts
+              are the three novelty buckets the rows themselves use plus the
+              clusters carrying no novelty at all, so the header and the rows can
+              never disagree: they read one function. A bucket at zero is not
+              drawn, because a count of nothing changes nothing a person does. */}
+          <BatchHeader
+            facts={[
+              {
+                n: ranked.length,
+                label: ranked.length === 1 ? "cluster open" : "clusters open",
+                always: true,
+                title:
+                  "Still waiting on a judgment. Declined, merged and promoted ones are under Settled.",
+              },
+              {
+                n: spread.fresh,
+                label: "unlike anything on the record",
+                title: "Scored furthest from your settled decisions and every earlier cluster.",
+              },
+              {
+                n: spread.partial,
+                label: "partly resemble it",
+              },
+              {
+                n: spread.seen,
+                label: "closely resemble it",
+                title:
+                  "Worth killing here: a repeat caught as a cluster costs nothing, and the same repeat caught on Decide has already spent a Critic run.",
+              },
+              {
+                n: spread.unscored,
+                label: "carry no novelty score",
+                title:
+                  "Clustered before the brain scored novelty, or scored while it was unavailable. Not the same as resembling nothing.",
+              },
+            ]}
+          />
+
+          {/* The bulk bar takes the list's own header slot rather than floating
+              over it, per `useSelection`'s own note: everything that floats here
+              would land on the "Show all" control directly below the rows.
+
+              NO CONFIRMATION, DELIBERATELY, and the asymmetry with /decide is
+              the rule rather than an oversight. Friction is proportional to what
+              an act SPENDS and to how hard it is to take back. Decide's bulk
+              drop asks first because each row files a rejection into the
+              decision log with a person's name on it. This spends nothing:
+              `setThemeStatus` writes one column and `dismissed_at_frequency`,
+              the Settled block six rows down puts any of them back with one
+              press, and the clusterer re-opens a declined cluster on its own the
+              moment it grows past the escalation bar. A dialog in front of a
+              reversible column write is friction charged for nothing, which is
+              how people learn to click through the dialogs that matter. */}
+          <SelectionBar selection={picked} total={ranked.length} noun="cluster">
+            <Button
+              disabled={busy || declineMany.isPending}
+              onClick={() => declineMany.mutate([...picked.ids])}
+            >
+              {declineMany.isPending ? "Declining them" : "Not patterns"}
+            </Button>
+          </SelectionBar>
+
           {(showAllClusters ? ranked : ranked.slice(0, VISIBLE_CLUSTERS)).map((entry, i) => {
             /**
              * WHERE ITS EVIDENCE CAME FROM, IN WORDS, and this row printed our
@@ -2089,7 +2464,7 @@ export function DiscoverSurface({
              *     score, severity, novelty, frequency" when it read one column.
              *
              * WHAT REPLACES IT, because a row losing a fact is a row that got
-             * weaker. `noveltyClaim` is this file's sanctioned way of speaking
+             * weaker. `noveltyRead` is this file's sanctioned way of speaking
              * about the brain's number: a sentence rather than an arithmetic,
              * derived from `themes.novelty`, which is real and is one of the
              * three terms `scoreTheme` actually ranks on. It returns null when
@@ -2097,15 +2472,58 @@ export function DiscoverSurface({
              * nothing instead of guessing, and the Gate has shown this same
              * claim for the cluster in focus since 2026-08-01. Saying it on the
              * row is what lets a person choose what to open before opening it.
+             *
+             * AND IT NO LONGER ASSERTS A PRIOR IT CANNOT PRODUCE. See
+             * `noveltyRead`: the bottom bucket used to read "the record has seen
+             * this before", which names a thing, and the row named none.
              */
-            const rowClaim = noveltyClaim(entry.theme.novelty);
+            const rowClaim = noveltyRead(entry.theme.novelty);
+
+            /**
+             * THE SCORE THE ORDER IS ACTUALLY MADE OF, on the row it ordered.
+             *
+             * `scoreTheme` returns (0,1] and this list has been sorted on it
+             * since 2026-08-01 while showing nothing of it, so the ranking asked
+             * to be taken on trust: rank 1 was above rank 6 for a reason the
+             * surface kept to itself. Rendered as an integer out of 100 with the
+             * ceiling stated in the meter's own title, never as a bare decimal,
+             * and the 2px bar is what makes two rows comparable at a glance.
+             *
+             * NO MOVEMENT ARROW HERE, and it is absent because the data is. A
+             * theme carries one `novelty` and one `severity`, both written once
+             * at cluster time; nothing anywhere stores what this cluster scored
+             * yesterday. Decide can show a delta because `learnings` keeps
+             * `prior_ice` and `new_ice`; this station has no equivalent column,
+             * and inventing one from the render would be the surface asserting
+             * a history it does not hold.
+             */
+            const rowScore = Math.round(entry.score * 100);
 
             return (
               <Row
                 key={entry.theme.id}
                 tight
                 focused={entry.theme.id === focusedId}
-                marks={<Num>{i + 1}</Num>}
+                /* THE SHAPE CARRIES THE STATE, and the numeral moved off this
+                   slot to make room for it. The rank was here as a bare mono
+                   digit and it was the LEAST useful thing on the row: the list
+                   is already in rank order, so the number restated the reader's
+                   own position in it. What the slot holds now is the one fact
+                   the order turns on that a person cannot see -- how much of
+                   this the record has met before -- as a ring that survives
+                   greyscale. The rank still appears, in the line below, where
+                   restating it costs nothing. */
+                marks={
+                  <StatusRing
+                    small
+                    fill={rowClaim?.fill ?? "empty"}
+                    label={
+                      rowClaim
+                        ? `${rowClaim.claim}. ${rowClaim.basis}`
+                        : "No novelty score on this cluster"
+                    }
+                  />
+                }
                 lead={entry.theme.title}
                 sub={
                   <>
@@ -2120,13 +2538,31 @@ export function DiscoverSurface({
                         {" · "}
                       </>
                     ) : null}
+                    <Num>#{i + 1}</Num>
+                    {" · "}
+                    <ScoreMeter
+                      value={rowScore}
+                      ceiling={100}
+                      what="Severity, recency and novelty"
+                    />
+                    {" · "}
                     {entry.theme.frequency} signal{plural(entry.theme.frequency)}
                     {sourceList ? ` · ${sourceList}` : ""}
-                    {rowClaim ? ` · ${rowClaim}` : ""}
+                    {rowClaim ? ` · ${rowClaim.claim}` : ""}
                   </>
                 }
                 time={since(entry.lastAt)}
                 onClick={() => setFocusedId(entry.theme.id)}
+                /* The tick sits outside the clickable region, so choosing a
+                   cluster for a batch never also moves the Gate onto it. */
+                action={
+                  <SelectBox
+                    id={entry.theme.id}
+                    label={`Select ${entry.theme.title}`}
+                    selection={picked}
+                    disabled={busy}
+                  />
+                }
               />
             );
           })}
@@ -2209,6 +2645,23 @@ export function DiscoverSurface({
                     <Row
                       key={t.id}
                       tight
+                      /* THE SHAPE SAYS SETTLED BEFORE THE WORDS DO, and it says
+                         it in the same slot the live rows use, so a person who
+                         has learned the ring on the ranking above reads this
+                         list without learning anything new. `struck` is a ring
+                         with a bar through it rather than a fuller ring,
+                         because "over" must never look like "further along".
+                         Promoted wears `pass` -- green carries outcomes and a
+                         cluster that became a bet is the good one. The other
+                         two stay neutral: declining is not a failure. */
+                      marks={
+                        <StatusRing
+                          small
+                          fill="struck"
+                          tone={status === "promoted" ? "pass" : "quiet"}
+                          label={settledWord(status)}
+                        />
+                      }
                       lead={t.title}
                       sub={
                         <>

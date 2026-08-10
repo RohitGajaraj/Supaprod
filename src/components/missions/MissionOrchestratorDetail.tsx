@@ -1540,7 +1540,7 @@ export function MissionOrchestratorDetail({ missionId }: { missionId: string }) 
               marginBottom: 10,
             }}
           >
-            <MonoLabel icon={Bot}>Executed unattended</MonoLabel>
+            <MonoLabel icon={Bot}>Ran on its own</MonoLabel>
             <span className="mono-label tabular-nums">
               {unattended.length} action{unattended.length !== 1 ? "s" : ""}
             </span>

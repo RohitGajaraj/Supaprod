@@ -101,6 +101,7 @@ type FocusNode = { kind: GraphNodeKind; id: string };
 /** Pick the focus: the explicit one, else the caller's most recent decision / opportunity / prd. */
 async function resolveFocus(
   supabase: SupabaseClient,
+  ws: string | null,
   focusKind?: GraphNodeKind,
   focusId?: string,
 ): Promise<FocusNode | null> {
@@ -111,11 +112,14 @@ async function resolveFocus(
     ["prd", "prds"],
   ];
   for (const [kind, table] of fallbacks) {
-    const { data } = await supabase
-      .from(table)
-      .select("id")
-      .order("created_at", { ascending: false })
-      .limit(1);
+    // Scoped too, and this one matters as much as the edges: the auto-focus
+    // picks the caller's most recent artifact across every workspace RLS
+    // permits, so an unscoped focus anchors the whole graph on another
+    // workspace's newest decision and every edge walked from it is that
+    // workspace's.
+    let q = supabase.from(table).select("id").order("created_at", { ascending: false }).limit(1);
+    if (ws) q = q.eq("workspace_id", ws);
+    const { data } = await q;
     const id = (data as { id?: string }[] | null)?.[0]?.id;
     if (id) return { kind, id };
   }
@@ -130,13 +134,16 @@ async function resolveFocus(
  */
 async function resolveLineageFocus(
   supabase: SupabaseClient,
+  ws: string | null,
   cols: string,
 ): Promise<FocusNode | null> {
-  const { data } = await supabase
+  let q = supabase
     .from("artifact_lineage")
     .select(cols)
     .order("created_at", { ascending: false })
     .limit(1);
+  if (ws) q = q.eq("workspace_id", ws);
+  const { data } = await q;
   // Same dynamic-`cols` cast the BFS uses (defeats the client's row-type inference).
   return pickLineageFocus((data ?? []) as unknown as RawLineageEdge[]);
 }
@@ -144,6 +151,7 @@ async function resolveLineageFocus(
 /** Bounded both-directions BFS over artifact_lineage. Collects edges + visited node ids. */
 async function fetchSubgraph(
   supabase: SupabaseClient,
+  ws: string | null,
   focus: FocusNode,
   bounds: GraphBounds,
   cols: string,
@@ -167,18 +175,25 @@ async function fetchSubgraph(
       for (const batch of chunk(ids, IN_BATCH)) {
         // Parallelize the two independent queries: parents (up) and children (down).
         // Both queries on the same batch can run concurrently instead of serially.
-        const [{ data: up }, { data: down }] = await Promise.all([
-          supabase
-            .from("artifact_lineage")
-            .select(cols)
-            .eq("child_kind", kind)
-            .in("child_id", batch),
-          supabase
-            .from("artifact_lineage")
-            .select(cols)
-            .eq("parent_kind", kind)
-            .in("parent_id", batch),
-        ]);
+        // BOTH directions carry the workspace filter. Scoping one and not the
+        // other would walk out of the workspace on every second hop and pull
+        // the neighbourhood back in with it, which is harder to notice than no
+        // scoping at all because the graph would look mostly right.
+        let upQ = supabase
+          .from("artifact_lineage")
+          .select(cols)
+          .eq("child_kind", kind)
+          .in("child_id", batch);
+        let downQ = supabase
+          .from("artifact_lineage")
+          .select(cols)
+          .eq("parent_kind", kind)
+          .in("parent_id", batch);
+        if (ws) {
+          upQ = upQ.eq("workspace_id", ws);
+          downQ = downQ.eq("workspace_id", ws);
+        }
+        const [{ data: up }, { data: down }] = await Promise.all([upQ, downQ]);
         // The dynamic `cols` string defeats the client's row-type inference (it
         // returns GenericStringError[]); cast through unknown, the same escape hatch
         // hydrateTitles uses for its dynamic table name.
@@ -302,25 +317,42 @@ export const getKnowledgeGraph = createServerFn({ method: "GET" })
       .object({
         focusKind: KindSchema.optional(),
         focusId: z.string().uuid().optional(),
+        /**
+         * The workspace whose graph this is. OPTIONAL for back-compatibility;
+         * every workspace-scoped surface must pass it.
+         *
+         * `artifact_lineage` has carried a `workspace_id` since migration
+         * 20260625094923 and this read never used it. Its RLS is
+         * `auth.uid() = user_id`, so membership was the only gate and the
+         * graph spanned every workspace the caller had ever written in.
+         * Measured 2026-08-10: 4 of the 5 multi-workspace users belong to a
+         * seeded demo workspace, so "N pieces of work and the M links between
+         * them" was drawn over a mixture.
+         *
+         * Zero rows in artifact_lineage carry a null workspace, so filtering
+         * hides nothing.
+         */
+        workspaceId: z.string().uuid().optional(),
       })
       .parse(i ?? {}),
   )
   .handler(async ({ context, data }): Promise<KnowledgeGraph> => {
     const { supabase } = context;
+    const ws = data.workspaceId ?? null;
     try {
       const cols = await resolveLineageCols(supabase);
-      let focus = await resolveFocus(supabase, data.focusKind, data.focusId);
-      let sub = focus ? await fetchSubgraph(supabase, focus, DEFAULT_BOUNDS, cols) : null;
+      let focus = await resolveFocus(supabase, ws, data.focusKind, data.focusId);
+      let sub = focus ? await fetchSubgraph(supabase, ws, focus, DEFAULT_BOUNDS, cols) : null;
       // Lineage-anchored fallback: when the auto-focus (most recent decision) is
       // disconnected from the workspace's lineage, re-anchor on a node that actually
       // participates in an edge so the canvas never shows the empty state while edges
       // exist. Only for the auto-focus path - an explicit focus the user clicked is
       // always respected, even when it stands alone.
       if (!data.focusId && (!focus || !sub || sub.edges.length === 0)) {
-        const lineageFocus = await resolveLineageFocus(supabase, cols);
+        const lineageFocus = await resolveLineageFocus(supabase, ws, cols);
         if (lineageFocus) {
           focus = lineageFocus;
-          sub = await fetchSubgraph(supabase, lineageFocus, DEFAULT_BOUNDS, cols);
+          sub = await fetchSubgraph(supabase, ws, lineageFocus, DEFAULT_BOUNDS, cols);
         }
       }
       if (!focus || !sub) return emptyGraph();

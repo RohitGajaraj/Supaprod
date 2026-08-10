@@ -41,6 +41,7 @@ import { capToolsByRisk } from "@/lib/agent-tool-cap";
 import { resolveBestAgentModelForUser } from "./platform-keys.server";
 import { buildNativeToolDefs } from "./tool-schemas.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { classifyFailureCode } from "@/lib/observability/gates";
 
 const MAX_RUNNING_PER_WORKSPACE = 5;
 
@@ -485,6 +486,22 @@ export async function runAgentLoop(
   },
 ): Promise<LoopResult> {
   const traceId = crypto.randomUUID();
+  /**
+   * AFD-06 / INSTRUMENT: when this run actually began.
+   *
+   * `finalize` used to write `duration_ms: 0` as a literal, so 441 of the 471
+   * real runs in production carry no usable elapsed time and every latency
+   * read - the observe surface's per-run column, the analytics rollup, and any
+   * "time to result" question - was reading a hardcoded zero. Measured before
+   * the fix: of 471 real runs, only 30 had a duration above zero, and every
+   * failed or partially-failed run had none at all, which is exactly the
+   * population where latency matters most.
+   *
+   * Taken here rather than from the row's `created_at` because the row is
+   * inserted after this point: this is the closest honest mark for "the work
+   * started", and it is monotonic within the request.
+   */
+  const startedAt = Date.now();
 
   const { data: agent } = await supabase
     .from("agents")
@@ -731,7 +748,7 @@ export async function runAgentLoop(
                 ? "completed_with_failures"
                 : "completed",
             output: finalMsg,
-            duration_ms: 0,
+            duration_ms: Date.now() - startedAt,
           })
           .eq("id", runId);
       } catch (e) {
@@ -1048,7 +1065,24 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         if (runId)
           await supabase
             .from("agent_runs")
-            .update({ status: "halted", output: msg })
+            .update({
+              status: "halted",
+              output: msg,
+              // AFD-06 / INSTRUMENT: `halted_reason` and `halted_at` are READ
+              // in three places and were WRITTEN in none. The governance
+              // Controls panel renders "· {halted_reason}" next to a halted
+              // run, runtime.server.ts:247 refuses a call on
+              // `status === "halted" || r.halted_reason`, and the stuck-run
+              // sweeper copies the reason onto the failed step. All three read
+              // a column no code path had ever set, so production carries zero
+              // rows with a halt reason and the panel's explanatory clause can
+              // never appear. The kind is stored rather than the prose message
+              // because the reason is a governance TAXONOMY (spend cap, token
+              // cap, kill switch) that a reader groups by, and the human
+              // sentence is already in `output`.
+              halted_reason: e.kind,
+              halted_at: new Date().toISOString(),
+            })
             .eq("id", runId);
         // G-PRICE PR-A1: a halted run never delivered an artifact — refund its draw.
         await refundIfAbandoned(supabase, userId, workspaceId, runId, agent.slug);
@@ -1070,7 +1104,20 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
         try {
           await supabase
             .from("agent_runs")
-            .update({ status: "failed", output: errMsg })
+            .update({
+              status: "failed",
+              output: errMsg,
+              // AFD-06: classify the failure at the moment we know what it was.
+              // `failure_kind` is read by the observability dashboard's failure
+              // breakdown, which filters `.not("failure_kind","is",null)` and
+              // was therefore permanently empty: measured 2026-08-10, ZERO of
+              // 1,225 runs carried a kind against 226 real failed or
+              // partially-failed ones. The only writer was the AI-call layer,
+              // which never sees a tool or provider failure that surfaces here.
+              // Same classifier and same taxonomy, so the two paths cannot
+              // disagree about what a timeout is called.
+              failure_kind: classifyFailureCode(errMsg),
+            })
             .eq("id", runId);
         } catch (err) {
           console.error("agent_runs fail-mark failed:", err);
@@ -1380,8 +1427,9 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
    */
   const lastSaid = [...conv]
     .reverse()
-    .find((m) => m.role === "assistant" && typeof m.content === "string" && m.content.trim())
-    ?.content;
+    .find(
+      (m) => m.role === "assistant" && typeof m.content === "string" && m.content.trim(),
+    )?.content;
   const carried = typeof lastSaid === "string" ? lastSaid.trim().slice(0, 1200) : "";
   steps.push({ kind: "final", message: "Reached step limit without finalizing." });
   return s.finalize(
@@ -1396,6 +1444,29 @@ async function executeLoop(s: LoopState): Promise<LoopResult> {
  * conv/steps/counters, and continues the loop. Called by the resume-runs sweeper
  * for queued missions or runs that crossed a worker eviction.
  */
+/**
+ * Elapsed milliseconds for a RESUMED run, or null when it cannot be computed.
+ *
+ * Pure, and exported for its colocated test, because the fallback is the part
+ * worth pinning. Returning 0 on an unreadable `created_at` would be
+ * indistinguishable from an instantaneous run - which is precisely the
+ * ambiguity that let a hardcoded `duration_ms: 0` sit unnoticed across 441 of
+ * 471 real production runs. Absent is honest; zero is a claim.
+ *
+ * A negative result (a clock skew, or a row stamped in the future) is also
+ * refused for the same reason: a negative duration is not a measurement.
+ */
+export function resumeElapsedMs(
+  createdAt: string | null | undefined,
+  nowMs: number,
+): number | null {
+  if (!createdAt) return null;
+  const startedMs = Date.parse(createdAt);
+  if (!Number.isFinite(startedMs)) return null;
+  const elapsed = nowMs - startedMs;
+  return elapsed >= 0 ? elapsed : null;
+}
+
 export async function resumeAgentLoop(
   supabase: SupabaseClient,
   runId: string,
@@ -1403,7 +1474,7 @@ export async function resumeAgentLoop(
   const { data: run } = await supabase
     .from("agent_runs")
     .select(
-      "id,user_id,agent_id,agent_slug,agent_name,input,workspace_id,status,mission_id,mission_spend_cap_usd,mission_token_cap,model",
+      "id,user_id,agent_id,agent_slug,agent_name,input,workspace_id,status,mission_id,mission_spend_cap_usd,mission_token_cap,model,created_at",
     )
     .eq("id", runId)
     .maybeSingle();
@@ -1649,6 +1720,22 @@ export async function resumeAgentLoop(
     authCache,
   };
   const halted: { kind: string; reason: string } | null = null;
+  /**
+   * AFD-06 / INSTRUMENT: elapsed time for a RESUMED run, measured from the
+   * row's own `created_at` rather than from the moment this resume began.
+   *
+   * A resume is the second half of one run, and the question every latency
+   * surface asks is how long the WORK took, not how long the last leg took.
+   * Measuring from resume-start would report a multi-hour run that paused on
+   * an approval gate as a few seconds, which is a worse answer than the zero
+   * this replaces because it looks credible.
+   *
+   * Falls back to null when `created_at` is unreadable: a duration we cannot
+   * honestly compute is left absent, never written as 0. A zero here is
+   * indistinguishable from an instantaneous run, and that ambiguity is what
+   * made the previous literal so hard to notice.
+   */
+  const elapsedMs = resumeElapsedMs(run.created_at as string | null | undefined, Date.now());
   const finalize = async (finalMsg: string) => {
     try {
       await supabase
@@ -1660,7 +1747,7 @@ export async function resumeAgentLoop(
               ? "completed_with_failures"
               : "completed",
           output: finalMsg,
-          duration_ms: 0,
+          ...(elapsedMs === null ? {} : { duration_ms: elapsedMs }),
         })
         .eq("id", runId);
     } catch (e) {
@@ -1780,7 +1867,12 @@ export async function executeApproval(
     const missionId = (appr as { mission_id?: string | null }).mission_id ?? null;
     if (runId) {
       try {
-        await supabase.from("agent_runs").update({ status: "failed", output: msg }).eq("id", runId);
+        // Same classification as the main loop's catch: a post-approval tool
+        // failure is a real failure kind and was previously recorded with none.
+        await supabase
+          .from("agent_runs")
+          .update({ status: "failed", output: msg, failure_kind: classifyFailureCode(msg) })
+          .eq("id", runId);
       } catch (err) {
         console.error("agent_runs fail-mark failed (executeApproval):", err);
       }

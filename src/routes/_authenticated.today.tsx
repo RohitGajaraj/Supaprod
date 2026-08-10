@@ -3,19 +3,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import * as React from "react";
 
+import { SendBackSheet } from "@/components/approvals/SendBack";
+import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
 import { AskComposer } from "@/components/today/AskComposer";
+import { DecisionQueue } from "@/components/today/DecisionQueue";
 import { FocusNext } from "@/components/today/FocusNext";
 import { PushedInsights } from "@/components/today/PushedInsights";
-import { ConfidenceDisclosureChip } from "@/components/governance/ConfidenceDisclosureChip";
+import { QuietMorning } from "@/components/today/QuietMorning";
+import { ago, daysSince, withinLastDay } from "@/components/today/when";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
+import { useSelection } from "@/components/shell/use-selection";
 import {
   AgentMark,
   Block,
   Button,
   Door,
-  Empty,
   Failed,
-  Gate,
   Loading,
   Num,
   PageHead,
@@ -32,26 +35,87 @@ import {
   getApprovalsQueue,
   decideApprovalItem,
   snoozeApprovalItem,
-  REVISABLE_KINDS,
   type ApprovalQueueItem,
+  type ApprovalsQueueResult,
 } from "@/lib/approvals-queue.functions";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
 import { openAsk } from "@/lib/ask-open";
 import { tierFromProbability } from "@/lib/confidence";
-import { isModalOpen } from "@/lib/overlay";
 import { listMissions, type MissionListRow } from "@/lib/missions.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { approvalsQueueKey, missionsKey, invalidateShellReads } from "@/lib/query-keys";
 import { stillWaiting } from "@/lib/query-state";
 import "@/styles/today.css";
 
+/**
+ * TODAY. The screen a person opens after the crew worked without them.
+ *
+ * WHAT IT IS FOR, stated once so every decision below can be checked against
+ * it: this surface ALLOCATES ATTENTION. It does not display output. The
+ * binding constraint on an agentic product is not screen space, it is human
+ * cognition — an operator running four agents in parallel is spent by
+ * 11 a.m. — so a morning brief earns its place by deciding what NOT to show.
+ * Triage by exception, never review-everything.
+ *
+ * FOUR THINGS FOLLOW, AND THEY ARE THE WHOLE DESIGN.
+ *
+ * 1. ONE SENTENCE CARRIES THE MORNING. A greeting, then one line that is a
+ *    count and a verb: "3 decisions are ready for your review. 1 run is
+ *    stuck." Everything below it is the reader confirming what that line
+ *    already told them. It is the highest-leverage element on the surface and
+ *    it is written in the operator's own vocabulary, not the product's — the
+ *    words are the ones measured most frequent across 5.72M words of real
+ *    product-operator conversation ("decisions" 562.8 per million, "review"
+ *    232.1, "ready" 160.3, "stuck" 95.8, "shipped" 36.2). The words that
+ *    sound right and are not spoken — "receipt", "unattended", "audit trail",
+ *    all under 3 per million — appear nowhere in this file's copy.
+ *
+ * 2. THE LANES ARE NAMED FOR WHO IS BLOCKED, NOT FOR WHAT THE OBJECT IS.
+ *    "Shipped", "Ready for your review", "Stuck", "Still running" — each says
+ *    whose move it is. A lane sectioned by object type ("Missions",
+ *    "Approvals", "Insights") makes the reader do the translation into "so
+ *    what do I do", every morning, forever.
+ *
+ * 3. THEY RENDER AT ZERO, and that is deliberate rather than an oversight.
+ *    "Ready for your review — nothing is waiting on you" is the best sentence
+ *    this product can show a person, and a quiet morning is the only chance it
+ *    gets to teach the four names while nothing is at stake. This is not the
+ *    zero-tile the research warns about: a tile reading "0" is a number with
+ *    no taxonomy attached, information that changes nothing you do. A lane at
+ *    zero names who is blocked, and "nobody" is the answer the reader came for.
+ *
+ * 4. THE ORDER IS REVERSIBILITY, NOT RECENCY AND NOT PRIORITY. The morning
+ *    question is not "what matters most", it is "what is hardest to undo".
+ *    Shipped is first because it is live and undoing it costs a rollback;
+ *    the decisions waiting on you are next because nothing has happened yet
+ *    and undo is free; stuck and still-running are last because nothing has
+ *    happened at all. Reading order is therefore shipped-first while VISUAL
+ *    weight stays call-first: the shipped lane is a two-line scan band, the
+ *    open call is the only Gate on the page. You glance at what went live,
+ *    you land on the one thing that needs you.
+ *
+ * WHAT THIS SURFACE MUST NEVER CLAIM. It sharpens the reader's call; it never
+ * says it handled anything. Every consequence printed here comes from the item
+ * itself, never from a sentence written in this file about what an approval
+ * generally does.
+ */
+
 export const Route = createFileRoute("/_authenticated/today")({
   component: Today,
   head: () => ({ meta: [{ title: "Today · Supaprod" }] }),
 });
 
-const STOPPED = new Set(["cancelled", "halted"]);
+/* The four states a run can be in that this surface has a lane for. Anything
+   not listed is in flight in a way the reader cannot act on, and saying so
+   would be four more words for no decision. `completed_with_failures` counts
+   as LIVE and is labelled "partial" on its row: it shipped, and the hole in it
+   is a fact about the thing that shipped, not a different lane. */
+const LIVE = new Set(["completed", "done", "completed_with_failures"]);
+const STUCK = new Set(["failed", "halted", "cancelled", "blocked"]);
+/* Deliberately NOT `queued` or `dispatched`. A queued run has no agent on it,
+   and "Still running" would then be claiming work that has not started. */
 const WORKING = new Set(["running", "in_progress"]);
+
 const VERDICT_LABEL: Record<string, string> = { ship: "Ship", revise: "Revise", kill: "Kill" };
 const VERDICT_TONE: Record<string, "pass" | "warn" | "fail"> = {
   ship: "pass",
@@ -68,31 +132,69 @@ type CriticHandoff = {
   confidence?: number;
 };
 
-function ago(iso: string | null | undefined): string | null {
-  if (!iso) return null;
-  const ms = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(ms) || ms < 0) return null;
-  const mins = Math.floor(ms / 60_000);
-  if (mins < 1) return "now";
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d`;
-}
+type Settled = { verb: string; consequence: React.ReactNode; at: string; failed?: boolean };
 
-function daysSince(iso: string | null): number | null {
-  if (!iso) return null;
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  return Number.isFinite(days) && days >= 0 ? days : null;
-}
+/**
+ * THE OPENING SENTENCE.
+ *
+ * Two clauses at most, because a third is a paragraph and a paragraph is not
+ * read. The second clause changes with what is true rather than being padded:
+ * a stuck run outranks a shipped one, and both outrank silence.
+ *
+ * "1 run is stuck", never the shorter "1 is stuck" the pattern would suggest.
+ * After "3 decisions are ready for your review", a bare "1 is stuck" reads as
+ * one of those decisions, and it is not — the stuck thing is a RUN. The short
+ * form is better English and a false sentence, so it loses.
+ */
+function stateSentence(n: { ready: number; stuck: number; shipped: number }): React.ReactNode {
+  const first =
+    n.ready === 0 ? (
+      "Nothing is ready for your review."
+    ) : n.ready === 1 ? (
+      <>
+        <Num>1</Num> decision is ready for your review.
+      </>
+    ) : (
+      <>
+        <Num>{n.ready}</Num> decisions are ready for your review.
+      </>
+    );
 
-function finishedRecently(mission: MissionListRow): boolean {
-  if (!mission.completed_at) return false;
-  return Date.now() - new Date(mission.completed_at).getTime() < 86_400_000;
-}
+  const second =
+    n.stuck > 0 ? (
+      n.stuck === 1 ? (
+        <>
+          {" "}
+          <Num>1</Num> run is stuck.
+        </>
+      ) : (
+        <>
+          {" "}
+          <Num>{n.stuck}</Num> runs are stuck.
+        </>
+      )
+    ) : n.ready > 0 ? null : n.shipped > 0 ? (
+      n.shipped === 1 ? (
+        <>
+          {" "}
+          <Num>1</Num> run shipped.
+        </>
+      ) : (
+        <>
+          {" "}
+          <Num>{n.shipped}</Num> runs shipped.
+        </>
+      )
+    ) : (
+      " Nothing is stuck."
+    );
 
-function actuallyFinished(mission: MissionListRow): boolean {
-  return finishedRecently(mission) && !STOPPED.has(mission.status);
+  return (
+    <>
+      {first}
+      {second}
+    </>
+  );
 }
 
 function CriticBrief({
@@ -150,14 +252,40 @@ function CriticBrief({
         </div>
       ) : null}
       <div className="today-actions">
-        <Button onClick={onOpen}>
-          See the full analysis
-        </Button>
+        <Button onClick={onOpen}>See the full analysis</Button>
         <Button variant="ghost" onClick={onAnother}>
           Try another idea
         </Button>
       </div>
     </section>
+  );
+}
+
+/** One lane. A name, one line saying who is blocked and what undoing it costs,
+ *  and a body that is allowed to be nothing. `quiet` collapses the lane's own
+ *  breathing room when it has no body, so four lanes at zero read as a short
+ *  taxonomy rather than as four empty rooms. */
+function Lane({
+  name,
+  waiting,
+  quiet,
+  more,
+  onMore,
+  children,
+}: {
+  name: string;
+  waiting: React.ReactNode;
+  quiet: boolean;
+  more?: string;
+  onMore?: () => void;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="today-lane" data-quiet={quiet}>
+      <Block title={name} sub={waiting} more={more} onMore={onMore}>
+        {children ?? null}
+      </Block>
+    </div>
   );
 }
 
@@ -192,18 +320,36 @@ function Today() {
     enabled: Boolean(workspaceId),
   });
 
-  const items = queue.data?.items ?? [];
-  const call: ApprovalQueueItem | null = items[0] ?? null;
-  const rows = missions.data?.missions ?? [];
-  const done = React.useMemo(
+  /* Both memoised on the QUERY's data rather than derived inline. A bare
+     `?? []` builds a new array on every render, so every list below it would
+     recompute on every render and `useSelection` would be handed a fresh id
+     array each time — which is the one input it must be able to compare. */
+  const items = React.useMemo(() => queue.data?.items ?? [], [queue.data]);
+  const rows: MissionListRow[] = React.useMemo(
+    () => missions.data?.missions ?? [],
+    [missions.data],
+  );
+
+  const shipped = React.useMemo(
     () =>
       rows
-        .filter(finishedRecently)
+        .filter((m) => LIVE.has(m.status) && withinLastDay(m.completed_at))
         .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? "")),
     [rows],
   );
-  const running = React.useMemo(() => rows.filter((mission) => WORKING.has(mission.status)), [rows]);
-  const finishedCount = React.useMemo(() => done.filter(actuallyFinished).length, [done]);
+  /* A stopped run does not reliably carry `completed_at` — halted and blocked
+     are set by a resume path that only touches `updated_at` — so the window
+     falls back to it. Without the fallback a stuck run would silently never
+     appear, which is the one lane where absence is read as "fine". */
+  const stuck = React.useMemo(
+    () =>
+      rows
+        .filter((m) => STUCK.has(m.status) && withinLastDay(m.completed_at ?? m.updated_at))
+        .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? "")),
+    [rows],
+  );
+  const running = React.useMemo(() => rows.filter((m) => WORKING.has(m.status)), [rows]);
+
   const learning = learnings.data?.learnings?.[0] ?? null;
   const oldest = React.useMemo(
     () =>
@@ -216,116 +362,256 @@ function Today() {
   );
   const onRecord = daysSince(oldest);
 
-  const [receipts, setReceipts] = React.useState<
-    { verb: string; consequence: string; at: string; failed?: boolean }[]
-  >([]);
+  /** Which of the three facts about the run record is true right now. The three
+   *  lanes it feeds each need it, and a lane that printed "Nothing stopped"
+   *  over a read still in flight would be stating a claim it has not read. */
+  const runsState: "reading" | "failed" | "ready" = stillWaiting(missions)
+    ? "reading"
+    : missions.isError
+      ? "failed"
+      : "ready";
+
+  const runsLane = (known: React.ReactNode): React.ReactNode =>
+    runsState === "reading"
+      ? "Reading the run record."
+      : runsState === "failed"
+        ? "This could not be read."
+        : known;
+
+  /* WALKING IS A MODE, AND ARRIVAL IS ALWAYS ARRIVAL. Never persisted: the
+     founder ruling is about what the surface does when you LAND on it, so a
+     mode that survived a reload would defeat it on the second visit.
+     It also COLLAPSES on its own once the list is down to one, because one
+     decision drawn as a list of one is the arrival view with extra furniture. */
+  const [walkRequested, setWalkRequested] = React.useState(false);
+  const walking = walkRequested && items.length > 1;
+  const enterQueue = React.useCallback(() => setWalkRequested(true), []);
+  const leaveQueue = React.useCallback(() => setWalkRequested(false), []);
+  const [focusedId, setFocusedId] = React.useState<string | null>(null);
+  const focused = React.useMemo(
+    () => items.find((i) => i.id === focusedId) ?? items[0] ?? null,
+    [items, focusedId],
+  );
+
+  const selection = useSelection(React.useMemo(() => items.map((i) => i.id), [items]));
+  const [sendBack, setSendBack] = React.useState<ApprovalQueueItem | null>(null);
+  const [settled, setSettled] = React.useState<Settled[]>([]);
   const stamp = () =>
     new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  const record = (entry: Settled) => setSettled((current) => [entry, ...current]);
 
-  const removeCurrentCall = async () => {
-    if (!call) return { previous: undefined };
-    const key = approvalsQueueKey(workspaceId);
-    await queryClient.cancelQueries({ queryKey: key });
-    const previous = queryClient.getQueryData<{ items: ApprovalQueueItem[] }>(key);
-    queryClient.setQueryData<{ items: ApprovalQueueItem[] } | undefined>(key, (current) =>
-      current
-        ? { ...current, items: current.items.filter((item) => item.id !== call.id) }
-        : current,
-    );
-    return { previous };
-  };
+  const dropFromQueue = React.useCallback(
+    async (ids: string[]) => {
+      const key = approvalsQueueKey(workspaceId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<ApprovalsQueueResult>(key);
+      const drop = new Set(ids);
+      queryClient.setQueryData<ApprovalsQueueResult | undefined>(key, (current) =>
+        current ? { ...current, items: current.items.filter((i) => !drop.has(i.id)) } : current,
+      );
+      return { previous };
+    },
+    [queryClient, workspaceId],
+  );
+
+  const restore = React.useCallback(
+    (previous: ApprovalsQueueResult | undefined) => {
+      if (previous) queryClient.setQueryData(approvalsQueueKey(workspaceId), previous);
+    },
+    [queryClient, workspaceId],
+  );
+
+  /** Move the open call to the NEXT one before the current leaves the list.
+   *  Without this the fallback in `focused` snaps to the top of the queue and
+   *  a person clearing a list from the middle is thrown back to the start. */
+  const advancePast = React.useCallback(
+    (id: string) => {
+      const i = items.findIndex((x) => x.id === id);
+      if (i === -1) return;
+      setFocusedId((items[i + 1] ?? items[i - 1] ?? null)?.id ?? null);
+    },
+    [items],
+  );
 
   const settle = useMutation({
-    mutationFn: async (verdict: "approve" | "reject") => {
-      if (!call) return;
-      await decide({ data: { id: call.sourceId, kind: call.kindKey, verdict } });
+    mutationFn: async (v: { item: ApprovalQueueItem; verdict: "approve" | "reject" }) => {
+      await decide({ data: { id: v.item.sourceId, kind: v.item.kindKey, verdict: v.verdict } });
     },
-    onMutate: removeCurrentCall,
-    onSuccess: (_result, verdict) => {
-      setReceipts((current) => [
-        {
-          verb: verdict === "approve" ? "You approved" : "You declined",
-          consequence:
-            verdict === "approve"
-              ? (call?.approveConsequence ?? "The decision is on the record.")
-              : (call?.rejectConsequence ?? "The decision will guide the next pass."),
-          at: stamp(),
-        },
-        ...current,
-      ]);
+    onMutate: (v) => dropFromQueue([v.item.id]),
+    onSuccess: (_result, v) => {
+      record({
+        verb: v.verdict === "approve" ? "You approved" : "You declined",
+        // The consequence is the ITEM's, never a sentence written here about
+        // what an approval generally does. Each gate family means something
+        // different by "approved" and only the item knows which.
+        consequence:
+          v.verdict === "approve"
+            ? (v.item.approveConsequence ?? "The decision is on the record.")
+            : (v.item.rejectConsequence ?? "The decision will guide the next pass."),
+        at: stamp(),
+      });
       void queryClient.invalidateQueries({ queryKey: ["today"] });
       invalidateShellReads(queryClient);
     },
-    onError: (error: Error, _verdict, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(approvalsQueueKey(workspaceId), context.previous);
-      }
-      setReceipts((current) => [
-        {
-          verb: "Nothing was recorded",
-          consequence: error.message,
-          at: stamp(),
-          failed: true,
-        },
-        ...current,
-      ]);
+    onError: (error: Error, _v, context) => {
+      restore(context?.previous);
+      record({
+        verb: "Nothing was recorded",
+        consequence: error.message,
+        at: stamp(),
+        failed: true,
+      });
     },
   });
 
   const defer = useMutation({
-    mutationFn: async () => {
-      if (!call) return;
-      await snooze({ data: { id: call.sourceId, kind: call.kindKey } });
+    mutationFn: async (item: ApprovalQueueItem) => {
+      await snooze({ data: { id: item.sourceId, kind: item.kindKey } });
     },
-    onMutate: removeCurrentCall,
+    onMutate: (item) => dropFromQueue([item.id]),
     onSuccess: () => {
-      setReceipts((current) => [
-        {
-          verb: "You snoozed it",
-          consequence: "It returns with tomorrow's brief.",
-          at: stamp(),
-        },
-        ...current,
-      ]);
+      record({
+        verb: "You snoozed it",
+        consequence: "It returns with tomorrow's brief.",
+        at: stamp(),
+      });
       invalidateShellReads(queryClient);
     },
-    onError: (error: Error, _variables, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(approvalsQueueKey(workspaceId), context.previous);
-      }
-      setReceipts((current) => [
-        {
-          verb: "Nothing was recorded",
-          consequence: error.message,
-          at: stamp(),
-          failed: true,
-        },
-        ...current,
-      ]);
+    onError: (error: Error, _item, context) => {
+      restore(context?.previous);
+      record({
+        verb: "Nothing was recorded",
+        consequence: error.message,
+        at: stamp(),
+        failed: true,
+      });
     },
   });
 
-  const busy = settle.isPending || defer.isPending;
-  const revisable = call ? (REVISABLE_KINDS as readonly string[]).includes(call.kindKey) : false;
-
-  React.useEffect(() => {
-    if (!call || busy) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (isModalOpen()) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const target = e.target as HTMLElement | null;
-      if (target?.isContentEditable || (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) {
-        return;
+  /**
+   * THE BULK SETTLE, WHICH THIS PRODUCT HAS NEVER HAD.
+   *
+   * A sweep of every queue in the app found no multi-select anywhere, so a Head
+   * of Product arriving to twenty overnight decisions had no path but twenty
+   * keypresses. That is the whole reason `useSelection` and `SelectionBar`
+   * exist; this is the first surface to spend them.
+   *
+   * ONE AT A TIME ON THE WIRE, ON PURPOSE. Each of these writes a verdict to
+   * the record and several dispatch an agent. Firing forty in parallel puts
+   * forty writes against the same tables in an order nobody chose, and makes a
+   * partial failure unattributable. Sequential is slower and it is the only
+   * version that can say afterwards exactly how many landed.
+   *
+   * A FAILURE RE-READS RATHER THAN GUESSES. On any refusal the queue is
+   * invalidated and re-fetched instead of the failed rows being pushed back
+   * into the cache by hand: after a partial settle the client's idea of the
+   * list is provably stale, and the record is the only thing that knows what
+   * is still open.
+   */
+  const bulk = useMutation({
+    mutationFn: async (v: {
+      picked: ApprovalQueueItem[];
+      verb: "approve" | "reject" | "snooze";
+    }) => {
+      const failures: string[] = [];
+      for (const item of v.picked) {
+        try {
+          if (v.verb === "snooze") {
+            await snooze({ data: { id: item.sourceId, kind: item.kindKey } });
+          } else {
+            await decide({ data: { id: item.sourceId, kind: item.kindKey, verdict: v.verb } });
+          }
+        } catch (e) {
+          failures.push(e instanceof Error ? e.message : String(e));
+        }
       }
-      if (e.key === "a") settle.mutate("approve");
-      else if (e.key === "d") settle.mutate("reject");
-      else if (e.key === "z") defer.mutate();
-      else return;
-      e.preventDefault();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [call, busy, settle, defer]);
+      return { total: v.picked.length, failures };
+    },
+    onMutate: (v) => dropFromQueue(v.picked.map((i) => i.id)),
+    onSuccess: (result, v) => {
+      const landed = result.total - result.failures.length;
+      if (landed > 0) {
+        record({
+          verb:
+            v.verb === "approve"
+              ? `You approved ${landed}`
+              : v.verb === "reject"
+                ? `You declined ${landed}`
+                : `You snoozed ${landed}`,
+          // Deliberately says only what is true of EVERY kind in the set. A
+          // sentence naming what an approval does would be right for some of
+          // them and an invention for the rest.
+          consequence:
+            v.verb === "snooze"
+              ? "They return with tomorrow's brief."
+              : "The record has each one, with its own consequence.",
+          at: stamp(),
+        });
+      }
+      if (result.failures.length > 0) {
+        record({
+          verb: `Nothing was recorded for ${result.failures.length}`,
+          consequence: `${result.failures[0]} The queue has been re-read, so what you see is what the record holds.`,
+          at: stamp(),
+          failed: true,
+        });
+      }
+      selection.clear();
+      void queryClient.invalidateQueries({ queryKey: ["today"] });
+      invalidateShellReads(queryClient);
+    },
+    onError: (error: Error, _v, context) => {
+      restore(context?.previous);
+      record({
+        verb: "Nothing was recorded",
+        consequence: error.message,
+        at: stamp(),
+        failed: true,
+      });
+    },
+  });
+
+  const busy = settle.isPending || defer.isPending || bulk.isPending;
+
+  const approve = React.useCallback(
+    (item: ApprovalQueueItem) => {
+      advancePast(item.id);
+      settle.mutate({ item, verdict: "approve" });
+    },
+    [advancePast, settle],
+  );
+  const decline = React.useCallback(
+    (item: ApprovalQueueItem) => {
+      advancePast(item.id);
+      settle.mutate({ item, verdict: "reject" });
+    },
+    [advancePast, settle],
+  );
+  const snoozeCall = React.useCallback(
+    (item: ApprovalQueueItem) => {
+      advancePast(item.id);
+      defer.mutate(item);
+    },
+    [advancePast, defer],
+  );
+
+  const picked = React.useMemo(() => items.filter((i) => selection.has(i.id)), [items, selection]);
+
+  /* Both memoised because `DecisionQueue` holds the keyboard listener and takes
+     these in its dependency array. Rebuilt inline they would tear the listener
+     down and register it again on every render of the surface. */
+  const verbs = React.useMemo(
+    () => ({ approve, decline, snooze: snoozeCall, sendBack: setSendBack, busy }),
+    [approve, decline, snoozeCall, busy],
+  );
+  const bulkVerbs = React.useMemo(
+    () => ({
+      approve: () => bulk.mutate({ picked, verb: "approve" as const }),
+      decline: () => bulk.mutate({ picked, verb: "reject" as const }),
+      snooze: () => bulk.mutate({ picked, verb: "snooze" as const }),
+    }),
+    [bulk, picked],
+  );
 
   const [justLanded, setJustLanded] = React.useState(false);
   const [criticResult, setCriticResult] = React.useState<CriticHandoff | null>(null);
@@ -345,42 +631,77 @@ function Today() {
     }
   }, []);
 
+  /* The greeting is a courtesy, and the clock that decides it belongs to the
+     reader. Resolved after mount rather than during render because the server
+     renders this in its own timezone, and a server that says "Good evening" to
+     someone eating breakfast is worse than a first frame that says morning and
+     corrects itself. Same line, same height, so nothing moves. */
+  const [clock, setClock] = React.useState<Date | null>(null);
+  React.useEffect(() => setClock(new Date()), []);
+  const hour = clock?.getHours() ?? 8;
+  const greeting = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+
   const loading = stillWaiting(queue, missions);
+  const quietMorning =
+    !loading &&
+    !queue.isError &&
+    !missions.isError &&
+    items.length === 0 &&
+    shipped.length === 0 &&
+    stuck.length === 0 &&
+    running.length === 0;
+
+  /**
+   * A FAILED READ IS NOT A QUIET MORNING, and this sentence is where the two
+   * are easiest to confuse. "Nothing is ready for your review" is a claim about
+   * the world and must never be printed because a fetch refused.
+   *
+   * `loading` is the union of two reads and it belongs to THIS sentence alone,
+   * because one sentence assembled from two counts genuinely needs both. No
+   * region below is allowed to wait on it: a lane keyed off the union stays
+   * blank until the slower read lands, which is latency a person pays and gets
+   * nothing for. Each lane waits on its own read instead.
+   *
+   * While it counts, the headline says the surface's name rather than
+   * "Reading..." — a headline describing the fetch is the surface talking about
+   * itself, and the lanes underneath already say what is being read.
+   */
   const headline = React.useMemo(() => {
     if (loading) return "Today";
+    if (queue.isError) return "Your review queue did not load.";
     if (justLanded && criticResult) return "Your first brief is ready.";
-    if (justLanded) return "Your workspace is ready.";
-    if (items.length === 1) return "One call needs you.";
-    if (items.length > 1) return `${items.length} calls need you.`;
-    if (finishedCount === 1) return "One run finished while you were away.";
-    if (finishedCount > 1) return `${finishedCount} runs finished while you were away.`;
-    return "Nothing needs you right now.";
-  }, [loading, justLanded, criticResult, items.length, finishedCount]);
-
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+    return stateSentence({ ready: items.length, stuck: stuck.length, shipped: shipped.length });
+  }, [
+    loading,
+    queue.isError,
+    justLanded,
+    criticResult,
+    items.length,
+    stuck.length,
+    shipped.length,
+  ]);
 
   return (
     <Surface wide>
       <div className="today-page">
+        <p className="today-greeting">{greeting}</p>
         <PageHead
           title={headline}
           sub={
             <>
-              {today}
-              {finishedCount > 0 && items.length > 0 ? (
-                <>
-                  {" · "}
-                  <Num>{finishedCount}</Num> finished in the last day
-                </>
-              ) : null}
+              {/* THE HONEST BOUNDARY. The idea this surface is built on is "what
+                  changed since you last looked", and the database has no
+                  per-user watermark to draw that line with — see
+                  src/components/today/when.ts. So it says the window it
+                  actually has. */}
+              In the last 24 hours
               {onRecord !== null ? (
                 <>
                   {" · "}
-                  <Door title="Open the record" onClick={() => navigate({ to: "/brain", search: {} })}>
+                  <Door
+                    title="Open the record"
+                    onClick={() => navigate({ to: "/brain", search: {} })}
+                  >
                     <Num>{onRecord}</Num> {onRecord === 1 ? "day" : "days"} on the record
                   </Door>
                 </>
@@ -400,203 +721,43 @@ function Today() {
           />
         ) : null}
 
-        <div className="today-hero">
-          <div className="today-call">
-            <div className="today-section-head">
-              <span className="today-kicker">Your next call</span>
-              {call ? (
-                <span className="today-position">
-                  <Num>1</Num> of <Num>{items.length}</Num>
-                </span>
-              ) : null}
-            </div>
-
-            {call ? (
-              <>
-                <div className="today-call-meta">
-                  <div className="today-call-source">
-                    {call.agentSlug ? (
-                      <Door
-                        title="Open this agent in the crew"
-                        onClick={() =>
-                          navigate({ to: "/crew", search: { agent: call.agentSlug as string } })
-                        }
-                      >
-                        <span className="today-agent-link">
-                          <AgentMark slug={call.agentSlug} state="gate" />
-                          <span>{agentDisplayName(call.agentSlug)}</span>
-                        </span>
-                      </Door>
-                    ) : (
-                      <span>{agentDisplayName(call.agentSlug)}</span>
-                    )}
-                    <span>{call.projectName ?? call.project ?? "This workspace"}</span>
-                    {call.impact ? <span>{call.impact}</span> : null}
-                  </div>
-                  {items.length > 1 ? (
-                    <Door title="Open the full queue" onClick={() => navigate({ to: "/approvals" })}>
-                      Open {items.length - 1} more {items.length - 1 === 1 ? "call" : "calls"}
-                    </Door>
-                  ) : null}
-                </div>
-                <Gate
-                  key={call.id}
-                  question={stripAutoPrefix(call.title)}
-                  linesLabel={call.evidence.length ? "Why this needs your call" : undefined}
-                  lines={[
-                    ...call.evidence
-                      .slice(0, 3)
-                      .map((line, index) => (
-                        <span key={`evidence-${index}`}>{stripAutoPrefix(line)}</span>
-                      )),
-                    ...(call.evidence.length > 3
-                      ? [
-                          <span key="more-evidence">
-                            {call.evidence.length - 3} more facts are attached in Approvals.
-                          </span>,
-                        ]
-                      : []),
-                    <span key="consequence">{call.approveConsequence}</span>,
-                  ]}
-                >
-                  <Button
-                    variant="primary"
-                    shortcut="a"
-                    disabled={busy}
-                    onClick={() => settle.mutate("approve")}
-                  >
-                    Approve
-                  </Button>
-                  {revisable ? (
-                    <Button
-                      disabled={busy}
-                      onClick={() => navigate({ to: "/approvals" })}
-                      title="Send it back with a note"
-                    >
-                      Send back
-                    </Button>
-                  ) : null}
-                  <Button shortcut="d" disabled={busy} onClick={() => settle.mutate("reject")}>
-                    Decline
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    shortcut="z"
-                    disabled={busy}
-                    onClick={() => defer.mutate()}
-                  >
-                    Snooze
-                  </Button>
-                </Gate>
-              </>
-            ) : stillWaiting(queue) ? (
-              <Loading>Reading what needs you.</Loading>
-            ) : queue.isError ? (
-              <Gate question="The queue did not load.">
-                <Failed onRetry={() => queue.refetch()}>
-                  Your calls are unchanged. Retry this read before you decide what is clear.
-                </Failed>
-              </Gate>
-            ) : (
-              <Gate question="Nothing needs you right now.">
-                <Button variant="primary" onClick={() => openAsk()}>
-                  Ask Supaprod what to build
-                </Button>
-              </Gate>
+        <div className="today-lanes">
+          <Lane
+            name="Shipped"
+            waiting={runsLane(
+              shipped.length === 0 ? (
+                "Nothing went live."
+              ) : (
+                <>
+                  <Num>{shipped.length}</Num> live and waiting on nobody. Undoing one costs a
+                  rollback.
+                </>
+              ),
             )}
-          </div>
-
-          <FocusNext workspaceId={workspaceId} />
-        </div>
-
-        <div data-page-composer className="today-composer">
-          <div>
-            <div className="today-kicker">Start something new</div>
-            <div className="today-composer-copy">Ask a question or give the crew its next outcome.</div>
-          </div>
-          <AskComposer />
-        </div>
-
-        <PushedInsights />
-
-        {receipts.length > 0 ? (
-          <Block
-            title="What you settled"
-            more="Every receipt"
-            onMore={() => navigate({ to: "/engine-room", search: { room: "record" } })}
-          >
-            {receipts.map((receipt, index) => (
-              <Receipt
-                key={`${receipt.at}-${index}`}
-                verb={receipt.verb}
-                consequence={receipt.consequence}
-                time={receipt.at}
-                failed={receipt.failed}
-              />
-            ))}
-          </Block>
-        ) : null}
-
-        <div className="today-proof-grid">
-          {running.length > 0 ? (
-            <Block title="Working now" more="Open Runs" onMore={() => navigate({ to: "/runs" })}>
-              {running.slice(0, 4).map((mission) => {
-                const agent = mission.current_agent_slug
-                  ? agentDisplayName(mission.current_agent_slug)
-                  : "The crew";
-                const elapsed = ago(mission.created_at);
-                return (
-                  <Row
-                    key={mission.id}
-                    lead={stripAutoPrefix(mission.current_sub_goal ?? mission.title)}
-                    sub={`${agent}${elapsed ? ` · ${elapsed} running` : " · running"}`}
-                    onClick={() =>
-                      navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
-                    }
-                  />
-                );
-              })}
-            </Block>
-          ) : null}
-
-          <Block
-            title="Done without you"
-            more={rows.length ? "Open Runs" : undefined}
+            quiet={shipped.length === 0 && runsState === "ready"}
+            more={shipped.length > 0 ? "Open Runs" : undefined}
             onMore={() => navigate({ to: "/runs" })}
           >
+            {/* THE ONE LIVE REGION FOR THE RUN RECORD. Three lanes are fed by
+                this single read, and three `<Loading>`s would announce the same
+                fetch three times to a screen reader. The other two say they are
+                reading in their own subtitle and stay silent. */}
             {stillWaiting(missions) ? (
               <Loading>Reading what the crew finished.</Loading>
             ) : missions.isError ? (
-              <Failed onRetry={() => missions.refetch()}>
-                The run record did not load, so this brief cannot say what finished.
+              <Failed onRetry={() => void missions.refetch()}>
+                The run record did not load, so this cannot say what went live.
               </Failed>
-            ) : done.length === 0 ? (
-              <Empty
-                action={
-                  <Button variant="ghost" onClick={() => navigate({ to: "/runs" })}>
-                    Open Runs
-                  </Button>
-                }
-              >
-                No run completed in the last day. The next result will land here with its outcome.
-              </Empty>
             ) : (
-              done.slice(0, 4).map((mission) => (
+              shipped.slice(0, 3).map((mission) => (
                 <Row
                   key={mission.id}
+                  tight
                   marks={
                     <AgentMark
                       slug={mission.current_agent_slug}
                       name={mission.build_driver}
-                      state={
-                        mission.status === "failed"
-                          ? "failed"
-                          : mission.status === "completed_with_failures" ||
-                              mission.status === "cancelled" ||
-                              mission.status === "halted"
-                            ? "idle"
-                            : "verified"
-                      }
+                      state={mission.status === "completed_with_failures" ? "idle" : "verified"}
                     />
                   }
                   lead={<Who>{cleanTitle(mission.title)}</Who>}
@@ -608,14 +769,10 @@ function Today() {
                           {mission.hop_count === 1 ? "handoff" : "handoffs"} ·{" "}
                         </>
                       ) : null}
-                      {mission.status === "failed" ? (
-                        <span className="sp-fail">failed</span>
-                      ) : mission.status === "completed_with_failures" ? (
+                      {mission.status === "completed_with_failures" ? (
                         <span className="sp-warn">partial</span>
-                      ) : mission.status === "completed" ? (
-                        <span className="sp-pass">done</span>
                       ) : (
-                        mission.status
+                        <span className="sp-pass">done</span>
                       )}
                     </>
                   }
@@ -626,49 +783,217 @@ function Today() {
                 />
               ))
             )}
-          </Block>
+          </Lane>
 
-          {stillWaiting(learnings) ? (
-            <Loading>Reading what it learned.</Loading>
-          ) : learnings.isError ? (
-            <div className="today-proof-state">
-              <Failed onRetry={() => learnings.refetch()}>
-                The outcome record did not load, so this brief cannot show what changed next.
+          <Lane
+            name="Ready for your review"
+            waiting={
+              queue.isError ? (
+                "This could not be read."
+              ) : items.length === 0 ? (
+                "Nothing is waiting on you."
+              ) : (
+                <>
+                  <Num>{items.length}</Num> waiting on you. Nothing has happened yet, so undo is
+                  free.
+                </>
+              )
+            }
+            quiet={
+              items.length === 0 && settled.length === 0 && !stillWaiting(queue) && !queue.isError
+            }
+          >
+            {stillWaiting(queue) ? (
+              <Loading>Reading what needs you.</Loading>
+            ) : queue.isError ? (
+              <Failed onRetry={() => void queue.refetch()}>
+                Your decisions are unchanged and this could not read them. Retry before you treat
+                the morning as clear.
               </Failed>
-            </div>
-          ) : learning?.summary ? (
-            <Block title="It learned one thing">
-              <RecordRecess
-                title="Open this outcome in the record"
+            ) : focused ? (
+              <DecisionQueue
+                items={items}
+                focused={focused}
+                onFocus={setFocusedId}
+                walking={walking}
+                onWalk={enterQueue}
+                onLeave={leaveQueue}
+                selection={selection}
+                verbs={verbs}
+                bulk={bulkVerbs}
+                onOpenAgent={(agent) => navigate({ to: "/crew", search: { agent } })}
+              />
+            ) : null}
+            {settled.length > 0 ? (
+              <div className="today-settled">
+                {settled.map((entry, index) => (
+                  <Receipt
+                    key={`${entry.at}-${index}`}
+                    verb={entry.verb}
+                    consequence={entry.consequence}
+                    time={entry.at}
+                    failed={entry.failed}
+                  />
+                ))}
+                <Door
+                  title="Open everything you have settled"
+                  onClick={() => navigate({ to: "/engine-room", search: { room: "record" } })}
+                >
+                  Open the record
+                </Door>
+              </div>
+            ) : null}
+          </Lane>
+
+          <Lane
+            name="Stuck"
+            waiting={runsLane(
+              stuck.length === 0 ? (
+                "Nothing stopped."
+              ) : (
+                <>
+                  <Num>{stuck.length}</Num> stopped before finishing. Waiting on you to unblock.
+                </>
+              ),
+            )}
+            quiet={stuck.length === 0}
+            more={stuck.length > 0 ? "Open Runs" : undefined}
+            onMore={() => navigate({ to: "/runs" })}
+          >
+            {stuck.slice(0, 3).map((mission) => (
+              <Row
+                key={mission.id}
+                tight
+                marks={
+                  <AgentMark
+                    slug={mission.current_agent_slug}
+                    name={mission.build_driver}
+                    state={mission.status === "failed" ? "failed" : "idle"}
+                  />
+                }
+                lead={<Who>{cleanTitle(mission.title)}</Who>}
+                sub={
+                  mission.status === "failed" ? (
+                    <span className="sp-fail">failed</span>
+                  ) : (
+                    <span>{mission.status}</span>
+                  )
+                }
+                time={ago(mission.completed_at ?? mission.updated_at)}
                 onClick={() =>
-                  navigate({ to: "/brain", search: { tab: "learnings", learning: learning.id } })
+                  navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
                 }
-                evidence={
-                  <>
-                    {learning.recorded_by_agent_slug
-                      ? `${agentDisplayName(learning.recorded_by_agent_slug)} recorded it`
-                      : "Recorded"}
-                    {learning.created_at
-                      ? ` · ${new Date(learning.created_at).toLocaleDateString(undefined, {
-                          day: "numeric",
-                          month: "short",
-                        })}`
-                      : ""}
-                  </>
-                }
-              >
-                {learning.summary}
-              </RecordRecess>
-            </Block>
-          ) : (
-            <Block title="Latest learning">
-              <Empty action={<Button onClick={() => navigate({ to: "/learn" })}>Open Learn</Button>}>
-                No settled outcome has changed the next call yet. Record one in Learn to start the loop.
-              </Empty>
-            </Block>
-          )}
+              />
+            ))}
+          </Lane>
+
+          <Lane
+            name="Still running"
+            waiting={runsLane(
+              running.length === 0 ? (
+                "No agent is working."
+              ) : (
+                <>
+                  <Num>{running.length}</Num> waiting on an agent, not on you.
+                </>
+              ),
+            )}
+            quiet={running.length === 0}
+            more={running.length > 0 ? "Open Runs" : undefined}
+            onMore={() => navigate({ to: "/runs" })}
+          >
+            {running.slice(0, 3).map((mission) => {
+              const agent = mission.current_agent_slug
+                ? agentDisplayName(mission.current_agent_slug)
+                : "The crew";
+              const elapsed = ago(mission.created_at);
+              return (
+                <Row
+                  key={mission.id}
+                  tight
+                  marks={<AgentMark slug={mission.current_agent_slug} state="running" />}
+                  lead={stripAutoPrefix(mission.current_sub_goal ?? mission.title)}
+                  sub={`${agent}${elapsed ? ` · ${elapsed} running` : " · running"}`}
+                  onClick={() =>
+                    navigate({ to: "/runs/$missionId", params: { missionId: mission.id } })
+                  }
+                />
+              );
+            })}
+          </Lane>
+        </div>
+
+        {quietMorning ? <QuietMorning /> : null}
+
+        <PushedInsights />
+
+        <FocusNext workspaceId={workspaceId} />
+
+        {stillWaiting(learnings) ? (
+          <Loading>Reading what it learned.</Loading>
+        ) : learnings.isError ? (
+          <Block title="Latest learning">
+            <Failed onRetry={() => void learnings.refetch()}>
+              The outcome record did not load, so this cannot show what changed next.
+            </Failed>
+          </Block>
+        ) : learning?.summary ? (
+          <Block title="It learned one thing">
+            <RecordRecess
+              title="Open this outcome in the record"
+              onClick={() =>
+                navigate({ to: "/brain", search: { tab: "learnings", learning: learning.id } })
+              }
+              evidence={
+                <>
+                  {learning.recorded_by_agent_slug
+                    ? `${agentDisplayName(learning.recorded_by_agent_slug)} recorded it`
+                    : "Recorded"}
+                  {learning.created_at
+                    ? ` · ${new Date(learning.created_at).toLocaleDateString(undefined, {
+                        day: "numeric",
+                        month: "short",
+                      })}`
+                    : ""}
+                </>
+              }
+            >
+              {learning.summary}
+            </RecordRecess>
+          </Block>
+        ) : null}
+
+        <div data-page-composer className="today-composer">
+          <div>
+            <div className="today-kicker">Start something new</div>
+            <div className="today-composer-copy">
+              Ask a question or give the crew its next outcome.
+            </div>
+          </div>
+          <AskComposer />
         </div>
       </div>
+
+      {/* THE DOOR THAT WAS A WALL. Today has drawn a "Send back" button for
+          weeks and it navigated to /approvals, which has no send-back control
+          and no note field, so the one verb that records WHY a machine was
+          wrong was advertised and unreachable. It opens here now, over the
+          call it belongs to, and `isModalOpen()` disarms a/d/z while the note
+          is being written. */}
+      <SendBackSheet
+        open={sendBack !== null}
+        item={
+          sendBack
+            ? {
+                id: sendBack.id,
+                sourceId: sendBack.sourceId,
+                kindKey: sendBack.kindKey,
+                title: stripAutoPrefix(sendBack.title),
+              }
+            : null
+        }
+        onClose={() => setSendBack(null)}
+      />
     </Surface>
   );
 }

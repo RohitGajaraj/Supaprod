@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callModel } from "@/lib/ai/runtime.server";
 import { stepLabel } from "@/lib/agent-vocabulary";
 import { countNeedsYouCalls } from "@/lib/today.functions";
+import { classifyFailureCode } from "@/lib/observability/gates";
 
 const DEFAULT_MODEL = "google/gemini-2.5-flash";
 
@@ -219,6 +220,11 @@ export const runAgent = createServerFn({ method: "POST" })
           status: "failed",
           output: e instanceof Error ? e.message : "Failed",
           duration_ms: Date.now() - t0,
+          // AFD-06: the third writer that marked a run failed and said nothing
+          // about why. The observability failure breakdown reads this column
+          // and was permanently empty because every path that could set it
+          // did not.
+          failure_kind: classifyFailureCode(e instanceof Error ? e.message : "Failed"),
         })
         .eq("id", runRow!.id);
       throw e;

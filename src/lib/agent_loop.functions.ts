@@ -144,17 +144,82 @@ export const listAgentMemory = createServerFn({ method: "POST" })
   });
 
 const ForgetSchema = z.object({ memoryId: z.string().uuid() });
+
+/**
+ * Forget one memory, and record that you did.
+ *
+ * TWO THINGS WERE WRONG HERE, and the second is the interesting one.
+ *
+ * 1. THE REFUSAL WAS INVISIBLE. `.delete()` with no `.select()` resolves as
+ *    `{ error: null }` when RLS refuses it, because supabase-js RESOLVES a
+ *    refused write rather than rejecting. So this returned `{ ok: true }`
+ *    having removed nothing, and any surface that mounted it would have shown
+ *    the row vanish optimistically and reappear on the next read, with no
+ *    error anywhere. The identical trap is documented on
+ *    `deleteSignal` in discovery.functions.ts. Fixed the same way: select the
+ *    deleted row back and treat an empty set as the refusal it is.
+ *
+ * 2. THE DELETE WAS SILENT, on a surface whose entire argument is that the
+ *    record can be trusted. A memory that can vanish without trace makes the
+ *    record a cache. So a forget is now written to `human_gate_events` as an
+ *    `override`, which is what it actually is: a human telling the brain that
+ *    something it learned was wrong.
+ *
+ *    That is not bookkeeping. `summarizeGateSignals` counts an override as a
+ *    CORRECTION, so forgetting a memory an agent wrote moves that agent's
+ *    correction rate, and `loadFlagEvidence` reads the note back verbatim when
+ *    it drafts an improvement proposal. A deletion is the strongest possible
+ *    statement that a lesson was wrong, and it was the one signal the flywheel
+ *    threw away.
+ *
+ *    The row records WHAT was forgotten in `diff_summary`, clamped, so the
+ *    history can say "you corrected this, on this date" without the surface
+ *    having to keep the deleted content itself.
+ */
 export const forgetMemory = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => ForgetSchema.parse(input))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
+
+    // Read BEFORE the delete: after it succeeds there is nothing left to
+    // attribute, and an override filed against no agent lands in the
+    // "(unattributed)" bucket that readAgentSignals filters out.
+    const { data: prior } = await supabase
+      .from("agent_memory")
+      .select("id,content,agent_slug,workspace_id,kind")
+      .eq("id", data.memoryId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const { data: removed, error } = await supabase
       .from("agent_memory")
       .delete()
       .eq("id", data.memoryId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!removed || removed.length === 0) {
+      throw new Error("That memory was not removed. It may not be yours, or it is already gone.");
+    }
+
+    if (prior) {
+      const p = prior as {
+        content?: string | null;
+        agent_slug?: string | null;
+        workspace_id?: string | null;
+        kind?: string | null;
+      };
+      await recordGateSignalCore(supabase, userId, {
+        gateType: "override",
+        subjectType: "agent_memory",
+        subjectRef: data.memoryId,
+        agentSlug: p.agent_slug ?? null,
+        verdict: "forgotten",
+        diffSummary: `Forgot a ${p.kind ?? "memory"}: ${(p.content ?? "").slice(0, 300)}`,
+        workspaceId: p.workspace_id ?? null,
+      });
+    }
     return { ok: true };
   });
 

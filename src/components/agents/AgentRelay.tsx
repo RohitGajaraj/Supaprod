@@ -165,7 +165,7 @@ function MiniRelayLine({ workspaceId }: { workspaceId: string | null }) {
   if (r.missionId) {
     return (
       <Link
-        to="/build/$missionId"
+        to="/runs/$missionId"
         params={{ missionId: r.missionId }}
         style={{ textDecoration: "none", display: "block", color: "inherit" }}
       >
@@ -233,7 +233,7 @@ function StationRelayLine({
   if (run.missionId) {
     return (
       <Link
-        to="/build/$missionId"
+        to="/runs/$missionId"
         params={{ missionId: run.missionId }}
         style={{ textDecoration: "none", display: "block", color: "inherit" }}
       >

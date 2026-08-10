@@ -788,7 +788,21 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     if (missions.isLoading) return null;
     if (running.length === 0) {
       if (gateCount === 0) return "Nothing running";
-      return gateCount === 1 ? "1 call needs you" : `${gateCount} calls need you`;
+      /* "DECISIONS", NOT "CALLS", and the two surfaces now agree.
+       *
+       * The shell said "83 calls need you" while /today, one inch below it,
+       * said "83 decisions are ready for your review". Same number, same
+       * things, two nouns — which reads as two different counts until you work
+       * out that it isn't.
+       *
+       * "Decision" is also the word the market uses and "call" is not: measured
+       * across 5.72M words of operator conversation, "decisions" is the single
+       * most common substantive term at 562.8 per million, while "call" in this
+       * sense barely registers and is ambiguous with a phone call in the same
+       * breath as agents and runs. */
+      return gateCount === 1
+        ? "1 decision is ready for you"
+        : `${gateCount} decisions are ready for you`;
     }
     // Every running run resolved to a named worker, so the agents are
     // countable and the count is the thing worth saying.

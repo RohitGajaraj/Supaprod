@@ -31,8 +31,23 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dir, "..", "..");
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
+/**
+ * The file with its comments removed, for guards that assert a pattern is
+ * ABSENT.
+ *
+ * A source-scanning test cannot tell code from prose about code, and this repo
+ * documents a fixed defect by quoting the broken line verbatim. So a bare
+ * `not.toMatch` on the raw text fails the moment somebody explains the fix,
+ * which punishes exactly the commenting habit the codebase relies on. Presence
+ * assertions are unaffected and keep reading the raw file.
+ */
+function codeOf(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+}
+
 const CLUSTER = read(join("lib", "ai", "cluster.server.ts"));
 const INSIGHTS = read(join("lib", "brain", "insights.functions.ts"));
+const DERIVE = read(join("lib", "brain", "derive-insights.server.ts"));
 const DISCOVER = read(join("components", "discover", "DiscoverSurface.tsx"));
 const TYPES = read(join("integrations", "supabase", "types.ts"));
 
@@ -111,6 +126,54 @@ describe("the brain refuses to recommend one", () => {
     // A post-fetch .filter() would still spend the model call before dropping
     // the row, and would silently return fewer than the limit asked for.
     const fn = INSIGHTS.slice(INSIGHTS.indexOf("export const getFocusNext"));
+    const themesRead = fn.indexOf('.from("themes")');
+    const guard = fn.indexOf('.eq("is_sample", false)');
+    expect(themesRead).toBeGreaterThan(-1);
+    expect(guard).toBeGreaterThan(themesRead);
+    expect(guard - themesRead).toBeLessThan(1200);
+  });
+});
+
+describe("the DERIVE TICK refuses too, and it is the path that actually runs", () => {
+  /**
+   * The guards above protect `getFocusNext` in insights.functions.ts, which
+   * insights.functions.ts itself documents as having no live caller. Its twin
+   * `fetchRankedThemes` in derive-insights.server.ts reads the same table,
+   * feeds the same `scoreTheme`, and IS live: `deriveAllInsights` runs from
+   * routes/api/public/hooks/derive-tick.ts.
+   *
+   * Until 2026-08-10 it carried neither guard. Its filter was the single
+   * literal `.neq("status", "archived")`, and `archived` is a value the column
+   * has never held, so it excluded nothing: every tick ranked clusters the
+   * user had already dismissed, merged or promoted, and ranked seeded demo
+   * themes beside real ones. The test suite protected the dead path and left
+   * the live one open, which is the shape of failure worth pinning here.
+   */
+  it("filters settled clusters using the canonical list, never a literal", () => {
+    const fn = DERIVE.slice(DERIVE.indexOf("async function fetchRankedThemes"));
+    expect(fn.slice(0, 3000)).toMatch(/\.not\("status", "in", SETTLED_THEME_STATUSES\)/);
+  });
+
+  it("takes that list from @/lib/spine/promote rather than retyping it", () => {
+    // A hand-copy is how `promoted` came to be missing from two of the three
+    // lists that already existed. A fourth copy would be the same defect.
+    expect(DERIVE).toMatch(/import \{ INELIGIBLE_STATUSES \} from "@\/lib\/spine\/promote"/);
+    expect(DERIVE).toMatch(
+      /const SETTLED_THEME_STATUSES = `\(\$\{INELIGIBLE_STATUSES\.join\(","\)\}\)`/,
+    );
+  });
+
+  it("the one-literal filter that excluded nothing is gone", () => {
+    // Asserted against CODE, not prose. The comment above the fixed read
+    // quotes the old filter verbatim so a future reader knows what was wrong,
+    // and a naive scan of the raw file matches that sentence and passes a test
+    // that should fail. Stripping comments first is the difference between a
+    // guard on the behaviour and a guard on whether anyone described it.
+    expect(codeOf(DERIVE)).not.toMatch(/\.neq\("status", "archived"\)/);
+  });
+
+  it("refuses sample themes, on the read rather than after it", () => {
+    const fn = DERIVE.slice(DERIVE.indexOf("async function fetchRankedThemes"));
     const themesRead = fn.indexOf('.from("themes")');
     const guard = fn.indexOf('.eq("is_sample", false)');
     expect(themesRead).toBeGreaterThan(-1);

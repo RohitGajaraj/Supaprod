@@ -164,6 +164,54 @@
  *
  * What did NOT change: the comparator, the query keys, the a/c/d keys, the
  * Gate's one primary answer, and the recess sitting directly under it.
+ *
+ * ---------------------------------------------------------------------------
+ * 2026-08-10. THE QUEUE WAS A DEMONSTRATION OF A QUEUE. Five of these six are
+ * things the station promised and could not do; the sixth is the one idea here
+ * that no shipped competitor has. Each is written out in full at its own site.
+ *
+ * 1. THE SKIP LIST WAS SESSION-ONLY AND THE ONE PATH THAT MATTERS UNMOUNTS THE
+ *    ROUTE. Keeping a bet navigates to the spec it just wrote, so press `a`,
+ *    read it, come back, and the same bet was #1 again asking the same
+ *    question. The comment here called that "the honest scope for a fact
+ *    nothing is written to the record", and the premise was false: a keep
+ *    writes `roadmap_bucket` and a drop writes `status`. See
+ *    `answeredOnTheRecord`.
+ * 2. THE FRICTION WAS INVERTED. Delete asked before removing one row; "Keep it"
+ *    spent THREE model calls off a bare `a` with nothing in between. The cheap
+ *    reversible act was guarded and the expensive one was not. See `keepBet`.
+ * 3. NO FILTER, NO SEARCH, NO SORT, NO BULK: `const others = ranked`, five
+ *    visible, an "All 31". A product lead could not answer "which has the
+ *    Critic flagged" or "where is the checkout one" without reading every row.
+ *    See `lensed`, `ordered`, `picked` and `dropMany` -- and note that bulk
+ *    offers ONLY the drop, for the reason in 2.
+ * 4. THE ICE EDITOR WAS THE FIFTH HEADING IN THE RIGHT RAIL. It is the only
+ *    control on the surface that changes the order the whole page is about, and
+ *    four read-only reasons stood above it. It leads the column now.
+ * 5. THE ROWS COULD NOT BE SCANNED. Status was an agent's face and a sentence
+ *    per row, so "Critic says ship" was the commonest string on the page and
+ *    the two rows in trouble competed with it. Status is a ring that survives
+ *    greyscale, magnitude is a numeral plus a 2px bar on one shared scale, and
+ *    the verdict sentence is EXCEPTION-ONLY. A batch header states the whole
+ *    distribution above the list, which is what makes rank 1 worth trusting:
+ *    without it a reader has no way to ask what rank 12 looks like.
+ * 6. RANK THE MOVEMENT, NOT THE MAGNITUDE. Every ranked queue studied shows a
+ *    current value; none shows what changed. `learnings.prior_ice` / `new_ice`
+ *    is a real previous score, so a moved bet carries its signed delta and the
+ *    list can be ordered by what the record re-scored. It is the only element
+ *    on this station that makes the compounding claim in the subtitle
+ *    falsifiable. Offered only when something has actually moved. See
+ *    `movementByOpp`.
+ *
+ * AND THE VOCABULARY. /today says "decision"; this station still said "call".
+ * Measured over 5.72M words of operator conversation, "decision" runs at 562.8
+ * per million and "call" is not the noun operators reach for -- and the table
+ * this surface writes to is the decision log, so the screen was using a
+ * different word from its own record.
+ *
+ * What did NOT change: the comparator, the server functions, the query keys,
+ * the a/c/d keys, the Gate's one primary answer, and the recess sitting
+ * directly under it.
  */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -192,7 +240,7 @@ import { getProvenance } from "@/lib/lineage.functions";
 import { getPrecedentCitations } from "@/lib/decision-judgment.functions";
 import { getBriefAlignment } from "@/lib/brief-opportunity.functions";
 import { alignmentForOpportunity } from "@/lib/brief-opportunity";
-import { rescoreNoteOf } from "@/lib/moat-vis";
+import { iceNum, rescoreNoteOf, round1 } from "@/lib/moat-vis";
 import { verdictFor, withTimeout, type VerdictWord } from "@/components/discover/format";
 import { outcomeSupportFromCounts, rankOpportunities } from "@/components/discover/ranking";
 import {
@@ -232,8 +280,18 @@ import {
   Receipt,
   Record as RecordRecess,
   Row,
+  SelectionBar,
   Surface,
 } from "@/components/shell/primitives";
+import { useSelection } from "@/components/shell/use-selection";
+import {
+  BatchHeader,
+  ScoreMeter,
+  SelectBox,
+  StatusRing,
+  type RingFill,
+  type RingTone,
+} from "@/components/decisions/queue-instruments";
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { useSpineStrip } from "@/components/shell/use-spine-strip";
 import { CrewWorking } from "@/components/shell/CrewWorking";
@@ -398,6 +456,120 @@ function criticGaveTheVerdict(review: { verdict?: string | null } | null | undef
   const v = review?.verdict;
   return typeof v === "string" && CRITIC_VERDICT_WORDS.includes(v);
 }
+
+/**
+ * ICE IS A THREE-NUMBER AVERAGE AND ITS CEILING IS TEN.
+ *
+ * `ice_score` is a generated column, `(impact + confidence + ease) / 3`, each
+ * term 1..10. Saying so is not pedantry: a bare "7.3" on a row is the exact
+ * failure the queue research names -- a reader cannot tell whether it is good,
+ * and cannot tell whether the next row's 8.1 is meaningfully better. The meter
+ * states the ceiling in its own title and draws the bar against it, so a glance
+ * down the column is worth something.
+ */
+const ICE_CEILING = 10;
+
+/**
+ * THE RED TEAM'S STATE, AS A SHAPE.
+ *
+ * Every ranked queue studied encodes status as a hue, and every one of them
+ * loses it in greyscale. Linear's ring was the single exception found in ~200
+ * products: how much of the ring is filled IS the state, and the colour only
+ * confirms it.
+ *
+ * COLOUR IS EXCEPTION-ONLY HERE, which is Vanta's discipline rather than a
+ * taste. A bet the Critic cleared gets a quiet full ring and NO hue: if
+ * everything clear is green, green stops meaning anything and the two rows that
+ * are actually in trouble have to compete with it. So only `revise` and `kill`
+ * carry a colour, and they are consequently rare enough to find by scanning.
+ *
+ * `reviewed` IS NOT `Boolean(critic_review)`, and passing the wrong thing here
+ * puts back the misattribution `verdictSentence` exists to stop: `verdictFor`
+ * falls through to the LANE whenever the stored word is not exactly ship,
+ * revise or kill, so a ring painted from a lane-derived verdict would attribute
+ * a judgment to an agent that never gave one. When the Critic did not speak,
+ * the fill still reflects the lane -- that IS what the comparator ranked on --
+ * and the tone stays neutral and the label says where the word came from.
+ */
+function redTeamRing(
+  verdict: VerdictWord,
+  reviewed: boolean,
+  name: string,
+): { fill: RingFill; tone: RingTone; label: string } {
+  const source = reviewed
+    ? `${name} says ${verdict.toLowerCase()}`
+    : `its lane reads ${verdict.toLowerCase()}, ${name} has not reviewed it`;
+  if (verdict === "PENDING") {
+    return {
+      fill: "empty",
+      tone: "quiet",
+      label: `Not reviewed. ${name} has not opened this bet.`,
+    };
+  }
+  if (verdict === "KILL") {
+    return { fill: "struck", tone: reviewed ? "fail" : "quiet", label: source };
+  }
+  if (verdict === "REVISE") {
+    return { fill: "part", tone: reviewed ? "warn" : "quiet", label: source };
+  }
+  if (verdict === "WATCH") {
+    return { fill: "part", tone: "quiet", label: source };
+  }
+  return { fill: "full", tone: "quiet", label: source };
+}
+
+/**
+ * A BET THE RECORD SAYS HAS ALREADY BEEN ANSWERED.
+ *
+ * THE DEFECT THIS CLOSES. The skip list one screen down is session-only, and
+ * its own comment admits it: "it lives for as long as this mount does". Keeping
+ * a bet navigates to the spec it just wrote, which UNMOUNTS this route, so the
+ * single commonest path through this station -- press `a`, read the spec, come
+ * back -- returned the reader to the identical Gate asking about the bet they
+ * had just kept. The one place the answer survived was the record, and nothing
+ * here read it.
+ *
+ * THREE COLUMNS, AND THEY ARE NOT EQUALLY STRONG, so the strength is written
+ * down rather than flattened:
+ *   - `dropped` and `shipped` are terminal. `LANES` offers neither, `getRoadmap`
+ *     excludes both, and this file's own `dropBet` refuses a second drop. There
+ *     is no reading under which one of these is still an open question.
+ *   - `roadmap_bucket` is WEAKER and is included deliberately. It is what
+ *     `placeKeptBetInNext` writes on a keep, so it is the only trace a keep
+ *     leaves that survives the navigation. It is also written by an ordinary
+ *     lane press, which is a placement rather than a settle -- but a bet you
+ *     have placed in a lane is still a bet you have answered, and "which bet
+ *     have I not looked at" is exactly the question the default selection is
+ *     asking.
+ *
+ * IT IS A PREFERENCE, NEVER A FILTER. Every one of these bets stays in the
+ * ranking, keeps its rank and can be pulled back under the Gate with "Decide
+ * it". All this does is decide which one opens when nobody has chosen.
+ */
+function answeredOnTheRecord(opp: OpportunityDetailRecord): boolean {
+  return opp.status === "dropped" || opp.status === "shipped" || Boolean(opp.roadmap_bucket);
+}
+
+/** What the ranking is being narrowed to. Kept out of the URL: it is a way of
+ *  looking at the queue, not a place in the product -- the same call Discover's
+ *  merge picker made about its own filter. */
+type Lens = "all" | "waiting" | "flagged" | "cleared";
+
+const LENSES: { id: Lens; label: string; title: string }[] = [
+  { id: "all", label: "All", title: "Every ranked bet" },
+  {
+    id: "waiting",
+    label: "Awaiting review",
+    title: "No teardown on the record yet, so the verdict beside it came from its lane",
+  },
+  { id: "flagged", label: "Flagged", title: "The Critic asked for a revision, or said kill it" },
+  { id: "cleared", label: "Cleared", title: "The Critic read it and said ship" },
+];
+
+/** How the ranking is ordered. "Score" is the deterministic comparator and is
+ *  the default; "moved" is the one this product can offer and no shipped
+ *  competitor does. See `ordered`. */
+type Order = "score" | "moved";
 
 /** Long enough to collect a burst of arrow presses into one write, short enough
  *  that nobody sits waiting on a timer. Blur and unmount beat it anyway. The
@@ -808,6 +980,23 @@ function DecideSurface() {
 
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [showAll, setShowAll] = React.useState(false);
+  /**
+   * THE THREE CONTROLS A QUEUE IS NOT A QUEUE WITHOUT.
+   *
+   * This station had none of them: `const others = ranked`, unfiltered,
+   * unsearchable, in one fixed order, capped at five with a "show all". That is
+   * a demonstration of a queue rather than a queue -- a product lead with
+   * thirty ranked bets could not answer "which ones has the Critic flagged" or
+   * "where is the one about checkout" without reading every row.
+   *
+   * None of them is in the URL. A lens, a search and an order are ways of
+   * LOOKING at the ranking, not places in the product, and putting them in the
+   * address bar would make a shared link mean something different for the
+   * person who receives it. Same reading Discover's merge filter took.
+   */
+  const [lens, setLens] = React.useState<Lens>("all");
+  const [order, setOrder] = React.useState<Order>("score");
+  const [q, setQ] = React.useState("");
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [lineageId, setLineageId] = React.useState<string | null>(null);
   // A Set, not a scalar: any in-flight write on a bet keeps that bet's actions
@@ -845,6 +1034,52 @@ function DecideSurface() {
     }
     return map;
   }, [learnings.data]);
+
+  /**
+   * WHICH BETS THE RECORD ACTUALLY MOVED, AND BY HOW MUCH.
+   *
+   * THE IDEA, AND WHY NO SHIPPED PRODUCT HAS IT. Every ranked queue studied
+   * renders a CURRENT value: today's score, today's order. That is the right
+   * thing to show somebody seeing the queue for the first time and the wrong
+   * thing to show somebody who saw it on Friday. A product lead opening this on
+   * Tuesday does not need twelve rationales re-read; they need to know which
+   * two rows changed their mind. So the queue can be ordered by MOVEMENT, and
+   * every moved row carries its signed delta beside its score.
+   *
+   * IT IS REAL DATA OR IT IS NOTHING. `learnings` stores `prior_ice` and
+   * `new_ice` on the outcome that caused a re-score, which is a genuine
+   * previous value written by the loop rather than a diff computed at render
+   * time. A learning with either endpoint missing, or a sub-0.1 drift that
+   * rounds to no move at all, is not a movement and is dropped -- the same test
+   * `rescoresOf` applies in moat-vis.ts, applied here through the same two
+   * helpers so the arrow on the row and the sentence in the recess can never
+   * disagree about whether something moved.
+   *
+   * WHAT IT ALSO BUYS, beyond the ordering: a re-score stops being a silent
+   * mutation. It is the only element on this station that makes the compounding
+   * claim in the page subtitle falsifiable, because a reader can point at the
+   * row and the number that moved it.
+   *
+   * ON TODAY'S DATA THIS IS MOSTLY EMPTY, and that is reported rather than
+   * hidden. The `rescores` query's own note counts it: of the learnings in the
+   * database carrying a `new_ice`, effectively all sit in seeded workspaces. So
+   * the "Recently moved" order is offered ONLY when at least one bet on screen
+   * has genuinely moved -- see `movedCount` at the ordering control. An order
+   * that silently equals the default is a control that lies about having done
+   * something.
+   */
+  const movementByOpp = React.useMemo(() => {
+    const map = new Map<string, { delta: number; at: string }>();
+    for (const [id, l] of latestLearningByOpp) {
+      const prior = iceNum(l.prior_ice);
+      const next = iceNum(l.new_ice);
+      if (prior === null || next === null) continue;
+      const delta = round1(round1(next) - round1(prior));
+      if (delta === 0) continue;
+      map.set(id, { delta, at: l.created_at });
+    }
+    return map;
+  }, [latestLearningByOpp]);
 
   /** The newest outcome recorded IN THIS WORKSPACE that actually moved a
    *  score. Null is the honest answer for a workspace that has settled nothing
@@ -918,10 +1153,16 @@ function DecideSurface() {
   // last two fallbacks put the queue back exactly as it was rather than emptying
   // the station.
   //
-  // IT LIVES FOR AS LONG AS THIS MOUNT DOES, which is what "this session" means
-  // here and is all it claims: navigating to a spec and back remounts the route
-  // and the set starts empty again. That is the honest scope for a fact nothing
-  // is written to the record.
+  // IT USED TO LIVE ONLY FOR AS LONG AS THIS MOUNT DOES, and that was the whole
+  // hole. Keeping a bet NAVIGATES to the spec it just wrote, which unmounts this
+  // route, so the commonest path through the station -- press `a`, read the
+  // spec, come back -- emptied the set and put the kept bet back at #1 with its
+  // primary button still reading "Keep it". The comment that stood here called
+  // that "the honest scope for a fact nothing is written to the record", and the
+  // premise was wrong: a keep writes `roadmap_bucket`, a drop writes
+  // `status: "dropped"`, and both survive a navigation. `answeredOnTheRecord`
+  // reads them, so the durable half of the answer now comes from the record and
+  // the set below only has to cover the gap between a press and its refetch.
   //
   // THE REF IS THE SOURCE OF TRUTH AND THE STATE IS ITS SHADOW. Two settles
   // inside one render pass would both read a `settledIds` that React has not
@@ -930,9 +1171,16 @@ function DecideSurface() {
   // and it is always handed the very set the ref now holds.
   const settledRef = React.useRef<Set<string>>(new Set());
   const [settledIds, setSettledIds] = React.useState<ReadonlySet<string>>(() => settledRef.current);
+  // SIX FALLBACKS, IN STRENGTH ORDER, and every one of them is a preference
+  // rather than a filter: the station must never empty itself, so the last two
+  // put the whole queue back exactly as it was.
   const active = React.useMemo(
     () =>
       ranked.find((r) => r.opp.id === selectedId) ??
+      ranked.find(
+        (r) => !settledIds.has(r.opp.id) && !answeredOnTheRecord(r.opp) && !r.opp.is_sample,
+      ) ??
+      ranked.find((r) => !settledIds.has(r.opp.id) && !answeredOnTheRecord(r.opp)) ??
       ranked.find((r) => !settledIds.has(r.opp.id) && !r.opp.is_sample) ??
       ranked.find((r) => !settledIds.has(r.opp.id)) ??
       ranked.find((r) => !r.opp.is_sample) ??
@@ -945,7 +1193,112 @@ function DecideSurface() {
   // the row you pressed, and the queue silently renumbered around the gap.
   // `Row` already carries `focused`, so keeping it costs one prop.
   const others = ranked;
-  const visibleOthers = showAll ? others : others.slice(0, VISIBLE_OTHERS);
+
+  /**
+   * WHICH BETS ARE ON SCREEN, AFTER THE LENS AND THE SEARCH.
+   *
+   * `ranked` is untouched, on purpose. It is what the Gate, the skip list and
+   * `settleAndAdvance` all read, and a lens is a way of LOOKING at the queue --
+   * if narrowing the list also moved the question, a person filtering to
+   * "Flagged" would find the Gate had silently swapped the bet under it. So the
+   * filter applies to the LIST and to nothing else, and the rank on every row
+   * stays the rank the comparator gave it rather than its position in the
+   * filtered view.
+   */
+  const lensed = React.useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return others.filter((r) => {
+      const o = r.opp;
+      if (needle) {
+        const hay = `${o.title ?? ""} ${o.problem ?? ""}`.toLowerCase();
+        if (!hay.includes(needle)) return false;
+      }
+      if (lens === "all") return true;
+      const spoke = criticGaveTheVerdict(o.critic_review);
+      // "Awaiting review" is about the CRITIC, not about the verdict word. A
+      // bet in the Now lane reads SHIP through `verdictFor`'s fall-through with
+      // nobody having opened it, and calling that reviewed is the exact
+      // misattribution `verdictSentence` exists to stop.
+      if (lens === "waiting") return !spoke;
+      if (!spoke) return false;
+      const v = verdictFor(o);
+      if (lens === "cleared") return v === "SHIP";
+      return v === "REVISE" || v === "KILL";
+    });
+  }, [others, lens, q]);
+
+  /** How many of the bets on screen the record has actually moved. The
+   *  "Recently moved" order is offered only above zero: an order that silently
+   *  equals the default is a control that claims to have done something. */
+  const movedCount = React.useMemo(
+    () => lensed.filter((r) => movementByOpp.has(r.opp.id)).length,
+    [lensed, movementByOpp],
+  );
+
+  /**
+   * MOVEMENT FIRST, THEN THE COMPARATOR.
+   *
+   * A stable partition rather than a sort with a fabricated key: rows the
+   * record moved come first, newest movement first, and everything else keeps
+   * the deterministic order it already had. Nothing invents a movement for a
+   * bet that has none, and nothing reorders inside the unmoved group, so
+   * switching back to "Highest score" is exactly the list you left.
+   */
+  const ordered = React.useMemo(() => {
+    if (order === "score" || movedCount === 0) return lensed;
+    const moved = lensed.filter((r) => movementByOpp.has(r.opp.id));
+    const still = lensed.filter((r) => !movementByOpp.has(r.opp.id));
+    moved.sort(
+      (a, b) =>
+        new Date(movementByOpp.get(b.opp.id)!.at).getTime() -
+        new Date(movementByOpp.get(a.opp.id)!.at).getTime(),
+    );
+    return [...moved, ...still];
+  }, [lensed, order, movedCount, movementByOpp]);
+
+  const visibleOthers = showAll ? ordered : ordered.slice(0, VISIBLE_OTHERS);
+
+  /**
+   * BULK TRIAGE, over the order actually on screen.
+   *
+   * The ids are `ordered`'s, so a shift-range means "every row between these
+   * two AS I AM LOOKING AT THEM" rather than as the comparator happened to rank
+   * them, and `useSelection` intersects with them on every read -- so narrowing
+   * the lens with rows ticked drops the ones that left rather than acting on
+   * something the person can no longer see.
+   */
+  const orderedIds = React.useMemo(() => ordered.map((r) => r.opp.id), [ordered]);
+  const picked = useSelection(orderedIds);
+
+  /**
+   * WHAT THE WHOLE QUEUE LOOKS LIKE, counted off the rows already in hand.
+   *
+   * Counted over `others` rather than over `ordered`, and that is the point: a
+   * distribution that moved when the lens moved would be a description of the
+   * filter rather than of the queue, and the reason this header exists is that
+   * a ranked list with no distribution over it invites a reader to trust rank 1
+   * without asking what rank 12 looks like.
+   */
+  const spread = React.useMemo(() => {
+    let cleared = 0;
+    let flagged = 0;
+    let waiting = 0;
+    let moved = 0;
+    for (const r of others) {
+      // NOT `movementByOpp.size`. The learnings read is deliberately unscoped
+      // (see its own note), so the map holds outcomes for bets that are not in
+      // this queue at all, and a header counting them would claim a re-rank of
+      // rows nobody can see.
+      if (movementByOpp.has(r.opp.id)) moved += 1;
+      if (!criticGaveTheVerdict(r.opp.critic_review)) {
+        waiting += 1;
+        continue;
+      }
+      if (verdictFor(r.opp) === "SHIP") cleared += 1;
+      else flagged += 1;
+    }
+    return { cleared, flagged, waiting, moved };
+  }, [others, movementByOpp]);
 
   // The account's own record, cited at decision time, fetched only for what is
   // actually on screen and only once there is enough history to cite honestly.
@@ -1071,7 +1424,14 @@ function DecideSurface() {
     setSettledIds(seen);
     setSelectedId(null);
     const list = latest.current.ranked;
+    // The same strength order `active` uses, and it has to be: if the Gate
+    // advanced to a bet the record already says was answered, the reader would
+    // be asked a question they had settled last week the moment they pressed a
+    // key. Kept as a copy rather than shared because this one reads the ref's
+    // set inside a callback that must not close over render state.
     const next =
+      list.find((r) => !seen.has(r.opp.id) && !answeredOnTheRecord(r.opp) && !r.opp.is_sample) ??
+      list.find((r) => !seen.has(r.opp.id) && !answeredOnTheRecord(r.opp)) ??
       list.find((r) => !seen.has(r.opp.id) && !r.opp.is_sample) ??
       list.find((r) => !seen.has(r.opp.id)) ??
       null;
@@ -1268,8 +1628,16 @@ function DecideSurface() {
           // Plan found that sentence contradicted by an empty lane.
           status === "dropped" ? (
             <>
+              {/* "DECISION", NOT "CALL", and the whole station moved with it.
+                  Measured over 5.72M words of operator conversation: "decision"
+                  runs at 562.8 per million and is the noun operators actually
+                  reach for; /today already says it. This station was the last
+                  one still saying "call", which made one product speak two
+                  languages about one act -- and the record it writes to is
+                  literally the decision log, so the surface was using a
+                  different word from the table it fills. */}
               {decisionId
-                ? `${title} is dropped. Its evidence stays on the record, and so does the call.`
+                ? `${title} is dropped. Its evidence stays on the record, and so does the decision.`
                 : `${title} is dropped and its evidence stays on the record. The reason did not reach the decision log, so there is nothing to open: the drop itself stands.`}
               {nextLine(nextTitle)}
               {/* THE STATION'S JOB IS STATED AS "with a reason that lands on the
@@ -1289,7 +1657,7 @@ function DecideSurface() {
                       })
                     }
                   >
-                    Read the call
+                    Read the decision
                   </Door>
                 </>
               ) : null}
@@ -1419,6 +1787,112 @@ function DecideSurface() {
     [setStatus],
   );
 
+  /**
+   * THE FRICTION WAS INVERTED, AND THIS IS THE SIDE THAT WAS WRONG.
+   *
+   * Delete asked "Delete this bet?" behind a confirm and cost one row. "Keep
+   * it" -- one press of `a`, no confirm, no second thought -- ran `generatePrd`,
+   * which is THREE model calls in sequence: the title, the spec body, then the
+   * outcome contract. The cheap reversible act was guarded and the expensive
+   * one was not, on the surface whose own gate line already admits what it
+   * spends ("spec, then the outcome contract").
+   *
+   * It is also the act that most often ran by accident: `a` is a bare letter,
+   * this station opens with a bet already under the Gate, and until the skip
+   * list learned to read the record a person who came back from the spec found
+   * the same bet still asking.
+   *
+   * NOT `destructive`. Keeping a bet is not a deletion and dressing it in the
+   * red confirm would spend a signal reserved for irreversible loss. The body
+   * carries the cost, in the units that are actually spent, and the confirm
+   * label is the verb rather than "OK": a person must be able to answer this
+   * dialog by reading only the button.
+   *
+   * THE KEYBOARD IS SAFE ACROSS IT. `useConfirm` renders a Radix alert dialog,
+   * which `isModalOpen()` recognises through `[role="alertdialog"]`, so the
+   * gate keys stand down for as long as the question is on screen -- the same
+   * property `askDelete` leans on, and the one the confirm-guard test pins.
+   */
+  const keepBet = React.useCallback(
+    async (opp: OpportunityDetailRecord) => {
+      const ok = await confirm({
+        title: "Keep this bet?",
+        body: `Keeping "${opp.title}" writes its spec, its body and its outcome contract — three model runs — and moves it into the Next lane on the Plan board. Dropping it or challenging it costs a fraction of that, so this is the expensive answer.`,
+        confirmLabel: "Keep it and draft the spec",
+      });
+      if (ok) draftSpec.mutate(opp.id);
+    },
+    [confirm, draftSpec],
+  );
+
+  /**
+   * DROPPING A BATCH, WHICH IS THE ONE VERB THAT MAY BE BULK HERE.
+   *
+   * A Head of Product arriving to thirty ranked bets, most of them noise from a
+   * connector sweep, had exactly one path: thirty presses. `useSelection` and
+   * `SelectionBar` were built for this and this station had no caller.
+   *
+   * KEEP IS NOT OFFERED IN BULK AND NEVER WILL BE. It is three model calls per
+   * bet; the paragraph above `keepBet` is about making ONE of those cost more
+   * than a click, and a bulk version would make twenty of them cost less. The
+   * same reasoning bars a bulk challenge, which is one Critic run each.
+   * Dropping is a single column write, it is reversible from the lane control
+   * on the row, and it is what a queue actually needs to be cleared.
+   *
+   * IT STILL ASKS. Twenty rejections filed against the decision log in one
+   * press is not the same act as one, and the confirm names the number.
+   *
+   * `allSettled`, because a refusal on one bet must not throw away the other
+   * nineteen, and the receipt reports the count that landed rather than the
+   * verb that was attempted.
+   */
+  const dropMany = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const results = await Promise.allSettled(
+        ids.map((id) => fUpdate({ data: { id, status: "dropped" as OpportunityStatus } })),
+      );
+      const done = results.filter((r) => r.status === "fulfilled").length;
+      const refused = results.find((r) => r.status === "rejected");
+      return {
+        done,
+        failed: ids.length - done,
+        why:
+          refused && refused.status === "rejected"
+            ? ((refused.reason as Error)?.message ?? "The record refused the write.")
+            : null,
+      };
+    },
+    onSuccess: (r, ids) => {
+      for (const id of ids) settleAndAdvance(id);
+      picked.clear();
+      setReceipt({
+        verb: r.failed === 0 ? "You dropped them" : "Most of them were dropped",
+        consequence:
+          r.failed === 0
+            ? `${r.done} bet${r.done === 1 ? "" : "s"} dropped. Their evidence stays on the record and so do the decisions. Picking a lane on any of those rows brings it back into the ranking.`
+            : `${r.done} of ${ids.length} were dropped. ${r.failed} were not: ${r.why} Those are still in the ranking below.`,
+        failed: r.failed > 0,
+      });
+      void qc.invalidateQueries({ queryKey: ["opportunities"] });
+      void qc.invalidateQueries({ queryKey: ["roadmap"] });
+    },
+    onError: (e: Error) =>
+      setReceipt({ verb: "None of them moved", consequence: e.message, failed: true }),
+  });
+
+  const askDropMany = React.useCallback(
+    async (ids: string[]) => {
+      const ok = await confirm({
+        title: `Drop ${ids.length} bet${ids.length === 1 ? "" : "s"}?`,
+        body: `Each one files a rejection against the decision log with your name on it. Their evidence stays on the record, and any of them can be brought back by picking a lane on its row.`,
+        destructive: true,
+        confirmLabel: `Drop ${ids.length}`,
+      });
+      if (ok) dropMany.mutate(ids);
+    },
+    [confirm, dropMany],
+  );
+
   /* THE RECORD OPENS ON THE BET YOU PRESSED, NOT ON THE ONE UNDER THE GATE.
      Until now the sheet read `activeOpp` whatever row had been pressed, so it
      was only ever a second view of the bet already in focus and every other row
@@ -1498,7 +1972,11 @@ function DecideSurface() {
        * an accept or a decline, its letter is the first letter of the word, and
        * it collides with nothing now the chord owns navigation.
        */
-      if (e.key === "a") draftSpec.mutate(id);
+      // `a` GOES THROUGH THE CONFIRM, and that is the one behaviour change to
+      // this handler. It used to fire three model calls off a bare letter with
+      // nothing between the press and the spend; see `keepBet`. `void`, because
+      // a keydown listener cannot await and the dialog owns what happens next.
+      if (e.key === "a") void keepBet(activeOpp);
       else if (e.key === "c") challenge.mutate(id);
       // Through `dropBet`, not straight to the mutation: a second `d` on a bet
       // that is already dropped must not file a second rejection. See its
@@ -1509,7 +1987,7 @@ function DecideSurface() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeOpp, busy, openId, lineageId, draftSpec, challenge, dropBet]);
+  }, [activeOpp, busy, openId, lineageId, keepBet, challenge, dropBet]);
 
   const loading = stillWaiting(opps);
 
@@ -1631,12 +2109,38 @@ function DecideSurface() {
       context={
         activeOpp ? (
           <>
+            {/* THE SCORE COMES FIRST, AND IT WAS FIFTH.
+                This column carried, in order: who touched it, why it ranks here,
+                what it resembles, what people said, what backs it, and only THEN
+                the three numbers that produce the order the whole page is about.
+                Everything above it was a reason; this is the only control on the
+                surface that changes the thing being reasoned about, and a person
+                who wanted to move a bet up the queue had to scroll past four
+                headings to find out they could.
+
+                It is also the answer to the sentence at the top of the page.
+                The subtitle says the queue is "Ordered by ICE score first"; the
+                editor for that score now sits directly under a heading saying so
+                rather than at the bottom of a rail.
+
+                The reasons did not go away. They follow, in the same order they
+                were in, because the order among THEM was right -- a person reads
+                the score, then who has touched it, then why it ranks where it
+                does. What was wrong was the control being last. */}
+            <CtxHead>The score this order is made of</CtxHead>
+            <IceEditor opportunity={activeOpp} disabled={busy} idPrefix="queue-ice" />
+            <CtxBody>
+              Impact, confidence and ease, each out of <Num>{ICE_CEILING}</Num>. Their average is
+              what the queue sorts on first, so a change here re-ranks the list below the moment it
+              lands.
+            </CtxBody>
+
             <CtxHead>Who has touched it</CtxHead>
             {activeOpp.decided_by_agent_slug ? (
               <CtxRow
                 mark={<AgentMark slug={activeOpp.decided_by_agent_slug} state="idle" />}
                 name={agentDisplayName(activeOpp.decided_by_agent_slug)}
-                sub="recorded the last call on it"
+                sub="recorded the last decision on it"
               />
             ) : null}
             {/* THE TEARDOWN, NOT A SENTENCE ABOUT IT.
@@ -1767,11 +2271,16 @@ function DecideSurface() {
                 This column printed "ICE 7.3" and nothing on the surface could
                 change it, on the one station whose entire job is the order those
                 three numbers produce. `updateOpportunity` has always accepted
-                them and nothing ever sent one. It sits here, where the number
-                was already being read, rather than behind a control that would
-                have to be found: three fields, arrow keys, and the queue
-                re-ranks itself the moment a score lands. */}
-            <IceEditor opportunity={activeOpp} disabled={busy} idPrefix="queue-ice" />
+                them and nothing ever sent one. Three fields, arrow keys, and the
+                queue re-ranks itself the moment a score lands.
+
+                IT MOVED TO THE TOP OF THIS COLUMN. It sat here, under the fifth
+                heading, "where the number was already being read" -- which was
+                the right instinct about ADJACENCY and the wrong answer about
+                RANK. The reasons above it are all read-only; this is the one
+                control that changes the order, and it was the last thing on the
+                rail. Only one editor is mounted, so nothing here is duplicated
+                and no second `queue-ice` id exists. */}
             <CtxBody>
               <Button variant="ghost" onClick={() => setLineageId(activeOpp.id)}>
                 View the evidence
@@ -2013,8 +2522,15 @@ function DecideSurface() {
                   </span>,
                 ]
               : []),
+            /* WHAT IT COSTS, SAID BEFORE THE PRESS RATHER THAN AFTER IT. The
+               line used to stop at "drafts the spec and moves it into Plan",
+               which describes the outcome and not the spend. Three model runs
+               is the fact that makes this the expensive answer of the three on
+               offer, and it is the reason the button asks again. */
             <span key="consequence">
-              Keeping it drafts the spec and moves it into Plan. Nothing ships from here.
+              Keeping it writes the spec, its body and its outcome contract &mdash; three model runs
+              &mdash; and moves it into Plan. It asks once before it spends. Nothing ships from
+              here.
             </span>,
           ]}
         >
@@ -2022,7 +2538,7 @@ function DecideSurface() {
             variant="primary"
             shortcut="a"
             disabled={busy}
-            onClick={() => draftSpec.mutate(activeOpp.id)}
+            onClick={() => void keepBet(activeOpp)}
           >
             Keep it
           </Button>
@@ -2238,36 +2754,192 @@ function DecideSurface() {
           /* WHAT A ROW DOES, SAID ONCE, IN THE ONE PLACE A PERSON IS ABOUT TO
              DO IT. The rows carry two different verbs now, and an affordance
              nobody can name is an affordance nobody uses. */
-          sub="Press a bet to open its whole record. Decide it puts that bet under the question above."
+          sub="Press a bet to open its whole record. Decide it puts that bet under the question above. Tick rows to drop a batch of them."
           more={
-            others.length > VISIBLE_OTHERS
+            ordered.length > VISIBLE_OTHERS
               ? showAll
                 ? "Show fewer"
-                : `All ${others.length}`
+                : `All ${ordered.length}`
               : undefined
           }
           onMore={() => setShowAll((v) => !v)}
         >
+          {/* WHAT THE WHOLE QUEUE LOOKS LIKE, before any of it is read.
+              A ranked list with no distribution over it asks the reader to
+              trust rank 1 without ever asking what rank 12 looks like, and that
+              was this station: five rows, an "All 31", and no way to know
+              whether the Critic had read any of them. Every count is off rows
+              already in hand and every zero is dropped, because a tile reading
+              0 spends a column of attention to say nothing happened. */}
+          <BatchHeader
+            facts={[
+              {
+                n: others.length,
+                label: others.length === 1 ? "bet ranked" : "bets ranked",
+                always: true,
+              },
+              {
+                n: spread.cleared,
+                label: "red-team cleared",
+                title: `${challengerName} read them and said ship`,
+              },
+              {
+                n: spread.flagged,
+                label: "flagged",
+                tone: "warn",
+                title: `${challengerName} asked for a revision, or said kill it`,
+              },
+              {
+                n: spread.waiting,
+                label: "awaiting review",
+                title: "No teardown on the record, so the verdict beside them came from their lane",
+              },
+              {
+                n: spread.moved,
+                label: "moved by an outcome",
+                title:
+                  "A recorded outcome changed the score on these, which is what the delta beside each one measures",
+              },
+            ]}
+          />
+
+          {/* THE THREE CONTROLS, IN THE LIST THEY ACT ON. Not in a toolbar over
+              the page: they narrow this block and nothing else, and the Gate
+              above deliberately does not move when they do. */}
+          <Line label="Show" sub={LENSES.find((l) => l.id === lens)?.title}>
+            <Choices
+              label="Which bets to show"
+              value={lens}
+              options={LENSES}
+              onPick={(id) => setLens(id)}
+            />
+          </Line>
+          {/* RANK THE MOVEMENT, NOT THE MAGNITUDE -- offered only when there IS
+              movement. Every ranked queue shows a current value; a person
+              returning on Tuesday needs the two rows that changed their mind,
+              not twelve rationales re-read. Withheld at zero because an order
+              that silently equals the default is a control that lies. */}
+          {spread.moved > 0 ? (
+            <Line
+              label="Order"
+              sub={
+                order === "score"
+                  ? "The comparator's own order: ICE first, then the verdict."
+                  : "The bets a recorded outcome moved, newest first, then the rest as they were."
+              }
+            >
+              <Choices
+                label="How to order the ranking"
+                value={order}
+                options={[
+                  {
+                    id: "score" as Order,
+                    label: "Highest score",
+                    title: "The deterministic order",
+                  },
+                  {
+                    id: "moved" as Order,
+                    label: "Recently moved",
+                    title: "What the record re-scored since you last looked",
+                  },
+                ]}
+                onPick={(id) => setOrder(id)}
+              />
+            </Line>
+          ) : null}
+          <Field label="Find a bet" htmlFor="decide-queue-find">
+            <Input
+              id="decide-queue-find"
+              value={q}
+              placeholder="Any part of its name, or of the problem it states"
+              onChange={(e) => setQ(e.target.value)}
+              /* Escape clears the field rather than reaching the gate keys,
+                 which stand down over an INPUT anyway. A search box you cannot
+                 empty from the keyboard is a filter that traps the list. */
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && q) {
+                  e.preventDefault();
+                  setQ("");
+                }
+              }}
+            />
+          </Field>
+
+          <SelectionBar selection={picked} total={ordered.length} noun="bet">
+            {/* One verb, and it is the cheap reversible one. See `dropMany`:
+                keeping is three model runs a bet and challenging is one, so
+                neither may ever be spent by a single press on a batch. */}
+            <Button disabled={dropMany.isPending} onClick={() => void askDropMany([...picked.ids])}>
+              {dropMany.isPending ? "Dropping them" : "Drop them"}
+            </Button>
+          </SelectionBar>
+
+          {/* A NARROWED LIST THAT FINDS NOTHING SAYS SO. Without this the block
+              rendered its header, its controls and then nothing at all, which
+              reads as a broken list rather than as an answered question. It is
+              an Empty and never a Failed: the read succeeded, the filter is
+              what emptied it, and the sentence names which one. */}
+          {ordered.length === 0 ? (
+            <Empty>
+              {q.trim() ? (
+                <>
+                  Nothing among the <Num>{others.length}</Num> ranked bets matches &ldquo;{q.trim()}
+                  &rdquo;
+                  {lens === "all" ? "" : `, under ${LENSES.find((l) => l.id === lens)?.label}`}.
+                </>
+              ) : (
+                <>
+                  None of the <Num>{others.length}</Num> ranked bets is{" "}
+                  {LENSES.find((l) => l.id === lens)?.label.toLowerCase()}.
+                </>
+              )}
+            </Empty>
+          ) : null}
+
           {visibleOthers.map((r) => {
             const o = r.opp;
-            const mark = o.decided_by_agent_slug ?? (o.critic_review ? CHALLENGER : null);
+            const spoke = criticGaveTheVerdict(o.critic_review);
+            const verdict = verdictFor(o);
+            const ring = redTeamRing(verdict, spoke, challengerName);
+            const moved = movementByOpp.get(o.id) ?? null;
             const focused = o.id === active?.opp.id;
             return (
               <Row
                 key={o.id}
                 tight
-                marks={<AgentMark slug={mark} state={mark ? "idle" : "quiet"} />}
+                /* THE SHAPE CARRIES THE STATE, and it replaced the agent mark
+                   rather than joining it. What stood here was `AgentMark` for
+                   whoever last touched the bet, which is a fact about
+                   PROVENANCE on a row a person scans to make a DECISION: it
+                   answered "who" when the scanning question is "has this been
+                   red-teamed, and did it pass". Attribution has not been lost --
+                   the context column's "Who has touched it" carries it for the
+                   bet under the question, which is the only place it changes
+                   what anyone does.
+
+                   Empty ring: nobody has reviewed it. Part: watch, or revise.
+                   Full: cleared. Struck: kill. It survives greyscale, which no
+                   coloured pill does. */
+                marks={<StatusRing small fill={ring.fill} tone={ring.tone} label={ring.label} />}
                 lead={o.title}
-                // One line, one different fact: where it sits, what KIND of bet
-                // it is, what the reviewer concluded, and which lane it is in.
-                // The score that produced the rank is the ranking's own input and
-                // belongs to the bet in focus. The designation is the queue's
-                // read-at-a-glance verb: ranking.ts has always derived it, but
-                // until now nothing on the surface rendered it, so a scanning
-                // user saw an ordered list with no stated reason why one bet
-                // outranks the next. The lane joined it on 2026-08-02: Now, Next
-                // and Later are settable from this surface, so the queue has to
-                // be able to say which one a bet is already in.
+                // One line, one different fact: where it sits, what it scored,
+                // what KIND of bet it is, what the reviewer concluded when that
+                // is not the ordinary answer, and which lane it is in.
+                //
+                // THE SCORE IS BACK ON THE ROW, and the note that took it off is
+                // wrong rather than merely old. It read "the score that produced
+                // the rank is the ranking's own input and belongs to the bet in
+                // focus", which would be right if the rank told you the gap: it
+                // does not. #3 above #4 is one place either way whether the two
+                // are 9.1 and 2.0 or 7.3 and 7.2, and those are opposite facts
+                // about how much the order is worth trusting. A numeral plus a
+                // 2px bar on one shared scale is what makes that visible, it
+                // costs no row height, and it is the encoding the queue research
+                // found across the products that got this right.
+                //
+                // AND IT CARRIES WHAT MOVED IT. `moved` is a real previous score
+                // out of `learnings.prior_ice`, never a diff computed here. See
+                // `movementByOpp`.
                 sub={
                   <>
                     {/* SAID ON EVERY ROW, not only on the one in focus.
@@ -2294,33 +2966,45 @@ function DecideSurface() {
                     ) : null}
                     <Num>#{r.rank}</Num>
                     {" · "}
+                    <ScoreMeter
+                      value={o.ice_score ?? 0}
+                      ceiling={ICE_CEILING}
+                      decimals={1}
+                      delta={moved?.delta ?? null}
+                      what="ICE"
+                    />
+                    {" · "}
                     {r.isBestBet ? (
                       <BestBetStamp />
                     ) : (
                       <DesignationTag designation={r.designation} />
                     )}
                     {(r.isBestBet || r.designation) && " · "}
-                    {/* The third argument is the honesty guard: `verdictFor`
-                        falls back to the lane, so the row must say which of the
-                        two it is reading. `verdict`, not `summary`: the Gate one
-                        screen up gates its Critic line on `critic_review?.summary`
-                        because it PRINTS that prose, whereas what makes the word
-                        here the Critic's is the verdict field the ranking read.
-                        And it is `criticGaveTheVerdict`, not
-                        `Boolean(o.critic_review?.verdict)`, because the guard has
+                    {/* EXCEPTION-ONLY, which is Vanta's discipline and the
+                        reason the ring above can be trusted at a glance. Every
+                        row used to print a verdict sentence, so "Critic says
+                        ship" was the commonest string on the page and the two
+                        rows in actual trouble had to compete with it for
+                        attention. A cleared bet now says nothing here: its ring
+                        is full, its title says who cleared it, and silence is
+                        the correct amount of noise for the ordinary case.
+
+                        The sentence stays for exactly the cases where something
+                        is NOT ordinary -- revise, kill, and never-reviewed --
+                        and it keeps its honesty guard. The third argument is
+                        that guard: `verdictFor` falls back to the lane, so the
+                        row must say which of the two it is reading, and it is
+                        `criticGaveTheVerdict` rather than
+                        `Boolean(o.critic_review?.verdict)` because the guard has
                         to ask the same question `verdictFor` asks -- see that
                         function's docblock. */}
-                    {verdictSentence(
-                      verdictFor(o),
-                      challengerName,
-                      criticGaveTheVerdict(o.critic_review),
-                    )}
-                    {o.status ? (
+                    {!spoke || verdict === "REVISE" || verdict === "KILL" ? (
                       <>
-                        {" · "}
-                        <StatusPill status={o.status} />
+                        {verdictSentence(verdict, challengerName, spoke)}
+                        {o.status ? " · " : ""}
                       </>
                     ) : null}
+                    {o.status ? <StatusPill status={o.status} /> : null}
                   </>
                 }
                 time={ago(o.updated_at)}
@@ -2335,18 +3019,31 @@ function DecideSurface() {
                 // hidden: a control that appears and disappears down a list
                 // reads as a rendering bug.
                 action={
-                  <Button
-                    variant="ghost"
-                    disabled={focused || busyIds.has(o.id)}
-                    title={
-                      focused
-                        ? "This bet is already under the question above"
-                        : "Puts this bet under the question at the top"
-                    }
-                    onClick={() => setSelectedId(o.id)}
-                  >
-                    Decide it
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      disabled={focused || busyIds.has(o.id)}
+                      title={
+                        focused
+                          ? "This bet is already under the question above"
+                          : "Puts this bet under the question at the top"
+                      }
+                      onClick={() => setSelectedId(o.id)}
+                    >
+                      Decide it
+                    </Button>
+                    {/* The tick lives in the trailing slot beside the verb
+                        rather than in the leading one, because the leading slot
+                        now carries the red-team ring and that is the fact a
+                        person scans for. It is outside the clickable region, so
+                        choosing rows for a batch never also opens a record. */}
+                    <SelectBox
+                      id={o.id}
+                      label={`Select ${o.title}`}
+                      selection={picked}
+                      disabled={busyIds.has(o.id)}
+                    />
+                  </>
                 }
               />
             );

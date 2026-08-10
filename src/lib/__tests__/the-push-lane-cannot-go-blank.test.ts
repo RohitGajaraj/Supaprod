@@ -89,7 +89,26 @@ describe("the lane can settle a card, not merely show it", () => {
     // supabase-js RESOLVES a refused write rather than throwing, so an
     // optimistic removal with no rollback would hide a card that is still open.
     expect(LANE).toMatch(/onError:/);
-    expect(LANE).toMatch(/setQueryData\(\["brain", "pushed-insights"\], ctx\.before\)/);
+
+    // THIS USED TO PIN THE LITERAL ["brain", "pushed-insights"], AND THAT LITERAL
+    // WAS THE BUG (corrected 2026-08-10). The query key omitted the workspace id
+    // while the query function read it, so every workspace shared one cache
+    // entry and the lane served the previous workspace's cards after a switch.
+    // Fixing that made the hand-written rollback key stop matching the key the
+    // optimistic write used -- which would have restored into a different entry
+    // and silently eaten the card on exactly the failure this test exists to
+    // catch.
+    //
+    // So the assertion now guards the PROPERTY rather than the string: the
+    // rollback must restore through the same `queryKey` binding the optimistic
+    // update wrote to. That is what makes them impossible to drift apart, and it
+    // stays true no matter what the key is later composed from.
+    expect(LANE).toMatch(/setQueryData\(queryKey, ctx\.before\)/);
+    // And the key must be scoped to a workspace, so one tenant's cards can never
+    // be served under another's heading.
+    expect(LANE).toMatch(/const queryKey = \[[^\]]*workspaceId[^\]]*\]/);
+    // The hand-written literal must not come back anywhere in the mutation.
+    expect(LANE).not.toMatch(/setQueryData\(\["brain", "pushed-insights"\]/);
   });
 
   it("renders nothing at all when there is nothing", () => {
@@ -132,7 +151,7 @@ describe("the lane can settle a card, not merely show it", () => {
     // insight permanently.
     const click = LANE.slice(LANE.indexOf("onClick={() => {"));
     const nav = click.indexOf("navigate({ to: targetRoute");
-    const settle = click.indexOf("settle.mutate({ id: i.id, outcome: \"acted\" })");
+    const settle = click.indexOf('settle.mutate({ id: i.id, outcome: "acted" })');
     expect(nav).toBeGreaterThan(-1);
     expect(settle).toBeGreaterThan(nav);
   });

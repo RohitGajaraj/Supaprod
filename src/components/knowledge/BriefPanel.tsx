@@ -44,6 +44,7 @@ import {
   Actions,
   Block,
   Button,
+  Empty,
   Failed,
   Input,
   Loading,
@@ -52,6 +53,7 @@ import {
   Textarea,
 } from "@/components/shell/primitives";
 import { BriefFormationFlow } from "@/components/brief/BriefFormationFlow";
+import { useConfirm } from "@/hooks/use-confirm";
 
 const SINGLETON_KINDS: readonly BriefItemKind[] = ["vision", "icp", "positioning"];
 
@@ -121,14 +123,59 @@ function Standing({ item }: { item: BriefItem }) {
   );
 }
 
-function NotWritten() {
+/**
+ * WHAT IS MISSING WHILE THIS IS UNWRITTEN, per call.
+ *
+ * Never the shape of the field, which the placeholder already gives, and never
+ * a definition of the word in the heading. Each of these names the CONSEQUENCE
+ * of the blank, in the crew's behaviour, because that is the only reason a
+ * person would stop and write four paragraphs of strategy on a Tuesday. Every
+ * one of them is true of the wiring: brief_items go into the prompt every agent
+ * reads before it acts (briefs.functions.ts, and the Receipt on save says so).
+ */
+const WHY_IT_MATTERS: Record<BriefItemKind, string> = {
+  vision:
+    "Until this is written the crew ranks every bet on its own merits alone, because it has nothing to rank them against.",
+  icp: "Until this is written the crew weighs every signal the same, because it does not know whose complaint should count double.",
+  positioning:
+    "Until this is written nothing holds a line when a bet pulls the product somewhere it should not go.",
+  top_bet:
+    "Until one is written, nothing else on this page has a stated priority to be measured against.",
+};
+
+const WRITE_LABEL: Record<BriefItemKind, string> = {
+  vision: "Write the vision",
+  icp: "Write who it is for",
+  positioning: "Write the positioning",
+  top_bet: "Write the first bet",
+};
+
+/**
+ * NOT WRITTEN, AND IT USED TO BE FOUR WORDS IN GREY.
+ *
+ * `<p>Not written yet.</p>` is not an empty state. It is not the Empty
+ * primitive, so it carries no door; it names nobody who acts next; and it
+ * explains nothing about why the blank costs anything. On a new workspace it
+ * rendered FOUR TIMES down one column, which turns the one region on Brain a
+ * person could fill in five minutes into a page that looks broken.
+ *
+ * The Block head above each of these already carries a "Write" control, so the
+ * door here is not a second route to a second place: it is the same act,
+ * reachable from where the reader's eye actually is. An empty state that names
+ * who acts next and gives them no way to act is only half honest, which is the
+ * argument the Empty primitive's own docblock makes.
+ */
+function NotWritten({ kind, onWrite }: { kind: BriefItemKind; onWrite: () => void }) {
   return (
-    <p style={{ fontSize: "var(--sp-text-prose)", color: "var(--sp-mute)" }}>Not written yet.</p>
+    <Empty action={<Button onClick={onWrite}>{WRITE_LABEL[kind]}</Button>}>
+      {WHY_IT_MATTERS[kind]}
+    </Empty>
   );
 }
 
 export function BriefPanel() {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const fList = useServerFn(listBriefItems);
   const fUpsert = useServerFn(upsertBriefItem);
   const fRetire = useServerFn(retireBriefItem);
@@ -207,6 +254,25 @@ export function BriefPanel() {
         true,
       ),
   });
+
+  // Retiring is the one-way door on this panel. retireBriefItem flips the row to
+  // `superseded` (briefs.functions.ts:290), listBriefItems only ever reads
+  // `standing`, and nothing in the codebase writes a row back to `standing`. So
+  // the record survives and the bet does not come back here: putting it back
+  // means writing it again as a new bet, at v1. The confirm says exactly that
+  // rather than the softer "you can restore it" a delete elsewhere can promise.
+  // Edit is left unguarded next to it: an edit supersedes into a new version and
+  // the old one stays readable, which is not a door that shuts.
+  async function confirmAndRetire(bet: BriefItem) {
+    const ok = await confirm({
+      title: `Retire "${bet.title}"?`,
+      body: "The crew stops carrying it into its next run. Every version of it stays on the record, but nothing here puts it back: you would have to write it again as a new bet.",
+      confirmLabel: "Retire the bet",
+      cancelLabel: "Keep it",
+      destructive: true,
+    });
+    if (ok) retire.mutate({ id: bet.id, title: bet.title });
+  }
 
   function startEdit(kind: BriefItemKind, existing?: BriefItem) {
     setEditing({ kind, itemId: existing?.id ?? null });
@@ -290,7 +356,7 @@ export function BriefPanel() {
             ) : current ? (
               <Standing item={current} />
             ) : (
-              <NotWritten />
+              <NotWritten kind={kind} onWrite={() => startEdit(kind)} />
             )}
           </Block>
         );
@@ -301,7 +367,9 @@ export function BriefPanel() {
         more={isAddingBet ? undefined : "Add a bet"}
         onMore={() => startEdit("top_bet")}
       >
-        {bets.length === 0 && !isAddingBet ? <NotWritten /> : null}
+        {bets.length === 0 && !isAddingBet ? (
+          <NotWritten kind="top_bet" onWrite={() => startEdit("top_bet")} />
+        ) : null}
 
         {bets.map((bet, i) => {
           const isEditingBet = editing?.kind === "top_bet" && editing.itemId === bet.id;
@@ -341,7 +409,7 @@ export function BriefPanel() {
                       <Button
                         variant="ghost"
                         disabled={retire.isPending}
-                        onClick={() => retire.mutate({ id: bet.id, title: bet.title })}
+                        onClick={() => void confirmAndRetire(bet)}
                       >
                         Retire
                       </Button>

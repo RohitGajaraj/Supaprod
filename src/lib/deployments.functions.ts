@@ -12,6 +12,7 @@ import {
   denoDeployConfigured,
 } from "@/lib/hosting/changeset-deploy.server";
 import { recordStageEvent } from "@/lib/stage-events.server";
+import { recordLineageSafe } from "@/lib/lineage.functions";
 import { defaultCheckByDate } from "@/lib/launch-plan.functions";
 import { generateReleaseNotesCore } from "@/lib/studio.functions";
 
@@ -936,6 +937,42 @@ export async function promoteChangesetToProductionCore(
         "The deploy went out but production was not recorded, so nothing downstream can see it. You may not have rights on this workspace's deployments.",
       );
     }
+
+    /**
+     * THE LAST EDGE IN THE CHAIN, AND IT WAS NEVER WRITTEN EITHER.
+     *
+     * `artifact_lineage` declares `deployment` as a kind (added 2026-08-02
+     * precisely because a census found it "being written by real code paths
+     * while absent from every vocabulary"), and the Helio seed fabricates 14
+     * `changeset -> deployment` edges. Measured against production
+     * 2026-08-10: no code path in src/ has ever written
+     * `child_kind: "deployment"`, and there are ZERO real edges of that shape.
+     *
+     * With the `mission -> changeset` edge added in the same change, this
+     * closes the last two gaps in the walk. Before them the ledger ran
+     * signal -> theme -> opportunity -> decision -> spec -> mission and then
+     * stopped, so nothing could carry a shipped release back to the bet that
+     * caused it, which is the join the outcome loop needs and the reason
+     * "signal to shipped to learned" could not be said honestly.
+     *
+     * Placed AFTER the `deploymentId` guard on purpose. That guard is what
+     * proves the row actually landed rather than being silently refused by
+     * RLS, and an edge pointing at a deployment that was never recorded would
+     * be a worse lie than a missing edge.
+     *
+     * Fail-soft, and the workspace comes off the changeset rather than the
+     * caller's default, for the same reason as the mission edge.
+     */
+    await recordLineageSafe(db, userId, {
+      parent_kind: "changeset",
+      parent_id: cs.id as string,
+      child_kind: "deployment",
+      child_id: deploymentId,
+      relation: "deployed",
+      rationale: "Promoted to production",
+      created_by_agent: "ship",
+      workspace_id: (cs.workspace_id as string | null) ?? null,
+    });
 
     // Release notes attach automatically on ship (mission 3.7). Best-effort
     // and skip-if-present - a human may already have written/edited one, and

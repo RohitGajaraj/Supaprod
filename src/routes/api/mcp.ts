@@ -12,6 +12,9 @@ import {
   exportSkillpack,
   outcomeHistory,
   ingestSignal,
+  recordDecision,
+  draftSpec,
+  settleOutcome,
   logMCPCall,
 } from "@/lib/mcp.functions";
 import { getGoverningDecision, getContradictionHistory } from "@/lib/ai/mcp-brain.server";
@@ -339,6 +342,21 @@ async function dispatchWriteTool(
     switch (toolName) {
       case "ingest_signal": {
         const data = await ingestSignal(supabase, workspace_id, user_id, params);
+        return { success: true, data };
+      }
+      // Founder ruling 2026-08-10. Each is scope-gated separately in
+      // WRITE_SCOPE_BY_TOOL, re-checked at dispatch by canCallWriteTool, and
+      // audited into api_calls with its real tool name.
+      case "record_decision": {
+        const data = await recordDecision(supabase, workspace_id, user_id, params);
+        return { success: true, data };
+      }
+      case "draft_spec": {
+        const data = await draftSpec(supabase, workspace_id, user_id, params);
+        return { success: true, data };
+      }
+      case "settle_outcome": {
+        const data = await settleOutcome(supabase, workspace_id, user_id, params);
         return { success: true, data };
       }
       default:

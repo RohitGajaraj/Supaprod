@@ -5,7 +5,7 @@ import { getStudioPreview, type StudioChangesetSummary } from "@/lib/studio.func
 import { resolveBuildPreview } from "@/lib/exec/provider";
 import { MonoLabel } from "@/components/supaprod/Primitives";
 import { LOOM_CARD } from "./studio-ui";
-import { EmptyState } from "@/components/supaprod/EmptyState";
+import { Empty, Failed, Loading } from "@/components/shell/primitives";
 
 /**
  * SANDBOX — the Build "Preview" tab. Renders the best standalone HTML the
@@ -17,6 +17,19 @@ import { EmptyState } from "@/components/supaprod/EmptyState";
  * Cloudflare Sandbox SDK adapter behind the `ExecProvider` seam. The pane reads
  * that capability from `resolveBuildPreview()`, so when the adapter is wired the
  * empty state and (later) the live mode update with no change here.
+ *
+ * THE COPY DEFECT FIXED HERE, 2026-08-10. This pane's own header comment said no
+ * live-preview backend is wired, and eight lines below it the empty state said
+ * "Live preview coming — a live preview of this build will appear here shortly."
+ * That is a TIMELINE promised on behalf of a capability nobody has built: a
+ * person waits, reloads, and learns that the product's statements about itself
+ * cannot be trusted. The second half was the same lie in the passive voice ("a
+ * live preview appears here when it does").
+ *
+ * What replaces it says only what is true right now — this pane renders a
+ * self-contained page the changeset produced, this changeset produced none, and
+ * running the whole repo needs a backend that is or is not connected. No
+ * "shortly", no "coming", no verb in the future tense anywhere on the surface.
  */
 
 export function PreviewPanel({
@@ -47,50 +60,23 @@ export function PreviewPanel({
   // Cloudflare Sandbox adapter flips on with no edit here.
   const live = resolveBuildPreview();
 
+  // THE THREE STATES, EACH IN ITS OWN CLOTHES. Empty is "nothing here", Failed
+  // is "we could not find out", Loading is "we do not know yet", and this pane
+  // used to render all three out of hand-rolled divs on the legacy token set.
+  // They are the shell's primitives now, so the run surface reads as one page
+  // whichever tab is open.
   if (!changeset) {
-    return (
-      <EmptyState
-        headline="No changes to preview yet"
-        body="The session drafts changes as it works."
-      />
-    );
+    return <Empty>Nothing is staged yet, so there is no page to render.</Empty>;
   }
 
-  if (preview.isPending) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "var(--geist-space-2x)",
-          padding: "48px 0",
-          color: "var(--text-subtle)",
-        }}
-      >
-        <span className="spinner" style={{ width: 12, height: 12 }} />
-        <span className="mono-label">Loading preview…</span>
-      </div>
-    );
-  }
+  if (preview.isPending) return <Loading>Reading the staged page.</Loading>;
 
   // An error never wears the empty state's clothes: name the cause, offer retry.
   if (preview.isError) {
     return (
-      <div style={{ ...LOOM_CARD, padding: 24 }}>
-        <MonoLabel style={{ color: "var(--madder)" }}>Couldn't load the preview</MonoLabel>
-        <p style={{ marginTop: 6, color: "var(--text-subtle)" }}>
-          {(preview.error as Error)?.message?.slice(0, 160)}
-        </p>
-        <button
-          type="button"
-          onClick={() => preview.refetch()}
-          className="btn btn-ghost btn-sm loom-press"
-          style={{ marginTop: 12 }}
-        >
-          Retry · reloads the preview
-        </button>
-      </div>
+      <Failed onRetry={() => void preview.refetch()}>
+        {(preview.error as Error)?.message?.slice(0, 160)}
+      </Failed>
     );
   }
 
@@ -98,18 +84,13 @@ export function PreviewPanel({
 
   if (!data) {
     return (
-      <EmptyState
-        headline={
-          live.live
-            ? "Live preview coming"
-            : "No standalone output"
-        }
-        body={
-          live.live
-            ? "A live preview of this build will appear here shortly."
-            : "This build doesn't produce a standalone page. A live preview appears here when it does."
-        }
-      />
+      <Empty>
+        Nothing in this changeset renders on its own. This pane shows a self-contained page the run
+        produced, and this one produced none.{" "}
+        {live.live
+          ? `Running the whole repo goes through ${live.providerLabel}, which this pane does not read.`
+          : "Running the whole repo needs an execution backend, and none is connected."}
+      </Empty>
     );
   }
 
@@ -117,7 +98,10 @@ export function PreviewPanel({
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <div style={{ ...LOOM_CARD, padding: "var(--card-pad)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <MonoLabel icon={MonitorPlay}>Live preview</MonoLabel>
+          {/* "Standalone page", not "Live preview". What is in the frame is one
+              self-contained file the run wrote, rendered safely — calling it a
+              live preview would claim the running repo is behind it. */}
+          <MonoLabel icon={MonitorPlay}>Standalone page</MonoLabel>
           <span
             className="truncate"
             style={{
@@ -149,7 +133,11 @@ export function PreviewPanel({
                 className="pulse-dot"
                 style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--glacier)" }}
               />
-              Building live
+              {/* "The run is alive", not "building live". The run really is
+                  running — that is read from the session — but nothing here
+                  knows the agent is working on THIS file, and a badge that
+                  implies it would be narrating a build it cannot see. */}
+              The run is alive
             </span>
           ) : null}
         </div>
@@ -161,8 +149,8 @@ export function PreviewPanel({
           }}
         >
           {isLive
-            ? "Updating live as the build works on the page."
-            : "A live preview of this page, rendered safely."}
+            ? "Re-read every four seconds while the run is alive, so an edit to this file lands here."
+            : "Rendered in a frame that cannot reach the app."}
         </p>
       </div>
       <iframe

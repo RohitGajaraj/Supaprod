@@ -256,7 +256,7 @@ export function EngineRoomGlance() {
         title="The engine, at a"
         accent="glance."
         subtitle="Four rooms, one verdict each. Approvals find you on Today; the rooms keep the record."
-        usp="Full observability for autonomous work: spend, quality, safety, and a receipt for every action the machine takes."
+        usp="Full observability for autonomous work: spend, quality, safety, and evidence for every action the machine takes."
       />
 
       {/* RPT-09: the "While you worked" amplifier strip. Real counts only (this

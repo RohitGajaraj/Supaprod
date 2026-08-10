@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { callModel } from "@/lib/ai/runtime.server";
 import { scoreTheme } from "@/lib/brain/score";
+import { INELIGIBLE_STATUSES } from "@/lib/spine/promote"; // pure, dependency-free
+
+/** The settled-status set, serialised for PostgREST exactly as its twin in
+ *  insights.functions.ts does. Same list, same serialisation, so the ranking
+ *  the tick performs and the ranking that surface performs cannot diverge. */
+const SETTLED_THEME_STATUSES = `(${INELIGIBLE_STATUSES.join(",")})`;
 
 const MODEL = "google/gemini-2.5-flash" as const;
 const MIN_SCORE = 0.12;
@@ -84,11 +90,43 @@ async function fetchRankedThemes(
   supabase: SupabaseClient,
   workspaceId: string,
 ): Promise<Array<{ t: ThemeRow; s: number }>> {
+  /**
+   * THE DEFECT THIS CLOSES, named in insights.functions.ts and left live one
+   * file over because that file belonged to another pass.
+   *
+   * The filter here was `.neq("status", "archived")` - one literal, matching
+   * one of the five statuses that mean a person already settled the cluster,
+   * and `archived` is not a value the column has ever held. Measured through
+   * the Lovable MCP: the live statuses are new, active, investigating,
+   * at_risk, confirmed and promoted. So the filter excluded NOTHING.
+   *
+   * Unlike its dead twin in insights.functions.ts, this path runs:
+   * `deriveAllInsights` is called from the derive tick
+   * (routes/api/public/hooks/derive-tick.ts). So every tick was ranking
+   * clusters the user had already dismissed, merged or promoted, spending a
+   * paid model call presenting one back as the single thing to focus on next
+   * - on the one card whose entire job is to show that the brain acts on the
+   * judgments you gave it. Handing back a bet somebody already made, or a
+   * cluster they explicitly declined, is the most direct contradiction of that
+   * claim the product could produce.
+   *
+   * IMPORTED, NEVER RETYPED. `INELIGIBLE_STATUSES` in @/lib/spine/promote is
+   * canonical; `qualifies` gates the autonomous promote sweep on it. A
+   * hand-copy here would have been the fourth, and a hand-copy is exactly how
+   * `promoted` came to be missing from two of them.
+   *
+   * The `is_sample` guard lands in the same edit for the same reason: without
+   * it the tick ranks seeded demo clusters beside real ones and can spend a
+   * real model call recommending fictional work.
+   */
   const { data: themes } = await supabase
     .from("themes")
-    .select("id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status,frequency")
+    .select(
+      "id,title,summary,severity,confidence,created_at,last_signal_at,novelty,status,frequency",
+    )
     .eq("workspace_id", workspaceId)
-    .neq("status", "archived")
+    .not("status", "in", SETTLED_THEME_STATUSES)
+    .eq("is_sample", false)
     .order("created_at", { ascending: false })
     .limit(60);
   const now = Date.now();

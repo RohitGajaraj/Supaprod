@@ -504,6 +504,16 @@ export const SURFACE_REGISTRY = {
     opensFrom: "spine-stage-07",
     status: "planned",
   },
+  // INSTRUMENT: per-station run outcomes, abandonment and duration. The read
+  // exists and is tested; no surface renders it yet, which is exactly what
+  // `planned` means here and why it is registered rather than left off the
+  // list to keep a guard quiet.
+  "run-analytics": {
+    kind: "canvas-panel",
+    home: "canvas/07-growth",
+    opensFrom: "spine-stage-07",
+    status: "planned",
+  },
   drift: {
     kind: "canvas-panel",
     home: "canvas/07-growth",

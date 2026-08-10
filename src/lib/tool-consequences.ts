@@ -322,6 +322,429 @@ export function isHighRiskTool(toolName: string | null | undefined): boolean {
   return toolRisk(toolName) === "high";
 }
 
+/* ==================================================================
+ * THE SIX DIMENSIONS.
+ *
+ * `toolRisk` above folds TWO static axes (reversibility x scope) into
+ * one low/medium/high tier, and it gates enforcement today. It is left
+ * exactly as it was: every existing caller keeps its current answer.
+ *
+ * What it cannot express is WHY a tool is risky, and a single tier
+ * cannot support a decision finer than "stop everything at review".
+ * Two tools both land on `high` when one merges code to a branch CI
+ * has already checked and the other hands repo access to a third-party
+ * agent. Those are not the same call and a human staring at one word
+ * cannot tell them apart.
+ *
+ * So the same catalogue is scored on four further axes. The taxonomy
+ * is Claire Vo's, published 2026-08-05 with a working implementation
+ * that auto-approves low-risk pull requests and escalates the rest:
+ * blast radius, reversibility, data security, ops impact, verification
+ * gap, change surface. We already modelled the first two. These are
+ * the other four, and `verification gap` in particular is the one that
+ * distinguishes "irreversible but CI proved it correct first" from
+ * "irreversible and nothing checked it", which is the single most
+ * useful distinction on this list.
+ *
+ * SAME DISCIPLINE AS THE REST OF THIS FILE. Every value is a STATIC
+ * property of the tool, never model output, so the claim never
+ * outruns the wiring. A tool absent from the profile table scores
+ * maximal on every axis, matching `toolRisk`'s existing fail-closed
+ * default: an uncatalogued tool is treated as the worst case rather
+ * than quietly waved through.
+ * ================================================================== */
+
+/**
+ * Does the action move data across a trust boundary?
+ *
+ * `internal` scores ZERO, and that is the correction this axis needed. Writing
+ * to the user's own workspace is the product working normally, not a risk, and
+ * scoring it as one made every ordinary write non-auto-approvable and the
+ * whole model decorative. The axis measures BOUNDARY CROSSING, so the levels
+ * that cost anything are the ones that cross something: `sensitive` for an
+ * internal read of credentials, `external` for data that leaves.
+ */
+export type DataExposure = "none" | "internal" | "sensitive" | "external";
+/** Can it disturb something people are currently depending on? */
+export type OpsImpact = "none" | "build" | "production";
+/** Can the result be checked before it matters? */
+export type VerificationGap = "verified" | "checkable" | "unverifiable";
+/** How much does one invocation touch? */
+export type ChangeSurface = "narrow" | "moderate" | "broad";
+
+export interface ToolRiskProfile {
+  dataExposure: DataExposure;
+  opsImpact: OpsImpact;
+  verificationGap: VerificationGap;
+  changeSurface: ChangeSurface;
+}
+
+/** 0 is benign, 2 is the worst case, so the composite can take a max. */
+const DATA_SCORE: Record<DataExposure, number> = {
+  none: 0,
+  internal: 0,
+  sensitive: 1,
+  external: 2,
+};
+const OPS_SCORE: Record<OpsImpact, number> = { none: 0, build: 1, production: 2 };
+/**
+ * `checkable` scores ZERO for the same reason `internal` does.
+ *
+ * The axis asks whether you would KNOW if this went wrong before it mattered.
+ * "A check already passed" and "you can look at the result" both answer yes;
+ * only "it is done and you cannot tell" answers no. Scoring `checkable` as a
+ * risk would penalise every ordinary inspectable write and, combined with the
+ * worst-axis fold, leave nothing auto-approvable — which is how this model
+ * would have shipped looking rigorous and deciding nothing.
+ */
+const VERIFY_SCORE: Record<VerificationGap, number> = {
+  verified: 0,
+  checkable: 0,
+  unverifiable: 2,
+};
+const SURFACE_SCORE: Record<ChangeSurface, number> = { narrow: 0, moderate: 1, broad: 2 };
+
+/**
+ * The four further axes, per tool.
+ *
+ * Read-only tools are omitted deliberately: `CONSEQUENCES` catalogues
+ * side-effecting tools, and anything not in it is not gated by this file at
+ * all. Within it, every one of the 36 is scored explicitly rather than derived
+ * from a naming pattern, because the interesting cases are exactly the ones a
+ * pattern gets wrong (`studio.secrets.scan` is an internal read that touches
+ * the most sensitive data in the product; `scheduler.propose` sounds external
+ * and books nothing).
+ */
+const RISK_PROFILE: Record<string, ToolRiskProfile> = {
+  // --- Repo and code, external and CI-gated -------------------------------
+  "github.pr.open": {
+    dataExposure: "external",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  "studio.pr.open": {
+    dataExposure: "external",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  // Merging is irreversible, but CI has already run: the verification gap is
+  // CLOSED, which is precisely the distinction a single tier cannot express.
+  "studio.pr.merge": {
+    dataExposure: "external",
+    opsImpact: "production",
+    verificationGap: "verified",
+    changeSurface: "moderate",
+  },
+  // The widest-surface tool in the product: a third-party agent gets repo
+  // access and works on its own, so nothing here is checked in advance.
+  "delegate.openhands": {
+    dataExposure: "external",
+    opsImpact: "build",
+    verificationGap: "unverifiable",
+    changeSurface: "broad",
+  },
+  "github.issue.create": {
+    dataExposure: "external",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "github.commit.append": {
+    dataExposure: "external",
+    opsImpact: "build",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  "studio.commit": {
+    dataExposure: "external",
+    opsImpact: "build",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  "studio.fix.commit": {
+    dataExposure: "external",
+    opsImpact: "build",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "studio.sync_branch": {
+    dataExposure: "external",
+    opsImpact: "build",
+    verificationGap: "verified",
+    changeSurface: "moderate",
+  },
+  // Stages the local index only. Nothing leaves until `studio.commit`.
+  "studio.stage": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  // --- Reads that are not equally harmless --------------------------------
+  "ci.logs": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "narrow",
+  },
+  "studio.review": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  // An internal read, and the most sensitive one there is. A naming pattern
+  // would have scored this alongside `studio.tests.plan`.
+  "studio.secrets.scan": {
+    dataExposure: "sensitive",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "broad",
+  },
+  "studio.tests.plan": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "studio.deps.audit": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "verified",
+    changeSurface: "moderate",
+  },
+  // --- Reaches a real person or a real calendar ---------------------------
+  "calendar.create": {
+    dataExposure: "external",
+    opsImpact: "production",
+    verificationGap: "unverifiable",
+    changeSurface: "narrow",
+  },
+  // Sounds external and books nothing: a workspace-local proposal.
+  "scheduler.propose": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "prd.link_issue": {
+    dataExposure: "external",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  // Publishing a release is the one internal-looking tool that reaches users.
+  "release.publish": {
+    dataExposure: "external",
+    opsImpact: "production",
+    verificationGap: "checkable",
+    changeSurface: "broad",
+  },
+  // --- Internal workspace writes ------------------------------------------
+  "prd.draft": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "decision.record": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "design.draft": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "learning.record": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "tasks.create": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "tasks.update_status": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "notes.create": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "signals.log": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  "research.synthesize": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "unverifiable",
+    changeSurface: "narrow",
+  },
+  // --- Memory: internal, and it steers every later call -------------------
+  "memory.remember": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "narrow",
+  },
+  // Promotion changes what every future agent recalls, so the surface is wide
+  // even though the write is one row.
+  "memory.promote": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "broad",
+  },
+  "memory.reflect": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "unverifiable",
+    changeSurface: "moderate",
+  },
+  // --- Planning and dispatch ----------------------------------------------
+  "backlog.prioritize": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  "mission.plan": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  // Dispatch starts real work that spends real money on its own.
+  "mission.dispatch": {
+    dataExposure: "internal",
+    opsImpact: "build",
+    verificationGap: "unverifiable",
+    changeSurface: "broad",
+  },
+  "mission.finalize": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+  "agent.handoff": {
+    dataExposure: "internal",
+    opsImpact: "none",
+    verificationGap: "checkable",
+    changeSurface: "moderate",
+  },
+};
+
+/** The worst case, used for any tool not catalogued above. Matches
+ *  `toolRisk`'s existing fail-closed treatment of an unknown tool. */
+const UNKNOWN_PROFILE: ToolRiskProfile = {
+  dataExposure: "external",
+  opsImpact: "production",
+  verificationGap: "unverifiable",
+  changeSurface: "broad",
+};
+
+export interface ToolAssessment {
+  /** The two axes this file already modelled. */
+  reversibility: Reversibility;
+  external: boolean;
+  /** The four from the published taxonomy. */
+  profile: ToolRiskProfile;
+  /** Folded tier, unchanged from `toolRisk` so no existing gate moves. */
+  risk: ToolRisk;
+  /** 0-2 per dimension, worst-case folded. */
+  score: number;
+  /** Which dimension set the score, so a surface can say WHY in one phrase. */
+  drivenBy: string;
+  /** True only when every dimension is benign AND the action is reversible. */
+  autoApprovable: boolean;
+}
+
+const DIMENSION_LABEL: Record<string, string> = {
+  reversibility: "it cannot be undone",
+  dataExposure: "data leaves the workspace",
+  opsImpact: "it touches something in use",
+  verificationGap: "nothing checks it first",
+  changeSurface: "it touches a lot at once",
+};
+
+/**
+ * Score one tool across all six dimensions.
+ *
+ * The composite takes the MAXIMUM rather than an average, on purpose. A tool
+ * that is irreversible and unverified is not made safe by being narrow and
+ * internal, and averaging is exactly how a single disqualifying property gets
+ * diluted by four benign ones. `drivenBy` reports which axis set the number so
+ * the surface can explain the call in one phrase rather than showing six bars.
+ *
+ * `autoApprovable` is deliberately stricter than `score === 0`: it additionally
+ * requires the action to be reversible. An unverified-but-benign-looking
+ * irreversible action is never a candidate for auto-approval, whatever the
+ * other five axes say, because the cost of being wrong is unbounded.
+ */
+export function assessTool(toolName: string | null | undefined): ToolAssessment {
+  const cat = toolName ? CONSEQUENCES[toolName] : undefined;
+  const profile = (toolName && RISK_PROFILE[toolName]) || UNKNOWN_PROFILE;
+  const reversibility: Reversibility = cat?.reversible ?? "irreversible";
+  const external = isExternalTool(toolName);
+
+  const scores: Array<[string, number]> = [
+    ["reversibility", reversibility === "irreversible" ? 2 : reversibility === "partial" ? 1 : 0],
+    ["dataExposure", DATA_SCORE[profile.dataExposure]],
+    ["opsImpact", OPS_SCORE[profile.opsImpact]],
+    ["verificationGap", VERIFY_SCORE[profile.verificationGap]],
+    ["changeSurface", SURFACE_SCORE[profile.changeSurface]],
+  ];
+  let score = 0;
+  let drivenBy = "nothing of consequence";
+  for (const [dim, s] of scores) {
+    if (s > score) {
+      score = s;
+      drivenBy = DIMENSION_LABEL[dim] ?? dim;
+    }
+  }
+
+  return {
+    reversibility,
+    external,
+    profile,
+    risk: toolRisk(toolName),
+    score,
+    drivenBy,
+    autoApprovable: score === 0 && reversibility === "reversible" && !!cat,
+  };
+}
+
+/** The profile as scored, for a surface that wants to show all six. */
+export function toolRiskProfile(toolName: string | null | undefined): ToolRiskProfile {
+  return (toolName && RISK_PROFILE[toolName]) || UNKNOWN_PROFILE;
+}
+
+/** Every side-effecting tool this file catalogues. Exported so the colocated
+ *  guard can assert the two tables cover the same set: a tool with a
+ *  consequence but no risk profile scores worst-case on every axis and would
+ *  be silently un-approvable forever, which looks like a policy decision and
+ *  is actually a missing row. */
+export const CATALOGUED_TOOLS: readonly string[] = Object.keys(CONSEQUENCES);
+export const PROFILED_TOOLS: readonly string[] = Object.keys(RISK_PROFILE);
+
 export interface ToolAllowResult {
   /** Tools within the agent's permitted blast radius (risk <= cap), input order preserved. */
   allowed: string[];

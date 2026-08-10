@@ -69,7 +69,32 @@ export function useSpineStrip(active: AgentStation | null): void {
   const rows = sessions.data?.sessions;
   const pendingCount = pendingOutcomes.data?.pending.length ?? 0;
 
+  const sessionsFailed = sessions.isError;
+
   const stages = React.useMemo<RunStage[] | null>(() => {
+    // A FAILED READ IS NOT A LOADING STATE, and until 2026-08-10 this hook could
+    // not tell them apart: `isError` was never consulted, so a failed
+    // `listStudioSessions` fell into the `!rows` branch below and returned null.
+    // Because WorkspaceSpine is mounted for the whole session, that removed the
+    // seven-station strip from EVERY screen in the product at once, with no
+    // message anywhere. The one control that answers "where is the work" would
+    // simply cease to exist, and the most natural reading of its absence is that
+    // there is no work.
+    //
+    // The strip stays. It reports that it cannot count, using the escape hatch
+    // this file's own `note` contract already defines -- "never invented, an
+    // unknown stage says so". Every station goes quiet and says why, which is
+    // strictly more honest than seven zeros and infinitely more honest than
+    // nothing. `quiet` is the right state because it is the only one that makes
+    // no claim about the work; `done`, `working` and `gate` all would.
+    if (sessionsFailed && !rows) {
+      return AGENT_STATION_ORDER.map((station) => ({
+        station,
+        state: "quiet" as const,
+        note: "count unavailable",
+      }));
+    }
+
     // No strip until the record answers. A strip of seven "none"s while the
     // query is still in flight would say the workspace is empty, which is a
     // claim, not a loading state.
@@ -129,7 +154,7 @@ export function useSpineStrip(active: AgentStation | null): void {
             : "quiet";
       return { station, state, note };
     });
-  }, [rows, pendingCount]);
+  }, [rows, pendingCount, sessionsFailed]);
 
   usePublishRunStrip(
     stages

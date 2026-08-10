@@ -74,6 +74,26 @@ export async function recordLineage(
     rationale?: string | null;
     created_by_agent?: string | null;
     ai_event_id?: string | null;
+    /**
+     * The workspace this edge belongs to. OPTIONAL, and omitting it is the
+     * long-standing behaviour: the column carries
+     * `default current_user_default_workspace()`, so an omitted value resolves
+     * to the CALLER'S DEFAULT workspace rather than the workspace of the two
+     * artifacts being linked.
+     *
+     * Those differ the moment a user belongs to more than one workspace, and an
+     * edge filed under the wrong workspace is read by the wrong reader forever
+     * after, which is the WM-F1 failure exactly. Measured 2026-08-10: 0 of 31
+     * prd->mission edges are currently misfiled, so this is latent rather than
+     * live, and it is latent only because the affected users have one workspace
+     * each.
+     *
+     * Pass it wherever the caller already knows it. It is not made required
+     * because doing so would force every existing call site to change in one
+     * commit, and a default that is right today is better than a migration that
+     * is half applied.
+     */
+    workspace_id?: string | null;
   },
   // Injected reporter, same idiom recordErrorEvent already uses for its own
   // client. A test supplies a spy instead of mock.module()-ing the
@@ -94,6 +114,10 @@ export async function recordLineage(
       rationale: edge.rationale ?? null,
       created_by_agent: edge.created_by_agent ?? null,
       ai_event_id: edge.ai_event_id ?? null,
+      // Spread rather than a null literal: writing `workspace_id: null` would
+      // SUPPRESS the column default and violate NOT NULL, turning an omitted
+      // optional into a refused edge for every existing caller.
+      ...(edge.workspace_id ? { workspace_id: edge.workspace_id } : {}),
     },
     { onConflict: "user_id,parent_kind,parent_id,child_kind,child_id,relation" },
   );

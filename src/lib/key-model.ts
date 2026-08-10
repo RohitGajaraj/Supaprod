@@ -82,8 +82,16 @@ export const SURFACE_KEYS: readonly SurfaceKeys[] = [
   {
     path: "/today",
     label: "Today",
-    source: "src/routes/_authenticated.today.tsx",
+    /* THE COMPONENT, NOT THE ROUTE, and for the reason this whole file exists.
+       Today's decisions are drawn by `DecisionQueue`, which is also where the
+       listener lives, so the keycap and the binding it promises sit in one
+       file where a reviewer sees both at once. Splitting them was how the
+       product shipped a keycap for a key that fired nothing. /discover is
+       already declared against its component for the same reason. */
+    source: "src/components/today/DecisionQueue.tsx",
     keys: [
+      { key: "j", does: "Moves to the next decision in the queue." },
+      { key: "k", does: "Moves back to the previous one." },
       { key: "a", does: "Approves the call in front of you.", destructive: true },
       { key: "d", does: "Declines it.", destructive: true },
       { key: "z", does: "Snoozes it until later." },

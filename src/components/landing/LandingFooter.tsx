@@ -41,7 +41,7 @@ export function LandingFooter() {
     {
       heading: "proof",
       links: [
-        // "Trust ledger" STAYS, and that is a considered call rather than an
+        // The /proof link STAYS, and that is a considered call rather than an
         // oversight. /proof currently renders three honest empty states, and the
         // 2026-08-09 ruling pulled it out of the landing page's Receipts beat for
         // exactly that reason. But a beat is persuasion and a footer is a
@@ -51,7 +51,12 @@ export function LandingFooter() {
         // internal links, the precise condition documented six lines above as
         // what was crippling /product. An orphaned page is not indexed, and the
         // page publishes our calibration number the moment one outcome settles.
-        { label: "Trust ledger", href: "/proof" },
+        // Labelled "Track record", not "Trust ledger". "Ledger" is a word
+        // product operators effectively never use for this (0.2 per million in
+        // 5.72M words of operator conversation, and "trust ledger" zero times);
+        // "track record" is the phrase they already say for what /proof shows.
+        // The href is unchanged, so nothing about the routing moves.
+        { label: "Track record", href: "/proof" },
         // REMOVED 2026-08-09: { label: "A decision record", href: "/d/acf1fa74..." }
         //
         // The slug is written truncated on purpose. no-seeded-slugs.test.ts

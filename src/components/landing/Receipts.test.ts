@@ -91,8 +91,29 @@ describe("Receipts beat, truthfulness invariants", () => {
     // The moat. This is the beat's actual claim and the only one on the landing
     // page that README names as defensible. It survived the table; it must
     // survive whatever comes next.
-    expect(CODE).toContain("cannot be backfilled");
+    //
+    // THIS ASSERTION USED TO PIN THE STRING "cannot be backfilled", AND THAT WAS
+    // A TEST GUARDING A FALSEHOOD (corrected 2026-08-10). The claim that a
+    // decision record "cannot be backfilled" is falsified on the record: Vercel's
+    // COO ran an agent over Slack, email and Gong, reconstructed the true cause
+    // of a lost deal, and overturned the account executive's own account -- two
+    // days to build, roughly $1,000 a year to run. Causes are recoverable from
+    // raw exhaust, so the broad claim breaks the moment a well-read buyer tests
+    // it, and a ratchet that pins it makes the falsehood harder to remove than
+    // to keep.
+    //
+    // The moat is real but narrower: what cannot be reconstructed is a FORECAST
+    // -- what a team believed WOULD happen, recorded before the outcome was
+    // known. That is not an artifact and leaves no trace anywhere unless
+    // something captured it at the moment of the call. So the ratchet now pins
+    // the load-bearing idea rather than the sentence that expressed it, which is
+    // what it should always have done: the wording is free to improve, the claim
+    // is not free to disappear or to widen back into something false.
+    expect(CODE).toMatch(/believed\s*<em>before<\/em>|believed .{0,20}before/);
+    expect(CODE).toContain("forecast leaves no trace");
     expect(CODE).toContain("starts at zero, next year");
+    // And the falsified form must not come back.
+    expect(CODE).not.toMatch(/It cannot be\s+backfilled, bought, or bolted on/);
     // The thesis close.
     expect(CODE).toContain("is how you answer");
   });

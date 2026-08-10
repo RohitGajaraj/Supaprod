@@ -209,3 +209,13 @@ design-reference/Latest Design System - v3 /
 # Other agents: do not re-upload it, clone your own from the pointer doc at
 # docs/research/lennys-data-archive.md. Read the licence before quoting.
 /lennys-newsletterpodcastdata-all/
+
+# Cross-lane sprint coordination, created 2026-08-10 for the parallel design +
+# engineering lanes. Untracked on purpose, for the same reason as
+# .remember/remember.md: they are session-scoped scratch that both lanes read
+# off disk in this checkout, not corpus documents. Keeping them untracked also
+# keeps docs-doctor at WARN instead of the hard FAIL a stray tracked root file
+# earns (scripts/docs-doctor.sh line 44), so neither lane's commits are blocked.
+/HANDOFF-ENGINEERING.md
+/DESIGN-LANE-STATUS.md
+/POST-LAUNCH.md

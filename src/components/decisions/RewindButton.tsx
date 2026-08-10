@@ -32,7 +32,15 @@ export function RewindButton({ decisionId, hasSnapshot, onReverted }: RewindButt
   const revert = useMutation({
     mutationFn: () => fRevert({ data: { decision_id: decisionId } }),
     onSuccess: () => {
-      toast.success("Reverted to the previous version. The change is on the Ledger.");
+      // Says only what the server definitely did, same as the PRD twin.
+      // revertDecisionToPrevious always restores rationale and re-captures the
+      // just-current one as the next snapshot, so "you can rewind back" holds
+      // on every path. The track record row does not: it is written only when
+      // decisions.decided_by_agent_slug is set, and the same update clears that
+      // column — so a human-made decision and any second rewind file nothing.
+      toast.success(
+        "Reverted to the previous version. The current one is kept, so you can rewind back.",
+      );
       setOpen(false);
       void qc.invalidateQueries({ queryKey: ["decision", decisionId] });
       onReverted?.();
@@ -64,9 +72,8 @@ export function RewindButton({ decisionId, hasSnapshot, onReverted }: RewindButt
           <AlertDialogHeader>
             <AlertDialogTitle>Revert to the previous version?</AlertDialogTitle>
             <AlertDialogDescription>
-              This restores what the decision's rationale said before the last agent edit. The
-              current version is kept too, so this is itself reversible, and the action lands on the
-              Ledger.
+              This restores what the decision&apos;s rationale said before the last agent edit. The
+              current version is kept too, so this is itself reversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

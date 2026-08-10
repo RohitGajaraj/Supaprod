@@ -8,8 +8,22 @@
  *
  * Trimmed 2026-07-25 (landing audit): the field-stops beat came out. Four of
  * its five moves were said elsewhere on the page, and its two unique ones
- * (the record that cannot be backfilled, the compounding pair) belong with
- * the receipts, which is where the evidence already lives.
+ * (the un-reconstructable forecast, the compounding pair) belong with the
+ * receipts, which is where the evidence already lives.
+ *
+ * That first move was described here as "the record that cannot be
+ * backfilled" until 2026-08-10, when an audit of what the schema actually
+ * enforced retired the claim. `created_at` was a client-settable, rewritable
+ * column on every ledger table and 93 decisions already carried a date
+ * earlier than the workspace containing them, so the record could be written
+ * into the past by the person it describes. It is now stamped by the database
+ * and immutable to application callers.
+ *
+ * The surviving claim is narrower and true: what nobody can reconstruct
+ * afterwards is what you BELIEVED BEFORE the outcome landed. A cause can be
+ * rebuilt from surviving artifacts; a forecast leaves no trace unless
+ * something wrote it down at the moment of the decision. Founder ruling
+ * 2026-08-10.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";

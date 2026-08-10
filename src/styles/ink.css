@@ -318,6 +318,138 @@
   --sp-grid: rgba(255, 255, 255, 0.028);
   --sp-grid-strong: rgba(255, 255, 255, 0.052);
   --sp-spot: rgba(255, 246, 236, 0.052);
+
+  /* ==================================================================
+   * ADDED 2026-08-10, from the Step 0 design research. Fourteen pattern
+   * classes were pulled from Mobbin across roughly 200 shipped products.
+   * Almost everything the research recommended, this system already had:
+   * colour under 3% of the shell, two type sizes carrying navigation,
+   * motion reserved for the one thing actually happening. What follows is
+   * only the set of ideas the research proved load-bearing that the
+   * existing tokens genuinely could not express.
+   *
+   * Nothing above this line was changed. The system was extended, not
+   * replaced, which is the ratchet doing its job.
+   * ================================================================== */
+
+  /* ---- State as SHAPE ----
+   * THE SINGLE HIGHEST-VALUE FINDING IN THE RESEARCH, and the one thing
+   * this file asks for but cannot yet supply.
+   *
+   * The colour law here is already right: "STATE IS NEVER A HUE", and a
+   * screen must survive greyscale. But a law that forbids hue has to hand
+   * the designer something else to encode state WITH, and until now it did
+   * not. So state was being carried by --sp-pass / --sp-fail / --sp-warn,
+   * which are hues, and the law was being obeyed in the comment and broken
+   * in the component.
+   *
+   * Linear's status glyph is the answer and it was the only encoding in
+   * ~200 products that survives greyscale untouched: one ring, and the
+   * state is how much of it is filled. Empty ring, quarter, half, full,
+   * full-with-slash. Hue then CONFIRMS what the shape already said, which
+   * is the correct order and makes the colour genuinely optional.
+   *
+   * Geometry only, so it is theme-invariant and defined once. A ring that
+   * changed size between themes would move the row it sits in. */
+  --sp-ring: 13px; /* the status glyph, optically matched to 14px body text */
+  --sp-ring-sm: 10px; /* inside a dense 36px scan row */
+  --sp-ring-lg: 17px; /* a station header, matched to --sp-icon */
+  --sp-ring-stroke: 1.5px; /* the ring's own weight at --sp-ring */
+  --sp-ring-stroke-sm: 1.25px; /* thinner ring needs a thinner stroke to read */
+  --sp-ring-gap: 2px; /* ring to its label */
+
+  /* ---- Density ----
+   * The research found row height is not a continuum. It clusters in two
+   * bands with almost nothing between them, and the gap is meaningful:
+   * a row that carries an ACTION needs ~68px, a row you only SCAN needs
+   * ~38px, and the 45-55px middle appeared almost nowhere across the whole
+   * study. Products that landed in the middle had failed to decide whether
+   * the row was a control or a line of data.
+   *
+   * So this is not a comfortable/compact preference toggle. It is a
+   * statement about what a row IS, and the name says so. Second lines are
+   * what buys the density: stacking a dim identifier under a title costs
+   * ~20px of height and saves ~120px of width, which the research named the
+   * single biggest density lever available. */
+  --sp-row-scan: 38px; /* one row = one atom. lists, evidence, signals */
+  --sp-row-read: 52px; /* two lines, no action. a decision in a queue */
+  --sp-row-act: 68px; /* carries a control. approvals, gates, anything with a verb */
+  --sp-row-gap: 1px; /* rows are separated by a rule, not by space */
+
+  /* ---- Elevation ----
+   * There was exactly one shadow, and it is the deep one for floating
+   * panes. A menu and a modal were both reaching for it, so a dropdown
+   * carried the same 34px shadow as a full sheet and read as heavier than
+   * the thing it belonged to.
+   *
+   * Three stops, matched to the three things that actually float here.
+   * Deliberately not named sm/md/lg: this file's whole argument is that
+   * tokens are named for their ROLE, and a size name would give the system
+   * a second vocabulary for one idea (the reasoning already recorded above
+   * --sp-scrim). --sp-shadow stays exactly as it was, aliased by role, so
+   * nothing that already uses it moves. */
+  --sp-shadow-menu: 0 6px 16px -4px rgba(0, 0, 0, 0.5), 0 2px 5px -2px rgba(0, 0, 0, 0.4);
+  --sp-shadow-pane: var(--sp-shadow);
+  --sp-shadow-sheet: 0 24px 60px -12px rgba(0, 0, 0, 0.78), 0 8px 20px -6px rgba(0, 0, 0, 0.55);
+
+  /* ---- Provenance ----
+   * THE MOAT, RENDERED. This is the one genuinely new idea in the set and
+   * it is the reason to extend rather than to restyle.
+   *
+   * The product's claim is that judgement compounds. Nothing in ~200
+   * shipped products makes a system's own learning visible at the level of
+   * an individual assertion -- they show sources, never the CLASS of
+   * evidence a claim rests on. So a Supaprod finding should declare where
+   * it came from, using the vocabulary this file already owns:
+   *
+   *   MINE       your own settled outcomes. Ember, because ember already
+   *              "marks the human, and nothing else", and an outcome your
+   *              team lived through is the most human evidence there is.
+   *   INFERRED   the agent reasoned it. The stage-build blue, because blue
+   *              already means an agent is working.
+   *   BORROWED   a population prior, true of teams like yours but not of
+   *              you. Deliberately NEUTRAL, never a hue: it must read as
+   *              the weakest of the three without being alarming, and a
+   *              fourth colour would break the budget the shell keeps.
+   *
+   * On day one a teardown is almost entirely borrowed and inferred. At week
+   * six it is half mine. The user watches the colour temperature of their
+   * own product change, which is the compounding claim made falsifiable in
+   * the cheapest component we will ever ship -- and it is honest on day
+   * one, when we have learned nothing, precisely because it says so.
+   *
+   * Rendered as a 2px left rule or a dot, never a fill: at fill area these
+   * would become the loudest thing on screen and spend a budget the shell
+   * is holding at under 3%. */
+  --sp-eviq-mine: var(--sp-gate);
+  --sp-eviq-inferred: var(--sp-stage-build);
+  --sp-eviq-borrowed: var(--sp-mute);
+  --sp-eviq-rule: 2px; /* the left rule's weight. invariant */
+
+  /* ---- Tint ----
+   * Status chips converged hard on a 8-18% fill of their own hue across
+   * the study, and every call site here was hand-writing a colour-mix or an
+   * rgba. Named by intensity because that is genuinely what varies; the hue
+   * is supplied by the caller. */
+  --sp-tint-quiet: 0.08; /* a resting chip */
+  --sp-tint-plain: 0.12; /* the default */
+  --sp-tint-loud: 0.18; /* a chip that must be found in a dense table */
+
+  /* ---- The session boundary ----
+   * "Since you last looked" was the sharpest single idea in the agent
+   * console research and it is buried in an overflow menu in the one
+   * product that ships it at all. For a surface a human returns to after
+   * agents worked for hours, the diff since their last read is the correct
+   * DEFAULT view, not an option.
+   *
+   * It needs a mark of its own: a full-width rule that says "everything
+   * below arrived while you were gone". Not a divider -- the system already
+   * has --sp-line-soft for that -- because this one carries meaning and
+   * must be findable by scrolling to it. Ember, because the boundary is
+   * defined entirely by a human's attention. */
+  --sp-seen-rule: var(--sp-gate);
+  --sp-seen-weight: 1px;
+  --sp-seen-fade: rgba(255, 107, 44, 0.14); /* the wash below the rule */
 }
 
 /* ---- Light ----
@@ -379,6 +511,32 @@
   --sp-fail: #af3b31;
   --sp-warn: #8f6a26;
   --sp-gate: #c2500f;
+
+  /* ---- Paper values for the 2026-08-10 additions ----
+   * Only the tokens that RESOLVE TO A COLOUR appear here. The ring geometry,
+   * the density steps and the tint ratios are facts about the shape of a
+   * control, not about the ground it sits on: if they changed between themes
+   * the layout would shift when someone flips the toggle, which is a bug the
+   * light theme has been careful to avoid everywhere else in this file.
+   *
+   * The provenance tokens are absent on purpose. --sp-eviq-mine resolves
+   * through --sp-gate, --sp-eviq-inferred through --sp-stage-build and
+   * --sp-eviq-borrowed through --sp-mute, and all three of those are already
+   * restated above. They self-adjust, and restating them here would create a
+   * second place to keep in sync. */
+
+  /* Shadows on paper are a warm brown at low opacity, never black -- the same
+   * argument the scrim makes a few lines up: pure black over a warm ground
+   * reads as a hole cut in the sheet rather than as something resting on it.
+   * These sit in the same family as --sp-shadow directly above. */
+  --sp-shadow-menu: 0 4px 12px -4px rgba(80, 60, 25, 0.14), 0 1px 3px -1px rgba(80, 60, 25, 0.08);
+  --sp-shadow-sheet: 0 20px 48px -14px rgba(80, 60, 25, 0.22), 0 6px 14px -6px rgba(80, 60, 25, 0.12);
+
+  /* The session boundary's wash. Ember on paper is --sp-gate #c2500f, a deeper
+   * and redder ember than the dark theme's #ff6b2c, so the same alpha would
+   * read heavier here. Taken down to compensate: the rule should be findable
+   * by scrolling to it, never loud enough to compete with the rows beneath. */
+  --sp-seen-fade: rgba(194, 80, 15, 0.09);
 }
 
 /* ---- The one atom that belongs with the tokens ----

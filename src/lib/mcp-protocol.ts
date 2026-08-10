@@ -202,6 +202,16 @@ export const MCP_READ_TOOL_NAMES: readonly string[] = MCP_TOOLS.map((t) => t.nam
 /** The capability scope each write tool requires. The single source of truth. */
 export const WRITE_SCOPE_BY_TOOL: Readonly<Record<string, string>> = {
   ingest_signal: "write:signal",
+  // Founder ruling 2026-08-10: the agent surface read eleven things and wrote
+  // one, into station 01, so an agent could hand us a signal and could not do
+  // any of the work. These three are the rest of the loop. Each carries its
+  // OWN scope rather than sharing one, so a token can be granted "may record a
+  // decision" without also being granted "may settle an outcome" -- the two
+  // are not remotely the same permission, and a single write:all would make
+  // the narrower grant impossible to express.
+  record_decision: "write:decision",
+  draft_spec: "write:spec",
+  settle_outcome: "write:outcome",
 };
 
 export const MCP_WRITE_TOOLS: McpTool[] = [
@@ -217,6 +227,51 @@ export const MCP_WRITE_TOOLS: McpTool[] = [
         source: { type: "string" },
       },
       required: ["title"],
+    },
+  },
+  {
+    name: "record_decision",
+    description:
+      "Record a decision on this workspace's ledger (governed write). Requires the write:decision scope and the workspace's outward-write gate. Lands at status 'pending' for a human to approve; an agent never lands a decision already approved. Text is injection-screened before storage.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        rationale: { type: "string" },
+        agent_slug: { type: "string" },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "draft_spec",
+    description:
+      "Draft a spec against an opportunity (governed write). Requires the write:spec scope and the workspace's outward-write gate. Lands at status 'draft', never 'approved' or 'shipped'. Text is injection-screened before storage.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        body_md: { type: "string" },
+        opportunity_id: { type: "string" },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "settle_outcome",
+    description:
+      "Record what actually happened to a shipped spec (governed write). Requires the write:outcome scope and the workspace's outward-write gate. Refuses to overwrite a verdict already on the record: disagreeing with a settled outcome is a person's move.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        prd_id: { type: "string" },
+        verdict: { type: "string", enum: ["validated", "missed", "mixed"] },
+        summary: { type: "string" },
+        metric_label: { type: "string" },
+        metric_value: { type: "string" },
+        agent_slug: { type: "string" },
+      },
+      required: ["prd_id", "verdict", "summary"],
     },
   },
 ];

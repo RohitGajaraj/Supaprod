@@ -54,6 +54,7 @@ import { listTrustGraduationProposals, decideTrustGraduation } from "@/lib/trust
 import { savePrd, updateOpportunity, type CriticReview } from "@/lib/discovery.functions";
 import { decideDesignGate } from "@/lib/design-scaffold.functions";
 import { decidePlaybookProposal } from "@/lib/playbooks.functions";
+import { recordGateSignalCore } from "@/lib/gate-signals.functions";
 import { castByStation, type AgentStation } from "@/lib/agent-vocabulary";
 
 /** The station whose specialist owns each gate family, so a gate that carries
@@ -908,6 +909,173 @@ async function assertSpecStatusWrite(
   }
 }
 
+/* ==================================================================
+ * RPT-32, THE INPUT HALF: the tray had to start feeding the flywheel.
+ *
+ * The human-at-gate loop was built end to end and starved at the one
+ * place humans actually act. `human_gate_events`, `buildGateEventRow`,
+ * `summarizeGateSignals`, `recordGateSignalCore`, `getGateSignals` and
+ * self-improve's `readAgentSignals` all shipped and all work. Only
+ * three call sites ever wrote: two spec/contract EDIT paths in
+ * discovery.functions.ts and the tool-call decision in
+ * agent_loop.functions.ts. This tray - the one surface that federates
+ * ALL TEN gate families, and the one the product points a human at -
+ * wrote nothing.
+ *
+ * Measured against production on 2026-08-10, before this change:
+ * 113 rows in `human_gate_events`, of which 112 are demo seed. All 112
+ * sit in the seven Helio Labs workspaces on a single seed timestamp
+ * (.262666+00, the same 16 rows copied into 7 workspaces). Exactly ONE
+ * row was written by a real human, and it carries workspace_id = NULL,
+ * so every reader - all of which scope `.eq("workspace_id", ...)` -
+ * is blind to it. Meanwhile ten real approvals were decided by real
+ * humans in real workspaces. Capture rate: zero.
+ *
+ * That is worse than an empty table, because the read surfaces are not
+ * empty: per-agent correction rates and 14 self-improve proposals were
+ * being computed off seed rows and presented as learned signal.
+ *
+ * TWO THINGS MAKE THIS MORE THAN AN INSERT, and both are why this
+ * helper exists rather than a line in each case arm:
+ *
+ * 1. ATTRIBUTION IS LOAD-BEARING. `readAgentSignals` filters the
+ *    "(unattributed)" bucket OUT. A row written with a null agent_slug
+ *    is stored, counted in the overall total, and read by nobody - a
+ *    fix that looks like a fix and moves nothing. So the slug is
+ *    resolved through `approvalAgentSlug`, the SAME function that names
+ *    the agent on the tray's own chip, which is what stops the chip and
+ *    the correction rate from ever naming different agents.
+ *
+ * 2. THE WORKSPACE IS THE SAME TRAP, and the single real row already
+ *    fell into it. It is read from the gate's own source row rather
+ *    than assumed, because filing an event under the wrong workspace is
+ *    the WM-F1 defect: it is recalled for the wrong future call, which
+ *    is worse than not recalling it.
+ *
+ * And one thing that keeps the signal honest rather than merely
+ * present: a human editing THEIR OWN draft is not a correction of an
+ * agent. discovery.functions.ts already guards this on contracts; the
+ * same guard is applied here per family, off each table's own evidence
+ * of who drafted it. Scoring a human's own work as an agent's error
+ * would bias every correction rate the ranking consumes.
+ * ================================================================== */
+
+/** What the gate's own row can tell us about the draft the human judged.
+ *  Read BEFORE the resolver runs: every resolver mutates status, so the
+ *  same read afterwards describes the decision, not the draft. */
+type GateAttribution = {
+  workspaceId: string | null;
+  agentSlug: string | null;
+  toolName: string | null;
+  /** False when the human authored the draft themselves. Such a gate is a
+   *  real decision and still moves, but it is NOT an agent correction and
+   *  must never be scored as one. */
+  agentDrafted: boolean;
+};
+
+/** Where each family's row lives, and the columns that carry its provenance.
+ *  `trust_graduation` predates workspace tenancy and has no workspace_id -
+ *  the same exception the queue's own source list documents. */
+export const GATE_SOURCE: Record<
+  ApprovalKind,
+  { table: string; select: string; hasWorkspace: boolean } | null
+> = {
+  tool_call: {
+    table: "agent_approvals",
+    select: "workspace_id,agent_slug,tool_name",
+    hasWorkspace: true,
+  },
+  decision: { table: "decisions", select: "workspace_id,source_kind", hasWorkspace: true },
+  memory_candidate: {
+    table: "memory_candidates",
+    select: "workspace_id,source_kind",
+    hasWorkspace: true,
+  },
+  house_rule: { table: "house_rules", select: "workspace_id,agent_slug", hasWorkspace: true },
+  trust_graduation: {
+    table: "trust_graduation_proposals",
+    select: "agent_slug,tool_name",
+    hasWorkspace: false,
+  },
+  spec: { table: "prds", select: "workspace_id,model", hasWorkspace: true },
+  opportunity: { table: "opportunities", select: "workspace_id", hasWorkspace: true },
+  assumption_challenge: {
+    table: "assumption_challenges",
+    select: "workspace_id",
+    hasWorkspace: true,
+  },
+  design_gate: { table: "prds", select: "workspace_id,model", hasWorkspace: true },
+  playbook_proposal: {
+    table: "playbook_proposals",
+    select: "workspace_id",
+    hasWorkspace: true,
+  },
+};
+
+/**
+ * Decide, per family, whether the draft came from an agent.
+ *
+ * Each table proves this differently and none of them proves it with a
+ * boolean, so the evidence is named here rather than guessed:
+ *  - `decisions.source_kind` is 'manual' for a human-authored call and one of
+ *    mission/prd/roadmap/critic/... otherwise (10 of 285 are manual).
+ *  - `memory_candidates.source_kind` is literally 'user' or 'agent'.
+ *  - `prds.model` holds the model that drafted the spec; discovery.functions.ts
+ *    already uses its presence as the agent-drafted test, and every spec in the
+ *    database carries one.
+ *  - the rest are agent-produced by construction: a tool call, a trust
+ *    graduation proposal, a house rule and a playbook proposal have no
+ *    human-authored form, and an opportunity reaching this tray was drafted
+ *    for the human to judge.
+ */
+export function isAgentDrafted(kind: ApprovalKind, row: Record<string, unknown> | null): boolean {
+  if (!row) return true;
+  switch (kind) {
+    case "decision":
+      return row.source_kind !== "manual";
+    case "memory_candidate":
+      return row.source_kind === "agent";
+    case "spec":
+    case "design_gate":
+      return !!row.model;
+    default:
+      return true;
+  }
+}
+
+/**
+ * Read the gate's provenance from its own source row. Never throws and never
+ * blocks the decision: an attribution we could not read yields a row that is
+ * still recorded, just less richly, which is strictly better than dropping the
+ * event or failing the gate the human just pressed.
+ */
+export async function readGateAttribution(
+  db: SupabaseClient,
+  kind: ApprovalKind,
+  id: string,
+): Promise<GateAttribution> {
+  const src = GATE_SOURCE[kind];
+  const empty: GateAttribution = {
+    workspaceId: null,
+    agentSlug: approvalAgentSlug(kind, null),
+    toolName: null,
+    agentDrafted: true,
+  };
+  if (!src) return empty;
+  try {
+    const { data: row } = await db.from(src.table).select(src.select).eq("id", id).maybeSingle();
+    const r = (row ?? null) as Record<string, unknown> | null;
+    return {
+      workspaceId: src.hasWorkspace ? ((r?.workspace_id as string | null) ?? null) : null,
+      agentSlug: approvalAgentSlug(kind, (r?.agent_slug as string | null) ?? null),
+      toolName: (r?.tool_name as string | null) ?? null,
+      agentDrafted: isAgentDrafted(kind, r),
+    };
+  } catch {
+    return empty;
+  }
+}
+
 const DecideSchema = z.object({
   id: z.string().min(1),
   kind: z.enum([
@@ -933,76 +1101,115 @@ export const decideApprovalItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: z.input<typeof DecideSchema>) => DecideSchema.parse(d))
   .handler(async ({ context, data }): Promise<DecideApprovalItemResult> => {
-    switch (data.kind) {
-      case "tool_call": {
-        await resolveApproval({
-          data: {
-            approvalId: data.id,
-            decision: data.verdict === "approve" ? "approved" : "rejected",
-          },
-        });
-        return { ok: true };
-      }
-      case "decision": {
-        await updateDecision({
-          data: { id: data.id, status: data.verdict === "approve" ? "approved" : "rejected" },
-        });
-        return { ok: true };
-      }
-      case "memory_candidate": {
-        await decideMemoryCandidate({ data: { id: data.id, decision: data.verdict } });
-        return { ok: true };
-      }
-      case "house_rule": {
-        await decideHouseRule({ data: { ruleId: data.id, decision: data.verdict } });
-        return { ok: true };
-      }
-      case "trust_graduation": {
-        await decideTrustGraduation({
-          data: { proposalId: data.id, accept: data.verdict === "approve" },
-        });
-        return { ok: true };
-      }
-      case "spec": {
-        // The queue only ever lists specs at status 'review', so this guard is
-        // silent on every item the tray can show. It exists because the id is
-        // posted, not carried: see the state-by-state note above DecideSchema.
-        const to = data.verdict === "approve" ? "approved" : "draft";
-        await assertSpecStatusWrite(context.supabase as unknown as SupabaseClient, data.id, to);
-        await savePrd({ data: { id: data.id, status: to } });
-        return { ok: true };
-      }
-      case "opportunity": {
-        await updateOpportunity({
-          data: { id: data.id, status: data.verdict === "approve" ? "now" : "dropped" },
-        });
-        return { ok: true };
-      }
-      case "assumption_challenge": {
-        await resolveAssumptionChallenge({
-          data: { id: data.id, action: data.verdict === "approve" ? "confirm" : "dismiss" },
-        });
-        return { ok: true };
-      }
-      case "design_gate": {
-        await decideDesignGate({
-          data: { prdId: data.id, decision: data.verdict === "approve" ? "approve" : "reject" },
-        });
-        return { ok: true };
-      }
-      case "playbook_proposal": {
-        await decidePlaybookProposal({
-          data: {
-            proposalId: data.id,
-            decision: data.verdict === "approve" ? "confirm" : "dismiss",
-          },
-        });
-        return { ok: true };
-      }
-      default:
-        throw new Error(`decideApprovalItem: unknown kind ${String(data.kind)}`);
+    // Provenance FIRST, while the row still describes the draft the human
+    // judged. Every resolver below rewrites status, and `prds` in particular
+    // moves to approved/draft, so the same read afterwards would attribute the
+    // decision rather than the thing decided on.
+    const db = context.supabase as unknown as SupabaseClient;
+    const attribution = await readGateAttribution(db, data.kind, data.id);
+
+    await routeDecision(db, data);
+
+    // Then the flywheel, and only once the gate has actually moved: a resolver
+    // that throws leaves no event, because a correction that never happened is
+    // not evidence about an agent. Best-effort by construction
+    // (recordGateSignalCore never throws), so telemetry cannot break the gate
+    // it observes. Skipped when the human wrote the draft themselves - that is
+    // a real decision but not an agent correction, and scoring it as one would
+    // bias every rate the ranking consumes.
+    if (attribution.agentDrafted) {
+      await recordGateSignalCore(db, context.userId, {
+        gateType: data.verdict === "approve" ? "approval" : "rejection",
+        subjectType: data.kind,
+        subjectRef: data.id,
+        agentSlug: attribution.agentSlug,
+        toolName: attribution.toolName,
+        verdict: data.verdict === "approve" ? "approved" : "rejected",
+        workspaceId: attribution.workspaceId,
+      });
     }
+    return { ok: true };
   });
+
+/** Routes one decided gate to the existing resolver for its family. Extracted
+ *  from the handler so the decision and the telemetry that observes it stay
+ *  separable: this function owns the write, and nothing here knows the
+ *  flywheel exists. Never a new write path - every arm is the resolver that
+ *  already owned that family. */
+async function routeDecision(
+  db: SupabaseClient,
+  data: z.infer<typeof DecideSchema>,
+): Promise<void> {
+  switch (data.kind) {
+    case "tool_call": {
+      await resolveApproval({
+        data: {
+          approvalId: data.id,
+          decision: data.verdict === "approve" ? "approved" : "rejected",
+        },
+      });
+      return;
+    }
+    case "decision": {
+      await updateDecision({
+        data: { id: data.id, status: data.verdict === "approve" ? "approved" : "rejected" },
+      });
+      return;
+    }
+    case "memory_candidate": {
+      await decideMemoryCandidate({ data: { id: data.id, decision: data.verdict } });
+      return;
+    }
+    case "house_rule": {
+      await decideHouseRule({ data: { ruleId: data.id, decision: data.verdict } });
+      return;
+    }
+    case "trust_graduation": {
+      await decideTrustGraduation({
+        data: { proposalId: data.id, accept: data.verdict === "approve" },
+      });
+      return;
+    }
+    case "spec": {
+      // The queue only ever lists specs at status 'review', so this guard is
+      // silent on every item the tray can show. It exists because the id is
+      // posted, not carried: see the state-by-state note above DecideSchema.
+      const to = data.verdict === "approve" ? "approved" : "draft";
+      await assertSpecStatusWrite(db, data.id, to);
+      await savePrd({ data: { id: data.id, status: to } });
+      return;
+    }
+    case "opportunity": {
+      await updateOpportunity({
+        data: { id: data.id, status: data.verdict === "approve" ? "now" : "dropped" },
+      });
+      return;
+    }
+    case "assumption_challenge": {
+      await resolveAssumptionChallenge({
+        data: { id: data.id, action: data.verdict === "approve" ? "confirm" : "dismiss" },
+      });
+      return;
+    }
+    case "design_gate": {
+      await decideDesignGate({
+        data: { prdId: data.id, decision: data.verdict === "approve" ? "approve" : "reject" },
+      });
+      return;
+    }
+    case "playbook_proposal": {
+      await decidePlaybookProposal({
+        data: {
+          proposalId: data.id,
+          decision: data.verdict === "approve" ? "confirm" : "dismiss",
+        },
+      });
+      return;
+    }
+    default:
+      throw new Error(`decideApprovalItem: unknown kind ${String(data.kind)}`);
+  }
+}
 
 const SnoozeSchema = z.object({
   id: z.string().min(1),
@@ -1157,6 +1364,11 @@ export const sendBackApprovalItem = createServerFn({ method: "POST" })
     }
     const db = context.supabase as unknown as SupabaseClient;
 
+    // Provenance before any write, for the same reason the decide path reads it
+    // first: step 3 below moves the spec to 'draft', and attribution read after
+    // that describes the send-back rather than the draft being sent back.
+    const attribution = await readGateAttribution(db, data.kind, data.id);
+
     // 1) STATE FIRST, before a single row is written. A send-back the spec's
     //    own state forbids must leave no trace at all - not even a note that
     //    reads, later, as guidance somebody acted on. Specs only: a design-gate
@@ -1194,6 +1406,34 @@ export const sendBackApprovalItem = createServerFn({ method: "POST" })
       await savePrd({ data: { id: data.id, status: "draft" } });
     } else {
       await decideDesignGate({ data: { prdId: data.id, decision: "reject" } });
+    }
+
+    // 4) The flywheel, last, and the richest event the product can capture.
+    //    A send-back is a rejection in which the human states IN THEIR OWN
+    //    WORDS what the agent got wrong, so the note becomes the diff summary
+    //    rather than a generated one. Every other gate yields a verdict; only
+    //    this one yields a reason, which is what self-improve's
+    //    `loadFlagEvidence` reads back verbatim when it drafts a proposal
+    //    against an agent.
+    //
+    //    `approval_feedback` held ZERO rows when this was written, so no
+    //    send-back note has ever reached the flywheel. It is recorded after
+    //    the resolver rather than beside the note in step 2, for the same
+    //    reason the decide path does: an event is evidence that a gate MOVED.
+    //    The partial-failure residue documented in step 3 is unchanged - if
+    //    the resolver throws, the note survives and no event is written, which
+    //    is the honest pair.
+    if (attribution.agentDrafted) {
+      await recordGateSignalCore(db, context.userId, {
+        gateType: "rejection",
+        subjectType: data.kind,
+        subjectRef: data.id,
+        agentSlug: attribution.agentSlug,
+        toolName: attribution.toolName,
+        verdict: "sent_back",
+        diffSummary: data.note,
+        workspaceId: attribution.workspaceId,
+      });
     }
     return { ok: true };
   });

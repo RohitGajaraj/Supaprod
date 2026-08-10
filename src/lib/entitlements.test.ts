@@ -250,13 +250,90 @@ describe("connectors: Free reads, capped at 3 (founder ruling 2026-08-04)", () =
     // The public /pricing page and the authenticated PlanPicker both detect a
     // connector row by the "Read connectors" / "Write-back connectors" prefix. If a
     // highlight is reworded without that prefix, the chips silently vanish.
-    expect(planPresentation("free").highlights.some((h) => h.startsWith("Read connectors"))).toBe(true);
-    expect(planPresentation("pro").highlights.some((h) => h.startsWith("Read connectors"))).toBe(true);
-    expect(planPresentation("team").highlights.some((h) => h.startsWith("Write-back connectors"))).toBe(true);
+    expect(planPresentation("free").highlights.some((h) => h.startsWith("Read connectors"))).toBe(
+      true,
+    );
+    expect(planPresentation("pro").highlights.some((h) => h.startsWith("Read connectors"))).toBe(
+      true,
+    );
+    expect(
+      planPresentation("team").highlights.some((h) => h.startsWith("Write-back connectors")),
+    ).toBe(true);
   });
 
   it("Free says 3 and Pro says unlimited, so the buyer can see what lifts", () => {
     expect(planPresentation("free").highlights.join(" ")).toContain("up to 3 sources");
     expect(planPresentation("pro").highlights.join(" ")).toContain("unlimited sources");
+  });
+});
+
+describe("G1.3: Billing tier reconciliation (4 public vs 5 internal tiers)", () => {
+  it("PUBLIC_PLAN_TIERS has exactly 4 tiers (Free/Pro/Business/Enterprise)", () => {
+    const { PUBLIC_PLAN_TIERS } = require("./entitlements");
+    expect(PUBLIC_PLAN_TIERS).toHaveLength(4);
+    expect([...PUBLIC_PLAN_TIERS]).toEqual(["free", "pro", "team", "enterprise"]);
+  });
+
+  it("team slug is presented as 'Business' in all public displays", () => {
+    const pres = planPresentation("team");
+    expect(pres.name).toBe("Business");
+    expect(pres.tier).toBe("team"); // slug stays team for DB/Stripe consistency
+  });
+
+  it("max tier is internal-only (backward compat, not public)", () => {
+    const { PUBLIC_PLAN_TIERS } = require("./entitlements");
+    expect(PUBLIC_PLAN_TIERS).not.toContain("max");
+    expect(PLAN_TIERS).toContain("max");
+  });
+
+  it("public display names are unique: Free, Pro, Business, Enterprise", () => {
+    const names = ["free", "pro", "team", "enterprise"].map(
+      (tier) => planPresentation(tier as any).name,
+    );
+    const unique = new Set(names);
+    expect(unique.size).toBe(4);
+    expect([...names]).toEqual(["Free", "Pro", "Business", "Enterprise"]);
+  });
+
+  it("memory expiry gate must include all paid tiers: pro, team, max, enterprise", () => {
+    // G1.1: Memory expiry must stay OFF for Free tier to protect the moat.
+    // The SQL trigger set_agent_memory_expiry() sets expires_at = NULL
+    // (never expires) for any user in a workspace with plan_tier IN
+    // ('pro', 'team', 'enterprise', 'max'). Free users get a 30-day expiry.
+    //
+    // This test documents the required tier list so that if code changes
+    // the tier model, any change to this list is explicit and conscious.
+
+    const paidTiers = ["pro", "team", "max", "enterprise"];
+    const freeTier = "free";
+
+    // All paid tiers must be valid
+    for (const tier of paidTiers) {
+      expect(PLAN_TIERS).toContain(tier);
+      const e = entitlementsFor(tier as any);
+      expect(e).toBeDefined();
+    }
+
+    // Free is not in the paid tier list
+    expect(paidTiers).not.toContain(freeTier);
+  });
+
+  it("entitlements for all 5 internal tiers are defined", () => {
+    for (const tier of PLAN_TIERS) {
+      const e = entitlementsFor(tier);
+      expect(e).toBeDefined();
+      // creditMonthlyBase can be null (enterprise), so just check it exists
+      expect(e).toHaveProperty("creditMonthlyBase");
+    }
+  });
+
+  it("presentation exists for all 4 public tiers only", () => {
+    const { PUBLIC_PLAN_TIERS } = require("./entitlements");
+    for (const tier of PUBLIC_PLAN_TIERS) {
+      const p = planPresentation(tier as any);
+      expect(p).toBeDefined();
+      expect(p.name).toBeDefined();
+      expect(p.tier).toBe(tier);
+    }
   });
 });

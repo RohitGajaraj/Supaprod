@@ -335,7 +335,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
                   time={fmtUsd(m.cost)}
                   onClick={
                     missionId
-                      ? () => navigate({ to: "/build/$missionId", params: { missionId } })
+                      ? () => navigate({ to: "/runs/$missionId", params: { missionId } })
                       : undefined
                   }
                 />
@@ -404,7 +404,7 @@ export function AgentSpendDetail({ id }: { id: string }) {
                   time={relTime(r.created_at)}
                   onClick={
                     missionId
-                      ? () => navigate({ to: "/build/$missionId", params: { missionId } })
+                      ? () => navigate({ to: "/runs/$missionId", params: { missionId } })
                       : undefined
                   }
                 />

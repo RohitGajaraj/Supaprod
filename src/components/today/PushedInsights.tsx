@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 
-import { Button, Num } from "@/components/shell/primitives";
+import { Button, Failed, Num } from "@/components/shell/primitives";
 import { useWorkspace } from "@/hooks/use-workspace";
 import {
   getPushedInsights,
@@ -17,7 +17,15 @@ export function PushedInsights() {
   const workspaceId = activeWorkspace?.id ?? null;
   const fetchPushed = useServerFn(getPushedInsights);
   const markActioned = useServerFn(markInsightActioned);
-  const queryKey = ["brain", "pushed-insights"] as const;
+  /* THE WORKSPACE ID BELONGS IN THE KEY, and until 2026-08-10 it was missing.
+     The query FUNCTION reads `workspaceId` but the KEY did not name it, so every
+     workspace shared one cache entry: switch workspace and this panel served the
+     previous one's insights until the 10-minute staleTime expired. On a surface
+     headed "What changed while you were away", that is one tenant's evidence
+     rendered under another tenant's heading.
+     FocusNext.tsx in this same folder already keys on workspaceId correctly,
+     which is how the divergence was visible at all. */
+  const queryKey = ["brain", "pushed-insights", workspaceId] as const;
 
   const pushed = useQuery({
     queryKey,
@@ -33,19 +41,45 @@ export function PushedInsights() {
       await queryClient.cancelQueries({ queryKey });
       const before = queryClient.getQueryData<{ insights: PushedInsight[] }>(queryKey);
       queryClient.setQueryData<{ insights: PushedInsight[] } | undefined>(queryKey, (current) =>
-        current
-          ? { insights: current.insights.filter((insight) => insight.id !== id) }
-          : current,
+        current ? { insights: current.insights.filter((insight) => insight.id !== id) } : current,
       );
       return { before };
     },
     onError: (_error, _value, ctx) => {
-      if (ctx?.before) queryClient.setQueryData(["brain", "pushed-insights"], ctx.before);
+      /* Rolls back through `queryKey`, not through a hand-written copy of it.
+         This used to restore into the literal ["brain", "pushed-insights"], which
+         happened to match only while the key omitted the workspace id -- so the
+         moment that was corrected above, the optimistic removal would have been
+         written to one cache entry and restored to another, and a failed dismiss
+         would have silently eaten the row. */
+      if (ctx?.before) queryClient.setQueryData(queryKey, ctx.before);
     },
     onSettled: () => void queryClient.invalidateQueries({ queryKey }),
   });
 
-  if (pushed.isLoading || pushed.isError) return null;
+  /* Same doctrine as FocusNext, and the same correction on the same date: a
+     failed read used to return null here, so "What changed while you were away"
+     disappeared entirely rather than saying it could not look. On the one
+     surface a person opens to find out what happened overnight, an absent panel
+     is read as "nothing happened", which is precisely the opposite of the truth
+     when the read failed. Loading still returns null; a failure does not. */
+  if (pushed.isError) {
+    return (
+      <section className="today-notices" aria-labelledby="today-notices-title">
+        <div className="today-notices-head">
+          <div>
+            <div className="today-kicker">New evidence</div>
+            <h2 id="today-notices-title">What changed while you were away</h2>
+          </div>
+        </div>
+        <Failed onRetry={() => void pushed.refetch()}>
+          This did not load, so nothing here can be trusted to be the full picture. Something may
+          have changed while you were away.
+        </Failed>
+      </section>
+    );
+  }
+  if (pushed.isLoading) return null;
   const insights = pushed.data?.insights ?? [];
   if (insights.length === 0) return null;
 

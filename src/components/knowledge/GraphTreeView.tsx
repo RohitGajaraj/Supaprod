@@ -31,7 +31,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getLineageTree, computeTreeStats } from "@/lib/knowledge-graph-explorer.functions";
 import { type ArtifactKind } from "@/lib/lineage.functions";
 import type { LineageNode } from "@/lib/knowledge-graph-explorer";
-import { Block, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
+import { Block, Button, Empty, Failed, Loading, Num, Row } from "@/components/shell/primitives";
 import { kindLabel } from "./graph-visual";
 
 function TreeNodeRenderer({ node }: { node: LineageNode }) {
@@ -84,7 +84,24 @@ function TreeNodeRenderer({ node }: { node: LineageNode }) {
   );
 }
 
-export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focusId?: string }) {
+export function GraphTreeView({
+  focusKind,
+  focusId,
+  /**
+   * Hands the reader to the canvas when there is nothing centred yet.
+   *
+   * This view is now the DEFAULT rather than the reduced-motion fallback (see
+   * GraphPanel), and it is the one view that cannot start from nothing:
+   * getLineageTree needs a kind and an id. So its one unanswerable state has to
+   * carry a way out, or being promoted makes it a dead end. Optional, so any
+   * other mount keeps working and simply describes the act instead.
+   */
+  onOpenCanvas,
+}: {
+  focusKind?: string;
+  focusId?: string;
+  onOpenCanvas?: () => void;
+}) {
   const fTree = useServerFn(getLineageTree);
   const enabled = !!focusKind && !!focusId;
   const tree = useQuery({
@@ -95,9 +112,17 @@ export function GraphTreeView({ focusKind, focusId }: { focusKind?: string; focu
 
   if (!enabled) {
     return (
-      <Empty>
-        Nothing is centred yet. Open the Graph view and choose &ldquo;Centre the graph here&rdquo;
-        on a node, and everything downstream of it is outlined here.
+      <Empty
+        action={
+          onOpenCanvas ? (
+            <Button variant="primary" onClick={onOpenCanvas}>
+              Pick a starting point
+            </Button>
+          ) : undefined
+        }
+      >
+        Nothing is centred yet. Choose one piece of work and this outlines everything that came out
+        of it, in order, with the reason each step was drawn and who drew it.
       </Empty>
     );
   }

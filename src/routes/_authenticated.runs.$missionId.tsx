@@ -1,11 +1,51 @@
 /**
  * Build, one run in detail. REDESIGNED, not re-skinned (SURFACE-JUSTIFICATION.md).
  *
- * The prototype DOES draw this screen (PROTOTYPE-v2.html #s-run), so where it
- * decided something this file follows it: the headline plus one contract line,
- * "What happened, in order" as an attribution ledger that OPENS WITH YOUR OWN
- * ASK, the change stated as a diffstat before any panel, and a context column
- * that answers this run / what happens next rather than listing statistics.
+ * ================================================================== *
+ * THE 2026-08-10 INVERSION. This surface used to open on its own LOG.
+ *
+ * Measured against the shipped agent consoles, the information architecture was
+ * upside down in four places at once, and every one of them cost the same thing:
+ *
+ *   · the RAW STEP LOG was the landing view — twelve step rows above the diff,
+ *     which is the machine's transcript standing where the report belongs;
+ *   · the agent's own FINAL ACCOUNT of the whole run was one anonymous row in
+ *     that log, CUT AT 180 CHARACTERS, mid-sentence. It is the single most
+ *     valuable thing the run produces;
+ *   · there was NO TOTAL DURATION anywhere, and time was floored to minutes, so
+ *     a forty-second step read "now";
+ *   · nothing showed WHAT IT RAN to check itself, so "it works" was a claim with
+ *     no evidence under it on the one screen built to carry evidence.
+ *
+ * The reframe that governs the fix is not about layout. From operator research
+ * on status reporting: the commonest failure is reporting ACTIVITY ("met with X,
+ * researched Y") instead of PROGRESS toward an outcome. A step list is activity.
+ * What MOVED, and what now NEEDS A DECISION, is progress. So the first line of
+ * this page carries the outcome and the ask, and everything under it is the
+ * evidence for that line rather than a chronology competing with it.
+ *
+ * WHAT LANDS NOW, in order:
+ *   1. the headline: where it landed, how long it took to the SECOND, and what
+ *      it wants from you. Live, the duration is a counter that ticks — never a
+ *      progress bar, because a coding agent cannot know how long it will take
+ *      and a bar that implies otherwise is caught inside one session;
+ *   2. the Gate, unmoved: the one call the run cannot make for itself;
+ *   3. "What came back": the agent's own account, un-clipped but SHORT, with the
+ *      whole thing one press away. Brevity is the feature here, not the polish —
+ *      verbose AI output is its own named pain;
+ *   4. "How it checked itself": the checks it really ran, with real exit codes;
+ *   5. "Tell it what to do next", unmoved;
+ *   6. "What it produced": the diff, the preview, the provenance chain AND the
+ *      raw step log, all four COLLAPSED behind one tab row.
+ *
+ * The prototype (PROTOTYPE-v2.html #s-run) drew the ledger as the body of this
+ * page and this rewrite departs from it there, deliberately: the prototype was
+ * drawn before the product ran agents for an hour unattended, and a transcript
+ * is the right landing for a two-minute run and the wrong one for a long one.
+ * Everything else it decided still holds — one headline and one contract line,
+ * the change stated as a diffstat before any panel, and a context column that
+ * answers this run / what happens next rather than listing statistics.
+ * ================================================================== *
  *
  * ------------------------------------------------------------------ *
  * a. WHO IS STANDING HERE. A product lead who asked for a change and came back
@@ -20,18 +60,27 @@
  *    KEEP  the Gate. It is the one call, and it is the reason the page exists.
  *    KEEP  "Also waiting on you". A second pending call must not hide behind
  *          the first.
- *    KEEP  the ledger of runs and steps: this is the evidence, and it is the
- *          only place it is assembled.
+ *    KEEP  the ledger of runs and steps, every row of it: this is the evidence,
+ *          and it is the only place it is assembled. It MOVES behind the Steps
+ *          tab. Nothing was deleted from it, and it is one press from anywhere
+ *          on the page — it simply stopped being the first thing you read.
+ *    ADD   "What came back", which is the agent's own final account promoted out
+ *          of that log and given the room it always deserved.
+ *    ADD   "How it checked itself". `studio.checks.run` really does clone the
+ *          branch into a sandbox and run the repo's checks, and it records each
+ *          one's exit code, duration and stderr. None of that had a door.
  *    KEEP  the steer note. It is how you correct the crew WITHOUT stopping it,
  *          which is the governance canon expressed as a control, and it has no
  *          other home.
  *    KEEP  the stage lines (code / pull request / checks / production). Run
  *          scoped, plain words, and the shell's seven-stage strip does not say
  *          any of it.
- *    KEEP  Changes, Preview and Receipts, behind one tab row. A tab row is an
- *          ANTI-scroll device here: three views of one artifact in one screen
- *          height. Stacking them as blocks would have made the page longer,
- *          which is the pain point the founder named twice.
+ *    KEEP  Changes, Preview and Receipts, behind one tab row, joined now by
+ *          Steps. A tab row is an ANTI-scroll device here: four views of one
+ *          run in one screen height. Stacking them as blocks would have made the
+ *          page longer, which is the pain point the founder named twice. The row
+ *          itself is COLLAPSED on arrival: a returning reader gets the report
+ *          first and opens the machinery when they want it.
  *    ADD   the test station (JNY-03), the one element on this page that was not
  *          inherited from anywhere. It hung on MissionSlideOver, this rewrite
  *          deleted that component, and nothing carried it across: the panel and
@@ -78,9 +127,11 @@
  *          is already one plain word in "Where it stands".
  *
  * d. ONE CLICK AWAY, not on the surface: the diff itself (Changes tab), the
- *    built output (Preview), the provenance chain (Receipts), the check runs
- *    (Engine Room), the thinking behind each act (one control on the ledger),
- *    the pull request (the block's own action).
+ *    step log (Steps tab), the built output (Preview), the provenance chain
+ *    (Evidence), the check runs (Engine Room), the thinking behind each act (one
+ *    control inside the log), the whole of the agent's account ("Read all of
+ *    it"), the stderr of any check that failed, and the pull request (a door on
+ *    the produced block's own sub-line).
  *
  * e. DELIGHT / CONFUSION. The moment is the ledger opening with YOUR line -
  *    "You asked for it, 09:02" - and then the crew's work landing under it in
@@ -165,6 +216,16 @@ import { getDesignParity } from "@/lib/design-parity.functions";
 import { ChangesPanel } from "@/components/studio/ChangesPanel";
 import { PreviewPanel } from "@/components/studio/PreviewPanel";
 import { ReceiptsPanel } from "@/components/studio/ReceiptsPanel";
+import { CheckedItself, ReturnSummary } from "@/components/studio/RunReturn";
+import { useNowWhileLive } from "@/components/studio/use-now-while-live";
+import {
+  finalSummary,
+  formatDuration,
+  lastActivityAt,
+  outcomeAndAsk,
+  runSpanMs,
+  type StepLike,
+} from "@/components/studio/run-return";
 import { MissionOrchestratorDetail } from "@/components/missions/MissionOrchestratorDetail";
 import { TestStationPanel } from "@/components/obsidian/TestStationPanel";
 import { fmtCost, summarizeArgs } from "@/components/studio/studio-format";
@@ -176,6 +237,7 @@ import {
   Button,
   CtxBody,
   Diffstat,
+  Door,
   Empty,
   Failed,
   Gate,
@@ -192,12 +254,18 @@ import {
 import { AgentPulse } from "@/components/shell/AgentPulse";
 import { actorName, actorSlug, actorVerb } from "@/components/runs/run-state";
 
-/** The three views this run's output is worth looking at. */
-type Tab = "changes" | "preview" | "receipts";
+/** The four views of this run worth opening. `steps` is the raw log, which used
+ *  to be the landing view and is now one of these. */
+type Tab = "changes" | "steps" | "preview" | "receipts";
+/** The key is the URL/state value and does not move; only the label a person
+ *  reads changes. "Receipts" reads as billing to product operators — the
+ *  measured word for what this tab actually holds is "Evidence". Renaming the
+ *  key would break every ?tab=receipts deep link for nothing. */
 const TAB_DISPLAY: [Tab, string][] = [
   ["changes", "Changes"],
+  ["steps", "Steps"],
   ["preview", "Preview"],
-  ["receipts", "Receipts"],
+  ["receipts", "Evidence"],
 ];
 
 /** Old deep links, and the /studio/$missionId redirect stub, still carry
@@ -205,9 +273,15 @@ const TAB_DISPLAY: [Tab, string][] = [
  *  removed, so those values are still ACCEPTED and read as the nearest
  *  surviving view. A link that used to work does not get to break. */
 type SearchTab = Tab | "pr" | "cost";
-const SEARCH_TABS: SearchTab[] = ["changes", "preview", "receipts", "pr", "cost"];
-function readTab(t: SearchTab | undefined): Tab {
-  return t === "preview" || t === "receipts" ? t : "changes";
+const SEARCH_TABS: SearchTab[] = ["changes", "steps", "preview", "receipts", "pr", "cost"];
+/** NULL IS A REAL ANSWER NOW, and it is the default. No `?tab` means the tabbed
+ *  region is CLOSED and the reader is looking at the report. Every value that
+ *  ever worked still opens the region on the nearest surviving view. */
+function readTab(t: SearchTab | undefined): Tab | null {
+  if (t === "steps" || t === "preview" || t === "receipts" || t === "changes") return t;
+  // pr and cost both pointed at machinery that moved; Changes is what survives
+  // nearest to either.
+  return t === "pr" || t === "cost" ? "changes" : null;
 }
 
 /** How many ledger rows open before the block offers the rest. */
@@ -236,18 +310,11 @@ type ChangeRow = {
   updated_at: string;
 };
 
-/** A loop step, read structurally so this surface never imports the server
- *  module the union is declared in. */
-type StepLike = {
-  kind: string;
-  text?: string;
-  message?: string;
-  name?: string;
-  reason?: string;
-  error?: string;
-  status?: string;
-  args?: unknown;
-};
+/* `StepLike` — the structural read of a loop step, so this surface never imports
+ * the server module the union is declared in — now lives in studio/run-return.ts
+ * beside the rules that read it, and is imported above. It was declared in two
+ * files with two different field sets, and the copy here was the one missing
+ * `result`, which is where every tool's own verdict is recorded. */
 
 /** What a click caused, held for the rest of the session. Session local on
  *  purpose: the durable record is the run itself, and a second copy of it here
@@ -266,14 +333,21 @@ type Mark = {
  * surface's folder, so a parallel port cannot break this one.
  * ------------------------------------------------------------------ */
 
-/** Plain-words relative time. Mono is applied by the row, not here. */
+/** Plain-words relative time. Mono is applied by the row, not here.
+ *
+ *  UNDER A MINUTE IS SECONDS, NOT "NOW". This floored everything below sixty
+ *  seconds to the word "now", so a step that took forty seconds and a step that
+ *  finished this instant were the same row, and the run's own silence age — the
+ *  highest-trust detail on the page — could not report the first minute of a
+ *  stall at all. Everything on this surface that measures time is now precise to
+ *  the second; see `formatDuration` for the total. */
 function ago(iso: string | null | undefined): string | null {
   if (!iso) return null;
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return null;
   const ms = Date.now() - t;
   if (ms < 0) return null;
-  if (ms < 60_000) return "now";
+  if (ms < 60_000) return `${Math.floor(ms / 1000)}s`;
   const m = Math.floor(ms / 60_000);
   if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
@@ -527,7 +601,6 @@ function gateLines(a: StudioApproval, holder: string): React.ReactNode[] {
 
 function BuildRun() {
   const { missionId } = Route.useParams();
-  const tab = readTab(Route.useSearch().tab);
   const navigate = useNavigate({ from: "/runs/$missionId" });
   const qc = useQueryClient();
 
@@ -589,7 +662,13 @@ function BuildRun() {
   const holderSlug = actorSlug(data?.kind);
   const holderVerb = actorVerb(data?.kind);
   const mission = (data?.mission ?? null) as MissionRow | null;
-  const runs = (data?.runs ?? []) as StudioRunDetail[];
+  /* THE ONE VALUE ON THIS PAGE THAT HAS TO KEEP ITS IDENTITY. `?? []` mints a
+   * fresh array on every render, and four memos hang off `runs` now — the step
+   * log, the agent's account, the summary split and the check list — so an
+   * unstable reference makes all four recompute on every keystroke in the note
+   * box. The ledger alone rebuilds a React element per step. Held here rather
+   * than inside each memo: one of them would be forgotten. */
+  const runs = React.useMemo(() => (data?.runs ?? []) as StudioRunDetail[], [data?.runs]);
   const changeset = (data?.changeset ?? null) as
     (StudioChangesetSummary & { base_sha?: string | null; updated_at?: string | null }) | null;
   const changes = (data?.changes ?? []) as ChangeRow[];
@@ -813,6 +892,46 @@ function BuildRun() {
 
   const busy = decide.isPending;
 
+  /* ---- WHETHER THE MACHINERY IS OPEN ----
+   *
+   * Closed on arrival, because the report is the landing and the tab row is the
+   * depth behind it. Three things can open it, and they compose in this order:
+   *
+   *   · a `?tab=` in the URL, which is every deep link that ever worked. An
+   *     explicit address always wins, and it wins over the close below too;
+   *   · the AUTO-OPEN below, latched;
+   *   · a press on the tab row itself, which writes the URL.
+   *
+   * THE AUTO-OPEN, and why it is latched. When nothing has come back yet there
+   * is no document to land on, and the honest landing is the log: a live run
+   * opens on Steps. But the summary ARRIVES mid-session, at which point the
+   * condition flips — and an unlatched condition would close the region under
+   * someone mid-read, which is precisely the defect run-evidence-holds.test.ts
+   * exists to prevent (the run's evidence may not erase itself). So the first
+   * true value is copied into state once and the copy is what the region
+   * follows; `prev ?? want` is the whole guard.
+   *
+   * `closed` exists so a deliberate press on Hide outranks the latch. Without
+   * it, closing a region the latch had opened would reopen it on the next
+   * render, which reads as a broken control rather than as a policy. */
+  const searchTab = readTab(Route.useSearch().tab);
+  const [latchedTab, setLatchedTab] = React.useState<Tab | null>(null);
+  const [closed, setClosed] = React.useState(false);
+  const nothingCameBack = !isOrchestrator && finalSummary(runs) == null && runs.length > 0;
+  React.useEffect(() => {
+    if (nothingCameBack) setLatchedTab((prev) => prev ?? "steps");
+  }, [nothingCameBack]);
+  const tab: Tab | null = searchTab ?? (closed ? null : latchedTab);
+
+  const openTab = (next: Tab) => {
+    setClosed(false);
+    void navigate({ search: (prev) => ({ ...prev, tab: next }) });
+  };
+  const hideTabs = () => {
+    setClosed(true);
+    void navigate({ search: (prev) => ({ ...prev, tab: undefined }) });
+  };
+
   /* ---- what happened, in order ----
    * Every row carries a mark: yours on your ask and your notes, Engineer's on
    * its acts. A row with no mark is a surface pretending the work did itself.
@@ -915,14 +1034,57 @@ function BuildRun() {
     return out;
   }, [runs, mission, initials, showAll, holder, holderSlug, holderVerb]);
 
-  /* ---- the headline: the state, and whose run this is ---- */
+  /* ---- THE FIRST LINE, which is the highest-leverage pixel on this surface ----
+   *
+   * IT USED TO REPORT ACTIVITY: "Engineer is opening a pull request · you asked
+   * for this today 14:22". Both halves are true and neither is what the reader
+   * came for. A person who has been away for an hour needs to know where it
+   * LANDED and whether it NEEDS THEM, and a caption naming the current tool
+   * answers neither — it is the same sentence whether the run is about to
+   * succeed or about to fail.
+   *
+   * So the line is now outcome, duration, ask, and the duration is exact to the
+   * second: "Finished in 18m 6s · Ready for your review." While the run is alive
+   * the seconds tick, because an elapsed counter claims only that time is
+   * passing, which is the one thing that is certainly true; a progress bar would
+   * claim the machine knows how much is left, which it does not.
+   *
+   * NOTHING WAS DELETED TO MAKE ROOM, both halves were DEMOTED to where they
+   * were always the better fit. The live tool caption is still on the context
+   * column's "Who is on it", which is where a fact about the WORKER rather than
+   * about the work belongs; the start time is still under "This run", beside the
+   * run and step counts it belongs with. The headline gets the two facts that
+   * decide whether the reader keeps reading. */
   const title = mission ? stripAutoPrefix(mission.title) : null;
   const stateWord = mission ? (STATE_WORD[mission.status] ?? cap(mission.status)) : null;
   const started = startedAt(mission?.created_at);
+  const now = useNowWhileLive(isLive);
+  const totalSpan = runSpanMs({
+    startedAt: mission?.created_at,
+    completedAt: mission?.completed_at,
+    lastActivityAt: lastActivityAt(runs),
+    live: isLive,
+    now,
+  });
+  const duration = totalSpan == null ? null : formatDuration(totalSpan);
+  const headline = outcomeAndAsk({
+    missionStatus: mission?.status ?? "",
+    live: isLive,
+    pendingCalls: pending.length,
+    changesetStatus: changeset?.status ?? null,
+    productionDeployed,
+    duration,
+  });
   const sub = mission ? (
     <>
-      {isLive && liveAction ? `${holder} is ${liveAction}` : stateWord}
-      {started ? <> · you asked for this {started}</> : null}
+      {headline.lead}
+      {headline.duration ? (
+        <>
+          {" "}
+          <Num>{headline.duration}</Num>
+        </>
+      ) : null}
+      {headline.ask ? <> · {headline.ask}</> : null}
     </>
   ) : undefined;
 
@@ -1213,28 +1375,22 @@ function BuildRun() {
         </Block>
       ) : (
         <>
-          <Block
-            title="What happened, in order"
-            more={
-              ledger.length > VISIBLE || hasThoughts
-                ? showAll
-                  ? "Just what it did"
-                  : "Everything it did and said"
-                : undefined
-            }
-            onMore={() => setShowAll((v) => !v)}
-          >
-            {ledger.length === 0 ? (
-              <Empty>
-                Nothing has run yet. {holder} picks this up on its own and the steps land here as
-                they happen.
-              </Empty>
-            ) : showAll ? (
-              ledger
-            ) : (
-              ledger.slice(0, VISIBLE)
-            )}
-          </Block>
+          {/* BEAT 1 AND 2 OF THE RETURN. The duration receipt is already on the
+              headline, so what lands here is the agent's own account: whole, and
+              short, with the rest one press away. This is the artefact that used
+              to be a 180-character row two thirds of the way down a log. */}
+          <ReturnSummary
+            runs={runs}
+            live={isLive}
+            holder={holder}
+            holderSlug={holderSlug}
+            liveAction={liveAction}
+          />
+
+          {/* BEAT 3. What it ran to check itself, with the real exit codes, and
+              an honest empty state when it checked nothing — which is a finding
+              rather than an absence for anyone about to merge. */}
+          <CheckedItself runs={runs} ci={ci?.checks ?? null} />
 
           <Block title="Tell it what to do next">
             {closedReason ? (
@@ -1290,53 +1446,110 @@ function BuildRun() {
               A spanning region is only safe once BOTH tracks are explicitly sized.
               Until then the work column is the honest boundary, and the diff earns
               its room inside it: a capped list column, a tight gutter, a visible
-              horizontal scrollbar, and Wrap. */}
+              horizontal scrollbar, and Wrap.
+
+              BEAT 4, AND THE LOG'S NEW HOME. The roll-up is the block's own
+              sub-line — the diffstat and the file count, which is the whole of
+              what a returning reader needs before deciding to look — and every
+              viewer behind it is COLLAPSED until asked for. Four things live in
+              here now: the diff, the preview, the provenance chain, and the raw
+              step log that used to be the first thing on the page.
+
+              COLLAPSED IS NOT HIDDEN. The count is on screen with no press, the
+              tab row is one press, and a `?tab=` link opens straight onto its
+              view. What it stops is a screen of machinery standing between a
+              person and the report they came for. */}
           <Block
             title="What it produced"
             sub={
-              diff.files > 0 ? (
-                <>
-                  <Diffstat added={diff.added} removed={diff.removed} /> lines across{" "}
-                  <Num>{diff.files}</Num> {diff.files === 1 ? "file" : "files"}.
-                </>
-              ) : undefined
+              <>
+                {diff.files > 0 ? (
+                  <>
+                    <Diffstat added={diff.added} removed={diff.removed} /> lines across{" "}
+                    <Num>{diff.files}</Num> {diff.files === 1 ? "file" : "files"}.{" "}
+                  </>
+                ) : null}
+                {stepTotal > 0 ? (
+                  <>
+                    <Num>{stepTotal}</Num> {stepTotal === 1 ? "step" : "steps"}.{" "}
+                  </>
+                ) : null}
+                {changeset?.pr_url ? (
+                  <Door
+                    onClick={() =>
+                      window.open(changeset.pr_url as string, "_blank", "noopener,noreferrer")
+                    }
+                  >
+                    Open the pull request
+                  </Door>
+                ) : null}
+              </>
             }
-            more={changeset?.pr_url ? "Open the pull request" : undefined}
-            onMore={() => window.open(changeset?.pr_url as string, "_blank", "noopener,noreferrer")}
+            more={tab ? "Hide it" : "Look at it"}
+            onMore={() => (tab ? hideTabs() : openTab("changes"))}
           >
-            <div className="sp-tabs" role="tablist" aria-label="What this run produced">
-              {TAB_DISPLAY.map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  className="sp-tab"
-                  aria-selected={tab === id}
-                  onClick={() => navigate({ search: (prev) => ({ ...prev, tab: id }) })}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {/* NO SECOND MARGIN. `.sp-tabs` already carries its own
-                `margin-top: var(--sp-space-4)`, and this wrapper added the same
-                value again immediately below it, so the tab row sat in a double
-                gap before any content. */}
-            <div>
-              {tab === "changes" ? (
-                <ChangesPanel
-                  changeset={changeset}
-                  changes={changes}
-                  missionId={missionId}
-                  fileSetPolicy={fileSetPolicy}
-                  constraints={constraints}
-                />
-              ) : null}
-              {tab === "preview" ? (
-                <PreviewPanel missionId={missionId} changeset={changeset} isLive={isLive} />
-              ) : null}
-              {tab === "receipts" ? <ReceiptsPanel missionId={missionId} /> : null}
-            </div>
+            {tab ? (
+              <>
+                <div className="sp-tabs" role="tablist" aria-label="What this run produced">
+                  {TAB_DISPLAY.map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="tab"
+                      className="sp-tab"
+                      aria-selected={tab === id}
+                      onClick={() => openTab(id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {/* NO SECOND MARGIN. `.sp-tabs` already carries its own
+                    `margin-top: var(--sp-space-4)`, and this wrapper added the
+                    same value again immediately below it, so the tab row sat in
+                    a double gap before any content. */}
+                <div>
+                  {tab === "changes" ? (
+                    <ChangesPanel
+                      changeset={changeset}
+                      changes={changes}
+                      missionId={missionId}
+                      fileSetPolicy={fileSetPolicy}
+                      constraints={constraints}
+                    />
+                  ) : null}
+                  {/* THE LOG, WHOLE. Every row it ever had, the same marks, the
+                      same quoting of what the crew SAID versus what it DID, and
+                      the same one control that opens the thoughts and the tail.
+                      Nothing was deleted to make room for the report above it. */}
+                  {tab === "steps" ? (
+                    <>
+                      {ledger.length === 0 ? (
+                        <Empty>
+                          Nothing has run yet. {holder} picks this up on its own and the steps land
+                          here as they happen.
+                        </Empty>
+                      ) : (
+                        <>
+                          {showAll ? ledger : ledger.slice(0, VISIBLE)}
+                          {ledger.length > VISIBLE || hasThoughts ? (
+                            <Actions>
+                              <Door onClick={() => setShowAll((v) => !v)}>
+                                {showAll ? "Just what it did" : "Everything it did and said"}
+                              </Door>
+                            </Actions>
+                          ) : null}
+                        </>
+                      )}
+                    </>
+                  ) : null}
+                  {tab === "preview" ? (
+                    <PreviewPanel missionId={missionId} changeset={changeset} isLive={isLive} />
+                  ) : null}
+                  {tab === "receipts" ? <ReceiptsPanel missionId={missionId} /> : null}
+                </div>
+              </>
+            ) : null}
           </Block>
         </>
       )}
@@ -1345,8 +1558,9 @@ function BuildRun() {
 }
 
 export const Route = createFileRoute("/_authenticated/runs/$missionId")({
-  // Optional, so a dispatch surface can navigate without search; the component
-  // reads a missing tab as Changes.
+  // Optional, so a dispatch surface can navigate without search. A MISSING tab
+  // is now a real state and the default one: the tabbed region stays closed and
+  // the reader lands on the report. Every value that ever worked still opens it.
   validateSearch: (search: Record<string, unknown>): { tab?: SearchTab } => {
     const t = search.tab;
     return { tab: (SEARCH_TABS as string[]).includes(t as string) ? (t as SearchTab) : undefined };

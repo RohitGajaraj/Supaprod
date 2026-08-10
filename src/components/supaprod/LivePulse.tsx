@@ -80,7 +80,7 @@ export function LiveTicker() {
   const inner = <AiPulse label={a.action} state="working" style={{ maxWidth: 260 }} />;
   return a.missionId ? (
     <Link
-      to="/build/$missionId"
+      to="/runs/$missionId"
       params={{ missionId: a.missionId }}
       style={{ textDecoration: "none", minWidth: 0 }}
       aria-label={`Open the running mission (${a.action})`}

@@ -1,3 +1,26 @@
+/* ===================================================================
+ * TODAY.
+ *
+ * The surface is four LANES named for who is blocked, read in order of how
+ * hard the thing is to undo, with exactly one open decision among them. The
+ * layout job of this sheet is therefore the opposite of the usual one: it has
+ * to keep three of the four lanes almost invisible so the fourth can be the
+ * only object on the page with weight.
+ *
+ * Reading order is shipped-first, because what is already live is the hardest
+ * thing to reverse. VISUAL weight is call-first, because the call is the only
+ * thing that needs a decision. Those two are reconciled here and nowhere else:
+ * the lanes are rules and two lines of text, and the open call is the one
+ * bordered, shadowed, floating object on the surface. Give any lane a card and
+ * that reconciliation is gone.
+ *
+ * A LANE AT ZERO COLLAPSES ITS OWN BREATHING ROOM (`data-quiet`). `.sp-block`
+ * reserves 36px above and 28px inside for a section that has content; four
+ * empty sections wearing that would cost ~440px to say four true sentences.
+ * At zero the lane is a name and a fact, about 50px, and four of them read as
+ * one short taxonomy rather than as four empty rooms.
+ * =================================================================== */
+
 .today-page {
   --today-quiet: var(--sp-mute);
   width: 100%;
@@ -9,13 +32,16 @@
 }
 
 .today-page .sp-subtitle,
-.today-position,
+.today-greeting,
+.today-open-meta,
+.today-keys,
 .today-notices-count,
 .today-director-rank,
-.today-call-source,
 .today-director-evidence,
 .today-composer-copy,
 .today-notices-sub,
+.today-example-note,
+.today-example-keys,
 .today-notice p {
   color: var(--today-quiet);
 }
@@ -30,16 +56,21 @@
   color: var(--today-quiet);
 }
 
-.today-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.48fr) minmax(300px, 0.82fr);
-  gap: var(--sp-space-8);
-  align-items: stretch;
-  margin-top: var(--sp-space-9);
+/* ---- the head -----------------------------------------------------
+ * Greeting, then ONE line of state. The greeting is deliberately the
+ * SMALLEST thing here: it is a courtesy, and the sentence under it is the
+ * highest-leverage element on the surface. A large "Good morning" over a
+ * small count inverts that, which is the mistake most morning dashboards
+ * make. */
+
+.today-greeting {
+  margin: 0 0 var(--sp-space-2);
+  font-size: var(--sp-text-meta);
+  line-height: var(--sp-leading-tight);
 }
 
-.today-hero > :only-child {
-  grid-column: 1 / -1;
+.today-page .sp-title {
+  text-wrap: balance;
 }
 
 .today-section-head,
@@ -61,87 +92,360 @@
   color: var(--today-quiet);
 }
 
-.today-call {
-  min-width: 0;
-  height: 100%;
-  padding: var(--sp-space-6);
+/* ---- the lanes ---------------------------------------------------- */
+
+.today-lanes {
+  margin-top: var(--sp-space-6);
+}
+
+.today-lane[data-quiet="true"] > .sp-block {
+  margin-top: var(--sp-space-5);
+  padding-top: var(--sp-space-5);
+}
+
+.today-lane[data-quiet="true"] .sp-block-head {
+  margin-bottom: var(--sp-space-1);
+}
+
+.today-lane[data-quiet="true"] .sp-block-sub {
+  margin-bottom: 0;
+}
+
+/* ---- the open call ------------------------------------------------
+ * The one bordered container in this region (anti-slop ban 5 caps it at one),
+ * and the only object on the page carrying a shadow. That is what makes it
+ * read as the thing to act on without spending a colour on it: the surface is
+ * monochrome and the hierarchy survives greyscale, because it is built from
+ * elevation and size rather than hue. */
+
+.today-open {
+  margin-top: var(--sp-space-4);
+  padding: var(--sp-space-5) var(--sp-space-6) var(--sp-space-6);
   background: var(--sp-float);
   border: 1px solid var(--sp-line);
   border-radius: var(--sp-radius-panel);
   box-shadow: var(--sp-shadow);
 }
 
-.today-position,
-.today-notices-count,
-.today-director-rank {
-  flex: none;
-  font-size: var(--sp-text-data);
-}
-
-.today-call-meta {
+.today-open-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-space-4);
-  margin-top: var(--sp-space-4);
+  flex-wrap: wrap;
+  gap: var(--sp-space-2);
   padding-bottom: var(--sp-space-4);
   border-bottom: 1px solid var(--sp-line-soft);
-}
-
-.today-call-source {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-space-2);
-  flex-wrap: wrap;
   font-size: var(--sp-text-meta);
 }
 
-.today-call-source > span + span::before {
+/* The separators are drawn rather than typed, so a meta line that loses its
+   project or its impact never leaves a stranded middot. Mixed from the
+   metadata ink rather than from --sp-line: an edge token is about 1.2:1
+   against this ground and a separator nobody can see is worse than none, since
+   the reader is left with three words floating at equal distance. */
+.today-open-meta > * + *::before {
   content: "·";
   margin-right: var(--sp-space-2);
-  color: var(--sp-line);
+  color: color-mix(in oklab, var(--sp-mute) 55%, transparent);
 }
 
-.today-agent-link {
+/* The tick box is a CONTROL, not one of the facts, so nothing punctuates
+   between it and the first of them. */
+.today-open-meta > .today-pick + *::before {
+  content: none;
+}
+
+.today-open-who {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--sp-body);
 }
 
-.today-agent-link .sp-mark {
+.today-open-who .sp-mark {
   width: 18px;
   height: 18px;
 }
 
-.today-agent-link .sp-mark svg {
+.today-open-who .sp-mark svg {
   width: 13px;
   height: 13px;
 }
 
-.today-call > .sp-gate {
-  margin-top: var(--sp-space-5);
+.today-open-pos {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--sp-text-data);
+}
+
+/* Pushed to the trailing edge by the rule above, so the middot that would
+   otherwise float in the gap is not drawn. */
+.today-open-pos::before {
+  content: none;
+}
+
+/* The Gate already owns the rule and the space that separate it from what
+   comes before. Inside this card the meta line does that job, so the Gate's
+   own entrance would be a second divider one line below the first. */
+.today-open > .sp-gate {
+  margin-top: var(--sp-space-4);
   padding-top: 0;
   border-top: 0;
 }
 
-.today-call .sp-gate-q {
-  max-width: 32ch;
+.today-open .sp-gate-q {
+  max-width: 34ch;
   text-wrap: balance;
 }
 
-.today-call .sp-acts {
+.today-open .sp-acts {
   gap: var(--sp-space-2);
 }
 
+.today-pick {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+/* THE BAR WRAPS RATHER THAN CLIPPING. `.sp-selbar` is a single flex line, which
+   is right for the two-verb queues it was drawn against; this one carries three
+   and a "select all", and at a 560px work region the last verb was cut off by
+   the edge of the region. A bulk control a person cannot reach is worse than no
+   bulk control. Scoped to this surface, because the primitive is correct for
+   every caller that fits. */
+.today-page .sp-selbar {
+  flex-wrap: wrap;
+  padding: var(--sp-space-2) var(--sp-space-4);
+  row-gap: var(--sp-space-2);
+}
+
+/* Wrapped, `margin-left: auto` would shove the verbs onto a line of their own
+   with the count stranded above them. They follow the escapes instead. */
+@media (max-width: 720px) {
+  .today-page .sp-selbar-acts {
+    margin-left: 0;
+  }
+}
+
+/* ---- walking the queue -------------------------------------------- */
+
+.today-queue-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-space-4);
+  margin-top: var(--sp-space-4);
+}
+
+.today-queue {
+  margin-top: var(--sp-space-3);
+}
+
+.today-queue > .today-open {
+  margin: var(--sp-space-4) 0;
+}
+
+/* THE TICK BOX LEADS, WHICH COSTS ONE THING AND BUYS ANOTHER.
+ *
+ * `Row` puts a per-row control at the TRAILING edge, and correctly: a control
+ * inside the clickable region would be a button inside a button. But a
+ * selection column is scanned and dragged down the left edge in every list a
+ * person has ever used, and shift-range-select is a gesture down a column.
+ *
+ * So the box is reordered visually and stays where it is in the DOM. The cost
+ * is that Tab reaches the row before the box that visually precedes it. It is
+ * a real cost and it is small: each box carries the row's own title as its
+ * accessible name ("Select: <title>"), so it is never ambiguous which row it
+ * belongs to whichever order you meet them in. */
+.today-queue .sp-row-action {
+  order: -1;
+}
+
+.today-after {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-space-3);
+  margin-top: var(--sp-space-4);
+}
+
+.today-keys {
+  margin: 0;
+  font-size: var(--sp-text-data);
+  line-height: var(--sp-leading-tight);
+}
+
+/* Standing under the list rather than beside the door, it has to buy its own
+   space; inside `.today-after` the flex row has already given it some. */
+.today-queue + .today-keys {
+  margin-top: var(--sp-space-4);
+}
+
+.today-keys kbd,
+.today-example-keys kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-xs);
+  background: var(--sp-lift);
+  color: var(--sp-body);
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-kbd);
+  line-height: 1.5;
+}
+
+.today-keys kbd + kbd {
+  margin-left: 3px;
+}
+
+/* ---- what you settled ---------------------------------------------
+ * Inside the lane it belongs to, not in a section of its own. What your
+ * judgment caused belongs where you made it. */
+
+.today-settled {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-space-2);
+  margin-top: var(--sp-space-5);
+  padding-top: var(--sp-space-4);
+  border-top: 1px solid var(--sp-line-soft);
+}
+
+/* ---- the quiet morning's worked example ---------------------------
+ * A DASHED EDGE, WHICH NOTHING REAL ON THIS SURFACE WEARS. That is the whole
+ * point of it: the example has to be unmistakable at a glance, before anyone
+ * reads the tag that says so, because the one thing it must never be mistaken
+ * for is the workspace's own record. */
+
+.today-example {
+  margin-top: var(--sp-space-9);
+  padding: var(--sp-space-6);
+  background: var(--sp-sink);
+  /* Mixed from the metadata ink, not from --sp-line. The edge token measures
+     about 1.2:1 against this ground, and a dashed border nobody can see does
+     not do the one job it is here for. Still monochrome: an example is not a
+     status and may not spend a hue. */
+  border: 1px dashed color-mix(in oklab, var(--sp-mute) 45%, transparent);
+  border-radius: var(--sp-radius-panel);
+}
+
+.today-example-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-space-3);
+}
+
+/* Monochrome on purpose. An example is not a status, and every hue in this
+   system is spoken for by one. */
+.today-example-tag {
+  display: inline-flex;
+  padding: 2px 7px;
+  border: 1px solid var(--sp-line);
+  border-radius: var(--sp-radius-chip);
+  background: var(--sp-lift);
+  color: var(--sp-body);
+  font-family: var(--sp-font-sans);
+  font-size: var(--sp-text-label);
+  font-weight: var(--sp-weight-medium);
+  line-height: var(--sp-leading-tight);
+}
+
+.today-example-note,
+.today-example-keys {
+  font-size: var(--sp-text-meta);
+  line-height: var(--sp-leading-body);
+}
+
+.today-example-title {
+  max-width: 60ch;
+  margin: var(--sp-space-4) 0 0;
+  font-family: var(--sp-font-sans);
+  font-size: var(--sp-text-prose);
+  font-weight: var(--sp-weight-regular);
+  color: var(--sp-body);
+  line-height: var(--sp-leading-body);
+  text-wrap: pretty;
+}
+
+.today-example-call {
+  margin-top: var(--sp-space-5);
+}
+
+.today-example-q {
+  max-width: var(--sp-gate-max);
+  margin: 0;
+  font-family: var(--sp-font-sans);
+  font-size: var(--sp-text-gate);
+  font-weight: var(--sp-weight-strong);
+  letter-spacing: var(--sp-track-gate);
+  line-height: var(--sp-leading-gate);
+  color: var(--sp-ink);
+  text-wrap: balance;
+}
+
+.today-example-why {
+  margin-top: var(--sp-space-4);
+}
+
+.today-example-why > p:not(.today-example-label) {
+  margin: 0;
+  padding: 5px 0;
+  max-width: 72ch;
+  font-size: var(--sp-text-prose);
+  color: var(--sp-body);
+  line-height: var(--sp-leading-body);
+}
+
+.today-example-label {
+  margin: 0 0 var(--sp-space-2);
+  font-family: var(--sp-font-mono);
+  font-size: var(--sp-text-data-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sp-mute);
+}
+
+.today-example-keys {
+  max-width: 72ch;
+  margin: var(--sp-space-5) 0 0;
+  padding-top: var(--sp-space-4);
+  border-top: 1px solid var(--sp-line-soft);
+}
+
+/* ---- the director's read ------------------------------------------
+ * Full width now that the hero is one call and nothing sits beside it. The
+ * two-column split inside the panel is what keeps a full-width recommendation
+ * from becoming a 1100px line of prose. */
+
 .today-director {
   min-width: 0;
-  height: 100%;
+  margin-top: var(--sp-space-9);
   padding: var(--sp-space-6);
   background: var(--sp-sink);
   border: 1px solid var(--sp-line-soft);
   border-radius: var(--sp-radius-panel);
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  column-gap: var(--sp-space-8);
+  align-content: start;
+}
+
+.today-director .today-section-head {
+  grid-column: 1 / -1;
+}
+
+.today-director-title,
+.today-director-detail,
+.today-director-evidence {
+  grid-column: 1;
+}
+
+.today-director-move {
+  grid-column: 2;
+  grid-row: 2 / 5;
+  align-self: start;
 }
 
 .today-director-title,
@@ -168,6 +472,11 @@
   font-size: var(--sp-text-prose);
   line-height: var(--sp-leading-note);
   text-wrap: pretty;
+}
+
+.today-director-rank {
+  flex: none;
+  font-size: var(--sp-text-data);
 }
 
 .today-director-evidence {
@@ -199,12 +508,17 @@
   margin-bottom: var(--sp-space-1);
 }
 
+/* ---- the composer -------------------------------------------------
+ * Last on the page. You clear what arrived, then you start something. On a
+ * quiet morning the page above it is four lines and an example, so "last" is
+ * still in view. */
+
 .today-composer {
   display: grid;
   grid-template-columns: minmax(220px, 0.45fr) minmax(0, 1fr);
   gap: var(--sp-space-6);
   align-items: center;
-  margin-top: var(--sp-space-7);
+  margin-top: var(--sp-space-9);
   padding: var(--sp-space-5) 0;
   border-top: 1px solid var(--sp-line-soft);
   border-bottom: 1px solid var(--sp-line-soft);
@@ -240,6 +554,8 @@
   pointer-events: none;
 }
 
+/* ---- what changed (pushed insights) ------------------------------- */
+
 .today-notices {
   margin-top: var(--sp-space-9);
 }
@@ -269,6 +585,11 @@
   font-size: var(--sp-text-gate);
   line-height: var(--sp-leading-gate);
   letter-spacing: var(--sp-track-gate);
+}
+
+.today-notices-count {
+  flex: none;
+  font-size: var(--sp-text-data);
 }
 
 .today-notices-sub {
@@ -343,22 +664,7 @@
   flex-wrap: wrap;
 }
 
-.today-proof-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 var(--sp-space-8);
-}
-
-.today-proof-grid > .sp-block,
-.today-proof-state {
-  min-width: 0;
-  margin-top: var(--sp-space-9);
-}
-
-.today-proof-state {
-  padding-top: var(--sp-space-7);
-  border-top: 1px solid var(--sp-line-soft);
-}
+/* ---- the onboarding handoff --------------------------------------- */
 
 .today-critic {
   margin-top: var(--sp-space-9);
@@ -410,60 +716,32 @@
   margin-top: var(--sp-space-5);
 }
 
-@media (max-width: 1240px) {
-  .today-hero {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .today-director {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-    column-gap: var(--sp-space-8);
-    align-content: start;
-  }
-
-  .today-director .today-section-head {
-    grid-column: 1 / -1;
-  }
-
-  .today-director-title,
-  .today-director-detail,
-  .today-director-evidence {
-    grid-column: 1;
-  }
-
-  .today-director-move {
-    grid-column: 2;
-    grid-row: 2 / 5;
-    align-self: start;
-  }
-}
-
 @media (max-width: 900px) {
   .today-director {
     display: block;
   }
-
-  .today-proof-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 640px) {
-  .today-hero {
-    gap: var(--sp-space-5);
-    margin-top: var(--sp-space-7);
-  }
-
-  .today-call,
-  .today-director,
-  .today-critic {
+  .today-open,
+  .today-critic,
+  .today-example {
     padding: var(--sp-space-5);
   }
 
-  .today-call-meta {
-    align-items: flex-start;
-    flex-direction: column;
+  /* IT WRAPS, IT DOES NOT STACK. Forced into a column each fact took a line of
+     its own and wore the separator that belongs BETWEEN two of them, so the
+     card opened with three lines each beginning in a stranded middot. Wrapping
+     keeps the punctuation between facts, where it means something, and fits two
+     or three of them per line at this width. */
+  .today-open-pos {
+    margin-left: 0;
+  }
+
+  /* No longer pushed to the trailing edge, so it is one more fact in the run
+     and takes the separator every other fact has. */
+  .today-open-pos::before {
+    content: "·";
   }
 
   .today-composer {

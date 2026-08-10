@@ -30,7 +30,7 @@ import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { RecallRecord } from "@/lib/brain-standing.functions";
 import type { CompoundingSummary } from "@/lib/moat-vis";
-import { guidanceLines, recordHeadline } from "../_authenticated.brain";
+import { guidanceLines, recordHeadline, recordIsBlank } from "../_authenticated.brain";
 
 /** The rendered words of a line, with the markup and React's entity escaping
  *  taken back off, so an assertion reads as the sentence a person sees. */
@@ -276,5 +276,62 @@ describe("Brain guidance: nothing is said twice", () => {
   it("renders nothing at all rather than an empty region", () => {
     const lines = guidanceLines({ recall: null, rescoreCount: null, recallSaidBelow: false });
     expect(lines).toEqual([]);
+  });
+});
+
+/**
+ * The zero state, which is the MAJORITY view and not an edge case: every
+ * self-improve proposal and 99% of gate data sits in demo workspaces, and
+ * agent_memory holds no outcome rows, so a real account gets this page blank.
+ *
+ * THE DEFECT THIS GUARDS THE FIX FOR. Blank, the surface stacked five
+ * consecutive "nothing yet" regions in one scroll. Each is true and each names
+ * the act that ends it; read as a column they say the product is broken. The
+ * four above the tabs collapse into one, and the two failures that would make
+ * that collapse a lie are the ones below.
+ */
+describe("Brain collapses its zero state, and only when it knows it is one", () => {
+  const known = {
+    emptyRecord: true,
+    standing: { rules: 0, pendingRules: 0, memoriesTotal: 0 },
+    rescoreCount: 0,
+    graphEmpty: true,
+    drilling: false,
+  };
+
+  it("collapses a record that is genuinely blank on every read", () => {
+    expect(recordIsBlank(known)).toBe(true);
+  });
+
+  it("never collapses on a read that has not answered", () => {
+    // THE RULE: an unknown is not an emptiness. Collapsing here would hide a
+    // failed read behind a tidy empty state, which is what Failed exists to
+    // refuse.
+    expect(recordIsBlank({ ...known, standing: null })).toBe(false);
+    expect(recordIsBlank({ ...known, rescoreCount: null })).toBe(false);
+    expect(recordIsBlank({ ...known, graphEmpty: null })).toBe(false);
+    expect(recordIsBlank({ ...known, emptyRecord: false })).toBe(false);
+  });
+
+  it("keeps every region that would have had something to say", () => {
+    // Each of these is a region drawing real content, so the collapse must not
+    // swallow it.
+    expect(recordIsBlank({ ...known, rescoreCount: 2 })).toBe(false);
+    expect(recordIsBlank({ ...known, graphEmpty: false })).toBe(false);
+    expect(
+      recordIsBlank({ ...known, standing: { rules: 1, pendingRules: 0, memoriesTotal: 0 } }),
+    ).toBe(false);
+    // A draft the steward wrote is a thing waiting on a human, and StandingRules
+    // is the only surface that says so.
+    expect(
+      recordIsBlank({ ...known, standing: { rules: 0, pendingRules: 1, memoriesTotal: 0 } }),
+    ).toBe(false);
+    expect(
+      recordIsBlank({ ...known, standing: { rules: 0, pendingRules: 0, memoriesTotal: 4 } }),
+    ).toBe(false);
+  });
+
+  it("stands down on an open drill, where the surface state is not what is being read", () => {
+    expect(recordIsBlank({ ...known, drilling: true })).toBe(false);
   });
 });

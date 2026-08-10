@@ -15,11 +15,26 @@ export const Route = createFileRoute("/_authenticated/studio/$missionId")({
     const t = search.tab;
     return { tab: (TABS as string[]).includes(t as string) ? (t as Tab) : undefined };
   },
+  // COLLAPSED 2026-08-10. This pointed at /build/$missionId, which is itself a
+  // permanent redirect to /runs/$missionId, so every visit here paid TWO hops
+  // to reach one surface. Six components still navigate to this route, and the
+  // worst of them did it from the rollback success path, so the single
+  // highest-stakes action in the product ended on a stutter.
+  //
+  // /build/$missionId is deliberately LEFT IN PLACE. It is the canonical home
+  // of its own deep links and of /missions/$missionId, and deleting it would
+  // break bookmarks to buy nothing. What is fixed is that no route now points
+  // at a redirect when it can point at the destination.
+  //
+  // `replace: true` matches what /build already does. Without it the
+  // intermediate URL stays in history and the back button walks the user
+  // through a hop they never chose to visit.
   beforeLoad: ({ params, search }) => {
     throw redirect({
-      to: "/build/$missionId",
+      to: "/runs/$missionId",
       params: { missionId: params.missionId },
-      search,
+      search: search as never,
+      replace: true,
     });
   },
 });

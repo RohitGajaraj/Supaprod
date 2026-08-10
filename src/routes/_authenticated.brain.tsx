@@ -281,8 +281,34 @@
  * deliberately NOT the preview renderer: it pulls three.js, and the flagship
  * WebGL view belongs on the tab that can afford it.
  *
- * WHY recordHeadline, guidanceLines AND graphPreview ARE EXPORTED. All three
- * decide what this page is allowed to CLAIM, and every rule they hold is one a
+ * ─────────────────────────────────────────────────────────────────────────────
+ * THE ZERO PASS, 2026-08-10. FIVE HONEST ADMISSIONS IN A COLUMN.
+ *
+ * Every region above the tabs was written to degrade honestly, and each of them
+ * does, and the page still failed: blank, it stacked FIVE consecutive "nothing
+ * yet" regions in one scroll. The headline's second line, then the guidance
+ * region, then the standing rules, then the drawn record, then the open tab's
+ * own empty. Each names the act that ends it. Read as a column they do not read
+ * as a product waiting for you, they read as a product that does not work.
+ *
+ * The stacking was the defect, not the copy. So `recordIsBlank` decides, once,
+ * whether this record is genuinely empty on every read that feeds those
+ * regions, and when it is, the four above the tabs collapse into ONE state that
+ * names the first act, the control by the words printed on it, and carries one
+ * case the whole way through. The headline drops its second line there for the
+ * same reason. Nothing about the loading, failed, thin or partial states moved:
+ * every one of them makes `recordIsBlank` false by construction.
+ *
+ * AND THE SUBSTRATE GRID STOPPED COUNTING ZEROES AT PEOPLE. Six cells reading
+ * 0 chat threads, 0 signals, 0 meetings, 0 specs, 0 saved notes, 0 live
+ * connections, in the shape this system reserves for things you SCAN, which
+ * promises there is something to scan. That is the rule Diffstat already states
+ * twenty lines from here ("a zero rendered as if it were a finding"), broken
+ * six times at once. A zero draws no cell now, and all-zero draws one sentence.
+ *
+ * WHY recordHeadline, guidanceLines, graphPreview AND recordIsBlank ARE
+ * EXPORTED. All four decide what this page is allowed to CLAIM, and every rule
+ * they hold is one a
  * future edit can break while typechecking clean and looking fine in a diff, so
  * they are pure and guarded by src/routes/__tests__/brain-guidance.test.tsx and
  * src/routes/__tests__/brain-graph-preview.test.tsx. That costs a few
@@ -848,6 +874,67 @@ export function graphPreview(args: {
 }
 
 /**
+ * IS THIS RECORD BLANK, AND DO WE KNOW IT.
+ *
+ * THE DEFECT, and it is a composition defect rather than a copy one. On a
+ * workspace with nothing on it, this surface stacked FIVE consecutive "nothing
+ * yet" regions in one scroll: the headline's second line, the guidance region,
+ * the standing-rules region, the drawn-record region, and then the open tab's
+ * own empty state. Every sentence in that column is true, well written, and
+ * names the act that ends it. Read together they are a broken page. The reader
+ * does not count five honest admissions and conclude the product is careful;
+ * they conclude nothing works.
+ *
+ * That state is not an edge case. Every real account is in it today.
+ *
+ * So when the record is blank the four regions ABOVE the tabs collapse into one
+ * well-made empty state, and the headline drops its second line so the head is
+ * one sentence rather than the first half of the stack.
+ *
+ * THE FIFTH ONE STAYS, deliberately. The open tab's own empty sits one level
+ * down, behind a door the reader chose, which is a different thing from a
+ * column of regions they did not ask for. Suppressing the tab body would also
+ * take away two live capabilities that survive a blank record: the memory
+ * composer behind "Add to the record" on Outcomes, and a Strategic Brief, which
+ * lives in its own table and can exist with zero documents.
+ *
+ * PURE, for the same reason recordHeadline, guidanceLines and graphPreview are:
+ * every rule here decides what the page CLAIMS, and each is one a future edit
+ * can break while typechecking clean.
+ *
+ *   IT NEVER GUESSES. A null anywhere means that read is unresolved or failed,
+ *   and an unknown is not an emptiness. Collapsing the page on a read we could
+ *   not make would hide a failure behind a tidy empty state, which is the exact
+ *   trade the Failed primitive exists to refuse.
+ *
+ *   IT STANDS DOWN ON A DRILL, where the reader came for one record and the
+ *   surface's own state is not what they are reading.
+ */
+export function recordIsBlank(args: {
+  /** Calls, learnings and documents all loaded, and all zero. */
+  emptyRecord: boolean;
+  /** null while the standing read is unresolved. */
+  standing: { rules: number; pendingRules: number; memoriesTotal: number } | null;
+  /** null while the compounding read is unresolved. */
+  rescoreCount: number | null;
+  /** null while the graph read is unresolved; true when it holds no nodes. */
+  graphEmpty: boolean | null;
+  drilling: boolean;
+}): boolean {
+  const { emptyRecord, standing, rescoreCount, graphEmpty, drilling } = args;
+  if (drilling) return false;
+  if (!emptyRecord) return false;
+  if (standing === null || rescoreCount === null || graphEmpty === null) return false;
+  return (
+    graphEmpty &&
+    rescoreCount === 0 &&
+    standing.rules === 0 &&
+    standing.pendingRules === 0 &&
+    standing.memoriesTotal === 0
+  );
+}
+
+/**
  * The height the canvas is about to take, held while the read is in flight so
  * the tabs do not slide 500px down the page under the reader's cursor. It
  * mirrors GraphForceCanvas's own recess verbatim, including the border and the
@@ -892,9 +979,31 @@ function MemoryPage() {
   // The record speaking. Same key as CompoundingPanel and Today, so this is a
   // cache read on any session that has touched either, not a second call.
   const fCompounding = useServerFn(getCompounding);
+  /* SCOPED TO THE ACTIVE WORKSPACE, 2026-08-10, and it was a live leak rather
+   * than a theoretical one.
+   *
+   * `getCompounding` took no workspace argument at all, and this key named no
+   * workspace either, so one cache entry was shared by every workspace a person
+   * belongs to and the server returned whatever RLS membership permitted. RLS on
+   * `learnings` is `is_workspace_member(workspace_id)` -- membership, not the
+   * workspace you are standing in -- so a member of a seeded demo workspace read
+   * its rows while looking at their real one.
+   *
+   * Measured in production before the fix: 5 users belong to more than one
+   * workspace, 4 of them to a seeded demo workspace, and one REAL account saw 21
+   * learnings of which 5 were demo. The headline directly above this read --
+   * "Real outcomes have re-scored N calls" -- was inflated by roughly a quarter
+   * with fiction, on a live account, sitting above a sub whose counts were
+   * correctly scoped. Two scopes in one paragraph, with nothing marking which was
+   * which.
+   *
+   * That is the worst failure available on this particular surface, because the
+   * surface exists to argue that the record compounds. A wrong number is
+   * recoverable; a believable number about somebody else's work is not
+   * auditable by the person reading it. */
   const compounding = useQuery({
-    queryKey: ["compounding"],
-    queryFn: () => fCompounding(),
+    queryKey: ["compounding", activeWorkspaceId],
+    queryFn: () => fCompounding({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
   });
   // Whether the crew reaches for what the record learned. THE KEY IS THE ONE
   // StandingRules AND CrewCarries ALREADY USE, so this is a third reader of one
@@ -913,9 +1022,30 @@ function MemoryPage() {
   // while a drill is open, because that is a state the preview never draws in.
   const drilling = Boolean(decision || learning);
   const fGraph = useServerFn(getKnowledgeGraph);
+  /* Workspace-scoped for the same reason as `compounding` above. `artifact_lineage`
+   * carries a `workspace_id` column that this read never used, and its RLS is
+   * `auth.uid() = user_id`, so the graph was per-USER and merged across every
+   * workspace a person belonged to.
+   *
+   * The engineering lane found the subtler half of this while fixing the server
+   * side, and it is worth recording because the obvious fix would not have caught
+   * it: scoping the EDGE queries alone still walks the wrong graph, because the
+   * auto-focus picks the caller's most recent decision across all workspaces and
+   * every edge is then walked from that anchor. The focus picker and the
+   * lineage-anchored fallback are both scoped too. The fallback matters most --
+   * it fires exactly when the primary focus finds no edges, which is the normal
+   * state of a young workspace, so the unscoped path was the one most likely to
+   * run on a new real account. */
   const graphQ = useQuery({
-    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null],
-    queryFn: () => fGraph({ data: { focusKind: focusKind as GraphNodeKind | undefined, focusId } }),
+    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null, activeWorkspaceId],
+    queryFn: () =>
+      fGraph({
+        data: {
+          focusKind: focusKind as GraphNodeKind | undefined,
+          focusId,
+          workspaceId: activeWorkspaceId ?? undefined,
+        },
+      }),
     enabled: !drilling,
   });
 
@@ -989,6 +1119,12 @@ function MemoryPage() {
         ]
       : null;
 
+  // Only the counts that found something. See the note at the render for why a
+  // zero draws no cell at all: it is this file's own Diffstat rule ("a zero
+  // rendered as if it were a finding"), and six of them at once was the whole
+  // disclosure on every real account.
+  const substrateShown = (substrate ?? []).filter((s) => s.value > 0);
+
   // The newest call an outcome re-ranked. Drawn only when it is real, and not
   // on the Outcomes tab, where the feed below already leads with it.
   const latest = summary?.latest ?? null;
@@ -1011,6 +1147,27 @@ function MemoryPage() {
     loading: graphQ.isLoading,
     failed: graphQ.isError,
     onGraphTab: tab === "graph",
+    drilling,
+  });
+
+  /**
+   * Whether the whole surface is in its zero state, decided from the reads
+   * themselves rather than from `preview`, which is deliberately `hidden` on
+   * the Graph tab and would otherwise make the collapse depend on which door
+   * the reader happened to be behind.
+   */
+  const graphEmpty: boolean | null = graphQ.data ? graphQ.data.nodes.length === 0 : null;
+  const blank = recordIsBlank({
+    emptyRecord,
+    standing: standing.data
+      ? {
+          rules: standing.data.rules.length,
+          pendingRules: standing.data.pendingRules,
+          memoriesTotal: standing.data.recall.memoriesTotal,
+        }
+      : null,
+    rescoreCount: summary ? summary.rescoreCount : null,
+    graphEmpty,
     drilling,
   });
 
@@ -1053,16 +1210,24 @@ function MemoryPage() {
       </span>,
     );
   }
-  const sub: ReactNode = emptyRecord
-    ? "The first call you settle lands here, with what it was based on."
-    : sizeClauses.length > 0
-      ? sizeClauses.map((c, i) => (
-          <span key={i}>
-            {i > 0 ? " · " : null}
-            {c}
-          </span>
-        ))
-      : undefined;
+  //
+  // ON A BLANK RECORD THE HEAD IS ONE SENTENCE. It used to carry "The first
+  // call you settle lands here, with what it was based on", which is a good
+  // line and was the FIRST of the five stacked admissions. The one empty state
+  // below says the same thing with the act, the control and a case worked
+  // through, so keeping it here would be the stack starting in the title.
+  const sub: ReactNode = blank
+    ? undefined
+    : emptyRecord
+      ? "The first call you settle lands here, with what it was based on."
+      : sizeClauses.length > 0
+        ? sizeClauses.map((c, i) => (
+            <span key={i}>
+              {i > 0 ? " · " : null}
+              {c}
+            </span>
+          ))
+        : undefined;
 
   return (
     <Surface wide>
@@ -1174,7 +1339,45 @@ function MemoryPage() {
           A row is clickable only when it has somewhere real to go, and the one
           door here is already-open on the Outcomes tab, so it stops being an
           affordance there rather than becoming one that does nothing. */}
-      {guidance.length > 0 ? (
+      {blank ? (
+        /* THE ZERO STATE IS THE MAJORITY VIEW, SO IT IS DESIGNED AS THE PRIMARY
+           ONE. This single region stands in for the four that used to stack
+           here, and it is built the way an operator reads: not a description of
+           what the record does, and not an apology, but the act, the control by
+           the words printed on it, and one case carried the whole way through
+           so the reader can see what this page looks like when it is working.
+
+           NO TILE READS ZERO. There is no count anywhere in here. A "0" tells
+           nobody to do anything, and the space it costs is space this sentence
+           needs.
+
+           THE DOOR IS THE FIRST REAL ACT, not a settings step. Capture is where
+           the record genuinely starts: every later link on this surface is
+           written by the work moving, so pointing anywhere else would be
+           inventing an onboarding the product does not have. */
+        <Block title="How the first thing gets onto the record">
+          <Empty
+            action={
+              <Button variant="primary" onClick={() => navigate({ to: "/discover" })}>
+                Capture a signal
+              </Button>
+            }
+          >
+            Nothing here is set up in advance. The record fills from the work: open Discover, type
+            what you heard and where from, and press <b>Capture</b>. Everything on this page is
+            written by the crew as that moves.
+            <span style={{ display: "block", marginTop: "var(--sp-space-3)" }}>
+              Worked through: you capture &ldquo;three trials asked for SSO this week&rdquo;. That
+              becomes a bet, the bet becomes a spec, the spec ships, and on Learn you press{" "}
+              <b>Record it</b> to say how it landed. From that one pass this page holds a call you
+              can search, an outcome with the calls that led to it, a map with the thread drawn
+              between them, and a rule the crew reads before it acts next time.
+            </span>
+          </Empty>
+        </Block>
+      ) : null}
+
+      {!blank && guidance.length > 0 ? (
         <Block title="What the record has changed so far">
           {guidance.map((g) => (
             <Row
@@ -1193,8 +1396,14 @@ function MemoryPage() {
       {/* What changed BECAUSE of all that. The outcome speaks in the recess
           above; this is the sentence the record has since written into every
           agent's prompt. Cause, then consequence, and it stands above the tabs
-          because it is true whichever door you are behind. */}
-      <StandingRules />
+          because it is true whichever door you are behind.
+
+          Stands down on a blank record, where its own empty state ("Nothing
+          standing yet...") was the third of the five stacked admissions and the
+          one region above says what fills it. `blank` already requires zero
+          active rules AND zero pending drafts, so nothing this region would
+          have drawn is being hidden. */}
+      {!blank ? <StandingRules /> : null}
 
       {/* THE RECORD, DRAWN, and the last thing before the doors.
 
@@ -1213,8 +1422,15 @@ function MemoryPage() {
           behind, and here it also hands off into them.
 
           THE LABEL NAMES THE OUTCOME. "Graph" is the tab's name and a shape;
-          what you get from it is the answer to what led to what. */}
-      {preview.state !== "hidden" ? (
+          what you get from it is the answer to what led to what.
+
+          It stands down on a blank record for the same reason StandingRules
+          does: `blank` requires a graph with no nodes at all, so the only state
+          this region could be in there is its own "Nothing is linked yet"
+          empty, which was the fourth of the five stacked admissions. Its
+          loading, failed, thin and drawn states are all untouched, because each
+          of them makes `blank` false. */}
+      {!blank && preview.state !== "hidden" ? (
         <Block
           title="What led to what"
           sub={
@@ -1375,33 +1591,70 @@ function MemoryPage() {
 
       {substrate ? (
         <Disclosure label="The rest of the substrate" id="brain-substrate">
-          <p
-            style={{
-              fontSize: "var(--sp-text-meta)",
-              color: "var(--sp-mute)",
-              marginBottom: "var(--sp-space-3)",
-            }}
-          >
-            What the crew reads before it acts, beyond the five doors above.
-          </p>
-          {/* A Grid of Cells, which is the system's shape for things that are
-              SCANNED, rather than six inline spans styled from raw tokens. It
-              is what makes the door possible at all: Cell is a real <button>
-              when it does something, so it is tabbable, it answers Space and
-              Enter and it takes the app focus ring, none of which a styled
-              <span> with an onClick would have. Recessed, because these sit on
-              ground the disclosure already raised. */}
-          <Grid>
-            {substrate.map((s) => (
-              <Cell
-                key={s.label}
-                tone="recessed"
-                lead={<Num>{s.value}</Num>}
-                sub={s.label}
-                onClick={s.open}
-              />
-            ))}
-          </Grid>
+          {/* THE FILE'S OWN RULE, APPLIED TO ITS OWN GRID. Twenty lines up,
+              Diffstat refuses to draw a "+0" because "a zero rendered as if it
+              were a finding" is a lie about what was found. This grid was
+              breaking that rule six times at once: on a real account today
+              every one of these reads 0, so the disclosure opened onto six
+              cells saying nothing, in the system's SCANNING shape, which
+              promises there is something here to scan.
+
+              A count of zero is also not information. Nobody does anything
+              differently for "0 meetings", so the cell costs its space and
+              buys nothing, and the one sentence it is replaced by at least
+              names what would fill it. So: a zero draws no cell, and when
+              every one of them is zero the region is one sentence instead of a
+              grid. `substrate` itself is null until both reads land, so a
+              count we could not make never reaches this and never renders as a
+              zero either. */}
+          {substrateShown.length > 0 ? (
+            <>
+              <p
+                style={{
+                  fontSize: "var(--sp-text-meta)",
+                  color: "var(--sp-mute)",
+                  marginBottom: "var(--sp-space-3)",
+                }}
+              >
+                What the crew reads before it acts, beyond the five doors above.
+              </p>
+              {/* A Grid of Cells, which is the system's shape for things that are
+                  SCANNED, rather than six inline spans styled from raw tokens. It
+                  is what makes the door possible at all: Cell is a real <button>
+                  when it does something, so it is tabbable, it answers Space and
+                  Enter and it takes the app focus ring, none of which a styled
+                  <span> with an onClick would have. Recessed, because these sit on
+                  ground the disclosure already raised. */}
+              <Grid>
+                {substrateShown.map((s) => (
+                  <Cell
+                    key={s.label}
+                    tone="recessed"
+                    lead={<Num>{s.value}</Num>}
+                    sub={s.label}
+                    onClick={s.open}
+                  />
+                ))}
+              </Grid>
+            </>
+          ) : (
+            <Empty
+              action={
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    navigate({ to: "/settings", search: { section: "connections" } as never })
+                  }
+                >
+                  Connect a source
+                </Button>
+              }
+            >
+              The crew has nothing else to read yet: no threads, no signals, no meetings, no specs
+              and nothing connected. This fills on its own as you work, and a connected source
+              starts it filling without you.
+            </Empty>
+          )}
         </Disclosure>
       ) : null}
     </Surface>

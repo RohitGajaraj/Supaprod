@@ -30,9 +30,33 @@
  *     else in the app read it. The outcome is a WORD now, and OUTCOME below is
  *     the one map both this feed and the drill read.
  *
- * UNCHANGED: getCompounding / listLearnings, the ["compounding"] and
- * ["learnings"] keys, the ?tab=learnings&learning= drill target, and the
- * exported whenOf / deltaOf that LearningDetail and the tests import from here.
+ * UNCHANGED: getCompounding / listLearnings, the ?tab=learnings&learning= drill
+ * target, and the exported whenOf / deltaOf that LearningDetail and the tests
+ * import from here.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * SCOPED TO THE ACTIVE WORKSPACE, 2026-08-10, and it was the last unscoped read
+ * left on this surface.
+ *
+ * The leak was measured in production before it was fixed on the surface above:
+ * five people belong to more than one workspace, four of them to a seeded demo
+ * workspace, and one REAL account read 21 learnings of which 5 were fiction.
+ * Brain's route file was scoped in that pass and THIS PANEL WAS NOT, so the
+ * page ended up with two different readings of the same table on one screen:
+ * the headline counted one workspace and the feed directly under it counted
+ * every workspace the reader belongs to.
+ *
+ * That is the worst failure available on this particular surface. A wrong
+ * number is recoverable. A believable number about somebody else's work,
+ * printed under a heading that says the record compounds, is not auditable by
+ * the person reading it.
+ *
+ * `listLearnings` has taken a workspaceId since it was written and this call
+ * simply never passed one. Both keys now carry the workspace, so a switch
+ * refetches instead of serving the previous workspace's rows, and the panel
+ * shares one cache entry with the route above rather than issuing its own read.
+ * Prefix invalidation still works: SettlePanel and OutcomeCard invalidate
+ * ["learnings"], which matches ["learnings", ws] as a prefix.
  */
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -41,14 +65,17 @@ import { getCompounding } from "@/lib/today.functions";
 import { listLearnings } from "@/lib/outcome.functions";
 import { describeCompounding } from "@/lib/moat-vis";
 import { agentDisplayName } from "@/lib/agent-vocabulary";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   AgentMark,
   Empty,
   Failed,
+  Loading,
   Num,
   Record as RecordRecess,
   Row,
 } from "@/components/shell/primitives";
+import { Provenance } from "./EvidenceQuality";
 
 /** The outcome in plain words. Green and red carry outcomes and they own these
  *  two; a mixed result is not one, so it stays monochrome. */
@@ -91,15 +118,35 @@ export function CompoundingPanel() {
   const navigate = useNavigate();
   const fetchCompounding = useServerFn(getCompounding);
   const fetchLearnings = useServerFn(listLearnings);
-  const q = useQuery({ queryKey: ["compounding"], queryFn: () => fetchCompounding() });
-  const lq = useQuery({ queryKey: ["learnings"], queryFn: () => fetchLearnings() });
+  const { activeWorkspaceId } = useWorkspace();
+  // Character-identical to the route above's key, so this is a second consumer
+  // of one request rather than a second request, and the headline and the feed
+  // can never read from two different scopes on one screen.
+  const q = useQuery({
+    queryKey: ["compounding", activeWorkspaceId],
+    queryFn: () => fetchCompounding({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
+  const lq = useQuery({
+    queryKey: ["learnings", activeWorkspaceId],
+    queryFn: () => fetchLearnings({ data: { workspaceId: activeWorkspaceId ?? undefined } }),
+  });
 
   const summary = q.data?.summary;
   const headline = summary ? describeCompounding(summary) : null;
   const learnings = lq.data?.learnings ?? [];
   const rescoreCount = learnings.filter((l) => deltaOf(l) != null).length;
 
-  if (q.isLoading || lq.isLoading) return null;
+  /**
+   * A COLD LOAD MUST NOT PAINT AN EMPTY BOX WITH A HEADING ON IT.
+   *
+   * This was `return null`, and the surface mounts this panel INSIDE a Block it
+   * has already drawn, so on every first visit the reader got a bordered region
+   * with a title and nothing whatsoever in it, for as long as two requests took.
+   * That is the empty state's shape worn by a read still in flight, which is the
+   * exact confusion the three primitives exist to prevent. Loading is the third
+   * fact and it says so in words.
+   */
+  if (q.isLoading || lq.isLoading) return <Loading>Reading what the outcomes taught.</Loading>;
 
   // A load failure must read as a failure, not as "the loop produced nothing".
   if (q.isError || lq.isError) {
@@ -156,14 +203,26 @@ export function CompoundingPanel() {
               // A different fact from the lead, never more of it: how it landed,
               // who wrote it down, and whether it moved a ranking. The memo
               // itself is one click away.
+              // TWO MARKS, BECAUSE THE ROW CARRIES TWO GRADES OF EVIDENCE AND
+              // DREW THEM IDENTICALLY. The verdict is the workspace's own: a
+              // bet shipped and somebody said how it landed. The re-rank next
+              // to it is the engine's arithmetic on top of that, which is a
+              // weaker thing, and it is the number this page leans on hardest
+              // when it claims the record compounds. Marking them apart is what
+              // makes that claim checkable instead of merely stated -- and on a
+              // young record the ember is what is missing, which is the honest
+              // reading of a workspace nobody has lived in yet.
               sub={
                 <>
+                  <Provenance source="mine" />
                   <span className={outcome.tone || undefined}>{outcome.word}</span>
                   {" · "}
                   {recordedBy(l.recorded_by_agent_slug)}
                   {delta != null ? (
                     <>
-                      {" · re-ranked "}
+                      {" · "}
+                      <Provenance source="inferred" />
+                      {"re-ranked "}
                       <Num>
                         {delta >= 0 ? "+" : ""}
                         {delta.toFixed(1)}

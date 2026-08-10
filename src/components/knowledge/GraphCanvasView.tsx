@@ -42,16 +42,18 @@
  *     default, so anything living in here is invisible to the reader most likely
  *     to want a text answer.
  *
- * UNCHANGED: getKnowledgeGraph, the ["knowledge-graph", kind, id] key, the
- * time filter and replay stepping through real edge timestamps, the Escape
- * contract, the recentre navigation, and every count, all of which come from
- * the fetched graph rather than being asserted.
+ * UNCHANGED: getKnowledgeGraph, the time filter and replay stepping through
+ * real edge timestamps, the Escape contract, the recentre navigation, and every
+ * count, all of which come from the fetched graph rather than being asserted.
+ * The query key gained the active workspace; see the note at the read for why
+ * it had to, and what a drifted key was costing.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { getKnowledgeGraph } from "@/lib/knowledge-graph-view.functions";
+import { useWorkspace } from "@/hooks/use-workspace";
 import {
   filterByTime,
   computeStaleness,
@@ -101,9 +103,35 @@ function StrokeSwatch({ group }: { group: RelationGroup }) {
   );
 }
 
+/**
+ * THE FLAT CANVAS LEADS NOW, AND THE UNIVERSE IS THE ONE BEHIND THE TOGGLE.
+ *
+ * The Universe was the default and it is strictly the weaker renderer for the
+ * job this tab exists to do. Counted in the two files rather than argued:
+ *
+ *   GraphForceCanvas   rationale ×7, relationPhrase ×2, createdByAgent ×1
+ *   GraphUniverseCanvas  rationale 0, relationPhrase 0, createdByAgent 0
+ *
+ * The entire WHY layer is missing from the default view. `rationale` and
+ * `created_by_agent` are on every edge row, they are the only reason a drawn
+ * link is evidence rather than decoration, and the flagship renderer never
+ * touches them. The legend directly below this advertises four dash patterns to
+ * tell the four kinds of link apart, and additive GL lines cannot carry a dash,
+ * so the legend was teaching a vocabulary the default canvas could not speak.
+ *
+ * And the layout is force-directed in both, which means POSITION CARRIES NO
+ * MEANING. A third axis of nothing costs three.js, costs the reader depth cues
+ * they will read as significance, and buys a view that says less.
+ *
+ * SO IT IS DEMOTED, NOT DELETED. It is still one click away, it is genuinely
+ * the better answer for a large graph seen from outside, and the founder
+ * compares versions side by side rather than in a diff. Nothing about it
+ * changed except which one you get without asking. Deleting it, and three.js
+ * with it, is a bundle argument this pass did not have the evidence to close.
+ */
 const VIEWS: { id: "3D" | "2D"; label: string }[] = [
-  { id: "3D", label: "Universe" },
   { id: "2D", label: "Flat" },
+  { id: "3D", label: "Universe" },
 ];
 
 export function GraphCanvasView({
@@ -117,16 +145,40 @@ export function GraphCanvasView({
 }) {
   const navigate = useNavigate();
   const fGraph = useServerFn(getKnowledgeGraph);
+  /* THE KEY DRIFTED, AND A DRIFTED KEY IS NOT A COSMETIC PROBLEM HERE.
+   *
+   * The workspace-scoping pass added `activeWorkspaceId` to this key in the
+   * route file and did not add it here, so the two stopped matching: Brain drew
+   * the preview off ["knowledge-graph", kind, id, ws] and this view read
+   * ["knowledge-graph", kind, id]. Both files' own comments say, in as many
+   * words, that they are two consumers of ONE request. They were two requests,
+   * and the handoff from the preview to this tab -- documented as a cache hit --
+   * was a cold read every time.
+   *
+   * Worse than the cost: two caches over the same table can hold two different
+   * answers, and this surface exists to be believed. Character-identical to the
+   * route's key again, and the workspace goes to the server with it so that
+   * scoping the read there needs no change on this side. */
+  const { activeWorkspaceId } = useWorkspace();
   const graphQ = useQuery({
-    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null],
-    queryFn: () => fGraph({ data: { focusKind: focusKind as GraphNodeKind | undefined, focusId } }),
+    queryKey: ["knowledge-graph", focusKind ?? null, focusId ?? null, activeWorkspaceId],
+    queryFn: () =>
+      fGraph({
+        data: {
+          focusKind: focusKind as GraphNodeKind | undefined,
+          focusId,
+          workspaceId: activeWorkspaceId ?? undefined,
+        },
+      }),
   });
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [storyKey, setStoryKey] = useState<string | null>(null);
   const [asOf, setAsOf] = useState<string | null>(null);
   const [replaying, setReplaying] = useState(false);
-  const [view, setView] = useState<"3D" | "2D">("3D");
+  // See VIEWS above for the count that decided this. The flat canvas is the one
+  // that can draw why a link exists; the Universe cannot, and it was default.
+  const [view, setView] = useState<"3D" | "2D">("2D");
   const replayTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fullGraph = graphQ.data ?? null;
