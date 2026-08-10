@@ -1,8 +1,8 @@
 # References
 
-> _Created: 2026-08-04 · Last updated: 2026-08-04_
+> _Created: 2026-08-04 · Last updated: 2026-08-10_
 
-**Evidence, kept in original form.** Twelve documents of primary-source research: what the market does, what operators say, what investors reward. This folder is deliberately raw. The distilled conclusions live in [`../strategy/`](../strategy/README.md); this is what they were drawn from.
+**Evidence, kept in original form.** Thirteen documents of primary-source research: what the market does, what operators say, what investors reward. This folder is deliberately raw. The distilled conclusions live in [`../strategy/`](../strategy/README.md); this is what they were drawn from.
 
 **Two standing rules that make this folder usable:**
 
@@ -26,7 +26,8 @@ Nothing here is superseded by age. A 2026-06 competitor sweep is still true abou
 | File | What it holds |
 | --- | --- |
 | [`pm-voice-and-ai-tooling-research.md`](./pm-voice-and-ai-tooling-research.md) | **The most-cited file here.** Seventeen sections of primary sources on PM sentiment toward AI tooling. Contains the wedge in users' own words, and §12.4 is the cite-artifacts-not-gurus rule. |
-| [`podcast-corpus-lenny.md`](./podcast-corpus-lenny.md) | Lenny's Podcast, mined for operator evidence. |
+| [`podcast-corpus-lenny.md`](./podcast-corpus-lenny.md) | Lenny's Podcast, mined for operator evidence. 16 episodes, ASR transcripts, 2026-07-10. |
+| [`lennys-data-archive.md`](./lennys-data-archive.md) | **Pointer, not content.** The paid 679-document Lenny archive: what it holds, how any agent on any machine gets it, and the licence that forbids committing a byte of it. **Read before quoting the corpus.** |
 | [`podcast-corpus-aakash.md`](./podcast-corpus-aakash.md) | Aakash Gupta's channel, guest quotes via transcript extraction. |
 | [`podcast-corpus-frontier.md`](./podcast-corpus-frontier.md) | Frontier voices on agents and the shape of the era. |
 | [`research-references-aakash-gupta.md`](./research-references-aakash-gupta.md) | 139 KB the founder gathered and pasted in, kept raw on purpose. Different method and date from the podcast corpus above; neither supersedes the other. |

@@ -6,6 +6,13 @@
         "-y",
         "@playwright/mcp@latest"
       ]
+    },
+    "lennysdata": {
+      "type": "http",
+      "url": "https://mcp.lennysdata.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${LENNYSDATA_TOKEN}"
+      }
     }
   }
 }
