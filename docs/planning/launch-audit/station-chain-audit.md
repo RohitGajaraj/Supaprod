@@ -85,11 +85,16 @@ The existing two-altitude nav already reflects this correctly: five rail section
 
 | P | Finding | Action |
 | --- | --- | --- |
-| **P0** | theme → opportunity: 83 of 86 real themes dead-end | Promotion is the missing step in Discover. Needs a real path, not a manual one. |
-| **P0** | mission → changeset → deployment: 0 real edges against 228 missions | Build→Ship lineage is not being written. Either the edge is not recorded or the path is not taken. |
+| **P0** | ~~mission → changeset → deployment: 0 real edges against 228 missions~~ | **CLOSED `8996b895`.** The cause was not a broken edge: **no code path in `src/` had ever written `child_kind: "changeset"` or `child_kind: "deployment"`.** The 21 + 14 edges in production are demo seed, each stamped with a plausible `created_by_agent` so they read as real agent writes. Both are now written, plus a third (`prd → learning`) that the same guard found unprompted. |
+| **P0** | theme → opportunity: 83 of 86 real themes dead-end | **Reframed, and my first reading was wrong.** Promotion is *deliberately* rare (the Sentry/Linear triage model, documented 2026-08-01): most themes should be dismissed or merged. The real finding is that **zero real themes have ever been dismissed or merged**, and 48 of 87 sit untriaged at `new`. The decline verb exists and has a door; nothing records *why* a theme stopped. |
+| **P1** | `themes.status` holds two vocabularies | Triage writes `new`/`dismissed`/`merged`/`promoted`; real data also holds `active`/`at_risk`/`confirmed`/`investigating`. The column has no CHECK constraint, so both coexist silently. |
 | **P1** | decision → prd: 0 real edges | Specs are not cut from decisions. Check whether the door exists. |
 | **P1** | Design and Ship carry no real edges | Do not present them as required steps to a first-timer. |
 | **Confirmed healthy** | learning → decision (36) and learning → opportunity (4) | The Learn→Discover arrow is live. Say so, in the past tense that the data supports. |
+
+### The generalizable lesson
+
+Three of the hops above were not *broken*, they were **never built** — and looked built because the demo seed fabricated them with believable agent attribution. A per-edge test cannot catch that, because there is no code to test. Only a guard that starts from the **chain** and asks *who writes this hop* finds a hop nobody writes: [`the-ledger-chain-has-a-writer-for-every-hop`](../../../src/lib/__tests__/the-ledger-chain-has-a-writer-for-every-hop.test.ts). It was written expecting two failures and returned three.
 
 ---
 
