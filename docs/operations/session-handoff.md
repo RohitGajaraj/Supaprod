@@ -2,6 +2,23 @@
 
 > _Created: 2026-08-07 · Last updated: 2026-08-10_
 
+🚨 **LANE 1 & LANE 2 — START HERE BEFORE ANYTHING ELSE (2026-08-10)**
+
+Lane 0 cycle 1 is complete. Eight actionable gaps are waiting on your prioritization. **Read in this order:**
+
+1. [`README.md` top section](../../README.md) — 30 seconds, has the three findings
+2. [`docs/planning/SOURCE-OF-TRUTH.md` rows 96–103](../planning/SOURCE-OF-TRUTH.md) — 2 minutes, the official work board with gaps, owners, priorities, acceptance criteria
+3. **This section §Lane 0 Cycle 1 below** — detailed directives, sequencing, blockers
+
+**Then:**
+- Founder: confirm three calls (Lemkin quote, memory expiry, billing tiers)
+- Lane 1: commit against G1.2 (decision memory P0) by EOD
+- Lane 2: confirm you've read G2.1 (hero reframe P0) and can start work
+
+**Track your progress:** Update SSOT status from `◐ routed` → `◐ in progress` → `✅ done` as you work. That's how we verify the cycle is complete.
+
+---
+
 **State at close:** seven commits on `main`, pushed to `origin/main`, tree clean. `tsc` 0 · 8,299 pass / 0 fail · eslint 0 · `bun run build` green · `docs:check` clean. **App code is not live until the founder clicks Publish in Lovable.**
 
 The canonical work order remains [`../planning/SOURCE-OF-TRUTH.md`](../planning/SOURCE-OF-TRUTH.md). No board rows changed status: this session was founder-directed copy, positioning and design work, not queue items.
