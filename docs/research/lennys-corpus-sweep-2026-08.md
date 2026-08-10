@@ -64,6 +64,40 @@ Read together: the pain is real and rising, the framework everyone reads omits i
 
 ---
 
+## 1B. The show that was missing from the archive, and it is the most important one
+
+***How I AI*** (Claire Vo, Lenny's Podcast Network, weekly since 2025-04) is **entirely absent from the paid archive** — ~95 episodes. That absence is why the Vo-harness and Nystrom quotes in the older corpus doc had no official source. Retrieved by hand, outside the dump.
+
+**It matters more than any other single source because it is not opinion — it is operators live-demonstrating, on screen, how they build the thing we sell.** And it cuts both ways, hard.
+
+### The DIY threat, made concrete, repeatable, and weekly
+
+**2026-08-05 — Claire Vo, a three-time CPO, built our governance model in one Codex session and published the recipe.** "Merge Mommy": an agent that reads every PR after checks pass, **scores it across six risk dimensions — blast radius, reversibility, data security, ops impact, verification gap, change surface** — auto-approves the low-risk ones and escalates the rest to a human in Slack.
+
+Read that list against our own doctrine. **Reversibility-based gating — "act autonomously on reversible work, gate only at irreversible boundaries" — is our v11 North Star, and she derived it independently as one of six dimensions in an afternoon.** She also reports **Intercom 5×'d PR approval speed and reduced revert rates** by putting AI in the review loop, and states that auto-approved PRs are **SOC 2 compatible so long as the process is auditable, queryable, and in your risk policy** — which is our audit story, conceded to a DIY build.
+
+This is the sharpest form of the DIY threat in the entire sweep: **the show closest to our category systematically teaches our exact buyer to build pieces of our product, in 30 minutes, every week.** Any competitive slide naming Atlassian and not naming this is looking the wrong way.
+
+### And the same source is our strongest architectural validation
+
+The convergence is not coincidence — it is independent derivation of the same design by people with no knowledge of us:
+- **Risk-tiered auto-approve with human escalation** (Vo, 2026-08-05) — our approval modes.
+- **"How to design AI agent loops: schedules, goals, and subagents"** (2026-06-17) — our mission/step DAG.
+- **Braintrust: agents, evals and CI together** (Ankur Goyal, 2026-06-15) — our eval gates.
+- **Gusto shipped a new product line in ~10 weeks with Claude Code, "No Figma. No Jira. No docs."** (Eddie Kim, CTO, 2026-06-29) — stations being deleted in production at a real company.
+- **Coinbase scaled AI to 1,000+ engineers** (2026-03-02); **Vercel's v0 hit 3,200 PRs merged per day** with `skills.sh` at 34,000 community-submitted skills and 500 new submissions/hour (Rauch, 2026-02-04).
+- **Teresa Torres — the continuous-discovery authority — running Claude Code for PM research, writing and context libraries** (2026-01-19).
+- **Webflow's CPO built an AI chief of staff** for calendar, meeting prep and driving AI adoption (2025-12-29).
+
+**Inference, clearly labelled:** what nobody in ~95 episodes built is the part that persists across sessions and teams — the outcome-labelled record and the forecast. Every workflow above is single-operator, hand-assembled, and dies with its author. That is the same conclusion §4 reaches from the pre-AI baseline, now from the most AI-native source available.
+
+### Two vocabulary items, the freshest in the corpus
+
+- **"intent engineering"** — Grace Clarke, **2026-08-07** (two days before the archive's own cutoff), explicitly replacing "prompt engineering."
+- **"intelligence overhang"** — Claire Vo, 2026-07-24, for model benchmarks plateauing while applied capability lags. A named inflection worth tracking.
+
+---
+
 ## 2. The three theses that must change
 
 ### T2 — "the outcome ledger cannot be backfilled" is our most falsifiable sentence
@@ -220,7 +254,9 @@ So the claim available to us is narrow, specific and verifiable: **the arrow tha
 - **The strongest untested positioning line the corpus offers** (Kazanjy, on sales motions): *"there is no GitHub for sales motions, and so it's in your brain, it's in your documents."* → **"There is no GitHub for product decisions."** Worth testing against our current category line.
 - **Cautionary artifact on the word "inevitable."** The most credentialed, most-endorsed post of its era (2022-02-15, Head of Product at a $10.2B company, endorsed by named people at Aave, OpenSea, Circle, Protocol Labs) told readers web3 was *"risky and inevitable"* and instructed them to buy tokens on FTX. FTX collapsed nine months later. This should change how hard we phrase **"agentic-first or legacy the day it ships."** Our defensible line is that we bet on a bottleneck documented in 2021 *with no AI present*, not on a platform shift.
 - **Conflict-of-interest check required on any Product Pass recommendation:** Lenny is an angel investor in 140+ companies and portfolio tool mentions are only sometimes disclosed.
-- **Newsletter gap closed by hand** for the two highest-value post-cutoff posts. Still unretrieved: Community Wisdom weeklies (the 30k-PM Slack community voice — subscriber-gated) and the **entire *How I AI* show, which is absent from the paid archive**. Both are real remaining gaps.
+- **Newsletter gap closed by hand.** All nine main-feed posts after the 2026-05-05 cutoff accounted for: four mined (the sentiment survey, Matthews, Hudson, Product Pass), five verified as carrying no strategic content (two book lists, a summit promo, a sabbatical piece confirmed to contain zero product/AI material, and a career-emergence essay with no AI content). **Podcasts had no gap** — the archive runs to 2026-08-09.
+- ***How I AI* gap closed by hand** — §1B. ~95 episodes, entirely absent from the paid archive, retrieved from public sources.
+- **One gap remains: Community Wisdom weeklies** (~14 editions), the 30k-PM Slack community voice. **Fully paywalled**; unauthenticated fetch returns only the subscription prompt. Reachable via the founder's own logged-in browser, which he has paid for and the licence permits reading.
 - **Quote integrity:** five archive files are confirmed mis-filed; see [`lennys-quote-verification.md`](./lennys-quote-verification.md). Nothing in this document cites them.
 - **Not yet ruled on by the founder:** category, ICP, and the station model. §2 and §4 make the case; the decision is his.
 
