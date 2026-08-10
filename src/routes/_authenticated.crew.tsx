@@ -397,6 +397,16 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
       All <Num>{all.length}</Num> run without asking you. Nothing has been narrowed here yet.
     </>
   ) : (
+    /* "OF THEM" POINTED AT THE WRONG SET (2026-08-11). This used to end with a
+       parenthetical, "(13 of them on the default policy, never configured
+       here)", and "them" attaches to whichever group was named last. Read
+       straight through, "16 run without asking you, 0 ask first (13 of them on
+       the default policy)" says thirteen of the zero, which is not a number.
+       `onDefaults` is counted against the WHOLE roster, so it now names the
+       whole roster out loud and stands as its own sentence rather than an
+       aside. It is also the most consequential fact on the line: an agent
+       nobody has configured is running on a default, and that deserves better
+       than a bracket. */
     <>
       <Num>{alone}</Num> run without asking you, <Num>{asks}</Num> ask first
       {off > 0 ? (
@@ -404,13 +414,14 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
           , <Num>{off}</Num> are switched off
         </>
       ) : null}
+      .
       {onDefaults > 0 ? (
         <>
           {" "}
-          (<Num>{onDefaults}</Num> of them on the default policy, never configured here)
+          <Num>{onDefaults}</Num> of the <Num>{all.length}</Num> have never been narrowed here, so
+          they run on the default policy.
         </>
       ) : null}
-      .
     </>
   );
 
@@ -418,7 +429,19 @@ function Roster({ onOpen }: { onOpen: (slug: string) => void }) {
     // wide: the roster is a grid, not prose, so it wants the room rather than
     // the 74ch measure.
     <Surface wide>
-      <PageHead title={`${count(all.length)} work here.`} sub={sub} />
+      {/* SAY WHAT SIXTEEN OF. The title read "16 work here.", which omits the
+          noun entirely and leaves the one word a newcomer needs to the page
+          they would have to already understand to be here.
+          `count` returns a number WORD below ten, so the verb has to agree with
+          it: "one agent works here", "sixteen agents work here". */}
+      <PageHead
+        title={
+          all.length === 1
+            ? `${count(1)} agent works here.`
+            : `${count(all.length)} agents work here.`
+        }
+        sub={sub}
+      />
 
       {crew.isError ? (
         <Block>
