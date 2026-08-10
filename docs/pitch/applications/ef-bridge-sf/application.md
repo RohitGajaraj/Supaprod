@@ -3,6 +3,14 @@
 > _Form captured 2026-07-31. Page 1 of 2, "Your Achievements". Questions verbatim._
 > **Deadline 2026-08-30.** Reviewed on a rolling basis, so earlier is better. **Save for later** works, use it.
 
+> ## ✅ Corrected 2026-08-10 — this is the only unsubmitted application in the folder
+>
+> The other three went out on 2026-07-31 and are frozen as archived records. **This one has not been sent, so it is corrected in place** rather than annotated. Three changes:
+>
+> 1. **Numbers re-derived, not copied.** Live tonight: **4,876 commits**, **508 migrations**, **nine weeks** since the first commit on 2026-06-03. The old drafts said 4,297 and eight weeks, which were true on 2026-07-31. Re-derive again the hour you submit: `git rev-list --count origin/main`.
+> 2. **The "most important problem" answer now says the true thing about what cannot be rebuilt.** It used to lean on the record being hard to copy. That is false: the reasons behind a decision survive in Slack threads and call recordings, and someone rebuilt a year of them with an agent he made in two days. What nobody can rebuild is what a team expected *before* the outcome landed, because almost nobody writes that down.
+> 3. **Nothing else moved.** EF is buying the person, not the company, so the product claims here are deliberately thin and stay that way.
+
 > ## ⛔ Two constraints that shape everything
 >
 > **1. Every field is capped at 100 words.** The counter reads "100 of 100 left". Every answer below is counted and under. Verify the counter treats them as words, not characters, the first time you paste; if it is characters these all need rewriting and I will do it.
@@ -38,7 +46,7 @@ The last two years I taught myself to build. I went from writing specs and waiti
 > _"What was your role and contribution? Why was it technically impressive?"_
 
 ```text
-Supaprod, which I am building now. It tells a product team what to build, builds it, and grades whether the call was right. Eight weeks, alone, 4,297 commits directed and reviewed.
+Supaprod, which I am building now. It tells a product team what to build, builds it, and grades whether the call was right. Nine weeks, alone, 4,876 commits directed and reviewed.
 
 The interesting part is the governance layer. Every AI call routes through one runtime chokepoint carrying budget, guardrails, tracing and fallback, so the system is model-agnostic and every agent action produces a receipt by construction rather than by instrumentation. Agents earn autonomy from their own track record, with floors on merge, revert and delegate they never cross.
 
@@ -90,7 +98,7 @@ An earlier venture of mine was incubated at NSRCEL, the entrepreneurship centre 
 
 My MBA thesis at the Technical University of Munich examined the creator and ownership economy in Web3.
 
-I have not competed in programming contests or published papers, and I would rather say so than stretch. What I have instead is a shipping record: 401 features specced and 362 shipped in eight weeks, independently audited against the actual codebase.
+I have not competed in programming contests or published papers, and I would rather say so than stretch. What I have instead is a shipping record: 401 features specced and 362 shipped in nine weeks, independently audited against the actual codebase.
 ```
 
 ## Have you ever started a business before? *
@@ -128,12 +136,16 @@ Once inside I used it: I led product requirements across three satellite communi
 ## What do you think is the most undervalued commercial opportunity or most important problem to work on in the next 10 years? *
 
 ```text
-Knowing what to build, and being able to prove afterwards that the call was right.
+Knowing what to build, and being able to defend the call afterwards.
 
-Everyone is automating execution, because it is visible and it demos well. But nobody was ever short of things to build. They were short of knowing which ones mattered. Now that agents build anything you point them at, teams can ship ten times more and be wrong ten times faster.
+Everyone is automating execution, because it demos well. But nobody was ever short of things to build. They were short of knowing which ones mattered. Agents will build anything you point them at, so teams ship ten times more and are wrong ten times faster.
 
-That layer stays scarce because it has no fast feedback. Code has a compiler; product judgment does not. You find out in six weeks. Which is exactly why almost nobody is working on it.
+It stays scarce because there is no fast feedback. Code has a compiler; product judgment does not. You find out in six weeks. And almost nobody writes down what they expected before then, so there is nothing to go back to.
 ```
+
+> **Changed 2026-08-10, and this is the one answer that needed it.** The old close was _"Which is exactly why almost nobody is working on it"_ — true, but it left the hard question unanswered: if this is so valuable, why can't someone catch up fast? The old answer elsewhere in the folder was that the record is slow to accumulate and hard to copy. **That is false and a partner who tests it will find it false.** The reasons behind a decision survive in Slack threads and call recordings, and someone rebuilt a year of them with an agent he made in two days. The thing that genuinely does not survive is what a team expected *before* the outcome landed — almost nobody writes that down, so there is nothing to mine later. The new close says exactly that in plain words and makes no claim about copying, accumulating or being bolted on.
+>
+> **98 words**, verified against the 100-word cap. If you edit it, recount.
 
 ## Do you have domain expertise or unusually high access / network to a field? *
 
@@ -143,7 +155,7 @@ That layer stays scarce because it has no fast feedback. Code has a compiler; pr
 ```text
 Three things I know from doing rather than reading.
 
-What it is actually like to be the single human in the loop. Eight weeks directing an agent fleet against a production codebase, including the failure: I approved everything until I became the bottleneck I built the system to remove. Very few people have run that experiment on themselves yet.
+What it is actually like to be the single human in the loop. Nine weeks directing an agent fleet against a production codebase, including the failure: I approved everything until I became the bottleneck I built the system to remove. Very few people have run that experiment on themselves yet.
 
 How AI behaves in regulated production, from three years shipping it into banking where a name sits on every outcome.
 

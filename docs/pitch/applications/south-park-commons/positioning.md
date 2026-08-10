@@ -55,7 +55,7 @@ SPC's selection frame, from their own guidance:
 
 | SPC criterion | The evidence |
 | --- | --- |
-| Ships when nobody is paying him | Supaprod is 4,264 commits in eight weeks, unpaid, while employed. This is the literal definition of their bar. |
+| Ships when nobody is paying him | Supaprod is 4,876 commits in nine weeks, unpaid, while employed. This is the literal definition of their bar. _(Re-derived 2026-08-10; the filed answers say 4,297 in eight weeks, which was true on 2026-07-31.)_ |
 | **Acceleration** | Two years ago: a product manager inside someone else's company. Today: directing a fleet of agents that ship production code. That delta is the answer to their most-weighted question, and it is measurable. |
 | Deep domain expertise | A decade of the exact pain, across ISRO, Infineon and Intellect. |
 | Curiosity across fields | Mechatronics, satellite communications, semiconductors, banking AI, an MBA thesis on Web3 ownership economies, and a bubble tea venture. That is a genuinely unusual range and SPC rewards it where a traditional VC would call it unfocused. |

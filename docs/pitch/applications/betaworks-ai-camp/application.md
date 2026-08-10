@@ -7,6 +7,50 @@
 >
 > _Archived record of what was sent. Do not edit; copy this file if a later cycle needs a new draft, because any interview will be against these answers._
 
+---
+
+## ⚠️ Read this before the interview — corrected 2026-08-10
+
+**The answers below stay exactly as filed. They were sent; the interview runs against them; changing them would leave you arguing with a document the partner does not have.** But a full read of the market falsified four things in them. **Do not repeat these in a call.** Here is what was sent, what turned out to be wrong, and what to say instead.
+
+### 1. The moat claim, and it is in your single most important answer
+
+The thesis question — the one this file calls "the question that decides the application" — closes on **"the one asset a better model cannot generate for you afterward."** The competitors answer says the same thing twice more: **"it cannot be bolted onto a tracker, and it cannot be copied quickly because it only accumulates with time."**
+
+**That is false, and a partner who tests it will find it false.** The reasons behind a decision survive. They sit in Slack threads and call recordings, and someone rebuilt a year of them with an agent he made in two days. A better model can absolutely generate that record for you afterward.
+
+**What is actually true, and it is a better answer:**
+
+> The record can be rebuilt. What cannot be rebuilt is what a team expected *before* the outcome landed. Almost nobody writes that down, so there is nothing to go back to. We catch it at the moment of the call, which is the only time it exists.
+
+Say it that way if the moat comes up. It concedes the part that is weak and keeps the part that survives being checked.
+
+### 2. "It learns" — say when
+
+The product answer says every decision is stored with its evidence and its result "so the next similar call arrives with a record attached." Present tense. **It has no history yet.** First-pass acceptance only began capturing on 2026-08-10.
+
+**Say:** the loop is wired and proven end to end, and it starts accruing on first real use. That survives a query against the database. "We learn from your corrections" does not.
+
+**This application has no honest-empty beat anywhere in it** — the Residency and SPC drafts both have one and this one does not. If they ask about traction, volunteer it rather than waiting.
+
+### 3. The chain is not unbroken
+
+The product answer reads as one clean run: reads signals, tells you what to build, writes the spec, builds it, ships, checks the outcome. **It is broken in two places.** Discover promotes 3 of 86 themes, and Build writes no changeset and no deployment links.
+
+**Say:** the decide-and-learn half is real and always has been. The build-to-ship hops began writing this week and accrue after deploy. **And do not walk the full station demo on a live account** — that path crosses exactly the broken region.
+
+### 4. The competitor is a folder, not the stitched stack
+
+Both competitor answers aim at Linear, Jira, Notion and ChatPRD. The real objection you will get is simpler: *why not just use a folder of notes, since agents drive simple tools better anyway?*
+
+**Say:** simple files are easy for an agent to write and impossible for an agent to govern. A folder works fine for one person. It stops working at the second person, or the first fleet of agents. That is where we sell.
+
+### Numbers
+
+Live on 2026-08-10: **4,876 commits**, **508 migrations**, **nine weeks** since the first commit on 2026-06-03. The answers below say eight weeks and 4,264, which were true on 2026-07-31 and are left as filed. **If you quote a number in the interview, quote tonight's.**
+
+---
+
 > _Form captured live 2026-07-31 from the real Airtable. Questions verbatim._
 > **Apply at: https://beta.works/newagenteconomy** (redirects to `airtable.com/applpdBupWZjiAeAH/shrIFqK4liewlonl5`)
 > Questions to `analisa@betaworks.com`.
@@ -82,6 +126,10 @@ loop is tightest. It generalizes from there to any function where agents act
 and a human still answers for it.
 ```
 
+> 🔴 **Two corrections — see §2 and §3 of the correction block at the top.**
+> **"Every decision is stored… so the next similar call arrives with a record attached"** is present tense and there is no history behind it yet. Capture began 2026-08-10. Say *wired and proven, and it starts accruing on first real use.*
+> **And the run described here is not unbroken.** Discover promotes 3 of 86 themes and Build writes no changeset or deployment links. The decide-and-learn half is real; the build-to-ship hops began writing this week.
+
 ### What stage are you at? *
 ```
 SELECT: Live product
@@ -98,6 +146,8 @@ decided, and the record of which calls were made, on what evidence, and
 whether they paid off is the one asset a better model cannot generate for you
 afterward.
 ```
+
+> 🔴 **Falsified 2026-08-10 — see §1 of the correction block at the top.** "A better model cannot generate for you afterward" is not true of the record; the reasons survive in Slack and call recordings and have been rebuilt with a two-day agent. It **is** true of the forecast: what the team expected before the outcome landed. Left as sent, but do not say this sentence out loud.
 
 ### Link to a live product or demo for us to play with.
 ```
@@ -221,6 +271,10 @@ models keep absorbing it. I own the harness instead: the loop, the gates, the
 receipts, the rollback, the outcome feed. The best model plugs into every job
 in the lifecycle. When a better one ships, Supaprod gets better the same day.
 ```
+
+> 🔴 **Two corrections here, both 2026-08-10 — see §1 and §4 of the correction block at the top.**
+> **"Cannot be bolted onto a tracker… cannot be copied quickly… only accumulates with time"** is the retired moat claim in its most quotable form. The record is rebuildable. Only the forecast is not.
+> **And the competitor is wrong.** This answer aims at Linear, Jira, Notion and ChatPRD. The objection you will actually get is *"why not a folder of notes, since agents drive simple tools better?"* Answer: simple files are easy for an agent to write and impossible for an agent to govern. A folder works for one person and stops at the second person or the first fleet of agents.
 
 ### What is another startup or founder that you admire? Tell us why. *
 > _"Help us get a sense of your perspective and taste."_

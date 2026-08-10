@@ -21,13 +21,26 @@
 
 **Sweep by the CLAIM, not the phrase.** One assertion travels under at least seven wordings. Grep all of them:
 
-`backfilled` · `bolted on` · `bought` · `copied quickly` · `recovered after the fact` · `only accumulates with time` · `starts at zero`
+`backfilled` · `bolted on` · `bought` · `copied quickly` · `recovered after the fact` · `only accumulates with time` · `starts at zero` · **`cannot generate for you afterward`**
+
+> **The eighth wording was found on 2026-08-10 and it was hiding in the highest-stakes sentence we own.** *"That record is the one thing a better model cannot generate for you afterward"* is the retired claim with every banned word removed — no "backfill", no "copy", no "accumulate" — which is exactly why six sweeps walked past it. It sat in the Betaworks thesis answer (the field that file itself calls "the question that decides the application") and in SPC's Q13 close. **A sweep that greps only for the words a claim used last time will keep missing the claim.** Read the sentence that says why a competitor cannot catch up, wherever it appears, and check it against §4 of the canon.
 
 This rule was learned the hard way — the same claim escaped six separate sweeps in one day.
 
 **Two of those phrases are on the list deliberately even though they are not banned.** *"Starts at zero"* is currently **live and correct** on the landing page (*"a competitor starting next year starts at zero, next year"*) because it is a claim about calendar accrual, which the evidence never touched. It stays on the grep list precisely so a sweep flags it and forces a re-read. **A phrase list containing only banned wording cannot tell you "we fixed this here" apart from "we never had it here"** — and that distinction is the whole point of the sweep. _(Both additions are the UI/UX lane's, 2026-08-10.)_
 
-**Files still carrying retired language as of this writing** (the shared [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) are corrected; these inherit from older copies and need a pass before submission): [`betaworks-ai-camp/`](./betaworks-ai-camp/), [`the-residency/`](./the-residency/). Check [`ef-bridge-sf/`](./ef-bridge-sf/) and [`south-park-commons/`](./south-park-commons/) before sending either.
+**Status of the four programme folders, swept 2026-08-10:**
+
+| Folder | Sent? | What was done |
+| --- | --- | --- |
+| [`ef-bridge-sf/`](./ef-bridge-sf/) | **No — due 2026-08-30** | **Corrected in place.** Numbers re-derived, and the "most important problem" answer now says the true thing about what cannot be rebuilt. Ready to send. |
+| [`betaworks-ai-camp/`](./betaworks-ai-camp/) | Yes, 2026-07-31 | Answers left as filed. **Interview correction block added at the top of both files** — four claims to not repeat, with the replacement for each. |
+| [`the-residency/`](./the-residency/) | Yes, 2026-07-31 | Same. Decisions by 2026-08-28. Includes the dogfooding line, which is the one that would actually cost us. |
+| [`south-park-commons/`](./south-park-commons/) | Yes, 2026-07-31 | Same. Invitations by 2026-08-30. |
+
+**Why the three submitted ones were annotated rather than rewritten.** Each carries its own rule — *"archived record of what was sent, do not edit, because any interview will be against these answers."* That rule is right. Rewriting the filed answers would leave the founder arguing against a document the partner is holding and cannot see. **So the sent text stands and the correction sits above it**, which is what an interview actually needs: what you said, what turned out to be wrong, and the better sentence to say instead.
+
+⚠️ **Still stale, and not in scope for the 2026-08-10 sweep:** [`answer-bank.md`](./answer-bank.md) and [`positioning-doctrine.md`](./positioning-doctrine.md) are corrected on *language* but still carry **4,264 commits, 410 migrations and eight weeks**. Live is **4,876 / 508 / nine weeks**. Every future application pulls from the answer bank, so fix the numbers there before drafting the next one.
 
 ## How this folder works
 
