@@ -98,9 +98,7 @@ describe("every ledger hop the product claims has code that writes it", () => {
     const registry = codeOf(
       readFileSync(join(SRC, "lib", "ai", "tools", "registry.server.ts"), "utf8"),
     );
-    const deployments = codeOf(
-      readFileSync(join(SRC, "lib", "deployments.functions.ts"), "utf8"),
-    );
+    const deployments = codeOf(readFileSync(join(SRC, "lib", "deployments.functions.ts"), "utf8"));
     expect(registry).toContain('child_kind: "changeset"');
     expect(deployments).toContain('child_kind: "deployment"');
   });
@@ -117,9 +115,7 @@ describe("every ledger hop the product claims has code that writes it", () => {
     const changesetEdge = registry.slice(registry.indexOf('child_kind: "changeset"'));
     expect(changesetEdge.slice(0, 400)).toMatch(/workspace_id:/);
 
-    const deployments = codeOf(
-      readFileSync(join(SRC, "lib", "deployments.functions.ts"), "utf8"),
-    );
+    const deployments = codeOf(readFileSync(join(SRC, "lib", "deployments.functions.ts"), "utf8"));
     const deploymentEdge = deployments.slice(deployments.indexOf('child_kind: "deployment"'));
     expect(deploymentEdge.slice(0, 400)).toMatch(/workspace_id:/);
   });

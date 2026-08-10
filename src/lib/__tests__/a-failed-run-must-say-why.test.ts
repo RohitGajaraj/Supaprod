@@ -32,10 +32,7 @@ function codeOf(src: string): string {
 /** Files that mark an agent_runs row failed. Named explicitly so adding a new
  *  one is a deliberate act that shows up in review, rather than a file this
  *  guard silently never looked at. */
-const FAILURE_WRITERS = [
-  join("lib", "ai", "loop.server.ts"),
-  join("lib", "agents.functions.ts"),
-];
+const FAILURE_WRITERS = [join("lib", "ai", "loop.server.ts"), join("lib", "agents.functions.ts")];
 
 describe("a run that failed records what kind of failure it was", () => {
   for (const rel of FAILURE_WRITERS) {
@@ -70,9 +67,7 @@ describe("a run that failed records what kind of failure it was", () => {
     // category nobody can act on.
     for (const rel of FAILURE_WRITERS) {
       const code = codeOf(readFileSync(join(SRC, rel), "utf8"));
-      expect(code, `${rel} does not import the shared classifier`).toContain(
-        "classifyFailureCode",
-      );
+      expect(code, `${rel} does not import the shared classifier`).toContain("classifyFailureCode");
     }
   });
 });

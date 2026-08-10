@@ -992,9 +992,7 @@ export type CompoundingResult = {
 export const getCompounding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i: unknown) =>
-    z
-      .object({ workspaceId: z.string().uuid().optional() })
-      .parse(i ?? {}),
+    z.object({ workspaceId: z.string().uuid().optional() }).parse(i ?? {}),
   )
   .handler(async ({ context, data: input }): Promise<CompoundingResult> => {
     const db = context.supabase as unknown as SupabaseClient;
