@@ -103,7 +103,7 @@
 **"If this fails in six months, why?"**
 "PMs agree with the thesis but don't change their daily habit. That's the honest risk. It's why the wedge is a question they already ask every week, why week-2 return is my north-star metric, and why beta users onboard with their real product, not a sandbox."
 
-## 4. The twelve brutal ones (sourced to real objections — full citations in research-findings.md §3)
+## 4. The thirteen brutal ones (sourced to real objections — full citations in research-findings.md §3)
 
 1. **"You've had a working product for weeks and zero users. Why haven't you launched?"**
    "Fair — I over-built before opening the doors. I caught it and reorganized the whole company around launch. [True state: 'It's public since [date]' / 'Beta is live and the public listing ships within days — it's written.']"
@@ -140,6 +140,11 @@
 
 12. **"What exact number do you show at Demo Day in December?"**
     "[X] teams running their product on Supaprod weekly, [Y]% week-2 return, and the first paying workspaces. Those are the three numbers on my wall."
+
+13. **"Your application says 1.2 humans plus 20 agents equals 10-human output. Where's that from?"** — _added 2026-08-10; a partner may quote §9c back at you from the version submitted before the correction._
+    **Do not defend the old sentence.** It fused two unrelated facts and the honest answer is stronger:
+    "That line was sloppy and I've corrected it. It welded a sales-team automation number onto a product-org structure — two different companies, two different functions. What I actually stand on is Mosseri, July 2026: Instagram replaced its roughly thirteen-person canonical team with pods of four to six engineers led by a new role they call *product staff* — one PM absorbing design, data and research. That seat is my buyer. One person is now accountable for calls that used to be split across five specialists, and that seat has no system of record. I checked it against the primary transcript myself, which is how I found the error."
+    **Why this wins the exchange:** it converts a caught overclaim into a demonstration of the exact discipline the product sells — a claim checked against its evidence and corrected. Never volunteer it; it is a fallback, not an opener. Full audit: [`../../research/lennys-quote-verification.md`](../../research/lennys-quote-verification.md).
 
 ## 5. Between application and interview (the slope play)
 

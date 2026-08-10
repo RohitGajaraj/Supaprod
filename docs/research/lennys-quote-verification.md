@@ -45,7 +45,7 @@ Corpus-wide, the signature phrases — `high attribution and high autonomy`, `la
 
 ## The archive has a systematic mis-filing defect — register
 
-What began as two isolated cases is a pattern. **Five files are confirmed to carry a correct title and date over a transcript of a different conversation**, found by five independent readers plus two detectors. It runs in **both directions**, so "the body is older than the title" is not the rule.
+What began as two isolated cases is a pattern. **Nine files are confirmed to carry a correct title and date over a transcript of a different conversation**, found by independent readers plus two detectors. It runs in **both directions**, so "the body is older than the title" is not the rule.
 
 | File | Frontmatter says | Body actually is | Found by |
 | --- | --- | --- | --- |
@@ -54,6 +54,14 @@ What began as two isolated cases is a pattern. **Five files are confirmed to car
 | `shreyas-doshi.md` | "4 questions… sooner", 2024-10-31 | The **earlier** Shreyas episode (five big ideas, pre-mortems, LNO) | independent reader |
 | `brian-balfour.md` | "10 lessons on career, growth, and life", 2023-10-05 | A **later** episode — names Reforge Insights, Windsurf, Cursor, Krieger | independent reader + date probe |
 | `wes-kao.md` | Communication frameworks, 2025-04-06 | An **earlier** episode — 2022 sponsor reads, zero AI terms | independent reader + AI-density test |
+| `elena-verna-30.md` | 2022 title/date | A **≥2024** conversation — references X (not Twitter), AI search interfaces | independent reader |
+| `melissa-perri.md` | 2022 title/date | A **≥2024** conversation — cites her 2024 book *Product Operations*, Capital One's agile-role cuts, SAFe v6 | independent reader |
+| `deb-liu.md` | 2022 title/date | A **≥2024** conversation — "CEO of Ancestry for the past three and a half years", Threads, *Fallout* | independent reader |
+| `max-schoenig.md` | **`date: "0000-00-00"`** | A **2026** episode with Max Schoening (Head of Product, Notion) — Claude Code, Codex, agent harnesses | independent reader |
+
+`max-schoenig.md` is the worst of the set: its **null date sorted a 2026 agent-era episode into the 2019–2021 baseline slice**, where it would have inverted the era conclusion had the reader not caught it. Any process that sorts or filters this corpus by `date` must handle the null case explicitly.
+
+**Also material:** podcast `date` fields are **publish** dates that lag recording by ~4–6 weeks (evidenced twice: a 2024-05-02 episode calls Kahneman's 2024-03-27 death "about a week ago"; a 2024-05-16 episode refers to an 2024-04-11 episode as "earlier this week"). **Date every podcast claim ~1 month older than its metadata.**
 
 **Secondary integrity issues** (not mis-files, but they corrupt evidence):
 - **Speaker labels are corrupted** in several long transcripts — guest monologues tagged `**Lenny Rachitsky**`. Attribute by content, never by label alone.

@@ -1056,6 +1056,31 @@ are the biggest outcomes in software. Pricing gets its first real test in beta
 this month.
 ```
 
+> ## ⚠️ 9c CARRIES AN UNSUPPORTED CLAIM — PASTE THE CORRECTED PARAGRAPH BELOW
+>
+> _Lane 0 quote audit, 2026-08-10, against the paid Lenny archive (679 documents). The founder confirmed the portal field is editable._
+>
+> **What is wrong with the second paragraph above, in three parts:**
+>
+> 1. **Mosseri never says "agents."** Verified verbatim, his pods are *"four to six engineers"* plus *"one, we call product staff"* plus whatever specialist the work needs — *"a much smaller core, which is more on the order of six or seven."* He says "agents" **once** in the whole episode and never "fleet." He also partly credits team size, not agent leverage: *"another part of it is just the small teams, I think, often are just more effective."*
+> 2. **The Lemkin arithmetic is uncorroborated and from the wrong function.** It describes a **sales/GTM** team, not a product pod. Worse, the archive's transcript filed under that episode's exact title and date is a **different conversation entirely** — "1.2 humans," "20 agents" and "Amelia" appear **nowhere in all 679 documents**.
+> 3. **The two were spliced.** "One PM directing 20 agents across a 4–6 person pod" is a sentence **neither source states**, presented with both their names attached. This is the one claim in the application a partner is most likely to pull on, and it would not survive the pull.
+>
+> **Paste this in place of the second paragraph. Every number is verified verbatim, and the argument gets stronger — the mechanism becomes accountability concentrating into one seat with no system of record, which needs no borrowed arithmetic:**
+>
+> ```
+> How big: every company that builds software is converging on one shape.
+> Instagram replaced its ~13-person canonical team with pods of four to six
+> engineers led by a new role it calls product staff — a PM who absorbs design,
+> data and research (Mosseri, July 2026). That seat is our buyer. One person is
+> now accountable for calls that used to be split across five specialists, and
+> that seat has no system of record. Supaprod is the operating system it runs
+> on. Systems of record are the biggest outcomes in software. Pricing gets its
+> first real test in beta this month.
+> ```
+>
+> Full audit and the verification method: [`../../research/lennys-quote-verification.md`](../../research/lennys-quote-verification.md). Interview fallback if a partner quotes the old text back: §4 of [`interview-prep.md`](./interview-prep.md).
+
 ### 9d. "If you had any other ideas you considered applying with, please list them."
 
 **Previous:** "This is the one. The closest was the earlier dashboard version that became Cadence. I am building what I kept wishing existed." — **KEEP the substance, update the name:** "This is the one. The closest was the earlier dashboard version that became Supaprod. I am building what I kept wishing existed."

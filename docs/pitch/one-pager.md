@@ -54,7 +54,8 @@ PM software ~$8B (2026) + AI dev-agents ~$10–11B → ~$18B combined, ~$40–50
 - **"Cursor for product managers — except it also proves which decisions were right."**
 - "Every engineer got an AI pair. The person deciding what they build got a chatbot. We fixed that."
 - "An AI product team you can actually hold accountable."
-- **"The product-staff seat. One PM directing a fleet of 20 agents across a 4–6 person pod (Mosseri). 1.2 humans + 20 agents = 10-human output (Lemkin). Supaprod is the console for the product-staff seat."** [RPT-35]
+- **"The product-staff seat. Instagram replaced its ~13-person canonical team with pods of four to six engineers led by a new role it calls _product staff_ — one PM absorbing design, data and research (Mosseri, 2026-07-09). Supaprod is the console for that seat."** [RPT-35]
+  > _Corrected 2026-08-10 (Lane 0 quote audit). The prior version read "One PM directing a fleet of 20 agents across a 4–6 person pod (Mosseri). 1.2 humans + 20 agents = 10-human output (Lemkin)." **Mosseri never says "agents"** — his pod is four to six *engineers* plus a product staff, a core of "six or seven," and he partly credits smaller teams rather than agent leverage. The Lemkin arithmetic describes a **sales/GTM** function, not a product pod, and could not be corroborated anywhere in the 679-document paid archive. The two were spliced into a sentence neither source states. Only Mosseri survives, and he is verified verbatim. Full audit: [`../research/lennys-quote-verification.md`](../research/lennys-quote-verification.md)._
 - "Your product org, running itself — with a ledger that proves what worked."
 
 **The original bank:**
